@@ -24,8 +24,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import (PolynomialRing, ZZ, QQ,
-                            is_RealField, is_RingHomomorphism)
+from sage.rings.all import (PolynomialRing, ZZ, QQ)
+
+from sage.rings.morphism import is_RingHomomorphism
+from sage.rings.real_mpfr import is_RealField
+
 from sage.structure.sequence import Sequence
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.matrix.constructor import Matrix

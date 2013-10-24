@@ -47,8 +47,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-
-from sage.rings.all import ZZ, is_Integer, is_Ring
+from sage.rings.all import ZZ
+from sage.rings.integer import is_Integer
+from sage.rings.ring import is_Ring
 from sage.rings.finite_rings.constructor import is_FiniteField
 from sage.interfaces.gap import gap
 from sage.matrix.all import MatrixSpace, is_MatrixSpace, is_Matrix

@@ -279,22 +279,18 @@ class FourTi2(object):
         EXAMPLES::
 
             sage: from sage.interfaces.four_ti_2 import four_ti_2
-            sage: four_ti_2.write_matrix([[6,10,15]], "test_file.mat")
-            sage: four_ti_2.call("groebner", "test_file", false) # optional - 4ti2
+            sage: four_ti_2.write_matrix([[6,10,15]], "test_file")
+            sage: four_ti_2.call("groebner", "test_file", False) # optional - 4ti2
             sage: four_ti_2.read_matrix("test_file.gro") # optional - 4ti2
             [-5  0  2]
             [-5  3  0]
         """
         import subprocess
-        cwd = os.getcwd() # Save working directory in order to restore it.
-        os.chdir(self.directory())
 
         cmd = '%s %s'%(command, project)
         if verbose is False:
             cmd += " > /dev/null 2> /dev/null"
-        subprocess.call(cmd, shell=True)
-
-        os.chdir(cwd) # Restore previous working directory.
+        subprocess.call(cmd, shell=True, cwd=self.directory())
 
     def zsolve(self, mat=None, rel=None, rhs=None, sign=None, project=None):
         r"""
@@ -318,7 +314,7 @@ class FourTi2(object):
             ]
         """
         project = self._process_input(locals())
-        self.call('zsolve', project)
+        self.call('zsolve -q', project)
         return [self.read_matrix(project+'.'+ext) for ext in
                 ['zinhom', 'zhom', 'zfree']]
 
@@ -335,7 +331,7 @@ class FourTi2(object):
             [[], [ 1 -2  1]]
         """
         project = self._process_input(locals())
-        self.call('qsolve -parbitrary', project)
+        self.call('qsolve -q -parbitrary', project)
         return [self.read_matrix(project+'.'+ext) for ext in
                 ['qhom', 'qfree']]
 
@@ -354,7 +350,7 @@ class FourTi2(object):
             [2 0 1 0 1 2 1 2 0]
         """
         project = self._process_input(locals())
-        self.call('rays -parbitrary', project)
+        self.call('rays -q -parbitrary', project)
         return self.read_matrix(project+'.ray')
 
     def hilbert(self, mat=None, project=None):
@@ -373,7 +369,7 @@ class FourTi2(object):
             [1 1 1 1 1 1 1 1 1]
         """
         project = self._process_input(locals())
-        self.call('hilbert', project)
+        self.call('hilbert -q', project)
         return self.read_matrix(project+'.hil')
 
     def graver(self, mat=None, project=None):
@@ -393,7 +389,7 @@ class FourTi2(object):
 
         """
         project = self._process_input(locals())
-        self.call('graver', project)
+        self.call('graver -q', project)
         return self.read_matrix(project+'.gra')
 
     def ppi(self, n):
@@ -412,7 +408,7 @@ class FourTi2(object):
             [ 1 -2  1]
 
         """
-        self.call('ppi', n)
+        self.call('ppi 2> /dev/null', n)
         return self.read_matrix('ppi%s.gra'%n)
 
     def circuits(self, mat=None, project=None):
@@ -429,7 +425,7 @@ class FourTi2(object):
             [ 3  0 -1]
         """
         project = self._process_input(locals())
-        self.call('circuits -parbitrary', project)
+        self.call('circuits -q -parbitrary', project)
         return self.read_matrix(project+'.cir')
 
     def minimize(self, mat=None):
@@ -463,7 +459,7 @@ class FourTi2(object):
             [-5  3  0]
         """
         project = self._process_input(locals())
-        self.call('groebner -parbitrary', project)
+        self.call('groebner -q -parbitrary', project)
         return self.read_matrix(project+'.gro')
 
     def _magic3x3(self):

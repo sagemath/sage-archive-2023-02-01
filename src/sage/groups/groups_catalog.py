@@ -44,6 +44,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
   - :func:`groups.presentation.Cyclic <sage.groups.finitely_presented_named.CyclicPresentation>`
   - :func:`groups.presentation.Dihedral <sage.groups.finitely_presented_named.DihedralPresentation>`
   - :func:`groups.presentation.DiCyclic <sage.groups.finitely_presented_named.DiCyclicPresentation>`
+  - :func:`groups.presentation.FGAbelian <sage.groups.finitely_presented_named.FinitelyGeneratedAbelianPresentation>`
   - :func:`groups.presentation.KleinFour <sage.groups.finitely_presented_named.KleinFourPresentation>`
 
 - Miscellaneous Groups (``groups.misc.<tab>``)

@@ -25,6 +25,16 @@ AUTHORS:
 
 
 import sage.rings.all as rings
+
+from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
+from sage.rings.rational_field import is_RationalField
+from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.number_field.number_field import is_NumberField
+from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
+from sage.rings.ring import is_Ring
+from sage.rings.ring_element import is_RingElement
+
 from sage.categories.fields import Fields
 _Fields = Fields()
 
@@ -282,7 +292,7 @@ def EllipticCurve(x=None, y=None, j=None, minimal_twist=True):
 
     if j is not None:
         if not x is None:
-            if rings.is_Ring(x):
+            if is_Ring(x):
                 try:
                     j = x(j)
                 except (ZeroDivisionError, ValueError, TypeError):
@@ -300,20 +310,20 @@ def EllipticCurve(x=None, y=None, j=None, minimal_twist=True):
     if parent(x) is SR:
         x = x._polynomial_(rings.QQ['x', 'y'])
 
-    if rings.is_MPolynomial(x):
+    if is_MPolynomial(x):
         if y is None:
             return EllipticCurve_from_Weierstrass_polynomial(x)
         else:
             return EllipticCurve_from_cubic(x, y, morphism=False)
 
-    if rings.is_Ring(x):
-        if rings.is_RationalField(x):
+    if is_Ring(x):
+        if is_RationalField(x):
             return ell_rational_field.EllipticCurve_rational_field(x, y)
-        elif rings.is_FiniteField(x) or (rings.is_IntegerModRing(x) and x.characteristic().is_prime()):
+        elif is_FiniteField(x) or (is_IntegerModRing(x) and x.characteristic().is_prime()):
             return ell_finite_field.EllipticCurve_finite_field(x, y)
         elif rings.is_pAdicField(x):
             return ell_padic_field.EllipticCurve_padic_field(x, y)
-        elif rings.is_NumberField(x):
+        elif is_NumberField(x):
             return ell_number_field.EllipticCurve_number_field(x, y)
         elif x in _Fields:
             return ell_field.EllipticCurve_field(x, y)
@@ -325,7 +335,7 @@ def EllipticCurve(x=None, y=None, j=None, minimal_twist=True):
     if isinstance(x, basestring):
         return ell_rational_field.EllipticCurve_rational_field(x)
 
-    if rings.is_RingElement(x) and y is None:
+    if is_RingElement(x) and y is None:
         raise TypeError, "invalid input to EllipticCurve constructor"
 
     if not isinstance(x, (list, tuple)):
@@ -339,13 +349,13 @@ def EllipticCurve(x=None, y=None, j=None, minimal_twist=True):
     if isinstance(x[0], (rings.Rational, rings.Integer, int, long)):
         return ell_rational_field.EllipticCurve_rational_field(x, y)
 
-    elif rings.is_NumberField(R):
+    elif is_NumberField(R):
         return ell_number_field.EllipticCurve_number_field(x, y)
 
     elif rings.is_pAdicField(R):
         return ell_padic_field.EllipticCurve_padic_field(x, y)
 
-    elif rings.is_FiniteField(R) or (rings.is_IntegerModRing(R) and R.characteristic().is_prime()):
+    elif is_FiniteField(R) or (is_IntegerModRing(R) and R.characteristic().is_prime()):
         return ell_finite_field.EllipticCurve_finite_field(x, y)
 
     elif R in _Fields:
@@ -717,7 +727,7 @@ def EllipticCurve_from_cubic(F, P, morphism=True):
 
     # check the input
     R = F.parent()
-    if not rings.is_MPolynomialRing(R):
+    if not is_MPolynomialRing(R):
         raise TypeError('equation must be a polynomial')
     if R.ngens() != 3:
         raise TypeError('equation must be a polynomial in three variables')
@@ -854,7 +864,7 @@ def chord_and_tangent(F, P):
     """
     # check the input
     R = F.parent()
-    if not rings.is_MPolynomialRing(R):
+    if not is_MPolynomialRing(R):
         raise TypeError('equation must be a polynomial')
     if R.ngens() != 3:
         raise TypeError('%s is not a polynomial in three variables'%F)

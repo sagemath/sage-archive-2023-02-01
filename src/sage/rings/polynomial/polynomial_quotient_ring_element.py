@@ -130,7 +130,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
                 raise TypeError, "polynomial must be in the polynomial ring of the parent"
 
         f = parent.modulus()
-        if polynomial.degree() >= f.degree():
+        if polynomial.degree() >= f.degree() and polynomial.degree() >= 0:
             try:
                 polynomial %= f
             except AttributeError:

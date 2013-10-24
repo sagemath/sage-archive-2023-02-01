@@ -44,6 +44,12 @@ class FiniteFieldHomset(RingHomset_generic):
     """
     Set of homomorphisms with domain a given finite field.
     """
+#     def __init__(self, R, S, category=None):
+#         if category is None:
+#             from sage.categories.finite_fields import FiniteFields
+#             category = FiniteFields()
+#         RingHomset_generic.__init__(self, R, S, category)
+
     def __call__(self, im_gens, check=True):
         """
         Construct the homomorphism defined by ``im_gens``.

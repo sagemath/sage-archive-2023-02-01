@@ -95,6 +95,11 @@ The package can be configured via three environment variables:
 
 == ChangeLog ==
 
+=== atlas-3.10.1.p6, lapack-3.4.2 (Volker Braun, 11 October 2013) ===
+ * Trac #15270: Do not give up if the upstream shared library build
+   fails
+ * Solaris / ZFS fixes
+
 === atlas-3.10.1.p5, lapack-3.4.2 (Volker Braun, 30 August 2013) ===
  * Trac #15045: Another workaround for shared library bug that does
    not involve static libraries

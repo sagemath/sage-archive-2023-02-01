@@ -349,50 +349,12 @@ class FiniteField_givaro(FiniteField):
             sage: k(48771/1225)
             28
 
-            sage: from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
-            sage: F9 = FiniteField_givaro(9)
-            sage: F81 = FiniteField_givaro(81)
+            sage: F9 = FiniteField(9, impl='givaro', conway=True, prefix='a')
+            sage: F81 = FiniteField(81, impl='givaro', conway=True, prefix='a')
             sage: F81(F9.gen())
-            Traceback (most recent call last):
-            ...
-            TypeError: unable to coerce from a finite field other than the prime subfield
+            2*a4^3 + 2*a4^2 + 1
         """
         return self._cache.element_from_data(e)
-
-    def _coerce_map_from_(self, R):
-        """
-        Returns ``True`` if this finite field has a coercion map from ``R``.
-
-        EXAMPLES::
-
-            sage: k.<a> = GF(3^8)
-            sage: a + 1 # indirect doctest
-            a + 1
-            sage: a + int(1)
-            a + 1
-            sage: a + GF(3)(1)
-            a + 1
-        """
-        from sage.rings.integer_ring import ZZ
-        from sage.rings.finite_rings.finite_field_base import is_FiniteField
-        from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
-        if R is int or R is long or R is ZZ:
-            return True
-        if is_FiniteField(R):
-            if R is self:
-                return True
-            from sage.rings.residue_field import ResidueField_generic
-            if isinstance(R, ResidueField_generic):
-                return False
-            if R.characteristic() == self.characteristic():
-                if isinstance(R, IntegerModRing_generic):
-                    return True
-                if R.degree() == 1:
-                    return True
-                elif self.degree() % R.degree() == 0:
-                    # This is where we *would* do coercion from one nontrivial finite field to another...
-                    # We use this error message for backward compatibility until #8335 is finished
-                    raise TypeError, "unable to coerce from a finite field other than the prime subfield"
 
     def gen(self, n=0):
         r"""

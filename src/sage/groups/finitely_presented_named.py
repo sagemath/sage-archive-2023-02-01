@@ -19,6 +19,9 @@ Groups available as finite presentations:
 - Dihedral group, `D_n` of order `2n` --
   :func:`groups.presentation.Dihedral <sage.groups.finitely_presented_named.DihedralPresentation>`
 
+- Finitely generated abelian group, `\ZZ_{n_1} \times \ZZ_{n_2} \times \cdots \times \ZZ_{n_k}` --
+  :func:`groups.presentation.FGAbelian <sage.groups.finitely_presented_named.FinitelyGeneratedAbelianPresentation>`
+
 - Klein four group, `C_2 \times C_2` --
   :func:`groups.presentation.KleinFour <sage.groups.finitely_presented_named.KleinFourPresentation>`
 
@@ -47,6 +50,11 @@ You can also import the desired functions::
 from sage.rings.all      import Integer
 from sage.groups.free_group import FreeGroup
 from sage.groups.finitely_presented import FinitelyPresentedGroup
+
+from sage.matrix.constructor import diagonal_matrix
+from sage.modules.fg_pid.fgp_module import FGP_Module
+from sage.rings.integer_ring import ZZ
+from sage.sets.set import Set
 
 def CyclicPresentation(n):
     r"""
@@ -81,6 +89,104 @@ def CyclicPresentation(n):
     F = FreeGroup( 'a' )
     rls = F([1])**n,
     return FinitelyPresentedGroup( F, rls )
+
+def FinitelyGeneratedAbelianPresentation(int_list):
+    r"""
+    Return canonical presentation of finitely generated abelian group.
+
+    INPUT:
+
+    - ``int_list`` -- List of integers defining the group to be returned, the defining list
+      is reduced to the invariants of the input list before generating the corresponding
+      group.
+
+    OUTPUT:
+
+    Finitely generated abelian group, `\ZZ_{n_1} \times \ZZ_{n_2} \times \cdots \times \ZZ_{n_k}`
+    as a finite presentation, where `n_i` forms the invariants of the input list.
+
+    EXAMPLES::
+
+        sage: groups.presentation.FGAbelian([2,2])
+        Finitely presented group < a, b | a^2, b^2, a^-1*b^-1*a*b >
+        sage: groups.presentation.FGAbelian([2,3])
+        Finitely presented group < a | a^6 >
+        sage: groups.presentation.FGAbelian([2,4])
+        Finitely presented group < a, b | a^2, b^4, a^-1*b^-1*a*b >
+
+    You can create free abelian groups::
+
+        sage: groups.presentation.FGAbelian([0])
+        Finitely presented group < a |  >
+        sage: groups.presentation.FGAbelian([0,0])
+        Finitely presented group < a, b | a^-1*b^-1*a*b >
+        sage: groups.presentation.FGAbelian([0,0,0])
+        Finitely presented group < a, b, c | a^-1*c^-1*a*c, a^-1*b^-1*a*b, c^-1*b^-1*c*b >
+
+    And various infinite abelian groups::
+
+        sage: groups.presentation.FGAbelian([0,2])
+        Finitely presented group < a, b | a^2, a^-1*b^-1*a*b >
+        sage: groups.presentation.FGAbelian([0,2,2])
+        Finitely presented group < a, b, c | a^2, b^2, a^-1*c^-1*a*c, a^-1*b^-1*a*b, c^-1*b^-1*c*b >
+
+    Outputs are reduced to minimal generators and relations::
+
+        sage: groups.presentation.FGAbelian([3,5,2,7,3])
+        Finitely presented group < a, b | a^3, b^210, a^-1*b^-1*a*b >
+        sage: groups.presentation.FGAbelian([3,210])
+        Finitely presented group < a, b | a^3, b^210, a^-1*b^-1*a*b >
+
+    The trivial group is an acceptable output::
+
+        sage: groups.presentation.FGAbelian([])
+        Finitely presented group <  |  >
+        sage: groups.presentation.FGAbelian([1])
+        Finitely presented group <  |  >
+        sage: groups.presentation.FGAbelian([1,1,1,1,1,1,1,1,1,1])
+        Finitely presented group <  |  >
+
+    Input list must consist of positive integers::
+
+        sage: groups.presentation.FGAbelian([2,6,3,9,-4])
+        Traceback (most recent call last):
+        ...
+        ValueError: input list must contain nonnegative entries
+        sage: groups.presentation.FGAbelian([2,'a',4])
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert x (=a) to an integer
+
+    TESTS::
+
+        sage: ag = groups.presentation.FGAbelian([2,2])
+        sage: ag.as_permutation_group().is_isomorphic(groups.permutation.KleinFour())
+        True
+        sage: G = groups.presentation.FGAbelian([2,4,8])
+        sage: C2 = CyclicPermutationGroup(2)
+        sage: C4 = CyclicPermutationGroup(4)
+        sage: C8 = CyclicPermutationGroup(8)
+        sage: gg = (C2.direct_product(C4)[0]).direct_product(C8)[0]
+        sage: gg.is_isomorphic(G.as_permutation_group())
+        True
+        sage: all([groups.presentation.FGAbelian([i]).as_permutation_group().is_isomorphic(groups.presentation.Cyclic(i).as_permutation_group()) for i in [2..35]])
+        True
+    """
+    from sage.groups.free_group import _lexi_gen
+    check_ls = [Integer(x) for x in int_list if Integer(x) >= 0]
+    if len(check_ls) != len(int_list):
+        raise ValueError('input list must contain nonnegative entries')
+
+    col_sp = diagonal_matrix(int_list).column_space()
+    invariants = FGP_Module(ZZ**(len(int_list)), col_sp).invariants()
+    name_gen = _lexi_gen()
+    F = FreeGroup([name_gen.next() for i in invariants])
+    ret_rls = [F([i+1])**invariants[i] for i in range(len(invariants)) if invariants[i]!=0]
+
+    # Build commutator relations
+    gen_pairs = list(Set(F.gens()).subsets(2))
+    ret_rls = ret_rls + [x[0]**(-1)*x[1]**(-1)*x[0]*x[1] for x in gen_pairs]
+    return FinitelyPresentedGroup(F, tuple(ret_rls))
 
 def DihedralPresentation(n):
     r"""

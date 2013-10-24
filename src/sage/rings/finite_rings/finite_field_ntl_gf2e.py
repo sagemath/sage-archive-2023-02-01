@@ -228,37 +228,6 @@ class FiniteField_ntl_gf2e(FiniteField):
         """
         return self._cache.import_data(e)
 
-    def _coerce_map_from_(self, R):
-        """
-        Coercion accepts elements of :meth:`parent`, ints, and prime subfield
-        elements.
-
-        EXAMPLES::
-
-            sage: k.<a> = GF(2^8)
-            sage: a + int(1) # indirect doctest
-            a + 1
-            sage: a + 1
-            a + 1
-            sage: a + GF(2)(1)
-            a + 1
-        """
-        if R is int or R is long or R is ZZ:
-            return True
-        if is_FiniteField(R):
-            if R is self:
-                return True
-            if isinstance(R, ResidueField_generic):
-                return False
-            if isinstance(R, IntegerModRing_generic) and R.characteristic() % 2 == 0:
-                return True
-            if R.characteristic() == 2:
-                if R.degree() == 1:
-                    return True
-                elif self.degree() % R.degree() == 0:
-                    # This is where we *would* do coercion from one nontrivial finite field to another...
-                    raise NotImplementedError
-
     def gen(self, ignored=None):
         r"""
         Return a generator of ``self``.

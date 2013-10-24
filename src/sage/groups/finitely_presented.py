@@ -677,6 +677,127 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         return PermutationGroup([
                 Permutation(coset_table[2*i]) for i in range(len(coset_table)/2)])
 
+    def direct_product(self, H, reduced=False, new_names=True):
+        r"""
+        Return the direct product of ``self`` with finitely presented
+        group ``H``.
+
+        Calls GAP function ``DirectProduct``, which returns the direct
+        product of a list of groups of any representation.
+
+        From [JohnsonPG90]_ (pg 45, proposition 4): If `G`, `H` are groups
+        presented by `\langle X \mid R \rangle` and `\langle Y \mid S \rangle`
+        respectively, then their direct product has the presentation
+        `\langle X, Y \mid R, S, [X, Y] \rangle` where `[X, Y]` denotes the
+        set of commutators `\{ x^{-1} y^{-1} x y \mid x \in X, y \in Y \}`.
+
+        INPUT:
+
+        - ``H`` -- a finitely presented group
+
+        - ``reduced`` -- (default: ``False``) boolean; if ``True``, then
+          attempt to reduce the presentation of the product group
+
+        - ``new_names`` -- (default: ``True``) boolean; If ``True``, then
+          lexicographical variable names are assigned to the generators of
+          the group to be returned. If ``False``, the group to be returned
+          keeps the generator names of the two groups forming the direct
+          product. Note that one cannot ask to reduce the output and ask
+          to keep the old variable names, as they they may change meaning
+          in the output group if its presentation is reduced.
+
+        OUTPUT:
+
+        The direct product of ``self`` with ``H`` as a finitely
+        presented group.
+
+        EXAMPLES::
+
+            sage: G = FreeGroup()
+            sage: C12 =  ( G / [G([1,1,1,1])] ).direct_product( G / [G([1,1,1])]); C12
+            Finitely presented group < a, b | a^4, b^3, a^-1*b^-1*a*b >
+            sage: C12.order(), C12.as_permutation_group().is_cyclic()
+            (12, True)
+            sage: klein = ( G / [G([1,1])] ).direct_product( G / [G([1,1])]); klein
+            Finitely presented group < a, b | a^2, b^2, a^-1*b^-1*a*b >
+            sage: klein.order(), klein.as_permutation_group().is_cyclic()
+            (4, False)
+
+        We can keep the variable names from ``self`` and ``H`` to examine how
+        new relations are formed::
+
+            sage: F = FreeGroup("a"); G = FreeGroup("g")
+            sage: X = G / [G.0^12]; A = F / [F.0^6]
+            sage: X.direct_product(A, new_names=False)
+            Finitely presented group < g, a | g^12, a^6, g^-1*a^-1*g*a >
+            sage: A.direct_product(X, new_names=False)
+            Finitely presented group < a, g | a^6, g^12, a^-1*g^-1*a*g >
+
+        Or we can attempt to reduce the output group presentation::
+
+            sage: F = FreeGroup("a"); G = FreeGroup("g")
+            sage: X = G / [G.0]; A = F / [F.0]
+            sage: X.direct_product(A, new_names=True)
+            Finitely presented group < a, b | a, b, a^-1*b^-1*a*b >
+            sage: X.direct_product(A, reduced=True, new_names=True)
+            Finitely presented group <  |  >
+
+        But we cannot do both::
+
+            sage: K = FreeGroup(['a','b'])
+            sage: D = K / [K.0^5, K.1^8]
+            sage: D.direct_product(D, reduced=True, new_names=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot reduce output and keep old variable names
+
+        TESTS::
+
+            sage: G = FreeGroup()
+            sage: Dp = (G / [G([1,1])]).direct_product( G / [G([1,1,1,1,1,1])] )
+            sage: Dp.as_permutation_group().is_isomorphic(PermutationGroup(['(1,2)','(3,4,5,6,7,8)']))
+            True
+            sage: C7 = G / [G.0**7]; C6 =  G / [G.0**6]
+            sage: C14 = G / [G.0**14]; C3 =  G / [G.0**3]
+            sage: C7.direct_product(C6).is_isomorphic(C14.direct_product(C3))
+            True
+            sage: F = FreeGroup(2); D = F / [F([1,1,1,1,1]),F([2,2]),F([1,2])**2]
+            sage: D.direct_product(D).as_permutation_group().is_isomorphic(
+            ....: direct_product_permgroups([DihedralGroup(5),DihedralGroup(5)]))
+            True
+
+        AUTHORS:
+
+        - Davis Shurbert (2013-07-20): initial version
+
+        REFERENCES:
+
+        .. [JohnsonPG90] D.L. Johnson. *Presentations of Groups*.
+           Cambridge University Press. (1990).
+        """
+        from sage.groups.free_group import FreeGroup, _lexi_gen
+
+        if not isinstance(H, FinitelyPresentedGroup):
+            raise TypeError("input must be a finitely presented group")
+        if reduced and not new_names:
+            raise ValueError("cannot reduce output and keep old variable names")
+
+        fp_product = libgap.DirectProduct([self.gap(), H.gap()])
+        GAP_gens = fp_product.FreeGeneratorsOfFpGroup()
+        if new_names:
+            name_itr = _lexi_gen() # Python generator for lexicographical variable names
+            gen_names = [name_itr.next() for i in GAP_gens]
+        else:
+            gen_names= [str(g) for g in self.gens()] + [str(g) for g in H.gens()]
+        # Build the direct product in Sage for better variable names
+        ret_F = FreeGroup(gen_names)
+        ret_rls = tuple([ret_F(rel_word.TietzeWordAbstractWord(GAP_gens).sage())
+            for rel_word in fp_product.RelatorsOfFpGroup()])
+        ret_fpg = FinitelyPresentedGroup(ret_F, ret_rls)
+        if reduced:
+            ret_fpg = ret_fpg.simplified()
+        return ret_fpg
+
     def _element_constructor_(self, *args, **kwds):
         """
         Construct an element of ``self``.

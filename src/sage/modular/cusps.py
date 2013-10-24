@@ -28,7 +28,9 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import is_Infinite, Rational, Integer, ZZ, QQ
+from sage.rings.all import Rational, Integer, ZZ, QQ
+
+from sage.rings.infinity import is_Infinite
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element, is_InfinityElement
 from sage.modular.modsym.p1list import lift_to_sl2z_llong

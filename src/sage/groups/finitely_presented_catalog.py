@@ -16,4 +16,5 @@ free groups).
 from finitely_presented_named import DihedralPresentation as Dihedral
 from finitely_presented_named import CyclicPresentation as Cyclic
 from finitely_presented_named import DiCyclicPresentation as DiCyclic
+from finitely_presented_named import FinitelyGeneratedAbelianPresentation as FGAbelian
 from finitely_presented_named import KleinFourPresentation as KleinFour

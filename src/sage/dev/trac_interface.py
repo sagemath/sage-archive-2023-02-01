@@ -23,7 +23,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import re, time, datetime
+import os, re, time, datetime
 FIELD_REGEX = re.compile("^([A-Za-z ]+):(.*)$")
 ALLOWED_FIELDS = {
         "author":           "Authors",
@@ -160,7 +160,6 @@ class TicketSyntaxError(SyntaxError): # we don't want to catch normal syntax err
         Traceback (most recent call last):
         ...
         TicketSyntaxError: None
-
     """
 
 class TracInterface(object):
@@ -176,7 +175,6 @@ class TracInterface(object):
         sage: trac = TracInterface(config['trac'], DoctestUserInterface(config['UI']))
         sage: trac
         <sage.dev.trac_interface.TracInterface object at 0x...>
-
     """
     def __init__(self, config, UI):
         r"""
@@ -191,7 +189,6 @@ class TracInterface(object):
             sage: trac = TracInterface(config['trac'], DoctestUserInterface(config['UI']))
             sage: type(trac)
             <class 'sage.dev.trac_interface.TracInterface'>
-
         """
         self._UI = UI
         self._config = config
@@ -233,18 +230,19 @@ class TracInterface(object):
             sage: UI.append('doctest2')
             sage: trac._username # user is prompted for a username
             Trac username: doctest2
+            #  Your trac username has been written to a configuration file for future
+            #  sessions. To reset your username, use "dev.trac.reset_username()".
             'doctest2'
             sage: config['trac']['username']
             'doctest2'
-
         """
         if self.__username is None:
             self.__username = self._config.get('username', None)
 
         if self.__username is None:
             self.__username = self._config['username'] = self._UI.get_input('Trac username:')
-            self._UI.info("Your trac username has been written to a configuration file for future sessions. To reset your username, use `dev.trac.reset_username()`.")
-
+            self._UI.info('Your trac username has been written to a configuration file for'
+                          ' future sessions. To reset your username, use "dev.trac.reset_username()".')
         return self.__username
 
     def reset_username(self):
@@ -264,8 +262,9 @@ class TracInterface(object):
             sage: UI.append("doctest2")
             sage: trac._username
             Trac username: doctest2
+            #  Your trac username has been written to a configuration file for future
+            #  sessions. To reset your username, use "dev.trac.reset_username()".
             'doctest2'
-
         """
         self.__username = None
         if 'username' in self._config:
@@ -290,7 +289,9 @@ class TracInterface(object):
             sage: UI.append('secret')
             sage: trac._password
             Trac password:
-            Should I store your password in a configuration file for future sessions? (This configuration file might be readable by privileged users on this system.) [yes/No]
+            You can save your password in a configuration file. However, this file might be
+            readable by privileged users on this system.
+            Save password in file? [yes/No]
             'secret'
             sage: trac._password # password is stored for some time, so there is no need to type it immediately afterwards
             'secret'
@@ -304,13 +305,16 @@ class TracInterface(object):
             sage: UI.append('secret')
             sage: trac._password
             Trac password:
-            Should I store your password in a configuration file for future sessions? (This configuration file might be readable by privileged users on this system.) [yes/No] y
+            You can save your password in a configuration file. However, this file might be
+            readable by privileged users on this system.
+            Save password in file? [yes/No] y
+            #  Your trac password has been written to a configuration file. To reset your
+            #  password, use "dev.trac.reset_password()".
             'secret'
             sage: config['trac']['password']
             'secret'
             sage: trac._password
             'secret'
-
         """
         self._check_password_timeout()
 
@@ -321,14 +325,18 @@ class TracInterface(object):
             self.__password = self._UI.get_password('Trac password:')
             store_password = self._config.get('store_password', None)
             if store_password is None:
-                store_password = "yes" if self._UI.confirm("Should I store your password in a configuration file for future sessions? (This configuration file might be readable by privileged users on this system.)", default=False) else "no"
+                self._UI.show("You can save your password in a configuration file."
+                              " However, this file might be readable by privileged"
+                              " users on this system.")
+                store_password = "yes" if self._UI.confirm(
+                    "Save password in file?", default=False) else "no"
                 if store_password == "no":
-                    self._config['store_password'] = store_password # remember the user's decision (if negative) and do not ask every time
-
+                    # remember the user's decision (if negative) and do not ask every time
+                    self._config['store_password'] = store_password
             if store_password == "yes":
                 self._config['password'] = self.__password
-                self._UI.info("Your trac password has been written to a configuration file. To reset your password, use `dev.trac.reset_password()`.")
-
+                self._UI.info('Your trac password has been written to a configuration file. To reset'
+                              ' your password, use "dev.trac.reset_password()".')
         self._postpone_password_timeout()
         return self.__password
 
@@ -348,7 +356,11 @@ class TracInterface(object):
             sage: UI.append('secret')
             sage: trac._password
             Trac password:
-            Should I store your password in a configuration file for future sessions? (This configuration file might be readable by privileged users on this system.) [yes/No] y
+            You can save your password in a configuration file. However, this file might be
+            readable by privileged users on this system.
+            Save password in file? [yes/No] y
+            #  Your trac password has been written to a configuration file. To reset your
+            #  password, use "dev.trac.reset_password()".
             'secret'
             sage: config['trac']['password']
             'secret'
@@ -357,7 +369,6 @@ class TracInterface(object):
             Traceback (most recent call last):
             ...
             KeyError: 'password'
-
         """
         self.__password = None
         self.__authenticated_server_proxy = None
@@ -385,7 +396,9 @@ class TracInterface(object):
             sage: config['trac']['password_timeout'] = 0
             sage: trac._password
             Trac password:
-            Should I store your password in a configuration file for future sessions? (This configuration file might be readable by privileged users on this system.) [yes/No]
+            You can save your password in a configuration file. However, this file might be
+            readable by privileged users on this system.
+            Save password in file? [yes/No]
             'secret'
             sage: UI.append('secret')
             sage: trac._password # indirect doctest
@@ -396,11 +409,18 @@ class TracInterface(object):
             sage: UI.append('secret')
             sage: trac._password
             Trac password:
-            Should I store your password in a configuration file for future sessions? (This configuration file might be readable by privileged users on this system.) [yes/No] y
-            'secret'
-            sage: trac._password # the timeout has no effect if the password can be read from the configuration file
+            You can save your password in a configuration file. However, this file might be
+            readable by privileged users on this system.
+            Save password in file? [yes/No] y
+            #  Your trac password has been written to a configuration file. To reset your
+            #  password, use "dev.trac.reset_password()".
             'secret'
 
+        The timeout has no effect if the password can be read from the
+        configuration file::
+
+            sage: trac._password
+            'secret'
         """
         import time
         if self.__auth_timeout is None or time.time() >= self.__auth_timeout:
@@ -424,11 +444,12 @@ class TracInterface(object):
             sage: UI.append('secret')
             sage: trac._password
             Trac password:
-            Should I store your password in a configuration file for future sessions? (This configuration file might be readable by privileged users on this system.) [yes/No]
+            You can save your password in a configuration file. However, this file might be
+            readable by privileged users on this system.
+            Save password in file? [yes/No]
             'secret'
             sage: trac._password # indirect doctest
             'secret'
-
         """
         import time
         new_timeout = time.time() + float(self._config.get('password_timeout', 300))
@@ -456,7 +477,6 @@ class TracInterface(object):
             sage: trac = TracInterface(config['trac'], DoctestUserInterface(config['UI']))
             sage: repr(trac._anonymous_server_proxy)
             '<ServerProxy for trac.sagemath.org/xmlrpc>'
-
         """
         if self.__anonymous_server_proxy is None:
             from sage.env import TRAC_SERVER_URI
@@ -495,7 +515,6 @@ class TracInterface(object):
             Traceback (most recent call last):
             ...
             AssertionError: doctest tried to access an authenticated session to trac
-
         """
         import sage.doctest
         assert not sage.doctest.DOCTEST_MODE, "doctest tried to access an authenticated session to trac"
@@ -507,10 +526,8 @@ class TracInterface(object):
             realm = self._config.get('realm', REALM)
             from sage.env import TRAC_SERVER_URI
             server = self._config.get('server', TRAC_SERVER_URI)
-
             import os, urllib, urllib2, urlparse
             url = urlparse.urljoin(server, urllib.pathname2url(os.path.join('login', 'xmlrpc')))
-
             while True:
                 from xmlrpclib import ServerProxy
                 from digest_transport import DigestTransport
@@ -527,11 +544,8 @@ class TracInterface(object):
                     else:
                         self._UI.show("Could not verify password, will try to proceed.")
                         break
-
             self.__authenticated_server_proxy = proxy
-
         self._postpone_password_timeout()
-
         return self.__authenticated_server_proxy
 
     def create_ticket(self, summary, description, attributes={}):
@@ -554,9 +568,9 @@ class TracInterface(object):
             sage: trac = DoctestTracInterface(config['trac'], UI, DoctestTracServer())
             sage: trac.create_ticket('Summary', 'Description', {'type':'defect', 'component':'algebra'})
             1
-
         """
-        return self._authenticated_server_proxy.ticket.create(summary, description, attributes, True) # notification e-mail sent.
+        return self._authenticated_server_proxy.ticket.create(
+            summary, description, attributes, True) # notification e-mail sent.
 
     def add_comment(self, ticket, comment):
         r"""
@@ -578,7 +592,6 @@ class TracInterface(object):
             sage: trac = DoctestTracInterface(config['trac'], UI, DoctestTracServer())
             sage: ticket = trac.create_ticket('Summary', 'Description', {'type':'defect', 'component':'algebra'})
             sage: trac.add_comment(ticket, "a comment")
-
         """
         ticket = int(ticket)
         attributes = self._get_attributes(ticket)
@@ -604,6 +617,8 @@ class TracInterface(object):
 
         EXAMPLES::
 
+            sage: from sage.dev.test.sagedev import single_user_setup_with_internet
+            sage: dev = single_user_setup_with_internet()[0]
             sage: dev.trac._get_attributes(1000) # optional: internet
             {'status': 'closed',
              'changetime': <DateTime '...' at ...>,
@@ -620,10 +635,10 @@ class TracInterface(object):
              'time': <DateTime '20071025T16:48:05' at ...>,
              'keywords': '',
              'resolution': 'fixed'}
-
         """
+        ticket = int(ticket)   # must not pickle Sage integers in the ticket cache!
         if not cached:
-            self.__ticket_cache[ticket] = self._anonymous_server_proxy.ticket.get(int(ticket))
+            self.__ticket_cache[ticket] = self._anonymous_server_proxy.ticket.get(ticket)
         if ticket not in self.__ticket_cache:
             raise KeyError(ticket)
         return self.__ticket_cache[ticket][3]
@@ -639,11 +654,13 @@ class TracInterface(object):
 
         EXAMPLES::
 
+            sage: from sage.dev.test.sagedev import single_user_setup_with_internet
+            sage: dev = single_user_setup_with_internet()[0]
             sage: dev.trac.show_ticket(101) # optional: internet
             #101: closed enhancement
             == graph theory -- create a graph theory package for SAGE ==
-            Opened: 6 years ago
-            Closed: 5 years ago
+            Opened: ... years ago
+            Closed: ... years ago
             Priority: major
             Milestone: sage-2.8.5
             Component: combinatorics
@@ -696,14 +713,16 @@ class TracInterface(object):
             fixed
         """
         comments = []
-        for time, author, field, oldvalue, newvalue, permanent in self._anonymous_server_proxy.ticket.changeLog(int(ticket)):
+        changelog = self._anonymous_server_proxy.ticket.changeLog(int(ticket))
+        for time, author, field, oldvalue, newvalue, permanent in changelog:
             if field == 'comment' and newvalue and not (ignore_git_user and author == 'git'):
                 comments.append((_timerep(datetime.datetime(*(time.timetuple()[:6]))), author, newvalue))
-        self._UI.show('\n'.join(['====================\n%s (%s)\n%s'%(author, time, comment) for time, author, comment in reversed(comments)]))
+        self._UI.show('\n'.join(['====================\n{0} ({1})\n{2}'.format(author, time, comment) 
+                                 for time, author, comment in reversed(comments)]))
 
     def query(self, qstr):
         """
-        Returns a list of ticket ids that match the given query string.
+        Return a list of ticket ids that match the given query string.
 
         INPUT:
 
@@ -730,9 +749,10 @@ class TracInterface(object):
 
         EXAMPLES::
 
+            sage: from sage.dev.test.sagedev import single_user_setup_with_internet
+            sage: dev = single_user_setup_with_internet()[0]
             sage: dev.trac._branch_for_ticket(1000) is None # optional: internet
             True
-
         """
         attributes = self._get_attributes(ticket)
         if 'branch' in attributes:
@@ -756,22 +776,20 @@ class TracInterface(object):
 
        EXAMPLES::
 
+            sage: from sage.dev.test.sagedev import single_user_setup_with_internet
+            sage: dev = single_user_setup_with_internet()[0]
             sage: dev.trac.dependencies(1000)            # optional: internet (an old ticket with no dependency field)
             []
             sage: dev.trac.dependencies(13147)           # optional: internet
             [13579, 13681]
             sage: dev.trac.dependencies(13147, recurse=True) # long time, optional: internet
             [13579, 13631, 13681]
-
         """
         ticket = int(ticket)
-
         if seen is None:
             seen = []
-
         if ticket in seen:
             return []
-
         seen.append(ticket)
         dependencies = self._get_attributes(ticket).get('dependencies','').strip()
         dependencies = dependencies.split(',')
@@ -845,20 +863,17 @@ class TracInterface(object):
 
             sage: UI.append("a comment")
             sage: trac.add_comment_interactive(ticket)
-
         """
         ticket = int(ticket)
 
         attributes = self._get_attributes(ticket)
 
-        import tempfile
-        fd, filename = tempfile.mkstemp()
-        import os
-        with os.fdopen(fd, "w") as F:
-            F.write(comment)
-            F.write("\n")
-            F.write(COMMENT_FILE_GUIDE)
-
+        from sage.dev.misc import tmp_filename
+        filename = tmp_filename()
+        with open(filename, "w") as f:
+            f.write(comment)
+            f.write("\n")
+            f.write(COMMENT_FILE_GUIDE)
         self._UI.edit(filename)
 
         comment = list(open(filename).read().splitlines())
@@ -869,11 +884,10 @@ class TracInterface(object):
         comment = "\n".join(comment)
 
         url = self._authenticated_server_proxy.ticket.update(ticket, comment, attributes, True) # notification e-mail sent
-
-        self._UI.info("Your comment has been recorded: %s"%url)
+        self._UI.debug("Your comment has been recorded: %s"%url)
 
     def edit_ticket_interactive(self, ticket):
-        """
+        r"""
         Edit ``ticket`` on trac.
 
         EXAMPLES::
@@ -896,11 +910,9 @@ class TracInterface(object):
 
             sage: UI.append("Summary: summary\ndescription\n")
             sage: trac.edit_ticket_interactive(ticket)
-
         """
         ticket = int(ticket)
         attributes = self._get_attributes(ticket)
-
         summary = attributes.get('summary', 'No Summary')
         description = attributes.get('description', 'No Description')
 
@@ -914,7 +926,7 @@ class TracInterface(object):
         attributes.update(ret[2])
 
         url = self._authenticated_server_proxy.ticket.update(ticket, "", attributes, True) # notification e-mail sent.
-        self._UI.info("Ticket modified: %s"%url)
+        self._UI.debug("Ticket modified: %s"%url)
 
     def _edit_ticket_interactive(self, summary, description, attributes):
         r"""
@@ -956,15 +968,14 @@ class TracInterface(object):
             sage: UI.append("")
             sage: UI.append("Summary: new summary\nInvalid: branch2\nnew description")
             sage: trac._edit_ticket_interactive('summary', 'description', {'branch':'branch1'})
-            TicketSyntaxError: line 2: field `Invalid` not supported
-            Do you want to try to fix your ticket file? [Yes/no]
+            Syntax error: field "Invalid" not supported on line 2
+            Edit ticket file again? [Yes/no]
             ('new summary', 'new description', {'branch': 'branch2'})
-
         """
-        import tempfile, os
-        fd, filename = tempfile.mkstemp()
+        from sage.dev.misc import tmp_filename
+        filename = tmp_filename()
         try:
-            with os.fdopen(fd, "w") as F:
+            with open(filename, "w") as F:
                 F.write("Summary: %s\n"%summary.encode('utf-8'))
                 for k,v in attributes.items():
                     k = ALLOWED_FIELDS.get(k.lower())
@@ -984,9 +995,9 @@ class TracInterface(object):
                 except (RuntimeError, TicketSyntaxError) as error:
                     pass
 
-                self._UI.show("TicketSyntaxError: "+error.message)
+                self._UI.error("Syntax error: " + error.message)
 
-                if not self._UI.confirm("Do you want to try to fix your ticket file?", default=True):
+                if not self._UI.confirm("Edit ticket file again?", default=True):
                     ret = None
                     break
 
@@ -996,7 +1007,6 @@ class TracInterface(object):
 
         finally:
             os.unlink(filename)
-
         return ret
 
     def create_ticket_interactive(self):
@@ -1016,7 +1026,6 @@ class TracInterface(object):
             sage: UI.append("Summary: summary\nType: defect\nPriority: minor\nComponent: algebra\ndescription")
             sage: trac.create_ticket_interactive()
             1
-
         """
         attributes = {
                 "Type":         "defect",
@@ -1035,7 +1044,7 @@ class TracInterface(object):
         import urlparse
         from sage.env import TRAC_SERVER_URI
         ticket_url = urlparse.urljoin(self._config.get('server', TRAC_SERVER_URI), str(ticket))
-        self._UI.info("Created ticket #%s (%s)."%(ticket, ticket_url))
+        self._UI.debug("Created ticket #%s (%s)."%(ticket, ticket_url))
         return ticket
 
     @classmethod
@@ -1055,8 +1064,7 @@ class TracInterface(object):
         TESTS::
 
             sage: from sage.dev.trac_interface import TracInterface
-            sage: import os, tempfile
-            sage: tmp = tempfile.mkstemp()[1]
+            sage: tmp = tmp_filename()
             sage: with open(tmp, 'w') as f:
             ....:     f.write("no summary\n")
             sage: TracInterface._parse_ticket_file(tmp)
@@ -1075,13 +1083,13 @@ class TracInterface(object):
             sage: TracInterface._parse_ticket_file(tmp)
             Traceback (most recent call last):
             ...
-            TicketSyntaxError: line 2: only one value for summary allowed
+            TicketSyntaxError: only one value for "summary" allowed on line 2
             sage: with open(tmp, 'w') as f:
             ....:     f.write("bad field:bad field entry\n")
             sage: TracInterface._parse_ticket_file(tmp)
             Traceback (most recent call last):
             ...
-            TicketSyntaxError: line 1: field `bad field` not supported
+            TicketSyntaxError: field "bad field" not supported on line 1
             sage: with open(tmp, 'w') as f:
             ....:     f.write("summary:a summary\n")
             ....:     f.write("branch:a branch\n")
@@ -1098,7 +1106,6 @@ class TracInterface(object):
             sage: TracInterface._parse_ticket_file(tmp)
             ('a summary', 'some description\nbranch:a branch', {})
             sage: os.unlink(tmp)
-
         """
         lines = list(open(filename).read().splitlines())
 
@@ -1117,15 +1124,16 @@ class TracInterface(object):
                 try:
                     field = FIELDS_LOOKUP[display_field.lower()]
                 except KeyError:
-                    raise TicketSyntaxError("line %s: "%(i+1) +
-                                            "field `%s` not supported"%display_field)
+                    raise TicketSyntaxError('field "{0}" not supported on line {1}'
+                                            .format(display_field, i+1))
                 if field in fields:
-                    raise TicketSyntaxError("line %s: "%(i+1) +
-                                            "only one value for %s allowed"%display_field)
+                    raise TicketSyntaxError('only one value for "{0}" allowed on line {1}'
+                                            .format(display_field, i+1))                                            
                 else:
                     value = m.groups()[1].strip()
                     if field in RESTRICTED_FIELDS and not ALLOWED_VALUES[field].match(value):
-                        raise TicketSyntaxError("`{0}` is not a valid value for the field `{1}`".format(value, field))
+                        raise TicketSyntaxError('"{0}" is not a valid value for the field "{1}"'
+                                                .format(value, field))
                     fields[field] = value
                     continue
             else:
@@ -1191,14 +1199,14 @@ class TracInterface(object):
             sage: trac.set_attributes(n, status='invalid_status')
             Traceback (most recent call last):
             ...
-            TicketSyntaxError: `invalid_status` is not a valid value for the field `status`
+            TicketSyntaxError: "invalid_status" is not a valid value for the field "status"
         """
         ticket = int(ticket)
         for field, value in kwds.iteritems():
             if field not in ALLOWED_FIELDS:
-                raise TicketSyntaxError("field `%s` not supported"%field)
+                raise TicketSyntaxError('field "{0}" not supported'.format(field))
             if field in ALLOWED_VALUES and not ALLOWED_VALUES[field].match(value):
-                raise TicketSyntaxError("`{0}` is not a valid value for the field `{1}`".format(value, field))
+                raise TicketSyntaxError('"{0}" is not a valid value for the field "{1}"'.format(value, field))
         attributes = self._get_attributes(ticket)
         attributes.update(**kwds)
         self._authenticated_server_proxy.ticket.update(ticket, comment, attributes, notify)

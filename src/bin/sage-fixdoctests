@@ -39,7 +39,7 @@ for X in doctests:
     j = X.find('Expected:\n')
     if j == -1:
         continue
-    k = eval(X[i0+5:i])
+    k = int(X[i0+5:i].split(',')[0])
     line = X[i+1:j].strip()
     X = X[j+10:]
     expected, got = X.split('\nGot:\n')

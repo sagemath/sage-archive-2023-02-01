@@ -575,14 +575,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.global_integral_model()
             Elliptic Curve defined by y^2 + (-i)*x*y + (-25*i)*y = x^3 + 5*i*x^2 + 125*i*x + 3125*i over Number Field in i with defining polynomial x^2 + 1
 
-        trac #7935::
+        :trac:`7935`::
 
             sage: K.<a> = NumberField(x^2-38)
             sage: E = EllipticCurve([a,1/2])
             sage: E.global_integral_model()
             Elliptic Curve defined by y^2 = x^3 + 1444*a*x + 27436 over Number Field in a with defining polynomial x^2 - 38
 
-        trac #9266::
+        :trac:`9266`::
 
             sage: K.<s> = NumberField(x^2-5)
             sage: w = (1+s)/2
@@ -590,21 +590,33 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.global_integral_model()
             Elliptic Curve defined by y^2 = x^3 + 2*x + (1/2*s+1/2) over Number Field in s with defining polynomial x^2 - 5
 
-        trac #12151::
+        :trac:`12151`::
 
             sage: K.<v> = NumberField(x^2 + 161*x - 150)
             sage: E = EllipticCurve([25105/216*v - 3839/36, 634768555/7776*v - 98002625/1296, 634768555/7776*v - 98002625/1296, 0, 0])
             sage: E.global_integral_model()
-            Elliptic Curve defined by y^2 + (33872485050625*v-31078224284250)*x*y + (2020602604156076340058146664245468750000*v-1871778534673615560803175189398437500000)*y = x^3 + (6933305282258321342920781250*v-6422644400723486559914062500)*x^2 over Number Field in v with defining polynomial x^2 + 161*x - 150
+            Elliptic Curve defined by y^2 + (-502639783*v+465618899)*x*y + (-6603604211463489399460860*v+6117229527723443603191500)*y = x^3 + (1526887622075335620*v-1414427901517840500)*x^2 over Number Field in v with defining polynomial x^2 + 161*x - 150
+
+        :trac:`14476`::
+
+            sage: R.<t> = QQ[]
+            sage: K.<g> = NumberField(t^4 - t^3 - 3*t^2 - t + 1)
+            sage: E = EllipticCurve([ -43/625*g^3 + 14/625*g^2 - 4/625*g + 706/625, -4862/78125*g^3 - 4074/78125*g^2 - 711/78125*g + 10304/78125,  -4862/78125*g^3 - 4074/78125*g^2 - 711/78125*g + 10304/78125, 0,0])
+            sage: E.global_integral_model()
+            Elliptic Curve defined by y^2 + (15*g^3-48*g-42)*x*y + (-111510*g^3-162162*g^2-44145*g+37638)*y = x^3 + (-954*g^3-1134*g^2+81*g+576)*x^2 over Number Field in g with defining polynomial t^4 - t^3 - 3*t^2 - t + 1
+
         """
         K = self.base_field()
         ai = self.a_invariants()
-        for a in ai:
-            if not a.is_integral():
-               for P, _ in a.denominator_ideal().factor():
-                   pi = K.uniformizer(P,'positive')
-                   e  = min([(ai[i].valuation(P)/[1,2,3,4,6][i]) for i in range(5)]).floor()
-                   ai = [ai[i]/pi**(e*[1,2,3,4,6][i]) for i in range(5)]
+        Ps = [[ ff[0] for ff in a.denominator_ideal().factor() ] for a in ai if not a.is_integral() ]
+        Ps = sage.misc.misc.union(sage.misc.flatten.flatten(Ps))
+        for P in Ps:
+            pi = K.uniformizer(P,'positive')
+            e  = min([(ai[i].valuation(P)/[1,2,3,4,6][i]) for i in range(5)]).floor()
+            if e < 0 :
+                ai = [ai[i]/pi**(e*[1,2,3,4,6][i]) for i in range(5)]
+            if all(a.is_integral() for a in ai):
+                break
         for z in ai:
             assert z.is_integral(), "bug in global_integral_model: %s" % list(ai)
         return EllipticCurve(list(ai))
@@ -743,7 +755,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             Kodaira Symbol: I0
             Tamagawa Number: 1
 
-        An example raised in \#3897::
+        An example raised in :trac:`3897`::
 
             sage: E = EllipticCurve([1,1])
             sage: E.local_data(3)
@@ -1186,7 +1198,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: [dav.tamagawa_number() for dav in da]
             [1, 1]
 
-        An example over `\mathbb{Q}` (trac #9413)::
+        An example over `\mathbb{Q}` (:trac:`9413`)::
 
             sage: E = EllipticCurve('30a')
             sage: E.tamagawa_product_bsd()
@@ -1282,14 +1294,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.conductor()
             Fractional ideal (1)
 
-        An example which used to fail (see trac #5307)::
+        An example which used to fail (see :trac:`5307`)::
 
             sage: K.<w>=NumberField(x^2+x+6)
             sage: E=EllipticCurve([w,-1,0,-w-6,0])
             sage: E.conductor()
             Fractional ideal (86304, w + 5898)
 
-        An example raised in \#11346::
+        An example raised in :trac:`11346`::
 
             sage: K.<g> = NumberField(x^2 - x - 1)
             sage: E1 = EllipticCurve(K,[0,0,0,-1/48,-161/864])

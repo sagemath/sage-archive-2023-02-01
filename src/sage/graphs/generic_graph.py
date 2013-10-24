@@ -2883,13 +2883,13 @@ class GenericGraph(GenericGraph_pyx):
         if self.order() == 0:
             return 0
 
-        if self.is_directed() == False:
-            M=self.kirchhoff_matrix()
+        if not self.is_directed():
+            M = self.kirchhoff_matrix()
             M.subdivide(1,1)
             M2 = M.subdivision(1,1)
             return M2.determinant()
         else:
-            if root_vertex == None:
+            if root_vertex is None:
                 root_vertex=self.vertex_iterator().next()
             if root_vertex not in self.vertices():
                 raise ValueError("Vertex (%s) not in the graph."%root_vertex)
@@ -4037,26 +4037,30 @@ class GenericGraph(GenericGraph_pyx):
         """
         Returns the blocks-and-cuts tree of ``self``.
 
-        This new graph has two different kinds of vertices, some
-        representing the blocks (type B) and some other the cut
-        vertices of the graph ``self`` (type C).
+        This new graph has two different kinds of vertices, some representing
+        the blocks (type B) and some other the cut vertices of the graph
+        ``self`` (type C).
 
-        There is an edge between a vertex `u` of type B and a vertex
-        `v` of type C if the cut-vertex corresponding to `v` is in the
-        block corresponding to `u`.
+        There is an edge between a vertex `u` of type B and a vertex `v` of type
+        C if the cut-vertex corresponding to `v` is in the block corresponding
+        to `u`.
 
-        The resulting graph is a tree, with the additional
-        characteristic property that the distance between two leaves
-        is even.
+        The resulting graph is a tree, with the additional characteristic
+        property that the distance between two leaves is even.
+
+        When ``self`` is biconnected, the tree is reduced to a single node of
+        type `B`.
 
         .. SEEALSO:: :meth:`blocks_and_cut_vertices`
 
-        EXAMPLES::
+        EXAMPLES:
 
             sage: T = graphs.KrackhardtKiteGraph().blocks_and_cuts_tree(); T
             Graph on 5 vertices
             sage: T.is_isomorphic(graphs.PathGraph(5))
             True
+
+        The distance between two leaves is even::
 
             sage: T = graphs.RandomTree(40).blocks_and_cuts_tree()
             sage: T.is_tree()
@@ -4064,6 +4068,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: leaves = [v for v in T if T.degree(v) == 1]
             sage: all(T.distance(u,v) % 2 == 0 for u in leaves for v in leaves)
             True
+
+        The tree of a biconnected graph has a single vertex, of type `B`::
+
+            sage: T = graphs.PetersenGraph().blocks_and_cuts_tree()
+            sage: T.vertices()
+            [('B', (0, 1, 2, 3, 4, 5, 6, 7, 8, 9))]
 
         REFERENCES:
 
@@ -4078,6 +4088,7 @@ class GenericGraph(GenericGraph_pyx):
         B = map(tuple, B)
         G = Graph()
         for bloc in B:
+            G.add_vertex(('B', bloc))
             for c in bloc:
                 if c in C:
                     G.add_edge(('B', bloc), ('C', c))
@@ -4541,7 +4552,7 @@ class GenericGraph(GenericGraph_pyx):
         # edges[j][e] is equal to one if and only if edge e belongs to color j
         edges = p.new_variable(dim=2)
 
-        if root == None:
+        if root is None:
             root = self.vertex_iterator().next()
 
         # r_edges is a relaxed variable grater than edges. It is used to
@@ -6569,14 +6580,14 @@ class GenericGraph(GenericGraph_pyx):
            True
         """
 
-        if vertex_bound == True and method == "FF":
+        if vertex_bound and method == "FF":
             raise ValueError("This method does not support both vertex_bound=True and method=\"FF\".")
 
         if (method == "FF" or
-            (method == None and vertex_bound == False)):
+            (method is None and not vertex_bound)):
             return self._ford_fulkerson(x,y, value_only=value_only, integer=integer, use_edge_labels=use_edge_labels)
 
-        if method != "LP" and method != None:
+        if method != "LP" and not method is None:
             raise ValueError("The method argument has to be equal to either \"FF\", \"LP\" or None")
 
 
@@ -7617,29 +7628,34 @@ class GenericGraph(GenericGraph_pyx):
         When ``value_only = True``, this function is optimized for small
         connectivity values and does not need to build a linear program.
 
-        It is the case for connected graphs which are not
-        connected::
+        It is the case for connected graphs which are not connected::
 
            sage: g = 2 * graphs.PetersenGraph()
            sage: g.vertex_connectivity()
-           0.0
+           0
 
         Or if they are just 1-connected::
 
            sage: g = graphs.PathGraph(10)
            sage: g.vertex_connectivity()
-           1.0
+           1
 
         For directed graphs, the strong connectivity is tested
         through the dedicated function::
 
            sage: g = digraphs.ButterflyGraph(3)
            sage: g.vertex_connectivity()
-           0.0
+           0
 
         A complete graph on `10` vertices is `9`-connected::
 
            sage: g = graphs.CompleteGraph(10)
+           sage: g.vertex_connectivity()
+           9
+
+        A complete digraph on `10` vertices is `9`-connected::
+
+           sage: g = DiGraph(graphs.CompleteGraph(10))
            sage: g.vertex_connectivity()
            9
         """
@@ -7648,7 +7664,13 @@ class GenericGraph(GenericGraph_pyx):
         if sets:
             value_only=False
 
-        if g.is_clique():
+        # When the graph is complete, the MILP below is infeasible.
+        if ((not g.is_directed() and g.is_clique())
+            or
+            (g.is_directed() and g.size() >= (g.order()-1)*g.order() and
+             ((not g.allows_loops() and not g.allows_multiple_edges())
+              or
+              all(g.has_edge(u,v) for u in g for v in g if v != u)))):
             if value_only:
                 return g.order()-1
             elif not sets:
@@ -7659,15 +7681,14 @@ class GenericGraph(GenericGraph_pyx):
         if value_only:
             if self.is_directed():
                 if not self.is_strongly_connected():
-                    return 0.0
+                    return 0
 
             else:
                 if not self.is_connected():
-                    return 0.0
+                    return 0
 
                 if len(self.blocks_and_cut_vertices()[0]) > 1:
-                    return 1.0
-
+                    return 1
 
         if g.is_directed():
             reorder_edge = lambda x,y : (x,y)
@@ -7704,7 +7725,6 @@ class GenericGraph(GenericGraph_pyx):
                 p.add_constraint(in_set[0][u]+in_set[2][v],max=1)
                 p.add_constraint(in_set[2][u]+in_set[0][v],max=1)
 
-
         p.set_binary(in_set)
 
         p.set_objective(p.sum([in_set[1][v] for v in g]))
@@ -7715,7 +7735,6 @@ class GenericGraph(GenericGraph_pyx):
             val = [Integer(round(p.solve(log=verbose)))]
 
             in_set = p.get_values(in_set)
-
 
             cut = []
             a = []
@@ -7729,14 +7748,12 @@ class GenericGraph(GenericGraph_pyx):
                 else:
                     b.append(v)
 
-
             val.append(cut)
 
             if sets:
                 val.append([a,b])
 
             return val
-
 
     ### Vertex handlers
 
@@ -13497,7 +13514,7 @@ class GenericGraph(GenericGraph_pyx):
         and `((u,v), (w,x))` is an edge iff - `(u, w)` is an edge of self, and -
         `(v, x)` is an edge of other.
 
-        The tensor product is also knwon as the categorical product and the
+        The tensor product is also known as the categorical product and the
         kronecker product (refering to the kronecker matrix product). See
         :wikipedia:`Wikipedia article on the Kronecker product <Kronecker_product>`.
 
@@ -13559,12 +13576,12 @@ class GenericGraph(GenericGraph_pyx):
             G = Graph()
         else:
             raise TypeError('the graphs should be both directed or both undirected')
-        G.add_vertices( [(u,v) for u in self for v in other] )
-        for u,w in self.edge_iterator(labels=None):
-            for v,x in other.edge_iterator(labels=None):
-                G.add_edge((u,v), (w,x))
+        G.add_vertices( [(u, v) for u in self for v in other] )
+        for u, w in self.edge_iterator(labels=None):
+            for v, x in other.edge_iterator(labels=None):
+                G.add_edge((u, v), (w, x))
                 if not G._directed:
-                    G.add_edge((u,x), (w,v))
+                    G.add_edge((u, x), (w, v))
         return G
 
     categorical_product = tensor_product

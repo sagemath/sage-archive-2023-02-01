@@ -6960,6 +6960,34 @@ cdef class gen(sage.structure.element.RingElement):
         pari_catch_sig_on()
         return self.new_gen(bnfisunit(self.g, t0))
 
+    def bnrclassno(self, I):
+        r"""
+        Return the order of the ray class group of self modulo ``I``.
+
+        INPUT:
+
+        - ``self``: a pari "BNF" object representing a number field
+        - ``I``: a pari "BID" object representing an ideal of self
+
+        OUTPUT: integer
+
+        TESTS::
+
+            sage: K.<z> = QuadraticField(-23)
+            sage: p = K.primes_above(3)[0]
+            sage: K.pari_bnf().bnrclassno(p._pari_bid_())
+            3
+        """
+        t0GEN(I)
+        pari_catch_sig_on()
+        return self.new_gen(bnrclassno(self.g, t0))
+
+    def bnfissunit(self, sunit_data, x):
+        t0GEN(x)
+        t1GEN(sunit_data)
+        pari_catch_sig_on()
+        return self.new_gen(bnfissunit(self.g, t1, t0))
+
     def dirzetak(self, n):
         t0GEN(n)
         pari_catch_sig_on()
@@ -7012,7 +7040,7 @@ cdef class gen(sage.structure.element.RingElement):
     def idealappr(self, x, long flag=0):
         t0GEN(x)
         pari_catch_sig_on()
-        return self.new_gen(idealappr(self.g, t0))
+        return self.new_gen(idealappr0(self.g, t0, flag))
 
     def idealcoprime(self, x, y):
         """

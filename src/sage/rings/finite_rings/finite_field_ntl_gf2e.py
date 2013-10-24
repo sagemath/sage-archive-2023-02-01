@@ -2,7 +2,6 @@
 Finite Fields of Characteristic 2
 """
 
-
 from sage.rings.finite_rings.finite_field_base import FiniteField
 from sage.libs.pari.all import pari
 from finite_field_ext_pari import FiniteField_ext_pari
@@ -29,12 +28,9 @@ def late_import():
     import sage.rings.finite_rings.finite_field_base
     is_FiniteField = sage.rings.finite_rings.finite_field_base.is_FiniteField
 
-    import sage.rings.finite_rings.constructor
-    exists_conway_polynomial = sage.rings.finite_rings.constructor.exists_conway_polynomial
-    conway_polynomial = sage.rings.finite_rings.constructor.conway_polynomial
-
-    import sage.rings.finite_rings.constructor
-    exists_conway_polynomial = sage.rings.finite_rings.constructor.exists_conway_polynomial
+    import sage.rings.finite_rings.conway_polynomials
+    exists_conway_polynomial = sage.rings.finite_rings.conway_polynomials.exists_conway_polynomial
+    conway_polynomial = sage.rings.finite_rings.conway_polynomials.conway_polynomial
 
     import sage.rings.finite_rings.element_ntl_gf2e
     Cache_ntl_gf2e = sage.rings.finite_rings.element_ntl_gf2e.Cache_ntl_gf2e
@@ -96,10 +92,9 @@ class FiniteField_ntl_gf2e(FiniteField):
         sage: k.<a> = GF(2^211, modulus='conway')
         sage: k.modulus()
         x^211 + x^9 + x^6 + x^5 + x^3 + x + 1
-        sage: k.<a> = GF(2^411, modulus='conway')
-        Traceback (most recent call last):
-        ...
-        RuntimeError: requested conway polynomial not in database.
+        sage: k.<a> = GF(2^23, modulus='conway')
+        sage: a.multiplicative_order() == k.order() - 1
+        True
     """
 
     def __init__(self, q, names="a",  modulus=None, repr="poly"):

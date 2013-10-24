@@ -4,6 +4,7 @@ Finite Rings
 .. toctree::
    :maxdepth: 2
 
+   sage/rings/finite_rings/conway_polynomials
    sage/rings/finite_rings/element_givaro
    sage/rings/finite_rings/element_ntl_gf2e
    sage/rings/finite_rings/element_pari_ffelt

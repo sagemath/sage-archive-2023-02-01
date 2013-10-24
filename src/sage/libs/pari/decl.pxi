@@ -1365,7 +1365,6 @@ cdef extern from 'pari/pari.h':
     void    pari_close()
     void    pari_init(size_t parisize, ulong maxprime)
     void    pari_init_opts(size_t parisize, ulong maxprime, ulong init_opts)
-    void    stackdummy(GEN x, long l)
     long    gsizebyte(GEN x)
     long    gsizeword(GEN x)
     long    timer()

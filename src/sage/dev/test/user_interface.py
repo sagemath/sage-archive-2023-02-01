@@ -41,8 +41,7 @@ class DoctestUserInterface(CmdLineInterface, list):
         sage: UI._get_input("Question?")
         Traceback (most recent call last):
         ...
-        RuntimeError: no answers left in DoctestUserInterface for question `Question? `.
-
+        RuntimeError: no answers left in DoctestUserInterface for question "Question? ".
     """
     def _get_input(self, prompt, options=None, default=None, input_func=raw_input):
         r"""
@@ -62,13 +61,14 @@ class DoctestUserInterface(CmdLineInterface, list):
             sage: UI._get_input("Should I delete your home directory?", ("yes","no","maybe"), default=0)
             Traceback (most recent call last):
             ...
-            RuntimeError: no answers left in DoctestUserInterface for question `Should I delete your home directory? [Yes/no/maybe] `.
-
+            RuntimeError: no answers left in DoctestUserInterface for question "Should
+            I delete your home directory? [Yes/no/maybe] ".
         """
         old_input_func = input_func
         def input_func(prompt):
             if not self:
-                raise RuntimeError("no answers left in DoctestUserInterface for question `{0}`.".format(prompt))
+                raise RuntimeError('no answers left in DoctestUserInterface for'
+                                   ' question "{0}".'.format(prompt))
             ret = self.pop()
             if old_input_func is getpass:
                 self.show(prompt)
@@ -84,8 +84,7 @@ class DoctestUserInterface(CmdLineInterface, list):
 
         TESTS::
 
-            sage: import os, tempfile
-            sage: tmp = tempfile.mkstemp()[1]
+            sage: tmp = tmp_filename()
             sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.test.user_interface import DoctestUserInterface
             sage: UI = DoctestUserInterface(DoctestConfig()["UI"])
@@ -100,7 +99,6 @@ class DoctestUserInterface(CmdLineInterface, list):
             ...
             RuntimeError: no answers left in DoctestUserInterface
             sage: os.unlink(tmp)
-
         """
         if not self:
             raise RuntimeError("no answers left in DoctestUserInterface")

@@ -407,9 +407,9 @@ def format(s, embedded=False):
     EXAMPLES::
 
         sage: from sage.misc.sagedoc import format
-        sage: identity_matrix(2).rook_vector.__doc__[107:176]
+        sage: identity_matrix(2).rook_vector.__doc__[115:184]
         '   Let `A` be an `m` by `n` (0,1)-matrix with `m \\le n`. We identify\n'
-        sage: format(identity_matrix(2).rook_vector.__doc__[107:176])
+        sage: format(identity_matrix(2).rook_vector.__doc__[115:184])
         '   Let A be an m by n (0,1)-matrix with m <= n. We identify\n'
 
     If the first line of the string is 'nodetex', remove 'nodetex' but

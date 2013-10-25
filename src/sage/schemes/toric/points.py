@@ -93,7 +93,8 @@ class InfinitePointEnumerator(object):
             sage: [ni.next() for k in range(5)]
             [(0, 1, 1), (1, 1, 1), (-1, 1, 1), (1/2, 1, 1), (-1/2, 1, 1)]
         """
-        n = self.fan().nrays()
+        rays = self.fan().rays() + self.fan().virtual_rays()
+        n = len(rays)
         if n == 0:
             yield tuple()
         else:
@@ -181,7 +182,8 @@ class NaiveFinitePointEnumerator(object):
         """
         units = self.units()
         result = []
-        ker = self.fan.rays().matrix().integer_kernel().matrix()
+        rays = self.fan().rays() + self.fan().virtual_rays()
+        ker = rays.matrix().integer_kernel().matrix()
         for phases in CartesianProduct(*([units] * ker.nrows())):
             phases = tuple(prod(mu**exponent for mu, exponent in zip(phases, column))
                            for column in ker.columns())
@@ -209,7 +211,8 @@ class NaiveFinitePointEnumerator(object):
         """
         if self.fan.is_smooth():
             return tuple()
-        image = self.fan.rays().column_matrix().image()
+        rays = self.fan().rays() + self.fan().virtual_rays()
+        image = rays.column_matrix().image()
         torsion = image.saturation().quotient(image)
         result = set()
         for t in torsion:
@@ -217,7 +220,7 @@ class NaiveFinitePointEnumerator(object):
             for root in self.roots(t.order()):
                 phases = tuple(root**exponent for exponent in t_lift)
                 result.add(phases)
-        result.remove(tuple(self.ring.one() for i in range(self.fan.nrays())))
+        result.remove(tuple(self.ring.one() for r in rays))
         return tuple(sorted(result))
 
     @cached_method
@@ -254,8 +257,6 @@ class NaiveFinitePointEnumerator(object):
             phases = tuple(x*y for x, y in zip(f, t))
             result.add(phases)
         return tuple(sorted(result))
-            
-
 
     def orbit(self, point):
         """
@@ -339,10 +340,18 @@ class NaiveFinitePointEnumerator(object):
             [(0, 1, 0, 1), (1, 0, 0, 1), (1, 0, 1, 0),
              (0, 1, 1, 0), (0, 1, 1, 1), (1, 0, 1, 1),
              (1, 1, 0, 1), (1, 1, 1, 0), (1, 1, 1, 1)]
+
+        TESTS::
+
+            sage: V = ToricVariety(Fan([Cone([(1,1)])]), base_ring=GF(3))
+            sage: ni = V.point_set()._naive_enumerator()
+            sage: list(ni.coordinate_iter())
+            [(0, 1), (0, 2), (1, 1), (1, 2), (2, 1), (2, 2)]
         """
         units = [x for x in self.ring if x != 0]
         zero = self.ring.zero()
-        big_torus = [units] * self.fan.nrays()
+        rays = self.fan.rays() + self.fan.virtual_rays()
+        big_torus = [units] * len(rays)
         for cone in self.cone_iter():
             patch = copy(big_torus)
             for i in cone.ambient_ray_indices():

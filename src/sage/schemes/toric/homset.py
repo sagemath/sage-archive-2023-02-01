@@ -380,8 +380,8 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
          [1 : 3 : 2], [1 : 3 : 3], [1 : 3 : 4], [1 : 3 : 5], 
          [1 : 3 : 6]]
 
-    The blow-up of the plane is the line bundle
-    $O_{\mathbbb{P}^1}(-1)$, and its point set is the cartesian
+    As for a non-compact example, the blow-up of the plane is the line
+    bundle $O_{\mathbbb{P}^1}(-1)$. Its point set is the cartesian
     product of the points on the base $\mathbf{P}^1$ with the points
     on the fiber::
 
@@ -393,6 +393,13 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
          [1 : 0 : 0], [1 : 0 : 1], [1 : 0 : 2],
          [1 : 1 : 0], [1 : 1 : 1], [1 : 1 : 2],
          [1 : 2 : 0], [1 : 2 : 1], [1 : 2 : 2]]
+
+    Toric varieties with torus factors (that is, where the fan is not
+    full-dimensional) also work::
+
+        sage: F_times_Fstar = ToricVariety(Fan([Cone([(1,0)])]), base_field=GF(3))
+        sage: sorted(F_times_Fstar.point_set().list())
+        [[0 : 1], [0 : 2], [1 : 1], [1 : 2], [2 : 1], [2 : 2]]
 
     TESTS::
 

@@ -226,7 +226,7 @@ class ToricVarietyFactory(SageObject):
             self.__dict__[dict_key] = \
                 ToricVariety(fan,
                              coordinate_names=coordinate_names,
-                             base_field=base_ring)
+                             base_ring=base_ring)
         return self.__dict__[dict_key]
 
     def _make_CPRFanoToricVariety(self, name, coordinate_names, base_ring):
@@ -272,7 +272,7 @@ class ToricVarietyFactory(SageObject):
                                     coordinate_points=ray2point,
                                     charts=charts,
                                     coordinate_names=coordinate_names,
-                                    base_field=base_ring,
+                                    base_ring=base_ring,
                                     check=self._check)
         return self.__dict__[dict_key]
 
@@ -579,7 +579,7 @@ class ToricVarietyFactory(SageObject):
         charts = [ range(0,i)+range(i+1,n+1) for i in range(0,n+1) ]
         return CPRFanoToricVariety(Delta_polar=LatticePolytope(m),
                                    charts=charts, check=self._check,
-                                   coordinate_names=names, base_field=base_ring)
+                                   coordinate_names=names, base_ring=base_ring)
 
     def A1(self, names='z', base_ring=QQ):
         r"""
@@ -1466,6 +1466,55 @@ class ToricVarietyFactory(SageObject):
             w_c = w[:i] + w[i+1:]
             cones = cones + [tuple(w_c)]
         fan = Fan(cones,rays)
+        return ToricVariety(fan, coordinate_names=names, base_ring=base_ring)
+
+    def torus(self, n, names='z+', base_ring=QQ):
+        r"""
+        Construct the ``n``-dimensional algebraic torus `(\mathbb{F}^\times)^n`.
+
+        INPUT:
+
+        - ``n`` -- non-negative integer. The dimension of the algebraic torus.
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.toric.variety.normalize_names`m
+          for acceptable formats.
+
+        - ``base_ring`` -- a ring (default: `\QQ`). The base ring for
+          the toric variety.
+
+        OUTPUT:
+
+        A :class:`toric variety
+        <sage.schemes.toric.variety.ToricVariety_field>`.
+
+        EXAMPLES::
+
+            sage: T3 = toric_varieties.torus(3);  T3
+            3-d affine toric variety
+            sage: T3.fan().rays()
+            Empty collection
+            in 3-d lattice N
+            sage: T3.fan().virtual_rays()
+            N(1, 0, 0),
+            N(0, 1, 0),
+            N(0, 0, 1)
+            in 3-d lattice N
+            sage: T3.gens()
+            (z0, z1, z2)
+            sage: sorted(T3.change_ring(GF(3)).point_set().list())
+            [[1 : 1 : 1], [1 : 1 : 2], [1 : 2 : 1], [1 : 2 : 2], 
+             [2 : 1 : 1], [2 : 1 : 2], [2 : 2 : 1], [2 : 2 : 2]]
+        """
+        try:
+            n = ZZ(n)
+        except TypeError:
+            raise TypeError('dimension of the torus must be an integer')
+        if n < 0:
+            raise ValueError('dimension must be non-negative')
+        N = ToricLattice(n)
+        fan = Fan([], lattice=N)
         return ToricVariety(fan, coordinate_names=names, base_field=base_ring)
 
 toric_varieties = ToricVarietyFactory()

@@ -380,6 +380,20 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
          [1 : 3 : 2], [1 : 3 : 3], [1 : 3 : 4], [1 : 3 : 5], 
          [1 : 3 : 6]]
 
+    The blow-up of the plane is the line bundle
+    $O_{\mathbbb{P}^1}(-1)$, and its point set is the cartesian
+    product of the points on the base $\mathbf{P}^1$ with the points
+    on the fiber::
+
+        sage: fan = Fan([Cone([(1,0), (1,1)]), Cone([(1,1), (0,1)])])
+        sage: blowup_plane = ToricVariety(fan, base_ring=GF(3))
+        sage: point_set = blowup_plane.point_set()
+        sage: sorted(point_set.list())
+        [[0 : 1 : 0], [0 : 1 : 1], [0 : 1 : 2],
+         [1 : 0 : 0], [1 : 0 : 1], [1 : 0 : 2],
+         [1 : 1 : 0], [1 : 1 : 1], [1 : 1 : 2],
+         [1 : 2 : 0], [1 : 2 : 1], [1 : 2 : 2]]
+
     TESTS::
 
         sage: import sage.schemes.toric.homset as HOM

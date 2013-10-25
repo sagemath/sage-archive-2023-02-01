@@ -383,7 +383,7 @@ def ToricVariety(fan,
                  coordinate_names=None,
                  names=None,
                  coordinate_indices=None,
-                 base_field=QQ):
+                 base_ring=QQ, base_field=None):
     r"""
     Construct a toric variety.
 
@@ -404,7 +404,11 @@ def ToricVariety(fan,
       variables. If not given, the index of each variable will coincide with
       the index of the corresponding ray of the fan;
 
-    - ``base_field`` -- base field of the toric variety (default: `\QQ`).
+    - ``base_ring`` -- base ring of the toric variety (default:
+      `\QQ`). Must be a field.
+
+    - ``base_field`` -- alias for ``base_ring``. Takes precedence if
+      both are specified.
 
     OUTPUT:
 
@@ -462,15 +466,17 @@ def ToricVariety(fan,
         sage: (a^2+b^2) * (c+d)
         a^2*c + b^2*c + a^2*d + b^2*d
     """
+    if base_field is not None:
+        base_ring = base_field
     if names is not None:
         if coordinate_names is not None:
             raise ValueError('You must not specify both coordinate_names and names!')
         coordinate_names = names
-    if base_field not in _Fields:
+    if base_ring not in _Fields:
         raise TypeError("need a field to construct a toric variety!\n Got %s"
-                        % base_field)
+                        % base_ring)
     return ToricVariety_field(fan, coordinate_names, coordinate_indices,
-                             base_field)
+                              base_ring)
 
 
 def AffineToricVariety(cone, *args, **kwds):

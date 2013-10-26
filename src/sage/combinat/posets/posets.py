@@ -2022,6 +2022,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.is_chain_of_poset((1, 1, 3))
             True
             sage: P.is_chain_of_poset((1, 1, 3), ordered=True)
+            False
+            sage: P.is_chain_of_poset((1, 3), ordered=True)
             True
             sage: P.is_chain_of_poset((6, 1, 1, 3))
             True
@@ -2030,9 +2032,13 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         if ordered:
             sorted_o = o
+            return all(self.lt(a, b) for a, b in zip(sorted_o, sorted_o[1:]))
         else:
+            # _element_to_vertex can be assumed to be a linear extension
+            # of the poset according to the documentation of class
+            # HasseDiagram.
             sorted_o = sorted(o, key=self._element_to_vertex)
-        return all(self.le(a, b) for a, b in zip(sorted_o, sorted_o[1:]))
+            return all(self.le(a, b) for a, b in zip(sorted_o, sorted_o[1:]))
 
     def is_EL_labelling(self, f, return_raising_chains=False):
         r"""

@@ -553,6 +553,8 @@ class Posets(Category):
                 True
                 sage: Q.is_chain_of_poset([2, 1], ordered=True)
                 True
+                sage: Q.is_chain_of_poset([2, 1, 1], ordered=True)
+                False
                 sage: Q.is_chain_of_poset([3])
                 True
                 sage: Q.is_chain_of_poset([4, 2, 3])
@@ -584,6 +586,8 @@ class Posets(Category):
                 sage: T.is_chain_of_poset((T(3), T(3), T(6)))
                 True
                 sage: T.is_chain_of_poset((T(3), T(3), T(6)), ordered=True)
+                False
+                sage: T.is_chain_of_poset((T(3), T(6)), ordered=True)
                 True
                 sage: T.is_chain_of_poset((), ordered=True)
                 True
@@ -596,7 +600,7 @@ class Posets(Category):
             """
             list_o = list(o)
             if ordered:
-                return all(self.le(a, b) for a, b in zip(list_o, list_o[1:]))
+                return all(self.lt(a, b) for a, b in zip(list_o, list_o[1:]))
             else:
                 for (i, x) in enumerate(list_o):
                     for y in list_o[:i]:
@@ -674,12 +678,7 @@ class Posets(Category):
                 sage: R.is_antichain_of_poset([R(set([3, 1, 2, 4])), R(set([1, 4])), R(set([4, 5]))])
                 False
             """
-            list_o = list(o)
-            for (i, x) in enumerate(list_o):
-                for y in list_o[:i]:
-                    if self.lt(x, y) or self.gt(x, y):
-                        return False
-            return True
+            return all(not self.lt(x,y) for x in o for y in o)
 
     class ElementMethods:
         pass

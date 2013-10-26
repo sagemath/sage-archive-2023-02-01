@@ -2231,6 +2231,53 @@ class Partition(CombinatorialObject, Element):
         l = self.leg_length(i, j)
         return [(x, j) for x in range(i+1, i+l+1)]
 
+    def attacking_pairs(self):
+        """
+        Return a list of the attacking pairs of the Young diagram of
+        ``self``.
+
+        A pair of cells `(c, d)` of a Young diagram (in English notation) is
+        said to be attacking if one of the following conditions holds:
+
+        1. `c` and `d` lie in the same row with `c` strictly to the west
+           of `d`.
+
+        2. `c` is in the row immediately to the south of `d`, and `c`
+           lies strictly east of `d`.
+
+        This particular method returns each pair `(c, d)` as a tuple,
+        where each of `c` and `d` is given as a tuple `(i, j)` with
+        `i` and `j` zero-based (so `i = 0` means that the cell lies
+        in the topmost row).
+
+        EXAMPLES::
+
+            sage: p = Partition([3, 2])
+            sage: p.attacking_pairs()
+            [((0, 0), (0, 1)),
+             ((0, 0), (0, 2)),
+             ((0, 1), (0, 2)),
+             ((1, 0), (1, 1)),
+             ((1, 1), (0, 0))]
+            sage: Partition([]).attacking_pairs()
+            []
+        """
+        attacking_pairs = []
+        for i, r in enumerate(self):
+            for j in range(r):
+                #c is in position (i,j)
+                #Find the d that satisfy condition 1
+                for k in range(j+1, r):
+                    attacking_pairs.append( ((i,j),(i,k)) )
+
+                #Find the d that satisfy condition 2
+                if i == 0:
+                    continue
+                for k in range(j):
+                    attacking_pairs.append( ((i,j),(i-1,k)) )
+
+        return attacking_pairs
+
     def dominate(self, rows=None):
         """
         Old name for :meth:`dominated_partitions()`.

@@ -23,10 +23,19 @@ def TangentBundle(X):
     r"""
     Construct the tangent bundle of a toric variety.
 
-    EXAMPLES:
+    INPUT:
+
+    - ``X`` -- a toric variety. The base space of the bundle.
+
+    OUTPUT:
+
+    The tangent bundle as a Klyachko bundle.
+
+    EXAMPLES::
 
         sage: dP7 = toric_varieties.dP7()
-        sage: dP7.sheaves.tangent_bundle()
+        sage: from sage.schemes.toric.sheaf.constructor import TangentBundle
+        sage: TangentBundle(dP7)
         Rank 2 bundle on 2-d CPR-Fano toric variety covered by 5 affine patches.
     """
     if not is_ToricVariety(X):
@@ -43,6 +52,24 @@ def TangentBundle(X):
     
 
 def CotangentBundle(X):
+    r"""
+    Construct the cotangent bundle of a toric variety.
+
+    INPUT:
+
+    - ``X`` -- a toric variety. The base space of the bundle.
+
+    OUTPUT:
+
+    The cotangent bundle as a Klyachko bundle.
+
+    EXAMPLES::
+
+        sage: dP7 = toric_varieties.dP7()
+        sage: from sage.schemes.toric.sheaf.constructor import CotangentBundle
+        sage: CotangentBundle(dP7)
+        Rank 2 bundle on 2-d CPR-Fano toric variety covered by 5 affine patches.
+    """
     return TangentBundle(X).dual()
 
 
@@ -50,10 +77,21 @@ def TrivialBundle(X, rank=1):
     r"""
     Return the trivial bundle of rank ``r``.
 
+    INPUT:
+
+    - ``X`` -- a toric variety. The base space of the bundle.
+
+    - ``rank`` -- the rank of the bundle.
+
+    OUTPUT:
+
+    The trivial bundle as a Klyachko bundle.
+
     EXAMPLES::
 
         sage: P2 = toric_varieties.P2()
-        sage: I3 = P2.sheaves.trivial_bundle(3);  I3
+        sage: from sage.schemes.toric.sheaf.constructor import TrivialBundle
+        sage: I3 = TrivialBundle(P2, 3);  I3
         Rank 3 bundle on 2-d CPR-Fano toric variety covered by 3 affine patches.
         sage: I3.cohomology(weight=(0,0), dim=True)
         (3, 0, 0)
@@ -71,16 +109,23 @@ def TrivialBundle(X, rank=1):
 def LineBundle(X, D):
     """
     Construct the rank-1 bundle `O(D)`.
+
+    INPUT:
+
+    - ``X`` -- a toric variety. The base space of the bundle.
+
+    - ``D`` -- a toric divisor.
     
     OUTPUT:
 
-    A Klyachko bundle of rank 1.
+    The line bundle `O(D)` as a Klyachko bundle of rank 1.
 
     EXAMPLES::
 
         sage: X = toric_varieties.dP8()
         sage: D = X.divisor(0)
-        sage: O_D = X.sheaves.line_bundle(D)
+        sage: from sage.schemes.toric.sheaf.constructor import LineBundle
+        sage: O_D = LineBundle(X, D)
         sage: O_D.cohomology(dim=True, weight=(0,0))
         (1, 0, 0)
     """
@@ -99,15 +144,82 @@ def LineBundle(X, D):
 class SheafLibrary(object):
 
     def __init__(self, toric_variety):
+        """
+        Utility object to construct sheaves on toric varieties.
+
+        .. warning::
+
+            You should never constuct instances manually. Can be
+            accessed from a toric variety via the
+            :attr:`sage.schemes.toric.variety.ToricVariety_field.sheaves`
+            attribute.
+
+        EXAMPLES::
+
+            sage: type(toric_varieties.P2().sheaves)
+            <class 'sage.schemes.toric.sheaf.constructor.SheafLibrary'>
+        """
         self._variety = toric_variety
 
     def __repr__(self):
+        """
+        Return a string representation.
+
+        OUTPUT:
+
+        String.
+
+        EXAMPLES::
+
+            sage: toric_varieties.P2().sheaves      # indirect doctest
+            Sheaf constructor on 2-d CPR-Fano toric variety covered by 3 affine patches
+        """
         return 'Sheaf constructor on ' + repr(self._variety)
 
     def trivial_bundle(self, rank=1):
+        r"""
+        Return the trivial bundle of rank ``r``.
+    
+        INPUT:
+
+        - ``rank`` -- integer (optional; default: `1`). The rank of
+          the bundle.
+    
+        OUTPUT:
+    
+        The trivial bundle as a Klyachko bundle.
+    
+        EXAMPLES::
+    
+            sage: P2 = toric_varieties.P2()
+            sage: I3 = P2.sheaves.trivial_bundle(3);  I3
+            Rank 3 bundle on 2-d CPR-Fano toric variety covered by 3 affine patches.
+            sage: I3.cohomology(weight=(0,0), dim=True)
+            (3, 0, 0)
+        """
         return TrivialBundle(self._variety, rank)
 
     def line_bundle(self, divisor):
+        """
+        Construct the rank-1 bundle `O(D)`.
+    
+        INPUT:
+    
+        - ``divisor`` -- a toric divisor.
+        
+        OUTPUT:
+    
+        The line bundle `O(D)` for the given divisor as a Klyachko
+        bundle of rank 1.
+    
+        EXAMPLES::
+    
+            sage: X = toric_varieties.dP8()
+            sage: D = X.divisor(0)
+            sage: O_D = X.sheaves.line_bundle(D)
+            sage: O_D.cohomology(dim=True, weight=(0,0))
+            (1, 0, 0)
+        """
         return LineBundle(self._variety, divisor)
 
     def tangent_bundle(self):
@@ -116,7 +228,7 @@ class SheafLibrary(object):
 
         OUTPUT:
 
-        The cotangent bundle as a toric bundle.
+        The tangent bundle as a Klyachko bundle.
 
         EXAMPLES::
         
@@ -131,7 +243,7 @@ class SheafLibrary(object):
 
         OUTPUT:
 
-        The tangent bundle as a toric bundle.
+        The cotangent bundle as a Klyachko bundle.
 
         EXAMPLES::
         
@@ -155,6 +267,26 @@ class SheafLibrary(object):
           :func:`~sage.modules.multi_filtered_vector_space.MultiFilteredVectorSpace`
           or something (like a dictionary of ordinary filtered vector
           spaces).
+
+        OUTPUT:
+
+        The Klyachko bundle defined by the filtrations, one for each
+        ray, of a vector space.
+
+        EXAMPLES::
+
+            sage: P1 = toric_varieties.P1()
+            sage: v1, v2, v3 = [(1,0,0),(0,1,0),(0,0,1)]
+            sage: F1 = FilteredVectorSpace({1:[v1, v2, v3], 3:[v1]})
+            sage: F2 = FilteredVectorSpace({0:[v1, v2, v3], 2:[v2, v3]})
+            sage: P1 = toric_varieties.P1()
+            sage: r1, r2 = P1.fan().rays()
+            sage: F = MultiFilteredVectorSpace({r1:F1, r2:F2});  F
+            Filtrations
+                N(-1): QQ^3 >= QQ^2 >= QQ^2 >=  0   >= 0
+                 N(1): QQ^3 >= QQ^3 >= QQ^1 >= QQ^1 >= 0
+            sage: P1.sheaves.Klyachko(F)
+            Rank 3 bundle on 1-d CPR-Fano toric variety covered by 2 affine patches.
         """
         from klyachko import Bundle
         return Bundle(self._variety, multi_filtration, check=True)
@@ -163,12 +295,18 @@ class SheafLibrary(object):
         """
         Return a toric divisor.
 
+        INPUT:
+
         This is just an alias for
         :meth:`sage.schemes.toric.variety.ToricVariety_field.divisor`,
         see there for details.
 
         By abuse of notation, you can usually use the divisor `D`
         interchangeably with the line bundle `O(D)`.
+
+        OUTPUT:
+
+        A toric divisor.
 
         EXAMPLES::
 

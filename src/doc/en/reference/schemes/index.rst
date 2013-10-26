@@ -41,7 +41,7 @@ Schemes
    sage/schemes/toric/weierstrass
    sage/schemes/toric/weierstrass_covering
 
-   sage/schemes/toric/sheaf/constructors
+   sage/schemes/toric/sheaf/constructor
    sage/schemes/toric/sheaf/klyachko
 
 .. include:: ../footer.txt

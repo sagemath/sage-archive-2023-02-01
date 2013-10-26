@@ -2165,6 +2165,9 @@ class ToricVariety_field(AmbientSpace):
         r"""
         Return the factory object for sheaves on the toric variety.
 
+        See :class:`sage.schemes.toric.sheaf.constructor.SheafLibrary`
+        for details.
+
         EXAMPLES::
         
             sage: dP6 = toric_varieties.dP6()

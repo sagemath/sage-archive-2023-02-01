@@ -2262,8 +2262,17 @@ class CompletionFunctor(ConstructionFunctor):
             sage: (C*F)(ZZ['x']) is (F*C)(ZZ['x'])
             True
 
+        The following was fixed in :trac:`15329` (it used to result
+        in an infinite recursion)::
+
+            sage: from sage.categories.pushout import pushout
+            sage: pushout(Qp(7),RLF)
+            Traceback (most recent call last):
+            ...
+            CoercionException: ('Ambiguous Base Extension', 7-adic Field with capped relative precision 20, Real Lazy Field)
+
         """
-        return isinstance(other,(FractionField,CompletionFunctor))
+        return isinstance(other,FractionField)
 
 class QuotientFunctor(ConstructionFunctor):
     """

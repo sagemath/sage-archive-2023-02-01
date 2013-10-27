@@ -929,14 +929,14 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             Modular Forms subspace of dimension 2 of Modular Forms space of dimension 3 for Congruence Subgroup Gamma0(37) of weight 2 over Rational Field
         """
         if check:
-            if not sage.modules.all.is_FreeModule(M):
+            if not sage.modules.free_module.is_FreeModule(M):
                 V = self.free_module()
                 if isinstance(M, (list,tuple)):
                     M = V.span([V(x.element()) for x in M])
                 else:
                     M = V.span(M)
             if not M.is_submodule(self.free_module()):
-                raise TypeError, "M must be a submodule of the free module associated to this module."
+                raise TypeError("M must be a submodule of the free module associated to this module.")
             if M == self.free_module():
                 return self
         return self._submodule_class()(self, M, Mdual, check=check)

@@ -140,33 +140,33 @@ in `\mathbb{R}^n` are called the *regions* of the arrangement::
     sage: b.n_regions()
     19
     sage: b.regions()
-    (A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
-     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
-     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray,
-     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays,
-     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray,
-     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices, 
-     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
-     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
-     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices, 
-     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
-     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
-     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices, 
-     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
-     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
-     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices, 
-     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
-     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices, 
-     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices, 
-     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 6 vertices)
+    (A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 6 vertices, 
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices, 
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices, 
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices, 
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices, 
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices, 
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices, 
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays)
     sage: b.bounded_regions()
-    (A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 6 vertices)
+    (A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 6 vertices, 
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices, 
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices, 
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices, 
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices, 
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices, 
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices)
     sage: b.n_bounded_regions()
     7
     sage: a.unbounded_regions()
@@ -189,11 +189,11 @@ separating them. For example::
     sage: r1 = b.regions()[0]
     sage: r2 = b.regions()[1]  
     sage: b.distance_between_regions(r1, r2)
-    2
+    1
     sage: [hyp for hyp in b if b.is_separating_hyperplane(r1, r2, hyp)]
-    [Hyperplane -t1 + t2 + 1, Hyperplane t1 - t2 + 1]
+    [Hyperplane 2*t1 + t2 + 1]
     sage: b.distance_enumerator(r1)  # generating function for distances from r1
-    x^6 + 2*x^5 + 5*x^4 + 3*x^3 + 5*x^2 + 2*x + 1
+    6*x^3 + 6*x^2 + 6*x + 1
 
 Note: *bounded region* really mean *relatively bounded* here.  A region is
 relatively bounded if its intersection with space spanned by the normals of the
@@ -262,12 +262,12 @@ Miscellaneous methods (see documentation for an explanation)::
     sage: a.sign_vector((1,1,1))
     (-1, 1, -1, 1, -1, 1)
     sage: a.varchenko_matrix()
-    [          1          h1       h0*h1          h3       h1*h3       h2*h3]
-    [         h1           1          h0       h1*h3          h3    h1*h2*h3]
-    [      h0*h1          h0           1    h0*h1*h3       h0*h3 h0*h1*h2*h3]
-    [         h3       h1*h3    h0*h1*h3           1          h1          h2]
-    [      h1*h3          h3       h0*h3          h1           1       h1*h2]
-    [      h2*h3    h1*h2*h3 h0*h1*h2*h3          h2       h1*h2           1]
+    [          1          h2       h2*h4       h2*h3    h2*h3*h4 h2*h3*h4*h5]
+    [         h2           1          h4          h3       h3*h4    h3*h4*h5]
+    [      h2*h4          h4           1       h3*h4          h3       h3*h5]
+    [      h2*h3          h3       h3*h4           1          h4       h4*h5]
+    [   h2*h3*h4       h3*h4          h3          h4           1          h5]
+    [h2*h3*h4*h5    h3*h4*h5       h3*h5       h4*h5          h5           1]
 
 There are extensive methods for visualizing hyperplane arrangements in
 low dimensions.  See :meth:`~HyperplaneArrangementElement.plot` for
@@ -1304,23 +1304,33 @@ class HyperplaneArrangementElement(Element):
              A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays,
              A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays,
              A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays)
+        
+            sage: chessboard = []
+            sage: N = 8
+            sage: for x0, y0 in CartesianProduct(range(N+1), range(N+1)):
+            ....:     chessboard.extend([x-x0, y-y0])
+            sage: chessboard = H(chessboard)
+            sage: len(chessboard.bounded_regions())   # long time, 359 ms on a Core i7
         """
         if self.base_ring().characteristic() != 0:
             raise ValueError('base field must have characteristic zero')
-        num = self.n_hyperplanes()
-        result = []
-        from sage.misc.misc import powerset
-        for pos in powerset(range(num)):
-            ieqs = []
-            for i in range(num):
-                if i in pos:
-                    ieqs.append(self[i])
-                else:
-                    ieqs.append(-self[i])
-            P = self._make_region(ieqs)
-            if P.dim() == self.dimension():
-                result.append(P)
-        return tuple(result)
+        from sage.geometry.polyhedron.constructor import Polyhedron
+        R = self.base_ring()
+        dim = self.dimension()
+        universe = Polyhedron(eqns=[[0] + [0] * dim], base_ring=R)
+        regions = [universe]
+        for hyperplane in self:
+            ieq = vector(R, hyperplane.coefficients())
+            pos_half = Polyhedron(ieqs=[ ieq], base_ring=R)
+            neg_half = Polyhedron(ieqs=[-ieq], base_ring=R)
+            subdivided = []
+            for region in regions:
+                for half_space in pos_half, neg_half:
+                    part = region.intersection(half_space)
+                    if part.dim() == dim:
+                        subdivided.append(part)
+            regions = subdivided
+        return tuple(regions)
 
     def region_containing_point(self, p):
         r"""
@@ -1388,7 +1398,7 @@ class HyperplaneArrangementElement(Element):
 
             sage: a = hyperplane_arrangements.semiorder(3)
             sage: a._bounded_region_indices()
-            (4, 6, 8, 9, 10, 12, 14)
+            (2, 7, 8, 9, 10, 11, 16)
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
         normal = Polyhedron(vertices=[[0]*self.dimension()], 
@@ -1454,18 +1464,18 @@ class HyperplaneArrangementElement(Element):
             sage: B.n_regions() - B.n_bounded_regions()
             12
             sage: B.unbounded_regions()
-            (A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
-             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
-             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
-             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
-             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray,
-             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
-             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
-             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
-             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
-             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
-             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
-             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray)
+            (A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays)
 
         .. SEEALSO::
 
@@ -1749,11 +1759,11 @@ class HyperplaneArrangementElement(Element):
 
             sage: a = hyperplane_arrangements.coordinate(3)
             sage: v = a.varchenko_matrix();  v
-            [    1    h0    h1]
-            [   h0     1 h0*h1]
-            [   h1 h0*h1     1]
+            [    1    h2    h1]
+            [   h2     1 h1*h2]
+            [   h1 h1*h2     1]
             sage: factor(det(v))
-            (h1 - 1) * (h1 + 1) * (h0 - 1) * (h0 + 1)
+            (h2 - 1) * (h2 + 1) * (h1 - 1) * (h1 + 1)
         """
         from sage.rings.all import PolynomialRing
         from sage.matrix.constructor import identity_matrix

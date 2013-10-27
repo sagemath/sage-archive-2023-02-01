@@ -101,6 +101,7 @@ from sage.rings.finite_rings.integer_mod import mod
 from sage.misc.functional import is_odd
 from sage.misc.misc_c import prod
 from sage.categories.homset import End
+from sage.categories.pushout import pushout
 
 import sage.rings.ring
 from sage.misc.latex import latex_variable_name
@@ -6142,21 +6143,26 @@ class NumberField_absolute(NumberField_generic):
             if R.coerce_embedding() is not None:
                 if self.coerce_embedding() is not None:
                     try:
-                        from sage.categories.pushout import pushout
-                        ambient_field = pushout(R.coerce_embedding().codomain(), self.coerce_embedding().codomain())
-                        if ambient_field is not None:
-                            try:
-                                # the original ambient field
-                                return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self, ambient_field)
-                            except ValueError: # no embedding found
-                                # there might be one in the alg. completion
-                                return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self, ambient_field.algebraic_closure() if hasattr(ambient_field,'algebraic_closure') else ambient_field)
-                    except (ValueError, TypeError, NotImplementedError, sage.structure.coerce_exceptions.CoercionException),msg:
-                        # no success with the pushout
                         try:
                             return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self)
-                        except (TypeError, ValueError):
+                        except ValueError: # no embedding found
                             pass
+                        Remb = R.coerce_embedding().codomain()
+                        while Remb.coerce_embedding() is not None:
+                            Remb = Remb.coerce_embedding().codomain()
+                        semb = self.coerce_embedding().codomain()
+                        while semb.coerce_embedding() is not None:
+                            semb = semb.coerce_embedding().codomain()
+                        ambient_field = pushout(Remb, semb)
+                        # By trac #15331, EmbeddedNumberFieldMorphism has already
+                        # tried to use this pushout. Hence, if we are here, our
+                        # only chance for success is the algebrais closure.
+                        if ambient_field is not None:
+                            return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self,
+                                                                           ambient_field.algebraic_closure())
+                    except (AttributeError, ValueError, TypeError, NotImplementedError, sage.structure.coerce_exceptions.CoercionException),msg:
+                        # no success at all
+                        return
                 else:
                     # R is embedded, self isn't. So, we could only have
                     # the forgetful coercion. But this yields to non-commuting

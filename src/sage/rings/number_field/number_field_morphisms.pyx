@@ -24,6 +24,7 @@ fields (generally `\RR` or `\CC`).
 from sage.structure.element cimport Element
 from sage.categories.morphism cimport Morphism
 from sage.categories.map cimport Map
+from sage.categories.pushout import pushout
 
 from sage.rings.real_mpfr import RealField, mpfr_prec_min
 from sage.rings.complex_field import ComplexField
@@ -107,8 +108,7 @@ cdef class NumberFieldEmbedding(Morphism):
 cdef class EmbeddedNumberFieldMorphism(NumberFieldEmbedding):
     r"""
     This allows one to go from one number field in another consistently,
-    assuming they both have specified embeddings into an ambient field
-    (by default it looks for an embedding into `\CC`).
+    assuming they both have specified embeddings into an ambient field.
 
     EXAMPLES::
 
@@ -161,13 +161,43 @@ cdef class EmbeddedNumberFieldMorphism(NumberFieldEmbedding):
             Traceback (most recent call last):
             ...
             TypeError: unsupported operand parent(s) for '+': 'Number Field in a with defining polynomial x^3 + 2' and 'Number Field in a with defining polynomial x^3 + 2'
+
+        The following was fixed to raise a ``TypeError`` in :trac:`15331`::
+
+            sage: L.<i> = NumberField(x^2 + 1)
+            sage: K = NumberField(L(i/2+3).minpoly(), names=('i0',), embedding=L(i/2+3))
+            sage: EmbeddedNumberFieldMorphism(K, L)
+            Traceback (most recent call last):
+            ...
+            TypeError: No embedding available for Number Field in i with defining polynomial x^2 + 1
+
         """
         if ambient_field is None:
             from sage.rings.complex_double import CDF
-            ambient_field = CDF
+            default_ambient_field = CDF
+            Kemb = K.coerce_embedding()
+            if Kemb is None:
+                raise TypeError("No embedding available for %s"%K)
+            Kemb = Kemb.codomain()
+            while Kemb.coerce_embedding() is not None:
+                Kemb = Kemb.coerce_embedding().codomain()
+            Lemb = L.coerce_embedding()
+            if Lemb is None:
+                raise TypeError("No embedding available for %s"%L)
+            Lemb = Lemb.codomain()
+            while Lemb.coerce_embedding() is not None:
+                Lemb = Lemb.coerce_embedding().codomain()
+                ambient_field = pushout(Kemb, Lemb)
+        else:
+            default_ambient_field = None
         gen_image = matching_root(K.polynomial().change_ring(L), K.gen(), ambient_field=ambient_field, margin=2)
+        if gen_image is None and default_ambient_field is not None:
+            ambient_field = default_ambient_field
+            gen_image = matching_root(K.polynomial().change_ring(L), K.gen(),
+                                      ambient_field=ambient_field, margin=2)
         if gen_image is None:
             raise ValueError, "No consistent embedding of all of %s into %s." % (K, L)
+
         NumberFieldEmbedding.__init__(self, K, L, gen_image)
         self.ambient_field = ambient_field
 

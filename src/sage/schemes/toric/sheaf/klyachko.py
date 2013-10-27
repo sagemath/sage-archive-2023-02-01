@@ -381,7 +381,7 @@ class KlyachkoBundle_class(SageObject):
 
     def E_degree(self, alpha, m):
         r"""
-        Return the vector subspace `E^\alpha(i)`.
+        Return the vector subspace `E^\alpha(m)`.
 
         INPUT:
 
@@ -391,6 +391,11 @@ class KlyachkoBundle_class(SageObject):
         
         - ``m`` -- tuple of integers or `M`-lattice point. A point in
           the dual lattice of the fan.
+
+        OUTPUT:
+
+        The subspace $E^\alpha(\alpha m)$ of the filtration indexed by
+        the ray $\alpha$ and at the filtration degree $\alpha * m$
 
         EXAMPLES::
 

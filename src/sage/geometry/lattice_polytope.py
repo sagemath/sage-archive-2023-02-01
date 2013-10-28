@@ -104,7 +104,7 @@ from sage.graphs.graph import Graph
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.interfaces.all import maxima
 from sage.matrix.all import matrix, is_Matrix
-from sage.misc.all import tmp_filename
+from sage.misc.all import cached_method, tmp_filename
 from sage.misc.misc import SAGE_SHARE
 from sage.modules.all import vector, span
 from sage.plot.plot3d.index_face_set import IndexFaceSet
@@ -2186,6 +2186,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 self._nfacets = self._sublattice_polytope.nfacets()
         return self._nfacets
 
+    @cached_method
     def normal_form(self, algorithm="palp", permutation=False):
         r"""
         Return the normal form of ``self``.
@@ -2213,11 +2214,17 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         - ``permutation`` -- (default: ``False``) If ``True`` then instead of
             a matrix a tuple containing the normal form matrix and the
             permutation applied to vertices to obtain it is returned.
-            Only the algorithms "palp_native" and "palp_modified" support
-            finding the permutation.
+            Note that the different algorithms may return different results,
+            that nevertheless lead to the same normal form.
+
+        OUTPUT:
+
+        A matrix or a tuple of a matrix and a permutation.
 
         
-        EXAMPLES: We compute the normal form of the "diamond"::
+        EXAMPLES:
+
+        We compute the normal form of the "diamond"::
 
             sage: o = lattice_polytope.octahedron(2)
             sage: o.vertices()
@@ -2227,9 +2234,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [ 1  0  0 -1]
             [ 0  1 -1  0]
 
-        The diamond is the 3rd polytope in the internal database...
-
-        ::
+        The diamond is the 3rd polytope in the internal database... ::
 
             sage: o.index()
             3
@@ -2263,27 +2268,26 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [ 1  0  0 -1]
             [ 0  1 -1  0] 
         """
-        if permutation and algorithm == "palp":
-            raise \
-            ValueError('The palp algorithm does not support permutations.')
-        #if not hasattr(self, "_normal_form"):
-        if True:
-            if self.dim() < self.ambient_dim():
-                raise ValueError(
-                ("Normal form is not defined for a %d-dimensional polytope " +
-                "in a %d-dimensional space!") % (self.dim(), self.ambient_dim()))
-            if algorithm == "palp":
-                _normal_form = read_palp_matrix(self.poly_x("N"))
-                _normal_form.set_immutable()
-            elif algorithm == "palp_native":
-                _normal_form = \
-                self._palp_native_normal_form(permutation=permutation)
-                #_normal_form.set_immutable()
-            elif algorithm == "palp_modified":
-                _normal_form = \
-                self._palp_modified_normal_form(permutation=permutation)
-                #_normal_form.set_immutable()
-        return _normal_form
+        if self.dim() < self.ambient_dim():
+            raise ValueError(
+            ("Normal form is not defined for a %d-dimensional polytope " +
+            "in a %d-dimensional space!") % (self.dim(), self.ambient_dim()))
+        if algorithm == "palp":
+            # Backward compatibility with ReflexivePolytopes
+            if not permutation and hasattr(self, "_normal_form"):
+                result = self._normal_form
+            else:
+                result = read_palp_matrix(self.poly_x("N"),
+                                          permutation=permutation)
+                result[0].set_immutable()
+        elif algorithm == "palp_native":
+            result = self._palp_native_normal_form(permutation=permutation)
+        elif algorithm == "palp_modified":
+            result = self._palp_modified_normal_form(permutation=permutation)
+        else:
+            raise ValueError('Algorithm must be palp, ' + 
+                             'palp_native, or palp_modified.')
+        return result
 
     def _palp_modified_normal_form(self, permutation=False):
         r"""
@@ -2294,8 +2298,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         INPUT:
 
-        -   ``permutation`` -- a Boolean, whether to return the permutation of the
-            order of the vertices that was applied to obtain this matrix.
+        -   ``permutation`` -- a Boolean, whether to return the permutation of
+            the order of the vertices that was applied to obtain this matrix.
 
         OUTPUT:
 
@@ -2382,6 +2386,16 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         r"""
         Compute the permutation normal form of the vertex facet pairing
         matrix.
+
+        TODO: More documentation and doctests here.
+
+        EXAMPLES::
+
+            sage: o = lattice_polytope.octahedron(2)
+            sage: PM = o.vertex_facet_pairing_matrix()
+            sage: PM_max = PM.permutation_normal_form()
+            sage: PM_max == o._palp_PM_max()
+            True
         """
         def PGE(t):
             if len(t) == 2 and t[0] == t[1]:
@@ -4500,7 +4514,7 @@ def _palp_canonical_order(V, PM_max, permutations):
     PALP algorithm and return an array of possible
     normal forms, with the minimum being the actual form.
 
-    TEST::
+    TESTS::
         sage: L = lattice_polytope.octahedron(2)
         sage: V = L.vertices()
         sage: PM_max = matrix(ZZ,[[2,2,0,0],[2,0,2,0],[0,2,0,2],[0,0,2,2]])
@@ -4537,6 +4551,43 @@ def _palp_canonical_order(V, PM_max, permutations):
     permutations = [p_c*k[1] for k in permutations.values()]
     Vs = [(V.with_permuted_columns(k).hermite_form(), k) for k in permutations]
     return min(Vs, key=lambda x:x[0])
+
+def _palp_convert_permutation(permutation):
+    r"""
+    Convert a permutation from PALPs notation to a PermutationGroupElement.
+
+    PALP specifies a permutation group element by its domain. Furthermore,
+    it only supports permutations of up to 62 objects and labels these by
+    `0 \dots 9', 'a \dots z', and 'A \dots Z'.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.lattice_polytope import _palp_convert_permutation
+        sage: _palp_convert_permutation('1023')
+        (1,2)
+        sage: _palp_convert_permutation('0123456789bac')
+        (11,12)
+    """
+    def from_palp_index(i):
+        if i.isdigit():
+            i = int(i)
+            i += 1
+        else:
+            o = ord(i)
+            if o in range(97, 123):
+                i = o - 86
+            elif o in range(65, 91):
+                i = o - 28
+            else:
+                raise ValueError('Cannot convert PALP index '
+                                 + i + ' to number.')
+        return i            
+    n = len(permutation)
+    domain = [from_palp_index(i) for i in permutation]    
+    from sage.groups.perm_gps.permgroup_element import make_permgroup_element
+    from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+    S = SymmetricGroup(n)
+    return make_permgroup_element(S, domain)
 
 def _read_nef_x_partitions(data):
     r"""
@@ -5266,8 +5317,7 @@ def read_all_polytopes(file_name, desc=None):
     f.close()
     return polytopes
 
-
-def read_palp_matrix(data):
+def read_palp_matrix(data, permutation=False):
     r"""
     Read and return an integer matrix from a string or an opened file.
 
@@ -5278,6 +5328,19 @@ def read_palp_matrix(data):
     If m>n, returns the transposed matrix. If the string is empty or EOF
     is reached, returns the empty matrix, constructed by
     ``matrix()``.
+
+    INPUT:
+
+    - ``data`` -- Either a string containing the filename or the file itself
+                  containing the output by PALP.
+
+    - ``permutation`` -- (default: ``False``) If ``True``, try to retrieve
+      the permutation output by PALP. This parameter makes sense only
+      when PALP computed the normal form of a lattice polytope.
+
+    OUTPUT:
+
+    A matrix or a tuple of a matrix and a permutation.
 
     EXAMPLES::
 
@@ -5290,26 +5353,34 @@ def read_palp_matrix(data):
     """
     if isinstance(data,str):
         f = StringIO.StringIO(data)
-        mat = read_palp_matrix(f)
+        mat = read_palp_matrix(f, permutation=permutation)
         f.close()
         return mat
     # If data is not a string, try to treat it as a file.
-    line = data.readline()
-    if line == "":
+    first_line = data.readline()
+    if first_line == "":
         return matrix()
-    line = line.split()
-    m = int(line[0])
-    n = int(line[1])
+    first_line = first_line.split()
+    m = int(first_line[0])
+    n = int(first_line[1])
     seq = []
     for i in range(m):
         seq.extend(int(el) for el in data.readline().split())
     mat = matrix(ZZ,m,n,seq)
-    if m <= n:
-        return mat
+    if m > n:
+        mat = mat.transpose()
+    # In some cases there may be additional information to extract
+    if permutation:
+        last_piece = first_line[-1]
+        last_piece = last_piece.split('=')
+        if last_piece[0] <> 'perm':
+            raise ValueError('PALP did not return a permutation.')
+        p = _palp_convert_permutation(last_piece[1])
+        return (mat, p)
     else:
-        return mat.transpose()
-
-
+        return mat
+        
+            
 def sage_matrix_to_maxima(m):
     r"""
     Convert a Sage matrix to the string representation of Maxima.

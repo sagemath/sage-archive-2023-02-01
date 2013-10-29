@@ -134,6 +134,39 @@ class GradedModules(GradedModulesCategory):
         sage: TestSuite(GradedModules(ZZ)).run()
     """
 
+    def extra_super_categories(self):
+        r"""
+        Adds VectorSpaces to the super categories of ``self`` if the base ring is a field
+
+        EXAMPLES::
+
+            sage: Modules(QQ).Graded().extra_super_categories()
+            [Category of vector spaces over Rational Field]
+            sage: Modules(ZZ).Graded().extra_super_categories()
+            []
+
+        This makes sure that ``Modules(QQ).Graded()`` returns an
+        instance of :class:`GradedModules` and not a join category of
+        an instance of this class and of ``VectorSpaces(QQ)``::
+
+            sage: type(Modules(QQ).Graded())
+            <class 'sage.categories.graded_modules.GradedModules_with_category'>
+
+        .. TODO::
+
+            Get rid of this workaround once there is a more systematic
+            approach for the alias ``Modules(QQ)`` -> ``VectorSpaces(QQ)``.
+            Probably the later should be a category with axiom, and
+            covariant constructions should play well with axioms.
+        """
+        from sage.categories.modules import Modules
+        from sage.categories.fields import Fields
+        base_ring = self.base_ring()
+        if base_ring in Fields:
+            return [Modules(base_ring)]
+        else:
+            return []
+
     class SubcategoryMethods:
 
         @cached_method

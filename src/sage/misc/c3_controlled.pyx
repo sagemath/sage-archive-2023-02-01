@@ -324,7 +324,7 @@ For a typical category, few bases, if any, need to be added to force
     sage: x.all_bases_len()
     83
     sage: x.all_bases_controlled_len()
-    92
+    90
 
 The following can be used to search through the Sage named categories
 for any that requires the addition of some bases; currently none!::
@@ -336,8 +336,6 @@ for any that requires the addition of some bases; currently none!::
      Category of fields,
      Category of finite dimensional algebras with basis over Rational Field,
      Category of finite dimensional hopf algebras with basis over Rational Field,
-     Category of graded algebras over Rational Field,
-     Category of graded algebras with basis over Rational Field,
      Category of graded hopf algebras with basis over Rational Field,
      Category of hopf algebras with basis over Rational Field]
 

@@ -1252,6 +1252,131 @@ class HyperplaneArrangementElement(Element):
         v.set_immutable()
         return v
 
+    @cached_method
+    def _parallel_hyperplanes(self):
+        """
+        Return the hyperplanes grouped into parallel sets.
+
+        OUTPUT:
+
+        A tuple with one entry per set of parallel hyperplanes. Each
+        entry is a tuple of triples, one for each parallel hyperplane
+        in the parallel set. The triple consists of the hyperplane,
+        the normal vector `A`, and the constant `b` of the hyperplane
+        equation `Ax+b`. The normalization is such that `A` is the
+        same for each hyperplane of the parallel set, and the order is
+        in increasing order of the `b` values.
+
+        In other words, each parallel set of hyperplanes is also
+        ordered by the order with which a common normal passes through
+        them.
+
+        EXAMPLES::
+
+            sage: H.<x,y> = HyperplaneArrangements(QQ)
+            sage: h = (x + 2*y | 2*x + 4*y + 1 | -x/4 - y/2 + 1);  h
+            Arrangement <-x - 2*y + 4 | x + 2*y | 2*x + 4*y + 1>
+            sage: h._parallel_hyperplanes()[0]
+            ((Hyperplane -x - 2*y + 4, (1, 2), -4),
+             (Hyperplane x + 2*y + 0, (1, 2), 0),
+             (Hyperplane 2*x + 4*y + 1, (1, 2), 1/2))
+
+           sage: hyperplane_arrangements.Shi(3)._parallel_hyperplanes()
+           (((Hyperplane 0*t0 + t1 - t2 - 1, (0, 1, -1), -1),
+             (Hyperplane 0*t0 + t1 - t2 + 0, (0, 1, -1), 0)),
+            ((Hyperplane t0 - t1 + 0*t2 - 1, (1, -1, 0), -1),
+             (Hyperplane t0 - t1 + 0*t2 + 0, (1, -1, 0), 0)),
+            ((Hyperplane t0 + 0*t1 - t2 - 1, (1, 0, -1), -1),
+             (Hyperplane t0 + 0*t1 - t2 + 0, (1, 0, -1), 0)))
+        """
+        V = self.parent().ambient_space()
+        parallels = dict()
+        for hyperplane in self:
+            through_origin = V([list(hyperplane.A()), 0]).primitive(signed=False)
+            parallel_planes = parallels.get(through_origin, [])
+            A = through_origin.A()
+            b = hyperplane.b() * (A / hyperplane.A())
+            parallel_planes.append([b, (hyperplane, A, b)])
+            parallels[through_origin] = parallel_planes
+        parallels = sorted([
+            tuple(tuple(hyperplane[1]
+                for hyperplane in sorted(parallels[key])))
+            for key in parallels.keys()])
+        return tuple(sorted(parallels))
+
+    def vertices(self, exclude_sandwiched=False):
+        """
+        Return the vertices.
+
+        The vertices are the zero-dimensional faces, see
+        :meth:`face_vector`.
+    
+        INPUT:
+        
+        - ``exclude_sandwiched`` -- boolean (default:
+          ``False``). Whether to exclude hyperplanes that are
+          sandwiched between parallel hyperplanes. Useful if you only
+          need the convex hull.
+
+        OUTPUT:
+
+        The vertices in a sorted tuple. Each vertex is returned as a
+        vector in the ambient vector space.
+        
+        EXAMPLES:
+
+            sage: A = hyperplane_arrangements.Shi(3).essentialization()
+            sage: A.dimension()
+            2
+            sage: A.face_vector()
+            (6, 21, 16)
+            sage: A.vertices()
+            ((-2/3, 1/3), (-1/3, -1/3), (0, -1), (0, 0), (1/3, -2/3), (2/3, -1/3))
+            sage: point2d(A.vertices(), size=20) + A.plot()
+        
+            sage: H.<x,y> = HyperplaneArrangements(QQ)
+            sage: chessboard = []
+            sage: N = 8
+            sage: for x0, y0 in CartesianProduct(range(N+1), range(N+1)):
+            ....:     chessboard.extend([x-x0, y-y0])
+            sage: chessboard = H(chessboard)
+            sage: len(chessboard.vertices())
+            81
+            sage: chessboard.vertices(exclude_sandwiched=True)
+            ((0, 0), (0, 8), (8, 0), (8, 8))
+        """
+        from sage.matroids.all import Matroid
+        from sage.combinat.cartesian_product import CartesianProduct
+        R = self.parent().base_ring()
+        parallels = self._parallel_hyperplanes()
+        A_list = [parallel[0][1] for parallel in parallels]
+        b_list_list = [[-hyperplane[2] for hyperplane in parallel]
+                       for parallel in parallels]
+        if exclude_sandwiched:
+            def skip(b_list):
+                if len(b_list) == 1:
+                    return b_list
+                else:
+                    return [b_list[0], b_list[-1]]
+            b_list_list = map(skip, b_list_list)
+        M = Matroid(groundset=range(len(parallels)), matrix=matrix(A_list).transpose())
+        d = self.dimension()
+        # vertices are solutions v * lhs = rhs
+        lhs = matrix(R, d, d)
+        rhs = vector(R, d)
+        vertices = set()
+        for indices in M.independent_r_sets(d):
+            for row, i in enumerate(indices):
+                lhs[row] = A_list[i]
+            b_list = [b_list_list[i] for i in indices]
+            for b in CartesianProduct(*b_list):
+                for i in range(d):
+                    rhs[i] = b[i]
+                vertex = lhs.solve_right(rhs)
+                vertex.set_immutable()
+                vertices.add(vertex)
+        return tuple(sorted(vertices))
+
     def _make_region(self, hyperplanes):
         """
         Helper method to construct a region

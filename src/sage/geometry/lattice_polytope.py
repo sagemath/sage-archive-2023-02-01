@@ -1940,13 +1940,25 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         vertices of this polytope and return their indices in the
         list of vertices of this polytope.
 
-        EXAMPLE::
+        OUTPUT:
 
-            sage: L = LatticePolytope([[0,0],[-1,1],[-1,-1]])
+        A tuple of vertex indices.
+
+        EXAMPLES::
+
+            sage: L = LatticePolytope([[0, 0], [-1, 1], [-1, -1]])
             sage: L.linearly_independent_vertices()
             (1, 2)
+            sage: L = LatticePolytope([[0, 0, 0]])
+            sage: L.linearly_independent_vertices()
+            ()
+            sage: L = LatticePolytope([[0, 1, 0]])
+            sage: L.linearly_independent_vertices()
+            ()
         """
         n = self.dim()
+        if n == 0:
+            return tuple()
         Pv = self.vertices().columns()
         facets = [facet.vertices() for facet in self.facets()]
         out=[]
@@ -2192,9 +2204,13 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         Return the normal form of ``self``.
 
         Two full-dimensional lattice polytopes are in the same
-        ``GL(\mathbb{Z})``-orbit  if and only if their normal forms are the
+        ``GL(\mathbb{Z})``-orbit if and only if their normal forms are the
         same. Normal form is not defined and thus cannot be used for polytopes
         whose dimension is smaller than the dimension of the ambient space.
+
+        The original algorithm was presented in [KS98]_ and implemented
+        in PALP. A modified version of the PALP algorithm is discussed in
+        [GK13]_ and available here as "palp_modified".
 
         INPUT:
 
@@ -2214,13 +2230,19 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         - ``permutation`` -- (default: ``False``) If ``True`` then instead of
             a matrix a tuple containing the normal form matrix and the
             permutation applied to vertices to obtain it is returned.
-            Note that the different algorithms may return different results,
+            Note that the different algorithms may return different results
             that nevertheless lead to the same normal form.
 
         OUTPUT:
 
         A matrix or a tuple of a matrix and a permutation.
 
+        REFERENCES:
+
+        .. [KS98] Maximilian Kreuzer and Harald Skarke, Classification of
+            Reflexive Polyhedra in Three Dimensions, arXiv:hep-th/9805190
+        .. [GK13] Roland Grinis and Alexander Kasprzyk, Normal forms of
+            convex lattice polytopes, arXiv:1301.6641
         
         EXAMPLES:
 
@@ -2234,7 +2256,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [ 1  0  0 -1]
             [ 0  1 -1  0]
 
-        The diamond is the 3rd polytope in the internal database... ::
+        The diamond is the 3rd polytope in the internal database::
 
             sage: o.index()
             3
@@ -2255,8 +2277,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             ...
             ValueError: Normal form is not defined for a 2-dimensional polytope in a 3-dimensional space!
 
-        We can perform the same examples using other algorithms that may be faster
-        in some cases but are also more transparent than the default algorithm::
+        We can perform the same examples using other algorithms::
 
             sage: o = lattice_polytope.octahedron(2)
             sage: o.normal_form(algorithm="palp_native")
@@ -2294,7 +2315,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         Return the normal form of ``self`` using the modified PALP algorithm.
 
         This is a helper function for :meth:`normal_form` and should not
-        be called directly.
+        be called directly. The modified PALP algorithm can be faster than the
+        native algorithm in case the automorphism group of the
+        vertex-facet pairing matrix is large.
 
         INPUT:
 
@@ -2336,7 +2359,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
     def _palp_native_normal_form(self, permutation=False):
         r"""
-        Return the normal form of ``self`` using the modified PALP algorithm.
+        Return the normal form of ``self`` using the native PALP algorithm
+        implemented in Sage.
 
         This is a helper function for :meth:`normal_form` and should not
         be called directly.
@@ -2351,9 +2375,6 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         A matrix or a tuple of a matrix and a permutation.
 
-        This algorithm implements the PALP algorithm as explained in the
-        reference below and expounded on by Alexander Kasprzyk and Roland
-        Grinis (unpublished). TODO: add reference
 
         EXAMPLES::
 
@@ -2369,11 +2390,6 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [ 1  0  0 -1]         
             [ 0  1 -1  0], (1,4,2,3)
             )
-
-        REFERENCES:
-
-        .. [KS98] Maximilian Kreuzer and Harald Skarke, Classification of Reflexive Polyhedra
-           in Three Dimensions, arXiv:hep-th/9805190
         """
         PM_max, permutations = self._palp_PM_max(check=True)
         out = _palp_canonical_order(self.vertices(), PM_max, permutations)
@@ -2385,9 +2401,29 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
     def _palp_PM_max(self, check=False):
         r"""
         Compute the permutation normal form of the vertex facet pairing
-        matrix.
+        matrix .
 
-        TODO: More documentation and doctests here.
+        The permutation normal form of a matrix is defined as the lexicographic
+        maximum under all permutations of its rows and columns. For more
+        more detail, see also
+        :meth:`~sage.matrix.matrix2.Matrix.permutation_normal_form`.
+        
+        Instead of using the generic method for computing the permutation
+        normal form, this method uses the PALP algorithm to compute
+        the permutation normal form and its automorphisms concurrently.
+
+        INPUT:
+
+        - ``check`` -- Boolean (default: ``False``), whether to return
+            the permutations leaving the maximal vertex-facet pairing
+            matrix invariant.
+
+        OUTPUT:
+
+        A matrix or a tuple of a matrix and a dict whose values are the
+        permutation group elements corresponding to the permutations
+        that permute :meth:`vertices` such that the vertex-facet pairing
+        matrix is maximal.
 
         EXAMPLES::
 
@@ -2395,6 +2431,31 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: PM = o.vertex_facet_pairing_matrix()
             sage: PM_max = PM.permutation_normal_form()
             sage: PM_max == o._palp_PM_max()
+            True
+            sage: P2 = ReflexivePolytope(2, 0)
+            sage: PM_max, permutations = P2._palp_PM_max(check=True)
+            sage: PM_max
+            [3 0 0]                                                                                                                      
+            [0 3 0]                                                                                                                      
+            [0 0 3]
+            sage: permutations.values()
+            [[(1,2,3), (1,2,3)],
+             [(1,3,2), (1,3,2)],
+             [(1,3), (1,3)],
+             [(1,2), (1,2)],
+             [(), ()],
+             [(2,3), (2,3)]]
+            sage: PM_max.automorphisms_of_rows_and_columns()
+            [((), ()),
+            ((2,3), (2,3)),
+             ((1,2), (1,2)),
+             ((1,2,3), (1,2,3)),
+             ((1,3,2), (1,3,2)),
+             ((1,3), (1,3))]
+            sage: PMs = [i._palp_PM_max(check=True)
+            ....:        for i in ReflexivePolytopes(2)] # long time
+            sage: all(len(i) == len(j.automorphisms_of_rows_and_columns())
+            ....:     for j, i in PMs) # long time
             True
         """
         def PGE(t):
@@ -2419,7 +2480,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         permutations = {0 : [PGE(range(1, n_f + 1)),
                              PGE(range(1, n_v + 1))]}
         for j in range(n_v):
-            m = index_of_max([(PM.with_permuted_columns(permutations[0][1]))[0][i] for i in range(j, n_v)])
+            m = index_of_max(
+                [(PM.with_permuted_columns(permutations[0][1]))[0][i]
+                 for i in range(j, n_v)])
             if m > 0:
                 permutations[0][1] = PGE((j + 1,m + j + 1))*permutations[0][1]
         first_row = list(PM[0])
@@ -2434,13 +2497,17 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             d = ((PM.with_permuted_columns(permutations[n_s][1]))[k][0]
                 - permutations[0][1](first_row)[0])
             if d < 0:
-                # The largest elt of this row is smaller than largest elt in 1st row, so nothing to do
+                # The largest elt of this row is smaller than largest elt
+                # in 1st row, so nothing to do
                 continue
             # otherwise:
             for i in range(1, n_v):
-                m = index_of_max([PM.with_permuted_columns(permutations[n_s][1])[k][j] for j in range(i, n_v)])
+                m = index_of_max(
+                    [PM.with_permuted_columns(permutations[n_s][1])[k][j]
+                     for j in range(i, n_v)])
                 if m > 0:
-                    permutations[n_s][1]=PGE((i + 1, m + i + 1))*permutations[n_s][1]
+                    permutations[n_s][1] = PGE((i + 1, m + i + 1)) \
+                                           * permutations[n_s][1]
                 if d == 0:
                     d = (PM.with_permuted_columns(permutations[n_s][1])[k][i]
                         -permutations[0][1](first_row)[i])
@@ -2455,7 +2522,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 # This row is the same, so we have a symmetry!
                 n_s += 1
             else:
-                # This row is larger, so it becomes the first row and the symmetries reset.
+                # This row is larger, so it becomes the first row and 
+                # the symmetries reset.
                 first_row = list(PM[k])
                 permutations = {0: permutations[n_s]}
                 n_s = 1
@@ -2476,40 +2544,46 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             else:
                 S[i] = i + 1
         
-        # We determine the other rows of PM_max in turn by use of perms and aut on previous rows.
+        # We determine the other rows of PM_max in turn by use of perms and 
+        # aut on previous rows.
         for l in range(1, n_f - 1):
             n_s = len(permutations)
             n_s_bar = n_s
             cf = 0
             l_r = [0]*n_v
-            # Search for possible local permutations based off previous global permutations.
+            # Search for possible local permutations based off previous
+            # global permutations.
             for k in range(n_s_bar - 1, -1, -1):
-                n_p = 0 # number of local permutations associated with current global
+                # number of local permutations associated with current global
+                n_p = 0
                 ccf = cf
                 permutations_bar = {0:copy(permutations[k])}
                 # We look for the line with the maximal entry in the first
-                # subsymmetry block, i.e. we are allowed to swap elements between
-                # 0 and S(0)
+                # subsymmetry block, i.e. we are allowed to swap elements
+                # between 0 and S(0)
                 for s in range(l, n_f):
                     for j in range(1, S[0]):
-                        v = PM.with_permuted_rows_and_columns(*permutations_bar[n_p])[s]
+                        v = PM.with_permuted_rows_and_columns(
+                            *permutations_bar[n_p])[s]
                         if v[0] < v[j]:
                             permutations_bar[n_p][1] = PGE((1,j + 1))*permutations_bar[n_p][1]
                     if ccf == 0:
-                        l_r[0] = PM.with_permuted_rows_and_columns(*permutations_bar[n_p])[s][0]
+                        l_r[0] = PM.with_permuted_rows_and_columns(
+                                 *permutations_bar[n_p])[s][0]
                         permutations_bar[n_p][0] = PGE((l + 1, s + 1))*permutations_bar[n_p][0]
                         n_p += 1
                         ccf = 1
                         permutations_bar[n_p] = copy(permutations[k])
                     else:
-                        d1 = PM.with_permuted_rows_and_columns(*permutations_bar[n_p])[s][0]
+                        d1 = PM.with_permuted_rows_and_columns(
+                             *permutations_bar[n_p])[s][0]
                         d = d1 - l_r[0]
                         if d < 0:
                             # We move to the next line
                             continue
                         elif d==0:
                             # Maximal values agree, so possible symmetry
-                            permutations_bar[n_p][0]=PGE((l + 1, s + 1))*permutations_bar[n_p][0]
+                            permutations_bar[n_p][0] = PGE((l + 1, s + 1))*permutations_bar[n_p][0]
                             n_p += 1
                             permutations_bar[n_p] = copy(permutations[k])
                         else:
@@ -2523,29 +2597,33 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                             n_p = 1
                             permutations_bar[n_p] = copy(permutations[k])
                             n_s = k + 1
-                # Check if the permutations found just now work with other elements
-                
+                # Check if the permutations found just now work
+                # with other elements
                 for c in range(1, n_v):
                     h = S[c]
                     ccf = cf
-                    # Now let us find out where the end of the next symmetry block is:
+                    # Now let us find out where the end of the
+                    # next symmetry block is:
                     if  h < c+1:
                         h = S[h-1]
                     s = n_p
-                    # And check through this block for each possible permutation
+                    # Check through this block for each possible permutation
                     while s > 0:
                         s -= 1
                         # Find the largest value in this symmetry block
                         for j in range(c + 1, h):
-                            v = PM.with_permuted_rows_and_columns(*permutations_bar[s])[l]
+                            v = PM.with_permuted_rows_and_columns(
+                                *permutations_bar[s])[l]
                             if (v[c] < v[j]):
                                 permutations_bar[s][1] = PGE((c + 1, j + 1))*permutations_bar[s][1]
                         if ccf == 0:
-                            # Set the reference and then carry on to next permutation
-                            l_r[c] = PM.with_permuted_rows_and_columns(*permutations_bar[s])[l][c]
+                            # Set reference and carry on to next permutation
+                            l_r[c] = PM.with_permuted_rows_and_columns(
+                                     *permutations_bar[s])[l][c]
                             ccf = 1
                         else:
-                            d1 = PM.with_permuted_rows_and_columns(*permutations_bar[s])[l][c]
+                            d1 = PM.with_permuted_rows_and_columns(
+                                *permutations_bar[s])[l][c]
                             d = d1 - l_r[c]
                             if d < 0:
                                 n_p -= 1
@@ -4187,7 +4265,12 @@ class _PolytopeFace(SageObject):
         Return the index of the sublattice spanned by the vertices
         of this face in the ambient lattice.
 
+        OUTPUT:
+
+        An integer, the index of the face.
+
         EXAMPLES::
+
             sage: L = LatticePolytope([[1,0],[1,-1],[-1,0],[-1,-1]])
             sage: F = L.faces()
             sage: face = F[1][0] # take the first 1-dimensional face
@@ -4508,24 +4591,35 @@ def _palp(command, polytopes, reduce_dimension=False):
 
 def _palp_canonical_order(V, PM_max, permutations):
     r"""
-    Given a matrix ``V`` of vertices, ``PM_max`` the maximal
-    vertex-facet pairing matrix and the permutations
-    realising this matrix add the last part of the
-    PALP algorithm and return an array of possible
-    normal forms, with the minimum being the actual form.
+    Compute the PALP normal form of the vertices V
+    using auxiliary data computed elsewhere.
+
+    This is a helper function for
+    :meth:`~sage.geometry.lattice_polytope.LatticePolytopeClass.normal_form`
+    and should not be called directly.
+
+    Given a matrix of vertices, the maximal vertex-facet pairing matrix
+    and the permutations realizing this matrix, apply the last part of the
+    PALP algorithm and return the normal form.
+
+    INPUT:
+
+    - ``V`` -- a matrix of vertices
+    
+    - ``PM_max`` -- the maximal vertex-facet pairing matrix
+
+    - ``permutation`` -- the permutations of the vertices yielding
+        ``PM_max``.
+
+    OUTPUT:
+
+    The PALP normal form as a matrix.
 
     TESTS::
+
         sage: L = lattice_polytope.octahedron(2)
         sage: V = L.vertices()
-        sage: PM_max = matrix(ZZ,[[2,2,0,0],[2,0,2,0],[0,2,0,2],[0,0,2,2]])
-        sage: permutations = {0: [PermutationGroupElement("(1,3)(2,4)"), PermutationGroupElement((1,4,2,3))],
-        ...     1: [PermutationGroupElement("(1,4)(2,3)"), PermutationGroupElement((1,4,2))],
-        ...     2: [PermutationGroupElement((1,4)), PermutationGroupElement((2,4,3))],
-        ...     3: [PermutationGroupElement((1,3,4,2)), PermutationGroupElement((1,3,2,4))],
-        ...     4: [PermutationGroupElement("(1,2)(3,4)"), PermutationGroupElement((1,2))],
-        ...     5: [PermutationGroupElement(()), PermutationGroupElement((1,2,3))],
-        ...     6: [PermutationGroupElement((2,3)), PermutationGroupElement((1,3,4))],
-        ...     7: [PermutationGroupElement((1,2,4,3)), PermutationGroupElement((3,4))]}
+        sage: PM_max, permutations = L._palp_PM_max(check=True)
         sage: from sage.geometry.lattice_polytope import _palp_canonical_order
         sage: _palp_canonical_order(V, PM_max, permutations)
         (
@@ -4541,13 +4635,14 @@ def _palp_canonical_order(V, PM_max, permutations):
     for i in range(n_v):
         k = i
         for j in range(i + 1, n_v):
-            if M_max[j] < M_max[k] or (M_max[j] == M_max[k] and S_max[j] < S_max[k]):
+            if M_max[j] < M_max[k] or \
+               (M_max[j] == M_max[k] and S_max[j] < S_max[k]):
                 k = j
         if not k == i:
             M_max[i], M_max[k] = M_max[k], M_max[i]
             S_max[i], S_max[k] = S_max[k], S_max[i]
             p_c = PermutationGroupElement((1 + i, 1 + k))*p_c
-    # Create array of possible NF's.
+    # Create array of possible NFs.
     permutations = [p_c*k[1] for k in permutations.values()]
     Vs = [(V.with_permuted_columns(k).hermite_form(), k) for k in permutations]
     return min(Vs, key=lambda x:x[0])
@@ -4559,6 +4654,15 @@ def _palp_convert_permutation(permutation):
     PALP specifies a permutation group element by its domain. Furthermore,
     it only supports permutations of up to 62 objects and labels these by
     `0 \dots 9', 'a \dots z', and 'A \dots Z'.
+
+    INPUT:
+
+    - ``permutation`` -- A string specifying a PALP style permutation.
+
+    OUTPUT:
+
+    A :class:`permutation group element
+    <sage.groups.perm_gps.permgroup_element.PermmutationGroupElement>`.
 
     EXAMPLES::
 

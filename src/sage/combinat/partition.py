@@ -2052,8 +2052,11 @@ class Partition(CombinatorialObject, Element):
         r"""
         Return the length of the arm of cell `(i,j)` in ``self``.
 
-        The arm of cell `(i,j)` is the cells that appear to the right of cell
-        `(i,j)`.
+        The arm of cell `(i,j)` is the cells that appear to the right of
+        cell `(i,j)`.
+
+        The cell coordinates are zero-based, i. e., the northwesternmost
+        cell is `(0,0)`.
 
         INPUT:
 
@@ -2085,9 +2088,9 @@ class Partition(CombinatorialObject, Element):
 
     def arm_lengths(self, flat=False):
         """
-        Return a tableau of shape ``self`` where each cell is filled its arm
-        length. The optional boolean parameter flat provides the option of
-        returning a flat list.
+        Return a tableau of shape ``self`` where each cell is filled with
+        its arm length. The optional boolean parameter ``flat`` provides
+        the option of returning a flat list.
 
         EXAMPLES::
 
@@ -2113,6 +2116,9 @@ class Partition(CombinatorialObject, Element):
 
         The arm of cell `c = (i,j)` is the boxes that appear to the right of
         `c`.
+
+        The cell coordinates are zero-based, i. e., the northwesternmost
+        cell is `(0,0)`.
 
         INPUT:
 
@@ -2147,6 +2153,9 @@ class Partition(CombinatorialObject, Element):
         The leg of cell `c = (i,j)` is defined to be the cells below `c`
         (in English convention).
 
+        The cell coordinates are zero-based, i. e., the northwesternmost
+        cell is `(0,0)`.
+
         INPUT:
 
         - ``i, j`` -- two integers
@@ -2178,9 +2187,9 @@ class Partition(CombinatorialObject, Element):
 
     def leg_lengths(self, flat=False):
         """
-        Return a tableau of shape ``self`` with each cell filled in with its
-        leg length.  The optional boolean parameter flat provides the option of
-        returning a flat list.
+        Return a tableau of shape ``self`` with each cell filled in with
+        its leg length.  The optional boolean parameter ``flat`` provides
+        the option of returning a flat list.
 
         EXAMPLES::
 
@@ -2207,6 +2216,9 @@ class Partition(CombinatorialObject, Element):
 
         The leg of cell `c = (i,j)` is defined to be the cells below `c` (in
         English convention).
+
+        The cell coordinates are zero-based, i. e., the northwesternmost
+        cell is `(0,0)`.
 
         INPUT:
 
@@ -2375,15 +2387,17 @@ class Partition(CombinatorialObject, Element):
         r"""
         Return the length of the hook of cell `(i,j)` in ``self``.
 
-        The hook of cell `(i,j)` of a partition `\lambda` is
+        The (length of the) hook of cell `(i,j)` of a partition `\lambda`
+        is
 
         .. MATH::
 
-            \lambda + \lambda^{\prime} - i - j + 1
+            \lambda_i + \lambda^{\prime}_j - i - j + 1
 
         where `\lambda^{\prime}` is the conjugate partition. In English
-        convention, the hook length is the number cells to the right and below
-        the cell `(i,j)` (including that cell).
+        convention, the hook length is the number of cells horizontally
+        to the right and vertically below the cell `(i,j)` (including
+        that cell).
 
         EXAMPLES::
 

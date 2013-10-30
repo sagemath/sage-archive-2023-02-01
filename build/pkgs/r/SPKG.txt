@@ -44,9 +44,10 @@ much code written for S runs unaltered under R.
 
 == Changelog ==
 
-=== r-3.0.2.p0 (Jean-Pierre Flori, 7 October 2013) ===
+=== r-3.0.2.p0 (Jean-Pierre Flori, 30 October 2013) ===
  * #14706: update to 3.0.2.
  * Remove sqrtl.patch which is now upstream.
+ * Move old install of R on OS X.
 
 === r-3.0.1.p1 (Jean-Pierre Flori, 10 June 2013) ===
  * #14706: Use --disable-long-double on Cygwin rather than patching.

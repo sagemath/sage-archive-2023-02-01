@@ -63,6 +63,7 @@ Combinatorics
    sage/combinat/tuple
    sage/combinat/vector_partition
    cluster_algebras
+   sage/combinat/binary_recurrence_sequences
 
    algebra
    partitions
@@ -85,6 +86,5 @@ Combinatorics
    sage/combinat/dict_addition
    sage/combinat/misc
    sage/combinat/combinatorial_map
-
 
 .. include:: ../footer.txt

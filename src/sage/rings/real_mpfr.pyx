@@ -117,7 +117,6 @@ Make sure we don't have a new field for every new literal::
 
 import math # for log
 import sys
-import weakref
 import re
 
 include 'sage/ext/interrupt.pxi'
@@ -135,6 +134,7 @@ cdef bin_op
 from sage.structure.element import bin_op
 
 import sage.misc.misc as misc
+import sage.misc.weak_dict
 
 import operator
 
@@ -359,7 +359,7 @@ _rounding_modes = ['RNDN', 'RNDZ', 'RNDU', 'RNDD']
 
 cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
 
-cdef object RealField_cache = weakref.WeakValueDictionary()
+cdef object RealField_cache = sage.misc.weak_dict.WeakValueDictionary()
 
 cpdef RealField(int prec=53, int sci_not=0, rnd="RNDN"):
     """

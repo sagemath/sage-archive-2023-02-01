@@ -802,21 +802,19 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         """
         The semidirect product of ``self`` with ``H`` via ``hom``.
 
-        If there exists a homomorphism `\phi` from a group `G` to the automorphism
-        group of a group `H`, then we can define the semidirect product of `G`
-        with `H` via `\phi` as the cartesian product of `G` and `H` with the operation
+        If there exists a homomorphism `\phi` from a group `G` to the
+        automorphism group of a group `H`, then we can define the semidirect
+        product of `G` with `H` via `\phi` as the cartesian product of `G`
+        and `H` with the operation
 
         .. MATH::
 
-                (g_1,h_1)(g_2,h_2) = (g_{1}g_{2}, h_{1}^{g_2^{\phi}}h_2)
-
-        where `x^y` notation is simply shorthand for `y(x)` where `y` is a map
-        and `x` is an input.
+                (g_1, h_1)(g_2, h_2) = (g_1 g_2, \phi(g_2)(h_1) h_2).
 
         INPUT:
 
         - ``H`` -- Finitely presented group which is implicitly acted on
-          by ``self``, and can be naturally embedded as a normal subgroup
+          by ``self`` and can be naturally embedded as a normal subgroup
           of the semidirect product.
 
         - ``hom`` -- Homomorphism from ``self`` to the automorphism group
@@ -825,43 +823,45 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
           second. These images must be automorphisms of ``H``, given again
           as a pair of generators and images.
 
-        - ``check`` -- Boolean, default ``True``. If ``False`` the defining
+        - ``check`` -- Boolean (default ``True``). If ``False`` the defining
           homomorphism and automorphism images are not tested for validity.
           This test can be costly with large groups, so it can be bypassed
           if the user is confident that his morphisms are valid.
 
-        - ``reduced`` -- Boolean, default ``False``. If ``True`` then the
+        - ``reduced`` -- Boolean (default ``False``). If ``True`` then the
           method attempts to reduce the presentation of the output group.
 
         OUTPUT:
 
         The semidirect product of ``self`` with ``H`` via ``hom`` as a
-        finitely presented group. See :meth:`PermutationGroup_generic.semidirect_product
-        <sage.groups.perm_gps.permgroup.PermutationGroup_generic.semidirect_product>` for
-        a more in depth explanation of a semidirect product.
+        finitely presented group. See
+        :meth:`PermutationGroup_generic.semidirect_product
+        <sage.groups.perm_gps.permgroup.PermutationGroup_generic.semidirect_product>`
+        for a more in depth explanation of a semidirect product.
 
         AUTHORS:
 
         - Davis Shurbert (8-1-2013)
 
-        EXAMPLES::
+        EXAMPLES:
 
         Group of order 12 as two isomorphic semidirect products::
 
             sage: D4 = groups.presentation.Dihedral(4)
             sage: C3 = groups.presentation.Cyclic(3)
-            sage: alpha1 = ([C3.0],[C3.0])
-            sage: alpha2 = ([C3.0],[C3([1,1])])
-            sage: S1 = D4.semidirect_product(C3, ([D4.1, D4.0],[alpha1,alpha2]))
+            sage: alpha1 = ([C3.gen(0)],[C3.gen(0)])
+            sage: alpha2 = ([C3.gen(0)],[C3([1,1])])
+            sage: S1 = D4.semidirect_product(C3, ([D4.gen(1), D4.gen(0)],[alpha1,alpha2]))
             sage: C2 = groups.presentation.Cyclic(2)
             sage: Q = groups.presentation.DiCyclic(3)
             sage: a = Q([1]); b = Q([-2])
-            sage: alpha = (Q.gens(),[a,b])
+            sage: alpha = (Q.gens(), [a,b])
             sage: S2 = C2.semidirect_product(Q, ([C2.0],[alpha]))
             sage: S1.is_isomorphic(S2)
             True
 
-        Dihedral groups can be constructed as semidirect products of cyclic groups::
+        Dihedral groups can be constructed as semidirect products
+        of cyclic groups::
 
             sage: C2 = groups.presentation.Cyclic(2)
             sage: C8 = groups.presentation.Cyclic(8)
@@ -873,8 +873,9 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         You can attempt to reduce the presentation of the output group::
 
             sage: D = C2.semidirect_product(C8, hom); D
-            Finitely presented group < a, b, c, d | a^2, b^-1*a^-1*b*a*d^-1*c^-1, c^-1*a^-1*c*a*d^-1,
-                d^-1*a^-1*d*a, b^2*c^-1, c^-1*b^-1*c*b, d^-1*b^-1*d*b, c^2*d^-1, d^-1*c^-1*d*c, d^2 >
+            Finitely presented group < a, b, c, d |
+             a^2, b^-1*a^-1*b*a*d^-1*c^-1, c^-1*a^-1*c*a*d^-1, d^-1*a^-1*d*a,
+             b^2*c^-1, c^-1*b^-1*c*b, d^-1*b^-1*d*b, c^2*d^-1, d^-1*c^-1*d*c, d^2 >
             sage: D = C2.semidirect_product(C8, hom, reduced=True); D
             Finitely presented group < a, b | a^2, (a*b)^2, b^8 >
 
@@ -882,17 +883,19 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: C4 = groups.presentation.Cyclic(4)
             sage: hom = (C3.gens(), [(C4.gens(), C4.gens())])
             sage: C3.semidirect_product(C4, hom)
-            Finitely presented group < a, b, c | a^3, b^-1*a^-1*b*a, c^-1*a^-1*c*a, b^2*c^-1, c^-1*b^-1*c*b, c^2 >
+            Finitely presented group < a, b, c |
+             a^3, b^-1*a^-1*b*a, c^-1*a^-1*c*a, b^2*c^-1, c^-1*b^-1*c*b, c^2 >
             sage: D = C3.semidirect_product(C4, hom, reduced=True); D
             Finitely presented group < a, b | a^3, b^4, b^-1*a^-1*b*a >
             sage: D.as_permutation_group().is_cyclic()
             True
 
-        You can turn off the checks for the validity of the input morphisms. This check
-        is expensive but behavior is unpredictable if inputs are invalid and are not caught
-        by these tests. Due to a failure in GAP to list elements of an automorphism group
-        in some cases, this check may cause the method to timeout or raise a GAP error.
-        For example, if ``H`` is the cyclic group of order 6, then ``semidirect_product``
+        You can turn off the checks for the validity of the input morphisms.
+        This check is expensive but behavior is unpredictable if inputs are
+        invalid and are not caught by these tests. Due to a failure in GAP
+        to list elements of an automorphism group in some cases, this check
+        may cause the method to timeout or raise a GAP error. For example,
+        if ``H`` is the cyclic group of order 6, then ``semidirect_product``
         appears to fall into an infinite loop due to this failure.::
 
             sage: C5 = groups.presentation.Cyclic(5)
@@ -903,8 +906,9 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             ...
             ValueError: libGAP: Error, <elm> is not contained in the source group
             sage: sp = C5.semidirect_product(C12, hom, check=False); sp
-            Finitely presented group < a, b, c, d | a^5, b^-1*a^-1*b*a, c^-1*a^-1*c*a,
-                d^-1*a^-1*d*a, b^2*d^-1, c^-1*b^-1*c*b, d^-1*b^-1*d*b, c^3, d^-1*c^-1*d*c, d^2 >
+            Finitely presented group < a, b, c, d |
+             a^5, b^-1*a^-1*b*a, c^-1*a^-1*c*a, d^-1*a^-1*d*a, b^2*d^-1,
+             c^-1*b^-1*c*b, d^-1*b^-1*d*b, c^3, d^-1*c^-1*d*c, d^2 >
             sage: sp.as_permutation_group().is_cyclic(), sp.order()
             (True, 60)
 

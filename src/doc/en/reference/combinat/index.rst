@@ -31,7 +31,6 @@ Combinatorics
    sage/combinat/integer_vectors_mod_permgroup
    sage/combinat/enumeration_mod_permgroup
    sage/combinat/restricted_growth
-   sage/combinat/yamanouchi
    sage/combinat/yang_baxter_graph
    sage/combinat/gelfand_tsetlin_patterns
    sage/combinat/graph_path

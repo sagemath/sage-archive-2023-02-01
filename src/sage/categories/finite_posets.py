@@ -3,9 +3,11 @@ Finite posets
 
 Here is some terminology used in this file:
 
-- An *order filter* (or *upper set*) is a subset `S` such that if `x \leq y` and `x\in S` then `y\in S`.
+- An *order filter* (or *upper set*) of a poset `P` is a subset `S` of `P`
+  such that if `x \leq y` and `x\in S` then `y\in S`.
 
-- An *order ideal* (or *lower set*) is a subset `S` such that if `x \leq y` and `y\in S` then `x\in S`.
+- An *order ideal* (or *lower set*) of a poset `P` is a subset `S` of `P`
+  such that if `x \leq y` and `y\in S` then `x\in S`.
 """
 #*****************************************************************************
 #  Copyright (C) 2011 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -85,7 +87,7 @@ class FinitePosets(Category):
             Returns whether this poset is *self-dual*, that is
             isomorphic to its dual poset.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: P = Poset(([1,2,3],[[1,3],[2,3]]),cover_relations=True)
                 sage: P.is_selfdual()
@@ -95,6 +97,9 @@ class FinitePosets(Category):
                 sage: P.is_selfdual()
                 True
 
+                sage: P = Poset( {} )
+                sage: P.is_selfdual()
+                True
             """
             return self.is_isomorphic( self.dual() )
 
@@ -104,20 +109,20 @@ class FinitePosets(Category):
 
         def is_poset_isomorphism(self, f, codomain):
             r"""
+            Return whether `f` is an isomorphism of posets from
+            ``self`` to ``codomain``.
+
             INPUT:
 
             - ``f`` -- a function from ``self`` to ``codomain``
             - ``codomain`` -- a poset
-
-            Returns whether `f` is an isomorphism of posets form
-            ``self`` to ``codomain``.
 
             EXAMPLES:
 
             We build the poset `D` of divisors of 30, and check that
             it is isomorphic to the boolean lattice `B` of the subsets
             of `\{2,3,5\}` ordered by inclusion, via the reverse
-            function `f: B \mapsto D, b \rightarrow \prod_{x\in b} x`::
+            function `f: B \to D, b \mapsto \prod_{x\in b} x`::
 
                 sage: D = Poset((divisors(30), attrcall("divides")))
                 sage: B = Poset(([frozenset(s) for s in Subsets([2,3,5])], attrcall("issubset")))
@@ -167,22 +172,26 @@ class FinitePosets(Category):
 
         def is_poset_morphism(self, f, codomain):
             r"""
+            Return whether `f` is a morphism of posets from ``self``
+            to ``codomain``, that is
+
+            .. MATH::
+
+                x\leq y \Longrightarrow f(x) \leq f(y)
+
+            for all `x` and `y` in ``self``.
+
             INPUT:
 
             - ``f`` -- a function from ``self`` to ``codomain``
             - ``codomain`` -- a poset
 
-            Returns whether `f` is a morphism of posets form ``self``
-            to ``codomain``, that is
-
-            .. math::  x\leq y \Longrightarrow f(x) \leq f(y)
-
             EXAMPLES:
 
             We build the boolean lattice of the subsets of
             `\{2,3,5,6\}` and the lattice of divisors of `30`, and
-            check that the map `b \mapsto \gcd(\prod_{x\in b}, 30)` is a
-            morphism of posets::
+            check that the map `b \mapsto \gcd(\prod_{x\in b} x, 30)`
+            is a morphism of posets::
 
                 sage: D = Poset((divisors(30), attrcall("divides")))
                 sage: B = Poset(([frozenset(s) for s in Subsets([2,3,5,6])], attrcall("issubset")))
@@ -239,15 +248,23 @@ class FinitePosets(Category):
 
         def order_ideal_generators(self, ideal, direction='down'):
             r"""
-            Generators for an order ideal (resp. an order filter)
+            Return the antichain of (minimal) generators of the order
+            ideal (resp. order filter) ``ideal``.
 
             INPUT:
 
-            - ``ideal`` -- an order ideal `I` of ``self``, as a list (or iterable)
-            - ``direction`` -- 'up' or 'down' (default: 'down')
+            - ``ideal`` -- an order ideal `I` (resp. order filter)
+              of ``self``, as a list (or iterable); this should be
+              an order ideal if ``direction`` is set to ``'down'``,
+              and an order filter if ``direction`` is set to
+              ``'up'``.
+            - ``direction`` -- ``'up'`` or ``'down'`` (default:
+              ``'down'``).
 
-            Returns the minimal set of generators for the ideal
-            `I`. It forms an antichain.
+            The antichain of (minimal) generators of an order ideal
+            `I` in a poset `P` is the set of all minimal elements of
+            `P`. In the case of an order filter, the definition is
+            similar, but with "maximal" used instead of "minimal".
 
             EXAMPLES:
 
@@ -305,7 +322,28 @@ class FinitePosets(Category):
 
         def order_ideal_complement_generators(self, antichain, direction='up'):
             r"""
-            The generators of the complement of an order ideal (resp. order filter)
+            Return the Panyushev complement of the antichain
+            ``antichain``.
+
+            Given an antichain `A` of a poset `P`, the Panyushev
+            complement of `A` is defined to be the antichain consisting
+            of the minimal elements of the order filter `B`, where `B`
+            is the (set-theoretic) complement of the order ideal of
+            `P` generated by `A`.
+
+            Setting the optional keyword variable ``direction`` to
+            ``'down'`` leads to the inverse Panyushev complement being
+            computed instead of the Panyushev complement. The inverse
+            Panyushev complement of an antichain `A` is the antichain
+            whose Panyushev complement is `A`. It can be found as the
+            antichain consisting of the maximal elements of the order
+            ideal `C`, where `C` is the (set-theoretic) complement of
+            the order filter of `P` generated by `A`.
+
+            :meth:`panyushev_complement` is an alias for this method.
+
+            Panyushev complementation is related (actually, isomorphic)
+            to rowmotion (:meth:`rowmotion`).
 
             INPUT:
 
@@ -316,8 +354,9 @@ class FinitePosets(Category):
 
             OUTPUT:
 
-            - the complement order filter (resp. order ideal), represented
-              by its generating antichain
+            - the generating antichain of the complement order filter
+              (resp. order ideal) of the order ideal (resp. order filter)
+              generated by the antichain ``antichain``
 
             EXAMPLES::
 
@@ -360,6 +399,19 @@ class FinitePosets(Category):
             The image of the order ideal ``order_ideal`` under rowmotion
             in ``self``.
 
+            Rowmotion on a finite poset `P` is an automorphism of the set
+            `J(P)` of all order ideals of `P`. One way to define it is as
+            follows: Given an order ideal `I \in J(P)`, we let `F` be the
+            set-theoretic complement of `I` in `P`. Furthermore we let
+            `A` be the antichain consisting of all minimal elements of
+            `F`. Then, the rowmotion of `I` is defined to be the order
+            ideal of `P` generated by the antichain `A` (that is, the
+            order ideal consisting of each element of `P` which has some
+            element of `A` above it).
+
+            Rowmotion is related (actually, isomorphic) to Panyushev
+            complementation (:meth:`panyushev_complement`).
+
             INPUT:
 
             - ``order_ideal`` -- an order ideal of ``self``, as a set
@@ -388,6 +440,10 @@ class FinitePosets(Category):
         def panyushev_orbits(self, element_constructor = set):
             r"""
             Return the Panyushev orbits of antichains in ``self``.
+
+            The Panyushev orbit of an antichain is its orbit under
+            Panyushev complementation (see
+            :meth:`panyushev_complement`).
 
             INPUT:
 
@@ -442,6 +498,9 @@ class FinitePosets(Category):
             r"""
             Return the rowmotion orbits of order ideals in ``self``.
 
+            The rowmotion orbit of an order ideal is its orbit under
+            rowmotion (see :meth:`rowmotion`).
+
             INPUT:
 
             - ``element_constructor`` (defaults to ``set``) -- a type
@@ -477,8 +536,21 @@ class FinitePosets(Category):
 
         def toggling_orbits(self, vs, element_constructor = set):
             r"""
-            Returns the orbits of order ideals in ``self`` under the
-            sequence of toggles given by ``vs``.
+            Return the orbits of order ideals in ``self`` under the
+            operation of toggling the vertices ``vs[0], vs[1], ...``
+            in this order.
+
+            See :meth:`order_ideal_toggle` for a definition of toggling.
+
+            .. WARNING::
+
+                The orbits are those under the composition of toggles,
+                *not* under the single toggles themselves. Thus, for
+                example, if ``vs == [1,2]``, then the orbits have the
+                form `(I, T_2 T_1 I, T_2 T_1 T_2 T_1 I, \ldots)`
+                (where `I` denotes an order ideal and `T_i` means
+                toggling at `i`) rather than
+                `(I, T_1 I, T_2 T_1 I, T_1 T_2 T_1 I, \ldots)`.
 
             INPUT:
 
@@ -516,14 +588,323 @@ class FinitePosets(Category):
                 orbits.append(map(element_constructor, orbit))
             return orbits
 
+        def panyushev_orbit_iter(self, antichain, element_constructor=set, stop=True, check=True):
+            r"""
+            Iterate over the Panyushev orbit of an antichain
+            ``antichain`` of ``self``.
+
+            The Panyushev orbit of an antichain is its orbit under
+            Panyushev complementation (see
+            :meth:`panyushev_complement`).
+
+            INPUT:
+
+            - ``antichain`` -- an antichain of ``self``, given as an
+              iterable.
+
+            - ``element_constructor`` (defaults to ``set``) -- a type
+              constructor (``set``, ``tuple``, ``list``, ``frozenset``,
+              ``iter``, etc.) which is to be applied to the antichains
+              before they are yielded.
+
+            - ``stop`` -- a Boolean (default: ``True``) determining
+              whether the iterator should stop once it completes its
+              cycle (this happens when it is set to ``True``) or go on
+              forever (this happens when it is set to ``False``).
+
+            - ``check`` -- a Boolean (default: ``True``) determining
+              whether ``antichain`` should be checked for being an
+              antichain.
+
+            OUTPUT:
+
+            - an iterator over the orbit of the antichain ``antichain``
+              under Panyushev complementation. This iterator `I` has the
+              property that ``I[0] == antichain`` and each `i` satisfies
+              ``self.order_ideal_complement_generators(I[i]) == I[i+1]``,
+              where ``I[i+1]`` has to be understood as ``I[0]`` if it is
+              undefined.
+              The entries ``I[i]`` are sets by default, but depending on
+              the optional keyword variable ``element_constructors``
+              they can also be tuples, lists etc.
+
+            EXAMPLES::
+
+                sage: P = Poset( ( [1,2,3], [ [1,3], [2,3] ] ) )
+                sage: list(P.panyushev_orbit_iter(set([1, 2])))
+                [set([1, 2]), set([3]), set([])]
+                sage: list(P.panyushev_orbit_iter([1, 2]))
+                [set([1, 2]), set([3]), set([])]
+                sage: list(P.panyushev_orbit_iter([2, 1]))
+                [set([1, 2]), set([3]), set([])]
+                sage: list(P.panyushev_orbit_iter(set([1, 2]), element_constructor=list))
+                [[1, 2], [3], []]
+                sage: list(P.panyushev_orbit_iter(set([1, 2]), element_constructor=frozenset))
+                [frozenset([1, 2]), frozenset([3]), frozenset([])]
+                sage: list(P.panyushev_orbit_iter(set([1, 2]), element_constructor=tuple))
+                [(1, 2), (3,), ()]
+
+                sage: P = Poset( {} )
+                sage: list(P.panyushev_orbit_iter([]))
+                [set([])]
+
+                sage: P = Poset({ 1: [2, 3], 2: [4], 3: [4], 4: [] })
+                sage: Piter = P.panyushev_orbit_iter([2], stop=False)
+                sage: Piter.next()
+                set([2])
+                sage: Piter.next()
+                set([3])
+                sage: Piter.next()
+                set([2])
+                sage: Piter.next()
+                set([3])
+            """
+            # TODO: implement a generic function taking a set and
+            # bijections on this set, and returning an orbit of a given
+            # element.
+            if check:
+                for i in antichain:
+                    for j in antichain:
+                        if self.gt(i, j):
+                            raise ValueError("the given antichain is not an antichain")
+            starter = set(antichain)     # sanitize input
+            yield element_constructor(starter)
+            next = starter
+            if stop:
+                while True:
+                    next = self.order_ideal_complement_generators(next)
+                    if next == starter:
+                        break
+                    yield element_constructor(next)
+            else:
+                while True:
+                    next = self.order_ideal_complement_generators(next)
+                    yield element_constructor(next)
+
+        def rowmotion_orbit_iter(self, oideal, element_constructor=set, stop=True, check=True):
+            r"""
+            Iterate over the rowmotion orbit of an order ideal
+            ``oideal`` of ``self``.
+
+            The rowmotion orbit of an order ideal is its orbit under
+            rowmotion (see :meth:`rowmotion`).
+
+            INPUT:
+
+            - ``oideal`` -- an order ideal of ``self``, given as an
+              iterable.
+
+            - ``element_constructor`` (defaults to ``set``) -- a type
+              constructor (``set``, ``tuple``, ``list``, ``frozenset``,
+              ``iter``, etc.) which is to be applied to the order
+              ideals before they are yielded.
+
+            - ``stop`` -- a Boolean (default: ``True``) determining
+              whether the iterator should stop once it completes its
+              cycle (this happens when it is set to ``True``) or go on
+              forever (this happens when it is set to ``False``).
+
+            - ``check`` -- a Boolean (default: ``True``) determining
+              whether ``oideal`` should be checked for being an
+              order ideal.
+
+            OUTPUT:
+
+            - an iterator over the orbit of the order ideal ``oideal``
+              under rowmotion. This iterator `I` has the property that
+              ``I[0] == oideal`` and that every `i` satisfies
+              ``self.rowmotion(I[i]) == I[i+1]``, where ``I[i+1]`` has
+              to be understood as ``I[0]`` if it is undefined.
+              The entries ``I[i]`` are sets by default, but depending on
+              the optional keyword variable ``element_constructors``
+              they can also be tuples, lists etc.
+
+            EXAMPLES::
+
+                sage: P = Poset( ( [1,2,3], [ [1,3], [2,3] ] ) )
+                sage: list(P.rowmotion_orbit_iter(set([1, 2])))
+                [set([1, 2]), set([1, 2, 3]), set([])]
+                sage: list(P.rowmotion_orbit_iter([1, 2]))
+                [set([1, 2]), set([1, 2, 3]), set([])]
+                sage: list(P.rowmotion_orbit_iter([2, 1]))
+                [set([1, 2]), set([1, 2, 3]), set([])]
+                sage: list(P.rowmotion_orbit_iter(set([1, 2]), element_constructor=list))
+                [[1, 2], [1, 2, 3], []]
+                sage: list(P.rowmotion_orbit_iter(set([1, 2]), element_constructor=frozenset))
+                [frozenset([1, 2]), frozenset([1, 2, 3]), frozenset([])]
+                sage: list(P.rowmotion_orbit_iter(set([1, 2]), element_constructor=tuple))
+                [(1, 2), (1, 2, 3), ()]
+
+                sage: P = Poset( {} )
+                sage: list(P.rowmotion_orbit_iter([]))
+                [set([])]
+
+                sage: P = Poset({ 1: [2, 3], 2: [4], 3: [4], 4: [] })
+                sage: Piter = P.rowmotion_orbit_iter([1, 2, 3], stop=False)
+                sage: Piter.next()
+                set([1, 2, 3])
+                sage: Piter.next()
+                set([1, 2, 3, 4])
+                sage: Piter.next()
+                set([])
+                sage: Piter.next()
+                set([1])
+                sage: Piter.next()
+                set([1, 2, 3])
+
+                sage: P = Poset({ 1: [4], 2: [4, 5], 3: [5] })
+                sage: list(P.rowmotion_orbit_iter([1, 2], element_constructor=list))
+                [[1, 2], [1, 2, 3, 4], [2, 3, 5], [1], [2, 3], [1, 2, 3, 5], [1, 2, 4], [3]]
+            """
+            # TODO: implement a generic function taking a set and
+            # bijections on this set, and returning an orbit of a given
+            # element.
+            if check:
+                for i in oideal:
+                    for j in self.lower_covers(i):
+                        if not j in oideal:
+                            raise ValueError("the given order ideal is not an order ideal")
+            starter = set(oideal)     # sanitize input
+            yield element_constructor(starter)
+            next = starter
+            if stop:
+                while True:
+                    next = self.rowmotion(next)
+                    if next == starter:
+                        break
+                    yield element_constructor(next)
+            else:
+                while True:
+                    next = self.rowmotion(next)
+                    yield element_constructor(next)
+
+        def toggling_orbit_iter(self, vs, oideal, element_constructor=set, stop=True, check=True):
+            r"""
+            Iterate over the orbit of an order ideal ``oideal`` of
+            ``self`` under the operation of toggling the vertices
+            ``vs[0], vs[1], ...`` in this order.
+
+            See :meth:`order_ideal_toggle` for a definition of toggling.
+
+            .. WARNING::
+
+                The orbit is that under the composition of toggles,
+                *not* under the single toggles themselves. Thus, for
+                example, if ``vs == [1,2]``, then the orbit has the
+                form `(I, T_2 T_1 I, T_2 T_1 T_2 T_1 I, \ldots)`
+                (where `I` denotes ``oideal`` and `T_i` means
+                toggling at `i`) rather than
+                `(I, T_1 I, T_2 T_1 I, T_1 T_2 T_1 I, \ldots)`.
+
+            INPUT:
+
+            - ``vs``: a list (or other iterable) of elements of ``self``
+              (but since the output depends on the order, sets should
+              not be used as ``vs``).
+
+            - ``oideal`` -- an order ideal of ``self``, given as an
+              iterable.
+
+            - ``element_constructor`` (defaults to ``set``) -- a type
+              constructor (``set``, ``tuple``, ``list``, ``frozenset``,
+              ``iter``, etc.) which is to be applied to the order
+              ideals before they are yielded.
+
+            - ``stop`` -- a Boolean (default: ``True``) determining
+              whether the iterator should stop once it completes its
+              cycle (this happens when it is set to ``True``) or go on
+              forever (this happens when it is set to ``False``).
+
+            - ``check`` -- a Boolean (default: ``True``) determining
+              whether ``oideal`` should be checked for being an
+              order ideal.
+
+            OUTPUT:
+
+            - an iterator over the orbit of the order ideal ``oideal``
+              under toggling the vertices in the list ``vs`` in this
+              order. This iterator `I` has the property that
+              ``I[0] == oideal`` and that every `i` satisfies
+              ``self.order_ideal_toggles(I[i], vs) == I[i+1]``, where
+              ``I[i+1]`` has to be understood as ``I[0]`` if it is
+              undefined.
+              The entries ``I[i]`` are sets by default, but depending on
+              the optional keyword variable ``element_constructors``
+              they can also be tuples, lists etc.
+
+            EXAMPLES::
+
+                sage: P = Poset( ( [1,2,3], [ [1,3], [2,3] ] ) )
+                sage: list(P.toggling_orbit_iter([1, 3, 1], set([1, 2])))
+                [set([1, 2])]
+                sage: list(P.toggling_orbit_iter([1, 2, 3], set([1, 2])))
+                [set([1, 2]), set([]), set([1, 2, 3])]
+                sage: list(P.toggling_orbit_iter([3, 2, 1], set([1, 2])))
+                [set([1, 2]), set([1, 2, 3]), set([])]
+                sage: list(P.toggling_orbit_iter([3, 2, 1], set([1, 2]), element_constructor=list))
+                [[1, 2], [1, 2, 3], []]
+                sage: list(P.toggling_orbit_iter([3, 2, 1], set([1, 2]), element_constructor=frozenset))
+                [frozenset([1, 2]), frozenset([1, 2, 3]), frozenset([])]
+                sage: list(P.toggling_orbit_iter([3, 2, 1], set([1, 2]), element_constructor=tuple))
+                [(1, 2), (1, 2, 3), ()]
+                sage: list(P.toggling_orbit_iter([3, 2, 1], [2, 1], element_constructor=tuple))
+                [(1, 2), (1, 2, 3), ()]
+
+                sage: P = Poset( {} )
+                sage: list(P.toggling_orbit_iter([], []))
+                [set([])]
+
+                sage: P = Poset({ 1: [2, 3], 2: [4], 3: [4], 4: [] })
+                sage: Piter = P.toggling_orbit_iter([1, 2, 4, 3], [1, 2, 3], stop=False)
+                sage: Piter.next()
+                set([1, 2, 3])
+                sage: Piter.next()
+                set([1])
+                sage: Piter.next()
+                set([])
+                sage: Piter.next()
+                set([1, 2, 3])
+                sage: Piter.next()
+                set([1])
+            """
+            # TODO: implement a generic function taking a set and
+            # bijections on this set, and returning an orbit of a given
+            # element.
+            if check:
+                for i in oideal:
+                    for j in self.lower_covers(i):
+                        if not j in oideal:
+                            raise ValueError("the given order ideal is not an order ideal")
+            starter = set(oideal)     # sanitize input
+            yield element_constructor(starter)
+            next = starter
+            if stop:
+                while True:
+                    next = self.order_ideal_toggles(next, vs)
+                    if next == starter:
+                        break
+                    yield element_constructor(next)
+            else:
+                while True:
+                    next = self.order_ideal_toggles(next, vs)
+                    yield element_constructor(next)
+
         def order_ideals_lattice(self, as_ideals=True):
             r"""
-            Returns the lattice of order ideals of a poset `P`,
-            ordered by inclusion. The usual notation is `J(P)`.
+            Return the lattice of order ideals of a poset ``self``,
+            ordered by inclusion.
 
-            The underlying set is by default the set of order ideals
-            of `P`. It can be alternatively chosen to be the set of
-            antichains of `P`.
+            The lattice of order ideals of a poset `P` is usually
+            denoted by `J(P)`. Its underlying set is the set of order
+            ideals of `P`, and its partial order is given by
+            inclusion.
+
+            The order ideals of `P` are in a canonical bijection
+            with the antichains of `P`. The bijection maps every
+            order ideal to the antichain formed by its maximal
+            elements. By setting the ``as_ideals`` keyword variable to
+            ``False``, one can make this method apply this bijection
+            before returning the lattice.
 
             INPUT:
 
@@ -579,7 +960,7 @@ class FinitePosets(Category):
         @abstract_method(optional = True)
         def antichains(self):
             r"""
-            Returns all antichains of ``self``.
+            Return all antichains of ``self``.
 
             EXAMPLES::
 

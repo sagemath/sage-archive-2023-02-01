@@ -179,7 +179,7 @@ def DynkinDiagram(*args, **kwds):
     if is_Matrix(mat):
         mat = CartanMatrix(*args)
     if isinstance(mat, CartanMatrix):
-        if mat.cartan_type() is not None:
+        if mat.cartan_type() is not mat:
             try:
                 return mat.cartan_type().dynkin_diagram()
             except AttributeError:

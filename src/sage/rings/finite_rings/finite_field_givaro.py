@@ -624,3 +624,50 @@ class FiniteField_givaro(FiniteField):
         """
         return self._cache.c_minus_a_times_b(a, b, c)
 
+    def frobenius_endomorphism(self, n=1):
+        """
+        INPUT:
+
+        -  ``n`` -- an integer (default: 1)
+
+        OUTPUT:
+
+        The `n`-th power of the absolute arithmetic Frobenius
+        endomorphism on this finite field.
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(3^5)
+            sage: Frob = k.frobenius_endomorphism(); Frob
+            Frobenius endomorphism t |--> t^3 on Finite Field in t of size 3^5
+
+            sage: a = k.random_element()
+            sage: Frob(a) == a^3
+            True
+
+        We can specify a power::
+
+            sage: k.frobenius_endomorphism(2)
+            Frobenius endomorphism t |--> t^(3^2) on Finite Field in t of size 3^5
+
+        The result is simplified if possible::
+
+            sage: k.frobenius_endomorphism(6)
+            Frobenius endomorphism t |--> t^3 on Finite Field in t of size 3^5
+            sage: k.frobenius_endomorphism(5)
+            Identity endomorphism of Finite Field in t of size 3^5
+
+        Comparisons work::
+
+            sage: k.frobenius_endomorphism(6) == Frob
+            True
+            sage: from sage.categories.morphism import IdentityMorphism
+            sage: k.frobenius_endomorphism(5) == IdentityMorphism(k)
+            True
+
+        AUTHOR:
+
+        - Xavier Caruso (2012-06-29)
+        """
+        from sage.rings.finite_rings.hom_finite_field_givaro import FrobeniusEndomorphism_givaro
+        return FrobeniusEndomorphism_givaro(self, n)

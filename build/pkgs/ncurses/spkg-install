@@ -21,6 +21,7 @@ fi
 
 DEBUG_CONFIGURE_FLAG=''
 if [ $SAGE_DEBUG = yes ]; then
+    CFLAGS="-O0 -g $CFLAGS"
     DEBUG_CONFIGURE_FLAG='--with-debug'
 else
     DEBUG_CONFIGURE_FLAG='--without-debug'
@@ -42,6 +43,7 @@ cd src
 
 echo "Applying patches to upstream source..."
 for patch in ../patches/*.patch; do
+    [ -r "$patch" ] || continue
     patch -p1 <"$patch"
     if [ $? -ne 0 ]; then
         echo >&2 "Error applying '$patch'."
@@ -66,6 +68,7 @@ echo "Configuring ncurses (narrow)..."
     --with-termlib \
     --with-shared \
     --without-normal \
+    --without-ada \
     --disable-rpath-hack \
     --enable-overwrite \
     "$DEBUG_CONFIGURE_FLAG"
@@ -103,6 +106,7 @@ echo "Configuring ncurses (wide)..."
     --with-shared \
     --enable-widec \
     --without-normal \
+    --without-ada \
     --disable-rpath-hack \
     --enable-overwrite \
     "$DEBUG_CONFIGURE_FLAG"

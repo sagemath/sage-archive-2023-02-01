@@ -1,7 +1,9 @@
-cdef extern from 'symmetrica/macro.h':
+# We put all definitions together, whether they appear in def.h or
+# macro.h
+cdef extern from 'symmetrica/def.h':
     pass
 
-cdef extern from 'symmetrica/def.h':
+cdef extern from 'symmetrica/macro.h':
     ctypedef int INT
     ctypedef INT OBJECTKIND
 
@@ -526,7 +528,8 @@ def test_integer(object x):
     Tests functionality for converting between Sage's integers
     and symmetrica's integers.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.libs.symmetrica.symmetrica import test_integer
         sage: test_integer(1)
         1
@@ -540,6 +543,9 @@ def test_integer(object x):
         1267650600228229401496703205376
         sage: test_integer(-2^100)
         -1267650600228229401496703205376
+        sage: for i in range(100):
+        ....:     if test_integer(2^i) != 2^i:
+        ....:         print "Failure at", i
     """
     cdef OP a = callocobject()
     _op_integer(x, a)

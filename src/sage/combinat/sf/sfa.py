@@ -154,6 +154,15 @@ Here are further examples::
     sage: z.degree()
     3
 
+TESTS:
+
+Check that we can handle large integers properly (:trac:`13413`)::
+
+    sage: s = SymmetricFunctions(QQ).s()
+    sage: p = SymmetricFunctions(QQ).p()
+    sage: max(s(p([1]*36)).coefficients())  # long time (4s on sage.math, 2013)
+    40971642983700000000
+
 RECENT BACKWARD INCOMPATIBLE CHANGES:
 
 The symmetric functions code has been refactored to take
@@ -2829,10 +2838,10 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             ....:     for partition_pair, coeff in h.internal_coproduct().monomial_coefficients().items():
             ....:         result += coeff * h.parent()(f).scalar(partition_pair[0]) * h.parent()(g).scalar(partition_pair[1])
             ....:     return result
-            sage: all( all( all( tensor_incopr(e[u], s[v], m[w]) == (e[u].itensor(s[v])).scalar(m[w])
+            sage: all( all( all( tensor_incopr(e[u], s[v], m[w]) == (e[u].itensor(s[v])).scalar(m[w])  # long time (10s on sage.math, 2013)
             ....:                for w in Partitions(5) )
             ....:           for v in Partitions(2) )
-            ....:      for u in Partitions(3) )   # long time
+            ....:      for u in Partitions(3) )
             True
 
         Let us check the formulas for `\Delta^{\times}(h_n)` and
@@ -2934,7 +2943,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
             sage: e = SymmetricFunctions(FiniteField(19)).e()
             sage: m = SymmetricFunctions(FiniteField(19)).m()
-            sage: all( all( e(p).arithmetic_product(m(q)) == m(q).arithmetic_product(e(p))
+            sage: all( all( e(p).arithmetic_product(m(q)) == m(q).arithmetic_product(e(p))  # long time (26s on sage.math, 2013)
             ....:           for q in Partitions(4) )
             ....:      for p in Partitions(4) )
             True

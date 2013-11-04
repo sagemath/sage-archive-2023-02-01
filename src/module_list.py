@@ -1591,6 +1591,19 @@ ext_modules = [
               sources = ['sage/rings/finite_rings/element_pari_ffelt.pyx'],
               libraries = ['pari', 'gmp']),
 
+    Extension('sage.rings.finite_rings.hom_finite_field',
+              sources = ["sage/rings/finite_rings/hom_finite_field.pyx"]),
+
+    Extension('sage.rings.finite_rings.hom_prime_finite_field',
+              sources = ["sage/rings/finite_rings/hom_prime_finite_field.pyx"]),
+
+    Extension('sage.rings.finite_rings.hom_finite_field_givaro',
+              sources = ["sage/rings/finite_rings/hom_finite_field_givaro.pyx"],
+              # this order is needed to compile under windows.
+              libraries = ['givaro', 'ntl', 'gmpxx', 'gmp', 'm', 'stdc++', ],
+              language='c++',
+              extra_compile_args = givaro_extra_compile_args),
+
         ################################
         ##
         ## sage.rings.function_field

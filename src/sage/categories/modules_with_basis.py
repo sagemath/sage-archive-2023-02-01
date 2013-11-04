@@ -1363,41 +1363,45 @@ class ModuleMorphismByLinearity(Morphism):
     _call_ = __call__
 
 class TriangularModuleMorphism(ModuleMorphismByLinearity):
-    """
-    A class for triangular module morphisms; that is module morphisms
-    from `X` to `Y` whose matrix in the distinguished basis of `X` and
-    `Y` would be upper triangular with invertible elements on its
-    diagonal.
+    r"""
+    A class for triangular module morphisms; that is, module morphisms
+    from `X` to `Y` whose representing matrix in the distinguished
+    bases of `X` and `Y` is upper triangular with invertible elements
+    on its diagonal.
 
     See :meth:`ModulesWithBasis.ParentMethods.module_morphism`
 
     INPUT:
 
-     - ``domain`` - a module with basis `F`
-     - ``codomain`` - a module with basis `G` (defaults to `F`)
-     - ``on_basis`` - a function from the index set of the basis of `F` to the
-       elements of `G` which describes the morphism
-     - ``unitriangular`` - boolean (default: False)
-     - ``triangular`` - "upper" or "lower" (default: "upper")
-         - "upper": if the `leading_support()`  of the image of `F(i)` is `i`, or
-         - "lower": if the `trailing_support()` of the image of `F(i)` is `i`.
-     - ``cmp`` - an optional comparison function on the index set `J` of
-       the basis of the codomain.
-     - ``invertible`` - should be set to ``True`` if ``self`` is
-       invertible. Automatically set to ``True`` if the domain and
-       codomain share the same indexing set
-     - ``inverse_on_support`` - compute the inverse on the support if the
-       codomain and domain have different index sets. see assumptions below
+    - ``domain`` -- a module with basis `F`
+    - ``codomain`` -- a module with basis `G` (defaults to `F`)
+    - ``on_basis`` -- a function from the index set of the basis of `F`
+      to the elements of `G` which describes the morphism
+    - ``unitriangular`` -- boolean (default: ``False``)
+    - ``triangular`` -- ``"upper"`` or ``"lower"`` (default: ``"upper"``)
+        - ``"upper"``: if the ``leading_support()`` of the image of
+          `F(i)` is `i`, or
+        - ``"lower"``: if the ``trailing_support()`` of the image of
+          `F(i)` is `i`.
+    - ``cmp`` -- an optional comparison function on the index set `J` of
+      the basis of the codomain.
+    - ``invertible`` -- boolean or ``None`` (default: ``None``); should
+      be set to ``True`` if Sage is to compute an inverse for ``self``.
+      Automatically set to ``True`` if the domain and codomain share the
+      same indexing set and to ``False`` otherwise.
+    - ``inverse_on_support`` - compute the inverse on the support if the
+      codomain and domain have different index sets. see assumptions below
 
     Assumptions:
 
-     - `F` and `G` have the same base ring `R`
+    - `F` and `G` have the same base ring `R`
 
-     - let `I` and `J` be the respective index sets of the basis of `F` and
-       `G`. Either `I = J` or ``inverse_on_support`` is a function `r :
-       J\mapsto I` with the following property: for any `j\in J`, `r(j)`
-       should return an `i\in I` such that the leading term of ``on_basis(i)``
-       is `j` if there exists such a `i` or ``None`` if not.
+    - Let `I` and `J` be the respective index sets of the basis of `F` and
+      the basis of `G`. Either `I = J` or ``inverse_on_support`` is a
+      function `r : J\to I` with the following property: for any `j\in J`,
+      `r(j)` should return an `i\in I` such that the leading term of
+      ``on_basis(i)`` is `j` if there exists such a `i` or ``None`` if
+      not.
 
     OUTPUT:
 

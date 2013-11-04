@@ -347,14 +347,29 @@ class DocTestController(SageObject):
             sage: DC.log("hello world")
             hello world
             sage: DC.logfile.close()
-            sage: with open(DD.logfile) as logger: print logger.read()
+            sage: print open(DD.logfile).read()
+            hello world
+
+        Check that no duplicate logs appear, even when forking (:trac:`15244`)::
+
+            sage: DD = DocTestDefaults(logfile=tmp_filename())
+            sage: DC = DocTestController(DD, [])
+            sage: DC.log("hello world")
+            hello world
+            sage: if os.fork() == 0:
+            ....:     DC.logfile.close()
+            ....:     os._exit(0)
+            sage: DC.logfile.close()
+            sage: print open(DD.logfile).read()
             hello world
 
         """
         s += end
         if self.logfile is not None:
             self.logfile.write(s)
+            self.logfile.flush()
         sys.stdout.write(s)
+        sys.stdout.flush()
 
     def test_safe_directory(self, dir=None):
         """

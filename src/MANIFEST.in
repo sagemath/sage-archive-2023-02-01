@@ -7,7 +7,6 @@ include bundle export install pull sage-push
 include spkg-delauto spkg-dist spkg-install
 
 include c_lib/SConstruct
-graft   sage/server/notebook/templates
 graft   sage/libs/gap/test
 recursive-include sage README
 recursive-exclude sage/ext/interpreters *.c *.h *.pyx *.pxd

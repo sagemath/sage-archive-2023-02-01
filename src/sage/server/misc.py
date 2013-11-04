@@ -1,17 +1,23 @@
 """
-Miscellaneous Notebook Functions
+Miscellaneous Server Functions
+
+.. WARNING::
+
+    Parts of this file are duplicated in sagenb/misc/misc.py
 """
 
-#############################################################################
+#*****************************************************************************
 #       Copyright (C) 2006, 2007 William Stein <wstein@gmail.com>
+#
 #  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#############################################################################
+#*****************************************************************************
 
-import os
+import socket
+from sage.misc.viewer import browser
 
-from   sage.misc.viewer     import browser
 
 def print_open_msg(address, port, secure=False, path=""):
     """
@@ -31,25 +37,26 @@ def print_open_msg(address, port, secure=False, path=""):
 
     EXAMPLES::
 
-        sage: sage.server.misc.print_open_msg('localhost', 8000, True)
+        sage: from sage.server.misc import print_open_msg
+        sage: print_open_msg('localhost', 8000, True)
         ****************************************************
         *                                                  *
         * Open your web browser to https://localhost:8000  *
         *                                                  *
         ****************************************************
-        sage: sage.server.misc.print_open_msg('sagemath.org', 8000, False)
+        sage: print_open_msg('sagemath.org', 8000, False)
         ******************************************************
         *                                                    *
         * Open your web browser to http://sagemath.org:8000  *
         *                                                    *
         ******************************************************
-        sage: sage.server.misc.print_open_msg('sagemath.org', 90, False)
+        sage: print_open_msg('sagemath.org', 90, False)
         ****************************************************
         *                                                  *
         * Open your web browser to http://sagemath.org:90  *
         *                                                  *
         ****************************************************
-        sage: sage.server.misc.print_open_msg('sagemath.org', 80, False)
+        sage: print_open_msg('sagemath.org', 80, False)
         **************************************************
         *                                                *
         *  Open your web browser to http://sagemath.org  *
@@ -59,30 +66,33 @@ def print_open_msg(address, port, secure=False, path=""):
     if port == 80:
         port = ''
     else:
-        port = ':%s'%port
-    s = "Open your web browser to http%s://%s%s%s"%('s' if secure else '', address, port, path)
+        port = ':%s' % port
+    s = "Open your web browser to http%s://%s%s%s" % ('s' if secure
+                                                      else '', address,
+                                                      port, path)
     t = len(s)
-    if t%2:
+    if t % 2:
         t += 1
         s += ' '
-    n = max(t+4, 50)
-    k = n - t  - 1
+    n = max(t + 4, 50)
+    k = n - t - 1
     j = k/2
     print '*'*n
-    print '*'+ ' '*(n-2) + '*'
+    print '*'+ ' '*(n - 2) + '*'
     print '*' + ' '*j + s + ' '*j + '*'
-    print '*'+ ' '*(n-2) + '*'
+    print '*'+ ' '*(n - 2) + '*'
     print '*'*n
 
 
-import socket
-def find_next_available_port(start, max_tries=100, verbose=False):
+def find_next_available_port(host, start, max_tries=100, verbose=False):
     """
-    Find the next available port, that is, a port for which a
-    current connection attempt returns a 'Connection refused' error
-    message.  If no port is found, raise a RuntimError exception.
+    Find the next available port on a given host, that is, a port for
+    which a current connection attempt returns a 'Connection refused'
+    error message.  If no port is found, raise a RuntimeError exception.
 
     INPUT:
+
+    - ``host`` - address to check
 
     - ``start`` - an int; the starting port number for the scan
 
@@ -97,7 +107,8 @@ def find_next_available_port(start, max_tries=100, verbose=False):
 
     EXAMPLES::
 
-        sage: sage.server.misc.find_next_available_port(9000, verbose=False)   # random output -- depends on network
+        sage: from sage.server.misc import find_next_available_port
+        sage: find_next_available_port('127.0.0.1', 9000, verbose=False)   # random output -- depends on network
         9002
     """
     from sage.misc.misc import alarm, cancel_alarm
@@ -106,30 +117,34 @@ def find_next_available_port(start, max_tries=100, verbose=False):
         try:
             alarm(1)
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.connect(('', port))
+            s.connect((host, port))
         except socket.error, msg:
             if msg[1] == 'Connection refused':
-                if verbose: print "Using port = %s"%port
+                if verbose:
+                    print "Using port = %s" % port
                 return port
         except KeyboardInterrupt:
-            if verbose: print "alarm"
+            if verbose:
+                print "alarm"
             alarm_count += 1
             if alarm_count >= 10:
-                 break
+                break
             pass
         finally:
             cancel_alarm()
         if verbose:
-            print "Port %s is already in use."%port
+            print "Port %s is already in use." % port
             print "Trying next port..."
-    raise RuntimeError, "no available port."
+    raise RuntimeError("no available port.")
 
 
 def open_page(address, port, secure, path=""):
+    from os import system
     if secure:
         rsrc = 'https'
     else:
         rsrc = 'http'
 
-    os.system('%s %s://%s:%s%s 1>&2 > /dev/null &'%(browser(), rsrc, address, port, path))
-
+    system('%s %s://%s:%s%s 1>&2 > /dev/null &' % (browser(),
+                                                   rsrc, address,
+                                                   port, path))

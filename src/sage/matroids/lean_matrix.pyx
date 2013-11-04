@@ -35,7 +35,6 @@ from sage.matrix.matrix2 cimport Matrix
 from sage.rings.all import ZZ, FiniteField, GF
 from sage.rings.integer cimport Integer
 import sage.matrix.constructor
-import sage.matroids.unpickling
 
 cdef class LeanMatrix:
     """
@@ -790,6 +789,7 @@ cdef class GenericMatrix(LeanMatrix):
             sage: C == loads(dumps(C))
             True
         """
+        import sage.matroids.unpickling
         version = 0
         data = (self.nrows(), self.ncols(), self.base_ring(), self._entries)
         return sage.matroids.unpickling.unpickle_generic_matrix, (version, data)
@@ -1333,6 +1333,7 @@ cdef class BinaryMatrix(LeanMatrix):
             sage: C == loads(dumps(C))
             True
         """
+        import sage.matroids.unpickling
         version = 0
         M = []
         versionB = 0
@@ -1822,6 +1823,7 @@ cdef class TernaryMatrix(LeanMatrix):
             sage: C == loads(dumps(C))
             True
         """
+        import sage.matroids.unpickling
         version = 0
         M0 = []
         M1 = []
@@ -2355,6 +2357,7 @@ cdef class QuaternaryMatrix(LeanMatrix):
             sage: C == loads(dumps(C))
             True
         """
+        import sage.matroids.unpickling
         version = 0
         M0 = []
         M1 = []
@@ -2813,6 +2816,7 @@ cdef class IntegerMatrix(LeanMatrix):
             sage: C == loads(dumps(C))
             True
         """
+        import sage.matroids.unpickling
         cdef list entries = []
         cdef long i
         for i from 0 <= i < self._nrows * self._ncols:

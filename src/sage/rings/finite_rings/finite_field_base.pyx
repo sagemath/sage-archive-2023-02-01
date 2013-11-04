@@ -13,7 +13,6 @@ include "sage/ext/stdsage.pxi"
 from sage.structure.parent cimport Parent
 from sage.misc.cachefunc import cached_method
 from sage.misc.prandom import randrange
-from sage.rings.finite_rings.homset import FiniteFieldHomset
 
 cdef class FiniteFieldIterator:
     r"""
@@ -343,6 +342,7 @@ cdef class FiniteField(Field):
             sage: K.Hom(K) # indirect doctest
             Automorphism group of Finite Field in a of size 5^2
         """
+        from sage.rings.finite_rings.homset import FiniteFieldHomset
         return FiniteFieldHomset(self, codomain)
 
     def gen(self):
@@ -806,8 +806,7 @@ cdef class FiniteField(Field):
                     return True
                 if self.degree() % R.degree() == 0:
                     if hasattr(self, '_prefix') and hasattr(R, '_prefix'):
-                        from homset import FiniteFieldHomset, FiniteFieldHomomorphism_im_gens
-                        return FiniteFieldHomomorphism_im_gens(FiniteFieldHomset(R, self), self.gen()**((self.order()-1)//(R.order()-1)))
+                        return R.hom((self.gen() ** ((self.order() - 1)//(R.order() - 1)),))
 
     def construction(self):
         """
@@ -964,10 +963,9 @@ cdef class FiniteField(Field):
                 K = GF(p)
                 return [(K, self.coerce_map_from(K))]
             else:
-                from homset import FiniteFieldHomset, FiniteFieldHomomorphism_im_gens
                 gen = self.gen()**((self.order() - 1)//(p**degree - 1))
                 K = GF(p**degree, modulus=gen.minimal_polynomial(), name=name)
-                return [(K, FiniteFieldHomomorphism_im_gens(FiniteFieldHomset(K, self), gen))]
+                return [(K, K.hom((gen,)))]
         else:
             divisors = n.divisors()
             if name is None:
@@ -1017,6 +1015,54 @@ cdef class FiniteField(Field):
         n = self.degree()
         return (exists_conway_polynomial(p, n)
                 and self.polynomial() == self.polynomial_ring()(conway_polynomial(p, n)))
+
+    def frobenius_endomorphism(self, n=1):
+        """
+        INPUT:
+
+        -  ``n`` -- an integer (default: 1)
+
+        OUTPUT:
+
+        The `n`-th power of the absolute arithmetic Frobenius
+        endomorphism on this finite field.
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(3^5)
+            sage: Frob = k.frobenius_endomorphism(); Frob
+            Frobenius endomorphism t |--> t^3 on Finite Field in t of size 3^5
+
+            sage: a = k.random_element()
+            sage: Frob(a) == a^3
+            True
+
+        We can specify a power::
+
+            sage: k.frobenius_endomorphism(2)
+            Frobenius endomorphism t |--> t^(3^2) on Finite Field in t of size 3^5
+
+        The result is simplified if possible::
+
+            sage: k.frobenius_endomorphism(6)
+            Frobenius endomorphism t |--> t^3 on Finite Field in t of size 3^5
+            sage: k.frobenius_endomorphism(5)
+            Identity endomorphism of Finite Field in t of size 3^5
+
+        Comparisons work::
+
+            sage: k.frobenius_endomorphism(6) == Frob
+            True
+            sage: from sage.categories.morphism import IdentityMorphism
+            sage: k.frobenius_endomorphism(5) == IdentityMorphism(k)
+            True
+
+        AUTHOR:
+
+        - Xavier Caruso (2012-06-29)
+        """
+        from sage.rings.finite_rings.hom_finite_field import FrobeniusEndomorphism_finite_field
+        return FrobeniusEndomorphism_finite_field(self, n)
 
 
 def unpickle_FiniteField_ext(_type, order, variable_name, modulus, kwargs):

@@ -531,19 +531,16 @@ class TracInterface(object):
             while True:
                 from xmlrpclib import ServerProxy
                 from digest_transport import DigestTransport
+                from trac_error import TracAuthenticationError
                 transport = DigestTransport()
                 transport.add_authentication(realm=realm, url=server, username=self._username, password=self._password)
                 proxy = ServerProxy(url, transport=transport)
                 try:
                     proxy.system.listMethods()
                     break
-                except urllib2.HTTPError as error:
-                    if error.code == 401:
-                        self._UI.show("Invalid username/password")
-                        self.reset_username()
-                    else:
-                        self._UI.show("Could not verify password, will try to proceed.")
-                        break
+                except TracAuthenticationError:
+                    self._UI.error("Invalid username/password")
+                    self.reset_username()
             self.__authenticated_server_proxy = proxy
         self._postpone_password_timeout()
         return self.__authenticated_server_proxy

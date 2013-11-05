@@ -255,8 +255,8 @@ def show(G,
                                    "vertex_size": int(vertex_size),
                                    "edge_thickness": int(edge_thickness)})
 
-    from sage.misc.misc import SAGE_ROOT
-    js_code_file = open(SAGE_ROOT+"/devel/sage/sage/graphs/graph_plot_js.html", 'r')
+    from sage.misc.misc import SAGE_SRC
+    js_code_file = open(SAGE_SRC+"/sage/graphs/graph_plot_js.html", 'r')
     js_code = js_code_file.read().replace("// HEREEEEEEEEEEE", string)
     js_code_file.close()
 

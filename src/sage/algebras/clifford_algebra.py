@@ -14,18 +14,11 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc_c import prod
-from sage.structure.element import AlgebraElement
-from sage.structure.unique_representation import UniqueRepresentation
 from copy import copy
 
-from sage.categories.rings import Rings
 from sage.categories.graded_algebras_with_basis import GradedAlgebrasWithBasis
 from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
-from sage.categories.algebras import Algebras
-from sage.rings.ring import Algebra
 from sage.rings.all import ZZ
-from sage.sets.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.subset import Subsets
 from sage.quadratic_forms.quadratic_form import QuadraticForm

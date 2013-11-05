@@ -37,7 +37,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
 
     TESTS::
 
-        sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
+        sage: Q = QuadraticForm(ZZ, 3, [1, 2, 3, 4, 5, 6])
         sage: Cl.<x,y,z> = CliffordAlgebra(Q)
         sage: elt = ((x^3-z)*x + y)^2
         sage: TestSuite(elt).run()

@@ -1606,7 +1606,7 @@ class SageDev(MercurialPatchMixin):
             #  Use "sage --dev push --force --ticket=1 --remote-branch=u/bob/ticket/1" to
             #  overwrite the branch field.
             <BLANKLINE>
-            #  Use "sage --dev download --ticket=1" to merge the changes introduced by the
+            #  Use "sage --dev pull --ticket=1" to merge the changes introduced by the
             #  remote "u/alice/ticket/1" into your local branch.
 
         After merging the changes, this works again::
@@ -1878,7 +1878,7 @@ class SageDev(MercurialPatchMixin):
                                        ' the remote "{2}" into your local branch.'],
                                       self._format_command("push", ticket=ticket,
                                                            remote_branch=remote_branch, force=True),
-                                      self._format_command("download", ticket=ticket),
+                                      self._format_command("pull", ticket=ticket),
                                       current_remote_branch)
                         raise OperationCancelledError("not a fast-forward")
 

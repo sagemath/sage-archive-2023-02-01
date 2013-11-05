@@ -6,8 +6,8 @@ scripts for sage.
 
 AUTHORS:
 
-- David Roe, Frej Drejhammar, Julian Rueth, Martin Raum, Nicolas M. Thiery, R.,
-  Andrew Ohana, Robert Bradshaw, Timo Kluck: initial version
+- David Roe, Frej Drejhammar, Julian Rueth, Martin Raum, Nicolas M. Thiery,
+  R. Andrew Ohana, Robert Bradshaw, Timo Kluck: initial version
 
 """
 #*****************************************************************************
@@ -353,7 +353,7 @@ class SageDev(MercurialPatchMixin):
             self._UI.show(['On ticket #{0} with associated local branch "{1}".'], ticket, branch)
         else:
             self._UI.show(['On local branch "{0}" without associated ticket.'], branch)
-        self._UI.info(['', 
+        self._UI.info(['',
                        'Use "{0}" to include another ticket/branch.',
                        'Use "{1}" to save changes into a new commit.'],
                       self._format_command("merge"),
@@ -767,7 +767,7 @@ class SageDev(MercurialPatchMixin):
                     # pull the branch mentioned on trac
                     if not self._is_remote_branch_name(remote_branch, exists=True):
                         self._UI.error('The branch field on ticket #{0} is set to the non-existent "{1}".'
-                                       ' Please set the field on trac to a field value.', 
+                                       ' Please set the field on trac to a field value.',
                                        ticket, remote_branch)
                         self._UI.info(['', '(use "{0}" to edit the ticket description)'],
                                        self._format_command("edit-ticket", ticket=ticket))
@@ -778,7 +778,7 @@ class SageDev(MercurialPatchMixin):
                                        branch, remote_branch)
                     except:
                         self._UI.error('Could not check out ticket #{0} because the remote branch "{1}"'
-                                       ' for that ticket could not be pulled (network connection?).', 
+                                       ' for that ticket could not be pulled (network connection?).',
                                        ticket, remote_branch)
                         raise
             else:
@@ -793,7 +793,7 @@ class SageDev(MercurialPatchMixin):
                         if self._has_local_branch_for_ticket(ticket):
                             command += self._format_command("abandon", self._local_branch_for_ticket(ticket)) + "; "
                         command += self._format_command("checkout", ticket=ticket)
-                        self._UI.info(['', 'Use "{1}" to work on a local copy of the existing remote branch "{0}".'], 
+                        self._UI.info(['', 'Use "{1}" to work on a local copy of the existing remote branch "{0}".'],
                                       remote_branch, command)
                         raise OperationCancelledError("user requested")
 
@@ -1264,8 +1264,8 @@ class SageDev(MercurialPatchMixin):
                                  " resolve as a fast-forward, i.e., there were conflicting changes."
                     e.advice = 'You can try to use "{2}" to checkout "{1}" and then use "{3}"' \
                                ' to resolve these conflicts manually.'.format(
-                                   remote_branch, branch, 
-                                   self._format_command("checkout", branch=branch), 
+                                   remote_branch, branch,
+                                   self._format_command("checkout", branch=branch),
                                    self._format_command("merge", remote_branch, pull=True))
                 else:
                     e.explain += "We did not expect this case to occur.  If you can explain" \
@@ -1366,7 +1366,7 @@ class SageDev(MercurialPatchMixin):
                     with open(commit_message, 'w') as f:
                         f.write(COMMIT_GUIDE)
                     self._UI.edit(commit_message)
-                    message = "\n".join([line for line in open(commit_message).read().splitlines() 
+                    message = "\n".join([line for line in open(commit_message).read().splitlines()
                                          if not line.startswith("#")]).strip()
                 if not message:
                     raise OperationCancelledError("empty commit message")
@@ -1787,7 +1787,7 @@ class SageDev(MercurialPatchMixin):
                               branch, remote_branch, ticket, self._local_branch_for_ticket(ticket))
                 user_confirmation = self._UI.confirm(' Do you really want to proceed?', default=False)
                 if user_confirmation:
-                    self._UI.info(['', 
+                    self._UI.info(['',
                                    'Use "{2}" to permanently set "{1}" as the branch'
                                    ' associated to ticket #{0}.'],
                                   ticket, branch, self._format_command("checkout",ticket=ticket,branch=branch))
@@ -1801,10 +1801,10 @@ class SageDev(MercurialPatchMixin):
                 if user_confirmation:
                     self._UI.info(['', 'Use "{2}" to permanently set the branch associated to'
                                    ' ticket #{0} to "{1}". To create a new branch from "{1}" for'
-                                   ' #{0}, use "{3}" and "{4}".'], 
-                                  ticket, branch, 
-                                  self._format_command("checkout",ticket=ticket,branch=branch), 
-                                  self._format_command("checkout",ticket=ticket), 
+                                   ' #{0}, use "{3}" and "{4}".'],
+                                  ticket, branch,
+                                  self._format_command("checkout",ticket=ticket,branch=branch),
+                                  self._format_command("checkout",ticket=ticket),
                                   self._format_command("merge", branch=branch))
 
         self._UI.debug('Pushing your changes in "{0}" to "{1}".'.format(branch, remote_branch))
@@ -1823,7 +1823,7 @@ class SageDev(MercurialPatchMixin):
                     self._UI.error('Not pushing your changes because they would discard some of'
                                    ' the commits on the remote branch "{0}".', remote_branch)
                     self._UI.info(['', 'Use "{0}" if you really want to overwrite the remote branch.'],
-                                  self._format_command("push", ticket=ticket, 
+                                  self._format_command("push", ticket=ticket,
                                                        remote_branch=remote_branch, force=True))
                     raise OperationCancelledError("not a fast-forward")
 
@@ -1847,8 +1847,8 @@ class SageDev(MercurialPatchMixin):
                                 raise OperationCancelledError("user requested")
 
                     self._upload_ssh_key() # make sure that we have access to the repository
-                    self.git.super_silent.push(self.git._repository, 
-                                               "{0}:{1}".format(branch, remote_branch), 
+                    self.git.super_silent.push(self.git._repository,
+                                               "{0}:{1}".format(branch, remote_branch),
                                                force=force)
                 except GitError as e:
                     # can we give any advice if this fails?
@@ -1903,7 +1903,7 @@ class SageDev(MercurialPatchMixin):
             if old_dependencies != new_dependencies:
                 if old_dependencies:
                     self._UI.show('Trac ticket #{0} depends on {1} while your local branch depends'
-                                  ' on {2}. Updating dependencies is recommended but optional.', 
+                                  ' on {2}. Updating dependencies is recommended but optional.',
                                   ticket, old_dependencies, new_dependencies or "no tickets"),
                     sel = self._UI.select('Action for dependencies?', options=("upload", "download", "keep"))
                     if sel == "keep":
@@ -2653,7 +2653,7 @@ class SageDev(MercurialPatchMixin):
             else:
                 return ('The branches "{0}" and "{1}" have diverged.\n"{0}" is ahead of'
                         ' "{1}" by {2} commits:\n{3}\n"{1}" is ahead of "{0}" by {4}'
-                        ' commits:\n{5}'.format(a, b, len(b_to_a), "\n".join(b_to_a), 
+                        ' commits:\n{5}'.format(a, b, len(b_to_a), "\n".join(b_to_a),
                                                 len(a_to_b), "\n".join(a_to_b)))
 
         branch = None
@@ -2900,7 +2900,7 @@ class SageDev(MercurialPatchMixin):
             self._set_dependencies_for_ticket(ticket, None)
             if helpful:
                 self._UI.info(['',
-                               'Use "{0}" to restart working on #{1} with a clean copy of the master branch.'], 
+                               'Use "{0}" to restart working on #{1} with a clean copy of the master branch.'],
                                self._format_command("checkout", ticket=ticket, base=MASTER_BRANCH), ticket)
 
     def gather(self, branch, *tickets_or_branches):
@@ -3239,7 +3239,7 @@ class SageDev(MercurialPatchMixin):
             self.clean()
         except OperationCancelledError:
             self._UI.error("Cannot merge because working directory is not in a clean state.")
-            self._UI.info(['', '(use "{0}" to commit your changes)'], 
+            self._UI.info(['', '(use "{0}" to commit your changes)'],
                           self._format_command('commit'))
             raise OperationCancelledError("working directory not clean")
 
@@ -3286,7 +3286,7 @@ class SageDev(MercurialPatchMixin):
                     self._UI.error("Cannot merge remote branch for #{0} because no branch has"
                                    " been set on the trac ticket.", ticket)
                     raise OperationCancelledError("remote branch not set on trac")
-        elif pull == False or (pull is None and not 
+        elif pull == False or (pull is None and not
                                self._is_remote_branch_name(ticket_or_branch, exists=True)):
             # ticket_or_branch should be interpreted as a local branch name
             branch = ticket_or_branch
@@ -3331,12 +3331,12 @@ class SageDev(MercurialPatchMixin):
         try:
             self.git.super_silent.merge(local_merge_branch)
             self._UI.show('Automatic merge successful.')
-            self._UI.info(['', '(use "{0}" to commit your merge)'], 
+            self._UI.info(['', '(use "{0}" to commit your merge)'],
                           self._format_command('commit'))
         except GitError as e:
             try:
                 self._UI.show('Automatic merge failed, there are conflicting commits.')
-                excluded = ['Aborting', 
+                excluded = ['Aborting',
                     "Automatic merge failed; fix conflicts and then commit the result."]
                 lines = e.stdout.splitlines() + e.stderr.splitlines()
                 lines = [line for line in lines if line not in excluded]
@@ -4234,7 +4234,7 @@ class SageDev(MercurialPatchMixin):
             if self.git.is_child_of('FETCH_HEAD', MASTER_BRANCH):
                 if self.git.commit_for_ref('FETCH_HEAD') != self.git.commit_for_branch(MASTER_BRANCH):
                     msg = ('To upgrade your "{0}" branch to the latest version, use "{1}".',
-                           MASTER_BRANCH, self._format_command("pull", ticket_or_branch=remote_master, 
+                           MASTER_BRANCH, self._format_command("pull", ticket_or_branch=remote_master,
                                                                branch=MASTER_BRANCH))
                     if action_if_not is None:
                         pass
@@ -5221,7 +5221,7 @@ class SageDevValueError(ValueError):
     def show_error(self, user_interface):
         """
         Display helpful message if available.
-        
+
         INPUT:
 
         - ``user_interface`` -- an instance of
@@ -5240,14 +5240,14 @@ class SageDevValueError(ValueError):
         """
         Store helpful message to be displayed if the exception is not
         caught.
-        
+
         INPUT:
 
         - ``*args`` -- arguments to be passed to
           :meth:`~sage.dev.user_interface.UserInterface.info`.
 
         OUTPUT:
-        
+
         Returns the exception.
 
         TESTS::
@@ -5259,11 +5259,11 @@ class SageDevValueError(ValueError):
         """
         self._info = args
         return self
-        
+
     def show_info(self, user_interface):
         """
         Display helpful message if available.
-        
+
         INPUT:
 
         - ``user_interface`` -- an instance of
@@ -5278,5 +5278,5 @@ class SageDevValueError(ValueError):
         """
         if self._info:
             user_interface.info(*self._info)
-        
-    
+
+

@@ -1209,8 +1209,20 @@ class SageDev(MercurialPatchMixin):
         """
         if ticket_or_remote_branch is None:
             ticket_or_remote_branch = self._current_ticket()
-            if branch is not None and branch != self.git.current_branch():
-                raise SageDevValueError("branch must be None")
+
+        if self._is_ticket_name(ticket_or_remote_branch):
+            ticket = self._ticket_from_ticket_name(ticket_or_remote_branch)
+            self._check_ticket_name(ticket, exists=True)
+
+            remote_branch = self.trac._branch_for_ticket(ticket)
+            if remote_branch is None:
+                raise SageDevValueError("Branch field is not set for ticket #{0} on trac.".format(ticket))
+        else:
+            remote_branch = ticket_or_remote_branch
+
+        self.merge(remote_branch, pull=True)
+
+        return
 
         # merge into the current branch if ticket_or_remote_branch refers to the current ticket
         if branch is None and ticket_or_remote_branch is not None and self._is_ticket_name(ticket_or_remote_branch) and self._ticket_from_ticket_name(ticket_or_remote_branch) == self._current_ticket():

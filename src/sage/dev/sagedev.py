@@ -772,15 +772,9 @@ class SageDev(MercurialPatchMixin):
                         self._UI.info(['', '(use "{0}" to edit the ticket description)'],
                                        self._format_command("edit-ticket", ticket=ticket))
                         raise OperationCancelledError("remote branch does not exist")
-                    try:
-                        self.pull(remote_branch, branch)
-                        self._UI.debug('Created a new branch "{0}" based on "{1}".',
-                                       branch, remote_branch)
-                    except:
-                        self._UI.error('Could not check out ticket #{0} because the remote branch "{1}"'
-                                       ' for that ticket could not be pulled (network connection?).',
-                                       ticket, remote_branch)
-                        raise
+
+                    self.git.super_silent.fetch(self.git._repository_anonymous, remote_branch)
+                    self.git.super_silent.branch(branch, 'FETCH_HEAD')
             else:
                 self._check_local_branch_name(base, exists=True)
                 if remote_branch is not None:
@@ -4779,7 +4773,7 @@ class SageDev(MercurialPatchMixin):
             sage: bob._sagedev._local_branch_for_ticket(1, pull_if_not_found=True)
             Traceback (most recent call last):
             ...
-            SageDevValueError: Branch "public/ticket/1" does not exist on the remote system.
+            SageDevValueError: Branch "public/ticket/1" does not exist on the remote server.
 
             sage: import os
             sage: os.chdir(server.git._config['src'])
@@ -4799,8 +4793,21 @@ class SageDev(MercurialPatchMixin):
             raise KeyError("No branch for ticket #{0} in your repository.".format(ticket))
 
         branch = self._new_local_branch_for_ticket(ticket)
-        self.pull(ticket, branch)
+        self._check_ticket_name(ticket, exists=True)
+
+        remote_branch = self.trac._branch_for_ticket(ticket)
+        if remote_branch is None:
+            raise SageDevValueError("Branch field is not set for ticket #{0} on trac.".format(ticket))
+
+        try:
+            self.git.super_silent.fetch(self.git._repository_anonymous, remote_branch)
+        except GitError as e:
+            raise SageDevValueError('Branch "%s" does not exist on the remote server.'%remote_branch)
+
+        self.git.super_silent.branch(branch, 'FETCH_HEAD')
+
         self._set_local_branch_for_ticket(ticket, branch)
+
         return self._local_branch_for_ticket(ticket, pull_if_not_found=False)
 
     def _new_local_branch_for_trash(self, branch):

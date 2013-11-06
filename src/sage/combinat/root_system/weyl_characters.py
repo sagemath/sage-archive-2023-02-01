@@ -2240,13 +2240,13 @@ def get_branching_rule(Rtype, Stype, rule):
             raise NotImplementedError("Not implemented yet")
         elif Rtype[0] == 'F' and s == 3:
             if Stype[0] == 'B':
-                return lambda x : list(x)[1:]
+                return lambda x : list(x)[1:][:3]
             elif Stype[0] == 'C':
                 return lambda x : [x[1]-x[0],x[2]+x[3],x[2]-x[3]]
             else:
                 raise NotImplementedError("Not implemented yet")
         elif Rtype[0] == 'G' and Stype[0] == 'A':
-            return lambda x : list(x)[1:]
+            return lambda x : list(x)[1:][:2]
         else:
             raise ValueError("Rule not found")
     elif rule == "automorphic":

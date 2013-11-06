@@ -446,6 +446,23 @@ def test_signal_bus(long delay = DEFAULT_DELAY):
     signal_after_delay(SIGBUS, delay)
     infinite_loop()
 
+def test_signal_quit(long delay = DEFAULT_DELAY):
+    """
+    TESTS:
+
+    We run Sage in a subprocess and make it raise a SIGQUIT under
+    ``sig_on()``.  This should cause Sage to exit::
+
+        sage: from subprocess import *
+        sage: cmd = 'from sage.tests.interrupt import *; test_signal_quit()'
+        sage: print Popen(['sage', '-c', cmd], stdout=PIPE, stderr=PIPE).communicate()[1]  # long time
+        ---...---
+    """
+    # The sig_on() shouldn't make a difference for SIGQUIT
+    sig_on()
+    signal_after_delay(SIGQUIT, delay)
+    infinite_loop()
+
 
 ########################################################################
 # Test with "true" errors (not signals raised by hand)                 #
@@ -475,13 +492,11 @@ def unguarded_dereference_null_pointer():
 
         sage: from subprocess import *
         sage: cmd = 'from sage.tests.interrupt import *; unguarded_dereference_null_pointer()'
-        sage: print '---'; print Popen(['sage', '-c', cmd], stdout=PIPE, stderr=PIPE).communicate()[1]  # long time
-        -...
-        ------------------------------------------------------------------------
+        sage: print Popen(['sage', '-c', cmd], stdout=PIPE, stderr=PIPE).communicate()[1]  # long time
+        ---...---
         Unhandled SIG...
         This probably occurred because a *compiled* component of Sage has a bug
-        in it and is not properly wrapped with sig_on(), sig_off(). You might
-        want to run Sage under gdb with 'sage -gdb' to debug this.
+        in it and is not properly wrapped with sig_on(), sig_off().
         Sage will now terminate.
         ------------------------------------------------------------------------
     """
@@ -508,13 +523,11 @@ def unguarded_abort():
 
         sage: from subprocess import *
         sage: cmd = 'from sage.tests.interrupt import *; unguarded_abort()'
-        sage: print '---'; print Popen(['sage', '-c', cmd], stdout=PIPE, stderr=PIPE).communicate()[1]  # long time
-        -...
-        ------------------------------------------------------------------------
+        sage: print Popen(['sage', '-c', cmd], stdout=PIPE, stderr=PIPE).communicate()[1]  # long time
+        ---...---
         Unhandled SIGABRT: An abort() occurred in Sage.
         This probably occurred because a *compiled* component of Sage has a bug
-        in it and is not properly wrapped with sig_on(), sig_off(). You might
-        want to run Sage under gdb with 'sage -gdb' to debug this.
+        in it and is not properly wrapped with sig_on(), sig_off().
         Sage will now terminate.
         ------------------------------------------------------------------------
     """
@@ -528,13 +541,11 @@ def test_bad_str(long delay = DEFAULT_DELAY):
 
         sage: from subprocess import *
         sage: cmd = 'from sage.tests.interrupt import *; test_bad_str()'
-        sage: print '---'; print Popen(['sage', '-c', cmd], stdout=PIPE, stderr=PIPE).communicate()[1]  # long time
-        -...
-        ------------------------------------------------------------------------
+        sage: print Popen(['sage', '-c', cmd], stdout=PIPE, stderr=PIPE).communicate()[1]  # long time
+        ---...---
         An error occured during signal handling.
         This probably occurred because a *compiled* component of Sage has a bug
-        in it and is not properly wrapped with sig_on(), sig_off(). You might
-        want to run Sage under gdb with 'sage -gdb' to debug this.
+        in it and is not properly wrapped with sig_on(), sig_off().
         Sage will now terminate.
         ------------------------------------------------------------------------
     """

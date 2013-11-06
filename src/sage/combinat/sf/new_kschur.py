@@ -1142,7 +1142,7 @@ class K_kSchur(CombinatorialFreeModule):
             sage: g = K_kSchur(kB)
             sage: g
             3-bounded Symmetric Functions over Rational Field with t=1 in the K-3-Schur basis
-            sage: g[2,1]*g[1]
+            sage: g[2,1]*g[1]  # takes a while but caches stuff
             -2*Kks3[2, 1] + Kks3[2, 1, 1] + Kks3[2, 2]
             sage: g([])
             Kks3[]
@@ -1339,7 +1339,7 @@ class K_kSchur(CombinatorialFreeModule):
             h[2] + h[2, 1] - h[3]
             sage: g._DualGrothendieck(Partition([]))
             h[]
-            sage: g._DualGrothendieck(Partition([4,1]))
+            sage: g._DualGrothendieck(Partition([4,1]))  # long time (5s on sage.math, 2013)
             0
         """
         m = la.size()

@@ -233,11 +233,12 @@ According to the solution of :ref:`Exercise: enumeration of binary trees <exo.en
 numbers is already very valuable. In fact, this permits research in a
 gold mine of information: the `Online Encyclopedia of Integer Sequences
 <http://oeis.org/>`_, commonly called “Sloane”, the name of its principal
-author, which contains more than 190000 sequences of integers [1]_::
+author, which contains more than 190000 sequences of integers::
 
-    sage: sloane_find([1,1,2,5,14])                   # todo: not implemented
-    Searching Sloane's online database...
-    [[108, 'Catalan numbers: C(n) = binomial(2n,n)/(n+1) ...
+    sage: oeis([1,1,2,5,14])                            # optional -- internet
+    0: A000108: Catalan numbers: C(n) = binomial(2n,n)/(n+1) = (2n)!/(n!(n+1)!). Also called Segner numbers.
+    1: A120588: G.f. satisfies: 3*A(x) = 2 + x + A(x)^2, starting with [1,1,1].
+    2: A080937: Number of Catalan paths (nonnegative, starting and ending at 0, step +/-1) of 2*n steps with all values <= 5.
 
 The result suggests that the trees are counted by one of the most famous
 sequences, the Catalan numbers. Looking through the references supplied
@@ -818,7 +819,7 @@ Some other finite enumerated sets
 Essentially, the principle is the same for all the finite sets with
 which one wants to do combinatorics in ``Sage``; begin by constructing
 an object which models this set, and then supply appropriate methods,
-following a uniform interface [2]_. We now give a few more typical
+following a uniform interface [1]_. We now give a few more typical
 examples.
 
 Intervals of integers::
@@ -1066,7 +1067,7 @@ of square brackets)::
 the function ``sum`` receives the iterator directly, and can
 short-circuit the construction of the intermediate list. If there are a
 large number of elements, this avoids allocating a large quantity of
-memory to fill a list which will be immediately destroyed [3]_.
+memory to fill a list which will be immediately destroyed [2]_.
 
 Most functions that take a list of elements as input will also accept
 an iterator (or an iterable) instead. To begin with, one can obtain the
@@ -1751,11 +1752,11 @@ The Fibonacci sequence is easily recognized here, hence the name::
 
 ::
 
-    sage: sloane_find(L)                         # todo: not implemented
-    Searching Sloane's online database...
-    [[45, 'Fibonacci numbers: F(n) = F(n-1) + F(n-2),
-     F(0) = 0, F(1) = 1, F(2) = 1, ...',
-     [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, ...
+    sage: oeis(L)                                       # optional -- internet
+    0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
+    1: A185357: Expansion of 1/(1 - x - x^2 + x^18 - x^20).
+    2: A132636: Fib(n) mod n^3.
+
 
 This is an immediate consequence of the recurrence relation. One can
 also generate immediately all the Fibonacci words of a given length,
@@ -1838,7 +1839,7 @@ with no edges; below it, its unique child, the graph with one edge;
 then the graphs with two edges, and so on. The set of children of a
 graph `G` can be constructed by *augmentation*, adding an edge in all
 the possible ways to `G`, and then selecting, from among those graphs,
-the ones that are still canonical [4]_. Recursively, one obtains all
+the ones that are still canonical [3]_. Recursively, one obtains all
 the canonical graphs.
 
 .. figure:: ../../media/prefix-tree-graphs-4.png
@@ -1877,20 +1878,16 @@ REFERENCES:
          http://sagebook.gforge.inria.fr/
 
 .. [1]
-   The command ``sloane_find`` is currently not working (see
-   :trac:`10358`) but the web site can still be consulted directly.
-
-.. [2]
    Or at least that should be the case; there are still many corners to
    clean up.
 
-.. [3]
+.. [2]
    Technical detail: ``xrange`` returns an iterator on
    `\{0,\dots,8\}` while ``range`` returns the corresponding
    list. Starting in ``Python`` 3.0, ``range`` will behave like ``xrange``, and
    ``xrange`` will no longer be needed.
 
-.. [4]
+.. [3]
    In practice, an efficient implementation would exploit the symmetries
    of `G`, i.e., its automorphism group, to reduce the number of
    children to explore, and to reduce the cost of each test of

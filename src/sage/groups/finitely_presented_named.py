@@ -9,6 +9,9 @@ from entries in [THOMAS-WOODS]_.
 
 Groups available as finite presentations:
 
+- Alternating group, `A_n` of order `n!/2` --
+  :func:`groups.presentation.Alternating <sage.groups.finitely_presented_named.AlternatingPresentation>`
+
 - Cyclic group, `C_n` of order `n` --
   :func:`groups.presentation.Cyclic <sage.groups.finitely_presented_named.CyclicPresentation>`
 
@@ -24,6 +27,12 @@ Groups available as finite presentations:
 
 - Klein four group, `C_2 \times C_2` --
   :func:`groups.presentation.KleinFour <sage.groups.finitely_presented_named.KleinFourPresentation>`
+
+- Quaternion group of order 8 --
+  :func:`groups.presentation.Quaternion <sage.groups.finitely_presented_named.QuaternionPresentation>`
+
+- Symmetric group, `S_n` of order `n!` --
+  :func:`groups.presentation.Symmetric <sage.groups.finitely_presented_named.SymmetricPresentation>`
 
 AUTHORS:
 
@@ -50,7 +59,7 @@ You can also import the desired functions::
 from sage.rings.all      import Integer
 from sage.groups.free_group import FreeGroup
 from sage.groups.finitely_presented import FinitelyPresentedGroup
-
+from sage.libs.gap.libgap import libgap
 from sage.matrix.constructor import diagonal_matrix
 from sage.modules.fg_pid.fgp_module import FGP_Module
 from sage.rings.integer_ring import ZZ
@@ -275,6 +284,126 @@ def DiCyclicPresentation(n):
     F = FreeGroup(['a','b'])
     rls =  F([1])**(2*n), F([2,2])*F([-1])**n, F([-2,1,2,1])
     return FinitelyPresentedGroup(F, rls)
+
+def SymmetricPresentation(n):
+    r"""
+    Build the Symmetric group of order `n!` as a finitely presented group.
+
+    INPUT:
+
+    - ``n`` -- The size of the underlying set of arbitrary symbols being acted
+      on by the Symmetric group of order `n!`.
+
+    OUTPUT:
+
+    Symmetric group as a finite presentation, implementation uses GAP to find an
+    isomorphism from a permutation representation to a finitely presented group
+    representation. Due to this fact, the exact output presentation may not be
+    the same for every method call on a constant ``n``.
+
+    EXAMPLES::
+
+        sage: S4 = groups.presentation.Symmetric(4)
+        sage: S4.as_permutation_group().is_isomorphic(SymmetricGroup(4))
+        True
+
+    TESTS::
+
+        sage: S = [groups.presentation.Symmetric(i) for i in range(1,4)]; S[0].order()
+        1
+        sage: S[1].order(), S[2].as_permutation_group().is_isomorphic(DihedralGroup(3))
+        (2, True)
+        sage: S5 = groups.presentation.Symmetric(5)
+        sage: perm_S5 = S5.as_permutation_group(); perm_S5.is_isomorphic(SymmetricGroup(5))
+        True
+        sage: groups.presentation.Symmetric(8).order()
+        40320
+    """
+    from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+    from sage.groups.free_group import _lexi_gen
+
+    n = Integer(n)
+    perm_rep = SymmetricGroup(n)
+    GAP_fp_rep = libgap.Image(libgap.IsomorphismFpGroupByGenerators(perm_rep, perm_rep.gens()))
+    image_gens = GAP_fp_rep.FreeGeneratorsOfFpGroup()
+    name_itr = _lexi_gen() # Python generator object for variable names
+    F = FreeGroup([name_itr.next() for x in perm_rep.gens()])
+    ret_rls = tuple([F(rel_word.TietzeWordAbstractWord(image_gens).sage())
+                for rel_word in GAP_fp_rep.RelatorsOfFpGroup()])
+    return FinitelyPresentedGroup(F,ret_rls)
+
+def QuaternionPresentation():
+    r"""
+    Build the Quaternion group of order 8 as a finitely presented group.
+
+    OUTPUT:
+
+    Quaternion group as a finite presentation.
+
+    EXAMPLES::
+
+        sage: Q = groups.presentation.Quaternion(); Q
+        Finitely presented group < a, b | a^4, b^2*a^-2, a*b*a*b^-1 >
+        sage: Q.as_permutation_group().is_isomorphic(QuaternionGroup())
+        True
+
+    TESTS::
+
+        sage: Q = groups.presentation.Quaternion()
+        sage: Q.order(), Q.is_abelian()
+        (8, False)
+        sage: Q.is_isomorphic(groups.presentation.DiCyclic(2))
+        True
+    """
+    F = FreeGroup(['a','b'])
+    rls = F([1])**4, F([2,2,-1,-1]), F([1,2,1,-2])
+    return FinitelyPresentedGroup(F, rls)
+
+def AlternatingPresentation(n):
+    r"""
+    Build the Alternating group of order `n!/2` as a finitely presented group.
+
+    INPUT:
+
+    - ``n`` -- The size of the underlying set of arbitrary symbols being acted
+      on by the Alternating group of order `n!/2`.
+
+    OUTPUT:
+
+    Alternating group as a finite presentation, implementation uses GAP to find an
+    isomorphism from a permutation representation to a finitely presented group
+    representation. Due to this fact, the exact output presentation may not be
+    the same for every method call on a constant ``n``.
+
+    EXAMPLES::
+
+        sage: A6 = groups.presentation.Alternating(6)
+        sage: A6.as_permutation_group().is_isomorphic(AlternatingGroup(6)), A6.order()
+        (True, 360)
+
+    TESTS::
+
+        sage: #even permutation test..
+        sage: A1 = groups.presentation.Alternating(1); A2 = groups.presentation.Alternating(2)
+        sage: A1.is_isomorphic(A2), A1.order()
+        (True, 1)
+        sage: A3 = groups.presentation.Alternating(3); A3.order(), A3.as_permutation_group().is_cyclic()
+        (3, True)
+        sage: A8 = groups.presentation.Alternating(8); A8.order()
+        20160
+    """
+    from sage.groups.perm_gps.permgroup_named import AlternatingGroup
+    from sage.groups.free_group import _lexi_gen
+
+    n = Integer(n)
+    perm_rep = AlternatingGroup(n)
+    GAP_fp_rep = libgap.Image(libgap.IsomorphismFpGroupByGenerators(perm_rep, perm_rep.gens()))
+    image_gens = GAP_fp_rep.FreeGeneratorsOfFpGroup()
+    name_itr = _lexi_gen() # Python generator object for variable names
+    F = FreeGroup([name_itr.next() for x in perm_rep.gens()])
+    ret_rls = tuple([F(rel_word.TietzeWordAbstractWord(image_gens).sage())
+                for rel_word in GAP_fp_rep.RelatorsOfFpGroup()])
+    return FinitelyPresentedGroup(F,ret_rls)
 
 def KleinFourPresentation():
     r"""

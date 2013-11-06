@@ -1066,7 +1066,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         - Robert Bradshaw (2007-05-31)
         """
-        from sage.rings.all import is_Ideal
+        from sage.rings.ideal import is_Ideal
         if is_Ideal(m):
             v = m.gens_reduced()
             if len(v) > 1:

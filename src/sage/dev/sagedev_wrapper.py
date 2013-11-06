@@ -7,7 +7,6 @@ handling.
 AUTHORS:
 
 - Julian Rueth: initial version
-
 """
 #*****************************************************************************
 #       Copyright (C) 2013 Julian Rueth <julian.rueth@fsfe.org>
@@ -92,7 +91,7 @@ class SageDevWrapper(object):
 
         TESTS::
 
-            sage: type(dev)
+            sage: type(dev._get_object())
             <class 'sage.dev.sagedev_wrapper.SageDevWrapper'>
         """
         self._sagedev = sagedev
@@ -105,7 +104,6 @@ class SageDevWrapper(object):
         self._wrap("pull")
         self._wrap("download_patch")
         self._wrap("edit_ticket")
-        self._wrap("gather")
         self._wrap("import_patch")
         self._wrap("tickets")
         self._wrap("merge")
@@ -213,8 +211,7 @@ class SageDevWrapper(object):
                 except DetachedHeadError as e:
                     UI.error("Unexpectedly your repository was found to be in a"
                              " detached head state. This is probably a bug in sagedev.")
-                    UI.info("You can try to restore your repository to a clean state by"
-                            " running {0} and {1}.",
+                    UI.info("Use {0} and {1} to restore your repository to a clean state.",
                             self._sagedev._format_command("clean"), 
                             self._sagedev._format_command("checkout", branch="master"))
                     raise
@@ -247,3 +244,7 @@ class SageDevWrapper(object):
             'SageDev()'
         """
         return repr(self._sagedev)
+
+
+from sagedev import SageDev
+dev = SageDevWrapper(SageDev())

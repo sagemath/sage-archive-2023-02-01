@@ -45,7 +45,8 @@ import operator
 from sage.structure.element     import MultiplicativeGroupElement
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.sequence    import Sequence
-from sage.rings.all             import QQ, ZZ, Zmod, NumberField, is_Ring
+from sage.rings.all             import QQ, ZZ, Zmod, NumberField
+from sage.rings.ring import is_Ring
 from sage.misc.cachefunc        import cached_method
 from sage.misc.abstract_method  import abstract_method
 from sage.misc.misc_c           import prod

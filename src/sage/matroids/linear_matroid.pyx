@@ -122,7 +122,6 @@ from copy import copy, deepcopy
 from sage.rings.all import ZZ, QQ, FiniteField, GF
 import itertools
 from itertools import combinations
-import sage.matroids.unpickling
 
 cdef bint GF2_not_defined = True
 cdef GF2, GF2_one, GF2_zero
@@ -2666,6 +2665,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             [1 0 1]
             [1 0 1]
         """
+        import sage.matroids.unpickling
         cdef LeanMatrix A
         version = 0
         if self._representation is not None:
@@ -3597,6 +3597,7 @@ cdef class BinaryMatroid(LinearMatroid):
             [1 0 1]
             [1 0 1]
         """
+        import sage.matroids.unpickling
         version = 0
         cdef list basis = [0] * self.full_rank()
         if self._representation is not None:
@@ -4389,6 +4390,7 @@ cdef class TernaryMatroid(LinearMatroid):
             [1 0 1]
             [1 0 1]
         """
+        import sage.matroids.unpickling
         version = 0
         cdef list basis = [0] * self.full_rank()
         if self._representation is not None:
@@ -5070,6 +5072,7 @@ cdef class QuaternaryMatroid(LinearMatroid):
             sage: loads(dumps(M))
             U34
         """
+        import sage.matroids.unpickling
         version = 0
         cdef list basis = [0] * self.full_rank()
         if self._representation is not None:
@@ -5802,6 +5805,7 @@ cdef class RegularMatroid(LinearMatroid):
             [1 0 1]
             [1 0 1]
         """
+        import sage.matroids.unpickling
         cdef LeanMatrix A
         version = 0
         if self._representation is not None:

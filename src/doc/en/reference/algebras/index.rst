@@ -16,6 +16,8 @@ Algebras
 
    sage/algebras/group_algebra_new
 
+   sage/algebras/iwahori_hecke_algebra
+
    sage/algebras/shuffle_algebra
 
    sage/algebras/steenrod/steenrod_algebra

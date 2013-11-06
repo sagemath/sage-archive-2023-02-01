@@ -10,7 +10,8 @@ Ambient Spaces
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import Integer, is_CommutativeRing, ZZ
+from sage.rings.all import Integer, ZZ
+from sage.rings.commutative_ring import is_CommutativeRing
 
 from sage.schemes.generic.scheme import Scheme
 

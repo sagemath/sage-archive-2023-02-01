@@ -107,7 +107,7 @@ def Jacobian(X, **kwds):
         pass
 
     morphism = kwds.pop('morphism', False)
-    from sage.rings.all import is_MPolynomial
+    from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
     if is_MPolynomial(X):
         if morphism:
             from sage.schemes.plane_curves.constructor import Curve

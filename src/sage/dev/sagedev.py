@@ -1629,10 +1629,11 @@ class SageDev(MercurialPatchMixin):
             <BLANKLINE>
             Added dependency on #2 to #1.
             sage: with open("another_file", "w") as f: f.write("bob after merge(2)")
+            sage: bob._UI.append('n')
             sage: bob.push()
-            Remote branch "u/bob/ticket/1" is idential to your local branch "ticket/1
-            <BLANKLINE>
-            #  (use "sage --dev commit" to commit changes before pushing)
+            The branch field of ticket #1 needs to be updated from its current value
+            "u/bob/branch1" to "u/bob/ticket/1"
+            Change the "Branch:" field? [Yes/no] n
             sage: bob._UI.extend(['y', 'y', 'y'])
             sage: bob.commit(message="Bob's merge")  # oops
             The following files in your working directory are not tracked by git:
@@ -1774,28 +1775,29 @@ class SageDev(MercurialPatchMixin):
             # check whether this is a nop
             if remote_branch_exists and not force and \
                self.git.commit_for_branch(branch) == self.git.commit_for_ref('FETCH_HEAD'):
-                self._UI.info('Remote branch "{0}" is idential to your local branch "{1}',
+                self._UI.debug('Remote branch "{0}" is idential to your local branch "{1}',
                               remote_branch, branch)
                 self._UI.debug(['', '(use "{0}" to commit changes before pushing)'],
                                self._format_command("commit"))
-            try:
-                if not force:
-                    if remote_branch_exists:
-                        commits = self.git.log("{0}..{1}".format('FETCH_HEAD', branch), '--pretty=%h: %s')
-                        self._UI.show(['Local commits that are not on the remote branch "{0}":', ''] +
-                                      ['    ' + c for c in commits.splitlines()] +
-                                      [''], remote_branch)
-                        if not self._UI.confirm('Push to remote branch?', default=True):
-                            raise OperationCancelledError("user requested")
+            else:
+                try:
+                    if not force:
+                        if remote_branch_exists:
+                            commits = self.git.log("{0}..{1}".format('FETCH_HEAD', branch), '--pretty=%h: %s')
+                            self._UI.show(['Local commits that are not on the remote branch "{0}":', ''] +
+                                          ['    ' + c for c in commits.splitlines()] +
+                                          [''], remote_branch)
+                            if not self._UI.confirm('Push to remote branch?', default=True):
+                                raise OperationCancelledError("user requested")
 
-                self._upload_ssh_key() # make sure that we have access to the repository
-                self.git.super_silent.push(self.git._repository,
-                                           "{0}:{1}".format(branch, remote_branch),
-                                           force=force)
-            except GitError as e:
-                # can we give any advice if this fails?
-                raise
-            self._UI.debug('Changes in "{0}" have been pushed to "{1}".'.format(branch, remote_branch))
+                    self._upload_ssh_key() # make sure that we have access to the repository
+                    self.git.super_silent.push(self.git._repository,
+                                               "{0}:{1}".format(branch, remote_branch),
+                                               force=force)
+                except GitError as e:
+                    # can we give any advice if this fails?
+                    raise
+                self._UI.debug('Changes in "{0}" have been pushed to "{1}".'.format(branch, remote_branch))
         except OperationCancelledError:
             self._UI.debug("Did not push any changes.")
             raise

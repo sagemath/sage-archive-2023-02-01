@@ -4151,7 +4151,7 @@ class SageDev(MercurialPatchMixin):
 
         We upgrade the local master::
 
-            sage: dev.pull(ticket_or_remote_branch="master", branch="master")
+            sage: dev.pull(ticket_or_remote_branch="master")
             Merging the remote branch "master" into the local branch "master".
             Automatic merge successful.
             <BLANKLINE>

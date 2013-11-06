@@ -1222,68 +1222,6 @@ class SageDev(MercurialPatchMixin):
 
         self.merge(remote_branch, pull=True)
 
-        return
-
-        # merge into the current branch if ticket_or_remote_branch refers to the current ticket
-        if branch is None and ticket_or_remote_branch is not None and self._is_ticket_name(ticket_or_remote_branch) and self._ticket_from_ticket_name(ticket_or_remote_branch) == self._current_ticket():
-            branch = self.git.current_branch()
-
-        if ticket_or_remote_branch is None:
-            raise SageDevValueError('No "ticket_or_remote_branch" specified to pull.')
-
-        if self._is_ticket_name(ticket_or_remote_branch):
-            ticket = self._ticket_from_ticket_name(ticket_or_remote_branch)
-            self._check_ticket_name(ticket, exists=True)
-
-            remote_branch = self.trac._branch_for_ticket(ticket)
-            if remote_branch is None:
-                raise SageDevValueError("Branch field is not set for ticket #{0} on trac.".format(ticket))
-            if branch is None:
-                branch = self._new_local_branch_for_ticket(ticket)
-            self._check_local_branch_name(branch)
-
-        else:
-            remote_branch = ticket_or_remote_branch
-            self._check_remote_branch_name(remote_branch)
-
-            if branch is None:
-                branch = remote_branch
-            self._check_local_branch_name(branch)
-
-        self._check_remote_branch_name(remote_branch, exists=True)
-
-        self._UI.debug('Fetching remote branch "{0}" into "{1}".'.format(remote_branch, branch))
-        from git_error import DetachedHeadError
-        try:
-            current_branch = self.git.current_branch()
-        except DetachedHeadError:
-            current_branch = None
-
-        if current_branch == branch:
-            self.merge(remote_branch, pull=True)
-        else:
-            try:
-                self.git.super_silent.fetch(self.git._repository_anonymous, "{0}:{1}".format(remote_branch, branch))
-            except GitError as e:
-                # there is not many scenarios in which this can fail - the most
-                # likely being that branch already exists and this does not
-                # resolve as a fast-forward; in any case, if the fetch fails,
-                # then just nothing happened and we can abort the pull
-                # safely without a need to cleanup
-                e.explain = 'Fetching "{0}" into "{1}" failed.'.format(remote_branch, branch)
-                if self._is_local_branch_name(branch, exists=True):
-                    e.explain += " Most probably this happened because the fetch did not" \
-                                 " resolve as a fast-forward, i.e., there were conflicting changes."
-                    e.advice = 'You can try to use "{2}" to checkout "{1}" and then use "{3}"' \
-                               ' to resolve these conflicts manually.'.format(
-                                   remote_branch, branch,
-                                   self._format_command("checkout", branch=branch),
-                                   self._format_command("merge", remote_branch, pull=True))
-                else:
-                    e.explain += "We did not expect this case to occur.  If you can explain" \
-                                 " your context in sage.dev.sagedev it might be useful to others."
-                raise
-
     def commit(self, message=None, interactive=False):
         r"""
         Create a commit from the pending changes on the current branch.

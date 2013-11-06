@@ -474,16 +474,15 @@ class HasseDiagram(DiGraph):
 
     def interval(self, x, y):
         """
-        Returns a list of the elements `z` such that `x \leq z \leq y`. The order is
-        that induced by the ordering in ``self.linear_extension``.
+        Return a list of the elements `z` of ``self`` such that
+        `x \leq z \leq y`. The order is that induced by the
+        ordering in ``self.linear_extension``.
 
         INPUT:
 
+        -  ``x`` -- any element of the poset
 
-        -  ``x`` - any element of the poset
-
-        -  ``y`` - any element of the poset
-
+        -  ``y`` -- any element of the poset
 
         EXAMPLES::
 
@@ -502,8 +501,8 @@ class HasseDiagram(DiGraph):
 
     def open_interval(self, x, y):
         """
-        Returns a list of the elements `z` such that `x < z < y`. The
-        order is that induced by the ordering in
+        Return a list of the elements `z` of ``self`` such that
+        `x < z < y`. The order is that induced by the ordering in
         ``self.linear_extension``.
 
         EXAMPLES::
@@ -1405,8 +1404,8 @@ class HasseDiagram(DiGraph):
 
     def complements(self):
         r"""
-        Returns a list ``l`` such that ``l[i]`` is a complement of
-        ``i`` in ``self``.
+        Return a list ``l`` such that ``l[i]`` is a complement of
+        ``i`` in ``self``, or ``None`` if no such complement exists.
 
         A complement of ``x`` is an element ``y`` such that the meet
         of ``x`` and ``y`` is the bottom element of ``self`` and the

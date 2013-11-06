@@ -239,23 +239,25 @@ def import_statements(*objects, **options):
         # if obj is a string use it has a name and look for an object
         if isinstance(obj, str):
             name = obj
-            if name in sage.all.__dict__:
-                obj = sage.all.__dict__[name]
-            else:
+            obj = sage.all.__dict__.get(name)
+            if obj is None:
                 # Look for the first module which contains that name.
                 # TODO: improve this heuristic.
                 for module in sys.modules.values():
                     if hasattr(module, '__dict__') and name in module.__dict__:
                         obj = module.__dict__[name]
                         break
+                else:
+                    raise ValueError("no import statement for %s"%name)
+
         else:
             name = None
+
 
         if isinstance(obj, LazyImport):
             obj = obj._get_object()
 
         # Case 1: the object is a module
-        print "case 1"
         if inspect.ismodule(obj):
             if lazy:
                 print_or_update("lazy_import('%s')"%obj.__name__, answer)
@@ -264,7 +266,6 @@ def import_statements(*objects, **options):
             continue
 
         # Case 2: the object is defined in its module
-        print "case 2"
         module = None
         if sageinspect.isclassinstance(obj):
             module = obj.__class__.__module__
@@ -286,7 +287,6 @@ def import_statements(*objects, **options):
 
 
         # Case 3: search for this object in all modules
-        print "case 3"
         names = {} # dictionnary: module -> names of the object in that module
         for module in sys.modules:
             if module != '__main__' and hasattr(sys.modules[module],'__dict__'):
@@ -318,9 +318,23 @@ def import_statements(*objects, **options):
 
         # Case 4: if the object is a class instance, we look for a
         # module where it is instanciated
-        print "case 4"
         if sageinspect.isclassinstance(obj):
             names_pattern = dict((name,re.compile("^%s\ *="%name, re.MULTILINE)) for name in all_names)
+
+            # if obj has a module we try to put the .all of that object at the beginig
+            # (it at least solves the problem for CC and CIF)
+            if hasattr(obj, '__module__'):
+                module = obj.__module__
+                try:
+                    i = module.rindex('.')
+                    new_module = module[:i] + '.all'
+                except ValueError:
+                    new_module = module
+
+                if new_module in modules:
+                    i = modules.index(new_module)
+                    del modules[i]
+                    modules.insert(0,new_module)
 
             for module in modules:
                 sources = sageinspect.sage_getsource(sys.modules[module])
@@ -353,13 +367,14 @@ def which_import_statements_fail():
 
     TESTS::
 
-        sage: from sage.misc.devtools import which_import_statements_fail
-        sage: sage_all, errors = which_import_statements_fail() # we get some warnings
+        sage: from sage.misc.dev_tools import which_import_statements_fail
+        sage: sage_all, errors = which_import_statements_fail() # long time
+        ** Warning **: several modules for that object: sage.all, sage.all_cmdline
         ...
-        sage: errors          # good
+        sage: errors          # long time
         ['maxima_calculus']
-        sage: len(sage_all)   # bad
-        63
+        sage: len(sage_all)   # long time
+        62
     """
     import sage.all
     errors = []

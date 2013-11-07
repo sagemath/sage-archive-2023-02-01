@@ -13,6 +13,7 @@ AUTHORS:
 #                     2012 Pierre Cagne <pierre.cagne@ens.fr>,
 #                          Luis Serrano <luisgui.serrano@gmail.com>
 #                     2013 Travis Scrimshaw <tscrim@ucdavis.edu>
+#                     2013 Jessica Striker <jessicapalencia@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -227,8 +228,8 @@ class AlternatingSignMatrix(Element):
     def height_function(self):
         r"""
         Return the height function from ``self``. A height function corresponding 
-	to an nxn ASM is an (n+1)x(n+1) matrix such that the first row is 0,1,...,n,
-	the last row is n,n-1,...,1,0, and the difference between adjacent entries is 1. 
+        to an nxn ASM is an (n+1)x(n+1) matrix such that the first row is 0,1,...,n,
+        the last row is n,n-1,...,1,0, and the difference between adjacent entries is 1. 
 
         EXAMPLES::
 
@@ -256,19 +257,20 @@ class AlternatingSignMatrix(Element):
  
     def gyration(self):
         r"""
-        Return the matrix obtained by applying the gyration action to the height function 
-	in bijection with ``self``.
-	
-	Gyration acts on height functions as follows. Go through the entries of the matrix,
-	first those for which the sum of the row and column indices is even, then for those
-	for which it is odd, and increment or decrement the squares by 2 wherever possible
-	such that the resulting matrix is still a height function. Gyration was first defined
-	in [Wieland00] as an action on fully-packed loops.
+        Return the matrix obtained by applying the gyration action to the height 
+        function in bijection with ``self``.
+
+        Gyration acts on height functions as follows. Go through the entries of 
+        the matrix, first those for which the sum of the row and column indices 
+        is even, then for those for which it is odd, and increment or decrement 
+        the squares by 2 wherever possible such that the resulting matrix is 
+        still a height function. Gyration was first defined in [Wieland00] as an 
+        action on fully-packed loops.
 
         REFERENCES:
 
-        .. [Wieland00] B. Wieland. *A large dihedral symmetry of the set of alternating sign matrices*.
-            Electron. J. Combin. 7 (2000).
+        .. [Wieland00] B. Wieland. *A large dihedral symmetry of the set of 
+            alternating sign matrices*. Electron. J. Combin. 7 (2000).
 
         EXAMPLES::
 
@@ -310,7 +312,19 @@ class AlternatingSignMatrix(Element):
     
     def ASM_compatible(self,B):
         r"""
-        Returns ``true`` if ``self`` and B are compatible alternating sign matrices.
+        Return ``true`` if ``self`` and B are compatible alternating sign 
+        matrices in the sense of [EKLP92]. (If ``self`` is of size n, B must 
+        be of size n+1.) 
+
+        In [ELKP92], there is a notion of a pair of ASMs with sizes differing 
+        by 1 being compatible, in the sense that they can be combined to encode 
+        a tiling of the Aztec Diamond. 
+
+        REFERENCES:
+
+        .. [EKLP92]  N. Elkies, G. Kuperberg, M. Larsen, J. Propp, 
+            *Alternating-Sign Matrices and Domino Tilings*, Journal of Algebraic 
+            Combinatorics, volume 1 (1992), p. 111-132.
 
         EXAMPLES::
 
@@ -335,7 +349,18 @@ class AlternatingSignMatrix(Element):
     
     def ASM_compatible_bigger(self):
         r"""
-        Returns the list of larger ASMs that are compatible with ``self`` .
+        Return all ASMs compatible with ``self`` that are of size one greater 
+        than ``self``.
+
+        Given an nxn alternating sign matrix A, there are as many ASMs of size 
+        n+1 compatible with A as 2 raised to the power of the number of 1's in 
+        A [ELKP92].
+
+        REFERENCES:
+
+        .. [EKLP92]  N. Elkies, G. Kuperberg, M. Larsen, J. Propp, 
+            *Alternating-Sign Matrices and Domino Tilings*, Journal of Algebraic 
+            Combinatorics, volume 1 (1992), p. 111-132.
 
         EXAMPLES::
             sage: A = AlternatingSignMatrix(matrix([[1,0],[0,1]]))
@@ -384,7 +409,18 @@ class AlternatingSignMatrix(Element):
     
     def ASM_compatible_smaller(self):
         r"""
-        Returns the list of larger ASMs that are compatible with ``self`` .
+        Return the list of all ASMs compatible with ``self`` that are of size one 
+        smaller than ``self``.
+
+        Given an alternating sign matrix A of size n, there are as many ASMs 
+        of size n-1 compatible with it as 2 raised to the power of the number 
+        of -1's in A [EKLP92]. 
+
+        REFERENCES:
+
+        .. [EKLP92]  N. Elkies, G. Kuperberg, M. Larsen, J. Propp, 
+            *Alternating-Sign Matrices and Domino Tilings*, Journal of Algebraic 
+            Combinatorics, volume 1 (1992), p. 111-132.
 
         EXAMPLES::
 
@@ -929,8 +965,7 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
 
             sage: A = AlternatingSignMatrices(3)
             sage: for (a,b) in A.cover_relations():
-            ...     eval('a, b')
-            ...
+            ....:   eval('a, b')
             (
             [1 0 0]  [0 1 0]
             [0 1 0]  [1 0 0]
@@ -1116,8 +1151,7 @@ class MonotoneTriangles(GelfandTsetlinPatternsTopRow):
 
             sage: M = MonotoneTriangles(3)
             sage: for (a,b) in M.cover_relations():
-            ...     eval('a, b')
-            ...
+            ....:   eval('a, b')
             ([[3, 2, 1], [2, 1], [1]], [[3, 2, 1], [2, 1], [2]])
             ([[3, 2, 1], [2, 1], [1]], [[3, 2, 1], [3, 1], [1]])
             ([[3, 2, 1], [2, 1], [2]], [[3, 2, 1], [3, 1], [2]])

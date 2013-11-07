@@ -1,4 +1,7 @@
 from rigged_configurations import RiggedConfigurations
 from tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux
 from kr_tableaux import KirillovReshetikhinTableaux
+from rc_infinity import InfinityCrystalOfRiggedConfigurations
+from crystal_rc import CrystalOfRiggedConfigurations
+
 

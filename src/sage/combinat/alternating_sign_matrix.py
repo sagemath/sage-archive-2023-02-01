@@ -321,7 +321,7 @@ class AlternatingSignMatrix(Element):
         matrices in the sense of [EKLP92]_. (If ``self`` is of size `n`, ``B``
         must  be of size `n+1`.) 
 
-        In [ELKP92]_, there is a notion of a pair of ASM's with sizes differing 
+        In [EKLP92]_, there is a notion of a pair of ASM's with sizes differing 
         by 1 being compatible, in the sense that they can be combined to encode 
         a tiling of the Aztec Diamond.
 
@@ -361,7 +361,7 @@ class AlternatingSignMatrix(Element):
 
         Given an `n \times n` alternating sign matrix `A`, there are as many
         ASM's of size `n+1` compatible with `A` as 2 raised to the power of
-        the number of 1's in `A` [ELKP92]_.
+        the number of 1's in `A` [EKLP92]_.
 
         EXAMPLES::
 

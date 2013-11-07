@@ -30,7 +30,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 
 - Matrix Groups (``groups.matrix.<tab>``)
 
-  - :func:`groups.matrix.QuaternionGF3 <sage.groups.misc_gps.misc_groups.QuaternionMatrixGroupGF3>`
+  - :func:`groups.matrix.QuaternionGF3 <sage.groups.matrix_gps.finitely_generated.QuaternionMatrixGroupGF3>`
   - :func:`groups.matrix.GL <sage.groups.matrix_gps.linear.GL>`
   - :func:`groups.matrix.SL <sage.groups.matrix_gps.linear.SL>`
   - :func:`groups.matrix.Sp <sage.groups.matrix_gps.symplectic.Sp>`

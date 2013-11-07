@@ -58,10 +58,10 @@ from sage.rings.real_mpfr          import RealField
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.symbolic.constants       import e
 from copy import copy
-from sage.ext.fast_callable        import fast_callable 
+from sage.ext.fast_callable        import fast_callable
+from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
 from sage.parallel.ncpus           import ncpus
 from sage.parallel.use_fork        import p_iter_fork
-
 
 class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     """
@@ -2565,8 +2565,8 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         if self.domain().base_ring() != QQ:
             raise NotImplementedError("Must be QQ")
 
-        PS=self.domain()
-        RPS=PS.base_ring()
+        PS = self.domain()
+        RPS = PS.base_ring()
         preperiodic = set()
         while points != []:
             P = points.pop()

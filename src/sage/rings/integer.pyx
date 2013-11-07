@@ -4133,6 +4133,41 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         parians = self._pari_().ispower()
         return Integer(parians[1]), Integer(parians[0])
 
+    def global_height(self, prec=None):
+        r"""
+        Returns the absolute logarithmic height of this rational integer.
+
+        INPUT:
+
+        - ``prec`` (int) -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        (real) The absolute logarithmic height of this rational integer.
+
+        ALGORITHM:
+
+        The height of the integer `n` is `\log |n|`.
+
+        EXAMPLES::
+
+            sage: ZZ(5).global_height()
+            1.60943791243410
+            sage: ZZ(-2).global_height(prec=100)
+            0.69314718055994530941723212146
+            sage: exp(_)
+            2.0000000000000000000000000000
+        """
+        from sage.rings.real_mpfr import RealField
+        if prec is None:
+            R = RealField()
+        else:
+            R = RealField(prec)
+        if self.is_zero():
+            return R.zero_element()
+        return R(self).abs().log()
+
     cdef bint _is_power_of(Integer self, Integer n):
         r"""
         Returns a non-zero int if there is an integer b with

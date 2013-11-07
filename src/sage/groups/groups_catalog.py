@@ -56,6 +56,12 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
   - :func:`groups.affine.Euclidean <sage.groups.affine_gps.euclidean_group.EuclideanGroup>`
 
 - Miscellaneous Groups (``groups.misc.<tab>``)
+
+  - :func:`groups.misc.AdditiveAbelian <sage.groups.additive_abelian.additive_abelian_group.AdditiveAbelianGroup>`
+  - :func:`groups.misc.Braid <sage.groups.braid.BraidGroup>`
+  - :func:`groups.misc.Free <sage.groups.free_group.FreeGroup>`
+  - :func:`groups.misc.SemimonomialTransformation <sage.groups.semimonomial_transformations.semimonomial_transformation_group.SemimonomialTransformationGroup>`
+
 """
 
 # Implementation notes:

@@ -18,6 +18,7 @@ Regular Crystals
 #****************************************************************************
 
 from sage.misc.cachefunc import cached_method
+from sage.categories.category import HomCategory
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.crystals import Crystals
 from sage.combinat.subset import Subsets
@@ -102,6 +103,22 @@ class RegularCrystals(Category_singleton):
         """
         from sage.categories.crystals import Crystals
         return Crystals().example(n)
+
+    class HomCategory(HomCategory):
+        """
+        The category of homomorphisms sets `Hom(X,Y)` for a regular crystal `X`
+        and an arbitrary crystal `Y`.
+        """
+        class ElementMethods:
+            def is_isomorphism(self):
+                """
+                Check if ``self`` is a crystal isomorphism, which is true
+                if and only if this is a strict embedding with the same number
+                of connected components.
+                """
+                return self.is_embedding() and self.is_strict() \
+                        and self.domain.connected_components_number() == \
+                            self.codomain.connected_components_number()
 
     class ParentMethods:
 

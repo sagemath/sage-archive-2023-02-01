@@ -19,6 +19,7 @@ Direct Sum of Crystals
 from sage.structure.parent import Parent
 from sage.categories.category import Category
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.sets.family import Family
 from sage.structure.element_wrapper import ElementWrapper
 
 class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
@@ -79,8 +80,43 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
 
         sage: TestSuite(C).run()
     """
-    __classcall_private__ = staticmethod(DisjointUnionEnumeratedSets.__classcall_private__)
+    @staticmethod
+    def __classcall_private__(cls, crystals, facade=True, keepkey=False, category=None):
+        """
+        Normalization of arguments; see :class:`UniqueRepresentation`.
 
+        TESTS:
+
+        We check that direct sum of crystals have unique representation::
+
+            sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+            sage: C = CrystalOfLetters(['A',2])
+            sage: D1 = DirectSumOfCrystals([B, C])
+            sage: D2 = DirectSumOfCrystals((B, C))
+            sage: D1 is D2
+            True
+            sage: D3 = DirectSumOfCrystals([B, C, C])
+            sage: D4 = DirectSumOfCrystals([U1, C])
+            sage: D3 is D4
+            True
+        """
+        if not isinstance(facade, bool) or not isinstance(keepkey, bool):
+            raise TypeError
+        # Normalize the facade-keepkey by giving keepkey dominance
+        if keepkey:
+            facade = False
+        else:
+            facade = True
+
+        # We expand out direct sums of crystals
+        ret = []
+        for x in Family(crystals):
+            if isinstance(x, DirectSumOfCrystals):
+                ret += list(x.crystals)
+            else:
+                ret.append(x)
+        return super(DirectSumOfCrystals, cls).__classcall__(cls,
+            Family(ret), facade=facade, keepkey=keepkey, category=category)
 
     def __init__(self, crystals, **options):
         """
@@ -96,15 +132,6 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
             sage: isinstance(B, DirectSumOfCrystals)
             True
         """
-        if options.has_key('keepkey'):
-            keepkey = options['keepkey']
-        else:
-            keepkey = False
-#        facade = options['facade']
-        if keepkey:
-            facade = False
-        else:
-            facade = True
         category = Category.meet([Category.join(crystal.categories()) for crystal in crystals])
         Parent.__init__(self, category = category)
         DisjointUnionEnumeratedSets.__init__(self, crystals, keepkey = keepkey, facade = facade)

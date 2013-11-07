@@ -12,6 +12,9 @@ from sage.misc.cachefunc import CachedFunction, cached_method
 from sage.misc.abstract_method import abstract_method
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.enumerated_sets import EnumeratedSets
+from sage.categories.category import HomCategory
+from sage.categories.morphism import Morphism
+from sage.categories.homset import Hom, Homset
 from sage.misc.latex import latex
 from sage.combinat import ranker
 from sage.graphs.dot2tex_utils import have_dot2tex
@@ -125,6 +128,29 @@ class Crystals(Category_singleton):
                 return examples.HighestWeightCrystalOfTypeA(n=choice, **kwds)
             else:
                 return examples.HighestWeightCrystalOfTypeA(**kwds)
+
+    class HomCategory(HomCategory):
+        """
+        The category of homomorphisms sets `Hom(X,Y)` for crystals `X, Y`.
+        """
+        class ElementMethods:
+            @abstract_method(optional=True)
+            def is_isomorphism(self):
+                """
+                Check if ``self`` is a crystal isomorphism.
+                """
+
+            @abstract_method(optional=True)
+            def is_injective(self):
+                """
+                Check if ``self`` is an ijective crystal morphism.
+                """
+
+            @abstract_method(optional=True)
+            def is_strict(self):
+                """
+                Check if ``self`` is a strict crystal morphism.
+                """
 
     class ParentMethods:
 
@@ -265,7 +291,7 @@ class Crystals(Category_singleton):
                                    self.module_generators).__iter__()
 
         def subcrystal(self, index_set=None, generators=None, max_depth=float("inf"),
-                       direction="both"):
+                       direction="both", contained=None, category=None):
             r"""
             Construct the subcrystal from ``generators`` using `e_i` and `f_i`
             for all `i` in ``index_set``.
@@ -287,6 +313,11 @@ class Crystals(Category_singleton):
               - ``'upper'`` - Using `e_i`
               - ``'lower'`` - Using `f_i`
 
+            - ``contained`` -- (Optional) A function defining the containment
+              in the subcrystal
+
+            - ``category`` -- (Optional) Specify the category of the subcrystal
+
             EXAMPLES::
 
                 sage: C = KirillovReshetikhinCrystal(['A',3,1], 1, 2)
@@ -305,23 +336,88 @@ class Crystals(Category_singleton):
                 sage: list(C.subcrystal(index_set=[1,3], generators=[C(1,4)], direction='lower'))
                 [[[1, 4]], [[2, 4]]]
             """
+            from sage.combinat.crystals.subcrystal import Subcrystal
+            from sage.categories.finite_crystals import FiniteCrystals
+
             if index_set is None:
                 index_set = self.index_set()
             if generators is None:
                 generators = self.module_generators
-            from sage.combinat.backtrack import TransitiveIdealGraded
 
+            if max_depth == float('inf'):
+                if self not in FiniteCrystals():
+                    if contained is None and index_set == self.index_set() \
+                            and generators == self.module_generators:
+                        return self
+                    return Subcrystal(self, contained, generators,
+                                      index_set=index_set, category=category)
+                if contained is None and direction == 'both':
+                    if category is None:
+                        category = FiniteCrystals()
+                    return Subcrystal(self, contained, generators,
+                                      index_set=index_set, category=category)
+
+            from sage.combinat.backtrack import TransitiveIdealGraded
             if direction == 'both':
-                return TransitiveIdealGraded(lambda x: [x.f(i) for i in index_set]
+                subset = TransitiveIdealGraded(lambda x: [x.f(i) for i in index_set]
                                                      + [x.e(i) for i in index_set],
                                              generators, max_depth)
-            if direction == 'upper':
-                return TransitiveIdealGraded(lambda x: [x.e(i) for i in index_set],
+            elif direction == 'upper':
+                subset = TransitiveIdealGraded(lambda x: [x.e(i) for i in index_set],
                                              generators, max_depth)
-            if direction == 'lower':
-                return TransitiveIdealGraded(lambda x: [x.f(i) for i in index_set],
+            elif direction == 'lower':
+                subset = TransitiveIdealGraded(lambda x: [x.f(i) for i in index_set],
                                              generators, max_depth)
-            raise ValueError("direction must be either 'both', 'upper', or 'lower'")
+            else:
+                raise ValueError("direction must be either 'both', 'upper', or 'lower'")
+
+            subset = frozenset(subset)
+            if category is None:
+                category = FiniteCrystals()
+
+            if self in FiniteCrystals() and len(subset) == self.cardinality():
+                if contained is None and index_set == self.index_set():
+                    return self
+                return Subcrystal(self, contained, generators,
+                                  index_set=index_set, category=category)
+
+            if contained is not None:
+                contained = lambda x: x in subset and contained(x)
+            else:
+                contained = lambda x: x in subset
+            return Subcrystal(self, contained, generators, index_set=index_set, category=category)
+
+        def _Hom_(self, Y, category=None, **options):
+            r"""
+            Return the homset from ``self`` to ``Y`` in the
+            category ``category``.
+
+            INPUT::
+
+            - ``Y`` -- a crystal
+            - ``category`` -- a subcategory of :class:`Crysals`() or ``None``
+
+            The sole purpose of this method is to construct the homset
+            as a :class:`~sage.categories.crystals.CrystalHomset`. If
+            ``category`` is specified and is not a subcategory of
+            :class:`Crystals`, a ``TypeError`` is raised instead
+
+            This method is not meant to be called directly. Please use
+            :func:`sage.categories.homset.Hom` instead.
+
+            EXAMPLES::
+
+                sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: H = B._Hom_(B, category=Crystals()); H
+                Set of Homomorphisms from Rational Field to Rational Field
+            """
+            if category is None:
+                category = self.category()
+            elif not category.is_subcategory(Crystals()):
+                raise TypeError("{} is not a subcategory of Crystals()".format(category))
+            if Y not in Crystals():
+                raise TypeError("{} is not a crystal".format(Y))
+            return CrystalHomset(self, Y, category=category, **options)
 
         def crystal_morphism(self, g, index_set = None, automorphism = lambda i : i, direction = 'down', direction_image = 'down',
                              similarity_factor = None, similarity_factor_domain = None, cached = False, acyclic = True):
@@ -836,6 +932,100 @@ class Crystals(Category_singleton):
             G = self.digraph(**options)
             return G.plot3d()
 
+        def direct_sum(self, X):
+            """
+            Return the direct sum of ``self`` with ``X``.
+
+            EXAMPLES::
+
+                sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: C = CrystalOfLetters(['A',2])
+                sage: B.direct_sum(C)
+                Direct sum of the crystals Family
+                (The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]],
+                 The crystal of letters for type ['A', 2])
+
+            As a shorthand, we can use ``+``::
+
+                sage: B + C
+                Direct sum of the crystals Family
+                (The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]],
+                 The crystal of letters for type ['A', 2])
+            """
+            if X not in Crystals():
+                raise ValueError("{} is not a crystal".format(X))
+            from sage.combinat.crystals.direct_sum import DirectSumOfCrystals
+            return DirectSumOfCrystals([self, X])
+
+        __add__ = direct_sum
+
+        @abstract_method(optional=True)
+        def connected_components_generators(self):
+            """
+            Return a tuple of generators for each of the connected components
+            of ``self``.
+
+            EXAMPLES::
+
+                sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: C = CrystalOfLetters(['A',2])
+                sage: T = TensorProductOfCrystals(B,C)
+                sage: T.connected_components_generators()
+                ([[[1, 1], [2]], 1], [[[1, 2], [2]], 1], [[[1, 2], [3]], 1])
+            """
+
+        def connected_components(self):
+            """
+            Return the connected components of ``self`` as subcrystals.
+
+            EXAMPLES::
+
+                sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: C = CrystalOfLetters(['A',2])
+                sage: T = TensorProductOfCrystals(B,C)
+                sage: T.connected_components()
+                [Subcrystal of Full tensor product of the crystals
+                 [The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]],
+                  The crystal of letters for type ['A', 2]],
+                 Subcrystal of Full tensor product of the crystals
+                 [The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]],
+                  The crystal of letters for type ['A', 2]],
+                 Subcrystal of Full tensor product of the crystals
+                 [The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]],
+                  The crystal of letters for type ['A', 2]]]
+            """
+            return map(lambda mg: self.subcrystal(generators=[mg]),
+                       self.connected_components_generators())
+
+        def connected_components_number(self):
+            """
+            Return the number of connected components of ``self``.
+
+            EXAMPLES::
+
+                sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: C = CrystalOfLetters(['A',2])
+                sage: T = TensorProductOfCrystals(B,C)
+                sage: T.connected_components_number()
+                3
+            """
+            return len(self.connected_components_generators())
+
+        def is_connected(self):
+            """
+            Return ``True`` if ``self`` is a connected crystal.
+
+            EXAMPLES::
+
+                sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: C = CrystalOfLetters(['A',2])
+                sage: T = TensorProductOfCrystals(B,C)
+                sage: B.is_connected()
+                True
+                sage: T.is_connected()
+                False
+            """
+            return self.connected_components_number() == 1
 
     class ElementMethods:
 
@@ -1167,7 +1357,8 @@ class Crystals(Category_singleton):
                     return [lw[0], [i] + lw[1]]
             return [self, []]
 
-        def subcrystal(self, index_set=None, max_depth=float("inf"), direction="both"):
+        def subcrystal(self, index_set=None, max_depth=float("inf"),
+                       direction="both", contained=None, category=None):
             r"""
             Construct the subcrystal generated by ``self`` using `e_i` and/or
             `f_i` for all `i` in ``index_set``.
@@ -1185,6 +1376,11 @@ class Crystals(Category_singleton):
               - ``'both'`` - Using both `e_i` and `f_i`
               - ``'upper'`` - Using `e_i`
               - ``'lower'`` - Using `f_i`
+
+            - ``contained`` -- (Optional) A function defining the containment
+              in the subcrystal
+
+            - ``category`` -- (Optional) Specify the category of the subcrystal
 
             .. SEEALSO::
 
@@ -1204,7 +1400,319 @@ class Crystals(Category_singleton):
                 [[[1, 4]], [[2, 4]]]
             """
             return self.parent().subcrystal(generators=[self], index_set=index_set,
-                                            max_depth=max_depth, direction=direction)
+                                            max_depth=max_depth, direction=direction,
+                                            contained=contained, category=category)
 
-    Finite = LazyImport('sage.categories.finite_crystals', 'FiniteCrystals')
+
+#########################################################################
+## Morphisms
+
+class CrystalHomset(Homset):
+    """
+    The set of morphisms from one crystal to another.
+    """
+    def __init__(self, X, Y, category=None, cartan_type=None, index_set=None):
+        """
+        Initialize ``self``.
+        """
+        if category is None:
+            category = Crystals()
+        if cartan_type is None:
+            cartan_type = X.cartan_type()
+        if index_set is None:
+            index_set = cartan_type.index_set()
+
+        from sage.combinat.root_system.cartan_type import CartanType
+        self._cartan_type = CartanType(cartan_type)
+        self._index_set = tuple(index_set)
+        Homset.__init__(self, X, Y, category)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: B = CrystalOfTableaux(['A', 2], shape=[2,1])
+            sage: Hom(B, B)
+            sage: Hom(B, B, index_set=[1])
+        """
+        i_set = ''
+        if self._index_set is not None:
+            i_set = ' ' + repr(self._index_set)
+        return "Set of{} {}-Crystal Morphisms from {} to {}".format(i_set,
+            self.domain().cartan_type(), self.domain(), self.codomain())
+
+    def _coerce_impl(self, x):
+        """
+        Check to see if we can coerce ``x`` into a morphism with the
+        correct parameters.
+
+        EXAMPLES::
+        """
+        if not isinstance(x, CrystalMorphism):
+            raise TypeError
+
+        if x.parent() is self:
+            return x
+
+        # Case 1: the parent fits
+        if x.parent() == self:
+            if isinstance(x, CrystalMorphismByGenerators):
+                return CrystalMorphismByGenerators(self, x._on_gens, x._to_mg)
+
+        if self.cartan_type() != x.cartan_type():
+            raise ValueError
+
+        # Case 2: it has a smaller index set
+        if set(self._index_set).is_subset(set(x.parent()._index_set)):
+            if isinstance(x, HighestWeightCrystalMorphism):
+                return HighestWeightCrystalMorphism(self, x._on_gens, self._index_set)
+            elif isinstance(x, CrystalMorphismByGenerators):
+                return CrystalMorphismByGenerators(self, x._on_gens, x._to_mg)
+
+        raise ValueError
+
+    def __call__(self, on_gens=None, to_module_generator=None, check=True):
+        """
+        Construct a crystal morphism.
+        """
+        if isinstance(on_gens, CrystalMorphism):
+            return self._coerce_impl(on_gens)
+
+        if on_gens is None:
+            # Match generators by weight
+            cod_wt = dict((x.weight(), x) for x in self.codomain().module_generators)
+            if len(cod_wt) != self.codomain().module_generators:
+                raise ValueError("if no map is specified,"
+                                 " the highest weights of the codomain's"
+                                 " module generators must be unique")
+            on_gens = lambda x: cod_wt.get(x.weight(), None)
+
+        from sage.categories.highest_weight_crystals import HighestWeightCrystals
+        if self.domain() in HighestWeightCrystals():
+            from sage.categories.highest_weight_crystals import HighestWeightCrystalMorphism
+            return HighestWeightCrystalMophism(self, on_gens, self._index_set)
+        return CrystalMorphismByGenerators(self, on_gens, to_module_generator)
+
+    def cartan_type(self):
+        """
+        Return the Cartan type of this Hom space.
+        """
+        return self._cartan_type
+
+    def index_set(self):
+        """
+        Return the index set of this Hom space.
+        """
+        return self._index_set
+
+    # TODO: Combine with the crystal_morphism in ParentMethods
+    def crystal_morphism(self, domain, on_gens, codomain=None, index_set=None):
+        if codomain is None:
+            if hasattr(on_gens, 'codomain'):
+                codomain = on_gens.codomain()
+            else:
+                for x in self.module_generators:
+                    y = on_gens(x)
+                    if y is not None:
+                        codomain = y.parent()
+                        break
+        if codomain is None:
+            raise ValueError("no codomain specified")
+
+        if category is None:
+            if codomain not in Crystals():
+                raise ValueError("the codomain must be a crystal")
+            category = Crystals()
+        parent = Hom(domain, codomain, category=category, index_set=index_set)
+        return CrystalMorphismByGenerators(parent, on_gens)
+
+class CrystalMorphism(Morphism):
+    """
+    A crystal morphism.
+    """
+    def _repr_type(self):
+        """
+        Used internally in printing this morphism.
+
+        TESTS::
+
+            sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+            sage: phi = B.hom(B)
+            sage: phi._repr_type()
+            "['A', 2]-Crystal"
+        """
+        return "{}-Crystal".format(self.parent()._cartan_type)
+
+class CrystalMorphismByGenerators(CrystalMorphism):
+    """
+    A crystal morphism defined by a set of generators.
+
+    INPUT:
+
+    - ``parent`` -- a Hom category
+    - ``on_gens`` -- a function for the images of the generators
+    - ``gens`` -- a list of generators to define the morphism; the
+      default is to use the module generators of the crystal
+
+    If there is a fast way to find the module generators, overwrite
+    :meth:`to_module_generator()` which currently looks for a module generator
+    by a breath first search.
+    """
+    def __init__(self, parent, on_gens, gens=None):
+        """
+        Construct a crystal morphism.
+
+        EXAMPLES::
+        """
+        if gens is None:
+            gens = dom.module_generators
+        self._gens = gens
+
+        # Make sure on_gens is a function
+        if isinstance(on_gens, dict):
+            on_gens = lambda x: on_gens[x]
+        elif isinstance(on_gens, (list, tuple)):
+            dom = parent.domain()
+            if len(self._gens) != len(on_gens):
+                raise ValueError("not all module generators have an image")
+            on_gens = lambda x: on_gens[self._gens.index(x)]
+        self._on_gens = on_gens
+        self._path_mg_cache = {x: (x, [], []) for x in self._gens}
+
+        CrystalMorphism.__init__(self, parent, mor_type)
+
+    def _call_(self, x):
+        """
+        Return the image of ``x`` under ``self``.
+
+        EXAMPLES::
+        """
+        if x is None:
+            return None
+        mg, ef, indices = self._to_mg(x)
+        cur = self._on_gens(mg)
+        for op,i in zip(ef, indices):
+            if cur is None:
+                return None
+            cur = getattr(cur, op)(i)
+        return cur
+
+    def to_module_generator(self, x):
+        """
+        Return a generator ``mg`` and a path of `e_i` and `f_i` operations
+        to ``mg``.
+
+        OUTPUT:
+
+        A tuple:
+
+        - a module generator,
+        - a list of 'e' and 'f' to denote which operation,
+        - a list of matching indices.
+        """
+        mg = set(self._path_mg_cache.keys())
+        if x in mg:
+            return mg[x]
+
+        visited = set([None, x])
+        index_set = self.parent().index_set()
+        ef = [[]]
+        indices = [[]]
+        todo = [x]
+
+        while len(todo) > 0:
+            for i in index_set:
+                cur = todo.pop(0)
+                cur_ef = ef.pop(0)
+                cur_indices = indices.pop(0)
+
+                next = cur.e(i)
+                if next in mg:
+                    gen,ef,indices = self._path_mg_cache[next]
+                    ef = cur_ef + ['e'] + ef
+                    indices = cur_indices + [i] + indices
+                    self._path_mg_cache[x] = (gen, ef, indices)
+                    return (gen, ef, indices)
+                if next not in visited:
+                    ef.append(cur_ef + ['e'])
+                    indices.append(cur_indices + [i])
+                    visited.add(next)
+                    todo.append(next)
+
+                # Now for f's
+                next = cur.f(i)
+                if next in mg:
+                    gen,ef,indices = self._path_mg_cache[next]
+                    ef = cur_ef + ['f'] + ef
+                    indices = cur_indices + [i] + indices
+                    self._path_mg_cache[x] = (gen, ef, indices)
+                    return (gen, ef, indices)
+                if next not in visited:
+                    ef.append(cur_ef + ['f'])
+                    indices.append(cur_indices + [i])
+                    visited.add(next)
+                    todo.append(next)
+        raise ValueError("no module generator in the component of {}".format(x))
+
+    def _repr_defn(self):
+        """
+        Used in constructing string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+            sage: C = CrystalOfTableaux(['A',2], shape=[4,2])
+            sage: f = B.hom(B, [C(2,1,3,1,1,2)])
+            sage: print f._repr_defn()
+            x |--> x^2
+            y |--> x + y
+        """
+        D = self.domain()
+        return '\n'.join(['{} |--> {}'.format(mg, self._on_gens(mg)) for\
+                       mg in self._gens])
+
+    @cached_method
+    def im_gens(self):
+        """
+        Return the image of the module generators of ``self`` as a tuple.
+        """
+        return tuple(map(self._on_gens, self.domain().module_generators))
+
+class TwistedCrystalMorphismByGenerators(CrystalMorphismByGenerators):
+    """
+    A crystal morphism defined by a set of generators twisted by
+    an automorphism.
+
+    INPUT:
+
+    - ``parent`` -- a Hom category
+    - ``on_gens`` -- a function for the images of the generators
+    - ``automorphism`` -- the twisting automorphism
+    - ``gens`` -- a list of generators to define the morphism; the
+      default is to use the module generators of the crystal
+    """
+    def __init__(self, parent, on_gens, automorphism, gens=None):
+        """
+        Construct a crystal morphism.
+
+        EXAMPLES::
+        """
+        self._twist = automorphism
+        CrystalMorphismByGenerators.__init__(self, parent, on_gens, to_module_generator, gens)
+
+    def _call_(self, x):
+        """
+        Return the image of ``x`` under ``self``.
+
+        EXAMPLES::
+        """
+        if x is None:
+            return None
+        mg, ef, indices = self._to_mg(x)
+        cur = self._on_gens(mg)
+        for op,i in zip(ef, indices):
+            if cur is None:
+                return None
+            cur = getattr(cur, op)(self._twist(i))
+        return cur
 

@@ -1,4 +1,4 @@
-r"""
+"""
 Highest Weight Crystals
 """
 #*****************************************************************************
@@ -9,8 +9,10 @@ Highest Weight Crystals
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method
+from sage.categories.category import HomCategory
 from sage.categories.category_singleton import Category_singleton
-from sage.categories.crystals import Crystals
+from sage.categories.crystals import Crystals, CrystalMorphismByGenerators, \
+    TwistedCrystalMorphismByGenerators
 
 class HighestWeightCrystals(Category_singleton):
     """
@@ -130,6 +132,7 @@ class HighestWeightCrystals(Category_singleton):
             else:
                 raise RuntimeError("The crystal does not have exactly one highest weight vector")
 
+        # TODO: Not every highest weight crystal is a lowest weight crystal
         @cached_method
         def lowest_weight_vectors(self):
             r"""
@@ -183,7 +186,67 @@ class HighestWeightCrystals(Category_singleton):
             return TransitiveIdealGraded(lambda x: [x.f(i) for i in index_set],
                                          self.module_generators, max_depth).__iter__()
 
-    class ElementMethods:
+        # TODO: This is not correct if a factor has multiple heads (i.e., we
+        #   should have a category for uniqueness of highest/lowest weights)
+        generators_connected_components = highest_weight_vectors
 
+    class ElementMethods:
         pass
+
+
+class HighestWeightCrystalMorphism(CrystalMorphismByGenerators):
+    """
+    A crystal morphism on highest weight crystals.
+
+    INPUT:
+
+    - ``parent`` -- a Hom category
+    - ``on_gens`` -- a function for the images of the module generators
+    """
+    def __init__(self, parent, on_gens):
+        """
+        Initialize ``self``.
+        """
+        return CrystalMorphismByGenerators.__init__(self, parent, on_gens,
+            self.highest_weight_vectors())
+
+    def _call_(self, x):
+        """
+        Return the image of ``x`` under ``self``.
+
+        EXAMPLES::
+        """
+        if x is None:
+            return None
+        mg, path = x.to_highest_weight(self.parent().index_set())
+        return self._on_gens(mg).f_string(reversed(path))
+
+class HighestWeightTwistedCrystalMorphism(TwistedCrystalMorphismByGenerators):
+    """
+    A crystal morphism defined by a set of generators twisted by
+    an automorphism.
+
+    INPUT:
+
+    - ``parent`` -- a Hom category
+    - ``on_gens`` -- a function for the images of the generators
+    - ``automorphism`` -- the twisting automorphism
+    """
+    def __init__(self, parent, on_gens, automorphism):
+        """
+        Initialize ``self``.
+        """
+        return CrystalMorphismByGenerators.__init__(self, parent, on_gens,
+            automorphism, self.highest_weight_vectors())
+
+    def _call_(self, x):
+        """
+        Return the image of ``x`` under ``self``.
+
+        EXAMPLES::
+        """
+        if x is None:
+            return None
+        mg, path = x.to_highest_weight(self.parent().index_set())
+        return self._on_gens(mg).f_string(map(self._twist, reversed(path)))
 

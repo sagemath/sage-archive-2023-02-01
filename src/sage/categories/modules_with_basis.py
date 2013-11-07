@@ -1373,8 +1373,8 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
 
     INPUT:
 
-    - ``domain`` -- a module with basis `F`
-    - ``codomain`` -- a module with basis `G` (defaults to `F`)
+    - ``domain`` -- a module-with-basis `F`
+    - ``codomain`` -- a module-with-basis `G` (defaults to `F`)
     - ``on_basis`` -- a function from the index set of the basis of `F`
       to the elements of `G` which describes the morphism
     - ``unitriangular`` -- boolean (default: ``False``)

@@ -2959,6 +2959,7 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
             - do not return duplicate points
 
             - check == False to speed up?
+
         """
         return _fast_possible_periods(self,return_points)
 

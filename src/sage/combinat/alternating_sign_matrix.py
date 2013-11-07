@@ -6,7 +6,7 @@ AUTHORS:
 - Mike Hansen (2007): Initial version
 - Pierre Cange, Luis Serrano (2012): Added monotone triangles
 - Travis Scrimshaw (2013-28-03): Added element class for ASM's and made :class:`MonotoneTriangles` inherit from :class:`GelfandTsetlinPatterns`.
-- Jessica Striker (2013): Added methods.
+- Jessica Striker (2013): Added additional methods.
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -223,13 +223,16 @@ class AlternatingSignMatrix(Element):
             [0 1 2 3]
         """
         asm = self.to_matrix()
-        return matrix([[nw_corner_sum(asm,i,j) for i in range(0,len(list(asm))+1)] for j in range(0,len(list(asm))+1)])
+        n = asm.nrows() + 1
+        return matrix([[nw_corner_sum(asm,i,j) for i in range(n)] for j in range(n)])
    
     def height_function(self):
         r"""
-        Return the height function from ``self``. A height function corresponding 
-        to an nxn ASM is an (n+1)x(n+1) matrix such that the first row is 0,1,...,n,
-        the last row is n,n-1,...,1,0, and the difference between adjacent entries is 1. 
+        Return the height function from ``self``. A height function
+        corresponding to an `n \times n` ASM is an `(n+1) \times (n+1)` matrix
+        such that the first row is `0, 1, \ldots, n`, the last row is
+        `n, n-1, \ldots, 1, 0`, and the difference between adjacent entries
+        is 1.
 
         EXAMPLES::
 
@@ -253,24 +256,25 @@ class AlternatingSignMatrix(Element):
             [3 2 1 0]
         """
         asm = self.to_matrix()
-        return matrix([[i+j-2*nw_corner_sum(asm,i,j) for i in range(len(list(asm))+1)] for j in range(len(list(asm))+1)])
+        n = asm.nrows() + 1
+        return matrix([[i+j-2*nw_corner_sum(asm,i,j) for i in range(n)] for j in range(n)])
  
     def gyration(self):
         r"""
-        Return the matrix obtained by applying the gyration action to the height 
-        function in bijection with ``self``.
+        Return the matrix obtained by applying the gyration action to the
+        height function in bijection with ``self``.
 
-        Gyration acts on height functions as follows. Go through the entries of 
-        the matrix, first those for which the sum of the row and column indices 
-        is even, then for those for which it is odd, and increment or decrement 
-        the squares by 2 wherever possible such that the resulting matrix is 
-        still a height function. Gyration was first defined in [Wieland00] as an 
-        action on fully-packed loops.
+        Gyration acts on height functions as follows. Go through the entries of
+        the matrix, first those for which the sum of the row and column indices
+        is even, then for those for which it is odd, and increment or decrement
+        the squares by 2 wherever possible such that the resulting matrix is
+        still a height function. Gyration was first defined in [Wieland00]_ as
+        an action on fully-packed loops.
 
         REFERENCES:
 
         .. [Wieland00] B. Wieland. *A large dihedral symmetry of the set of 
-            alternating sign matrices*. Electron. J. Combin. 7 (2000).
+           alternating sign matrices*. Electron. J. Combin. 7 (2000).
 
         EXAMPLES::
 
@@ -290,41 +294,42 @@ class AlternatingSignMatrix(Element):
             [0 0 1]
             [1 0 0]
         """
-        A = AlternatingSignMatrices(self.to_matrix().nrows())
+        A = self.parent()
         hf = list(self.height_function())
-        for i in range(1,len(hf)-1):
-            for j in range(1,len(hf)-1):
-                if (i+j)%2==0:
-                    if hf[i-1][j] == hf[i+1][j] == hf[i][j+1] == hf[i][j-1]:
-                        if hf[i][j] < hf[i+1][j]:
-                            hf[i][j] = hf[i][j] + 2
-                        else:
-                            hf[i][j] = hf[i][j] - 2
-        for i in range(1,len(hf)-1):
-            for j in range(1,len(hf)-1): 
-                if (i+j)%2==1:
-                    if hf[i-1][j] == hf[i+1][j] == hf[i][j+1] == hf[i][j-1]:
-                        if hf[i][j] < hf[i+1][j]:
-                            hf[i][j] = hf[i][j] + 2
-                        else:
-                            hf[i][j] = hf[i][j] - 2   
+        k = len(hf) - 1
+        for i in range(1,k):
+            for j in range(1,k):
+                if (i+j) % 2 == 0 \
+                        and hf[i-1][j] == hf[i+1][j] == hf[i][j+1] == hf[i][j-1]:
+                    if hf[i][j] < hf[i+1][j]:
+                        hf[i][j] += 2
+                    else:
+                        hf[i][j] -= 2
+        for i in range(1,k):
+            for j in range(1,k): 
+                if (i+j) % 2 == 1 \
+                        and hf[i-1][j] == hf[i+1][j] == hf[i][j+1] == hf[i][j-1]:
+                    if hf[i][j] < hf[i+1][j]:
+                        hf[i][j] += 2
+                    else:
+                        hf[i][j] -= 2   
         return A.from_height_function(matrix(hf))
     
-    def ASM_compatible(self,B):
+    def ASM_compatible(self, B):
         r"""
-        Return ``true`` if ``self`` and B are compatible alternating sign 
-        matrices in the sense of [EKLP92]. (If ``self`` is of size n, B must 
-        be of size n+1.) 
+        Return ``True`` if ``self`` and ``B`` are compatible alternating sign 
+        matrices in the sense of [EKLP92]_. (If ``self`` is of size `n`, ``B``
+        must  be of size `n+1`.) 
 
-        In [ELKP92], there is a notion of a pair of ASMs with sizes differing 
+        In [ELKP92]_, there is a notion of a pair of ASM's with sizes differing 
         by 1 being compatible, in the sense that they can be combined to encode 
-        a tiling of the Aztec Diamond. 
+        a tiling of the Aztec Diamond.
 
         REFERENCES:
 
         .. [EKLP92]  N. Elkies, G. Kuperberg, M. Larsen, J. Propp, 
-            *Alternating-Sign Matrices and Domino Tilings*, Journal of Algebraic 
-            Combinatorics, volume 1 (1992), p. 111-132.
+           *Alternating-Sign Matrices and Domino Tilings*, Journal of Algebraic 
+           Combinatorics, volume 1 (1992), p. 111-132.
 
         EXAMPLES::
 
@@ -337,32 +342,29 @@ class AlternatingSignMatrix(Element):
             sage: A.ASM_compatible(B)
             False
         """
-        if len(B.to_matrix()[0])-len(self.to_matrix()[0])!=1:
-            return "error"
-        AA=self.corner_sum_matrix()
-        BB=B.corner_sum_matrix()
-        for i in range(0,len(AA[0])):
-            for j in range(0,len(AA[0])):
-                if not (AA[i,j]>=BB[i,j] and AA[i,j]>=BB[i+1,j+1]-1 and AA[i,j]<=BB[i+1,j] and AA[i,j]<=BB[i,j+1]):
+        if B.parent()._n - self.parent()._n != 1:
+            raise ValueError("mismatched sizes")
+
+        AA = self.corner_sum_matrix()
+        BB = B.corner_sum_matrix()
+        for i in range(0, len(AA[0])):
+            for j in range(0, len(AA[0])):
+                if not (AA[i,j]>=BB[i,j] and AA[i,j]>=BB[i+1,j+1]-1 \
+                        and AA[i,j]<=BB[i+1,j] and AA[i,j]<=BB[i,j+1]):
                     return False
         return True
     
     def ASM_compatible_bigger(self):
         r"""
-        Return all ASMs compatible with ``self`` that are of size one greater 
+        Return all ASM's compatible with ``self`` that are of size one greater 
         than ``self``.
 
-        Given an nxn alternating sign matrix A, there are as many ASMs of size 
-        n+1 compatible with A as 2 raised to the power of the number of 1's in 
-        A [ELKP92].
-
-        REFERENCES:
-
-        .. [EKLP92]  N. Elkies, G. Kuperberg, M. Larsen, J. Propp, 
-            *Alternating-Sign Matrices and Domino Tilings*, Journal of Algebraic 
-            Combinatorics, volume 1 (1992), p. 111-132.
+        Given an `n \times n` alternating sign matrix `A`, there are as many
+        ASM's of size `n+1` compatible with `A` as 2 raised to the power of
+        the number of 1's in `A` [ELKP92]_.
 
         EXAMPLES::
+
             sage: A = AlternatingSignMatrix(matrix([[1,0],[0,1]]))
             sage: A.ASM_compatible_bigger()
             [
@@ -378,49 +380,48 @@ class AlternatingSignMatrix(Element):
             [1 0 0], [0 1 0], [1 0 0], [ 0  1  0]
             ] 
         """
-        n=len(self.to_matrix()[0])
-        M=AlternatingSignMatrices(n+1)
-        sign=[]
-        B=matrix(n+2)
-        A=matrix([[2*(i+j-2*nw_corner_sum(self.to_matrix(),i,j))+1 for i in range(n+1)] for j in range(n+1)])
-        for a in range(0,n+2):
-            B[a,0]=2*a
-            B[0,a]=2*a
-            B[a,n+1]=2*(n+1-a)
-            B[n+1,a]=2*(n+1-a)
-        for i in range(1,n+1):
-            for j in range(1,n+1):
-                if (A[i-1,j-1]==A[i,j]==A[i-1,j]-2==A[i,j-1]-2):
-                    B[i,j]=-A[i,j]
+        n = self.parent()._n + 1
+        M = AlternatingSignMatrices(n)
+        sign = []
+        asm = self.to_matrix()
+        B = matrix(n+1)
+        A = matrix([[2*(i+j-2*nw_corner_sum(asm,i,j))+1 for i in range(n)]
+                    for j in range(n)])
+        for a in range(n+1):
+            B[a,0] = 2*a
+            B[0,a] = 2*a
+            B[a,n] = 2*(n-a)
+            B[n,a] = 2*(n-a)
+
+        for i in range(1,n):
+            for j in range(1,n):
+                if A[i-1,j-1] == A[i,j] == A[i-1,j]-2 == A[i,j-1]-2:
+                    B[i,j] = -A[i,j]
                     sign.append([i,j])
                 else:
-                    B[i,j]=list({A[i-1,j-1]-1,A[i-1,j-1]+3} & {A[i-1,j]-3,A[i-1,j]+1} & {A[i,j-1]-3,A[i,j-1]+1} & {A[i,j]-1,A[i,j]+3})[0]
-        output=[B]
-        for b in range(0,len(sign)):
-            N=len(output)
-            for c in range(0,N):
-                d=copy.copy(output[c])
-                output[c][sign[b][0],sign[b][1]]=-output[c][sign[b][0],sign[b][1]]+3
-                d[sign[b][0],sign[b][1]]=-d[sign[b][0],sign[b][1]]-1
+                    B[i,j] = list({A[i-1,j-1]-1,A[i-1,j-1]+3} & {A[i-1,j]-3,A[i-1,j]+1} & {A[i,j-1]-3,A[i,j-1]+1} & {A[i,j]-1,A[i,j]+3})[0]
+
+        output = [B]
+        for b in range(len(sign)):
+            N = len(output)
+            for c in range(N):
+                d = copy.copy(output[c])
+                output[c][sign[b][0],sign[b][1]] = -output[c][sign[b][0], sign[b][1]] + 3
+                d[sign[b][0],sign[b][1]] = -d[sign[b][0], sign[b][1]]-1
                 output.append(d)
-        for k in range(0,len(output)):
-            output[k]=M.from_height_function(output[k]/2)      
+
+        for k in range(len(output)):
+            output[k] = M.from_height_function(output[k]/2)      
         return(output)
     
     def ASM_compatible_smaller(self):
         r"""
-        Return the list of all ASMs compatible with ``self`` that are of size one 
-        smaller than ``self``.
+        Return the list of all ASMs compatible with ``self`` that are of size
+        one smaller than ``self``.
 
-        Given an alternating sign matrix A of size n, there are as many ASMs 
-        of size n-1 compatible with it as 2 raised to the power of the number 
-        of -1's in A [EKLP92]. 
-
-        REFERENCES:
-
-        .. [EKLP92]  N. Elkies, G. Kuperberg, M. Larsen, J. Propp, 
-            *Alternating-Sign Matrices and Domino Tilings*, Journal of Algebraic 
-            Combinatorics, volume 1 (1992), p. 111-132.
+        Given an alternating sign matrix `A` of size `n`, there are as many
+        ASM's of size `n-1` compatible with it as 2 raised to the power of
+        the number of `-1`'s in `A` [EKLP92]_.
 
         EXAMPLES::
 
@@ -439,33 +440,36 @@ class AlternatingSignMatrix(Element):
             ]
 
         """
-        n=len(self.to_matrix()[0])
-        M=AlternatingSignMatrices(n)
-        A=matrix(n)
-        B=matrix([[2*(i+j-2*nw_corner_sum(self.to_matrix(),i,j)) for i in range(n)] for j in range(n)])
-        sign=[]
-        for a in range(0,n):
-            A[a,0]=2*a+1
-            A[0,a]=2*a+1
-            A[n-1,a]=2*(n-a)-1
-            A[a,n-1]=2*(n-a)-1
-        for i in range(0,n-1):
-            for j in range(0,n-1):
-                if B[i+1,j+1]==B[i,j]==B[i,j+1]+2==B[i+1,j]+2:
-                    A[i,j]=-B[i,j]
+        n = self.parent()._n
+        M = AlternatingSignMatrices(n)
+        A = matrix(n)
+        asm = self.to_matrix()
+        B = matrix([[2*(i+j-2*nw_corner_sum(asm,i,j)) for i in range(n)] for j in range(n)])
+        sign = []
+        for a in range(n):
+            A[a,0] = 2*a + 1
+            A[0,a] = 2*a + 1
+            A[n-1,a] = 2*(n-a) - 1
+            A[a,n-1] = 2*(n-a) - 1
+
+        for i in range(n-1):
+            for j in range(n-1):
+                if B[i+1,j+1] == B[i,j] == B[i,j+1]+2 == B[i+1,j]+2:
+                    A[i,j] = -B[i,j]
                     sign.append([i,j])
                 else:
-                    A[i,j]=list({B[i,j]+1,B[i,j]-3} & {B[i,j+1]+3,B[i,j+1]-1} & {B[i+1,j]+3,B[i+1,j]-1} & {B[i+1,j+1]+1,B[i+1,j+1]-3})[0]
-        output=[A]
-        for b in range(0,len(sign)):
-            N=len(output)
-            for c in range(0,N):
-                d=copy.copy(output[c])
-                output[c][sign[b][0],sign[b][1]]=-output[c][sign[b][0],sign[b][1]]+1
-                d[sign[b][0],sign[b][1]]=-d[sign[b][0],sign[b][1]]-3
-                output.append(d)   
+                    A[i,j] = list({B[i,j]+1,B[i,j]-3} & {B[i,j+1]+3,B[i,j+1]-1} & {B[i+1,j]+3,B[i+1,j]-1} & {B[i+1,j+1]+1,B[i+1,j+1]-3})[0]
+
+        output = [A]
+        for b in range(len(sign)):
+            N = len(output)
+            for c in range(N):
+                d = copy.copy(output[c])
+                output[c][sign[b][0],sign[b][1]] = -output[c][sign[b][0], sign[b][1]]+1
+                d[sign[b][0],sign[b][1]] = -d[sign[b][0], sign[b][1]]-3
+                output.append(d)
         for k in range(0,len(output)):
-            output[k]=M.from_height_function((output[k]-matrix.ones(n,n))/2)         
+            output[k] = M.from_height_function((output[k]-matrix.ones(n,n))/2)         
         return(output)
 
     @combinatorial_map(name='to Dyck word')
@@ -823,7 +827,7 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
 
         return self.element_class(self, self._matrix_space(asm))
  
-    def from_corner_sum(self,corner):
+    def from_corner_sum(self, corner):
         r"""
         Return an alternating sign matrix from a corner sum matrix.
 
@@ -840,12 +844,16 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
             [ 0  1  0]
         """
         asm_list=[]
-        n=len(list(corner))-1
+        n = len(list(corner)) - 1
         for k in range(n):
             asm_list.append([])
         for i in range(n):
             for j in range(n):
-                y=corner[i+1][j+1]-sum([sum([asm_list[i2][j2] for i2 in range(i)]) for j2 in range(j)])-sum([asm_list[i2][j] for i2 in range(i)])-sum([asm_list[i][j2] for j2 in range(j)])
+                y = corner[i+1][j+1] \
+                     - sum([sum([asm_list[i2][j2] for i2 in range(i)])
+                            for j2 in range(j)]) \
+                     - sum([asm_list[i2][j] for i2 in range(i)]) \
+                     - sum([asm_list[i][j2] for j2 in range(j)])
                 asm_list[i].append(y)
         return AlternatingSignMatrix(asm_list)
  
@@ -865,7 +873,9 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
             [ 1 -1  1]
             [ 0  1  0]
         """  
-        return self.from_corner_sum(matrix([[((i+j-height[i][j])/int(2)) for i in range(len(list(height)))] for j in range(len(list(height)))]))
+        return self.from_corner_sum(matrix( [[((i+j-height[i][j])/int(2))
+                                              for i in range(len(list(height)))]
+                                             for j in range(len(list(height)))] ))
 
     def size(self):
         r"""
@@ -1597,7 +1607,7 @@ def nw_corner_sum(M,i,j):
         sage: nw_corner_sum(A,2,2)
         4
     """
-    if i>=0 and j>=0:
+    if i >= 0 and j >= 0:
         return sum([sum([M[i2][j2] for j2 in range(j)]) for i2 in range(i)])
-    else:
-        return 0
+    return 0
+

@@ -929,15 +929,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
             p-adic heights
 
-            add heights to integer.pyx and remove special case
         """
-        if self.domain().base_ring() == ZZ:
-            if prec is None:
-                R = RealField()
-            else:
-                R = RealField(prec)
-            H=R(0)
-            return(R(max([self[i].abs() for i in range(self.codomain().ambient_space().dimension_relative()+1)])).log())
         if self.domain().base_ring() in _NumberFields or is_NumberFieldOrder(self.domain().base_ring()):
             return(max([self[i].global_height(prec) for i in range(self.codomain().ambient_space().dimension_relative()+1)]))
         else:

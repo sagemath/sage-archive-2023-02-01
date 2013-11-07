@@ -255,7 +255,7 @@ class AlternatingSignMatrix(Element):
         asm = self.to_matrix()
         return matrix([[i+j-2*nw_corner_sum(asm,i,j) for i in range(len(list(asm))+1)] for j in range(len(list(asm))+1)])
  
-     def gyration(self):
+    def gyration(self):
         r"""
         Return the matrix obtained by applying the gyration action to the height function 
 	in bijection with ``self``.

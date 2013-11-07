@@ -5,8 +5,7 @@ AUTHORS:
 
 - Mike Hansen (2007): Initial version
 - Pierre Cange, Luis Serrano (2012): Added monotone triangles
-- Travis Scrimshaw (2013-28-03): Added element class for ASM's and made
-  :class:`MonotoneTriangles` inherit from :class:`GelfandTsetlinPatterns`.
+- Travis Scrimshaw (2013-28-03): Added element class for ASM's and made :class:`MonotoneTriangles` inherit from :class:`GelfandTsetlinPatterns`.
 - Jessica Striker (2013): Added methods.
 """
 #*****************************************************************************
@@ -436,11 +435,11 @@ class AlternatingSignMatrix(Element):
     @combinatorial_map(name='to Dyck word')
     def to_dyck_word(self):
         r"""
-        Return the Dyck word determined by the last diagonal of 
+        Return the Dyck word determined by the last diagonal of
         the monotone triangle corresponding to ``self``.
 
         EXAMPLES::
-        
+
             sage: A = AlternatingSignMatrices(3)
             sage: A([[0,1,0],[1,0,0],[0,0,1]]).to_dyck_word()
             [1, 1, 0, 0, 1, 0]
@@ -473,7 +472,7 @@ class AlternatingSignMatrix(Element):
 
     def is_permutation(self):
         """
-        Return ``True`` if ``self`` is a permutation matrix 
+        Return ``True`` if ``self`` is a permutation matrix
         and ``False`` otherwise.
 
         EXAMPLES::
@@ -512,7 +511,7 @@ class AlternatingSignMatrix(Element):
         asm_matrix = self.to_matrix()
         return Permutation([ j+1 for (i,j) in asm_matrix.nonzero_positions() ])
 
-    @combinatorial_map(name='to semistandard tableau')    
+    @combinatorial_map(name='to semistandard tableau')
     def to_semistandard_tableau(self):
         """
         Return the semistandard tableau corresponding the monotone triangle

@@ -1017,7 +1017,7 @@ class SageDev(MercurialPatchMixin):
             # the error message should be self explanatory
             raise
 
-    def pull(self, ticket_or_remote_branch=None, branch=None):
+    def pull(self, ticket_or_remote_branch=None):
         r"""
         Pull ``ticket_or_remote_branch`` to ``branch``.
 
@@ -1026,10 +1026,6 @@ class SageDev(MercurialPatchMixin):
         - ``ticket_or_remote_branch`` -- a string or an integer or ``None`` (default:
           ``None``), a ticket or a remote branch name; setting this to ``None``
           has the same effect as setting it to the :meth:`current_ticket`.
-
-        - ``branch`` -- a string or ``None`` (default: ``None``), the branch to
-          create or merge the changes into. If ``None``, then a new branch will
-          be created unless there is already a branch for this ticket.
 
         TESTS:
 
@@ -4155,7 +4151,7 @@ class SageDev(MercurialPatchMixin):
 
         We upgrade the local master::
 
-            sage: dev.pull(ticket_or_remote_branch="master", branch="master")
+            sage: dev.pull(ticket_or_remote_branch="master")
             Merging the remote branch "master" into the local branch "master".
             Automatic merge successful.
             <BLANKLINE>

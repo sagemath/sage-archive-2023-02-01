@@ -50,6 +50,11 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
   - :func:`groups.presentation.Quaternion <sage.groups.finitely_presented_named.QuaternionPresentation>`
   - :func:`groups.presentation.Symmetric <sage.groups.finitely_presented_named.SymmetricPresentation>`
 
+- Affine Groups (``groups.affine.<tab>``)
+
+  - :func:`groups.affine.Affine <sage.groups.affine_gps.affine_group.AffineGroup>`
+  - :func:`groups.affine.Euclidean <sage.groups.affine_gps.euclidean_group.EuclideanGroup>`
+
 - Miscellaneous Groups (``groups.misc.<tab>``)
 """
 
@@ -75,4 +80,5 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 from sage.groups.matrix_gps import catalog as matrix
 from sage.groups.perm_gps import permutation_groups_catalog as permutation
 from sage.groups.misc_gps import misc_groups_catalog as misc
+from sage.groups.affine_gps import catalog as affine
 from sage.groups import finitely_presented_catalog as presentation

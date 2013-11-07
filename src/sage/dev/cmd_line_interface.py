@@ -267,9 +267,14 @@ class CmdLineInterface(UserInterface):
              finally:
                 os.close(fd)
         if dim is None:
+            ret = (0,)
+        else:
+            ret = tuple(int(x) for x in dim)
+        if all(ret):
+            return ret
+        else:
             # fallback values
             return (25, 80)
-        return tuple(int(x) for x in dim)
 
     def _ioctl_GWINSZ(self, fd):
         r"""

@@ -20,7 +20,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 from copy import copy
 from sage.categories.rings import Rings
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
-from sage.categories.commutative_algebras import Algebras
 from sage.rings.ring import Algebra
 
 def repr_from_monomials(monomials, term_repr, use_latex=False):
@@ -223,9 +222,9 @@ class WeylAlgebraElement(AlgebraElement):
         """
         return self.__class__(self.parent(), {m:-c for m,c in self.__monomials.items()})
 
-    def _add_(self, rhs):
+    def _add_(self, other):
         """
-        Return ``self`` added to ``rhs``.
+        Return ``self`` added to ``other``.
 
         EXAMPLES::
 
@@ -236,15 +235,15 @@ class WeylAlgebraElement(AlgebraElement):
             x^3 - 2 + dz + dx*dy
         """
         d = copy(self.__monomials)
-        for m,c in rhs.__monomials.items():
+        for m,c in other.__monomials.items():
             d[m] = d.get(m, 0) + c
             if d[m] == 0:
                 del d[m]
         return self.__class__(self.parent(), d)
 
-    def _mul_(self, rhs):
+    def _mul_(self, other):
         """
-        Return ``self`` multiplied by ``rhs``.
+        Return ``self`` multiplied by ``other``.
 
         EXAMPLES::
 
@@ -256,9 +255,9 @@ class WeylAlgebraElement(AlgebraElement):
         """
         d = {}
         for ml,cl in self.__monomials.items():
-            for mr,cr in rhs.__monomials.items():
+            for mr,cr in other.__monomials.items():
                 for t,coeff in expand_derivative(cr, ml).items():
-                    # multiply the resulting term by the RHS term
+                    # multiply the resulting term by the other term
                     t = tuple(v + mr[i] for i,v in enumerate(t))
                     d[t] = d.get(t, 0) + cl * coeff
                     if d[t] == 0:
@@ -281,9 +280,9 @@ class WeylAlgebraElement(AlgebraElement):
             return self.parent().zero()
         return self.__class__(self.parent(), {m: lhs*c for m,c in self.__monomials.items()})
 
-    def _lmul_(self, rhs):
+    def _lmul_(self, other):
         """
-        Multiply ``self`` on the left side of ``rhs``.
+        Multiply ``self`` on the left side of ``other``.
 
         EXAMPLES::
 
@@ -295,7 +294,7 @@ class WeylAlgebraElement(AlgebraElement):
         """
         d = {}
         for m,c in self.__monomials.items():
-            for t,coeff in expand_derivative(rhs, m).items():
+            for t,coeff in expand_derivative(other, m).items():
                 d[t] = d.get(t, 0) + c * coeff
                 if d[t] == 0:
                     del d[t]

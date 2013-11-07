@@ -64,9 +64,9 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
         """
         return repr_from_monomials(self.list(), self.parent()._latex_term, True)
 
-    def _mul_(self, rhs):
+    def _mul_(self, other):
         """
-        Return ``self`` multiplied by ``rhs``.
+        Return ``self`` multiplied by ``other``.
 
         EXAMPLES::
 
@@ -85,8 +85,8 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             e[-1][i] = 1
 
         for ml,cl in self._monomial_coefficients.items():
-            # Distribute the current term over the RHS
-            cur = copy(rhs._monomial_coefficients) # The current distribution of the term
+            # Distribute the current term over the other
+            cur = copy(other._monomial_coefficients) # The current distribution of the term
             for i in reversed(ml):
                 # Distribute the current factor
                 next = {}
@@ -161,6 +161,14 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
         """
         Return the image of the reflection automorphism on ``self``.
 
+        The *reflection automorphism* of a Clifford algebra is defined
+        by
+
+        .. MATH::
+
+            x_1 \wedge x_2 \wedge \cdots \wedge x_m \mapsto
+            (-1)^m x_1 \wedge x_2 \wedge \cdots \wedge x_m.
+
         EXAMPLES::
 
             sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
@@ -183,7 +191,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
         return self.__class__(self.parent(), {m: (-1)**len(m)*c for m,c in self._monomial_coefficients.items()})
 
     def transpose(self):
-        """
+        r"""
         Return the transpose of ``self``.
 
         The transpose is an antilinear involution of a Clifford algebra and
@@ -191,8 +199,8 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
 
         .. MATH::
 
-            x_1 \otimes x_2 \otimes \cdots \otimes x_n \mapsto
-            x_n \otimes \cdots \otimes x_2 \otimes x_1.
+            x_1 \wedge x_2 \wedge \cdots \wedge x_m \mapsto
+            x_m \wedge \cdots \wedge x_2 \wedge x_1.
 
         EXAMPLES::
 
@@ -212,9 +220,14 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
             sage: all(x.transpose().transpose() == x for x in Cl.basis())
             True
+
+        Zero is sent to zero::
+
+            sage: Cl.zero().transpose() == Cl.zero()
+            True
         """
         if len(self._monomial_coefficients) == 0:
-            self.parent().zero()
+            return self.parent().zero()
         g = self.parent().gens()
         return sum(c * self.parent().prod(g[i] for i in reversed(m))
                    for m,c in self._monomial_coefficients.items())
@@ -259,6 +272,32 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
         """
         Return the constant coefficient of ``self``.
 
+        .. TODO::
+
+            This isn't functorial in the underlying quadratic space.
+            Just reordering the basis is enough to break
+            functoriality, as witnessed by the following::
+
+                sage: Q = QuadraticForm(ZZ, 2, [1,1,2])
+                sage: R = QuadraticForm(ZZ, 2, [2,1,1])    # isomorphic to Q by switching variables
+                sage: ClQ = CliffordAlgebra(Q, ('x','y'))
+                sage: ClR = CliffordAlgebra(R, ('x','y'))    # isomorphic to ClQ by sending x to y, y to x
+                sage: ClQ.inject_variables()
+                Defining x, y
+                sage: (x*y).constant_coefficient()
+                0
+                sage: ClR.inject_variables()
+                Defining x, y
+                sage: (y*x).constant_coefficient()    # y*x is the image of x*y under iso induced by switching basis elements
+                1
+
+            The implementation is good for exterior algebras, though.
+            I'd suggest moving it there. There *is* a reasonable
+            way to define a "constant coefficient" if `2` is
+            invertible or, more generally, if we have a bilinear form
+            extending the quadratic form, but we might just as well
+            leave this for a later patch. -- dg
+
         EXAMPLES::
 
             sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
@@ -271,13 +310,17 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
         """
         return self._monomial_coefficients.get(self.parent().one_basis(), self.base_ring().zero())
 
-    def scalar(self, rhs):
+    def scalar(self, other):
         r"""
-        Return the Clifford scalar product of ``self`` with ``rhs``.
+        Return the Clifford scalar product of ``self`` with ``other``.
 
         The Clifford scalar (inner) product of `x, y \in Cl(V, Q)` is defined
         by `\langle x, y \rangle = \langle x^t y \rangle` where
         `\langle a \rangle` denotes the constant term of `a`.
+
+        .. TODO::
+
+            Pretty sure this is incorrect since `constant_coefficient` is.
 
         EXAMPLES::
 
@@ -289,7 +332,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             sage: elt.transpose() * (z + 2*x)
             -2*x*y + 5*x*z + y*z + 12*x - z - 16
         """
-        return (self.transpose() * rhs).constant_coefficient()
+        return (self.transpose() * other).constant_coefficient()
 
 class CliffordAlgebra(CombinatorialFreeModule):
     r"""
@@ -508,8 +551,22 @@ class CliffordAlgebra(CombinatorialFreeModule):
         return self._quadratic_form
 
     def degree_on_basis(self, m):
-        """
+        r"""
         Return the degree of the monomial index by ``m``.
+
+        .. WARNING::
+
+            This is a degree in the sense of super-algebra, i. e., it
+            distinguishes "even" from "odd" elements. It is not a
+            `\ZZ`-valued degree. In general, Clifford algebras are not
+            `\ZZ`-graded.
+
+        .. TODO::
+
+            As far as I understand, this method spills over to the
+            exterior algebra, which IS `\ZZ`-graded, and provides
+            unexpected results there. Should we do anything about it?
+            -- dg
 
         EXAMPLES::
 
@@ -524,10 +581,10 @@ class CliffordAlgebra(CombinatorialFreeModule):
 
     def dimension(self):
         """
-        Return the dimension of ``self``.
+        Return the rank of ``self`` as a free module.
 
-        Let `V` be a vector space of dimension `n`, then the dimension of
-        `CL(V, Q)` is `2^n`.
+        Let `V` be a free `R`-module of rank `n`; then, `Cl(V, Q)` is a
+        free `R`-module of rank `2^n`.
 
         EXAMPLES::
 
@@ -542,17 +599,33 @@ class CliffordAlgebra(CombinatorialFreeModule):
 
 class ExteriorAlgebra(CliffordAlgebra):
     r"""
-    An exterior algebra.
+    An exterior algebra of a free module over a commutative ring.
 
-    Let `V` be an `n`-dimensional vector space with an orthonormal basis
-    `\{e_1, \ldots, e_n\}`. The `n`-th exterior algebra (or Grassmann algebra)
-    `\Lambda(V)` is generated by `e_1, \ldots, e_n` under the exterior
-    product `\wedge`. Alternatively we can consider `\{e_1, \ldots, e_n\}`
-    as anticommuting generators. The algebra `\Lambda(V)` has a basis
-    consisting of `(\bigwedge_{i \in I} e_i)` ranging over all
-    `I \subseteq \{e_1, \ldots e_n\}`, and hence has dimension `2^n`.
-    It can also be realized as a Clifford algebra with the quadratic
-    form `Q(v) = 0` for all vectors `v \in V`.
+    Let `V` be a module over a commutative ring `R`. The exterior algebra
+    (or Grassmann algebra) `\Lambda(V)` is defined as the quotient of
+    tensor algebra `T(V)` of `V` modulo the two-sided ideal generated by
+    all tensors of the form `x \otimes x` with `x \in V`. The
+    multiplication on `\Lambda(V)` is denoted by `\wedge` (so
+    `v_1 \wedge v_2 \wedge \cdots \wedge v_n` is the projection of
+    `v_1 \otimes v_2 \otimes \cdots \otimes v_n` onto `\Lambda(V)`) and
+    called the "exterior product" or "wedge product".
+
+    If `V` is a rank-`n` free `R`-module with a basis
+    `\{e_1, \ldots, e_n\}`, then `\Lambda(V)` is the `R`-algebra
+    noncommutatively generated by the `n` generators `e_1, \ldots, e_n`
+    subject to the relations `e_i^2 = 0` for all `i`, and
+    `e_i e_j = - e_j e_i` for all `i < j`. As an `R`-module,
+    `\Lambda(V)` then has a basis `(\bigwedge_{i \in I} e_i)` with `I`
+    `I \subseteq \{e_1, \ldots e_n\}` (where `\bigwedge_{i \in I} e_i`
+    is the wedge product of all elements of `I` from smallest to
+    largest), and hence is free of rank `2^n`.
+
+    The exterior algebra of an `R`-module `V` can also be realized
+    as the Clifford algebra of `V` and the quadratic form `Q(v) = 0`
+    for all vectors `v \in V`.
+
+    The exterior algebra of an `R`-module `V` is a graded connected
+    Hopf superalgebra.
 
     INPUT:
 
@@ -596,6 +669,9 @@ class ExteriorAlgebra(CliffordAlgebra):
             sage: TestSuite(E).run()
         """
         CliffordAlgebra.__init__(self, QuadraticForm(R, len(names)), names, HopfAlgebrasWithBasis(R))
+        # TestSuite will fail if the HopfAlgebra classes will ever have tests for
+        # the coproduct being an algebra morphism -- since this is really a
+        # Hopf superalgebra, not a Hopf algebra.
 
     def _repr_(self):
         r"""
@@ -654,8 +730,11 @@ class ExteriorAlgebra(CliffordAlgebra):
         """
         Return the volume form of ``self``.
 
-        Given generators `e_1, \ldots, e_n`, the volume form is
-        defined as `e_1 \wedge \cdots \wedge e_n`.
+        Given the basis `e_1, e_2, \ldots, e_n` of the underlying
+        `R`-module, the volume form is defined as `e_1 \wedge e_2
+        \wedge \cdots \wedge e_n`.
+
+        This depends on the choice of basis.
 
         EXAMPLES::
 
@@ -667,7 +746,7 @@ class ExteriorAlgebra(CliffordAlgebra):
 
     def coproduct_on_basis(self, a):
         r"""
-        Return the antipode on the basis element indexed by ``a``.
+        Return the coproduct on the basis element indexed by ``a``.
 
         The coproduct is defined by
 
@@ -677,6 +756,11 @@ class ExteriorAlgebra(CliffordAlgebra):
             \sum_{\sigma \in Sh_{k,m-k}} (-1)^{\sigma}
             (e_{\sigma(i_1)} \wedge \cdots e_{\sigma(i_k)}) \otimes
             (e_{\sigma(i_{k+1})} \wedge \cdots e_{\sigma(i_m)})
+
+        .. WARNING::
+
+            This coproduct is a homomorphism of superalgebras, not a
+            homomorphism of algebras!
 
         EXAMPLES::
 
@@ -731,6 +815,9 @@ class ExteriorAlgebra(CliffordAlgebra):
         """
         Return the internal product of ``a`` on ``b``.
 
+        This depends on the choice of basis of the vector space
+        whose exterior algebra is ``self``.
+
         EXAMPLES::
 
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
@@ -759,9 +846,9 @@ class ExteriorAlgebra(CliffordAlgebra):
         """
         An element of an exterior algebra.
         """
-        def _mul_(self, rhs):
+        def _mul_(self, other):
             """
-            Return ``self`` multiplied by ``rhs``.
+            Return ``self`` multiplied by ``other``.
 
             EXAMPLES::
 
@@ -780,7 +867,7 @@ class ExteriorAlgebra(CliffordAlgebra):
             d = {}
 
             for ml,cl in self._monomial_coefficients.items():
-                for mr,cr in rhs._monomial_coefficients.items():
+                for mr,cr in other._monomial_coefficients.items():
                     # Create the next term
                     t = list(mr)
                     for i in reversed(ml):

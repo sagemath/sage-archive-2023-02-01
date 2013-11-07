@@ -1255,8 +1255,7 @@ class SageDev(MercurialPatchMixin):
             Start tracking "tracked"? [yes/No] y
             Commit your changes to branch "branch1"? [Yes/no] y
             <BLANKLINE>
-            #  Use "sage --dev push" to push your commits to the trac server once you are
-            #  done.
+            #  Use "sage --dev push" to push your commits to the trac server once you are done.
 
         Commit a tracked file::
 
@@ -1265,8 +1264,7 @@ class SageDev(MercurialPatchMixin):
             sage: dev.commit(message='modified tracked')
             Commit your changes to branch "branch1"? [Yes/no] y
             <BLANKLINE>
-            #  Use "sage --dev push" to push your commits to the trac server once you are
-            #  done.
+            #  Use "sage --dev push" to push your commits to the trac server once you are done.
         """
         from git_error import DetachedHeadError
         try:
@@ -1543,11 +1541,9 @@ class SageDev(MercurialPatchMixin):
             "u/bob/ticket/1" and the current value of the branch field "u/alice/ticket/1"
             have diverged.
             <BLANKLINE>
-            #  Use "sage --dev push --force --ticket=1 --remote-branch=u/bob/ticket/1" to
-            #  overwrite the branch field.
+            #  Use "sage --dev push --force --ticket=1 --remote-branch=u/bob/ticket/1" to overwrite the branch field.
             <BLANKLINE>
-            #  Use "sage --dev pull --ticket=1" to merge the changes introduced by the
-            #  remote "u/alice/ticket/1" into your local branch.
+            #  Use "sage --dev pull --ticket=1" to merge the changes introduced by the remote "u/alice/ticket/1" into your local branch.
 
         After merging the changes, this works again::
 
@@ -1599,8 +1595,7 @@ class SageDev(MercurialPatchMixin):
             your local branch for ticket #2 seems to be "ticket/2".
              Do you really want to proceed? [yes/No] y
             <BLANKLINE>
-            #  Use "sage --dev checkout --ticket=2 --branch=ticket/1" to permanently set
-            #  "ticket/1" as the branch associated to ticket #2.
+            #  Use "sage --dev checkout --ticket=2 --branch=ticket/1" to permanently set "ticket/1" as the branch associated to ticket #2.
             The branch "u/bob/ticket/2" does not exist on the remote server.
             Create new remote branch? [Yes/no] y
 
@@ -1640,8 +1635,7 @@ class SageDev(MercurialPatchMixin):
             Start tracking "another_file"? [yes/No] y
             Commit your changes to branch "ticket/1"? [Yes/no] y
             <BLANKLINE>
-            #  Use "sage --dev push" to push your commits to the trac server once you are
-            #  done.
+            #  Use "sage --dev push" to push your commits to the trac server once you are done.
             sage: bob._UI.extend(['y', 'y'])
             sage: bob.push()
             Local commits that are not on the remote branch "u/bob/ticket/1":
@@ -1659,8 +1653,7 @@ class SageDev(MercurialPatchMixin):
             sage: bob.commit(message='another commit')
             Commit your changes to branch "ticket/1"? [Yes/no] y
             <BLANKLINE>
-            #  Use "sage --dev push" to push your commits to the trac server once you are
-            #  done.
+            #  Use "sage --dev push" to push your commits to the trac server once you are done.
             sage: bob._UI.extend(['y', "keep", 'y'])
             sage: bob.push()
             Local commits that are not on the remote branch "u/bob/ticket/1":
@@ -1676,8 +1669,7 @@ class SageDev(MercurialPatchMixin):
             sage: bob.commit(message='final commit')
             Commit your changes to branch "ticket/1"? [Yes/no] y
             <BLANKLINE>
-            #  Use "sage --dev push" to push your commits to the trac server once you are
-            #  done.
+            #  Use "sage --dev push" to push your commits to the trac server once you are done.
 
             sage: bob._UI.extend(['y', 'download', 'y'])
             sage: bob.push()
@@ -2782,8 +2774,7 @@ class SageDev(MercurialPatchMixin):
             sage: dev.abandon(1)
             Moved your branch "ticket/1" to "trash/ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev checkout --ticket=1 --base=master" to restart working on #1
-            #  with a clean copy of the master branch.
+            #  Use "sage --dev checkout --ticket=1 --base=master" to restart working on #1 with a clean copy of the master branch.
 
         Start to work on a new branch for this ticket::
 
@@ -4003,8 +3994,7 @@ class SageDev(MercurialPatchMixin):
             File not found: ".../id_rsa.pub"
             Create new ssh key pair? [Yes/no] no
             <BLANKLINE>
-            #  Use "sage --dev upload-ssh-key" to upload a public key. Or set your key
-            #  manually at https://trac.sagemath.org/prefs/sshkeys.
+            #  Use "sage --dev upload-ssh-key" to upload a public key. Or set your key manually at https://trac.sagemath.org/prefs/sshkeys.
             sage: UI.append("yes")
             sage: UI.append("yes")
             sage: dev.upload_ssh_key(public_key=public_key)

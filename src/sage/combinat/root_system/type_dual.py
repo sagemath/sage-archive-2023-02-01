@@ -525,6 +525,36 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
         """
         return self.dual().classical().dual()
 
+    def horizontal(self):
+        r"""
+        Return the horizontal Cartan type associated with this affine
+        Cartan type.
+
+        Given an affine type `X_n^{(r)}`, the horizontal type is `X_n`. In
+        other words, it is the classical Cartan type that is twisted to
+        obtain ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['A', 7, 2]).horizontal()
+            ['A', 7]
+            sage: CartanType(['E', 6, 2]).horizontal()
+            ['E', 6]
+            sage: CartanType(['D', 4, 3]).horizontal()
+            ['D', 4]
+        """
+        import cartan_type
+        if self.dual().type() == 'B':
+            return cartan_type.CartanType(['A', self.classical().rank()*2-1])
+        elif self.dual().type() == 'BC':
+            return cartan_type.CartanType(['A', self.classical().rank()*2])
+        elif self.dual().type() == 'C':
+            return cartan_type.CartanType(['D', self.classical().rank()+1])
+        elif self.dual().type() == 'F':
+            return cartan_type.CartanType(['E', 6])
+        elif self.dual().type() == 'G':
+            return cartan_type.CartanType(['D', 4])
+
     def special_node(self):
         """
         Implement :meth:`CartanType_affine.special_node`

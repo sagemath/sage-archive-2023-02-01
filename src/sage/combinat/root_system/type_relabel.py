@@ -681,6 +681,23 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
         """
         return self._type.classical().relabel(self._relabelling)
 
+    def horizontal(self):
+        r"""
+        Return the horizontal Cartan type associated with this affine
+        Cartan type.
+
+        Given an affine type `X_n^{(r)}`, the horizontal type is `X_n`. In
+        other words, it is the classical Cartan type that is twisted to
+        obtain ``self``.
+
+        EXAMPLES::
+
+            sage: ct = CartanType(['A', 5, 2]).relabel({0:1, 1:0, 2:2, 3:3})
+            sage: ct.horizontal()
+            ['A', 5]
+        """
+        return self._type.horizontal()
+
     def special_node(self):
         r"""
         Returns a special node of the Dynkin diagram

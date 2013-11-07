@@ -195,6 +195,28 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced):
         """
         return True
 
+    def coxeter_number(self):
+        """
+        Return the Coxeter number associated with ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['D',4]).coxeter_number()
+            6
+        """
+        return 2*self.n - 2
+
+    def dual_coxeter_number(self):
+        """
+        Return the dual Coxeter number associated with ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['D',4]).dual_coxeter_number()
+            6
+        """
+        return 2*self.n - 2
+
     @cached_method
     def dynkin_diagram(self):
         """

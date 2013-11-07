@@ -1771,6 +1771,43 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
 
         """
 
+    @abstract_method
+    def horizontal(self):
+        r"""
+        Return the horizontal Cartan type associated with this affine
+        Cartan type.
+
+        Given an affine type `X_n^{(r)}`, the horizontal type is `X_n`. In
+        other words, it is the classical Cartan type that is twisted to
+        obtain ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['A', 1, 1]).horizontal()
+            ['A', 1]
+            sage: CartanType(['A', 3, 1]).horizontal()
+            ['A', 3]
+            sage: CartanType(['B', 3, 1]).horizontal()
+            ['B', 3]
+            sage: CartanType(['E', 6, 1]).horizontal()
+            ['E', 6]
+            sage: CartanType(['G', 2, 1]).horizontal()
+            ['G', 2]
+
+            sage: CartanType(['A', 2, 2]).horizontal()
+            ['A', 2]
+            sage: CartanType(['A', 4, 2]).horizontal()
+            ['A', 4]
+            sage: CartanType(['A', 11, 2]).horizontal()
+            ['A', 11]
+            sage: CartanType(['D', 5, 2]).horizontal()
+            ['D', 5]
+            sage: CartanType(['E', 6, 2]).horizontal()
+            ['E', 6]
+            sage: CartanType(['D', 4, 3]).horizontal()
+            ['D', 4]
+        """
+
     def row_annihilator(self, m = None):
         r"""
         Return the unique minimal non trivial annihilating linear
@@ -2248,6 +2285,36 @@ class CartanType_standard_finite(UniqueRepresentation, SageObject, CartanType_fi
         """
         return CartanType([self.letter, self.n, 1])
 
+    def coxeter_number(self):
+        """
+        Return the Coxeter number associated with ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['A',4]).coxeter_number()
+            5
+            sage: CartanType(['B',4]).coxeter_number()
+            8
+            sage: CartanType(['C',4]).coxeter_number()
+            8
+        """
+        return sum(self.affine().a())
+
+    def dual_coxeter_number(self):
+        """
+        Return the Coxeter number associated with ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['A',4]).dual_coxeter_number()
+            5
+            sage: CartanType(['B',4]).dual_coxeter_number()
+            7
+            sage: CartanType(['C',4]).dual_coxeter_number()
+            5
+        """
+        return sum(self.affine().acheck())
+
     def type(self):
         """
         Returns the type of ``self``.
@@ -2468,6 +2535,30 @@ class CartanType_standard_untwisted_affine(CartanType_standard_affine):
             ['G', 2]
         """
         return CartanType([self.letter,self.n])
+
+    def horizontal(self):
+        r"""
+        Return the horizontal Cartan type associated with this affine
+        Cartan type.
+
+        Given an affine type `X_n^{(r)}`, the horizontal type is `X_n`. In
+        other words, it is the classical Cartan type that is twisted to
+        obtain ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['A', 1, 1]).horizontal()
+            ['A', 1]
+            sage: CartanType(['A', 3, 1]).horizontal()
+            ['A', 3]
+            sage: CartanType(['B', 3, 1]).horizontal()
+            ['B', 3]
+            sage: CartanType(['E', 6, 1]).horizontal()
+            ['E', 6]
+            sage: CartanType(['G', 2, 1]).horizontal()
+            ['G', 2]
+        """
+        return self.classical()
 
     def is_untwisted_affine(self):
         """

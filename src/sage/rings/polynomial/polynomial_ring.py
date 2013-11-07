@@ -181,6 +181,7 @@ from sage.rings.real_mpfr import is_RealField
 from polynomial_real_mpfr_dense import PolynomialRealDense
 from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
 from sage.rings.fraction_field_element import FractionFieldElement
+from sage.rings.finite_rings.element_base import FiniteRingElement
 
 from polynomial_element import PolynomialBaseringInjection
 
@@ -417,12 +418,16 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 x = x.numerator() * x.denominator().inverse_of_unit()
             else:
                 raise TypeError, "denominator must be a unit"
-
         elif isinstance(x, pari_gen):
             if x.type() == 't_RFRAC':
                 raise TypeError, "denominator must be a unit"
             if x.type() != 't_POL':
                 x = x.Polrev()
+        elif isinstance(x, FiniteRingElement):
+            try:
+                return self(x.polynomial())
+            except AttributeError:
+                pass
         return C(self, x, check, is_gen, construct=construct, **kwds)
 
     def is_integral_domain(self, proof = True):

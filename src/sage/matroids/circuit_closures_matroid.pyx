@@ -68,7 +68,6 @@ Methods
 from matroid cimport Matroid
 from set_system cimport SetSystem
 from utilities import setprint_s
-import sage.matroids.unpickling
 
 cdef class CircuitClosuresMatroid(Matroid):
     """
@@ -555,6 +554,7 @@ cdef class CircuitClosuresMatroid(Matroid):
              4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
 
         """
+        import sage.matroids.unpickling
         data = (self._groundset, self._circuit_closures, getattr(self, '__custom_name'))
         version = 0
         return sage.matroids.unpickling.unpickle_circuit_closures_matroid, (version, data)

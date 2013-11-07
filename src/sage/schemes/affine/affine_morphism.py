@@ -12,8 +12,8 @@ AUTHORS:
 - Volker Braun (2011-08-08): Renamed classes, more documentation, misc
   cleanups.
 
-- Ben Hutz: (March 2013) iteration functionality and new directory structure
-            for affine/projective
+- Ben Hutz (2013-03) iteration functionality and new directory structure
+  for affine/projective
 """
 
 # Historical note: in trac #11599, V.B. renamed
@@ -37,6 +37,7 @@ from sage.misc.misc                import prod
 from sage.rings.all                import Integer, moebius
 from sage.rings.arith              import lcm
 from sage.rings.complex_field      import ComplexField
+from sage.rings.integer_ring       import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.quotient_ring      import QuotientRing_generic
 from sage.rings.real_mpfr          import RealField
@@ -439,7 +440,8 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
     def orbit(self,P,n):
         r"""
         Returns the orbit of `P` by ``self``. If `n` is an integer it returns `[P,self(P),\ldots,self^n(P)]`.
-        If `n` is a list or tuple `n=[m,k]` it returns`[self^m(P),\ldots,self^k(P)]`
+
+        If `n` is a list or tuple `n=[m,k]` it returns `[self^m(P),\ldots,self^k(P)]`
 
         INPUT:
 
@@ -488,6 +490,62 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         """
         return(P.orbit(self,n))
+
+    def global_height(self,prec=None):
+        r"""
+        Returns the maximum of the heights of the coefficients in any of the coordinate functions of ``self``.
+
+        INPUT:
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number
+
+        EXAMPLES::
+
+            sage: A.<x>=AffineSpace(QQ,1)
+            sage: H=Hom(A,A)
+            sage: f=H([1/1331*x^2+4000]);
+            sage: f.global_height()
+            8.29404964010203
+
+        ::
+
+            sage: R.<x>=PolynomialRing(QQ)
+            sage: k.<w>=NumberField(x^2+5)
+            sage: A.<x,y>=AffineSpace(k,2)
+            sage: H=Hom(A,A)
+            sage: f=H([13*w*x^2+4*y, 1/w*y^2]);
+            sage: f.global_height(prec=100)
+            3.3696683136785869233538671082
+
+        .. TODO::
+
+            add heights to integer.pyx and remove special case
+        """
+        if self.domain().base_ring() == ZZ:
+            if prec is None:
+                R = RealField()
+            else:
+                R = RealField(prec)
+            H=R(0)
+            for i in range(self.domain().ambient_space().dimension_relative()):
+                C=self[i].coefficients()
+                h=max([c.abs() for c in C])
+                H=max(H,R(h).log())
+            return(H)
+        H=0
+        for i in range(self.domain().ambient_space().dimension_relative()):
+            C=self[i].coefficients()
+            if C==[]: #to deal with the case self[i]=0
+                h=0
+            else:
+                h=max([c.global_height(prec) for c in C])
+            H=max(H,h)
+        return(H)
 
 class SchemeMorphism_polynomial_affine_space_field(SchemeMorphism_polynomial_affine_space):
     pass
@@ -546,10 +604,10 @@ class SchemeMorphism_polynomial_affine_space_finite_field(SchemeMorphism_polynom
                     V.append(str(XP))
                     Q=self(XP)
                     E.append([str(Q)])
-                except TypeError: #not on the scheme
+                except TypeError:  # not on the scheme
                     pass
         from sage.graphs.digraph import DiGraph
         g=DiGraph(dict(zip(V,E)), loops=True)
-        return(g)
+        return g
 
 

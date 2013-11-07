@@ -2168,6 +2168,9 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         IntegerMod_abstract.__init__(self, parent)
         if empty:
             return
+        if self.__modulus.int32 == 1:
+            self.ivalue = 0
+            return
         cdef long x
         if PY_TYPE_CHECK(value, int):
             x = value

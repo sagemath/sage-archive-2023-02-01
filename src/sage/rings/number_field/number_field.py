@@ -7703,13 +7703,16 @@ class NumberField_absolute(NumberField_generic):
             # to work around Trac #11868 -- Jeroen Demeyer
             return pari(self).nfhilbert(pari(a), pari(b))
 
-        if sage.rings.all.is_RingHomomorphism(P):
+        from sage.rings.morphism import is_RingHomomorphism
+        if is_RingHomomorphism(P):
             if not P.domain() == self:
                 raise ValueError, "Domain of P (=%s) should be self (=%s) in self.hilbert_symbol" % (P, self)
             codom = P.codomain()
-            from sage.rings.all import (is_ComplexField, AA, CDF, QQbar,
-                                is_ComplexIntervalField, is_RealField,
-                                is_RealIntervalField, RDF)
+            from sage.rings.complex_field import is_ComplexField
+            from sage.rings.complex_interval_field import is_ComplexIntervalField
+            from sage.rings.real_mpfr import is_RealField
+            from sage.rings.real_mpfi import is_RealIntervalField
+            from sage.rings.all import (AA, CDF, QQbar, RDF)
             if is_ComplexField(codom) or is_ComplexIntervalField(codom) or \
                                          codom is CDF or codom is QQbar:
                 if P(self.gen()).imag() == 0:

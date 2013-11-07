@@ -23,6 +23,7 @@ Crystals of letters
 include "../../ext/python.pxi"
 
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element cimport Element
@@ -173,8 +174,6 @@ class ClassicalCrystalOfLetters(UniqueRepresentation, Parent):
                 else:
                     self._list.append(self._element_constructor_(cartan_type.rank()+1))
         self._element_print_style = element_print_style
-        self._digraph = super(ClassicalCrystalOfLetters, self).digraph()
-        self._digraph_closure = self.digraph().transitive_closure()
 
     def __call__(self, value):
         """
@@ -237,16 +236,17 @@ class ClassicalCrystalOfLetters(UniqueRepresentation, Parent):
         """
         return self._list
 
-    def digraph(self):
+    @lazy_attribute
+    def _digraph_closure(self):
         """
-        Return the directed graph associated to ``self``.
+        The transitive closure of the directed graph associated to ``self``.
 
         EXAMPLES::
 
-            sage: CrystalOfLetters(['A',5]).digraph()
-            Digraph on 6 vertices
+            sage: CrystalOfLetters(['A',5])._digraph_closure
+            Transitive closure of : Digraph on 6 vertices
         """
-        return self._digraph
+        return self.digraph().transitive_closure()
 
     def __contains__(self, x):
         """

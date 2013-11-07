@@ -3398,7 +3398,17 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def is_skew_symmetric(self):
         """
-        Returns True if this is a skew symmetric matrix.
+        Return ``True`` if ``self`` is a skew-symmetric matrix.
+
+        Here, "skew-symmetric matrix" means a square matrix `A`
+        satisfying `A^T = -A`. It does not require that the
+        diagonal entries of `A` are `0` (although this
+        automatically follows from `A^T = -A` when `2` is
+        invertible in the ground ring over which the matrix is
+        considered). Skew-symmetric matrices `A` whose diagonal
+        entries are `0` are said to be "alternating", and this
+        property is checked by the :meth:`is_alternating`
+        method.
 
         EXAMPLES::
 
@@ -3407,6 +3417,20 @@ cdef class Matrix(sage.structure.element.Matrix):
             True
             sage: m = matrix(QQ, [[1,2], [2,1]])
             sage: m.is_skew_symmetric()
+            False
+
+        Skew-symmetric is not the same as alternating when
+        `2` is a zero-divisor in the ground ring::
+
+            sage: n = matrix(Zmod(4), [[0, 1], [-1, 2]])
+            sage: n.is_skew_symmetric()
+            True
+
+        but yet the diagonal cannot be completely
+        arbitrary in this case::
+
+            sage: n = matrix(Zmod(4), [[0, 1], [-1, 3]])
+            sage: n.is_skew_symmetric()
             False
         """
         if self._ncols != self._nrows: return False
@@ -3418,6 +3442,51 @@ cdef class Matrix(sage.structure.element.Matrix):
             for j from 0 <= j <= i:
                 if self.get_unsafe(i,j) != -self.get_unsafe(j,i):
                     return False
+        return True
+
+    def is_alternating(self):
+        """
+        Return ``True`` if ``self`` is an alternating matrix.
+
+        Here, "alternating matrix" means a square matrix `A`
+        satisfying `A^T = -A` and such that the diagonal entries
+        of `0`. Notice that the condition that the diagonal
+        entries be `0` is not redundant for matrices over
+        arbitrary ground rings (but it is redundant when `2` is
+        invertible in the ground ring). A square matrix `A` only
+        required to satisfy `A^T = -A` is said to be
+        "skew-symmetric", and this property is checked by the
+        :meth:`is_skew_symmetric` method.
+
+        EXAMPLES::
+
+            sage: m = matrix(QQ, [[0,2], [-2,0]])
+            sage: m.is_alternating()
+            True
+            sage: m = matrix(QQ, [[1,2], [2,1]])
+            sage: m.is_alternating()
+            False
+
+        In contrast to the property of being skew-symmetric, the
+        property of being alternating does not tolerate nonzero
+        entries on the diagonal even if they are their own
+        negatives::
+
+            sage: n = matrix(Zmod(4), [[0, 1], [-1, 2]])
+            sage: n.is_alternating()
+            False
+        """
+        if self._ncols != self._nrows: return False
+        # could be bigger than an int on a 64-bit platform, this
+        #  is the type used for indexing.
+        cdef Py_ssize_t i,j
+
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < i:
+                if self.get_unsafe(i,j) != -self.get_unsafe(j,i):
+                    return False
+            if self.get_unsafe(i,i) != 0:
+                return False
         return True
 
     def is_symmetrizable(self, return_diag=False, positive=True):

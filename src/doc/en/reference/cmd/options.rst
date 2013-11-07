@@ -169,7 +169,7 @@ __ http://wiki.sagemath.org/combinat
   - ``--long``  -- include lines with the phrase 'long time'
   - ``--verbose`` -- print debugging output during the test
   - ``--optional`` -- also test all examples labeled ``# optional``
-  - ``--only-optional[=tags]`` -- If no ``tags`` are specified, only
+  - ``--only-optional[=tags]`` -- if no ``tags`` are specified, only
     run blocks of tests containing a line labeled ``# optional``. If
     a comma separated list of tags is specified, only run blocks containing
     a line labeled ``# optional tag`` for any of the tags given and in these blocks only
@@ -187,8 +187,11 @@ __ http://wiki.sagemath.org/combinat
 - ``-btp <N> [...]`` -- build and test in parallel, options like
   ``-tp`` above
 - ``-btnew [...]`` -- build and test modified files, options like ``-tnew``
-- ``--fixdoctests file.py`` -- create ``file.py.out`` that would
-  pass the doctests and output a patch
+- ``--fixdoctests file.py [output_file] [--long]`` -- writes a new
+  version of ``file.py`` to ``output_file`` (default: ``file.py.out``)
+  that will pass the doctests. With the optional ``--long`` argument
+  the long time tests are also checked. A patch for the new file is
+  printed to stdout.
 - ``--startuptime [module]`` -- display how long each component of Sage takes
   to start up. Optionally specify a module (e.g., "sage.rings.qqbar") to get
   more details about that particular module.

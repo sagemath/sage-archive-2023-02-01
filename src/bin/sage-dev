@@ -6,7 +6,7 @@ import sys
 from textwrap import dedent
 
 if __name__ == '__main__':
-    from sage.dev import dev as DEV
+    from sage.dev.sagedev_wrapper import dev as DEV
 
 class SageHelpFormatter(argparse.HelpFormatter):
     """

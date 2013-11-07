@@ -37,23 +37,16 @@ TESTS:
         ....:
 """
 
-###############################################################################
-#
-#   SAGE: System for Algebra and Geometry Experimentation
-#
-#       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2005-2012 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #
 #                  http://www.gnu.org/licenses/
-###############################################################################
+#
+#*****************************************************************************
 
 import os, sys
 import operator
@@ -63,12 +56,6 @@ from sage.env import SAGE_ROOT, SAGE_DOC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
 if sys.version_info[:2] < (2, 5):
     print >>sys.stderr, "Sage requires Python 2.5 or newer"
     sys.exit(1)
-
-###################################################################
-
-# We have to set this here so urllib, etc. can detect it.
-import sage.server.notebook.gnutls_socket_ssl
-sage.server.notebook.gnutls_socket_ssl.require_SSL()
 
 ###################################################################
 
@@ -151,9 +138,6 @@ import sage.stats.all as stats
 
 import sage.finance.all  as finance
 
-import sage.interacts.all as interacts
-from sage.interacts.debugger import debug
-
 from sage.parallel.all   import *
 
 from sage.ext.fast_callable  import fast_callable
@@ -164,6 +148,12 @@ sage.misc.lazy_import.lazy_import('sage.sandpiles.all', '*', globals())
 from sage.tensor.all     import *
 
 from sage.matroids.all   import *
+
+# The new separated Sage notebook
+from sagenb.notebook.all import *
+
+import sage.interacts.all as interacts
+from sage.interacts.debugger import debug
 
 from copy import copy, deepcopy
 

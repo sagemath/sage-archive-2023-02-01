@@ -69,7 +69,8 @@ from sage.combinat.crystals.tensor_product import FullTensorProductOfRegularCrys
 from sage.combinat.crystals.letters import CrystalOfLetters
 from sage.combinat.root_system.cartan_type import CartanType
 
-from sage.combinat.rigged_configurations.tensor_product_kr_tableaux_element import TensorProductOfKirillovReshetikhinTableauxElement
+from sage.combinat.rigged_configurations.tensor_product_kr_tableaux_element \
+  import TensorProductOfKirillovReshetikhinTableauxElement
 from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinTableaux, \
   KirillovReshetikhinTableauxElement
 
@@ -150,8 +151,7 @@ class HighestWeightTensorKRT(UniqueRepresentation):
     @cached_method
     def cardinality(self):
         """
-        Return the cardinality of ``self`` which is the number of highest
-        weight elements.
+        Return the cardinality of ``self`` which is the number of highest weight elements.
 
         EXAMPLES::
 
@@ -249,7 +249,7 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
 
         sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1], [2,1]])
         sage: list(KRT.module_generators)
-        [[[1], [2], [3]] (X) [[1], [2]], [[1], [3], [4]] (X) [[1], [2]]] 
+        [[[1], [2], [3]] (X) [[1], [2]], [[1], [3], [4]] (X) [[1], [2]]]
     """
     @staticmethod
     def __classcall_private__(cls, cartan_type, B):

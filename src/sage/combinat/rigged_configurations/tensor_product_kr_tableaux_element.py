@@ -107,7 +107,7 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
         <BLANKLINE>
         1[ ]0
         <BLANKLINE>
-        sage: T.to_rigged_configuration().to_tensor_product_of_Kirillov_Reshetikhin_tableaux()
+        sage: T.to_rigged_configuration().to_tensor_product_of_kirillov_reshetikhin_tableaux()
         [[2], [3]] (X) [[1]] (X) [[-1]] (X) [[1]]
     """
     def __init__(self, parent, list=[[]], **options):
@@ -309,12 +309,12 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
             <BLANKLINE>
 
         This is invertible by calling
-        :meth:`~sage.combinat.rigged_configurations.rigged_configuration_element.RiggedConfigurationElement.to_tensor_product_of_Kirillov_Reshetikhin_tableaux()`::
+        :meth:`~sage.combinat.rigged_configurations.rigged_configuration_element.RiggedConfigurationElement.to_tensor_product_of_kirillov_reshetikhin_tableaux()`::
 
             sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[2,2]])
             sage: T = KRT(pathlist=[[2,1,4,3]])
             sage: rc = T.to_rigged_configuration()
-            sage: ret = rc.to_tensor_product_of_Kirillov_Reshetikhin_tableaux(); ret
+            sage: ret = rc.to_tensor_product_of_kirillov_reshetikhin_tableaux(); ret
             [[1, 3], [2, 4]]
             sage: ret == T
             True
@@ -322,7 +322,7 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
         from sage.combinat.rigged_configurations.bijection import KRTToRCBijection
         return KRTToRCBijection(self).run(display_steps)
 
-    def to_tensor_product_of_Kirillov_Reshetikhin_crystals(self):
+    def to_tensor_product_of_kirillov_reshetikhin_crystals(self):
         """
         Return a tensor product of Kirillov-Reshetikhin crystals corresponding
         to ``self``.
@@ -335,7 +335,7 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
             sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[1,1],[2,2]])
             sage: elt = KRT(pathlist=[[-1],[-1,2,-1,1]]); elt
             [[-1]] (X) [[2, 1], [-1, -1]]
-            sage: tp_krc = elt.to_tensor_product_of_Kirillov_Reshetikhin_crystals(); tp_krc
+            sage: tp_krc = elt.to_tensor_product_of_kirillov_reshetikhin_crystals(); tp_krc
             [[[-1]], [[2], [-1]]]
 
         We can recover the original tensor product of KR tableaux::
@@ -345,6 +345,6 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
             sage: ret == elt
             True
         """
-        TP = self.parent().tensor_product_of_Kirillov_Reshetikhin_crystals()
-        return TP(*[x.to_Kirillov_Reshetikhin_crystal() for x in self])
+        TP = self.parent().tensor_product_of_kirillov_reshetikhin_crystals()
+        return TP(*[x.to_kirillov_reshetikhin_crystal() for x in self])
 

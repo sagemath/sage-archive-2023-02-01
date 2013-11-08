@@ -615,14 +615,14 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
         return T1.crystal_morphism(g, acyclic = False)
 
     @cached_method
-    def Kirillov_Reshetikhin_tableaux(self):
+    def kirillov_reshetikhin_tableaux(self):
         """
         Return the corresponding set of :class:`KirillovReshetikhinTableaux`.
 
         EXAMPLES::
 
             sage: KRC = KirillovReshetikhinCrystal(['D', 4, 1], 2, 2)
-            sage: KRC.Kirillov_Reshetikhin_tableaux()
+            sage: KRC.kirillov_reshetikhin_tableaux()
             Kirillov-Reshetikhin tableaux of type ['D', 4, 1] and shape (2, 2)
         """
         from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinTableaux
@@ -633,7 +633,7 @@ class KirillovReshetikhinGenericCrystalElement(AffineCrystalFromClassicalElement
     Abstract class for all Kirillov-Reshetikhin crystal elements.
     """
     @cached_method
-    def to_Kirillov_Reshetikhin_tableau(self):
+    def to_kirillov_reshetikhin_tableau(self):
         r"""
         Construct the corresponding
         :class:`KirillovReshetikhinTableauxElement` from ``self``.
@@ -649,13 +649,13 @@ class KirillovReshetikhinGenericCrystalElement(AffineCrystalFromClassicalElement
         EXAMPLES::
 
             sage: KRC = KirillovReshetikhinCrystal(['A', 4, 1], 2, 1)
-            sage: KRC(columns=[[2,1]]).to_Kirillov_Reshetikhin_tableau()
+            sage: KRC(columns=[[2,1]]).to_kirillov_reshetikhin_tableau()
             [[1], [2]]
             sage: KRC = KirillovReshetikhinCrystal(['D', 4, 1], 2, 1)
-            sage: KRC(rows=[]).to_Kirillov_Reshetikhin_tableau()
+            sage: KRC(rows=[]).to_kirillov_reshetikhin_tableau()
             [[1], [-1]]
         """
-        return self.parent().Kirillov_Reshetikhin_tableaux()(self)
+        return self.parent().kirillov_reshetikhin_tableaux()(self)
 
 KirillovReshetikhinGenericCrystal.Element = KirillovReshetikhinGenericCrystalElement
 

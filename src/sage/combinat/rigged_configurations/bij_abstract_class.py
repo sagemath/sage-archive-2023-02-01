@@ -301,7 +301,7 @@ class RCToKRTBijectionAbstract:
         # This will be deleted when the bijection is completed
         self.rigged_con = RC_element.__copy__()
         self.n = RC_element.parent().cartan_type().classical().rank()
-        self.KRT = RC_element.parent().tensor_product_of_Kirillov_Reshetikhin_tableaux()
+        self.KRT = RC_element.parent().tensor_product_of_kirillov_reshetikhin_tableaux()
 
         # Make a (deep) copy of the dimensions for the bijection
         self.cur_dims = [list(x[:]) for x in self.rigged_con.parent().dims]

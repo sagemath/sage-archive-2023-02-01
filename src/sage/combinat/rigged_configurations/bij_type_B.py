@@ -296,7 +296,7 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
         # Always add a cell to the first singular value in the first
         #   tableau we are updating.
         if len(self.ret_rig_con[pos_val - 1]) > 0:
-            max_width = self.ret_rig_con[pos_val - 1][0]
+            max_width = self.ret_rig_con[pos_val - 1][0] + 1
         else:
             max_width = 0
 
@@ -363,15 +363,16 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
                     p._list[i] += 1 # We always at least add a box to the first singular value
                     p.rigging[i] = None
                     if case_QS:
+                        width_n = p._list[i]
                         break
                     singular_max_width = True
-                elif p._list[i] == max_width + 1:
+                elif p._list[i] == max_width + 1 and not case_QS:
                     # If we can't add 2 boxes, we must be in case (QS)
                     p._list[i] += 1
                     p.rigging[i] = None
                     width_n = max_width
                     case_QS = True
-            elif p.vacancy_numbers[i] - 1 == p.rigging[i] and not case_QS and not singular_max_width and p._list[i] < max_width: # This isn't correct!!!!!
+            elif p.vacancy_numbers[i] - 1 == p.rigging[i] and not case_QS and not singular_max_width and p._list[i] <= max_width:
                 case_QS = True
                 max_width = p._list[i]
                 p._list[i] += 1

@@ -3,8 +3,8 @@ Hyperplane Arrangements
 
 Before talking about hyperplane arrangements, let us start with
 individual hyperplanes. This package uses certain linear expressions
-to represent hyperplanes, that is, a linear expression `3x+3y-5z-7`
-stands for the hyperplane with the equation `x+3y-5z=7`. To create it
+to represent hyperplanes, that is, a linear expression `3x + 3y - 5z - 7`
+stands for the hyperplane with the equation `x + 3y - 5z = 7`. To create it
 in Sage, you first have to create a :class:`HyperplaneArrangements`
 object to define the variables `x`, `y`, `z`::
 
@@ -61,8 +61,7 @@ supported::
     sage: a = H([(1,2,3), 4], [(5,6,7), 8]);  a
     Arrangement <y + 2*z + 3 | x + 2*y + 3*z + 4>
 
-(iii)
-a list or tuple of hyperplanes::
+(iii) a list or tuple of hyperplanes::
 
     sage: H.<x,y,z> = HyperplaneArrangements(GF(5))
     sage: k = [x+i for i in range(4)];  k
@@ -71,8 +70,7 @@ a list or tuple of hyperplanes::
     sage: H(k)
     Arrangement <x | x + 1 | x + 2 | x + 3>
 
-(iv) 
-using the library of arrangements::
+(iv) using the library of arrangements::
 
     sage: hyperplane_arrangements.braid(4)
     Arrangement of 6 hyperplanes of dimension 4 and rank 3
@@ -83,8 +81,7 @@ using the library of arrangements::
     sage: hyperplane_arrangements.Ish(5)
     Arrangement of 20 hyperplanes of dimension 5 and rank 4
 
-(v) 
-from the bounding hyperplanes of a polyhedron::
+(v) from the bounding hyperplanes of a polyhedron::
 
     sage: a = polytopes.n_cube(3).hyperplane_arrangement();  a
     Arrangement of 6 hyperplanes of dimension 3 and rank 3
@@ -132,7 +129,7 @@ fields)::
     Arrangement of 6 hyperplanes of dimension 3 and rank 3
 
 The connected components of the complement of the hyperplanes of an arrangement
-in `\mathbb{R}^n` are called the *regions* of the arrangement::
+in `\RR^n` are called the *regions* of the arrangement::
 
     sage: a = hyperplane_arrangements.semiorder(3)
     sage: b = a.essentialization();   b
@@ -195,9 +192,11 @@ separating them. For example::
     sage: b.distance_enumerator(r1)  # generating function for distances from r1
     6*x^3 + 6*x^2 + 6*x + 1
 
-Note: *bounded region* really mean *relatively bounded* here.  A region is
-relatively bounded if its intersection with space spanned by the normals of the
-hyperplanes in the arrangement is bounded.
+.. NOTE::
+
+    *bounded region* really mean *relatively bounded* here.  A region is
+    relatively bounded if its intersection with space spanned by the normals
+    of the hyperplanes in the arrangement is bounded.
 
 The intersection poset of a hyperplane arrangement is the collection
 of all nonempty intersections of hyperplanes in the arrangement,
@@ -211,10 +210,10 @@ arrangement (as the intersection over the empty set)::
     sage: p.order_polytope()
     A 5-dimensional polyhedron in QQ^5 defined as the convex hull of 10 vertices
 
-The characteristic polynomial is a basic invariant of a hyperplane arrangement.
-It is defined as 
+The characteristic polynomial is a basic invariant of a hyperplane
+arrangement. It is defined as
 
-.. math::
+.. MATH::
 
     \chi(x) := \sum_{w\in P} \mu(w) x^{dim(w)}
 
@@ -301,7 +300,7 @@ arrangements.
 REFERENCES:
 
 ..  [RS] 
-    Stanley, Richard: "Hyperplane Arrangements",
+    Stanley, Richard: *Hyperplane Arrangements*,
     Geometric Combinatorics (E. Miller, V. Reiner, and B. Sturmfels, eds.),
     IAS/Park City Mathematics Series, vol. 13, American Mathematical Society,
     Providence, RI, 2007, pp. 389-496.
@@ -336,25 +335,27 @@ from sage.geometry.hyperplane_arrangement.hyperplane import AmbientVectorSpace, 
 
 
 class HyperplaneArrangementElement(Element):
-    
+    """
+    An element in a hyperplane arrangement.
+
+    .. WARNING::
+
+        You should never create
+        :class:`HyperplaneArrangementElement` instances directly,
+        always use the parent.
+    """
     def __init__(self, parent, hyperplanes, check=True):
         """
         Construct a hyperplane arrangement.
 
-        .. warning::
-
-            You should never create
-            :class:`HyperplaneArrangementElement` instances directly,
-            always use the parent.
-
         INPUT:
 
-        - ``parent`` -- the parent :class:`HyperplaneArrangements`.
-        
-        - ``hyperplanes`` -- a tuple of hyperplanes.
+        - ``parent`` -- the parent :class:`HyperplaneArrangements`
+       
+        - ``hyperplanes`` -- a tuple of hyperplanes
 
-        - ``check`` -- boolean (optional; default ``True``). Whether
-          to check input.
+        - ``check`` -- boolean (optional; default ``True``); whether
+          to check input
 
         EXAMPLES::
 
@@ -375,7 +376,7 @@ class HyperplaneArrangementElement(Element):
 
         INPUT/OUTPUT:
 
-        See :meth:`HyperplaneArrangements._first_ngens`
+        See :meth:`HyperplaneArrangements._first_ngens`.
 
         EXAMPLES::
 
@@ -391,7 +392,7 @@ class HyperplaneArrangementElement(Element):
 
         INPUT:
         
-        - ``i`` -- integer.
+        - ``i`` -- integer
 
         OUTPUT:
 
@@ -415,7 +416,7 @@ class HyperplaneArrangementElement(Element):
 
         OUTPUT:
 
-        Integer.
+        An integer.
 
         EXAMPLES::
 
@@ -436,7 +437,7 @@ class HyperplaneArrangementElement(Element):
 
         OUTPUT:
 
-        Integer.
+        An integer.
 
         EXAMPLES::
 
@@ -458,7 +459,7 @@ class HyperplaneArrangementElement(Element):
 
         OUTPUT:
 
-        String.
+        A string.
 
         EXAMPLES::
 
@@ -480,7 +481,7 @@ class HyperplaneArrangementElement(Element):
 
         OUTPUT:
 
-        Integer.
+        An integer.
         
         EXAMPLES::
 
@@ -498,9 +499,8 @@ class HyperplaneArrangementElement(Element):
 
         OUTPUT:
 
-        Integer. The dimension of the span of the normals to the
+        The dimension of the span of the normals to the
         hyperplanes in the arrangement.
-
 
         EXAMPLES::
 
@@ -532,7 +532,7 @@ class HyperplaneArrangementElement(Element):
 
     def __cmp__(self, other):
         """
-        Compare two hyperplane arrangements
+        Compare two hyperplane arrangements.
 
         EXAMPLES::
 
@@ -549,8 +549,8 @@ class HyperplaneArrangementElement(Element):
 
         INPUT:
 
-        - ``other`` -- A hyperplane arrangement or something that can
-          be converted into a hyperplane arrangement.
+        - ``other`` -- a hyperplane arrangement or something that can
+          be converted into a hyperplane arrangement
 
         OUTPUT:
 
@@ -566,7 +566,8 @@ class HyperplaneArrangementElement(Element):
             sage: A | B   # syntactic sugar
             Arrangement of 8 hyperplanes of dimension 2 and rank 2
 
-        A single hyperplane is coerced into a hyperplane arrangement if necessary::
+        A single hyperplane is coerced into a hyperplane arrangement
+        if necessary::
 
             sage: A.union(x+y-1)
             Arrangement of 6 hyperplanes of dimension 2 and rank 2
@@ -593,7 +594,7 @@ class HyperplaneArrangementElement(Element):
 
         OUTPUT:
 
-        Graphics object.
+        A graphics object.
 
         EXAMPLES::
 
@@ -609,13 +610,13 @@ class HyperplaneArrangementElement(Element):
 
         INPUT:
 
-        - ``variable`` -- string. The name of the additional variable.
+        - ``variable`` -- string; the name of the additional variable
 
         OUTPUT:
 
         A new yperplane arrangement. Its equations consist of
-        `[0,-d,a_1,...,a_n]` for each `[d,a_1,...,a_n]` in the original
-        arrangement and the equation `[0,1,0,...,0]`.
+        `[0, -d, a_1, \ldots, a_n]` for each `[d, a_1, \ldots, a_n]` in the
+        original arrangement and the equation `[0, 1, 0, \ldots, 0]`.
 
         EXAMPLES::
 
@@ -750,13 +751,13 @@ class HyperplaneArrangementElement(Element):
         x = polygen(QQ, 'x')
         if self.rank() == 1:
             return x**(self.dimension() - 1) * (x - len(self))
-        else:
-            H = self[0]
-            R = self.restriction(H)
-            charpoly_R = R.characteristic_polynomial()
-            D = self.deletion(H)
-            charpoly_D = D.characteristic_polynomial()
-            return charpoly_D - charpoly_R
+
+        H = self[0]
+        R = self.restriction(H)
+        charpoly_R = R.characteristic_polynomial()
+        D = self.deletion(H)
+        charpoly_D = D.characteristic_polynomial()
+        return charpoly_D - charpoly_R
 
     @cached_method
     def poincare_polynomial(self):
@@ -785,12 +786,16 @@ class HyperplaneArrangementElement(Element):
 
         INPUT:
 
-        - ``h`` -- a hyperplane or hyperplane arrangement.
+        - ``h`` -- a hyperplane or hyperplane arrangement
 
         OUTPUT:
 
         A new hyperplane arrangement with the given hyperplane(s)
         ``h`` removed.
+
+        .. SEEALSO::
+
+            :meth:`restriction`
 
         EXAMPLES::
 
@@ -815,10 +820,6 @@ class HyperplaneArrangementElement(Element):
             Traceback (most recent call last):
             ...
             ValueError: hyperplane is not in the arrangement
-
-        .. SEEALSO::
-
-            :meth:`restriction`
         """
         parent = self.parent()
         hyperplanes = parent(hyperplanes)
@@ -836,7 +837,7 @@ class HyperplaneArrangementElement(Element):
 
         INPUT:
 
-        - ``hyperplane`` -- a hyperplane of the hyperplane arrangement.
+        - ``hyperplane`` -- a hyperplane of the hyperplane arrangement
 
         OUTPUT:
 
@@ -893,8 +894,8 @@ class HyperplaneArrangementElement(Element):
         
         INPUT:
 
-        - ``base_ring`` -- the new base ring. Must be a field for
-          hyperplane arrangements.
+        - ``base_ring`` -- the new base ring; must be a field for
+          hyperplane arrangements
 
         OUTPUT:
 
@@ -918,7 +919,7 @@ class HyperplaneArrangementElement(Element):
 
         OUTPUT:
 
-        Integer
+        An integer.
 
         EXAMPLES::
 
@@ -948,7 +949,7 @@ class HyperplaneArrangementElement(Element):
 
         OUTPUT:
 
-        Integer. The number of relatively bounded regions of the
+        An integer. The number of relatively bounded regions of the
         hyperplane arrangement.
 
         EXAMPLES::
@@ -976,19 +977,19 @@ class HyperplaneArrangementElement(Element):
         r"""
         Return whether the hyperplane arrangement has good reduction mod `p`.
 
+        Let `A` be a hyperplane arrangement with equations defined
+        over the integers, and let `B` be the hyperplane arrangement
+        defined by reducing these equations modulo a prime `p`.  Then
+        `A` has good reduction modulo `p` if the intersection posets
+        of `A` and `B` are isomorphic.
+
         INPUT:
 
         - ``p`` -- prime number
 
         OUTPUT:
 
-        Boolean. 
-
-        Let `A` be a hyperplane arrangement with equations defined
-        over the integers, and let `B` be the hyperplane arrangement
-        defined by reducing these equations modulo a prime `p`.  Then
-        `A` has good reduction modulo `p` if the intersection posets
-        of `A` and `B` are isomorphic.
+        A boolean.
 
         EXAMPLES::
 
@@ -1019,7 +1020,7 @@ class HyperplaneArrangementElement(Element):
 
         OUTPUT:
 
-        Boolean. Whether all the hyperplanes pass through the origin.
+        A boolean. Whether all the hyperplanes pass through the origin.
 
         EXAMPLES::
 
@@ -1043,15 +1044,16 @@ class HyperplaneArrangementElement(Element):
         r"""
         Test whether the hyperplane arrangement is essential.
 
+        A hyperplane arrangement is essential if the span of the normals
+        of its hyperplanes spans the ambient space.
+
         .. SEEALSO::
 
             :meth:`essentialization`
 
         OUTPUT:
 
-        Boolean. Whethe the hyperplane arrangement is essential. A
-        hyperplane arrangement is essential if the span of the normals
-        of its hyperplanes spans the ambient space.
+        A boolean indicating whether the hyperplane arrangement is essential.
 
         EXAMPLES::
 
@@ -1070,7 +1072,7 @@ class HyperplaneArrangementElement(Element):
 
         OUTPUT:
 
-        Boolean. Whether the hyperplane arrangement is such that the
+        A boolean whether the hyperplane arrangement is such that the
         intersection of all the hyperplanes in the arrangement is
         nonempty.
 
@@ -1094,14 +1096,13 @@ class HyperplaneArrangementElement(Element):
         r"""
         Return the essentialization of the hyperplane arrangement.
 
-        See the documentation for :meth:`essentialization`.
+        The essentialization of a hyperplane arrangement whose base field
+        has characteristic 0 is obtained by intersecting the hyperplanes by
+        the space spanned by their normal vectors.
 
         OUTPUT:
 
-        THe essentialization as a new hyperplane arrangement. If the
-        characteristic of the base field is 0, this returns the
-        hyperplane arrangement obtained by intersecting the
-        hyperplanes by the space spanned by their normal vectors.
+        The essentialization as a new hyperplane arrangement.
 
         EXAMPLES::
 
@@ -1188,13 +1189,14 @@ class HyperplaneArrangementElement(Element):
 
     def sign_vector(self, p):
         r"""
-        Sign_vector indicates on which side of each hyperplane the given point `p` lies.
+        Indicates on which side of each hyperplane the given
+        point `p` lies.
 
         The base field must have characteristic zero.
 
         INPUT:
 
-        - ``p`` -- point as a list/tuple/iterable.
+        - ``p`` -- point as a list/tuple/iterable
 
         OUTPUT:
 
@@ -1298,10 +1300,9 @@ class HyperplaneArrangementElement(Element):
             b = hyperplane.b() * (A / hyperplane.A())
             parallel_planes.append([b, (hyperplane, A, b)])
             parallels[through_origin] = parallel_planes
-        parallels = sorted([
-            tuple(tuple(hyperplane[1]
-                for hyperplane in sorted(parallels[key])))
-            for key in parallels.keys()])
+        parallels = [tuple(tuple(hyperplane[1]
+                           for hyperplane in sorted(parallels[key])))
+                     for key in parallels.keys()]
         return tuple(sorted(parallels))
 
     def vertices(self, exclude_sandwiched=False):
@@ -1323,7 +1324,7 @@ class HyperplaneArrangementElement(Element):
         The vertices in a sorted tuple. Each vertex is returned as a
         vector in the ambient vector space.
         
-        EXAMPLES:
+        EXAMPLES::
 
             sage: A = hyperplane_arrangements.Shi(3).essentialization()
             sage: A.dimension()
@@ -1356,8 +1357,7 @@ class HyperplaneArrangementElement(Element):
             def skip(b_list):
                 if len(b_list) == 1:
                     return b_list
-                else:
-                    return [b_list[0], b_list[-1]]
+                return [b_list[0], b_list[-1]]
             b_list_list = map(skip, b_list_list)
         M = Matroid(groundset=range(len(parallels)), matrix=matrix(A_list).transpose())
         d = self.dimension()
@@ -1379,15 +1379,16 @@ class HyperplaneArrangementElement(Element):
 
     def _make_region(self, hyperplanes):
         """
-        Helper method to construct a region
+        Helper method to construct a region.
 
         INPUT:
 
-        - ``hyperplanes`` -- a list/tuple/iterable of hyperplanes.
+        - ``hyperplanes`` -- a list/tuple/iterable of hyperplanes
 
         OUTPUT:
 
-        The polyhedron constructed from taking the linear expressions as inequalities.
+        The polyhedron constructed from taking the linear expressions
+        as inequalities.
         
         EXAMPLES::
 
@@ -1413,7 +1414,7 @@ class HyperplaneArrangementElement(Element):
         A tuple containing the regions as polyhedra.
 
         The regions are the connected components of the complement of
-        the union of the hyperplanes as a subset of `\mathbb{R}^n`.
+        the union of the hyperplanes as a subset of `\RR^n`.
 
         EXAMPLES::
 
@@ -1529,11 +1530,9 @@ class HyperplaneArrangementElement(Element):
         normal = Polyhedron(vertices=[[0]*self.dimension()], 
                             lines=[hyperplane.normal() for hyperplane in self])
         if normal.dim() == 0:
-            def transverse(poly):
-                return poly
+            transverse = lambda poly: poly
         else:
-            def transverse(poly):
-                return poly.intersection(normal)
+            transverse = lambda poly: poly.intersection(normal)
         return tuple(i for i, region in enumerate(self.regions())
                      if transverse(region).is_compact())
 
@@ -1541,14 +1540,20 @@ class HyperplaneArrangementElement(Element):
         r"""
         Return the relatively bounded regions of the arrangement.
 
+        A region is relatively bounded if its intersection with the space
+        spanned by the normals to the hyperplanes is bounded. This is the
+        same as being bounded in the case that the hyperplane arrangement
+        is essential. It is assumed that the arrangement is defined over
+        the rationals.
+
         OUTPUT:
 
         Tuple of polyhedra. The relatively bounded regions of the
-        arrangement.  A region is relatively bounded if its
-        intersection with the space spanned by the normals to the
-        hyperplanes is bounded.  This is the same as being bounded in
-        the case that the hyperplane arrangement is essential.  It is
-        assumed that the arrangement is defined over the rationals.
+        arrangement.
+
+        .. SEEALSO::
+
+            :meth:`unbounded_regions`
 
         EXAMPLES::
 
@@ -1565,10 +1570,6 @@ class HyperplaneArrangementElement(Element):
             False
             sage: A.is_essential()
             False
-
-        .. SEEALSO::
-
-            :meth:`unbounded_regions`
         """
         return tuple(self.regions()[i] for i in self._bounded_region_indices())
 
@@ -1581,6 +1582,10 @@ class HyperplaneArrangementElement(Element):
         Tuple of polyhedra. The regions of the arrangement that are not
         relatively bounded.  It is assumed that the arrangement is
         defined over the rationals.
+
+        .. SEEALSO::
+
+            :meth:`bounded_regions`
 
         EXAMPLES::
 
@@ -1601,10 +1606,6 @@ class HyperplaneArrangementElement(Element):
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays)
-
-        .. SEEALSO::
-
-            :meth:`bounded_regions`
         """
         s = set(range(self.n_regions())).difference(set(self._bounded_region_indices()))
         return tuple(self.regions()[i] for i in s)
@@ -1616,7 +1617,7 @@ class HyperplaneArrangementElement(Element):
 
         .. SEEALSO::
 
-            :meth:`whitney_number`
+            :meth:`whitney_number`,
             :meth:`doubly_indexed_whitney_number`
 
         OUTPUT:
@@ -1665,11 +1666,16 @@ class HyperplaneArrangementElement(Element):
 
         - ``i``, ``j`` -- integers
 
-        - ``kind`` -- 1 or 2 (default: 1)
+        - ``kind`` -- (default: 1) 1 or 2
 
         OUTPUT:
 
         Integer. The `(i,j)`-th entry of the ``kind`` Whitney number.
+
+        .. SEEALSO::
+
+            :meth:`whitney_number`,
+            :meth:`whitney_data`
 
         EXAMPLES::
 
@@ -1689,11 +1695,6 @@ class HyperplaneArrangementElement(Element):
             Graphs"
             Transactions of the American Mathematical Society, Vol. 280, No. 1.
             (Nov., 1983), pp. 97-126.
-
-        .. SEEALSO::
-
-            :meth:`whitney_number`,
-            :meth:`whitney_data`
         """
         if 0 <= i and j <= self.dimension():
             if kind == 1:
@@ -1726,6 +1727,11 @@ class HyperplaneArrangementElement(Element):
 
         Integer. The ``k``-th Whitney number.
 
+        .. SEEALSO::
+
+            :meth:`doubly_indexed_whitney_number`
+            :meth:`whitney_data`
+
         EXAMPLES::
 
             sage: A = hyperplane_arrangements.Shi(3)
@@ -1743,11 +1749,6 @@ class HyperplaneArrangementElement(Element):
             sage: r = p.rank_function()
             sage: len([i for i in p if r(i) == 1])
             6
-
-        .. SEEALSO::
-
-            :meth:`doubly_indexed_whitney_number`
-            :meth:`whitney_data`
         """
         if k >= 0 and k <= self.dimension():
             if kind == 1:
@@ -1763,14 +1764,14 @@ class HyperplaneArrangementElement(Element):
         INPUT:
 
         - ``region1``, ``region2`` -- polyhedra or list/tuple/iterable
-          of coordinates.  Regions of the arrangement or an interior
-          point of a region. In the 
-        
-        - ``hyp`` -- hyperplane
+          of coordinates which are regions of the arrangement or an interior
+          point of a region
+
+        - ``hyperplane`` -- a hyperplane
 
         OUTPUT:
 
-        Boolean. Whether the hyperplane ``hyp`` separate the given
+        A boolean. Whether the hyperplane ``hyperplane`` separate the given
         regions.
 
         EXAMPLES::
@@ -1799,10 +1800,9 @@ class HyperplaneArrangementElement(Element):
         s = sign(hyperplane(p1)) * sign(hyperplane(p2))
         if s < 0:
             return True
-        elif s > 0:
+        if s > 0:
             return False
-        else:
-            raise ValueError('point lies on hyperplane')
+        raise ValueError('point lies on hyperplane')
 
     def distance_between_regions(self, region1, region2):
         r"""
@@ -1815,7 +1815,7 @@ class HyperplaneArrangementElement(Element):
 
         OUTPUT:
 
-        Integer. The number of hyperplanes separating the two regions.
+        An integer. The number of hyperplanes separating the two regions.
 
         EXAMPLES::
 
@@ -1864,9 +1864,9 @@ class HyperplaneArrangementElement(Element):
         r"""
         Return the Varchenko matrix of the arrangement.
 
-        Let `H_1, ..., H_s` and `R_1, ..., R_t` denote the hyperplanes
+        Let `H_1, \ldots, H_s` and `R_1, \ldots, R_t` denote the hyperplanes
         and regions, respectively, of the arrangement.  Let `S =
-        QQ[h_1,...,h_s]`, a polynomial ring with indeterminate `h_i`
+        \QQ[h_1, \ldots, h_s]`, a polynomial ring with indeterminate `h_i`
         corresponding to hyperplane `H_i`.  The Varchenko matrix is
         the `t \times t` matrix with `i,j`-th entry the product of
         those `h_k` such that `H_k` separates `R_i` and `R_j`.
@@ -1909,28 +1909,30 @@ class HyperplaneArrangementElement(Element):
 
 
 class HyperplaneArrangements(Parent, UniqueRepresentation):
+    """
+    Hyperplane arrangements
+
+    INPUT:
+
+    - ``base_ring`` -- ring; the base ring
+
+    - ``names`` -- tuple of strings; the variable names
+
+    EXAMPLES::
     
+        sage: H.<x,y> = HyperplaneArrangements(QQ)
+        sage: x
+        Hyperplane x + 0*y + 0
+        sage: x + y
+        Hyperplane x + y + 0
+        sage: H(x, y, x-1, y-1)
+        Arrangement <y - 1 | y | x - 1 | x>
+    """
     Element = HyperplaneArrangementElement
 
     def __init__(self, base_ring, names=tuple()):
         """
-        Hyperplane arrangements
-
-        INPUT:
-
-        - ``base_ring`` -- ring. The base ring.
-
-        - ``names`` -- tuple of strings. The variable names.
-
-        EXAMPLES::
-        
-            sage: H.<x,y> = HyperplaneArrangements(QQ)
-            sage: x
-            Hyperplane x + 0*y + 0
-            sage: x + y
-            Hyperplane x + y + 0
-            sage: H(x, y, x-1, y-1)
-            Arrangement <y - 1 | y | x - 1 | x>
+        Initialize ``self``.
 
         TESTS::
           
@@ -1971,7 +1973,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
 
         INPUT:
 
-        - ``base_ring`` -- a ring. The new base ring.
+        - ``base_ring`` -- a ring; the new base ring.
 
         OUTPUT:
         
@@ -2018,7 +2020,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
 
         OUTPUT:
 
-        String.
+        A string.
 
         EXAMPLES::
 
@@ -2029,23 +2031,24 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
 
     def _element_constructor_(self, *args, **kwds):
         """
+        Construct an element of ``self``.
+
         INPUT:
 
         - ``*args`` -- positional arguments, each defining a
-          hyperplane. Alternatively, a single polytope or a single
-          hyperplane arrangement.
+          hyperplane; alternatively, a single polytope or a single
+          hyperplane arrangement
 
-        - ``signed`` -- boolean keyword argument (optional, default:
-          ``True``). Whether to preserve signs of hyperplane
-          equations.
+        - ``signed`` -- boolean (optional, default: ``True``); whether to
+          preserve signs of hyperplane equations
 
-        - ``warn_duplicates`` -- boolean keyword argument (optional,
-          default: ``False``). Whether to issue a warning if duplicate
-          hyperplanes were passed. Note that duplicate hyperplanes are
-          always removed, whether or not there is a warning shown.
+        - ``warn_duplicates`` -- boolean (optional, default: ``False``);
+          whether to issue a warning if duplicate hyperplanes were
+          passed -- note that duplicate hyperplanes are always removed,
+          whether or not there is a warning shown
 
-        - ``check`` -- boolean keyword argument (optional, default:
-          ``True``). Whether to perform argument checking.
+        - ``check`` -- boolean (optional, default: ``True``); whether to
+          perform argument checking.
 
         EXAMPLES::
 
@@ -2111,11 +2114,11 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
     @cached_method
     def ngens(self):
         """
-        Return the number of linear variables
+        Return the number of linear variables.
 
         OUTPUT:
-        
-        Integer.
+
+        An integer.
 
         EXAMPLES::
 
@@ -2129,7 +2132,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
     @cached_method
     def gens(self):
         """
-        Return the coordinate hyperplanes
+        Return the coordinate hyperplanes.
         
         OUTPUT:
 
@@ -2147,11 +2150,11 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
 
     def gen(self, i):
         """
-        Return the `i`-th coordinate hyperplane
+        Return the `i`-th coordinate hyperplane.
 
         INPUT:
 
-        - ``i`` -- integer.
+        - ``i`` -- integer
 
         OUTPUT:
 

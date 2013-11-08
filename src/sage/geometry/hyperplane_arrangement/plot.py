@@ -3,7 +3,7 @@ Plotting of Hyperplane Arrangements
 
 PLOT OPTIONS::
 
-Beside the usual plot options (enter plot?), the plot command for
+Beside the usual plot options (enter ``plot?``), the plot command for
 hyperplane arrangements includes the following:
 
 - ``hyperplane_colors`` -- Color or list of colors, one for each
@@ -36,10 +36,10 @@ hyperplane arrangements includes the following:
   the default, long, or short labeling, respectively. (For
   arrangements of lines or planes, only.)
 
-- ``hyperplane_opacities`` -- a number or list of numbers, one for each
+- ``hyperplane_opacities`` -- A number or list of numbers, one for each
   hyperplane, between 0 and 1.  Only applies to 3d plots.
 
-- ``point_sizes`` -- number or list of numbers, one for each hyperplane
+- ``point_sizes`` -- Number or list of numbers, one for each hyperplane
   giving the sizes of points in a zero-dimensional arrangement
   (default: ``50``).
 
@@ -110,7 +110,7 @@ def plot(hyperplane_arrangement, **kwds):
     If the arrangement is in 4 dimensions but inessential, a plot of
     the essentialization is returned.
 
-    .. note::
+    .. NOTE::
 
         This function is available as the
         :meth:`~sage.geometry.hyperplane_arrangement.arrangement.HyperplaneArrangementElement.plot`
@@ -119,13 +119,14 @@ def plot(hyperplane_arrangement, **kwds):
 
     INPUT:
 
-    - ``hyperplane_arrangement`` -- the hyperplane arrangement to plot.
+    - ``hyperplane_arrangement`` -- the hyperplane arrangement to plot
 
-    - **kwds -- plot options: see the module documentation.
+    - ``**kwds`` -- plot options: see
+      :mod:`sage.geometry.hyperplane_arrangement.plot`.
 
     OUTPUT:
     
-    Graphics.
+    A graphics object of the plot.
 
     EXAMPLES::
 
@@ -273,44 +274,45 @@ def plot(hyperplane_arrangement, **kwds):
 
 def plot_hyperplane(hyperplane, **kwds):
     r"""
-    Returns the plot of a single hyperplane.
+    Return the plot of a single hyperplane.
 
     INPUT:
 
-    - **kwds -- plot options: see below
+    - ``**kwds`` -- plot options: see below
 
     OUTPUT:
 
-    - Graphics
+    A graphics object of the plot.
 
-    PLOT OPTIONS::
+    .. RUBRIC:: Plot Options
 
-        Beside the usual plot options (enter plot?), the plot command for
-        hyperplanes includes the following:
+    Beside the usual plot options (enter ``plot?``), the plot command for
+    hyperplanes includes the following:
 
-        - hyperplane_label -- Boolean value or string (default: ``True``).
-          If ``True``, the hyperplane is labeled with its equation, if a
-          string, it is labeled by that string, if ``False``, it is not
-          labeled.
+    - ``hyperplane_label`` -- Boolean value or string (default: ``True``).
+      If ``True``, the hyperplane is labeled with its equation, if a
+      string, it is labeled by that string, otherwise it is not
+      labeled.
 
-        - label_color -- Color for hyperplane_label (default: black).
+    - ``label_color`` -- (Default: ``'black'``) Color for hyperplane_label.
 
-        - label_fontsize -- Size for hyperplane_label font (default: 14).
-          (Does not work in 3d, yet.)
+    - ``label_fontsize`` -- Size for ``hyperplane_label`` font (default: 14)
+      (does not work in 3d, yet).
 
-        - label_offset -- Amount by which label is offset from hyperplane.point()
-          (default: 0-dim: 0.1, 1-dim: (0,1), 2-dim: (0,0,0.2))
+    - ``label_offset`` -- (Default: 0-dim: 0.1, 1-dim: (0,1),
+      2-dim: (0,0,0.2)) Amount by which label is offset from
+      ``hyperplane.point()``.
 
-        - point_size -- Size of points in a zero-dimensional arrangement or
-          of an arrangement over a finite field (default: 50).
+    - ``point_size`` -- (Default: 50) Size of points in a zero-dimensional
+      arrangement or of an arrangement over a finite field.
 
-        - ranges -- Range for the parameters for the parametric plot of the
-          hyperplane. If a single positive number ``r`` is given for the
-          value of ``ranges``, then the ranges for all parameters are set to
-          [-r,r].  Otherwise, for a line in the plane, ``ranges`` has the
-          form [a,b] (default: [-3,3]), and for a plane in 3-space, the
-          ``ranges`` has the form [[a,b],[c,d]] (default: [[-3,3],[-3,3]]).
-          (The ranges are centered around hyperplane.point().)
+    - ``ranges`` -- Range for the parameters for the parametric plot of the
+      hyperplane. If a single positive number ``r`` is given for the
+      value of ``ranges``, then the ranges for all parameters are set to
+      `[-r, r]`.  Otherwise, for a line in the plane, ``ranges`` has the
+      form ``[a, b]`` (default: [-3,3]), and for a plane in 3-space, the
+      ``ranges`` has the form ``[[a, b], [c, d]]`` (default: [[-3,3],[-3,3]]).
+      (The ranges are centered around ``hyperplane.point()``.)
 
     EXAMPLES::
 
@@ -327,7 +329,6 @@ def plot_hyperplane(hyperplane, **kwds):
         sage: opts = {'hyperplane_label':True, 'label_color':'green',
         ....:         'label_fontsize':24, 'label_offset':(0,1.5)}
         sage: b.plot(**opts)
-
 
         sage: H3.<x,y,z> = HyperplaneArrangements(QQ)
         sage: c = 2*x + 3*y + 4*z + 5
@@ -449,8 +450,6 @@ def plot_hyperplane(hyperplane, **kwds):
 
 
 
-
-
 def legend_3d(hyperplane_arrangement, hyperplane_colors, length):
     r"""
     Create plot of a 3d legend for an arrangement of planes in 3-space.  The
@@ -463,11 +462,11 @@ def legend_3d(hyperplane_arrangement, hyperplane_colors, length):
     
     - ``hyperplane_colors`` -- list of colors
 
-    - ``length`` -- 'short' or 'long'
+    - ``length`` -- either ``'short'`` or ``'long'``
 
     OUTPUT:
 
-    - Graphics
+    - A graphics object.
 
     EXAMPLES::
 
@@ -494,7 +493,7 @@ def legend_3d(hyperplane_arrangement, hyperplane_colors, length):
         labels = ['  ' + str(i) for i in range(N)]
     else:
         labels = ['  ' + hyps[i]._repr_linear(include_zero=False) for i in
-                range(N)]
+                  range(N)]
     p = Graphics()
     for i in range(N):
         p += line([(0,0),(0,0)], color=hyperplane_colors[i], thickness=8,
@@ -503,3 +502,4 @@ def legend_3d(hyperplane_arrangement, hyperplane_colors, length):
             fancybox=True, font_size='x-large', ncol=2)
     p.legend(True)
     return p
+

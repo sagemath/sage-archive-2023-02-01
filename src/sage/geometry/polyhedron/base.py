@@ -1915,7 +1915,7 @@ class Polyhedron_base(Element):
         full-dimensional, the point is in the relative interior. If
         the polyhedron is zero-dimensional, its single point is
         returned.
-        
+
         EXAMPLES::
 
             sage: p = Polyhedron(vertices=[(3,2)], rays=[(1,-1)])
@@ -2062,9 +2062,9 @@ class Polyhedron_base(Element):
         A :class:`hyperplane arrangement
         <sage.geometry.hyperplane_arrangement.arrangement.HyperplaneArrangementElement>`
         consisting of the hyperplanes defined by the
-        :meth:`Hrepresentation`. If the polytope is full-dimensional,
-        this is the hyperplane arrangement spanned by the facets of
-        the polyhedron.
+        :meth:`~sage.geometric.hyperplane_arragement.arrangement.HyperplaneArrangementElement.Hrepresentation`. 
+        If the polytope is full-dimensional, this is the hyperplane
+        arrangement spanned by the facets of the polyhedron.
 
         EXAMPLES::
 

@@ -1,7 +1,7 @@
 r"""
 Hyperplanes
 
-.. note::
+.. NOTE::
 
     If you want to learn about Sage's hyperplane arrangements then you
     should start with
@@ -62,11 +62,11 @@ for Sage's :func:`~sage.geometry.polyhedron.constructor.Polyhedron` ::
     (An inequality (1, 2, 3) x + 4 >= 0,)
 
 The difference between hyperplanes as implemented in this module and
-hyperplane arrangements is that
+hyperplane arrangements is that:
 
-* Hyperplane arrangements contain multiple hyperplanes (of course)
+* hyperplane arrangements contain multiple hyperplanes (of course),
 
-* Linear expressions are a module over the base ring, and these module
+* linear expressions are a module over the base ring, and these module
   structure is inherited by the hyperplanes.
 
 The latter means that you can add and multiply by a scalar::
@@ -112,46 +112,49 @@ from sage.geometry.linear_expression import LinearExpression, LinearExpressionMo
 
 
 class Hyperplane(LinearExpression):
-    
+    """
+    A Hyperplane.
+
+    You shoud always use :class:`AmbientVectorSpace` to construct
+    instances of this class.
+
+    INPUT:
+
+    - ``parent`` -- the parent :class:`AmbientVectorSpace`
+
+    - ``coefficients`` -- a vector of coefficients of the linear variables
+
+    - ``constant`` -- the constant term for the linear expression
+
+    EXAMPLES::
+
+        sage: H.<x,y> = HyperplaneArrangements(QQ)
+        sage: x+y-1
+        Hyperplane x + y - 1
+
+        sage: ambient = H.ambient_space()
+        sage: ambient._element_constructor_(x+y-1)   
+        Hyperplane x + y - 1
+
+    For technical reasons, we must allow the degenerate cases of
+    an empty empty and full space::
+
+        sage: 0*x
+        Hyperplane 0*x + 0*y + 0
+        sage: 0*x + 1
+        Hyperplane 0*x + 0*y + 1
+        sage: x + 0 == x + ambient(0)    # because coercion requires them
+        True
+    """
     def __init__(self, parent, coefficients, constant):
         """
-        A Hyperplane
-
-        You shoud always use :class:`AmbientVectorSpace` to construct
-        instances of this class.
-
-        INPUT:
-
-        - ``parent`` -- the parent :class:`AmbientVectorSpace`
-
-        - ``coefficients`` -- a vector of coefficients of the linear variables.
-
-        - ``constant`` -- the constant term for the linear expression.
-
-        EXAMPLES::
-
-            sage: H.<x,y> = HyperplaneArrangements(QQ)
-            sage: x+y-1
-            Hyperplane x + y - 1
-
-            sage: ambient = H.ambient_space()
-            sage: ambient._element_constructor_(x+y-1)   
-            Hyperplane x + y - 1
-
-        For technical reasons, we must allow the degenerate cases of
-        an empty empty and full space::
-
-            sage: 0*x
-            Hyperplane 0*x + 0*y + 0
-            sage: 0*x + 1
-            Hyperplane 0*x + 0*y + 1
-            sage: x + 0 == x + ambient(0)    # because coercion requires them
-            True
 
         TESTS::
 
+            sage: H.<x,y> = HyperplaneArrangements(QQ)
             sage: x.change_ring(RR)
             Hyperplane 1.00000000000000*x + 0.000000000000000*y + 0.000000000000000
+            sage: TestSuite(x+y-1).run()
         """
         super(Hyperplane, self).__init__(parent, coefficients, constant)
 
@@ -161,7 +164,7 @@ class Hyperplane(LinearExpression):
 
         OUTPUT:
 
-        String.
+        A string.
 
         EXAMPLES::
 
@@ -177,7 +180,7 @@ class Hyperplane(LinearExpression):
 
         OUTPUT:
 
-        String.
+        A string.
 
         EXAMPLES::
 
@@ -223,7 +226,7 @@ class Hyperplane(LinearExpression):
 
         OUTPUT:
 
-        Integer. The index of the largest entry.
+        An integer. The index of the largest entry.
 
         EXAMPLES::
 
@@ -260,7 +263,7 @@ class Hyperplane(LinearExpression):
 
         OUTPUT:
 
-        Boolean
+        A boolean.
 
         EXAMPLES::
 
@@ -278,7 +281,7 @@ class Hyperplane(LinearExpression):
     @cached_method
     def polyhedron(self):
         """
-        Return the hyperplane as a polyhedron
+        Return the hyperplane as a polyhedron.
 
         OUTPUT:
 
@@ -332,8 +335,8 @@ class Hyperplane(LinearExpression):
         INPUT:
 
         - ``point`` -- vector of the ambient space, or anything that
-          can be converted into one. Not necessarily on the
-          hyperplane.
+          can be converted into one; not necessarily on the
+          hyperplane
 
         OUTPUT:
 
@@ -369,7 +372,7 @@ class Hyperplane(LinearExpression):
     @cached_method
     def point(self):
         """
-        Return the point closest to the origin
+        Return the point closest to the origin.
         
         OUTPUT:
 
@@ -414,11 +417,11 @@ class Hyperplane(LinearExpression):
 
     def dimension(self):
         r"""
-        The dimension of the hyperplane
+        The dimension of the hyperplane.
 
         OUTPUT:
 
-        Integer
+        An integer.
 
         EXAMPLES::
 
@@ -436,11 +439,11 @@ class Hyperplane(LinearExpression):
         INPUT:
 
         - ``other`` -- a hyperplane, a polyhedron, or something that
-          defines a polyhedron.
+          defines a polyhedron
 
         OUTPUT:
 
-        Polyhedron.
+        A polyhedron.
 
         EXAMPLES::
 
@@ -462,13 +465,13 @@ class Hyperplane(LinearExpression):
 
     def orthogonal_projection(self, point):
         """
-        Return the orthogonal projection of a point
+        Return the orthogonal projection of a point.
 
         INPUT:
 
         - ``point`` -- vector of the ambient space, or anything that
-          can be converted into one. Not necessarily on the
-          hyperplane.
+          can be converted into one; not necessarily on the
+          hyperplane
 
         OUTPUT:
 
@@ -509,8 +512,8 @@ class Hyperplane(LinearExpression):
 
         INPUT:
 
-        - ``signed`` -- boolean (optional, default: ``True``). Whether
-          to preserve the overall sign.
+        - ``signed`` -- boolean (optional, default: ``True``); whether
+          to preserve the overall sign
 
         OUTPUT:
 
@@ -569,7 +572,7 @@ class Hyperplane(LinearExpression):
         OUTPUT:
 
         The hyperplane as a
-        :class:`~sage.geometry.hyperplane_arrangement.affine_subspace.AffineSubspace`
+        :class:`~sage.geometry.hyperplane_arrangement.affine_subspace.AffineSubspace`.
 
         EXAMPLES::
 
@@ -644,11 +647,11 @@ class AmbientVectorSpace(LinearExpressionModule):
 
     def _repr_(self):
         """
-        Return a string representation
-        
+        Return a string representation.
+
         OUTPUT:
 
-        String.
+        A string.
 
         EXAMPLES::
 
@@ -668,7 +671,7 @@ class AmbientVectorSpace(LinearExpressionModule):
 
         OUTPUT:
 
-        Integer.
+        An integer.
 
         EXAMPLES::
 
@@ -688,7 +691,7 @@ class AmbientVectorSpace(LinearExpressionModule):
 
         INPUT:
 
-        - ``base_ring`` -- a ring. The new base ring.
+        - ``base_ring`` -- a ring; the new base ring
 
         OUTPUT:
         
@@ -707,4 +710,4 @@ class AmbientVectorSpace(LinearExpressionModule):
             True
         """
         return AmbientVectorSpace(base_ring, self._names)
-        
+

@@ -54,12 +54,12 @@ def make_parent(base_ring, dimension, names=None):
 
     INPUT:
 
-    - ``base_ring`` -- a ring.
+    - ``base_ring`` -- a ring
 
-    - ``dimenison`` -- integer.
+    - ``dimenison`` -- integer
 
     - ``names`` -- ``None`` (default) or a list/tuple/iterable of
-      strings.
+      strings
 
     OUTPUT:
 
@@ -85,10 +85,13 @@ def make_parent(base_ring, dimension, names=None):
 
 
 class HyperplaneArrangementLibrary(object):
+    """
+    The library of hyperplane arrangements.
+    """
 
     def braid(self, n, K=QQ, names=None):
         r"""
-        The braid arrangement
+        The braid arrangement.
 
         INPUT:
 
@@ -96,13 +99,13 @@ class HyperplaneArrangementLibrary(object):
 
         - ``K`` -- field (default: ``QQ``)
 
-        - ``names`` -- tuple of strings or ``None`` (default). The
-          variable names for the ambient space.
+        - ``names`` -- tuple of strings or ``None`` (default); the
+          variable names for the ambient space
 
         OUTPUT:
 
         The hyperplane arrangement consisting of the `n(n-1)/2`
-        hyperplanes `\{ x_i - x_j = 0 : 1\leq i \leq j\leq n\}`.
+        hyperplanes `\{ x_i - x_j = 0 : 1 \leq i \leq j \leq n \}`.
 
         EXAMPLES::
 
@@ -121,15 +124,15 @@ class HyperplaneArrangementLibrary(object):
 
         INPUT:
 
-        - ``G`` -- Graph
+        - ``G`` -- graph
 
         - ``A`` -- list, matrix, dictionary (default: ``None``
-          gives semiorder), or the string 'generic'.
+          gives semiorder), or the string 'generic'
 
         - ``K`` -- field (default: `\QQ`)
 
-        - ``names`` -- tuple of strings or ``None`` (default). The
-          variable names for the ambient space.
+        - ``names`` -- tuple of strings or ``None`` (default); the
+          variable names for the ambient space
 
         OUTPUT:
 
@@ -156,8 +159,8 @@ class HyperplaneArrangementLibrary(object):
 
         REFERENCES:
 
-        ..  [BigraphicalArrangements] S. Hopkins, D. Perkinson
-            "Bigraphical Arrangements"
+        ..  [BigraphicalArrangements] S. Hopkins, D. Perkinson.
+            "Bigraphical Arrangements".
             :arxiv:`1212.4398`
         """
         n = G.num_verts()
@@ -186,13 +189,13 @@ class HyperplaneArrangementLibrary(object):
 
         - ``K`` -- field (default: `\QQ`)
 
-        - ``names`` -- tuple of strings or ``None`` (default). The
-          variable names for the ambient space.
+        - ``names`` -- tuple of strings or ``None`` (default); the
+          variable names for the ambient space
 
         OUTPUT:
 
         The arrangement of `3n(n-1)/2` hyperplanes `\{ x_i - x_j =
-        -1,0,1 : 1\leq i \leq j\leq n\}`.
+        -1,0,1 : 1 \leq i \leq j \leq n \}`.
 
         EXAMPLES::
 
@@ -229,16 +232,16 @@ class HyperplaneArrangementLibrary(object):
 
         - ``n`` -- integer
 
-        - ``K`` -- field (default:``QQ``)
+        - ``K`` -- field (default: `\QQ`)
 
-        - ``names`` -- tuple of strings or ``None`` (default). The
-          variable names for the ambient space.
+        - ``names`` -- tuple of strings or ``None`` (default); the
+          variable names for the ambient space
 
         OUTPUT:
 
         The coordinate hyperplane arrangement, which is the central
         hyperplane arrangement consisting of the coordinate
-        hyperplanes `x_i=0`.
+        hyperplanes `x_i = 0`.
 
         EXAMPLES::
 
@@ -257,15 +260,15 @@ class HyperplaneArrangementLibrary(object):
 
         - ``G`` -- graph
 
-        - ``K`` -- field (default:``QQ``)
+        - ``K`` -- field (default: `\QQ`)
 
-        - ``names`` -- tuple of strings or ``None`` (default). The
-          variable names for the ambient space.
+        - ``names`` -- tuple of strings or ``None`` (default); the
+          variable names for the ambient space
 
         OUTPUT:
 
         The semiorder hyperplane arrangement of a graph G is the
-        arrangement `\{ x_i - x_j = -1,1\}` where `ij` is an edge of
+        arrangement `\{ x_i - x_j = -1,1 \}` where `ij` is an edge of
         ``G``.
 
         EXAMPLES::
@@ -296,10 +299,10 @@ class HyperplaneArrangementLibrary(object):
 
         - ``G`` -- graph
 
-        - ``K`` -- field (default:``QQ``)
+        - ``K`` -- field (default: `\QQ`)
 
-        - ``names`` -- tuple of strings or ``None`` (default). The
-          variable names for the ambient space.
+        - ``names`` -- tuple of strings or ``None`` (default); the
+          variable names for the ambient space
 
         OUTPUT:
 
@@ -329,21 +332,21 @@ class HyperplaneArrangementLibrary(object):
 
     def graphical(self, G, K=QQ, names=None):
         r"""
-        Return the graphical hyperplane arrangement of a graph G.
+        Return the graphical hyperplane arrangement of a graph ``G``.
 
         INPUT:
 
         - ``G`` -- graph
 
-        - ``K`` -- field (default:``QQ``)
+        - ``K`` -- field (default: `\QQ`)
 
-        - ``names`` -- tuple of strings or ``None`` (default). The
-          variable names for the ambient space.
+        - ``names`` -- tuple of strings or ``None`` (default); the
+          variable names for the ambient space
 
         OUTPUT:
 
         The graphical hyperplane arrangement of a graph G, which is
-        the arrangement `\{ x_i - x_j = 0\}` for all edges `ij` of the
+        the arrangement `\{ x_i - x_j = 0 \}` for all edges `ij` of the
         graph ``G``.
 
         EXAMPLES::
@@ -387,18 +390,18 @@ class HyperplaneArrangementLibrary(object):
 
         - ``K`` -- field (default:``QQ``)
 
-        - ``names`` -- tuple of strings or ``None`` (default). The
-          variable names for the ambient space.
+        - ``names`` -- tuple of strings or ``None`` (default); the
+          variable names for the ambient space
 
         OUTPUT:
 
-        The Ish arrangement, which is the set of `n(n-1)` hyperplanes
+        The Ish arrangement, which is the set of `n(n-1)` hyperplanes.
 
-        .. math::
+        .. MATH::
 
-            \{ x_i - x_j = 0 : 1\leq i \leq j\leq n\} 
+            \{ x_i - x_j = 0 : 1 \leq i \leq j \leq n \} 
             \cup 
-            \{x_1 - x_j = i : 1\leq i \leq j\leq n\}.
+            \{ x_1 - x_j = i : 1 \leq i \leq j \leq n \}.
 
         EXAMPLES::
 
@@ -444,10 +447,10 @@ class HyperplaneArrangementLibrary(object):
 
         - ``n`` -- integer
 
-        - ``K`` -- field (default:``QQ``)
+        - ``K`` -- field (default: `\QQ`)
 
-        - ``names`` -- tuple of strings or ``None`` (default). The
-          variable names for the ambient space.
+        - ``names`` -- tuple of strings or ``None`` (default); the
+          variable names for the ambient space
 
         OUTPUT:
 
@@ -490,15 +493,15 @@ class HyperplaneArrangementLibrary(object):
 
         - ``n`` -- integer
 
-        - ``K`` -- field (default:``QQ``)
+        - ``K`` -- field (default: `\QQ`)
 
-        - ``names`` -- tuple of strings or ``None`` (default). The
-          variable names for the ambient space.
+        - ``names`` -- tuple of strings or ``None`` (default); the
+          variable names for the ambient space
 
         OUTPUT:
 
         The semiorder arrangement, which is the set of `n(n-1)`
-        hyperplanes `\{ x_i - x_j = -1,1 : 1\leq i \leq j\leq n\}`.
+        hyperplanes `\{ x_i - x_j = -1,1 : 1 \leq i \leq j \leq n\}`.
 
         EXAMPLES::
 
@@ -538,13 +541,13 @@ class HyperplaneArrangementLibrary(object):
 
         - ``K`` -- field (default:``QQ``)
 
-        - ``names`` -- tuple of strings or ``None`` (default). The
-          variable names for the ambient space.
+        - ``names`` -- tuple of strings or ``None`` (default); the
+          variable names for the ambient space
 
         OUTPUT:
 
-        The Shi arrangement is the set of `n(n-1)` hyperplanes: `\{ x_i - x_j =
-        0,1 : 1\leq i \leq j\leq n\}`.
+        The Shi arrangement is the set of `n(n-1)` hyperplanes: `\{ x_i - x_j
+        = 0,1 : 1 \leq i \leq j \leq n \}`.
 
         EXAMPLES::
 

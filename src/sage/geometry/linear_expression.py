@@ -1,5 +1,5 @@
 """
-Base class for Linear Expressions
+Linear Expressions
 
 A linear expression is just a linear polynomial in some (fixed)
 variables. This class only implements linear expressions for others to
@@ -16,12 +16,7 @@ EXAMPLES::
 You can also pass coefficients and a constant term to construct linear
 expressions::
 
-    sage: L([1, 2, 3], 4)
-    x + 2*y + 3*z + 4
-    sage: L([(1, 2, 3), 4])
-    x + 2*y + 3*z + 4
-    sage: L([4, 1, 2, 3])   # note: constant is first in single-tuple notation
-    x + 2*y + 3*z + 4
+
 
 The linear expressions are a module under the base ring, so you can
 add them and multiply them with scalars::
@@ -43,10 +38,35 @@ from sage.misc.cachefunc import cached_method
 
 
 class LinearExpression(ModuleElement):
+    """
+    A linear expression.
 
+    A linear expression is just a linear polynomial in some (fixed)
+    variables.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.linear_expression import LinearExpressionModule
+        sage: L.<x,y,z> = LinearExpressionModule(QQ)
+        sage: m = L([1, 2, 3], 4); m
+        x + 2*y + 3*z + 4
+        sage: m2 = L([(1, 2, 3), 4]); m2
+        x + 2*y + 3*z + 4
+        sage: m3 = L([4, 1, 2, 3]); m3   # note: constant is first in single-tuple notation
+        x + 2*y + 3*z + 4
+        sage: m == m2
+        True
+        sage: m2 == m3
+        True
+        sage: L.zero()
+        sage: a = L([12, 2/3, -1], -2)
+        sage: a - m
+        sage: LZ.<x,y,z> = LinearExpressionModule(ZZ)
+        sage: a - LZ([2, -1, 3], 1)
+    """
     def __init__(self, parent, coefficients, constant, check=True):
         """
-        A linear expression is a linear polynomial.
+        Initialize ``self``.
 
         TESTS::
 
@@ -112,7 +132,7 @@ class LinearExpression(ModuleElement):
 
     def coefficients(self):
         """
-        Return all coefficients
+        Return all coefficients.
         
         OUTPUT:
 
@@ -136,7 +156,7 @@ class LinearExpression(ModuleElement):
         
         INPUT:
 
-        - ``variable`` -- string. The name of the variable vector.
+        - ``variable`` -- string; the name of the variable vector
         
         EXAMPLES::
 
@@ -161,17 +181,17 @@ class LinearExpression(ModuleElement):
         INPUT:
 
         - ``include_zero`` -- whether to include terms with zero
-          coefficient.
+          coefficient
 
         - ``include_constant`` -- whether to include the constant
-          term.
+          term
 
-        - ``multiplication`` -- string (optional, default: ``*``). The
-          multiplication symbol to use.
+        - ``multiplication`` -- string (optional, default: ``*``); the
+          multiplication symbol to use
 
         OUTPUT:
         
-        String.
+        A string.
 
         EXAMPLES::
 
@@ -228,7 +248,7 @@ class LinearExpression(ModuleElement):
 
     def _add_(self, other):
         """
-        Add two linear expressions
+        Add two linear expressions.
 
         EXAMPLES::
 
@@ -248,7 +268,7 @@ class LinearExpression(ModuleElement):
     
     def _rmul_(self, scalar):
         """
-        Multiply a linear expression by a scalar
+        Multiply a linear expression by a scalar.
 
         EXAMPLES::
 
@@ -300,7 +320,7 @@ class LinearExpression(ModuleElement):
 
         INPUT:
 
-        - ``base_ring`` -- a ring. The new base ring.
+        - ``base_ring`` -- a ring; the new base ring
 
         OUTPUT:
         
@@ -327,7 +347,7 @@ class LinearExpression(ModuleElement):
         INPUT:
 
         - ``other`` -- another linear expression (will be enforced by
-          the coercion framework).
+          the coercion framework)
 
         EXAMPLES::
 
@@ -351,8 +371,7 @@ class LinearExpression(ModuleElement):
         c = cmp(self._coeffs, other._coeffs)
         if c != 0: return c
         c = cmp(self._const, other._const)
-        if c != 0: return c
-        return 0
+        return c
 
     def evaluate(self, point):
         """
@@ -360,12 +379,12 @@ class LinearExpression(ModuleElement):
 
         INPUT:
 
-        - ``point`` -- list/tuple/iterable of coordinates. The
-          coordinates of a point.
+        - ``point`` -- list/tuple/iterable of coordinates; the
+          coordinates of a point
 
         OUTPUT:
 
-        The linear expression `Ax+b` evaluated at the point `x`.
+        The linear expression `Ax + b` evaluated at the point `x`.
 
         EXAMPLES::
         
@@ -392,14 +411,26 @@ class LinearExpression(ModuleElement):
 
 
 class LinearExpressionModule(Parent, UniqueRepresentation):
+    """
+    The module of linear expressions.
 
+    This is the module of linear polynomials which is the parent for
+    linear expressions.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.linear_expression import LinearExpressionModule
+        sage: L = LinearExpressionModule(QQ, ('x', 'y', 'z'))
+        sage: L
+        Module of linear expressions in variables x, y, z over Rational Field
+        sage: L.an_element()
+        x + 0*y + 0*z + 0
+    """
     Element = LinearExpression
 
     def __init__(self, base_ring, names=tuple()):
         """
-        The parent of linear expressions.
-
-        This is the module of linear polynomials.
+        Initialize ``self``.
 
         TESTS::
 
@@ -411,6 +442,9 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
             Rational Field
 
             sage: TestSuite(L).run()
+
+            sage: L = LinearExpressionModule(QQ)
+            sage: TestSuite(L).run()
         """
         from sage.categories.modules import Modules
         super(LinearExpressionModule, self).__init__(base_ring, category=Modules(base_ring))
@@ -419,11 +453,11 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
     @cached_method
     def ngens(self):
         """
-        Return the number of linear variables
+        Return the number of linear variables.
 
         OUTPUT:
         
-        Integer.
+        An integer.
 
         EXAMPLES::
 
@@ -437,7 +471,7 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
     @cached_method
     def gens(self):
         """
-        Return the generators
+        Return the generators.
         
         OUTPUT:
 
@@ -456,11 +490,11 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
 
     def gen(self, i):
         """
-        Return the `i`-th generator
+        Return the `i`-th generator.
 
         INPUT:
 
-        - ``i`` -- integer.
+        - ``i`` -- integer
 
         OUTPUT:
 
@@ -547,7 +581,7 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
      
     def random_element(self):
         """
-        Return a random element
+        Return a random element.
 
         EXAMPLES::
 
@@ -563,9 +597,11 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
     @cached_method
     def ambient_module(self):
         """
-        Return the ambient module
+        Return the ambient module.
 
-        See also :meth:`ambient_vector_space`
+        .. SEEALSO::
+
+            :meth:`ambient_vector_space`
 
         OUTPUT:
 
@@ -592,7 +628,9 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
         """
         Return the ambient vector space.
 
-        See also :meth:`ambient_module`.
+        .. SEEALSO::
+
+            :meth:`ambient_module`
 
         OUTPUT:
 
@@ -651,7 +689,7 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
 
         OUTPUT:
 
-        String.
+        A string.
 
         EXAMPLES::
 
@@ -668,7 +706,7 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
 
         INPUT:
 
-        - ``base_ring`` -- a ring. The new base ring.
+        - ``base_ring`` -- a ring; the new base ring
 
         OUTPUT:
         
@@ -687,3 +725,4 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
             True
         """
         return LinearExpressionModule(base_ring, self._names)
+

@@ -73,33 +73,38 @@ from sage.matrix.constructor import vector, matrix
 
 
 class AffineSubspace(SageObject):
+    """
+    An affine subspace.
 
+    INPUT:
+
+    - ``p`` -- list/tuple/iterable representing a point on the
+      affine space
+
+    - ``V`` -- vector subspace
+
+    OUTPUT:
+
+    Affine subspace parallel to ``V`` and passing through ``p``.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.hyperplane_arrangement.affine_subspace import AffineSubspace
+        sage: a = AffineSubspace([1,0,0,0], VectorSpace(QQ,4))
+        sage: a
+        Affine space p + W where:
+          p = (1, 0, 0, 0)
+          W = Vector space of dimension 4 over Rational Field
+    """
     def __init__(self, p, V):
         r"""
-        Construct an AffineSubspace.
+        Construct an :class:`AffineSubspace`.
 
-        INPUT:
-
-        - ``p`` -- list/tuple/iterable representing a point on the
-          affine space.
-
-        - ``V`` -- vector subspace.
-
-        OUTPUT:
-
-        Affine subspace parallel to ``V`` and passing through ``p``.
-
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.geometry.hyperplane_arrangement.affine_subspace import AffineSubspace
             sage: a = AffineSubspace([1,0,0,0], VectorSpace(QQ,4))
-            sage: a
-            Affine space p + W where:
-              p = (1, 0, 0, 0)
-              W = Vector space of dimension 4 over Rational Field
-        
-        TESTS::
-        
+            sage: TestSuite(a).run()
             sage: AffineSubspace(0, VectorSpace(QQ,4)).point()
             (0, 0, 0, 0)
         """
@@ -130,32 +135,34 @@ class AffineSubspace(SageObject):
     
     def _repr_(self):
         r"""
-        String representation for an AffineSubspace.
+        String representation for an :class:`AffineSubspace`.
 
         OUTPUT:
 
-        String.
+        A string.
 
         EXAMPLES::
 
             sage: from sage.geometry.hyperplane_arrangement.affine_subspace import AffineSubspace
             sage: a = AffineSubspace([1,0,0,0],VectorSpace(QQ,4))
-            sage: a._repr_()
-            'Affine space p + W where:\n  p = (1, 0, 0, 0)\n  W = Vector space of dimension 4 over Rational Field'
+            sage: a
+            Affine space p + W where:
+              p = (1, 0, 0, 0)
+              W = Vector space of dimension 4 over Rational Field
         """
         return "Affine space p + W where:\n  p = "+str(self._point)+"\n  W = "+str(self._linear_part)
 
     def __eq__(self, other):
         r"""
-        Tests whether ``self`` is equal to ``other``.
+        Test whether ``self`` is equal to ``other``.
 
         INPUT:
 
-        - ``other`` -- another :class:`AffineSubspace`.
+        - ``other`` -- an :class:`AffineSubspace`
 
         OUTPUT:
 
-        Boolean
+        A boolean.
 
         EXAMPLES::
 
@@ -178,11 +185,11 @@ class AffineSubspace(SageObject):
 
         INPUT:
 
-        - ``other`` -- :class:`AffineSubspace`.
+        - ``other`` -- an :class:`AffineSubspace`
 
         OUTPUT:
 
-        Boolean.
+        A boolean.
 
         EXAMPLES::
 
@@ -204,20 +211,20 @@ class AffineSubspace(SageObject):
 
         INPUT:
 
-        - ``other`` -- :class:`AffineSubspace`.
+        - ``other`` -- an :class:`AffineSubspace`
 
         OUTPUT:
 
-        Boolean.
+        A boolean.
 
         EXAMPLES::
 
             sage: from sage.geometry.hyperplane_arrangement.affine_subspace import AffineSubspace
-            sage: V = VectorSpace(QQ,3)
+            sage: V = VectorSpace(QQ, 3)
             sage: W1 = V.subspace([[1,0,0],[0,1,0]])
             sage: W2 = V.subspace([[1,0,0]])
-            sage: a = AffineSubspace([1,2,3],W1)
-            sage: b = AffineSubspace([1,2,3],W2)
+            sage: a = AffineSubspace([1,2,3], W1)
+            sage: b = AffineSubspace([1,2,3], W2)
             sage: a <= b
             False
             sage: a <= a
@@ -235,11 +242,11 @@ class AffineSubspace(SageObject):
 
         INPUT:
 
-        - ``other`` -- :class:`AffineSubspace`.
+        - ``other`` -- an :class:`AffineSubspace`
 
         OUTPUT:
 
-        Boolean.
+        A boolean.
 
         EXAMPLES::
 
@@ -266,11 +273,11 @@ class AffineSubspace(SageObject):
 
         INPUT:
 
-        - ``q`` -- point as a list/tuple/iterable.
+        - ``q`` -- point as a list/tuple/iterable
 
         OUTPUT:
 
-        Boolean.
+        A boolean.
 
         EXAMPLES::
 
@@ -290,7 +297,7 @@ class AffineSubspace(SageObject):
 
         OUTPUT:
 
-        Vector subspace of the ambient space.
+        A vector subspace of the ambient space.
 
         EXAMPLES::
 
@@ -329,7 +336,7 @@ class AffineSubspace(SageObject):
 
         OUTPUT:
 
-        Integer
+        An integer.
 
         EXAMPLES::
 
@@ -346,7 +353,7 @@ class AffineSubspace(SageObject):
 
         INPUT:
 
-        - ``other`` -- :class:`AffineSubspace`.
+        - ``other`` -- an :class:`AffineSubspace`
 
         OUTPUT:
 
@@ -401,3 +408,4 @@ class AffineSubspace(SageObject):
         new_p = p + t[:m.nrows()]*m
         new_V = self.linear_part().intersection(other._linear_part)
         return AffineSubspace(new_p, new_V)
+

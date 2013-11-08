@@ -1441,6 +1441,7 @@ class HyperplaneArrangementElement(Element):
             ....:     chessboard.extend([x-x0, y-y0])
             sage: chessboard = H(chessboard)
             sage: len(chessboard.bounded_regions())   # long time, 359 ms on a Core i7
+            64
         """
         if self.base_ring().characteristic() != 0:
             raise ValueError('base field must have characteristic zero')

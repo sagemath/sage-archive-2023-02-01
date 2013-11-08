@@ -257,7 +257,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
         - ``classical_weight`` -- The classical weight
 
         EXAMPLES::
-        
+
             sage: KRT = KirillovReshetikhinTableaux(['D', 4, 1], 2, 2)
             sage: KRT.module_generator(1)
             [[1, 1], [2, -1]]
@@ -614,7 +614,7 @@ class KRTableauxTypeC(KirillovReshetikhinTableaux):
             sage: KRT._fill([6,4,2,2])
             [[1, 1, 1, 1, 1, 1], [2, 2, 2, 2, -5, 2], [3, 3, -5, 3, -4, 3], [4, 4, -4, 4, -3, 4], [-5, 5, -3, 5, -2, 5]]
             sage: KRT._fill([6,4])
-            [[1, 1, 1, 1, 1, 1], [2, 2, 2, 2, -5, 2], [-5, 3, -5, 3, -4, 3], [-4, 4, -4, 4, -3, 4], [-3, 5, -3, 5, -2, 5]]    
+            [[1, 1, 1, 1, 1, 1], [2, 2, 2, 2, -5, 2], [-5, 3, -5, 3, -4, 3], [-4, 4, -4, 4, -3, 4], [-3, 5, -3, 5, -2, 5]]
         """
         # Add zeros until the shape has length s
         shape_list = list(shape) # Make sure we have a list
@@ -708,7 +708,7 @@ class KRTableauxTypeBox(KRTableauxTypeVertical):
             sage: KRT._fill([10,10,8,2,2,2])
             [[1, 1, 1, 1, 1, 7, 1], [2, 2, 2, 2, 2, 8, 2], [3, 3, 7, 9, 7, 9, 3], [4, 4, 8, 10, 8, 10, 4], [5, 5, 9, 11, 9, 11, 5], [6, 6, 10, 12, 10, 12, 6], [7, 7, 11, -12, 11, -12, 7], [8, 8, 12, -11, 12, -11, 8], [9, 9, -12, -10, -12, -10, 9], [10, 10, -11, -9, -11, -9, -9], [-12, 11, -10, -8, -10, -8, -8], [-11, 12, -9, -7, -9, -7, -7]]
             sage: KRT._fill([10,10,6,2,2,2])
-            [[1, 1, 1, 1, 1, 5, 1], [2, 2, 2, 2, 2, 6, 2], [3, 3, 9, 7, 9, 7, 3], [4, 4, 10, 8, 10, 8, 4], [5, 5, 11, 9, 11, 9, 5], [6, 6, 12, 10, 12, 10, 6], [7, 7, -12, 11, -12, 11, 7], [8, 8, -11, 12, -11, 12, 8], [9, 9, -10, -12, -10, -12, -8], [10, 10, -9, -11, -9, -11, -7], [-12, 11, -8, -10, -8, -10, -6], [-11, 12, -7, -9, -7, -9, -5]]    
+            [[1, 1, 1, 1, 1, 5, 1], [2, 2, 2, 2, 2, 6, 2], [3, 3, 9, 7, 9, 7, 3], [4, 4, 10, 8, 10, 8, 4], [5, 5, 11, 9, 11, 9, 5], [6, 6, 12, 10, 12, 10, 6], [7, 7, -12, 11, -12, 11, 7], [8, 8, -11, 12, -11, 12, 8], [9, 9, -10, -12, -10, -12, -8], [10, 10, -9, -11, -9, -11, -7], [-12, 11, -8, -10, -8, -10, -6], [-11, 12, -7, -9, -7, -9, -5]]
         """
         # Add zeros until the shape has length s
         weight_list = list(weight) # Make sure we have a list
@@ -904,7 +904,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
         EXAMPLES::
 
             sage: KRT = KirillovReshetikhinTableaux(['A',4,1], 2,2)
-            sage: elt = KRT(4,3,2,1)                                                
+            sage: elt = KRT(4,3,2,1)
             sage: print elt._repr_diagram()
               3  1
               4  2

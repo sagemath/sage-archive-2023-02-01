@@ -172,6 +172,9 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
                     print("Applying halving map")
 
                 # Convert back to a type B_n^{(1)}
+                for i in range(len(self.cur_dims)):
+                    if bij.cur_dims[i][0] != self.n:
+                        bij.cur_dims[i][1] //= 2
                 for i in range(self.n-1):
                     for j in range(len(bij.ret_rig_con[i])):
                         bij.ret_rig_con[i]._list[j] //= 2
@@ -368,7 +371,7 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
                     p.rigging[i] = None
                     width_n = max_width
                     case_QS = True
-            elif p.vacancy_numbers[i] - 1 == p.rigging[i] and not case_QS and not singular_max_width:
+            elif p.vacancy_numbers[i] - 1 == p.rigging[i] and not case_QS and not singular_max_width and p._list[i] < max_width: # This isn't correct!!!!!
                 case_QS = True
                 max_width = p._list[i]
                 p._list[i] += 1
@@ -415,7 +418,8 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
             self._update_vacancy_nums(tableau_height)
             self._update_partition_values(tableau_height)
 
-        if 0 < pos_val and pos_val <= tableau_height:
+        assert pos_val > 0
+        if pos_val <= tableau_height:
             for a in range(pos_val-1, tableau_height):
                 self._update_vacancy_nums(a)
                 self._update_partition_values(a)
@@ -499,7 +503,8 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
             self._update_vacancy_nums(tableau_height)
             self._update_partition_values(tableau_height)
 
-        if 0 < pos_val and pos_val <= tableau_height:
+        assert pos_val > 0
+        if pos_val <= tableau_height:
             for a in range(pos_val-1, tableau_height):
                 self._update_vacancy_nums(a)
                 self._update_partition_values(a)
@@ -728,7 +733,8 @@ class RCToKRTBijectionTypeB(RCToKRTBijectionTypeC):
                         if not case_Q: # We found a singular string above the quasi-singular one
                             break
                         ell[n-1] = i
-                        last_size = partition[i] + 1
+                        last_size = partition[i]
+                        # Now check for case QS
                     elif partition.vacancy_numbers[i] == partition.rigging[i]:
                         ell[2*n-1] = i
                         last_size = partition[i]

@@ -207,27 +207,30 @@ class ModulesWithBasis(Category_over_base_ring):
             linearity from its restriction ``on_basis`` to the basis of
             ``self``.
 
-            Let ``self`` be the parent `X` with a basis indexed by `I`.
-            This constructs a morphism `f: X \to Y` by linearity on the
+            Let ``self`` be the module `X` with a basis indexed by `I`.
+            This constructs a morphism `f: X \to Y` by linearity from
+            a map `I \to Y` which is to be its restriction to the
             basis `(x_i)_{i \in I}` of `X`.
 
             INPUT:
 
             - ``codomain`` -- the codomain `Y` of `f`: defaults to
-              ``f.codomain()`` if the later is defined
+              ``f.codomain()`` if the latter is defined
             - ``zero`` -- the zero of the codomain; defaults to
               ``codomain.zero()``; can be used (with care) to define affine maps
-            - ``position`` -- a non negative integer; defaults to 0
+            - ``position`` -- a non-negative integer; defaults to 0
             - ``on_basis`` -- a function `f` which accepts elements of `I`
-              as ``position``-th argument and returns elements of `Y`
-            - ``diagonal`` -- a function `d` from `I` to `R`
+              (the indexing set of the basis of `X`) as ``position``-th argument
+              and returns elements of `Y`
+            - ``diagonal`` -- a function `d` from `I` to `R` (the base ring
+              if ``self`` and ``codomain``)
             - ``triangular`` --  (default: ``None``) ``"upper"`` or
               ``"lower"`` or ``None``:
 
               * ``"upper"`` - if the :meth:`leading_support()` of the image
-                of `F(i)` is `i`, or
+                of the basis vector `x_i` is `i`, or
               * ``"lower"`` - if the :meth:`trailing_support()` of the image
-                of `F(i)` is `i`
+                of the basis vector `x_i` is `i`
 
             - ``category`` -- a category; by default, this is
               ``ModulesWithBasis(R)`` if `Y` is in this category, and
@@ -463,8 +466,8 @@ class ModulesWithBasis(Category_over_base_ring):
 
         def support_of_term(self):
             """
-            Return the support of ``self`` where ``self`` is a monomial,
-            possibly with coefficient.
+            Return the support of ``self``, where ``self`` is a monomial
+            (possibly with coefficient).
 
             EXAMPLES::
 
@@ -1230,10 +1233,10 @@ class ModuleMorphismByLinearity(Morphism):
 
         - ``domain`` -- a parent in ``ModulesWithBasis(...)``
         - ``codomain`` -- a parent in ``Modules(...)``; defaults to
-          ``f.codomain()`` if the later is defined
-        - ``position`` -- a non negative integer; defaults to 0
+          ``f.codomain()`` if the latter is defined
+        - ``position`` -- a non-negative integer; defaults to 0
         - ``on_basis`` -- a function which accepts indices of the basis of
-          domain as position-th argument (optional)
+          ``domain`` as ``position``-th argument (optional)
         - ``zero`` -- the zero of the codomain; defaults to ``codomain.zero()``
 
         ``on_basis`` may alternatively be provided in derived classes by
@@ -1394,10 +1397,10 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
 
     INPUT:
 
-    - ``domain`` -- a module with basis `F`
-    - ``codomain`` -- a module with basis `G` (defaults to `F`)
-    - ``on_basis`` -- a function from the index set of the basis of `F`
-      to the module `G` which determines the morphism by linearity
+    - ``domain`` -- a module `X` with basis `F`
+    - ``codomain`` -- a module `Y` with basis `G` (defaults to `X`)
+    - ``on_basis`` -- a function from the index set of the basis `F`
+      to the module `Y` which determines the morphism by linearity
     - ``unitriangular`` -- boolean (default: ``False``)
     - ``triangular`` -- (default: ``"upper"``) ``"upper"`` or ``"lower"``:
 
@@ -1407,7 +1410,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
         `F(i)` is `i`
 
     - ``cmp`` -- an optional comparison function on the index set `J` of
-      the basis of the codomain `G`.
+      the basis `G` of the codomain.
     - ``invertible`` -- boolean or ``None`` (default: ``None``); should
       be set to ``True`` if Sage is to compute an inverse for ``self``.
       Automatically set to ``True`` if the domain and codomain share the
@@ -1418,10 +1421,10 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
 
     Assumptions:
 
-    - `F` and `G` have the same base ring `R`.
+    - `X` and `Y` have the same base ring `R`.
 
-    - Let `I` and `J` be the respective index sets of the basis of `F` and
-      the basis of `G`. Either `I = J`, or ``inverse_on_support`` is a
+    - Let `I` and `J` be the respective index sets of the bases `F` and
+      `G`. Either `I = J`, or ``inverse_on_support`` is a
       function `r : J \to I` with the following property: for any `j \in J`,
       `r(j)` should return an `i \in I` such that the leading term (or
       trailing term, if ``triangular`` is set to ``"lower"``) of
@@ -1431,7 +1434,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
 
     OUTPUT:
 
-    The triangular module morphism from `F` to `G` which maps `f_i`
+    The triangular module morphism from `X` to `Y` which maps `F(i)`
     to ``on_basis(i)`` and is extended by linearity.
 
     EXAMPLES:
@@ -1842,7 +1845,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
         ``self``.
 
         Suppose that ``self`` is a morphism from `X` to `Y`. Then for any
-        `y \in Y`, the calls ``self.co_reduced(y)`` returns a normal form for
+        `y \in Y`, the call ``self.co_reduced(y)`` returns a normal form for
         `y` in the quotient `Y / I` where `I` is the image of ``self``.
 
         EXAMPLES::
@@ -1918,19 +1921,19 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
 
     INPUT:
 
-    - ``domain``, ``codomain`` -- two modules with basis `F` and `G`
+    - ``domain``, ``codomain`` -- two modules with bases `F` and `G`
     - ``diagonal`` -- a function `d`
 
     Assumptions:
 
-    - `F` and `G` have the same base ring `R`,
-    - their respective bases `f` and `g` have the same index set `I`,
+    - ``domain`` and ``codomain`` have the same base ring `R`,
+    - their respective bases `F` and `G` have the same index set `I`,
     - `d` is a function `I \to R`.
 
-    Return the diagonal module morphism from `F` to `G` where
-    `f_{\lambda} \mapsto d(\lambda) g_{\lambda}`.
+    Return the diagonal module morphism from ``domain`` to ``codomain``
+    sending `F(i) \mapsto d(i) G(i)` for all `i \in I`.
 
-    By default, codomain is currently assumed to be domain.
+    By default, ``codomain`` is currently assumed to be ``domain``.
     (Todo: make a consistent choice with ``*ModuleMorphism``.)
 
     .. TODO::
@@ -2011,7 +2014,7 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
 
 def pointwise_inverse_function(f):
     r"""
-    Return the function ``(...) -> 1 / f(...)``.
+    Return the function `x \mapsto 1 / f(x)`.
 
     INPUT:
 
@@ -2021,7 +2024,7 @@ def pointwise_inverse_function(f):
 
         sage: from sage.categories.modules_with_basis import pointwise_inverse_function
         sage: def f(x): return x
-        ...
+        ....:
         sage: g = pointwise_inverse_function(f)
         sage: g(1), g(2), g(3)
         (1, 1/2, 1/3)
@@ -2042,8 +2045,11 @@ def pointwise_inverse_function(f):
 
 from sage.structure.sage_object import SageObject
 class PointwiseInverseFunction(SageObject):
-    """
-    A class for point wise inverse functions.
+    r"""
+    A class for pointwise inverse functions.
+
+    The pointwise inverse function of a function `f` is the function
+    sending every `x` to `1 / f(x)`.
 
     EXAMPLES::
 

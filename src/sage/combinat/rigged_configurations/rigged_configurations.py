@@ -148,11 +148,11 @@ To obtain the Kirillov-Reshetikhin (KR) tableaux under the bijection between rig
 tableaux, we can type the following. This example was checked against Reiho Sakamoto's Mathematica program
 on rigged configurations::
 
-    sage: output = elt.to_tensor_product_of_Kirillov_Reshetikhin_tableaux(); output
+    sage: output = elt.to_tensor_product_of_kirillov_reshetikhin_tableaux(); output
     [[1, 1, 1], [2, 3, 3], [3, 4, -5]] (X) [[1, 1], [2, 2], [3, 3], [5, -6], [6, -5]] (X) [[1, 1, 2], [2, 2, 3], [3, 3, 7], [4, 4, -7]] (X) [[1, 1, 1], [2, 2, 2]] (X) [[1, 1, 1, 3], [2, 2, 3, 4], [3, 3, 4, 5], [4, 4, 5, 6]] (X) [[1], [2], [3]] (X) [[1, 1, 1, 1]] (X) [[1, 1], [2, 2]]
-    sage: elt.to_tensor_product_of_Kirillov_Reshetikhin_tableaux().to_rigged_configuration() == elt
+    sage: elt.to_tensor_product_of_kirillov_reshetikhin_tableaux().to_rigged_configuration() == elt
     True
-    sage: output.to_rigged_configuration().to_tensor_product_of_Kirillov_Reshetikhin_tableaux() == output
+    sage: output.to_rigged_configuration().to_tensor_product_of_kirillov_reshetikhin_tableaux() == output
     True
 
 To get the highest weight rigged configurations, use the attribute
@@ -356,13 +356,13 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
     tableaux, we can type the following. This example was checked against Reiho Sakamoto's Mathematica program
     on rigged configurations::
 
-        sage: output = elt.to_tensor_product_of_Kirillov_Reshetikhin_tableaux(); output
+        sage: output = elt.to_tensor_product_of_kirillov_reshetikhin_tableaux(); output
         [[1, 1, 1], [2, 3, 3], [3, 4, -5]] (X) [[1, 1], [2, 2], [3, 3], [5, -6], [6, -5]] (X)
         [[1, 1, 2], [2, 2, 3], [3, 3, 7], [4, 4, -7]] (X) [[1, 1, 1], [2, 2, 2]] (X)
         [[1, 1, 1, 3], [2, 2, 3, 4], [3, 3, 4, 5], [4, 4, 5, 6]] (X) [[1], [2], [3]] (X) [[1, 1, 1, 1]] (X) [[1, 1], [2, 2]]
-        sage: elt.to_tensor_product_of_Kirillov_Reshetikhin_tableaux().to_rigged_configuration() == elt
+        sage: elt.to_tensor_product_of_kirillov_reshetikhin_tableaux().to_rigged_configuration() == elt
         True
-        sage: output.to_rigged_configuration().to_tensor_product_of_Kirillov_Reshetikhin_tableaux() == output
+        sage: output.to_rigged_configuration().to_tensor_product_of_kirillov_reshetikhin_tableaux() == output
         True
 
     We can also convert between rigged configurations and tensor products of
@@ -370,7 +370,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
 
         sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 1]])
         sage: elt = RC(partition_list=[[1],[1,1],[1],[1]])
-        sage: tp_krc = elt.to_tensor_product_of_Kirillov_Reshetikhin_crystals(); tp_krc
+        sage: tp_krc = elt.to_tensor_product_of_kirillov_reshetikhin_crystals(); tp_krc
         [[]]
         sage: ret = RC(tp_krc)
         sage: ret == elt
@@ -385,7 +385,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         sage: t = T[1]; t
         [[++++, []], [+++-, [[1], [2], [4], [-4]]]]
         sage: ret = RC(t)
-        sage: ret.to_tensor_product_of_Kirillov_Reshetikhin_crystals()
+        sage: ret.to_tensor_product_of_kirillov_reshetikhin_crystals()
         [[++++, []], [+++-, [[1], [2], [4], [-4]]]]
     """
     @staticmethod
@@ -688,8 +688,8 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             lst = lst[0]
         from sage.combinat.crystals.kirillov_reshetikhin import KirillovReshetikhinGenericCrystalElement
         if isinstance(lst[0], KirillovReshetikhinGenericCrystalElement):
-            KRT = self.tensor_product_of_Kirillov_Reshetikhin_tableaux()
-            krt_elt = KRT(*[x.to_Kirillov_Reshetikhin_tableau() for x in lst])
+            KRT = self.tensor_product_of_kirillov_reshetikhin_tableaux()
+            krt_elt = KRT(*[x.to_kirillov_reshetikhin_tableau() for x in lst])
             return krt_elt.to_rigged_configuration()
 
         return self.element_class(self, list(lst), **options)
@@ -758,7 +758,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         return KleberTree(self._cartan_type, self.dims)
 
     @cached_method
-    def tensor_product_of_Kirillov_Reshetikhin_tableaux(self):
+    def tensor_product_of_kirillov_reshetikhin_tableaux(self):
         """
         Return the corresponding tensor product of Kirillov-Reshetikhin
         tableaux.
@@ -766,7 +766,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['A', 3, 1], [[3, 2], [1, 2]])
-            sage: RC.tensor_product_of_Kirillov_Reshetikhin_tableaux()
+            sage: RC.tensor_product_of_kirillov_reshetikhin_tableaux()
             Tensor product of Kirillov-Reshetikhin tableaux of type ['A', 3, 1] and factor(s) ((3, 2), (1, 2))
         """
         from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux
@@ -789,12 +789,12 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             134
         """
         try:
-            return self.tensor_product_of_Kirillov_Reshetikhin_tableaux().cardinality()
+            return self.tensor_product_of_kirillov_reshetikhin_tableaux().cardinality()
         except NotImplementedError: # Backup by direct counting
             return ZZ(sum(1 for x in self))
 
     @cached_method
-    def tensor_product_of_Kirillov_Reshetikhin_crystals(self):
+    def tensor_product_of_kirillov_reshetikhin_crystals(self):
         """
         Return the corresponding tensor product of Kirillov-Reshetikhin
         crystals.
@@ -802,12 +802,12 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['A', 3, 1], [[3,1],[2,2]])
-            sage: RC.tensor_product_of_Kirillov_Reshetikhin_crystals()
+            sage: RC.tensor_product_of_kirillov_reshetikhin_crystals()
             Full tensor product of the crystals
             [Kirillov-Reshetikhin crystal of type ['A', 3, 1] with (r,s)=(3,1),
              Kirillov-Reshetikhin crystal of type ['A', 3, 1] with (r,s)=(2,2)]
         """
-        return self.tensor_product_of_Kirillov_Reshetikhin_tableaux().tensor_product_of_Kirillov_Reshetikhin_crystals()
+        return self.tensor_product_of_kirillov_reshetikhin_tableaux().tensor_product_of_kirillov_reshetikhin_crystals()
 
     def fermionic_formula(self, q=None):
         r"""
@@ -870,7 +870,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         tester = self._tester(**options)
         rejects = []
         for x in self:
-            y = x.to_tensor_product_of_Kirillov_Reshetikhin_tableaux()
+            y = x.to_tensor_product_of_kirillov_reshetikhin_tableaux()
             z = y.to_rigged_configuration()
             if z != x:
                 rejects.append((x, z))
@@ -1751,7 +1751,7 @@ def R_matrix(ct, RS1, RS2, only_highest_weight=False):
         L = RC
     for x in L:
         x2 = RC2(*x)
-        ret_list.append([x.to_tensor_product_of_Kirillov_Reshetikhin_tableaux(),
-                         x2.to_tensor_product_of_Kirillov_Reshetikhin_tableaux()])
+        ret_list.append([x.to_tensor_product_of_kirillov_reshetikhin_tableaux(),
+                         x2.to_tensor_product_of_kirillov_reshetikhin_tableaux()])
     return ret_list
 

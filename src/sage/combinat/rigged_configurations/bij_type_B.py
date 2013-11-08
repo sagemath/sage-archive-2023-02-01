@@ -445,7 +445,7 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
 
             sage: RC = RiggedConfigurations(['B',3,1], [[2,1],[1,2]])
             sage: rc = RC(partition_list=[[2,1], [2,1,1], [5,1]])
-            sage: t = rc.to_tensor_product_of_Kirillov_Reshetikhin_tableaux()
+            sage: t = rc.to_tensor_product_of_kirillov_reshetikhin_tableaux()
             sage: t.to_rigged_configuration() == rc # indirect doctest
             True
         """

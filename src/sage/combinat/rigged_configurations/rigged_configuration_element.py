@@ -131,11 +131,11 @@ class RiggedConfigurationElement(ClonableArray):
 
         sage: RC = RiggedConfigurations(['D', 4, 1], [[1,1], [2,1]])
         sage: rc_elt = RC(partition_list=[[1], [1,1], [1], [1]])
-        sage: tp_krtab = rc_elt.to_tensor_product_of_Kirillov_Reshetikhin_tableaux(); tp_krtab
+        sage: tp_krtab = rc_elt.to_tensor_product_of_kirillov_reshetikhin_tableaux(); tp_krtab
         [[-2]] (X) [[1], [2]]
-        sage: tp_krcrys = rc_elt.to_tensor_product_of_Kirillov_Reshetikhin_crystals(); tp_krcrys
+        sage: tp_krcrys = rc_elt.to_tensor_product_of_kirillov_reshetikhin_crystals(); tp_krcrys
         [[[-2]], [[1], [2]]]
-        sage: tp_krcrys == tp_krtab.to_tensor_product_of_Kirillov_Reshetikhin_crystals()
+        sage: tp_krcrys == tp_krtab.to_tensor_product_of_kirillov_reshetikhin_crystals()
         True
         sage: RC(tp_krcrys) == rc_elt
         True
@@ -375,7 +375,7 @@ class RiggedConfigurationElement(ClonableArray):
                     #print "at:", i, vac_num, partition.rigging[i]
                     raise ValueError("rigging can be at most the vacancy number")
 
-    def to_tensor_product_of_Kirillov_Reshetikhin_tableaux(self, display_steps=False):
+    def to_tensor_product_of_kirillov_reshetikhin_tableaux(self, display_steps=False):
         r"""
         Perform the bijection from this rigged configuration to a tensor
         product of Kirillov-Reshetikhin tableaux given in [RigConBijection]_
@@ -401,11 +401,11 @@ class RiggedConfigurationElement(ClonableArray):
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 2]])
-            sage: RC(partition_list=[[2], [2,2], [2], [2]]).to_tensor_product_of_Kirillov_Reshetikhin_tableaux()
+            sage: RC(partition_list=[[2], [2,2], [2], [2]]).to_tensor_product_of_kirillov_reshetikhin_tableaux()
             [[3, 3], [5, 5]]
             sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 2]])
             sage: elt = RC(partition_list=[[2], [2,2], [1], [1]])
-            sage: tp_krt = elt.to_tensor_product_of_Kirillov_Reshetikhin_tableaux(); tp_krt
+            sage: tp_krt = elt.to_tensor_product_of_kirillov_reshetikhin_tableaux(); tp_krt
             [[2, 3], [3, -2]]
 
         This is invertible by calling
@@ -428,7 +428,7 @@ class RiggedConfigurationElement(ClonableArray):
         from sage.combinat.rigged_configurations.bijection import RCToKRTBijection
         return RCToKRTBijection(self).run(display_steps)
 
-    def to_tensor_product_of_Kirillov_Reshetikhin_crystals(self, display_steps=False):
+    def to_tensor_product_of_kirillov_reshetikhin_crystals(self, display_steps=False):
         r"""
         Return the corresponding tensor product of Kirillov-Reshetikhin
         crystals.
@@ -445,7 +445,7 @@ class RiggedConfigurationElement(ClonableArray):
 
             sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 2]])
             sage: elt = RC(partition_list=[[2], [2,2], [1], [1]])
-            sage: krc = elt.to_tensor_product_of_Kirillov_Reshetikhin_crystals(); krc
+            sage: krc = elt.to_tensor_product_of_kirillov_reshetikhin_crystals(); krc
             [[[2, 3], [3, -2]]]
 
         We can recover the rigged configuration::
@@ -464,8 +464,8 @@ class RiggedConfigurationElement(ClonableArray):
             sage: elt == ret
             True
         """
-        kr_tab = self.to_tensor_product_of_Kirillov_Reshetikhin_tableaux(display_steps)
-        return kr_tab.to_tensor_product_of_Kirillov_Reshetikhin_crystals()
+        kr_tab = self.to_tensor_product_of_kirillov_reshetikhin_tableaux(display_steps)
+        return kr_tab.to_tensor_product_of_kirillov_reshetikhin_crystals()
 
     def nu(self):
         r"""
@@ -533,7 +533,7 @@ class RiggedConfigurationElement(ClonableArray):
             raise ValueError("{} is not in the index set".format(a))
         if a == 0:
             try:
-                ret = self.to_tensor_product_of_Kirillov_Reshetikhin_tableaux().e(0)
+                ret = self.to_tensor_product_of_kirillov_reshetikhin_tableaux().e(0)
                 if ret is None:
                     return None
                 return ret.to_rigged_configuration()
@@ -700,7 +700,7 @@ class RiggedConfigurationElement(ClonableArray):
             raise ValueError("{} is not in the index set".format(a))
         if a == 0:
             try:
-                ret = self.to_tensor_product_of_Kirillov_Reshetikhin_tableaux().f(0)
+                ret = self.to_tensor_product_of_kirillov_reshetikhin_tableaux().f(0)
                 if ret is None:
                     return None
                 return ret.to_rigged_configuration()
@@ -901,7 +901,7 @@ class RiggedConfigurationElement(ClonableArray):
 
         This agrees with the corresponding classical weight as KR tableaux::
 
-            sage: krt = elt.to_tensor_product_of_Kirillov_Reshetikhin_tableaux(); krt
+            sage: krt = elt.to_tensor_product_of_kirillov_reshetikhin_tableaux(); krt
             [[2, 1], [3, -1]]
             sage: krt.classical_weight() == elt.classical_weight()
             True
@@ -913,7 +913,7 @@ class RiggedConfigurationElement(ClonableArray):
             sage: RC = RiggedConfigurations(['A',2,1], [[2,1], [1,1]])
             sage: passed_test = True
             sage: for x in RC:
-            ....:    y = x.to_tensor_product_of_Kirillov_Reshetikhin_tableaux()
+            ....:    y = x.to_tensor_product_of_kirillov_reshetikhin_tableaux()
             ....:    if x.classical_weight() != y.classical_weight():
             ....:        passed_test = False
             ....:        break

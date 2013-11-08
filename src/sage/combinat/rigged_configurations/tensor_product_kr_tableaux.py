@@ -112,7 +112,7 @@ class HighestWeightTensorKRT(UniqueRepresentation):
             [[1], [2], [3]] (X) [[1], [2]]
         """
         if self._cache is None:
-            self._cache = [x.to_tensor_product_of_Kirillov_Reshetikhin_tableaux()
+            self._cache = [x.to_tensor_product_of_kirillov_reshetikhin_tableaux()
                            for x in self.tp_krt.rigged_configurations().module_generators]
         return self._cache[i]
 
@@ -130,7 +130,7 @@ class HighestWeightTensorKRT(UniqueRepresentation):
             [[1], [-1]]
         """
         if self._cache is None:
-            self._cache = [x.to_tensor_product_of_Kirillov_Reshetikhin_tableaux()
+            self._cache = [x.to_tensor_product_of_kirillov_reshetikhin_tableaux()
                            for x in self.tp_krt.rigged_configurations().module_generators]
         for x in self._cache:
             yield x
@@ -229,7 +229,7 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
         <BLANKLINE>
         (/)
         <BLANKLINE>
-        sage: tp_krc = tp_krt.to_tensor_product_of_Kirillov_Reshetikhin_crystals(); tp_krc
+        sage: tp_krc = tp_krt.to_tensor_product_of_kirillov_reshetikhin_crystals(); tp_krc
         [[[1], [2], [3]], [[2, 2], [3, 3]]]
         sage: KRT(tp_krc) == tp_krt
         True
@@ -331,7 +331,7 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
         rejects = []
         for x in self:
             y = x.to_rigged_configuration()
-            z = y.to_tensor_product_of_Kirillov_Reshetikhin_tableaux()
+            z = y.to_tensor_product_of_kirillov_reshetikhin_tableaux()
             if z != x:
                 rejects.append((x, z))
 
@@ -359,18 +359,18 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
 
         from sage.combinat.crystals.kirillov_reshetikhin import KirillovReshetikhinGenericCrystalElement
         if isinstance(path[0], KirillovReshetikhinGenericCrystalElement):
-            return self.element_class(self, [x.to_Kirillov_Reshetikhin_tableau() for x in path])
+            return self.element_class(self, [x.to_kirillov_reshetikhin_tableau() for x in path])
 
         from sage.combinat.crystals.tensor_product import TensorProductOfRegularCrystalsElement
         if isinstance(path[0], TensorProductOfRegularCrystalsElement) and \
           isinstance(path[0][0], KirillovReshetikhinGenericCrystalElement):
-            return self.element_class(self, [x.to_Kirillov_Reshetikhin_tableau() for x in path[0]])
+            return self.element_class(self, [x.to_kirillov_reshetikhin_tableau() for x in path[0]])
 
         from sage.combinat.rigged_configurations.rigged_configuration_element import RiggedConfigurationElement
         if isinstance(path[0], RiggedConfigurationElement):
             if self.rigged_configurations() != path[0].parent():
                 raise ValueError("incorrect bijection image")
-            return path[0].to_tensor_product_of_Kirillov_Reshetikhin_tableaux()
+            return path[0].to_tensor_product_of_kirillov_reshetikhin_tableaux()
 
         return self.element_class(self, list(path), **options)
 
@@ -407,7 +407,7 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
         return RiggedConfigurations(self.cartan_type(), self.dims)
 
     @cached_method
-    def tensor_product_of_Kirillov_Reshetikhin_crystals(self):
+    def tensor_product_of_kirillov_reshetikhin_crystals(self):
         """
         Return the corresponding tensor product of Kirillov-Reshetikhin
         crystals.
@@ -415,7 +415,7 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
         EXAMPLES::
 
             sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1],[2,2]])
-            sage: KRT.tensor_product_of_Kirillov_Reshetikhin_crystals()
+            sage: KRT.tensor_product_of_kirillov_reshetikhin_crystals()
             Full tensor product of the crystals [Kirillov-Reshetikhin crystal of type ['A', 3, 1] with (r,s)=(3,1),
             Kirillov-Reshetikhin crystal of type ['A', 3, 1] with (r,s)=(2,2)]
 
@@ -425,12 +425,12 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
             sage: KR1 = KirillovReshetikhinCrystal(['D', 4, 1], 4, 1)
             sage: KR2 = KirillovReshetikhinCrystal(['D', 4, 1], 3, 3)
             sage: T = TensorProductOfCrystals(KR1, KR2)
-            sage: T == KRT.tensor_product_of_Kirillov_Reshetikhin_crystals()
+            sage: T == KRT.tensor_product_of_kirillov_reshetikhin_crystals()
             True
-            sage: T is KRT.tensor_product_of_Kirillov_Reshetikhin_crystals()
+            sage: T is KRT.tensor_product_of_kirillov_reshetikhin_crystals()
             True
         """
-        return FullTensorProductOfRegularCrystals(tuple(x.Kirillov_Reshetikhin_crystal() for x in self.crystals),
+        return FullTensorProductOfRegularCrystals(tuple(x.kirillov_reshetikhin_crystal() for x in self.crystals),
                                            cartan_type=self.cartan_type())
 
 TensorProductOfKirillovReshetikhinTableaux.Element = TensorProductOfKirillovReshetikhinTableauxElement

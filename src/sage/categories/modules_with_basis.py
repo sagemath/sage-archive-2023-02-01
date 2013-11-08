@@ -14,12 +14,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import attrcall
 from sage.misc.superseded import deprecated_function_alias
 from sage.misc.sage_itertools import max_cmp, min_cmp
-from sage.categories.all import Sets, CommutativeAdditiveSemigroups, Modules, HomCategory, Homset
+from sage.categories.all import Sets, CommutativeAdditiveSemigroups, Modules, HomCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.tensor import tensor, TensorProductsCategory
 from sage.categories.dual import DualObjectsCategory
@@ -1832,7 +1831,6 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
             sage: phi.co_reduced(y[1] + y[2])
             0
         """
-        F = self.domain()
         G = self.codomain()
         basis_map = self._on_basis
         assert y in G
@@ -1840,7 +1838,6 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
         result    = G.zero()
         remainder = y
 
-        out = F.zero()
         while not remainder.is_zero():
             (j,c) = self._dominant_item(remainder)
             if self._inverse_on_support is None:

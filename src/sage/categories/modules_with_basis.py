@@ -1401,9 +1401,11 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
     - Let `I` and `J` be the respective index sets of the basis of `F` and
       the basis of `G`. Either `I = J`, or ``inverse_on_support`` is a
       function `r : J\to I` with the following property: for any `j\in J`,
-      `r(j)` should return an `i\in I` such that the leading term of
-      ``on_basis(i)`` is `j` if there exists such an `i`, or ``None`` if
-      not.
+      `r(j)` should return an `i\in I` such that the leading term (or
+      trailing term, if ``triangular`` is set to ``"lower"``) of
+      ``on_basis(i)`` (with respect to the comparison ``cmp``, if the
+      latter is set, or just the default comparison otherwise) is `j` if
+      there exists such an `i`, or ``None`` if not.
 
     OUTPUT:
 

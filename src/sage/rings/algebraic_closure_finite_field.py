@@ -392,6 +392,12 @@ class AlgebraicClosureFiniteField_generic(Field):
     def cardinality(self):
         r"""
         Return infinity.
+
+        EXAMPLES::
+
+            sage: F = GF(3).algebraic_closure('t')
+            sage: F.cardinality()
+            +Infinity
         """
         from sage.rings.infinity import Infinity
         return Infinity

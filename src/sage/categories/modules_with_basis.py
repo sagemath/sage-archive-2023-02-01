@@ -223,7 +223,7 @@ class ModulesWithBasis(Category_over_base_ring):
               (the indexing set of the basis of `X`) as ``position``-th argument
               and returns elements of `Y`
             - ``diagonal`` -- a function `d` from `I` to `R` (the base ring
-              if ``self`` and ``codomain``)
+              of ``self`` and ``codomain``)
             - ``triangular`` --  (default: ``None``) ``"upper"`` or
               ``"lower"`` or ``None``:
 

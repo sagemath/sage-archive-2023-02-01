@@ -186,7 +186,7 @@ class AlternatingSignMatrix(Element):
 
     def __gt__(self, other):
         """
-        Check greater than.
+        Check greater than. This is needed, see :trac:`15372`.
 
         EXAMPLES::
 
@@ -925,7 +925,8 @@ class MonotoneTriangles(GelfandTsetlinPatternsTopRow):
             sage: P = M.lattice()
             sage: P
             Finite lattice containing 7 elements
-
+            sage: P.plot()
+            
         """
         return LatticePoset(self._lattice_initializer(), cover_relations=True)
 

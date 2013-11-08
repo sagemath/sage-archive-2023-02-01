@@ -62,18 +62,17 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
     the elements of the Kirillov-Reshetikhin crystal `B^{r,s}` under the
     (inverse) filling map.
 
-    When the Kirillov-Reshetkihin crystal is a full `r \times s` rectangle
-    (such as in type `A^{(1)}_n` or `C^{(1)}_n` for `B^{n,s}`), the filling
-    map is trivial. Thus the highest weight module is just filled with columns
-    `[1, 2, \ldots, n]`.
+    Whenever `B^{r,s} \cong B(s\Lambda_r)` as a classical crystal (which is the case
+    for `B^{r,s}` in type `A_n^{(1)}` and `B^{n,s}` in type `C_n^{(1)}`), then the filling
+    map is trivial.
 
-    For type `D^{(1)}_n` for `B^{r,s}` when `r \leq n-2`, the filling map is
+    For `B^{r,s}` in type `D^{(1)}_n` when `r \leq n-2`, the filling map is
     defined in [AffineRigConDn]_.
 
-    For the spinor cases, the crystal `B^{k,s}` is isomorphic to the classical
-    crystal `B(\Lambda_k)`, and here we consider the Kirillov-Reshetikhin
-    tableaux as living in `B(2\Lambda_k)` under the natural doubling map.
-    In this case, `e_i` and `f_i` act as `e_i^2` and `f_i^2` respectively.
+    For the spinor cases in `D_n^{(1)}`, the crystal `B^{k,s}` where `k=n-1,n` is isomorphic as
+    a classical crystal to `B(s\Lambda_k)`, and here we consider the Kirillov-Reshetikhin
+    tableaux as living in `B(2s\Lambda_k)` under the natural doubling map.
+    In this case, the crystal operators `e_i` and `f_i` act as `e_i^2` and `f_i^2` respectively.
     See [BijectionDn]_.
 
     For more information about the bijection between rigged configurations

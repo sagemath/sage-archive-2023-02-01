@@ -235,13 +235,128 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
         """
         F = self.parent()
         x = self._value
-        try:
+        if x.is_square():
             return self.__class__(F, x.sqrt(extend=False))
-        except ValueError:
+        else:
             l = self._level
             x = F.inclusion(l, 2*l)(x)
             return self.__class__(F, x.sqrt(extend=False))
 
+    def nth_root(self, n):
+        r"""
+        Return the ``n``-th root of ``self``.
+
+        EXAMPLE::
+
+            sage: F = GF(5).algebraic_closure('z')
+            sage: t = F.gen(2) + 1
+            sage: s = t.nth_root(15); s
+            4*z6^5 + 3*z6^4 + 2*z6^3 + 2*z6^2 + 4
+            sage: s**15 == t
+            True
+        """
+        from sage.rings.integer import Integer
+        F = self.parent()
+        x = self._value
+        n = Integer(n)
+        l = self._level
+        # in order to be smart we look for the smallest subfield that actually
+        # contains the root.
+        #TODO: it certainly can be faster
+        for d in n.divisors():
+            xx = F.inclusion(l, d*l)(x)
+            try:
+                y = xx.nth_root(n, extend=False)
+            except ValueError:
+                continue
+            return self.__class__(F, y)
+
+        raise ValueError("this should not happen!")
+
+    def multiplicative_order(self):
+        r"""
+        Return the multiplicative order of ``self``.
+
+        EXAMPLES::
+
+            sage: K = GF(7).algebraic_closure('t')
+            sage: K.gen(5).multiplicative_order()
+            16806
+            sage: (K.gen(1) + K.gen(2) + K.gen(3)).multiplicative_order()
+            7353
+        """
+        return self._value.multiplicative_order()
+
+    def pth_power(self, k=1):
+        r"""
+        Return the ``p^k``-th power of ``self``.
+
+        EXAMPLES::
+
+            sage: K = GF(13).algebraic_closure('t')
+            sage: t3 = K.gen(3)
+            sage: s = 1 + t3 + t3**2
+            sage: s.pth_power()
+            10*t3^2 + 6*t3
+            sage: s.pth_power(2)
+            2*t3^2 + 6*t3 + 11
+            sage: s.pth_power(3)
+            t3^2 + t3 + 1
+        """
+        return self._value.pth_power(k)
+
+    def pth_root(self, k=1):
+        r"""
+        Return the ``p^k``-th root of ``self``.
+
+        EXAMPLES::
+
+            sage: K = GF(13).algebraic_closure('t')
+            sage: t3 = K.gen(3)
+            sage: s = 1 + t3 + t3**2
+            sage: s.pth_root()
+            2*t3^2 + 6*t3 + 11
+            sage: s.pth_root(2)
+            10*t3^2 + 6*t3
+            sage: s.pth_root(3)
+            t3^2 + t3 + 1
+        """
+        return self._value.pth_root(k)
+
+    def as_finite_field_element(self, minimal=False):
+        r"""
+        Return ``self`` as a finite field element. Is ``minimal`` is set to
+        ``True`` then returns the smallest subfield in which ``self`` is
+        contained.
+
+        EXAMPLES::
+
+            sage: F = GF(3).algebraic_closure('t')
+            sage: t = F.gen(5)
+            sage: t.as_finite_field_element()
+            (Finite Field in t5 of size 3^5,
+             t5,
+             Ring morphism:
+              From: Finite Field in t5 of size 3^5
+              To:   Algebraic closure of Finite Field of size 3
+              Defn: t5 |--> t5)
+
+        By default, the finite field returned is not minimal, but this behavior
+        can be modified through the ``minimal`` option::
+
+            sage: s = t+1-t
+            sage: s.as_finite_field_element()[0]
+            Finite Field in t5 of size 3^5
+            sage: s.as_finite_field_element(minimal=True)[0]
+            Finite Field of size 3
+        """
+        if not minimal:
+            l = self._level
+        else:
+            l = self._value.minpoly().degree()
+
+        F,phi = self.parent().subfield(l)
+        return (F, F(self._value), phi)
 
 def unpickle_AlgebraicClosureFiniteFieldElement(parent, level, x):
     """
@@ -273,6 +388,13 @@ class AlgebraicClosureFiniteField_generic(Field):
         """
         Field.__init__(self, base_ring=base_ring, names=name,
                        normalize=False, category=category)
+
+    def cardinality(self):
+        r"""
+        Return infinity.
+        """
+        from sage.rings.infinity import Infinity
+        return Infinity
 
     def __getstate__(self):
         """

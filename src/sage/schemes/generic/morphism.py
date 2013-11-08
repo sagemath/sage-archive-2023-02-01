@@ -119,8 +119,13 @@ def is_SchemeMorphism(f):
     from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
     return isinstance(f, (SchemeMorphism, EllipticCurvePoint_field));
 
+#TODO:
+# SchemeMorphism inherits from Element!!
+# (this is because points on schemes are morphisms)
+# to make the composition works I managed to make SchemeMorphism_polynomial
+# *not* inherits from SchemeMorphism!!
 
-class SchemeMorphism(Morphism):
+class SchemeMorphism(Element):
     """
     Base class for scheme morphisms
 
@@ -673,7 +678,7 @@ class SchemeMorphism_spec(SchemeMorphism):
 # The domain can be either affine or projective regardless
 # of the class
 ############################################################################
-class SchemeMorphism_polynomial(SchemeMorphism):
+class SchemeMorphism_polynomial(Morphism):
     """
     A morphism of schemes determined by polynomials that define what
     the morphism does on points in the ambient space.
@@ -749,7 +754,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                 lift_polys = polys
             polys = Sequence(lift_polys)
         self._polys = polys
-        SchemeMorphism.__init__(self, parent)
+        Morphism.__init__(self, parent)
 
     def defining_polynomials(self):
         """

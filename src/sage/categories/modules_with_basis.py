@@ -2,9 +2,11 @@ r"""
 Modules With Basis
 
 AUTHORS:
+
 - Nicolas M. Thiery (2008-2010): initial revision
-- Jason Bandlow & Florent Hivert (2010): Triangular Morphisms
-- Christian Stump (2010): #9648: module_morphism's to a wider class of codomains
+- Jason Bandlow and Florent Hivert (2010): Triangular Morphisms
+- Christian Stump (2010): :trac:`9648` module_morphism's to a wider class
+  of codomains
 """
 #*****************************************************************************
 #  Copyright (C) 2008 Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
@@ -62,7 +64,7 @@ class ModulesWithBasis(Category_over_base_ring):
           From: X
           To:   Y
 
-    which we can apply to elements of X::
+    which we can apply to elements of `X`::
 
         sage: x = X.monomial(1) + 3 * X.monomial(2)
         sage: H.zero()(x)
@@ -97,8 +99,8 @@ class ModulesWithBasis(Category_over_base_ring):
     `Hom(X,Y)` has a natural module structure (except for the zero,
     the operations are not yet implemented though). However since the
     dimension is not necessarily finite, it is not a module with
-    basis; but see FiniteDimensionalModulesWithBasis and
-    GradedModulesWithBasis::
+    basis; but see :class:`FiniteDimensionalModulesWithBasis` and
+    :class:`GradedModulesWithBasis`::
 
         sage: H in ModulesWithBasis(QQ), H in Modules(QQ)
         (False, True)
@@ -110,7 +112,7 @@ class ModulesWithBasis(Category_over_base_ring):
         sage: Hom(H, H).category()
         Category of hom sets in Category of modules over Rational Field
 
-    # TODO: End(X) is an algebra
+    .. TODO:: ``End(X)`` is an algebra.
 
     TESTS::
 
@@ -182,7 +184,7 @@ class ModulesWithBasis(Category_over_base_ring):
         @cached_method
         def basis(self):
             """
-            Returns the basis of self.
+            Return the basis of ``self``.
 
             EXAMPLES::
 
@@ -205,36 +207,44 @@ class ModulesWithBasis(Category_over_base_ring):
             linearity from its restriction ``on_basis`` to the basis of
             ``self``.
 
-            Constructs a morphism `f: X \to Y` by linearity on a basis
-            `(x_i)_{i \in I}` of `X`.
+            Let ``self`` be the parent `X` with a basis indexed by `I`.
+            This constructs a morphism `f: X \to Y` by linearity on the
+            basis `(x_i)_{i \in I}` of `X`.
 
             INPUT:
 
-             - ``self`` -- a parent `X` in ``ModulesWithBasis(R)``, with basis `x`
-               indexed by `I`
-             - ``codomain`` -- the codomain `Y` of `f`: defaults to ``f.codomain()``
-               if the later is defined
-             - ``zero`` -- the zero of the codomain; defaults to ``codomain.zero()``
-               Can be used (with care) to define affine maps
-             - ``position`` -- a non negative integer; defaults to 0
-             - ``on_basis`` -- a function `f` which accepts elements of `I`
-               as position-th argument and returns elements of `Y`
-             - ``diagonal`` -- a function `d` from `I` to `R`
-             - ``triangular`` -- "upper" or "lower" or None
-                 - "upper": if the `leading_support()`  of the image of `F(i)` is `i`, or
-                 - "lower": if the `trailing_support()` of the image of `F(i)` is `i`.
-             - ``category`` -- a category. By default, this is
-               ``ModulesWithBasis(R)`` if `Y` is in this category, and
-               otherwise this lets `\hom(X,Y)` decide
+            - ``codomain`` -- the codomain `Y` of `f`: defaults to
+              ``f.codomain()`` if the later is defined
+            - ``zero`` -- the zero of the codomain; defaults to
+              ``codomain.zero()``; can be used (with care) to define affine maps
+            - ``position`` -- a non negative integer; defaults to 0
+            - ``on_basis`` -- a function `f` which accepts elements of `I`
+              as ``position``-th argument and returns elements of `Y`
+            - ``diagonal`` -- a function `d` from `I` to `R`
+            - ``triangular`` --  (default: ``None``) ``"upper"`` or
+              ``"lower"`` or ``None``:
 
-            Exactly one of ``on_basis`` and ``diagonal`` options should be specified.
+              * ``"upper"`` - if the :meth:`leading_support()` of the image
+                of `F(i)` is `i`, or
+              * ``"lower"`` - if the :meth:`trailing_support()` of the image
+                of `F(i)` is `i`
+
+            - ``category`` -- a category; by default, this is
+              ``ModulesWithBasis(R)`` if `Y` is in this category, and
+              otherwise this lets `Hom(X,Y)` decide
+
+            Exactly one of ``on_basis`` and ``diagonal`` options should
+            be specified.
 
             With the ``on_basis`` option, this returns a function `g`
             obtained by extending `f` by linearity on the ``position``-th
             positional argument. For example, for ``position == 1`` and a
             ternary function `f`, one has:
 
-            .. math:: g(a,\ \sum_i \lambda_i x_i,\ c) = \sum_i \lambda_i f(a, i, c)
+            .. MATH::
+
+                g\left( a,\ \sum_i \lambda_i x_i,\ c \right)
+                = \sum_i \lambda_i f(a, i, c).
 
             EXAMPLES::
 
@@ -299,10 +309,10 @@ class ModulesWithBasis(Category_over_base_ring):
                 sage: y = X.monomial('y')
                 sage: z = Y.monomial('z')
                 sage: def on_basis( a ):
-                ...       if a == 'x':
-                ...           return CC(1) * z
-                ...       elif a == 'y':
-                ...           return CC(I) * z
+                ....:     if a == 'x':
+                ....:         return CC(1) * z
+                ....:     elif a == 'y':
+                ....:         return CC(I) * z
                 sage: phi = X.module_morphism( on_basis=on_basis, codomain=Y )
                 sage: v = 3 * x + 2 * y; v
                 3.00000000000000*B['x'] + 2.00000000000000*B['y']
@@ -336,7 +346,8 @@ class ModulesWithBasis(Category_over_base_ring):
                 ValueError: codomain(=Free module generated by {'x', 'y'} over Real Field with 53 bits of precision) should be a module over the base ring of the domain(=Free module generated by {'z'} over Univariate Polynomial Ring in q over Real Field with 53 bits of precision)
 
 
-            With the ``diagonal`` argument, this returns the module morphism `g` such that:
+            With the ``diagonal`` argument, this returns the module
+            morphism `g` such that:
 
                 `g(x_i) = d(i) y_i`
 
@@ -377,9 +388,10 @@ class ModulesWithBasis(Category_over_base_ring):
             Caveat: the returned element is in ``Hom(codomain, domain,
             category``). This is only correct for unary functions.
 
-            Todo: should codomain be ``self`` by default in the
-            diagonal and triangular cases?
+            .. TODO::
 
+                Should codomain be ``self`` by default in the
+                diagonal and triangular cases?
             """
             if diagonal is not None:
                 return DiagonalModuleMorphism(diagonal = diagonal, domain = self, **keywords)
@@ -387,8 +399,7 @@ class ModulesWithBasis(Category_over_base_ring):
                 if triangular is not None:
                     return TriangularModuleMorphism(on_basis, domain = self, triangular = triangular, **keywords)
                 return ModuleMorphismByLinearity(on_basis = on_basis, domain = self, **keywords)
-            else:
-                raise ValueError("module morphism requires either on_basis or diagonal argument")
+            raise ValueError("module morphism requires either on_basis or diagonal argument")
 
         _module_morphism = module_morphism
 
@@ -404,7 +415,7 @@ class ModulesWithBasis(Category_over_base_ring):
                 QS3
 
                 sage: class Blah(Parent):
-                ...       pass
+                ....:     pass
                 sage: Blah(category = ModulesWithBasis(QQ))
                 <class '__main__.Blah_with_category'>
 
@@ -424,7 +435,7 @@ class ModulesWithBasis(Category_over_base_ring):
 
         def tensor(*parents):
             """
-            Returns the tensor product of the parents
+            Return the tensor product of the parents.
 
             EXAMPLES::
 
@@ -452,11 +463,8 @@ class ModulesWithBasis(Category_over_base_ring):
 
         def support_of_term(self):
             """
-            INPUT:
-
-             - ``self`` - a monomial, possibly with coefficient
-
-            Returns the support of ``self``.
+            Return the support of ``self`` where ``self`` is a monomial,
+            possibly with coefficient.
 
             EXAMPLES::
 
@@ -472,7 +480,6 @@ class ModulesWithBasis(Category_over_base_ring):
                 Traceback (most recent call last):
                 ...
                 ValueError: B[2] + B[3] is not a single term
-
             """
             if len(self) == 1:
                 return self.support()[0]
@@ -481,14 +488,14 @@ class ModulesWithBasis(Category_over_base_ring):
 
         def leading_support(self, cmp=None):
             r"""
-            Returns the maximal element of the support of ``self``. Note
+            Return the maximal element of the support of ``self``. Note
             that this may not be the term which actually appears first when
             ``self`` is printed.
 
             If the default ordering of the basis elements is not what is
             desired, a comparison function, ``cmp(x,y)``, can be provided.
-            This should return a negative value if `x < y`, `0` if `x == y`
-            and a positive value if `x > y`.
+            This should return a negative value if ``x < y``, ``0`` if ``x == y``
+            and a positive value if ``x > y``.
 
             EXAMPLES::
 
@@ -510,15 +517,15 @@ class ModulesWithBasis(Category_over_base_ring):
 
         def leading_item(self, cmp=None):
             r"""
-            Returns the pair ``(k, c)`` where ``c`` * (the basis elt. indexed
+            Return the pair ``(k, c)`` where ``c *`` (the basis elt. indexed
             by ``k``) is the leading term of ``self``.
 
-            'leading term' means that the corresponding basis element is
+            Here 'leading term' means that the corresponding basis element is
             maximal.  Note that this may not be the term which actually appears
             first when ``self`` is printed.  If the default term ordering is not
             what is desired, a comparison function, ``cmp(x,y)``, can be
-            provided.  This should return a negative value if `x < y`, `0` if
-            `x == y` and a positive value if `x > y`.
+            provided.  This should return a negative value if ``x < y``, ``0``
+            if ``x == y`` and a positive value if ``x > y``.
 
             EXAMPLES::
 
@@ -540,14 +547,14 @@ class ModulesWithBasis(Category_over_base_ring):
 
         def leading_monomial(self, cmp=None):
             r"""
-            Returns the leading monomial of ``self``.
+            Return the leading monomial of ``self``.
 
             This is the monomial whose corresponding basis element is
             maximal. Note that this may not be the term which actually appears
             first when ``self`` is printed. If the default term ordering is not
-            what is desired, a comparison function, cmp(x,y), can be provided.
-            This should return a negative value if x < y, 0 if x == y
-            and a positive value if x > y.
+            what is desired, a comparison function, ``cmp(x,y)``, can be provided.
+            This should return a negative value if ``x < y``, ``0`` if ``x == y``
+            and a positive value if ``x > y``.
 
             EXAMPLES::
 
@@ -573,9 +580,9 @@ class ModulesWithBasis(Category_over_base_ring):
             This is the coefficient of the term whose corresponding basis element is
             maximal. Note that this may not be the term which actually appears
             first when ``self`` is printed.  If the default term ordering is not
-            what is desired, a comparison function, cmp(x,y), can be provided.
-            This should return a negative value if x < y, 0 if x == y
-            and a positive value if x > y.
+            what is desired, a comparison function, ``cmp(x,y)``, can be provided.
+            This should return a negative value if ``x < y``, 0 if ``x == y``
+            and a positive value if ``x > y``.
 
             EXAMPLES::
 
@@ -596,14 +603,14 @@ class ModulesWithBasis(Category_over_base_ring):
 
         def leading_term(self, cmp=None):
             r"""
-            Returns the leading term of ``self``.
+            Return the leading term of ``self``.
 
             This is the term whose corresponding basis element is
             maximal. Note that this may not be the term which actually appears
             first when ``self`` is printed. If the default term ordering is not
-            what is desired, a comparison function, cmp(x,y), can be provided.
-            This should return a negative value if x < y, 0 if x == y
-            and a positive value if x > y.
+            what is desired, a comparison function, ``cmp(x,y)``, can be provided.
+            This should return a negative value if ``x < y``, 0 if ``x == y``
+            and a positive value if ``x > y``.
 
             EXAMPLES::
 
@@ -624,14 +631,14 @@ class ModulesWithBasis(Category_over_base_ring):
 
         def trailing_support(self, cmp=None):
             r"""
-            Returns the minimal element of the support of ``self``. Note
+            Return the minimal element of the support of ``self``. Note
             that this may not be the term which actually appears last when
             ``self`` is printed.
 
             If the default ordering of the basis elements is not what is
             desired, a comparison function, ``cmp(x,y)``, can be provided.
-            This should return a negative value if `x < y`, `0` if `x == y`
-            and a positive value if `x > y`.
+            This should return a negative value if ``x < y``, `0` if ``x == y``
+            and a positive value if ``x > y``.
 
             EXAMPLES::
 
@@ -658,9 +665,9 @@ class ModulesWithBasis(Category_over_base_ring):
             This is the monomial whose corresponding basis element is
             minimal. Note that this may not be the term which actually appears
             last when ``self`` is printed.  If the default term ordering is not
-            what is desired, a comparison function cmp(x,y), can be provided.
-            This should return a negative value if x < y, 0 if x == y
-            and a positive value if x > y.
+            what is desired, a comparison function ``cmp(x,y)``, can be provided.
+            This should return a negative value if ``x < y``, 0 if ``x == y``
+            and a positive value if ``x > y``.
 
             EXAMPLES::
 
@@ -682,14 +689,14 @@ class ModulesWithBasis(Category_over_base_ring):
 
         def trailing_monomial(self, cmp=None):
             r"""
-            Returns the trailing monomial of ``self``.
+            Return the trailing monomial of ``self``.
 
             This is the monomial whose corresponding basis element is
             minimal. Note that this may not be the term which actually appears
             last when ``self`` is printed. If the default term ordering is not
-            what is desired, a comparison function cmp(x,y), can be provided.
-            This should return a negative value if x < y, 0 if x == y
-            and a positive value if x > y.
+            what is desired, a comparison function ``cmp(x,y)``, can be provided.
+            This should return a negative value if ``x < y``, 0 if ``x == y``
+            and a positive value if ``x > y``.
 
             EXAMPLES::
 
@@ -710,14 +717,14 @@ class ModulesWithBasis(Category_over_base_ring):
 
         def trailing_coefficient(self, cmp=None):
             r"""
-            Returns the trailing coefficient of ``self``.
+            Return the trailing coefficient of ``self``.
 
             This is the coefficient of the monomial whose corresponding basis element is
             minimal. Note that this may not be the term which actually appears
             last when ``self`` is printed. If the default term ordering is not
-            what is desired, a comparison function cmp(x,y), can be provided.
-            This should return a negative value if x < y, 0 if x == y
-            and a positive value if x > y.
+            what is desired, a comparison function ``cmp(x,y)``, can be provided.
+            This should return a negative value if ``x < y``, 0 if ``x == y``
+            and a positive value if ``x > y``.
 
             EXAMPLES::
 
@@ -739,14 +746,14 @@ class ModulesWithBasis(Category_over_base_ring):
 
         def trailing_term(self, cmp=None):
             r"""
-            Returns the trailing term of ``self``.
+            Return the trailing term of ``self``.
 
             This is the term whose corresponding basis element is
             minimal. Note that this may not be the term which actually appears
             last when ``self`` is printed. If the default term ordering is not
-            what is desired, a comparison function cmp(x,y), can be provided.
-            This should return a negative value if x < y, 0 if x == y
-            and a positive value if x > y.
+            what is desired, a comparison function ``cmp(x,y)``, can be provided.
+            This should return a negative value if ``x < y``, 0 if ``x == y``
+            and a positive value if ``x > y``.
 
             EXAMPLES::
 
@@ -767,14 +774,15 @@ class ModulesWithBasis(Category_over_base_ring):
 
         def map_coefficients(self, f):
             """
-            Mapping a function on coefficients
+            Mapping a function on coefficients.
 
             INPUT:
 
-             - ``f`` -- an endofunction on the coefficient ring of the free module
+            - ``f`` -- an endofunction on the coefficient ring of the
+              free module
 
-            Returns a new element of self.parent() obtained by applying the
-            function `f` to all of the coefficients of self.
+            Return a new element of ``self.parent()`` obtained by applying the
+            function ``f`` to all of the coefficients of ``self``.
 
             EXAMPLES::
 
@@ -802,14 +810,14 @@ class ModulesWithBasis(Category_over_base_ring):
 
         def map_support(self, f):
             """
-            Mapping a function on the support
+            Mapping a function on the support.
 
             INPUT:
 
-             - ``f`` -- an endofunction on the indices of the free module
+            - ``f`` -- an endofunction on the indices of the free module
 
-            Returns a new element of self.parent() obtained by
-            applying the function `f` to all of the objects indexing
+            Return a new element of ``self.parent()`` obtained by
+            applying the function ``f`` to all of the objects indexing
             the basis elements.
 
             EXAMPLES::
@@ -839,15 +847,15 @@ class ModulesWithBasis(Category_over_base_ring):
 
         def map_item(self, f):
             """
-            Mapping a function on items
+            Mapping a function on items.
 
             INPUT:
 
-             - ``f`` -- a function mapping pairs (index, coeff) to
-               other such pairs
+            - ``f`` -- a function mapping pairs ``(index, coeff)`` to
+              other such pairs
 
-            Returns a new element of self.parent() obtained by
-            applying the function `f` to all items (index,coeff) of
+            Return a new element of ``self.parent()`` obtained by
+            applying the function `f` to all items ``(index, coeff)`` of
             ``self``.
 
             EXAMPLES::
@@ -887,7 +895,7 @@ class ModulesWithBasis(Category_over_base_ring):
 
         def tensor(*elements):
             """
-            Returns the tensor product of its arguments, as an element of
+            Return the tensor product of its arguments, as an element of
             the tensor product of the parents of those elements.
 
             EXAMPLES::
@@ -906,13 +914,14 @@ class ModulesWithBasis(Category_over_base_ring):
 
     class HomCategory(HomCategory):
         """
-        The category of homomorphisms sets Hom(X,Y) for X, Y modules with basis
+        The category of homomorphisms sets `Hom(X,Y)` for `X`, `Y`
+        modules with basis.
         """
-
         class ParentMethods:
             def __call_on_basis__(self, **options):
                 """
-                Construct a morphism in this homset from a function defined on the basis
+                Construct a morphism in this homset from a function defined
+                on the basis.
 
                 INPUT:
 
@@ -977,16 +986,17 @@ class ModulesWithBasis(Category_over_base_ring):
 
         class ElementMethods:
             """
-            Abstract class for morphisms of modules with basis
+            Abstract class for morphisms of modules with basis.
             """
             @cached_method
             def on_basis(self):
                 """
-                Returns the action of this morphism on basis elements
+                Return the action of this morphism on basis elements.
 
                 OUTPUT:
 
-                - a function from the indices of the basis of the domain to the codomain.
+                - a function from the indices of the basis of the domain to
+                  the codomain
 
                 EXAMPLES::
 
@@ -1011,7 +1021,8 @@ class ModulesWithBasis(Category_over_base_ring):
 
     class CartesianProducts(CartesianProductsCategory):
         """
-        The category of modules with basis constructed by cartesian products of modules with basis
+        The category of modules with basis constructed by cartesian products
+        of modules with basis.
         """
         @cached_method
         def extra_super_categories(self):
@@ -1045,7 +1056,8 @@ class ModulesWithBasis(Category_over_base_ring):
 
     class TensorProducts(TensorProductsCategory):
         """
-        The category of modules with basis constructed by tensor product of modules with basis
+        The category of modules with basis constructed by tensor product of
+        modules with basis.
         """
         @cached_method
         def extra_super_categories(self):
@@ -1061,24 +1073,25 @@ class ModulesWithBasis(Category_over_base_ring):
 
         class ParentMethods:
             """
-            implements operations on tensor products of modules with basis
+            Implements operations on tensor products of modules with basis.
             """
             pass
 
         class ElementMethods:
             """
-            implements operations on elements of tensor products of modules
-            with basis
+            Implements operations on elements of tensor products of modules
+            with basis.
             """
 
             def apply_multilinear_morphism(self, f, codomain = None):
                 r"""
-                Returns the result of applying the morphism induced by ``f`` to ``self``
+                Return the result of applying the morphism induced by ``f``
+                to ``self``.
 
                 INPUT:
 
                 - ``f`` -- a multilinear morphism from the component
-                  modules of the parent tensor product to any module.
+                  modules of the parent tensor product to any module
 
                 - ``codomain`` -- the codomain of ``f`` (optional)
 
@@ -1099,13 +1112,14 @@ class ModulesWithBasis(Category_over_base_ring):
                     sage: A = CombinatorialFreeModule(ZZ, [1,2], prefix="A"); A.rename("A")
                     sage: B = CombinatorialFreeModule(ZZ, [3,4], prefix="B"); B.rename("B")
 
-                and `f` the bilinear morphism `(a,b) \mapsto b\otimes
-                a` from `A \times B` to `B \otimes A`::
+                and `f` the bilinear morphism `(a,b) \mapsto b \otimes a`
+                from `A \times B` to `B \otimes A`::
 
                     sage: def f(a,b):
                     ....:     return tensor([b,a])
 
-                Now, calling applying `f` on `a\otimes b` returns the same as `f(a,b)`::
+                Now, calling applying `f` on `a \otimes b` returns the same
+                as `f(a,b)`::
 
                     sage: a = A.monomial(1) + 2 * A.monomial(2); a
                     A[1] + 2*A[2]
@@ -1120,7 +1134,7 @@ class ModulesWithBasis(Category_over_base_ring):
                 base ring of `A` and `B`. Here the codomain is `\ZZ`::
 
                     sage: def f(a,b):
-                    ...       return sum(a.coefficients(), 0) * sum(b.coefficients(), 0)
+                    ....:     return sum(a.coefficients(), 0) * sum(b.coefficients(), 0)
                     sage: f(a,b)
                     -3
                     sage: tensor([a,b]).apply_multilinear_morphism(f)
@@ -1130,7 +1144,7 @@ class ModulesWithBasis(Category_over_base_ring):
                 not return `0` in `\ZZ`::
 
                     sage: def f(a,b):
-                    ...       return sum(a.coefficients()) * sum(b.coefficients())
+                    ....:     return sum(a.coefficients()) * sum(b.coefficients())
                     sage: type(f(A.zero(), B.zero()))
                     <type 'int'>
 
@@ -1146,7 +1160,7 @@ class ModulesWithBasis(Category_over_base_ring):
 
                     sage: C = CombinatorialFreeModule(QQ, [(1,3),(2,4)], prefix="C"); C.rename("C")
                     sage: def f(a,b):
-                    ...       return C.sum_of_terms( [((1,3), QQ(a[1]*b[3])), ((2,4), QQ(a[2]*b[4]))] )
+                    ....:     return C.sum_of_terms( [((1,3), QQ(a[1]*b[3])), ((2,4), QQ(a[2]*b[4]))] )
                     sage: f(a,b)
                     C[(1, 3)] - 4*C[(2, 4)]
                     sage: tensor([a,b]).apply_multilinear_morphism(f)
@@ -1169,7 +1183,9 @@ class ModulesWithBasis(Category_over_base_ring):
 
                 We recover the constant term of `x`, as desired.
 
-                .. TODO:: extract a method to linearize a multilinear
+                .. TODO::
+
+                    Extract a method to linearize a multilinear
                     morphism, and delegate the work there.
                 """
                 K = self.parent().base_ring()
@@ -1204,24 +1220,26 @@ class ModulesWithBasis(Category_over_base_ring):
 
 class ModuleMorphismByLinearity(Morphism):
     """
-    A class for module morphisms obtained by extending a function by linearity
+    A class for module morphisms obtained by extending a function by linearity.
     """
     def __init__(self, domain, on_basis = None, position = 0, zero = None, codomain = None, category = None):
         """
-        Constructs a module morphism by linearity
+        Construct a module morphism by linearity.
 
         INPUT:
 
-         - ``domain`` -- a parent in ModulesWithBasis(...)
-         - ``codomain`` -- a parent in Modules(...); defaults to f.codomain() if the later is defined
-         - ``position`` -- a non negative integer; defaults to 0
-         - ``on_basis`` -- a function which accepts indices of the basis of domain as position-th argument (optional)
-         - ``zero`` -- the zero of the codomain; defaults to ``codomain.zero()``
+        - ``domain`` -- a parent in ``ModulesWithBasis(...)``
+        - ``codomain`` -- a parent in ``Modules(...)``; defaults to
+          ``f.codomain()`` if the later is defined
+        - ``position`` -- a non negative integer; defaults to 0
+        - ``on_basis`` -- a function which accepts indices of the basis of
+          domain as position-th argument (optional)
+        - ``zero`` -- the zero of the codomain; defaults to ``codomain.zero()``
 
-        ``on_basis`` may alternatively be provided in derived classes by implementing or setting ``_on_basis``.
+        ``on_basis`` may alternatively be provided in derived classes by
+        implementing or setting ``_on_basis``.
 
         EXAMPLES::
-
 
             sage: X = CombinatorialFreeModule(ZZ, [-2, -1, 1, 2])
             sage: Y = CombinatorialFreeModule(ZZ, [1, 2])
@@ -1242,7 +1260,6 @@ class ModuleMorphismByLinearity(Morphism):
 
         To be fixed in the general morphism overhaul (#....), possibly
         by making sure to create ``phi`` through its parent.
-
         """
         # Might want to assert that domain is a module with basis
         base_ring = domain.base_ring()
@@ -1310,12 +1327,13 @@ class ModuleMorphismByLinearity(Morphism):
 
     def on_basis(self):
         """
-        Returns the action of this morphism on basis elements, as per
+        Return the action of this morphism on basis elements, as per
         :meth:`ModulesWithBasis.HomCategory.ElementMethods.on_basis`.
 
         OUTPUT:
 
-        - a function from the indices of the basis of the domain to the codomain.
+        - a function from the indices of the basis of the domain to the
+          codomain
 
         EXAMPLES::
 
@@ -1332,8 +1350,8 @@ class ModuleMorphismByLinearity(Morphism):
         return self._on_basis
 
     def __call__(self, *args):
-        """
-        Apply this morphism
+        r"""
+        Apply this morphism to ``*args``.
 
         EXAMPLES::
 
@@ -1345,7 +1363,9 @@ class ModuleMorphismByLinearity(Morphism):
             sage: phi(x[1]), phi(x[-2]), phi(x[1] + 3 * x[-2])
             (B[1], B[2], B[1] + 3*B[2])
 
-        Todo: add more tests for multi-parameter module morphisms.
+        .. TODO::
+
+            Add more tests for multi-parameter module morphisms.
         """
         before = args[0:self._position]
         after = args[self._position+1:len(args)]
@@ -1374,16 +1394,18 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
 
     INPUT:
 
-    - ``domain`` -- a module-with-basis `F`
-    - ``codomain`` -- a module-with-basis `G` (defaults to `F`)
+    - ``domain`` -- a module with basis `F`
+    - ``codomain`` -- a module with basis `G` (defaults to `F`)
     - ``on_basis`` -- a function from the index set of the basis of `F`
       to the module `G` which determines the morphism by linearity
     - ``unitriangular`` -- boolean (default: ``False``)
-    - ``triangular`` -- ``"upper"`` or ``"lower"`` (default: ``"upper"``)
-        - ``"upper"``: if the ``leading_support()`` of the image of
-          `F(i)` is `i`, or
-        - ``"lower"``: if the ``trailing_support()`` of the image of
-          `F(i)` is `i`.
+    - ``triangular`` -- (default: ``"upper"``) ``"upper"`` or ``"lower"``:
+
+      * ``"upper"`` - if the :meth:`leading_support()` of the image of
+        `F(i)` is `i`, or
+      * ``"lower"`` - if the :meth:`trailing_support()` of the image of
+        `F(i)` is `i`
+
     - ``cmp`` -- an optional comparison function on the index set `J` of
       the basis of the codomain `G`.
     - ``invertible`` -- boolean or ``None`` (default: ``None``); should
@@ -1400,8 +1422,8 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
 
     - Let `I` and `J` be the respective index sets of the basis of `F` and
       the basis of `G`. Either `I = J`, or ``inverse_on_support`` is a
-      function `r : J\to I` with the following property: for any `j\in J`,
-      `r(j)` should return an `i\in I` such that the leading term (or
+      function `r : J \to I` with the following property: for any `j \in J`,
+      `r(j)` should return an `i \in I` such that the leading term (or
       trailing term, if ``triangular`` is set to ``"lower"``) of
       ``on_basis(i)`` (with respect to the comparison ``cmp``, if the
       latter is set, or just the default comparison otherwise) is `j` if
@@ -1409,10 +1431,10 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
 
     OUTPUT:
 
-        The triangular module morphism from `F` to `G` which maps `f_i`
-        to ``on_basis(i)`` and is extended by linearity.
+    The triangular module morphism from `F` to `G` which maps `f_i`
+    to ``on_basis(i)`` and is extended by linearity.
 
-    EXAMPLES::
+    EXAMPLES:
 
     We construct and invert an upper unitriangular module morphism between
     two free `\QQ`-modules::
@@ -1537,7 +1559,6 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
         sage: [phi.preimage(x[i]) for i in range(1, 4)]
         [-1/3*B[1] + B[2] - 1/12*B[3], 1/4*B[3], 1/3*B[1] - 1/6*B[3]]
     """
-
     def __init__(self, on_basis, domain, triangular = "upper", unitriangular=False,
                  codomain = None, category = None, cmp = None,
                  inverse = None, inverse_on_support = None, invertible = None):
@@ -1575,7 +1596,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
 
     def _test_triangular(self, **options):
         """
-        Tests that ``self`` is actually triangular
+        Test that ``self`` is actually triangular
 
         See also: :class:`sage.misc.sage_unittest.TestSuite`.
 
@@ -1598,14 +1619,14 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
             sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4,5]); y = Y.basis()
             sage: uut = lambda i: sum(  y[j] for j in range(i+1,6)  )
             sage: phi = X.module_morphism(uut, codomain = Y,
-            ...        triangular=True, unitriangular=True,
-            ...        inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
+            ....:      triangular=True, unitriangular=True,
+            ....:      inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
             sage: phi._test_triangular()
 
             sage: uutw = lambda i: sum(  2*y[j] for j in range(i+1,6)  ) # uni-upper
             sage: phi = X.module_morphism(uutw, codomain = Y,
-            ...        triangular=True, unitriangular=True,
-            ...        inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
+            ....:      triangular=True, unitriangular=True,
+            ....:      inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
             sage: phi._test_triangular()
             Traceback (most recent call last):
             ...
@@ -1629,7 +1650,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
 
     def _on_basis(self, i):
         """
-        Returns the image, by self, of the basis element indexed by `i`.
+        Return the image, by ``self``, of the basis element indexed by ``i``.
 
         TESTS::
 
@@ -1644,7 +1665,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
 
     def __invert__(self):
         """
-        Returns the triangular morphism which is the inverse of `self`.
+        Return the triangular morphism which is the inverse of ``self``.
 
         Raises an error if ``self`` is not invertible.
 
@@ -1676,9 +1697,9 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
 
     def section(self):
         """
-        Returns the section (partial inverse) of ``self``.
+        Return the section (partial inverse) of ``self``.
 
-        Returns a partial triangular morphism which is a section of
+        Return a partial triangular morphism which is a section of
         ``self``. The section morphism raise a ``ValueError`` if asked to
         apply on an element which is not in the image of ``self``.
 
@@ -1689,7 +1710,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
             sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4,5]); y = Y.basis()
             sage: uut = lambda i: sum(  y[j] for j in range(i+1,6)  ) # uni-upper
             sage: phi = X.module_morphism(uut, triangular=True, codomain = Y,
-            ...        inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
+            ....:      inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
             sage: ~phi
             Traceback (most recent call last):
             ...
@@ -1728,7 +1749,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
     # on the basis
     def _invert_on_basis(self, i):
         r"""
-        Returns the image, by the inverse of ``self``, of the basis element
+        Return the image, by the inverse of ``self``, of the basis element
         indexed by ``i``.
 
         TESTS::
@@ -1744,7 +1765,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
 
     def preimage(self, f):
         """
-        Returns the preimage of `f` under ``self``.
+        Return the preimage of `f` under ``self``.
 
         EXAMPLES::
 
@@ -1821,8 +1842,8 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
         ``self``.
 
         Suppose that ``self`` is a morphism from `X` to `Y`. Then for any
-        `y\in Y`, the calls ``self.co_reduced(y)`` returns a normal form for
-        `y` in the quotient `Y/I` where `I` is the image of ``self``.
+        `y \in Y`, the calls ``self.co_reduced(y)`` returns a normal form for
+        `y` in the quotient `Y / I` where `I` is the image of ``self``.
 
         EXAMPLES::
 
@@ -1860,11 +1881,11 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
 
     def co_kernel_projection(self, category = None):
         """
-        Returns a projection on the co-kernel of ``self``
+        Return a projection on the co-kernel of ``self``.
 
-        INPUT::
+        INPUT:
 
-           - `category` -- the category of the result.
+        - ``category`` -- the category of the result
 
         EXAMPLES::
 
@@ -1872,7 +1893,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
             sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4,5]); y = Y.basis()
             sage: uut = lambda i: sum(  y[j] for j in range(i+1,6)  ) # uni-upper
             sage: phi = X.module_morphism(uut, triangular=True, codomain = Y,
-            ...        inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
+            ....:      inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
             sage: phipro = phi.co_kernel_projection()
             sage: phipro(y[1] + y[2])
             B[1]
@@ -1890,45 +1911,50 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
                            self.co_reduced)
 
 class DiagonalModuleMorphism(ModuleMorphismByLinearity):
-    """
+    r"""
     A class for diagonal module morphisms.
 
-    See :meth:`ModulesWithBasis.ParentMethods.module_morphism`
+    See :meth:`ModulesWithBasis.ParentMethods.module_morphism`.
 
-    Todo:
+    INPUT:
 
-     - implement an optimized _call_ function
-     - generalize to a mapcoeffs
-     - generalize to a mapterms
+    - ``domain``, ``codomain`` -- two modules with basis `F` and `G`
+    - ``diagonal`` -- a function `d`
+
+    Assumptions:
+
+    - `F` and `G` have the same base ring `R`,
+    - their respective bases `f` and `g` have the same index set `I`,
+    - `d` is a function `I \to R`.
+
+    Return the diagonal module morphism from `F` to `G` where
+    `f_{\lambda} \mapsto d(\lambda) g_{\lambda}`.
+
+    By default, codomain is currently assumed to be domain.
+    (Todo: make a consistent choice with ``*ModuleMorphism``.)
+
+    .. TODO::
+
+        - Implement an optimized ``_call_()`` function.
+        - Generalize to a mapcoeffs.
+        - Generalize to a mapterms.
+
+    EXAMPLES::
+
+        sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); X.rename("X")
+        sage: phi = X.module_morphism(diagonal = factorial, codomain = X)
+        sage: x = X.basis()
+        sage: phi(x[1]), phi(x[2]), phi(x[3])
+        (B[1], 2*B[2], 6*B[3])
     """
-
     def __init__(self, diagonal, domain, codomain = None, category = None):
         r"""
-        INPUT:
-         - domain, codomain: two modules with basis `F` and `G`
-         - diagonal: a function `d`
-
-        Assumptions:
-         - `F` and `G` have the same base ring `R`
-         - Their respective bases `f` and `g` have the same index set `I`
-         - `d` is a function `I\to R`
-
-        Returns the diagonal module morphism from F to G which maps
-        `f_\lambda` to `d(\lambda) g_\lambda`.
-
-        By default, codomain is currently assumed to be domain
-        (Todo: make a consistent choice with ModuleMorphism)
-
-        EXAMPLES::
-
-            sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); X.rename("X")
-            sage: phi = X.module_morphism(diagonal = factorial, codomain = X)
-            sage: x = X.basis()
-            sage: phi(x[1]), phi(x[2]), phi(x[3])
-            (B[1], 2*B[2], 6*B[3])
+        Initialize ``self``.
 
         TESTS::
 
+            sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); X.rename("X")
+            sage: phi = X.module_morphism(diagonal = factorial, codomain = X)
             sage: phi.__class__
             <class 'sage.categories.modules_with_basis.DiagonalModuleMorphism'>
             sage: TestSuite(phi).run() # known issue; see ModuleMorphismByLinearity.__init__
@@ -1946,7 +1972,7 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
 
     def _on_basis(self, i):
         """
-        Returns the image by self of the basis element indexed by i
+        Return the image by ``self`` of the basis element indexed by ``i``.
 
         TESTS::
 
@@ -1960,7 +1986,7 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
 
     def __invert__(self):
         """
-        Returns the inverse diagonal morphism
+        Return the inverse diagonal morphism.
 
         EXAMPLES::
 
@@ -1984,11 +2010,12 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
 
 
 def pointwise_inverse_function(f):
-    """
-    INPUT:
-     - f: a function
+    r"""
+    Return the function ``(...) -> 1 / f(...)``.
 
-    Returns the function (...) -> 1 / f(...)
+    INPUT:
+
+    - ``f`` -- a function
 
     EXAMPLES::
 
@@ -1999,24 +2026,24 @@ def pointwise_inverse_function(f):
         sage: g(1), g(2), g(3)
         (1, 1/2, 1/3)
 
-    pointwise_inverse_function is an involution::
+    :func:`pointwise_inverse_function` is an involution::
 
         sage: f is pointwise_inverse_function(g)
         True
 
-    Todo: this has nothing to do here!!! Should there be a library for
-    pointwise operations on functions somewhere in Sage?
+    .. TODO::
 
+        This has nothing to do here!!! Should there be a library for
+        pointwise operations on functions somewhere in Sage?
     """
     if hasattr(f, "pointwise_inverse"):
         return f.pointwise_inverse()
-    else:
-        return PointwiseInverseFunction(f)
+    return PointwiseInverseFunction(f)
 
 from sage.structure.sage_object import SageObject
 class PointwiseInverseFunction(SageObject):
     """
-    A class for point wise inverse functions
+    A class for point wise inverse functions.
 
     EXAMPLES::
 
@@ -2073,3 +2100,4 @@ class PointwiseInverseFunction(SageObject):
             True
         """
         return self._pointwise_inverse
+

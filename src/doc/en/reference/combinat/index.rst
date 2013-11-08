@@ -25,6 +25,7 @@ Combinatorics
    sage/combinat/e_one_star
    sage/combinat/finite_class
    sage/combinat/hall_polynomial
+   sage/combinat/matrices/hadamard_matrix
    sage/combinat/integer_list
    sage/combinat/integer_matrices
    sage/combinat/integer_vector

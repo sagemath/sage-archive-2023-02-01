@@ -360,15 +360,19 @@ class HyperplaneArrangementElement(Element):
         EXAMPLES::
 
             sage: H.<x,y> = HyperplaneArrangements(QQ)
-            sage: H(x, y)    # indirect doctest
+            sage: elt = H(x, y); elt
             Arrangement <y | x>
+            sage: TestSuite(elt).run()
         """
         super(HyperplaneArrangementElement, self).__init__(parent)
         self._hyperplanes = hyperplanes
         if check:
-            assert isinstance(hyperplanes, tuple)
-            assert all(isinstance(h, Hyperplane) for h in hyperplanes)
-            assert all(h.parent() is self.parent().ambient_space() for h in hyperplanes)
+            if not isinstance(hyperplanes, tuple):
+                raise ValueError("the hyperplanes must be given as a tuple")
+            if not all(isinstance(h, Hyperplane) for h in hyperplanes):
+                raise ValueError("not all elements are hyperplanes")
+            if not all(h.parent() is self.parent().ambient_space() for h in hyperplanes):
+                raise ValueError("not all hyperplanes are in the ambient space")
 
     def _first_ngens(self, n):
         """
@@ -538,6 +542,8 @@ class HyperplaneArrangementElement(Element):
 
             sage: H.<x,y,z> = HyperplaneArrangements(QQ)
             sage: H(x) == H(y)
+            False
+            sage: H(x) == 0
             False
         """
         assert (type(self) is type(other)) and (self.parent() is other.parent()) # guaranteed by framework
@@ -1002,10 +1008,10 @@ class HyperplaneArrangementElement(Element):
             sage: b.characteristic_polynomial()  # not equal to that for a
             x^3 - 6*x^2 + 10*x
         """
-        if self.base_ring()!=QQ:
-            raise TypeError('Arrangement must be defined over QQ')
+        if self.base_ring() != QQ:
+            raise TypeError('arrangement must be defined over QQ')
         if not p.is_prime():
-            raise TypeError('Must reduce modulo a prime number.')
+            raise TypeError('must reduce modulo a prime number')
         from sage.rings.all import GF
         a = self.change_ring(GF(p))
         p = self.intersection_poset()
@@ -1936,7 +1942,8 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
         Initialize ``self``.
 
         TESTS::
-          
+
+            sage: H.<x,y> = HyperplaneArrangements(QQ)
             sage: K = HyperplaneArrangements(QQ, names=('x', 'y'))
             sage: H is K
             True
@@ -1944,6 +1951,13 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
             <class 'sage.geometry.hyperplane_arrangement.arrangement.HyperplaneArrangements_with_category'>
             sage: K.change_ring(RR).gen(0)
             Hyperplane 1.00000000000000*x + 0.000000000000000*y + 0.000000000000000
+
+        TESTS::
+
+            sage: H.<x,y> = HyperplaneArrangements(QQ)
+            sage: TestSuite(H).run()
+            sage: K = HyperplaneArrangements(QQ)
+            sage: TestSuite(K).run()
         """
         from sage.categories.all import Fields, Sets
         if not base_ring in Fields: 

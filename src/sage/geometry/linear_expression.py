@@ -64,10 +64,13 @@ class LinearExpression(ModuleElement):
         sage: m2 == m3
         True
         sage: L.zero()
+        0*x + 0*y + 0*z + 0
         sage: a = L([12, 2/3, -1], -2)
         sage: a - m
+        11*x - 4/3*y - 4*z - 6
         sage: LZ.<x,y,z> = LinearExpressionModule(ZZ)
         sage: a - LZ([2, -1, 3], 1)
+        10*x + 5/3*y - 4*z - 3
     """
     def __init__(self, parent, coefficients, constant, check=True):
         """

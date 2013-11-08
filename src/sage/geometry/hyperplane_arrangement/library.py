@@ -13,35 +13,13 @@ about how to construct your own hyperplane arrangements.
 #*****************************************************************************
 
 from sage.graphs.all import graphs
-from sage.matrix.constructor import matrix, random_matrix, identity_matrix
+from sage.matrix.constructor import matrix, random_matrix
 from sage.rings.all import QQ, ZZ
 from sage.misc.misc_c import prod
 
 from sage.combinat.combinat import stirling_number2
-from sage.calculus.functional import expand
-
-
-
-from sage.misc.flatten import flatten
-from sage.misc.prandom import random
-from sage.misc.misc import powerset
-from sage.plot.line import line
-from sage.plot.colors import Color
-from sage.plot.graphics import Graphics
-from sage.plot.plot import plot, parametric_plot
-from sage.plot.point import point
-from sage.plot.text import text
-from sage.plot.plot3d.parametric_plot3d import parametric_plot3d
-from sage.plot.plot3d.shapes2 import text3d
-from sage.rings.arith import lcm, binomial
-from sage.rings.finite_rings.constructor import GF
-
+from sage.rings.arith import binomial
 from sage.rings.polynomial.polynomial_ring import polygen
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.rational_field import QQ
-from sage.rings.real_mpfr import RR
-from sage.structure.sage_object import SageObject
-from sage.symbolic.ring import SR, var
 
 from sage.geometry.hyperplane_arrangement.arrangement import HyperplaneArrangements
 

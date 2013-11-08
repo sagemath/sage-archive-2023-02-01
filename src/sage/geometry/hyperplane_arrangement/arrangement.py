@@ -323,7 +323,7 @@ REFERENCES:
 # - hyperplane arrangements over other fields
 
 from sage.structure.parent import Parent
-from sage.structure.element import Element, coerce_binop
+from sage.structure.element import Element
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import QQ, ZZ
 from sage.misc.cachefunc import cached_method
@@ -642,7 +642,6 @@ class HyperplaneArrangementElement(Element):
              Hyperplane t + x - y + 0*z + 0, 
              Hyperplane t + x + 0*y - z + 0)
         """
-        AA = self.parent().ambient_space()
         hyperplanes = []
         for h in self.hyperplanes():
             new_h = [0] + [h.b()] + list(h.A())
@@ -871,7 +870,6 @@ class HyperplaneArrangementElement(Element):
         if hyperplane not in self.hyperplanes():
             raise ValueError('hyperplane not in arrangement')
         pivot = hyperplane._normal_pivot()
-        n = hyperplane / hyperplane.A()[pivot]
         hyperplanes = []
         for h in self:
             rescale = h.A()[pivot] / hyperplane.A()[pivot]
@@ -1910,7 +1908,10 @@ class HyperplaneArrangementElement(Element):
 
 class HyperplaneArrangements(Parent, UniqueRepresentation):
     """
-    Hyperplane arrangements
+    Hyperplane arrangements.
+
+    For more information on hyperplane arrangements, see
+    :mod:`sage.geometry.hyperplane_arrangements.arrangement`.
 
     INPUT:
 

@@ -113,7 +113,7 @@ from sage.geometry.linear_expression import LinearExpression, LinearExpressionMo
 
 class Hyperplane(LinearExpression):
     """
-    A Hyperplane.
+    A hyperplane.
 
     You shoud always use :class:`AmbientVectorSpace` to construct
     instances of this class.
@@ -148,6 +148,7 @@ class Hyperplane(LinearExpression):
     """
     def __init__(self, parent, coefficients, constant):
         """
+        Initialize ``self``.
 
         TESTS::
 
@@ -255,7 +256,7 @@ class Hyperplane(LinearExpression):
 
     def __contains__(self, q):
         r"""
-        Tests whether the point ``q`` is in the hyperplane.
+        Test whether the point ``q`` is in the hyperplane.
 
         INPUT:
 
@@ -567,7 +568,7 @@ class Hyperplane(LinearExpression):
     @cached_method
     def _affine_subspace(self):
         """
-        Return the hyperplane as affine subspace
+        Return the hyperplane as affine subspace.
 
         OUTPUT:
 
@@ -595,7 +596,7 @@ class Hyperplane(LinearExpression):
 
         OUTPUT:
 
-        Graphics object.
+        A graphics object.
 
         EXAMPLES::
 

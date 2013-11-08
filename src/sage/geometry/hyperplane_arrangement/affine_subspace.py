@@ -68,8 +68,7 @@ TESTS::
 #*****************************************************************************
 
 from sage.structure.sage_object import SageObject
-from sage.rings.all import QQ
-from sage.matrix.constructor import vector, matrix
+from sage.matrix.constructor import vector
 
 
 class AffineSubspace(SageObject):

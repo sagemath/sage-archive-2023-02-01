@@ -16,7 +16,12 @@ EXAMPLES::
 You can also pass coefficients and a constant term to construct linear
 expressions::
 
-
+    sage: L([1, 2, 3], 4)
+    x + 2*y + 3*z + 4
+    sage: L([(1, 2, 3), 4])
+    x + 2*y + 3*z + 4
+    sage: L([4, 1, 2, 3])   # note: constant is first in single-tuple notation
+    x + 2*y + 3*z + 4
 
 The linear expressions are a module under the base ring, so you can
 add them and multiply them with scalars::
@@ -82,9 +87,12 @@ class LinearExpression(ModuleElement):
         self._coeffs = coefficients
         self._const = constant
         if check:
-            assert self._coeffs.parent() is self.parent().ambient_module()
-            assert self._coeffs.is_immutable()
-            assert self._const.parent() is self.parent().base_ring()
+            if self._coeffs.parent() is not self.parent().ambient_module():
+                raise ValueError("cofficients are not in the ambient module")
+            if not self._coeffs.is_immutable():
+                raise ValueError("cofficients are not immutable")
+            if self._const.parent() is not self.parent().base_ring():
+                raise ValueError("the constant is not in the base ring")
             
     def A(self):
         """ 
@@ -537,7 +545,7 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
             sage: L._element_constructor(vector([4, 1, 2, 3]))
             x + 2*y + 3*z + 4
 
-        Construct from a pair ``(coefficients, constant)`` ::
+        Construct from a pair ``(coefficients, constant)``::
 
             sage: L([(1, 2, 3), 4])
             x + 2*y + 3*z + 4

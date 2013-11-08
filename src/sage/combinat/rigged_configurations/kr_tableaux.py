@@ -82,10 +82,10 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
 
     .. NOTE::
 
-        The tableaux for all non-simply-laced provably holds if the bijection
-        with :class:`rigged configurations <RiggedConfigurations>` holds.
-        Therefore this is only proven for `B^{r,1}` or `B^{1,s}` and in
-        general for types `A_n^{(1)}` and `D_n^{(1)}`.
+        The tableaux for all non-simply-laced are provably correct if the
+        bijection with :class:`rigged configurations <RiggedConfigurations>`
+        holds. Therefore this is only proven for `B^{r,1}` or `B^{1,s}` and
+        in general for types `A_n^{(1)}` and `D_n^{(1)}`.
 
     INPUT:
 

@@ -2341,6 +2341,10 @@ class NumberField_generic(number_field_base.NumberField):
         else:
             return embedding(self.gen())
 
+    def elements_of_bdd_height(self, height_bound, precision=100, GRH=False):
+        from bdd_height import *
+        return bdd_height(self, height_bound, precision, GRH)
+
     def algebraic_closure(self):
         """
         Return the algebraic closure of self (which is QQbar).

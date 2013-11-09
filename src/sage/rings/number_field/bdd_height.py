@@ -86,7 +86,7 @@ def _bdd_height_iq(K, height_bound):
 
     OUTPUT:
 
-    - a list of elements of ``self``
+    - a list of elements of ``K``
 
     EXAMPLES::
 
@@ -104,8 +104,8 @@ def _bdd_height_iq(K, height_bound):
         ::
 
         sage: K.<a> = NumberField(x^2 + 101)
-        sage: L = _bdd_height_iq(K, 1000)
-        sage: len(L)
+        sage: L = _bdd_height_iq(K, 1000)      # long time (14 s)
+        sage: len(L)                           # long time
         350239
 
         The only elements of multiplicative height 1 in a number field are 0 and the roots of unity::
@@ -259,8 +259,8 @@ def _integer_points_in_polytope(matrix, interval_radius):
 
         sage: m = matrix([[1.2,3.7,0.002],[-9.65,-0.00123,5],[1.2,20.7,-107.93]])
         sage: r = 2.7
-        sage: L = _integer_points_in_polytope(m,r)
-        sage: len(L)
+        sage: L = _integer_points_in_polytope(m,r)    # long time (40 s)
+        sage: len(L)                                  # long time
         622837
 
     ::
@@ -298,9 +298,9 @@ def _integer_points_in_polytope(matrix, interval_radius):
     return int_point_tuples
 
 
-def bdd_height(self, height_bound, precision=100, GRH=False):
+def bdd_height(K, height_bound, precision=100, GRH=False):
     r"""
-    Computes all elements in the number number field ``self`` which have relative multiplicative height at most ``height_bound``.
+    Computes all elements in the number number field ``K`` which have relative multiplicative height at most ``height_bound``.
 
     The algorithm requires arithmetic with floating point numbers; ``precision`` gives the user the option to set the precision for such
     computations. The algorithm may be made to run calculations assuming the Generalized Riemann Hypothesis by setting ``GRH`` equal to True.
@@ -318,7 +318,7 @@ def bdd_height(self, height_bound, precision=100, GRH=False):
 
     OUTPUT:
 
-    - list of elements of ``self``
+    - list of elements of ``K``
 
     EXAMPLES::
 
@@ -352,8 +352,8 @@ def bdd_height(self, height_bound, precision=100, GRH=False):
     ::
 
         sage: K.<g> = QuadraticField(36865)
-        sage: L = bdd_height(K, 1000)
-        sage: len(L)
+        sage: L = bdd_height(K, 1000)    # long time (30 s)
+        sage: len(L)                     # long time
         54679
 
     ::
@@ -366,8 +366,8 @@ def bdd_height(self, height_bound, precision=100, GRH=False):
     ::
 
         sage: K.<g> = NumberField(x^6 + 2)
-        sage: L = bdd_height(K, 500)
-        sage: len(L)
+        sage: L = bdd_height(K, 500)    # long time (90 s)
+        sage: len(L)                    # long time
         124911
 
     """
@@ -377,21 +377,21 @@ def bdd_height(self, height_bound, precision=100, GRH=False):
     B = height_bound
     if B < 1:
         return []
-    roots_of_unity = self.roots_of_unity()
+    roots_of_unity = K.roots_of_unity()
     if B == 1:
         return roots_of_unity + [0]
-    (r1, r2) = self.signature()
+    (r1, r2) = K.signature()
     r = r1 + r2 -1
-    if self.degree() == 2 and r == 0:
-        return _bdd_height_iq(self, B)
+    if K.degree() == 2 and r == 0:
+        return _bdd_height_iq(K, B)
 
     RF = sage.rings.real_mpfr.RealField(precision)
-    embeddings = self.places(prec=precision)
+    embeddings = K.places(prec=precision)
     logB = RF(B).log()
 
     def _log_map(number):
         r"""
-        Computes the image of an element of self under the logarithmic map.
+        Computes the image of an element of K under the logarithmic map.
         """
         x = number
         x_logs = []
@@ -416,7 +416,7 @@ def bdd_height(self, height_bound, precision=100, GRH=False):
 
     def _packet_height(n, pair, u):
         r"""
-        Computes the height of the element of self encoded by a given packet.
+        Computes the height of the element of K encoded by a given packet.
         """
         gen_logs = generator_logs[n]
         i = pair[0] ; j = pair[1]
@@ -431,7 +431,7 @@ def bdd_height(self, height_bound, precision=100, GRH=False):
     class_group_reps = [] # a complete set of class group representatives
     class_group_rep_norms = [] # norms of these ideals
     class_group_rep_norm_logs = [] # logs of the norms of these ideals
-    for c in self.class_group():
+    for c in K.class_group():
         a = c.ideal()
         a_norm = a.norm()
         class_group_reps.append(a)
@@ -440,7 +440,7 @@ def bdd_height(self, height_bound, precision=100, GRH=False):
     class_number = len(class_group_reps)
 
     # Find fundamental units and store their images under the log map
-    fund_units = UnitGroup(self).fundamental_units()
+    fund_units = UnitGroup(K).fundamental_units()
     fund_unit_logs = [] # images of the fundamental units under the log map
     for i in xrange(r):
         fund_unit_logs.append(_log_map(fund_units[i]))
@@ -450,7 +450,7 @@ def bdd_height(self, height_bound, precision=100, GRH=False):
     for n in xrange(class_number):
         for m in xrange(1, B + 1):
             possible_norm_set.add(m*class_group_rep_norms[n])
-    bdd_ideals = _bdd_norm_pr_ideal_gens(self, possible_norm_set)
+    bdd_ideals = _bdd_norm_pr_ideal_gens(K, possible_norm_set)
 
     # Sort the principal ideals according to which class group representative they are contained in.
     generator_lists = [] # generators for principal ideals of bounded norm
@@ -477,7 +477,7 @@ def bdd_height(self, height_bound, precision=100, GRH=False):
         s = len(gens)
         for i in xrange(s):
             for j in xrange(i + 1, s):
-                if self.ideal(gens[i], gens[j]) == class_group_reps[n]:
+                if K.ideal(gens[i], gens[j]) == class_group_reps[n]:
                     relevant_pairs.append([i, j])
                     gen_height_dictionary[(n, i, j)] = _log_height_for_generators(n, i, j)
         relevant_pair_lists.append(relevant_pairs)
@@ -505,7 +505,7 @@ def bdd_height(self, height_bound, precision=100, GRH=False):
     # Find all integer lattice points in the unit polytope
     U = _integer_points_in_polytope(T, ceil(d))
 
-    L = [self(0)] ; U0 = []; L0 = []
+    L = [K(0)] ; U0 = []; L0 = []
 
     # Compute unit heights.
     unit_height_dictionary = dict()
@@ -556,7 +556,7 @@ def bdd_height(self, height_bound, precision=100, GRH=False):
     # Use previous data to build all units needed to construct the output list.
     units_dictionary = dict()
     for u in all_unit_tuples:
-        unit = self(1)
+        unit = K(1)
         for j in xrange(r):
             unit *= (fund_units[j])**(u[j])
         units_dictionary[u] = unit

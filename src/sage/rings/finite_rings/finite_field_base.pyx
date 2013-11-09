@@ -988,7 +988,7 @@ cdef class FiniteField(Field):
                 raise ValueError, "name must be None, a string or a dictionary indexed by divisors of the degree"
             return [self.subfields(m, name=name[m])[0] for m in divisors]
 
-    def algebraic_closure(self, name):
+    def algebraic_closure(self, name='z'):
         """
         Return an algebraic closure of ``self``.
 
@@ -999,11 +999,18 @@ cdef class FiniteField(Field):
 
         EXAMPLE::
 
-            sage: F = GF(5).algebraic_closure('z')
+            sage: F = GF(5).algebraic_closure()
             sage: F
             Algebraic closure of Finite Field of size 5
             sage: F.gen(3)
             z3
+
+        The default name is 'z' but you can change it through the option
+        ``name``::
+
+            sage: Ft = GF(5).algebraic_closure('t')
+            sage: Ft.gen(3)
+            t3
 
         .. NOTE::
 

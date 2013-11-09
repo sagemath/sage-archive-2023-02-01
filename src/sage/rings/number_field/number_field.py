@@ -2378,7 +2378,7 @@ class NumberField_generic(number_field_base.NumberField):
         ::
         
         sage: K.<a> = NumberField(x^2 + 17)
-        sage: L = K.elements_of_bdd_height(1000)
+        sage: L = K.elements_of_bdd_height(1000) # long time (30 s)
         sage: len(L)
         626367
 

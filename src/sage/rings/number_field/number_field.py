@@ -2342,7 +2342,7 @@ class NumberField_generic(number_field_base.NumberField):
             return embedding(self.gen())
 
     def elements_of_bdd_height(self, height_bound, precision=100, GRH=False):
-        from bdd_height import *
+        from bdd_height import bdd_height
         return bdd_height(self, height_bound, precision, GRH)
 
     def algebraic_closure(self):

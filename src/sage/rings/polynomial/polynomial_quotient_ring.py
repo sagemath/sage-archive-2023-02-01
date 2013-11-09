@@ -54,7 +54,7 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
     -  ``ring`` - a univariate polynomial ring in one
        variable.
 
-    -  ``polynomial`` - element
+    -  ``polynomial`` - element with unit leading coefficient
 
     -  ``names`` - (optional) name for the variable
 

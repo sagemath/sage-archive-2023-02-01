@@ -1975,7 +1975,7 @@ class Graph(GenericGraph):
         As any chordal graph is hole-free, interval graphs behave the
         same way::
 
-            sage: g = graphs.RandomInterval(20)
+            sage: g = graphs.RandomIntervalGraph(20)
             sage: g.is_even_hole_free()
             True
 
@@ -2094,7 +2094,7 @@ class Graph(GenericGraph):
 
         As any chordal graph is hole-free, no interval graph has an odd hole::
 
-            sage: g = graphs.RandomInterval(20)
+            sage: g = graphs.RandomIntervalGraph(20)
             sage: g.is_odd_hole_free()
             True
 
@@ -2425,7 +2425,7 @@ class Graph(GenericGraph):
 
         Interval Graphs, which are chordal graphs, too ::
 
-            sage: g =  graphs.RandomInterval(7)
+            sage: g =  graphs.RandomIntervalGraph(7)
             sage: g.is_perfect()
             True
 

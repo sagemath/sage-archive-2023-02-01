@@ -15,7 +15,7 @@ if [ "x$SAGE64" = xyes ] ; then
     LDFLAGS="$LDFLAGS $CFLAG64" # Could use an LDFLAG64 here.
 fi
 
-CFLAGS="-O2 -g $CFLAGS -fPIC -DFAST -DALLTRUE"
+CFLAGS="-O2 -g $CFLAGS -DFAST -DALLTRUE"
 export CFLAGS LDFLAGS # Currently redundant, but safe.
 
 

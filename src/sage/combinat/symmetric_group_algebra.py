@@ -307,6 +307,17 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
             sage: SymmetricGroupAlgebra(QQ,1).algebra_generators()
             []
+
+        TESTS:
+
+        Check that :trac:`15309` is fixed::
+
+            sage: S3 = SymmetricGroupAlgebra(QQ, 3)
+            sage: S3.algebra_generators()
+            [[2, 1, 3], [2, 3, 1]]
+            sage: C = CombinatorialFreeModule(ZZ, ZZ)
+            sage: M = C.module_morphism(lambda x: S3.zero(), codomain=S3)
+            sage: M.register_as_coercion()
         """
         if self.n <= 1:
             return []
@@ -315,7 +326,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         a[1] = 1
         b = range(2, self.n+2)
         b[self.n-1] = 1
-        return [self(a), self(b)]
+        return [self.monomial(self._basis_keys(a)), self.monomial(self._basis_keys(b))]
 
     def _conjugacy_classes_representatives_underlying_group(self):
         r"""
@@ -374,7 +385,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             p = range(1, self.n+1)
             p[i-1] = k
             p[k-1] = i
-            res += self(p)
+            res += self.monomial(self._basis_keys(p))
         return res
 
 
@@ -976,9 +987,9 @@ class HeckeAlgebraSymmetricGroup_generic(CombinatorialAlgebra):
         # Coerce permutations of size smaller that self.n #
         ###################################################
         if x == []:
-            return self( self._one )
+            return self.one()
         if len(x) < self.n and x in permutation.Permutations():
-            return self( list(x) + range(len(x)+1, self.n+1) )
+            return self.monomial(self._basis_keys( list(x) + range(len(x)+1, self.n+1) ))
         raise TypeError
 
 class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
@@ -1017,7 +1028,7 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
         perm_i = t_i * perm
 
         if perm[i-1] < perm[i]:
-            return self(perm_i)
+            return self.monomial(self._basis_keys(perm_i))
         else:
             #Ti^2 = (q - q^(-1))*Ti - q1*q2
             q = self.q()

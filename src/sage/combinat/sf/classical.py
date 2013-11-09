@@ -53,6 +53,13 @@ def init():
         sage: init()
         sage: sage.combinat.sf.classical.conversion_functions[('Schur', 'powersum')]
         <built-in function t_SCHUR_POWSYM_symmetrica>
+
+    The following checks if the bug described in :trac:`15312` is fixed.::
+
+        sage: change = sage.combinat.sf.classical.conversion_functions[('powersum', 'Schur')]
+        sage: hideme = change({Partition([1]*47):ZZ(1)}) # long time
+        sage: change({Partition([2,2]):QQ(1)})
+        s[1, 1, 1, 1] - s[2, 1, 1] + 2*s[2, 2] - s[3, 1] + s[4]
     """
     for other_basis in translate:
         for basis in translate:

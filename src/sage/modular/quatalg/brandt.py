@@ -215,8 +215,11 @@ We decompose a Brandt module over both `\ZZ` and `\QQ`.::
 
 # imports
 from sage.misc.all     import prod, verbose
-from sage.rings.all    import (Integer, ZZ, QQ, is_CommutativeRing, prime_divisors,
-                            kronecker, PolynomialRing, GF, next_prime, lcm, gcd)
+from sage.rings.all    import (Integer, ZZ, QQ, prime_divisors,
+                               kronecker, PolynomialRing, GF, next_prime,
+                               lcm, gcd)
+
+from sage.rings.commutative_ring import is_CommutativeRing
 
 from sage.algebras.quatalg.quaternion_algebra import QuaternionAlgebra, basis_for_quaternion_lattice
 from sage.algebras.quatalg.quaternion_algebra_cython import rational_matrix_from_rational_quaternions

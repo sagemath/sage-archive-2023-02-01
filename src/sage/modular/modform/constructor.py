@@ -34,6 +34,8 @@ import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.rings.all as rings
 
+from sage.rings.commutative_ring import is_CommutativeRing
+
 import ambient_eps
 import ambient_g0
 import ambient_g1
@@ -121,7 +123,7 @@ def canonical_parameters(group, level, weight, base_ring):
             raise ValueError, "group and level do not match."
         group = arithgroup.Gamma0(m)
 
-    if not rings.is_CommutativeRing(base_ring):
+    if not is_CommutativeRing(base_ring):
         raise TypeError, "base_ring (=%s) must be a commutative ring"%base_ring
 
     # it is *very* important to include the level as part of the data

@@ -24,8 +24,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import (PolynomialRing,
-                            is_ComplexField, is_RealField)
+from sage.rings.all import PolynomialRing
+
+from sage.rings.complex_field import is_ComplexField
+from sage.rings.real_mpfr import is_RealField
+
 from sage.modules.free_module_element import vector
 from sage.structure.sequence import Sequence
 from sage.structure.element import is_Vector

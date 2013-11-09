@@ -268,6 +268,7 @@ def configure(arch=None, isa_ext=None):
     print 'Running configure with arch = '+str(arch)+ \
         ', isa extensions '+str(isa_ext), ' thread limit '+str(thread_limit)
     if os.path.isdir(BUILD_DIR):
+        os.chdir(conf['SPKG_DIR'])   # Solaris/ZFS can't delete cwd
         shutil.rmtree(BUILD_DIR)
     os.mkdir(BUILD_DIR)
     os.chdir(BUILD_DIR)
@@ -529,15 +530,16 @@ build_and_save_archdef()
 ######################################################################
 
 rc = make_atlas_library('shared')
-assert_success(rc, bad='Failed to install ATLAS single-threaded shared library',
-               good='Installed ATLAS single-threaded shared library')
+if rc!=0:
+    print 'Failed to build shared library (using the ATLAS build system)'
+else:
+    print 'Installed ATLAS shared library (ATLAS build system)'
 
 rc = make_atlas_library('ptshared')
 if rc!=0:
-    print 'Failed to build threaded library, possibly because your'
-    print 'system does not support it.'
+    print 'Failed to build threaded library (using the ATLAS build system)'
 else:
-    print 'Installed ATLAS multi-threaded shared library'
+    print 'Installed ATLAS multi-threaded shared library (ATLAS build system)'
 
 
 ######################################################################
@@ -545,8 +547,8 @@ else:
 ######################################################################
 
 rc = configure_shared_library()
-assert_success(rc, bad='Configuring shared ATLAS library failed.',
-               good='Finished configuring shared ATLAS library.')
+assert_success(rc, bad='Configuring shared ATLAS library failed (libtool).',
+               good='Finished configuring shared ATLAS library (libtool).')
 
 have_serial_libs = False
 have_parallel_libs = False
@@ -554,13 +556,13 @@ have_parallel_libs = False
 rc = make_shared_library()
 if rc!=0:
     print 'Failed to build serial+parallel shared libraries, possibly because your'
-    print 'system does not support both. Trying to build serial libraries only.'
+    print 'system does not support both. Trying to build serial libraries only (libtool).'
     rc = make_shared_library('all_serial')
     if rc!=0:
-        print 'Failed to build any shared library, installing static library as last resort.'
+        print 'Failed to build any shared library, installing static library as last resort (libtool).'
         INSTALL_STATIC_LIBRARIES = True
     else:
-        print 'Finished building serial shared ATLAS library.'
+        print 'Finished building serial shared ATLAS library (libtool).'
     have_serial_libs = True
 else:
     have_parallel_libs = True
@@ -572,13 +574,13 @@ else:
 
 if have_parallel_libs:
     rc = make_shared_library('install')
-    assert_success(rc, bad='Installing the parallel+serial shared ATLAS library failed.',
-                   good='Finished installing parallel+serial shared ATLAS library.')
+    assert_success(rc, bad='Installing the parallel+serial shared ATLAS library failed (libtool).',
+                   good='Finished installing parallel+serial shared ATLAS library (libtool).')
 
 if have_serial_libs:
     rc = make_shared_library('install_serial')
-    assert_success(rc, bad='Installing the serial shared ATLAS library failed.',
-                   good='Finished installing serial shared ATLAS library.')
+    assert_success(rc, bad='Installing the serial shared ATLAS library failed (libtool).',
+                   good='Finished installing serial shared ATLAS library (libtool).')
 
 
 ######################################################################

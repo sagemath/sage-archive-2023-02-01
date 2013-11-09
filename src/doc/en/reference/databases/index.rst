@@ -48,12 +48,13 @@ database engine.
 -  Sources are in the public domain. Use for any purpose.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    sage/databases/cremona
    sage/databases/stein_watkins
    sage/databases/jones
    sage/databases/lincodes
+   sage/databases/oeis
    sage/databases/sloane
    sage/databases/conway
    sage/databases/odlyzko

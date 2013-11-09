@@ -18,47 +18,47 @@ Rings
 #*****************************************************************************
 
 # Ring base classes
-from ring import Ring, is_Ring
-from commutative_ring import CommutativeRing, is_CommutativeRing
-from integral_domain import IntegralDomain, is_IntegralDomain
-from dedekind_domain import DedekindDomain, is_DedekindDomain
-from principal_ideal_domain import PrincipalIdealDomain, is_PrincipalIdealDomain
-from euclidean_domain import EuclideanDomain, is_EuclideanDomain
-from field import Field, is_PrimeField
+from ring import Ring
+from commutative_ring import CommutativeRing
+from integral_domain import IntegralDomain
+from dedekind_domain import DedekindDomain
+from principal_ideal_domain import PrincipalIdealDomain
+from euclidean_domain import EuclideanDomain
+from field import Field
 
-from commutative_algebra_element import CommutativeAlgebraElement, is_CommutativeAlgebraElement
+from commutative_algebra_element import CommutativeAlgebraElement
 
 # Ring element base classes
-from ring_element import RingElement, is_RingElement
-from commutative_ring_element import CommutativeRingElement, is_CommutativeRingElement
-from integral_domain_element import IntegralDomainElement, is_IntegralDomainElement
-from dedekind_domain_element import DedekindDomainElement, is_DedekindDomainElement
-from principal_ideal_domain_element import PrincipalIdealDomainElement, is_PrincipalIdealDomainElement
-from euclidean_domain_element import EuclideanDomainElement, is_EuclideanDomainElement
-from field_element import FieldElement, is_FieldElement
+from ring_element import RingElement
+from commutative_ring_element import CommutativeRingElement
+from integral_domain_element import IntegralDomainElement
+from dedekind_domain_element import DedekindDomainElement
+from principal_ideal_domain_element import PrincipalIdealDomainElement
+from euclidean_domain_element import EuclideanDomainElement
+from field_element import FieldElement
 
 
 # Ideals
-from ideal import Ideal, is_Ideal
+from ideal import Ideal
 
 # Quotient
 from quotient_ring import QuotientRing
 
 # Infinities
-from infinity import infinity, Infinity, is_Infinite, InfinityRing, unsigned_infinity, UnsignedInfinityRing
+from infinity import infinity, Infinity, InfinityRing, unsigned_infinity, UnsignedInfinityRing
 
 # Rational integers.
 from integer_ring import IntegerRing, ZZ, crt_basis
-from integer import Integer, is_Integer
+from integer import Integer
 
 # Rational numbers
-from rational_field import RationalField, QQ, is_RationalField
+from rational_field import RationalField, QQ
 from rational import Rational
 Rationals = RationalField
 
 # Integers modulo n.
-from sage.rings.finite_rings.integer_mod_ring import IntegerModRing, Zmod, is_IntegerModRing
-from sage.rings.finite_rings.integer_mod import IntegerMod, Mod, mod, is_IntegerMod
+from sage.rings.finite_rings.integer_mod_ring import IntegerModRing, Zmod
+from sage.rings.finite_rings.integer_mod import IntegerMod, Mod, mod
 Integers = IntegerModRing
 
 # Finite fields
@@ -78,11 +78,11 @@ from padics.padic_printing import _printer_defaults as padic_printing
 from semirings.all import *
 
 # Real numbers
-from real_mpfr import (RealField, is_RealField, is_RealNumber, RR,
+from real_mpfr import (RealField, RR,
                        create_RealNumber as RealNumber)   # this is used by the preparser to wrap real literals -- very important.
 Reals = RealField
 
-from real_double import RealDoubleField, RDF, RealDoubleElement, is_RealDoubleElement
+from real_double import RealDoubleField, RDF, RealDoubleElement
 
 from real_lazy import RealLazyField, RLF, ComplexLazyField, CLF
 
@@ -91,35 +91,35 @@ from polynomial.all import *
 
 
 # Algebraic numbers
-from qqbar import (AlgebraicRealField, is_AlgebraicRealField, AA,
-                   AlgebraicReal, is_AlgebraicReal,
-                   AlgebraicField, is_AlgebraicField, QQbar,
-                   AlgebraicNumber, is_AlgebraicNumber,
+from qqbar import (AlgebraicRealField, AA,
+                   AlgebraicReal,
+                   AlgebraicField, QQbar,
+                   AlgebraicNumber,
                    number_field_elements_from_algebraics)
 
 # Intervals
-from real_mpfi import (RealIntervalField, is_RealIntervalField,
-                       is_RealIntervalFieldElement, RIF,
+from real_mpfi import (RealIntervalField,
+                       RIF,
                        RealInterval)
 
 # Complex numbers
-from complex_field import ComplexField, is_ComplexField
-from complex_number import (is_ComplexNumber, create_ComplexNumber as ComplexNumber)
+from complex_field import ComplexField
+from complex_number import (create_ComplexNumber as ComplexNumber)
 Complexes = ComplexField
-from complex_interval_field import ComplexIntervalField, is_ComplexIntervalField
-from complex_interval import (is_ComplexIntervalFieldElement, create_ComplexIntervalFieldElement as ComplexIntervalFieldElement)
+from complex_interval_field import ComplexIntervalField
+from complex_interval import (create_ComplexIntervalFieldElement as ComplexIntervalFieldElement)
 
-from complex_double import ComplexDoubleField, ComplexDoubleElement, CDF, is_ComplexDoubleElement
+from complex_double import ComplexDoubleField, ComplexDoubleElement, CDF
 
 from complex_mpc import MPComplexField
 
 # Power series rings
-from power_series_ring import PowerSeriesRing, is_PowerSeriesRing
-from power_series_ring_element import PowerSeries, is_PowerSeries
+from power_series_ring import PowerSeriesRing
+from power_series_ring_element import PowerSeries
 
 # Laurent series ring in one variable
-from laurent_series_ring import LaurentSeriesRing, is_LaurentSeriesRing
-from laurent_series_ring_element import LaurentSeries, is_LaurentSeries
+from laurent_series_ring import LaurentSeriesRing
+from laurent_series_ring_element import LaurentSeries
 
 # Pseudo-ring of PARI objects.
 from pari_ring import PariRing, Pari
@@ -128,9 +128,8 @@ from pari_ring import PariRing, Pari
 from big_oh import O
 
 # Fraction field
-from fraction_field import FractionField, is_FractionField
+from fraction_field import FractionField
 Frac = FractionField
-from fraction_field_element import is_FractionFieldElement
 
 # continued fractions
 from contfrac import continued_fraction, CFF, ContinuedFractionField
@@ -140,10 +139,6 @@ from arith import *
 from fast_arith import prime_range
 
 from bernoulli_mod_p import bernoulli_mod_p, bernoulli_mod_p_single
-
-from morphism import is_RingHomomorphism
-
-from homset import is_RingHomset
 
 from monomials import monomials
 

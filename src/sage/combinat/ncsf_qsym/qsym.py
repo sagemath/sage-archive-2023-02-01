@@ -1,34 +1,38 @@
-"""
+r"""
 Quasisymmetric functions
 
 REFERENCES:
 
-.. [Ges] I. Gessel, Multipartite P-partitions and inner products of skew Schur
-   functions, Contemp. Math. 34 (1984), 289-301.
+.. [Ges] I. Gessel, *Multipartite P-partitions and inner products of skew Schur
+   functions*, Contemp. Math. **34** (1984), 289-301.
    http://people.brandeis.edu/~gessel/homepage/papers/multipartite.pdf
 
-.. [MR] C. Malvenuto and C. Reutenauer, Duality between quasi-symmetric
-   functions and the Solomon descent algebra, J. Algebra 177 (1995), no. 3, 967-982.
-   http://www.mat.uniroma1.it/people/malvenuto/Duality.pdf
+.. [MR] C. Malvenuto and C. Reutenauer, *Duality between quasi-symmetric
+   functions and the Solomon descent algebra*, J. Algebra **177** (1995),
+   no. 3, 967-982. http://www.mat.uniroma1.it/people/malvenuto/Duality.pdf
 
-.. [Reiner2013] Victor Reiner, Hopf algebras in combinatorics,
+.. [Reiner2013] Victor Reiner, *Hopf algebras in combinatorics*,
    17 January 2013.
    http://www.math.umn.edu/~reiner/Classes/HopfComb.pdf
 
-.. [Mal1993] Claudia Malvenuto, Produits et coproduits des fonctions
-   quasi-symetriques et de l'algebre des descentes,
+.. [Mal1993] Claudia Malvenuto, *Produits et coproduits des fonctions
+   quasi-symetriques et de l'algebre des descentes*,
    thesis, November 1993.
    http://www1.mat.uniroma1.it/people/malvenuto/Thesis.pdf
 
-.. [Haz2004] Michiel Hazewinkel, Explicit polynomial generators for the
-   ring of quasisymmetric functions over the integers.
+.. [Haz2004] Michiel Hazewinkel, *Explicit polynomial generators for the
+   ring of quasisymmetric functions over the integers*.
    :arXiv:`math/0410366v1`
+
+.. [Rad1979] David E. Radford, *A natural ring basis for the shuffle algebra
+   and an application to group schemes*, J. Algebra **58** (1979), 432-454.
 
 AUTHOR:
 
 - Jason Bandlow
 - Franco Saliola
 - Chris Berg
+- Darij Grinberg
 """
 #*****************************************************************************
 #       Copyright (C) 2010 Jason Bandlow <jbandlow@gmail.com>,
@@ -55,6 +59,7 @@ from sage.combinat.sf.sf import SymmetricFunctions
 from sage.combinat.ncsf_qsym.generic_basis_code import BasesOfQSymOrNCSF
 from sage.combinat.ncsf_qsym.combinatorics import number_of_fCT, compositions_order
 from sage.combinat.ncsf_qsym.ncsf import NonCommutativeSymmetricFunctions
+from sage.combinat.words.word import Word
 from sage.misc.cachefunc import cached_method
 
 class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
@@ -479,6 +484,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         assert R in Rings()
         self._base = R # Won't be needed once CategoryObject won't override base_ring
         category = GradedHopfAlgebras(R)  # TODO: .Commutative()
+        self._category = category
         Parent.__init__(self, category = category.WithRealizations())
 
         # Bases
@@ -2121,3 +2127,541 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                                       for I in C_n )
 
     dI = dualImmaculate
+
+    class HazewinkelLambda(CombinatorialFreeModule, BindableClass):
+        r"""
+        The Hazewinkel lambda basis of the quasi-symmetric functions.
+
+        This basis goes back to [Haz2004]_, albeit it is indexed in a
+        different way here. It is a multiplicative basis in a weak
+        sense of this word (the product of any two basis elements is a
+        basis element, but of course not the one obtained by
+        concatenating the indexing compositions).
+
+        In [Haz2004]_, Hazewinkel showed that the `\mathbf{k}`-algebra
+        `\mathrm{QSym}` is a polynomial algebra. (The proof is correct
+        but rests upon an unproven claim that the lexicographically
+        largest term of the `n`-th shuffle power of a Lyndon word is
+        the `n`-fold concatenatenation of this Lyndon word with
+        itself, occuring `n!` times in that shuffle power. But this
+        can be deduced from Section 2 of [Rad1979]_.) More precisely,
+        he showed that `\mathrm{QSym}` is generated, as a free
+        commutative `\mathbf{k}`-algebra, by the elements
+        `\lambda^n(M_I)`, where `n` ranges over the positive integers,
+        and `I` ranges over all compositions which are Lyndon words
+        and whose entries have gcd `1`. Here, `\lambda^n` denotes the
+        `n`-th lambda operation as explained in
+        :meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Monomial.lambda_of_monomial`.
+
+        Thus, products of these generators form a `\mathbf{k}`-module
+        basis of `\mathrm{QSym}`. We index this basis by compositions
+        here. More precisely, we define the Hazewinkel lambda basis
+        `(\mathrm{HWL}_I)_I` (with `I` ranging over all compositions)
+        as follows:
+
+        Let `I` be a composition. Let `I = I_1 I_2 \ldots I_k` be the
+        Chen-Fox-Lyndon factorization of `I` (see
+        :meth:`~sage.combinat.words.finite_word.FiniteWord_class.lyndon_factorization`
+        ). For every `j \in \{1, 2, \ldots , k\}`, let `g_j` be the
+        gcd of the entries of the Lyndon word `I_j`, and let `J_j` be
+        the result of dividing the entries of `I_j` by this gcd. Then,
+        `\mathrm{HWL}_I` is defined to be
+        `\prod_{j=1}^{k} \lambda^{g_j} (M_{J_j})`.
+
+        .. TODO::
+
+            The conversion from the M basis to the HWL basis is
+            currently implemented in the naive way (inverting the
+            base-change matrix in the other direction). This matrix
+            is not triangular (not even after any permutations of
+            the bases), and there could very well be a faster method
+            (the one given by Hazewinkel?).
+
+        EXAMPLES::
+
+            sage: QSym = QuasiSymmetricFunctions(ZZ)
+            sage: HWL = QSym.HazewinkelLambda()
+            sage: M = QSym.M()
+            sage: M(HWL([2]))
+            M[1, 1]
+            sage: M(HWL([1,1]))
+            2*M[1, 1] + M[2]
+            sage: M(HWL([1,2]))
+            M[1, 2]
+            sage: M(HWL([2,1]))
+            3*M[1, 1, 1] + M[1, 2] + M[2, 1]
+            sage: M(HWL(Composition([])))
+            M[]
+            sage: HWL(M([1,1]))
+            HWL[2]
+            sage: HWL(M(Composition([2])))
+            HWL[1, 1] - 2*HWL[2]
+            sage: HWL(M([1]))
+            HWL[1]
+
+        TESTS:
+
+        Transforming from the M-basis into the HWL-basis and back
+        returns us to where we started::
+
+            sage: all( M(HWL(M[I])) == M[I] for I in Compositions(3) )
+            True
+            sage: all( HWL(M(HWL[I])) == HWL[I] for I in Compositions(4) )
+            True
+
+        Checking the HWL basis elements corresponding to Lyndon
+        words::
+
+            sage: all( M(HWL[Composition(I)])
+            ....:      == M.lambda_of_monomial([i // gcd(I) for i in I], gcd(I))
+            ....:      for I in LyndonWords(e=3, k=2) )
+            True
+        """
+
+        def __init__(self, QSym):
+            r"""
+            TESTS::
+
+                sage: HWL = QuasiSymmetricFunctions(QQ).HazewinkelLambda()
+                sage: TestSuite(HWL).run()
+            """
+            CombinatorialFreeModule.__init__(self, QSym.base_ring(), Compositions(),
+                                             prefix='HWL', bracket=False,
+                                             category=QSym.Bases())
+
+        def __init_extra__(self):
+            """
+            Set up caches for the transition maps to and from the monomial
+            basis, and register them as coercions.
+
+            TESTS::
+
+                sage: HWL = QuasiSymmetricFunctions(QQ).HazewinkelLambda()
+                sage: M = QuasiSymmetricFunctions(QQ).Monomial()
+                sage: HWL.coerce_map_from(M)
+                Generic morphism:
+                  From: Quasisymmetric functions over the Rational Field in the Monomial basis
+                  To:   Quasisymmetric functions over the Rational Field in the HazewinkelLambda basis
+                sage: M.coerce_map_from(HWL)
+                Generic morphism:
+                  From: Quasisymmetric functions over the Rational Field in the HazewinkelLambda basis
+                  To:   Quasisymmetric functions over the Rational Field in the Monomial basis
+                sage: M.coerce_map_from(HWL)(HWL[2])
+                M[1, 1]
+                sage: HWL.coerce_map_from(M)(M[2])
+                HWL[1, 1] - 2*HWL[2]
+            """
+            M = self.realization_of().M()
+            category = self.realization_of()._category
+            # This changes Monomial into Hazewinkel Lambda
+            M.module_morphism(self._from_Monomial_on_basis,
+                                              codomain = self, category = category
+                                              ).register_as_coercion()
+            # This changes Hazewinkel Lambda into Monomial
+            self.module_morphism(self._to_Monomial_on_basis,
+                                              codomain = M, category = category
+                                              ).register_as_coercion()
+
+            # cache for the coordinates of the elements
+            # of the monomial basis with respect to the HWL basis
+            self._M_to_self_cache = {}
+            # cache for the coordinates of the elements
+            # of the HWL basis with respect to the monomial basis
+            self._M_from_self_cache = {}
+            # cache for transition matrices which contain the coordinates of
+            # the elements of the monomial basis with respect to the HWL basis
+            self._M_transition_matrices = {}
+            # cache for transition matrices which contain the coordinates of
+            # the elements of the HWL basis with respect to the monomial basis
+            self._M_inverse_transition_matrices = {}
+
+        def _precompute_cache(self, n, to_self_cache, from_self_cache, transition_matrices, inverse_transition_matrices, from_self_gen_function):
+            """
+            Compute the transition matrices between ``self`` and the
+            monomial basis in the homogeneous components of degree `n`.
+            The results are not returned, but rather stored in the caches.
+
+            This assumes that the transition matrices in all degrees smaller
+            than `n` have already been computed and cached!
+
+            INPUT:
+
+            - ``n`` -- nonnegative integer
+            - ``to_self_cache`` -- a cache which stores the coordinates of
+              the elements of the monomial basis with respect to the
+              basis ``self``
+            - ``from_self_cache`` -- a cache which stores the coordinates
+              of the elements of ``self`` with respect to the monomial
+              basis
+            - ``transition_matrices`` -- a cache for transition matrices
+              which contain the coordinates of the elements of the monomial
+              basis with respect to ``self``
+            - ``inverse_transition_matrices`` -- a cache for transition
+              matrices which contain the coordinates of the elements of
+              ``self`` with respect to the monomial basis
+            - ``from_self_gen_function`` -- a function which takes a
+              Lyndon word `I` and returns the Hazewinkel Lambda basis
+              element indexed by `I` expanded with respect to the
+              monomial basis (as an element of the monomial basis, not as
+              a dictionary)
+
+            EXAMPLES:
+
+            The examples below demonstrate how the caches are built
+            step by step using the ``_precompute_cache`` method. In order
+            not to influence the outcome of other doctests, we make sure
+            not to use the caches internally used by this class, but
+            rather to create new caches. This allows us to compute the
+            transition matrices for a slight variation of the Hazewinkel
+            Lambda basis, namely the basis whose `I`-th element is given
+            by the simple formula `\prod_{j=1}^{k} M_{I_j}` instead of
+            `\prod_{j=1}^{k} \lambda^{g_j} (M_{J_j})`. We will see that
+            this is only a `\QQ`-basis rather than a `\ZZ`-basis (a
+            reason why the Ditters conjecture took so long to prove)::
+
+                sage: QSym = QuasiSymmetricFunctions(QQ)
+                sage: HWL = QSym.HazewinkelLambda()
+                sage: M = QSym.M()
+                sage: toy_to_self_cache = {}
+                sage: toy_from_self_cache = {}
+                sage: toy_transition_matrices = {}
+                sage: toy_inverse_transition_matrices = {}
+                sage: l = lambda c: [ (i[0],[j for j in sorted(i[1].items())]) for i in sorted(c.items())]
+                sage: l(toy_to_self_cache)
+                []
+                sage: def toy_gen_function(I):
+                ....:     return M[I]
+                sage: HWL._precompute_cache(0, toy_to_self_cache,
+                ....:                          toy_from_self_cache,
+                ....:                          toy_transition_matrices,
+                ....:                          toy_inverse_transition_matrices,
+                ....:                          toy_gen_function)
+                sage: l(toy_to_self_cache)
+                [([], [([], 1)])]
+                sage: HWL._precompute_cache(1, toy_to_self_cache,
+                ....:                          toy_from_self_cache,
+                ....:                          toy_transition_matrices,
+                ....:                          toy_inverse_transition_matrices,
+                ....:                          toy_gen_function)
+                sage: l(toy_to_self_cache)
+                [([], [([], 1)]), ([1], [([1], 1)])]
+                sage: HWL._precompute_cache(2, toy_to_self_cache,
+                ....:                          toy_from_self_cache,
+                ....:                          toy_transition_matrices,
+                ....:                          toy_inverse_transition_matrices,
+                ....:                          toy_gen_function)
+                sage: l(toy_to_self_cache)
+                [([], [([], 1)]), ([1], [([1], 1)]), ([1, 1], [([1, 1], 1/2), ([2], -1/2)]), ([2], [([2], 1)])]
+                sage: toy_transition_matrices[2]
+                [ 1/2 -1/2]
+                [   0    1]
+                sage: toy_inverse_transition_matrices[2]
+                [2 1]
+                [0 1]
+                sage: toy_transition_matrices.keys()
+                [0, 1, 2]
+
+            As we see from the fractions in the transition matrices, this
+            is only a basis over `\QQ`, not over `\ZZ`.
+
+            Let us try another variation on the definition of the basis:
+            `\prod_{j=1}^{k} \lambda^{g_j} (M_{J_j})` will now be replaced
+            by `\prod_{j=1}^{k} M_{J_j^{g_j}}`, where `J_g` means the
+            `g`-fold concatenation of the composition `J` with itself::
+
+                sage: toy_to_self_cache = {}
+                sage: toy_from_self_cache = {}
+                sage: toy_transition_matrices = {}
+                sage: toy_inverse_transition_matrices = {}
+                sage: l = lambda c: [ (i[0],[j for j in sorted(i[1].items())]) for i in sorted(c.items())]
+                sage: l(toy_to_self_cache)
+                []
+                sage: def toy_gen_function(I):
+                ....:     xs = flatten([i // gcd(I) for i in I] * gcd(I))
+                ....:     return M[xs]
+                sage: HWL._precompute_cache(0, toy_to_self_cache,
+                ....:                          toy_from_self_cache,
+                ....:                          toy_transition_matrices,
+                ....:                          toy_inverse_transition_matrices,
+                ....:                          toy_gen_function)
+                sage: l(toy_to_self_cache)
+                [([], [([], 1)])]
+                sage: HWL._precompute_cache(1, toy_to_self_cache,
+                ....:                          toy_from_self_cache,
+                ....:                          toy_transition_matrices,
+                ....:                          toy_inverse_transition_matrices,
+                ....:                          toy_gen_function)
+                sage: l(toy_to_self_cache)
+                [([], [([], 1)]), ([1], [([1], 1)])]
+                sage: HWL._precompute_cache(2, toy_to_self_cache,
+                ....:                          toy_from_self_cache,
+                ....:                          toy_transition_matrices,
+                ....:                          toy_inverse_transition_matrices,
+                ....:                          toy_gen_function)
+                sage: l(toy_to_self_cache)
+                [([], [([], 1)]), ([1], [([1], 1)]), ([1, 1], [([2], 1)]), ([2], [([1, 1], 1), ([2], -2)])]
+
+            This can be seen to form another `\ZZ`-basis of
+            `\mathrm{QSym}`, although it is not clear whether it has
+            any better properties than Hazewinkel's Lambda one.
+            """
+            # Much of this code is adapted from sage/combinat/sf/dual.py
+            base_ring = self.base_ring()
+            zero = base_ring(0)
+
+            # Handle the n == 0 case separately
+            if n == 0:
+                part = Composition([])
+                to_self_cache[ part ] = { part: base_ring(1) }
+                from_self_cache[ part ] = { part: base_ring(1) }
+                transition_matrices[n] = matrix(base_ring, [[1]])
+                inverse_transition_matrices[n] = matrix(base_ring, [[1]])
+                return
+
+            compositions_n = Compositions(n).list()
+            len_compositions_n = 2 ** (n-1)     # since n > 0 by now.
+            M = self.realization_of().M()
+
+            # The monomial basis will be called M from now on.
+
+            # This contains the data for the transition matrix from the
+            # monomial basis M to the Hazewinkel lambda basis self.
+            transition_matrix_n = matrix(base_ring, len_compositions_n, len_compositions_n)
+
+            # This first section calculates how the basis elements of the
+            # Hazewinkel lambda basis self decompose in the monomial
+            # basis M.
+
+            # For every composition I of size n, expand self[I] in terms
+            # of the monomial basis M.
+            i = 0
+            for I in compositions_n:
+                # M_coeffs will be M(self[I])._monomial_coefficients
+                M_coeffs = {}
+
+                self_I_in_M_basis = M.prod([from_self_gen_function(Composition(list(J)))
+                                            for J in Word(I).lyndon_factorization()])
+
+                j = 0
+
+                for J in compositions_n:
+                    if J in self_I_in_M_basis._monomial_coefficients:
+                        sp = self_I_in_M_basis._monomial_coefficients[J]
+                        M_coeffs[J] = sp
+                        transition_matrix_n[i,j] = sp
+
+                    j += 1
+
+                from_self_cache[I] = M_coeffs
+                i += 1
+
+            # Save the transition matrix
+            inverse_transition_matrices[n] = transition_matrix_n
+
+            # This second section calculates how the basis elements of the
+            # monomial basis M expand in terms of the basis B. We do this
+            # by inverting the above transition matrix.
+            #
+            # TODO: The way given in Hazewinkel's [Haz2004]_ paper might
+            # be faster.
+            inverse_transition = ~transition_matrix_n
+
+            for i in range(len_compositions_n):
+                self_coeffs = {}
+                for j in range(len_compositions_n):
+                    if inverse_transition[i,j] != zero:
+                        self_coeffs[ compositions_n[j] ] = inverse_transition[i,j]
+
+                to_self_cache[ compositions_n[i] ] = self_coeffs
+
+            transition_matrices[n] = inverse_transition
+
+        def _precompute_M(self, n):
+            """
+            Compute the transition matrices between ``self`` and the
+            monomial basis in the homogeneous components of degree `n`
+            (and in those of smaller degree, if not already computed).
+            The result is not returned, but rather stored in the cache.
+
+            INPUT:
+
+            - ``n`` -- nonnegative integer
+
+            EXAMPLES:
+
+            The examples below demonstrate how the caches of ``self`` are
+            built step by step using the ``_precompute_M`` method. This
+            demonstration relies on an untouched Hazewinkel Lambda basis
+            (because any computations might have filled the cache already).
+            We obtain such a basis by choosing a ground ring unlikely to
+            appear elsewhere::
+
+                sage: QSym = QuasiSymmetricFunctions(ZZ['hell', 'yeah'])
+                sage: HWL = QSym.HazewinkelLambda()
+                sage: M = QSym.M()
+                sage: l = lambda c: [ (i[0],[j for j in sorted(i[1].items())]) for i in sorted(c.items())]
+                sage: l(HWL._M_to_self_cache)
+                []
+                sage: HWL._precompute_M(0)
+                sage: l(HWL._M_to_self_cache)
+                [([], [([], 1)])]
+                sage: HWL._precompute_M(1)
+                sage: l(HWL._M_to_self_cache)
+                [([], [([], 1)]), ([1], [([1], 1)])]
+                sage: HWL._precompute_M(2)
+                sage: l(HWL._M_to_self_cache)
+                [([], [([], 1)]),
+                 ([1], [([1], 1)]),
+                 ([1, 1], [([2], 1)]),
+                 ([2], [([1, 1], 1), ([2], -2)])]
+                sage: HWL._M_transition_matrices[2]
+                [ 0  1]
+                [ 1 -2]
+                sage: HWL._M_inverse_transition_matrices[2]
+                [2 1]
+                [1 0]
+                sage: HWL._M_transition_matrices.keys()
+                [0, 1, 2]
+
+            We did not have to call ``HWL._precompute_M(0)``,
+            ``HWL._precompute_M(1)`` and ``HWL._precompute_M(2)``
+            in this order; it would be enough to just call
+            ``HWL._precompute_M(2)``::
+
+                sage: QSym = QuasiSymmetricFunctions(ZZ['lol', 'wut'])
+                sage: HWL = QSym.HazewinkelLambda()
+                sage: M = QSym.M()
+                sage: l = lambda c: [ (i[0],[j for j in sorted(i[1].items())]) for i in sorted(c.items())]
+                sage: l(HWL._M_to_self_cache)
+                []
+                sage: HWL._precompute_M(2)
+                sage: l(HWL._M_to_self_cache)
+                [([], [([], 1)]),
+                 ([1], [([1], 1)]),
+                 ([1, 1], [([2], 1)]),
+                 ([2], [([1, 1], 1), ([2], -2)])]
+                sage: HWL._precompute_M(1)
+                sage: l(HWL._M_to_self_cache)
+                [([], [([], 1)]),
+                 ([1], [([1], 1)]),
+                 ([1, 1], [([2], 1)]),
+                 ([2], [([1, 1], 1), ([2], -2)])]
+            """
+            l = len(self._M_transition_matrices)
+            M = self.realization_of().M()
+            if l <= n:
+                from sage.misc.cachefunc import cached_function
+                from sage.rings.arith import gcd
+                @cached_function
+                def monolambda(I):
+                    # expansion of self[I] in monomial basis,
+                    # where I is a composition which is a Lyndon word
+                    g = gcd(I)
+                    I_reduced = [i // g for i in I]
+                    return M.lambda_of_monomial(I_reduced, g)
+                for i in range(l, n + 1):
+                    self._precompute_cache(i, self._M_to_self_cache,
+                                           self._M_from_self_cache,
+                                           self._M_transition_matrices,
+                                           self._M_inverse_transition_matrices,
+                                           monolambda)
+
+        def _to_Monomial_on_basis(self, J):
+            r"""
+            Expand the Hazewinkel Lambda basis element labelled by a
+            composition ``J`` in the quasi-symmetric Monomial basis.
+
+            INPUT:
+
+            - ``J`` -- a composition
+
+            OUTPUT:
+
+            - A quasi-symmetric function in the Monomial basis.
+
+            EXAMPLES::
+
+                sage: HWL = QuasiSymmetricFunctions(QQ).HazewinkelLambda()
+                sage: J = Composition([1, 2, 1])
+                sage: HWL._to_Monomial_on_basis(J)
+                2*M[1, 1, 2] + M[1, 2, 1] + M[1, 3] + M[2, 2]
+            """
+            n = sum(J)
+            self._precompute_M(n)
+            return self.realization_of().M()._from_dict(self._M_from_self_cache[J])
+
+        def _from_Monomial_on_basis(self, J):
+            r"""
+            Expand the Monomial quasi-symmetric function labelled by the
+            composition ``J`` in the Hazewinkel Lambda basis.
+
+            INPUT:
+
+            - ``J`` -- a composition
+
+            OUTPUT:
+
+            - A quasi-symmetric function in the Hazewinkel lambda basis.
+
+            EXAMPLES::
+
+                sage: HWL = QuasiSymmetricFunctions(QQ).HazewinkelLambda()
+                sage: J = Composition([1, 2, 1])
+                sage: HWL._from_Monomial_on_basis(J)
+                -2*HWL[1, 1, 2] + HWL[1, 2, 1] - HWL[1, 3] - HWL[2, 2] + 2*HWL[3, 1] - 2*HWL[4]
+            """
+            n = sum(J)
+            self._precompute_M(n)
+            return self._from_dict(self._M_to_self_cache[J])
+
+        def product_on_basis(self, I, J):
+            """
+            The product on Hazewinkel Lambda basis elements.
+
+            The product of the basis elements indexed by two compositions
+            `I` and `J` is the basis element obtained by concatenating the
+            Lyndon factorizations of the words `I` and `J`, then reordering
+            the Lyndon factors in nonincreasing order, and finally
+            concatenating them in this order (giving a new composition).
+
+            INPUT:
+
+            - ``I``, ``J`` -- compositions
+
+            OUTPUT:
+
+            - The product of the Hazewinkel Lambda quasi-symmetric
+              functions indexed by ``I`` and ``J``, expressed in the
+              Hazewinkel Lambda basis.
+
+            EXAMPLES::
+
+                sage: HWL = QuasiSymmetricFunctions(QQ).HazewinkelLambda()
+                sage: c1 = Composition([1, 2, 1])
+                sage: c2 = Composition([2, 1, 3, 2])
+                sage: HWL.product_on_basis(c1, c2)
+                HWL[2, 1, 3, 2, 1, 2, 1]
+                sage: HWL.product_on_basis(c1, Composition([]))
+                HWL[1, 2, 1]
+                sage: HWL.product_on_basis(Composition([]), Composition([]))
+                HWL[]
+
+            TESTS::
+
+                sage: M = QuasiSymmetricFunctions(QQ).M()
+                sage: all( all( M(HWL[I] * HWL[J]) == M(HWL[I]) * M(HWL[J])
+                ....:           for I in Compositions(3) )
+                ....:      for J in Compositions(3) )
+                True
+            """
+            from sage.misc.flatten import flatten
+            I_factors = [list(i) for i in Word(I).lyndon_factorization()]
+            J_factors = [list(j) for j in Word(J).lyndon_factorization()]
+            # This uses the convenient fact that comparison of lists in
+            # Python works exactly as one wants in Lyndon word theory:
+            # [a_1, a_2, ..., a_n] > [b_1, b_2, ..., b_m] if and only if
+            # either some i satisfies a_i > b_i and (a_j == b_j for all
+            # j < i), or we have n > m and all i <= m satisfy a_i == b_i.
+            new_factors = sorted(I_factors + J_factors, reverse=True)
+            return self[Composition(flatten(new_factors))]
+

@@ -2344,6 +2344,73 @@ class NumberField_generic(number_field_base.NumberField):
     def elements_of_bdd_height(self, height_bound, precision=100, GRH=False):
         from bdd_height import bdd_height
         return bdd_height(self, height_bound, precision, GRH)
+        r"""
+        Return the elements of self whose relative multiplicative is at most height_bound.
+        
+        The algorithm requires floating point arithmetic, so the user is allowed to specify the precision used for such calculations. Also, certain number field calculations may be done faster assuming the Generalized Riemann Hypothesis, and the user is allowed to decide whether to assume GRH (True) or not (False).
+        
+        For details: John R. Doyle and David Krumm, Computing algebraic numbers of bounded height, http://arxiv.org/abs/1111.4963 (2013)
+        
+        INPUT:
+        
+        - ``height_bound`` - a real number
+        - ``precision`` - (default: 100) a positive integer
+        - ``GRH`` - (default: False) a boolean value
+        
+        OUTPUT:
+        
+        - a list of elements of self
+        
+        EXAMPLES:
+
+        There are no elements in a number field with multiplicative height less than 1::
+        
+        sage: K.<g> = NumberField(x^5 - x + 19)
+        sage: K.elements_of_bdd_height(0.4)
+        []
+        
+        The only elements in a number field of height 1 are 0 and the roots of unity::
+
+        sage: K.<a> = NumberField(x^2 + x + 1)
+        sage: K.elements_of_bdd_height(1)
+        [-a, -a - 1, -1, a, a + 1, 1, 0]
+        
+        ::
+        
+        sage: K.<a> = NumberField(x^2 + 17)
+        sage: L = K.elements_of_bdd_height(1000)
+        sage: len(L)
+        626367
+
+        ::
+
+        sage: K.<a> = NumberField(x^2 - 71)
+        sage: L = K.elements_of_bdd_height(100)
+        sage: len(L)
+        3283
+        
+        ::
+        
+        sage: K.<g> = NumberField(x^4 - 5)
+        sage: L = K.elements_of_bdd_height(100)
+        sage: len(L)
+        7939  
+        
+        ::
+        
+        sage: K.<a> = NumberField(x^6 + 2)
+        sage: L = K.elements_of_bdd_height(100)
+        sage: len(L)
+        5123
+        
+        ::
+        
+        sage: K.<a> = CyclotomicField(13)
+        sage: L = K.elements_of_bdd_height(10)
+        sage: len(L)
+        27
+        
+        """
 
     def algebraic_closure(self):
         """

@@ -233,10 +233,10 @@ def v_4_1_BIBD(v, check=True):
         sage: from sage.combinat.designs.bibd import v_4_1_BIBD  # long time
         sage: for n in range(13,100):                            # long time
         ....:    if n%12 in [1,4]:                               # long time
-        ....:       print n                                      # long time
         ....:       _ = v_4_1_BIBD(n, check = True)              # long time
     """
     from sage.rings.finite_rings.constructor import FiniteField
+    k = 4
     if v == 0:
         return []
     if v <= 12 or v%12 not in [1,4]:
@@ -309,20 +309,53 @@ def v_4_1_BIBD(v, check=True):
                 [20, 26, 31, 35], [20, 33, 34, 36], [21, 27, 32, 36]]
 
     # Step 2 : this is function PBD_4_5_8_9_12
+    PBD = PBD_4_5_8_9_12((v-1)/(k-1),check=False)
 
-    # Step 3 : this is Theorem 7.20
-    k=4
-    base_cases = {}
+    # Step 3 : Theorem 7.20
+    bibd = BIBD_from_PBD(PBD,v,k,check=False)
+
+    if check:
+        _check_pbd(bibd,v,[k])
+
+    return bibd
+
+def BIBD_from_PBD(PBD,v,k,check=True,base_cases={}):
+    r"""
+    Returns a `(v,k,1)`-BIBD from a `(r,K)`-PBD where `r=(v-1)/(k-1)`.
+
+    This is Theorem 7.20 from [Stinson2004]_.
+
+    INPUT:
+
+    - ``v,k`` -- integers.
+
+    - ``PBD`` -- A PBD on `r=(v-1)/(k-1)` points, such that for any block of
+      ``PBD`` of size `s` there must exist a `((k-1)s+1,k,1)`-BIBD.
+
+    - ``check`` (boolean) -- whether to check that output is correct before
+      returning it. As this is expected to be useless (but we are cautious
+      guys), you may want to disable it whenever you want speed. Set to ``True``
+      by default.
+
+    - ``base_cases`` -- caching system, for internal use.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.bibd import PBD_4_5_8_9_12
+        sage: from sage.combinat.designs.bibd import BIBD_from_PBD
+        sage: from sage.combinat.designs.bibd import _check_pbd
+        sage: PBD = PBD_4_5_8_9_12(17)
+        sage: bibd = _check_pbd(BIBD_from_PBD(PBD,52,4),52,[4])
+    """
     r = (v-1)/(k-1)
-    PBD = PBD_4_5_8_9_12(r, check=False)
     bibd = []
     for X in PBD:
         n = len(X)
         N = (k-1)*n+1
-        if not n in base_cases:
-            base_cases[n] = _relabel_bibd(v_4_1_BIBD(N, check=False),N)
+        if not (n,k) in base_cases:
+            base_cases[n,k] = _relabel_bibd(BalancedIncompleteBlockDesign(N,k),N)
 
-        for XX in base_cases[n]:
+        for XX in base_cases[n,k]:
             if N-1 in XX:
                 continue
             bibd.append([X[x//(k-1)] + (x%(k-1))*r for x in XX])
@@ -400,11 +433,11 @@ def _relabel_bibd(B,n):
     for X in B:
         if last in X:
             for x in X:
-                if x is last:
+                if x == last:
                     continue
                 d[x] = found
                 found += 1
-            if found == n-2:
+            if found == n-1:
                 break
     d[n-1] = n-1
     return [[d[x] for x in X] for X in B]
@@ -545,6 +578,19 @@ table_7_1 = {
 
 
 def _get_t_u(v):
+    r"""
+    Returns the parameters of table 7.1 from [Stinson2004]_.
+
+    INPUT:
+
+    - ``v`` (integer)
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.bibd import _get_t_u
+        sage: _get_t_u(20)
+        (5, 0)
+    """
     # Table 7.1
     v = int(v)
     global table_7_1

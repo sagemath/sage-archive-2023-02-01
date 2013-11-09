@@ -291,6 +291,9 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
                 self._update_partition_values(a + 1)
             self._update_vacancy_nums(tableau_height)
             self._update_partition_values(tableau_height)
+            if tableau_height > 0:
+                self._update_vacancy_nums(tableau_height-1)
+                self._update_partition_values(tableau_height-1)
             return
 
         # Always add a cell to the first singular value in the first

@@ -1921,7 +1921,8 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
 
     INPUT:
 
-    - ``domain``, ``codomain`` -- two modules with bases `F` and `G`
+    - ``domain``, ``codomain`` -- two modules with basis `F` and `G`,
+      respectively
     - ``diagonal`` -- a function `d`
 
     Assumptions:

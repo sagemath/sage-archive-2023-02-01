@@ -302,8 +302,13 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
             2*t3^2 + 6*t3 + 11
             sage: s.pth_power(3)
             t3^2 + t3 + 1
+
+        We check that the parent is the one we want::
+
+            sage: s.pth_power(3).parent() is K
+            True
         """
-        return self._value.pth_power(k)
+        return self.__class__(self.parent(), self._value.pth_power(k))
 
     def pth_root(self, k=1):
         r"""
@@ -320,14 +325,25 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
             10*t3^2 + 6*t3
             sage: s.pth_root(3)
             t3^2 + t3 + 1
+
+        We check that the parent is the one we want::
+
+            sage: s.pth_root(2).parent() is K
+            True
         """
-        return self._value.pth_root(k)
+        return self.__class__(self.parent(), self._value.pth_root(k))
 
     def as_finite_field_element(self, minimal=False):
         r"""
         Return ``self`` as a finite field element. Is ``minimal`` is set to
         ``True`` then returns the smallest subfield in which ``self`` is
         contained.
+
+        OUTPUT:
+
+        - a triple (``field``, ``element``, ``morphism``) where ``field`` is a
+          finite field, ``element`` an element of ``field`` and ``morphism`` a
+          morphism from ``field`` to the algebraic close field.
 
         EXAMPLES::
 

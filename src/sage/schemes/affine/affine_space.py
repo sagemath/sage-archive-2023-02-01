@@ -671,6 +671,26 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_affine
         return AlgebraicScheme_subscheme_affine(self, X)
 
+    def _an_element_(self):
+        r"""
+        Returns a (preferably typical) element of ``self``.
+
+        This is used both for illustration and testing purposes.
+
+        OUTPUT: a point in the affine space ``self``.
+
+        EXAMPLES::
+            sage: AffineSpace(ZZ,2,'x').an_element()
+            (1, 1)
+
+            sage: AffineSpace(Qp(5),2,'x').an_element()
+            (5 + O(5^21), 5 + O(5^21))
+        """
+        n=self.dimension_relative()
+        R=self.base_ring()
+        coords=[R.an_element() for i in range(n)]
+        return (self(coords))
+
 class AffineSpace_field(AffineSpace_generic):
     def _point(self, *args, **kwds):
         """

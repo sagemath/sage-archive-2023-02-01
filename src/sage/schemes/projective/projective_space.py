@@ -772,6 +772,26 @@ class ProjectiveSpace_ring(AmbientSpace):
         self.__affine_patches[i] = AA
         return AA
 
+    def _an_element_(self):
+        r"""
+        Returns a (preferably typical) element of ``self``.
+
+        This is used both for illustration and testing purposes.
+
+        OUTPUT: a point in the projective space ``self``.
+
+        EXAMPLES::
+
+            sage: ProjectiveSpace(ZZ,3,'x').an_element()
+            (1 : 1 : 1 : 1)
+
+            sage: ProjectiveSpace(PolynomialRing(ZZ,'y'),3,'x').an_element()
+            (y : 1 : 1 : 1)
+        """
+        n=self.dimension_relative()
+        R=self.base_ring()
+        coords=[R.an_element()] + [R.one() for i in range(n)]
+        return (self(coords))
 
 class ProjectiveSpace_field(ProjectiveSpace_ring):
     def _point_homset(self, *args, **kwds):

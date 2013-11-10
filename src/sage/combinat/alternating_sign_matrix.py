@@ -197,6 +197,48 @@ class AlternatingSignMatrix(Element):
             prev = add_row
         return MonotoneTriangles(n)(triangle)
  
+    @combinatorial_map(name='rotate counterclockwise')
+    def rotate_ccw(self):
+        r"""
+        Return the counterclockwise quarter turn rotation of ``self``.
+        
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: A([[1, 0, 0],[0, 1, 0],[0, 0, 1]]).rotate_ccw()
+            [0 0 1]
+            [0 1 0]
+            [1 0 0]
+            sage: asm = A([[0, 0, 1],[1, 0, 0],[0, 1, 0]])
+            sage: asm.rotate_ccw()
+            [1 0 0]
+            [0 0 1]
+            [0 1 0]
+        """
+        l = list(mat._matrix.transpose())
+        l.reverse()
+        return AlternatingSignMatrix(matrix(l))
+
+    @combinatorial_map(name='transpose')
+    def transpose(self):
+        r"""
+        Return the counterclockwise quarter turn rotation of ``self``.
+        
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: A([[1, 0, 0],[0, 1, 0],[0, 0, 1]]).transpose()
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: asm = A([[0, 0, 1],[1, 0, 0],[0, 1, 0]])
+            sage: asm.transpose()
+            [0 1 0]
+            [0 0 1]
+            [1 0 0]
+        """
+        return AlternatingSignMatrix(self._matrix.transpose())
+
     def corner_sum_matrix(self):
         r"""
         Return the corner sum matrix from ``self``.
@@ -259,10 +301,11 @@ class AlternatingSignMatrix(Element):
         n = asm.nrows() + 1
         return matrix([[i+j-2*nw_corner_sum(asm,i,j) for i in range(n)] for j in range(n)])
  
+    @combinatorial_map(name='gyration')    
     def gyration(self):
         r"""
-        Return the matrix obtained by applying the gyration action to the
-        height function in bijection with ``self``.
+        Return the alternating sign matrix obtained by applying the gyration 
+        action to the height function in bijection with ``self``.
 
         Gyration acts on height functions as follows. Go through the entries of
         the matrix, first those for which the sum of the row and column indices

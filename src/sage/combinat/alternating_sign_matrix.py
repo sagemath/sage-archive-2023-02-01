@@ -215,9 +215,31 @@ class AlternatingSignMatrix(Element):
             [0 0 1]
             [0 1 0]
         """
-        l = list(mat._matrix.transpose())
+        l = list(self._matrix.transpose())
         l.reverse()
         return AlternatingSignMatrix(matrix(l))
+
+    @combinatorial_map(name='rotate clockwise')
+    def rotate_cw(self):
+        r"""
+        Return the clockwise quarter turn rotation of ``self``.
+        
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: A([[1, 0, 0],[0, 1, 0],[0, 0, 1]]).rotate_cw()
+            [0 0 1]
+            [0 1 0]
+            [1 0 0]
+            sage: asm = A([[0, 0, 1],[1, 0, 0],[0, 1, 0]])
+            sage: asm.rotate_cw()
+            [0 1 0]
+            [1 0 0]
+            [0 0 1]
+        """
+        l = list(self._matrix.transpose())
+        l.reverse()
+        return AlternatingSignMatrix(matrix(l).transpose().antitranspose())
 
     @combinatorial_map(name='transpose')
     def transpose(self):

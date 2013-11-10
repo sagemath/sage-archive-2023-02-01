@@ -1697,7 +1697,8 @@ class ManinSymbol(SageObject):
                                       "in weight 2")
         from sage.matrix.matrix import is_Matrix
         if is_Matrix(matrix):
-            assert matrix.nrows() == 2 and matrix.ncols()==2, "matrix must be 2x2"
+            if (not matrix.nrows() == 2) or (not matrix.ncols() == 2):
+                raise ValueError("matrix(=%s) must be 2x2" % matrix)
             matrix = matrix.list()
         return ManinSymbol(self.parent(), \
                            (self.i,

@@ -158,3 +158,6 @@ from knutson_tao_puzzles import KnutsonTaoPuzzleSolver
 
 # Gelfand-Tsetlin patterns
 from gelfand_tsetlin_patterns import GelfandTsetlinPattern, GelfandTsetlinPatterns
+
+# Six Vertex Model
+from six_vertex_model import SixVertexModel

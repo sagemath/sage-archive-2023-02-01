@@ -66,20 +66,14 @@ incoherent with the data structure.
 from sage.structure.list_clone import ClonableArray
 from sage.rings.integer import Integer
 from sage.misc.misc_c import prod
-###############################################################################
-# # use to load tikz in the preamble (one for *view* and one for *notebook*)
-from sage.misc.latex import latex
-latex.add_package_to_preamble_if_available("tikz")
-latex.add_to_mathjax_avoid_list("tikz")
-###############################################################################
 
 
 # Unfortunately Cython forbids multiple inheritance. Therefore, we do not
-# inherits from SageObject to be able to inherits from Element or a subclass
+# inherit from SageObject to be able to inherit from Element or a subclass
 # of it later.
 class AbstractTree(object):
     """
-    Abstract Tree
+    Abstract Tree.
 
     There is no data structure defined here, as this class is meant to be
     extended, not instantiated.
@@ -97,7 +91,7 @@ class AbstractTree(object):
       <AbstractTree.canonical_labelling>` method
       should return the same value for trees that are considered equal (see the
       "canonical labellings" section in the documentation of the
-      :class:`AbstractTree <sage.combinat.abstract_tree.AbstractTree>` module).
+      :class:`AbstractTree <sage.combinat.abstract_tree.AbstractTree>` class).
 
     * For a tree ``T`` the call ``T.parent().labelled_trees()`` should return
       a parent for labelled trees of the same kind: for example,
@@ -118,7 +112,15 @@ class AbstractTree(object):
         The depth-first pre-order traversal iterator.
 
         This method iters each node following the depth-first pre-order
-        traversal algorithm (recursive implementation).
+        traversal algorithm (recursive implementation). The algorithm
+        is::
+
+            yield the root (in the case of binary trees, if it is not
+                a node);
+            then explore each subtree (by the algorithm) from the
+                leftmost one to the rightmost one.
+
+        EXAMPLES:
 
         For example, on the following binary tree `b`::
 
@@ -130,13 +132,9 @@ class AbstractTree(object):
             |        / \      |
             |       4   6     |
 
-        the ``depth-first pre-order traversal algorithm`` explores `b` in the
-        following order of nodes: `3,1,2,7,5,4,6,8`.
-
-        The algorithm is::
-
-            manipulate the root,
-            then explore each subtree (by the algorithm).
+        (only the nodes shown), the depth-first pre-order traversal
+        algorithm explores `b` in the following order of nodes:
+        `3,1,2,7,5,4,6,8`.
 
         Another example::
 
@@ -148,8 +146,8 @@ class AbstractTree(object):
             |  / /        |
             | 4 5         |
 
-        The algorithm explores this tree in the following order:
-        `1,2,3,4,5,6,7,8,9,10`.
+        The algorithm explores this labelled tree in the following
+        order: `1,2,3,4,5,6,7,8,9,10`.
 
         TESTS::
 
@@ -164,6 +162,7 @@ class AbstractTree(object):
             [       4   6     ]
             sage: [n.label() for n in b.pre_order_traversal_iter()]
             [3, 1, 2, 7, 5, 4, 6, 8]
+
             sage: t = OrderedTree([[[[],[]]],[[]],[[],[]]]).canonical_labelling()
             sage: ascii_art([t])
             [     __1____   ]
@@ -175,6 +174,22 @@ class AbstractTree(object):
             [ 4 5           ]
             sage: [n.label() for n in t.pre_order_traversal_iter()]
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+            sage: [n for n in BinaryTree(None).pre_order_traversal_iter()]
+            []
+
+        The following test checks that things don't go wrong if some among
+        the descendants of the tree are equal or even identical::
+
+            sage: u = BinaryTree(None)
+            sage: v = BinaryTree([u, u])
+            sage: w = BinaryTree([v, v])
+            sage: t = BinaryTree([w, w])
+            sage: t.node_number()
+            7
+            sage: l = [1 for i in t.pre_order_traversal_iter()]
+            sage: len(l)
+            7
         """
         if self.is_empty():
             return
@@ -191,13 +206,23 @@ class AbstractTree(object):
 
     def iterative_pre_order_traversal(self, action=None):
         r"""
-        The depth-first pre-order traversal algorithm (iterative
-        implementation).
+        Run the depth-first pre-order traversal algorithm (iterative
+        implementation) and subject every node encountered
+        to some procedure ``action``. The algorithm is::
+
+            manipulate the root with function `action` (in the case
+                of a binary tree, only if the root is not a leaf);
+            then explore each subtree (by the algorithm) from the
+                leftmost one to the rightmost one.
 
         INPUT:
 
-        - ``action`` -- (optional) a function which takes a node in input
-          and does something during the exploration
+        - ``action`` -- (optional) a function which takes a node as
+          input, and does something during the exploration
+
+        OUTPUT:
+
+        ``None``. (This is *not* an iterator.)
 
         .. SEEALSO::
 
@@ -213,6 +238,7 @@ class AbstractTree(object):
             sage: b.iterative_pre_order_traversal(lambda node: l.append(node.label()))
             sage: l
             [3, 1, 2, 7, 5, 4, 6, 8]
+
             sage: t = OrderedTree([[[[],[]]],[[]],[[],[]]]).canonical_labelling()
             sage: t
             1[2[3[4[], 5[]]], 6[7[]], 8[9[], 10[]]]
@@ -221,6 +247,7 @@ class AbstractTree(object):
             sage: l
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
             sage: l = []
+
             sage: BinaryTree().canonical_labelling().\
             ....:     pre_order_traversal(lambda node: l.append(node.label()))
             sage: l
@@ -229,6 +256,20 @@ class AbstractTree(object):
             ....:     iterative_pre_order_traversal(lambda node: l.append(node.label()))
             sage: l
             [1]
+
+        The following test checks that things don't go wrong if some among
+        the descendants of the tree are equal or even identical::
+
+            sage: u = BinaryTree(None)
+            sage: v = BinaryTree([u, u])
+            sage: w = BinaryTree([v, v])
+            sage: t = BinaryTree([w, w])
+            sage: t.node_number()
+            7
+            sage: l = []
+            sage: t.iterative_pre_order_traversal(lambda node: l.append(1))
+            sage: len(l)
+            7
         """
         if self.is_empty():
             return
@@ -246,15 +287,27 @@ class AbstractTree(object):
 
     def pre_order_traversal(self, action=None):
         r"""
-        The depth-first pre-order traversal algorithm (recursive
-        implementation).
+        Run the depth-first pre-order traversal algorithm (recursive
+        implementation) and subject every node encountered
+        to some procedure ``action``. The algorithm is::
+
+            manipulate the root with function `action` (in the case
+                of a binary tree, only if the root is not a leaf);
+            then explore each subtree (by the algorithm) from the
+                leftmost one to the rightmost one.
 
         INPUT:
 
-        - ``action`` -- (optional) a function which takes a node in input
-          and does something during the exploration
+        - ``action`` -- (optional) a function which takes a node as
+          input, and does something during the exploration
 
-        For example on the following binary tree `b`::
+        OUTPUT:
+
+        ``None``. (This is *not* an iterator.)
+
+        EXAMPLES:
+
+        For example, on the following binary tree `b`::
 
             |   ___3____      |
             |  /        \     |
@@ -264,13 +317,8 @@ class AbstractTree(object):
             |        / \      |
             |       4   6     |
 
-        the ``depth-first pre-order traversal algorithm`` explores `b` in the
-        following order of nodes `3,1,2,7,5,4,6,8`.
-
-        The algorithm is::
-
-            manipulate the root with function `action`,
-            then explore each subtrees (by the algorithm)
+        the depth-first pre-order traversal algorithm explores `b` in the
+        following order of nodes: `3,1,2,7,5,4,6,8`.
 
         Another example::
 
@@ -303,6 +351,7 @@ class AbstractTree(object):
             sage: b.iterative_pre_order_traversal(lambda node: li.append(node.label()))
             sage: l == li
             True
+
             sage: t = OrderedTree([[[[],[]]],[[]],[[],[]]]).canonical_labelling()
             sage: t
             1[2[3[4[], 5[]]], 6[7[]], 8[9[], 10[]]]
@@ -314,6 +363,7 @@ class AbstractTree(object):
             sage: t.iterative_pre_order_traversal(lambda node: li.append(node.label()))
             sage: l == li
             True
+
             sage: l = []
             sage: BinaryTree().canonical_labelling().\
             ....:     pre_order_traversal(lambda node: l.append(node.label()))
@@ -323,6 +373,20 @@ class AbstractTree(object):
             ....:     pre_order_traversal(lambda node: l.append(node.label()))
             sage: l
             [1]
+
+        The following test checks that things don't go wrong if some among
+        the descendants of the tree are equal or even identical::
+
+            sage: u = BinaryTree(None)
+            sage: v = BinaryTree([u, u])
+            sage: w = BinaryTree([v, v])
+            sage: t = BinaryTree([w, w])
+            sage: t.node_number()
+            7
+            sage: l = []
+            sage: t.pre_order_traversal(lambda node: l.append(1))
+            sage: len(l)
+            7
         """
         if action is None:
             action = lambda x: None
@@ -334,7 +398,15 @@ class AbstractTree(object):
         The depth-first post-order traversal iterator.
 
         This method iters each node following the depth-first post-order
-        traversal algorithm (recursive implementation).
+        traversal algorithm (recursive implementation). The algorithm
+        is::
+
+            explore each subtree (by the algorithm) from the
+                leftmost one to the rightmost one;
+            then yield the root (in the case of binary trees, only if
+                it is not a node).
+
+        EXAMPLES:
 
         For example on the following binary tree `b`::
 
@@ -346,15 +418,11 @@ class AbstractTree(object):
             |        / \      |
             |       4   6     |
 
-        the ``depth-first post-order traversal algorithm`` explores `b` in the
-        following order of nodes `2,1,4,6,5,8,7,3`.
+        (only the nodes are shown), the depth-first post-order traversal
+        algorithm explores `b` in the following order of nodes:
+        `2,1,4,6,5,8,7,3`.
 
-        The algorithm is::
-
-            explore each subtrees (by the algorithm)
-            then manipulate the root with function `action`
-
-        Another example::
+        For another example, consider the labelled tree::
 
             |     __1____ |
             |    /  /   / |
@@ -380,6 +448,7 @@ class AbstractTree(object):
             [       4   6     ]
             sage: [node.label() for node in b.post_order_traversal_iter()]
             [2, 1, 4, 6, 5, 8, 7, 3]
+
             sage: t = OrderedTree([[[[],[]]],[[]],[[],[]]]).canonical_labelling()
             sage: ascii_art([t])
             [     __1____   ]
@@ -391,12 +460,26 @@ class AbstractTree(object):
             [ 4 5           ]
             sage: [node.label() for node in t.post_order_traversal_iter()]
             [4, 5, 3, 2, 7, 6, 9, 10, 8, 1]
+
             sage: [node.label() for node in BinaryTree().canonical_labelling().\
             ....:     post_order_traversal_iter()]
             []
             sage: [node.label() for node in OrderedTree([]).\
             ....:     canonical_labelling().post_order_traversal_iter()]
             [1]
+
+        The following test checks that things don't go wrong if some among
+        the descendants of the tree are equal or even identical::
+
+            sage: u = BinaryTree(None)
+            sage: v = BinaryTree([u, u])
+            sage: w = BinaryTree([v, v])
+            sage: t = BinaryTree([w, w])
+            sage: t.node_number()
+            7
+            sage: l = [1 for i in t.post_order_traversal_iter()]
+            sage: len(l)
+            7
         """
         if self.is_empty():
             return
@@ -413,13 +496,23 @@ class AbstractTree(object):
 
     def post_order_traversal(self, action=None):
         r"""
-        The depth-first post-order traversal algorithm (recursive
-        implementation).
+        Run the depth-first post-order traversal algorithm (recursive
+        implementation) and subject every node encountered
+        to some procedure ``action``. The algorithm is::
+
+            explore each subtree (by the algorithm) from the
+                leftmost one to the rightmost one;
+            then manipulate the root with function `action` (in the
+                case of a binary tree, only if the root is not a leaf).
 
         INPUT:
 
-        - ``action`` -- (optional) a function which takes a node in
-          input and does something during the exploration
+        - ``action`` -- (optional) a function which takes a node as
+          input, and does something during the exploration
+
+        OUTPUT:
+
+        ``None``. (This is *not* an iterator.)
 
         .. SEEALSO::
 
@@ -435,6 +528,7 @@ class AbstractTree(object):
             sage: b.post_order_traversal(lambda node: l.append(node.label()))
             sage: l
             [2, 1, 4, 6, 5, 8, 7, 3]
+
             sage: t = OrderedTree([[[[],[]]],[[]],[[],[]]]).\
             ....:     canonical_labelling(); t
             1[2[3[4[], 5[]]], 6[7[]], 8[9[], 10[]]]
@@ -442,6 +536,7 @@ class AbstractTree(object):
             sage: t.post_order_traversal(lambda node: l.append(node.label()))
             sage: l
             [4, 5, 3, 2, 7, 6, 9, 10, 8, 1]
+
             sage: l = []
             sage: BinaryTree().canonical_labelling().\
             ....:     post_order_traversal(lambda node: l.append(node.label()))
@@ -451,6 +546,20 @@ class AbstractTree(object):
             ....:     post_order_traversal(lambda node: l.append(node.label()))
             sage: l
             [1]
+
+        The following test checks that things don't go wrong if some among
+        the descendants of the tree are equal or even identical::
+
+            sage: u = BinaryTree(None)
+            sage: v = BinaryTree([u, u])
+            sage: w = BinaryTree([v, v])
+            sage: t = BinaryTree([w, w])
+            sage: t.node_number()
+            7
+            sage: l = []
+            sage: t.post_order_traversal(lambda node: l.append(1))
+            sage: len(l)
+            7
         """
         if action is None:
             action = lambda x: None
@@ -459,13 +568,23 @@ class AbstractTree(object):
 
     def iterative_post_order_traversal(self, action=None):
         r"""
-        The depth-first post-order traversal algorithm (iterative
-        implementation).
+        Run the depth-first post-order traversal algorithm (iterative
+        implementation) and subject every node encountered
+        to some procedure ``action``. The algorithm is::
+
+            explore each subtree (by the algorithm) from the
+                leftmost one to the rightmost one;
+            then manipulate the root with function `action` (in the
+                case of a binary tree, only if the root is not a leaf).
 
         INPUT:
 
-        - ``action`` -- (optional) a function which takes a node in input and
-          does something during the exploration
+        - ``action`` -- (optional) a function which takes a node as
+          input, and does something during the exploration
+
+        OUTPUT:
+
+        ``None``. (This is *not* an iterator.)
 
         .. SEEALSO::
 
@@ -479,14 +598,16 @@ class AbstractTree(object):
             3[1[., 2[., .]], 7[5[4[., .], 6[., .]], 8[., .]]]
             sage: b.iterative_post_order_traversal(lambda node: l.append(node.label()))
             sage: l
-            [8, 6, 4, 5, 7, 2, 1, 3]
+            [2, 1, 4, 6, 5, 8, 7, 3]
+
             sage: t = OrderedTree([[[[],[]]],[[]],[[],[]]]).canonical_labelling()
             sage: t
             1[2[3[4[], 5[]]], 6[7[]], 8[9[], 10[]]]
             sage: l = []
             sage: t.iterative_post_order_traversal(lambda node: l.append(node.label()))
             sage: l
-            [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+            [4, 5, 3, 2, 7, 6, 9, 10, 8, 1]
+
             sage: l = []
             sage: BinaryTree().canonical_labelling().\
             ....:     iterative_post_order_traversal(
@@ -498,30 +619,66 @@ class AbstractTree(object):
             ....:         lambda node: l.append(node.label()))
             sage: l
             [1]
+
+        The following test checks that things don't go wrong if some among
+        the descendants of the tree are equal or even identical::
+
+            sage: u = BinaryTree(None)
+            sage: v = BinaryTree([u, u])
+            sage: w = BinaryTree([v, v])
+            sage: t = BinaryTree([w, w])
+            sage: t.node_number()
+            7
+            sage: l = []
+            sage: t.iterative_post_order_traversal(lambda node: l.append(1))
+            sage: len(l)
+            7
         """
         if self.is_empty():
             return
         if action is None:
             action = lambda x: None
         stack = [self]
-        mark = []
         while len(stack) > 0:
             node = stack[-1]
-            if node in mark:
-                stack.pop()
-                action(node)
+            if node != None:
+                # A "None" on the stack means that the node right before
+                # it on the stack has already been "exploded" into
+                # subtrees, and should not be exploded again, but instead
+                # should be manipulated and removed from the stack.
+                stack.append(None)
+                for i in range(len(node)):
+                    subtree = node[-i - 1]
+                    if not subtree.is_empty():
+                        stack.append(subtree)
             else:
-                mark.append(node)
-                stack.extend(filter(lambda n: not n.is_empty(), node))
+                stack.pop()
+                node = stack.pop()
+                action(node)
 
     def breadth_first_order_traversal(self, action=None):
         r"""
-        The breadth-first order traversal algorithm.
+        Run the breadth-first post-order traversal algorithm
+        and subject every node encountered to some procedure
+        ``action``. The algorithm is::
+
+            queue <- [ root ];
+            while the queue is not empty:
+                node <- pop( queue );
+                manipulate the node;
+                prepend to the queue the list of all subtrees of
+                    the node (from the rightmost to the leftmost).
 
         INPUT:
 
-        - ``action`` -- (optional) a function which takes a node in input and
-          does omething during the exploration
+        - ``action`` -- (optional) a function which takes a node as
+          input, and does something during the exploration
+
+        OUTPUT:
+
+        ``None``. (This is *not* an iterator.)
+
+        EXAMPLES:
 
         For example, on the following binary tree `b`::
 
@@ -533,16 +690,8 @@ class AbstractTree(object):
             |        / \      |
             |       4   6     |
 
-        the ``breadth-first order traversal algorithm`` explores `b` in the
+        the breadth-first order traversal algorithm explores `b` in the
         following order of nodes: `3,1,7,2,5,8,4,6`.
-
-        The algorithm is::
-
-            queue <- ( root )
-            while the queue is not empty:
-                node <- pop( queue )
-                manipulate the node
-                append in the queue all subtrees of the node
 
         TESTS::
 
@@ -551,6 +700,7 @@ class AbstractTree(object):
             sage: b.breadth_first_order_traversal(lambda node: l.append(node.label()))
             sage: l
             [3, 1, 7, 2, 5, 8, 4, 6]
+
             sage: t = OrderedTree([[[[],[]]],[[]],[[],[]]]).canonical_labelling()
             sage: t
             1[2[3[4[], 5[]]], 6[7[]], 8[9[], 10[]]]
@@ -558,6 +708,7 @@ class AbstractTree(object):
             sage: t.breadth_first_order_traversal(lambda node: l.append(node.label()))
             sage: l
             [1, 2, 6, 8, 3, 7, 9, 10, 4, 5]
+
             sage: l = []
             sage: BinaryTree().canonical_labelling().\
             ....:     breadth_first_order_traversal(
@@ -585,9 +736,12 @@ class AbstractTree(object):
 
     def subtrees(self):
         """
-        Return a generator for all subtrees of ``self``.
+        Return a generator for all nonempty subtrees of ``self``.
 
-        The number of subtrees of a tree is its number of elements.
+        The number of nonempty subtrees of a tree is its number of
+        nodes. (The word "nonempty" makes a difference only in the
+        case of binary trees. For ordered trees, for example, all
+        trees are nonempty.)
 
         EXAMPLES::
 
@@ -596,8 +750,15 @@ class AbstractTree(object):
             sage: list(OrderedTree([[],[[]]]).subtrees())
             [[[], [[]]], [], [[]], []]
 
+            sage: list(OrderedTree([[],[[]]]).canonical_labelling().subtrees())
+            [1[2[], 3[4[]]], 2[], 3[4[]], 4[]]
+
             sage: list(BinaryTree([[],[[],[]]]).subtrees())
             [[[., .], [[., .], [., .]]], [., .], [[., .], [., .]], [., .], [., .]]
+
+            sage: v = BinaryTree([[],[]])
+            sage: list(v.canonical_labelling().subtrees())
+            [2[1[., .], 3[., .]], 1[., .], 3[., .]]
 
         TESTS::
 
@@ -619,10 +780,12 @@ class AbstractTree(object):
         OUTPUT:
 
         This method returns a list of sequences of integers. Each of these
-        sequences represents a path from the root node to another one : `(1, 3,
-        2, 5, 3)` represents the node obtained by chosing the 1st children of
-        the root node (in the ordering returned by ``iter``), then the 3rd of
-        its children, then the 2nd of this element, etc.
+        sequences represents a path from the root node to some node. For
+        instance, `(1, 3, 2, 5, 0, 3)` represents the node obtained by
+        choosing the 1st child of the root node (in the ordering returned
+        by ``iter``), then the 3rd child of its child, then the 2nd child
+        of the latter, etc. (where the labelling of the children is
+        zero-based).
 
         The root element is represented by the empty tuple ``()``.
 
@@ -655,7 +818,7 @@ class AbstractTree(object):
 
     def node_number(self):
         """
-        The number of nodes of ``self``
+        The number of nodes of ``self``.
 
         EXAMPLES::
 
@@ -670,7 +833,7 @@ class AbstractTree(object):
             sage: OrderedTree([[], [[], [[], []], [[], []]], [[], []]]).node_number()
             13
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: BinaryTree(None).node_number()
             0
@@ -688,7 +851,7 @@ class AbstractTree(object):
 
     def depth(self):
         """
-        The depth of ``self``
+        The depth of ``self``.
 
         EXAMPLES::
 
@@ -826,7 +989,7 @@ class AbstractTree(object):
 
     def canonical_labelling(self,shift=1):
         """
-        Returns a labelled version of ``self``
+        Returns a labelled version of ``self``.
 
         The actual canonical labelling is currently unspecified. However, it
         is guaranteed to have labels in `1...n` where `n` is the number of
@@ -903,7 +1066,7 @@ class AbstractTree(object):
 
     def tree_factorial(self):
         """
-        Return the tree-factorial of ``self``
+        Return the tree-factorial of ``self``.
 
         Definition:
 
@@ -932,7 +1095,7 @@ class AbstractTree(object):
 
     def _latex_(self):
         r"""
-        Nice output which can be easily modified
+        Generate `\LaTeX` output which can be easily modified.
 
         TESTS::
 
@@ -955,6 +1118,12 @@ class AbstractTree(object):
                 (a) edge (b) edge (e);
             \end{tikzpicture}}
         """
+        ###############################################################################
+        # # use to load tikz in the preamble (one for *view* and one for *notebook*)
+        from sage.misc.latex import latex
+        latex.add_package_to_preamble_if_available("tikz")
+        latex.add_to_mathjax_avoid_list("tikz")
+        ###############################################################################
         # latex environnement : TikZ
         begin_env = "\\begin{tikzpicture}[auto]\n"
         end_env = "\\end{tikzpicture}"
@@ -1293,48 +1462,49 @@ class AbstractTree(object):
 
 class AbstractClonableTree(AbstractTree):
     """
-    Abstract Clonable Tree
+    Abstract Clonable Tree.
 
     An abstract class for trees with clone protocol (see
     :mod:`~sage.structure.list_clone`). It is expected that classes extending
     this one may also inherit from classes like :class:`ClonableArray` or
-    :class:`~sage.structure.list_clone.ClonableList` depending wether one
+    :class:`~sage.structure.list_clone.ClonableList` depending whether one
     wants to build trees where adding a child is allowed.
 
     .. NOTE:: Due to the limitation of Cython inheritance, one cannot inherit
        here from :class:`~sage.structure.list_clone.ClonableElement`, because
-       it would prevent us to inherit later from
+       it would prevent us from later inheriting from from
        :class:`~sage.structure.list_clone.ClonableArray` or
        :class:`~sage.structure.list_clone.ClonableList`.
 
     .. rubric:: How should this class be extended ?
 
-    A class extending :class:`AbstractTree
-    <sage.combinat.abstract_tree.AbstractTree>` should the following
-    assumptions:
+    A class extending :class:`AbstractClonableTree
+    <sage.combinat.abstract_tree.AbstractClonableTree>` should satisfy the
+    following assumptions:
 
-    * An instantiable class extending :class:`AbstractTree
-      <sage.combinat.abstract_tree.AbstractTree>` should also extend the
-      :class:`ClonableElement <sage.structure.list_clone.ClonableElement>`
-      class or one of its subclass generally at least :class:`ClonableArray
+    * An instantiable class extending :class:`AbstractClonableTree
+      <sage.combinat.abstract_tree.AbstractClonableTree>` should also extend
+      the :class:`ClonableElement <sage.structure.list_clone.ClonableElement>`
+      class or one of its subclasses generally, at least :class:`ClonableArray
       <sage.structure.list_clone.ClonableArray>`.
-
 
     * To respect the Clone protocol, the :meth:`AbstractClonableTree.check`
       method should be overridden by the new class.
+
+    See also the assumptions in :class:`AbstractTree`.
     """
     def check(self):
         """
-        Check that ``self`` is a correct tree
+        Check that ``self`` is a correct tree.
 
         This method does nothing. It is implemented here because many
-        extensions of :class:`AbstractTree
-        <sage.combinat.abstract_tree.AbstractTree>` also extend
+        extensions of :class:`AbstractClonableTree
+        <sage.combinat.abstract_tree.AbstractClonableTree>` also extend
         :class:`sage.structure.list_clone.ClonableElement`, which requires it.
 
-        It should be overriden in subclass in order to check that the
-        invariant of the kind of tree holds (eg: two children for binary
-        trees).
+        It should be overridden in subclasses in order to check that the
+        characterizing property of the respective kind of tree holds (eg: two
+        children for binary trees).
 
         EXAMPLES::
 
@@ -1376,7 +1546,7 @@ class AbstractClonableTree(AbstractTree):
 
             sage: x = OrderedTree([[],[[]]])
             sage: with x.clone() as x:
-            ...    x[0] = OrderedTree([[]])
+            ....:     x[0] = OrderedTree([[]])
             sage: x
             [[[]], [[]]]
 
@@ -1384,13 +1554,13 @@ class AbstractClonableTree(AbstractTree):
 
             sage: y = OrderedTree(x)
             sage: with x.clone() as x:
-            ...    x[0,0] = OrderedTree([[]])
+            ....:     x[0,0] = OrderedTree([[]])
             sage: x
             [[[[]]], [[]]]
             sage: y
             [[[]], [[]]]
             sage: with y.clone() as y:
-            ...    y[(0,)] = OrderedTree([])
+            ....:     y[(0,)] = OrderedTree([])
             sage: y
             [[], [[]]]
 
@@ -1399,7 +1569,7 @@ class AbstractClonableTree(AbstractTree):
             sage: bt = BinaryTree([[],[[],[]]]); bt
             [[., .], [[., .], [., .]]]
             sage: with bt.clone() as bt1:
-            ...    bt1[0,0] = BinaryTree([[[], []], None])
+            ....:     bt1[0,0] = BinaryTree([[[], []], None])
             sage: bt1
             [[[[[., .], [., .]], .], .], [[., .], [., .]]]
 
@@ -1407,14 +1577,14 @@ class AbstractClonableTree(AbstractTree):
 
             sage: x = OrderedTree([])
             sage: with x.clone() as x:
-            ...    x[0] = OrderedTree([[]])
+            ....:     x[0] = OrderedTree([[]])
             Traceback (most recent call last):
-            ...
+            ....:
             IndexError: list assignment index out of range
 
-            sage: x = OrderedTree([]); x = OrderedTree([x,x]);x = OrderedTree([x,x]); x = OrderedTree([x,x])
+            sage: x = OrderedTree([]); x = OrderedTree([x,x]); x = OrderedTree([x,x]); x = OrderedTree([x,x])
             sage: with x.clone() as x:
-            ...    x[0,0] = OrderedTree()
+            ....:     x[0,0] = OrderedTree()
             sage: x
             [[[], [[], []]], [[[], []], [[], []]]]
         """
@@ -1431,7 +1601,7 @@ class AbstractClonableTree(AbstractTree):
 
             sage: x = OrderedTree([[[], []],[[]]])
             sage: with x.clone() as x:
-            ...    x[0,1] = OrderedTree([[[]]]) # indirect doctest
+            ....:     x[0,1] = OrderedTree([[[]]]) # indirect doctest
             sage: x
             [[[], [[[]]]], [[]]]
         """
@@ -1485,10 +1655,10 @@ class AbstractClonableTree(AbstractTree):
 
 class AbstractLabelledTree(AbstractTree):
     """
-    Abstract Labelled Tree
+    Abstract Labelled Tree.
 
-    Typically a class for labelled tree is contructed by inheriting from a
-    class for unlabelled trees and :class:`AbstractLabelledTree`
+    Typically a class for labelled trees is contructed by inheriting from
+    a class for unlabelled trees and :class:`AbstractLabelledTree`.
 
     .. rubric:: How should this class be extended ?
 
@@ -1497,7 +1667,8 @@ class AbstractLabelledTree(AbstractTree):
     following assumptions:
 
     * For a labelled tree ``T`` the call ``T.parent().unlabelled_trees()``
-      should return a parent for labelled trees of the same kind: for example,
+      should return a parent for unlabelled trees of the same kind: for
+      example,
 
       - if ``T`` is a binary labelled tree, ``T.parent()`` is
         ``LabelledBinaryTrees()`` and ``T.parent().unlabelled_trees()`` is
@@ -1508,8 +1679,10 @@ class AbstractLabelledTree(AbstractTree):
         ``OrderedTrees()``
 
     * In the same vein, the class of ``T`` should contain an attribute
-      ``_Unlabelled`` which should be the class for the corresponding
+      ``_UnLabelled`` which should be the class for the corresponding
       unlabelled trees.
+
+    See also the assumptions in :class:`AbstractTree`.
 
     .. SEEALSO:: :class:`AbstractTree`
     """
@@ -1780,7 +1953,7 @@ class AbstractLabelledClonableTree(AbstractLabelledTree,
             ...
             ValueError: object is immutable; please change a copy instead.
             sage: with t.clone() as t:
-            ...    t.set_root_label(3)
+            ....:     t.set_root_label(3)
             sage: t.label()
             3
             sage: t
@@ -1794,7 +1967,7 @@ class AbstractLabelledClonableTree(AbstractLabelledTree,
             ...
             ValueError: object is immutable; please change a copy instead.
             sage: with bt.clone() as bt:
-            ...    bt.set_root_label(3)
+            ....:     bt.set_root_label(3)
             sage: bt.label()
             3
             sage: bt
@@ -1803,14 +1976,14 @@ class AbstractLabelledClonableTree(AbstractLabelledTree,
         TESTS::
 
             sage: with t.clone() as t:
-            ...    t[0] = LabelledOrderedTree(t[0], label = 4)
+            ....:     t[0] = LabelledOrderedTree(t[0], label = 4)
             sage: t
             3[4[], None[None[], None[]]]
             sage: with t.clone() as t:
-            ...    t[1,0] = LabelledOrderedTree(t[1,0], label = 42)
+            ....:     t[1,0] = LabelledOrderedTree(t[1,0], label = 42)
             sage: t
             3[4[], None[42[], None[]]]
-            """
+        """
         self._require_mutable()
         self._label = label
 
@@ -1841,11 +2014,11 @@ class AbstractLabelledClonableTree(AbstractLabelledTree,
             ...
             ValueError: object is immutable; please change a copy instead.
             sage: with t.clone() as t:
-            ...    t.set_label((0,), 4)
+            ....:     t.set_label((0,), 4)
             sage: t
             None[4[], None[None[], None[]]]
             sage: with t.clone() as t:
-            ...    t.set_label((1,0), label = 42)
+            ....:     t.set_label((1,0), label = 42)
             sage: t
             None[4[], None[42[], None[]]]
 

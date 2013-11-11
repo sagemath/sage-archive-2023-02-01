@@ -200,7 +200,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
     @lazy_class_attribute
     def _auto_parent(cls):
         """
-        The automatic parent of the element of this class
+        The automatic parent of the elements of this class.
 
         When calling the constructor of an element of this class, one needs a
         parent. This class attribute specifies which parent is used.
@@ -574,7 +574,7 @@ class OrderedTrees(UniqueRepresentation, Parent):
         TEST::
 
             sage: (OrderedTrees().leaf() is
-            ...    sage.combinat.ordered_tree.OrderedTrees_all().leaf())
+            ....:     sage.combinat.ordered_tree.OrderedTrees_all().leaf())
             True
         """
         return self([])
@@ -675,7 +675,6 @@ class OrderedTrees_all(DisjointUnionEnumeratedSets, OrderedTrees):
 
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from combinat import catalan_number
 from sage.combinat.composition import Compositions
 from sage.combinat.cartesian_product import CartesianProduct
 #################################################################
@@ -741,7 +740,7 @@ class OrderedTrees_size(OrderedTrees):
         """
         The cardinality of ``self``
 
-        This is a Catalan number
+        This is a Catalan number.
 
         TESTS::
 
@@ -755,6 +754,7 @@ class OrderedTrees_size(OrderedTrees):
         if self._size == 0:
             return Integer(0)
         else:
+            from combinat import catalan_number
             return catalan_number(self._size-1)
 
     def __iter__(self):
@@ -833,7 +833,7 @@ class OrderedTrees_size(OrderedTrees):
 
 class LabelledOrderedTree(AbstractLabelledClonableTree, OrderedTree):
     """
-    Labelled ordered trees
+    Labelled ordered trees.
 
     A labelled ordered tree is an ordered tree with a label attached at each
     node.
@@ -878,7 +878,7 @@ class LabelledOrderedTree(AbstractLabelledClonableTree, OrderedTree):
     @lazy_class_attribute
     def _auto_parent(cls):
         """
-        The automatic parent of the element of this class
+        The automatic parent of the elements of this class.
 
         When calling the constructor of an element of this class, one needs a
         parent. This class attribute specifies which parent is used.
@@ -889,7 +889,7 @@ class LabelledOrderedTree(AbstractLabelledClonableTree, OrderedTree):
             Labelled ordered trees
             sage: LabelledOrderedTree([], label = 3).parent()
             Labelled ordered trees
-         """
+        """
         return LabelledOrderedTrees()
 
     _UnLabelled = OrderedTree
@@ -899,7 +899,7 @@ from sage.rings.infinity import Infinity
 class LabelledOrderedTrees(UniqueRepresentation, Parent):
     """
     This is a parent stub to serve as a factory class for trees with various
-    labels constraints
+    label constraints.
 
     EXAMPLES::
 
@@ -935,7 +935,7 @@ class LabelledOrderedTrees(UniqueRepresentation, Parent):
 
     def cardinality(self):
         """
-        Return the cardinality of `self`
+        Return the cardinality of `self`.
 
         EXAMPLE::
 

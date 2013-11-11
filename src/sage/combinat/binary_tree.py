@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Binary Trees
+Binary Trees.
 
 This module deals with binary trees as mathematical (in particular immutable)
 objects.
@@ -16,7 +16,7 @@ AUTHORS:
 
 REFERENCES:
 
-.. [LodayRonco] Jean-Louis Loday and María O. Ronco.
+.. [LodayRonco] Jean-Louis Loday and Maria O. Ronco.
    *Hopf algebra of the planar binary trees*,
    Advances in Mathematics, volume 139, issue 2,
    10 November 1998, pp. 293-309.
@@ -26,7 +26,7 @@ REFERENCES:
    *The algebra of binary search trees*,
    :arxiv:`math/0401089v2`.
 
-.. [CP12] Gregory Chatel, Vivane Pons.
+.. [CP12] Gregory Chatel, Viviane Pons.
    *Counting smaller trees in the Tamari order*,
    :arxiv:`1212.0751v1`.
 """
@@ -57,7 +57,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
     Binary trees contain nodes and leaves, where each node has two
     children while each leaf has no children. The number of leaves
-    always equals the number of nodes plus `1`.
+    of a binary tree always equals the number of nodes plus `1`.
 
     INPUT:
 
@@ -67,10 +67,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
       leaf or a pair of binary trees. Syntactic sugar allows leaving out
       all but the outermost calls of the ``BinaryTree()`` constructor, so
       that, e. g., ``BinaryTree([BinaryTree(None),BinaryTree(None)])`` can
-      be simplified to ``BinaryTree([None,None])``. It is also allowed to
+      be shortened to ``BinaryTree([None,None])``. It is also allowed to
       abbreviate ``[None, None]`` by ``[]``.
 
-    - ``check`` -- (default to ``True``) whether check for binary should be
+    - ``check`` -- (default: ``True``) whether check for binary should be
       performed or not.
 
     EXAMPLES::
@@ -89,6 +89,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         [[., .], .]
         sage: BinaryTree("[[], .]")
         [[., .], .]
+        sage: BinaryTree([None, BinaryTree([None, None])])
+        [., [., .]]
 
         sage: BinaryTree([[], None, []])
         Traceback (most recent call last):
@@ -100,7 +102,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         sage: t1 = BinaryTree([[None, [[],[[], None]]],[[],[]]])
         sage: t2 = BinaryTree([[[],[]],[]])
         sage: with t1.clone() as t1c:
-        ...       t1c[1,1,1] = t2
+        ....:     t1c[1,1,1] = t2
         sage: t1 == t1c
         False
     """
@@ -493,7 +495,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         if with_leaves:   # We want leaves and nodes.
 
-            # Special treatment for the case when self has only 1 vertex.
+            # Special treatment for the case when self is empty.
             # In this case, rec(self, 0) would give a false result.
             if not self:
                 return DiGraph([[0], lambda i,j: False])
@@ -539,10 +541,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             return res
 
     def canonical_labelling(self,shift=1):
-        """
+        r"""
         Return a labelled version of ``self``.
 
-        The canonical labelling of a binary tree is a certain labelling of the
+        The canonical labelling of a binary tree is a certain labelling of the 
         nodes (not the leaves) of the tree.
         The actual canonical labelling is currently unspecified. However, it
         is guaranteed to have labels in `1...n` where `n` is the number of
@@ -575,7 +577,13 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         .. WARNING::
 
             Left and right children might get interchanged in
-            the actual picture.
+            the actual picture. Moreover, for a labelled binary
+            tree, the labels shown in the picture are not (in
+            general) the ones given by the labelling!
+
+            Use :meth:`_latex_`, ``view``,
+            :meth:`_ascii_art_` or ``pretty_print`` for more
+            faithful representations of the data of the tree.
 
         TESTS::
 
@@ -1220,8 +1228,9 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         The depth-first infix-order traversal iterator for the binary
         tree ``self``.
 
-        This method iters each vertex (node and leaf alike) following the
-        depth-first infix order traversal algorithm.
+        This method iters each vertex (node and leaf alike) of the given
+        binary tree following the depth-first infix order traversal
+        algorithm.
 
         The *depth-first infix order traversal algorithm* iterates
         through a binary tree as follows::
@@ -1276,6 +1285,9 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [    1     4       3   5    ]
             [         / \               ]
             [        3   5,  ,      ,   ]
+
+            sage: list(BinaryTree(None).in_order_traversal_iter())
+            [.]
         """
         if self.is_empty():
             yield self
@@ -1348,9 +1360,11 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: def n_action(_):
             ....:    global nb_node
             ....:    nb_node += 1
+
             sage: BinaryTree().in_order_traversal(n_action, l_action)
             sage: nb_leaf, nb_node
             (1, 0)
+
             sage: nb_leaf, nb_node = 0, 0
             sage: b = BinaryTree([[],[[],[]]]); b
             [[., .], [[., .], [., .]]]
@@ -1366,6 +1380,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: b.in_order_traversal(lambda node: l.append( node.label() ))
             sage: l
             [1, 2, 3, 4, 5]
+
             sage: leaf = 'a'
             sage: l = []
             sage: def l_action(_):
@@ -1395,7 +1410,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         r"""
         The list of all trees greater or equal to ``self`` in the Tamari
         order.
-        This is the transitive ideal of its successors.
+        This is the order filter of the Tamari order generated ``self``.
 
         The Tamari order on binary trees of size `n` is the partial order
         on the set of all binary trees of size `n` generated by the
@@ -1406,6 +1421,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         a lattice structure on the set of binary trees of size `n`, and
         is a quotient of the weak order on the `n`-th symmetric group.
         See [CP12]_.
+
+        EXAMPLES::
 
         For example, the tree::
 
@@ -1463,8 +1480,11 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
     def tamari_pred(self):
         r"""
         Compute the list of predecessors of ``self`` in the Tamari poset.
-        This list is computed by all left rotate possible on
+
+        This list is computed by performing all left rotates possible on
         its nodes.
+
+        EXAMPLES::
 
         For this tree::
 
@@ -1510,7 +1530,19 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         r"""
         The list of all trees smaller or equal to ``self`` in the Tamari
         order.
-        This is the transitive ideal of its predecessors.
+        This is the order ideal of the Tamari order generated ``self``.
+
+        The Tamari order on binary trees of size `n` is the partial order
+        on the set of all binary trees of size `n` generated by the
+        following requirement:  If a binary tree `T'` is obtained by
+        right rotation (see :meth:`right_rotate`) from a binary tree `T`,
+        then `T < T'`.
+        This not only is a well-defined partial order, but actually is
+        a lattice structure on the set of binary trees of size `n`, and
+        is a quotient of the weak order on the `n`-th symmetric group.
+        See [CP12]_.
+
+        EXAMPLES::
 
         The tree::
 
@@ -1552,8 +1584,11 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
     def tamari_succ(self):
         r"""
         Compute the list of successors of ``self`` in the Tamari poset.
-        There is the list of all trees obtained by a right rotate of
+
+        This is the list of all trees obtained by a right rotate of
         one of its nodes.
+
+        EXAMPLES::
 
         The list of successors of::
 
@@ -1632,7 +1667,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             h_{q} (T_1) h_{q} (T_2),
 
         where `T` is any nonempty binary tree, and `T_1` and `T_2` are 
-        the two children trees of the root of `T`, and where
+        the two child trees of the root of `T`, and where
         `\binom{a}{b}_q` denotes a `q`-binomial coefficient.
 
         A variation of the `q`-hook length fraction is the following
@@ -1792,14 +1827,14 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         tree ``self``.
 
         Right rotation on binary trees is defined as follows:
-        Let `T` be a nonempty binary tree such that the left
-        child of the root of `T` is a node. Let `C` be the right
+        Let `T` be a binary tree such that the left child of the
+        root of `T` is a node. Let `C` be the right
         child of the root of `T`, and let `A` and `B` be the
         left and right children of the left child of the root
         of `T`. (Keep in mind that nodes of trees are identified
         with the subtrees consisting of their descendants.)
-        Then, the right rotation of `T` is the nonempty binary
-        tree in which the left child of the root is `A`, whereas
+        Then, the right rotation of `T` is the binary tree in
+        which the left child of the root is `A`, whereas
         the right child of the root is a node whose left and right
         children are `B` and `C`. In pictures::
 
@@ -1879,14 +1914,14 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         tree ``self``.
 
         Left rotation on binary trees is defined as follows:
-        Let `T` be a nonempty binary tree such that the right
-        child of the root of `T` is a node. Let `A` be the left
+        Let `T` be a binary tree such that the right child of the
+        root of `T` is a node. Let `A` be the left
         child of the root of `T`, and let `B` and `C` be the
         left and right children of the right child of the root
         of `T`. (Keep in mind that nodes of trees are identified
         with the subtrees consisting of their descendants.)
-        Then, the left rotation of `T` is the nonempty binary
-        tree in which the right child of the root is `C`, whereas
+        Then, the left rotation of `T` is the binary tree in
+        which the right child of the root is `C`, whereas
         the left child of the root is a node whose left and right
         children are `A` and `B`. In pictures::
 
@@ -1952,21 +1987,27 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         If `T` and `T'` are two binary trees, then `T` over `T'`
         (written `T / T'`) is defined as the tree obtained by grafting
-        `T'` on the rightmost node of `T`. See section 4.5 of [HNT05]_.
+        `T'` on the rightmost leaf of `T`. More precisely, `T / T'` is
+        defined by identifying the root of the `T'` with the rightmost
+        leaf of `T`. See section 4.5 of [HNT05]_.
+
+        If `T` is empty, then `T / T' = T'`.
 
         .. TODO::
 
-            Fix this doc and figure out which of the different
-            (inconsistent?) notations to follow. I don't see the
-            "over" operation defined in [LodayRonco]_, although
-            [HNT05]_ pretends that it is defined there. In
-            [HNT05]_ the definition is somewhat vague about the
-            order of the operads. Loday and Ronco seem to define
+            I don't see the "over" operation defined in
+            [LodayRonco]_, although [HNT05]_ pretends that it
+            is defined there. Loday and Ronco seem to define
             "over" on page 2 of "Order structure on the algebra
             of permutations and of planar binary trees", but
             with a different choice of left/right.
 
-        This is defined by::
+            Same for "under".
+
+        EXAMPLES:
+
+        Showing only the nodes of a binary tree, here is an
+        example for the over operation:
 
             |   o       __o__       _o_         |
             |  / \  /  /     \  =  /   \        |
@@ -1978,7 +2019,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             |                          \     /  |
             |                           o   o   |
 
-        EXAMPLES::
+        A Sage example::
 
             sage: b1 = BinaryTree([[],[[],[]]])
             sage: b2 = BinaryTree([[None, []],[]])
@@ -2017,15 +2058,30 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [     o       o ]
             [      \     /  ]
             [       o   o   ]
+
+        The same in the labelled case:
+
+            sage: b1 = b1.canonical_labelling()
+            sage: b2 = b2.canonical_labelling()
+            sage: ascii_art([b1.over(b2)])
+            [   _2_         ]
+            [  /   \        ]
+            [ 1     3       ]
+            [        \      ]
+            [       __3__   ]
+            [      /     \  ]
+            [     1       5 ]
+            [      \     /  ]
+            [       2   4   ]
         """
         B = self.parent()._element_constructor_
         if self.is_empty():
             return bt
-        lab = None
         if hasattr(self, "label"):
             lab = self.label()
-        else:
             return B([self[0], self[1].over(bt)], lab)
+        else:
+            return B([self[0], self[1].over(bt)])
 
     __div__ = over
 
@@ -2035,7 +2091,18 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         The ``under`` (`\backslash`) operation defined by Loday-Ronco
         [LodayRonco]_.
 
+        If `T` and `T'` are two binary trees, then `T` under `T'`
+        (written `T \ T'`) is defined as the tree obtained by grafting
+        `T` on the leftmost leaf of `T'`. More precisely, `T \ T'` is
+        defined by identifying the root of `T` with the leftmost
+        leaf of `T'`. See section 4.5 of [HNT05]_.
+
+        If `T'` is empty, then `T \ T' = T`.
+
         EXAMPLES::
+
+        Showing only the nodes of a binary tree, here is an
+        example for the under operation:
 
             sage: b1 = BinaryTree([[],[]])
             sage: b2 = BinaryTree([None,[]])
@@ -2074,6 +2141,23 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [     o         ]
             [      \        ]
             [       o       ]
+
+        The same in the labelled case:
+
+            sage: b1 = b1.canonical_labelling()
+            sage: b2 = b2.canonical_labelling()
+            sage: ascii_art([b1.under(b2)])
+            [        2_     ]
+            [       /  \    ]
+            [      1    3   ]
+            [     /      \  ]
+            [   _2_       4 ]
+            [  /   \        ]
+            [ 1     5       ]
+            [      /        ]
+            [     3         ]
+            [      \        ]
+            [       4       ]
         """
         B = self.parent()._element_constructor_
         if bt.is_empty():
@@ -2081,8 +2165,9 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         lab = None
         if hasattr(bt, "label"):
             lab = bt.label()
-        else:
             return B([self.under(bt[0]), bt[1]], lab)
+        else:
+            return B([self.under(bt[0]), bt[1]])
 
     _backslash_ = under
 
@@ -2095,7 +2180,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         `\sigma` whose binary search tree (a notion defined in [HNT05]_,
         Definition 7) is `T` after forgetting the labels. This is an
         equivalence class of the sylvester congruence (the congruence on
-        words which sets two words `uacvbw` and `ucavbw` congruent
+        words which holds two words `uacvbw` and `ucavbw` congruent
         whenever `a`, `b`, `c` are letters satisfying `a \leq b < c`, and
         extends by transitivity) on the symmetric group.
 
@@ -2109,8 +2194,12 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         (only the nodes are drawn here).
 
         The binary search tree of a word is constructed by an RSK-like
-        algorithm, in which the word is read from right to left. If a
-        left-to-right reading is to be employed instead, the
+        insertion algorithm which proceeds as follows: Start with an
+        empty labelled binary tree, and read the word from left to right.
+        Each time a letter is read from the word, insert this letter in
+        the existing tree using binary search tree insertion
+        (:meth:`~sage.combinat.binary_tree.LabelledBinaryTree.binary_search_insert`).
+        If a left-to-right reading is to be employed instead, the
         ``left_to_right`` optional keyword variable should be set to
         ``True``.
 
@@ -2153,7 +2242,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         if self.is_empty():
             yield []
             return
-        import itertools
+        from itertools import product
         from sage.combinat.words.word import Word as W
         from sage.combinat.words.shuffle_product import ShuffleProduct_w1w2 \
             as shuffle
@@ -2164,9 +2253,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             builder = lambda i, p: list(p) + [i]
 
         shift = self[0].node_number() + 1
-        for l, r in itertools.product(
-                    self[0].sylvester_class(),
-                    self[1].sylvester_class()):
+        for l, r in product(self[0].sylvester_class(),
+                            self[1].sylvester_class()):
            for p in shuffle(W(l), W([shift + ri for ri in r])):
                yield builder(shift, p)
 
@@ -2271,12 +2359,14 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         r"""
         Return ``True`` if ``self`` is complete, else return ``False``.
 
-        A complete binary tree is a perfect binary tree except possibly in the
-        last level.
+        In a nutshell, a complete binary tree is a perfect binary tree
+        except possibly in the last level, with all nodes in the last
+        level "flush to the left".
 
+        In more detail:
         A complete binary tree (also called binary heap) is a binary tree in
         which every level, except possibly the last one (the deepest), is
-        completely filled. At depth `n` all nodes must be as far left as
+        completely filled. At depth `n`, all nodes must be as far left as
         possible.
 
         For example::
@@ -2388,10 +2478,10 @@ class BinaryTrees(UniqueRepresentation, Parent):
         sage: BinaryTrees(2)
         Binary trees of size 2
 
-    .. NOTE:: this in a factory class whose constructor returns instances of
+    .. NOTE:: this is a factory class whose constructor returns instances of
               subclasses.
 
-    .. NOTE:: the fact that OrderedTrees is a class instead of a simple callable
+    .. NOTE:: the fact that BinaryTrees is a class instead of a simple callable
               is an implementation detail. It could be changed in the future
               and one should not rely on it.
     """
@@ -2432,7 +2522,7 @@ class BinaryTrees(UniqueRepresentation, Parent):
         TEST::
 
             sage: (BinaryTrees().leaf() is
-            ...    sage.combinat.binary_tree.BinaryTrees_all().leaf())
+            ....:  sage.combinat.binary_tree.BinaryTrees_all().leaf())
             True
         """
         return self(None)
@@ -2502,7 +2592,7 @@ class BinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
 
     def unlabelled_trees(self):
         """
-        Return the set of unlabelled trees associated to ``self``
+        Return the set of unlabelled trees associated to ``self``.
 
         EXAMPLES::
 
@@ -2513,7 +2603,7 @@ class BinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
 
     def labelled_trees(self):
         """
-        Return the set of labelled trees associated to ``self``
+        Return the set of labelled trees associated to ``self``.
 
         EXAMPLES::
 
@@ -2539,7 +2629,6 @@ class BinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
     Element = BinaryTree
 
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from combinat import catalan_number
 #################################################################
 # Enumerated set of binary trees of a given size
 #################################################################
@@ -2609,6 +2698,7 @@ class BinaryTrees_size(BinaryTrees):
             sage: BinaryTrees(5).cardinality()
             42
         """
+        from combinat import catalan_number
         return catalan_number(self._size)
 
     def __iter__(self):
@@ -2637,7 +2727,7 @@ class BinaryTrees_size(BinaryTrees):
     @lazy_attribute
     def _parent_for(self):
         """
-        The parent of the element generated by ``self``
+        The parent of the elements generated by ``self``.
 
         TESTS::
 
@@ -2688,23 +2778,91 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
     Labelled binary trees.
 
     A labelled binary tree is a binary tree (see :class:`BinaryTree` for
-    the meaning of this) with a label assigned to each node. (The labels
-    need not be integers, nor are they required to be distinct. ``None``
-    can be used as a label.)
+    the meaning of this) with a label assigned to each node and leaf.
+    The labels need not be integers, nor are they required to be distinct.
+    ``None`` can be used as a label.
+
+    INPUT:
+
+    - ``children`` -- ``None`` (default) or a list, tuple or iterable of
+      length `2` of labelled binary trees or convertible objects. This
+      corresponds to the standard recursive definition of a labelled
+      binary tree as given by a pair of:
+
+      - either a leaf or a pair of labelled binary trees,
+      - and a label.
+
+      (The label is specified in the keyword variable ``label``; see
+      below.)
+
+      Syntactic sugar allows leaving out all but the outermost calls
+      of the ``LabelledBinaryTree()`` constructor, so that, e. g.,
+      ``LabelledBinaryTree([LabelledBinaryTree(None),LabelledBinaryTree(None)])``
+      can be shortened to ``LabelledBinaryTree([None,None])``. However,
+      using this shorthand, it is impossible to label any vertex of
+      the tree other than the root (because there is no way to pass a
+      ``label`` variable without calling ``LabelledBinaryTree``
+      explicitly).
+
+      It is also allowed to abbreviate ``[None, None]`` by ``[]`` if
+      one does not want to label the leaves.
+
+    - ``label`` -- (default: ``None``) the label to be put on the root
+      of this tree.
+
+    - ``check`` -- (default: ``True``) whether checkes should be
+      performed or not.
 
     .. TODO::
 
-        Explain how to init these.
+        It is currently not possible to use ``LabelledBinaryTree()``
+        as a shorthand for ``LabelledBinaryTree(None)`` (in analogy to
+        similar syntax in the ``BinaryTree`` class).
 
-        Maybe allow ``LabelledBinaryTree()`` syntax for
-        ``LabelledBinaryTree(None)`` (in analogy to ``BinaryTree``
-        class).
+    EXAMPLES::
 
-    EXAMPLE::
+        sage: LabelledBinaryTree(None)
+        .
+        sage: LabelledBinaryTree(None, label="ae")
+        'ae'
+        sage: LabelledBinaryTree([])
+        None[., .]
+        sage: LabelledBinaryTree([], label=3)
+        3[., .]
+        sage: LabelledBinaryTree([None, None])
+        None[., .]
+        sage: LabelledBinaryTree([None, None], label=5)
+        5[., .]
+        sage: LabelledBinaryTree([None, []])
+        None[., None[., .]]
+        sage: LabelledBinaryTree([None, []], label=4)
+        4[., None[., .]]
+        sage: LabelledBinaryTree([[], None])
+        None[None[., .], .]
+        sage: LabelledBinaryTree("[[], .]", label=False)
+        False[None[., .], .]
+        sage: LabelledBinaryTree([None, LabelledBinaryTree([None, None], label=4)], label=3)
+        3[., 4[., .]]
+        sage: LabelledBinaryTree([None, BinaryTree([None, None])], label=3)
+        3[., None[., .]]
+
+        sage: LabelledBinaryTree([[], None, []])
+        Traceback (most recent call last):
+        ...
+        ValueError: this is not a binary tree
 
         sage: LBT = LabelledBinaryTree
         sage: t1 = LBT([[LBT([], label=2), None], None], label=4); t1
         4[None[2[., .], .], .]
+
+    TESTS::
+
+        sage: t1 = LabelledBinaryTree([[None, [[],[[], None]]],[[],[]]])
+        sage: t2 = LabelledBinaryTree([[[],[]],[]])
+        sage: with t1.clone() as t1c:
+        ....:     t1c[1,1,1] = t2
+        sage: t1 == t1c
+        False
     """
     __metaclass__ = ClasscallMetaclass
 
@@ -2712,7 +2870,7 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
     def __classcall_private__(cls, *args, **opts):
         """
         Ensure that trees created by the sets and directly are the same and
-        that they are instances of :class:`LabelledTree`
+        that they are instances of :class:`LabelledTree`.
 
         TESTS::
 
@@ -2740,7 +2898,7 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
             Labelled binary trees
             sage: LabelledBinaryTree([], label = 3).parent()
             Labelled binary trees
-         """
+        """
         return LabelledBinaryTrees()
 
     def _repr_(self):
@@ -2768,7 +2926,7 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
 
         INPUT:
 
-        - ``letter`` -- any object comparable with the label of ``self``
+        - ``letter`` -- any object comparable with the labels of ``self``
 
         OUTPUT:
 
@@ -2776,21 +2934,66 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
         inserted into it according to the binary search insertion
         algorithm.
 
-        .. NOTE:: ``self`` is supposed to be a binary search tree. No check is
-                  performed.
+        .. NOTE:: ``self`` is supposed to be a binary search tree.
+                  This is not being checked!
 
         A right strict binary search tree is defined to be a labelled
         binary tree such that for each node `n` with label `x`,
         every descendant of the left child of `n` has a label `\leq x`,
         and every descendant of the right child of `n` has a label
         `> x`. (Here, only nodes count as descendants, and every node
-        counts as its own descendant too.)
+        counts as its own descendant too.) Leaves are assumed to have
+        no labels.
 
-        .. TODO::
+        Given a right strict binary search tree `t` and a letter `i`,
+        the result of inserting `i` into `t` (denoted `Ins(i, t)` in
+        the following) is defined recursively as follows:
 
-            Explain the algorithm.
+        - If `t` is empty, then `Ins(i, t)` is the tree with one node
+          only, and this node is labelled with `i`.
+
+        - Otherwise, let `j` be the label of the root of `t`. If
+          `i > j`, then `Ins(i, t)` is obtained by replacing the
+          right child of `t` by `Ins(i, r)` in `t`, where `r` denotes
+          the right child of `t`. If `i \leq j`, then `Ins(i, t)` is
+          obtained by replacing the left child of `t` by `Ins(i, l)`
+          in `t`, where `l` denotes the left child of `t`.
+
+        See, for example, [HNT05]_ for properties of this algorithm.
+
+        .. WARNING::
+
+            If `t` is nonempty, then inserting `i` into `t` does not
+            change the root label of `t`. Hence, as opposed to
+            algorithms like Robinson-Schensted-Knuth, binary
+            search tree insertion involves no bumping.
 
         EXAMPLES::
+
+        The example from Fig. 2 of [HNT05]_::
+
+            sage: LBT = LabelledBinaryTree
+            sage: x = LBT(None)
+            sage: x
+            .
+            sage: x = x.binary_search_insert("b"); x
+            b[., .]
+            sage: x = x.binary_search_insert("d"); x
+            b[., d[., .]]
+            sage: x = x.binary_search_insert("e"); x
+            b[., d[., e[., .]]]
+            sage: x = x.binary_search_insert("a"); x
+            b[a[., .], d[., e[., .]]]
+            sage: x = x.binary_search_insert("b"); x
+            b[a[., b[., .]], d[., e[., .]]]
+            sage: x = x.binary_search_insert("d"); x
+            b[a[., b[., .]], d[d[., .], e[., .]]]
+            sage: x = x.binary_search_insert("a"); x
+            b[a[a[., .], b[., .]], d[d[., .], e[., .]]]
+            sage: x = x.binary_search_insert("c"); x
+            b[a[a[., .], b[., .]], d[d[c[., .], .], e[., .]]]
+
+        Other examples::
 
             sage: LBT = LabelledBinaryTree
             sage: LBT(None).binary_search_insert(3)
@@ -2816,14 +3019,110 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
                 fils = self[1].binary_search_insert(letter)
                 return LT([self[0], fils], label=self.label())
 
+    def semistandard_insert(self, letter):
+        """
+        Return the result of inserting a letter ``letter`` into the
+        semistandard tree ``self`` using the bumping algorithm.
+
+        INPUT:
+
+        - ``letter`` -- any object comparable with the labels of ``self``
+
+        OUTPUT:
+
+        The semistandard tree ``self`` with ``letter`` inserted into it
+        according to the bumping algorithm.
+
+        .. NOTE:: ``self`` is supposed to be a semistandard tree.
+                  This is not being checked!
+
+        A semistandard tree is defined to be a labelled binary tree
+        such that for each node `n` with label `x`, every descendant of
+        the left child of `n` has a label `> x`, and every descendant
+        of the right child of `n` has a label `\geq x`. (Here, only
+        nodes count as descendants, and every node counts as its own
+        descendant too.) Leaves are assumed to have no labels.
+
+        Given a semistandard tree `t` and a letter `i`, the result of
+        inserting `i` into `t` (denoted `Ins(i, t)` in the following)
+        is defined recursively as follows:
+
+        - If `t` is empty, then `Ins(i, t)` is the tree with one node
+          only, and this node is labelled with `i`.
+
+        - Otherwise, let `j` be the label of the root of `t`. If
+          `i \geq j`, then `Ins(i, t)` is obtained by replacing the
+          right child of `t` by `Ins(i, r)` in `t`, where `r` denotes
+          the right child of `t`. If `i < j`, then `Ins(i, t)` is
+          obtained by replacing the label at the root of `t` by `i`,
+          and replacing the left child of `t` by `Ins(j, l)`
+          in `t`, where `l` denotes the left child of `t`.
+
+        This algorithm is similar to the Robinson-Schensted-Knuth
+        algorithm for semistandard Young tableaux.
+
+        AUTHORS:
+
+        - Darij Grinberg (10 Nov 2013).
+
+        EXAMPLES::
+
+            sage: LBT = LabelledBinaryTree
+            sage: x = LBT(None)
+            sage: x
+            .
+            sage: x = x.semistandard_insert("b"); x
+            b[., .]
+            sage: x = x.semistandard_insert("d"); x
+            b[., d[., .]]
+            sage: x = x.semistandard_insert("e"); x
+            b[., d[., e[., .]]]
+            sage: x = x.semistandard_insert("a"); x
+            a[b[., .], d[., e[., .]]]
+            sage: x = x.semistandard_insert("b"); x
+            a[b[., .], b[d[., .], e[., .]]]
+            sage: x = x.semistandard_insert("d"); x
+            a[b[., .], b[d[., .], d[e[., .], .]]]
+            sage: x = x.semistandard_insert("a"); x
+            a[b[., .], a[b[d[., .], .], d[e[., .], .]]]
+            sage: x = x.semistandard_insert("c"); x
+            a[b[., .], a[b[d[., .], .], c[d[e[., .], .], .]]]
+
+        Other examples::
+
+            sage: LBT = LabelledBinaryTree
+            sage: LBT(None).semistandard_insert(3)
+            3[., .]
+            sage: LBT([], label = 1).semistandard_insert(3)
+            1[., 3[., .]]
+            sage: LBT([], label = 3).semistandard_insert(1)
+            1[3[., .], .]
+            sage: res = LBT(None)
+            sage: for i in [3,1,5,2,4,6]:
+            ....:     res = res.semistandard_insert(i)
+            sage: res
+            1[3[., .], 2[5[., .], 4[., 6[., .]]]]
+        """
+        LT = self.parent()._element_constructor_
+        if not self:
+            return LT([], label = letter)
+        else:
+            root_label = self.label()
+            if letter < root_label:
+                fils = self[0].semistandard_insert(root_label)
+                return LT([fils, self[1]], label=letter)
+            else:
+                fils = self[1].semistandard_insert(letter)
+                return LT([self[0], fils], label=root_label)
+
     def right_rotate(self):
         r"""
         Return the result of right rotation applied to the labelled
         binary tree ``self``.
 
         Right rotation on labelled binary trees is defined as
-        follows: Let `T` be a nonempty labelled binary tree such
-        that the left child of the root of `T` is a node. Let
+        follows: Let `T` be a labelled binary tree such that the
+        left child of the root of `T` is a node. Let
         `C` be the right child of the root of `T`, and let `A`
         and `B` be the left and right children of the left child
         of the root of `T`. (Keep in mind that nodes of trees are
@@ -2831,11 +3130,11 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
         descendants.) Furthermore, let `y` be the label at the
         root of `T`, and `x` be the label at the left child of the
         root of `T`.
-        Then, the right rotation of `T` is the nonempty labelled
-        binary tree in which the root is labelled `x`, the left
-        child of the root is `A`, whereas the right child of the
-        root is a node labelled `y` whose left and right children
-        are `B` and `C`. In pictures::
+        Then, the right rotation of `T` is the labelled binary
+        tree in which the root is labelled `x`, the left child of
+        the root is `A`, whereas the right child of the root is a
+        node labelled `y` whose left and right children are `B`
+        and `C`. In pictures::
 
             |     y                      x     |
             |    / \                    / \    |
@@ -2855,10 +3154,8 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
             x[A[., .], y[B[., .], C[., .]]]
         """
         B = self.parent()._element_constructor_
-        return B([
-            self[0][0],
-            B([self[0][1], self[1]], self.label())
-        ], self[0].label())
+        s0 = self[0]
+        return B([s0[0], B([s0[1], self[1]], self.label())], s0.label())
 
     def left_rotate(self):
         r"""
@@ -2866,8 +3163,8 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
         binary tree ``self``.
 
         Left rotation on labelled binary trees is defined as
-        follows: Let `T` be a nonempty labelled binary tree such
-        that the right child of the root of `T` is a node. Let
+        follows: Let `T` be a labelled binary tree such that the
+        right child of the root of `T` is a node. Let
         `A` be the left child of the root of `T`, and let `B`
         and `C` be the left and right children of the right child
         of the root of `T`. (Keep in mind that nodes of trees are
@@ -2875,11 +3172,11 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
         descendants.) Furthermore, let `x` be the label at the
         root of `T`, and `y` be the label at the right child of the
         root of `T`.
-        Then, the left rotation of `T` is the nonempty labelled
-        binary tree in which the root is labelled `y`, the right
-        child of the root is `C`, whereas the left child of the
-        root is a node labelled `x` whose left and right children
-        are `A` and `B`. In pictures::
+        Then, the left rotation of `T` is the labelled binary tree
+        in which the root is labelled `y`, the right child of the
+        root is `C`, whereas the left child of the root is a node
+        labelled `x` whose left and right children are `A` and `B`.
+        In pictures::
 
            |     y                    x     |
            |    / \                  / \    |
@@ -2899,19 +3196,18 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
             True
         """
         B = self.parent()._element_constructor_
-        return B([
-            B([self[0], self[1][0]], self.label()),
-            self[1][1]
-        ], self[1].label())
+        s1 = self[1]
+        return B([B([self[0], s1[0]], self.label()), s1[1]], s1.label())
 
     def heap_insert(self, l):
         r"""
         Return the result of inserting a letter ``l`` into the binary
         heap (tree) ``self``.
 
-        Roughly, a binary heap will be a labelled complete binary tree
-        such that for each node the label is greater or equal to the
-        label of each of its children.
+        A binary heap is a labelled complete binary tree such that for
+        each node, the label at the node is greater or equal to the
+        label of each of its child nodes. (More precisely, this is
+        called a max-heap.)
 
         For example::
 
@@ -2923,9 +3219,13 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
 
         is a binary heap.
 
+        See :wikipedia:`Binary_heap#Insert` for a description of how to
+        insert a letter into a binary heap. The result is another binary
+        heap.
+
         INPUT:
 
-        - ``letter`` -- any object comparable with the label of ``self``
+        - ``letter`` -- any object comparable with the labels of ``self``
 
         .. NOTE::
 
@@ -2979,7 +3279,7 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
             # we insert in L
             return B([L.heap_insert(label_insert), R], label_root)
         # else ==> dL == dR
-        # if R is perfect we have to insert on the most left leaf
+        # if R is perfect we have to insert on the leftmost leaf
         if R.is_perfect():
             # ## TODO:: can be optimized...
             return B([L.heap_insert(label_insert), R], label_root)
@@ -2992,7 +3292,7 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
 class LabelledBinaryTrees(LabelledOrderedTrees):
     """
     This is a parent stub to serve as a factory class for trees with various
-    labels constraints
+    labels constraints.
     """
     def _repr_(self):
         """
@@ -3005,7 +3305,7 @@ class LabelledBinaryTrees(LabelledOrderedTrees):
 
     def _an_element_(self):
         """
-        Return a labelled binary tree
+        Return a labelled binary tree.
 
         EXAMPLE::
 
@@ -3020,7 +3320,7 @@ class LabelledBinaryTrees(LabelledOrderedTrees):
 
     def unlabelled_trees(self):
         """
-        Return the set of unlabelled trees associated to ``self``
+        Return the set of unlabelled trees associated to ``self``.
 
         EXAMPLES::
 
@@ -3044,7 +3344,7 @@ class LabelledBinaryTrees(LabelledOrderedTrees):
 
     def labelled_trees(self):
         """
-        Return the set of labelled trees associated to ``self``
+        Return the set of labelled trees associated to ``self``.
 
         EXAMPLES::
 
@@ -3078,7 +3378,7 @@ class LabelledBinaryTrees(LabelledOrderedTrees):
 #     sage: BTsp_to_bintrees(BT.isotypes(range(5))[0])
 #     [., [., [., [., [., .]]]]]
 #     sage: def spls(size):
-#     ...    return map(BTsp_to_bintrees, BT.isotypes(range(size)).list())
+#     ....:     return map(BTsp_to_bintrees, BT.isotypes(range(size)).list())
 #     sage: spls(3)
 #     [[., [., [., .]]], [., [[., .], .]], [[., .], [., .]], [[., [., .]], .], [[[., .], .], .]]
 #     sage: all(spls(i) == BinaryTrees(i).list() for i in range(5))

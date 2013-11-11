@@ -81,6 +81,7 @@ Combinatorics
    designs
    species
    developer
+   sage/combinat/finite_state_machine
    words
 
    sage/combinat/dict_addition

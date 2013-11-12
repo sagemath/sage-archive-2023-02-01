@@ -44,10 +44,10 @@ by a word describing a path from the root node.
 
 **Canonical labellings**
 
-Equality between instances of classes extending both of :class:`AbstractTree`
+Equality between instances of classes extending both :class:`AbstractTree`
 and ``A`` is entirely defined by the equality defined on the elements of
-``A``. A canonical labelling of such a tree however, should be such that two
-trees ``a`` and ``b`` satisfying ``a == b`` should have the same canonical
+``A``. A canonical labelling of such a tree, however, should be such that
+two trees ``a`` and ``b`` satisfying ``a == b`` have the same canonical
 labellings. On the other hand, the canonical labellings of trees ``a`` and
 ``b`` satisfying ``a != b`` are expected to be different.
 
@@ -1614,9 +1614,16 @@ class AbstractClonableTree(AbstractTree):
 
     def __getitem__(self, idx):
         """
+        Return the ``idx``-th child of ``self`` (which is a subtree) if
+        ``idx`` is an integer, or the ``idx[n-1]``-th child of the
+        ``idx[n-2]``-th child of the ... of the ``idx[0]``-th child of
+        ``self`` if ``idx`` is a list (or iterable) of length `n`.
+
+        The indexing of the children is zero-based.
+
         INPUT:
 
-        - ``idx`` -- a valid path in ``self`` identifying a node
+        - ``idx`` -- an integer, or a valid path in ``self`` identifying a node
 
         .. NOTE::
 
@@ -1638,6 +1645,22 @@ class AbstractClonableTree(AbstractTree):
             Traceback (most recent call last):
             ...
             IndexError: list index out of range
+
+            sage: u = BinaryTree(None)
+            sage: v = BinaryTree([u, u])
+            sage: w = BinaryTree([u, v])
+            sage: t = BinaryTree([v, w])
+            sage: z = BinaryTree([w, t])
+            sage: z[0,1]
+            [., .]
+            sage: z[0,0]
+            .
+            sage: z[1]
+            [[., .], [., [., .]]]
+            sage: z[1,1]
+            [., [., .]]
+            sage: z[1][1,1]
+            [., .]
         """
         if isinstance(idx, slice):
             return ClonableArray.__getitem__(self, idx)
@@ -1732,7 +1755,7 @@ class AbstractLabelledTree(AbstractTree):
 
     def label(self, path=None):
         """
-        Returns the label of ``self``
+        Return the label of ``self``.
 
         INPUT:
 
@@ -1766,7 +1789,7 @@ class AbstractLabelledTree(AbstractTree):
 
     def labels(self):
         """
-        Returns the list of labels of ``self``
+        Return the list of labels of ``self``.
 
         EXAMPLES::
 
@@ -1783,7 +1806,11 @@ class AbstractLabelledTree(AbstractTree):
 
     def leaf_labels(self):
         """
-        Returns the list of labels of the leaves of ``self``
+        Return the list of labels of the leaves of ``self``.
+
+        In case of a labelled binary tree, these "leaves" are not actually
+        the leaves of the binary trees, but the nodes whose both children
+        are leaves!
 
         EXAMPLES::
 

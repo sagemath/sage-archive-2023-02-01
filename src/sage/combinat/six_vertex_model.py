@@ -6,6 +6,7 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.combinat.combinatorial_map import combinatorial_map
 
 class SixVertexConfiguration(ClonableArray):
     """
@@ -149,12 +150,12 @@ class SixVertexConfiguration(ClonableArray):
             Arrow from (-1.0,0.0) to (0.0,0.0)
             Arrow from (-1.0,1.0) to (0.0,1.0)
             Arrow from (0.0,0.0) to (0.0,-1.0)
-            Arrow from (0.0,0.0) to (0.0,1.0)
-            Arrow from (0.0,1.0) to (1.0,1.0)
-            Arrow from (0.0,2.0) to (0.0,1.0)
-            Arrow from (1.0,0.0) to (0.0,0.0)
+            Arrow from (0.0,0.0) to (1.0,0.0)
+            Arrow from (0.0,1.0) to (0.0,0.0)
+            Arrow from (0.0,1.0) to (0.0,2.0)
             Arrow from (1.0,0.0) to (1.0,-1.0)
-            Arrow from (1.0,1.0) to (1.0,0.0)
+            Arrow from (1.0,0.0) to (1.0,1.0)
+            Arrow from (1.0,1.0) to (0.0,1.0)
             Arrow from (1.0,1.0) to (1.0,2.0)
             Arrow from (2.0,0.0) to (1.0,0.0)
             Arrow from (2.0,1.0) to (1.0,1.0)
@@ -178,7 +179,7 @@ class SixVertexConfiguration(ClonableArray):
             cfunc = color
 
         G = Graphics()
-        for j,row in enumerate(self):
+        for j,row in enumerate(reversed(self)):
             for i,entry in enumerate(row):
                 if entry == 0: # LR
                     G += arrow((i,j+1), (i,j), color=cfunc(2, True))
@@ -188,17 +189,17 @@ class SixVertexConfiguration(ClonableArray):
                     if i == 0:
                         G += arrow((i,j), (i-1,j), color=cfunc(3, False))
                 elif entry == 1: # LU
-                    G += arrow((i,j+1), (i,j), color=cfunc(2, True))
-                    G += arrow((i+1,j), (i,j), color=cfunc(3, False))
-                    if j == 0:
-                        G += arrow((i,j), (i,j-1), color=cfunc(2, True))
-                    if i == 0:
-                        G += arrow((i,j), (i-1,j), color=cfunc(3, False))
-                elif entry == 2: # LD
                     G += arrow((i,j), (i,j+1), color=cfunc(0, False))
                     G += arrow((i+1,j), (i,j), color=cfunc(3, False))
                     if j == 0:
                         G += arrow((i,j-1), (i,j), color=cfunc(0, False))
+                    if i == 0:
+                        G += arrow((i,j), (i-1,j), color=cfunc(3, False))
+                elif entry == 2: # LD
+                    G += arrow((i,j+1), (i,j), color=cfunc(2, True))
+                    G += arrow((i+1,j), (i,j), color=cfunc(3, False))
+                    if j == 0:
+                        G += arrow((i,j), (i,j-1), color=cfunc(2, True))
                     if i == 0:
                         G += arrow((i,j), (i-1,j), color=cfunc(3, False))
                 elif entry == 3: # UD
@@ -222,7 +223,71 @@ class SixVertexConfiguration(ClonableArray):
                         G += arrow((i,j), (i,j-1), color=cfunc(2, True))
                     if i == 0:
                         G += arrow((i-1,j), (i,j), color=cfunc(1, True))
+        G.axes(False)
         return G
+
+    def energy(self, epsilon):
+        r"""
+        Return the energy of the configuration.
+
+        The energy of a configuration `\nu` is defined as
+
+        .. MATH::
+
+            E(\nu) = n_0 \epsilon_0 + n_1 \epsilon_1 + \cdots + n_5 \epsilon_5
+
+        where `n_i` is the number of vertices of type `i` and
+        `\epsilon_i` is the `i`-th energy constant.
+
+        .. NOTE::
+
+            We number our configurations as:
+
+            0. LR
+            1. LU
+            2. LD
+            3. UD
+            4. UR
+            5. RD
+
+            which differs from :wikipedia:`Ice-type_model`.
+
+        EXAMPLES::
+
+            sage: M = SixVertexModel(3, boundary_conditions='ice')
+            sage: nu = M[2]; nu
+                ^    ^    ^
+                |    |    |
+            --> # -> # <- # <--
+                ^    |    ^
+                |    V    |
+            --> # <- # -> # <--
+                |    ^    |
+                V    |    V
+            --> # -> # <- # <--
+                |    |    |
+                V    V    V
+            sage: nu.energy([1,2,1,2,1,2])
+            15
+
+        A KDP energy::
+
+            sage: nu.energy([1,1,0,1,0,1])
+            7
+
+        A Rys `F` energy::
+
+            sage: nu.energy([0,1,1,0,1,1])
+            4
+
+        The zero field assumption::
+
+            sage: nu.energy([1,2,3,1,3,2])
+            15
+        """
+        if len(epsilon) != 6:
+            raise ValueError("there must be 6 energy constants")
+        return sum(epsilon[entry] for row in self for entry in row)
 
 class SixVertexModel(Parent, UniqueRepresentation):
     """
@@ -230,14 +295,54 @@ class SixVertexModel(Parent, UniqueRepresentation):
 
     We model a configuration by indicating which configuration by the
     following six configurations which are determined by the two outgoing
-    arrows in the **U**p, **R**ight, **D**own, **L**eft directions:
+    arrows in the Up, Right, Down, Left directions:
 
-    1 - LR
-    2 - LU
-    3 - LD
-    4 - UD
-    5 - UR
-    6 - RD
+    1. LR::
+
+            |
+            V
+        <-- # -->
+            ^
+            |
+
+    2. LU::
+
+            ^
+            |
+        <-- # <--
+            ^
+            |
+
+    3. LD::
+
+            |
+            V
+        <-- # <--
+            |
+            V
+
+    4. UD::
+
+            ^
+            |
+        --> # <--
+            |
+            V
+
+    5. UR::
+
+            ^
+            |
+        --> # -->
+            ^
+            |
+    6. RD::
+
+            |
+            V
+        --> # -->
+            |
+            V
 
     INPUT:
 
@@ -249,14 +354,15 @@ class SixVertexModel(Parent, UniqueRepresentation):
 
       * ``True`` for an inward arrow,
       * ``False`` for an outward arrow, or
-      * ``None`` for no boundary condition
+      * ``None`` for no boundary condition.
 
-      There are also the following special cases:
+      There are also the following predefined boundary conditions:
 
       * ``'inward'`` - all arrows are inward arrows
       * ``'outward'`` - all arrows are outward arrows
       * ``'ice'`` - the top and bottom boundary conditions are outward and the
-        left and right boundary conditions are inward
+        left and right boundary conditions are inward; this gives the square
+        ice model
 
     EXAMPLES:
 
@@ -300,6 +406,11 @@ class SixVertexModel(Parent, UniqueRepresentation):
             ^          |          |          |
             |    ,     V    ,     V    ,     V
         ]
+
+    REFERENCES:
+
+    - :wikipedia:`Vertex_model`
+    - :wikipedia:`Ice-type_model`
     """
     @staticmethod
     def __classcall_private__(cls, n, m=None, boundary_conditions=None):
@@ -322,7 +433,7 @@ class SixVertexModel(Parent, UniqueRepresentation):
         elif boundary_conditions == 'outward':
             boundary_conditions = ((False,)*m, (False,)*n)*2
         elif boundary_conditions == 'ice':
-            boundary_conditions = ((False,)*m, (True,)*n)*2
+            return SquareIceModel(n)
         else:
             boundary_conditions = tuple(tuple(x) for x in boundary_conditions)
         return super(SixVertexModel, cls).__classcall__(cls, n, m, boundary_conditions)
@@ -351,18 +462,6 @@ class SixVertexModel(Parent, UniqueRepresentation):
             The six vertex model on a 2 by 2 grid
         """
         return "The six vertex model on a {} by {} grid".format(self._nrows, self._ncols)
-
-    def boundary_conditions(self):
-        """
-        Return the boundary conditions of ``self``.
-
-        EXAMPLES::
-
-            sage: M = SixVertexModel(2, boundary_conditions='ice')
-            sage: M.boundary_conditions()
-            ((False, False), (True, True), (False, False), (True, True))
-        """
-        return self._bdry_cond
 
     def _repr_option(self, key):
         """
@@ -415,6 +514,8 @@ class SixVertexModel(Parent, UniqueRepresentation):
                     raise ValueError("invalid entry")
             elt[-1] = tuple(elt[-1])
         return self.element_class(self, tuple(elt))
+
+    Element = SixVertexConfiguration
 
     def __iter__(self):
         """
@@ -493,5 +594,166 @@ class SixVertexModel(Parent, UniqueRepresentation):
                 bdry.pop()
                 left.pop()
 
-    Element = SixVertexConfiguration
+    def boundary_conditions(self):
+        """
+        Return the boundary conditions of ``self``.
+
+        EXAMPLES::
+
+            sage: M = SixVertexModel(2, boundary_conditions='ice')
+            sage: M.boundary_conditions()
+            ((False, False), (True, True), (False, False), (True, True))
+        """
+        return self._bdry_cond
+
+    def partition_function(self, beta, epsilon):
+        r"""
+        Return the partition function of ``self``.
+
+        The partition function of a 6 vertex model is defined by:
+
+        .. MATH::
+
+            Z = \sum_{\nu} e^{-\beta E(\nu)}
+
+        where we sum over all configurations and `E` is the energy function.
+        The constant `\beta` is known as the *inverse temperature* and is
+        equal to `1 / k_B T` where `k_B` is Boltzmann's constant and `T` is
+        the system's temperature.
+
+        INPUT:
+
+        - ``beta`` -- the inverse temperature constant `\beta`
+        - ``epsilon`` -- the energy constants, see
+          :meth:`~sage.combinat.six_vertex_model.SixVertexConfiguration.energy()`
+
+        EXAMPLES::
+
+            sage: M = SixVertexModel(3, boundary_conditions='ice')
+            sage: M.partition_function(2, [1,2,1,2,1,2])
+            e^(-24) + 2*e^(-28) + e^(-30) + 2*e^(-32) + e^(-36)
+
+        REFERENCES:
+
+        :wikipedia:`Partition_function_(statistical_mechanics)`
+        """
+        from sage.functions.log import exp
+        return sum(exp(-beta * nu.energy(epsilon)) for nu in self)
+
+class SquareIceModel(SixVertexModel):
+    r"""
+    The square ice model.
+
+    The square ice model is a 6 vertex model on an `n \times n` grid with
+    the boundary conditions that the top and bottom boundaries are pointing
+    outward and the left and right boundaries are pointing inward.
+
+    These are in bijection with alternating sign matrices.
+    """
+    def __init__(self, n):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: M = SixVertexModel(3, boundary_conditions='ice')
+            sage: TestSuite(M).run()
+        """
+        boundary_conditions = ((False,)*n, (True,)*n)*2
+        SixVertexModel.__init__(self, n, n, boundary_conditions)
+
+    def from_alternating_sign_matrix(self, asm):
+        """
+        Return a configuration from the alternating sign matrix ``asm``.
+
+        EXAMPLES::
+
+            sage: M = SixVertexModel(3, boundary_conditions='ice')
+            sage: asm = AlternatingSignMatrix([[0,1,0],[1,-1,1],[0,1,0]])
+            sage: M.from_alternating_sign_matrix(asm)
+                ^    ^    ^
+                |    |    |
+            --> # -> # <- # <--
+                ^    |    ^
+                |    V    |
+            --> # <- # -> # <--
+                |    ^    |
+                V    |    V
+            --> # -> # <- # <--
+                |    |    |
+                V    V    V
+
+        TESTS::
+
+            sage: M = SixVertexModel(5, boundary_conditions='ice')
+            sage: ASM = AlternatingSignMatrices(5)
+            sage: all(M.from_alternating_sign_matrix(x.to_alternating_sign_matrix()) == x
+            ....:     for x in M)
+            True
+            sage: all(M.from_alternating_sign_matrix(x).to_alternating_sign_matrix() == x
+            ....:     for x in ASM)
+            True
+        """
+        if asm.parent().size() != self._nrows:
+            raise ValueError("mismatched size")
+
+        #verts = ['LR', 'LU', 'LD', 'UD', 'UR', 'RD']
+        ret = []
+        bdry = [False]*self._nrows # False = up
+        for row in asm.to_matrix():
+            cur = []
+            right = True # True = right
+            for j,entry in enumerate(row):
+                if entry == -1:
+                    cur.append(0)
+                    right = True
+                    bdry[j] = False
+                elif entry == 1:
+                    cur.append(3)
+                    right = False
+                    bdry[j] = True
+                else: # entry == 0
+                    if bdry[j]:
+                        if right:
+                            cur.append(5)
+                        else:
+                            cur.append(2)
+                    else:
+                        if right:
+                            cur.append(4)
+                        else:
+                            cur.append(1)
+            ret.append(tuple(cur))
+        return self.element_class(self, tuple(ret))
+
+    class Element(SixVertexConfiguration):
+        """
+        An element in the square ice model.
+        """
+        @combinatorial_map(name='to alternating sign matrix')
+        def to_alternating_sign_matrix(self):
+            """
+            Return an alternating sign matrix of ``self``.
+
+            .. SEEALSO::
+
+                :meth:`~sage.combinat.six_vertex_model.SixVertexConfiguration.to_signed_matrix()`
+
+            EXAMPLES::
+
+                sage: M = SixVertexModel(4, boundary_conditions='ice')
+                sage: M[6].to_alternating_sign_matrix()
+                [1 0 0 0]
+                [0 0 0 1]
+                [0 0 1 0]
+                [0 1 0 0]
+                sage: M[7].to_alternating_sign_matrix()
+                [ 0  1  0  0]
+                [ 1 -1  1  0]
+                [ 0  1 -1  1]
+                [ 0  0  1  0]
+            """
+            from sage.combinat.alternating_sign_matrix import AlternatingSignMatrices
+            ASM = AlternatingSignMatrices(self.parent()._nrows)
+            return ASM(self.to_signed_matrix())
 

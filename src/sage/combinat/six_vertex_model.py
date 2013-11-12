@@ -14,12 +14,34 @@ class SixVertexConfiguration(ClonableArray):
     def check(self):
         """
         Check if ``self`` is a valid 6 vertex configuration.
+
+        EXAMPLES::
+
+            sage: M = SixVertexModel(3, boundary_conditions='ice')
+            sage: M[0].check()
         """
-        pass # We're not checking for now
+        if self not in self.parent():
+            raise ValueError("invalid configuration")
 
     def _repr_(self):
         """
         Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: M = SixVertexModel(3, boundary_conditions='ice')
+            sage: M[0]
+                ^    ^    ^
+                |    |    |
+            --> # <- # <- # <--
+                |    ^    ^
+                V    |    |  
+            --> # -> # <- # <--
+                |    |    ^
+                V    V    |
+            --> # -> # -> # <--
+                |    |    |
+                V    V    V
         """
         # List are in the order of URDL
         ascii = [[r'  V  ', ' -', r'  ^  ', '- '], # LR
@@ -75,15 +97,132 @@ class SixVertexConfiguration(ClonableArray):
 
         return ret
 
-    def to_digraph(self):
+    def to_signed_matrix(self):
         """
-        Return a digraph version of ``self``.
-        """
+        Return the signed matrix of ``self``.
 
-    def plot(self):
+        The signed matrix corresponding to a six vertex configuration is
+        given by `0` if there is a cross flow, a `1` if the outward arrows
+        are vertical and `-1` if the outward arrows are horizonal.
+
+        EXAMPLES::
+
+            sage: M = SixVertexModel(3, boundary_conditions='ice')
+            sage: map(lambda x: x.to_signed_matrix(), M)
+            [
+            [1 0 0]  [1 0 0]  [ 0  1  0]  [0 1 0]  [0 1 0]  [0 0 1]  [0 0 1]
+            [0 1 0]  [0 0 1]  [ 1 -1  1]  [1 0 0]  [0 0 1]  [1 0 0]  [0 1 0]
+            [0 0 1], [0 1 0], [ 0  1  0], [0 0 1], [1 0 0], [0 1 0], [1 0 0]
+            ]
+        """
+        from sage.matrix.constructor import matrix
+        # verts = ['LR', 'LU', 'LD', 'UD', 'UR', 'RD']
+        def matrix_sign(x):
+            if x == 0:
+                return -1
+            if x == 3:
+                return 1
+            return 0
+        return matrix([map(matrix_sign, row) for row in self])
+
+    def plot(self, color='sign'):
         """
         Return a plot of ``self``.
+
+        INPUT:
+
+        - ``color`` -- can be any of the following:
+
+          * ``4`` - use 4 colors: black, red, blue, and green with each
+            corresponding to up, right, down, and left respectively
+          * ``2`` - use 2 colors: red for horizontal, blue for vertical arrows
+          * ``'sign'`` - use red for right and down arrows, blue for left
+            and up arrows
+          * a list of 4 colors for each direction
+          * a function which takes a direction and a boolean corresponding
+            to the sign
+
+        EXAMPLES::
+
+            sage: M = SixVertexModel(2, boundary_conditions='ice')
+            sage: print M[0].plot().description()
+            Arrow from (-1.0,0.0) to (0.0,0.0)
+            Arrow from (-1.0,1.0) to (0.0,1.0)
+            Arrow from (0.0,0.0) to (0.0,-1.0)
+            Arrow from (0.0,0.0) to (0.0,1.0)
+            Arrow from (0.0,1.0) to (1.0,1.0)
+            Arrow from (0.0,2.0) to (0.0,1.0)
+            Arrow from (1.0,0.0) to (0.0,0.0)
+            Arrow from (1.0,0.0) to (1.0,-1.0)
+            Arrow from (1.0,1.0) to (1.0,0.0)
+            Arrow from (1.0,1.0) to (1.0,2.0)
+            Arrow from (2.0,0.0) to (1.0,0.0)
+            Arrow from (2.0,1.0) to (1.0,1.0)
         """
+        from sage.plot.graphics import Graphics
+        from sage.plot.circle import circle
+        from sage.plot.arrow import arrow
+
+        if color == 4:
+            color_list = ['black', 'red', 'blue', 'green']
+            cfunc = lambda d,pm: color_list[d]
+        elif color == 2:
+            cfunc = lambda d,pm: 'red' if d % 2 == 0 else 'blue'
+        elif color == 1 or color is None:
+            cfunc = lambda d,pm: 'black'
+        elif color == 'sign':
+            cfunc = lambda d,pm: 'red' if pm else 'blue' # RD are True
+        elif isinstance(color, (list, tuple)):
+            cfunc = lambda d,pm: color[d]
+        else:
+            cfunc = color
+
+        G = Graphics()
+        for j,row in enumerate(self):
+            for i,entry in enumerate(row):
+                if entry == 0: # LR
+                    G += arrow((i,j+1), (i,j), color=cfunc(2, True))
+                    G += arrow((i,j), (i+1,j), color=cfunc(1, True))
+                    if j == 0:
+                        G += arrow((i,j-1), (i,j), color=cfunc(0, False))
+                    if i == 0:
+                        G += arrow((i,j), (i-1,j), color=cfunc(3, False))
+                elif entry == 1: # LU
+                    G += arrow((i,j+1), (i,j), color=cfunc(2, True))
+                    G += arrow((i+1,j), (i,j), color=cfunc(3, False))
+                    if j == 0:
+                        G += arrow((i,j), (i,j-1), color=cfunc(2, True))
+                    if i == 0:
+                        G += arrow((i,j), (i-1,j), color=cfunc(3, False))
+                elif entry == 2: # LD
+                    G += arrow((i,j), (i,j+1), color=cfunc(0, False))
+                    G += arrow((i+1,j), (i,j), color=cfunc(3, False))
+                    if j == 0:
+                        G += arrow((i,j-1), (i,j), color=cfunc(0, False))
+                    if i == 0:
+                        G += arrow((i,j), (i-1,j), color=cfunc(3, False))
+                elif entry == 3: # UD
+                    G += arrow((i,j), (i,j+1), color=cfunc(0, False))
+                    G += arrow((i+1,j), (i,j), color=cfunc(3, False))
+                    if j == 0:
+                        G += arrow((i,j), (i,j-1), color=cfunc(2, True))
+                    if i == 0:
+                        G += arrow((i-1,j), (i,j), color=cfunc(1, True))
+                elif entry == 4: # UR
+                    G += arrow((i,j), (i,j+1), color=cfunc(0, False))
+                    G += arrow((i,j), (i+1,j), color=cfunc(1, True))
+                    if j == 0:
+                        G += arrow((i,j-1), (i,j), color=cfunc(0, False))
+                    if i == 0:
+                        G += arrow((i-1,j), (i,j), color=cfunc(1, True))
+                elif entry == 5: # RD
+                    G += arrow((i,j+1), (i,j), color=cfunc(2, True))
+                    G += arrow((i,j), (i+1,j), color=cfunc(1, True))
+                    if j == 0:
+                        G += arrow((i,j), (i,j-1), color=cfunc(2, True))
+                    if i == 0:
+                        G += arrow((i-1,j), (i,j), color=cfunc(1, True))
+        return G
 
 class SixVertexModel(Parent, UniqueRepresentation):
     """
@@ -91,7 +230,7 @@ class SixVertexModel(Parent, UniqueRepresentation):
 
     We model a configuration by indicating which configuration by the
     following six configurations which are determined by the two outgoing
-    arrows:
+    arrows in the **U**p, **R**ight, **D**own, **L**eft directions:
 
     1 - LR
     2 - LU
@@ -118,11 +257,61 @@ class SixVertexModel(Parent, UniqueRepresentation):
       * ``'outward'`` - all arrows are outward arrows
       * ``'ice'`` - the top and bottom boundary conditions are outward and the
         left and right boundary conditions are inward
+
+    EXAMPLES:
+
+    Here are the six types of vertices that can be created::
+
+        sage: M = SixVertexModel(1, 1)
+        sage: list(M)
+        [
+            |          ^          |          ^          ^          |
+            V          |          V          |          |          V
+        <-- # -->  <-- # <--  <-- # <--  --> # <--  --> # -->  --> # -->
+            ^          ^          |          |          ^          |
+            |    ,     |    ,     V    ,     V    ,     |    ,     V
+        ]
+
+    When using the square ice model, it is known that the number of
+    configurations is equal to the number of alternating sign matrices::
+
+        sage: M = SixVertexModel(1, boundary_conditions='ice')
+        sage: len(M)
+        1
+        sage: M = SixVertexModel(4, boundary_conditions='ice')
+        sage: len(M)
+        42
+        sage: all(len(SixVertexModel(n, boundary_conditions='ice'))
+        ....:     == AlternatingSignMatrices(n).cardinality() for n in range(1, 7))
+        True
+
+    An example with a specified non-standard boundary condition and
+    non-rectangular shape::
+
+        sage: M = SixVertexModel(2, 1, [[None],[True,True],[None],[None,None]])
+        sage: list(M)
+        [
+            ^          ^          |          ^
+            |          |          V          |
+        <-- # <--  <-- # <--  <-- # <--  --> # <--
+            ^          ^          |          |
+            |          |          V          V
+        <-- # <--  --> # <--  <-- # <--  <-- # <--
+            ^          |          |          |
+            |    ,     V    ,     V    ,     V
+        ]
     """
     @staticmethod
     def __classcall_private__(cls, n, m=None, boundary_conditions=None):
         """
         Normalize input to ensure a unique representation.
+
+        EXAMPLES::
+
+            sage: M1 = SixVertexModel(1, boundary_conditions=[[False],[True],[False],[True]])
+            sage: M2 = SixVertexModel(1, 1, ((False,),(True,),(False,),(True,)))
+            sage: M1 is M2
+            True
         """
         if m is None:
             m = n
@@ -141,6 +330,11 @@ class SixVertexModel(Parent, UniqueRepresentation):
     def __init__(self, n, m, boundary_conditions):
         """
         Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: M = SixVertexModel(2, boundary_conditions='ice')
+            sage: TestSuite(M).run()
         """
         self._nrows = n
         self._ncols = m
@@ -150,12 +344,23 @@ class SixVertexModel(Parent, UniqueRepresentation):
     def _repr_(self):
         """
         Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: SixVertexModel(2, boundary_conditions='ice')
+            The six vertex model on a 2 by 2 grid
         """
-        return "The six vertex model on an {} by {} grid".format(self._nrows, self._ncols)
+        return "The six vertex model on a {} by {} grid".format(self._nrows, self._ncols)
 
     def boundary_conditions(self):
         """
         Return the boundary conditions of ``self``.
+
+        EXAMPLES::
+
+            sage: M = SixVertexModel(2, boundary_conditions='ice')
+            sage: M.boundary_conditions()
+            ((False, False), (True, True), (False, False), (True, True))
         """
         return self._bdry_cond
 
@@ -164,6 +369,12 @@ class SixVertexModel(Parent, UniqueRepresentation):
         Metadata about the ``_repr_()`` output.
 
         See :meth:`sage.structure.parent._repr_option` for details.
+
+        EXAMPLES::
+
+            sage: M = SixVertexModel(2, boundary_conditions='ice')
+            sage: M._repr_option('element_ascii_art')
+            True
         """
         if key == 'element_ascii_art':
             return True
@@ -172,6 +383,19 @@ class SixVertexModel(Parent, UniqueRepresentation):
     def _element_constructor_(self, x):
         """
         Construct an element of ``self``.
+
+        EXAMPLES::
+
+            sage: M = SixVertexModel(2, boundary_conditions='ice')
+            sage: M([[3,1],[5,3]])
+                ^    ^
+                |    |
+            --> # <- # <--
+                |    ^
+                V    |
+            --> # -> # <--
+                |    |
+                V    V
         """
         if isinstance(x, SixVertexConfiguration):
             if x.parent() is not self:
@@ -183,10 +407,10 @@ class SixVertexModel(Parent, UniqueRepresentation):
         for row in x:
             elt.append([])
             for entry in row:
-                if x in verts:
-                    elt[-1].append(verts.index(x))
-                elif x in range(6):
-                    elt[-1].append(x)
+                if entry in verts:
+                    elt[-1].append(verts.index(entry))
+                elif entry in range(6):
+                    elt[-1].append(entry)
                 else:
                     raise ValueError("invalid entry")
             elt[-1] = tuple(elt[-1])
@@ -195,6 +419,21 @@ class SixVertexModel(Parent, UniqueRepresentation):
     def __iter__(self):
         """
         Iterate through ``self``.
+
+        EXAMPLES::
+
+            sage: M = SixVertexModel(2, boundary_conditions='ice')
+            sage: list(M)
+            [
+                ^    ^          ^    ^
+                |    |          |    |
+            --> # <- # <--  --> # -> # <--
+                |    ^          ^    |
+                V    |          |    V
+            --> # -> # <--  --> # <- # <--
+                |    |          |    |
+                V    V    ,     V    V
+            ]
         """
         # Boundary conditions ordered URDL
         # The top row boundary condition of True is a downward arrow
@@ -235,8 +474,9 @@ class SixVertexModel(Parent, UniqueRepresentation):
                     l.pop()
                     continue
                 # Check to see if we can add the vertex
-                if check_left[row[-1]] is l[-1] \
-                        and check_top[row[-1]] is bdry[-1][len(row)-1]:
+                if (check_left[row[-1]] is l[-1] or l[-1] is None) \
+                        and (check_top[row[-1]] is bdry[-1][len(row)-1]
+                             or bdry[-1][len(row)-1] is None):
                     if len(row) != m:
                         l.append(next_left[row[-1]])
                         row.append(-1)

@@ -599,6 +599,12 @@ def knapsack(seq, binary=True, max=1, value_only=False):
         sage: knapsack( [(1,2), (1.5,1), (0.5,3)], max=2, value_only=True)
         5.0
 
+    Besides weight and value, you may attach any data to the items::
+ 
+        sage: from sage.numerical.knapsack import knapsack
+        sage: knapsack( [(1, 2, 'spam'), (0.5, 3, 'a', 'lot')])
+        [3.0, [(0.500000000000000, 3, 'a', 'lot')]]
+
     In the case where all the values (usefulness) of the items
     are equal to one, you do not need embarrass yourself with
     the second values, and you can just type for items
@@ -612,7 +618,7 @@ def knapsack(seq, binary=True, max=1, value_only=False):
 
     - ``seq`` -- Two different possible types:
 
-      - A sequence of pairs (weight, value).
+      - A sequence of tuples (weight, value, ...).
       - A sequence of reals (a value of 1 is assumed).
 
     - ``binary`` -- When set to True, an item can be taken 0 or 1 time.
@@ -632,7 +638,7 @@ def knapsack(seq, binary=True, max=1, value_only=False):
     ``[value,list]``, where ``list`` can be of two types according
     to the type of ``seq``:
 
-    - A list of pairs `(w_i, u_i)` for each object `i` occurring
+    - A list of tuples `(w_i, u_i, ...)` for each item `i` occurring
       in the solution.
     - A list of reals where each real is repeated the number
       of times it is taken into the solution.

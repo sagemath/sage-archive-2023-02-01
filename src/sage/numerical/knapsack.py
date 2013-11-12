@@ -618,7 +618,12 @@ def knapsack(seq, binary=True, max=1, value_only=False):
 
     - ``seq`` -- Two different possible types:
 
-      - A sequence of tuples (weight, value, ...).
+      - A sequence of tuples ``(weight, value, something1, something2,
+        ...)``. Note that only the first two coordinates (``weight`` and
+        ``values``) will be taken into account. The rest (if any) will be
+        ignored. This can be useful if you need to attach some information to
+        the items.
+
       - A sequence of reals (a value of 1 is assumed).
 
     - ``binary`` -- When set to True, an item can be taken 0 or 1 time.
@@ -638,8 +643,8 @@ def knapsack(seq, binary=True, max=1, value_only=False):
     ``[value,list]``, where ``list`` can be of two types according
     to the type of ``seq``:
 
-    - A list of tuples `(w_i, u_i, ...)` for each item `i` occurring
-      in the solution.
+    - The list of tuples `(w_i, u_i, ...)` occurring in the solution.
+
     - A list of reals where each real is repeated the number
       of times it is taken into the solution.
     """

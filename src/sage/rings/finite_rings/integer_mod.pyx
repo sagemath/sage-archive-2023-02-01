@@ -50,6 +50,11 @@ TESTS::
     sage: a = R(824362); b = R(205942)
     sage: a * b
     851127
+
+    sage: type(IntegerModRing(2^31-1).an_element())
+    <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int64'>
+    sage: type(IntegerModRing(2^31).an_element())
+    <type 'sage.rings.finite_rings.integer_mod.IntegerMod_gmp'>
 """
 
 #################################################################################
@@ -912,6 +917,15 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: all([x^2==169 for x in v])
             True
 
+        ::
+
+            sage: t = FiniteField(next_prime(2^100))(4)
+            sage: t.sqrt(extend = False, all = True)
+            [2, 1267650600228229401496703205651]
+            sage: t = FiniteField(next_prime(2^100))(2)
+            sage: t.sqrt(extend = False, all = True)
+            []
+
         Modulo a power of 2::
 
             sage: R = Integers(2^7); R
@@ -946,6 +960,8 @@ cdef class IntegerMod_abstract(FiniteRingElement):
                     # TODO
                     raise NotImplementedError
                 return z
+            if all:
+                return []
             raise ValueError, "self must be a square"
 
         F = self._parent.factored_order()
@@ -2152,6 +2168,9 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         IntegerMod_abstract.__init__(self, parent)
         if empty:
             return
+        if self.__modulus.int32 == 1:
+            self.ivalue = 0
+            return
         cdef long x
         if PY_TYPE_CHECK(value, int):
             x = value
@@ -2823,6 +2842,8 @@ cdef class IntegerMod_int(IntegerMod_abstract):
                     if (i*i) % n == self.ivalue:
                         return self._new_c(i)
                 if not extend:
+                    if all:
+                        return []
                     raise ValueError, "self must be a square"
         # Either it failed but extend was True, or the generic algorithm is better
         return IntegerMod_abstract.sqrt(self, extend=extend, all=all)

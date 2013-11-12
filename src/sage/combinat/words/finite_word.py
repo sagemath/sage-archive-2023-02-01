@@ -3302,6 +3302,79 @@ exponent %s: the length of the word (%s) times the exponent \
             possible = xrange(1, n)
         return filter(self.has_period, possible)
 
+    def longest_common_subword(self,other):
+        r"""
+        Returns a longest subword of ``self`` and ``other``.
+
+        A subword of a word is a subset of the word's letters, read in the
+        order in which they appear in the word.
+
+        For more information, see
+        :wikipedia:`Longest_common_subsequence_problem`.
+
+        INPUT:
+
+        - ``other`` -- a word
+
+        ALGORITHM:
+
+        For any indices `i,j`, we compute the longest common subword ``lcs[i,j]`` of
+        `self[:i]` and `other[:j]`. This can be easily obtained as the longest
+        of
+
+        - ``lcs[i-1,j]``
+
+        - ``lcs[i,j-1]``
+
+        - ``lcs[i-1,j-1]+self[i]`` if ``self[i]==other[j]``
+
+        EXAMPLES::
+
+            sage: v1 = Word("abc")
+            sage: v2 = Word("ace")
+            sage: v1.longest_common_subword(v2)
+            word: ac
+
+            sage: w1 = Word("1010101010101010101010101010101010101010")
+            sage: w2 = Word("0011001100110011001100110011001100110011")
+            sage: w1.longest_common_subword(w2)
+            word: 00110011001100110011010101010
+
+        TESTS::
+
+            sage: Word().longest_common_subword(Word())
+            word:
+
+        .. SEEALSO::
+
+            :meth:`is_subword_of`
+        """
+        from sage.combinat.words.word import Word
+        if len(self) == 0 or len(other) == 0:
+            return Word()
+
+        w2 = list(other)
+
+        # In order to avoid storing lcs[i,j] for each pair i,j of indices, we
+        # only store the lcs[i,j] for two consecutive values of i. At any step
+        # of the algorithm, lcs[i,j] is stored at lcs[0][j] and lcs[i-1,j] is
+        # stored at lcs[1][j]
+
+        # The weird +1 that follows exists to make sure that lcs[i,-1] returns
+        # the empty word.
+        lcs = [[[] for i in range(len(w2)+1)] for j in range(2)]
+
+        for i,l1 in enumerate(self):
+            for j,l2 in enumerate(other):
+                lcs[0][j] = max(lcs[0][j-1], lcs[1][j],
+                                lcs[1][j-1] + ([l1] if l1==l2 else []),key=len)
+
+            # Maintaining the meaning of lcs for the next loop
+            lcs.pop(1)
+            lcs.insert(0,[[] for i in range(len(w2)+1)])
+
+        return Word(lcs[1][-2])
+
     def is_subword_of(self, other):
         r"""
         Returns True is self is a subword of other, and False otherwise.
@@ -3314,6 +3387,11 @@ exponent %s: the length of the word (%s) times the exponent \
             True
             sage: Word('321').is_subword_of(Word('11122212112122133111222332'))
             False
+
+        .. SEEALSO::
+
+            :meth:`longest_common_subword`
+
         """
         its = iter(self)
         try:
@@ -4573,9 +4651,9 @@ exponent %s: the length of the word (%s) times the exponent \
             [1, 3, 6, 4, 5, 2]
             sage: v = Word(p.inverse().action(w)); v
             word: 112223
-            sage: Permutations(w.length()).filter( \
-            ...     lambda q: q.length() <= p.length() and \
-            ...               q.inverse().action(w) == list(v) ).list()
+            sage: filter(lambda q: q.length() <= p.length() and \
+            ....:       q.inverse().action(w) == list(v), \
+            ....:       Permutations(w.length()) )
             [[1, 3, 6, 4, 5, 2]]
 
         ::
@@ -4796,7 +4874,7 @@ exponent %s: the length of the word (%s) times the exponent \
 
         [3] A. Lascoux, B. Leclerc, and J.Y. Thibon.  *The Plactic Monoid*.
         Survey article available at
-        [http://www.combinatorics.net/lascoux/articles/plactic.ps]
+        [http://www-igm.univ-mlv.fr/~jyt/ARTICLES/plactic.ps]
 
         TESTS::
 
@@ -5594,6 +5672,43 @@ exponent %s: the length of the word (%s) times the exponent \
 
     evaluation = parikh_vector
 
+    def robinson_schensted(self):
+        """
+        Return the semistandard tableau and standard tableau pair
+        obtained by running the Robinson-Schensted algorithm on ``self``.
+
+        This can also be done by running
+        :func:`~sage.combinat.rsk.RSK` on ``self``.
+
+        EXAMPLES::
+
+            sage: Word([1,1,3,1,2,3,1]).robinson_schensted()
+            [[[1, 1, 1, 1, 3], [2], [3]], [[1, 2, 3, 5, 6], [4], [7]]]
+        """
+        from sage.combinat.rsk import RSK
+        return RSK(self)
+
+    def _rsk_iter(self):
+        r"""
+        An iterator for :func:`~sage.combinat.rsk.RSK`.
+
+        Yields pairs `(i, w_i)` for a word `w = w_1 w_2 \cdots w_k`.
+
+        EXAMPLES::
+
+            sage: for x in Word([1,1,3,1,2,3,1])._rsk_iter(): x
+            ...
+            (1, 1)
+            (2, 1)
+            (3, 3)
+            (4, 1)
+            (5, 2)
+            (6, 3)
+            (7, 1)
+        """
+        from itertools import izip
+        return izip(xrange(1, len(self)+1), self)
+
     def shuffle(self, other, overlap=0):
         r"""
         Returns the combinatorial class representing the shuffle product
@@ -6138,9 +6253,9 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: Word([1,2,3,4]).apply_permutation_to_positions([3,4,2,1])
             word: 3421
         """
-        from sage.combinat.permutation import Permutation, Permutation_class
+        from sage.combinat.permutation import Permutation
         from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-        if not isinstance(permutation, Permutation_class):
+        if not isinstance(permutation, Permutation):
             if isinstance(permutation, PermutationGroupElement):
                 permutation = Permutation(permutation.domain())
             else:
@@ -6166,9 +6281,9 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: w.apply_permutation_to_letters(PermutationGroupElement(p))
             word: badc
         """
-        from sage.combinat.permutation import Permutation, Permutation_class
+        from sage.combinat.permutation import Permutation
         from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-        if not isinstance(permutation, Permutation_class):
+        if not isinstance(permutation, Permutation):
             if isinstance(permutation, PermutationGroupElement):
                 permutation = Permutation(permutation.domain())
             else:
@@ -6413,6 +6528,36 @@ exponent %s: the length of the word (%s) times the exponent \
                 if self[start:end].is_cube():
                     return False
         return True
+
+    def to_monoid_element(self):
+        """
+        Return ``self`` as an element the free monoid with the same alphabet
+        as ``self``.
+
+        EXAMPLES::
+
+            sage: w = Word('aabb')
+            sage: w.to_monoid_element()
+            a^2*b^2
+            sage: W = Words('abc')
+            sage: w = W(w)
+            sage: w.to_monoid_element()
+            a^2*b^2
+
+        TESTS:
+
+        Check that ``w == w.to_monoid_element().to_word()``::
+
+            sage: all(w.to_monoid_element().to_word() == w for i in range(6) for w in Words('abc', i))
+            True
+        """
+        from sage.monoids.free_monoid import FreeMonoid
+        try:
+            l = list(self.parent().alphabet())
+        except AttributeError:
+            l = list(set(self))
+        M = FreeMonoid(len(l), l)
+        return M(self)
 
 #######################################################################
 

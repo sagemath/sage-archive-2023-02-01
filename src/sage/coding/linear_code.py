@@ -380,6 +380,7 @@ def min_wt_vec_gap(Gmat, n, k, F, algorithm=None):
     """
     current_randstate().set_seed_gap()
     if algorithm=="guava":
+        gap.LoadPackage('"guava"')
         from sage.interfaces.gap import gfq_gap_to_sage
         gap.eval("G:="+Gmat)
         C = gap(Gmat).GeneratorMatCode(F)
@@ -533,26 +534,28 @@ def bounds_minimum_distance(n, k, F):
 
         sage: print bounds_minimum_distance(10,5,GF(2)) # optional - gap_packages (Guava package)
         rec(
-          n := 10,
+          construction :=
+           [ <Operation "ShortenedCode">,
+              [
+                  [ <Operation "UUVCode">,
+                      [
+                          [ <Operation "DualCode">,
+                              [ [ <Operation "RepetitionCode">, [ 8, 2 ] ] ] ],
+                          [ <Operation "UUVCode">,
+                              [
+                                  [ <Operation "DualCode">,
+                                      [ [ <Operation "RepetitionCode">, [ 4, 2 ] ] ] ]
+                                    , [ <Operation "RepetitionCode">, [ 4, 2 ] ] ] ]
+                         ] ], [ 1, 2, 3, 4, 5, 6 ] ] ],
           k := 5,
+          lowerBound := 4,
+          lowerBoundExplanation := ...
+          n := 10,
           q := 2,
           references := rec(
                ),
-          construction :=
-           [ <Operation "ShortenedCode">, [ [ <Operation "UUVCode">, [ [
-                              <Operation "DualCode">,
-                              [ [ <Operation "RepetitionCode">, [ 8, 2 ] ] ] ],
-                          [ <Operation "UUVCode">,
-                              [ [ <Operation "DualCode">, [ [ <Operation "RepetitionCode">, [ 4, 2 ] ] ] ], [ <Operation "RepetitionCode">, [ 4, 2 ] ] ] ] ] ],
-                  [ 1, 2, 3, 4, 5, 6 ] ] ],
-          lowerBound := 4,
-          lowerBoundExplanation :=
-           [ "Lb(10,5)=4, by shortening of:", "Lb(16,11)=4, by the u|u+v construction applied to C1 [8,7,2] and C2 [8,4,4]: ",
-              "Lb(8,7)=2, dual of the repetition code",
-              "Lb(8,4)=4, by the u|u+v construction applied to C1 [4,3,2] and C2 [4,1,4]: ", "Lb(4,3)=2, dual of the repetition code", "Lb(4,1)=4, repetition code"
-             ],
           upperBound := 4,
-          upperBoundExplanation := [ "Ub(10,5)=4, by the Griesmer bound" ] )
+          upperBoundExplanation := ... )
     """
     q = F.order()
     gap.eval("data := BoundsMinimumDistance(%s,%s,GF(%s))"%(n,k,q))
@@ -1298,42 +1301,34 @@ class LinearCode(module.Module_old):
             sage: v = vector(GF(5),[1,0,0,2,1,0])
             sage: C.decode(v)
             (1, 0, 0, 2, 2, 0)
-            sage: F = GF(4,"a")
+            sage: F.<a> = GF(4)
             sage: C = HammingCode(2,F)
             sage: v = vector(F, [1,0,0,a,1])
             sage: C.decode(v)
-            (1, 0, 1, 1, 1)
+            (a + 1, 0, 0, a, 1)
             sage: C.decode(v, algorithm="nearest neighbor")
-            (1, 0, 1, 1, 1)
+            (a + 1, 0, 0, a, 1)
             sage: C.decode(v, algorithm="guava")  # optional - gap_packages (Guava package)
-            (1, 0, 1, 1, 1)
+            (a + 1, 0, 0, a, 1)
 
         Does not work for very long codes since the syndrome table grows too
         large.
         """
-        from sage.interfaces.gap import gfq_gap_to_sage
         from decoder import decode
-        if algorithm=="syndrome" or algorithm=="nearest neighbor":
+        if algorithm == 'syndrome' or algorithm == 'nearest neighbor':
             return decode(self,right)
-        if not(algorithm in ["syndrome", "nearest neighbor","guava"]):
-            raise NotImplementedError, "Only 'syndrome','nearest neighbor','guava' are implemented."
-        F = self.base_ring()
-        q = F.order()
-        G = self.gen_mat()
-        n = len(G.columns())
-        Gstr = str(gap(G))
-        if not(type(right) == list):
-            v = right.list()
+        elif algorithm == 'guava':
+            gap.LoadPackage('"guava"')
+            code = gap.GeneratorMatCode(self.gen_mat(), self.base_ring())
+            right = gap(list(right))
+            right_word = gap.Codeword(right)
+            result = gap.Decodeword(code, right_word)
+            result = gap.VectorCodeword(result)
+            from sage.interfaces.gap import gfq_gap_to_sage
+            result = [gfq_gap_to_sage(v, self.base_ring()) for v in result]
+            return self.ambient_space()(result)
         else:
-            v = right
-        vstr = str(gap(v))
-        if vstr[:3] == '[ [':
-            vstr = vstr[1:-1]     # added by William Stein so const.tex works 2006-10-01
-        gap.eval("C:=GeneratorMatCode("+Gstr+",GF("+str(q)+"))")
-        gap.eval("c:=VectorCodeword(Decodeword( C, Codeword( "+vstr+" )))") # v->vstr, 8-27-2006
-        ans = [gfq_gap_to_sage(gap.eval("c["+str(i)+"]"),F) for i in range(1,n+1)]
-        V = VectorSpace(F,n)
-        return V(ans)
+            raise NotImplementedError, "Only 'syndrome','nearest neighbor','guava' are implemented."
 
     def divisor(self):
         r"""
@@ -2168,7 +2163,6 @@ class LinearCode(module.Module_old):
             sage: C.permutation_automorphism_group(algorithm="partition")
             Permutation Group with generators [(1,3)(4,5), (1,4)(3,5)]
             sage: C.permutation_automorphism_group(algorithm="gap")  # optional - gap_packages (Guava package)
-            Permutation Group with generators [(1,3)(4,5), (1,4)(3,5)]
             sage: C = TernaryGolayCode()
             sage: C.permutation_automorphism_group(algorithm="gap")  # optional - gap_packages (Guava package)
             Permutation Group with generators [(3,4)(5,7)(6,9)(8,11), (3,5,8)(4,11,7)(6,9,10), (2,3)(4,6)(5,8)(7,10), (1,2)(4,11)(5,8)(9,10)]
@@ -2189,6 +2183,7 @@ class LinearCode(module.Module_old):
         n = len(G.columns())
         k = len(G.rows())
         if "gap" in algorithm:
+            gap.LoadPackage('"guava"')
             wts = self.spectrum()                                            # bottleneck 1
             nonzerowts = [i for i in range(len(wts)) if wts[i]!=0]
             Sn = SymmetricGroup(n)
@@ -2315,7 +2310,11 @@ class LinearCode(module.Module_old):
         """
         G = self.gen_mat()
         GL = G.matrix_from_columns([i for i in range(G.ncols()) if i not in L])
-        return LinearCode(GL.row_space().basis_matrix())
+        r = GL.rank()
+        if r < GL.nrows():
+            GL.echelonize()
+            GL = GL[:r]
+        return LinearCode(GL)
 
     def random_element(self, *args, **kwds):
         """
@@ -2589,9 +2588,7 @@ class LinearCode(module.Module_old):
         """
         Cd = self.dual_code()
         Cdp = Cd.punctured(L)
-        Cdpd = Cdp.dual_code()
-        Gs = Cdpd.gen_mat()
-        return LinearCode(Gs)
+        return Cdp.dual_code()
 
     @rename_keyword(deprecation=11033, method="algorithm")
     def spectrum(self, algorithm=None):
@@ -2670,13 +2667,14 @@ class LinearCode(module.Module_old):
                 raise NotImplementedError("The algorithm 'leon' is only implemented for q = 2,3,5,7.")
             # The GAP command DirectoriesPackageLibrary tells the location of the latest
             # version of the Guava libraries, so gives us the location of the Guava binaries too.
-            guava_bin_dir = gap.eval('DirectoriesPackageLibrary( "guava" )')
-            guava_bin_dir = guava_bin_dir[1:-1].strip()[5:-6] + 'bin/'
+            guava_bin_dir = gap.eval('DirectoriesPackagePrograms("guava")[1]')
+            guava_bin_dir = guava_bin_dir[guava_bin_dir.index('"') + 1:guava_bin_dir.rindex('"')]
             input = code2leon(self)
             from sage.misc.misc import tmp_filename
             output = tmp_filename()
             import os
-            status = os.system(guava_bin_dir + "wtdist " + input + "::code > " + output)
+            status = os.system(os.path.join(guava_bin_dir, 'wtdist')
+                               + ' ' + input + "::code > " + output)
             if status != 0:
                 raise RuntimeError("Problem calling Leon's wtdist program. Install gap_packages*.spkg and run './configure ../..; make'.")
             f = open(output); lines = f.readlines(); f.close()
@@ -2772,14 +2770,19 @@ class LinearCode(module.Module_old):
         V = VectorSpace(F,n+1)
         return V(self.spectrum()).support()
 
-    def weight_enumerator(self, names="xy"):
+    def weight_enumerator(self, names="xy", name2=None):
         """
         Returns the weight enumerator of the code.
 
         INPUT:
 
         - ``names`` - String of length 2, containing two variable names
-          (default: ``"xy"``)
+          (default: ``"xy"``). Alternatively, it can be a variable name or
+          a string, or a tuple of variable names or strings.
+
+        - ``name2`` - string or symbolic variable (default: ``None``).
+          If ``name2`` is provided then it is assumed that ``names``
+          contains only one variable.
 
         OUTPUT:
 
@@ -2792,7 +2795,18 @@ class LinearCode(module.Module_old):
             x^7 + 7*x^4*y^3 + 7*x^3*y^4 + y^7
             sage: C.weight_enumerator(names="st")
             s^7 + 7*s^4*t^3 + 7*s^3*t^4 + t^7
+            sage: (var1, var2) = var('var1, var2')
+            sage: C.weight_enumerator((var1, var2))
+            var1^7 + 7*var1^4*var2^3 + 7*var1^3*var2^4 + var2^7
+            sage: C.weight_enumerator(var1, var2)
+            var1^7 + 7*var1^4*var2^3 + 7*var1^3*var2^4 + var2^7
+
         """
+        if name2 is not None:
+            # We assume that actual variable names or strings are provided
+            # for names if names2 is also provided. That is, names is not
+            # a tuple or a list. Otherwise, PolynomialRing will return error
+            names = (names, name2)
         spec = self.spectrum()
         n = self.length()
         R = PolynomialRing(QQ,2,names)

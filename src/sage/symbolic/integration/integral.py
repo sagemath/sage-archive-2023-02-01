@@ -468,14 +468,19 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
 
     We can also use Sympy::
 
-        sage: _ = var('x, y, z')
-        sage: (x^y-z).integrate(y)
+        sage: integrate(x*sin(log(x)), x)
+        -1/5*x^2*(cos(log(x)) - 2*sin(log(x)))
+        sage: integrate(x*sin(log(x)), x, algorithm='sympy')
+        -1/5*x^2*cos(log(x)) + 2/5*x^2*sin(log(x))
+        sage: _ = var('y, z')
+        sage: (x^y - z).integrate(y)
         -y*z + x^y/log(x)
-        sage: (x^y-z).integrate(y,algorithm="sympy")
-        -y*z + x^y/log(x)
+        sage: (x^y - z).integrate(y, algorithm="sympy")  # see Trac #14694
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'Piecewise' object has no attribute '_sage_'
 
-
-    We integrate the above function in maple now::
+    We integrate the above function in Maple now::
 
         sage: g = maple(f); g                             # optional - maple
         sin(x^2)+y^z
@@ -639,7 +644,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
     of the gamma function; however, we get something equivalent::
 
         sage: actual_result = integral(e^(-1/x^2), x, 0, 1)
-        sage: actual_result.full_simplify()
+        sage: actual_result.simplify_radical()
         (sqrt(pi)*(erf(1)*e - e) + 1)*e^(-1)
         sage: ideal_result = 1/2*gamma(-1/2, 1)
         sage: error = actual_result - ideal_result

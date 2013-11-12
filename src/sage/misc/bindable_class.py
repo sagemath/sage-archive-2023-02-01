@@ -194,11 +194,42 @@ class BoundClass(functools.partial):
             sage: c.__class__.__doc__
             sage: c.__class__.__init__.__doc__
 
+    Make sure classes which inherit from functools.partial have the correct
+    syntax, see :trac:`14748`::
+
+        sage: import warnings
+        sage: warnings.simplefilter('error', DeprecationWarning)
+        sage: import functools
+        sage: def f(x, y): return x^y
+        sage: g = functools.partial(f, 2, 3)
+        sage: g()
+        8
+
+    The following has incorrect syntax and thus a ``DeprecationWarning``::
+
+        sage: class mypartial(functools.partial):
+        ....:     def __init__(self, f, i, j):
+        ....:         functools.partial.__init__(self, f, i, j)
+        sage: g = mypartial(f, 2, 3)
+        Traceback (most recent call last):
+        ...
+        DeprecationWarning: object.__init__() takes no parameters
+        sage: g()
+        8
+
+    The following has correct syntax and no ``DeprecationWarning``::
+
+        sage: class mynewpartial(functools.partial):
+        ....:     def __init__(self, f, i, j):
+        ....:         functools.partial.__init__(self)
+        sage: g = mynewpartial(f, 2, 3)
+        sage: g()
+        8
     """
     __doc__ = None # See warning above
 
     def __init__(self, *args):
-        super(BoundClass, self).__init__(*args)
+        super(BoundClass, self).__init__()
         self.__doc__ = self.func.__doc__
 
     def __repr__(self):

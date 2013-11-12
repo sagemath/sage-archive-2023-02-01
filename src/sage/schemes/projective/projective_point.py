@@ -15,9 +15,9 @@ AUTHORS:
 - Volker Braun (2011-08-08): Renamed classes, more documentation, misc
   cleanups.
 
-- Ben Hutz: (June 2012) added support for projective ring
-            (March 2013) iteration functionality and new directory structure
-            for affine/projective
+- Ben Hutz (June 2012) added support for projective ring;
+  (March 2013) iteration functionality and new directory structure
+  for affine/projective, height functionality
 """
 
 # Historical note: in trac #11599, V.B. renamed
@@ -35,11 +35,16 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
+from sage.categories.number_fields import NumberFields
+_NumberFields = NumberFields()
 from sage.rings.infinity       import infinity
-from sage.rings.arith          import gcd, lcm
+from sage.rings.arith          import gcd, lcm, is_prime
 from sage.rings.integer_ring   import ZZ
+from sage.rings.number_field.order import is_NumberFieldOrder
+from sage.rings.padics.all     import Qp
 from sage.rings.quotient_ring  import QuotientRing_generic
+from sage.rings.rational_field import QQ
+from sage.rings.real_mpfr      import RealField, RR
 from copy                      import copy
 from sage.schemes.generic.morphism import (SchemeMorphism,
                                            is_SchemeMorphism,
@@ -673,6 +678,251 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
                 Q.normalize_coordinates()
             Orb.append(Q)
         return(Orb)
+
+    def green_function(self, G,v, **kwds):
+        r"""
+        Evaluates the local Green's function at the place ``v`` for ``self`` with ``N`` terms of the series
+        or, in dimension 1, to within the specified error bound. Defaults to ``N=10`` if no kwds provided
+
+        Use ``v=0`` for the archimedean place. Must be over `\ZZ` or `\QQ`.
+
+        ALGORITHM:
+
+        See Exercise 5.29 and Figure 5.6 of ``The Arithmetic of Dynamics Systems``, Joseph H. Silverman, Springer, GTM 241, 2007.
+
+        INPUT:
+
+        - ``G`` - an endomorphism of self.codomain()
+
+        - ``v`` - non-negative integer. a place, use v=0 for the archimedean place
+
+        kwds:
+
+        - ``N`` - positive integer. number of terms of the series to use
+
+        - ``prec`` - positive integer, float point or p-adic precision, default: 100
+
+        - ``error_bound`` - a positive real number
+
+        OUTPUT:
+
+        - a real number
+
+        Examples::
+
+            sage: P.<x,y>=ProjectiveSpace(QQ,1)
+            sage: H=Hom(P,P)
+            sage: f=H([x^2+y^2,x*y]);
+            sage: Q=P(5,1)
+            sage: f.green_function(Q,0,N=30)
+            1.6460930159932946233759277576
+
+        ::
+
+            sage: P.<x,y>=ProjectiveSpace(QQ,1)
+            sage: H=Hom(P,P)
+            sage: f=H([x^2+y^2,x*y]);
+            sage: Q=P(5,1)
+            sage: Q.green_function(f,0,N=200,prec=200)
+            1.6460930160038721802875250367738355497198064992657997569827
+
+        .. TODO::
+
+            error bounds for dimension > 1
+        """
+        N = kwds.get('N', None)                     #Get number of iterates (if entered)
+        err = kwds.get('error_bound', None)         #Get error bound (if entered)
+        prec = kwds.get('prec', 100)                #Get precision (if entered)
+        R=RealField(prec)
+
+        if not (v == 0 or is_prime(v)):
+            raise ValueError("Invalid valuation (=%s) entered."%v)
+        if v == 0:
+            K = R
+        else:
+            K = Qp(v, prec)
+
+        #Coerce all polynomials in F into polynomials with coefficients in K
+        F=G.change_ring(K,False)
+        d = F.degree()
+        D=F.codomain().ambient_space().dimension_relative()
+
+        if err is not None:
+            if D!=1:
+                raise NotImplementedError("error bounds only for dimension 1")
+            err = R(err)
+            if not err>0:
+                raise ValueError, "Error bound (=%s) must be positive."%err
+
+            #if doing error estimates, compute needed number of iterates
+            res = F.resultant()
+
+            #compute maximum coefficient of polynomials of F
+            C = R(G.global_height(prec))
+
+            if v == 0:
+                log_fact = R(0)
+                for i in range(2*d+1):
+                    log_fact += R(i+1).log()
+                B = max((R(res.abs()) - R(2*d).log() - (2*d-1)*C - log_fact).log().abs(), (C + R(d+1).log()).abs())
+            else:
+                B = max(R(res.abs()).log() - ((2*d-1)*C).abs(), C.abs())
+            N = R(B/(err*(d-1))).log(d).abs().ceil()
+
+        elif N is None:
+            N=10 #default is to do 10 iterations
+
+        #Coerce the coordinates into Q_v
+        self.normalize_coordinates()
+        if self.codomain().base_ring()==QQ:
+            self.clear_denominators()
+        P=self.change_ring(K,False)
+
+        #START GREEN FUNCTION CALCULATION
+
+        g = R(0)
+
+        for i in range(N+1):
+            m = -1
+
+            #compute the maximum absolute value of entries of a, and where it occurs
+            for n in range(D+1):
+                a_v = R(P[n].abs())
+                if a_v > m:
+                    j = n
+                    m = a_v
+
+            #add to Greens function
+            g += (1/R(d))**(i)*R(m).log()
+
+            #normalize coordinates and evaluate
+            P.scale_by(1/P[j])
+            P = F(P,False)
+
+        return g
+
+    def canonical_height(self,F, **kwds):
+        r"""
+        Evaluates the canonical height of ``self`` with respect to ``F``. Must be over `\ZZ` or `\QQ`.
+        Specify either the number of terms of the series to evaluate or, in dimension 1, the error bound
+        required.
+
+        ALGORITHM:
+
+            The sum of the Green's function at the archimedean place and the places of bad reduction.
+
+        INPUT:
+
+        - ``P`` - a projective point
+
+        kwds:
+
+        - ``badprimes`` - a list of primes of bad reduction
+
+        - ``N`` - positive integer. number of terms of the series to use in the local green functions
+
+        - ``prec`` - positive integer, float point or p-adic precision
+
+        - ``error_bound`` - a positive real number
+
+        OUTPUT:
+
+        - a real number
+
+        EXAMPLES::
+
+            sage: P.<x,y>=ProjectiveSpace(ZZ,1)
+            sage: H=Hom(P,P)
+            sage: f=H([x^2+y^2,2*x*y]);
+            sage: Q=P(2,1)
+            sage: f.canonical_height(f(Q))
+            2.1965476757927038111992627081
+            sage: f.canonical_height(Q)
+            1.0979353871245941198040174712
+
+        Notice that preperiodic points may not be exactly 0. ::
+
+            sage: P.<x,y>=ProjectiveSpace(QQ,1)
+            sage: H=Hom(P,P)
+            sage: f=H([x^2-29/16*y^2,y^2]);
+            sage: Q=P(5,4)
+            sage: f.canonical_height(Q,N=30)
+            1.4989058602918874235863427216e-9
+
+        ::
+
+            sage: P.<x,y,z>=ProjectiveSpace(QQ,2)
+            sage: X=P.subscheme(x^2-y^2);
+            sage: H=Hom(X,X)
+            sage: f=H([x^2,y^2,30*z^2]);
+            sage: Q=X([4,4,1])
+            sage: f.canonical_height(Q,badprimes=[2,3,5],prec=200)
+            2.7054056208276961889784303469356774912979228770208655455481
+        """
+
+        badprimes = kwds.pop("badprimes",None)
+
+        if badprimes is None:
+            badprimes=F.primes_of_bad_reduction(0)
+
+        h=self.green_function(F,0,**kwds)       #arch Green function
+        for v in badprimes:
+            h+=self.green_function(F,v,**kwds)  #non-arch Green functions
+
+        return h
+
+    def global_height(self, prec=None):
+        r"""
+        Returns the logarithmic height of the points. Must be over `\ZZ` or `\QQ`.
+
+        INPUT:
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number
+
+        EXAMPLES::
+
+            sage: P.<x,y,z>=ProjectiveSpace(QQ,2)
+            sage: Q=P.point([4,4,1/30])
+            sage: Q.global_height()
+            4.78749174278205
+
+        ::
+
+            sage: P.<x,y,z>=ProjectiveSpace(ZZ,2)
+            sage: Q=P([4,1,30])
+            sage: Q.global_height()
+            3.40119738166216
+
+        ::
+
+            sage: R.<x>=PolynomialRing(QQ)
+            sage: k.<w>=NumberField(x^2+5)
+            sage: A=ProjectiveSpace(k,2,'z')
+            sage: A([3,5*w+1,1]).global_height(prec=100)
+            2.4181409534757389986565376694
+
+        .. TODO::
+
+            p-adic heights
+
+            add heights to integer.pyx and remove special case
+        """
+        if self.domain().base_ring() == ZZ:
+            if prec is None:
+                R = RealField()
+            else:
+                R = RealField(prec)
+            H=R(0)
+            return(R(max([self[i].abs() for i in range(self.codomain().ambient_space().dimension_relative()+1)])).log())
+        if self.domain().base_ring() in _NumberFields or is_NumberFieldOrder(self.domain().base_ring()):
+            return(max([self[i].global_height(prec) for i in range(self.codomain().ambient_space().dimension_relative()+1)]))
+        else:
+            raise NotImplementedError("Must be over a Numberfield or a Numberfield Order")
 
 
 class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring):

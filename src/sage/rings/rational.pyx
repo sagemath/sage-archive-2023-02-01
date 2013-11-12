@@ -2569,10 +2569,10 @@ cdef class Rational(sage.structure.element.FieldElement):
         sig_off()
         return int((num * ai.inverse_mod_int(den, n)) % n)
 
-    def __mod__(Rational self, other):
+    def __mod__(x, y):
         """
-        Return the remainder of division of ``self`` by other, where other is
-        coerced to an integer.
+        Return the remainder of division of ``x`` by ``y``, where ``y`` is
+        something that can be coerced to an integer.
 
         INPUT:
 
@@ -2584,14 +2584,26 @@ cdef class Rational(sage.structure.element.FieldElement):
 
             sage: (-4/17).__mod__(3/1)
             1
+
+        TESTS:
+
+        Check that :trac:`14870` is fixed::
+
+            sage: int(4) % QQ(3)
+            1
         """
-        other = integer.Integer(other)
+        cdef Rational rat
+        if not isinstance(x, Rational):
+            rat = Rational(x)
+        else:
+            rat = x
+        cdef other = integer.Integer(y)
         if not other:
-            raise ZeroDivisionError, "Rational modulo by zero"
-        n = self.numer() % other
-        d = self.denom() % other
+            raise ZeroDivisionError("Rational modulo by zero")
+        n = rat.numer() % other
+        d = rat.denom() % other
         d = d.inverse_mod(other)
-        return (n*d)%other
+        return (n * d) % other
 
     def norm(self):
         r"""
@@ -2610,6 +2622,34 @@ cdef class Rational(sage.structure.element.FieldElement):
         AUTHORS:
 
         - Craig Citro
+        """
+        return self
+
+    def relative_norm(self):
+        """
+        Returns the norm from Q to Q of x (which is just x). This was added for compatibility with NumberFields
+
+        EXAMPLES::
+
+            sage: (6/5).relative_norm()
+            6/5
+
+            sage: QQ(7/5).relative_norm()
+            7/5
+        """
+        return self
+
+    def absolute_norm(self):
+        """
+        Returns the norm from Q to Q of x (which is just x). This was added for compatibility with NumberFields
+
+        EXAMPLES::
+
+            sage: (6/5).absolute_norm()
+            6/5
+
+            sage: QQ(7/5).absolute_norm()
+            7/5
         """
         return self
 

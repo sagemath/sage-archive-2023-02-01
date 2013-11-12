@@ -71,17 +71,12 @@ if [ "x$SAGE64" = xyes ]; then
     fi
 fi
 
-CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
+export CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
 
 # we are building everything fPIC, this might impose a slight
 # performance hit, need to evaluate:
-
-CXXFLAGS="$CXXFLAGS -fPIC"
-CFLAGS="$CFLAGS -fPIC"
-
-export CXXFLAGS
-export CFLAGS
-export CPPFLAGS
+export CXXFLAGS="$CXXFLAGS -fPIC"
+export CFLAGS="$CFLAGS -fPIC"
 
 
 # The Sun assembler has problems with -pipe, so disable it.
@@ -91,7 +86,7 @@ if [ "$UNAME" = "SunOS" ]; then
 fi
 
 
-apply_patches()
+choose_patches()
 {
     cd "$PATCHES" || return $?
 
@@ -108,12 +103,14 @@ apply_patches()
         mv configure_omalloc "$SRC/omalloc/configure"
         mv conditional/singular_xalloc.patch . || return $?
     fi
+}
 
+apply_patches()
+{
     # Apply all patches
-    cd "$SRC" || return $?
-    for patch in `ls "$PATCHES"/*.patch`; do
+    for patch in "$PATCHES"/*.patch; do
         [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-	echo "Applying $patch"
+        echo "Applying $patch"
         patch -p1 <"$patch"
         if [ $? -ne 0 ]; then
             echo >&2 "Error applying '$patch'"
@@ -132,8 +129,6 @@ remove_old_version()
 
 config()
 {
-    cd "$SRC" || return $?
-
     # configure notes:
     # 1) We really need to add --exec-prefix and --bindir as Singular
     #    uses some wierd defaults.
@@ -232,7 +227,7 @@ build_libsingular()
 
 build_factory()
 {
-    cd "$SRC/factory" || return $?
+    cd factory || return $?
 
     $MAKE distclean
 
@@ -275,7 +270,7 @@ build_factory()
 
 build_libfac()
 {
-    cd "$SRC/libfac" || return $?
+    cd libfac || return $?
 
     $MAKE distclean
 
@@ -311,7 +306,7 @@ install_docs()
 
 
 # Actually run all the functions defined above
-for i in apply_patches remove_old_version config \
+for i in choose_patches apply_patches remove_old_version config \
   build_singular build_libsingular build_factory build_libfac \
   create_singular_script install_docs ; do
     echo "### Singular spkg-install: $i ###"

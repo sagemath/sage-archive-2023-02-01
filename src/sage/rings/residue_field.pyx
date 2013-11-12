@@ -452,7 +452,7 @@ class ResidueField_generic(Field):
             sage: k.category()
             Category of finite fields
             sage: F.category()
-            Join of Category of subquotients of monoids and Category of quotients of semigroups and Category of finite fields
+            Join of Category of finite fields and Category of subquotients of monoids and Category of quotients of semigroups
 
         TESTS::
 

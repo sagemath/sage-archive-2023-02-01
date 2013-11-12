@@ -44,6 +44,7 @@ from sage.interfaces.gap import gap
 from sage.misc.cachefunc import cached_method, ClearCacheOnPickle
 from sage.misc.superseded import deprecated_function_alias
 from sage.combinat.root_system.cartan_type import CartanType
+from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.matrix.constructor import matrix, diagonal_matrix
 from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
 from sage.structure.unique_representation import UniqueRepresentation
@@ -54,18 +55,21 @@ from sage.graphs.graph import DiGraph
 
 def WeylGroup(x, prefix=None):
     """
-    Returns the Weyl group of type ct.
+    Returns the Weyl group of the root system defined by the Cartan
+    type (or matrix) ``ct``.
 
     INPUT:
 
-    - ``ct`` - a Cartan Type.
+    - ``x`` - a root system or a Cartan type (or matrix)
 
     OPTIONAL:
 
-    - ``prefix`` - changes the representation of elements from matrices
+    - ``prefix`` -- changes the representation of elements from matrices
       to products of simple reflections
 
-    EXAMPLES: The following constructions yield the same result, namely
+    EXAMPLES:
+
+    The following constructions yield the same result, namely
     a weight lattice and its corresponding Weyl group::
 
         sage: G = WeylGroup(['F',4])
@@ -75,6 +79,7 @@ def WeylGroup(x, prefix=None):
 
         sage: L = RootSystem(['F',4]).ambient_space()
         sage: G = L.weyl_group()
+        sage: W = WeylGroup(L)
 
     Either produces a weight lattice, with access to its roots and
     weights.
@@ -126,28 +131,69 @@ def WeylGroup(x, prefix=None):
         sage: w.action(rho) # action of G on weight lattice
         (5, -1, 3, 2)
 
+    We can also do the same for arbitrary Cartan matrices::
+
+        sage: cm = CartanMatrix([[2,-5,0],[-2,2,-1],[0,-1,2]])
+        sage: W = WeylGroup(cm)
+        sage: W.gens()
+        (
+        [-1  5  0]  [ 1  0  0]  [ 1  0  0]
+        [ 0  1  0]  [ 2 -1  1]  [ 0  1  0]
+        [ 0  0  1], [ 0  0  1], [ 0  1 -1]
+        )
+        sage: s0,s1,s2 = W.gens()
+        sage: s1*s2*s1
+        [ 1  0  0]
+        [ 2  0 -1]
+        [ 2 -1  0]
+        sage: s2*s1*s2
+        [ 1  0  0]
+        [ 2  0 -1]
+        [ 2 -1  0]
+        sage: s0*s1*s0*s2*s0
+        [ 9  0 -5]
+        [ 2  0 -1]
+        [ 0  1 -1]
+
+    Same Cartan matrix, but with a prefix to display using simple reflections::
+
+        sage: W = WeylGroup(cm, prefix='s')
+        sage: s0,s1,s2 = W.gens()
+        sage: s0*s2*s1
+        s2*s0*s1
+        sage: (s1*s2)^3
+        1
+        sage: (s0*s1)^5
+        s0*s1*s0*s1*s0*s1*s0*s1*s0*s1
+        sage: s0*s1*s2*s1*s2
+        s2*s0*s1
+        sage: s0*s1*s2*s0*s2
+        s0*s1*s0
+
     TESTS::
 
         sage: TestSuite(WeylGroup(["A",3])).run()
-        sage: TestSuite(WeylGroup(["A",3, 1])).run()
+        sage: TestSuite(WeylGroup(["A",3,1])).run() # long time
 
-        sage: W=WeylGroup(['A',3,1])
-        sage: s=W.simple_reflections()
-        sage: w=s[0]*s[1]*s[2]
+        sage: W = WeylGroup(['A',3,1])
+        sage: s = W.simple_reflections()
+        sage: w = s[0]*s[1]*s[2]
         sage: w.reduced_word()
         [0, 1, 2]
-        sage: w=s[0]*s[2]
+        sage: w = s[0]*s[2]
         sage: w.reduced_word()
         [2, 0]
     """
     if x in RootLatticeRealizations:
         return WeylGroup_gens(x, prefix=prefix)
 
-    ct = CartanType(x)
-    if ct.is_affine():
-        return WeylGroup_gens(ct.root_system().root_space(), prefix=prefix)
-    else:
+    try:
+        ct = CartanType(x)
+    except TypeError:
+        ct = CartanMatrix(x)  # See if it is a Cartan matrix
+    if ct.is_finite():
         return WeylGroup_gens(ct.root_system().ambient_space(), prefix=prefix)
+    return WeylGroup_gens(ct.root_system().root_space(), prefix=prefix)
 
 
 class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
@@ -163,6 +209,9 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
 
             sage: G = WeylGroup(['B',3])
             sage: TestSuite(G).run()
+            sage: cm = CartanMatrix([[2,-5,0],[-2,2,-1],[0,-1,2]])
+            sage: W = WeylGroup(cm)
+            sage: TestSuite(W).run() # long time
         """
         self._domain = domain
         if self.cartan_type().is_affine():
@@ -206,10 +255,10 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
 
             sage: G = WeylGroup(['F',4])
             sage: G.index_set()
-            [1, 2, 3, 4]
+            (1, 2, 3, 4)
             sage: G = WeylGroup(['A',3,1])
             sage: G.index_set()
-            [0, 1, 2, 3]
+            (0, 1, 2, 3)
         """
         return self.cartan_type().index_set()
 
@@ -534,7 +583,7 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
         sage: G.cardinality()
         24
         sage: G.index_set()
-        [1, 2, 3]
+        (1, 2, 3)
         sage: TestSuite(G).run()
 
     TESTS::
@@ -560,7 +609,7 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
             sage: WeylGroup(['A',3,1]).classical().cartan_type()
             ['A', 3]
             sage: WeylGroup(['A',3,1]).classical().index_set()
-            [1, 2, 3]
+            (1, 2, 3)
 
         Note: won't be needed, once the lattice will be a parabolic sub root system
         """
@@ -633,7 +682,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
     """
     Class for a Weyl Group elements
     """
-    def __init__(self, g, parent, check=False):
+    def __init__(self, parent, g, check=False):
         """
         EXAMPLES::
 
@@ -641,7 +690,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
             sage: s1 = G.simple_reflection(1)
             sage: TestSuite(s1).run()
         """
-        MatrixGroupElement_gap.__init__(self, g, parent, check=check)
+        MatrixGroupElement_gap.__init__(self, parent, g, check=check)
         self.__matrix = self.matrix()
         self._parent = parent
 

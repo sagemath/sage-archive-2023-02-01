@@ -70,7 +70,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         Join of Category of graded hopf algebras over Rational Field and Category of monoids with realizations and Category of coalgebras over Rational Field with realizations
 
     Notice that ``Sym`` is an *abstract* algebra.  This reflects the fact that
-    there is no canonical choice for a basis.  To work with specific
+    there are multiple natural bases.  To work with specific
     elements, we need a *realization* of this algebra.  In practice, this
     means we need to specify a basis.
 
@@ -152,14 +152,14 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         [Category of bases of Symmetric Functions over Rational Field, Category of graded hopf algebras with basis over Rational Field, ...]
 
     To start with, ``p`` is a graded algebra, the grading being induced
-    by the size of compositions. Due to this, the one is the basis
-    element indexed by the empty composition::
+    by the size of the partitions. Due to this, the one is the basis
+    element indexed by the empty partition::
 
         sage: p.one()
         p[]
 
-    The ``p`` basis is multiplicative; that is multiplication is induced by linearity from the
-    concatenation of compositions::
+    The ``p`` basis is multiplicative; that is, multiplication is induced by
+    linearity from the (nonincreasingly sorted) concatenation of partitions::
 
         sage: p[3,1] * p[2,1]
         p[3, 2, 1, 1]
@@ -177,10 +177,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: h = Sym.homogeneous()
         sage: m = Sym.monomial()
         sage: s = Sym.schur()
-        sage: f = Sym.forgotten()
 
-    These can be defined all at once with the single command (note that the forgotten
-    basis is not injected with this command)::
+    These can be defined all at once with the single command
 
         sage: Sym.inject_shorthands()
         doctest:...: RuntimeWarning: redefining global value `h`
@@ -259,7 +257,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: SymmetricGroup(5).character_table() == M
         True
 
-    In this interpretation of symmetric function as characters on the
+    In this interpretation of symmetric functions as characters on the
     symmetric group, the multiplication and comultiplication are
     interpreted as induction (from `S_n\times S_m` to `S_{n+m}`)
     and restriction, respectively. The Schur functions can also be interpreted
@@ -294,7 +292,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         2*s[2, 1] + 2*s[3]
 
     In general, ``s[la].skew_by(s[mu])`` is the symmetric function typically
-    denoted `s_{\lambda \setminus \mu}`.
+    denoted `s_{\lambda \setminus \mu}` or `s_{\lambda / \mu}`.
 
     .. rubric:: Expanding into variables
 
@@ -337,7 +335,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     The *plethysm* of symmetric functions is the operation corresponding to
     composition of representations of the general linear group.  See [STA]_
-    Chapter 7, Appendix 2 for details::
+    Chapter 7, Appendix 2 for details.
 
         sage: s[2].plethysm(s[2])
         s[2, 2] + s[4]
@@ -359,8 +357,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     .. rubric:: Inner plethysm
 
     The operation of inner plethysm ``f.inner_plethysm(g)`` models the
-    composition of the `S_n` representation represented by `f` with the
-    `GL_m` representation whose character is `g`.  See the documentation of
+    composition of the `S_n` representation represented by `g` with the
+    `GL_m` representation whose character is `f`.  See the documentation of
     ``inner_plethysm``, [ST94]_ or [STA]_, exercise 7.74 solutions for more
     information::
 
@@ -371,30 +369,40 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: Hopf algebra structure
 
-    The ring of symmetric functions is further endowed with a coalgebra algebra structure (in
-    fact, it is, up to isomorphism, the unique free algebra on
-    primitive elements). The coproduct is an algebra morphism, and
-    therefore determined by its values on the generators; those are
-    primitive::
+    The ring of symmetric functions is further endowed with a coalgebra
+    structure. The coproduct is an algebra morphism, and therefore
+    determined by its values on the generators; the power sum generators
+    are primitive::
 
         sage: p[1].coproduct()
         p[] # p[1] + p[1] # p[]
         sage: p[2].coproduct()
         p[] # p[2] + p[2] # p[]
 
-    The coproduct being cocommutative on the generators is cocommutative everywhere::
+    The coproduct, being cocommutative on the generators, is cocommutative everywhere::
 
         sage: p[2, 1].coproduct()
         p[] # p[2, 1] + p[1] # p[2] + p[2] # p[1] + p[2, 1] # p[]
 
-    The antipode is an anti-algebra morphism which sends `p_\lambda` to
-    `(-1)^{\mathrm{length(\lambda)}} p_\lambda`; on the ``p`` basis, it sends the generators
-    to their opposite::
+    This coproduct, along with the counit which sends every symmetric function
+    to its `0`-th homogeneous component, makes the ring of symmetric functions
+    into a graded connected bialgebra. It is known that every graded connected
+    bialgebra has an antipode. For the ring of symmetric functions, the antipode
+    can be characterized explicitly: The antipode is an anti-algebra morphism
+    (thus an algebra morphism, since our algebra is commutative) which sends
+    `p_{\lambda}` to `(-1)^{\mathrm{length}(\lambda)} p_{\lambda}` for every
+    partition `\lambda`. Thus, in particular, it sends the generators on the
+    ``p`` basis to their opposites::
 
         sage: p[3].antipode()
         -p[3]
         sage: p[3,2,1].antipode()
         -p[3, 2, 1]
+
+    The graded connected bialgebra of symmetric functions over a `\QQ`-algebra
+    has a rather simply-understood structure: It is (isomorphic to) the
+    symmetric algebra of its space of primitives (which is spanned by the
+    power-sum symmetric functions).
 
     Here are further examples::
 
@@ -449,7 +457,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: s.zero()
         0
 
-    instead of s(1) and s(0) within programs where speed is important,
+    instead of ``s(1)`` and ``s(0)`` within programs where speed is important,
     in order to prevent unnecessary coercions.
 
     .. rubric:: Different base rings
@@ -507,6 +515,22 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: Other bases
 
+    There are two additional basis of the symmetric functions which are not
+    considered as classical bases:
+
+    * forgotten basis
+    * Witt basis
+
+    The forgotten basis is the dual basis of the elementary symmetric
+    functions basis with respect to the Hall scalar product. The Witt basis
+    can be constructed by
+
+    .. MATH::
+
+        \prod_{d=1}^{\infty} (1 - w_d t^d)^{-1} = \sum_{n=0}^{\infty} h_n t^n
+
+    where `t` is a formal variable.
+
     There are further bases of the ring of symmetric functions, in general over
     fields with parameters such as `q` and `t`:
 
@@ -515,7 +539,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     * Macdonald bases
     * `k`-Schur functions
 
-    We briefly demonstrate on how to access these bases. For more information, see
+    We briefly demonstrate how to access these bases. For more information, see
     the documentation of the individual bases.
 
     The *Jack polynomials* can be obtained as::
@@ -645,7 +669,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     At `t=1` the `k`-bounded Hall-Littlewood basis is equal to the `k`-bounded monomial
     basis and the dual `k`-Schur elements are equal to the affine Schur basis.  The
     `k`-bounded monomial basis and affine Schur functions are faster and should be used
-    instead of the `k`-bounded Hall Littlewood P basis and dual `k`-Schur functions when
+    instead of the `k`-bounded Hall-Littlewood P basis and dual `k`-Schur functions when
     `t=1`.::
 
         sage: SymQ3 = Sym.kBoundedQuotient(3,t=1)
@@ -668,7 +692,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         .. [FD06] Francois Descouens, Making research on symmetric functions using MuPAD-Combinat.
                  In Andres Iglesias and Nobuki Takayama, editors, 2nd International Congress on Mathematical Software (ICMS'06),
                  volume 4151 of LNCS, pages 407-418, Castro Urdiales, Spain, September 2006. Springer-Verlag.
-                 http://arxiv.org/abs/0806.1873
+                 :arXiv:`0806.1873`
 
         .. [HT04] Florent Hivert and Nicolas M. Thiery,
                  MuPAD-Combinat, an open-source package for research in algebraic combinatorics.
@@ -688,6 +712,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         .. [ST94]  Scharf, Thomas, Thibon, Jean-Yves,
                  A Hopf-algebra approach to inner plethysm.
                  Adv. Math.  104  (1994),  no. 1, 30-58.
+                 :doi:`10.1006/aima.1994.1019`
 
     .. rubric:: Further tests
 
@@ -771,6 +796,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         return schur.SymmetricFunctionAlgebra_schur(self)
     s = schur
     Schur = schur # Currently needed by SymmetricFunctions.__init_extra__
+                  # and sfa.SymmetricFunctionsBases.corresponding_basis_over
 
     def powersum(self):
         r"""
@@ -822,15 +848,106 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         return monomial.SymmetricFunctionAlgebra_monomial(self)
     m = monomial
 
+    def witt(self, coerce_h=True, coerce_e=False, coerce_p=False):
+        r"""
+        The Witt basis of the symmetric functions.
+
+        EXAMPLES::
+
+            sage: SymmetricFunctions(QQ).witt()
+            Symmetric Functions over Rational Field in the Witt basis
+            sage: SymmetricFunctions(QQ).witt(coerce_p=True)
+            Symmetric Functions over Rational Field in the Witt basis
+            sage: SymmetricFunctions(QQ).witt(coerce_h=False, coerce_e=True, coerce_p=True)
+            Symmetric Functions over Rational Field in the Witt basis
+        """
+        import witt
+        return witt.SymmetricFunctionAlgebra_witt(self, coerce_h=coerce_h, coerce_e=coerce_e, coerce_p=coerce_p)
+    w = witt
+    # Currently needed by sfa.SymmetricFunctionsBases.corresponding_basis_over
+    Witt = witt
+
     def forgotten(self):
         r"""
-        The forgotten basis of the Symmetric Functions (or the basis dual to the
-        elementary basis with respect to the Hall scalar product).
+        The forgotten basis of the Symmetric Functions (or the basis dual to
+        the elementary basis with respect to the Hall scalar product).
 
         EXAMPLES::
 
             sage: SymmetricFunctions(QQ).forgotten()
             Symmetric Functions over Rational Field in the forgotten basis
+
+        TESTS:
+
+        Over the rationals::
+
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: e = Sym.e()
+            sage: f = Sym.f()
+            sage: h = Sym.h()
+            sage: p = Sym.p()
+            sage: s = Sym.s()
+            sage: m = Sym.m()
+            sage: e(f([2,1]))
+            -2*e[1, 1, 1] + 5*e[2, 1] - 3*e[3]
+            sage: f(e([2,1]))
+            3*f[1, 1, 1] + 2*f[2, 1] + f[3]
+            sage: h(f([2,1]))
+            h[2, 1] - 3*h[3]
+            sage: f(h([2,1]))
+            3*f[1, 1, 1] + f[2, 1]
+            sage: p(f([2,1]))
+            -p[2, 1] - p[3]
+            sage: f(p([2,1]))
+            -f[2, 1] - f[3]
+            sage: s(f([2,1]))
+            s[2, 1] - 2*s[3]
+            sage: f(s([2,1]))
+            2*f[1, 1, 1] + f[2, 1]
+            sage: m(f([2,1]))
+            -m[2, 1] - 2*m[3]
+            sage: f(m([2,1]))
+            -f[2, 1] - 2*f[3]
+
+        Over the integers::
+
+            sage: Sym = SymmetricFunctions(ZZ)
+            sage: e = Sym.e()
+            sage: f = Sym.f()
+            sage: h = Sym.h()
+            sage: p = Sym.p()
+            sage: s = Sym.s()
+            sage: m = Sym.m()
+            sage: e(f([2,1]))
+            -2*e[1, 1, 1] + 5*e[2, 1] - 3*e[3]
+            sage: f(e([2,1]))
+            3*f[1, 1, 1] + 2*f[2, 1] + f[3]
+            sage: h(f([2,1]))
+            h[2, 1] - 3*h[3]
+            sage: f(h([2,1]))
+            3*f[1, 1, 1] + f[2, 1]
+            sage: f(p([2,1]))
+            -f[2, 1] - f[3]
+            sage: s(f([2,1]))
+            s[2, 1] - 2*s[3]
+            sage: f(s([2,1]))
+            2*f[1, 1, 1] + f[2, 1]
+            sage: m(f([2,1]))
+            -m[2, 1] - 2*m[3]
+            sage: f(m([2,1]))
+            -f[2, 1] - 2*f[3]
+
+        Conversion from the forgotten basis to the power-sum basis over the
+        integers is not well-defined in general, even if the result happens
+        to have integral coefficients::
+
+            sage: p(f([2,1]))
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion of this rational to integer
+
+        Fun exercise: prove that `p(f_{\lambda})` and `p(m_{\lambda})` have
+        integral coefficients whenever `\lambda` is a strict partition.
         """
         return self.elementary().dual_basis()
     f = forgotten
@@ -1004,9 +1121,11 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.m().from_polynomial(f)
 
-    def register_isomorphism(self, morphism):
+    def register_isomorphism(self, morphism, only_conversion=False):
         """
-        Registers an isomorphism between two bases of ``self``, as a canonical coercion
+        Register an isomorphism between two bases of ``self``, as a canonical coercion
+        (unless the optional keyword ``only_conversion`` is set to ``True``,
+        in which case the isomorphism is registered as conversion only).
 
         EXAMPLES:
 
@@ -1027,7 +1146,10 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         between the two basis. Otherwise, the results will be
         mathematically wrong, as above. Use with care!
         """
-        morphism.codomain().register_coercion(morphism)
+        if only_conversion:
+            morphism.codomain().register_conversion(morphism)
+        else:
+            morphism.codomain().register_coercion(morphism)
 
     _shorthands = set(['e', 'h', 'm', 'p', 's'])
 
@@ -1101,13 +1223,20 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
             basis1 = getattr(self, basis1_name)()
             basis2 = getattr(self, basis2_name)()
             on_basis = SymmetricaConversionOnBasis(t = conversion_functions[basis1_name,basis2_name], domain = basis1, codomain = basis2)
-            iso(basis1._module_morphism(on_basis, codomain = basis2))
+            from sage.rings.rational_field import RationalField
+            if basis2_name != "powersum" or self._base.has_coerce_map_from(RationalField()):
+                iso(basis1._module_morphism(on_basis, codomain = basis2))
+            else:
+                # Don't register conversions to powersums as coercions,
+                # unless the base ring is a `\QQ`-algebra
+                # (otherwise the coercion graph loses commutativity).
+                iso(basis1._module_morphism(on_basis, codomain = basis2), only_conversion = True)
 
         # Todo: fill in with other conversion functions on the classical bases
 
     def kBoundedSubspace(self, k, t='t'):
         r"""
-        Returns the `k`-bounded subspace of the ring of symmetric functions.
+        Return the `k`-bounded subspace of the ring of symmetric functions.
 
         INPUT:
 
@@ -1116,7 +1245,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
         The subspace of the ring of symmetric functions spanned by
         `\{ s_{\lambda}[X/(1-t)] \}_{\lambda_1\le k} = \{ s_{\lambda}^{(k)}[X,t]\}_{\lambda_1 \le k}`
-        over the base ring `\mathbb{Q}[t]`. When `t=1`, this space is in fact a subring of
+        over the base ring `\mathbb{Q}[t]`. When `t=1`, this space is in fact a subalgebra of
         the ring of symmetric functions generated by the complete homogeneous symmetric functions
         `h_i` for `1\le i \le k`.
 

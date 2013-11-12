@@ -22,9 +22,9 @@ which can be found at http://www.math.lsa.umich.edu/~jrs/maple.html
 #*****************************************************************************
 
 import sage.combinat.partition
-from sage.rings.all import PolynomialRing, ZZ
+from sage.rings.polynomial.polynomial_ring import polygen
+from sage.rings.integer_ring import ZZ
 
-global_t = PolynomialRing(ZZ, 't').gen()
 
 def KostkaFoulkesPolynomial(mu, nu, t=None):
     r"""
@@ -33,12 +33,12 @@ def KostkaFoulkesPolynomial(mu, nu, t=None):
     INPUT:
 
     - ``mu``, ``nu`` -- partitions
-    - ``t`` -- an optional parameter (default: None)
+    - ``t`` -- an optional parameter (default: ``None``)
 
     OUTPUT:
 
     - the Koskta-Foulkes polynomial indexed by partitions ``mu`` and ``nu`` and
-      evaluated at the parameter ``t``.  If ``t`` is None the resulting polynomial
+      evaluated at the parameter ``t``.  If ``t`` is ``None`` the resulting polynomial
       is in the polynomial ring `ZZ['t']`.
 
     EXAMPLES::
@@ -74,12 +74,12 @@ def kfpoly(mu, nu, t=None):
     INPUT:
 
     - ``mu``, ``nu`` -- partitions
-    - ``t`` -- an optional parameter (default: None)
+    - ``t`` -- an optional parameter (default: ``None``)
 
     OUTPUT:
 
     - the Koskta-Foulkes polynomial indexed by partitions ``mu`` and ``nu`` and
-      evaluated at the parameter ``t``.  If ``t`` is None the resulting polynomial
+      evaluated at the parameter ``t``.  If ``t`` is ``None`` the resulting polynomial
       is in the polynomial ring `\mathbb{Z}['t']`.
 
     EXAMPLES::
@@ -100,7 +100,7 @@ def kfpoly(mu, nu, t=None):
         return 0
 
     if t is None:
-        t = global_t
+        t = polygen(ZZ, 't')
 
     nuc = sage.combinat.partition.Partition(nu).conjugate()
 
@@ -172,7 +172,7 @@ def schur_to_hl(mu, t=None):
     if mu == []:
         return {mu: 1}
     if t is None:
-        t = global_t
+        t = polygen(ZZ, 't')
 
     res = {}
     for rg in riggings(mu):
@@ -350,7 +350,8 @@ def weight(rg, t=None):
     """
     from sage.combinat.q_analogues import q_binomial
     if t is None:
-        t = global_t
+        t = polygen(ZZ, 't')
+
     nu = rg + [ [] ]
     l = 1 + max( map(len, nu) )
     nu = [ list(mu) + [0]*l for mu in nu ]

@@ -123,6 +123,7 @@ import re
 include 'sage/ext/interrupt.pxi'
 include "sage/ext/stdsage.pxi"
 include "sage/ext/random.pxi"
+include 'sage/libs/pari/pari_err.pxi'
 
 cimport sage.rings.ring
 import  sage.rings.ring
@@ -1279,7 +1280,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
            is the same as in the IEEE 754-1985 standard and it is
            generalized to the other functions supported by MPFR.
 
-
         TESTS::
 
             sage: TestSuite(R).run()
@@ -1290,7 +1290,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
         self._parent = parent
         mpfr_init2(self.value, parent.__prec)
         self.init = 1
-        if x is None: return
+        if x is None:
+            return
+
         self._set(x, base)
 
     def _magma_init_(self, magma):
@@ -1786,9 +1788,22 @@ cdef class RealNumber(sage.structure.element.RingElement):
             '-10.042'
             sage: (389.0).str(skip_zeroes=True)
             '389.'
+
+        Test various bases::
+
+            sage: print (65536.0).str(base=2)
+            1.0000000000000000000000000000000000000000000000000000e16
+            sage: print (65536.0).str(base=36)
+            1ekg.00000000
+            sage: print (65536.0).str(base=62)
+            H32.0000000
+            sage: print (65536.0).str(base=63)
+            Traceback (most recent call last):
+            ...
+            ValueError: base (=63) must be an integer between 2 and 62
         """
-        if base < 2 or base > 36:
-            raise ValueError, "the base (=%s) must be between 2 and 36"%base
+        if base < 2 or base > 62:
+            raise ValueError("base (=%s) must be an integer between 2 and 62"%base)
         if mpfr_nan_p(self.value):
             if base >= 24:
                 return "@NaN@"
@@ -2122,6 +2137,22 @@ cdef class RealNumber(sage.structure.element.RingElement):
         cdef RealNumber x = self._new()
         mpfr_sub(x.value, self.value, (<RealNumber>right).value, (<RealField_class> self._parent).rnd)
         return x
+
+    def _sympy_(self):
+        """
+        Return a sympy object of ``self``.
+
+        EXAMPLES:
+
+        An indirect doctest to check this (see :trac:`14915`)::
+
+            sage: x,y = var('x, y')
+            sage: integrate(y, y, 0.5, 8*log(x), algorithm='sympy')
+            32*log(x)^2 - 0.125000000000000
+
+        """
+        import sympy
+        return sympy.simplify(float(self))
 
     cpdef RingElement _mul_(self, RingElement right):
         """
@@ -2836,7 +2867,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         # by using internal interfaces of MPFR, which are documented
         # as subject-to-change.
 
-        sig_on()
+        pari_catch_sig_on()
         if mpfr_nan_p(self.value) or mpfr_inf_p(self.value):
             raise ValueError, 'Cannot convert NaN or infinity to Pari float'
 
@@ -5140,7 +5171,7 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
     - ``s`` -- a string that defines a real number (or
       something whose string representation defines a number)
 
-    - ``base`` -- an integer between 2 and 36
+    - ``base`` -- an integer between 2 and 62
 
     - ``pad`` -- an integer = 0.
 
@@ -5167,6 +5198,31 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
         sage: (1.2).parent() is RR
         True
 
+    We can use various bases::
+
+        sage: RealNumber("10101e2",base=2)
+        84.0000000000000
+        sage: RealNumber("deadbeef", base=16)
+        3.73592855900000e9
+        sage: RealNumber("deadbeefxxx", base=16)
+        Traceback (most recent call last):
+        ...
+        TypeError: Unable to convert x (='deadbeefxxx') to real number.
+        sage: RealNumber("z", base=36)
+        35.0000000000000
+        sage: RealNumber("AAA", base=37)
+        14070.0000000000
+        sage: RealNumber("aaa", base=37)
+        50652.0000000000
+        sage: RealNumber("3.4", base="foo")
+        Traceback (most recent call last):
+        ...
+        TypeError: an integer is required
+        sage: RealNumber("3.4", base=63)
+        Traceback (most recent call last):
+        ...
+        ValueError: base (=63) must be an integer between 2 and 62
+
     TESTS::
 
         sage: RealNumber('.000000000000000000000000000000001').prec()
@@ -5180,17 +5236,20 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
         sage: ks = 5*10**5, 10**6
         sage: all(RealNumber("1." + "0"*k +"1")-1 > 0 for k in ks)
         True
-
     """
     if not isinstance(s, str):
         s = str(s)
+
+    # Check for a valid base
+    if base < 2 or base > 62:
+        raise ValueError("base (=%s) must be an integer between 2 and 62"%base)
 
     if base == 10 and min_prec == 53 and len(s) <= 15:
         R = RR
 
     else:
-
-        if 'e' in s or 'E' in s:
+        # For bases 15 and up, treat 'e' as digit
+        if base <= 14 and ('e' in s or 'E' in s):
             #Figure out the exponent
             index = max( s.find('e'), s.find('E') )
             exponent = int(s[index+1:])

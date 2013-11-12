@@ -49,7 +49,7 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
         sage: A.cartan_type()
         ['A', 2, 1]
         sage: A.index_set()
-        [0, 1, 2]
+        (0, 1, 2)
         sage: b=A(rows=[[1]])
         sage: b.weight()
         -Lambda[0] + Lambda[1]
@@ -95,7 +95,7 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
             sage: A.cartan_type()
             ['A', 1, 1]
             sage: A.index_set()
-            [0, 1]
+            (0, 1)
 
         Note: AffineCrystalFromClassical is an abstract class, so we
         can't test it directly.
@@ -198,7 +198,7 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
             sage: A.retract(t).parent() is A
             True
         """
-        return self.element_class(classical_elt, parent = self)
+        return self.element_class(self, classical_elt)
 
     def _element_constructor_(self, *value, **options):
         r"""
@@ -487,7 +487,7 @@ class AffineCrystalFromClassicalAndPromotion(AffineCrystalFromClassical):
         sage: A.cartan_type()
         ['A', 2, 1]
         sage: A.index_set()
-        [0, 1, 2]
+        (0, 1, 2)
         sage: b=A(rows=[[1]])
         sage: b.weight()
         -Lambda[0] + Lambda[1]
@@ -516,7 +516,7 @@ class AffineCrystalFromClassicalAndPromotion(AffineCrystalFromClassical):
             sage: A.cartan_type()
             ['A', 1, 1]
             sage: A.index_set()
-            [0, 1]
+            (0, 1)
 
         TESTS::
 

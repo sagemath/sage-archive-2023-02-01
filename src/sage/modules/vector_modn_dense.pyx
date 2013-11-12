@@ -60,6 +60,18 @@ TESTS:
     sage: v = vector(Integers(next_prime(10^20)), [1,2,3,4,5])
     sage: loads(dumps(v)) == v
     True
+
+    sage: K = GF(previous_prime(2^31))
+    sage: v = vector(K, [42]);  type(v[0])
+    <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int64'>
+    sage: ~v[0]
+    2096353084
+
+    sage: K = GF(next_prime(2^31))
+    sage: v = vector(K, [42]);  type(v[0])
+    <type 'sage.rings.finite_rings.integer_mod.IntegerMod_gmp'>
+    sage: ~v[0]
+    1482786336
 """
 
 ###############################################################################
@@ -72,10 +84,15 @@ TESTS:
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/stdsage.pxi'
 
-from sage.rings.finite_rings.integer_mod cimport (IntegerMod_int, IntegerMod_int64,
-          IntegerMod_abstract, use_32bit_type)
+from sage.rings.finite_rings.stdint cimport INTEGER_MOD_INT64_LIMIT
 
-cdef mod_int ivalue(IntegerMod_abstract x) except 18446744073709551615:
+MAX_MODULUS = INTEGER_MOD_INT64_LIMIT
+
+from sage.rings.finite_rings.integer_mod cimport (
+    IntegerMod_int, IntegerMod_int64,
+    IntegerMod_abstract, use_32bit_type)
+
+cdef mod_int ivalue(IntegerMod_abstract x) except -1:
     if PY_TYPE_CHECK_EXACT(x, IntegerMod_int):
         return (<IntegerMod_int>x).ivalue
     elif PY_TYPE_CHECK_EXACT(x, IntegerMod_int64):
@@ -87,8 +104,6 @@ from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 
 cimport free_module_element
 from free_module_element import vector
-
-from sage.ext.multi_modular import MAX_MODULUS
 
 cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
     cdef _new_c(self):

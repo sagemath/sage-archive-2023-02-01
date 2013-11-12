@@ -11,13 +11,14 @@ Affine `n` space over a ring
 #*****************************************************************************
 
 from sage.rings.all import (
-    is_FiniteField,
-    is_RationalField,
-    is_Ring,
     PolynomialRing,
-    is_MPolynomialRing,
     ZZ,
     Integer)
+
+from sage.rings.ring import is_Ring
+from sage.rings.rational_field import is_RationalField
+from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+from sage.rings.finite_rings.constructor import is_FiniteField
 
 from sage.categories.fields import Fields
 _Fields = Fields()

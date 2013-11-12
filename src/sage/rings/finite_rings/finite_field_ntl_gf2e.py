@@ -2,7 +2,6 @@
 Finite Fields of Characteristic 2
 """
 
-
 from sage.rings.finite_rings.finite_field_base import FiniteField
 from sage.libs.pari.all import pari
 from finite_field_ext_pari import FiniteField_ext_pari
@@ -29,12 +28,9 @@ def late_import():
     import sage.rings.finite_rings.finite_field_base
     is_FiniteField = sage.rings.finite_rings.finite_field_base.is_FiniteField
 
-    import sage.rings.finite_rings.constructor
-    exists_conway_polynomial = sage.rings.finite_rings.constructor.exists_conway_polynomial
-    conway_polynomial = sage.rings.finite_rings.constructor.conway_polynomial
-
-    import sage.rings.finite_rings.constructor
-    exists_conway_polynomial = sage.rings.finite_rings.constructor.exists_conway_polynomial
+    import sage.rings.finite_rings.conway_polynomials
+    exists_conway_polynomial = sage.rings.finite_rings.conway_polynomials.exists_conway_polynomial
+    conway_polynomial = sage.rings.finite_rings.conway_polynomials.conway_polynomial
 
     import sage.rings.finite_rings.element_ntl_gf2e
     Cache_ntl_gf2e = sage.rings.finite_rings.element_ntl_gf2e.Cache_ntl_gf2e
@@ -96,10 +92,9 @@ class FiniteField_ntl_gf2e(FiniteField):
         sage: k.<a> = GF(2^211, modulus='conway')
         sage: k.modulus()
         x^211 + x^9 + x^6 + x^5 + x^3 + x + 1
-        sage: k.<a> = GF(2^411, modulus='conway')
-        Traceback (most recent call last):
-        ...
-        RuntimeError: requested conway polynomial not in database.
+        sage: k.<a> = GF(2^23, modulus='conway')
+        sage: a.multiplicative_order() == k.order() - 1
+        True
     """
 
     def __init__(self, q, names="a",  modulus=None, repr="poly"):
@@ -111,7 +106,7 @@ class FiniteField_ntl_gf2e(FiniteField):
             sage: k.<a> = GF(2^100, modulus='strangeinput')
             Traceback (most recent call last):
             ...
-            ValueError: Modulus parameter not understood
+            ValueError: no such algorithm for finding an irreducible polynomial: strangeinput
             sage: k.<a> = GF(2^20) ; type(k)
             <class 'sage.rings.finite_rings.finite_field_ntl_gf2e.FiniteField_ntl_gf2e_with_category'>
             sage: loads(dumps(k)) is k
@@ -144,7 +139,6 @@ class FiniteField_ntl_gf2e(FiniteField):
         FiniteField.__init__(self, GF(p), names, normalize=True)
 
         self._kwargs = {'repr':repr}
-        self._is_conway = False
 
         if modulus is None or modulus == 'default':
             if exists_conway_polynomial(p, k):
@@ -153,7 +147,6 @@ class FiniteField_ntl_gf2e(FiniteField):
                 modulus = "minimal_weight"
         if modulus == "conway":
             modulus = conway_polynomial(p, k)
-            self._is_conway = True
         if is_Polynomial(modulus):
             modulus = modulus.list()
         self._cache = Cache_ntl_gf2e(self, k, modulus)
@@ -234,37 +227,6 @@ class FiniteField_ntl_gf2e(FiniteField):
             a^10 + a^9 + a^7 + a^6 + a^5 + a^4 + a + 1
         """
         return self._cache.import_data(e)
-
-    def _coerce_map_from_(self, R):
-        """
-        Coercion accepts elements of :meth:`parent`, ints, and prime subfield
-        elements.
-
-        EXAMPLES::
-
-            sage: k.<a> = GF(2^8)
-            sage: a + int(1) # indirect doctest
-            a + 1
-            sage: a + 1
-            a + 1
-            sage: a + GF(2)(1)
-            a + 1
-        """
-        if R is int or R is long or R is ZZ:
-            return True
-        if is_FiniteField(R):
-            if R is self:
-                return True
-            if isinstance(R, ResidueField_generic):
-                return False
-            if isinstance(R, IntegerModRing_generic) and R.characteristic() % 2 == 0:
-                return True
-            if R.characteristic() == 2:
-                if R.degree() == 1:
-                    return True
-                elif self.degree() % R.degree() == 0:
-                    # This is where we *would* do coercion from one nontrivial finite field to another...
-                    raise NotImplementedError
 
     def gen(self, ignored=None):
         r"""

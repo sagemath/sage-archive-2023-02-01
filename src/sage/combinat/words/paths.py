@@ -2023,31 +2023,30 @@ class FiniteWordPath_square_grid(FiniteWordPath_2d):
             [1, 5, 29, 169, 985, 5741]
             sage: [words.dual_fibonacci_tile(i).area() for i in range(6)]
             [1, 5, 29, 169, 985, 5741]
-            sage: sloane_find(_, nresults=1) #optional - internet
-            Searching Sloane's online database...
-            [[1653,
-              'Numbers n such that 2*n^2 - 1 is a square.',
-              [1,
-               5,
-               29,
-               169,
-               985,
-               5741,
-               33461,
-               195025,
-               1136689,
-               6625109,
-               38613965,
-               225058681,
-               1311738121,
-               7645370045,
-               44560482149,
-               259717522849,
-               1513744654945,
-               8822750406821,
-               51422757785981,
-               299713796309065,
-               1746860020068409]]]
+            sage: oeis(_)[0]                            # optional -- internet
+            A001653: Numbers n such that 2*n^2 - 1 is a square.
+            sage: _.first_terms()                       # optional -- internet
+            (1,
+             5,
+             29,
+             169,
+             985,
+             5741,
+             33461,
+             195025,
+             1136689,
+             6625109,
+             38613965,
+             225058681,
+             1311738121,
+             7645370045,
+             44560482149,
+             259717522849,
+             1513744654945,
+             8822750406821,
+             51422757785981,
+             299713796309065,
+             1746860020068409)
 
         TESTS::
 

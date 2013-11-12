@@ -1,7 +1,9 @@
-cdef extern from 'symmetrica/macro.h':
+# We put all definitions together, whether they appear in def.h or
+# macro.h
+cdef extern from 'symmetrica/def.h':
     pass
 
-cdef extern from 'symmetrica/def.h':
+cdef extern from 'symmetrica/macro.h':
     ctypedef int INT
     ctypedef INT OBJECTKIND
 
@@ -366,10 +368,10 @@ cdef extern from 'symmetrica/def.h':
 ##########################################
 cdef object matrix_constructor
 cdef object Integer
-cdef object Tableau, SkewTableau, SkewTableau_class
-cdef object SkewPartition, SkewPartition_class
+cdef object Tableau, SkewTableau
+cdef object SkewPartition
 cdef object Partition
-cdef object Permutation_class, Permutations
+cdef object Permutation, Permutations
 cdef object builtinlist
 cdef object sqrt
 cdef object Rational
@@ -387,11 +389,9 @@ cdef void late_import():
            Integer, \
            Tableau, \
            SkewTableau, \
-           SkewTableau_class, \
            SkewPartition, \
-           SkewPartition_class, \
            Partition, \
-           Permutation_class, Permutations,\
+           Permutation, Permutations,\
            prod, \
            PolynomialRing, \
            Rational, \
@@ -418,17 +418,15 @@ cdef void late_import():
 
     import sage.combinat.skew_tableau
     SkewTableau = sage.combinat.skew_tableau.SkewTableau
-    SkewTableau_class = sage.combinat.skew_tableau.SkewTableau_class
 
     import sage.combinat.skew_partition
     SkewPartition = sage.combinat.skew_partition.SkewPartition
-    SkewPartition_class = sage.combinat.skew_partition.SkewPartition_class
 
     import sage.combinat.partition
     Partition = sage.combinat.partition.Partition
 
     import sage.combinat.permutation
-    Permutation_class = sage.combinat.permutation.Permutation_class
+    Permutation = sage.combinat.permutation.Permutation
     Permutations = sage.combinat.permutation.Permutations
 
     import sage.functions.all
@@ -530,7 +528,8 @@ def test_integer(object x):
     Tests functionality for converting between Sage's integers
     and symmetrica's integers.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.libs.symmetrica.symmetrica import test_integer
         sage: test_integer(1)
         1
@@ -544,6 +543,9 @@ def test_integer(object x):
         1267650600228229401496703205376
         sage: test_integer(-2^100)
         -1267650600228229401496703205376
+        sage: for i in range(100):
+        ....:     if test_integer(2^i) != 2^i:
+        ....:         print "Failure at", i
     """
     cdef OP a = callocobject()
     _op_integer(x, a)
@@ -736,7 +738,7 @@ cdef object _py_permutation(OP a):
     n = s_p_li(a)
     for i from 0 <= i < n:
         res.append(s_p_ii(a, i))
-    return Permutation_class(res)
+    return Permutation(res)
 
 #####################
 #Barred Permutations#
@@ -1165,7 +1167,7 @@ cdef object _py_tableau(OP t):
 
     #return res
     if is_skew:
-        return SkewTableau_class(res)
+        return SkewTableau(res)
     else:
         return Tableau(res)
 

@@ -54,15 +54,14 @@ Cython classes::
 
 Python classes::
 
-    sage: import sage.misc.attach
-    sage: sage_getfile(sage.misc.attach.Attach)
-    '.../attach.py'
+    sage: sage_getfile(BlockFinder)
+    '.../sage/misc/sageinspect.py'
 
-    sage: sage_getdoc(sage.misc.attach.Attach).lstrip()
-    'Attach a file to a running instance of Sage...'
+    sage: sage_getdoc(BlockFinder).lstrip()
+    'Provide a tokeneater() method to detect the...'
 
-    sage: sage_getsource(sage.misc.attach.Attach)
-    'class Attach:...'
+    sage: sage_getsource(BlockFinder)
+    'class BlockFinder:...'
 
 Python classes with no docstring, but an __init__ docstring::
 
@@ -1681,7 +1680,7 @@ def sage_getsourcelines(obj, is_binary=False):
 
         sage: from sage.misc.sageinspect import sage_getsourcelines
         sage: sage_getsourcelines(matrix, True)[1]
-        731
+        732
         sage: sage_getsourcelines(matrix, False)[0][0][6:]
         'MatrixFactory(object):\n'
 
@@ -1698,7 +1697,7 @@ def sage_getsourcelines(obj, is_binary=False):
         sage: sage_getsourcelines(obj)
         (['def create_set_partition_function(letter, k):\n',
         ...
-        '    raise ValueError("k must be an integer or an integer + 1/2")\n'], 31)
+        '    raise ValueError("k must be an integer or an integer + 1/2")\n'], 32)
 
     Here are some cases that were covered in :trac`11298`;
     note that line numbers may easily change, and therefore we do

@@ -114,8 +114,8 @@ class HopfAlgebras(Category_over_base_ring):
                 sage: HopfAlgebras(QQ).TensorProducts().extra_super_categories()
                 [Category of hopf algebras over Rational Field]
                 sage: HopfAlgebras(QQ).TensorProducts().super_categories()
-                [Category of hopf algebras over Rational Field,
-                 Category of tensor products of algebras over Rational Field,
+                [Category of tensor products of algebras over Rational Field,
+                 Category of hopf algebras over Rational Field,
                  Category of tensor products of coalgebras over Rational Field]
             """
             return [self.base_category()]

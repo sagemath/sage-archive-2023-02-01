@@ -408,7 +408,7 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
         EXAMPLES::
 
             sage: latex(CuspForms(3, 24).hecke_algebra()) # indirect doctest
-            \mathbf{T}_{\verb|Cuspidal|...Gamma0(3)...24...}
+            \mathbf{T}_{\text{\texttt{Cuspidal...Gamma0(3)...24...}
         """
         from sage.misc.latex import latex
         return "\\mathbf{T}_{%s}" % latex(self.__M)
@@ -517,6 +517,9 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
             6144
             sage: ModularSymbols(1,4,sign=1).cuspidal_submodule().hecke_algebra().discriminant()
             1
+            sage: H = CuspForms(1, 24).hecke_algebra()
+            sage: H.discriminant()
+            83041344
         """
         try:
             return self.__disc

@@ -40,7 +40,7 @@ mkdir -p "$TMP_DIR/$TARGET"
 
 git clone "$SAGE_ROOT" "$TMP_DIR/$TARGET"
 cd "$TMP_DIR/$TARGET"
-git remote set-url origin git://github.com/sagemath/sage.git
+git remote set-url origin "$SAGE_REPO_ANONYMOUS"
 
 # Update Sage version file in SAGE_ROOT.
 echo "Sage version $SAGE_VERSION, released $SAGE_RELEASE_DATE" > VERSION.txt

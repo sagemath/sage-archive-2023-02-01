@@ -256,7 +256,6 @@ cdef class Ring(ParentWithGens):
             sage: QQ[sqrt(2),sqrt(3)]
             Number Field in sqrt2 with defining polynomial x^2 - 2 over its base field
 
-
         and orders in number fields::
 
             sage: ZZ[I]
@@ -401,7 +400,7 @@ cdef class Ring(ParentWithGens):
         EXAMPLES::
 
             sage: FreeAlgebra(QQ, 3, 'x').category() # todo: use a ring which is not an algebra!
-            Category of algebras over Rational Field
+            Category of algebras with basis over Rational Field
 
         Since a quotient of the integers is its own base ring, and during
         initialisation of a ring it is tested whether the base ring belongs
@@ -1546,10 +1545,11 @@ cdef class CommutativeRing(Ring):
 
         ::
 
+            sage: P.<x> = PolynomialRing(GF(5))
             sage: F.<a> = GF(5).extension(x^2 - 2)
             sage: P.<t> = F[]
             sage: R.<b> = F.extension(t^2 - a); R
-            Univariate Quotient Polynomial Ring in b over Univariate Quotient Polynomial Ring in a over Finite Field of size 5 with modulus a^2 + 3 with modulus b^2 + 4*a
+            Univariate Quotient Polynomial Ring in b over Finite Field in a of size 5^2 with modulus b^2 + 4*a
         """
         from sage.rings.polynomial.polynomial_element import Polynomial
         if not isinstance(poly, Polynomial):
@@ -1568,6 +1568,35 @@ cdef class CommutativeRing(Ring):
         R = self[name]
         I = R.ideal(R(poly.list()))
         return R.quotient(I, name)
+
+    def frobenius_endomorphism(self, n=1):
+        """
+        INPUT:
+
+        -  ``n`` -- a nonnegative integer (default: 1)
+
+        OUTPUT:
+
+        The `n`-th power of the absolute arithmetic Frobenius
+        endomorphism on this finite field.
+
+        EXAMPLES::
+
+            sage: K.<u> = PowerSeriesRing(GF(5))
+            sage: Frob = K.frobenius_endomorphism(); Frob
+            Frobenius endomorphism x |--> x^5 of Power Series Ring in u over Finite Field of size 5
+            sage: Frob(u)
+            u^5
+
+        We can specify a power::
+
+            sage: f = K.frobenius_endomorphism(2); f
+            Frobenius endomorphism x |--> x^(5^2) of Power Series Ring in u over Finite Field of size 5
+            sage: f(1+u)
+            1 + u^25
+        """
+        from morphism import FrobeniusEndomorphism_generic
+        return FrobeniusEndomorphism_generic(self, n)
 
 
 cdef class IntegralDomain(CommutativeRing):

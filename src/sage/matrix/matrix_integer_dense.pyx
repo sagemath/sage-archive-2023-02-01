@@ -63,16 +63,8 @@ from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
 from sage.libs.pari.gen cimport gen, PariInstance
 from sage.libs.pari.gen import pari
 
-cdef extern from 'pari/pari.h':
-    GEN     zeromat(long m, long n)
-    GEN     mathnf0(GEN x,long flag)
-    GEN     det0(GEN a,long flag)
-    GEN     gcoeff(GEN,long,long)
-    GEN     gtomat(GEN x)
-    GEN     gel(GEN,long)
-    long    glength(GEN x)
-    GEN     ginv(GEN x)
-    long    rank(GEN x)
+include "sage/libs/pari/decl.pxi"
+include "sage/libs/pari/pari_err.pxi"
 
 cdef extern from "convert.h":
     cdef void t_INT_to_ZZ( mpz_t value, long *g )
@@ -3885,7 +3877,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             d = Integer(1)
             return pivots, nonpivots, X, d
 
-        from matrix_modn_dense import MAX_MODULUS
+        from matrix_modn_dense_double import MAX_MODULUS
         A = self
         # Step 1: Compute the rank
 
@@ -4883,7 +4875,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             0
         """
         cdef PariInstance P = sage.libs.pari.gen.pari
-        sig_on()
+        pari_catch_sig_on()
         cdef GEN d = det0(pari_GEN(self), flag)
         # now convert d to a Sage integer e
         cdef Integer e = Integer()
@@ -4903,7 +4895,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             2
         """
         cdef PariInstance P = sage.libs.pari.gen.pari
-        sig_on()
+        pari_catch_sig_on()
         cdef long r = rank(pari_GEN(self))
         P.clear_stack()
         return r
@@ -4971,11 +4963,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         cdef PariInstance P = sage.libs.pari.gen.pari
         cdef GEN A
-        sig_on()
+        pari_catch_sig_on()
         A = P._new_GEN_from_mpz_t_matrix_rotate90(self._matrix, self._nrows, self._ncols)
         cdef GEN H = mathnf0(A, flag)
         B = self.extract_hnf_from_pari_matrix(H, flag, include_zero_rows)
-        P.clear_stack()  # This calls sig_off()
+        P.clear_stack()  # This calls pari_catch_sig_off()
         return B
 
 
@@ -5035,7 +5027,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef PariInstance P = sage.libs.pari.gen.pari
         cdef gen H = P.integer_matrix(self._matrix, self._nrows, self._ncols, 1)
         H = H.mathnf(flag)
-        return self.extract_hnf_from_pari_matrix(H.g, flag, include_zero_rows)
+        pari_catch_sig_on()
+        B = self.extract_hnf_from_pari_matrix(H.g, flag, include_zero_rows)
+        P.clear_stack()  # This calls pari_catch_sig_off()
+        return B
 
     cdef extract_hnf_from_pari_matrix(self, GEN H, int flag, bint include_zero_rows):
         # Throw away the transformation matrix (yes, we should later
@@ -5103,6 +5098,19 @@ cdef _clear_columns(Matrix_integer_dense A, pivots, Py_ssize_t n):
 
 cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=None):
     """
+    INPUT:
+
+    - ``M`` -- A ``Matrix_integer_dense``. Will be modified to hold
+      the output.
+
+    - ``residues`` -- a list of ``Matrix_modn_dense_template``. The
+      matrix to reconstruct modulo primes.
+
+    OUTPUT:
+
+    The matrix whose reductions modulo primes are the input
+    ``residues``.
+
     TESTS::
 
         sage: from sage.matrix.matrix_integer_dense import _lift_crt
@@ -5122,6 +5130,21 @@ cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=None):
         [ 2  0  1  9]
         [-3  0 -1  6]
         [ 1 -1  0 -2]
+
+    The modulus must be smaller than the maximum for the multi-modular
+    reconstruction (using ``mod_int``) and also smaller than the limit
+    for ``Matrix_modn_dense_double`` to be able to represent the
+    ``residues`` ::
+
+        sage: from sage.ext.multi_modular import MAX_MODULUS as MAX_multi_modular
+        sage: from sage.matrix.matrix_modn_dense_double import MAX_MODULUS as MAX_modn_dense_double
+        sage: MAX_MODULUS = min(MAX_multi_modular, MAX_modn_dense_double)
+        sage: p0 = previous_prime(MAX_MODULUS)
+        sage: p1 = previous_prime(p0)
+        sage: mmod = [matrix(GF(p0), [[-1, 0, 1, 0, 0, 1, 1, 0, 0, 0, p0-1, p0-2]]),
+        ....:         matrix(GF(p1), [[-1, 0, 1, 0, 0, 1, 1, 0, 0, 0, p1-1, p1-2]])]
+        sage: _lift_crt(Matrix(ZZ, 1, 12), mmod)
+        [-1  0  1  0  0  1  1  0  0  0 -1 -2]
     """
 
     cdef size_t n, i, j, k

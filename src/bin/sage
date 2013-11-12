@@ -147,11 +147,15 @@ usage_advanced() {
     echo "  -bt [...]           -- build and test, options like -t below"
     echo "  -btp <N> [...]      -- build and test parallel, options like -tp below"
     echo "  -btnew [...]        -- build and test modified files, options like -tnew"
-    echo "  -fixdoctests <file.py> -- create <file.py>.out that would pass the doctests"
-    echo "                            and output a patch"
-    echo "  -startuptime [module]  -- display how long each component of Sage takes to"
-    echo "                            start up; optionally specify a module to get more"
-    echo "                            details about that particular module"
+    echo "  -fixdoctests <file.py> [output_file] [--long]"
+    echo "                      -- writes a new version of file.py to output_file"
+    echo "                         (defaults: to file.py.out) that will pass the doctests."
+    echo "                         With the optional --long argument the long time tests"
+    echo "                         are also checked."
+    echo "                         A patch for the new file is printed to stdout."
+    echo "  -startuptime [module] -- display how long each component of Sage takes to"
+    echo "                         start up; optionally specify a module to get more"
+    echo "                         details about that particular module"
     echo "  -t [options] <--all|files|dir>"
     echo "                      -- test examples in .py, .pyx, .sage, .tex or .rst files"
     echo "                         selected options:"
@@ -191,6 +195,8 @@ usage_advanced() {
     echo "                         reStructuredText source."
     echo "  -rst2sws [...]      -- Generates Sage worksheet (.sws) from standalone"
     echo "                         reStructuredText source."
+    echo "  -sws2rst <sws doc>  -- Generates a reStructuredText source file from"
+    echo "                         a Sage worksheet (.sws) document."
 
     echo
     ####  1.......................26..................................................78
@@ -336,7 +342,9 @@ fi
 #####################################################################
 
 if [ "$1" = '-v' -o "$1" = '-version' -o "$1" = '--version' ]; then
-    exec sed -n -e '/Version/s/^[ |]\{1,\}//;/Version/s/[ |]\{1,\}$//p' \
+    # Workaround for OSX, see http://trac.sagemath.org/15072
+    export LC_ALL=C
+    exec sed -n -e 's/.*\(Sage Version.*Date: [0-9-]*\).*/\1/p' \
         "$SAGE_LOCAL"/bin/sage-banner
 fi
 
@@ -377,6 +385,11 @@ fi
 if [ "$1" = '-sqlite3' -o "$1" = '--sqlite3' ]; then
     shift
     exec "$SAGE_LOCAL/bin/sqlite3" "$@"
+fi
+
+if [ "$1" = '-sws2rst' -o "$1" = '--sws2rst' ]; then
+    shift
+    exec sage-sws2rst "$@"
 fi
 
 if [ "$1" = '-twistd' -o "$1" = '--twistd' ]; then
@@ -830,6 +843,7 @@ if [ "$1" = '-pkg_nc' -o "$1" = "--pkg_nc" ]; then
 fi
 
 if [ "$1" = '-sdist' -o "$1" = "--sdist" ]; then
+    maybe_sage_location
     shift
     exec sage-sdist "$@"
 fi
@@ -844,10 +858,6 @@ if [ "$1" = '-rsyncdist' -o "$1" = "--rsyncdist" ]; then
 fi
 
 if [ "$1" = '-bdist' -o "$1" = "--bdist" ]; then
-    if [ $# -ne 2 ]; then
-        echo >&2 "** MISSING VERSION NUMBER! **"
-        exit 2
-    fi
     maybe_sage_location
     shift
     exec sage-bdist "$@"

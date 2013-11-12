@@ -658,15 +658,16 @@ def symbolic_sum(expression, *args, **kwds):
         from sage.symbolic.ring import SR
         return SR(expression).sum(*args, **kwds)
 
+
 def integral(x, *args, **kwds):
     """
     Returns an indefinite or definite integral of an object x.
 
-    First call x.integrate() and if that fails make an object and
+    First call x.integral() and if that fails make an object and
     integrate it using Maxima, maple, etc, as specified by algorithm.
 
     For symbolic expression calls
-    ``sage.calculus.calculus.integral`` - see this function for
+    :func:`sage.calculus.calculus.integral` - see this function for
     available options.
 
     EXAMPLES::
@@ -735,6 +736,13 @@ def integral(x, *args, **kwds):
         sage: integrate(f, x, 0, infinity)
         1
 
+    This integral would cause a stack overflow in earlier versions of
+    Maxima, crashing sage. See :trac:`12377`. We don't care about the
+    result here, just that the computation completes successfully::
+
+        sage: y = (x^2)*exp(x) / (1 + exp(x))^2
+        sage: _ = integrate(y, x, -1000, 1000)
+
     """
     if hasattr(x, 'integral'):
         return x.integral(*args, **kwds)
@@ -743,6 +751,7 @@ def integral(x, *args, **kwds):
         return SR(x).integral(*args, **kwds)
 
 integrate = integral
+
 
 def integral_closure(x):
     """

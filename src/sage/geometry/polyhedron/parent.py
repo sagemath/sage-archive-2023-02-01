@@ -14,7 +14,8 @@ from sage.structure.element import get_coercion_model
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.modules.free_module import is_FreeModule
 from sage.misc.cachefunc import cached_method
-from sage.rings.all import ZZ, QQ, RDF, is_CommutativeRing
+from sage.rings.commutative_ring import is_CommutativeRing
+from sage.rings.all import ZZ, QQ, RDF
 from sage.categories.fields import Fields
 _Fields = Fields()
 

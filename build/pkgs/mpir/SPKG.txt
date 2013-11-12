@@ -53,12 +53,17 @@ See http://www.mpir.org
    Patches `configure`, `acinclude.m4` and `configure.in`; to be applied
    *after* `patches/configure.patch` (which its name should currently make
    sure).  Submitted upstream (against MPIR 2.6.0; 26.02.2013).
+ * clang-config.patch: remove one broken configure test and fix one test
+   for Clang, see http://trac.sagemath.org/ticket/13948
  * mpz__t-scan-bugfix.patch: fix trivial bug in `tests/mpz/t-scan.c` leading
    to a segfault (during the test suite) with newer GCC versions.
    Submitted upstream (against MPIR 2.6.0; 02.04.2013).
  * apple.patch: make sure 32 bits Apple Darwin use the correct asm directories.
 
 == Changelog ==
+
+=== mpir-2.6.0.p3 (Jeroen Demeyer, 2 October 2013) ===
+ * #13948: clang-config.patch: fix configure script for Clang.
 
 === mpir-2.6.0.p2 (Leif Leonhardy, April 3rd 2013) ===
  * #14399: MPIR 2.6.0's test suite fails with GCC 4.8.0

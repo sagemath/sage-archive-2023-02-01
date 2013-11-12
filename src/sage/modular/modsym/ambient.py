@@ -78,6 +78,7 @@ import sage.misc.latex as latex
 import sage.misc.misc as misc
 
 import sage.matrix.matrix_space as matrix_space
+from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2 as M2Z
 import sage.modules.free_module_element as free_module_element
 import sage.modules.free_module as free_module
 import sage.misc.misc as misc
@@ -149,13 +150,13 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         """
         weight = int(weight)
         if weight <= 1:
-            raise ValueError, "Weight (=%s) Modular symbols of weight <= 1 not defined."%weight
+            raise ValueError("Weight (=%s) Modular symbols of weight <= 1 not defined."%weight)
         if not arithgroup.is_CongruenceSubgroup(group):
-            raise TypeError, "group must be a congruence subgroup"
+            raise TypeError("group must be a congruence subgroup")
 
         sign = int(sign)
         if not isinstance(base_ring, rings.Ring) and base_ring.is_field():
-            raise TypeError, "base_ring must be a commutative ring"
+            raise TypeError("base_ring must be a commutative ring")
 
         if character == None and arithgroup.is_Gamma0(group):
             character = dirichlet.TrivialCharacter(group.level(), base_ring)
@@ -454,8 +455,9 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         """
         if isinstance(x, free_module_element.FreeModuleElement):
             if x.degree() != self.dimension():
-                raise TypeError, "Incompatible degrees: x has degree %s but modular symbols space has dimension %s"%(
-                    x.degree(), self.dimension())
+                raise TypeError("Incompatible degrees: x has degree %s\
+                    but modular symbols space has dimension %s"%(
+                    x.degree(), self.dimension()))
             #if x.parent().base_ring() != self.base_ring():
             #    raise TypeError, "Vector x is over %s, but modular symbols space is over %s."%(
             #        x.parent().base_ring(), self.base_ring())
@@ -482,7 +484,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             else:
                 return self.modular_symbol(x)
 
-        raise TypeError, "No coercion of %s into %s defined."%(x, self)
+        raise TypeError("No coercion of %s into %s defined."%(x, self))
 
 
     def change_ring(self, R):
@@ -521,7 +523,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             ValueError: No coercion defined
         """
         if not R.has_coerce_map_from(self.base_ring()):
-            raise ValueError, "No coercion defined"
+            raise ValueError("No coercion defined")
         else:
             return self.change_ring(R)
 
@@ -556,9 +558,9 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
         """
         if not isinstance(g, list):
-            raise TypeError, "g must be a list"
+            raise TypeError("g must be a list")
         if not len(g) == 4:
-            raise TypeError, "g must be a list of length 4"
+            raise TypeError("g must be a list of length 4")
         return self._matrix_of_operator_on_modular_symbols(self, [g])
 
     def manin_symbol(self, x, check=True):
@@ -590,10 +592,11 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             if len(x) == 3:
                 # Manin symbol of the form (i, u, v), which corresponds to [X^i*Y^(k-2-i), (u,v)].
                 if x[0] < 0 or x[0] > self.weight()-2:
-                    raise ValueError, "The first entry of the tuple (=%s) must be an integer between 0 and k-2 (=%s)."%(
-                        x, self.weight()-2)
+                    raise ValueError("The first entry of the tuple (=%s)\
+                        must be an integer between 0 and k-2 (=%s)."%(
+                        x, self.weight()-2))
             else:
-                raise ValueError, "x (=%s) must be of length 2 or 3"%x
+                raise ValueError("x (=%s) must be of length 2 or 3"%x)
         # end check
 
         N = self.level()
@@ -770,10 +773,11 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
                 x = [0,x[0],x[1]]
             elif len(x) == 3:
                 if x[0] < 0 or x[0] > self.weight()-2:
-                    raise ValueError, "The first entry of the tuple (=%s) must be an integer between 0 and k-2 (=%s)."%(
-                        x, self.weight()-2)
+                    raise ValueError("The first entry of the tuple (=%s)\
+                        must be an integer between 0 and k-2 (=%s)."%(
+                        x, self.weight()-2))
             else:
-                raise ValueError, "x (=%s) must be of length 2 or 3"%x
+                raise ValueError("x (=%s) must be of length 2 or 3"%x)
             i = rings.Integer(x[0])
             alpha = Cusp(x[1])
             beta = Cusp(x[2])
@@ -815,17 +819,17 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         """
         if check:
             if len(x) != 3:
-                raise ValueError, "%s must have length 3"%x
+                raise ValueError("%s must have length 3"%x)
             f = x[0]
             R = self.base_ring()['X','Y']
             X = R.gen(0)
             try:
                 f = R(f)
             except TypeError:
-                raise ValueError, \
-                      "f must be coercible to a polynomial over %s"%self.base_ring()
+                raise ValueError("f must be coercible to a polynomial \
+                    over %s"%self.base_ring())
             if (not f.is_homogeneous()) or (f.degree() != self.weight()-2):
-                raise ValueError, "f must be a homogeneous polynomial of degree k-2"
+                raise ValueError("f must be a homogeneous polynomial of degree k-2")
             alpha = Cusp(x[1])
             beta = Cusp(x[2])
         else:
@@ -892,7 +896,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
         ALGORITHM:
 
-        Uses Heilbronn-Cremonma matrices of `p` is prime, else use
+        Use Heilbronn-Cremona matrices if `p` is prime, else use
         Heilbronn-Merel matrices.
 
         EXAMPLES:
@@ -1263,13 +1267,13 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         """
         chi = self.character()
         if chi is not None and chi.order() > 2:
-            raise ValueError, "Atkin-Lehner only leaves space invariant when character is trivial or quadratic.  In general it sends M_k(chi) to M_k(1/chi)"
+            raise ValueError("Atkin-Lehner only leaves space invariant when character is trivial or quadratic.  In general it sends M_k(chi) to M_k(1/chi)")
 
         N = self.level()
         k = self.weight()
         R = self.base_ring()
         if N%d != 0:
-            raise ValueError, "d must divide N"
+            raise ValueError("d must divide N")
 
         g, x, y = arith.xgcd(d, -N//d)
         g = [d*x, y, N, d]
@@ -1429,6 +1433,19 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             [ 2  0  0  0  1  0 -1]
             [ 0  0 -1  3 -1 -1  1]
             [ 0 -1 -1  1  0  1 -1]
+
+        Check that :trac:`13198` is fixed::
+
+            sage: M22 = ModularSymbols(Gamma1(22), sign=1)
+            sage: M2 = ModularSymbols(Gamma1(2))
+            sage: d1 = M2.degeneracy_map(M22,1)
+            sage: d2 = M2.degeneracy_map(M22,11)
+            sage: M22.hecke_matrix(17).restrict((d1.image() + d2.image()).free_module())
+            [18  0]
+            [ 0 18]
+            sage: S = M22.cuspidal_submodule()
+            sage: S.new_submodule().intersection(S.old_submodule()) == S.zero_submodule()
+            True
         """
         if t == 1:
             return self._degeneracy_raising_matrix_1(M)
@@ -1568,8 +1585,9 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         """
         if isinstance(x, manin_symbols.ManinSymbol):
             if not x.parent().weight() == self.weight():
-                raise ArithmeticError, "incompatible weights: Manin symbol has weight %s, but modular symbols space has weight %s"%(
-                    x.parent().weight(), self.weight())
+                raise ArithmeticError("incompatible weights: Manin symbol\
+                    has weight %s, but modular symbols space has weight %s"%(
+                    x.parent().weight(), self.weight()))
             t = self.manin_symbols().index(x.tuple())
             if isinstance(t, tuple):
                 i, scalar = t
@@ -1582,11 +1600,11 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             M = x.parent()
             if M.ambient_hecke_module() != self:
                 # TODO -- sometimes do something more sophisticated here.
-                raise TypeError, "Modular symbol (%s) does not lie in this space."%x
+                raise TypeError("Modular symbol (%s) does not lie in this space."%x)
             return self(x.element())
 
         else:
-            raise ValueError, "Cannot create element of %s from %s."%(x,self)
+            raise ValueError("Cannot create element of %s from %s."%(x,self))
 
     def dual_star_involution_matrix(self):
         """
@@ -2103,9 +2121,9 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         """
 
         if not dirichlet.is_DirichletCharacter(eps):
-            raise TypeError, "eps must be a Dirichlet character."
+            raise TypeError("eps must be a Dirichlet character.")
         if (i < 0) or (i > self.weight()-2):
-            raise ValueError, "i must be between 0 and k-2."
+            raise ValueError("i must be between 0 and k-2.")
 
         m = eps.modulus()
         s = self(0)
@@ -2224,7 +2242,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         elif algorithm == 'padic':
             B = B.echelon_form(algorithm='padic', include_zero_rows=False)
         else:
-            raise ValueError, "unknown algorithm '%s'"%algorithm
+            raise ValueError("unknown algorithm '%s'"%algorithm)
         W = B.row_module()
         if d != 1:
             W = W.scale(1/d)
@@ -2285,7 +2303,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             (1, -zeta6 - 1, 2*zeta6 - 2, zeta6, -2*zeta6 + 1, -2*zeta6 + 4, 0, 2*zeta6 - 1, -zeta6, 3*zeta6 - 3)
         """
         if self.sign() == 0:
-            raise ValueError, "sign must be nonzero"
+            raise ValueError("sign must be nonzero")
         v = list(v)
 
         # Get decomposition of this space
@@ -2324,7 +2342,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             cache = {}
             for i in range(len(D)):
                 nz = D[i]._eigen_nonzero()
-                if cache.has_key(nz):
+                if nz in cache:
                      R = cache[nz]
                 else:
                      R = self.hecke_images(nz, v)
@@ -2402,7 +2420,7 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
         k = int(k)
         sign = int(sign)
         if not sign in [-1,0,1]:
-            raise TypeError, "sign must be an int in [-1,0,1]"
+            raise TypeError("sign must be an int in [-1,0,1]")
 
         ModularSymbolsAmbient.__init__(self, weight=k, group=arithgroup.Gamma0(N),
                                        sign=sign, base_ring=F, custom_init=custom_init)
@@ -2497,7 +2515,15 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
         N = self.level()
 
         # 1. Find coset representatives H for Gamma_0(M.level()) \ Gamma_0(self.level())
-        H = arithgroup.degeneracy_coset_representatives_gamma0(level, N, 1)
+        #    (need to be careful in some small levels, cf. #13198)
+
+        if arithgroup.is_Gamma0(M.group()):
+            H = arithgroup.degeneracy_coset_representatives_gamma0(level, N, 1)
+        elif arithgroup.is_Gamma1(M.group()):
+            H = arithgroup.degeneracy_coset_representatives_gamma1(level, N, 1)
+        else:
+            raise NotImplementedError("Degeneracy raising maps not implemented for GammaH levels")
+
         # 2. The map is
         #        [P,pi(g)] |--> sum_{h in H} [P, pi(h*g)]
         #
@@ -2508,7 +2534,7 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
         B = self.manin_basis()
         syms = self.manin_symbols()
         k = self.weight()
-        G = matrix_space.MatrixSpace(integer_ring.IntegerRing(),2)
+        G = M2Z()
         H = [G(h) for h in H]
         for n in B:
             z = M(0)
@@ -3401,7 +3427,8 @@ class ModularSymbolsAmbient_wtk_gamma_h(ModularSymbolsAmbient):
             # higher level (and we don't implement the degeneracy raising maps
             # anyway)
         else:
-            raise ValueError, "N (=%s) should be a factor of the level of this space (=%s)" % (N, self.level())
+            raise ValueError("N (=%s) should be a factor of the level\
+                of this space (=%s)" % (N, self.level()))
 
 
 class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
@@ -3711,7 +3738,7 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
         elif N % self.level() == 0:
             eps = self.character().extend(N)
         else:
-            raise ValueError, "The level N (=%s) must be a divisor or multiple of the modulus of the character (=%s)"%(N, self.level())
+            raise ValueError("The level N (=%s) must be a divisor or multiple of the modulus of the character (=%s)"%(N, self.level()))
         return modsym.ModularSymbols(eps, self.weight(), self.sign(), self.base_ring())
 
     def modular_symbols_of_sign(self, sign):
@@ -3806,7 +3833,7 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
 
         """
         if self.weight() != 2:
-            raise NotImplementedError, "hecke images only implemented when the weight is 2"
+            raise NotImplementedError("hecke images only implemented when the weight is 2")
         chi = self.character()
         # Find basis vector for ambient space such that it is not in
         # the kernel of the dual space corresponding to self.

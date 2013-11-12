@@ -9,45 +9,62 @@ Kazhdan-Lusztig Polynomials
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import is_Polynomial
+from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.functions.other import floor
 from sage.misc.cachefunc import cached_method
 from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial_mpair
 from sage.structure.sage_object import SageObject
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.combinat.root_system.coxeter_group import CoxeterGroup
 
-class KazhdanLusztigPolynomial(SageObject):
+class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
+    """
+    A Kazhdan-Lusztig polynomial.
+
+    INPUT:
+
+    - ``W`` -- a Weyl Group
+    - ``q`` -- an indeterminate
+
+    OPTIONAL:
+
+    - ``trace`` -- if ``True``, then this displays the trace: the intermediate
+      results. This is instructive and fun.
+
+    The parent of ``q`` may be a :class:`PolynomialRing` or a
+    :class:`LaurentPolynomialRing`.
+
+    REFERENCES:
+
+    .. [KL79] D. Kazhdan and G. Lusztig. *Representations of Coxeter
+       groups and Hecke algebras*. Invent. Math. **53** (1979).
+       no. 2, 165--184. :doi:`10.1007/BF01390031` :mathscinet:`MR0560412`
+
+    EXAMPLES::
+
+        sage: W = WeylGroup("B3",prefix="s")
+        sage: [s1,s2,s3] = W.simple_reflections()
+        sage: R.<q> = LaurentPolynomialRing(QQ)
+        sage: KL = KazhdanLusztigPolynomial(W,q)
+        sage: KL.P(s2,s3*s2*s3*s1*s2)
+        q + 1
+
+    A faster implementation (using the optional package Coxeter 3) is given by::
+
+        sage: W = CoxeterGroup(['B', 3], implementation='coxeter3') # optional - coxeter3
+        sage: W.kazhdan_lusztig_polynomial([2], [3,2,3,1,2])        # optional - coxeter3
+        q + 1
+    """
     def __init__(self, W, q, trace=False):
         """
-        A class for Kazhdan-Lusztig polynomials
+        Initialize ``self``.
 
-        INPUT:
-
-            - ``W`` - a Weyl Group.
-            - ``q`` - an indeterminate.
-
-        OPTIONAL:
-
-            - trace
-
-        The parent of q may be a PolynomialRing or a LaurentPolynomialRing.
-
-        Set trace=True in order to see intermediate results. This is fun
-        and instructive.
-
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: W = WeylGroup("B3",prefix="s")
-            sage: [s1,s2,s3]=W.simple_reflections()
-            sage: R.<q>=LaurentPolynomialRing(QQ)
-            sage: KL=KazhdanLusztigPolynomial(W,q)
-            sage: KL.P(s2,s3*s2*s3*s1*s2)
-            q + 1
-
-        A faster implementation (using the optional package Coxeter 3) is given by::
-
-            sage: W = CoxeterGroup(['B', 3], implementation='coxeter3') # optional - coxeter3
-            sage: W.kazhdan_lusztig_polynomial([2], [3,2,3,1,2])        # optional - coxeter3
-            q + 1
+            sage: R.<q> = LaurentPolynomialRing(QQ)
+            sage: KL = KazhdanLusztigPolynomial(W,q)
+            sage: TestSuite(KL).run()
         """
         self._coxeter_group = W
         self._q = q
@@ -64,13 +81,13 @@ class KazhdanLusztigPolynomial(SageObject):
     @cached_method
     def R(self, x, y):
         """
-        Returns the Kazhdan-Lusztig R polynomial.
+        Return the Kazhdan-Lusztig `R` polynomial.
 
         INPUT:
 
         - ``x``, ``y`` -- elements of the underlying Coxeter group
 
-        EXAMPLES ::
+        EXAMPLES::
 
            sage: R.<q>=QQ[]
            sage: W = WeylGroup("A2", prefix="s")
@@ -78,7 +95,6 @@ class KazhdanLusztigPolynomial(SageObject):
            sage: KL = KazhdanLusztigPolynomial(W, q)
            sage: [KL.R(x,s2*s1) for x in [1,s1,s2,s1*s2]]
            [q^2 - 2*q + 1, q - 1, q - 1, 0]
-
         """
         if x == 1:
             x = self._one
@@ -108,7 +124,7 @@ class KazhdanLusztigPolynomial(SageObject):
     @cached_method
     def P(self, x, y):
         """
-        Returns the Kazhdan-Lusztig P polynomial.
+        Return the Kazhdan-Lusztig `P` polynomial.
 
         If the rank is large, this runs slowly at first but speeds up
         as you do repeated calculations due to the caching.
@@ -122,11 +138,11 @@ class KazhdanLusztigPolynomial(SageObject):
             :mod:`~sage.libs.coxeter3.coxeter_group.CoxeterGroup.kazhdan_lusztig_polynomial`
             for a faster implementation using Fokko Ducloux's Coxeter3 C++ library.
 
-        EXAMPLES ::
+        EXAMPLES::
 
-            sage: R.<q>=QQ[]
+            sage: R.<q> = QQ[]
             sage: W = WeylGroup("A3", prefix="s")
-            sage: [s1,s2,s3]=W.simple_reflections()
+            sage: [s1,s2,s3] = W.simple_reflections()
             sage: KL = KazhdanLusztigPolynomial(W, q)
             sage: KL.P(s2,s2*s1*s3*s2)
             q + 1
@@ -156,10 +172,10 @@ class KazhdanLusztigPolynomial(SageObject):
 
 def laurent_polynomial_truncate(p, n):
     """
-    Truncates the Laurent polynomial p, returning only terms
-    of degree <n, similar to the truncate method for polynomials.
+    Truncate the Laurent polynomial ``p``, returning only terms of degree
+    less than ``n``, similar to the truncate method for polynomials.
 
-    EXAMPLES ::
+    EXAMPLES::
 
         sage: from sage.combinat.kazhdan_lusztig import laurent_polynomial_truncate
         sage: P.<q> = LaurentPolynomialRing(QQ)
@@ -172,3 +188,4 @@ def laurent_polynomial_truncate(p, n):
         if k[0] < n:
             dict[k] = pdict[k]
     return p.parent()(dict)
+

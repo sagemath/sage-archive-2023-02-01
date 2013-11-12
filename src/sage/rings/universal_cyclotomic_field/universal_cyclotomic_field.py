@@ -292,15 +292,12 @@ The following didn't work first::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
-from sage.misc.lazy_import import lazy_import
-
 from random import randint, randrange, sample, choice
 
 import sage.structure.parent_base
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element import parent, FieldElement, Element
+from sage.structure.element import FieldElement, Element
 from sage.structure.parent import Parent
-
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.sage_object import have_same_parent
 
@@ -309,7 +306,7 @@ from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.categories.sets_cat import Sets
 from sage.categories.homset import Hom
 
-from sage.rings.all import ZZ, QQ, CC
+from sage.rings.all import ZZ, QQ
 from sage.rings.ring import Field
 from sage.rings.qqbar import QQbar, AA
 from sage.rings.number_field.number_field import CyclotomicField
@@ -318,10 +315,10 @@ from sage.rings.integer import GCD_list, LCM_list
 from sage.rings.real_mpfr import RealField, mpfr_prec_min
 from sage.rings.complex_field import ComplexField
 from sage.rings.real_lazy import RLF, CLF
-
 from sage.combinat.dict_addition import dict_linear_combination, dict_addition
-
-from sage.rings.universal_cyclotomic_field.universal_cyclotomic_field_c import ZumbroichBasisCython,push_down_cython,ZumbroichDecomposition,galois_conjugates_cython,push_to_higher_field,dict_multiplication,dict_vector_multiplication
+from sage.rings.universal_cyclotomic_field.universal_cyclotomic_field_c import \
+    ZumbroichBasisCython, push_down_cython, ZumbroichDecomposition, galois_conjugates_cython, \
+    push_to_higher_field, dict_multiplication, dict_vector_multiplication
 
 class UniversalCyclotomicField(UniqueRepresentation, Field):
     r"""
@@ -519,7 +516,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
             sage: UCF(p)
             Traceback (most recent call last):
             ...
-            TypeError: No coercion to the universal cyclotomic field found for the input [2, 1].
+            TypeError: No coercion to the universal cyclotomic field found for the input [2, 1] with parent Standard permutations.
         """
         if hasattr(arg,"_universal_cyclotomic_field_"):
             return arg._universal_cyclotomic_field_()
@@ -783,7 +780,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
         if coerce:
             for X,a in D.iteritems():
                 D[X] = QQ(a)
-        elem = self.element_class(self._data._from_dict(D, remove_zeros=remove_zeros), parent=self)
+        elem = self.element_class(self, self._data._from_dict(D, remove_zeros=remove_zeros))
         return elem
 
     def from_base_ring(self,coeff):
@@ -1062,7 +1059,10 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
         coeff_list = elem.list()
         return self._from_dict(push_down_cython(n,dict_linear_combination((ZumbroichDecomposition(n, k), coeff_list[ k ]) for k in range(len(coeff_list)) if coeff_list[k] != 0)), remove_zeros=False)
 
-    class Element(FieldElement, ElementWrapper):
+    # This cannot inherit from FieldElement and ElementWrapper, this causes the _add_()
+    #   _sub_(), _mul_(), etc. to not call the corresponding functions in this class,
+    #   leading to a segfault.
+    class Element(FieldElement):
         r"""
         An element of the universal cyclotomic field.
 
@@ -1070,6 +1070,43 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
 
             - :class:`UniversalCyclotomicField`
         """
+        def __init__(self, parent, value):
+            """
+            Initialize ``self``.
+
+            EXAMPLES::
+
+                sage: UCF.<E> = UniversalCyclotomicField()
+                sage: elt = E(6)
+                sage: TestSuite(elt).run()
+            """
+            self.value = value
+            FieldElement.__init__(self, parent)
+
+        def _repr_(self):
+            """
+            Return a string representation of ``self``.
+
+            EXAMPLES::
+
+                sage: UCF.<E> = UniversalCyclotomicField()
+                sage: E(6)
+                -E(3)^2
+            """
+            return repr(self.value)
+
+        def _latex_(self):
+            r"""
+            Return a `\LaTeX` representation of ``self``.
+
+            EXAMPLES::
+
+                sage: UCF.<E> = UniversalCyclotomicField()
+                sage: latex(E(6))
+                -\zeta_{3}^{2}
+            """
+            from sage.misc.latex import latex
+            return latex(self.value)
 
         def __lt__(self,other):
             r"""
@@ -1378,7 +1415,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
                 -E(3)
             """
             F = self.parent()
-            elem = F.element_class(self.value.__neg__(), parent = F)
+            elem = F.element_class(F, self.value.__neg__())
             return elem
 
         def __invert__(self):
@@ -1548,7 +1585,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
                     return None
 
             F = self.parent()
-            elem = F.element_class(self.value._acted_upon_(scalar, self_on_left = self_on_left), parent = F)
+            elem = F.element_class(F, self.value._acted_upon_(scalar, self_on_left = self_on_left))
             return elem
 
         # For backward compatibility
@@ -1952,7 +1989,7 @@ class ZumbroichBasisIndices(UniqueRepresentation, Parent):
             sage: a = ZumbroichBasisIndices().an_element(); a
             (12, 4)
         """
-        return self.element_class((12,4),parent=self)
+        return self.element_class(self, (12, 4))
 
     def __contains__(self, x):
         r"""
@@ -1972,7 +2009,7 @@ class ZumbroichBasisIndices(UniqueRepresentation, Parent):
         """
         if isinstance(x,tuple) and len(x) == 2:
             n,i = int(x[0]),int(x[1])
-            x = self.element_class((n,int(i)),parent=self)
+            x = self.element_class( self, (n, int(i)) )
         return x in self.indices(x[0])
 
     def indices(self, n, m=1):
@@ -1997,7 +2034,7 @@ class ZumbroichBasisIndices(UniqueRepresentation, Parent):
         if not n%m == 0:
             raise ValueError('%s does not divide %s.'%(m,n))
         B = ZumbroichBasisCython(n, m)
-        return (set([ self.element_class((n,int(i)),parent=self) for i in B ]))
+        return set([self.element_class( self, (n, int(i)) ) for i in B])
 
     class Element(ElementWrapper):
         def __getitem__(self,i):

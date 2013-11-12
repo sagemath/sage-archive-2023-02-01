@@ -17,10 +17,7 @@ Congruence Subgroup `\Gamma_1(N)`
 from sage.misc.cachefunc import cached_method
 
 from sage.misc.misc import prod
-from congroup_generic import is_CongruenceSubgroup
 from congroup_gammaH import GammaH_class, is_GammaH, GammaH_constructor
-#from congroup_gamma0 import Gamma0_constructor -- circular!
-from arithgroup_element import ArithmeticSubgroupElement
 from sage.rings.all import ZZ, euler_phi as phi, moebius, divisors
 from sage.modular.dirichlet import DirichletGroup
 
@@ -63,8 +60,9 @@ def Gamma1_constructor(N):
         sage: G = Gamma1(23)
         sage: G is Gamma1(23)
         True
-        sage: G == loads(dumps(G))
+        sage: G is GammaH(23, [1])
         True
+        sage: TestSuite(G).run()
         sage: G is loads(dumps(G))
         True
     """
@@ -112,51 +110,6 @@ class Gamma1_class(GammaH_class):
             True
         """
         GammaH_class.__init__(self, level, [])
-
-    def __cmp__(self, other):
-        """
-        Compare self to other.
-
-        The ordering on congruence subgroups of the form `\Gamma_H(N)` for
-        some H is first by level and then by the subgroup H. In
-        particular, this means that we have `\Gamma_1(N) < \Gamma_H(N) <
-        \Gamma_0(N)` for every nontrivial subgroup H.
-
-        EXAMPLES::
-
-            sage: G = Gamma1(86)
-            sage: G.__cmp__(G)
-            0
-            sage: G.__cmp__(GammaH(86, [11])) is not 0
-            True
-            sage: Gamma1(12) < Gamma0(12)
-            True
-            sage: Gamma1(10) < Gamma1(12)
-            True
-            sage: Gamma1(11) == GammaH(11, [])
-            True
-            sage: Gamma1(1) == SL2Z
-            True
-            sage: Gamma1(2) == Gamma0(2)
-            True
-        """
-        from all import is_GammaH
-        if not is_CongruenceSubgroup(other):
-            return cmp(type(self), type(other))
-
-        c = cmp(self.level(), other.level())
-        if c: return c
-
-        # Since Gamma1(N) is GammaH(N) for H all of (Z/N)^\times,
-        # we know how to compare it to any other GammaH without having
-        # to look at self._list_of_elements_in_H().
-        if is_GammaH(other):
-            if is_Gamma1(other):
-                return 0
-            else:
-                H = other._generators_for_H()
-                return cmp(0,len(H))
-        return cmp(type(self), type(other))
 
     def _repr_(self):
         """
@@ -282,42 +235,28 @@ class Gamma1_class(GammaH_class):
         else:
             raise ValueError, "Unknown algorithm '%s' (should be either 'farey' or 'todd-coxeter')" % algorithm
 
-    def __call__(self, x, check=True):
+    def _contains_sl2(self, a,b,c,d):
         r"""
-        Create an element of this congruence subgroup from x.
-
-        If the optional flag check is True (default), check whether
-        x actually gives an element of self.
+        Test whether x is an element of this group.
 
         EXAMPLES::
 
             sage: G = Gamma1(5)
-            sage: G([1, 0, -10, 1])
-            [ 1   0]
-            [-10  1]
-            sage: G(matrix(ZZ, 2, [6, 1, 5, 1]))
-            [6  1]
-            [5  1]
-            sage: G([1, 1, 6, 7])
+            sage: [1, 0, -10, 1] in G
+            True
+            sage: matrix(ZZ, 2, [6, 1, 5, 1]) in G
+            True
+            sage: SL2Z.0 in G
+            False
+            sage: G([1, 1, 6, 7]) # indirect doctest
             Traceback (most recent call last):
             ...
-            TypeError: matrix must have diagonal entries (=1, 7) congruent to 1 modulo 5, and lower left entry (=6) divisible by 5
+            TypeError: matrix [1 1]
+            [6 7] is not an element of Congruence Subgroup Gamma1(5)
         """
-        from all import SL2Z
-        x = SL2Z(x, check)
-        if not check:
-            return x
-
-        a = x.a()
-        c = x.c()
-        d = x.d()
         N = self.level()
-        if (a%N == 1) and (c%N == 0):
-            return x
-            # don't need to check d == 1 mod N as this is automatic from det
-        else:
-            raise TypeError, "matrix must have diagonal entries (=%s, %s) congruent to 1 modulo %s, and lower left entry (=%s) divisible by %s" %(a, d, N, c, N)
-
+        # don't need to check d == 1 mod N as this is automatic from det
+        return ((a%N == 1) and (c%N == 0))
 
     def nu2(self):
         r"""

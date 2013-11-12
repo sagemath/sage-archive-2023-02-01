@@ -304,6 +304,7 @@ class ModularSymbol(SageObject):
                         at0 = sum([kronecker_symbol(D,u) * self(ZZ(u)/D) for u in range(1,abs(D))])
                     j += 1
                 if j == 30 and at0 == 0: # curves like "121b1", "225a1", "225e1", "256a1", "256b1", "289a1", "361a1", "400a1", "400c1", "400h1", "441b1", "441c1", "441d1", "441f1 .. will arrive here
+                    self._failed_to_scale = True
                     self.__scale_by_periods_only__()
                 else :
                     l1 = self.__lalg__(D)
@@ -323,6 +324,7 @@ class ModularSymbol(SageObject):
                 j += 1
             if j == 30 and at0 == 0: # no more hope for a normalization
                 # we do at least a scaling with the quotient of the periods
+                self._failed_to_scale = True
                 self.__scale_by_periods_only__()
             else :
                 l1 = self.__lalg__(D)
@@ -626,7 +628,10 @@ class ModularSymbolSage(ModularSymbol):
         if normalize == "L_ratio":
             self._e = self._modsym.dual_eigenvector()
             self._find_scaling_L_ratio()
-            self._e  *= self._scaling
+            if self._failed_to_scale:
+                self._find_scaling_period()  # will reset _e and _scaling
+            else:
+                self._e  *= self._scaling
         elif normalize == "period" :
             self._find_scaling_period()      # this will set _e and _scaling
         elif normalize == "none":

@@ -11,7 +11,7 @@ Root system data for type C
 #*****************************************************************************
 import ambient_space
 
-class  AmbientSpace(ambient_space.AmbientSpace):
+class AmbientSpace(ambient_space.AmbientSpace):
     """
     EXAMPLES::
 
@@ -264,6 +264,20 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             3   4   5   6   7
         """
         return self.dual().ascii_art(label = label).replace("=>=", "=<=")
+
+    def _default_folded_cartan_type(self):
+        """
+        Return the default folded Cartan type.
+
+        EXAMPLES::
+
+            sage: CartanType(['C', 3])._default_folded_cartan_type()
+            ['C', 3] as a folding of ['A', 5]
+        """
+        from sage.combinat.root_system.type_folded import CartanTypeFolded
+        n = self.n
+        return CartanTypeFolded(self, ['A', 2*n-1],
+            [[i, 2*n-i] for i in range(1, n)] + [[n]])
 
 # For unpickling backward compatibility (Sage <= 4.1)
 from sage.structure.sage_object import register_unpickle_override

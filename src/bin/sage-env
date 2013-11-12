@@ -315,7 +315,7 @@ if [ "$SAGE_UPSTREAM" = "" ]; then
     export SAGE_UPSTREAM
 fi
 if [ -z "$SAGE_REPO_ANONYMOUS" ]; then
-    SAGE_REPO_ANONYMOUS="git://github.com/sagemath/sage.git"
+    SAGE_REPO_ANONYMOUS="git://trac.sagemath.org/sage.git"
     export SAGE_REPO_ANONYMOUS
 fi
 if [ -z "$SAGE_REPO_AUTHENTICATED" ]; then
@@ -636,3 +636,8 @@ if [ -r "$SAGE_RC_FILE" ]; then
         exit 1
     fi
 fi
+
+# If we move the Sage tree then ncurses cannot find terminfo, hence, we
+# tell it where to find it. See Trac Ticket #15091
+
+export TERMINFO="$SAGE_LOCAL/share/terminfo"

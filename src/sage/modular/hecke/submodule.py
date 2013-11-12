@@ -952,3 +952,22 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             Vdual = A.row_space()
         return self.ambient_hecke_module().submodule(V, Vdual, check=check)
 
+    def hecke_bound(self):
+        """
+        Compute the Hecke bound for self; that is, a number n such that the
+        T_m for m = n generate the Hecke algebra.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(24,8)
+            sage: M.hecke_bound()
+            53
+            sage: M.cuspidal_submodule().hecke_bound()
+            32
+            sage: M.eisenstein_submodule().hecke_bound()
+            53
+        """
+        if self.is_cuspidal():
+            return self.sturm_bound()
+        else:
+            return self.ambient_hecke_module().hecke_bound()

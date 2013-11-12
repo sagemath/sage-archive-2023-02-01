@@ -68,6 +68,7 @@ from sage.misc.randstate cimport randstate, current_randstate
 
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/stdsage.pxi'
+include 'sage/libs/pari/pari_err.pxi'
 
 cdef extern from "<complex.h>":
     double complex csqrt(double complex)
@@ -1023,7 +1024,7 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         cdef sage.libs.pari.gen.PariInstance P
         P = sage.libs.pari.gen.pari
-        sig_on()
+        pari_catch_sig_on()
         return P.new_gen(self._gen())
 
     #######################################################################
@@ -2223,7 +2224,7 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         cdef sage.libs.pari.gen.PariInstance P
         P = sage.libs.pari.gen.pari
-        sig_on()
+        pari_catch_sig_on()
         f = P.new_gen(algdep0(self._gen(), n, 0))
         from polynomial.polynomial_ring_constructor import PolynomialRing
         from integer_ring import ZZ

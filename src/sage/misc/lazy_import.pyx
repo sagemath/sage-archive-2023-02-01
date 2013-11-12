@@ -1,11 +1,11 @@
 r"""
 Lazy imports
 
-This module allows one to lazily import callable objects into the
-global namespace, where the actual import is delayed until the object
-is actually called or inspected. This is useful for modules that are
-expensive to import or may cause circular references, though there is
-some overhead in its use.
+This module allows one to lazily import objects into a namespace,
+where the actual import is delayed until the object is actually called
+or inspected. This is useful for modules that are expensive to import
+or may cause circular references, though there is some overhead in its
+use.
 
 EXAMPLES::
 
@@ -15,6 +15,27 @@ EXAMPLES::
     <type 'sage.misc.lazy_import.LazyImport'>
     sage: ZZ(4.0)
     4
+
+By default, a warning is issued if a lazy import module is resolved
+during Sage's startup. In case a lazy import's sole purpose is to
+break a circular reference and it is known to be resolved at startup
+time, one can use the ``at_startup`` option::
+
+    sage: lazy_import('sage.rings.all', 'ZZ', at_startup=True)
+
+This option can also be used as an intermediate step toward not
+importing by default a module that is used in several places, some of
+which can already afford to lazy import the module but not all.
+
+A lazy import that is marked as "at_startup" will print a message if
+it is actually resolved after the startup, so that the developer knows
+that (s)he can remove the flag::
+
+    sage: ZZ
+    Option ``at_startup=True`` for lazy import ZZ not needed anymore
+    Integer Ring
+
+.. SEEALSO:: :func:`lazy_import`, :class:`LazyImport`
 
 AUTHOR:
 
@@ -133,8 +154,9 @@ cdef class LazyImport(object):
     cdef _name
     cdef _as_name
     cdef _namespace
+    cdef _at_startup
 
-    def __init__(self, module, name, as_name=None, namespace=None):
+    def __init__(self, module, name, as_name=None, namespace=None, at_startup=False):
         """
         EXAMPLES::
 
@@ -150,6 +172,7 @@ cdef class LazyImport(object):
         self._object = None
         self._as_name = as_name
         self._namespace = namespace
+        self._at_startup = at_startup
 
     # Due to a bug in Cython-0.19, this must not be a cpdef method.
     # See http://trac.sagemath.org/sage_trac/ticket/14452
@@ -162,6 +185,8 @@ cdef class LazyImport(object):
         - ``owner`` -- ``None`` or the class (or subclass thereof)
           which contains this :class:`LazyImport` object in its
           ``__dict__``.
+        - ``at_startup`` -- a boolean (default: False)
+          whether the lazy import is supposed to be resolved at startup time.
 
         OUTPUT:
 
@@ -177,6 +202,10 @@ cdef class LazyImport(object):
             Integer Ring
             sage: my_integer_ring._object is None
             False
+            sage: my_integer_ring = LazyImport('sage.rings.all', 'ZZ', at_startup=True)
+            sage: my_integer_ring
+            Option ``at_startup=True`` for lazy import ZZ not needed anymore
+            Integer Ring
 
         .. note::
 
@@ -207,13 +236,15 @@ cdef class LazyImport(object):
                <type 'function'>
         """
         if self._object is None:
-            if startup_guard:
+            if startup_guard and not self._at_startup:
                 import sys, traceback
                 print '-' * 79
                 print 'Resolving lazy import {0} during startup'.format(self._name)
                 print 'Calling stack:'
                 traceback.print_stack(None, None, sys.stdout)
                 print '-' * 79
+            elif self._at_startup and not startup_guard:
+                print 'Option ``at_startup=True`` for lazy import {0} not needed anymore'.format(self._name)
             self._object = getattr(__import__(self._module, {}, {}, [self._name]), self._name)
             alias = self._as_name or self._name
             if owner is None:
@@ -874,10 +905,10 @@ cdef class LazyImport(object):
         return self._get_object()
 
 
-def lazy_import(module, names, _as=None, namespace=None, bint overwrite=True):
+def lazy_import(module, names, _as=None, namespace=None, bint overwrite=True, at_startup=False):
     """
     Create a lazy import object and inject it into the caller's global
-    namespace. For the purposes of introspection and calling, this
+    namespace. For the purposes of introspection and calling, this is
     like performing a lazy "from module import name" where the import
     is delayed until the object actually is used or inspected.
 
@@ -892,6 +923,10 @@ def lazy_import(module, names, _as=None, namespace=None, bint overwrite=True):
       the names to current namespace.
     - overwrite: (default: True) If set to True and a name is already in the
       namespace, overwrite it with the lazy_import-ed name.
+    - ``at_startup``: a boolean (default: False)
+      whether the lazy import is supposed to be resolved at startup time.
+
+    .. SEEALSO:: :mod:`sage.misc.lazy_import`, :class:`LazyImport`
 
     EXAMPLES::
 
@@ -951,7 +986,7 @@ def lazy_import(module, names, _as=None, namespace=None, bint overwrite=True):
     for name, alias in zip(names, _as):
         if not overwrite and (alias or name) in namespace:
             continue
-        namespace[alias or name] = LazyImport(module, name, alias, namespace)
+        namespace[alias or name] = LazyImport(module, name, alias, namespace, at_startup)
 
 
 star_imports = None

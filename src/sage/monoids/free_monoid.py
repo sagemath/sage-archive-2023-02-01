@@ -36,6 +36,7 @@ from free_monoid_element import FreeMonoidElement
 
 from monoid import Monoid_class
 
+from sage.combinat.words.finite_word import FiniteWord_class
 
 from sage.structure.factory import UniqueFactory
 from sage.misc.cachefunc import cached_method
@@ -151,10 +152,10 @@ class FreeMonoid_class(Monoid_class):
         """
         Return `x` coerced into this free monoid.
 
-        One can create a free monoid from the integer 1 and from a list of
-        2-tuples of integers `(i,j)`, where `(i,j)`
+        One can create a free monoid element from the integer 1, from a
+        list of 2-tuples of integers `(i,j)`, where `(i,j)`
         corresponds to `x_i^j`, where `x_i` is the
-        `i`th generator.
+        `i`th generator, and words in teh same alphabet as the generators.
 
         EXAMPLES::
 
@@ -168,22 +169,34 @@ class FreeMonoid_class(Monoid_class):
             ...
             TypeError: Argument x (= 0) is of the wrong type.
 
-        ::
+        An example with a list::
 
             sage: F([(0,5),(1,2),(0,10),(0,2),(1,2)])
             a0^5*a1^2*a0^12*a1^2
+
+        An example using words::
+
+            sage: F = FreeMonoid(3, 'a,b,c')
+            sage: w = Word('aabbcabac')
+            sage: F(w)
+            a^2*b^2*c*a*b*a*c
+            sage: F(Word([]))
+            1
         """
         ## There should really some careful type checking here...
         if isinstance(x, FreeMonoidElement) and x.parent() is self:
-                return x
+            return x
         if isinstance(x, FreeMonoidElement) and x.parent() == self:
             return self.element_class(self,x._element_list,check)
-        elif isinstance(x, (int, long, Integer)) and x == 1:
+        if isinstance(x, (int, long, Integer)) and x == 1:
             return self.element_class(self, x, check)
-        elif isinstance(x, list):
+        if isinstance(x, FiniteWord_class):
+            d = self.gens_dict()
+            return self.prod(map(lambda let: d[let], x))
+        if isinstance(x, list):
             return self.element_class(self, x, check)
-        else:
-            raise TypeError, "Argument x (= %s) is of the wrong type."%x
+
+        raise TypeError("Argument x (= %s) is of the wrong type."%x)
 
     def __contains__(self, x):
         return isinstance(x, FreeMonoidElement) and x.parent() == self

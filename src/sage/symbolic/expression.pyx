@@ -510,6 +510,13 @@ cdef class Expression(CommutativeRingElement):
             -(1/2*I - 1/2)*sqrt(2)
             sage: latex((1/2-1/2*I )*sqrt(2))
             -\left(\frac{1}{2} i - \frac{1}{2}\right) \, \sqrt{2}
+
+        Check if :trac:`9632` is fixed::
+
+            sage: zeta(x) + cos(x)
+            cos(x) + zeta(x)
+            sage: psi(1,1/3)*log(3)
+            log(3)*psi(1, 1/3)
         """
         return self._parent._repr_element_(self)
 
@@ -2242,6 +2249,8 @@ cdef class Expression(CommutativeRingElement):
             sage: t1, t2 = var(','.join([s+'1',s+'2']))
             sage: (t1 == t2).test_relation()
             False
+            sage: (cot(pi + x) == 0).test_relation()
+            NotImplemented
         """
         cdef int k, eq_count = 0
         cdef bint is_interval
@@ -2308,7 +2317,7 @@ cdef class Expression(CommutativeRingElement):
                         return False
                     if is_interval:
                         eq_count += <bint>val.contains_zero()
-                except (TypeError, ValueError, ArithmeticError), ex:
+                except (TypeError, ValueError, ArithmeticError, AttributeError), ex:
                     errors += 1
                     if k == errors > 3 and is_ComplexIntervalField(domain):
                         domain = RIF.to_prec(domain.prec())
@@ -5420,8 +5429,7 @@ cdef class Expression(CommutativeRingElement):
             TypeError: y is not a variable of Multivariate Polynomial Ring in x over Ring of integers modulo 4
         """
         from sage.symbolic.all import SR
-        from sage.rings.all import is_MPolynomialRing
-
+        from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
         base_ring = R.base_ring()
         if base_ring == SR:
             if is_MPolynomialRing(R):
@@ -7774,12 +7782,6 @@ cdef class Expression(CommutativeRingElement):
 
         EXAMPLES::
 
-            sage: a = log(8)/log(2)
-            sage: a.simplify_full()
-            3
-
-        ::
-
             sage: f = sin(x)^2 + cos(x)^2
             sage: f.simplify_full()
             1
@@ -7797,12 +7799,21 @@ cdef class Expression(CommutativeRingElement):
             sage: f = binomial(n,k)*factorial(k)*factorial(n-k)
             sage: f.simplify_full()
             factorial(n)
+
+        TESTS:
+
+        There are two square roots of `$(x + 1)^2$`, so this should
+        not be simplified to `$x + 1$`, :trac:`12737`::
+
+            sage: f = sqrt((x + 1)^2)
+            sage: f.simplify_full()
+            sqrt(x^2 + 2*x + 1)
+
         """
         x = self
         x = x.simplify_factorial()
         x = x.simplify_trig()
         x = x.simplify_rational()
-        x = x.simplify_radical()
         x = x.simplify_log('one')
         x = x.simplify_rational()
         return x
@@ -8065,6 +8076,12 @@ cdef class Expression(CommutativeRingElement):
             sage: f = log(x*y)
             sage: f.simplify_radical()
             log(x) + log(y)
+
+        ::
+
+            sage: f = log(8)/log(2)
+            sage: f.simplify_radical()
+            3
 
         ::
 
@@ -9000,6 +9017,13 @@ cdef class Expression(CommutativeRingElement):
 
             sage: solve([x-4], [x])
             [x == 4]
+
+        :trac:`13645`: fixed::
+
+            sage: x.solve((1,2))
+            Traceback (most recent call last):
+            ...
+            TypeError: 1 is not a valid variable.
         """
         import operator
         cdef Expression ex
@@ -9039,7 +9063,7 @@ cdef class Expression(CommutativeRingElement):
             x = v[0]
 
         if not isinstance(x, Expression):
-            raise TypeError, "%s is not a valid variable."%x
+            raise TypeError("%s is not a valid variable."%repr(x))
 
         m = ex._maxima_()
         P = m.parent()

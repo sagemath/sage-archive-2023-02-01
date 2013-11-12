@@ -21,6 +21,7 @@ from sage.combinat.combinat import CombinatorialClass
 from sage.rings.all import binomial
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.subset import Subsets
+from sage.combinat.composition import Compositions_n, Compositions
 
 class ShuffleProduct_w1w2(CombinatorialClass):
     def __init__(self, w1, w2):
@@ -112,6 +113,15 @@ class ShuffleProduct_w1w2(CombinatorialClass):
 
     def _proc(self, vect):
         """
+        Return the shuffle of ``w1`` with ``w2`` with 01-vector
+        ``vect``.
+
+        The 01-vector of a shuffle is a list of 0s and 1s whose
+        length is the sum of the lengths of ``w1`` and ``w2``,
+        and whose `k`-th entry is `1` if the `k`-th letter of
+        the shuffle is taken from ``w1`` and `0` if it is taken
+        from ``w2``.
+
         EXAMPLES::
 
             sage: from sage.combinat.words.shuffle_product import ShuffleProduct_w1w2
@@ -121,6 +131,24 @@ class ShuffleProduct_w1w2(CombinatorialClass):
             word: cadb
             sage: S._proc([1,1,0,0])
             word: abcd
+
+            sage: I = Composition([1, 1])
+            sage: J = Composition([2])
+            sage: S = ShuffleProduct_w1w2(I, J)
+            sage: S._proc([1,0,1])
+            [1, 2, 1]
+
+        TESTS:
+
+        Sage is no longer confused by a too-restrictive parent
+        of `I` when shuffling two compositions `I` and `J`
+        (cf. :trac:`15131`)::
+
+            sage: I = Composition([1, 1])
+            sage: J = Composition([2])
+            sage: S = ShuffleProduct_w1w2(I, J)
+            sage: S._proc([1,0,1])
+            [1, 2, 1]
         """
         i1 = -1
         i2 = -1
@@ -132,12 +160,18 @@ class ShuffleProduct_w1w2(CombinatorialClass):
             else:
                 i2 += 1
                 res.append(self._w2[i2])
-        return self._w1.parent()(res)
+        try:
+            return self._w1.parent()(res)
+        except ValueError:
+            # Special situation: the parent of w1 is too
+            # restrictive to be cast on res.
+            if isinstance(self._w1.parent(), Compositions_n):
+                return Compositions(res)
 
     def __iter__(self):
         """
-        Returns an iterator for the words in the
-        shuffle product of w1 and w2.
+        Return an iterator for the words in the
+        shuffle product of ``w1`` and ``w2``.
 
         EXAMPLES::
 
@@ -155,6 +189,15 @@ class ShuffleProduct_w1w2(CombinatorialClass):
 class ShuffleProduct_shifted(ShuffleProduct_w1w2):
     def __init__(self, w1, w2):
         """
+        Shifted shuffle product of ``w1`` with ``w2``.
+
+        This is the shuffle product of ``w1`` with the word
+        obtained by adding the length of ``w1`` to every letter
+        of ``w2``.
+
+        Note that this class is meant to be used for words; it
+        misbehaves when ``w1`` is a permutation or composition.
+
         EXAMPLES::
 
             sage: from sage.combinat.words.shuffle_product import ShuffleProduct_shifted
@@ -192,6 +235,11 @@ class ShuffleProduct_overlapping_r(CombinatorialClass):
         self._w1 = w1
         self._w2 = w2
         self.r  = r
+        self.W  = self._w1.parent()
+        # Special situation: the parent of w1 is too
+        # restrictive to be cast on the shuffles.
+        if isinstance(self.W, Compositions_n):
+            self.W = Compositions()
 
     def __repr__(self):
         """
@@ -217,8 +265,24 @@ class ShuffleProduct_overlapping_r(CombinatorialClass):
             sage: w, u = W([1,2]), W([3,4])
             sage: ShuffleProduct_overlapping_r(w, u, 1).list() #indirect doctest
             [word: 424, word: 154, word: 442, word: 136, word: 352, word: 316]
+
+            sage: I, J = Composition([2, 2]), Composition([1, 1])
+            sage: S = ShuffleProduct_overlapping_r(I, J, 1)
+            sage: S.list()
+            [[3, 2, 1], [2, 3, 1], [3, 1, 2], [2, 1, 3], [1, 3, 2], [1, 2, 3]]
+
+        TESTS:
+
+        Sage is no longer confused by a too-restrictive parent
+        of `I` when shuffling two compositions `I` and `J`
+        (cf. :trac:`15131`)::
+
+            sage: I, J = Compositions(4)([2, 2]), Composition([1, 1])
+            sage: S = ShuffleProduct_overlapping_r(I, J, 1)
+            sage: S.list()
+            [[3, 2, 1], [2, 3, 1], [3, 1, 2], [2, 1, 3], [1, 3, 2], [1, 2, 3]]
         """
-        W = self._w1.parent()
+        W = self.W
 
         m = len(self._w1)
         n = len(self._w2)

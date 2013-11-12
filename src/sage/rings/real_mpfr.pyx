@@ -3845,7 +3845,16 @@ cdef class RealNumber(sage.structure.element.RingElement):
             3.14159265358979*I
             sage: r.log(2)
             4.53236014182719*I
+
+        For the error value NaN (Not A Number), log will return NaN::
+
+            sage: r = R(NaN); r.log()
+            NaN
+
         """
+        if mpfr_nan_p(self.value):
+            return self
+
         cdef RealNumber x
         if self < 0:
             if base is 'e':

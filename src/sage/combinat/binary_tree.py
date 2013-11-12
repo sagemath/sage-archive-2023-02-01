@@ -1422,7 +1422,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         is a quotient of the weak order on the `n`-th symmetric group.
         See [CP12]_.
 
-        EXAMPLES::
+        EXAMPLES:
 
         For example, the tree::
 
@@ -1484,7 +1484,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         This list is computed by performing all left rotates possible on
         its nodes.
 
-        EXAMPLES::
+        EXAMPLES:
 
         For this tree::
 
@@ -1542,7 +1542,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         is a quotient of the weak order on the `n`-th symmetric group.
         See [CP12]_.
 
-        EXAMPLES::
+        EXAMPLES:
 
         The tree::
 
@@ -1588,7 +1588,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         This is the list of all trees obtained by a right rotate of
         one of its nodes.
 
-        EXAMPLES::
+        EXAMPLES:
 
         The list of successors of::
 
@@ -2007,7 +2007,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         EXAMPLES:
 
         Showing only the nodes of a binary tree, here is an
-        example for the over operation:
+        example for the over operation::
 
             |   o       __o__       _o_         |
             |  / \  /  /     \  =  /   \        |
@@ -2059,7 +2059,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [      \     /  ]
             [       o   o   ]
 
-        The same in the labelled case:
+        The same in the labelled case::
 
             sage: b1 = b1.canonical_labelling()
             sage: b2 = b2.canonical_labelling()
@@ -2088,21 +2088,21 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
     @combinatorial_map(name="Under operation on Binary Trees")
     def under(self, bt):
         r"""
-        The ``under`` (`\backslash`) operation defined by Loday-Ronco
-        [LodayRonco]_.
+        Return ``self`` under ``bt``, where "under" is the ``under``
+        (`\backslash`) operation defined by Loday-Ronco [LodayRonco]_.
 
         If `T` and `T'` are two binary trees, then `T` under `T'`
-        (written `T \ T'`) is defined as the tree obtained by grafting
-        `T` on the leftmost leaf of `T'`. More precisely, `T \ T'` is
-        defined by identifying the root of `T` with the leftmost
-        leaf of `T'`. See section 4.5 of [HNT05]_.
+        (written `T \backslash T'`) is defined as the tree obtained
+        by grafting `T` on the leftmost leaf of `T'`. More precisely,
+        `T \backslash T'` is defined by identifying the root of `T`
+        with the leftmost leaf of `T'`. See section 4.5 of [HNT05]_.
 
-        If `T'` is empty, then `T \ T' = T`.
+        If `T'` is empty, then `T \backslash T' = T`.
 
-        EXAMPLES::
+        EXAMPLES:
 
         Showing only the nodes of a binary tree, here is an
-        example for the under operation:
+        example for the under operation::
 
             sage: b1 = BinaryTree([[],[]])
             sage: b2 = BinaryTree([None,[]])
@@ -2142,7 +2142,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [      \        ]
             [       o       ]
 
-        The same in the labelled case:
+        The same in the labelled case::
 
             sage: b1 = b1.canonical_labelling()
             sage: b2 = b2.canonical_labelling()
@@ -2778,18 +2778,28 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
     Labelled binary trees.
 
     A labelled binary tree is a binary tree (see :class:`BinaryTree` for
-    the meaning of this) with a label assigned to each node and leaf.
+    the meaning of this) with a label assigned to each node.
     The labels need not be integers, nor are they required to be distinct.
     ``None`` can be used as a label.
+
+    .. WARNING::
+
+        While it is possible to assign values to leaves (not just nodes)
+        using this class, these labels are disregarded by various
+        methods such as
+        :meth:`~sage.combinat.abstract_tree.AbstractLabelledTree.labels`,
+        :meth:`~sage.combinat.abstract_tree.AbstractLabelledTree.map_labels`,
+        and (ironically)
+        :meth:`~sage.combinat.abstract_tree.AbstractLabelledTree.leaf_labels`.
 
     INPUT:
 
     - ``children`` -- ``None`` (default) or a list, tuple or iterable of
       length `2` of labelled binary trees or convertible objects. This
       corresponds to the standard recursive definition of a labelled
-      binary tree as given by a pair of:
+      binary tree as being either a leaf, or a pair of:
 
-      - either a leaf or a pair of labelled binary trees,
+      - a pair of labelled binary trees,
       - and a label.
 
       (The label is specified in the keyword variable ``label``; see
@@ -2805,7 +2815,8 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
       explicitly).
 
       It is also allowed to abbreviate ``[None, None]`` by ``[]`` if
-      one does not want to label the leaves.
+      one does not want to label the leaves (which one shouldn't do
+      anyway!).
 
     - ``label`` -- (default: ``None``) the label to be put on the root
       of this tree.
@@ -2823,11 +2834,11 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
 
         sage: LabelledBinaryTree(None)
         .
-        sage: LabelledBinaryTree(None, label="ae")
+        sage: LabelledBinaryTree(None, label="ae")    # not well supported
         'ae'
         sage: LabelledBinaryTree([])
         None[., .]
-        sage: LabelledBinaryTree([], label=3)
+        sage: LabelledBinaryTree([], label=3)    # not well supported
         3[., .]
         sage: LabelledBinaryTree([None, None])
         None[., .]
@@ -2968,7 +2979,7 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
             algorithms like Robinson-Schensted-Knuth, binary
             search tree insertion involves no bumping.
 
-        EXAMPLES::
+        EXAMPLES:
 
         The example from Fig. 2 of [HNT05]_::
 

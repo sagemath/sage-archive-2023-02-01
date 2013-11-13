@@ -482,6 +482,11 @@ class AlgebraicClosureFiniteField_generic(Field):
 
         This always returns ``+Infinity``.
 
+        .. TODO::
+
+            When :trac:`10963` is merged we should remove that method and set the
+            category to infinite fields (i.e. ``Fields().Infinite()``).
+
         EXAMPLES::
 
             sage: F = GF(3).algebraic_closure()
@@ -491,6 +496,23 @@ class AlgebraicClosureFiniteField_generic(Field):
         """
         from sage.rings.infinity import Infinity
         return Infinity
+
+    def is_finite(self):
+        r"""
+        Returns ``False`` as an algebraically closed field is always infinite.
+
+        .. TODO::
+
+            When :trac:`10963` is merged we should remove that method and set the
+            category to infinite fields (i.e. ``Fields().Infinite()``).
+
+        EXAMPLES::
+
+            sage: GF(3).algebraic_closure().is_finite()
+            False
+
+        """
+        return False
 
     def characteristic(self):
         """
@@ -572,6 +594,8 @@ class AlgebraicClosureFiniteField_generic(Field):
             Finite Field in z6 of size 3^6
 
         """
+        if x._level == y._level:
+            return x._value, y._value
         n = x._level.lcm(y._level)
         mx = self.inclusion(x._level, n)
         my = self.inclusion(y._level, n)

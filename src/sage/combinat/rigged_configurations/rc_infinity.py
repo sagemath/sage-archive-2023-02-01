@@ -873,15 +873,17 @@ class InfinityCrystalOfVirtualRC(InfinityCrystalOfRiggedConfigurations):
         gamma = map(int, self._virtual_ct.scaling_factors())
         sigma = self._virtual_ct._orbit
         n = self._virtual_ct._folding.rank()
+        vindex = self._virtual_ct._folding.index_set()
         partitions = [None] * n
         riggings = [None] * n
         vac_nums = [None] * n
         # -1 for indexing
         for a, rp in enumerate(rc):
             for i in sigma[a]:
-                partitions[i-1] = [row_len*gamma[a] for row_len in rp._list]
-                riggings[i-1] = [rig_val*gamma[a] for rig_val in rp.rigging]
-                vac_nums[i-1] = [vac_num*gamma[a] for vac_num in rp.vacancy_numbers]
+                k = vindex.index(i)
+                partitions[k] = [row_len*gamma[a] for row_len in rp._list]
+                riggings[k] = [rig_val*gamma[a] for rig_val in rp.rigging]
+                vac_nums[k] = [vac_num*gamma[a] for vac_num in rp.vacancy_numbers]
         return self.virtual.element_class(self.virtual, partition_list=partitions,
                             rigging_list=riggings,
                             vacancy_numbers_list=vac_nums)
@@ -908,17 +910,19 @@ class InfinityCrystalOfVirtualRC(InfinityCrystalOfRiggedConfigurations):
             sage: ret == elt
             True
         """
-        gamma = map(int, self._virtual_ct.scaling_factors())
+        gamma = list(self._virtual_ct.scaling_factors()) #map(int, self._virtual_ct.scaling_factors())
         sigma = self._virtual_ct._orbit
         n = self._cartan_type.rank()
         partitions = [None] * n
         riggings = [None] * n
         vac_nums = [None] * n
+        vindex = self._virtual_ct._folding.index_set()
+        # TODO: Handle special cases for A^{(2)} even and its dual?
         for a in range(n):
-            index = sigma[a][0]-1
+            index = vindex.index(sigma[a][0])
             partitions[a] = [row_len // gamma[a] for row_len in vrc[index]._list]
-            riggings[a] = [rig_val // gamma[a] for rig_val in vrc[index].rigging]
-            vac_nums[a] = [vac_val // gamma[a] for vac_val in vrc[index].vacancy_numbers]
+            riggings[a] = [rig_val / gamma[a] for rig_val in vrc[index].rigging]
+            vac_nums[a] = [vac_val / gamma[a] for vac_val in vrc[index].vacancy_numbers]
         return self.element_class(self, partition_list=partitions,
                                   rigging_list=riggings, vacancy_numbers_list=vac_nums)
 

@@ -5,7 +5,7 @@ Let `\Bold{F}` be a finite field, and let `\overline{\Bold{F}}` be an
 algebraic closure of `\Bold{F}`; this is unique up to (non-canonical)
 isomorphism.  For every `n\ge 1`, there is a unique subfield
 `\Bold{F}_n` of `\overline{\Bold{F}}` such that
-`\Bold{F}\subset\Bold{F}_n` and '[\Bold{F}_n:\Bold{F}]=1`.
+`\Bold{F}\subset\Bold{F}_n` and `[\Bold{F}_n:\Bold{F}]=n`.
 
 In Sage, algebraic closures of finite fields are implemented using
 compatible systems of finite fields.  The resulting Sage object keeps
@@ -123,7 +123,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
             False
 
         """
-        x, y = self.parent()._coerce_2(self, right)
+        x, y = self.parent()._to_common_subfield(self, right)
         return cmp(x, y)
 
     def _add_(self, right):
@@ -138,7 +138,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
 
         """
         F = self.parent()
-        x, y = F._coerce_2(self, right)
+        x, y = F._to_common_subfield(self, right)
         return self.__class__(F, x + y)
 
     def _sub_(self, right):
@@ -153,7 +153,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
 
         """
         F = self.parent()
-        x, y = F._coerce_2(self, right)
+        x, y = F._to_common_subfield(self, right)
         return self.__class__(F, x - y)
 
     def _mul_(self, right):
@@ -168,7 +168,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
 
         """
         F = self.parent()
-        x, y = F._coerce_2(self, right)
+        x, y = F._to_common_subfield(self, right)
         return self.__class__(F, x * y)
 
     def _div_(self, right):
@@ -183,13 +183,13 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
 
         """
         F = self.parent()
-        x, y = F._coerce_2(self, right)
+        x, y = F._to_common_subfield(self, right)
         return self.__class__(F, x / y)
 
     def _change_level(self, n):
         """
         Return a representation of ``self`` as an element of the
-        subfield of degree ``n`` of the parent, if possible.
+        subfield of degree `n` of the parent, if possible.
 
         EXAMPLE::
 
@@ -243,8 +243,8 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
             return self.__class__(F, x.sqrt(extend=False))
 
     def nth_root(self, n):
-        r"""
-        Return the ``n``-th root of ``self``.
+        """
+        Return an `n`-th root of ``self``.
 
         EXAMPLE::
 
@@ -254,6 +254,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
             4*z6^5 + 3*z6^4 + 2*z6^3 + 2*z6^2 + 4
             sage: s**15 == t
             True
+
         """
         from sage.rings.integer import Integer
         F = self.parent()
@@ -274,7 +275,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
         raise ValueError("this should not happen!")
 
     def multiplicative_order(self):
-        r"""
+        """
         Return the multiplicative order of ``self``.
 
         EXAMPLES::
@@ -284,12 +285,14 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
             16806
             sage: (K.gen(1) + K.gen(2) + K.gen(3)).multiplicative_order()
             7353
+
         """
         return self._value.multiplicative_order()
 
     def pth_power(self, k=1):
-        r"""
-        Return the ``p^k``-th power of ``self``.
+        """
+        Return the `p^k`-th power of ``self``, where `p` is the
+        characteristic of ``self.parent()``.
 
         EXAMPLES::
 
@@ -302,17 +305,16 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
             2*t3^2 + 6*t3 + 11
             sage: s.pth_power(3)
             t3^2 + t3 + 1
-
-        We check that the parent is the one we want::
-
             sage: s.pth_power(3).parent() is K
             True
+
         """
         return self.__class__(self.parent(), self._value.pth_power(k))
 
     def pth_root(self, k=1):
-        r"""
-        Return the ``p^k``-th root of ``self``.
+        """
+        Return the unique `p^k`-th root of ``self``, where `p` is the
+        characteristic of ``self.parent()``.
 
         EXAMPLES::
 
@@ -325,25 +327,27 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
             10*t3^2 + 6*t3
             sage: s.pth_root(3)
             t3^2 + t3 + 1
-
-        We check that the parent is the one we want::
-
             sage: s.pth_root(2).parent() is K
             True
+
         """
         return self.__class__(self.parent(), self._value.pth_root(k))
 
     def as_finite_field_element(self, minimal=False):
-        r"""
-        Return ``self`` as a finite field element. Is ``minimal`` is set to
-        ``True`` then returns the smallest subfield in which ``self`` is
-        contained.
+        """
+        Return ``self`` as a finite field element.
+
+        INPUT:
+
+        - ``minimal`` -- boolean (default: ``False``).  If ``True``,
+          always return the smallest subfield containing ``self``.
 
         OUTPUT:
 
-        - a triple (``field``, ``element``, ``morphism``) where ``field`` is a
-          finite field, ``element`` an element of ``field`` and ``morphism`` a
-          morphism from ``field`` to the algebraic close field.
+        - a triple (``field``, ``element``, ``morphism``) where
+          ``field`` is a finite field, ``element`` an element of
+          ``field`` and ``morphism`` a morphism from ``field`` to
+          ``self.parent()``.
 
         EXAMPLES::
 
@@ -357,22 +361,24 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
               To:   Algebraic closure of Finite Field of size 3
               Defn: t5 |--> t5)
 
-        By default, the finite field returned is not minimal, but this behavior
-        can be modified through the ``minimal`` option::
+        By default, ``field`` is not necessarily minimal.  We can
+        force it to be minimal using the ``minimal`` option::
 
-            sage: s = t+1-t
+            sage: s = t + 1 - t
             sage: s.as_finite_field_element()[0]
             Finite Field in t5 of size 3^5
             sage: s.as_finite_field_element(minimal=True)[0]
             Finite Field of size 3
+
         """
         if not minimal:
             l = self._level
         else:
             l = self._value.minpoly().degree()
 
-        F,phi = self.parent().subfield(l)
+        F, phi = self.parent().subfield(l)
         return (F, F(self._value), phi)
+
 
 def unpickle_AlgebraicClosureFiniteFieldElement(parent, level, x):
     """
@@ -391,6 +397,7 @@ def unpickle_AlgebraicClosureFiniteFieldElement(parent, level, x):
 class AlgebraicClosureFiniteField_generic(Field):
     """
     Algebraic closure of a finite field.
+
     """
     def __init__(self, base_ring, name, category=None):
         """
@@ -404,19 +411,6 @@ class AlgebraicClosureFiniteField_generic(Field):
         """
         Field.__init__(self, base_ring=base_ring, names=name,
                        normalize=False, category=category)
-
-    def cardinality(self):
-        r"""
-        Return infinity.
-
-        EXAMPLES::
-
-            sage: F = GF(3).algebraic_closure()
-            sage: F.cardinality()
-            +Infinity
-        """
-        from sage.rings.infinity import Infinity
-        return Infinity
 
     def __getstate__(self):
         """
@@ -481,6 +475,22 @@ class AlgebraicClosureFiniteField_generic(Field):
             return c
         return cmp((self.base_ring(), self.variable_name(), self.category()),
                    (other.base_ring(), other.variable_name(), other.category()))
+
+    def cardinality(self):
+        """
+        Return the cardinality of ``self``.
+
+        This always returns ``+Infinity``.
+
+        EXAMPLES::
+
+            sage: F = GF(3).algebraic_closure()
+            sage: F.cardinality()
+            +Infinity
+
+        """
+        from sage.rings.infinity import Infinity
+        return Infinity
 
     def characteristic(self):
         """
@@ -548,14 +558,14 @@ class AlgebraicClosureFiniteField_generic(Field):
         """
         return 'Algebraic closure of %s' % self.base_ring()
 
-    def _coerce_2(self, x, y):
+    def _to_common_subfield(self, x, y):
         """
         Coerce `x` and `y` to a common subfield of ``self``.
 
         TEST::
 
             sage: F = GF(3).algebraic_closure()
-            sage: x, y = F._coerce_2(F.gen(2), F.gen(3))
+            sage: x, y = F._to_common_subfield(F.gen(2), F.gen(3))
             sage: x.parent()
             Finite Field in z6 of size 3^6
             sage: y.parent()

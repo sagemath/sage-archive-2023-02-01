@@ -89,6 +89,9 @@ class KRTToRCBijectionTypeA2Dual(KRTToRCBijectionTypeC):
                 self._update_partition_values(a + 1)
             self._update_vacancy_nums(tableau_height)
             self._update_partition_values(tableau_height)
+            if tableau_height > 0:
+                self._update_vacancy_nums(tableau_height-1)
+                self._update_partition_values(tableau_height-1)
 
             # Make the new string at n quasi-singular
             p = self.ret_rig_con[n-1]
@@ -194,6 +197,7 @@ class KRTToRCBijectionTypeA2Dual(KRTToRCBijectionTypeC):
             for i in range(num_rows):
                 if partition._list[i] == width_n:
                     partition.rigging[i] = partition.rigging[i] - QQ(1)/QQ(2)
+                    break
 
 class RCToKRTBijectionTypeA2Dual(RCToKRTBijectionTypeC):
     r"""

@@ -362,7 +362,7 @@ class SixVertexModel(Parent, UniqueRepresentation):
       * ``'outward'`` - all arrows are outward arrows
       * ``'ice'`` - the top and bottom boundary conditions are outward and the
         left and right boundary conditions are inward; this gives the square
-        ice model
+        ice model. Also called domain wall boundary conditions.
 
     EXAMPLES:
 
@@ -646,9 +646,11 @@ class SquareIceModel(SixVertexModel):
 
     The square ice model is a 6 vertex model on an `n \times n` grid with
     the boundary conditions that the top and bottom boundaries are pointing
-    outward and the left and right boundaries are pointing inward.
+    outward and the left and right boundaries are pointing inward. These 
+    boundary conditions are also called domain wall boundary conditions.
 
-    These are in bijection with alternating sign matrices.
+    Configurations of the 6 vertex model with domain wall boundary conditions 
+    are in bijection with alternating sign matrices.
     """
     def __init__(self, n):
         """

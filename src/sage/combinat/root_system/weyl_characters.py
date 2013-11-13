@@ -2165,6 +2165,8 @@ def get_branching_rule(Rtype, Stype, rule):
        sage: [rule(x) for x in WeylCharacterRing("A3").fundamental_weights()]
        [[1, 0], [1, 1], [1, 0]]
     """
+    Rtype=CartanType(Rtype)
+    Stype=CartanType(Stype)
     r = Rtype.rank()
     s = Stype.rank()
     rdim = Rtype.root_system().ambient_space().dimension()

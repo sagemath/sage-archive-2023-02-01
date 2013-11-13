@@ -358,17 +358,19 @@ class SixVertexModel(Parent, UniqueRepresentation):
 
       There are also the following predefined boundary conditions:
 
-      * ``'inward'`` - all arrows are inward arrows
-      * ``'outward'`` - all arrows are outward arrows
-      * ``'ice'`` - the top and bottom boundary conditions are outward and the
+      * ``'ice'`` - The top and bottom boundary conditions are outward and the
         left and right boundary conditions are inward; this gives the square
         ice model. Also called domain wall boundary conditions.
+      * ``'domain wall'`` - Same as ``'ice'``.
+      * ``'alternating'`` - The boundary conditions alternate between inward
+        and outward.
+      * ``'free'`` - There are no boundary conditions.
 
     EXAMPLES:
 
     Here are the six types of vertices that can be created::
 
-        sage: M = SixVertexModel(1, 1)
+        sage: M = SixVertexModel(1)
         sage: list(M)
         [
             |          ^          |          ^          ^          |
@@ -394,7 +396,7 @@ class SixVertexModel(Parent, UniqueRepresentation):
     An example with a specified non-standard boundary condition and
     non-rectangular shape::
 
-        sage: M = SixVertexModel(2, 1, [[None],[True,True],[None],[None,None]])
+        sage: M = SixVertexModel(2, 1, [[None], [True,True], [None], [None,None]])
         sage: list(M)
         [
             ^          ^          |          ^
@@ -426,14 +428,27 @@ class SixVertexModel(Parent, UniqueRepresentation):
         """
         if m is None:
             m = n
-        if boundary_conditions is None:
+        if boundary_conditions is None or boundary_conditions == 'free':
             boundary_conditions = ((None,)*m, (None,)*n)*2
-        elif boundary_conditions == 'inward':
-            boundary_conditions = ((True,)*m, (True,)*n)*2
-        elif boundary_conditions == 'outward':
-            boundary_conditions = ((False,)*m, (False,)*n)*2
-        elif boundary_conditions == 'ice':
-            return SquareIceModel(n)
+        elif boundary_conditions == 'alternating':
+            bdry = True
+            cond = []
+            for dummy in range(2):
+                val = []
+                for k in range(m):
+                    val.append(bdry)
+                    bdry = not bdry
+                cond.append(tuple(val))
+                val = []
+                for k in range(n):
+                    val.append(bdry)
+                    bdry = not bdry
+                cond.append(tuple(val))
+            boundary_conditions = tuple(cond)
+        elif boundary_conditions == 'ice' or boundary_conditions == 'domain wall':
+            if m == n:
+                return SquareIceModel(n)
+            boundary_conditions = ((False,)*m, (True,)*n)*2
         else:
             boundary_conditions = tuple(tuple(x) for x in boundary_conditions)
         return super(SixVertexModel, cls).__classcall__(cls, n, m, boundary_conditions)
@@ -555,13 +570,15 @@ class SixVertexModel(Parent, UniqueRepresentation):
         # [[4, 3], [3, 2]]
 
         while len(cur) > 0:
-            # If we're at the last row and all our final boundry condition is statisfied
-            if len(cur) > n and all(x is not self._bdry_cond[2][i]
-                                    for i,x in enumerate(bdry[-1])):
+            # If we're at the last row
+            if len(cur) > n:
                 cur.pop()
                 bdry.pop()
                 left.pop()
-                yield self.element_class(self, tuple(tuple(x) for x in cur))
+                # Check if all our bottom boundry conditions are statisfied
+                if all(x is not self._bdry_cond[2][i]
+                       for i,x in enumerate(bdry[-1])):
+                    yield self.element_class(self, tuple(tuple(x) for x in cur))
 
             # Find the next row
             row = cur[-1]
@@ -589,7 +606,7 @@ class SixVertexModel(Parent, UniqueRepresentation):
                         break
 
             # If we've killed this row, backup
-            if len(cur[-1]) == 0:
+            if len(row) == 0:
                 cur.pop()
                 bdry.pop()
                 left.pop()

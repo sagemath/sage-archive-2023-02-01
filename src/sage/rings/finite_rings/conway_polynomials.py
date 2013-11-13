@@ -168,6 +168,12 @@ class PseudoConwayLattice(SageObject):
             True
             sage: PCL3 == PCL5
             False
+            sage: PCL3 = PseudoConwayLattice(3, use_database=False)
+            sage: PCL5 = PseudoConwayLattice(5, use_database=False)
+            sage: PCL5 == PCL5
+            True
+            sage: PCL3 == PCL5
+            False
 
         """
         if self is other:
@@ -175,7 +181,8 @@ class PseudoConwayLattice(SageObject):
         c = cmp(type(self), type(other))
         if c != 0:
             return c
-        return cmp(self.nodes, other.nodes)
+        return cmp((self.p, self.nodes),
+                   (other.p, other.nodes))
 
     def polynomial(self, n):
         r"""

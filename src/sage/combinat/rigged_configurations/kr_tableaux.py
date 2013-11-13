@@ -62,19 +62,60 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
     the elements of the Kirillov-Reshetikhin crystal `B^{r,s}` under the
     (inverse) filling map.
 
-    When the Kirillov-Reshetkihin crystal is a full `r \times s` rectangle
-    (such as in type `A^{(1)}_n` or `C^{(1)}_n` for `B^{n,s}`), the filling
-    map is trivial. Thus the highest weight module is just filled with columns
-    `[1, 2, \ldots, n]`.
+    Whenever `B^{r,s} \cong B(s\Lambda_r)` as a classical crystal (which is
+    the case for `B^{r,s}` in type `A_n^{(1)}` and `B^{n,s}` in type
+    `C_n^{(1)}`), then the filling map is trivial.
 
-    For type `D^{(1)}_n` for `B^{r,s}` when `r \leq n-2`, the filling map is
-    defined in [AffineRigConDn]_.
+    For `B^{r,s}` in:
 
-    For the spinor cases, the crystal `B^{k,s}` is isomorphic to the classical
-    crystal `B(\Lambda_k)`, and here we consider the Kirillov-Reshetikhin
-    tableaux as living in `B(2\Lambda_k)` under the natural doubling map.
-    In this case, `e_i` and `f_i` act as `e_i^2` and `f_i^2` respectively.
+    - type `D_n^{(1)}` when `r \leq n-2`,
+    - type `B_n^{(1)}` when `r < n`,
+    - type `A_{2n-1}^{(2)}` for all `r`,
+
+    the filling map is defined in [AffineRigConDn]_.
+
+    For the spinor cases in type `D_n^{(1)}`, the crystal `B^{k,s}` where
+    `k=n-1,n`,  is isomorphic as a classical crystal to `B(s\Lambda_k)`, and
+    here we consider the Kirillov-Reshetikhin tableaux as living in
+    `B(2s \Lambda_k)` under the natural doubling map. In this case, the
+    crystal operators `e_i` and `f_i` act as `e_i^2` and `f_i^2` respectively.
     See [BijectionDn]_.
+
+    For the spinor case in type `B_n^{(1)}`, the crystal `B^{n,s}`, we
+    consider the images under the natural doubling map which is given by
+    removing `2 \times 2` boxes and the filling map is the same as below
+    (ex. the non-spin type `C_n^{(1)}`).
+
+    For `B^{r,s}` in:
+
+    - type `C_n^{(1)}` when `r < n`,
+    - type `A_{2n}^{(2)\dagger}` for all `r`,
+
+    the filling map given as follows. Suppose we are considering (classically)
+    highest weight element in the classical component `B(\lambda)`, we fill
+    it in with the horizontal dominoes `[\bar{\imath}, i]` in the `i`-th row
+    from the top (in English notation) and reorganizing the columns as
+    necessary. Recall from above that `B^{n,s} \cong B(s\Lambda_n)` in
+    type `C^{(1)}_n`.
+
+    For `B^{r,s}` in:
+
+    - type `A_{2n}^{(2)}` for all `r`,
+    - type `D_{n+1}^{(2)}` when `r < n`,
+
+    the filling map is the same as given in [AffineRigConDn]_ except for
+    `B^{r,1}` which is given by the column `[1, 2, \ldots, k, \emptyset,
+    \ldots \emptyset]` where we consider the classical component
+    `B(\lambda_k)`.
+
+    For the spinor case in type `D_n^{(2)}`, the crystal `B^{n,s}`, the
+    crystal is the same as in type `D_n^{(1)}`.
+
+    .. NOTE::
+
+        The filling map and classical decompositions in non-spinor cases can
+        be classified by how the special node `0` connects with the
+        corresponding classical diagram. 
 
     For more information about the bijection between rigged configurations
     and tensor products of Kirillov-Reshetikhin tableaux, see
@@ -82,10 +123,10 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
 
     .. NOTE::
 
-        The tableaux for all non-simply-laced provably holds if the bijection
-        with :class:`rigged configurations <RiggedConfigurations>` holds.
-        Therefore this is only proven for `B^{r,1}` or `B^{1,s}` and in
-        general for types `A_n^{(1)}` and `D_n^{(1)}`.
+        The tableaux for all non-simply-laced are provably correct if the
+        bijection with :class:`rigged configurations <RiggedConfigurations>`
+        holds. Therefore this is only proven for `B^{r,1}` or `B^{1,s}` and
+        in general for types `A_n^{(1)}` and `D_n^{(C1)}`.
 
     INPUT:
 
@@ -158,7 +199,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
             if type == 'C':
                 if r == ct.classical().rank():
                     return KRTableauxRectangle(ct, r, s)
-                return KRTableauxTypeC(ct, r, s)
+                return KRTableauxTypeHorizonal(ct, r, s)
             if type == 'D':
                 if r == ct.classical().rank() or r == ct.classical().rank() - 1:
                     return KRTableauxSpin(ct, r, s)
@@ -167,7 +208,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
             if type == 'BC': # A_{2n}^{(2)}
                 return KRTableauxTypeBox(ct, r, s)
             if ct.dual().type() == 'BC': # A_{2n}^{(2)\dagger}
-                return KRTableauxTypeC(ct, r, s) # Placeholder
+                return KRTableauxTypeHorizonal(ct, r, s)
             if ct.dual().type() == 'B': # A_{2n-1}^{(2)}
                 return KRTableauxTypeVertical(ct, r, s)
             if ct.dual().type() == 'C': # D_{n+1}^{(2)}
@@ -257,7 +298,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
         - ``classical_weight`` -- The classical weight
 
         EXAMPLES::
-        
+
             sage: KRT = KirillovReshetikhinTableaux(['D', 4, 1], 2, 2)
             sage: KRT.module_generator(1)
             [[1, 1], [2, -1]]
@@ -319,7 +360,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
         """
 
     @abstract_method
-    def from_Kirillov_Reshetikhin_crystal(self, krc):
+    def from_kirillov_reshetikhin_crystal(self, krc):
         """
         Construct an element of ``self`` from the Kirillov-Reshetikhin
         crystal element ``krc``.
@@ -330,7 +371,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
             sage: C = KirillovReshetikhinCrystal(['A',4,1], 2, 1)
             sage: krc = C(4,3); krc
             [[3], [4]]
-            sage: KRT.from_Kirillov_Reshetikhin_crystal(krc)
+            sage: KRT.from_kirillov_reshetikhin_crystal(krc)
             [[3], [4]]
         """
 
@@ -351,7 +392,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
             if lst[0].cartan_type() != self.cartan_type() \
               or lst[0].parent().r() != self._r or lst[0].parent().s() != self._s:
                 raise ValueError("The Kirillov-Reshetikhin crystal must have the same Cartan type and (r,s)")
-            return self.from_Kirillov_Reshetikhin_crystal(lst[0])
+            return self.from_kirillov_reshetikhin_crystal(lst[0])
 
         return self.element_class(self, list(lst), **options)
 
@@ -382,14 +423,14 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
         return self._s
 
     @cached_method
-    def Kirillov_Reshetikhin_crystal(self):
+    def kirillov_reshetikhin_crystal(self):
         """
         Return the corresponding
         :func:`Kirillov-Reshetikhin crystal<KirillovReshetikhinCrystal>`.
 
         EXAMPLES::
 
-            sage: KirillovReshetikhinTableaux(['A', 4, 1], 2, 1).Kirillov_Reshetikhin_crystal()
+            sage: KirillovReshetikhinTableaux(['A', 4, 1], 2, 1).kirillov_reshetikhin_crystal()
             Kirillov-Reshetikhin crystal of type ['A', 4, 1] with (r,s)=(2,1)
         """
         return KirillovReshetikhinCrystal(self._cartan_type, self._r, self._s)
@@ -430,7 +471,7 @@ class KRTableauxRectangle(KirillovReshetikhinTableaux):
 
         return (self.element_class(self, [self.letters(x) for x in flatten(tableau)]),)
 
-    def from_Kirillov_Reshetikhin_crystal(self, krc):
+    def from_kirillov_reshetikhin_crystal(self, krc):
         """
         Construct a :class:`KirillovReshetikhinTableauxElement`.
 
@@ -440,7 +481,7 @@ class KRTableauxRectangle(KirillovReshetikhinTableaux):
             sage: C = KirillovReshetikhinCrystal(['A',4,1], 2, 1)
             sage: krc = C(4,3); krc
             [[3], [4]]
-            sage: KRT.from_Kirillov_Reshetikhin_crystal(krc)
+            sage: KRT.from_kirillov_reshetikhin_crystal(krc)
             [[3], [4]]
         """
         # To build a KR tableau from a KR crystal:
@@ -555,7 +596,7 @@ class KRTableauxTypeVertical(KirillovReshetikhinTableaux):
         return tuple(self._fill(weight) for weight in
                      horizontal_dominoes_removed(self._s, self._r))
 
-    def from_Kirillov_Reshetikhin_crystal(self, krc):
+    def from_kirillov_reshetikhin_crystal(self, krc):
         """
         Construct an element of ``self`` from the Kirillov-Reshetikhin
         crystal element ``krc``.
@@ -566,7 +607,7 @@ class KRTableauxTypeVertical(KirillovReshetikhinTableaux):
             sage: C = KirillovReshetikhinCrystal(['D',4,1], 2,3)
             sage: krc = C(4,3); krc
             [[3], [4]]
-            sage: KRT.from_Kirillov_Reshetikhin_crystal(krc)
+            sage: KRT.from_kirillov_reshetikhin_crystal(krc)
             [[3, -2, 1], [4, -1, 2]]
         """
         # To build a KR tableau from a KR crystal:
@@ -579,7 +620,7 @@ class KRTableauxTypeVertical(KirillovReshetikhinTableaux):
         f_str = reversed(lifted.to_highest_weight()[1])
         return self._fill(weight).f_string(f_str)
 
-class KRTableauxTypeC(KirillovReshetikhinTableaux):
+class KRTableauxTypeHorizonal(KirillovReshetikhinTableaux):
     r"""
     Kirillov-Reshetikhin tableaux `B^{r,s}` of type:
 
@@ -614,7 +655,7 @@ class KRTableauxTypeC(KirillovReshetikhinTableaux):
             sage: KRT._fill([6,4,2,2])
             [[1, 1, 1, 1, 1, 1], [2, 2, 2, 2, -5, 2], [3, 3, -5, 3, -4, 3], [4, 4, -4, 4, -3, 4], [-5, 5, -3, 5, -2, 5]]
             sage: KRT._fill([6,4])
-            [[1, 1, 1, 1, 1, 1], [2, 2, 2, 2, -5, 2], [-5, 3, -5, 3, -4, 3], [-4, 4, -4, 4, -3, 4], [-3, 5, -3, 5, -2, 5]]    
+            [[1, 1, 1, 1, 1, 1], [2, 2, 2, 2, -5, 2], [-5, 3, -5, 3, -4, 3], [-4, 4, -4, 4, -3, 4], [-3, 5, -3, 5, -2, 5]]
         """
         # Add zeros until the shape has length s
         shape_list = list(shape) # Make sure we have a list
@@ -648,7 +689,7 @@ class KRTableauxTypeC(KirillovReshetikhinTableaux):
         """
         return tuple(self._fill(shape) for shape in horizontal_dominoes_removed(self._r, self._s))
 
-    def from_Kirillov_Reshetikhin_crystal(self, krc):
+    def from_kirillov_reshetikhin_crystal(self, krc):
         """
         Construct an element of ``self`` from the Kirillov-Reshetikhin
         crystal element ``krc``.
@@ -659,7 +700,7 @@ class KRTableauxTypeC(KirillovReshetikhinTableaux):
             sage: C = KirillovReshetikhinCrystal(['C',4,1], 2,3)
             sage: krc = C(4,3); krc
             [[3], [4]]
-            sage: KRT.from_Kirillov_Reshetikhin_crystal(krc)
+            sage: KRT.from_kirillov_reshetikhin_crystal(krc)
             [[3, -2, 1], [4, -1, 2]]
         """
         # To build a KR tableau from a KR crystal:
@@ -708,7 +749,7 @@ class KRTableauxTypeBox(KRTableauxTypeVertical):
             sage: KRT._fill([10,10,8,2,2,2])
             [[1, 1, 1, 1, 1, 7, 1], [2, 2, 2, 2, 2, 8, 2], [3, 3, 7, 9, 7, 9, 3], [4, 4, 8, 10, 8, 10, 4], [5, 5, 9, 11, 9, 11, 5], [6, 6, 10, 12, 10, 12, 6], [7, 7, 11, -12, 11, -12, 7], [8, 8, 12, -11, 12, -11, 8], [9, 9, -12, -10, -12, -10, 9], [10, 10, -11, -9, -11, -9, -9], [-12, 11, -10, -8, -10, -8, -8], [-11, 12, -9, -7, -9, -7, -7]]
             sage: KRT._fill([10,10,6,2,2,2])
-            [[1, 1, 1, 1, 1, 5, 1], [2, 2, 2, 2, 2, 6, 2], [3, 3, 9, 7, 9, 7, 3], [4, 4, 10, 8, 10, 8, 4], [5, 5, 11, 9, 11, 9, 5], [6, 6, 12, 10, 12, 10, 6], [7, 7, -12, 11, -12, 11, 7], [8, 8, -11, 12, -11, 12, 8], [9, 9, -10, -12, -10, -12, -8], [10, 10, -9, -11, -9, -11, -7], [-12, 11, -8, -10, -8, -10, -6], [-11, 12, -7, -9, -7, -9, -5]]    
+            [[1, 1, 1, 1, 1, 5, 1], [2, 2, 2, 2, 2, 6, 2], [3, 3, 9, 7, 9, 7, 3], [4, 4, 10, 8, 10, 8, 4], [5, 5, 11, 9, 11, 9, 5], [6, 6, 12, 10, 12, 10, 6], [7, 7, -12, 11, -12, 11, 7], [8, 8, -11, 12, -11, 12, 8], [9, 9, -10, -12, -10, -12, -8], [10, 10, -9, -11, -9, -11, -7], [-12, 11, -8, -10, -8, -10, -6], [-11, 12, -7, -9, -7, -9, -5]]
         """
         # Add zeros until the shape has length s
         weight_list = list(weight) # Make sure we have a list
@@ -811,7 +852,7 @@ class KRTableauxSpin(KRTableauxRectangle):
 
         return (self.element_class(self, [self.letters(x) for x in flatten(tableau)]),)
 
-class KRTableauxBn(KRTableauxTypeC):
+class KRTableauxBn(KRTableauxTypeHorizonal):
     """
     Kirillov-Reshetkhin tableaux `B^{n,s}` of type `B_n^{(1)}`.
 
@@ -835,7 +876,7 @@ class KRTableauxBn(KRTableauxTypeC):
                    in vertical_dominoes_removed(self._r, self._s // 2)]
         return tuple(self._fill(sh) for sh in shapes)
 
-    def from_Kirillov_Reshetikhin_crystal(self, krc):
+    def from_kirillov_reshetikhin_crystal(self, krc):
         """
         Construct an element of ``self`` from the Kirillov-Reshetikhin
         crystal element ``krc``.
@@ -846,7 +887,7 @@ class KRTableauxBn(KRTableauxTypeC):
             sage: C = KirillovReshetikhinCrystal(['B',3,1], 3,3)
             sage: krc = C.module_generators[1].f_string([3,2,3,1,3,3]); krc
             [++-, [[2], [0], [-3]]]
-            sage: KR.from_Kirillov_Reshetikhin_crystal(krc)
+            sage: KR.from_kirillov_reshetikhin_crystal(krc)
             [[1, 1, 2], [2, 2, -3], [-3, -3, -1]]
         """
         # To build a KR tableau from a type B_n spinor KR crystal:
@@ -904,7 +945,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
         EXAMPLES::
 
             sage: KRT = KirillovReshetikhinTableaux(['A',4,1], 2,2)
-            sage: elt = KRT(4,3,2,1)                                                
+            sage: elt = KRT(4,3,2,1)
             sage: print elt._repr_diagram()
               3  1
               4  2
@@ -929,7 +970,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
         from sage.combinat.output import tex_from_array
         return tex_from_array([[val._latex_() for val in row] for row in self.to_array()])
 
-    def to_Kirillov_Reshetikhin_crystal(self):
+    def to_kirillov_reshetikhin_crystal(self):
         r"""
         Construct a :func:`KirillovReshetikhinCrystal` element from ``self``.
 
@@ -946,7 +987,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
             sage: KRT = KirillovReshetikhinTableaux(['D',4,1], 2,2)
             sage: elt = KRT(3,2,-1,1); elt
             [[2, 1], [3, -1]]
-            sage: elt.to_Kirillov_Reshetikhin_crystal()
+            sage: elt.to_kirillov_reshetikhin_crystal()
             [[2], [3]]
 
         TESTS:
@@ -957,14 +998,14 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
             sage: KRC = KirillovReshetikhinCrystal(['D',4,1], 4, 3)
             sage: elt = KRT(-3,-4,2,1,-3,-4,2,1,-2,-4,3,1); elt
             [[1, 1, 1], [2, 2, 3], [-4, -4, -4], [-3, -3, -2]]
-            sage: ret = elt.to_Kirillov_Reshetikhin_crystal(); ret
+            sage: ret = elt.to_kirillov_reshetikhin_crystal(); ret
             [++--, [[1], [3], [-4], [-3]]]
             sage: test = KRT(ret); test
             [[1, 1, 1], [2, 2, 3], [-4, -4, -4], [-3, -3, -2]]
             sage: test == elt
             True
         """
-        return self.parent().Kirillov_Reshetikhin_crystal()(self)
+        return self.parent().kirillov_reshetikhin_crystal()(self)
 
     @cached_method
     def to_array(self, rows=True):
@@ -1134,10 +1175,10 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
             [[-2, 1], [-1, -1]]
         """
         if i == 0:
-            ret = self.to_Kirillov_Reshetikhin_crystal().e0()
+            ret = self.to_kirillov_reshetikhin_crystal().e0()
             if ret is None:
                 return None
-            return ret.to_Kirillov_Reshetikhin_tableau()
+            return ret.to_kirillov_reshetikhin_tableau()
         return TensorProductOfRegularCrystalsElement.e(self, i)
 
     def f(self, i):
@@ -1155,10 +1196,10 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
             [[1, 1], [2, -1]]
         """
         if i == 0:
-            ret = self.to_Kirillov_Reshetikhin_crystal().f0()
+            ret = self.to_kirillov_reshetikhin_crystal().f0()
             if ret is None:
                 return None
-            return ret.to_Kirillov_Reshetikhin_tableau()
+            return ret.to_kirillov_reshetikhin_tableau()
         return TensorProductOfRegularCrystalsElement.f(self, i)
 
     def epsilon(self, i):
@@ -1177,7 +1218,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
             2
         """
         if i == 0:
-            return self.to_Kirillov_Reshetikhin_crystal().epsilon0()
+            return self.to_kirillov_reshetikhin_crystal().epsilon0()
         return TensorProductOfRegularCrystalsElement.epsilon(self, i)
 
     def phi(self, i):
@@ -1195,7 +1236,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
             2
         """
         if i == 0:
-            return self.to_Kirillov_Reshetikhin_crystal().phi0()
+            return self.to_kirillov_reshetikhin_crystal().phi0()
         return TensorProductOfRegularCrystalsElement.phi(self, i)
 
 KirillovReshetikhinTableaux.Element = KirillovReshetikhinTableauxElement
@@ -1369,10 +1410,10 @@ class KRTableauxWrapper(KirillovReshetikhinTableaux):
             sage: KRT._build_module_generators()
             ([(1,)],)
         """
-        C = self.Kirillov_Reshetikhin_crystal()
+        C = self.kirillov_reshetikhin_crystal()
         return tuple(self.element_class(self, mg) for mg in C.module_generators)
 
-    def from_Kirillov_Reshetikhin_crystal(self, krc):
+    def from_kirillov_reshetikhin_crystal(self, krc):
         """
         Construct an element of ``self`` from the Kirillov-Reshetikhin
         crystal element ``krc``.
@@ -1383,7 +1424,7 @@ class KRTableauxWrapper(KirillovReshetikhinTableaux):
             sage: KRC = KirillovReshetikhinCrystal(['E',6,1], 1, 1)
             sage: krc = KRC.module_generators[0].f(1); krc
             [(-1, 3)]
-            sage: KRT.from_Kirillov_Reshetikhin_crystal(krc)
+            sage: KRT.from_kirillov_reshetikhin_crystal(krc)
             [(-1, 3)]
         """
         return self.element_class(self, krc)
@@ -1409,7 +1450,7 @@ class KRTableauxWrapper(KirillovReshetikhinTableaux):
             except (AttributeError, ValueError):
                 return repr(self)
 
-        def to_Kirillov_Reshetikhin_crystal(self):
+        def to_kirillov_reshetikhin_crystal(self):
             r"""
             Construct a :func:`KirillovReshetikhinCrystal` element
             from ``self``.
@@ -1419,7 +1460,7 @@ class KRTableauxWrapper(KirillovReshetikhinTableaux):
                 sage: KRT = KirillovReshetikhinTableaux(['E',6,1], 1,1)
                 sage: elt = KRT.module_generators[0].f(1); elt
                 [(-1, 3)]
-                sage: elt.to_Kirillov_Reshetikhin_crystal()
+                sage: elt.to_kirillov_reshetikhin_crystal()
                 [(-1, 3)]
             """
             return self.value

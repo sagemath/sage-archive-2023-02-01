@@ -178,8 +178,12 @@ class KRTToRCBijectionTypeD(KRTToRCBijectionTypeA):
 
         if pos_val == n:
             # Special case for `\overline{n}` and adding to make height `n`
+            #    where we only update the vacancy numbers
             # This only occurs with `r = n - 1`
             if self.cur_dims[0][0] == n - 1 and tableau_height == n - 1:
+                self._update_vacancy_nums(n-2)
+                self._update_vacancy_nums(n-1)
+                self._correct_vacancy_nums()
                 return
 
             if len(self.ret_rig_con[n - 1]) > 0:
@@ -310,7 +314,6 @@ class KRTToRCBijectionTypeD(KRTToRCBijectionTypeA):
             <BLANKLINE>
             (/)
             <BLANKLINE>
-
         """
         pos = self.n - 2
         if self.cur_dims[0][0] == len(self.cur_path[0]):
@@ -400,12 +403,12 @@ class KRTToRCBijectionTypeD(KRTToRCBijectionTypeA):
         """
         # Skip the first column since it is a spinor
         for i in range(1, len(self.cur_dims)):
-            self.cur_dims[i][1] /= 2
+            self.cur_dims[i][1] //= 2
         for i in range(len(self.ret_rig_con)):
             for j in range(len(self.ret_rig_con[i])):
-                self.ret_rig_con[i]._list[j] /= 2
-                self.ret_rig_con[i].rigging[j] /= 2
-                self.ret_rig_con[i].vacancy_numbers[j] /= 2
+                self.ret_rig_con[i]._list[j] //= 2
+                self.ret_rig_con[i].rigging[j] //= 2
+                self.ret_rig_con[i].vacancy_numbers[j] //= 2
 
 class RCToKRTBijectionTypeD(RCToKRTBijectionTypeA):
     r"""
@@ -693,12 +696,12 @@ class RCToKRTBijectionTypeD(RCToKRTBijectionTypeA):
             True
         """
         for i in range(len(self.cur_dims)):
-            self.cur_dims[i][1] /= 2
+            self.cur_dims[i][1] //= 2
         for partition in self.cur_partitions:
             for j in range(len(partition)):
-                partition._list[j] /= 2
-                partition.rigging[j] /= 2
-                partition.vacancy_numbers[j] /= 2
+                partition._list[j] //= 2
+                partition.rigging[j] //= 2
+                partition.vacancy_numbers[j] //= 2
 
     def _correct_vacancy_nums(self):
         """

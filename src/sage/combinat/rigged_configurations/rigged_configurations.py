@@ -445,6 +445,8 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             sage: TestSuite(RC).run()  # long time (4s on sage.math, 2012)
             sage: RC = RiggedConfigurations(['A',1,1], [[1,1], [1,1]])
             sage: TestSuite(RC).run()
+            sage: RC = RiggedConfigurations(['A',2,1], [[1,1], [2,1]])
+            sage: TestSuite(RC).run()
             sage: RC = RiggedConfigurations(['D', 4, 1], [[2,2]])
             sage: TestSuite(RC).run() # long time
             sage: RC = RiggedConfigurations(['D', 4, 1], [[3,1]])
@@ -1227,6 +1229,8 @@ class RCTypeA2Even(RCVirtual):
         sage: RC = RiggedConfigurations(['A',2,2], [[1,1]])
         sage: RC.cardinality()
         3
+        sage: RC = RiggedConfigurations(['A',2,2], [[1,2],[1,1]])
+        sage: TestSuite(RC).run()
         sage: RC = RiggedConfigurations(['A',4,2], [[2,1]])
         sage: TestSuite(RC).run() # long time
     """
@@ -1404,6 +1408,8 @@ class RCTypeA2Dual(RCTypeA2Even):
         sage: RC = RiggedConfigurations(CartanType(['A',2,2]).dual(), [[1,1]])
         sage: RC.cardinality()
         3
+        sage: RC = RiggedConfigurations(CartanType(['A',2,2]).dual(), [[1,2],[1,1]])
+        sage: TestSuite(RC).run()
         sage: RC = RiggedConfigurations(CartanType(['A',4,2]).dual(), [[2,1]])
         sage: TestSuite(RC).run() # long time
     """

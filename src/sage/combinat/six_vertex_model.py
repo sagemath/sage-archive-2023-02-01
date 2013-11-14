@@ -573,12 +573,12 @@ class SixVertexModel(Parent, UniqueRepresentation):
             # If we're at the last row
             if len(cur) > n:
                 cur.pop()
-                bdry.pop()
                 left.pop()
                 # Check if all our bottom boundry conditions are statisfied
                 if all(x is not self._bdry_cond[2][i]
                        for i,x in enumerate(bdry[-1])):
                     yield self.element_class(self, tuple(tuple(x) for x in cur))
+                bdry.pop()
 
             # Find the next row
             row = cur[-1]

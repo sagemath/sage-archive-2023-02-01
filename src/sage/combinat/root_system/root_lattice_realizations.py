@@ -489,7 +489,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 a = self.cartan_type().a()
                 alpha = self.simple_roots()
                 return (sum(a[i] * alpha[i] for i in self.index_set()),)
-           raise ValueError("only implemented for finite and affine types")
+            raise ValueError("only implemented for finite and affine types")
 
         ##########################################################################
         # roots

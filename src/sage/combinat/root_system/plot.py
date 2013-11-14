@@ -749,8 +749,7 @@ class PlotOptions:
             sage: options.index_of_object(30)
             sage: options.index_of_object("bla")
         """
-        from sage.combinat.root_lattice_realizations import RootLatticeRealizations
-        if parent(i) in RootLatticeRealizations  and len(i) == 1 and i.leading_coefficient().is_one():
+        if parent(i) in RootLatticeRealizations and  len(i) == 1 and i.leading_coefficient().is_one():
             i = i.leading_support()
         if i in self.space.cartan_type().index_set():
             return i

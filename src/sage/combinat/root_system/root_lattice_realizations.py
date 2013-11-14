@@ -2502,7 +2502,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
         def plot_ls_paths(self, paths, plot_labels=None, colored_labels=True, **options):
             r"""
-            Plot LS pathes.
+            Plot LS paths.
 
             INPUT:
 

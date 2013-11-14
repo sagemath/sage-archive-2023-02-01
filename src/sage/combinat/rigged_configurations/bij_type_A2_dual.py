@@ -277,12 +277,13 @@ class RCToKRTBijectionTypeA2Dual(RCToKRTBijectionTypeC):
 
         # Determine the new rigged configuration by removing boxes from the
         #   selected string and then making the new string singular
-        if case_S[0]:
-            row_num = None
-            row_num_bar = self.cur_partitions[0].remove_cell(ell[n], 2)
-        else:
-            row_num = self.cur_partitions[0].remove_cell(ell[0])
-            row_num_bar = self.cur_partitions[0].remove_cell(ell[n])
+        if n > 1:
+            if case_S[0]:
+                row_num = None
+                row_num_bar = self.cur_partitions[0].remove_cell(ell[n], 2)
+            else:
+                row_num = self.cur_partitions[0].remove_cell(ell[0])
+                row_num_bar = self.cur_partitions[0].remove_cell(ell[n])
         for a in range(1, n-1):
             if case_S[a]:
                 row_num_next = None
@@ -311,12 +312,13 @@ class RCToKRTBijectionTypeA2Dual(RCToKRTBijectionTypeC):
         else:
             row_num_next = None
             row_num_bar_next = None
-            
-        self._update_vacancy_numbers(n - 2)
-        if row_num is not None:
-            self.cur_partitions[n-2].rigging[row_num] = self.cur_partitions[n-2].vacancy_numbers[row_num]
-        if row_num_bar is not None:
-            self.cur_partitions[n-2].rigging[row_num_bar] = self.cur_partitions[n-2].vacancy_numbers[row_num_bar]
+
+        if n > 1:
+            self._update_vacancy_numbers(n - 2)
+            if row_num is not None:
+                self.cur_partitions[n-2].rigging[row_num] = self.cur_partitions[n-2].vacancy_numbers[row_num]
+            if row_num_bar is not None:
+                self.cur_partitions[n-2].rigging[row_num_bar] = self.cur_partitions[n-2].vacancy_numbers[row_num_bar]
 
         self._update_vacancy_numbers(n - 1)
         if row_num_next is not None:
@@ -329,3 +331,4 @@ class RCToKRTBijectionTypeA2Dual(RCToKRTBijectionTypeC):
                 self.cur_partitions[n-1].rigging[row_num_bar_next] = self.cur_partitions[n-1].vacancy_numbers[row_num_bar_next]
 
         return(b)
+

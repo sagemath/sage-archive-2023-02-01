@@ -964,12 +964,13 @@ class GitInterface(ReadStdoutGitProxy):
         Create some branches::
 
             sage: os.chdir(config['git']['src'])
+            sage: os.environ['GIT_COMMITTER_DATE'] = time.strftime("%Y-%m-%dT%H:%M:10")
             sage: git.silent.commit('-m','initial commit','--allow-empty')
             sage: git.super_silent.checkout('-b', 'branch')
-            sage: time.sleep(1)
+            sage: os.environ['GIT_COMMITTER_DATE'] = time.strftime("%Y-%m-%dT%H:%M:20")
             sage: git.silent.commit('-m','second commit','--allow-empty')
             sage: git.super_silent.checkout('-b', 'other', 'master')
-            sage: time.sleep(1)
+            sage: os.environ['GIT_COMMITTER_DATE'] = time.strftime("%Y-%m-%dT%H:%M:30")
             sage: git.silent.commit('-m','third commit','--allow-empty')
 
         Use this repository as a remote repository::
@@ -977,7 +978,7 @@ class GitInterface(ReadStdoutGitProxy):
             sage: config2 = DoctestConfig()
             sage: git2 = GitInterface(config2["git"], DoctestUserInterface(config["UI"]))
             sage: os.chdir(config2['git']['src'])
-            sage: time.sleep(1)
+            sage: os.environ['GIT_COMMITTER_DATE'] = time.strftime("%Y-%m-%dT%H:%M:40")
             sage: git2.silent.commit('-m','initial commit','--allow-empty')
             sage: git2.silent.remote('add', 'git', config['git']['src'])
             sage: git2.super_silent.fetch('git')

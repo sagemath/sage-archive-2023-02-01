@@ -83,12 +83,12 @@ Test a timeout using the ``SAGE_TIMEOUT`` environment variable::
     Running doctests...
     Doctesting 1 file.
     sage -t 99seconds.rst
-        Time out
+        Timed out
     **********************************************************************
     Tests run before process (pid=...) timed out:
     ...
     ----------------------------------------------------------------------
-    sage -t 99seconds.rst  # Time out
+    sage -t 99seconds.rst  # Timed out
     ----------------------------------------------------------------------
     ...
     4
@@ -281,7 +281,7 @@ Test running under gdb, without and with a timeout::
     sage: subprocess.call(["sage", "-t", "--gdb", "-T" "5", "99seconds.rst"], stdin=open(os.devnull), **kwds)  # long time, optional: gdb
     exec gdb ...
     Running doctests...
-        Time out
+        Timed out
     4
 
 Test the ``--show-skipped`` option::

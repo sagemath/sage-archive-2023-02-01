@@ -65,6 +65,8 @@ sig_on_count = sage.ext.c_lib._sig_on_reset
 
 from time                import sleep
 
+from sage.ext.c_lib import AlarmInterrupt, SignalError
+
 import sage.misc.lazy_import
 from sage.misc.all       import *         # takes a while
 

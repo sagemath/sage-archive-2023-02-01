@@ -54,8 +54,8 @@ _ID = IntegralDomains()
 from sage.categories.commutative_rings import CommutativeRings
 _CommutativeRings = CommutativeRings()
 
-import weakref
-_cache = weakref.WeakValueDictionary()
+import sage.misc.weak_dict
+_cache = sage.misc.weak_dict.WeakValueDictionary()
 
 def PolynomialRing(base_ring, arg1=None, arg2=None,
                    sparse=False, order='degrevlex',
@@ -510,7 +510,6 @@ def _get_from_cache(key):
 
 def _save_in_cache(key, R):
     try:
-        #_cache[key] = weakref.ref(R)
          _cache[key] = R
     except TypeError as msg:
         raise TypeError('key = %s\n%s'%(key,msg))

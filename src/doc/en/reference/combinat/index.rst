@@ -7,6 +7,7 @@ Combinatorics
    sage/combinat/tutorial
    sage/combinat/combinat
    sage/combinat/sloane_functions
+   sage/databases/oeis
    sage/combinat/expnums
    sage/combinat/alternating_sign_matrix
    sage/combinat/cartesian_product

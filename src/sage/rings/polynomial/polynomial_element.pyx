@@ -1066,7 +1066,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         - Robert Bradshaw (2007-05-31)
         """
-        from sage.rings.all import is_Ideal
+        from sage.rings.ideal import is_Ideal
         if is_Ideal(m):
             v = m.gens_reduced()
             if len(v) > 1:
@@ -1192,13 +1192,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def squarefree_decomposition(self):
         """
-        Return the square-free decomposition of self. This is a partial
-        factorization of self into square-free, relatively prime
+        Return the square-free decomposition of self.  This is a
+        partial factorization of self into square-free, coprime
         polynomials.
 
-        This is the straightforward algorithm, using only polynomial GCD
-        and polynomial division. Faster algorithms exist. The algorithm
-        comes from the Wikipedia article, "Square-free polynomial".
+        ALGORITHM: In characteristic 0, we use Yun's algorithm,
+        which works for arbitrary rings of characteristic 0.
+        If the characteristic is a prime number `p > 0`, we use
+        [Coh]_, algorithm 3.4.2.  This is basically Yun's algorithm
+        with special treatment for powers divisible by `p`.
 
         EXAMPLES::
 
@@ -1215,40 +1217,111 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = QQbar['x'](1)
             sage: f.squarefree_decomposition()
             1
+
+        TESTS::
+
+            sage: K.<a> = GF(3^2)
+            sage: R.<x> = K[]
+            sage: f = x^243+2*x^81+x^9+1
+            sage: f.squarefree_decomposition()
+            (x^27 + 2*x^9 + x + 1)^9
+            sage: f = x^243+a*x^27+1
+            sage: f.squarefree_decomposition()
+            (x^9 + (2*a + 1)*x + 1)^27
+
+            sage: for K in [GF(2^18,'a'), GF(3^2,'a'), GF(47^3,'a')]:
+            ....:     R.<x> = K[]
+            ....:     if K.characteristic() < 5: m = 4
+            ....:     else: m = 1
+            ....:     for _ in range(m):
+            ....:         f = (R.random_element(4)^3*R.random_element(m)^(m+1))(x^6)
+            ....:         F = f.squarefree_decomposition()
+            ....:         assert F.prod() == f
+            ....:         for i in range(len(F)):
+            ....:             assert gcd(F[i][0], F[i][0].derivative()) == 1
+            ....:             for j in range(len(F)):
+            ....:                 if i == j: continue
+            ....:                 assert gcd(F[i][0], F[j][0]) == 1
+            ....:
+
+        REFERENCES:
+
+        .. [Coh] H. Cohen, A Course in Computational Algebraic Number
+           Theory.  Springer-Verlag, 1993.
+
         """
+        if not self.base_ring().is_unique_factorization_domain():
+            raise NotImplementedError, "Squarefree decomposition not implemented for " + str(self.parent())
+
         if self.degree() == 0:
             return Factorization([], unit=self[0])
 
-        # Wikipedia says this works for arbitrary fields of
-        # characteristic 0.
-
-        if self.base_ring().characteristic() != 0:
-            raise NotImplementedError("Squarefree decomposition not implemented for " + str(self.parent()))
-
-        f = [self]
-        cur = self
-        while cur.degree() > 0:
-            cur = cur.gcd(cur.derivative())
-            f.append(cur)
-
-        g = []
-        for i in range(len(f) - 1):
-            g.append(f[i] // f[i+1])
-
-        a = []
-        for i in range(len(g) - 1):
-            a.append(g[i] // g[i+1])
-        if g == []: # do not factor the unit part
-            return Factorization([(self,1)])
-        a.append(g[-1])
-
+        p = self.base_ring().characteristic()
         factors = []
-        unit = f[-1]
-        for i in range(len(a)):
-            if a[i].degree() > 0:
-                factors.append((a[i], i+1))
-            else:
-                unit = unit * a[i].constant_coefficient() ** (i + 1)
+        if p == 0:
+            f = [self]
+            cur = self
+            while cur.degree() > 0:
+                cur = cur.gcd(cur.derivative())
+                f.append(cur)
+
+            g = []
+            for i in range(len(f) - 1):
+                g.append(f[i] // f[i+1])
+
+            a = []
+            for i in range(len(g) - 1):
+                a.append(g[i] // g[i+1])
+            a.append(g[-1])
+
+            unit = f[-1]
+            for i in range(len(a)):
+                if a[i].degree() > 0:
+                    factors.append((a[i], i+1))
+                else:
+                    unit = unit * a[i].constant_coefficient() ** (i + 1)
+        else:
+            # Beware that `p`-th roots might not exist.
+            unit = self.leading_coefficient()
+            T0 = self.monic()
+            e = 1
+            if T0.degree() > 0:
+                der = T0.derivative()
+                while der.is_zero():
+                    T0 = T0.parent()([T0[p*i].pth_root() for i in range(T0.degree()//p + 1)])
+                    if T0 == 1:
+                        raise RuntimeError
+                    der = T0.derivative()
+                    e = e*p
+                T = T0.gcd(der)
+                V = T0 // T
+                k = 0
+                while T0.degree() > 0:
+                    k += 1
+                    if p.divides(k):
+                        T = T // V
+                        k += 1
+                    W = V.gcd(T)
+                    if W.degree() < V.degree():
+                        factors.append((V // W, e*k))
+                        V = W
+                        T = T // V
+                        if V.degree() == 0:
+                            if T.degree() == 0:
+                                break
+                            # T is of the form sum_{i=0}^n t_i X^{pi}
+                            T0 = T0.parent()([T[p*i].pth_root() for i in range(T.degree()//p + 1)])
+                            der = T0.derivative()
+                            e = p*e
+                            while der.is_zero():
+                                T0 = T0.parent()([T0[p*i].pth_root() for i in range(T0.degree()//p + 1)])
+                                der = T0.derivative()
+                                e = p*e
+                            T = T0.gcd(der)
+                            V = T0 // T
+                            k = 0
+                    else:
+                        T = T//V
 
         return Factorization(factors, unit=unit, sort=False)
 
@@ -1335,6 +1408,212 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 return False, None
             else:
                 return False
+
+    def any_root(self, ring=None, degree=None, assume_squarefree=False):
+        """
+        Return a root of this polynomial in the given ring.
+
+        INPUT:
+
+        - ``ring`` -- The ring in which a root is sought.  By default
+          this is the coefficient ring.
+
+        - ``degree`` (None or nonzero integer) -- Used for polynomials
+          over finite fields.  Returns a root of degree
+          ``abs(degree)`` over the ground field.  If negative, also
+          assumes that all factors of this polynomial are of degree
+          ``abs(degree)``.  If None, returns a root of minimal degree
+          contained within the given ring.
+
+        - ``assume_squarefree`` (bool) -- Used for polynomials over
+          finite fields.  If True, this polynomial is assumed to be
+          squarefree.
+
+        EXAMPLES::
+
+            sage: R.<x> = GF(11)[]
+            sage: f = 7*x^7 + 8*x^6 + 4*x^5 + x^4 + 6*x^3 + 10*x^2 + 8*x + 5
+            sage: f.any_root()
+            2
+            sage: f.factor()
+            (7) * (x + 9) * (x^6 + 10*x^4 + 6*x^3 + 5*x^2 + 2*x + 2)
+            sage: f = x^6 + 10*x^4 + 6*x^3 + 5*x^2 + 2*x + 2
+            sage: f.any_root(GF(11^6, 'a'))
+            a^5 + a^4 + 7*a^3 + 2*a^2 + 10*a
+            sage: sorted(f.roots(GF(11^6, 'a')))
+            [(10*a^5 + 2*a^4 + 8*a^3 + 9*a^2 + a, 1), (10*a^5 + 3*a^4 + 8*a^3 + a^2 + 10*a + 4, 1), (2*a^5 + 8*a^4 + 3*a^3 + 6*a + 2, 1), (9*a^5 + 5*a^4 + 10*a^3 + 8*a^2 + 3*a + 1, 1), (a^5 + 3*a^4 + 8*a^3 + 2*a^2 + 3*a + 4, 1), (a^5 + a^4 + 7*a^3 + 2*a^2 + 10*a, 1)]
+            sage: f.any_root(GF(11^6, 'a'))
+            a^5 + a^4 + 7*a^3 + 2*a^2 + 10*a
+
+            sage: g = (x-1)*(x^2 + 3*x + 9) * (x^5 + 5*x^4 + 8*x^3 + 5*x^2 + 3*x + 5)
+            sage: g.any_root(ring=GF(11^10, 'b'), degree=1)
+            1
+            sage: g.any_root(ring=GF(11^10, 'b'), degree=2)
+            6*b^9 + 7*b^7 + 7*b^6 + 3*b^5 + b^2 + b + 3
+            sage: g.any_root(ring=GF(11^10, 'b'), degree=5)
+            7*b^9 + 2*b^8 + 6*b^7 + 3*b^6 + 2*b^5 + 7*b^3 + 7*b^2 + 2
+
+        TESTS::
+
+            sage: R.<x> = GF(5)[]
+            sage: K.<a> = GF(5^12)
+            sage: for _ in range(40):
+            ....:     f = R.random_element(degree=4)
+            ....:     assert f(f.any_root(K)) == 0
+
+        """
+        if self.base_ring().is_finite() and self.base_ring().is_field():
+            if self.degree() < 0:
+                return ring(0)
+            if self.degree() == 0:
+                raise ValueError, "no roots A %s"%self
+            if not assume_squarefree:
+                SFD = self.squarefree_decomposition()
+                SFD.sort()
+                for f, e in SFD:
+                    try:
+                        return f.any_root(ring, degree, True)
+                    except ValueError:
+                        pass
+            if self.degree() == 1 and (degree is None or degree == 1):
+                if ring is None:
+                    return -self[0]/self[1]
+                else:
+                    return ring(-self[0]/self[1])
+            q = self.base_ring().order()
+            if ring is None:
+                allowed_deg_mult = Integer(1)
+            else:
+                if not self.base_ring().is_prime_field():
+                    raise NotImplementedError
+                if ring.characteristic() != self.base_ring().characteristic():
+                    raise ValueError, "ring must be an extension of the base ring"
+                if not (ring.is_field() and ring.is_finite()):
+                    raise NotImplementedError
+                allowed_deg_mult = Integer(ring.factored_order()[0][1]) # generally it will be the quotient of this by the degree of the base ring.
+            if degree is None:
+                x = self.parent().gen()
+                if allowed_deg_mult == 1:
+                    self = self.gcd(x**q-x)
+                    degree = -1
+                    if self.degree() == 0:
+                        raise ValueError, "no roots B %s"%self
+                else:
+                    xq = x
+                    d = Integer(0)
+                    while True:
+                        # one pass for roots that actually lie within ring.
+                        e = self.degree()
+                        if 2*d+2 > e:
+                            # this polynomial has no factors dividing allowed_deg_mult
+                            if allowed_deg_mult % e == 0:
+                                degree = -e
+                            break
+                        while d < allowed_deg_mult:
+                            d = d+1
+                            xq = xq**q % self
+                            if d.divides(allowed_deg_mult):
+                                break
+                        A = self.gcd(xq-x)
+                        if A != 1:
+                            self = A
+                            degree = -d
+                            break
+                        if d == allowed_deg_mult:
+                            break
+                    if degree is None:
+                        if allowed_deg_mult == 1:
+                            raise ValueError, "no roots C %s"%self
+                        xq = x
+                        d = Integer(0)
+                        while True:
+                            # now another for roots that will lie in an extension.
+                            e = self.degree()
+                            if 2*d+2 > e:
+                                # this polynomial is irreducible.
+                                degree = -e
+                                break
+                            while True:
+                                # we waste a little effort here in computing the xq again.
+                                d = d+1
+                                xq = xq**q % self
+                                if allowed_deg_mult.divides(d):
+                                    break
+                            A = self.gcd(xq-x)
+                            if A != 1:
+                                self = A
+                                degree = -d
+                                break
+            if degree == 0:
+                raise ValueError, "degree should be nonzero"
+            R = self.parent()
+            x = R.gen()
+            if degree > 0:
+                xq = x
+                d = 0
+                while True:
+                    e = self.degree()
+                    if 2*d > e:
+                        if degree != e:
+                            raise ValueError, "no roots D %s"%self
+                        break
+                    d = d+1
+                    xq = xq**q % self
+                    if d == degree:
+                        break
+                    A = self.gcd(xq-x)
+                    if A != 1:
+                        self = self // A
+                if d == degree:
+                    self = self.gcd(xq-x)
+                    if self.degree() == 0:
+                        raise ValueError, "no roots E %s"%self
+            else:
+                degree = -degree
+            if ring is None:
+                if degree == 1:
+                    ring = self.base_ring()
+                else:
+                    ring = self.base_ring().extension(degree) # this won't work yet.
+            # now self has only roots of degree ``degree``.
+            # for now, we only implement the Cantor-Zassenhaus split
+            k = self.degree() // degree
+            if k == 1:
+                try:
+                    return self.roots(ring, multiplicities=False)[0] # is there something better to do here?
+                except IndexError:
+                    raise ValueError, "no roots F %s"%self
+            if q % 2 == 0:
+                T = x
+                while True:
+                    C = T
+                    for i in range(degree-1):
+                        C = T + C**q % self
+                    h = self.gcd(C)
+                    hd = h.degree()
+                    if hd == 0 or hd == self.degree():
+                        T = T * x**q
+                    else:
+                        if 2*hd <= self.degree():
+                            return h.any_root(ring, -degree, True)
+                        else:
+                            return (self//h).any_root(ring, -degree, True)
+            else:
+                from sage.rings.arith import power_mod
+                while True:
+                    T = R.random_element(2*degree-1)
+                    if T == 0:
+                        continue
+                    T = T.monic()
+                    h = self.gcd(power_mod(T, Integer((q**degree-1)/2), self)-1)
+                    hd = h.degree()
+                    if hd != 0 and hd != self.degree():
+                        if 2*hd <= self.degree():
+                            return h.any_root(ring, -degree, True)
+                        else:
+                            return (self//h).any_root(ring, -degree, True)
+        else:
+            return self.roots(ring=ring, multiplicities=False)[0]
 
 
     def __div__(self, right):
@@ -5725,7 +6004,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # over rings of positive characteristic, we rely on the square-free decomposition if available
         try:
             F = self.squarefree_decomposition()
-        except NotImplementedError:
+        # We catch:
+        # - NotImplementedError in case squarefree decomposition is not implemented
+        # - AttributeError in case p-th roots are not (or do not exist)
+        except (NotImplementedError, AttributeError):
             F = self.factor()
         return all([e<=1 for (f,e) in F])
 

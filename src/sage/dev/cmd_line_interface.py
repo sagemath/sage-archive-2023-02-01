@@ -24,8 +24,17 @@ from subprocess import check_call, CalledProcessError
 from getpass import getpass
 
 import os
+import textwrap
+import itertools
 
 from user_interface import UserInterface
+from user_interface import ERROR, WARNING, NORMAL, INFO, DEBUG
+
+try:
+    from sage.doctest import DOCTEST_MODE
+except ImportError:
+    DOCTEST_MODE = False
+
 
 class CmdLineInterface(UserInterface):
     r"""
@@ -38,7 +47,6 @@ class CmdLineInterface(UserInterface):
         sage: from sage.dev.cmd_line_interface import CmdLineInterface
         sage: CmdLineInterface(DoctestConfig()["UI"])
         CmdLineInterface()
-
     """
     def __repr__(self):
         r"""
@@ -50,7 +58,6 @@ class CmdLineInterface(UserInterface):
             sage: from sage.dev.cmd_line_interface import CmdLineInterface
             sage: CmdLineInterface(DoctestConfig()["UI"])
             CmdLineInterface()
-
         """
         return "CmdLineInterface()"
 
@@ -63,9 +70,9 @@ class CmdLineInterface(UserInterface):
             sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.cmd_line_interface import CmdLineInterface
             sage: UI = CmdLineInterface(DoctestConfig()["UI"])
-            sage: UI._std_values("Should I delete your home directory?", ("yes","no","maybe"), default=1)
+            sage: UI._std_values("Should I delete your home directory?",
+            ....:                ("yes", "no", "maybe"), default=1)
             ('Should I delete your home directory? [yes/No/maybe] ', ('yes', 'no', 'maybe'), 'no')
-
         """
         if options is not None:
             options = tuple(opt.lower() for opt in options)
@@ -78,7 +85,7 @@ class CmdLineInterface(UserInterface):
                     default = options[default]
             else:
                 options = None
-        prompt += " "
+        prompt = self._color_code('prompt') + prompt + self._color_code() + " "
         return prompt, options, default
 
     def _get_input(self, prompt, options=None, default=None, input_func=raw_input):
@@ -105,20 +112,17 @@ class CmdLineInterface(UserInterface):
             sage: def input_func(prompt):
             ....:     print(prompt)
             ....:     return "no"
-            sage: UI._get_input("Should I delete your home directory?", ("yes","no","maybe"), default=0, input_func = input_func)
+            sage: UI._get_input("Should I delete your home directory?",
+            ....:     ("yes","no","maybe"), default=0, input_func = input_func)
             Should I delete your home directory? [Yes/no/maybe]
             'no'
-
         """
         try:
             prompt, options, default = self._std_values(prompt, options, default)
-
             while True:
                 s = input_func(prompt)
-
                 if options is None:
                     return s
-
                 if len(s.strip()) == 0:
                     if default is None:
                         self.show("Please enter an option.")
@@ -164,17 +168,18 @@ class CmdLineInterface(UserInterface):
             sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.cmd_line_interface import CmdLineInterface
             sage: UI = CmdLineInterface(DoctestConfig()["UI"])
-            sage: UI.select("Should I delete your home directory?", ("yes","no","maybe"), default=2) # not tested
+            sage: UI.select("Should I delete your home directory?",    # not tested
+            ....:           ("yes", "no", "maybe"), default=2)
             Should I delete your home directory? [yes/no/Maybe] m
             'maybe'
 
             sage: from sage.dev.test.user_interface import DoctestUserInterface
             sage: UI = DoctestUserInterface(DoctestConfig()["UI"])
             sage: UI.append("n")
-            sage: UI.select("Should I delete your home directory?", ("yes","no","maybe"), default=2) # indirect doctest
+            sage: UI.select("Should I delete your home directory?",    # indirect doctest
+            ....:           ("yes","no","maybe"), default=2)
             Should I delete your home directory? [yes/no/Maybe] n
             'no'
-
         """
         return self._get_input(prompt, options, default)
 
@@ -205,7 +210,6 @@ class CmdLineInterface(UserInterface):
             sage: UI.get_input("What do you want for dinner?") # indirect doctest
             What do you want for dinner? filet mignon
             'filet mignon'
-
         """
         return self._get_input(prompt)
 
@@ -236,7 +240,6 @@ class CmdLineInterface(UserInterface):
             sage: UI.get_password("What is the key combo for your safe?") # indirect doctest
             What is the key combo for your safe?
             '9247'
-
         """
         return self._get_input(prompt, input_func=getpass)
 
@@ -253,23 +256,25 @@ class CmdLineInterface(UserInterface):
             sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.cmd_line_interface import CmdLineInterface
             sage: UI = CmdLineInterface(DoctestConfig()["UI"])
-            sage: UI._get_dimensions() # not tested
-            (48, 194)
-
+            sage: UI._get_dimensions()
+            (25, 80)
         """
         dim = self._ioctl_GWINSZ(0) or self._ioctl_GWINSZ(1) or self._ioctl_GWINSZ(2)
-
         if dim is None:
              fd = os.open(os.ctermid(), os.O_RDONLY)
              try:
                 dim = self._ioctl_GWINSZ(fd)
              finally:
                 os.close(fd)
-
         if dim is None:
-            raise EnvironmentError("cannot determine dimensions of terminal")
-
-        return tuple(int(x) for x in dim)
+            ret = (0,)
+        else:
+            ret = tuple(int(x) for x in dim)
+        if all(ret):
+            return ret
+        else:
+            # fallback values
+            return (25, 80)
 
     def _ioctl_GWINSZ(self, fd):
         r"""
@@ -285,11 +290,11 @@ class CmdLineInterface(UserInterface):
             sage: import os
             sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.cmd_line_interface import CmdLineInterface
-            sage: fd = os.open(os.ctermid(), os.O_RDONLY) # not tested
-            sage: CmdLineInterface(DoctestConfig()["UI"])._ioctl_GWINSZ(fd) # not tested
-            (48, 194)
-
+            sage: CmdLineInterface(DoctestConfig()["UI"])._ioctl_GWINSZ(0)
+            (25, 80)
         """
+        if DOCTEST_MODE:
+            return (25, 80)
         try:
             import struct
             import fcntl
@@ -302,7 +307,35 @@ class CmdLineInterface(UserInterface):
         except IOError:
             return None
 
-    def _show(self, message):
+    def _color_code(self, color=None):
+        """
+        Return an ansi color code.
+
+        INPUT:
+
+        - ``color`` -- ``None``, ``'prompt'``, or one of the constants
+          ``ERROR``, ``WARNING``, ``NORMAL``, ``INFO``, or ``DEBUG``.
+
+        OUTPUT:
+
+        String, possibly containing a color code.
+        """
+        if DOCTEST_MODE:
+            return ''
+        if color is None:
+            return '\033[0m'
+        elif color == ERROR:
+            return '\033[0;31m'
+        elif color == WARNING:
+            return '\033[0;33m'
+        elif color == INFO or color == DEBUG:
+            return '\033[0;36m'
+        elif color == 'prompt':
+            return '\033[0;34m'
+        else:
+            return ''
+
+    def _show(self, message, log_level, *args):
         r"""
         Display ``message``.
 
@@ -315,22 +348,27 @@ class CmdLineInterface(UserInterface):
             sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.cmd_line_interface import CmdLineInterface
             sage: UI = CmdLineInterface(DoctestConfig()["UI"])
-            sage: UI.show("I ate filet mignon for dinner.") # indirect doctest
-            I ate filet mignon for dinner.
-
+            sage: UI.info("I ate {0} for dinner, a whole {1} for dessert, and then took a nice walk around the lake.", 'filet mignon', 'apple pie') # indirect doctest
+            #  I ate filet mignon for dinner, a whole apple pie for dessert, and then took a
+            #  nice walk around the lake.
         """
-        try:
-            height, width = self._get_dimensions()
-        except EnvironmentError:
-            height, width = float('inf'), float('inf')
+        if len(args) > 0:
+            message = message.format(*args)
+        height, width = self._get_dimensions()
+        kwds = {'width': width}
+        if log_level == INFO:
+            kwds['initial_indent'] = kwds['subsequent_indent'] = '#  '
 
-        message = message.rstrip().splitlines()
-        message = [line.rstrip() for line in message]
-        if sum(len(l) // width + 1 for l in message) + 2 <= height:
-            print(*message, sep='\n')
+        wrap = textwrap.TextWrapper(**kwds).wrap
+        message = list(itertools.chain.from_iterable(
+            wrap(line) for line in message.splitlines()))
+
+        if len(message) <= height:
+            print(self._color_code(log_level) +
+                  '\n'.join(message) +
+                  self._color_code())
         else:
-            # It would be nice to autodetect the encoding rather than assume UTF8
-            message = ('\n'.join(message)+'\n').encode('utf-8')
+            message = '\n'.join(message)+'\n'
             try:
                 self._pager(message)
             except AttributeError:
@@ -348,8 +386,7 @@ class CmdLineInterface(UserInterface):
 
         TESTS::
 
-            sage: import os, tempfile
-            sage: tmp = tempfile.mkstemp()[1]
+            sage: tmp = tmp_filename()
             sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.cmd_line_interface import CmdLineInterface
             sage: UI = CmdLineInterface(DoctestConfig()["UI"])
@@ -359,10 +396,10 @@ class CmdLineInterface(UserInterface):
             lines
             <BLANKLINE>
             sage: os.unlink(tmp)
-
         """
         try:
-            check_call([os.environ.get('EDITOR', 'nano'), filename])
+            editor = os.environ.get('EDITOR', 'nano')
+            check_call(['sage-native-execute', editor, filename])
         except CalledProcessError:
             from user_interface_error import OperationCancelledError
             raise OperationCancelledError("Editor returned non-zero exit value")

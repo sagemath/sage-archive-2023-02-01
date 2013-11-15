@@ -2,7 +2,7 @@
 Finitely Presented Groups
 
 Finitely presented groups are constructed as quotients of
-:mod:`~sage.groups.free_group` ::
+:mod:`~sage.groups.free_group`::
 
     sage: F.<a,b,c> = FreeGroup()
     sage: G = F / [a^2, b^2, c^2, a*b*c*a*b*c]
@@ -100,8 +100,7 @@ obtained by modding out the commutator subgroup of the free group::
     ...
     ValueError: the values do not satisfy all relations of the group
 
-
-.. warning::
+.. WARNING::
 
     Some methods are not guaranteed to finish since the word problem
     for finitely presented groups is, in general, undecidable. In
@@ -110,9 +109,9 @@ obtained by modding out the commutator subgroup of the free group::
 
 REFERENCES:
 
-- http://en.wikipedia.org/wiki/Presentation_of_a_group
+- :wikipedia:`Presentation_of_a_group`
 
-- http://en.wikipedia.org/wiki/Word_problem_for_groups
+- :wikipedia:`Word_problem_for_groups`
 
 AUTHOR:
 
@@ -205,6 +204,8 @@ class FinitelyPresentedGroupElement(FreeGroupElement):
 
     def __reduce__(self):
         """
+        Used in pickling.
+
         TESTS::
 
             sage: F.<a,b> = FreeGroup()
@@ -311,8 +312,8 @@ class FinitelyPresentedGroupElement(FreeGroupElement):
             sage: H.simplified()
             Finitely presented group < a |  >
 
-        `b` can be eliminated using the relation `a=b`. Any values
-        that you plug into a word must satisfy this relation::
+        The generator `b` can be eliminated using the relation `a=b`. Any
+        values that you plug into a word must satisfy this relation::
 
             sage: A, B = H.gens()
             sage: w = A^2 * B
@@ -342,7 +343,7 @@ def wrap_FpGroup(libgap_fpgroup):
 
     This function changes the comparison method of
     ``libgap_free_group`` to comparison by Python ``id``. If you want
-    to put the LibGAP free group into a container (set, dict) then you
+    to put the LibGAP free group into a container ``(set, dict)`` then you
     should understand the implications of
     :meth:`~sage.libs.gap.element.GapElement._set_compare_by_id`. To
     be safe, it is recommended that you just work with the resulting
@@ -385,9 +386,9 @@ def wrap_FpGroup(libgap_fpgroup):
 class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
     Group, ParentLibGAP):
     """
-    A class that wraps GAP's Finitely Presented Groups
+    A class that wraps GAP's Finitely Presented Groups.
 
-    .. warning::
+    .. WARNING::
 
         You should use
         :meth:`~sage.groups.free_group.FreeGroup_class.quotient` to
@@ -425,7 +426,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
     def __init__(self, free_group, relations):
         """
-        The Python constructor
+        The Python constructor.
 
         TESTS::
 
@@ -454,6 +455,8 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
     def __reduce__(self):
         """
+        Used in pickling.
+
         TESTS::
 
             sage: F = FreeGroup(4)
@@ -552,7 +555,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
         OUTPUT:
 
-        The relations as a touple of elements of :meth:`free_group`.
+        The relations as a tuple of elements of :meth:`free_group`.
 
         EXAMPLES::
 
@@ -570,7 +573,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
     @cached_method
     def cardinality(self, limit=4096000):
         """
-        Compute the size of self.
+        Compute the cardinality of ``self``.
 
         INPUT:
 
@@ -674,8 +677,131 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         return PermutationGroup([
                 Permutation(coset_table[2*i]) for i in range(len(coset_table)/2)])
 
+    def direct_product(self, H, reduced=False, new_names=True):
+        r"""
+        Return the direct product of ``self`` with finitely presented
+        group ``H``.
+
+        Calls GAP function ``DirectProduct``, which returns the direct
+        product of a list of groups of any representation.
+
+        From [JohnsonPG90]_ (pg 45, proposition 4): If `G`, `H` are groups
+        presented by `\langle X \mid R \rangle` and `\langle Y \mid S \rangle`
+        respectively, then their direct product has the presentation
+        `\langle X, Y \mid R, S, [X, Y] \rangle` where `[X, Y]` denotes the
+        set of commutators `\{ x^{-1} y^{-1} x y \mid x \in X, y \in Y \}`.
+
+        INPUT:
+
+        - ``H`` -- a finitely presented group
+
+        - ``reduced`` -- (default: ``False``) boolean; if ``True``, then
+          attempt to reduce the presentation of the product group
+
+        - ``new_names`` -- (default: ``True``) boolean; If ``True``, then
+          lexicographical variable names are assigned to the generators of
+          the group to be returned. If ``False``, the group to be returned
+          keeps the generator names of the two groups forming the direct
+          product. Note that one cannot ask to reduce the output and ask
+          to keep the old variable names, as they they may change meaning
+          in the output group if its presentation is reduced.
+
+        OUTPUT:
+
+        The direct product of ``self`` with ``H`` as a finitely
+        presented group.
+
+        EXAMPLES::
+
+            sage: G = FreeGroup()
+            sage: C12 =  ( G / [G([1,1,1,1])] ).direct_product( G / [G([1,1,1])]); C12
+            Finitely presented group < a, b | a^4, b^3, a^-1*b^-1*a*b >
+            sage: C12.order(), C12.as_permutation_group().is_cyclic()
+            (12, True)
+            sage: klein = ( G / [G([1,1])] ).direct_product( G / [G([1,1])]); klein
+            Finitely presented group < a, b | a^2, b^2, a^-1*b^-1*a*b >
+            sage: klein.order(), klein.as_permutation_group().is_cyclic()
+            (4, False)
+
+        We can keep the variable names from ``self`` and ``H`` to examine how
+        new relations are formed::
+
+            sage: F = FreeGroup("a"); G = FreeGroup("g")
+            sage: X = G / [G.0^12]; A = F / [F.0^6]
+            sage: X.direct_product(A, new_names=False)
+            Finitely presented group < g, a | g^12, a^6, g^-1*a^-1*g*a >
+            sage: A.direct_product(X, new_names=False)
+            Finitely presented group < a, g | a^6, g^12, a^-1*g^-1*a*g >
+
+        Or we can attempt to reduce the output group presentation::
+
+            sage: F = FreeGroup("a"); G = FreeGroup("g")
+            sage: X = G / [G.0]; A = F / [F.0]
+            sage: X.direct_product(A, new_names=True)
+            Finitely presented group < a, b | a, b, a^-1*b^-1*a*b >
+            sage: X.direct_product(A, reduced=True, new_names=True)
+            Finitely presented group <  |  >
+
+        But we cannot do both::
+
+            sage: K = FreeGroup(['a','b'])
+            sage: D = K / [K.0^5, K.1^8]
+            sage: D.direct_product(D, reduced=True, new_names=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot reduce output and keep old variable names
+
+        TESTS::
+
+            sage: G = FreeGroup()
+            sage: Dp = (G / [G([1,1])]).direct_product( G / [G([1,1,1,1,1,1])] )
+            sage: Dp.as_permutation_group().is_isomorphic(PermutationGroup(['(1,2)','(3,4,5,6,7,8)']))
+            True
+            sage: C7 = G / [G.0**7]; C6 =  G / [G.0**6]
+            sage: C14 = G / [G.0**14]; C3 =  G / [G.0**3]
+            sage: C7.direct_product(C6).is_isomorphic(C14.direct_product(C3))
+            True
+            sage: F = FreeGroup(2); D = F / [F([1,1,1,1,1]),F([2,2]),F([1,2])**2]
+            sage: D.direct_product(D).as_permutation_group().is_isomorphic(
+            ....: direct_product_permgroups([DihedralGroup(5),DihedralGroup(5)]))
+            True
+
+        AUTHORS:
+
+        - Davis Shurbert (2013-07-20): initial version
+
+        REFERENCES:
+
+        .. [JohnsonPG90] D.L. Johnson. *Presentations of Groups*.
+           Cambridge University Press. (1990).
+        """
+        from sage.groups.free_group import FreeGroup, _lexi_gen
+
+        if not isinstance(H, FinitelyPresentedGroup):
+            raise TypeError("input must be a finitely presented group")
+        if reduced and not new_names:
+            raise ValueError("cannot reduce output and keep old variable names")
+
+        fp_product = libgap.DirectProduct([self.gap(), H.gap()])
+        GAP_gens = fp_product.FreeGeneratorsOfFpGroup()
+        if new_names:
+            name_itr = _lexi_gen() # Python generator for lexicographical variable names
+            gen_names = [name_itr.next() for i in GAP_gens]
+        else:
+            gen_names= [str(g) for g in self.gens()] + [str(g) for g in H.gens()]
+        # Build the direct product in Sage for better variable names
+        ret_F = FreeGroup(gen_names)
+        ret_rls = tuple([ret_F(rel_word.TietzeWordAbstractWord(GAP_gens).sage())
+            for rel_word in fp_product.RelatorsOfFpGroup()])
+        ret_fpg = FinitelyPresentedGroup(ret_F, ret_rls)
+        if reduced:
+            ret_fpg = ret_fpg.simplified()
+        return ret_fpg
+
     def _element_constructor_(self, *args, **kwds):
         """
+        Construct an element of ``self``.
+
         TESTS::
 
             sage: G.<a,b> = FreeGroup()
@@ -700,12 +826,12 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
     @cached_method
     def abelian_invariants(self):
-        """
-        Return the abelian invariants of self.
+        r"""
+        Return the abelian invariants of ``self``.
 
-        The abelian invariants are given by a list of integers $i_1 \dots i_j$, such that the
-        abelianization of the group is isomorphic to $\mathbb{Z}/(i_1) \\times \dots \\times
-        \mathbb{Z}/(i_j)$.
+        The abelian invariants are given by a list of integers
+        `(i_1, \ldots, i_j)`, such that the abelianization of the group is
+        isomorphic to `\ZZ / (i_1) \times \cdots \times \ZZ / (i_j)`.
 
         EXAMPLES::
 
@@ -718,15 +844,15 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
         ALGORITHM:
 
-            Uses GAP.
+        Uses GAP.
         """
         invariants = self.gap().AbelianInvariants()
         return tuple( i.sage() for i in invariants )
 
     def simplification_isomorphism(self):
         """
-        Return an isomorphism from self to a finitely presented group with a (hopefully) simpler
-        presentation.
+        Return an isomorphism from ``self`` to a finitely presented group with
+        a (hopefully) simpler presentation.
 
         EXAMPLES::
 
@@ -755,7 +881,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
         ALGORITM:
 
-            Uses GAP.
+        Uses GAP.
         """
         I = self.gap().IsomorphismSimplifiedFpGroup()
         domain = self
@@ -770,7 +896,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         OUTPUT:
 
         A new finitely presented group. Use
-        :meth:simplification_isomorphism` if you want to know the
+        :meth:`simplification_isomorphism` if you want to know the
         isomorphism.
 
         EXAMPLES::

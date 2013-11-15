@@ -1596,8 +1596,10 @@ cdef class gen(sage.structure.element.RingElement):
 
     def __int__(gen self):
         """
-        Return Python int. Very fast, and if the number is too large to fit
-        into a C int, a Python long is returned instead.
+        Convert ``self`` to a Python integer.
+
+        If the number is too large to fit into a Pyhon ``int``, a
+        Python ``long`` is returned instead.
 
         EXAMPLES::
 
@@ -1617,38 +1619,10 @@ cdef class gen(sage.structure.element.RingElement):
             -2147483648
             sage: int(pari("Pol(10)"))
             10
+            sage: int(pari("Mod(2, 7)"))
+            2
         """
-        cdef GEN x
-        cdef long lx, *xp
-        if  typ(self.g)==t_POL and self.poldegree()<=0:
-            # Change a constant polynomial to its constant term
-            x = constant_term(self.g)
-        else:
-            x = self.g
-        if typ(x) != t_INT:
-            raise TypeError, "gen must be of PARI type t_INT or t_POL of degree 0"
-        if not signe(x):
-            return 0
-        lx = lgefint(x)-3   # take 1 to account for the MSW
-        xp = int_MSW(x)
-        # special case 1 word so we return int if it fits
-        if not lx:
-            if   signe(x) |  xp[0] > 0:     # both positive
-                return xp[0]
-            elif signe(x) & -xp[0] < 0:     # both negative
-                return -xp[0]
-        i = <ulong>xp[0]
-        while lx:
-            xp = int_precW(xp)
-            i = i << BITS_IN_LONG | <ulong>xp[0]
-            lx = lx-1
-        if signe(x) > 0:
-            return i
-        else:
-            return -i
-        # NOTE: Could use int_unsafe below, which would be much faster, but
-        # the default PARI prints annoying stuff to the screen when
-        # the number is large.
+        return int(Integer(self))
 
     def int_unsafe(gen self):
         """
@@ -1820,9 +1794,30 @@ cdef class gen(sage.structure.element.RingElement):
 
     def __long__(gen self):
         """
-        Return Python long.
+        Convert ``self`` to a Python ``long``.
+
+        EXAMPLES::
+
+            sage: long(pari(0))
+            0L
+            sage: long(pari(10))
+            10L
+            sage: long(pari(-10))
+            -10L
+            sage: long(pari(123456789012345678901234567890))
+            123456789012345678901234567890L
+            sage: long(pari(-123456789012345678901234567890))
+            -123456789012345678901234567890L
+            sage: long(pari(2^31-1))
+            2147483647L
+            sage: long(pari(-2^31))
+            -2147483648L
+            sage: long(pari("Pol(10)"))
+            10L
+            sage: long(pari("Mod(2, 7)"))
+            2L
         """
-        return long(int(self))
+        return long(Integer(self))
 
     def __float__(gen self):
         """
@@ -6960,6 +6955,34 @@ cdef class gen(sage.structure.element.RingElement):
         pari_catch_sig_on()
         return self.new_gen(bnfisunit(self.g, t0))
 
+    def bnrclassno(self, I):
+        r"""
+        Return the order of the ray class group of self modulo ``I``.
+
+        INPUT:
+
+        - ``self``: a pari "BNF" object representing a number field
+        - ``I``: a pari "BID" object representing an ideal of self
+
+        OUTPUT: integer
+
+        TESTS::
+
+            sage: K.<z> = QuadraticField(-23)
+            sage: p = K.primes_above(3)[0]
+            sage: K.pari_bnf().bnrclassno(p._pari_bid_())
+            3
+        """
+        t0GEN(I)
+        pari_catch_sig_on()
+        return self.new_gen(bnrclassno(self.g, t0))
+
+    def bnfissunit(self, sunit_data, x):
+        t0GEN(x)
+        t1GEN(sunit_data)
+        pari_catch_sig_on()
+        return self.new_gen(bnfissunit(self.g, t1, t0))
+
     def dirzetak(self, n):
         t0GEN(n)
         pari_catch_sig_on()
@@ -7012,7 +7035,7 @@ cdef class gen(sage.structure.element.RingElement):
     def idealappr(self, x, long flag=0):
         t0GEN(x)
         pari_catch_sig_on()
-        return self.new_gen(idealappr(self.g, t0))
+        return self.new_gen(idealappr0(self.g, t0, flag))
 
     def idealcoprime(self, x, y):
         """

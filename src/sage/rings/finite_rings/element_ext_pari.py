@@ -15,7 +15,7 @@ polynomial, i.e., we verify compatibility condition.
 ::
 
     sage: f = conway_polynomial(2,63)
-    sage: K.<a> = GF(2**63, name='a', modulus=f)
+    sage: K.<a> = GF(2**63, name='a', modulus=f, impl='pari_mod')
     sage: n = f.degree()
     sage: m = 3;
     sage: e = (2^n - 1) / (2^m - 1)
@@ -52,7 +52,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
     EXAMPLES::
 
-        sage: K = FiniteField(10007^10, 'a')
+        sage: K = FiniteField(10007^10, 'a', impl='pari_mod')
         sage: a = K.gen(); a
         a
         sage: loads(a.dumps()) == a
@@ -65,7 +65,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
     TESTS::
 
-        sage: K.<a> = GF(2^16)
+        sage: K.<a> = GF(2^16, impl='pari_mod')
         sage: K(0).is_zero()
         True
         sage: (a - a).is_zero()
@@ -315,7 +315,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^15)
+            sage: k.<a> = GF(3^15, impl='pari_mod')
             sage: R = GF(3)['a']; aa = R.gen()
             sage: hash(a^2 + 1) == hash(aa^2 + 1)
             True
@@ -340,7 +340,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         The variable can be any string::
 
-            sage: k = FiniteField(3**4, "alpha")
+            sage: k = FiniteField(3**4, "alpha", impl='pari_mod')
             sage: a = k.gen()
             sage: a.polynomial()
             alpha
@@ -447,7 +447,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17)
+            sage: k.<a> = GF(3^17, impl='pari_mod')
             sage: (a^3 - a - 1).sqrt()
             2*a^16 + a^15 + 2*a^13 + a^12 + 2*a^10 + a^9 + a^8 + 2*a^7 + 2*a^6 + a^5 + 2*a^4 + a^2 + a + 1
         """
@@ -563,7 +563,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17)
+            sage: k.<a> = GF(3^17, impl='pari_mod')
             sage: a._pari_init_()
             'Mod(Mod(1, 3)*a, Mod(1, 3)*a^17 + Mod(2, 3)*a + Mod(1, 3))'
         """
@@ -644,7 +644,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<c> = GF(3^17)
+            sage: k.<c> = GF(3^17, impl='pari_mod')
             sage: c^20 # indirect doctest
             c^4 + 2*c^3
         """
@@ -656,7 +656,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17)
+            sage: k.<a> = GF(3^17, impl='pari_mod')
             sage: a + a^2 # indirect doctest
             a^2 + a
         """
@@ -668,7 +668,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17)
+            sage: k.<a> = GF(3^17, impl='pari_mod')
             sage: a - a # indirect doctest
             0
         """
@@ -680,7 +680,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17)
+            sage: k.<a> = GF(3^17, impl='pari_mod')
             sage: (a^12 + 1)*(a^15 - 1) # indirect doctest
             a^15 + 2*a^12 + a^11 + 2*a^10 + 2
         """
@@ -692,7 +692,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17)
+            sage: k.<a> = GF(3^17, impl='pari_mod')
             sage: (a - 1) / (a + 1) # indirect doctest
             2*a^16 + a^15 + 2*a^14 + a^13 + 2*a^12 + a^11 + 2*a^10 + a^9 + 2*a^8 + a^7 + 2*a^6 + a^5 + 2*a^4 + a^3 + 2*a^2 + a + 1
         """
@@ -706,13 +706,13 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17); b = k(2)
+            sage: k.<a> = GF(3^17, impl='pari_mod'); b = k(2)
             sage: int(b)
             2
             sage: int(a)
             Traceback (most recent call last):
             ...
-            TypeError: gen must be of PARI type t_INT or t_POL of degree 0
+            TypeError: Unable to coerce PARI a to an Integer
         """
         try:
             return int(self.__value.lift().lift())
@@ -725,7 +725,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17); b = k(2)
+            sage: k.<a> = GF(3^17, impl='pari_mod'); b = k(2)
             sage: b._integer_()
             2
             sage: a._integer_()
@@ -741,7 +741,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17); b = k(2)
+            sage: k.<a> = GF(3^17, impl='pari_mod'); b = k(2)
             sage: long(b)
             2L
         """
@@ -756,7 +756,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17); b = k(2)
+            sage: k.<a> = GF(3^17, impl='pari_mod'); b = k(2)
             sage: float(b)
             2.0
         """
@@ -769,7 +769,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
         """
         TESTS::
 
-            sage: K.<a> = GF(5^10)
+            sage: K.<a> = GF(5^10, impl='pari_mod')
             sage: n = (2*a)/a
 
         Naively compute `n^{-15}` in PARI, note that the result is `1/3`.
@@ -805,7 +805,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17)
+            sage: k.<a> = GF(3^17, impl='pari_mod')
             sage: -a
             2*a
         """
@@ -817,7 +817,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17)
+            sage: k.<a> = GF(3^17, impl='pari_mod')
             sage: +a
             a
         """
@@ -829,7 +829,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17)
+            sage: k.<a> = GF(3^17, impl='pari_mod')
             sage: abs(a)
             Traceback (most recent call last):
             ...
@@ -925,7 +925,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         ::
 
-            sage: F = FiniteField(2^10, 'a')
+            sage: F = FiniteField(2^10, 'a', impl='pari_mod')
             sage: g = F.gen()
             sage: b = g; a = g^37
             sage: a.log(b)
@@ -952,7 +952,7 @@ def _late_import():
     EXAMPLES::
 
         sage: from sage.rings.finite_rings.element_ext_pari import FiniteField_ext_pariElement
-        sage: k.<a> = GF(3^17)
+        sage: k.<a> = GF(3^17, impl='pari_mod')
         sage: a.__class__ is FiniteField_ext_pariElement # indirect doctest
         False
     """

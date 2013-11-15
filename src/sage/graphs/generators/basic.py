@@ -19,7 +19,6 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 from sage.graphs.graph import Graph
 from sage.graphs import graph
 from math import sin, cos, pi
-from sage.graphs.graph_plot import _circle_embedding, _line_embedding
 
 def BullGraph():
     r"""
@@ -518,7 +517,6 @@ def CompleteBipartiteGraph(n1, n2):
         y = 0
         pos_dict[i] = (x,y)
     import networkx
-    from sage.graphs.graph import Graph
     G = networkx.complete_bipartite_graph(n1,n2)
     return Graph(G, pos=pos_dict, name="Complete bipartite graph")
 
@@ -544,8 +542,6 @@ def CompleteMultipartiteGraph(l):
         sage: g.chromatic_number()
         3
     """
-
-    from sage.graphs.graph import Graph
     g = Graph()
     for i in l:
         g = g + CompleteGraph(i)
@@ -753,6 +749,12 @@ def Grid2dGraph(n1, n2):
         Traceback (most recent call last):
         ...
         ValueError: Parameters n1 and n2 must be positive integers !
+
+    The graph name contains the dimension::
+
+        sage: g = graphs.Grid2dGraph(5,7)
+        sage: g.name()
+        '2D Grid Graph for [5, 7]'
     """
 
     if n1 <= 0 or n2 <= 0:
@@ -763,10 +765,10 @@ def Grid2dGraph(n1, n2):
         y = -i
         for j in range(n2):
             x = j
-            pos_dict[i,j] = (x,y)
+            pos_dict[i, j] = (x, y)
     import networkx
-    G = networkx.grid_2d_graph(n1,n2)
-    return graph.Graph(G, pos=pos_dict, name="2D Grid Graph")
+    G = networkx.grid_2d_graph(n1, n2)
+    return graph.Graph(G, pos=pos_dict, name="2D Grid Graph for "+str([n1, n2]))
 
 def GridGraph(dim_list):
     """
@@ -794,14 +796,35 @@ def GridGraph(dim_list):
         sage: G = graphs.GridGraph([2,2,2,2])
         sage: C.show()  # long time
         sage: G.show()  # long time
+
+    TESTS:
+
+    The graph name contains the dimension::
+
+        sage: g = graphs.GridGraph([5, 7])
+        sage: g.name()
+        'Grid Graph for [5, 7]'
+        sage: g = graphs.GridGraph([2, 3, 4])
+        sage: g.name()
+        'Grid Graph for [2, 3, 4]'
+        sage: g = graphs.GridGraph([2, 4, 3])
+        sage: g.name()
+        'Grid Graph for [2, 4, 3]'
+
+    All dimensions must be positive integers::
+
+        sage: g = graphs.GridGraph([2,-1,3])
+        Traceback (most recent call last):
+        ...
+        ValueError: All dimensions must be positive integers !
     """
     import networkx
     dim = [int(a) for a in dim_list]
-    G = networkx.grid_graph(dim)
-    return graph.Graph(G, name="Grid Graph for %s"%dim)
-
-
-
+    if any(a <= 0 for a in dim):
+        raise ValueError("All dimensions must be positive integers !")
+    # We give a copy of dim to networkx because it modifies the list
+    G = networkx.grid_graph(list(dim))
+    return graph.Graph(G, name="Grid Graph for " + str(dim))
 
 def HouseGraph():
     """

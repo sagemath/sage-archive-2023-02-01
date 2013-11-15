@@ -71,7 +71,7 @@ class AbelianGroupElementBase(MultiplicativeGroupElement):
         else:
             self._exponents = tuple( ZZ(e) for e in exponents )
             if len(self._exponents) != n:
-                raise IndexError('argument length (= %s) must be %s.'%(len(X), n))
+                raise IndexError('argument length (= %s) must be %s.'%(len(exponents), n))
 
     def exponents(self):
         """

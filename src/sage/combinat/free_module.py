@@ -1605,6 +1605,18 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         """
         return self._basis_keys.cardinality()
 
+    def gens(self):
+        """
+        Return a tuple consisting of the basis elements of ``self``.
+
+        EXAMPLES::
+
+            sage: F = CombinatorialFreeModule(ZZ, ['a', 'b', 'c'])
+            sage: F.gens()
+            (B['a'], B['b'], B['c'])
+        """
+        return tuple(self.basis().values())
+
     def set_order(self, order):
         """
         Sets the order of the elements of the basis.

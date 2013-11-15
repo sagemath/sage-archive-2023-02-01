@@ -26,7 +26,8 @@ from affine_permutation import AffinePermutationGroup
 from derangements import Derangements
 
 #RSK
-from rsk import RSK, RSK_inverse, RobinsonSchenstedKnuth, RobinsonSchenstedKnuth_inverse
+from rsk import RSK, RSK_inverse, robinson_schensted_knuth, robinson_schensted_knuth_inverse,\
+                RobinsonSchenstedKnuth, RobinsonSchenstedKnuth_inverse
 
 #PerfectMatchings
 from perfect_matching import PerfectMatching, PerfectMatchings
@@ -83,7 +84,7 @@ from ribbon import Ribbon, StandardRibbons
 
 
 from sage.combinat.tableau_tuple import TableauTuple, StandardTableauTuple, TableauTuples, StandardTableauTuples
-from k_tableau import WeakTableau, WeakTableaux
+from k_tableau import WeakTableau, WeakTableaux, StrongTableau, StrongTableaux
 
 #Words
 from words.all import *
@@ -157,4 +158,3 @@ from knutson_tao_puzzles import KnutsonTaoPuzzleSolver
 
 # Gelfand-Tsetlin patterns
 from gelfand_tsetlin_patterns import GelfandTsetlinPattern, GelfandTsetlinPatterns
-

@@ -47,6 +47,15 @@ cdef extern from 'pari/pari.h':
     ctypedef unsigned long pari_sp
     extern pari_sp avma, bot, top
 
+    # parierr.h
+
+    int talker2, bugparier, alarmer, openfiler, talker, flagerr, impl, \
+        archer, notfuncer, precer, typeer, consister, user, errpile, \
+        overflower, matinv1, mattype1, arither1, primer1, invmoder, \
+        constpoler, notpoler, redpoler, zeropoler, operi, operf, gdiver, \
+        memer, negexper, sqrter5, noer
+
+    int warner, warnprec, warnfile, warnmem
 
     # parigen.h
 
@@ -112,6 +121,10 @@ cdef extern from 'pari/pari.h':
     GEN     gnil
     extern int INIT_JMPm, INIT_SIGm, INIT_DFTm
     extern int new_galois_format, precdl
+    # The "except 0" here is to ensure compatibility with
+    # _pari_handle_exception() in handle_error.pyx
+    extern int (*cb_pari_handle_exception)(long) except 0
+    extern void (*cb_pari_err_recover)(long)
 
     # level1.h
 
@@ -1087,6 +1100,8 @@ cdef extern from 'pari/pari.h':
     void    pari_flush()
     void    pari_putc(char c)
     void    pari_puts(char *s)
+    int     pari_last_was_newline()
+    void    pari_set_last_newline(int last)
     #void    print(GEN g)   # syntax error
     void    print1(GEN g)
     void    printtex(GEN g)
@@ -1909,6 +1924,7 @@ cdef extern from *:   # paristio.h
         void (*puts)(char*)
         void (*flush)()
     extern PariOUT* pariOut
+    extern PariOUT* pariErr
 
 
 cdef extern from 'pari/paripriv.h':

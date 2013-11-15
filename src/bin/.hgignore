@@ -345,6 +345,7 @@ clear
 infocmp
 infotocap
 ncurses5-config
+ncursesw5-config
 reset
 tabs
 tic

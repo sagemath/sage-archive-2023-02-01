@@ -25,7 +25,7 @@ AUTHORS:
 import os
 
 from sage.env import (
-    SAGE_DOT_GIT, SAGE_REPO_AUTHENTICATED, SAGE_ROOT, 
+    SAGE_DOT_GIT, SAGE_REPO_AUTHENTICATED, SAGE_ROOT,
     SAGE_REPO_ANONYMOUS
 )
 
@@ -105,10 +105,10 @@ class GitProxy(object):
             sage: os.chdir(config['git']['src'])
 
             sage: git._run_git('status', (), {})
-            (0, 
+            (0,
              '# On branch master\n#\n# Initial commit\n#\nnothing to commit
-              (create/copy files and use "git add" to track)\n', 
-             '', 
+              (create/copy files and use "git add" to track)\n',
+             '',
              'git -c user.email=doc@test.test -c user.name=doctest status')
 
         TESTS:
@@ -964,22 +964,22 @@ class GitInterface(ReadStdoutGitProxy):
         Create some branches::
 
             sage: os.chdir(config['git']['src'])
-            sage: os.environ['GIT_COMMITTER_DATE'] = time.strftime("%Y-%m-%dT%H:%M:10")
-            sage: git.silent.commit('-m','initial commit','--allow-empty')
+            sage: env = {'GIT_COMMITTER_DATE': time.strftime("%Y-%m-%dT%H:%M:10")}
+            sage: git.silent.commit('-m','initial commit','--allow-empty', env=env)
             sage: git.super_silent.checkout('-b', 'branch')
-            sage: os.environ['GIT_COMMITTER_DATE'] = time.strftime("%Y-%m-%dT%H:%M:20")
-            sage: git.silent.commit('-m','second commit','--allow-empty')
+            sage: env['GIT_COMMITTER_DATE'] = time.strftime("%Y-%m-%dT%H:%M:20")
+            sage: git.silent.commit('-m','second commit','--allow-empty', env=env)
             sage: git.super_silent.checkout('-b', 'other', 'master')
-            sage: os.environ['GIT_COMMITTER_DATE'] = time.strftime("%Y-%m-%dT%H:%M:30")
-            sage: git.silent.commit('-m','third commit','--allow-empty')
+            sage: env['GIT_COMMITTER_DATE'] = time.strftime("%Y-%m-%dT%H:%M:30")
+            sage: git.silent.commit('-m','third commit','--allow-empty', env=env)
 
         Use this repository as a remote repository::
 
             sage: config2 = DoctestConfig()
             sage: git2 = GitInterface(config2["git"], DoctestUserInterface(config["UI"]))
             sage: os.chdir(config2['git']['src'])
-            sage: os.environ['GIT_COMMITTER_DATE'] = time.strftime("%Y-%m-%dT%H:%M:40")
-            sage: git2.silent.commit('-m','initial commit','--allow-empty')
+            sage: env['GIT_COMMITTER_DATE'] = time.strftime("%Y-%m-%dT%H:%M:40")
+            sage: git2.silent.commit('-m','initial commit','--allow-empty', env=env)
             sage: git2.silent.remote('add', 'git', config['git']['src'])
             sage: git2.super_silent.fetch('git')
             sage: git2.super_silent.checkout("branch")

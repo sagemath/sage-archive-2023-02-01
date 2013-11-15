@@ -1975,7 +1975,6 @@ class Permutation(CombinatorialObject, Element):
         from sage.combinat.partition import Partition
         return Partition(cycle_type)
 
-
     @combinatorial_map(name='foata_bijection')
     def foata_bijection(self):
         r"""
@@ -1988,7 +1987,7 @@ class Permutation(CombinatorialObject, Element):
         the word.  Given a word `w_1w_2\ldots w_n`, start with `\phi(w_1)=w_1`.  
         At the `i`th step, if `phi(w_1\ldots w_i)=v_1\ldots v_i`, we define 
         `phi(w_1\ldots w_{i+1})` by placing `w_{i+1}` on the end of the word 
-        `v_1\ldots v_i`, and breaking the word up into blocks as follows.  
+        `v_1\ldots v_i` and breaking the word up into blocks as follows.  
         If `w_{i+1}>v_i`, place a vertical line to the right of all `v_k` 
         for which `w_{i+1}>v_k`.  Otherwise, if `w_{i+1}<v_i`, place a 
         vertical line to the right of all `v_k` for which `w_{i+1}<v_k`.  
@@ -2004,11 +2003,11 @@ class Permutation(CombinatorialObject, Element):
         EXAMPLES::
             
             sage: Permutation([1,2,4,3]).foata_bijection()
-            [4,1,2,3]
+            [4, 1, 2, 3]
             sage: Permutation([2,5,1,3,4]).foata_bijection()
             [2, 1, 3, 5, 4]
             sage: P=Permutation([2,5,1,3,4]);
-            sage: P.major_index()==foata_bijection(P).number_of_inversions()
+            sage: P.major_index()==P.foata_bijection().number_of_inversions()
             True
         """
         L=list(self);
@@ -2043,7 +2042,6 @@ class Permutation(CombinatorialObject, Element):
                     M_prime[k-1]=e;
                 M=M_prime;
         return Permutation(M);
-
 
     def to_lehmer_code(self):
         r"""

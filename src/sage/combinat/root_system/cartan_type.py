@@ -1772,39 +1772,39 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
         """
 
     @abstract_method
-    def horizontal(self):
+    def basic_untwisted(self):
         r"""
-        Return the horizontal Cartan type associated with this affine
+        Return the basic untwisted Cartan type associated with this affine
         Cartan type.
 
-        Given an affine type `X_n^{(r)}`, the horizontal type is `X_n`. In
-        other words, it is the classical Cartan type that is twisted to
+        Given an affine type `X_n^{(r)}`, the basic untwisted type is `X_n`.
+        In other words, it is the classical Cartan type that is twisted to
         obtain ``self``.
 
         EXAMPLES::
 
-            sage: CartanType(['A', 1, 1]).horizontal()
+            sage: CartanType(['A', 1, 1]).basic_untwisted()
             ['A', 1]
-            sage: CartanType(['A', 3, 1]).horizontal()
+            sage: CartanType(['A', 3, 1]).basic_untwisted()
             ['A', 3]
-            sage: CartanType(['B', 3, 1]).horizontal()
+            sage: CartanType(['B', 3, 1]).basic_untwisted()
             ['B', 3]
-            sage: CartanType(['E', 6, 1]).horizontal()
+            sage: CartanType(['E', 6, 1]).basic_untwisted()
             ['E', 6]
-            sage: CartanType(['G', 2, 1]).horizontal()
+            sage: CartanType(['G', 2, 1]).basic_untwisted()
             ['G', 2]
 
-            sage: CartanType(['A', 2, 2]).horizontal()
+            sage: CartanType(['A', 2, 2]).basic_untwisted()
             ['A', 2]
-            sage: CartanType(['A', 4, 2]).horizontal()
+            sage: CartanType(['A', 4, 2]).basic_untwisted()
             ['A', 4]
-            sage: CartanType(['A', 11, 2]).horizontal()
+            sage: CartanType(['A', 11, 2]).basic_untwisted()
             ['A', 11]
-            sage: CartanType(['D', 5, 2]).horizontal()
+            sage: CartanType(['D', 5, 2]).basic_untwisted()
             ['D', 5]
-            sage: CartanType(['E', 6, 2]).horizontal()
+            sage: CartanType(['E', 6, 2]).basic_untwisted()
             ['E', 6]
-            sage: CartanType(['D', 4, 3]).horizontal()
+            sage: CartanType(['D', 4, 3]).basic_untwisted()
             ['D', 4]
         """
 
@@ -2536,26 +2536,26 @@ class CartanType_standard_untwisted_affine(CartanType_standard_affine):
         """
         return CartanType([self.letter,self.n])
 
-    def horizontal(self):
+    def basic_untwisted(self):
         r"""
-        Return the horizontal Cartan type associated with this affine
+        Return the basic_untwisted Cartan type associated with this affine
         Cartan type.
 
-        Given an affine type `X_n^{(r)}`, the horizontal type is `X_n`. In
+        Given an affine type `X_n^{(r)}`, the basic_untwisted type is `X_n`. In
         other words, it is the classical Cartan type that is twisted to
         obtain ``self``.
 
         EXAMPLES::
 
-            sage: CartanType(['A', 1, 1]).horizontal()
+            sage: CartanType(['A', 1, 1]).basic_untwisted()
             ['A', 1]
-            sage: CartanType(['A', 3, 1]).horizontal()
+            sage: CartanType(['A', 3, 1]).basic_untwisted()
             ['A', 3]
-            sage: CartanType(['B', 3, 1]).horizontal()
+            sage: CartanType(['B', 3, 1]).basic_untwisted()
             ['B', 3]
-            sage: CartanType(['E', 6, 1]).horizontal()
+            sage: CartanType(['E', 6, 1]).basic_untwisted()
             ['E', 6]
-            sage: CartanType(['G', 2, 1]).horizontal()
+            sage: CartanType(['G', 2, 1]).basic_untwisted()
             ['G', 2]
         """
         return self.classical()

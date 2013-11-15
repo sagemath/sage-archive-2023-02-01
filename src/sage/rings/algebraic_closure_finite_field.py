@@ -207,6 +207,21 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
         xn = F.inclusion(m, n)(xm)
         return self.__class__(F, xn)
 
+    def _latex_(self):
+        r"""
+        Latex string.
+
+        EXAMPLES::
+
+            sage: F = GF(3).algebraic_closure()
+            sage: s = F.gen(1) + F.gen(2) + F.gen(3)
+            sage: s
+            z6^5 + 2*z6^4 + 2*z6^3 + z6^2 + 2*z6 + 2
+            sage: print latex(s)
+            \text{\texttt{z6{\char`\^}5{ }+{ }2*z6{\char`\^}4{ }+{ }2*z6{\char`\^}3{ }+{ }z6{\char`\^}2{ }+{ }2*z6{ }+{ }2}}
+        """
+        return self._value._latex_()
+
     def is_square(self):
         """
         Return ``True`` if ``self`` is a square.

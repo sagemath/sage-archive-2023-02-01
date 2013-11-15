@@ -23,6 +23,7 @@ import random, os, sys, time, json, re, types
 import sage.misc.flatten
 from sage.structure.sage_object import SageObject
 from sage.env import DOT_SAGE, SAGE_LIB, SAGE_SRC
+from sage.ext.c_lib import AlarmInterrupt, _init_csage
 
 from sources import FileDocTestSource, DictAsObject
 from forker import DocTestDispatcher
@@ -836,23 +837,23 @@ class DocTestController(SageObject):
         if testing:
             return
 
+        # Setup Sage signal handler
+        _init_csage()
+
         import signal, subprocess
-        def handle_alrm(sig, frame):
-            raise RuntimeError
-        signal.signal(signal.SIGALRM, handle_alrm)
         p = subprocess.Popen(cmd, shell=True)
         if opt.timeout > 0:
             signal.alarm(opt.timeout)
         try:
             return p.wait()
-        except RuntimeError:
-            self.log("    Time out")
+        except AlarmInterrupt:
+            self.log("    Timed out")
             return 4
         except KeyboardInterrupt:
             self.log("    Interrupted")
             return 128
         finally:
-            signal.signal(signal.SIGALRM, signal.SIG_IGN)
+            signal.alarm(0)
             if p.returncode is None:
                 p.terminate()
 

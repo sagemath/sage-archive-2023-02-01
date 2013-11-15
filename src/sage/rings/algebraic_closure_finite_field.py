@@ -47,6 +47,8 @@ AUTHORS:
 
 - Peter Bruin (August 2013): initial version
 
+- Vincent Delecroix (November 2013): additional methods
+
 """
 
 from sage.rings.finite_rings.element_base import is_FiniteFieldElement
@@ -186,7 +188,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
         x, y = F._to_common_subfield(self, right)
         return self.__class__(F, x / y)
 
-    def _change_level(self, n):
+    def change_level(self, n):
         """
         Return a representation of ``self`` as an element of the
         subfield of degree `n` of the parent, if possible.
@@ -195,21 +197,42 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
 
             sage: F = GF(3).algebraic_closure()
             sage: z = F.gen(4)
-            sage: (z^10)._change_level(6)
+            sage: (z^10).change_level(6)
             2*z6^5 + 2*z6^3 + z6^2 + 2*z6 + 2
+            sage: z.change_level(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: z4 is not in the image of Ring morphism:
+              From: Finite Field in z2 of size 3^2
+              To:   Finite Field in z4 of size 3^4
+              Defn: z2 |--> 2*z4^3 + 2*z4^2 + 1
+
+            sage: a = F(1).change_level(3); a
+            1
+            sage: a.change_level(2)
+            1
+            sage: F.gen(3).change_level(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: not in prime subfield
 
         """
         F = self.parent()
         l = self._level
         m = l.gcd(n)
         xl = self._value
-        xm = F.inclusion(m, l).section()(xl)
+        if m == 1:
+            # Sections of canonical coercion maps from F_p to other
+            # finite fields of characteristic p are not implemented.
+            xm = F.base_ring()(xl)
+        else:
+            xm = F.inclusion(m, l).section()(xl)
         xn = F.inclusion(m, n)(xm)
         return self.__class__(F, xn)
 
     def _latex_(self):
-        r"""
-        Latex string.
+        """
+        Return a LaTeX representation of ``self``.
 
         EXAMPLES::
 
@@ -217,8 +240,9 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
             sage: s = F.gen(1) + F.gen(2) + F.gen(3)
             sage: s
             z6^5 + 2*z6^4 + 2*z6^3 + z6^2 + 2*z6 + 2
-            sage: print latex(s)
-            \text{\texttt{z6{\char`\^}5{ }+{ }2*z6{\char`\^}4{ }+{ }2*z6{\char`\^}3{ }+{ }z6{\char`\^}2{ }+{ }2*z6{ }+{ }2}}
+            sage: latex(s)
+            z_{6}^{5} + 2 z_{6}^{4} + 2 z_{6}^{3} + z_{6}^{2} + 2 z_{6} + 2
+
         """
         return self._value._latex_()
 
@@ -513,7 +537,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         return Infinity
 
     def is_finite(self):
-        r"""
+        """
         Returns ``False`` as an algebraically closed field is always infinite.
 
         .. TODO::

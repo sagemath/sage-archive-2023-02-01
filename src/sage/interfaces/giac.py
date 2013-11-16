@@ -553,12 +553,15 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
             return float(self('time() - %s'%float(t)))
 
 
-    def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
+    def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True, restart_if_needed=False):
         """
         EXAMPLES::
 
             sage: giac._eval_line('2+2')  # optional - giac
             '4'
+
+            sage: A=matrix([range(280)])  # optional - giac
+            sage: GA=giac(A)              # optional - giac
         """
         with gc_disabled():
             z = Expect._eval_line(self, line, allow_use_file=allow_use_file,

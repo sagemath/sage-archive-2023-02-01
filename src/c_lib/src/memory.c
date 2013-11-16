@@ -17,18 +17,32 @@ AUTHORS:
  *                  http://www.gnu.org/licenses/
  ****************************************************************************/
 
+#include <Python.h>
 #include <mpir.h>
+#include "interrupt.h"
 #include "memory.h"
+
+static void alloc_error(size_t size)
+{
+    PyGILState_STATE gilstate_save = PyGILState_Ensure();
+    PyErr_Format(PyExc_MemoryError, "failed to allocate %zu bytes", size);
+    PyGILState_Release(gilstate_save);
+    sig_error();
+}
 
 /* mpir memory functions */
 void* sage_mpir_malloc(size_t size)
 {
-    return sage_malloc(size);
+    void* p = sage_malloc(size);
+    if (unlikely(!p)) alloc_error(size);
+    return p;
 }
 
 void* sage_mpir_realloc(void *ptr, size_t old_size, size_t new_size)
 {
-    return sage_realloc(ptr, new_size);
+    void* p = sage_realloc(ptr, new_size);
+    if (unlikely(!p)) alloc_error(new_size);
+    return p;
 }
 
 void sage_mpir_free(void *ptr, size_t size)
@@ -38,16 +52,5 @@ void sage_mpir_free(void *ptr, size_t size)
 
 void init_memory_functions()
 {
-#if 0
-    void* (*mpir_malloc)(size_t);
-    void* (*mpir_realloc)(void*, size_t, size_t);
-    void (*mpir_free)(void*, size_t);
-    mp_get_memory_functions(&mpir_malloc, &mpir_realloc, &mpir_free);
-    printf("MPIR memory functions BEFORE: %p %p %p\n", mpir_malloc, mpir_realloc, mpir_free);
-#endif
     mp_set_memory_functions(sage_mpir_malloc, sage_mpir_realloc, sage_mpir_free);
-#if 0
-    mp_get_memory_functions(&mpir_malloc, &mpir_realloc, &mpir_free);
-    printf("MPIR memory functions AFTER:  %p %p %p\n", mpir_malloc, mpir_realloc, mpir_free);
-#endif
 }

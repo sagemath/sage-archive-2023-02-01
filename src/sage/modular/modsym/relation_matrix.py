@@ -260,10 +260,11 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
         sage: gens_to_basis_matrix(L, T_relation_matrix_wtk_g0(L, modS, GF(3), 24), modS, GF(3), True)
         (24 x 2 sparse matrix over Finite Field of size 3, [13, 23])
     """
-    if not sage.matrix.all.is_Matrix(relation_matrix):
-        raise TypeError, "relation_matrix must be a matrix"
+    from sage.matrix.matrix import is_Matrix
+    if not is_Matrix(relation_matrix):
+        raise TypeError("relation_matrix must be a matrix")
     if not isinstance(mod, list):
-        raise TypeError, "mod must be a list"
+        raise TypeError("mod must be a list")
 
     misc.verbose(str(relation_matrix.parent()))
 

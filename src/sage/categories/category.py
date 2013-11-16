@@ -106,7 +106,8 @@ from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.dynamic_class import DynamicMetaclass, dynamic_class
 
-from weakref import WeakValueDictionary
+import sage.misc.weak_dict
+from sage.misc.weak_dict import WeakValueDictionary
 _join_cache = WeakValueDictionary()
 
 def _join(categories, as_list):

@@ -39,6 +39,7 @@ from sage.structure.element import Element
 from sage.structure.list_clone import ClonableArray
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 from sage.categories.regular_crystals import RegularCrystals
+from sage.categories.classical_crystals import ClassicalCrystals
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.rigged_configurations.rigged_configuration_element import RiggedConfigurationElement
 from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition, RiggedPartitionTypeB
@@ -78,7 +79,11 @@ class CrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
         self._wt = wt
         # We store the cartan matrix for the vacancy number calculations for speed
         self._cartan_matrix = self._cartan_type.cartan_matrix()
-        Parent.__init__(self, category=(RegularCrystals(), HighestWeightCrystals()))
+        if self._cartan_type.is_finite():
+            category = ClassicalCrystals()
+        else:
+            category = (RegularCrystals(), HighestWeightCrystals())
+        Parent.__init__(self, category=category)
         self.module_generators = (self.element_class( self,
                                   partition_list=[[] for i in cartan_type.index_set()] ),)
 

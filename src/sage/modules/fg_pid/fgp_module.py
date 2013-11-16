@@ -223,8 +223,8 @@ from fgp_morphism import FGP_Morphism, FGP_Homset
 from sage.rings.all import Integer, ZZ, lcm
 from sage.misc.cachefunc import cached_method
 
-import weakref
-_fgp_module = weakref.WeakValueDictionary()
+import sage.misc.weak_dict
+_fgp_module = sage.misc.weak_dict.WeakValueDictionary()
 
 
 

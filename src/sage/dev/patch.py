@@ -39,6 +39,7 @@ HG_PARENT_REGEX = re.compile(r"^# Parent +([0-9a-f]+)$")
 HG_DIFF_REGEX = re.compile(r"^diff (?:-r [0-9a-f]+ ){1,2}(.*)$")
 PM_DIFF_REGEX = re.compile(r"^(?:(?:\+\+\+)|(?:---)) [ab]/([^ ]*)(?: .*)?$")
 MV_DIFF_REGEX = re.compile(r"^rename (?:(?:to)|(?:from)) (.*)$")
+CP_DIFF_REGEX = re.compile(r"^copy (?:(?:to)|(?:from)) (.*)$")
 
 # regular expressions to parse git patches -- at least those created by us
 GIT_FROM_REGEX = re.compile(r"^From: (.*)$")
@@ -268,7 +269,7 @@ class MercurialPatchMixin(object):
                         self._UI.debug("A commit on the current branch has been created from the patch.")
                     finally:
                         self.git.reset_to_clean_state()
-                        self.git.clean_wrapper(remove_untracked_files=True)
+                        self.git.clean_wrapper(remove_untracked_files=True, remove_untracked_directories=True)
             finally:
                 os.chdir(curdir)
 
@@ -384,11 +385,11 @@ class MercurialPatchMixin(object):
             12415_rebase_58.patch
             Should I download these patches? [Yes/no] n
             Ticket #12415 has more than one attachment but you chose not to download
-            them in the proposed order. To use only one of these patches set the 
+            them in the proposed order. To use only one of these patches set the
             parameter `patchname` to one of: 12415_doc.patch, 12415_doctest_fixes.patch,
-            12415_doctest_review.patch, 12415_framework.patch, 12415_manifest.patch, 
-            12415_rebase_58.patch, 12415_review.patch, 12415_review3.patch,  
-            12415_review_review.patch, 12415_script.patch, 12415_script_review.patch, 
+            12415_doctest_review.patch, 12415_framework.patch, 12415_manifest.patch,
+            12415_rebase_58.patch, 12415_review.patch, 12415_review3.patch,
+            12415_review_review.patch, 12415_script.patch, 12415_script_review.patch,
             12415_spkg_bin_sage.patch, 12415_test.patch
         """
         if url is not None:
@@ -647,9 +648,9 @@ class MercurialPatchMixin(object):
         path_format = None
 
         if diff_format == "git":
-            diff_regexs = (GIT_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX)
+            diff_regexs = (GIT_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX, CP_DIFF_REGEX)
         elif diff_format == "hg":
-            diff_regexs = (HG_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX)
+            diff_regexs = (HG_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX, CP_DIFF_REGEX)
         else:
             raise NotImplementedError(diff_format)
 
@@ -825,9 +826,9 @@ class MercurialPatchMixin(object):
 
         diff_regex = None
         if diff_format == "hg":
-            diff_regex = (HG_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX)
+            diff_regex = (HG_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX, CP_DIFF_REGEX)
         elif diff_format == "git":
-            diff_regex = (GIT_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX)
+            diff_regex = (GIT_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX, CP_DIFF_REGEX)
         else:
             raise NotImplementedError(diff_format)
 

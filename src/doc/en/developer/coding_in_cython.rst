@@ -476,21 +476,15 @@ Testing interrupts
 
 When writing :ref:`section-docstrings`,
 one sometimes wants to check that certain code can be interrupted in a clean way.
-In the module ``sage.tests.interrupt``, there is a function
-``interrupt_after_delay(ms_delay = 500)`` which can be used to test interrupts.
-That function simulates a ``CTRL-C`` (by sending SIGINT)
-after ``ms_delay`` milliseconds.
+The best way to do this is to use :func:`alarm`.
 
 The following is an example of a doctest demonstrating that
 the function ``factor()`` can be interrupted::
 
-    sage: import sage.tests.interrupt
-    sage: try:
-    ...     sage.tests.interrupt.interrupt_after_delay()
-    ...     factor(10^1000 + 3)
-    ... except KeyboardInterrupt:
-    ...     print "ok!"
-    ok!
+    sage: alarm(0.5); factor(10^1000 + 3)
+    Traceback (most recent call last):
+    ...
+    AlarmInterrupt
 
 Unpickling cython code
 ======================
@@ -498,7 +492,7 @@ Unpickling cython code
 Pickling for python classes and extension classes, such as cython, is different.
 This is discussed in the `python pickling documentation`_. For the unpickling of
 extension classes you need to write a :meth:`__reduce__` method which typically
-returns a tuple ``(f, args,...)`` such that ``f(*args)`` returns (a copy of) the
+returns a tuple ``(f, args, ...)`` such that ``f(*args)`` returns (a copy of) the
 original object. As an example, the following code snippet is the
 :meth:`~sage.rings.integer.Integer.__reduce__` method from
 :class:`sage.rings.integer.Integer`.

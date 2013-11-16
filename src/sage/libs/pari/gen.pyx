@@ -173,12 +173,19 @@ import sage.structure.element
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.structure.parent cimport Parent
 from sage.misc.randstate cimport randstate, current_randstate
+from sage.libs.pari.handle_error cimport pari_error_string, \
+        _pari_init_error_handling, _pari_check_warning, \
+        _pari_handle_exception, _pari_err_recover
 
 from sage.misc.misc_c import is_64_bit
 
 include 'pari_err.pxi'
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/python.pxi'
+
+cdef extern from "misc.h":
+    int     factorint_withproof_sage(GEN* ans, GEN x, GEN cutoff)
+    int     gcmp_sage(GEN x, GEN y)
 
 cdef extern from "mpz_pylong.h":
     cdef int mpz_set_pylong(mpz_t dst, src) except -1
@@ -1071,7 +1078,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: J.bid_get_gen()
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: missing bid generators. Use idealstar(,,2)
         """
         pari_catch_sig_on()
         return self.new_gen(bid_get_gen(self.g))
@@ -1657,7 +1664,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('[2^150,1]').intvec_unsafe()
             Traceback (most recent call last):
             ...
-            PariError:  (15)
+            PariError: overflow in t_INT-->long assignment
         """
         cdef int n, L
         cdef object v
@@ -1677,7 +1684,7 @@ cdef class gen(sage.structure.element.RingElement):
     def python_list_small(gen self):
         """
         Return a Python list of the PARI gens. This object must be of type
-        t_VECSMALL, and the resulting list contains python 'int's
+        t_VECSMALL, and the resulting list contains python 'int's.
 
         EXAMPLES::
 
@@ -1688,7 +1695,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: type(w[0])
             <type 'int'>
         """
-        cdef long n
+        cdef long n, m
         if typ(self.g) != t_VECSMALL:
             raise TypeError, "Object (=%s) must be of type t_VECSMALL."%self
         V = []
@@ -1700,10 +1707,11 @@ cdef class gen(sage.structure.element.RingElement):
     def python_list(gen self):
         """
         Return a Python list of the PARI gens. This object must be of type
-        t_VEC
+        t_VEC.
 
-        INPUT: NoneOUTPUT:
+        INPUT: None
 
+        OUTPUT:
 
         -  ``list`` - Python list whose elements are the
            elements of the input gen.
@@ -1728,8 +1736,6 @@ cdef class gen(sage.structure.element.RingElement):
         m = glength(self.g)
         V = []
         for n from 0 <= n < m:
-##            t = P.new_ref(<GEN> (self.g[n+1]), V)
-##            V.append(t)
             V.append(self.__getitem__(n))
         return V
 
@@ -1850,7 +1856,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: complex(g)
             Traceback (most recent call last):
             ...
-            PariError: incorrect type (11)
+            PariError: incorrect type in greal/gimag
         """
         cdef double re, im
         pari_catch_sig_on()
@@ -2508,7 +2514,7 @@ cdef class gen(sage.structure.element.RingElement):
                sage: pari('x+y').Pol('y')
                Traceback (most recent call last):
                ...
-               PariError:  (5)
+               PariError: variable must have higher priority in gtopoly
 
         INPUT:
 
@@ -2627,7 +2633,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(3).Qfb(7, 2)  # discriminant is 25
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: square discriminant in Qfb
         """
         t0GEN(b); t1GEN(c); t2GEN(D)
         pari_catch_sig_on()
@@ -2986,7 +2992,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('x^2 + 2*x + 3').Vecsmall()
             Traceback (most recent call last):
             ...
-            PariError: incorrect type (11)
+            PariError: incorrect type in vectosmall
 
         We demonstate the `n` argument::
 
@@ -3394,7 +3400,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('x').component(0)
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: nonexistent component
         """
         pari_catch_sig_on()
         return P.new_gen(compo(x.g, n))
@@ -3426,7 +3432,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('Mod(x,x^3-3)').conj()
             Traceback (most recent call last):
             ...
-            PariError: incorrect type (11)
+            PariError: incorrect type in gconj
         """
         pari_catch_sig_on()
         return P.new_gen(gconj(x.g))
@@ -3523,7 +3529,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('"hello world"').floor()
             Traceback (most recent call last):
             ...
-            PariError: incorrect type (11)
+            PariError: incorrect type in gfloor
         """
         pari_catch_sig_on()
         return P.new_gen(gfloor(x.g))
@@ -3549,7 +3555,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('sqrt(-2)').frac()
             Traceback (most recent call last):
             ...
-            PariError: incorrect type (11)
+            PariError: incorrect type in gfloor
         """
         pari_catch_sig_on()
         return P.new_gen(gfrac(x.g))
@@ -4888,7 +4894,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(-1).gamma()
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: non-positive integer argument in ggamma
         """
         pari_catch_sig_on()
         return P.new_gen(ggamma(s.g, pbw(precision)))
@@ -7611,42 +7617,32 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('x^2 + 10^100 + 1').nfinit(precision=64)
             Traceback (most recent call last):
             ...
-            PariError: precision too low (10)
+            PariError: precision too low in floorr (precision loss in truncation)
             sage: pari('x^2 + 10^100 + 1').nfinit()
             [...]
 
-        Throw a PARI error which is not precer::
+        Throw a PARI error which is not of type ``precer``::
 
             sage: pari('1.0').nfinit()
             Traceback (most recent call last):
             ...
-            PariError: incorrect type (11)
+            PariError: incorrect type in checknf
         """
-
         # If explicit precision is given, use only that
         if precision:
-            return self._nfinit_with_prec(flag, precision)
+            pari_catch_sig_on()
+            return P.new_gen(nfinit0(self.g, flag, pbw(precision)))
 
         # Otherwise, start with 64 bits of precision and increase as needed:
         precision = 64
         while True:
             try:
-                return self._nfinit_with_prec(flag, precision)
-            except PariError, err:
+                return self.nfinit(flag, precision)
+            except PariError as err:
                 if err.errnum() == precer:
                     precision *= 2
                 else:
-                    raise err
-
-    # NOTE: because of the way pari_catch_sig_on() and Cython exceptions work, this
-    # function MUST NOT be folded into nfinit() above. It has to be a
-    # seperate function.
-    def _nfinit_with_prec(self, long flag, long precision):
-        """
-        See ``self.nfinit()``.
-        """
-        pari_catch_sig_on()
-        return P.new_gen(nfinit0(self.g, flag, pbw(precision)))
+                    raise
 
     def nfisisom(self, gen other):
         """
@@ -7835,7 +7831,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(-12).quadhilbert()   # Not fundamental
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: quadray needs a fundamental discriminant
         """
         pari_catch_sig_on()
         # Precision argument is only used for real quadratic extensions
@@ -8705,7 +8701,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('x^3 - y^3').factor()
             Traceback (most recent call last):
             ...
-            PariError:  (7)
+            PariError: sorry, factor for general polynomials is not yet implemented
         """
         cdef int r
         if limit == -1 and typ(self.g) == t_INT and proof:
@@ -8833,7 +8829,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: f.change_variable_name("I")
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: I already exists with incompatible valence
             sage: f.subst("x", "I")
             0
         """
@@ -9254,19 +9250,38 @@ cdef unsigned long num_primes
 cdef PariOUT sage_pariOut
 
 cdef void sage_putchar(char c):
-    cdef char str[2]
-    str[0] = c
-    str[1] = 0
-    sys.stdout.write(str)
-    return
+    cdef char s[2]
+    s[0] = c
+    s[1] = 0
+    sys.stdout.write(s)
+    # Let PARI think the last character was a newline,
+    # so it doesn't print one when an error occurs.
+    pari_set_last_newline(1)
 
 cdef void sage_puts(char* s):
     sys.stdout.write(s)
-    return
+    pari_set_last_newline(1)
 
 cdef void sage_flush():
     sys.stdout.flush()
-    return
+
+cdef PariOUT sage_pariErr
+
+cdef void sage_pariErr_putchar(char c):
+    cdef char s[2]
+    s[0] = c
+    s[1] = 0
+    global pari_error_string
+    pari_error_string += str(s)
+    pari_set_last_newline(1)
+
+cdef void sage_pariErr_puts(char *s):
+    global pari_error_string
+    pari_error_string += str(s)
+    pari_set_last_newline(1)
+
+cdef void sage_pariErr_flush():
+    pass
 
 
 cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
@@ -9314,12 +9329,13 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         global num_primes, avma, top, bot, prec
 
         # The size here doesn't really matter, because we will allocate
-        # our own stack anyway. We ask PARI not to set up signal handlers.
-        pari_init_opts(10000, maxprime, INIT_JMPm | INIT_DFTm)
-        num_primes = maxprime
+        # our own stack anyway. We ask PARI not to set up signal and
+        # error handlers.
+        pari_init_opts(10000, maxprime, INIT_DFTm)
 
-        # NOTE: pari_catch_sig_on() can only come AFTER pari_init_opts()!
-        pari_catch_sig_on()
+        _pari_init_error_handling()
+
+        num_primes = maxprime
 
         # Free the PARI stack and allocate our own (using Cython)
         pari_free(<void*>bot); bot = 0
@@ -9334,12 +9350,17 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         GP_DATA.fmt.sigd = prec_bits_to_dec(53)
 
         # Set printing functions
-        global pariOut
+        global pariOut, pariErr
+
         pariOut = &sage_pariOut
         pariOut.putch = sage_putchar
         pariOut.puts = sage_puts
         pariOut.flush = sage_flush
-        pari_catch_sig_off()
+
+        pariErr = &sage_pariErr
+        pariErr.putch = sage_pariErr_putchar
+        pariErr.puts = sage_pariErr_puts
+        pariErr.flush = sage_pariErr_flush
 
     def __dealloc__(self):
         """
@@ -9949,8 +9970,8 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             sage: pari.init_primes(2^62)
             Traceback (most recent call last):
             ...
-            PariError: not enough memory (28)            # 64-bit
-            OverflowError: long int too large to convert # 32-bit
+            PariError: not enough memory                  # 64-bit
+            OverflowError: long int too large to convert  # 32-bit
             sage: pari.init_primes(200000)
         """
         cdef unsigned long M
@@ -10279,11 +10300,11 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             sage: pari.setrand(0)
             Traceback (most recent call last):
             ...
-            PariError: incorrect type (11)
+            PariError: incorrect type in setrand
             sage: pari.setrand("foobar")
             Traceback (most recent call last):
             ...
-            PariError: incorrect type (11)
+            PariError: incorrect type in setrand
         """
         t0GEN(seed)
         pari_catch_sig_on()
@@ -10532,41 +10553,12 @@ cdef GEN _Vec_append(GEN v, GEN a, long n):
         return v
 
 
-#######################
-# Base gen class
-#######################
-
-
-cdef extern from "pari/pari.h":
-    char *errmessage[]
-    int talker2, bugparier, alarmer, openfiler, talker, flagerr, impl, \
-        archer, notfuncer, precer, typeer, consister, user, errpile, \
-        overflower, matinv1, mattype1, arither1, primer1, invmoder, \
-        constpoler, notpoler, redpoler, zeropoler, operi, operf, gdiver, \
-        memer, negexper, sqrter5, noer
-    int warner, warnprec, warnfile, warnmem
-
-cdef extern from "misc.h":
-    int     factorint_withproof_sage(GEN* ans, GEN x, GEN cutoff)
-    int     gcmp_sage(GEN x, GEN y)
-
-def __errmessage(d):
-    if d <= 0 or d > noer:
-        return "unknown"
-    return errmessage[d]
-
-# FIXME: we derive PariError from RuntimeError, for backward
-# compatibility with code that catches the latter. Once this is
-# in production, we should change the base class to StandardError.
-from exceptions import RuntimeError
-
-# can we have "cdef class" ?
-# because of the inheritance, need to somehow "import" the built-in
-# exception class...
-class PariError (RuntimeError):
-
-    errmessage = staticmethod(__errmessage)
-
+# We derive PariError from RuntimeError, for backward compatibility with
+# code that catches the latter.
+class PariError(RuntimeError):
+    """
+    Error raised by PARI
+    """
     def errnum(self):
         r"""
         Return the PARI error number corresponding to this exception.
@@ -10574,12 +10566,30 @@ class PariError (RuntimeError):
         EXAMPLES::
 
             sage: try:
-            ...     pari('1/0')
-            ... except PariError, err:
-            ...     print err.errnum()
+            ....:     pari('1/0')
+            ....: except PariError as err:
+            ....:     print err.errnum()
             27
         """
         return self.args[0]
+
+    def errtext(self):
+        """
+        Return the message output by PARI when this error occurred.
+
+        EXAMPLE::
+
+            sage: try:
+            ....:     pari('pi()')
+            ....: except PariError as e:
+            ....:     print e.errtext()
+            ....:
+              ***   at top-level: pi()
+              ***                 ^----
+              ***   not a function in function call
+
+        """
+        return self.args[1]
 
     def __repr__(self):
         r"""
@@ -10592,52 +10602,21 @@ class PariError (RuntimeError):
 
     def __str__(self):
         r"""
+        Return a suitable message for displaying this exception.
+
+        This is the last line of ``self.errtext()``, with the leading
+        ``"  ***   "`` and trailing period (if any) removed.
+
         EXAMPLES::
 
             sage: try:
-            ...     pari('1/0')
-            ... except PariError, err:
-            ...     print err
-            division by zero (27)
+            ....:     pari('1/0')
+            ....: except PariError as err:
+            ....:     print err
+            _/_: division by zero
         """
-        return "%s (%d)"%(self.errmessage(self.errnum()), self.errnum())
-
-
-# We expose a trap function to C.
-# If this function returns without raising an exception,
-# the code is retried.
-# This is a proof-of-concept example.
-# THE TRY CODE IS NOT REENTRANT -- NO CALLS TO PARI FROM HERE !!!
-#              - Gonzalo Tornario
-
-cdef void _pari_trap "_pari_trap"(long errno, long retries) except *:
-    if retries > 100:
-        pari_catch_sig_off()
-        raise RuntimeError("_pari_trap recursion too deep")
-    if errno == errpile:
-        P.allocatemem(silent=True)
-    elif errno == user:
-        pari_catch_sig_off()
-        raise RuntimeError("PARI user exception")
-    else:
-        pari_catch_sig_off()
-        raise PariError(errno)
-
-
-def vecsmall_to_intlist(gen v):
-    """
-    INPUT:
-
-
-    -  ``v`` - a gen of type Vecsmall
-
-
-    OUTPUT: a Python list of Python ints
-    """
-    if typ(v.g) != t_VECSMALL:
-        raise TypeError, "input v must be of type vecsmall (use v.Vecsmall())"
-    return [v.g[k+1] for k in range(glength(v.g))]
-
+        lines = self.errtext().split('\n')
+        return lines[-1].lstrip(" *").rstrip(" .")
 
 
 cdef _factor_int_when_pari_factor_failed(x, failed_factorization):

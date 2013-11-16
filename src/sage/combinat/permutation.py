@@ -2038,7 +2038,7 @@ class Permutation(CombinatorialObject, Element):
                 a = M[-2]
                 M_prime = [0]*k
                 if a > e:
-                    index_list = [i for i in range(k) if M[i] > e]
+                    index_list = [i for i in range(k - 1) if M[i] > e]
                     index_list = [-1] + index_list
                     t = len(index_list)
                     for j in range(1, t):
@@ -2049,8 +2049,8 @@ class Permutation(CombinatorialObject, Element):
                             M_prime[x] = M[x-1]
                     M_prime[k-1] = e
                 else:
-                    index_list = [i for i in range(k) if M[i] < e]
-                    index_list = [-1]+index_list
+                    index_list = [i for i in range(k - 1) if M[i] < e]
+                    index_list = [-1] + index_list
                     t = len(index_list)
                     for j in range(1, t):
                         start = index_list[j-1] + 1

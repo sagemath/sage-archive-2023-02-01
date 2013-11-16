@@ -60,10 +60,12 @@ fi
 
 
 echo "Building git..."
+gettext=''
 $MAKE
 if [ $? -ne 0 ]; then
     echo "Retrying build without gettext (i18n will not be available)."
-    $MAKE NO_GETTEXT=1
+    gettext='NO_GETTEXT=1'
+    $MAKE $gettext
     if [ $? -ne 0 ]; then
 	echo >&2 "Error building git."
 	exit 1
@@ -72,7 +74,7 @@ fi
 
 
 echo "Installing git..."
-$MAKE INSTALL="$INSTALL" install
+$MAKE -j1 INSTALL="$INSTALL" install $gettext
 if [ $? -ne 0 ]; then
     echo >&2 'Error installing git.'
     exit 1

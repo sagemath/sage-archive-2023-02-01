@@ -50,6 +50,11 @@ TESTS::
     sage: a = R(824362); b = R(205942)
     sage: a * b
     851127
+
+    sage: type(IntegerModRing(2^31-1).an_element())
+    <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int64'>
+    sage: type(IntegerModRing(2^31).an_element())
+    <type 'sage.rings.finite_rings.integer_mod.IntegerMod_gmp'>
 """
 
 #################################################################################
@@ -2162,6 +2167,9 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         """
         IntegerMod_abstract.__init__(self, parent)
         if empty:
+            return
+        if self.__modulus.int32 == 1:
+            self.ivalue = 0
             return
         cdef long x
         if PY_TYPE_CHECK(value, int):

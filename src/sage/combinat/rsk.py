@@ -95,6 +95,7 @@ REFERENCES:
 from sage.matrix.matrix import is_Matrix
 from sage.matrix.all import matrix
 from itertools import izip
+from sage.misc.superseded import deprecated_function_alias
 
 def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
     r"""
@@ -137,12 +138,13 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
 
     The optional argument ``insertion`` allows to specify an alternative
     insertion procedure to be used instead of the standard
-    Robinson-Schensted-Knuth correspondence. Setting ``insertion`` to
-    ``'EG'`` gives Edelman-Greene insertion, an algorithm defined in [EG1987]_
-    Definition 6.20 (where it is referred to as Coxeter-Knuth insertion). The
-    Edelman-Greene insertion is simiar to the standard row insertion except
-    that if `k_i` and `k_i + 1` exists in row `i`, we *only* set `k_{i+1} =
-    k_i + 1` and continue.
+    Robinson-Schensted-Knuth insertion. If the input is a reduced word of
+    a permutation (i.e., a type `A` Coxeter element), one can set
+    ``insertion`` to ``'EG'``, which gives Edelman-Greene insertion, an
+    algorithm defined in [EG1987]_ Definition 6.20 (where it is referred
+    to as Coxeter-Knuth insertion). The Edelman-Greene insertion is similar
+    to the standard row insertion except that if `k_i` and `k_i + 1` both
+    exist in row `i`, we *only* set `k_{i+1} = k_i + 1` and continue.
 
     INPUT:
 
@@ -159,7 +161,8 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
       are currently supported:
 
       - ``'RSK'`` -- Robinson-Schensted-Knuth
-      - ``'EG'`` -- Edelman-Greene
+      - ``'EG'`` -- Edelman-Greene (only for reduced words of
+        permutations/type `A` Coxeter elements)
 
     - ``check_standard`` -- (Default: ``False``) Check if either of the resulting
       tableaux should be standard tableau.
@@ -200,8 +203,23 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
 
         sage: RSK([2,1,2,3,2], insertion='EG')
         [[[1, 2, 3], [2, 3]], [[1, 3, 4], [2, 5]]]
-        sage: RSK([2,3,2,1,2,3], insertion='EG')     # Fig. 6.4 in [EG1987].
+
+    We reproduce figure 6.4 in [EG1987]_::
+
+        sage: RSK([2,3,2,1,2,3], insertion='EG')
         [[[1, 2, 3], [2, 3], [3]], [[1, 2, 6], [3, 5], [4]]]
+
+    There is also :func:`~sage.combinat.rsk.RSK_inverse` which performs the
+    inverse of the bijection on a pair of semistandard tableaux. We note
+    that the inverse function takes 2 separate tableaux inputs, so to compose
+    with :func:`~sage.combinat.rsk.RSK`, we need to use the python ``*`` on
+    the output::
+
+        sage: RSK_inverse(*RSK([1, 2, 2, 2], [2, 1, 1, 2]))
+        [[1, 2, 2, 2], [2, 1, 1, 2]]
+        sage: P,Q = RSK([1, 2, 2, 2], [2, 1, 1, 2])
+        sage: RSK_inverse(P, Q)
+        [[1, 2, 2, 2], [2, 1, 1, 2]]
 
     TESTS:
 
@@ -308,7 +326,8 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
         return [P, Q]
     return [SemistandardTableau(p), SemistandardTableau(q)]
 
-RobinsonSchenstedKnuth = RSK
+RobinsonSchenstedKnuth = deprecated_function_alias(15142, RSK)
+robinson_schensted_knuth = RSK
 
 def RSK_inverse(p, q, output='array', insertion='RSK'):
     r"""
@@ -384,10 +403,10 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
 
     Using the Edelman-Greene insertion::
 
-        sage: RSK([2,1,2,3,2], insertion='RSK')
+        sage: pq = RSK([2,1,2,3,2], insertion='RSK'); pq
         [[[1, 2, 2], [2, 3]], [[1, 3, 4], [2, 5]]]
-        sage: RSK_inverse(*_, insertion='EG')
-        word: 21232
+        sage: RSK_inverse(*pq, insertion='EG')
+        [2, 1, 2, 3, 2]
 
     .. NOTE::
 
@@ -402,10 +421,17 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
         sage: RSK_inverse(Tableau([]), Tableau([]))
         [[], []]
 
-    :func:`RSK_inverse` is the inverse of :func:`RSK`::
+    Check that :func:`RSK_inverse` is the inverse of :func:`RSK` on the
+    different types of inputs/outputs::
 
         sage: f = lambda p: RSK_inverse(*RSK(p), output='permutation')
         sage: all(p == f(p) for n in range(7) for p in Permutations(n))
+        True
+        sage: all(RSK_inverse(*RSK(w), output='word') == w for n in range(4) for w in Words(5, n))
+        True
+        sage: from sage.combinat.integer_matrices import IntegerMatrices
+        sage: M = IntegerMatrices([1,2,2,1], [3,1,1,1])
+        sage: all(RSK_inverse(*RSK(m), output='matrix') == m for m in M)
         True
 
         sage: n = ZZ.random_element(200)
@@ -416,8 +442,8 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
     Same for Edelman-Greene (but we are checking only the reduced words that
     can be obtained using the ``reduced_word()`` method from permutations)::
 
-        sage: g = lambda p: RSK_inverse(*RSK(p.reduced_word(), insertion='EG'), insertion='EG', output='permutation')
-        sage: all(p == f(p) for n in range(7) for p in Permutations(n))
+        sage: g = lambda w: RSK_inverse(*RSK(w, insertion='EG'), insertion='EG', output='permutation')
+        sage: all(p.reduced_word() == g(p.reduced_word()) for n in range(7) for p in Permutations(n))
         True
 
         sage: n = ZZ.random_element(200)
@@ -443,15 +469,14 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
     p_copy = [row[:] for row in p]
 
     if q.is_standard():
-        permutation = [] #This will be our word in reverse. Despite
-                         #the name, it doesn't have to be a permutation.
+        rev_word = [] # This will be our word in reverse
         d = dict((qij,i) for i, Li in enumerate(q) for qij in Li)
-        #d is now a dictionary which assigns to each integer k the
-        #number of the row of q containing k.
+        # d is now a dictionary which assigns to each integer k the
+        # number of the row of q containing k.
 
         use_EG = (insertion == 'EG')
 
-        for i in reversed(d.values()): #Delete last entry from i-th row of p_copy
+        for i in reversed(d.values()): # Delete last entry from i-th row of p_copy
             x = p_copy[i].pop() # Always the right-most entry
             for row in reversed(p_copy[:i]):
                 y_pos = bisect_left(row,x) - 1
@@ -462,20 +487,22 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
                 else:
                     # switch x and y
                     x, row[y_pos] = row[y_pos], x
-            permutation.append(x)
+            rev_word.append(x)
 
-        if output == 'word' or use_EG:
+        if use_EG:
+            return list(reversed(rev_word))
+        if output == 'word':
             from sage.combinat.words.word import Word
-            return Word(reversed(permutation))
+            return Word(reversed(rev_word))
         if output == 'matrix':
-            return to_matrix(list(range(1, len(permutation)+1)), list(reversed(permutation)))
+            return to_matrix(list(range(1, len(rev_word)+1)), list(reversed(rev_word)))
         if output == 'array':
-            return [list(range(1, len(permutation)+1)), list(reversed(permutation))]
+            return [list(range(1, len(rev_word)+1)), list(reversed(rev_word))]
         if output == 'permutation':
             if not p.is_standard():
                 raise TypeError("p must be standard to have a valid permutation as output")
             from sage.combinat.permutation import Permutation
-            return Permutation(reversed(permutation))
+            return Permutation(reversed(rev_word))
         raise ValueError("Invalid output option")
 
     # Checks
@@ -515,7 +542,8 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
         raise TypeError("q must be standard to have a %s as valid output"%output)
     raise ValueError("Invalid output option")
 
-RobinsonSchenstedKnuth_inverse = RSK_inverse
+RobinsonSchenstedKnuth_inverse = deprecated_function_alias(15142, RSK_inverse)
+robinson_schensted_knuth_inverse = RSK_inverse
 
 def to_matrix(t, b):
     r"""

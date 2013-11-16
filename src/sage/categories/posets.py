@@ -371,6 +371,22 @@ class Posets(Category):
             Return the result of toggling the element ``v`` in the
             order ideal ``I``.
 
+            If `v` is an element of a poset `P`, then toggling the
+            element `v` is an automorphism of the set `J(P)` of all
+            order ideals of `P`. It is defined as follows: If `I`
+            is an order ideal of `P`, then the image of `I` under
+            toggling the element `v` is
+
+            - the set `I \cup \{ v \}`, if `v \not\in I` but
+              every element of `P` smaller than `v` is in `I`;
+
+            - the set `I \setminus \{ v \}`, if `v \in I` but
+              no element of `P` greater than `v` is in `I`;
+
+            - `I` otherwise.
+
+            This image always is an order ideal of `P`.
+
             EXAMPLES::
 
                 sage: P = Poset({1: [2,3], 2: [4], 3: []})
@@ -407,6 +423,8 @@ class Posets(Category):
             Return the result of toggling the elements of the list (or
             iterable) ``vs`` (one by one, from left to right) in the order
             ideal ``I``.
+
+            See :meth:`order_ideal_toggle` for a definition of toggling.
 
             EXAMPLES::
 

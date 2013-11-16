@@ -29,7 +29,6 @@ class DigestTransport(object, SafeTransport):
         sage: from sage.dev.digest_transport import DigestTransport
         sage: DigestTransport()
         <sage.dev.digest_transport.DigestTransport object at ...>
-
     """
     def __init__(self):
         """
@@ -40,10 +39,8 @@ class DigestTransport(object, SafeTransport):
             sage: from sage.dev.digest_transport import DigestTransport
             sage: type(DigestTransport())
             <class 'sage.dev.digest_transport.DigestTransport'>
-
         """
         SafeTransport.__init__(self)
-
         self._opener = None
 
     @property
@@ -59,7 +56,6 @@ class DigestTransport(object, SafeTransport):
             sage: from sage.dev.digest_transport import DigestTransport
             sage: DigestTransport().opener
             <urllib2.OpenerDirector instance at 0x...>
-
         """
         if self._opener is None:
             self._opener = urllib2.build_opener(urllib2.HTTPDigestAuthHandler())
@@ -77,10 +73,8 @@ class DigestTransport(object, SafeTransport):
             sage: dt.add_authentication("realm", "url", "username", "password")
             sage: dt.opener
             <urllib2.OpenerDirector instance at 0x...>
-
         """
         assert self._opener is None
-
         authhandler = urllib2.HTTPDigestAuthHandler()
         authhandler.add_password(realm,url,username,password)
         self._opener = urllib2.build_opener(authhandler)
@@ -115,7 +109,6 @@ class DigestTransport(object, SafeTransport):
                'time': <DateTime '20071025T16:48:05' at ...>,
                'keywords': '',
                'resolution': 'fixed'}],)
-
         """
         try:
             import urlparse
@@ -123,14 +116,15 @@ class DigestTransport(object, SafeTransport):
                     urlparse.urlunparse(('http', host, handler, '', '', '')),
                     request_body, {'Content-Type': 'text/xml',
                         'User-Agent': self.user_agent})
-
             response = self.opener.open(req)
-
             self.verbose = verbose
             return self.parse_response(response)
         except Fault as e:
             from trac_error import TracInternalError
             raise TracInternalError(e)
-        except IOError as e:
-            from trac_error import TracConnectionError
-            raise TracConnectionError()
+        except urllib2.HTTPError as e:
+            if e.code == 401:
+                from trac_error import TracAuthenticationError as TracError
+            else:
+                from trac_error import TracConnectionError as TracError
+            raise TracError()

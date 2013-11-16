@@ -82,7 +82,9 @@ AUTHORS:
 from sage.structure.element   import AdditiveGroupElement, RingElement, Element, generic_power, parent
 from sage.structure.sequence  import Sequence
 from sage.categories.homset   import Homset, Hom
-from sage.rings.all           import is_RingHomomorphism, is_CommutativeRing, Integer
+from sage.rings.all           import Integer
+from sage.rings.commutative_ring import is_CommutativeRing
+from sage.rings.morphism import is_RingHomomorphism
 from point                    import is_SchemeTopologicalPoint
 from sage.rings.infinity      import infinity
 import scheme
@@ -475,6 +477,11 @@ class SchemeMorphism(Element):
                       From: Spectrum of Rational Field
                       To:   Spectrum of Integer Ring
 
+            sage: f * g
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for *:
+            'SchemeMorphism_structure_map' and 'SchemeMorphism_id'
         """
         category = self.category_for()._meet_(right.category_for())
         H = Hom(right.domain(), self._codomain, category)

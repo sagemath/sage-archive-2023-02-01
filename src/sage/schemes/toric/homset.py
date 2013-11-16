@@ -73,7 +73,9 @@ ambient toric varieties::
 #*****************************************************************************
 
 
-from sage.rings.all import ZZ, is_RingHomomorphism
+from sage.rings.all import ZZ
+from sage.rings.morphism import is_RingHomomorphism
+
 from sage.matrix.matrix import is_Matrix
 from sage.matrix.matrix_space import MatrixSpace
 from sage.geometry.fan_morphism import FanMorphism

@@ -23,7 +23,8 @@ from sage.sets.set import Set, is_Set
 from sage.graphs.graph import Graph
 from sage.rings.arith import factorial, binomial
 from permutation import Permutations
-from sage.rings.all import Integer, is_RealNumber
+from sage.rings.all import Integer
+from sage.rings.real_mpfr import is_RealNumber
 from subset import Subsets
 from sage.functions.all import ceil
 import functools, math
@@ -642,7 +643,7 @@ class SetPartitionsBk_k(SetPartitionsAk_k):
         TESTS::
 
             sage: SetPartitionsBk(1).list()
-            [{{1, -1}}]
+            [{{-1, 1}}]
 
         ::
 
@@ -1380,12 +1381,12 @@ class SetPartitionsPRkhalf_k(SetPartitionsRkhalf_k):
         TESTS::
 
             sage: L = list(SetPartitionsPRk(2.5)); L
-            [{{3, -3}, {-2}, {-1}, {1}, {2}},
-             {{3, -3}, {-2}, {1, -1}, {2}},
-             {{3, -3}, {1, -2}, {-1}, {2}},
-             {{3, -3}, {-2}, {2, -1}, {1}},
-             {{3, -3}, {2, -2}, {-1}, {1}},
-             {{3, -3}, {2, -2}, {1, -1}}]
+            [{{-3, 3}, {-2}, {-1}, {1}, {2}},
+             {{-3, 3}, {-2}, {-1, 1}, {2}},
+             {{-3, 3}, {-2, 1}, {-1}, {2}},
+             {{-3, 3}, {-2}, {-1, 2}, {1}},
+             {{-3, 3}, {-2, 2}, {-1}, {1}},
+             {{-3, 3}, {-2, 2}, {-1, 1}}]
             sage: len(L)
             6
         """

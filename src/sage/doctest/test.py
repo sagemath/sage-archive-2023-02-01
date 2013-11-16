@@ -174,8 +174,7 @@ Test a doctest failing with ``abort()``::
     ------------------------------------------------------------------------
     Unhandled SIGABRT: An abort() occurred in Sage.
     This probably occurred because a *compiled* component of Sage has a bug
-    in it and is not properly wrapped with sig_on(), sig_off(). You might
-    want to run Sage under gdb with 'sage -gdb' to debug this.
+    in it and is not properly wrapped with sig_on(), sig_off().
     Sage will now terminate.
     ------------------------------------------------------------------------
     ...

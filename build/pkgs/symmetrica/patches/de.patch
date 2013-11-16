@@ -1,5 +1,6 @@
---- de.c.orig	2009-05-15 04:30:56.000000000 -0700
-+++ de.c	2007-12-06 23:44:36.000000000 -0800
+diff -ru src/de.c b/de.c
+--- src/de.c	2007-12-06 17:30:00.000000000 +0100
++++ b/de.c	2013-10-19 18:36:11.098758179 +0200
 @@ -24,7 +24,7 @@
  OP cons_negeins;/* global INTEGER variable -1 */
  OP cons_null;   /* global INTEGER variable 0 */

@@ -18,6 +18,7 @@ Hecke modules
 ##########################################################################################
 
 import sage.rings.all
+from sage.rings.commutative_ring import is_CommutativeRing
 import sage.rings.arith as arith
 import sage.misc.misc as misc
 import sage.modules.module
@@ -76,7 +77,7 @@ class HeckeModule_generic(sage.modules.module.Module_old):
             sage: ModularForms(3, 3).category()
             Category of Hecke modules over Rational Field
         """
-        if not sage.rings.all.is_CommutativeRing(base_ring):
+        if not is_CommutativeRing(base_ring):
             raise TypeError, "base_ring must be commutative ring"
 
         from sage.categories.hecke_modules import HeckeModules

@@ -36,9 +36,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import ( ZZ, is_RationalField, is_FiniteField )
+from sage.rings.all import ZZ
 from sage.schemes.generic.homset import SchemeHomset_points
 
+from sage.rings.rational_field import is_RationalField
+from sage.rings.finite_rings.constructor import is_FiniteField
 
 #*******************************************************************
 # Projective varieties

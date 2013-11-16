@@ -2291,7 +2291,7 @@ class QuotientFunctor(ConstructionFunctor):
         ...
         TypeError: Could not find a mapping of the passed element to this ring.
     """
-    rank = 7
+    rank = 4.5
 
     def __init__(self, I, names=None, as_field=False):
         """
@@ -2348,15 +2348,14 @@ class QuotientFunctor(ConstructionFunctor):
 
         Note that the ``quo()`` method of a field used to return the
         integer zero. That strange behaviour was removed in trac
-        ticket #9138. It now returns a trivial quotient ring when
-        applied to a field::
+        ticket :trac:`9138`. It now returns a trivial quotient ring
+        when applied to a field::
 
             sage: F = ZZ.quo([5]*ZZ).construction()[0]
-            sage: F(QQ) is Integers(1)
-            True
+            sage: F(QQ)
+            Ring of integers modulo 1
             sage: QQ.quo(5)
             Quotient of Rational Field by the ideal (1)
-
         """
         I = self.I
         from sage.all import QQ
@@ -2493,11 +2492,12 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
     """
     rank = 3
 
-    def __init__(self, polys, names, embeddings, cyclotomic=None):
+    def __init__(self, polys, names, embeddings, cyclotomic=None, **kwds):
         """
         INPUT:
 
-        - ``polys``: a list of polynomials
+        - ``polys``: a list of polynomials (or of integers, for
+          finite fields and unramified local extensions)
         - ``names``: a list of strings of the same length as the
           list ``polys``
         - ``embeddings``: a list of approximate complex values,
@@ -2507,6 +2507,9 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         - ``cyclotomic``: optional integer. If it is provided,
           application of the functor to the rational field yields
           a cyclotomic field, rather than just a number field.
+        - ``**kwds``: further keywords; when the functor is applied to
+          a ring `R`, these are passed to the ``extension()`` method
+          of `R`.
 
         REMARK:
 
@@ -2571,6 +2574,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         self.names = list(names)
         self.embeddings = list(embeddings)
         self.cyclotomic = int(cyclotomic) if cyclotomic is not None else None
+        self.kwds = kwds
 
     def _apply_functor(self, R):
         """
@@ -2594,7 +2598,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             if R==ZZ:
                 return CyclotomicField(self.cyclotomic).maximal_order()
         if len(self.polys) == 1:
-            return R.extension(self.polys[0], self.names[0], embedding=self.embeddings[0])
+            return R.extension(self.polys[0], self.names[0], embedding=self.embeddings[0], **self.kwds)
         return R.extension(self.polys, self.names, embedding=self.embeddings)
 
     def __cmp__(self, other):
@@ -2633,6 +2637,9 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
           associated with the pushout of the codomains
           of the two embeddings is returned, provided that
           it is a number field.
+        - If these two extensions are defined by Conway polynomials
+          over finite fields, merges them into a single extension of
+          degree the lcm of the two degrees.
         - Otherwise, None is returned.
 
         REMARK:
@@ -2642,7 +2649,29 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         why we use the admittedly strange rule above for
         merging.
 
-        TESTS::
+        EXAMPLES:
+
+        The following demonstrate coercions for finite fields using Conway or
+        pseudo-Conway polynomials::
+
+            sage: k = GF(3^2, conway=True, prefix='z'); a = k.gen()
+            sage: l = GF(3^3, conway=True, prefix='z'); b = l.gen()
+            sage: a + b # indirect doctest
+            z6^5 + 2*z6^4 + 2*z6^3 + z6^2 + 2*z6 + 1
+
+        Note that embeddings are compatible in lattices of such finite fields::
+
+            sage: m = GF(3^5, conway=True, prefix='z'); c = m.gen()
+            sage: (a+b)+c == a+(b+c) # indirect doctest
+            True
+            sage: from sage.categories.pushout import pushout
+            sage: n = pushout(k, l)
+            sage: o = pushout(l, m)
+            sage: q = pushout(n, o)
+            sage: q(o(b)) == q(n(b)) # indirect doctest
+            True
+
+        Coercion is also available for number fields::
 
             sage: P.<x> = QQ[]
             sage: L.<b> = NumberField(x^8-x^4+1, embedding=CDF.0)
@@ -2653,7 +2682,6 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             sage: c1+c2; parent(c1+c2)    #indirect doctest
             -b^6 + b^4 - 1
             Number Field in b with defining polynomial x^8 - x^4 + 1
-            sage: from sage.categories.pushout import pushout
             sage: pushout(M1['x'],M2['x'])
             Univariate Polynomial Ring in x over Number Field in b with defining polynomial x^8 - x^4 + 1
 
@@ -2673,7 +2701,9 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             CoercionException: ('Ambiguous Base Extension', Number Field in a with defining polynomial x^3 - 2, Number Field in b with defining polynomial x^6 - 2)
 
         """
-        if not isinstance(other,AlgebraicExtensionFunctor):
+        if isinstance(other, AlgebraicClosureFunctor):
+            return other
+        elif not isinstance(other, AlgebraicExtensionFunctor):
             return None
         if self == other:
             return self
@@ -2710,6 +2740,12 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
                     return P.construction()[0]
             except CoercionException:
                 return None
+        # Finite fields and unramified local extensions may use
+        # integers to encode degrees of extensions.
+        from sage.rings.integer import Integer
+        if (isinstance(self.polys[0], Integer) and isinstance(other.polys[0], Integer)
+            and self.embeddings == [None] and other.embeddings == [None] and self.kwds == other.kwds):
+            return AlgebraicExtensionFunctor([self.polys[0].lcm(other.polys[0])], [None], [None], **self.kwds)
 
     def __mul__(self, other):
         """
@@ -2735,7 +2771,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         if isinstance(other, AlgebraicExtensionFunctor):
             if set(self.names).intersection(other.names):
                 raise CoercionException, "Overlapping names (%s,%s)" % (self.names, other.names)
-            return AlgebraicExtensionFunctor(self.polys+other.polys, self.names+other.names, self.embeddings+other.embeddings)
+            return AlgebraicExtensionFunctor(self.polys + other.polys, self.names + other.names,
+                                             self.embeddings + other.embeddings, **self.kwds)
         elif isinstance(other, CompositeConstructionFunctor) \
               and isinstance(other.all[-1], AlgebraicExtensionFunctor):
             return CompositeConstructionFunctor(other.all[:-1], self * other.all[-1])
@@ -2765,7 +2802,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         """
         if len(self.polys)==1:
             return [self]
-        return [AlgebraicExtensionFunctor([self.polys[i]], [self.names[i]], [self.embeddings[i]]) for i in range(len(self.polys))]
+        return [AlgebraicExtensionFunctor([self.polys[i]], [self.names[i]], [self.embeddings[i]], **self.kwds)
+                for i in xrange(len(self.polys))]
 
 class AlgebraicClosureFunctor(ConstructionFunctor):
     """
@@ -3096,7 +3134,7 @@ def pushout(R, S):
     elif S in Rs:
         return R
 
-    if R_tower[-1][1] in Ss:
+    if Rs[-1] in Ss:
         Rs, Ss = Ss, Rs
         R_tower, S_tower = S_tower, R_tower
 

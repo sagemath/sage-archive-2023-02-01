@@ -7,8 +7,8 @@ from sage.symbolic.pynac import register_symbol, symbol_table
 from sage.symbolic.pynac import py_factorial_py
 from sage.libs.pari.gen import pari
 from sage.symbolic.all import SR
-from sage.rings.all import Integer, Rational, RealField, RR, \
-     is_ComplexNumber, ComplexField
+from sage.rings.all import Integer, Rational, RealField, RR, ComplexField
+from sage.rings.complex_number import is_ComplexNumber
 from sage.misc.latex import latex
 import math
 

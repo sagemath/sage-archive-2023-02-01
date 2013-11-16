@@ -1196,18 +1196,51 @@ class Tableau(CombinatorialObject, Element):
         return self[i][j]
 
     def weight(self):
-        """
-        Returns the weight of the word corresponding to the tableau ``self``.
+        r"""
+        Return the weight of the tableau ``self``. Trailing zeroes are
+        omitted when returning the weight.
+
+        The weight of a tableau `T` is the sequence `(a_1, a_2, a_3, \ldots )`,
+        where `a_k` is the number of entries of `T` equal to `k`. This
+        sequence contains only finitely many nonzero entries.
+
+        The weight of a tableau `T` is the same as the weight of the
+        reading word of `T`, for any reading order.
 
         EXAMPLES::
 
             sage: Tableau([[1,2],[3,4]]).weight()
             [1, 1, 1, 1]
+
+            sage: Tableau([]).weight()
+            []
+
+            sage: Tableau([[1,3,3,7],[4,2],[2,3]]).weight()
+            [1, 2, 3, 1, 0, 0, 1]
+
+        TESTS:
+
+        We check that this agrees with going to the word::
+
+            sage: t = Tableau([[1,3,4,7],[6,2],[2,3]])
+            sage: def by_word(T):
+            ....:     ed = T.to_word().evaluation_dict()
+            ....:     m = max(ed.keys()) + 1
+            ....:     return [ed.get(k,0) for k in range(1,m)]
+            sage: by_word(t) == t.weight()
+            True
+            sage: SST = SemistandardTableaux(shape=[3,1,1])
+            sage: all(by_word(t) == t.weight() for t in SST)
+            True
         """
-        ed = self.to_word().evaluation_dict()
-        entries = ed.keys()
-        m = max(entries) + 1 if entries else -1
-        return [ed.get(k,0) for k in range(1,m)]
+        if len(self) == 0:
+            return []
+        m = max(max(row) for row in self)
+        res = [0] * m
+        for row in self:
+            for i in row:
+                res[i - 1] += 1
+        return res
 
     evaluation = weight
 
@@ -1362,8 +1395,13 @@ class Tableau(CombinatorialObject, Element):
 
     def cells_containing(self, i):
         r"""
-        Return the list of cells in which the letter `i` appears in the tableau
-        ``self``. The list is ordered with cells appearing from left to right.
+        Return the list of cells in which the letter `i` appears in the
+        tableau ``self``. The list is ordered with cells appearing from
+        left to right.
+
+        Cells are given as pairs of coordinates `(a, b)`, where both
+        rows and columns are counted from `0` (so `a = 0` means the cell
+        lies in the leftmost column of the tableau, etc.).
 
         EXAMPLES::
 
@@ -1378,14 +1416,21 @@ class Tableau(CombinatorialObject, Element):
             sage: t = Tableau([[1,1,2,4],[2,4,4],[4]])
             sage: t.cells_containing(4)
             [(2, 0), (1, 1), (1, 2), (0, 3)]
+
+            sage: t = Tableau([[1,1,2,8,9],[2,5,6,11],[3,7,7,13],[4,8,9],[5],[13],[14]])
+            sage: t.cells_containing(8)
+            [(3, 1), (0, 3)]
+
+            sage: Tableau([]).cells_containing(3)
+            []
         """
-        list = []
-        for r in range(len(self)):
-            for c in range(self.shape()[r]-1,-1,-1):
-                if self[r][c] == i:
-                    list += [(r,c)]
-        list.reverse()
-        return list
+        cell_list = []
+        for r in range(len(self)-1, -1, -1):
+            rth_row = self[r]
+            for c,val in enumerate(rth_row):
+                if val == i:
+                    cell_list.append((r,c))
+        return cell_list
 
     def k_weight(self, k):
         """

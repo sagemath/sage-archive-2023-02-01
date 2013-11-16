@@ -66,8 +66,7 @@ class SavingDict(collections.MutableMapping):
     EXAMPLES::
 
         sage: from sage.dev.saving_dict import SavingDict
-        sage: import os, tempfile
-        sage: tmp = tempfile.mkstemp()[1]
+        sage: tmp = tmp_filename()
         sage: sd = SavingDict(tmp)
         sage: sd['cat'] = 'meow'; sd['cat']
         'meow'
@@ -77,27 +76,29 @@ class SavingDict(collections.MutableMapping):
         Traceback (most recent call last):
         ...
         NameError: name 'sd' is not defined
+
+    Creating another instance (with the same file name) loads the
+    cached values::
+
         sage: sd = SavingDict(tmp); sd
         {'cow': 'moo', 'cat': 'meow'}
-        sage: os.unlink(tmp)
-
+        sage: sd._erase()
     """
     def __init__(self,
             filename,
-            values      = None,
-            default     = _raise,
-            paired      = None):
+            values=None,
+            default=_raise,
+            paired=None):
         """
         Initialization.
 
         EXAMPLES::
 
             sage: from sage.dev.saving_dict import SavingDict
-            sage: import os, tempfile
-            sage: tmp = tempfile.mkstemp()[1]
-            sage: sd = SavingDict(tmp)
+            sage: sd = SavingDict(tmp_filename())
             sage: sd['cat'] = 'meow'; sd
             {'cat': 'meow'}
+            sage: sd._erase()
         """
         if not callable(default):
             raise ValueError("default must be callable")
@@ -111,7 +112,9 @@ class SavingDict(collections.MutableMapping):
         self._pairing = None
         if paired is not None:
             self.set_paired(paired)
-
+        if not os.path.exists(self._filename):
+            self._write()
+            
     def __repr__(self):
         r"""
         Return a printable representation of this object.
@@ -119,10 +122,10 @@ class SavingDict(collections.MutableMapping):
         TESTS::
 
             sage: from sage.dev.saving_dict import SavingDict
-            sage: sd = SavingDict('', {0:1, 1:2})
+            sage: sd = SavingDict(tmp_filename(), {0:1, 1:2})
             sage: repr(sd)
             '{0: 1, 1: 2}'
-
+            sage: sd._erase()
         """
         return repr(self._dict)
 
@@ -133,21 +136,20 @@ class SavingDict(collections.MutableMapping):
         EXAMPLES::
 
             sage: from sage.dev.saving_dict import SavingDict
-            sage: import os, tempfile
-            sage: tmp1, tmp2 = tempfile.mkstemp()[1], tempfile.mkstemp()[1]
-            sage: sd1= SavingDict(tmp1); sd2 = SavingDict(tmp2, paired=sd1)
+            sage: sd1 = SavingDict(tmp_filename())
+            sage: sd2 = SavingDict(tmp_filename(), paired=sd1)
             sage: sd1[0] = 1; sd1[0]; sd2[1]
             1
             0
             sage: sd1.unset_pairing()
+            sage: sd1._erase()
             sage: del sd1[0]; sd1[0]
             Traceback (most recent call last):
             ...
             KeyError: 0
             sage: sd2[1]
             0
-            sage: os.unlink(tmp1); os.unlink(tmp2)
-
+            sage: sd2._erase()
         """
         if self._pairing:
             with self._pairing as paired:
@@ -162,14 +164,14 @@ class SavingDict(collections.MutableMapping):
         EXAMPLES::
 
             sage: from sage.dev.saving_dict import SavingDict
-            sage: import os, tempfile
-            sage: tmp1, tmp2 = tempfile.mkstemp()[1], tempfile.mkstemp()[1]
-            sage: sd1, sd2 = SavingDict(tmp1), SavingDict(tmp2)
+            sage: sd1 = SavingDict(tmp_filename())
+            sage: sd2 = SavingDict(tmp_filename())
             sage: sd1.set_paired(sd2)
             sage: sd1[0] = 1; sd1[0]; sd2[1]
             1
             0
-            sage: del sd1[0]; sd1[0]
+            sage: del sd1[0]
+            sage: sd1[0]
             Traceback (most recent call last):
             ...
             KeyError: 0
@@ -187,8 +189,7 @@ class SavingDict(collections.MutableMapping):
             sage: sd1[4]; sd2[2]
             2
             4
-            sage: os.unlink(tmp1); os.unlink(tmp2)
-
+            sage: sd1._erase(); sd2._erase()
         """
         if not isinstance(other, SavingDict):
             raise ValueError("other is not a SavingDict")
@@ -218,27 +219,53 @@ class SavingDict(collections.MutableMapping):
         EXAMPLES::
 
             sage: from sage.dev.saving_dict import SavingDict
-            sage: import os, tempfile
-            sage: tmp = tempfile.mkstemp()[1]
+            sage: tmp = tmp_filename()
             sage: sd = SavingDict(tmp, {0:1, 1:2})
             sage: SavingDict(tmp)
             {}
             sage: sd._write()
             sage: SavingDict(tmp)
             {0: 1, 1: 2}
-            sage: os.unlink(tmp)
-
+            sage: sd._erase()
         """
-        import sage.doctest, os, sage.env
-        assert not sage.doctest.DOCTEST_MODE or not os.path.abspath(self._filename).startswith(sage.env.DOT_SAGE), "doctest attempted to write to saving dict of live sage"
+        from sage.doctest import DOCTEST_MODE
+        if DOCTEST_MODE:
+            from sage.misc.misc import SAGE_TMP
+            SAGE_TMP = str(SAGE_TMP)
+            error = "write attempt to a saving_dict in a doctest"
+            assert os.path.abspath(self._filename).startswith(SAGE_TMP), error
 
         import tempfile
-        fd, tmpfile = tempfile.mkstemp(dir=os.path.dirname(os.path.abspath(self._filename)))
+        dirname = os.path.dirname(os.path.abspath(self._filename))
+        fd, tmpfile = tempfile.mkstemp(dir=dirname)
         s = cPickle.dumps(self._dict, protocol=2)
         with os.fdopen(fd, "wb") as F:
             F.write(s)
-        # This move is atomic (the files are on the same filesystem)
-        os.rename(tmpfile, self._filename)
+        try:
+            # This move is atomic (the files are on the same filesystem)
+            os.rename(tmpfile, self._filename)
+        except (IOError, OSError):
+            # Lesser operation systems cannot do atomic moves (looking at you, windows)
+            os.unlink(self._filename)
+            os.rename(tmpfile, self._filename)
+
+    def _erase(self):
+        """
+        Erase the backing file.
+        
+        EXAMPLES::
+
+            sage: from sage.dev.saving_dict import SavingDict
+            sage: tmp = tmp_filename()
+            sage: sd = SavingDict(tmp, {0:1, 1:2})
+            sage: sd._write()
+            sage: os.path.exists(tmp)
+            True
+            sage: sd._erase()
+            sage: os.path.exists(tmp)
+            False
+        """
+        os.unlink(self._filename)
 
     def __setitem__(self, key, value):
         r"""
@@ -247,14 +274,11 @@ class SavingDict(collections.MutableMapping):
         TESTS::
 
             sage: from sage.dev.saving_dict import SavingDict
-            sage: import os, tempfile
-            sage: tmp = tempfile.mkstemp()[1]
-            sage: sd = SavingDict(tmp)
+            sage: sd = SavingDict(tmp_filename())
             sage: sd['cow'] = 'moo'
             sage: sd
             {'cow': 'moo'}
-            sage: os.unlink(tmp)
-
+            sage: sd._erase()
         """
         if self._pairing:
             with self._pairing as paired:
@@ -271,9 +295,7 @@ class SavingDict(collections.MutableMapping):
         TESTS::
 
             sage: from sage.dev.saving_dict import SavingDict
-            sage: import os, tempfile
-            sage: tmp = tempfile.mkstemp()[1]
-            sage: sd = SavingDict(tmp, {'cow': 'moo'}); sd
+            sage: sd = SavingDict(tmp_filename(), {'cow': 'moo'}); sd
             {'cow': 'moo'}
             sage: del sd['cow']
             sage: del sd['cow']
@@ -282,8 +304,7 @@ class SavingDict(collections.MutableMapping):
             KeyError: 'cow'
             sage: sd
             {}
-            sage: os.unlink(tmp)
-
+            sage: sd._erase()
         """
         if self._pairing and key in self:
             with self._pairing as paired:
@@ -298,7 +319,7 @@ class SavingDict(collections.MutableMapping):
         TESTS::
 
             sage: from sage.dev.saving_dict import SavingDict
-            sage: sd = SavingDict('', {'cow': 'moo'}); sd
+            sage: sd = SavingDict(tmp_filename(), {'cow': 'moo'}); sd
             {'cow': 'moo'}
             sage: sd['cow']
             'moo'
@@ -306,7 +327,7 @@ class SavingDict(collections.MutableMapping):
             Traceback (most recent call last):
             ...
             KeyError: 'moo'
-
+            sage: sd._erase()
         """
         try:
             return self._dict[key]
@@ -320,13 +341,13 @@ class SavingDict(collections.MutableMapping):
         TESTS::
 
             sage: from sage.dev.saving_dict import SavingDict
-            sage: sd = SavingDict('', {'cow': 'moo'}); sd
+            sage: sd = SavingDict(tmp_filename(), {'cow': 'moo'}); sd
             {'cow': 'moo'}
             sage: 'cow' in sd
             True
             sage: 'moo' in sd
             False
-
+            sage: sd._erase()
         """
         return key in self._dict
 
@@ -337,15 +358,12 @@ class SavingDict(collections.MutableMapping):
         TESTS::
 
             sage: from sage.dev.saving_dict import SavingDict
-            sage: import os, tempfile
-            sage: tmp = tempfile.mkstemp()[1]
-            sage: sd = SavingDict(tmp); len(sd)
+            sage: sd = SavingDict(tmp_filename()); len(sd)
             0
             sage: sd['cow'] = 'moo'
             sage: len(sd)
             1
-            sage: os.unlink(tmp)
-
+            sage: sd._erase()
         """
         return len(self._dict)
 
@@ -356,13 +374,13 @@ class SavingDict(collections.MutableMapping):
         TESTS::
 
             sage: from sage.dev.saving_dict import SavingDict
-            sage: sd = SavingDict('', {'cow':'moo', 0:1}); sd
+            sage: sd = SavingDict(tmp_filename(), {'cow':'moo', 0:1}); sd
             {0: 1, 'cow': 'moo'}
             sage: for key in sd:
             ...       print key, sd[key]
             0 1
             cow moo
-
+            sage: sd._erase()
         """
         return iter(self._dict)
 
@@ -378,13 +396,13 @@ class SavingDict(collections.MutableMapping):
             sage: d = SavingDict.load_dict_from_file(''); d
             {}
             sage: d['cow'] = 'moo'
-            sage: import cPickle, tempfile
-            sage: f = tempfile.NamedTemporaryFile()
-            sage: f.write(cPickle.dumps(d, protocol=2)); f.flush()
-            sage: SavingDict.load_dict_from_file(f.name)
+            sage: import cPickle
+            sage: tmp = tmp_filename()
+            sage: with open(tmp, 'w') as f:
+            ....:     f.write(cPickle.dumps(d, protocol=2))
+            sage: SavingDict.load_dict_from_file(tmp)
             {'cow': 'moo'}
-            sage: f.close()
-
+            sage: os.unlink(tmp)
         """
         if os.path.exists(filename):
             with open(filename) as F:
@@ -393,6 +411,9 @@ class SavingDict(collections.MutableMapping):
                 unpickler = cPickle.Unpickler(StringIO(s))
                 try:
                     return unpickler.load()
-                except cPickle.UnpicklingError:
+                except:
+                    # catch-all exception! Unpickling can cause all
+                    # kinds of exceptions, e.g. AttributeError if the
+                    # Sage source code changed.
                     pass
         return {}

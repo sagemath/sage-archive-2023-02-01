@@ -215,7 +215,6 @@ import sage.libs.symmetrica.all as symmetrica  # used in eval()
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
 from sage.misc.misc import prod, uniq
-from functools import partial
 from copy import copy
 
 
@@ -1738,6 +1737,123 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
                 cache[l[i]][l[j]] = res.coefficient(l[j])
 
 
+    def _inner_plethysm_pk_g(self, k, g, cache):
+        r"""
+        Return the inner plethysm between `p_k` and ``g``.
+
+        Express ``g`` in the power sum basis `\sum_\mu c_\mu p_\mu/z_\mu`
+        and the inner plethysm is calculated as
+
+        .. MATH::
+
+            p_k \{ g \} = \sum_\mu c_\mu p_k \{ p_\mu/z_\mu \}~.
+
+        The inner plethysm of `p_k \{ p_mu/z_\mu \}` is given by the formula
+
+        .. MATH::
+
+            p_k \{ p_\mu/z_\mu \} = \sum_{\nu : \nu^k = \mu } p_{\nu}/z_{\nu}~.
+
+        .. SEEALSO:: :func:`~sage.combinat.partition.partition_power`,
+            :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.inner_plethysm`
+
+        INPUT:
+
+        -  ``k`` -- a positive integer
+
+        -  ``g`` -- a symmetric function in the power sum basis
+
+        -  ``cache`` -- a dictionary whose keys are (k, g) pairs
+           and values are the cached output of this function
+
+        EXAMPLES::
+
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: p._inner_plethysm_pk_g(2, p([1,1,1]), {})
+            p[1, 1, 1] + 3*p[2, 1]
+            sage: p._inner_plethysm_pk_g(5, p([2,2,1,1,1]), {})
+            p[2, 2, 1, 1, 1]
+        """
+        try:
+            return cache[(k,g)]
+        except KeyError:
+            pass
+
+        p = self.realization_of().p()
+        res = 0
+        degrees = uniq([ sum(m) for m in g.support() ])
+        for d in degrees:
+            for mu in sage.combinat.partition.Partitions(d):
+                mu_k = mu.power(k)
+                if mu_k in g:
+                    res += g.coefficient(mu_k)*mu_k.centralizer_size()/mu.centralizer_size()*p(mu)
+
+        cache[(k,g)] = res
+        return res
+
+    def _inner_plethysm_pnu_g(self, p_x, cache, nu):
+        r"""
+        Return the inner plethysm of `p_\nu` with another symmetric function
+        ``p_x`` in the power-sum basis.
+
+        The computation is the inner plethysm of `p_k` and ``p_x`` and the identity
+
+        .. MATH::
+
+            (f \cdot g) \{ h \} = (f \{ h \}) \ast (g \{ h \})~.
+
+        .. SEEALSO:: :meth:`_inner_plethysm_pk_g`, 
+            :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.itensor`,
+            :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.inner_plethysm`
+
+        INPUT:
+
+        - ``p_x`` -- a symmetric function in the power sum basis
+
+        - ``cache`` -- a cache function
+
+        - ``nu`` -- a partition
+
+        Note that the order of the arguments is somewhat strange in order
+        to facilitate partial function application.
+
+        OUTPUT:
+
+        - an element of the basis ``self``
+
+        EXAMPLES::
+
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: p._inner_plethysm_pnu_g( p([1,1,1]), {}, Partition([2,1]))
+            6*p[1, 1, 1]
+            sage: p._inner_plethysm_pnu_g( p([1,1,1]), {}, Partition([]))
+            1/6*p[1, 1, 1] + 1/2*p[2, 1] + 1/3*p[3]
+            sage: s(_)
+            s[3]
+        """
+        #We handle the constant term case separately.  It should be
+        #the case that p([]).inner_tensor(s(mu)) = s([ mu.size() ]).
+        #Here, we get the degrees of the homogeneous pieces of
+        if len(nu) == 0:
+            s = self.realization_of().s()
+            degrees = [ part.size() for part in p_x.support() ]
+            degrees = uniq(degrees)
+            if 0 in degrees:
+                ext = self([])
+            else:
+                ext = 0
+            return ext + self(sum([s([n]) for n in degrees if n!=0]))
+
+        #For each k in nu, we compute the inner plethysm of
+        #p_k with p_x
+        res = [self._inner_plethysm_pk_g(k, p_x, cache) for k in nu]
+
+        #To get the final answer, we compute the inner tensor product
+        #of all the symmetric functions in res
+        return self(reduce(lambda x, y: 0 if x==0 else x.itensor(y), res))
+
+
     def _dual_basis_default(self):
         """
         Returns the default value for ``self.dual_basis()``
@@ -2128,95 +2244,6 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
     __call__ = plethysm
 
 
-    def _inner_plethysm_pk_g(self, k, g, cache):
-        r"""
-        Return the inner plethysm between `p_k` and ``g``.
-
-        INPUT:
-
-        -  ``k`` -- a positive integer
-
-        -  ``g`` -- a symmetric function in the power sum basis
-
-        -  ``cache`` -- a dictionary whose keys are (k, g) pairs
-           and values are the cached output of this function
-
-        EXAMPLES::
-
-            sage: p = SymmetricFunctions(QQ).p()
-            sage: _inner_plethysm_pk_g = p(0)._inner_plethysm_pk_g
-            sage: _inner_plethysm_pk_g(2, p([1,1,1]), {})
-            p[1, 1, 1] + 3*p[2, 1]
-            sage: _inner_plethysm_pk_g(5, p([2,2,1,1,1]), {})
-            p[2, 2, 1, 1, 1]
-        """
-        try:
-            return cache[(k,g)]
-        except KeyError:
-            pass
-
-        p = self.parent().realization_of().p()
-        res = 0
-        degrees = uniq([ sum(m) for m in g.support() ])
-        for d in degrees:
-            for mu in sage.combinat.partition.Partitions(d):
-                mu_k = mu.power(k)
-                if mu_k in g:
-                    res += g.coefficient(mu_k)*mu_k.centralizer_size()/mu.centralizer_size()*p(mu)
-
-        cache[(k,g)] = res
-        return res
-
-    def _inner_plethysm_pnu_g(self, p_x, cache, nu):
-        r"""
-        Return the inner plethysm of `p_\nu` with another symmetric function
-        ``p_x`` in the power-sum basis.
-
-        INPUT:
-
-        - ``p_x`` -- a symmetric function in the power sum basis
-
-        - ``cache`` -- a cache function
-
-        - ``nu`` -- a partition
-
-        Note that the order of the arguments is somewhat strange in order
-        to facilitate partial function application.
-
-        EXAMPLES::
-
-            sage: p = SymmetricFunctions(QQ).p()
-            sage: s = SymmetricFunctions(QQ).s()
-            sage: _inner_plethysm_pnu_g = p(0)._inner_plethysm_pnu_g
-            sage: _inner_plethysm_pnu_g( p([1,1,1]), {}, Partition([2,1]))
-            6*p[1, 1, 1]
-            sage: _inner_plethysm_pnu_g( p([1,1,1]), {}, Partition([]))
-            1/6*p[1, 1, 1] + 1/2*p[2, 1] + 1/3*p[3]
-            sage: s(_)
-            s[3]
-        """
-        #We handle the constant term case separately.  It should be
-        #the case that p([]).inner_tensor(s(mu)) = s([ mu.size() ]).
-        #Here, we get the degrees of the homogeneous pieces of
-        if len(nu) == 0:
-            s = self.parent().realization_of().s()
-            p = self.parent().realization_of().p()
-            degrees = [ part.size() for part in p_x.support() ]
-            degrees = uniq(degrees)
-            if 0 in degrees:
-                ext = p([])
-            else:
-                ext = 0
-            return ext + p(sum([s([n]) for n in degrees if n!=0]))
-
-        #For each k in nu, we compute the inner plethysm of
-        #p_k with p_x
-        res = [self._inner_plethysm_pk_g(k, p_x, cache) for k in nu]
-
-        #To get the final answer, we compute the inner tensor product
-        #of all the symmetric functions in res
-        return reduce(lambda x, y: x.itensor(y), res)
-
     def inner_plethysm(self, x):
         r"""
         Return the inner plethysm of ``self`` with ``x``.
@@ -2224,33 +2251,53 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         Whenever `R` is a `\QQ`-algebra, and `f` and `g` are two
         symmetric functions over `R` such that the constant term of `f`
         is zero, the inner plethysm ``f.inner_plethysm(g)`` is a
-        well-defined symmetric function over `R`. Here is one way to define
-        it:
+        well-defined symmetric function over `R` and the degree of this symmetric
+        function is the same as the degree of `g`.  For more compact notation, we
+        will denote the inner plethysm operation by `f \{ g \}` (in contrast to the
+        notation of outer plethysm which is generally denoted `f [ g ]`).
 
-        The result of ``f.inner_plethysm(g)`` is linear in `f` and linear in
-        'homogeneous pieces' of `g` (the latter statement meaning that
-        ``f.inner_plethysm(g + h) == f.inner_plethysm(g) + f.inner_plethysm(h)``
-        when `g` and `h` are homogeneous of different degrees). So, to
-        describe this function, we assume without loss that `f` is some Schur
-        function `s_\lambda` and `g` is a homogeneous symmetric function of
-        degree `n`. In this situation, the value of ``f.inner_plethysm(g)``
-        is a polynomial in the coefficients of `g` (in the Schur basis)
-        depending only on `f`. Hence, in order to determine its values, we
-        only need to determine its values in the case when `g` is
-        Schur-positive with integral coefficients in the Schur basis (the
-        values at all the other `g` will then be computable using Lagrange
-        interpolation). Assuming this, we can think of the function `g`
-        as the character of a representation of the general linear group,
-        and hence (by Schur-Weyl duality) as the character of a representation
-        `\rho` of the symmetric group `S_n`. Let `N` be the dimension of
-        this representation. If the number of parts of `\lambda` is greater
-        than `N`, then ``f.inner_plethysm(g)`` `= 0` by definition. Otherwise,
-        we can interpret `f` as the character of an irreducible
-        `GL_N`-representation, call it `\sigma`. Now
-        `\sigma \circ \rho` is an `S_n`-representation, hence (by
-        Schur-Weyl duality) corresponds to a representation of the general
-        linear group. By definition, the character of this representation is
-        ``f.inner_plethysm(g)``.
+        Here is an axiomatic definition of the operation (where in the
+        equations below we denote outer product
+        (:meth:`~sage.categories.algebras_with_basis.AlgebrasWithBasis.ParentMethods.product`)
+        by `\cdot` and the Kronecker product (:meth:`itensor`) by `\ast`):
+
+        .. MATH::
+
+            (f + g) \{ h \} = f \{ h \} + g \{ h \}
+
+            (f \cdot g) \{ h \} = (f \{ h \}) \ast (g \{ h \})
+
+            p_k \{ f + g \} = p_k \{ f \} + p_k \{ g \}
+
+        Let `\sigma` be a permutation of cycle type `\mu` and let `\mu^{k}`
+        be the cycle type of `\sigma^k`, then
+
+        .. MATH::
+
+            p_k \{ p_\mu/z_\mu \} = \sum_{\nu : \nu^k = \mu } p_{\nu}/z_{\nu}
+
+        Since `p_\mu/z_\mu` is a basis for the symmetric functions, these
+        four formulas define the symmetric function operation `f \{ g \}` for any
+        symmetric functions `f` and `g` by expanding `f` in the power sum basis
+        and `g` in the dual basis `p_\mu/z_\mu`.
+
+        .. SEEALSO:: :meth:`itensor`, :func:`~sage.combinat.partition.partition_power`,
+            :meth:`plethysm`
+
+        To describe this function in terms of its meaning in representation theory,
+        we assume without loss that `f` is some Schur function `s_\lambda` and `g` is
+        symmetric function of homogeneous degree `n`.  The result of
+        ``f.inner_plethysm(g)`` will also be a symmetric function of degree `n`.
+        We will describe a construction of an `S_n` module when `g` is
+        Schur-positive with integral coefficients in the Schur basis.
+        Assuming this, we can think of the function `g` as the Frobenius image of a
+        character of a representation `\rho` of the symmetric group `S_n`. Let `N`
+        be the dimension of this representation. If the number of parts of `\lambda`
+        is greater than `N`, then ``f.inner_plethysm(g)`` `= 0` by definition.
+        Otherwise, we can interpret `f` as the character of an irreducible
+        `GL_N`-representation, call it `\sigma`. Now `\sigma \circ \rho` is an
+        `S_n`-representation. The Frobenius image of the character of this
+        representation is ``f.inner_plethysm(g)``.
 
         When `f` is a symmetric function with constant term `\neq 0`, the
         inner plethysm ``f.inner_plethysm(g)`` isn't well-defined in the
@@ -2280,6 +2327,10 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         - ``x`` -- element of the ring of symmetric functions over the same
           base ring as ``self``
 
+        OUTPUT:
+
+        - an element of symmetric functions in the parent of ``self``
+
         EXAMPLES::
 
             sage: Sym = SymmetricFunctions(QQ)
@@ -2294,14 +2345,6 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             s[1, 1, 1]
             sage: s[2,1].inner_tensor(s[2,1])
             s[1, 1, 1] + s[2, 1] + s[3]
-            sage: s(0).inner_plethysm(s(0))
-            0
-            sage: s(1).inner_plethysm(s(0))
-            0
-            sage: s(0).inner_plethysm(s(1))
-            0
-            sage: s(1).inner_plethysm(s(1))
-            s[]
 
         ::
 
@@ -2315,20 +2358,51 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
             sage: s([]).inner_plethysm(s([1,1]) + 2*s([2,1])+s([3]))
             s[2] + s[3]
-            sage: [s([]).inner_plethysm(s(p)) for p in Partitions(4)]
+            sage: [s([]).inner_plethysm(s(la)) for la in Partitions(4)]
             [s[4], s[4], s[4], s[4], s[4]]
+            sage: s([3]).inner_plethysm(s([]))
+            s[]
+            sage: s[1,1,1,1].inner_plethysm(s[2,1])
+            0
+            sage: s[1,1,1,1].inner_plethysm(2*s[2,1])
+            s[3]
+
+        ::
+
+            sage: p[3].inner_plethysm(p[3])
+            0
+            sage: p[3,3].inner_plethysm(p[3])
+            0
+            sage: p[3].inner_plethysm(p[1,1,1])
+            p[1, 1, 1] + 2*p[3]
+            sage: p[4].inner_plethysm(p[1,1,1,1]/24)
+            1/24*p[1, 1, 1, 1] + 1/4*p[2, 1, 1] + 1/8*p[2, 2] + 1/4*p[4]
+            sage: p[3,3].inner_plethysm(p[1,1,1])
+            6*p[1, 1, 1] + 12*p[3]
+
+        TESTS::
+
+            sage: s(0).inner_plethysm(s(0))
+            0
+            sage: s(1).inner_plethysm(s(0))
+            0
+            sage: s(0).inner_plethysm(s(1))
+            0
+            sage: s(1).inner_plethysm(s(1))
+            s[]
+            sage: s(2).inner_plethysm(s(1))
+            2*s[]
+            sage: s(1).inner_plethysm(s(2))
+            s[]
         """
         parent = self.parent()
         if self == parent.zero():
             return self
         p = parent.realization_of().power()
-
-        p_x = p(x)
-
         cache = {}
-        f = partial(self._inner_plethysm_pnu_g, p_x, cache)
+        ip_pnu_g = parent._inner_plethysm_pnu_g
+        return sum(c*ip_pnu_g(p(x), cache, nu) for (nu, c) in p(self).monomial_coefficients().iteritems())
 
-        return parent(p._apply_module_morphism(p(self), f))
 
     def omega(self):
         r"""

@@ -2005,6 +2005,16 @@ class Permutation(CombinatorialObject, Element):
         `|4|125|3\to 45123`.
         So `\phi([1,4,2,5,3])=[4,5,1,2,3]`.
 
+        See section 2 of [FoSc78]_.
+
+        REFERENCES::
+
+        .. [FoSc78] Dominique Foata, Marcel-Paul Schuetzenberger,
+           *Major Index and Inversion Number of Permutations*,
+           Mathematische Nachrichten, volume 83, Issue 1, pages 143-159,
+           1978.
+           http://igm.univ-mlv.fr/~berstel/Mps/Travaux/A/1978-3MajorIndexMathNachr.pdf
+
         EXAMPLES::
 
             sage: Permutation([1,2,4,3]).foata_bijection()
@@ -2020,6 +2030,11 @@ class Permutation(CombinatorialObject, Element):
             sage: all( P.major_index() == P.foata_bijection().number_of_inversions()
             ....:      for P in Permutations(4) )
             True
+
+        The example from [FoSc78]_::
+
+            sage: Permutation([7,4,9,2,6,1,5,8,3]).foata_bijection()
+            [4, 7, 2, 6, 1, 9, 5, 8, 3]
 
         Border cases::
 

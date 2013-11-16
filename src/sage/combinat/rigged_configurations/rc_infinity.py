@@ -464,6 +464,44 @@ class InfinityCrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
             """
             return list(self)
 
+        def epsilon(self, a):
+            r"""
+            Return `\varepsilon_a` of ``self``.
+            """
+            ep = 0
+            cur = self.e(a)
+            while cur is not None:
+                cur = cur.e(a)
+                ep += 1
+            return ep
+
+        def phi(self, a):
+            r"""
+            Return `\varphi_a` of ``self``.
+
+            Let `x \in \mathcal{RC}(\infty)` Define `\varphi_a(x) :=
+            \varepsilon_a(x) + \langle h_a, \mathrm{wt}(x) \rangle`,
+            where `h_a` is the `a`-th simple coroot and `\mathrm{wt}(x)` is
+            the :meth:`weight` of `x`.
+
+            INPUT:
+
+            - ``i`` -- An element of the index set
+
+            EXAMPLES::
+            """
+            P = self.parent().weight_lattice_realization()
+            h = P.simple_coroots()
+            return self.epsilon(a) + P(self.weight()).scalar(h[a])
+
+        def weight(self):
+            """
+            Return the weight of ``self``.
+            """
+            P = self.parent().weight_lattice_realization()
+            alpha = list(P.simple_roots())
+            return sum(sum(x) * alpha[i] for i,x in enumerate(self))
+
         def e(self, a):
             r"""
             Action of the crystal operator `e_a` on this rigged configuration

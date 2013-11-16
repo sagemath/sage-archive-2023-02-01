@@ -188,9 +188,9 @@ include "sage/ext/cdefs.pxi"
 include "sage/ext/python.pxi"
 
 import operator
-import weakref
 
 from sage.misc.randstate import current_randstate
+import sage.misc.weak_dict
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.constructor import FiniteField as GF
 
@@ -253,7 +253,7 @@ dp_asc = int(pbdp_asc)
 block_dlex = int(pbblock_dlex)
 block_dp_asc = int(pbblock_dp_asc)
 
-rings = weakref.WeakValueDictionary()
+rings = sage.misc.weak_dict.WeakValueDictionary()
 
 cdef class BooleanPolynomialRing(MPolynomialRing_generic):
     """

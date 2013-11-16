@@ -53,6 +53,15 @@ if [ "$SAGE_UPGRADING" = yes ]; then
         export RM="rm -f"
     fi
 
+    # Unset AS and LD if they are set to their default values,
+    # otherwise the AS and LD test from #14296 below will fail.
+    if [ "$AS" = as ]; then
+        unset AS
+    fi
+    if [ "$LD" = ld ]; then
+        unset LD
+    fi
+
     # If we have an old version of sage-location,
     # then manually fix the .la (libtool) files.
     if grep 'lib64' "$SAGE_LOCAL/bin/sage-location" &>/dev/null; then
@@ -249,6 +258,48 @@ else
     if [ -z "$FC" ]; then
         echo >&2 "Installing GCC because a Fortran compiler is missing."
         need_to_install_gcc=yes
+    fi
+fi
+
+# If we are not installing GCC: check that the assembler and linker
+# used by $CC match $AS and $LD.
+# See http://trac.sagemath.org/sage_trac/ticket/14296
+if [ $need_to_install_gcc != yes ]; then
+    if [ "$AS" != "" ]; then
+        CC_as=`$CC -print-file-name=as 2>/dev/null`
+        CC_as=`command -v $CC_as 2>/dev/null`
+        cmd_AS=`command -v $AS`
+
+        if [ "$CC_as" != "" -a "$CC_as" != "$cmd_AS" ]; then
+            echo >&2 "Error: Mismatch of assemblers between"
+            echo >&2 " * $CC using $CC_as"
+            echo >&2 " * \$AS equal to $AS"
+            if [ "$SAGE_PORT" = "" ]; then
+                echo >&2 "Aborting, either change or unset AS or set SAGE_PORT=yes or set"
+                echo >&2 "SAGE_INSTALL_GCC=yes (this GCC would use assembler $AS)"
+                exit 1
+            else
+                echo >&2 "Continuing since SAGE_PORT is set."
+            fi
+        fi
+    fi
+    if [ "$LD" != "" ]; then
+        CC_ld=`$CC -print-file-name=ld 2>/dev/null`
+        CC_ld=`command -v $CC_ld 2>/dev/null`
+        cmd_LD=`command -v $LD`
+
+        if [ "$CC_ld" != "" -a "$CC_ld" != "$cmd_LD" ]; then
+            echo >&2 "Error: Mismatch of linkers between"
+            echo >&2 " * $CC using $CC_ld"
+            echo >&2 " * \$LD equal to $LD"
+            if [ "$SAGE_PORT" = "" ]; then
+                echo >&2 "Aborting, either change or unset LD or set SAGE_PORT=yes or set"
+                echo >&2 "SAGE_INSTALL_GCC=yes (this GCC would use linker $LD)"
+                exit 1
+            else
+                echo >&2 "Continuing since SAGE_PORT is set."
+            fi
+        fi
     fi
 fi
 

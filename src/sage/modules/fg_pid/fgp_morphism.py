@@ -454,8 +454,8 @@ class FGP_Morphism(Morphism):
 
 from sage.categories.homset import Homset
 
-import weakref
-_fgp_homset = weakref.WeakValueDictionary()
+import sage.misc.weak_dict
+_fgp_homset = sage.misc.weak_dict.WeakValueDictionary()
 def FGP_Homset(X, Y):
     """
     EXAMPLES::

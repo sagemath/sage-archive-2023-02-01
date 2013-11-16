@@ -98,7 +98,7 @@ class Benchmark:
                 for i in range(trials):
                     alarm(timeout)
                     t = getattr(self, S)()
-                    alarm(0)
+                    cancel_alarm()
                     if isinstance(t, tuple):
                         wall = True
                         t = t[1]
@@ -113,7 +113,7 @@ class Benchmark:
                 else:
                     s += '%15fc'%t
                 print s
-            except KeyboardInterrupt:
+            except AlarmInterrupt:
                 print '%-12sinterrupted (timeout: %s seconds wall time)'%(
                     S, timeout)
             except AttributeError:

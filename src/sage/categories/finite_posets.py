@@ -663,10 +663,8 @@ class FinitePosets(Category):
             # bijections on this set, and returning an orbit of a given
             # element.
             if check:
-                for i in antichain:
-                    for j in antichain:
-                        if self.gt(i, j):
-                            raise ValueError("the given antichain is not an antichain")
+                if not self.is_antichain_of_poset(antichain):
+                    raise ValueError("the given antichain is not an antichain")
             starter = set(antichain)     # sanitize input
             yield element_constructor(starter)
             next = starter
@@ -760,10 +758,8 @@ class FinitePosets(Category):
             # bijections on this set, and returning an orbit of a given
             # element.
             if check:
-                for i in oideal:
-                    for j in self.lower_covers(i):
-                        if not j in oideal:
-                            raise ValueError("the given order ideal is not an order ideal")
+                if not self.is_order_ideal(oideal):
+                    raise ValueError("the given order ideal is not an order ideal")
             starter = set(oideal)     # sanitize input
             yield element_constructor(starter)
             next = starter
@@ -871,10 +867,8 @@ class FinitePosets(Category):
             # bijections on this set, and returning an orbit of a given
             # element.
             if check:
-                for i in oideal:
-                    for j in self.lower_covers(i):
-                        if not j in oideal:
-                            raise ValueError("the given order ideal is not an order ideal")
+                if not self.is_order_ideal(oideal):
+                    raise ValueError("the given order ideal is not an order ideal")
             starter = set(oideal)     # sanitize input
             yield element_constructor(starter)
             next = starter

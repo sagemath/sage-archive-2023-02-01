@@ -798,6 +798,185 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             ret_fpg = ret_fpg.simplified()
         return ret_fpg
 
+    def semidirect_product(self, H, hom, check=True, reduced=False):
+        """
+        The semidirect product of ``self`` with ``H`` via ``hom``.
+
+        If there exists a homomorphism `\phi` from a group `G` to the
+        automorphism group of a group `H`, then we can define the semidirect
+        product of `G` with `H` via `\phi` as the cartesian product of `G`
+        and `H` with the operation
+
+        .. MATH::
+
+                (g_1, h_1)(g_2, h_2) = (g_1 g_2, \phi(g_2)(h_1) h_2).
+
+        INPUT:
+
+        - ``H`` -- Finitely presented group which is implicitly acted on
+          by ``self`` and can be naturally embedded as a normal subgroup
+          of the semidirect product.
+
+        - ``hom`` -- Homomorphism from ``self`` to the automorphism group
+          of ``H``. Given as a pair, with generators of ``self`` in the
+          first slot and the images of the corresponding generators in the
+          second. These images must be automorphisms of ``H``, given again
+          as a pair of generators and images.
+
+        - ``check`` -- Boolean (default ``True``). If ``False`` the defining
+          homomorphism and automorphism images are not tested for validity.
+          This test can be costly with large groups, so it can be bypassed
+          if the user is confident that his morphisms are valid.
+
+        - ``reduced`` -- Boolean (default ``False``). If ``True`` then the
+          method attempts to reduce the presentation of the output group.
+
+        OUTPUT:
+
+        The semidirect product of ``self`` with ``H`` via ``hom`` as a
+        finitely presented group. See
+        :meth:`PermutationGroup_generic.semidirect_product
+        <sage.groups.perm_gps.permgroup.PermutationGroup_generic.semidirect_product>`
+        for a more in depth explanation of a semidirect product.
+
+        AUTHORS:
+
+        - Davis Shurbert (8-1-2013)
+
+        EXAMPLES:
+
+        Group of order 12 as two isomorphic semidirect products::
+
+            sage: D4 = groups.presentation.Dihedral(4)
+            sage: C3 = groups.presentation.Cyclic(3)
+            sage: alpha1 = ([C3.gen(0)],[C3.gen(0)])
+            sage: alpha2 = ([C3.gen(0)],[C3([1,1])])
+            sage: S1 = D4.semidirect_product(C3, ([D4.gen(1), D4.gen(0)],[alpha1,alpha2]))
+            sage: C2 = groups.presentation.Cyclic(2)
+            sage: Q = groups.presentation.DiCyclic(3)
+            sage: a = Q([1]); b = Q([-2])
+            sage: alpha = (Q.gens(), [a,b])
+            sage: S2 = C2.semidirect_product(Q, ([C2.0],[alpha]))
+            sage: S1.is_isomorphic(S2)
+            True
+
+        Dihedral groups can be constructed as semidirect products
+        of cyclic groups::
+
+            sage: C2 = groups.presentation.Cyclic(2)
+            sage: C8 = groups.presentation.Cyclic(8)
+            sage: hom = (C2.gens(), [ ([C8([1])], [C8([-1])]) ])
+            sage: D = C2.semidirect_product(C8, hom)
+            sage: D.as_permutation_group().is_isomorphic(DihedralGroup(8))
+            True
+
+        You can attempt to reduce the presentation of the output group::
+
+            sage: D = C2.semidirect_product(C8, hom); D
+            Finitely presented group < a, b, c, d |
+             a^2, b^-1*a^-1*b*a*d^-1*c^-1, c^-1*a^-1*c*a*d^-1, d^-1*a^-1*d*a,
+             b^2*c^-1, c^-1*b^-1*c*b, d^-1*b^-1*d*b, c^2*d^-1, d^-1*c^-1*d*c, d^2 >
+            sage: D = C2.semidirect_product(C8, hom, reduced=True); D
+            Finitely presented group < a, b | a^2, (a*b)^2, b^8 >
+
+            sage: C3 = groups.presentation.Cyclic(3)
+            sage: C4 = groups.presentation.Cyclic(4)
+            sage: hom = (C3.gens(), [(C4.gens(), C4.gens())])
+            sage: C3.semidirect_product(C4, hom)
+            Finitely presented group < a, b, c |
+             a^3, b^-1*a^-1*b*a, c^-1*a^-1*c*a, b^2*c^-1, c^-1*b^-1*c*b, c^2 >
+            sage: D = C3.semidirect_product(C4, hom, reduced=True); D
+            Finitely presented group < a, b | a^3, b^4, b^-1*a^-1*b*a >
+            sage: D.as_permutation_group().is_cyclic()
+            True
+
+        You can turn off the checks for the validity of the input morphisms.
+        This check is expensive but behavior is unpredictable if inputs are
+        invalid and are not caught by these tests. Due to a failure in GAP
+        to list elements of an automorphism group in some cases, this check
+        may cause the method to timeout or raise a GAP error. For example,
+        if ``H`` is the cyclic group of order 6, then ``semidirect_product``
+        appears to fall into an infinite loop due to this failure.::
+
+            sage: C5 = groups.presentation.Cyclic(5)
+            sage: C12 = groups.presentation.Cyclic(12)
+            sage: hom = (C5.gens(), [(C12.gens(), C12.gens())])
+            sage: C5.semidirect_product(C12, hom)
+            Traceback (most recent call last):
+            ...
+            ValueError: libGAP: Error, <elm> is not contained in the source group
+            sage: sp = C5.semidirect_product(C12, hom, check=False); sp
+            Finitely presented group < a, b, c, d |
+             a^5, b^-1*a^-1*b*a, c^-1*a^-1*c*a, d^-1*a^-1*d*a, b^2*d^-1,
+             c^-1*b^-1*c*b, d^-1*b^-1*d*b, c^3, d^-1*c^-1*d*c, d^2 >
+            sage: sp.as_permutation_group().is_cyclic(), sp.order()
+            (True, 60)
+
+        TESTS::
+
+            sage: C = groups.presentation.Cyclic(7)
+            sage: D = groups.presentation.Dihedral(5)
+            sage: id1 = ([C.0], [(D.gens(),D.gens())])
+            sage: Se1 =  C.semidirect_product(D, id1)
+            sage: id2 = (D.gens(), [(C.gens(),C.gens()),(C.gens(),C.gens())])
+            sage: Se2 =  D.semidirect_product(C ,id2)
+            sage: Dp1 = C.direct_product(D);
+            sage: Dp1.is_isomorphic(Se1), Dp1.is_isomorphic(Se2)
+            (True, True)
+
+        Most checks for validity of input are left to GAP to handle::
+
+            sage: bad_aut = ([C.0], [(D.gens(),[D.0, D.0])])
+            sage: C.semidirect_product(D, bad_aut)
+            Traceback (most recent call last):
+            ...
+            ValueError: images of input homomorphism must be automorphisms
+            sage: bad_hom = ([D.0, D.1], [(C.gens(),C.gens())])
+            sage: D.semidirect_product(C, bad_hom)
+            Traceback (most recent call last):
+            ...
+            ValueError: libGAP: Error, <gens> and <imgs> must be lists of same length
+        """
+        from sage.groups.free_group import FreeGroup, _lexi_gen
+
+        if not isinstance(H, FinitelyPresentedGroup):
+            raise TypeError("input must be a finitely presented group")
+
+        GAP_self = self.gap(); GAP_H = H.gap()
+        auto_grp = libgap.AutomorphismGroup(H.gap())
+        self_gens = [h.gap() for h in hom[0]]
+        # construct image automorphisms in GAP
+        GAP_aut_imgs = [ libgap.GroupHomomorphismByImages(GAP_H, GAP_H, [g.gap() for g in gns],
+            [i.gap() for i in img]) for (gns, img) in hom[1] ]
+
+        # check for automorphism validity in images of operation defining homomorphism,
+        # and construct the defining homomorphism.
+        if check:
+            if not all([a in libgap.List(libgap.AutomorphismGroup(GAP_H)) for a in GAP_aut_imgs]):
+                raise ValueError("images of input homomorphism must be automorphisms")
+            GAP_def_hom = libgap.GroupHomomorphismByImages(GAP_self, auto_grp, self_gens, GAP_aut_imgs)
+        else:
+            GAP_def_hom = GAP_self.GroupHomomorphismByImagesNC( auto_grp, self_gens, GAP_aut_imgs)
+
+        prod = libgap.SemidirectProduct(GAP_self, GAP_def_hom, GAP_H)
+        # Convert pc group to fp group
+        if prod.IsPcGroup():
+            prod = libgap.Image(libgap.IsomorphismFpGroupByPcgs(prod.FamilyPcgs() , 'x'))
+        if not prod.IsFpGroup():
+            raise NotImplementedError("unable to convert GAP output to equivalent Sage fp group")
+
+        # Convert GAP group object to Sage via Tietze
+        # lists for readability of variable names
+        GAP_gens = prod.FreeGeneratorsOfFpGroup()
+        name_itr = _lexi_gen() # Python generator for lexicographical variable names
+        ret_F = FreeGroup([name_itr.next() for i in GAP_gens])
+        ret_rls = tuple([ret_F(rel_word.TietzeWordAbstractWord(GAP_gens).sage())
+            for rel_word in prod.RelatorsOfFpGroup()])
+        ret_fpg = FinitelyPresentedGroup(ret_F, ret_rls)
+        if reduced:
+            ret_fpg = ret_fpg.simplified()
+        return ret_fpg
+
     def _element_constructor_(self, *args, **kwds):
         """
         Construct an element of ``self``.

@@ -1207,7 +1207,7 @@ cdef class _IterationContext:
         0
 
     """
-    cdef WeakValueDictionary Dict
+    cdef Dictref
     def __init__(self, Dict):
         """
         INPUT:
@@ -1236,7 +1236,7 @@ cdef class _IterationContext:
             0
 
         """
-        self.Dict = Dict
+        self.Dictref = PyWeakref_NewRef(Dict,None)
 
     def __enter__(self):
         """
@@ -1261,7 +1261,10 @@ cdef class _IterationContext:
             0
 
         """
-        self.Dict._guard_level += 1
+        cdef WeakValueDictionary Dict = <object>PyWeakref_GetObject(<PyObject*>self.Dictref)
+        #if the dict has disappeared, there's nothing to do
+        if Dict is not None:
+            Dict._guard_level += 1
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -1289,10 +1292,14 @@ cdef class _IterationContext:
 
         """
         # Propagate errors by returning "False"
-        self.Dict._guard_level -= 1
+        cdef WeakValueDictionary Dict = <object>PyWeakref_GetObject(<PyObject*>self.Dictref)
+        #if the dict has disappeared, there's nothing to do
+        if Dict is None:
+            return False
+        Dict._guard_level -= 1
         #when the guard_level drops to zero, we try to remove all the
         #pending removals. Note that this could trigger another iterator
         #to become active, in which case we should back off.
-        while (not self.Dict._guard_level) and self.Dict._pending_removals:
-            self.Dict.callback(self.Dict._pending_removals.pop())
+        while (not Dict._guard_level) and Dict._pending_removals:
+            Dict.callback(Dict._pending_removals.pop())
         return False

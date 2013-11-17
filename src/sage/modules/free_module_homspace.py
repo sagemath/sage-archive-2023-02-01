@@ -85,10 +85,10 @@ def is_FreeModuleHomspace(x):
 
     EXAMPLES:
 
-    Notice that every vector space is a field, but when we construct a set of
-    morphisms between two vector spaces, it is a ``VectorSpaceHomspace``,
-    which qualifies as a ``FreeModuleHomspace``, since the former is
-    special case of the latter.
+    Notice that every vector space is a free module, but when we construct
+    a set of morphisms between two vector spaces, it is a
+    ``VectorSpaceHomspace``, which qualifies as a ``FreeModuleHomspace``,
+    since the former is special case of the latter.
 
         sage: H = Hom(ZZ^3, ZZ^2)
         sage: type(H)
@@ -169,7 +169,7 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             Echelon ...
 
         """
-        if not matrix.is_Matrix(A):
+        if not sage.matrix.matrix.is_Matrix(A):
             # Compute the matrix of the morphism that sends the
             # generators of the domain to the elements of A.
             C = self.codomain()

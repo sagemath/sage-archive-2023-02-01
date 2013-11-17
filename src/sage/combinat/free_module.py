@@ -1478,11 +1478,15 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             sage: S = SymmetricFunctions(QQ)
             sage: s = S.s(); p = S.p()
             sage: ss = tensor([s,s]); pp = tensor([p,p])
-            sage: a = tensor((s[5],s[5]))
-            sage: pp(a) # used to yield p[[5]] # p[[5]]
-            Traceback (most recent call last):
-               ...
-            NotImplementedError
+            sage: a = tensor((s[2],s[2]))
+
+        The following originally used to yield ``p[[2]] # p[[2]]``, and if
+        there was no natural coercion between ``s`` and ``p``, this would
+        raise a ``NotImplementedError``. Since :trac:`15305`, this takes the
+        coercion between ``s`` and ``p`` and lifts it to the tensor product. ::
+
+            sage: pp(a)
+            1/4*p[1, 1] # p[1, 1] + 1/4*p[1, 1] # p[2] + 1/4*p[2] # p[1, 1] + 1/4*p[2] # p[2]
 
         Extensions of the ground ring should probably be reintroduced
         at some point, but via coercions, and with stronger sanity
@@ -2654,6 +2658,69 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 2*B[1] # B[3] # B[5] + 2*B[1] # B[3] # B[6] + B[1] # B[4] # B[5] + B[1] # B[4] # B[6] + 4*B[2] # B[3] # B[5] + 4*B[2] # B[3] # B[6] + 2*B[2] # B[4] # B[5] + 2*B[2] # B[4] # B[6]
             """
             return self.tensor_constructor(tuple(element.parent() for element in elements))(*elements)
+
+        def _coerce_map_from_(self, R):
+            """
+            Return ``True`` if there is a coercion from ``R`` into ``self`` and
+            ``False`` otherwise.  The things that coerce into ``self`` are:
+
+            - Anything with a coercion into ``self.base_ring()``.
+
+            - A tensor algebra whose factors have a coercion into the
+              corresponding factors of ``self``.
+
+            TESTS::
+
+                sage: C = CombinatorialFreeModule(ZZ, ZZ)
+                sage: C2 = CombinatorialFreeModule(ZZ, NN)
+                sage: M = C.module_morphism(lambda x: C2.monomial(abs(x)), codomain=C2)
+                sage: M.register_as_coercion()
+                sage: C2(C.basis()[3])
+                B[3]
+                sage: C2(C.basis()[3] + C.basis()[-3])
+                2*B[3]
+                sage: S = C.tensor(C)
+                sage: S2 = C2.tensor(C2)
+                sage: S2.has_coerce_map_from(S)
+                True
+                sage: S.has_coerce_map_from(S2)
+                False
+                sage: S.an_element()
+                3*B[0] # B[-1] + 2*B[0] # B[0] + 2*B[0] # B[1]
+                sage: S2(S.an_element())
+                2*B[0] # B[0] + 5*B[0] # B[1]
+
+            ::
+
+                sage: C = CombinatorialFreeModule(ZZ, Set([1,2]))
+                sage: D = CombinatorialFreeModule(ZZ, Set([2,4]))
+                sage: f = C.module_morphism(on_basis=lambda x: D.monomial(2*x), codomain=D)
+                sage: f.register_as_coercion()
+                sage: T = tensor((C,C))
+                sage: p = D.an_element()
+                sage: T(tensor((p,p)))
+                Traceback (most recent call last):
+                ...
+                NotImplementedError
+                sage: T = tensor((D,D))
+                sage: p = C.an_element()
+                sage: T(tensor((p,p)))
+                4*B[2] # B[2] + 4*B[2] # B[4] + 4*B[4] # B[2] + 4*B[4] # B[4]
+            """
+            if R in ModulesWithBasis(self.base_ring()).TensorProducts() \
+                    and isinstance(R, CombinatorialFreeModule_Tensor) \
+                    and len(R._sets) == len(self._sets) \
+                    and all(self._sets[i].has_coerce_map_from(M)
+                            for i,M in enumerate(R._sets)):
+                modules = R._sets
+                vector_map = [self._sets[i].coerce_map_from(M)
+                              for i,M in enumerate(modules)]
+                return R.module_morphism(lambda x: self._tensor_of_elements(
+                        [vector_map[i](M.monomial(x[i]))
+                         for i,M in enumerate(modules)]),
+                                         codomain=self)
+
+            return super(CombinatorialFreeModule_Tensor, self)._coerce_map_from_(R)
 
 class CartesianProductWithFlattening(object):
     """

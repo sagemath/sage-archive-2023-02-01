@@ -27,7 +27,6 @@ AUTHORS:
 
 from sage.interfaces.gp import Gp
 from sage.rings.all import ZZ, QQ
-from sage.libs.pari.gen import pari
 
 _gp_for_simon_interpreter = None    # Global GP interpreter for Denis Simon's code
 def _gp_for_simon():
@@ -97,7 +96,7 @@ def qfsolve(G, factD=None):
     gp = _gp_for_simon()
     if factD is not None:
         raise NotImplementedError, "qfsolve not implemented with parameter factD"
-    ret = pari(gp('Qfsolve(%s)' % G._pari_()))
+    ret = gp('Qfsolve(%s)' % G._pari_())._pari_()
     if ret.type() == 't_COL':
         return tuple([QQ(r) for r in ret])
     return ZZ(ret)
@@ -138,7 +137,6 @@ def qfparam(G, sol):
     gp = _gp_for_simon()
     R = QQ['t']
     t = R.gen()
-    s = 'Qfparam(%s, (%s)~)*[t^2,t,1]~' % (G._pari_(), pari(gp(sol))._pari_())
-    ret = pari(gp(s))
+    s = 'Qfparam(%s, (%s)~)*[t^2,t,1]~' % (G._pari_(), gp(sol)._pari_())
+    ret = gp(s)._pari_()
     return tuple([R(r) for r in ret])
-

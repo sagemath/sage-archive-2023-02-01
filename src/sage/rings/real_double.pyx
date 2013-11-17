@@ -45,9 +45,8 @@ gsl_set_error_handler_off()
 
 import math, operator
 
-cimport sage.libs.pari.gen
-import sage.libs.pari.gen
-
+import sage.libs.pari.pari_instance
+from sage.libs.pari.pari_instance cimport PariInstance
 
 import sage.rings.integer
 import sage.rings.rational
@@ -1528,8 +1527,8 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF(1.5)._pari_()
             1.50000000000000
         """
-        cdef sage.libs.pari.gen.PariInstance P = sage.libs.pari.gen.pari
-        return P.double_to_gen_c(self._value)
+        cdef PariInstance P = sage.libs.pari.pari_instance.pari
+        return P.new_gen_from_double(self._value)
 
 
     ###########################################

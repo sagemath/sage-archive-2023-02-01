@@ -60,7 +60,7 @@ AUTHORS:
 """
 from sage.structure.element         import FieldElement
 from sage.structure.parent_gens     import ParentWithGens
-from sage.libs.pari.all             import pari
+from sage.libs.pari.pari_instance   import pari
 
 from field                          import Field
 from rational_field                 import QQ

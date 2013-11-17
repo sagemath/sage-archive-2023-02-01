@@ -525,6 +525,7 @@ if not sdist:
     ext_modules = cythonize(
         ext_modules,
         nthreads = int(os.environ.get('SAGE_NUM_THREADS', 0)),
+        cache = os.environ.get('CYCACHE_DIR', os.path.join(DOT_SAGE,'cycache')),
         build_dir = None, # Don't "cythonize out-of-tree" (cf. #14570) until
                           # sage-clone and sage-sync-build can deal with that.
         force=force)

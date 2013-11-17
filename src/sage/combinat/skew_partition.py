@@ -160,7 +160,7 @@ from sage.graphs.digraph import DiGraph
 from sage.matrix.matrix_space import MatrixSpace
 
 from sage.combinat.combinat import CombinatorialObject
-from sage.combinat.partition import Partitions, PartitionOptions
+from sage.combinat.partition import Partitions, PartitionOptions, _Partitions
 from sage.combinat.tableau import TableauOptions
 from sage.combinat.composition import Compositions
 
@@ -262,6 +262,7 @@ class SkewPartition(CombinatorialObject, Element):
             sage: skp.outer()
             [3, 2, 1]
         """
+        skp = map(_Partitions, skp)
         if skp not in SkewPartitions():
             raise ValueError("invalid skew partition: %s"%skp)
         return SkewPartitions()(skp)
@@ -273,7 +274,7 @@ class SkewPartition(CombinatorialObject, Element):
             sage: skp = SkewPartition([[3,2,1],[2,1]])
             sage: TestSuite(skp).run()
         """
-        CombinatorialObject.__init__(self, [Partitions()(skp[0]), Partitions()(skp[1])])
+        CombinatorialObject.__init__(self, [_Partitions(skp[0]), _Partitions(skp[1])])
         Element.__init__(self, parent)
 
     def _repr_(self):
@@ -1028,7 +1029,7 @@ class SkewPartitions(Parent, UniqueRepresentation):
             sage: [[], [-1]] in SkewPartitions()
             False
             sage: [[], [0]] in SkewPartitions()
-            False
+            True
             sage: [[3,2,1],[]] in SkewPartitions()
             True
             sage: [[3,2,1],[1]] in SkewPartitions()
@@ -1057,6 +1058,8 @@ class SkewPartitions(Parent, UniqueRepresentation):
             True
             sage: [[4,2,1],[1,1,1,1]] in SkewPartitions()
             False
+            sage: [[1,1,1,0],[1,1,0,0]] in SkewPartitions()
+            True
         """
         if isinstance(x, SkewPartition):
             return True
@@ -1067,13 +1070,13 @@ class SkewPartitions(Parent, UniqueRepresentation):
         except TypeError:
             return False
 
-        p = Partitions()
+        p = _Partitions
         if x[0] not in p:
             return False
         if x[1] not in p:
             return False
 
-        if not p(x[0]).contains(x[1]):
+        if not p(x[0]).contains(p(x[1])):
             return False
 
         return True

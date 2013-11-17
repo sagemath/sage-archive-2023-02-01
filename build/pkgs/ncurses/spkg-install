@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 
-if [[ -z $SAGE_LOCAL ]]; then
+if [ -z $SAGE_LOCAL ]; then
     echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
     echo >&2 "Maybe run 'sage -sh'?"
     exit 1
 fi
 
-if [[ -z $CFLAG64 ]]; then
+if [ -z $CFLAG64 ]; then
     CFLAG64=-m64
 fi
 
 # Compile for 64-bit if SAGE64 is set to 'yes':
-if [[ $SAGE64 = yes ]]; then
+if [ $SAGE64 = yes ]; then
     echo "Building a 64-bit version of Readline."
     CFLAGS="$CFLAGS $CFLAG64"
     CPPFLAGS="$CPPFLAGS $CFLAG64"
@@ -20,7 +20,8 @@ if [[ $SAGE64 = yes ]]; then
 fi
 
 DEBUG_CONFIGURE_FLAG=''
-if [[ $SAGE_DEBUG = yes ]]; then
+if [ $SAGE_DEBUG = yes ]; then
+    CFLAGS="-O0 -g $CFLAGS"
     DEBUG_CONFIGURE_FLAG='--with-debug'
 else
     DEBUG_CONFIGURE_FLAG='--without-debug'
@@ -42,39 +43,90 @@ cd src
 
 echo "Applying patches to upstream source..."
 for patch in ../patches/*.patch; do
+    [ -r "$patch" ] || continue
     patch -p1 <"$patch"
-    if [[ $? -ne 0 ]]; then
+    if [ $? -ne 0 ]; then
         echo >&2 "Error applying '$patch'."
         exit 1
     fi
 done
 
-echo "Configuring ncurses..."
+
+# Ncurses cannot build narrow and wide (unicode, --enable-widec)
+# versions in one go. Need to compile twice. Note that Python's curses
+# module will want the wide version, and readline the narrow version.
+
+###################################################
+mkdir narrow
+cd narrow
+ln -s ../configure .
+
+echo "Configuring ncurses (narrow)..."
 ./configure \
     --prefix="$SAGE_LOCAL" \
     --libdir="$SAGE_LOCAL/lib" \
     --with-termlib \
     --with-shared \
     --without-normal \
+    --without-ada \
     --disable-rpath-hack \
     --enable-overwrite \
     "$DEBUG_CONFIGURE_FLAG"
-if [[ $? -ne 0 ]]; then
-    echo >&2 "Error configuring ncurses."
+if [ $? -ne 0 ]; then
+    echo >&2 "Error configuring ncurses (narrow)."
     exit 1
 fi
 
-echo "Building ncurses..."
+echo "Building ncurses (narrow)..."
 $MAKE
-if [[ $? -ne 0 ]]; then
-    echo >&2 "Error building ncurses."
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building ncurses (narrow)."
     exit 1
 fi
 
-echo "Installing ncurses..."
+echo "Installing ncurses (narrow)..."
 $MAKE install
-if [[ $? -ne 0 ]]; then
-    echo >&2 "Error installing ncurses."
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing ncurses (narrow)."
     exit 1
 fi
 
+cd ..  # leave narrow
+
+###################################################
+mkdir wide
+cd wide
+ln -s ../configure .
+
+echo "Configuring ncurses (wide)..."
+./configure \
+    --prefix="$SAGE_LOCAL" \
+    --libdir="$SAGE_LOCAL/lib" \
+    --with-termlib \
+    --with-shared \
+    --enable-widec \
+    --without-normal \
+    --without-ada \
+    --disable-rpath-hack \
+    --enable-overwrite \
+    "$DEBUG_CONFIGURE_FLAG"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error configuring ncurses (wide)."
+    exit 1
+fi
+
+echo "Building ncurses (wide)..."
+$MAKE
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building ncurses (wide)."
+    exit 1
+fi
+
+echo "Installing ncurses (wide)..."
+$MAKE install
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing ncurses (wide)."
+    exit 1
+fi
+
+cd ..  # leave wide

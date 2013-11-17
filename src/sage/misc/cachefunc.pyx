@@ -36,7 +36,7 @@ which is used to create unique parents: If an algebraic structure, such
 as a finite field, is only temporarily used, then it will not stay in
 cache forever. That behaviour is implemented using ``weak_cached_function``,
 that behaves the same as ``cached_function``, except that it uses a
-``WeakValueDictionary`` for storing the results.
+:class:`~sage.misc.weak_dict.WeakValueDictionary` for storing the results.
 ::
 
     sage: from sage.misc.cachefunc import weak_cached_function
@@ -128,7 +128,7 @@ which is used to create unique parents: If an algebraic structure, such
 as a finite field, is only temporarily used, then it will not stay in
 cache forever. That behaviour is implemented using ``weak_cached_function``,
 that behaves the same as ``cached_function``, except that it uses a
-``WeakValueDictionary`` for storing the results.
+:class:`~sage.misc.weak_dict.WeakValueDictionary` for storing the results.
 ::
 
     sage: from sage.misc.cachefunc import weak_cached_function
@@ -422,7 +422,8 @@ from function_mangling import ArgumentFixer
 import os
 from sage.misc.sageinspect import sage_getfile, sage_getsourcelines, sage_getargspec
 
-from weakref import WeakValueDictionary
+import sage.misc.weak_dict
+from sage.misc.weak_dict import WeakValueDictionary
 
 def _cached_function_unpickle(module,name):
     """
@@ -969,8 +970,8 @@ cdef class WeakCachedFunction(CachedFunction):
             sage: __main__.f = f
             sage: loads(dumps(f))
             Cached version of <function f at ...>
-            sage: f.cache
-            <WeakValueDictionary at ...>
+            sage: str(f.cache)
+            '<WeakValueDictionary at 0x...>'
 
         """
         self._common_init(f, None, name=name)

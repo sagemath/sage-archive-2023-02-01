@@ -3,8 +3,6 @@ include 'decl.pxi'
 cimport sage.structure.element
 cimport sage.structure.parent_base
 
-cdef void _pari_trap "_pari_trap"(long errno, long retries) except *
-
 cdef class gen(sage.structure.element.RingElement):
     cdef GEN g
     cdef object _refers_to

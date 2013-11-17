@@ -2922,7 +2922,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E.pari_curve()
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: valuation of j must be negative in p-adic ellinit
         """
         try:
             return self._pari_curve

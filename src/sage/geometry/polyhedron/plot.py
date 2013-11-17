@@ -12,19 +12,20 @@ Functions for plotting polyhedra
 ########################################################################
 
 
-from sage.rings.all import QQ, ZZ, RDF
+from sage.rings.all import RDF
 from sage.structure.sage_object import SageObject
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix, identity_matrix
 from sage.misc.functional import norm
+from sage.misc.latex import LatexExpr
+from sage.symbolic.constants import pi
 from sage.structure.sequence import Sequence
 
 from sage.plot.all import point2d, line2d, arrow, polygon2d
 from sage.plot.plot3d.all import point3d, line3d, arrow3d, polygon3d
-from sage.graphs.graph import Graph
+from sage.plot.plot3d.transform import rotate_arbitrary
 
 from base import is_Polyhedron
-from constructor import Polyhedron
 
 
 
@@ -74,10 +75,10 @@ def render_3d(projection, point_opts={}, line_opts={}, polygon_opts={}):
     Return 3d rendering of a polyhedron projected into
     3-dimensional ambient space.
 
-    NOTE:
+    .. NOTE::
 
-    This method, ``render_3d``, is used in the ``show()``
-    method of a polyhedron if it is in 3 dimensions.
+        This method, ``render_3d``, is used in the ``show()``
+        method of a polyhedron if it is in 3 dimensions.
 
     EXAMPLES::
 
@@ -116,10 +117,10 @@ def render_4d(polyhedron, point_opts={}, line_opts={}, polygon_opts={}, projecti
     Return a 3d rendering of the Schlegel projection of a 4d
     polyhedron projected into 3-dimensional space.
 
-    NOTES:
+    .. NOTE::
 
-    The ``show()`` method of ``Polyhedron()`` uses this to draw itself
-    if the ambient dimension is 4.
+        The ``show()`` method of ``Polyhedron()`` uses this to draw itself
+        if the ambient dimension is 4.
 
     INPUT:
 
@@ -170,11 +171,11 @@ def cyclic_sort_vertices_2d(Vlist):
     """
     Return the vertices/rays in cyclic order if possible.
 
-    NOTES:
+    .. NOTE::
 
-    This works if and only if each vertex/ray is adjacent to exactly
-    two others. For example, any 2-dimensional polyhedron satisfies
-    this.
+        This works if and only if each vertex/ray is adjacent to exactly
+        two others. For example, any 2-dimensional polyhedron satisfies
+        this.
 
     See
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.vertex_adjacency_matrix`
@@ -447,14 +448,14 @@ class Projection(SageObject):
 
         INPUT:
 
-          - ``polyhedron`` -- a ``Polyhedron()`` object
+        - ``polyhedron`` -- a ``Polyhedron()`` object
 
-          - ``proj`` -- a projection function for the points
+        - ``proj`` -- a projection function for the points
 
-        NOTES:
+        .. NOTE::
 
-        Once initialized, the polyhedral data is fixed. However, the
-        projection can be changed later on.
+            Once initialized, the polyhedral data is fixed. However, the
+            projection can be changed later on.
 
         EXAMPLES::
 
@@ -474,6 +475,7 @@ class Projection(SageObject):
             sage: proj.show()
             sage: TestSuite(proj).run(skip='_test_pickling')
         """
+        self.parent_polyhedron = polyhedron
         self.coords = Sequence([])
         self.points = Sequence([])
         self.lines  = Sequence([])
@@ -585,9 +587,9 @@ class Projection(SageObject):
 
         INPUT:
 
-          - ``projection_direction`` - The direction of the Schlegel
-            projection. By default, the vector consisting of the first
-            n primes is chosen.
+        - ``projection_direction`` - The direction of the Schlegel
+          projection. By default, the vector consisting of the first n
+          primes is chosen.
 
         EXAMPLES::
 
@@ -601,6 +603,7 @@ class Projection(SageObject):
 
             sage: Projection(cube4).schlegel()
             The projection of a polyhedron into 3 dimensions
+
         """
         if projection_direction == None:
             for poly in self.polygons:
@@ -872,8 +875,10 @@ class Projection(SageObject):
                     yield ineq
 
         faces = []
+        face_inequalities = []
         for facet_equation in defining_equation():
             vertices = [v for v in facet_equation.incident()]
+            face_inequalities.append(facet_equation)
             vertices = cyclic_sort_vertices_2d(vertices)
             coords = []
 
@@ -891,6 +896,7 @@ class Projection(SageObject):
                         coords.append(a() + v())
 
             faces.append(coords)
+        self.face_inequalities = face_inequalities
 
         if polyhedron.n_lines() == 0:
             assert len(faces)>0, "no vertices?"
@@ -1023,3 +1029,509 @@ class Projection(SageObject):
         """
         return sum([ polygon3d(self.coordinates_of(f), **kwds)
                      for f in self.polygons ])
+
+    def tikz(self, view=[0,0,1], angle=0, scale=2,
+             edge_color='blue!95!black', facet_color='blue!95!black',
+             opacity=0.8, vertex_color='green', axis=False):
+        r"""
+        Return a string ``tikz_pic`` consisting of a tikz picture of ``self``
+        according to a projection ``view`` and an angle ``angle``
+        obtained via Jmol through the current state property.
+
+        INPUT:
+
+        - ``view`` - list (default: [0,0,1]) representing the rotation axis (see note below).
+        - ``angle`` - integer (default: 0) angle of rotation in degree from 0 to 360 (see note
+          below).
+        - ``scale`` - integer (default: 2) specifying the scaling of the tikz picture.
+        - ``edge_color`` - string (default: 'blue!95!black') representing colors which tikz
+          recognize.
+        - ``facet_color`` - string (default: 'blue!95!black') representing colors which tikz
+          recognize.
+        - ``vertex_color`` - string (default: 'green') representing colors which tikz
+          recognize.
+        - ``opacity`` - real number (default: 0.8) between 0 and 1 giving the opacity of
+          the front facets.
+        - ``axis`` - Boolean (default: False) draw the axes at the origin or not.
+
+        OUTPUT:
+
+        - LatexExpr -- containing the TikZ picture.
+
+        .. NOTE::
+
+            The inputs ``view`` and ``angle`` can be obtained from the
+            viewer Jmol::
+
+                1) Right click on the image
+                2) Select ``Console``
+                3) Select the tab ``State``
+                4) Scroll to the line ``moveto``
+
+            It reads something like::
+
+                moveto 0.0 {x y z angle} Scale
+
+            The ``view`` is then [x,y,z] and ``angle`` is angle.
+            The following number is the scale.
+
+            Jmol performs a rotation of ``angle`` degrees along the
+            vector [x,y,z] and show the result from the z-axis.
+
+        EXAMPLES::
+
+            sage: P1 = polytopes.small_rhombicuboctahedron()
+            sage: Image1 = P1.projection().tikz([1,3,5], 175, scale=4)
+            sage: type(Image1)
+            <class 'sage.misc.latex.LatexExpr'>
+            sage: print '\n'.join(Image1.splitlines()[:4])
+            \begin{tikzpicture}%
+                [x={(-0.939161cm, 0.244762cm)},
+                y={(0.097442cm, -0.482887cm)},
+                z={(0.329367cm, 0.840780cm)},
+            sage: open('polytope-tikz1.tex', 'w').write(Image1)    # not tested
+
+            sage: P2 = Polyhedron(vertices=[[1, 1],[1, 2],[2, 1]])
+            sage: Image2 = P2.projection().tikz(scale=3, edge_color='blue!95!black', facet_color='orange!95!black', opacity=0.4, vertex_color='yellow', axis=True)
+            sage: type(Image2)
+            <class 'sage.misc.latex.LatexExpr'>
+            sage: print '\n'.join(Image2.splitlines()[:4])
+            \begin{tikzpicture}%
+                [scale=3.000000,
+                back/.style={loosely dotted, thin},
+                edge/.style={color=blue!95!black, thick},
+            sage: open('polytope-tikz2.tex', 'w').write(Image2)    # not tested
+
+            sage: P3 = Polyhedron(vertices=[[-1, -1, 2],[-1, 2, -1],[2, -1, -1]])
+            sage: P3
+            A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 3 vertices
+            sage: Image3 = P3.projection().tikz([0.5,-1,-0.1], 55, scale=3, edge_color='blue!95!black',facet_color='orange!95!black', opacity=0.7, vertex_color='yellow', axis=True)
+            sage: print '\n'.join(Image3.splitlines()[:4])
+            \begin{tikzpicture}%
+                [x={(0.658184cm, -0.242192cm)},
+                y={(-0.096240cm, 0.912008cm)},
+                z={(-0.746680cm, -0.331036cm)},
+            sage: open('polytope-tikz3.tex', 'w').write(Image3)    # not tested
+
+            sage: P=Polyhedron(vertices=[[1,1,0,0],[1,2,0,0],[2,1,0,0],[0,0,1,0],[0,0,0,1]])
+            sage: P
+            A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 5 vertices
+            sage: P.projection().tikz()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: The polytope has to live in 2 or 3 dimensions.
+
+        .. TODO::
+
+            Make it possible to draw Schlegel diagram for 4-polytopes. ::
+
+                sage: P=Polyhedron(vertices=[[1,1,0,0],[1,2,0,0],[2,1,0,0],[0,0,1,0],[0,0,0,1]])
+                sage: P
+                A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 5 vertices
+                sage: P.projection().tikz()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: The polytope has to live in 2 or 3 dimensions.
+
+            Make it possible to draw 3-polytopes living in higher dimension.
+        """
+        if self.polyhedron_ambient_dim > 3 or self.polyhedron_ambient_dim < 2:
+            raise NotImplementedError("The polytope has to live in 2 or 3 dimensions.")
+        elif self.polyhedron_ambient_dim == 2:
+            return self._tikz_2d(scale, edge_color, facet_color, opacity,
+                                 vertex_color, axis)
+        elif self.dimension == 2:
+            return self._tikz_2d_in_3d(view, angle, scale, edge_color,
+                                       facet_color, opacity, vertex_color, axis)
+        else:
+            return self._tikz_3d_in_3d(view, angle, scale, edge_color,
+                                       facet_color, opacity, vertex_color, axis)
+
+    def _tikz_2d(self, scale, edge_color, facet_color, opacity, vertex_color, axis):
+        r"""
+        Return a string ``tikz_pic`` consisting of a tikz picture of ``self``
+
+        INPUT:
+
+        - ``scale`` - integer specifying the scaling of the tikz picture.
+        - ``edge_color`` - string representing colors which tikz
+          recognize.
+        - ``facet_color`` - string representing colors which tikz
+          recognize.
+        - ``vertex_color`` - string representing colors which tikz
+          recognize.
+        - ``opacity`` - real number between 0 and 1 giving the opacity of
+          the front facets.
+        - ``axis`` - Boolean (default: False) draw the axes at the origin or not.
+
+        OUTPUT:
+
+        - LatexExpr -- containing the TikZ picture.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[[1, 1],[1, 2],[2, 1]])
+            sage: Image = P.projection()._tikz_2d(scale=3, edge_color='black', facet_color='orange', opacity=0.75, vertex_color='yellow', axis=True)
+            sage: type(Image)
+            <class 'sage.misc.latex.LatexExpr'>
+            sage: print '\n'.join(Image.splitlines()[:4])
+            \begin{tikzpicture}%
+                [scale=3.000000,
+                back/.style={loosely dotted, thin},
+                edge/.style={color=black, thick},
+            sage: open('polytope-tikz2.tex', 'w').write(Image)    # not tested
+
+        .. NOTE::
+
+            The ``facet_color`` is the filing color of the polytope (polygon).
+        """
+
+        # Creates the nodes, coordinate and tag for every vertex of the polytope.
+        # The tag is used to draw the front facets later on.
+
+        dict_drawing = {}
+        edges = ''
+        for vert in self.points:
+            v = self.coords[vert]
+            v_vect = str([i.n(digits=3) for i in v])
+            v_vect = v_vect.replace('[', '(')
+            v_vect = v_vect.replace(']', ')')
+            tag = '%s' %v_vect
+            node = "\\node[%s] at %s     {};\n" % ('vertex', tag)
+            coord = '\coordinate %s at %s;\n' % (tag, tag)
+            dict_drawing[vert] = node, coord, tag
+
+        for index1, index2 in self.lines:
+            # v1 = self.coords[index1]
+            # v2 = self.coords[index2]
+            edges += "\\draw[%s] %s -- %s;\n" % ('edge',
+                                                 dict_drawing[index1][2],
+                                                 dict_drawing[index2][2])
+
+        # Start to write the output
+        tikz_pic = ''
+        tikz_pic += '\\begin{tikzpicture}%\n'
+        tikz_pic += '\t[scale=%f,\n' % scale
+        tikz_pic += '\tback/.style={loosely dotted, thin},\n'
+        tikz_pic += '\tedge/.style={color=%s, thick},\n' % edge_color
+        tikz_pic += '\tfacet/.style={fill=%s,fill opacity=%f},\n' % (facet_color,opacity)
+        tikz_pic += '\tvertex/.style={inner sep=1pt,circle,draw=%s!25!black,' % vertex_color
+        tikz_pic += 'fill=%s!75!black,thick,anchor=base}]\n%%\n%%\n' % vertex_color
+
+        # Draws the axes if True
+        if axis:
+            tikz_pic += '\\draw[color=black,thick,->] (0,0,0) -- (1,0,0) node[anchor=north east]{$x$};\n'
+            tikz_pic += '\\draw[color=black,thick,->] (0,0,0) -- (0,1,0) node[anchor=north west]{$y$};\n'
+
+        # Create the coordinate of the vertices:
+        tikz_pic += '%% Coordinate of the vertices:\n%%\n'
+        for v in dict_drawing:
+            tikz_pic += dict_drawing[v][1]
+
+        # Draw the interior by going in a cycle
+        vertices = list(self.parent_polyhedron.Vrep_generator())
+        tikz_pic += '%%\n%%\n%% Drawing the interior\n%%\n'
+        cyclic_vert = cyclic_sort_vertices_2d(list(self.parent_polyhedron.Vrep_generator()))
+        cyclic_indices = [vertices.index(v) for v in cyclic_vert]
+        tikz_pic += '\\fill[facet] '
+        for v in cyclic_indices:
+            if v in dict_drawing:
+                tikz_pic += '%s -- ' % dict_drawing[v][2]
+        tikz_pic += 'cycle {};\n'
+
+        # Draw the edges
+        tikz_pic += '%%\n%%\n%% Drawing edges\n%%\n'
+        tikz_pic += edges
+
+        # Finally, the vertices in front are drawn on top of everything.
+        tikz_pic += '%%\n%%\n%% Drawing the vertices\n%%\n'
+        for v in dict_drawing:
+            tikz_pic += dict_drawing[v][0]
+        tikz_pic += '%%\n%%\n\\end{tikzpicture}'
+
+        return LatexExpr(tikz_pic)
+
+    def _tikz_2d_in_3d(self, view, angle, scale, edge_color, facet_color,
+                       opacity, vertex_color, axis):
+        r"""
+        Return a string ``tikz_pic`` consisting of a tikz picture of ``self``
+        according to a projection ``view`` and an angle ``angle``
+        obtained via Jmol through the current state property.
+
+        INPUT:
+
+        - ``view`` - list (default: [0,0,1]) representing the rotation axis.
+        - ``angle`` - integer angle of rotation in degree from 0 to 360.
+        - ``scale`` - integer specifying the scaling of the tikz picture.
+        - ``edge_color`` - string representing colors which tikz
+          recognize.
+        - ``facet_color`` - string representing colors which tikz
+          recognize.
+        - ``vertex_color`` - string representing colors which tikz
+          recognize.
+        - ``opacity`` - real number between 0 and 1 giving the opacity of
+          the front facets.
+        - ``axis`` - Boolean draw the axes at the origin or not.
+
+        OUTPUT:
+
+        - LatexExpr -- containing the TikZ picture.
+
+        EXAMPLE::
+
+            sage: P = Polyhedron(vertices=[[-1, -1, 2],[-1, 2, -1],[2, -1, -1]])
+            sage: P
+            A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 3 vertices
+            sage: Image = P.projection()._tikz_2d_in_3d(view=[0.5,-1,-0.5], angle=55, scale=3, edge_color='blue!95!black', facet_color='orange', opacity=0.5, vertex_color='yellow', axis=True)
+            sage: print '\n'.join(Image.splitlines()[:4])
+            \begin{tikzpicture}%
+                [x={(0.644647cm, -0.476559cm)},
+                y={(0.192276cm, 0.857859cm)},
+                z={(-0.739905cm, -0.192276cm)},
+            sage: open('polytope-tikz3.tex', 'w').write(Image)    # not tested
+
+        .. NOTE::
+
+            The ``facet_color`` is the filing color of the polytope (polygon).
+        """
+        view_vector = vector(RDF, view)
+        rot = rotate_arbitrary(view_vector,-(angle/360)*2*pi)
+        rotation_matrix = rot[:2].transpose()
+
+        # Creates the nodes, coordinate and tag for every vertex of the polytope.
+        # The tag is used to draw the front facets later on.
+        dict_drawing = {}
+        edges = ''
+        for vert in self.points:
+            v = self.coords[vert]
+            v_vect = str([i.n(digits=3) for i in v])
+            v_vect = v_vect.replace('[','(')
+            v_vect = v_vect.replace(']',')')
+            tag = '%s' %v_vect
+            node = "\\node[%s] at %s     {};\n" % ('vertex', tag)
+            coord = '\coordinate %s at %s;\n' % (tag, tag)
+            dict_drawing[vert] = node, coord, tag
+
+        for index1, index2 in self.lines:
+            # v1 = self.coords[index1]
+            # v2 = self.coords[index2]
+            edges += "\\draw[%s] %s -- %s;\n" % ('edge',
+                                                 dict_drawing[index1][2],
+                                                 dict_drawing[index2][2])
+
+        # Start to write the output
+        tikz_pic = ''
+        tikz_pic += '\\begin{tikzpicture}%\n'
+        tikz_pic += '\t[x={(%fcm, %fcm)},\n' % (RDF(rotation_matrix[0][0]),
+                                                RDF(rotation_matrix[0][1]))
+        tikz_pic += '\ty={(%fcm, %fcm)},\n' % (RDF(rotation_matrix[1][0]),
+                                               RDF(rotation_matrix[1][1]))
+        tikz_pic += '\tz={(%fcm, %fcm)},\n' % (RDF(rotation_matrix[2][0]),
+                                               RDF(rotation_matrix[2][1]))
+        tikz_pic += '\tscale=%f,\n' % scale
+        tikz_pic += '\tback/.style={loosely dotted, thin},\n'
+        tikz_pic += '\tedge/.style={color=%s, thick},\n' % edge_color
+        tikz_pic += '\tfacet/.style={fill=%s,fill opacity=%f},\n' % (facet_color,opacity)
+        tikz_pic += '\tvertex/.style={inner sep=1pt,circle,draw=%s!25!black,' % vertex_color
+        tikz_pic += 'fill=%s!75!black,thick,anchor=base}]\n%%\n%%\n' % vertex_color
+
+        # Draws the axes if True
+        if axis:
+            tikz_pic += '\\draw[color=black,thick,->] (0,0,0) -- (1,0,0) node[anchor=north east]{$x$};\n'
+            tikz_pic += '\\draw[color=black,thick,->] (0,0,0) -- (0,1,0) node[anchor=north west]{$y$};\n'
+            tikz_pic += '\\draw[color=black,thick,->] (0,0,0) -- (0,0,1) node[anchor=south]{$z$};\n'
+
+        # Create the coordinate of the vertices:
+        tikz_pic += '%% Coordinate of the vertices:\n%%\n'
+        for v in dict_drawing:
+            tikz_pic += dict_drawing[v][1]
+
+        # Draw the interior by going in a cycle
+        vertices = list(self.parent_polyhedron.Vrep_generator())
+        tikz_pic += '%%\n%%\n%% Drawing the interior\n%%\n'
+        cyclic_vert = cyclic_sort_vertices_2d(list(self.parent_polyhedron.Vrep_generator()))
+        cyclic_indices = [vertices.index(v) for v in cyclic_vert]
+        tikz_pic += '\\fill[facet] '
+        for v in cyclic_indices:
+            if v in dict_drawing:
+                tikz_pic += '%s -- ' % dict_drawing[v][2]
+        tikz_pic += 'cycle {};\n'
+
+        # Draw the edges in the front
+        tikz_pic += '%%\n%%\n%% Drawing edges\n%%\n'
+        tikz_pic += edges
+
+        # Finally, the vertices in front are drawn on top of everything.
+        tikz_pic += '%%\n%%\n%% Drawing the vertices\n%%\n'
+        for v in dict_drawing:
+            tikz_pic += dict_drawing[v][0]
+        tikz_pic += '%%\n%%\n\\end{tikzpicture}'
+
+        return LatexExpr(tikz_pic)
+
+    def _tikz_3d_in_3d(self, view, angle, scale, edge_color,
+                       facet_color, opacity, vertex_color, axis):
+        r"""
+        Return a string ``tikz_pic`` consisting of a tikz picture of ``self``
+        according to a projection ``view`` and an angle ``angle``
+        obtained via Jmol through the current state property.
+
+        INPUT:
+
+        - ``view`` - list (default: [0,0,1]) representing the rotation axis.
+        - ``angle`` - integer angle of rotation in degree from 0 to 360.
+        - ``scale`` - integer specifying the scaling of the tikz picture.
+        - ``edge_color`` - string representing colors which tikz
+          recognize.
+        - ``facet_color`` - string representing colors which tikz
+          recognize.
+        - ``vertex_color`` - string representing colors which tikz
+          recognize.
+        - ``opacity`` - real number between 0 and 1 giving the opacity of
+          the front facets.
+        - ``axis`` - Boolean draw the axes at the origin or not.
+
+        OUTPUT:
+
+        - LatexExpr -- containing the TikZ picture.
+
+        EXAMPLES::
+
+            sage: P = polytopes.small_rhombicuboctahedron()
+            sage: Image = P.projection()._tikz_3d_in_3d([3,7,5], 100, scale=3, edge_color='blue', facet_color='orange', opacity=0.5, vertex_color='green', axis=True)
+            sage: type(Image)
+            <class 'sage.misc.latex.LatexExpr'>
+            sage: print '\n'.join(Image.splitlines()[:4])
+            \begin{tikzpicture}%
+                [x={(-0.046385cm, 0.837431cm)},
+                y={(-0.243536cm, 0.519228cm)},
+                z={(0.968782cm, 0.170622cm)},
+            sage: open('polytope-tikz1.tex', 'w').write(Image)    # not tested
+        """
+        view_vector = vector(RDF, view)
+        rot = rotate_arbitrary(view_vector, -(angle/360)*2*pi)
+        rotation_matrix = rot[:2].transpose()
+        proj_vector = (rot**(-1))*vector(RDF, [0, 0, 1])
+
+        # First compute the back and front vertices and facets
+        facets = self.face_inequalities
+        front_facets = []
+        back_facets = []
+        for index_facet in range(len(facets)):
+            A = facets[index_facet].vector()[1:]
+            B = facets[index_facet].vector()[0]
+            if A*(2000*proj_vector)+B < 0:
+                front_facets += [index_facet]
+            else:
+                back_facets += [index_facet]
+
+        vertices = list(self.parent_polyhedron.Vrep_generator())
+        front_vertices = []
+        for index_facet in front_facets:
+            A = facets[index_facet].vector()[1:]
+            B = facets[index_facet].vector()[0]
+            for v in self.points:
+                if A*self.coords[v]+B < 0.0005 and v not in front_vertices:
+                    front_vertices += [v]
+
+        back_vertices = []
+        for index_facet in back_facets:
+            A = facets[index_facet].vector()[1:]
+            B = facets[index_facet].vector()[0]
+            for v in self.points:
+                if A*self.coords[v]+B < 0.0005 and v not in back_vertices:
+                    back_vertices += [v]
+
+        # Creates the nodes, coordinate and tag for every vertex of the polytope.
+        # The tag is used to draw the front facets later on.
+        dict_drawing = {}
+        back_part = ''
+        front_part = ''
+
+        for vert in self.points:
+            v = self.coords[vert]
+            v_vect = str([i.n(digits=3) for i in v])
+            v_vect = v_vect.replace('[','(')
+            v_vect = v_vect.replace(']',')')
+            tag = '%s' %v_vect
+            node = "\\node[%s] at %s     {};\n" % ('vertex', tag)
+            coord = '\coordinate %s at %s;\n' %(tag, tag)
+            dict_drawing[vert] = node, coord, tag
+
+        # Separate the edges between back and front
+
+        for index1, index2 in self.lines:
+            # v1 = self.coords[index1]
+            # v2 = self.coords[index2]
+
+            H_v1 = set(self.parent_polyhedron.Vrepresentation(index1).incident())
+            H_v2 = set(self.parent_polyhedron.Vrepresentation(index2).incident())
+            H_v12 = [h for h in H_v1.intersection(H_v2) if h in back_facets]
+
+            # The back edge has to be between two vertices in the Back
+            # AND such that the 2 facets touching them are in the Back
+            if index1 in back_vertices and index2 in back_vertices and len(H_v12)==2:
+                back_part += "\\draw[%s,back] %s -- %s;\n" % ('edge', dict_drawing[index1][2], dict_drawing[index2][2])
+            else:
+                front_part += "\\draw[%s] %s -- %s;\n" % ('edge',dict_drawing[index1][2],dict_drawing[index2][2])
+
+        # Start to write the output
+        tikz_pic = ''
+        tikz_pic += '\\begin{tikzpicture}%\n'
+        tikz_pic += '\t[x={(%fcm, %fcm)},\n' % (RDF(rotation_matrix[0][0]),
+                                                RDF(rotation_matrix[0][1]))
+        tikz_pic += '\ty={(%fcm, %fcm)},\n' % (RDF(rotation_matrix[1][0]),
+                                               RDF(rotation_matrix[1][1]))
+        tikz_pic += '\tz={(%fcm, %fcm)},\n' % (RDF(rotation_matrix[2][0]),
+                                               RDF(rotation_matrix[2][1]))
+        tikz_pic += '\tscale=%f,\n' % scale
+        tikz_pic += '\tback/.style={loosely dotted, thin},\n'
+        tikz_pic += '\tedge/.style={color=%s, thick},\n' % edge_color
+        tikz_pic += '\tfacet/.style={fill=%s,fill opacity=%f},\n' % (facet_color,opacity)
+        tikz_pic += '\tvertex/.style={inner sep=1pt,circle,draw=%s!25!black,' % vertex_color
+        tikz_pic += 'fill=%s!75!black,thick,anchor=base}]\n%%\n%%\n' % vertex_color
+
+        # Draws the axes if True
+        if axis:
+            tikz_pic += '\\draw[color=black,thick,->] (0,0,0) -- (1,0,0) node[anchor=north east]{$x$};\n'
+            tikz_pic += '\\draw[color=black,thick,->] (0,0,0) -- (0,1,0) node[anchor=north west]{$y$};\n'
+            tikz_pic += '\\draw[color=black,thick,->] (0,0,0) -- (0,0,1) node[anchor=south]{$z$};\n'
+
+        # Create the coordinate of the vertices
+        tikz_pic += '%% Coordinate of the vertices:\n%%\n'
+        for v in dict_drawing:
+            tikz_pic += dict_drawing[v][1]
+
+        # Draw the edges in the back
+        tikz_pic += '%%\n%%\n%% Drawing edges in the back\n%%\n'
+        tikz_pic += back_part
+
+        # Draw the vertices on top of the back-edges
+        tikz_pic += '%%\n%%\n%% Drawing vertices in the back\n%%\n'
+        for v in back_vertices:
+            if not v in front_vertices and v in dict_drawing:
+                tikz_pic += dict_drawing[v][0]
+
+        # Draw the facets in the front by going in cycles for every facet.
+        tikz_pic += '%%\n%%\n%% Drawing the facets\n%%\n'
+        for index_facet in front_facets:
+            cyclic_vert = cyclic_sort_vertices_2d(list(facets[index_facet].incident()))
+            cyclic_indices = [vertices.index(v) for v in cyclic_vert]
+            tikz_pic += '\\fill[facet] '
+            for v in cyclic_indices:
+                if v in dict_drawing:
+                    tikz_pic += '%s -- ' % dict_drawing[v][2]
+            tikz_pic += 'cycle {};\n'
+
+        # Draw the edges in the front
+        tikz_pic += '%%\n%%\n%% Drawing edges in the front\n%%\n'
+        tikz_pic += front_part
+
+        # Finally, the vertices in front are drawn on top of everything.
+        tikz_pic += '%%\n%%\n%% Drawing the vertices in the front\n%%\n'
+        for v in self.points:
+            if v in front_vertices:
+                if v in dict_drawing:
+                    tikz_pic += dict_drawing[v][0]
+        tikz_pic += '%%\n%%\n\\end{tikzpicture}'
+        return LatexExpr(tikz_pic)

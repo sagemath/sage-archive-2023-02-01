@@ -5,20 +5,21 @@ For documentation about how to use these, see the Developer's Guide.
 
 This code distinguishes between two kinds of signals:
 
-(1) interrupt-like signals: SIGINT, SIGHUP.  The word
+(1) interrupt-like signals: SIGINT, SIGALRM, SIGHUP.  The word
 "interrupt" refers to any of these signals.  These need not be handled
 immediately, we might handle them at a suitable later time, outside of
 sig_block() and with the Python GIL acquired.  SIGINT raises a
-KeyboardInterrupt (as usual in Python), while SIGHUP raises
-SystemExit, causing Python to exit.  The latter signals also redirect
-stdin from /dev/null, to cause interactive sessions to exit also.
+KeyboardInterrupt (as usual in Python), SIGALRM raises AlarmInterrupt
+(a custom exception inheriting from KeyboardInterrupt), while SIGHUP
+raises SystemExit, causing Python to exit.  The latter signal also
+redirects stdin from /dev/null, to cause interactive sessions to exit.
 
 (2) critical signals: SIGQUIT, SIGILL, SIGABRT, SIGFPE, SIGBUS, SIGSEGV.
 These are critical because they cannot be ignored.  If they happen
 outside of sig_on(), we can only exit Sage with the dreaded
 "unhandled SIG..." message.  Inside of sig_on(), they can be handled
-and raise a RuntimeError.  SIGQUIT will never be handled and always
-causes Sage to exit.
+and raise various exceptions (see sage/ext/c_lib.pyx).  SIGQUIT will
+never be handled and always causes Sage to exit.
 
 
 AUTHORS:
@@ -30,6 +31,8 @@ AUTHORS:
 - Jeroen Demeyer (2013-01-11): handle SIGHUP also (#13908)
 
 - Jeroen Demeyer (2013-01-28): handle SIGQUIT also (#14029)
+
+- Jeroen Demeyer (2013-05-13): handle SIGALRM also (#13311)
 
 */
 
@@ -111,11 +114,6 @@ void sage_signal_handler(int sig);
  */
 void setup_sage_signal_handler(void);
 
-/* This function communicates signals to Python by raising an exception.
- * It may only be called synchronously with the Global Interpreter Lock
- * held. */
-void sig_raise_exception(int sig);
-
 
 /**********************************************************************
  * SAGE_SIGNALS_T STRUCTURE                                           *
@@ -150,6 +148,11 @@ struct sage_signals_t
     /* A jump buffer holding where to siglongjmp() after a signal has
      * been received. This is set by sig_on(). */
     sigjmp_buf env;
+
+    /* External Cython function which actually raises the appropriate
+     * exception depending on the signal number. Must be set
+     * immediately after calling setup_sage_signal_handler(). */
+    int (*raise_exception)(int sig, const char* msg);
 
     /* An optional string may be passed to the signal handler which
      * will be used as the text for the exception. This can be set
@@ -295,7 +298,6 @@ static inline void _sig_off_(const char* file, int line)
 }
 
 
-
 /**********************************************************************
  * USER MACROS/FUNCTIONS                                              *
  **********************************************************************/
@@ -403,6 +405,18 @@ static inline void sig_retry()
         abort();
     }
     siglongjmp(_signals.env, -1);
+}
+
+/* Used in error callbacks from C code (in particular NTL and PARI).
+ * This should be used after an exception has been raised to jump back
+ * to sig_on() where the exception will be seen. */
+static inline void sig_error()
+{
+    if (unlikely(_signals.sig_on_count <= 0))
+    {
+        fprintf(stderr, "sig_error() without sig_on()\n");
+    }
+    abort();
 }
 
 

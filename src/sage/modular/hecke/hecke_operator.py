@@ -437,8 +437,9 @@ class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
             TypeError: A must be a square matrix of rank 3
         """
         HeckeAlgebraElement.__init__(self, parent)
-        if not sage.matrix.all.is_Matrix(A):
-            raise TypeError, "A must be a matrix"
+        from sage.matrix.matrix import is_Matrix
+        if not is_Matrix(A):
+            raise TypeError("A must be a matrix")
         if not A.base_ring() == self.parent().base_ring():
             raise TypeError, "base ring of matrix (%s) does not match base ring of space (%s)" % (A.base_ring(), self.parent().base_ring())
         if not A.nrows() == A.ncols() == self.parent().module().rank():

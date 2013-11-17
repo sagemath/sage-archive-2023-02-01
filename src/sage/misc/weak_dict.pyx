@@ -303,6 +303,83 @@ def test_del_dictitem_by_exact_value(D, value, h):
     """
     return del_dictitem_by_exact_value(<PyDictObject *>D, <PyObject *>value, h)
 
+cdef class WeakValueDictEraser:
+    """
+    Erases items from a :class:`sage.misc.weak_dict.WeakValueDictionary` when
+    a weak reference becomes invalid.
+
+    This is of internal use only. Instances of this class will be passed as a
+    callback function when creating a weak reference.
+
+    EXAMPLES::
+
+        sage: from sage.misc.weak_dict import WeakValueDictionary
+        sage: v = frozenset([1])
+        sage: D = WeakValueDictionary({1 : v})
+        sage: len(D)
+        1
+        sage: del v
+        sage: len(D)
+        0
+
+    AUTHOR:
+
+     - Nils Bruin (2013-11)
+    """
+    cdef D
+    def __init__(self, D):
+        """
+        INPUT:
+
+        A :class:`sage.misc.weak_dict.WeakValueDictionary`.
+
+        EXAMPLES::
+
+            sage: v = frozenset([1])
+            sage: D = sage.misc.weak_dict.WeakValueDictionary({ 1 : v })
+            sage: len(D)
+            1
+            sage: del v
+            sage: len(D) #indirect doctest
+            0
+        """
+        self.D = PyWeakref_NewRef(D,None)
+    def __call__(self, r):
+        """
+        INPUT:
+
+        A weak reference with key.
+
+        When this is called with a weak reference ``r``, then an entry from the
+        dictionary pointed to by `self.D` is removed that has ``r`` as a value
+        identically, stored under a key with hash `r.key`. If no such key
+        exists, or if the dictionary itself doesn't exist any more, then nothing
+        happens.
+
+        If the dictionary has an iterator active on it then the object is
+        queued for removal when all iterators have concluded.
+
+        EXAMPLES::
+
+            sage: v = frozenset([1])
+            sage: D = sage.misc.weak_dict.WeakValueDictionary({ 1 : v })
+            sage: len(D)
+            1
+            sage: del v
+            sage: len(D) #indirect doctest
+            0
+        """
+        cdef WeakValueDictionary D = <object> PyWeakref_GetObject(<PyObject*> self.D)
+        if D is None:
+            return
+        #The situation is the following:
+        #in the underlying dictionary, we have stored a KeyedRef r
+        #under a key k. The attribute r.key is the hash of k.
+        if D._guard_level:
+            D._pending_removals.append(r)
+        else:
+            del_dictitem_by_exact_value(<PyDictObject *>D, <PyObject *>r, r.key)
+
 cdef class WeakValueDictionary(dict):
     """
     IMPLEMENTATION:
@@ -396,6 +473,7 @@ cdef class WeakValueDictionary(dict):
         ....:     assert D1 == D2
 
     """
+    cdef __weakref__
     cdef callback
     cdef int _guard_level
     cdef list _pending_removals
@@ -422,24 +500,14 @@ cdef class WeakValueDictionary(dict):
 
         """
         dict.__init__(self)
-        # Define a callback function. In contrast to what is done in Python's
-        # weakref.WeakValueDictionary, we use a closure and not a weak
-        # reference to refer to self. Reason: We trust that we will not create
-        # sub-classes of keyed references or weak value dictionaries providing
-        # a __del__ method.
-        def callback(r):
-            #The situation is the following:
-            #in the underlying dictionary, we have stored a KeyedRef r
-            #under a key k. The attribute r.key is the hash of k.
-            cdef WeakValueDictionary cself = self
-            if cself._guard_level:
-                cself._pending_removals.append(r)
-            else:
-                del_dictitem_by_exact_value(<PyDictObject *>cself, <PyObject *>r, r.key)
-        self.callback = callback
+        self.callback = WeakValueDictEraser(self)
         self._guard_level = 0
         self._pending_removals = []
         self._iteration_context = _IterationContext(self)
+        try:
+            data=data.iteritems()
+        except AttributeError:
+            pass
         for k,v in data:
             self[k] = v
 

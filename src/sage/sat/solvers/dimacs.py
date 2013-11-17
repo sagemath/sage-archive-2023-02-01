@@ -407,9 +407,9 @@ class DIMACS(SatSolver):
                 sleep(0.1)
             if output_filename:
                 self._output.extend(open(output_filename).readlines())
-        except KeyboardInterrupt:
+        except BaseException:
             process.kill()
-            raise KeyboardInterrupt
+            raise
 
 class RSat(DIMACS):
     """

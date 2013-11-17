@@ -1967,6 +1967,79 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return self._hasse_diagram.is_chain()
 
+    def is_chain_of_poset(self, o, ordered=False):
+        """
+        Return whether an iterable ``o`` is a chain of ``self``,
+        including a check for ``o`` being ordered from smallest
+        to largest element if the keyword ``ordered`` is set to
+        ``True``.
+
+        INPUT:
+
+        - ``o`` -- an iterable (e. g., list, set, or tuple)
+          containing some elements of ``self``
+
+        - ``ordered`` -- a Boolean (default: ``False``) which
+          decides whether the notion of a chain includes being
+          ordered
+
+        OUTPUT:
+
+        If ``ordered`` is set to ``False``, the truth value of
+        the following assertion is returned: The subset of ``self``
+        formed by the elements of ``o`` is a chain in ``self``.
+
+        If ``ordered`` is set to ``True``, the truth value of
+        the following assertion is returned: Every element of the
+        list ``o`` is (strictly!) smaller than its successor in
+        ``self``. (This makes no sense if ``ordered`` is a set.)
+
+        EXAMPLES::
+
+            sage: P = Poset((divisors(12), attrcall("divides")))
+            sage: sorted(P.list())
+            [1, 2, 3, 4, 6, 12]
+            sage: P.is_chain_of_poset([2, 4])
+            True
+            sage: P.is_chain_of_poset([12, 6])
+            True
+            sage: P.is_chain_of_poset([12, 6], ordered=True)
+            False
+            sage: P.is_chain_of_poset([6, 12], ordered=True)
+            True
+            sage: P.is_chain_of_poset(())
+            True
+            sage: P.is_chain_of_poset((), ordered=True)
+            True
+            sage: P.is_chain_of_poset((3, 4, 12))
+            False
+            sage: P.is_chain_of_poset((3, 6, 12, 1))
+            True
+            sage: P.is_chain_of_poset((3, 6, 12, 1), ordered=True)
+            False
+            sage: P.is_chain_of_poset((3, 6, 12), ordered=True)
+            True
+            sage: P.is_chain_of_poset((1, 1, 3))
+            True
+            sage: P.is_chain_of_poset((1, 1, 3), ordered=True)
+            False
+            sage: P.is_chain_of_poset((1, 3), ordered=True)
+            True
+            sage: P.is_chain_of_poset((6, 1, 1, 3))
+            True
+            sage: P.is_chain_of_poset((2, 1, 1, 3))
+            False
+        """
+        if ordered:
+            sorted_o = o
+            return all(self.lt(a, b) for a, b in zip(sorted_o, sorted_o[1:]))
+        else:
+            # _element_to_vertex can be assumed to be a linear extension
+            # of the poset according to the documentation of class
+            # HasseDiagram.
+            sorted_o = sorted(o, key=self._element_to_vertex)
+            return all(self.le(a, b) for a, b in zip(sorted_o, sorted_o[1:]))
+
     def is_EL_labelling(self, f, return_raising_chains=False):
         r"""
         Returns ``True`` if ``f`` is an EL labelling of ``self``.

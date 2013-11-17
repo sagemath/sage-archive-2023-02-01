@@ -36,7 +36,8 @@ cdef extern from "math.h":
     double log(double)
 
 from sage.finance.time_series cimport TimeSeries
-from sage.matrix.all import is_Matrix, matrix
+from sage.matrix.matrix import is_Matrix
+from sage.matrix.all import matrix
 from sage.misc.randstate cimport current_randstate, randstate
 
 from util cimport HMM_Util

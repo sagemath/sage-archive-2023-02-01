@@ -2286,7 +2286,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         To describe this function in terms of its meaning in representation theory,
         we assume without loss that `f` is some Schur function `s_\lambda` and `g` is
-        symmetric function of homogeneous degree `n`.  The result of
+        a symmetric function of homogeneous degree `n`.  The result of
         ``f.inner_plethysm(g)`` will also be a symmetric function of degree `n`.
         We will describe a construction of an `S_n` module when `g` is
         Schur-positive with integral coefficients in the Schur basis.

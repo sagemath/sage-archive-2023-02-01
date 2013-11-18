@@ -1739,10 +1739,19 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
 
     def _inner_plethysm_pk_g(self, k, g, cache):
         r"""
-        Return the inner plethysm between `p_k` and ``g``.
+        Return the inner plethysm between the power-sum symmetric
+        function `p_k` and the symmetric function ``g``.
 
-        Express ``g`` in the power sum basis `\sum_\mu c_\mu p_\mu/z_\mu`
-        and the inner plethysm is calculated as
+        See :meth:`inner_plethysm` for the definition of inner
+        plethysm.
+
+        ALGORITHM:
+
+        Express ``g`` in the power sum basis as
+        `g = \sum_\mu c_\mu p_\mu/z_\mu`
+        (where `z_\mu` is the size of the centralizer of any
+        permutation with cycle type `\mu`). Then, the inner plethysm
+        is calculated as
 
         .. MATH::
 
@@ -1793,8 +1802,12 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
 
     def _inner_plethysm_pnu_g(self, p_x, cache, nu):
         r"""
-        Return the inner plethysm of `p_\nu` with another symmetric function
-        ``p_x`` in the power-sum basis.
+        Return the inner plethysm of the power-sum symmetric function
+        `p_\nu` with another symmetric function ``p_x`` in the
+        power-sum basis.
+
+        See :meth:`inner_plethysm` for the definition of inner
+        plethysm.
 
         The computation is the inner plethysm of `p_k` and ``p_x`` and the identity
 
@@ -2250,16 +2263,17 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         Whenever `R` is a `\QQ`-algebra, and `f` and `g` are two
         symmetric functions over `R` such that the constant term of `f`
-        is zero, the inner plethysm ``f.inner_plethysm(g)`` is a
-        well-defined symmetric function over `R` and the degree of this symmetric
-        function is the same as the degree of `g`.  For more compact notation, we
-        will denote the inner plethysm operation by `f \{ g \}` (in contrast to the
-        notation of outer plethysm which is generally denoted `f [ g ]`).
+        is zero, the inner plethysm of `f` with `g` is a symmetric
+        function over `R`, and the degree of this symmetric function is
+        the same as the degree of `g`. We will denote the inner plethysm
+        of `f` with `g` by `f \{ g \}` (in contrast to the notation of
+        outer plethysm which is generally denoted `f [ g ]`); in Sage
+        syntax, it is ``f.inner_plethysm(g)``.
 
         Here is an axiomatic definition of the operation (where in the
-        equations below we denote outer product
-        (:meth:`~sage.categories.algebras_with_basis.AlgebrasWithBasis.ParentMethods.product`)
-        by `\cdot` and the Kronecker product (:meth:`itensor`) by `\ast`):
+        equations below we denote the outer product -- i.e., the standard
+        product on the ring of symmetric functions -- by `\cdot` and the
+        Kronecker product (:meth:`itensor`) by `\ast`):
 
         .. MATH::
 
@@ -2268,6 +2282,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             (f \cdot g) \{ h \} = (f \{ h \}) \ast (g \{ h \})
 
             p_k \{ f + g \} = p_k \{ f \} + p_k \{ g \}
+
+        where `p_k` is the `k`-th power-sum symmetric function for every
+        `k > 0`.
 
         Let `\sigma` be a permutation of cycle type `\mu` and let `\mu^{k}`
         be the cycle type of `\sigma^k`, then
@@ -2286,7 +2303,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         To describe this function in terms of its meaning in representation theory,
         we assume without loss that `f` is some Schur function `s_\lambda` and `g` is
-        symmetric function of homogeneous degree `n`.  The result of
+        a symmetric function of homogeneous degree `n`.  The result of
         ``f.inner_plethysm(g)`` will also be a symmetric function of degree `n`.
         We will describe a construction of an `S_n` module when `g` is
         Schur-positive with integral coefficients in the Schur basis.

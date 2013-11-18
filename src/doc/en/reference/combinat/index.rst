@@ -31,7 +31,6 @@ Combinatorics
    sage/combinat/integer_vectors_mod_permgroup
    sage/combinat/enumeration_mod_permgroup
    sage/combinat/restricted_growth
-   sage/combinat/yamanouchi
    sage/combinat/yang_baxter_graph
    sage/combinat/gelfand_tsetlin_patterns
    sage/combinat/graph_path
@@ -63,6 +62,7 @@ Combinatorics
    sage/combinat/tuple
    sage/combinat/vector_partition
    cluster_algebras
+   sage/combinat/binary_recurrence_sequences
 
    algebra
    partitions
@@ -85,6 +85,5 @@ Combinatorics
    sage/combinat/dict_addition
    sage/combinat/misc
    sage/combinat/combinatorial_map
-
 
 .. include:: ../footer.txt

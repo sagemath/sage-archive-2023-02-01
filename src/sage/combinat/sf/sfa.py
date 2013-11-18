@@ -1745,6 +1745,11 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         See :meth:`inner_plethysm` for the definition of inner
         plethysm.
 
+        .. WARNING::
+
+            The function ``g`` *must* be given in the power-sum
+            basis for this method to return a correct result.
+
         ALGORITHM:
 
         Express ``g`` in the power sum basis as
@@ -1811,6 +1816,11 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
 
         See :meth:`inner_plethysm` for the definition of inner
         plethysm.
+
+        .. WARNING::
+
+            The function ``g`` *must* be given in the power-sum
+            basis for this method to return a correct result.
 
         The computation uses the inner plethysm of `p_k` and ``p_x``
         and the identity

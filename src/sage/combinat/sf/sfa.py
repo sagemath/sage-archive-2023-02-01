@@ -1757,11 +1757,14 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
 
             p_k \{ g \} = \sum_\mu c_\mu p_k \{ p_\mu/z_\mu \}~.
 
-        The inner plethysm of `p_k \{ p_mu/z_\mu \}` is given by the formula
+        The inner plethysm `p_k \{ p_mu/z_\mu \}` is given by the formula
 
         .. MATH::
 
-            p_k \{ p_\mu/z_\mu \} = \sum_{\nu : \nu^k = \mu } p_{\nu}/z_{\nu}~.
+            p_k \{ p_\mu/z_\mu \} = \sum_{\nu : \nu^k = \mu } p_{\nu}/z_{\nu}~,
+
+        where `\nu^k` is the `k`-th power of `nu` (see
+        :~sage.combinat.partition.partition_power`).
 
         .. SEEALSO:: :func:`~sage.combinat.partition.partition_power`,
             :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.inner_plethysm`
@@ -1809,7 +1812,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         See :meth:`inner_plethysm` for the definition of inner
         plethysm.
 
-        The computation is the inner plethysm of `p_k` and ``p_x`` and the identity
+        The computation uses the inner plethysm of `p_k` and ``p_x``
+        and the identity
 
         .. MATH::
 
@@ -2286,47 +2290,59 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         where `p_k` is the `k`-th power-sum symmetric function for every
         `k > 0`.
 
-        Let `\sigma` be a permutation of cycle type `\mu` and let `\mu^{k}`
-        be the cycle type of `\sigma^k`, then
+        Let `\sigma` be a permutation of cycle type `\mu` and let `\mu^k`
+        be the cycle type of `\sigma^k`. Then,
 
         .. MATH::
 
             p_k \{ p_\mu/z_\mu \} = \sum_{\nu : \nu^k = \mu } p_{\nu}/z_{\nu}
 
-        Since `p_\mu/z_\mu` is a basis for the symmetric functions, these
-        four formulas define the symmetric function operation `f \{ g \}` for any
-        symmetric functions `f` and `g` by expanding `f` in the power sum basis
-        and `g` in the dual basis `p_\mu/z_\mu`.
+        Since `(p_\mu/z_\mu)_{\mu}` is a basis for the symmetric
+        functions, these four formulas define the symmetric function
+        operation `f \{ g \}` for any symmetric functions `f` and `g`
+        (where `f` has constant term `0`) by expanding `f` in the
+        power sum basis and `g` in the dual basis `p_\mu/z_\mu`.
 
         .. SEEALSO:: :meth:`itensor`, :func:`~sage.combinat.partition.partition_power`,
             :meth:`plethysm`
 
-        To describe this function in terms of its meaning in representation theory,
-        we assume without loss that `f` is some Schur function `s_\lambda` and `g` is
-        a symmetric function of homogeneous degree `n`.  The result of
-        ``f.inner_plethysm(g)`` will also be a symmetric function of degree `n`.
-        We will describe a construction of an `S_n` module when `g` is
+        To describe this function in terms of its meaning in
+        representation theory, we assume that `f` is some Schur function
+        `s_\lambda` and `g` is a symmetric function of homogeneous degree
+        `n`.  Then, `f \{ g \}` will also be a symmetric function of
+        degree `n`.
+        We will describe a construction of an `S_n`-module when `g` is
         Schur-positive with integral coefficients in the Schur basis.
-        Assuming this, we can think of the function `g` as the Frobenius image of a
-        character of a representation `\rho` of the symmetric group `S_n`. Let `N`
-        be the dimension of this representation. If the number of parts of `\lambda`
-        is greater than `N`, then ``f.inner_plethysm(g)`` `= 0` by definition.
-        Otherwise, we can interpret `f` as the character of an irreducible
-        `GL_N`-representation, call it `\sigma`. Now `\sigma \circ \rho` is an
-        `S_n`-representation. The Frobenius image of the character of this
-        representation is ``f.inner_plethysm(g)``.
+        Assuming this, we can think of the function `g` as the Frobenius
+        image of a character of a representation `\rho` of the symmetric
+        group `S_n`. Let `N` be the dimension of this representation. If
+        the number of parts of `\lambda` is greater than `N`, then
+        `f \{ g \} = 0` by definition. Otherwise, we can interpret `f` as
+        the character of an irreducible `GL_N`-representation, call it
+        `\sigma`. Now `\sigma \circ \rho` is an `S_n`-representation. The
+        Frobenius image of the character of this representation is
+        `f \{ g \}`.
 
         When `f` is a symmetric function with constant term `\neq 0`, the
-        inner plethysm ``f.inner_plethysm(g)`` isn't well-defined in the
-        ring of symmetric functions. Indeed, it is not clear how to define
-        ``1.inner_plethysm(g)``. The most sensible way to get around this
-        probably is defining it as the infinite sum `h_0 + h_1 + h_2 + \cdots`
-        (where `h_i` means the `i`-th complete homogeneous symmetric function)
+        inner plethysm `f \{ g \}` isn't well-defined in the ring of
+        symmetric functions. Indeed, it is not clear how to define
+        `1 \{ g \}`. The most sensible way to get around this probably is
+        defining it as the infinite sum `h_0 + h_1 + h_2 + \cdots` (where
+        `h_i` means the `i`-th complete homogeneous symmetric function)
         in the completion of this ring with respect to its grading. This is
-        how [SchaThi1994]_ defines ``1.inner_plethysm(g)``. The present
-        method, however, sets it to be the sum of `h_i` over all `i` for
-        which the `i`-th homogeneous component of `g` is nonzero. This is
-        rather a hack than a reasonable definition. Use with caution!
+        how [SchaThi1994]_ defines `1 \{ g \}`. The present method,
+        however, sets it to be the sum of `h_i` over all `i` for which the
+        `i`-th homogeneous component of `g` is nonzero. This is rather a
+        hack than a reasonable definition. Use with caution!
+
+        .. NOTE::
+
+            If a symmetric function `g` is written in the form
+            `g = g_0 + g_1 + g_2 + \cdots` with each `g_i` homogeneous
+            of degree `i`, then
+            `f \{ g \} = f \{ g_0 \} + f \{ g_1 \} + f \{ g_2 \} + \cdots`
+            for every `f` with constant term `0`. But in general, inner
+            plethysm is not linear in the second variable.
 
         REFERENCES:
 

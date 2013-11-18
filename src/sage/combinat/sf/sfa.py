@@ -1819,7 +1819,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
 
         .. WARNING::
 
-            The function ``g`` *must* be given in the power-sum
+            The function ``p_x`` *must* be given in the power-sum
             basis for this method to return a correct result.
 
         The computation uses the inner plethysm of `p_k` and ``p_x``

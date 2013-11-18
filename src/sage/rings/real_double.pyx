@@ -1528,7 +1528,7 @@ cdef class RealDoubleElement(FieldElement):
             1.50000000000000
         """
         cdef PariInstance P = sage.libs.pari.pari_instance.pari
-        return P.new_gen_from_double(self._value)
+        return P.double_to_gen(self._value)
 
 
     ###########################################

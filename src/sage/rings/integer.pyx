@@ -179,7 +179,7 @@ from sage.libs.flint.ulong_extras cimport *
 import sage.rings.infinity
 
 import sage.libs.pari.pari_instance
-cdef PariInstance P = sage.libs.pari.pari_instance.pari
+cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
 from sage.structure.element import canonical_coercion
 from sage.misc.superseded import deprecated_function_alias
@@ -621,7 +621,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef unsigned int ibase
 
         cdef Element lift
-        cdef PariInstance pari
 
         if x is None:
             if mpz_sgn(self.value) != 0:
@@ -679,7 +678,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                         # x = (f modulo defining polynomial of finite field);
                         # we extract f.
                         sig_on()
-                        x = P.new_gen(FF_to_FpXQ_i((<pari_gen>x).g))
+                        x = pari.new_gen(FF_to_FpXQ_i((<pari_gen>x).g))
                     else:
                         raise TypeError, "Unable to coerce PARI %s to an Integer"%x
 
@@ -4950,7 +4949,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return self._pari_c()
 
     cdef _pari_c(self):
-        return P.new_gen_from_mpz_t(self.value)
+        return pari.new_gen_from_mpz_t(self.value)
 
     def _interface_init_(self, I=None):
         """

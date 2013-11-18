@@ -477,7 +477,6 @@ cdef class WeakValueDictionary(dict):
     cdef callback
     cdef int _guard_level
     cdef list _pending_removals
-    cdef _iteration_context
 
     def __init__(self, data=()):
         """
@@ -503,7 +502,6 @@ cdef class WeakValueDictionary(dict):
         self.callback = WeakValueDictEraser(self)
         self._guard_level = 0
         self._pending_removals = []
-        self._iteration_context = _IterationContext(self)
         try:
             data=data.iteritems()
         except AttributeError:
@@ -912,13 +910,16 @@ cdef class WeakValueDictionary(dict):
         """
         cdef PyObject *key, *wr
         cdef Py_ssize_t pos = 0
-        with self._iteration_context:
+        try:
+            self._enter_iter()
             while PyDict_Next(self, &pos, &key, &wr):
                 #this check doesn't really say anything: by the time
                 #the key makes it to the customer, it may have already turned
                 #invalid. It's a cheap check, though.
                 if PyWeakref_GetObject(wr)!=Py_None:
                     yield <object>key
+        finally:
+            self._exit_iter()
 
     def __iter__(self):
         """
@@ -1014,11 +1015,14 @@ cdef class WeakValueDictionary(dict):
         """
         cdef PyObject *key, *wr
         cdef Py_ssize_t pos = 0
-        with self._iteration_context:
+        try:
+            self._enter_iter()
             while PyDict_Next(self, &pos, &key, &wr):
                 out = PyWeakref_GetObject(wr)
                 if out != Py_None:
                     yield <object>out
+        finally:
+            self._exit_iter()
 
     def values(self):
         """
@@ -1111,11 +1115,14 @@ cdef class WeakValueDictionary(dict):
         """
         cdef PyObject *key, *wr
         cdef Py_ssize_t pos = 0
-        with self._iteration_context:
+        try:
+            self._enter_iter()
             while PyDict_Next(self, &pos, &key, &wr):
                 out = PyWeakref_GetObject(wr)
                 if out != Py_None:
                     yield <object>key, <object>out
+        finally:
+            self._exit_iter()
 
     def items(self):
         """
@@ -1170,75 +1177,7 @@ cdef class WeakValueDictionary(dict):
         """
         return list(self.iteritems())
 
-cdef class _IterationContext:
-    """
-    An iterator that protects :class:`WeakValueDictionary` from some negative
-    effects of deletions due to garbage collection during iteration.
-    It's still not safe to explicitly mutate a dictionary during iteration,
-    though. Doing so is a bug in a program (since iteration order is
-    non-deterministic the results are not well-defined)
-
-    This is implemented by only marking entries for deletion if their values
-    become deallocated while an iterator is active. Once the iterator finishes,
-    the keys are deallocated. Note that because the weakrefs will be dead, the
-    keys in question do not appear to be in the dictionary anymore::
-
-        sage: from sage.misc.weak_dict import WeakValueDictionary
-        sage: K = [frozenset([i]) for i in range(11)]
-        sage: D = WeakValueDictionary((K[i],K[i+1]) for i in range(10))
-        sage: k = K[10]
-        sage: del K
-        sage: i = D.iterkeys(); d = i.next(); del d
-        sage: len(D.keys())
-        10
-        sage: del k
-
-    At this point, the entry for `k` appears to have disappeared out of `D`,
-    but a reference to `k` is still kept, so the other entries in `D` survive::
-
-        sage: len(D.keys())
-        9
-
-    If we delete the iterator `i` the reference to `k` is dropped, and as a result
-    all entries will disappear from `D`::
-
-        sage: del i
-        sage: len(D.keys())
-        0
-
-    """
-    cdef Dictref
-    def __init__(self, Dict):
-        """
-        INPUT:
-
-        A :class:`WeakValueDictionary`
-
-        This context manager is used during iteration over the given
-        dictionary, and prevents negative side-effects of item deletions
-        during iteration.
-
-        EXAMPLES::
-
-            sage: from sage.misc.weak_dict import WeakValueDictionary
-            sage: K = [frozenset([i]) for i in range(11)]
-            sage: D = WeakValueDictionary((K[i],K[i+1]) for i in range(10))
-            sage: k = K[10]
-            sage: del K
-            sage: i = D.iterkeys(); d = i.next(); del d
-            sage: len(D.keys())
-            10
-            sage: del k
-            sage: len(D.keys())
-            9
-            sage: del i
-            sage: len(D.keys())
-            0
-
-        """
-        self.Dictref = PyWeakref_NewRef(Dict,None)
-
-    def __enter__(self):
+    cdef int _enter_iter(self) except -1:
         """
         Make sure that items of a weak value dictionary are not actually
         deleted, but only *marked* for deletion.
@@ -1261,13 +1200,10 @@ cdef class _IterationContext:
             0
 
         """
-        cdef WeakValueDictionary Dict = <object>PyWeakref_GetObject(<PyObject*>self.Dictref)
-        #if the dict has disappeared, there's nothing to do
-        if Dict is not None:
-            Dict._guard_level += 1
-        return self
+        self._guard_level += 1
+        return 0
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    cdef int _exit_iter(self) except -1:
         """
         Make sure that all items of a weak value dictionary that are marked
         for deletion are actually deleted, as soon as there is no iteration
@@ -1291,15 +1227,10 @@ cdef class _IterationContext:
             0
 
         """
-        # Propagate errors by returning "False"
-        cdef WeakValueDictionary Dict = <object>PyWeakref_GetObject(<PyObject*>self.Dictref)
-        #if the dict has disappeared, there's nothing to do
-        if Dict is None:
-            return False
-        Dict._guard_level -= 1
+        self._guard_level -= 1
         #when the guard_level drops to zero, we try to remove all the
         #pending removals. Note that this could trigger another iterator
         #to become active, in which case we should back off.
-        while (not Dict._guard_level) and Dict._pending_removals:
-            Dict.callback(Dict._pending_removals.pop())
-        return False
+        while (not self._guard_level) and self._pending_removals:
+            self.callback(self._pending_removals.pop())
+        return 0

@@ -2274,10 +2274,12 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         outer plethysm which is generally denoted `f [ g ]`); in Sage
         syntax, it is ``f.inner_plethysm(g)``.
 
-        Here is an axiomatic definition of the operation (where in the
-        equations below we denote the outer product -- i.e., the standard
-        product on the ring of symmetric functions -- by `\cdot` and the
-        Kronecker product (:meth:`itensor`) by `\ast`):
+        First we describe the axiomatic definition of the operation; see
+        below for a representation-theoretic interpretation.
+        In the following equations, we denote the outer product
+        (i.e., the standard product on the ring of symmetric functions,
+        :meth:`~sage.categories.algebras_with_basis.AlgebrasWithBasis.ParentMethods.product`)
+        by `\cdot` and the Kronecker product (:meth:`itensor`) by `\ast`).
 
         .. MATH::
 
@@ -2306,22 +2308,33 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         .. SEEALSO:: :meth:`itensor`, :func:`~sage.combinat.partition.partition_power`,
             :meth:`plethysm`
 
-        To describe this function in terms of its meaning in
-        representation theory, we assume that `f` is some Schur function
-        `s_\lambda` and `g` is a symmetric function of homogeneous degree
-        `n`.  Then, `f \{ g \}` will also be a symmetric function of
-        degree `n`.
-        We will describe a construction of an `S_n`-module when `g` is
-        Schur-positive with integral coefficients in the Schur basis.
-        Assuming this, we can think of the function `g` as the Frobenius
-        image of a character of a representation `\rho` of the symmetric
-        group `S_n`. Let `N` be the dimension of this representation. If
-        the number of parts of `\lambda` is greater than `N`, then
-        `f \{ g \} = 0` by definition. Otherwise, we can interpret `f` as
-        the character of an irreducible `GL_N`-representation, call it
-        `\sigma`. Now `\sigma \circ \rho` is an `S_n`-representation. The
-        Frobenius image of the character of this representation is
-        `f \{ g \}`.
+        This operation admits a representation-theoretic interpretation
+        in the case where `f` is a Schur function `s_\lambda` and
+        `g` is a homogeneous degree `n` symmetric function with
+        nonnegative integral coefficients in the Schur basis.
+        The symmetric function `f \{ g \}` is the Frobenius
+        image of the `S_n`-representation constructed as follows.
+
+        The assumptions on `g` imply that `g` is the Frobenius image of a
+        representation `\rho` of the symmetric group `S_n`:
+
+        .. MATH::
+
+            \rho : S_n \to GL_N.
+
+        If the degree `N` of this representation is greater than or equal
+        to the number of parts of `\lambda`, then `f`, which denotes `s_\lambda`,
+        corresponds to the character of some irreducible `GL_N`-representation, say
+
+        .. MATH::
+
+            \sigma : GL_N \to GL_M.
+
+        The composition `\sigma \circ \rho : S_n \to GL_M` is a representation
+        of `S_n` whose Frobenius image is precisely `f \{ g \}`.
+
+        If `N` is less than the number of parts of `\lambda`,
+        then `f \{ g \}` is `0` by definition.
 
         When `f` is a symmetric function with constant term `\neq 0`, the
         inner plethysm `f \{ g \}` isn't well-defined in the ring of

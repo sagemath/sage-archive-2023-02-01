@@ -183,6 +183,7 @@ def WeylGroup(x, prefix=None):
         sage: w = s[0]*s[2]
         sage: w.reduced_word()
         [2, 0]
+        sage: W = groups.misc.WeylGroup(['A',3,1])
     """
     if x in RootLatticeRealizations:
         return WeylGroup_gens(x, prefix=prefix)

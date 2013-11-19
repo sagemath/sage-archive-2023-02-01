@@ -1542,7 +1542,7 @@ def exponential_integral_1(x, n=0):
 
     REFERENCE:
 
-    - See page 262, Prop 5.6.12, of Cohen's book "A Course in
+    - See Proposition 5.6.12 of Cohen's book "A Course in
       Computational Algebraic Number Theory".
     """
     if isinstance(x, Expression):

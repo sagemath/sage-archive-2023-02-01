@@ -1990,7 +1990,7 @@ class Permutation(CombinatorialObject, Element):
         no two equal letters. It can be defined by induction on the size
         of the word: Given a word `w_1 w_2 \cdots w_n`, start with
         `\phi(w_1) = w_1`. At the `i`-th step, if
-        `\phi(w_1 w_2 \cdots w_i) = v_1 v_2 \ldots v_i`, we define
+        `\phi(w_1 w_2 \cdots w_i) = v_1 v_2 \cdots v_i`, we define
         `\phi(w_1 w_2 \cdots w_i w_{i+1})` by placing `w_{i+1}` on the end of
         the word `v_1 v_2 \cdots v_i` and breaking the word up into blocks
         as follows. If `w_{i+1} > v_i`, place a vertical line to the right
@@ -2014,7 +2014,7 @@ class Permutation(CombinatorialObject, Element):
 
         See section 2 of [FoSc78]_.
 
-        REFERENCES::
+        REFERENCES:
 
         .. [FoSc78] Dominique Foata, Marcel-Paul Schuetzenberger.
            *Major Index and Inversion Number of Permutations*.

@@ -383,9 +383,10 @@ class Lseries_ell(SageObject):
     def at1(self, k=None, prec=None):
         r"""
         Compute `L(E,1)` using `k` terms of the series for `L(E,1)` as
-        explained on page 406 of Henri Cohen's book "A Course in Computational
-        Algebraic Number Theory".  If the argument `k` is not specified,
-        then it defaults to `\sqrt(N)`, where `N` is the conductor.
+        explained in Section 7.5.3 of Henri Cohen's book "A Course in
+        Computational Algebraic Number Theory".  If the argument `k`
+        is not specified, then it defaults to `\sqrt(N)`, where `N` is
+        the conductor.
 
         INPUT:
 
@@ -530,8 +531,8 @@ class Lseries_ell(SageObject):
         Compute `L'(E,1)` using `k` terms of the series for `L'(E,1)`,
         under the assumption that `L(E,1) = 0`.
 
-        The algorithm used is from page 406 of Henri Cohen's book ``A
-        Course in Computational Algebraic Number Theory.''
+        The algorithm used is from Section 7.5.3 of Henri Cohen's book
+        ``A Course in Computational Algebraic Number Theory.''
 
         INPUT:
 

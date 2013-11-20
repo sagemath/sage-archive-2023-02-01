@@ -5,7 +5,7 @@ AUTHORS:
 
 - Travis Scrimshaw (2010-09-26): Initial version
 
-Rigged configurations form combinatorial objects first introduced by Kirillov and Reshetikhin
+Rigged configurations form combinatorial objects first introduced by Kerov, Kirillov and Reshetikhin
 that arose from studies of statistical mechanical models using the Bethe Ansatz.
 They are sequences of rigged partitions. A rigged partition is a partition together
 with a label associated to each part that satisfy certain constraints. The labels
@@ -37,7 +37,7 @@ INPUT:
 - ``cartan_type`` -- A Cartan type
 
 - ``B`` -- A list of positive integer pairs `(r,s)` specifying the width `s`
-  and height `r` of the sequence of rectangles 
+  and height `r` of the sequence of rectangles
 
 EXAMPLES::
 
@@ -1427,7 +1427,7 @@ class RCTypeA2Dual(RCTypeA2Even):
         - ``i``          -- The row index of the `a`-th rigged partition
 
         TESTS::
-        
+
             sage: RC = RiggedConfigurations(CartanType(['A', 6, 2]).dual(), [[2,1]])
             sage: elt = RC(partition_list=[[1], [2], [2]])
             sage: RC._calc_vacancy_number(elt.nu(), 0, 0)
@@ -1511,7 +1511,7 @@ class RCTypeA2Dual(RCTypeA2Even):
             # Start with a base to calculate the vacancy numbers
             # Make a copy just to be safe
             base = self.element_class(self, partition_list=shapes[:])
-            
+
             # Check the special condition of odd rows in the n-th partition
             invalid_RC = False
             for i in range(len(base[-1]._list)):
@@ -1741,7 +1741,7 @@ def R_matrix(ct, RS1, RS2, only_highest_weight=False):
 
     Check that the `R`-matrix is the identity on `B \otimes B`::
 
-        sage: L = R_matrix(['A',2,1], [2,3], [2,3]) 
+        sage: L = R_matrix(['A',2,1], [2,3], [2,3])
         sage: len(L)
         100
         sage: all(x == y for x,y in L)

@@ -5,9 +5,6 @@ A tensor product of :class:`KirillovReshetikhinTableaux` which are tableaux of
 `r` rows and `s` columns which naturally arise in the bijection between rigged
 configurations and tableaux and which are in bijection with the elements of the
 Kirillov-Reshetikhin crystal `B^{r,s}`, see :class:`KirillovReshetikhinCrystal`.
-They do not have to satisfy the semistandard row or column
-restrictions. These tensor products are the result from the bijection from
-rigged configurations [RigConBijection]_.
 
 AUTHORS:
 
@@ -177,17 +174,17 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
     A tensor product of :class:`KirillovReshetikhinTableaux`.
 
     Through the bijection with rigged configurations, the tableaux that are
-    produced in the Kirillov-Reshetikhin model for type `D_n^{(1)}` are all of
-    rectangular shapes and do not necessarily obey the usual strict increase in
-    columns and weak increase in rows. The relation between the two tableaux
-    models is given by a filling map.
+    produced in all nonexceptional types are all of rectangular shapes and do not necessarily
+    obey the usual strict increase in columns and weak increase in rows. The relation between the
+    elements of the Kirillov-Reshetikhin crystal, given by the Kashiwara-Nakashima tableaux, and the
+    Kirillov-Reshetikhin tableaux is given by a filling map.
 
     .. NOTE::
 
-        The tableaux for all non-simply-laced provably holds if the bijection
-        with :class:`rigged configurations <RiggedConfigurations>` holds.
-        Therefore this is only proven for all factors`B^{r,1}` or all factors
-        `B^{1,s}`, and in general for types `A_n^{(1)}` and `D_n^{(1)}`.
+        The tableaux for all non-simply-laced types are provably correct if the
+        bijection with :class:`rigged configurations <RiggedConfigurations>`
+        holds. Therefore this is currently only proven for `B^{r,1}` or `B^{1,s}` and
+        in general for types `A_n^{(1)}` and `D_n^{(1)}`.
 
     For more information see [OSS2011]_ and
     :class:`KirillovReshetikhinTableaux`.
@@ -205,7 +202,8 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
 
     - ``cartan_type``    -- The Cartan type
 
-    - ``B``              -- An (ordered) list of dimensions
+    - ``B``              -- An (ordered) list of pairs `(r,s)` which give the dimension of a rectangle
+      with `r` rows and `s` columns
 
     The dimensions (i.e. `B`) is a list whose entries are lists of the
     form `[r, s]` which correspond to a tableau with `r` rows and `s`

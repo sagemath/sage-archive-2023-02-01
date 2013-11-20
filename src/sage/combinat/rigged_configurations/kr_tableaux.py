@@ -5,7 +5,11 @@ Kirillov-Reshetikhin tableaux are rectangular tableaux with `r` rows and
 `s` columns that naturally arise under the bijection between rigged
 configurations and tableaux [RigConBijection]_. They are in bijection with
 the elements of the Kirillov-Reshetikhin crystal `B^{r,s}` under the (inverse)
-filling map. For more information, see :class:`KirillovReshetikhinTableaux`
+filling map. They do not have to satisfy the semistandard row or column
+restrictions. These tensor products are the result from the bijection from
+rigged configurations [RigConBijection]_.
+
+For more information, see :class:`KirillovReshetikhinTableaux`
 and :class:`TensorProductOfKirillovReshetikhinTableaux`.
 
 AUTHORS:
@@ -63,8 +67,8 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
     (inverse) filling map.
 
     Whenever `B^{r,s} \cong B(s\Lambda_r)` as a classical crystal (which is
-    the case for `B^{r,s}` in type `A_n^{(1)}` and `B^{n,s}` in type
-    `C_n^{(1)}`), then the filling map is trivial.
+    the case for `B^{r,s}` in type `A_n^{(1)}`, `B^{n,s}` in type `C_n^{(1)}` and `D_{n+1}^{(2)}`,
+    `B^{n,s}` and `B^{n-1,s}` in type `D_n^{(1)}`) then the filling map is trivial.
 
     For `B^{r,s}` in:
 
@@ -82,20 +86,21 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
     See [BijectionDn]_.
 
     For the spinor case in type `B_n^{(1)}`, the crystal `B^{n,s}`, we
-    consider the images under the natural doubling map which is given by
-    removing `2 \times 2` boxes and the filling map is the same as below
-    (ex. the non-spin type `C_n^{(1)}`).
+    consider the images under the natural doubling map into `B^{n,2s}`.
+    The classical components of this crystal are now given by
+    removing `2 \times 2` boxes. The filling map is the same as below
+    (see the non-spin type `C_n^{(1)}`).
 
     For `B^{r,s}` in:
 
     - type `C_n^{(1)}` when `r < n`,
     - type `A_{2n}^{(2)\dagger}` for all `r`,
 
-    the filling map given as follows. Suppose we are considering (classically)
-    highest weight element in the classical component `B(\lambda)`, we fill
+    the filling map is given as follows. Suppose we are considering the (classically)
+    highest weight element in the classical component `B(\lambda)`. Then we fill
     it in with the horizontal dominoes `[\bar{\imath}, i]` in the `i`-th row
-    from the top (in English notation) and reorganizing the columns as
-    necessary. Recall from above that `B^{n,s} \cong B(s\Lambda_n)` in
+    from the top (in English notation) and reordering the columns so that they are
+    increasing. Recall from above that `B^{n,s} \cong B(s\Lambda_n)` in
     type `C^{(1)}_n`.
 
     For `B^{r,s}` in:
@@ -104,18 +109,17 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
     - type `D_{n+1}^{(2)}` when `r < n`,
 
     the filling map is the same as given in [AffineRigConDn]_ except for
-    `B^{r,1}` which is given by the column `[1, 2, \ldots, k, \emptyset,
-    \ldots \emptyset]` where we consider the classical component
-    `B(\lambda_k)`.
+    the rightmost column which is given by the column `[1, 2, \ldots, k, \emptyset,
+    \ldots \emptyset]` where `k = (r+x-1)/2` in Step 3 of [AffineRigConDn]_.
 
-    For the spinor case in type `D_n^{(2)}`, the crystal `B^{n,s}`, the
-    crystal is the same as in type `D_n^{(1)}`.
+    For the spinor case in type `D_{n+1}^{(2)}`, the crystal `B^{n,s}`, we define the filling map
+    in the same way as in type `D_n^{(1)}`.
 
     .. NOTE::
 
         The filling map and classical decompositions in non-spinor cases can
         be classified by how the special node `0` connects with the
-        corresponding classical diagram. 
+        corresponding classical diagram.
 
     For more information about the bijection between rigged configurations
     and tensor products of Kirillov-Reshetikhin tableaux, see
@@ -123,10 +127,13 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
 
     .. NOTE::
 
-        The tableaux for all non-simply-laced are provably correct if the
+        The tableaux for all non-simply-laced types are provably correct if the
         bijection with :class:`rigged configurations <RiggedConfigurations>`
-        holds. Therefore this is only proven for `B^{r,1}` or `B^{1,s}` and
-        in general for types `A_n^{(1)}` and `D_n^{(C1)}`.
+        holds. Therefore this is currently only proven for `B^{r,1}` or `B^{1,s}` and
+        in general for types `A_n^{(1)}` and `D_n^{(1)}`.
+
+    Note for Travis: add a brief explanation of crystal structure!!! Check NonImplemented type F, E, ....
+    add doctests on weight for filling maps; fix references; fix docs in tensor_products 
 
     INPUT:
 
@@ -219,8 +226,8 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
             #if ct.dual().letter == 'G': # D_4^{(3)}
 
         #print "We are returning the KR crystal because the requested type is not yet implemented!"
-        return KRTableauxWrapper(ct, r, s)
-        #raise NotImplementedError
+        #return KRTableauxWrapper(ct, r, s)
+        raise NotImplementedError
         #return super(KirillovReshetikhinTableaux, cls).__classcall__(cls, ct, r, s)
 
     def __init__(self, cartan_type, r, s):

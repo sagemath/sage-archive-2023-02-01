@@ -261,6 +261,11 @@ def init_ecl():
     sigaction(SIGBUS, NULL, &ecl_sigbus_handler)
     sigaction(SIGSEGV, NULL, &ecl_sigsegv_handler)
 
+    #verify that no SIGCHLD handler was installed
+    cdef Sigaction sig_test
+    sigaction(SIGCHLD, NULL, &sig_test)
+    assert sig_test.sa_handler == NULL
+
     #and put the Sage signal handlers back
     for i in range(1,32):
         sigaction(i, &sage_action[i], NULL)

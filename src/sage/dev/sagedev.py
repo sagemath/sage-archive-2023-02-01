@@ -4025,7 +4025,8 @@ class SageDev(MercurialPatchMixin):
                 private_key = public_key[:-4]
                 self._UI.show("Generating ssh key.")
                 from subprocess import call
-                success = call(['sage-native-execute', 'ssh-keygen', '-q', '-f', private_key, '-P', ''])
+                success = call(['sage-native-execute', 'ssh-keygen', '-q',
+                                '-f', private_key, '-P', '', '-t', 'rsa'])
                 if success == 0:
                     self._UI.debug("Key generated.")
                 else:

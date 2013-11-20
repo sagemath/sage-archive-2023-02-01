@@ -38,6 +38,7 @@ cdef extern from "ecl/ecl.h":
         ECL_OPT_TRAP_SIGINT,
         ECL_OPT_TRAP_SIGILL,
         ECL_OPT_TRAP_SIGBUS,
+        ECL_OPT_TRAP_SIGCHLD,
         ECL_OPT_TRAP_SIGPIPE,
         ECL_OPT_TRAP_INTERRUPT_SIGNAL,
         ECL_OPT_SIGNAL_HANDLING_THREAD,

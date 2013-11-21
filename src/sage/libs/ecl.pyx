@@ -264,7 +264,8 @@ def init_ecl():
     #verify that no SIGCHLD handler was installed
     cdef Sigaction sig_test
     sigaction(SIGCHLD, NULL, &sig_test)
-    assert sig_test.sa_handler == NULL
+    assert sage_action[SIGCHLD].sa_handler == NULL  # Sage does not set SIGCHLD handler
+    assert sig_test.sa_handler == NULL              # And ECL bootup did not set one 
 
     #and put the Sage signal handlers back
     for i in range(1,32):

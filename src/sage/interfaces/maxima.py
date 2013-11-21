@@ -758,43 +758,15 @@ class Maxima(MaximaAbstract, Expect):
             return
         assert line_echo.strip() == line.strip(), 'mismatch:\n' + line_echo + line
 
-        # This broke in maxima-5.22.1 as discussed in
-        # http://trac.sagemath.org/sage_trac/ticket/10187
-        #self._expect_expr(self._display_prompt)
-        #pre_out = self._before()
-        #self._expect_expr()
-        #out = self._before()
-        #
-        # if error_check:
-        #     self._error_check(line, pre_out)
-        #     self._error_check(line, out)
-        #
-        # if not reformat:
-        #     return out
-        #
-        # r = self._output_prompt_re
-        # m = r.search(out)
-        # if m is None:
-        #     o = out[:-2]
-        # else:
-        #     o = out[m.end()+1:-2]
-        # o = ''.join([x.strip() for x in o.split()])
-        # return o
-        #
-        # i = o.rfind('(%o')
-        # return o[:i]
-
         self._expect_expr(self._display_prompt)
         out = self._before()        # input echo + output prompt + output
         if error_check:
             self._error_check(line, out)
-
         if not reformat:
             return out
 
         self._expect_expr()
         assert len(self._before())==0, 'Maxima expect interface is confused!'
-
         r = self._output_prompt_re
         m = r.search(out)
         if m is not None:

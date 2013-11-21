@@ -2052,8 +2052,11 @@ class Partition(CombinatorialObject, Element):
         r"""
         Return the length of the arm of cell `(i,j)` in ``self``.
 
-        The arm of cell `(i,j)` is the cells that appear to the right of cell
-        `(i,j)`.
+        The arm of cell `(i,j)` is the cells that appear to the right of
+        cell `(i,j)`.
+
+        The cell coordinates are zero-based, i. e., the northwesternmost
+        cell is `(0,0)`.
 
         INPUT:
 
@@ -2085,9 +2088,9 @@ class Partition(CombinatorialObject, Element):
 
     def arm_lengths(self, flat=False):
         """
-        Return a tableau of shape ``self`` where each cell is filled its arm
-        length. The optional boolean parameter flat provides the option of
-        returning a flat list.
+        Return a tableau of shape ``self`` where each cell is filled with
+        its arm length. The optional boolean parameter ``flat`` provides
+        the option of returning a flat list.
 
         EXAMPLES::
 
@@ -2113,6 +2116,9 @@ class Partition(CombinatorialObject, Element):
 
         The arm of cell `c = (i,j)` is the boxes that appear to the right of
         `c`.
+
+        The cell coordinates are zero-based, i. e., the northwesternmost
+        cell is `(0,0)`.
 
         INPUT:
 
@@ -2147,6 +2153,9 @@ class Partition(CombinatorialObject, Element):
         The leg of cell `c = (i,j)` is defined to be the cells below `c`
         (in English convention).
 
+        The cell coordinates are zero-based, i. e., the northwesternmost
+        cell is `(0,0)`.
+
         INPUT:
 
         - ``i, j`` -- two integers
@@ -2178,9 +2187,9 @@ class Partition(CombinatorialObject, Element):
 
     def leg_lengths(self, flat=False):
         """
-        Return a tableau of shape ``self`` with each cell filled in with its
-        leg length.  The optional boolean parameter flat provides the option of
-        returning a flat list.
+        Return a tableau of shape ``self`` with each cell filled in with
+        its leg length.  The optional boolean parameter ``flat`` provides
+        the option of returning a flat list.
 
         EXAMPLES::
 
@@ -2208,6 +2217,9 @@ class Partition(CombinatorialObject, Element):
         The leg of cell `c = (i,j)` is defined to be the cells below `c` (in
         English convention).
 
+        The cell coordinates are zero-based, i. e., the northwesternmost
+        cell is `(0,0)`.
+
         INPUT:
 
         - ``i, j`` -- two integers
@@ -2230,6 +2242,53 @@ class Partition(CombinatorialObject, Element):
         """
         l = self.leg_length(i, j)
         return [(x, j) for x in range(i+1, i+l+1)]
+
+    def attacking_pairs(self):
+        """
+        Return a list of the attacking pairs of the Young diagram of
+        ``self``.
+
+        A pair of cells `(c, d)` of a Young diagram (in English notation) is
+        said to be attacking if one of the following conditions holds:
+
+        1. `c` and `d` lie in the same row with `c` strictly to the west
+           of `d`.
+
+        2. `c` is in the row immediately to the south of `d`, and `c`
+           lies strictly east of `d`.
+
+        This particular method returns each pair `(c, d)` as a tuple,
+        where each of `c` and `d` is given as a tuple `(i, j)` with
+        `i` and `j` zero-based (so `i = 0` means that the cell lies
+        in the topmost row).
+
+        EXAMPLES::
+
+            sage: p = Partition([3, 2])
+            sage: p.attacking_pairs()
+            [((0, 0), (0, 1)),
+             ((0, 0), (0, 2)),
+             ((0, 1), (0, 2)),
+             ((1, 0), (1, 1)),
+             ((1, 1), (0, 0))]
+            sage: Partition([]).attacking_pairs()
+            []
+        """
+        attacking_pairs = []
+        for i, r in enumerate(self):
+            for j in range(r):
+                #c is in position (i,j)
+                #Find the d that satisfy condition 1
+                for k in range(j+1, r):
+                    attacking_pairs.append( ((i,j),(i,k)) )
+
+                #Find the d that satisfy condition 2
+                if i == 0:
+                    continue
+                for k in range(j):
+                    attacking_pairs.append( ((i,j),(i-1,k)) )
+
+        return attacking_pairs
 
     def dominate(self, rows=None):
         """
@@ -2328,15 +2387,17 @@ class Partition(CombinatorialObject, Element):
         r"""
         Return the length of the hook of cell `(i,j)` in ``self``.
 
-        The hook of cell `(i,j)` of a partition `\lambda` is
+        The (length of the) hook of cell `(i,j)` of a partition `\lambda`
+        is
 
         .. MATH::
 
-            \lambda + \lambda^{\prime} - i - j + 1
+            \lambda_i + \lambda^{\prime}_j - i - j + 1
 
         where `\lambda^{\prime}` is the conjugate partition. In English
-        convention, the hook length is the number cells to the right and below
-        the cell `(i,j)` (including that cell).
+        convention, the hook length is the number of cells horizontally
+        to the right and vertically below the cell `(i,j)` (including
+        that cell).
 
         EXAMPLES::
 

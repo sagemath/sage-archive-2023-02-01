@@ -977,7 +977,7 @@ class TracInterface(object):
                 for k,v in attributes.items():
                     k = ALLOWED_FIELDS.get(k.lower())
                     if k is not None:
-                        F.write("%s: %s\n"%(k,v))
+                        F.write("%s: %s\n"%(k.encode('utf-8'),v.encode('utf-8')))
 
                 if description is None or not description.strip():
                     description = "\nADD DESCRIPTION\n"

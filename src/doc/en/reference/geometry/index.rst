@@ -1,5 +1,8 @@
+Geometry
+========
+
 Combinatorial Geometry
-======================
+----------------------
 
 Sage includes classes for convex rational polyhedral cones and fans, Groebner
 fans, lattice and reflexive polytopes (with integral coordinates), and generic
@@ -37,5 +40,17 @@ polytopes and polyhedra (with rational or numerical coordinates).
    sage/geometry/triangulation/base
    sage/geometry/triangulation/element
 
+Hyperbolic Geometry
+-------------------
+.. toctree::
+   :maxdepth: 1
+
+   sage/geometry/hyperbolic_space/hyperbolic_point
+   sage/geometry/hyperbolic_space/hyperbolic_bdry_point
+   sage/geometry/hyperbolic_space/hyperbolic_isometry
+   sage/geometry/hyperbolic_space/hyperbolic_geodesic
+   sage/geometry/hyperbolic_space/hyperbolic_model
+   sage/geometry/hyperbolic_space/hyperbolic_interface
+   sage/geometry/hyperbolic_space/hyperbolic_methods
 
 .. include:: ../footer.txt

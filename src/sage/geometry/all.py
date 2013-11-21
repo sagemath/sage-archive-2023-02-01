@@ -19,3 +19,7 @@ import sage.geometry.pseudolines
 
 
 import toric_plotter
+
+from hyperbolic_space.all import *
+
+

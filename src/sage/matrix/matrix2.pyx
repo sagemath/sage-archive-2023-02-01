@@ -4722,11 +4722,7 @@ cdef class Matrix(matrix1.Matrix):
         # subrings of fields of which an algebraic closure is implemented.
         if format is None:
             try:
-                F = self.base_ring().fraction_field()
-                if F.is_finite():
-                    _ = F.algebraic_closure('z')
-                else:
-                    _ = F.algebraic_closure()
+                F = self.base_ring().fraction_field().algebraic_closure()
                 return 'all'
             except (NotImplementedError, AttributeError):
                 return 'galois'
@@ -10587,10 +10583,7 @@ cdef class Matrix(matrix1.Matrix):
                     sqrt = F(x.sqrt())
                 except (TypeError, ValueError):
                     try:
-                        if F.is_finite():
-                            F = F.algebraic_closure('z')
-                        else:
-                            F = F.algebraic_closure()
+                        F = F.algebraic_closure()
                     except (NotImplementedError, AttributeError):
                         msg = "base field needs an algebraic closure with square roots, not {0}"
                         raise TypeError(msg.format(F))

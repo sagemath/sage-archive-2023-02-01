@@ -543,7 +543,7 @@ class Maxima(MaximaAbstract, Expect):
         MaximaAbstract.__init__(self,"maxima")
         Expect.__init__(self,
                         name = 'maxima',
-                        prompt = '\(\%i[0-9]+\)',
+                        prompt = '\(\%i[0-9]+\) ',
                         command = 'maxima --userdir="%s" -p "%s"'%(SAGE_MAXIMA_DIR,STARTUP),
                         maxread = 10000,
                         script_subdirectory = script_subdirectory,
@@ -552,8 +552,10 @@ class Maxima(MaximaAbstract, Expect):
                         init_code = init_code,
                         logfile = logfile,
                         eval_using_file_cutoff=eval_using_file_cutoff)
-        self._display_prompt = '<sage-display>'  # must match what is in the file local/bin/sage-maxima.lisp!!
-        self._output_prompt_re = re.compile('\(\%o[0-9]+\)')
+        # Must match what is in the file local/bin/sage-maxima.lisp
+        self._display_prompt = '<sage-display>'
+        # See #15440 for the importance of the trailing space
+        self._output_prompt_re = re.compile('\(\%o[0-9]+\) ')
         self._ask = ['zero or nonzero?', 'an integer?', 'positive, negative, or zero?',
                      'positive or negative?', 'positive or zero?']
         self._prompt_wait = [self._prompt] + [re.compile(x) for x in self._ask] + \
@@ -795,12 +797,9 @@ class Maxima(MaximaAbstract, Expect):
 
         r = self._output_prompt_re
         m = r.search(out)
-        if m is None:
-            o = out[:-2]
-        else:
-            o = out[m.end()+1:-2]
-        o = ''.join([x.strip() for x in o.split()])
-        return o
+        if m is not None:
+            out = out[m.end():]
+        return re.sub('\s+', '', out)
 
     def _synchronize(self):
         """

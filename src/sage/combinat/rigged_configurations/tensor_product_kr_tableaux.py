@@ -247,6 +247,29 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
         sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1], [2,1]])
         sage: list(KRT.module_generators)
         [[[1], [2], [3]] (X) [[1], [2]], [[1], [3], [4]] (X) [[1], [2]]]
+
+    To create elements directly (i.e. not passing in KR tableaux elements),
+    there is the **pathlist** option will receive a list of lists which
+    contain the reversed far-eastern reading word of the tableau. That is to
+    say, in English notation, the word obtain from reading bottom-to-top,
+    left-to-right. ::
+
+        sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,2], [1,2], [2,1]])
+        sage: elt = KRT(pathlist=[[3, 2, 1, 4, 2, 1], [1, 3], [3, 1]])
+        sage: elt.pp()
+          1  1 (X)   1  3 (X)   1
+          2  2                  3
+          3  4
+
+    One can still create elements in the same way as tensor product of
+    crystals::
+
+        sage: K1 = KirillovReshetikhinTableaux(['A',3,1], 3,2)
+        sage: K2 = KirillovReshetikhinTableaux(['A',3,1], 1,2)
+        sage: K3 = KirillovReshetikhinTableaux(['A',3,1], 2,1)
+        sage: eltlong = KRT(K1(3, 2, 1, 4, 2, 1), K2(1, 3), K3(3, 1))
+        sage: eltlong == elt
+        True
     """
     @staticmethod
     def __classcall_private__(cls, cartan_type, B):
@@ -341,12 +364,12 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
         Construct an element of ``self``.
 
         Typically the user will call this with the option **pathlist** which
-        will receive a list and coerce it into a path.
+        will receive a list of lists of reversed far-eastern reading words.
 
         EXAMPLES::
 
             sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1], [2,1]])
-            sage: KRT(pathlist=[[4, 2, 1], [2, 1]]) # indirect doctest
+            sage: KRT(pathlist=[[4, 2, 1], [2, 1]])
             [[1], [2], [4]] (X) [[1], [2]]
         """
         if isinstance(path[0], KirillovReshetikhinTableauxElement):

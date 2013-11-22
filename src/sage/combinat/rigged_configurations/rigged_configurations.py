@@ -371,7 +371,17 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         # We store the cartan matrix for the vacancy number calculations for speed
         self._cartan_matrix = self._cartan_type.classical().cartan_matrix()
         Parent.__init__(self, category=(RegularCrystals(), FiniteCrystals()))
-        self.rename("Rigged configurations of type %s and factor(s) %s" % (cartan_type, B))
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: RiggedConfigurations(['A', 3, 1], [[3, 2], [1, 2], [1, 1]])
+            Rigged configurations of type ['A', 3, 1] and factor(s) ((3, 2), (1, 2), (1, 1))
+        """
+        return "Rigged configurations of type {} and factor(s) {}".format(self._cartan_type, self.dims)
 
     def __iter__(self):
         """
@@ -1170,6 +1180,18 @@ class RCTypeA2Even(RCNonSimplyLaced):
         sage: RC = RiggedConfigurations(['A',4,2], [[2,1]])
         sage: TestSuite(RC).run() # long time
     """
+    def cardinality(self):
+        """
+        Return the cardinality of ``self``.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['A',4,2], [[1,1], [2,2]])
+            sage: RC.cardinality()
+            250
+        """
+        return self.tensor_product_of_kirillov_reshetikhin_tableaux().cardinality()
+
     @lazy_attribute
     def virtual(self):
         """
@@ -1653,47 +1675,4 @@ class RCTypeA2Dual(RCTypeA2Even):
             vac_nums[a] = [vac_val for vac_val in vrc[index].vacancy_numbers]
         return self.element_class(self, partition_list=partitions,
                                   rigging_list=riggings, vacancy_numbers_list=vac_nums)
-
-# For experimentation purposes only.
-# I'm keeping this for when we implement the R-matrix in general
-def R_matrix(ct, RS1, RS2, only_highest_weight=False):
-    r"""
-    Output pairs of Kirillov-Reshetikhin tableaux under the action of the
-    (combinatorial) `R`-matrix.
-
-    INPUT:
-
-    - ``ct`` -- A Cartan type
-    - ``RS1``, ``RS2`` -- Pairs of `(r_i, s_i)` for `i = 1,2` for the two
-      tensor factors `B^{r_1, s_1} \otimes B^{r_2, s_2}`
-    - ``only_highest_weight`` -- Output only the highest weight elements
-
-    EXAMPLES::
-
-        sage: from sage.combinat.rigged_configurations.rigged_configurations import R_matrix
-        sage: L = R_matrix(['D',4,1], [2,1], [1,1])
-        sage: len(L)
-        232
-
-    Check that the `R`-matrix is the identity on `B \otimes B`::
-
-        sage: L = R_matrix(['A',2,1], [2,3], [2,3])
-        sage: len(L)
-        100
-        sage: all(x == y for x,y in L)
-        True
-    """
-    ct = CartanType(ct)
-    RC = RiggedConfigurations(ct, [RS1, RS2])
-    RC2 = RiggedConfigurations(ct, [RS2, RS1])
-    ret_list = []
-    if only_highest_weight:
-        L = RC.module_generators
-    else:
-        L = RC
-    for x in L:
-        x2 = RC2(*x)
-        ret_list.append([x.to_tensor_product_of_kirillov_reshetikhin_tableaux(),
-                         x2.to_tensor_product_of_kirillov_reshetikhin_tableaux()])
-    return ret_list
 

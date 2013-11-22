@@ -46,9 +46,9 @@ class RiggedConfigurationElement(ClonableArray):
 
     INPUT:
 
-    - ``parent``            -- The parent of this element
+    - ``parent`` -- the parent of this element
 
-    - ``rigged_partitions`` -- A list of rigged partitions
+    - ``rigged_partitions`` -- a list of rigged partitions
 
     There are two optional arguments to explicitly construct a rigged
     configuration. The first is **partition_list** which gives a list of
@@ -278,7 +278,7 @@ class RiggedConfigurationElement(ClonableArray):
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 2]])
-            sage: RC(partition_list=[[2], [3,1], [3], [3]]) # indirect doctest
+            sage: RC(partition_list=[[2], [3,1], [3], [3]])
             <BLANKLINE>
             -1[ ][ ]-1
             <BLANKLINE>
@@ -289,7 +289,7 @@ class RiggedConfigurationElement(ClonableArray):
             <BLANKLINE>
             -2[ ][ ][ ]-2
             <BLANKLINE>
-            sage: RC(partition_list=[[],[],[],[]]) # indirect doctest
+            sage: RC(partition_list=[[],[],[],[]])
             <BLANKLINE>
             (/)
             <BLANKLINE>
@@ -312,7 +312,7 @@ class RiggedConfigurationElement(ClonableArray):
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 2]])
-            sage: latex(RC(partition_list=[[2], [3,1], [3], [3]])) # indirect doctest
+            sage: latex(RC(partition_list=[[2], [3,1], [3], [3]]))
             {
             \begin{array}[t]{r|c|c|l}
             \cline{2-3} -1 &\phantom{|}&\phantom{|}& -1 \\
@@ -341,7 +341,7 @@ class RiggedConfigurationElement(ClonableArray):
              \cline{2-4} 
             \end{array}
             }
-            sage: latex(RC(partition_list=[[],[],[],[]])) # indirect doctest
+            sage: latex(RC(partition_list=[[],[],[],[]]))
             {\emptyset}
             \quad
             {\emptyset}
@@ -357,9 +357,55 @@ class RiggedConfigurationElement(ClonableArray):
 
         return ret_string
 
+    def _ascii_art_(self):
+        """
+        Return an ASCII art representation of ``self``.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 2]])
+            sage: ascii_art(RC(partition_list=[[2], [3,1], [3], [3]]))
+            -1[ ][ ]-1  2[ ][ ][ ]2  -2[ ][ ][ ]-2  -2[ ][ ][ ]-2
+                        0[ ]0
+            sage: ascii_art(RC(partition_list=[[],[],[],[]]))
+            (/)  (/)  (/)  (/)
+            sage: RC = RiggedConfigurations(['D', 7, 1], [[3,3],[5,2],[4,3],[2,3],[4,4],[3,1],[1,4],[2,2]])
+            sage: elt = RC(partition_list=[[2],[3,2,1],[2,2,1,1],[2,2,1,1,1,1],[3,2,1,1,1,1],[2,1,1],[2,2]],
+            ....:          rigging_list=[[2],[1,0,0],[4,1,2,1],[1,0,0,0,0,0],[0,1,0,0,0,0],[0,0,0],[0,0]])
+            sage: ascii_art(elt)
+            3[ ][ ]2  1[ ][ ][ ]1  4[ ][ ]4  2[ ][ ]1  0[ ][ ][ ]0  0[ ][ ]0  0[ ][ ]0
+                      2[ ][ ]0     4[ ][ ]1  2[ ][ ]0  2[ ][ ]1     0[ ]0     0[ ][ ]0
+                      1[ ]0        3[ ]2     0[ ]0     0[ ]0        0[ ]0
+                                   3[ ]1     0[ ]0     0[ ]0
+                                             0[ ]0     0[ ]0
+                                             0[ ]0     0[ ]0
+            sage: Partitions.global_options(convention='French')
+            sage: ascii_art(elt)
+                                             0[ ]0     0[ ]0
+                                             0[ ]0     0[ ]0
+                                   3[ ]1     0[ ]0     0[ ]0
+                      1[ ]0        3[ ]2     0[ ]0     0[ ]0        0[ ]0
+                      2[ ][ ]0     4[ ][ ]1  2[ ][ ]0  2[ ][ ]1     0[ ]0     0[ ][ ]0
+            3[ ][ ]2  1[ ][ ][ ]1  4[ ][ ]4  2[ ][ ]1  0[ ][ ][ ]0  0[ ][ ]0  0[ ][ ]0
+            sage: Partitions.global_options.reset()
+        """
+        from sage.combinat.partition import PartitionOptions
+        if PartitionOptions['convention'] == "French":
+            baseline = lambda s: 0
+        else:
+            baseline = lambda s: len(s)
+        from sage.misc.ascii_art import AsciiArt
+        s = repr(self[0]).splitlines()
+        ret = AsciiArt(s, baseline=baseline(s))
+        for tableau in self[1:]:
+            s = repr(tableau).splitlines()
+            ret += AsciiArt(["  "], baseline=baseline(s)) + AsciiArt(s, baseline=baseline(s))
+        return ret
+
     def check(self):
         """
-        Make sure all of the riggings are less than or equal to the vacancy number.
+        Make sure all of the riggings are less than or equal to the
+        vacancy number.
 
         TESTS::
 
@@ -370,9 +416,6 @@ class RiggedConfigurationElement(ClonableArray):
         for partition in self:
             for i, vac_num in enumerate(partition.vacancy_numbers):
                 if vac_num < partition.rigging[i]:
-                    #print "FAILED FOR:"
-                    #print self
-                    #print "at:", i, vac_num, partition.rigging[i]
                     raise ValueError("rigging can be at most the vacancy number")
 
     def to_tensor_product_of_kirillov_reshetikhin_tableaux(self, display_steps=False):
@@ -390,7 +433,7 @@ class RiggedConfigurationElement(ClonableArray):
 
         INPUT:
 
-        - ``display_steps`` -- (default: ``False``) Boolean which indicates
+        - ``display_steps`` -- (default: ``False``) boolean which indicates
           if we want to output each step in the algorithm
 
         OUTPUT:
@@ -438,7 +481,7 @@ class RiggedConfigurationElement(ClonableArray):
 
         INPUT:
 
-        - ``display_steps`` -- (default: ``False``) Boolean which indicates
+        - ``display_steps`` -- (default: ``False``) boolean which indicates
           if we want to output each step in the algorithm
 
         EXAMPLES::
@@ -474,7 +517,7 @@ class RiggedConfigurationElement(ClonableArray):
 
         OUTPUT:
 
-        - The `\nu` array as a list
+        The `\nu` array as a list.
 
         EXAMPLES::
 
@@ -491,7 +534,7 @@ class RiggedConfigurationElement(ClonableArray):
 
     def e(self, a):
         r"""
-        Action of the crystal operator `e_a` on this rigged configuration element.
+        Action of the crystal operator `e_a` on ``self``.
 
         This implements the method defined in [CrysStructSchilling06]_ which
         finds the value `k` which is  the length of the string with the
@@ -507,7 +550,7 @@ class RiggedConfigurationElement(ClonableArray):
 
         INPUT:
 
-        - ``a`` -- The index of the partition to remove a box.
+        - ``a`` -- the index of the partition to remove a box
 
         OUTPUT:
 
@@ -619,13 +662,14 @@ class RiggedConfigurationElement(ClonableArray):
 
         INPUT:
 
-        - ``a`` -- The index of the partition we operated on.
-        - ``b`` -- The index of the partition to generate.
-        - ``k`` -- The length of the string with the smallest negative rigging of smallest length.
+        - ``a`` -- the index of the partition we operated on
+        - ``b`` -- the index of the partition to generate
+        - ``k`` -- the length of the string with the smallest negative
+          rigging of smallest length
 
         OUTPUT:
 
-        - The constructed rigged partition.
+        The constructed rigged partition.
 
         TESTS::
 
@@ -655,7 +699,7 @@ class RiggedConfigurationElement(ClonableArray):
 
     def f(self, a):
         r"""
-        Action of crystal operator `f_a` on this rigged configuration element.
+        Action of the crystal operator `f_a` on ``self``.
 
         This implements the method defined in [CrysStructSchilling06]_ which
         finds the value `k` which is  the length of the string with the
@@ -673,7 +717,7 @@ class RiggedConfigurationElement(ClonableArray):
 
         INPUT:
 
-        - ``a`` -- The index of the partition to add a box.
+        - ``a`` -- the index of the partition to add a box
 
         OUTPUT:
 
@@ -783,13 +827,14 @@ class RiggedConfigurationElement(ClonableArray):
 
         INPUT:
 
-        - ``a`` -- The index of the partition we operated on.
-        - ``b`` -- The index of the partition to generate.
-        - ``k`` -- The length of the string with smallest nonpositive rigging of largest length.
+        - ``a`` -- the index of the partition we operated on
+        - ``b`` -- the index of the partition to generate
+        - ``k`` -- the length of the string with smallest nonpositive rigging
+          of largest length
 
         OUTPUT:
 
-        - The constructed rigged partition.
+        The constructed rigged partition.
 
         TESTS::
 
@@ -917,7 +962,6 @@ class RiggedConfigurationElement(ClonableArray):
             ....:    if x.classical_weight() != y.classical_weight():
             ....:        passed_test = False
             ....:        break
-            ...
             sage: passed_test
             True
         """
@@ -944,7 +988,7 @@ class RiggedConfigurationElement(ClonableArray):
 
         INPUT:
 
-        - ``a`` -- The index of the rigged partition.
+        - ``a`` -- the index of the rigged partition
 
         EXAMPLES::
 
@@ -960,9 +1004,9 @@ class RiggedConfigurationElement(ClonableArray):
 
         INPUT:
 
-        - ``a`` -- The index of the rigged partition.
+        - ``a`` -- the index of the rigged partition
 
-        - ``i`` -- The row of the rigged partition.
+        - ``i`` -- the row of the rigged partition
 
         EXAMPLES::
 
@@ -990,6 +1034,7 @@ class RiggedConfigurationElement(ClonableArray):
 
         EXAMPLES::
 
+            sage: RC = RiggedConfigurations(['A',3,1], [[1,2],[2,2]])
             sage: rc = RC(partition_list=[[2],[1],[1]], rigging_list=[[-1],[0],[-1]]); rc
             <BLANKLINE>
             -1[ ][ ]-1
@@ -999,7 +1044,7 @@ class RiggedConfigurationElement(ClonableArray):
             -1[ ]-1
             <BLANKLINE>
             sage: rc.partition_rigging_lists()
-            [[[2],[1],[1]], [[-1],[0],[-1]]]
+            [[[2], [1], [1]], [[-1], [0], [-1]]]
         """
         partitions = []
         riggings = []

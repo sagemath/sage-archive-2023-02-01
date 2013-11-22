@@ -59,3 +59,5 @@ from sd_codes import self_dual_codes_binary
 
 lazy_import("sage.coding.delsarte_bounds",
     ["Krawtchouk", "delsarte_bound_hamming_space", "delsarte_bound_additive_hamming_space"])
+
+lazy_import('sage.coding', 'codes_catalog', 'codes')

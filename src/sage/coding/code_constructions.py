@@ -1,27 +1,18 @@
 r"""
 Linear code constructions
 
-AUTHOR:
-
-- David Joyner (2007-05): initial version
-
-- " (2008-02): added cyclic codes, Hamming codes
-
-- " (2008-03): added BCH code, LinearCodeFromCheckmatrix, ReedSolomonCode, WalshCode,
-  DuadicCodeEvenPair, DuadicCodeOddPair, QR codes (even and odd)
-
-- " (2008-09) fix for bug in BCHCode reported by F. Voloch
-
-- " (2008-10) small docstring changes to WalshCode and walsh_matrix
-
 This file contains constructions of error-correcting codes which are
 pure Python/Sage and not obtained from wrapping GUAVA functions.
 The GUAVA wrappers are in guava.py.
 
+All codes available here can be accessed through the ``codes`` object::
+
+    sage: codes.HammingCode(3,GF(2))
+    Linear code of length 7, dimension 4 over Finite Field of size 2
+
 Let `F` be a finite field with `q` elements.
 Here's a constructive definition of a cyclic code of length
 `n`.
-
 
 #. Pick a monic polynomial `g(x)\in F[x]` dividing
    `x^n-1`. This is called the generating polynomial of the
@@ -34,7 +25,6 @@ Here's a constructive definition of a cyclic code of length
 #. `{\bf c} =(c_0,c_1,...,c_{n-1})` is a codeword in
    `C`. Every codeword in `C` arises in this way
    (from some `p(x)`).
-
 
 The polynomial notation for the code is to call
 `c_0+c_1x+...+c_{n-1}x^{n-1}` the codeword (instead of
@@ -127,12 +117,26 @@ defined using properties of the zeros of `C`.
   related to Hadamard matrices.
   http://en.wikipedia.org/wiki/Walsh_code
 
-Please see the docstrings below for further details.
-
 REFERENCES:
 
 .. [HP] W. C. Huffman, V. Pless, Fundamentals of Error-Correcting
    Codes, Cambridge Univ. Press, 2003.
+
+AUTHOR:
+
+- David Joyner (2007-05): initial version
+
+- " (2008-02): added cyclic codes, Hamming codes
+
+- " (2008-03): added BCH code, LinearCodeFromCheckmatrix, ReedSolomonCode, WalshCode,
+  DuadicCodeEvenPair, DuadicCodeOddPair, QR codes (even and odd)
+
+- " (2008-09) fix for bug in BCHCode reported by F. Voloch
+
+- " (2008-10) small docstring changes to WalshCode and walsh_matrix
+
+Functions
+---------
 
 """
 ############################################################################

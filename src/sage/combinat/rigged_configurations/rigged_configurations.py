@@ -4,224 +4,6 @@ Rigged Configurations
 AUTHORS:
 
 - Travis Scrimshaw (2010-09-26): Initial version
-
-Rigged configurations form combinatorial objects first introduced by Kerov, Kirillov and Reshetikhin
-that arose from studies of statistical mechanical models using the Bethe Ansatz.
-They are sequences of rigged partitions. A rigged partition is a partition together
-with a label associated to each part that satisfy certain constraints. The labels
-are also called riggings.
-
-Rigged configurations exist for all affine Kac-Moody Lie algebras. See for example
-[HKOTT2002]_. In Sage they are specified by providing a Cartan type and a list of
-rectangular shapes `R`. The list of all (highest weight) rigged configurations
-for given `R` is computed via the (virtual) Kleber algorithm (see also
-:class:`~sage.combinat.rigged_configurations.kleber_tree.KleberTree` and
-:class:`~sage.combinat.rigged_configurations.kleber_tree.VirtualKleberTree`).
-
-There exists a crystal structure on the set of rigged configurations, see
-[CrysStructSchilling06]_ and [OSS03]_. The highest weight rigged
-configurations are those where all riggings are nonnegative. The list of
-all rigged configurations is computed from the highest weight ones using the
-crystal operators.
-
-Rigged configurations are in bijection with tensor products of Kirillov-Reshetikhin tableaux,
-see [RigConBijection]_, [BijectionDn]_, and [BijectionLRT]_. The list of rectangles `R` corresponds
-to the shape of the Kirillov-Reshetikhin crystals appearing in the tensor product.
-Kirillov-Reshetikhin crystals are implemented in Sage, see :class:`KirillovReshetikhinCrystal`, however,
-in the bijection with rigged configurations a different realization of the elements in the
-crystal are obtained, which are coined Kirillov-Reshetkihin tableaux, see :class:`KirillovReshetikhinTableaux`.
-For more details see [AffineRigConDn]_.
-
-INPUT:
-
-- ``cartan_type`` -- A Cartan type
-
-- ``B`` -- A list of positive integer pairs `(r,s)` specifying the width `s`
-  and height `r` of the sequence of rectangles
-
-EXAMPLES::
-
-    sage: RC = RiggedConfigurations(['A', 3, 1], [[3, 2], [1, 2], [1, 1]])
-    sage: RC
-    Rigged configurations of type ['A', 3, 1] and factor(s) ((3, 2), (1, 2), (1, 1))
-
-    sage: RC = RiggedConfigurations(['A', 3, 1], [[2,1]]); RC
-    Rigged configurations of type ['A', 3, 1] and factor(s) ((2, 1),)
-    sage: RC.cardinality()
-    6
-    sage: len(RC.list()) == RC.cardinality()
-    True
-    sage: RC.list()    # random
-    [
-    (/)
-    <BLANKLINE>
-    (/)
-    <BLANKLINE>
-    (/)
-    ,
-    (/)
-    <BLANKLINE>
-    -1[ ]-1
-    <BLANKLINE>
-    (/)
-    ,
-    (/)
-    <BLANKLINE>
-    0[ ]0
-    <BLANKLINE>
-    -1[ ]-1
-    ,
-    -1[ ]-1
-    <BLANKLINE>
-    0[ ]0
-    <BLANKLINE>
-    (/)
-    ,
-    -1[ ]-1
-    <BLANKLINE>
-    1[ ]1
-    <BLANKLINE>
-    -1[ ]-1
-    ,
-    0[ ]0
-    <BLANKLINE>
-    -1[ ]-1
-    -1[ ]-1
-    <BLANKLINE>
-    0[ ]0
-    ]
-
-A rigged configuration element with all riggings equal to the vacancy numbers can be created as follows::
-
-    sage: RC = RiggedConfigurations(['A', 3, 1], [[3,2], [2,1], [1,1], [1,1]]); RC
-    Rigged configurations of type ['A', 3, 1] and factor(s) ((3, 2), (2, 1), (1, 1), (1, 1))
-    sage: elt = RC(partition_list=[[1],[],[]]); elt
-    <BLANKLINE>
-    0[ ]0
-    <BLANKLINE>
-    (/)
-    <BLANKLINE>
-    (/)
-    <BLANKLINE>
-
-If on the other hand we also want to specify the riggings, this can be achieved as follows::
-
-    sage: RC = RiggedConfigurations(['D', 7, 1], [[3,3],[5,2],[4,3],[2,3],[4,4],[3,1],[1,4],[2,2]])
-    sage: elt = RC(partition_list=[[2],[3,2,1],[2,2,1,1],[2,2,1,1,1,1],[3,2,1,1,1,1],[2,1,1],[2,2]],
-    ....:          rigging_list=[[2],[1,0,0],[4,1,2,1],[1,0,0,0,0,0],[0,1,0,0,0,0],[0,0,0],[0,0]])
-    sage: elt
-    <BLANKLINE>
-    3[ ][ ]2
-    <BLANKLINE>
-    1[ ][ ][ ]1
-    2[ ][ ]0
-    1[ ]0
-    <BLANKLINE>
-    4[ ][ ]4
-    4[ ][ ]1
-    3[ ]2
-    3[ ]1
-    <BLANKLINE>
-    2[ ][ ]1
-    2[ ][ ]0
-    0[ ]0
-    0[ ]0
-    0[ ]0
-    0[ ]0
-    <BLANKLINE>
-    0[ ][ ][ ]0
-    2[ ][ ]1
-    0[ ]0
-    0[ ]0
-    0[ ]0
-    0[ ]0
-    <BLANKLINE>
-    0[ ][ ]0
-    0[ ]0
-    0[ ]0
-    <BLANKLINE>
-    0[ ][ ]0
-    0[ ][ ]0
-    <BLANKLINE>
-
-To obtain the Kirillov-Reshetikhin (KR) tableaux under the bijection between rigged configurations and KR
-tableaux, we can type the following. This example was checked against Reiho Sakamoto's Mathematica program
-on rigged configurations::
-
-    sage: output = elt.to_tensor_product_of_kirillov_reshetikhin_tableaux(); output
-    [[1, 1, 1], [2, 3, 3], [3, 4, -5]] (X) [[1, 1], [2, 2], [3, 3], [5, -6], [6, -5]] (X) [[1, 1, 2], [2, 2, 3], [3, 3, 7], [4, 4, -7]] (X) [[1, 1, 1], [2, 2, 2]] (X) [[1, 1, 1, 3], [2, 2, 3, 4], [3, 3, 4, 5], [4, 4, 5, 6]] (X) [[1], [2], [3]] (X) [[1, 1, 1, 1]] (X) [[1, 1], [2, 2]]
-    sage: elt.to_tensor_product_of_kirillov_reshetikhin_tableaux().to_rigged_configuration() == elt
-    True
-    sage: output.to_rigged_configuration().to_tensor_product_of_kirillov_reshetikhin_tableaux() == output
-    True
-
-To get the highest weight rigged configurations, use the attribute
-``module_generators``::
-
-    sage: RC = RiggedConfigurations(['D',4,1], [[2,1]])
-    sage: for x in RC.module_generators: x
-    <BLANKLINE>
-    (/)
-    <BLANKLINE>
-    (/)
-    <BLANKLINE>
-    (/)
-    <BLANKLINE>
-    (/)
-    <BLANKLINE>
-    0[ ]0
-    <BLANKLINE>
-    0[ ]0
-    0[ ]0
-    <BLANKLINE>
-    0[ ]0
-    <BLANKLINE>
-    0[ ]0
-
-TESTS::
-
-    sage: RC = RiggedConfigurations(['A', 3, 1], [[3,2], [2,1], [1,1], [1,1]])
-    sage: len(RC.module_generators)
-    17
-    sage: RC = RiggedConfigurations(['D', 4, 1], [[1, 1]])
-    sage: RC.cardinality()
-    8
-    sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 1]])
-    sage: c = RC.cardinality(); c
-    29
-    sage: K = KirillovReshetikhinCrystal(['D',4,1],2,1)
-    sage: K.cardinality() == c
-    True
-
-REFERENCES:
-
-.. [HKOTT2002] G. Hatayama, A. Kuniba, M. Okado, T. Takagi, Z. Tsuboi.
-   Paths, Crystals and Fermionic Formulae
-   Prog.Math.Phys. 23 (2002) 205-272
-
-.. [CrysStructSchilling06] Anne Schilling.
-   Crystal structure on rigged configurations.
-   International Mathematics Research Notices.
-   Volume 2006. 2006. Article ID 97376. Pages 1-27.
-
-.. [RigConBijection] Masato Okado, Anne Schilling, Mark Shimozono.
-   A crystal to rigged configuration bijection for non-exceptional affine
-   algebras.
-   Algebraic Combinatorics and Quantum Groups.
-   Edited by N. Jing. World Scientific. 2003. Pages 85-124.
-
-.. [BijectionDn] Anne Schilling.
-   A bijection between type `D_n^{(1)}` crystals and rigged configurations.
-   J. Algebra. 285. 2005. 292-334
-
-.. [BijectionLRT] Anatol N. Kirillov, Anne Schilling, Mark Shimozono.
-   A bijection between Littlewood-Richardson tableaux and rigged
-   configurations.
-   Selecta Mathematica (N.S.). 8. 2002. 67-135 (:mathscinet:`MR1890195`).
-
-.. [AffineRigConDn] Masato Okado, Reiho Sakamoto, Anne Schilling.
-   Affine crystal structure on rigged configurations of type `D_n^{(1)}`.
-   J. Algebraic Combinatorics, to appear, :doi:`10.1007/s10801-012-0383-z` (:arXiv:`1109.3523`)
 """
 
 #*****************************************************************************
@@ -251,15 +33,15 @@ from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.rigged_configurations.kleber_tree import KleberTree, VirtualKleberTree
 from sage.combinat.rigged_configurations.rigged_configuration_element import RiggedConfigurationElement, \
-  RCVirtualElement
+  RCNonSimplyLacedElement
 
 # Note on implementation, this class is used for simply-laced types only
 class RiggedConfigurations(Parent, UniqueRepresentation):
     r"""
-    Class of rigged configurations.
+    Rigged configurations as `U_q^{\prime}(\mathfrak{g})`-crystals.
 
-    Let `\overline{I}` denote the classical index set associated to the Cartan type
-    of the rigged configurations. A rigged configuration of multiplicity
+    Let `\overline{I}` denote the classical index set associated to the Cartan
+    type of the rigged configurations. A rigged configuration of multiplicity
     array `L_i^{(a)}` and dominant weight `\Lambda` is a sequence of partitions
     `\{ \nu^{(a)} \mid a \in \overline{I} \}` such that
 
@@ -273,23 +55,56 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
     and `m_i^{(a)}` is the number of rows of length `i` in the partition
     `\nu^{(a)}`.
 
-    Each sequence of partitions also comes with a sequence of values called
-    vacancy numbers and riggings. Vacancy numbers are computed based upon the
-    partitions and `L_i^{(a)}`, and the riggings must satisfy certain
-    conditions. For more, see [RigConBijection]_ [CrysStructSchilling06]_
-    [BijectionLRT]_.
+    Each partition `\nu^{(a)}`, in the sequence also comes with a sequence of
+    statistics `p_i^{(a)}` called *vacancy numbers* and a weakly decreasing
+    sequence `J_i^{(a)}` of length `m_i^{(a)}` called *riggings*.
+    Vacancy numbers are computed based upon the partitions and `L_i^{(a)}`,
+    and the riggings must satisfy `\max J_i^{(a)} \leq p_i^{(a)}`. We call
+    such a partition a *rigged partition*. For more, see
+    [RigConBijection]_ [CrysStructSchilling06]_ [BijectionLRT]_.
 
-    They are in bijection with
+    Rigged configurations form combinatorial objects first introduced by
+    Kerov, Kirillov and Reshetikhin that arose from studies of statistical
+    mechanical models using the Bethe Ansatz. They are sequences of rigged
+    partitions. A rigged partition is a partition together with a label
+    associated to each part that satisfy certain constraints. The labels
+    are also called riggings.
+
+    Rigged configurations exist for all affine Kac-Moody Lie algebras. See
+    for example [HKOTT2002]_. In Sage they are specified by providing a Cartan
+    type and a list of rectangular shapes `B`. The list of all (highest
+    weight) rigged configurations for given `B` is computed via the (virtual)
+    Kleber algorithm (see also
+    :class:`~sage.combinat.rigged_configurations.kleber_tree.KleberTree` and
+    :class:`~sage.combinat.rigged_configurations.kleber_tree.VirtualKleberTree`).
+
+    Rigged configurations in simply-laced types all admit a classical crystal
+    structure [CrysStructSchilling06]_. For non-simply-laced types, the
+    crystal is given by using virtual rigged configurations [OSS03]_. The
+    highest weight rigged configurations are those where all riggings are
+    nonnegative. The list of all rigged configurations is computed from the
+    highest weight ones using the crystal operators.
+
+    Rigged configurations are conjecturally in bijection with
     :class:`TensorProductOfKirillovReshetikhinTableaux` of non-exceptional
-    affine types (see [RigConBijection]_, [BijectionLRT]_, [BijectionDn]_) and all
-    admit a classical crystal structure [CrysStructSchilling06]_.
+    affine types where the list `B` corresponds to the tensor factors
+    `B^{r,s}`. The bijection has been proven in types `A_n^{(1)}` and
+    `D_n^{(1)}` and when the only non-zero entries of `L_i^{(a)}` are either
+    only `L_1^{(a)}` or only `L_i^{(1)}` (corresponding to single columns or
+    rows respectively) [RigConBijection]_, [BijectionLRT]_, [BijectionDn]_.
+
+    KR crystals are implemented in Sage, see
+    :class:`KirillovReshetikhinCrystal`, however, in the bijection with
+    rigged configurations a different realization of the elements in the
+    crystal are obtained, which are coined KR tableaux, see
+    :class:`KirillovReshetikhinTableaux`. For more details see [OSS2011]_.
 
     .. NOTE::
 
         All non-simply-laced rigged configurations have not been proven to
         give rise to aligned virtual crystals (i.e. have the correct crystal
         structure or ismorphic as affine crystals to the tensor product of
-        Kirillov-Reshetikhin tableaux).
+        KR tableaux).
 
     INPUT:
 
@@ -297,9 +112,89 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
 
     - ``B`` -- a list of positive integer tuples `(r,s)` corresponding to the
       tensor factors in the bijection with tensor product of
-      Kirillov-Reshetikhin tableaux
+      Kirillov-Reshetikhin tableaux or equivalently the sequence of width `s`
+      and height `r` rectangles
 
-    A rigged configuration element with all riggings equal to the vacancy numbers can be created as follows::
+    REFERENCES:
+
+    .. [HKOTT2002] G. Hatayama, A. Kuniba, M. Okado, T. Takagi, Z. Tsuboi.
+       Paths, Crystals and Fermionic Formulae
+       Prog.Math.Phys. 23 (2002) 205-272
+
+    .. [CrysStructSchilling06] Anne Schilling.
+       Crystal structure on rigged configurations.
+       International Mathematics Research Notices.
+       Volume 2006. 2006. Article ID 97376. Pages 1-27.
+
+    .. [RigConBijection] Masato Okado, Anne Schilling, Mark Shimozono.
+       A crystal to rigged configuration bijection for non-exceptional affine
+       algebras.
+       Algebraic Combinatorics and Quantum Groups.
+       Edited by N. Jing. World Scientific. 2003. Pages 85-124.
+
+    .. [BijectionDn] Anne Schilling.
+       A bijection between type `D_n^{(1)}` crystals and rigged configurations.
+       J. Algebra. 285. 2005. 292-334
+
+    .. [BijectionLRT] Anatol N. Kirillov, Anne Schilling, Mark Shimozono.
+       A bijection between Littlewood-Richardson tableaux and rigged
+       configurations.
+       Selecta Mathematica (N.S.). 8. 2002. 67-135 (:mathscinet:`MR1890195`).
+
+    EXAMPLES::
+
+        sage: RC = RiggedConfigurations(['A', 3, 1], [[3, 2], [1, 2], [1, 1]])
+        sage: RC
+        Rigged configurations of type ['A', 3, 1] and factor(s) ((3, 2), (1, 2), (1, 1))
+
+        sage: RC = RiggedConfigurations(['A', 3, 1], [[2,1]]); RC
+        Rigged configurations of type ['A', 3, 1] and factor(s) ((2, 1),)
+        sage: RC.cardinality()
+        6
+        sage: len(RC.list()) == RC.cardinality()
+        True
+        sage: RC.list()    # random
+        [
+        (/)
+        <BLANKLINE>
+        (/)
+        <BLANKLINE>
+        (/)
+        ,
+        (/)
+        <BLANKLINE>
+        -1[ ]-1
+        <BLANKLINE>
+        (/)
+        ,
+        (/)
+        <BLANKLINE>
+        0[ ]0
+        <BLANKLINE>
+        -1[ ]-1
+        ,
+        -1[ ]-1
+        <BLANKLINE>
+        0[ ]0
+        <BLANKLINE>
+        (/)
+        ,
+        -1[ ]-1
+        <BLANKLINE>
+        1[ ]1
+        <BLANKLINE>
+        -1[ ]-1
+        ,
+        0[ ]0
+        <BLANKLINE>
+        -1[ ]-1
+        -1[ ]-1
+        <BLANKLINE>
+        0[ ]0
+        ]
+
+    A rigged configuration element with all riggings equal to the vacancy
+    numbers can be created as follows::
 
         sage: RC = RiggedConfigurations(['A', 3, 1], [[3,2], [2,1], [1,1], [1,1]]); RC
         Rigged configurations of type ['A', 3, 1] and factor(s) ((3, 2), (2, 1), (1, 1), (1, 1))
@@ -312,7 +207,8 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         (/)
         <BLANKLINE>
 
-    If on the other hand we also want to specify the riggings, this can be achieved as follows::
+    If on the other hand we also want to specify the riggings, this can be
+    achieved as follows::
 
         sage: RC = RiggedConfigurations(['D', 7, 1], [[3,3],[5,2],[4,3],[2,3],[4,4],[3,1],[1,4],[2,2]])
         sage: elt = RC(partition_list=[[2],[3,2,1],[2,2,1,1],[2,2,1,1,1,1],[3,2,1,1,1,1],[2,1,1],[2,2]],
@@ -352,9 +248,9 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         0[ ][ ]0
         <BLANKLINE>
 
-    To obtain the Kirillov-Reshetikhin (KR) tableau under the bijection between rigged configurations and KR
-    tableaux, we can type the following. This example was checked against Reiho Sakamoto's Mathematica program
-    on rigged configurations::
+    To obtain the KR tableau under the bijection between rigged configurations
+    and KR tableaux, we can type the following. This example was checked
+    against Reiho Sakamoto's Mathematica program on rigged configurations::
 
         sage: output = elt.to_tensor_product_of_kirillov_reshetikhin_tableaux(); output
         [[1, 1, 1], [2, 3, 3], [3, 4, -5]] (X) [[1, 1], [2, 2], [3, 3], [5, -6], [6, -5]] (X)
@@ -366,7 +262,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         True
 
     We can also convert between rigged configurations and tensor products of
-    Kirillov-Reshetikhin crystals::
+    KR crystals::
 
         sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 1]])
         sage: elt = RC(partition_list=[[1],[1,1],[1],[1]])
@@ -387,6 +283,21 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         sage: ret = RC(t)
         sage: ret.to_tensor_product_of_kirillov_reshetikhin_crystals()
         [[++++, []], [+++-, [[1], [2], [4], [-4]]]]
+
+    TESTS::
+
+        sage: RC = RiggedConfigurations(['A', 3, 1], [[3,2], [2,1], [1,1], [1,1]])
+        sage: len(RC.module_generators)
+        17
+        sage: RC = RiggedConfigurations(['D', 4, 1], [[1, 1]])
+        sage: RC.cardinality()
+        8
+        sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 1]])
+        sage: c = RC.cardinality(); c
+        29
+        sage: K = KirillovReshetikhinCrystal(['D',4,1],2,1)
+        sage: K.cardinality() == c
+        True
     """
     @staticmethod
     def __classcall_private__(cls, cartan_type, B):
@@ -415,7 +326,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         # We check the classical type to account for A^{(1)}_1 which is not
         #    a virtual rigged configuration.
         if not cartan_type.classical().is_simply_laced():
-            return RCVirtual(cartan_type, B)
+            return RCNonSimplyLaced(cartan_type, B)
 
         return super(RiggedConfigurations, cls).__classcall__(cls, cartan_type, B)
 
@@ -668,7 +579,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 1]])
-            sage: RC(partition_list=[[1], [1], [], []], rigging_list=[[-1], [0], [], []]) # indirect doctest
+            sage: RC(partition_list=[[1], [1], [], []], rigging_list=[[-1], [0], [], []])
             <BLANKLINE>
             -1[ ]-1
             <BLANKLINE>
@@ -677,6 +588,30 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             (/)
             <BLANKLINE>
             (/)
+            <BLANKLINE>
+
+        TESTS::
+
+            sage: KT = TensorProductOfKirillovReshetikhinTableaux(['C',2,1], [[2,4],[1,2]])
+            sage: t = KT(pathlist=[[2,1,2,1,-2,2,-1,-2],[2,-2]])
+            sage: rc = t.to_rigged_configuration(); rc
+            <BLANKLINE>
+            -1[ ][ ][ ]-1
+             0[ ][ ]0
+            <BLANKLINE>
+            -1[ ][ ]-1
+            -1[ ]-1
+            -1[ ]-1
+            <BLANKLINE>
+            sage: RC = RiggedConfigurations(['C',2,1], [[1,2],[2,4]])
+            sage: RC(rc)
+            <BLANKLINE>
+            -1[ ][ ][ ]-1
+             0[ ][ ]0
+            <BLANKLINE>
+            -1[ ][ ]-1
+            -1[ ]-1
+            -1[ ]-1
             <BLANKLINE>
         """
         from sage.combinat.rigged_configurations.tensor_product_kr_tableaux_element import TensorProductOfKirillovReshetikhinTableauxElement
@@ -693,6 +628,9 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             KRT = self.tensor_product_of_kirillov_reshetikhin_tableaux()
             krt_elt = KRT(*[x.to_kirillov_reshetikhin_tableau() for x in lst])
             return krt_elt.to_rigged_configuration()
+
+        if isinstance(lst[0], RiggedConfigurationElement):
+            lst = lst[0]
 
         return self.element_class(self, list(lst), **options)
 
@@ -790,10 +728,8 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             sage: RC.cardinality()
             134
         """
-        try:
-            return self.tensor_product_of_kirillov_reshetikhin_tableaux().cardinality()
-        except NotImplementedError: # Backup by direct counting
-            return ZZ(sum(1 for x in self))
+        CWLR = self.cartan_type().classical().root_system().ambient_space()
+        return sum(CWLR.weyl_dimension(mg.classical_weight()) for mg in self.module_generators)
 
     @cached_method
     def tensor_product_of_kirillov_reshetikhin_crystals(self):
@@ -883,9 +819,9 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
 
 RiggedConfigurations.Element = RiggedConfigurationElement
 
-class RCVirtual(RiggedConfigurations):
+class RCNonSimplyLaced(RiggedConfigurations):
     r"""
-    Class of virtual rigged configurations.
+    Rigged configurations in non-simply-laced types.
 
     These are rigged configurations which lift to a virtual configuration.
 
@@ -908,7 +844,7 @@ class RCVirtual(RiggedConfigurations):
 
         # Standardize B input into a tuple of tuples
         B = tuple(map(tuple, B))
-        return super(RCVirtual, cls).__classcall__(cls, cartan_type, B)
+        return super(RCNonSimplyLaced, cls).__classcall__(cls, cartan_type, B)
 
     def __init__(self, cartan_type, dims):
         """
@@ -1213,9 +1149,9 @@ class RCVirtual(RiggedConfigurations):
                       "Incorrect vacancy number: %s\nComputed: %s\nFor: %s"\
                       %(x[i].vacancy_numbers[j],vac_num, x))
 
-RCVirtual.Element = RCVirtualElement
+RCNonSimplyLaced.Element = RCNonSimplyLacedElement
 
-class RCTypeA2Even(RCVirtual):
+class RCTypeA2Even(RCNonSimplyLaced):
     """
     Rigged configurations for type `A_{2n}^{(2)}`.
 

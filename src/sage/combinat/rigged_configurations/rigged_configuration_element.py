@@ -36,7 +36,7 @@ class RiggedConfigurationElement(ClonableArray):
 
     For more information on rigged configurations, see
     :class:`RiggedConfigurations`. For rigged configurations for
-    non-simply-laced types, use :class:`RCVirtualElement`.
+    non-simply-laced types, use :class:`RCNonSimplyLacedElement`.
 
     Typically to create a specific rigged configuration, the user will pass in
     the optional argument **partition_list** and if the user wants to specify
@@ -983,9 +983,34 @@ class RiggedConfigurationElement(ClonableArray):
 
         return None
 
-class RCVirtualElement(RiggedConfigurationElement):
+    def partition_rigging_lists(self):
+        """
+        Return the list of partitions and the associated list of riggings
+        of ``self``.
+
+        EXAMPLES::
+
+            sage: rc = RC(partition_list=[[2],[1],[1]], rigging_list=[[-1],[0],[-1]]); rc
+            <BLANKLINE>
+            -1[ ][ ]-1
+            <BLANKLINE>
+            1[ ]0
+            <BLANKLINE>
+            -1[ ]-1
+            <BLANKLINE>
+            sage: rc.partition_rigging_lists()
+            [[[2],[1],[1]], [[-1],[0],[-1]]]
+        """
+        partitions = []
+        riggings = []
+        for p in self:
+            partitions.append(list(p))
+            riggings.append(list(p.rigging))
+        return [partitions, riggings]
+
+class RCNonSimplyLacedElement(RiggedConfigurationElement):
     """
-    Virtual rigged configuration elements.
+    Rigged configuration elements for non-simply-laced types.
 
     TESTS::
 

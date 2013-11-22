@@ -3,8 +3,9 @@ Tensor Product of Kirillov-Reshetikhin Tableaux
 
 A tensor product of :class:`KirillovReshetikhinTableaux` which are tableaux of
 `r` rows and `s` columns which naturally arise in the bijection between rigged
-configurations and tableaux and which are in bijection with the elements of the
-Kirillov-Reshetikhin crystal `B^{r,s}`, see :class:`KirillovReshetikhinCrystal`.
+configurations and tableaux and which are in bijection with the elements of
+the Kirillov-Reshetikhin crystal `B^{r,s}`, see
+:class:`KirillovReshetikhinCrystal`.
 
 AUTHORS:
 
@@ -140,7 +141,7 @@ class HighestWeightTensorKRT(UniqueRepresentation):
 
             sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[2,1]])
             sage: from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import HighestWeightTensorKRT
-            sage: HighestWeightTensorKRT(KRT) # indirect doctest
+            sage: HighestWeightTensorKRT(KRT)
             Highest weight elements of Tensor product of Kirillov-Reshetikhin tableaux of type ['D', 4, 1] and factor(s) ((2, 1),)
         """
         return "Highest weight elements of %s"%self.tp_krt
@@ -174,41 +175,39 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
     A tensor product of :class:`KirillovReshetikhinTableaux`.
 
     Through the bijection with rigged configurations, the tableaux that are
-    produced in all nonexceptional types are all of rectangular shapes and do not necessarily
-    obey the usual strict increase in columns and weak increase in rows. The relation between the
-    elements of the Kirillov-Reshetikhin crystal, given by the Kashiwara-Nakashima tableaux, and the
-    Kirillov-Reshetikhin tableaux is given by a filling map.
+    produced in all nonexceptional types are all of rectangular shapes and do
+    not necessarily obey the usual strict increase in columns and weak
+    increase in rows. The relation between the elements of the
+    Kirillov-Reshetikhin crystal, given by the Kashiwara-Nakashima tableaux,
+    and the Kirillov-Reshetikhin tableaux is given by a filling map.
 
     .. NOTE::
 
         The tableaux for all non-simply-laced types are provably correct if the
         bijection with :class:`rigged configurations <RiggedConfigurations>`
-        holds. Therefore this is currently only proven for `B^{r,1}` or `B^{1,s}` and
-        in general for types `A_n^{(1)}` and `D_n^{(1)}`.
+        holds. Therefore this is currently only proven for `B^{r,1}` or
+        `B^{1,s}` and in general for types `A_n^{(1)}` and `D_n^{(1)}`.
 
     For more information see [OSS2011]_ and
     :class:`KirillovReshetikhinTableaux`.
-
-    REFERENCES:
-
-    .. [OSS2011] Masato Okado, Reiho Sakamoto, Anne Schilling
-       Affine crystal structure on rigged configurations of type `D_n^{(1)}`
-       J. Algebraic Combinatorics, to appear, doi:10.1007/s10801-012-0383-z (arXiv:1109.3523 [math.QA])
 
     For more information on KR crystals, see
     :mod:`sage.combinat.crystals.kirillov_reshetikhin`.
 
     INPUT:
 
-    - ``cartan_type``    -- The Cartan type
+    - ``cartan_type`` -- a Cartan type
 
-    - ``B``              -- An (ordered) list of pairs `(r,s)` which give the dimension of a rectangle
-      with `r` rows and `s` columns
+    - ``B`` -- an (ordered) list of pairs `(r,s)` which give the dimension
+      of a rectangle with `r` rows and `s` columns and corresponds to a
+      Kirillov-Reshetikhin tableaux factor of `B^{r,s}`.
 
-    The dimensions (i.e. `B`) is a list whose entries are lists of the
-    form `[r, s]` which correspond to a tableau with `r` rows and `s`
-    columns (or in type `A_n^{(1)}` of shape ``[r]*s``) and corresponds
-    to a Kirillov-Reshetikhin crystal `B^{r,s}`.
+    REFERENCES:
+
+    .. [OSS2011] Masato Okado, Reiho Sakamoto, Anne Schilling
+       Affine crystal structure on rigged configurations of type `D_n^{(1)}`
+       J. Algebraic Combinatorics, to appear, :doi:`10.1007/s10801-012-0383-z`,
+       `arxiv:`1109.3523` [math.QA]
 
     EXAMPLES:
 
@@ -339,7 +338,7 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
 
     def _element_constructor_(self, *path, **options):
         r"""
-        Construct a TensorProductOfKRTableauxElement.
+        Construct an element of ``self``.
 
         Typically the user will call this with the option **pathlist** which
         will receive a list and coerce it into a path.

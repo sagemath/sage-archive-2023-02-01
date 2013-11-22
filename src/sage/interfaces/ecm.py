@@ -312,11 +312,11 @@ class ECM(SageObject):
 
     _found_input_re = re.compile('Found input number N')
 
-    _found_pprime_re = re.compile(
-        'Found probable prime factor of [\s]*(?P<digits>\d+) digits: (?P<pprime>\d+)')
+    _found_factor_re = re.compile(
+        'Found (?P<primality>.*) factor of [\s]*(?P<digits>\d+) digits: (?P<factor>\d+)')
 
     _found_cofactor_re = re.compile(
-        '(?P<type>.*) cofactor (?P<cofactor>\d+) has [\s]*(?P<digits>\d+) digits')
+        '(?P<primality>.*) cofactor (?P<cofactor>\d+) has [\s]*(?P<digits>\d+) digits')
 
     def _parse_output(self, n, out):
         """
@@ -361,11 +361,14 @@ class ECM(SageObject):
             sage: ecm._parse_output(32193213281156929, TEST_ECM_OUTPUT_2)
             [(179424673, True), (179424673, True)]
 
-            sage: from sage.interfaces.ecm import TEST_ECM_OUTPUT_3 
+            sage: from sage.interfaces.ecm import TEST_ECM_OUTPUT_3, TEST_ECM_OUTPUT_4
             sage: n3 = 66955751844124594814248420514215108438425124740949701470891
             sage: ecm._parse_output(n3, TEST_ECM_OUTPUT_3)
             [(197002597249, True), 
              (339872432034468861533158743041639097889948066859, False)]
+            sage: ecm._parse_output(n3, TEST_ECM_OUTPUT_4)
+            [(265748496095531068869578877937, False),
+             (251951573867253012259144010843, True)]
         """
         out_lines = out.lstrip().splitlines()
         if not out_lines[0].startswith('GMP-ECM'):
@@ -382,19 +385,22 @@ class ECM(SageObject):
             m = self._found_input_re.match(line)
             if m is not None:
                 return [(n, True)]
-            m = self._found_pprime_re.match(line)
+            m = self._found_factor_re.match(line)
             if m is not None:
-                pprime = m.group('pprime')
-                result += [(ZZ(pprime), True)]
-                continue
+                factor = m.group('factor')
+                primality = m.group('primality')
+                assert primality in ['probable prime', 'composite']
+                result += [(ZZ(factor), primality == 'probable prime')]
+                continue  # cofactor on the next line
             m = self._found_cofactor_re.match(line)
             if m is not None:
                 cofactor = m.group('cofactor')
-                cofactor_type = m.group('type')
-                result += [(ZZ(cofactor), cofactor_type == 'Probable prime')]
+                primality = m.group('primality')
+                assert primality in ['Probable prime', 'Composite']
+                result += [(ZZ(cofactor), primality == 'Probable prime')]
+                #assert len(result) == 2
                 return result
         raise ValueError('failed to parse ECM output')
-
 
     def one_curve(self, n, factor_digits=None, B1=2000, algorithm="ECM", **kwds):
         """
@@ -606,7 +612,12 @@ class ECM(SageObject):
 
     def time(self, n, factor_digits, verbose=False):
         """
-        Return a runtime estimate.
+        Print a runtime estimate.
+
+        BUGS:
+        
+        This method should really return something and not just print
+        stuff on the screen.
 
         INPUT:
 
@@ -665,26 +676,31 @@ class ECM(SageObject):
             <BLANKLINE>
             Expected curves: 4911, Expected time: 32.25m
         """
+        title_curves = 'Expected number of curves to find a factor of n digits:'
+        title_time = 'Expected time to find a factor of n digits:'
         n = self._validate(n)
         B1 = self.recommended_B1(factor_digits)
         cmd = self._make_cmd(B1, None, {'v': True})
         out = self._run_ecm(cmd, n)
         if verbose:
             print(out)
+        if title_time not in out:
+            print('Unable to compute timing, factorized immediately')
+            return
 
         out_lines = iter(out.splitlines())
-        while next(out_lines) != 'Expected number of curves to find a factor of n digits:':
+        while next(out_lines) != title_curves:
             pass
-        header_1 = next(out_lines)
+        header_curves = next(out_lines)
         curve_count_table = next(out_lines)
 
-        while next(out_lines) != 'Expected time to find a factor of n digits:':
+        while next(out_lines) != title_time:
             pass
-        header_2 = next(out_lines)
+        header_time = next(out_lines)
         time_table = next(out_lines)
 
-        assert header_1 == header_2
-        assert header_1.split() == [
+        assert header_curves == header_time
+        assert header_curves.split() == [
             '35', '40', '45', '50', '55', '60', '65', '70', '75', '80']
         h_min = 35
         h_max = 80
@@ -730,8 +746,10 @@ class ECM(SageObject):
             raise ValueError("n must have at most 4095 digits")
         return n
 
+
 # unique instance
 ecm = ECM()
+
 
 # Tests
 TEST_ECM_OUTPUT_1 = """
@@ -754,7 +772,6 @@ Found probable prime factor of 17 digits: 79792266297612017
 Probable prime cofactor 6366805760909027985741435139224233 has 34 digits
 """
 
-
 TEST_ECM_OUTPUT_2 = """
 GMP-ECM 6.4.4 [configured with MPIR 2.6.0, --enable-asm-redc] [ECM]
 Input number is 32193213281156929 (17 digits)
@@ -765,7 +782,6 @@ Step 2 took 3ms
 Found probable prime factor of  9 digits: 179424673
 Probable prime cofactor 179424673 has 9 digits
 """
-
 
 TEST_ECM_OUTPUT_3 = """
 GMP-ECM 6.4.4 [configured with MPIR 2.6.0, --enable-asm-redc] [ECM]
@@ -785,3 +801,19 @@ Step 2 took 4ms
 Found probable prime factor of 12 digits: 197002597249
 Composite cofactor 339872432034468861533158743041639097889948066859 has 48 digits
 """
+
+TEST_ECM_OUTPUT_4 = """
+GMP-ECM 6.4.4 [configured with MPIR 2.6.0, --enable-asm-redc] [ECM]
+Input number is 66955751844124594814248420514215108438425124740949701470891 (59 digits)
+Using B1=2000, B2=147396, polynomial x^1, sigma=1881424010\n
+Step 1 took 4ms
+Step 2 took 2ms
+********** Factor found in step 2: 265748496095531068869578877937
+Found composite factor of 30 digits: 265748496095531068869578877937
+Probable prime cofactor 251951573867253012259144010843 has 30 digits
+"""
+
+
+
+
+

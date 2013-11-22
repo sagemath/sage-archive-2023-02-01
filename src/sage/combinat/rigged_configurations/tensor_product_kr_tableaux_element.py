@@ -170,32 +170,31 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
               1  1 (X)   1 (X)   1  1  1
               2  2       2       2  2  2
                          3       3  3  3
+            sage: Partitions.global_options(convention='French')
+            sage: print TPKRT.module_generators[0]._repr_diagram()
+              2  2 (X)   3 (X)   3  3  3
+              1  1       2       2  2  2
+                         1       1  1  1
+            sage: Partitions.global_options.reset()
         """
-        arrays = [crys.to_array() for crys in self]
-        col_len = [len(t)>0 and len(t[0]) or 1 for t in arrays]  # columns per component
-        row_max = max(len(t) for t in arrays)                    # maximum row length
-        # There should be a fancier list compression for this but I couldn't get
-        # one to work in the cases where a component was the empty partition
-        diag = []
-        for row in xrange(row_max):
-            line=''
-            if row == 0:
-                line += ' (X) '.join(''.join(map(lambda x: "%3s"%str(x), arrays[c][row]))+
-                                '   '*(col_len[c]-len(arrays[c][row])) for c in range(len(arrays)))
-            else:
-                for c in range(len(arrays)):
-                    if c > 0:
-                        line += '     '
-                    if row < len(arrays[c]):
-                        line += ''.join(map(lambda x: "%3s"%str(x), arrays[c][row]))+'     '*(col_len[c]-len(arrays[c][row]))
-                    else:
-                        line += '   '*col_len[c]
-            diag.append(line)
-        return '\n'.join(map(str,diag))
-        #if TableauTuples.global_options('convention')=='english':
-        #   return '\n'.join(map(str,diag))
-        #else:
-        #    return '\n'.join(map(str,diag[::-1]))
+        comp = [crys._repr_diagram().splitlines() for crys in self]
+        num_comp = len(comp) # number of components
+        col_len = [len(t) > 0 and len(t[0]) or 1 for t in comp]  # columns per component
+        num_rows = max(len(t) for t in comp)                     # number of rows
+
+        # We take advantage of the fact the components are rectangular
+        diag = ''
+        diag += ' (X) '.join(c[0] for c in comp)
+        for row in xrange(1, num_rows):
+            diag += '\n'
+            for c in range(num_comp):
+                if c > 0:
+                    diag += '     ' # For the tensor symbol
+                if row < len(comp[c]):
+                    diag += comp[c][row]
+                else:
+                    diag += ' '*col_len[c]
+        return diag
 
     def pp(self):
         """

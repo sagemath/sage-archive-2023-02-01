@@ -3,11 +3,9 @@ Tensor Product of Kirillov-Reshetikhin Tableaux
 
 A tensor product of :class:`KirillovReshetikhinTableaux` which are tableaux of
 `r` rows and `s` columns which naturally arise in the bijection between rigged
-configurations and tableaux and which are in bijection with the elements of the
-Kirillov-Reshetikhin crystal `B^{r,s}`, see :class:`KirillovReshetikhinCrystal`.
-They do not have to satisfy the semistandard row or column
-restrictions. These tensor products are the result from the bijection from
-rigged configurations [RigConBijection]_.
+configurations and tableaux and which are in bijection with the elements of
+the Kirillov-Reshetikhin crystal `B^{r,s}`, see
+:class:`KirillovReshetikhinCrystal`.
 
 AUTHORS:
 
@@ -143,7 +141,7 @@ class HighestWeightTensorKRT(UniqueRepresentation):
 
             sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[2,1]])
             sage: from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import HighestWeightTensorKRT
-            sage: HighestWeightTensorKRT(KRT) # indirect doctest
+            sage: HighestWeightTensorKRT(KRT)
             Highest weight elements of Tensor product of Kirillov-Reshetikhin tableaux of type ['D', 4, 1] and factor(s) ((2, 1),)
         """
         return "Highest weight elements of %s"%self.tp_krt
@@ -177,40 +175,39 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
     A tensor product of :class:`KirillovReshetikhinTableaux`.
 
     Through the bijection with rigged configurations, the tableaux that are
-    produced in the Kirillov-Reshetikhin model for type `D_n^{(1)}` are all of
-    rectangular shapes and do not necessarily obey the usual strict increase in
-    columns and weak increase in rows. The relation between the two tableaux
-    models is given by a filling map.
+    produced in all nonexceptional types are all of rectangular shapes and do
+    not necessarily obey the usual strict increase in columns and weak
+    increase in rows. The relation between the elements of the
+    Kirillov-Reshetikhin crystal, given by the Kashiwara-Nakashima tableaux,
+    and the Kirillov-Reshetikhin tableaux is given by a filling map.
 
     .. NOTE::
 
-        The tableaux for all non-simply-laced provably holds if the bijection
-        with :class:`rigged configurations <RiggedConfigurations>` holds.
-        Therefore this is only proven for all factors`B^{r,1}` or all factors
-        `B^{1,s}`, and in general for types `A_n^{(1)}` and `D_n^{(1)}`.
+        The tableaux for all non-simply-laced types are provably correct if the
+        bijection with :class:`rigged configurations <RiggedConfigurations>`
+        holds. Therefore this is currently only proven for `B^{r,1}` or
+        `B^{1,s}` and in general for types `A_n^{(1)}` and `D_n^{(1)}`.
 
     For more information see [OSS2011]_ and
     :class:`KirillovReshetikhinTableaux`.
-
-    REFERENCES:
-
-    .. [OSS2011] Masato Okado, Reiho Sakamoto, Anne Schilling
-       Affine crystal structure on rigged configurations of type `D_n^{(1)}`
-       J. Algebraic Combinatorics, to appear, doi:10.1007/s10801-012-0383-z (arXiv:1109.3523 [math.QA])
 
     For more information on KR crystals, see
     :mod:`sage.combinat.crystals.kirillov_reshetikhin`.
 
     INPUT:
 
-    - ``cartan_type``    -- The Cartan type
+    - ``cartan_type`` -- a Cartan type
 
-    - ``B``              -- An (ordered) list of dimensions
+    - ``B`` -- an (ordered) list of pairs `(r,s)` which give the dimension
+      of a rectangle with `r` rows and `s` columns and corresponds to a
+      Kirillov-Reshetikhin tableaux factor of `B^{r,s}`.
 
-    The dimensions (i.e. `B`) is a list whose entries are lists of the
-    form `[r, s]` which correspond to a tableau with `r` rows and `s`
-    columns (or in type `A_n^{(1)}` of shape ``[r]*s``) and corresponds
-    to a Kirillov-Reshetikhin crystal `B^{r,s}`.
+    REFERENCES:
+
+    .. [OSS2011] Masato Okado, Reiho Sakamoto, Anne Schilling
+       Affine crystal structure on rigged configurations of type `D_n^{(1)}`
+       J. Algebraic Combinatorics, to appear, :doi:`10.1007/s10801-012-0383-z`,
+       `arxiv:`1109.3523` [math.QA]
 
     EXAMPLES:
 
@@ -250,6 +247,29 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
         sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1], [2,1]])
         sage: list(KRT.module_generators)
         [[[1], [2], [3]] (X) [[1], [2]], [[1], [3], [4]] (X) [[1], [2]]]
+
+    To create elements directly (i.e. not passing in KR tableaux elements),
+    there is the **pathlist** option will receive a list of lists which
+    contain the reversed far-eastern reading word of the tableau. That is to
+    say, in English notation, the word obtain from reading bottom-to-top,
+    left-to-right. ::
+
+        sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,2], [1,2], [2,1]])
+        sage: elt = KRT(pathlist=[[3, 2, 1, 4, 2, 1], [1, 3], [3, 1]])
+        sage: elt.pp()
+          1  1 (X)   1  3 (X)   1
+          2  2                  3
+          3  4
+
+    One can still create elements in the same way as tensor product of
+    crystals::
+
+        sage: K1 = KirillovReshetikhinTableaux(['A',3,1], 3,2)
+        sage: K2 = KirillovReshetikhinTableaux(['A',3,1], 1,2)
+        sage: K3 = KirillovReshetikhinTableaux(['A',3,1], 2,1)
+        sage: eltlong = KRT(K1(3, 2, 1, 4, 2, 1), K2(1, 3), K3(3, 1))
+        sage: eltlong == elt
+        True
     """
     @staticmethod
     def __classcall_private__(cls, cartan_type, B):
@@ -341,15 +361,15 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
 
     def _element_constructor_(self, *path, **options):
         r"""
-        Construct a TensorProductOfKRTableauxElement.
+        Construct an element of ``self``.
 
         Typically the user will call this with the option **pathlist** which
-        will receive a list and coerce it into a path.
+        will receive a list of lists of reversed far-eastern reading words.
 
         EXAMPLES::
 
             sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1], [2,1]])
-            sage: KRT(pathlist=[[4, 2, 1], [2, 1]]) # indirect doctest
+            sage: KRT(pathlist=[[4, 2, 1], [2, 1]])
             [[1], [2], [4]] (X) [[1], [2]]
         """
         if isinstance(path[0], KirillovReshetikhinTableauxElement):

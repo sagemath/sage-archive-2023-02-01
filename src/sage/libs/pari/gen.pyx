@@ -7852,13 +7852,73 @@ cdef class gen(sage.structure.element.RingElement):
         pari_catch_sig_on()
         return P.new_gen(deriv(self.g, P.get_var(v)))
 
-    def eval(self, x):
-        cdef gen t0 = objtogen(x)
-        pari_catch_sig_on()
-        return P.new_gen(poleval(self.g, t0.g))
+    def eval(self, *args):
+        """
+        Evaluate ``self`` with the given arguments.
 
-    def __call__(self, x):
-        return self.eval(x)
+        This is currently implemented for polynomials and objects of
+        type ``t_CLOSURE`` (functions in GP bytecode form).
+
+        EXAMPLES::
+
+            sage: f = pari('x^2 + 1')
+            sage: f.type()
+            't_POL'
+            sage: f.eval(I)
+            0
+
+            sage: T = pari('n -> n + 2')
+            sage: T.type()
+            't_CLOSURE'
+            sage: T.eval(3)
+            5
+
+        """
+        cdef long t = typ(self.g)
+        cdef gen t0
+        cdef GEN result
+        if t == t_POL:
+            # evaluate univariate polynomial
+            if len(args) != 1:
+                raise TypeError("evaluating a polynomial takes exactly 1 argument")
+            t0 = objtogen(args[0])
+            pari_catch_sig_on()
+            return P.new_gen(poleval(self.g, t0.g))
+        elif t == t_CLOSURE:
+            t0 = objtogen(args)
+            pari_catch_sig_on()
+            result = closure_callgenvec(self.g, t0.g)
+            if result != NULL:
+                return P.new_gen(result)
+            else:
+                P.clear_stack()
+                return None
+
+    def __call__(self, *args):
+        """
+        Evaluate ``self`` with the given arguments.
+
+        This has the same effect as ``self.eval(*args)``.
+
+        TESTS::
+
+            sage: R.<x> = GF(3)[]
+            sage: f = (x^2 + x + 1)._pari_()
+            sage: f.type()
+            't_POL'
+            sage: f(2)
+            Mod(1, 3)
+
+            sage: T = pari('n -> 1/n')
+            sage: T.type()
+            't_CLOSURE'
+            sage: T(0)
+            Traceback (most recent call last):
+            ...
+            PariError: _/_: division by zero
+
+        """
+        return self.eval(*args)
 
     def factornf(self, t):
         """

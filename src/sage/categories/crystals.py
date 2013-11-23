@@ -1589,7 +1589,7 @@ class CrystalMorphismByGenerators(CrystalMorphism):
         """
         if x is None:
             return None
-        mg, ef, indices = self._to_mg(x)
+        mg, ef, indices = self.to_module_generator(x)
         cur = self._on_gens(mg)
         for op,i in zip(ef, indices):
             if cur is None:
@@ -1668,15 +1668,15 @@ class CrystalMorphismByGenerators(CrystalMorphism):
             y |--> x + y
         """
         D = self.domain()
-        return '\n'.join(['{} |--> {}'.format(mg, self._on_gens(mg)) for\
-                       mg in self._gens])
+        return '\n'.join(['{} |--> {}'.format(mg, im)
+                          for mg,im in zip(self._gens, self.im_gens())])
 
     @cached_method
     def im_gens(self):
         """
-        Return the image of the module generators of ``self`` as a tuple.
+        Return the image of the generators of ``self`` as a tuple.
         """
-        return tuple(map(self._on_gens, self.domain().module_generators))
+        return tuple(map(self._on_gens, self._gens))
 
 class TwistedCrystalMorphismByGenerators(CrystalMorphismByGenerators):
     """
@@ -1693,7 +1693,7 @@ class TwistedCrystalMorphismByGenerators(CrystalMorphismByGenerators):
     """
     def __init__(self, parent, on_gens, automorphism, gens=None):
         """
-        Construct a crystal morphism.
+        Construct a twisted crystal morphism.
 
         EXAMPLES::
         """
@@ -1714,5 +1714,45 @@ class TwistedCrystalMorphismByGenerators(CrystalMorphismByGenerators):
             if cur is None:
                 return None
             cur = getattr(cur, op)(self._twist(i))
+        return cur
+
+class VirtualCrystalMorphismByGenerators(CrystalMorphismByGenerators):
+    """
+    A crystal morphism defined by a set of generators which create a virtual
+    crystal inside the codomain.
+
+    INPUT:
+
+    - ``parent`` -- a Hom category
+    - ``on_gens`` -- a function for the images of the generators
+    - ``virtualization`` -- a dictionary whose keys are in the index set of
+      the domain and whose values are lists of entries in the index set of the
+      codomain
+    - ``gens`` -- a list of generators to define the morphism; the
+      default is to use the module generators of the crystal
+    """
+    def __init__(self, parent, on_gens, virtualization, gens=None):
+        """
+        Construct a virtual crystal morphism.
+
+        EXAMPLES::
+        """
+        self._virtualization = virtualization
+        CrystalMorphismByGenerators.__init__(self, parent, on_gens, to_module_generator, gens)
+
+    def _call_(self, x):
+        """
+        Return the image of ``x`` under ``self``.
+
+        EXAMPLES::
+        """
+        if x is None:
+            return None
+        mg, ef, indices = self._to_mg(x)
+        cur = self._on_gens(mg)
+        for op,i in zip(ef, indices):
+            if cur is None:
+                return None
+            cur = getattr(cur, op + "_string")(self._virtualization[i])
         return cur
 

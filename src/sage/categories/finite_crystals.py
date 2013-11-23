@@ -133,7 +133,7 @@ class FiniteCrystals(Category):
 
         def is_isomorphic(self, X):
             """
-            Check if ``self`` is isomorphic to another crystal ``X`` by
+            Check if ``self`` is isomorphic to another crystal ``X`` by a
             brute force check of their digraphs.
             """
             from sage.rings.infinity import infinity

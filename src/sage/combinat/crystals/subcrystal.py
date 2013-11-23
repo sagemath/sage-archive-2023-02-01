@@ -108,8 +108,10 @@ class Subcrystal(Parent):
             sage: S = B.subcrystal(generators=(B(2,1,1), B(5,2,4)), index_set=[1,2])
         """
         if isinstance(x, self.element_class) and x.parent() is self:
-            return self._contained(x.value)
-        return self._contained(x)
+            return True
+        if x in self._ambient:
+            return self._contained(x)
+        return False
 
     def index_set(self):
         """

@@ -1022,6 +1022,6 @@ class CycleIndexSeries(LazyPowerSeries):
         res = cisr()
         res.define(X - (self - X).compose(res))
 
-        return res    
+        return res
 
 

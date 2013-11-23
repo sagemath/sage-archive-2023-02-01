@@ -96,7 +96,7 @@ class SageDev(MercurialPatchMixin):
         TESTS::
 
             sage: type(dev._sagedev)
-            <class 'sage.dev.sagedev.SageDev'>
+            <class 'sage.dev.test.sagedev.DoctestSageDev'>
         """
         self.config = config
         if self.config is None:

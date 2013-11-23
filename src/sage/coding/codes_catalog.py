@@ -6,6 +6,7 @@ The ``codes`` object may be used to access the codes that Sage can build.
 - :func:`codes.BCHCode <sage.coding.code_constructions.BCHCode>`
 - :func:`codes.BinaryGolayCode <sage.coding.code_constructions.BinaryGolayCode>`
 - :func:`codes.BinaryReedMullerCode <sage.coding.guava.BinaryReedMullerCode>`
+- :func:`codes.CyclicCode <sage.coding.code_constructions.CyclicCode>`
 - :func:`codes.CyclicCodeFromGeneratingPolynomial <sage.coding.code_constructions.CyclicCodeFromGeneratingPolynomial>`
 - :func:`codes.CyclicCodeFromCheckPolynomial <sage.coding.code_constructions.CyclicCodeFromCheckPolynomial>`
 - :func:`codes.DuadicCodeEvenPair <sage.coding.code_constructions.DuadicCodeEvenPair>`
@@ -35,7 +36,7 @@ The ``codes`` object may be used to access the codes that Sage can build.
 # in the global namespace.
 
 from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGeneratingPolynomial,
-                                CyclicCodeFromCheckPolynomial, DuadicCodeEvenPair,
+                                CyclicCode, CyclicCodeFromCheckPolynomial, DuadicCodeEvenPair,
                                 DuadicCodeOddPair, ExtendedBinaryGolayCode,
                                 ExtendedQuadraticResidueCode, ExtendedTernaryGolayCode,
                                 HammingCode, LinearCodeFromCheckMatrix,

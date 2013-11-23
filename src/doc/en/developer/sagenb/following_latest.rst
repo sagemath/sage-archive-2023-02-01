@@ -9,7 +9,7 @@ These are the instructions if you just want to follow the latest
 
 The steps are:
 
-* :ref:`install-git`
+* :ref:`section-git-install`
 * get local copy of the `Sage Notebook github`_ git repository
 * update local copy from time to time
 

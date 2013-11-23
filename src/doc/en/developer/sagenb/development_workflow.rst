@@ -6,7 +6,7 @@ Development workflow
 
 You already have your own forked copy of the `Sage Notebook`_ repository, by
 following :ref:`forking`. You have :ref:`set-up-fork`. You have configured
-git by following :ref:`configure-git`.  Now you are ready for some real work.
+git by following :ref:`section-git-configuration`.  Now you are ready for some real work.
 
 Workflow summary
 ================
@@ -230,8 +230,8 @@ To see a linear list of commits for this branch::
 You can also look at the `network graph visualizer`_ for your github
 repo.
 
-Finally the :ref:`fancy-log` ``lg`` alias will give you a reasonable text-based
-graph of the repository.
+Finally the :ref:`section-fancy-log` ``lg`` alias will give you a
+reasonable text-based graph of the repository.
 
 .. _rebase-on-trunk:
 

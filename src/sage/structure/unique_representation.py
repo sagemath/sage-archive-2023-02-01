@@ -19,8 +19,7 @@ What is a cached representation?
 
 Instances of a class have a *cached representation behavior* when several
 instances constructed with the same arguments share the same memory
-representation. For example, calling twice
-::
+representation. For example, calling twice::
 
     sage: G = SymmetricGroup(6)
     sage: H = SymmetricGroup(6)
@@ -111,8 +110,8 @@ But ``C(2)`` is not in the cache, and the number two is not equal in different
 finite fields (i. e., ``GF(5)(2) == GF(3)(2)`` returns as ``False``), even
 though it is equal to the number two in the ring of integers (
 ``GF(5)(2) == 2 == GF(3)(2)`` returns as ``True``; equality is not transitive
-when comparing elements of *distinct* algebraic structures!!). Hence, we have
-::
+when comparing elements of *distinct* algebraic structures!!). Hence, we
+have::
 
     sage: GF(5)(2) == GF(3)(2)
     False
@@ -127,7 +126,7 @@ Normalising the arguments
 ``__classcall__`` method is a
 :class:`~sage.misc.cachefunc.WeakCachedFunction`.  This function creates an
 instance of the given class using the given arguments, unless it finds the
-result in the cache. This has the following implications::
+result in the cache. This has the following implications:
 
 - The arguments must be valid dictionary keys (i.e., they must be hashable;
   see above).
@@ -152,6 +151,9 @@ result in the cache. This has the following implications::
     function as the first argument. To prevent a callable object from being
     bound to the instance or class, one can prepend the ``@staticmethod``
     decorator to the definition; see :class:`staticmethod`.
+
+    For more on Python's ``__get__()`` method, see:
+    http://docs.python.org/2/howto/descriptor.html
 
 .. WARNING::
 
@@ -268,8 +270,7 @@ sub-class (in contrast to a ``__classcall_private__`` method!).  ::
 
 In the above example, ``C`` drops the argument ``implementation`` if it
 evaluates to ``False``, and since the cached ``__classcall__`` is called in
-this case, we have
-::
+this case, we have::
 
     sage: C(1)
     C(1, 0)
@@ -378,7 +379,8 @@ cache.  ::
     sage: loads(dumps(a)) is a
     True
 
-This is because an attribute is stored that explains how the instance was created::
+This is because an attribute is stored that explains how the instance was
+created::
 
     sage: a._factory_data
     (<class '__main__.MyFactory'>, (...), (1, 1), {})
@@ -644,14 +646,14 @@ class CachedRepresentation:
     canonicalizes it into a tuple (which is hashable!)::
 
         sage: class MyClass2(CachedRepresentation):
-        ...       @staticmethod
-        ...       def __classcall__(cls, iterable):
-        ...           t = tuple(iterable)
-        ...           return super(MyClass2, cls).__classcall__(cls, t)
-        ...
-        ...       def __init__(self, value):
-        ...           self.value = value
-        ...
+        ....:     @staticmethod
+        ....:     def __classcall__(cls, iterable):
+        ....:         t = tuple(iterable)
+        ....:         return super(MyClass2, cls).__classcall__(cls, t)
+        ....:
+        ....:     def __init__(self, value):
+        ....:         self.value = value
+        ....:
         sage: x = MyClass2([1,2,3])
         sage: y = MyClass2(tuple([1,2,3]))
         sage: z = MyClass2(i for i in [1,2,3])
@@ -665,22 +667,22 @@ class CachedRepresentation:
     implementation does not work::
 
         sage: class MyClass3(CachedRepresentation):
-        ...       def __init__(self, value = 3):
-        ...           self.value = value
-        ...
+        ....:     def __init__(self, value = 3):
+        ....:         self.value = value
+        ....:
         sage: MyClass3(3) is MyClass3()
         False
 
     Instead, one should do::
 
         sage: class MyClass3(UniqueRepresentation):
-        ...       @staticmethod
-        ...       def __classcall__(cls, value = 3):
-        ...           return super(MyClass3, cls).__classcall__(cls, value)
-        ...
-        ...       def __init__(self, value):
-        ...           self.value = value
-        ...
+        ....:     @staticmethod
+        ....:     def __classcall__(cls, value = 3):
+        ....:         return super(MyClass3, cls).__classcall__(cls, value)
+        ....:
+        ....:     def __init__(self, value):
+        ....:         self.value = value
+        ....:
         sage: MyClass3(3) is MyClass3()
         True
 
@@ -1098,8 +1100,9 @@ class CachedRepresentation:
 
     def __reduce__(self):
         """
-        Returns the argument that have been passed to :meth:`__new__<object.__new__>`
-        to construct this object, as per the pickle protocol.
+        Return the arguments that have been passed to
+        :meth:`__new__<object.__new__>` to construct this object,
+        as per the pickle protocol.
 
         See also :class:`CachedRepresentation` and
         :class:`UniqueRepresentation` for a discussion.
@@ -1114,9 +1117,9 @@ class CachedRepresentation:
 
     def __copy__(self):
         """
-        Returns self, as a semantic copy of self
+        Return ``self``, as a semantic copy of ``self``.
 
-        This assume that the object is semantically immutable.
+        This assumes that the object is semantically immutable.
 
         EXAMPLES::
 
@@ -1128,9 +1131,9 @@ class CachedRepresentation:
 
     def __deepcopy__(self, memo):
         """
-        Returns self, as a semantic deep copy of self
+        Return ``self``, as a semantic deep copy of ``self``.
 
-        This assume that the object is semantically immutable.
+        This assumes that the object is semantically immutable.
 
         EXAMPLES::
 

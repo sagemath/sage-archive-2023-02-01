@@ -76,7 +76,7 @@ import sage.misc.weak_dict
 
 cdef class UniqueFactory(SageObject):
     """
-    This class is intended to make it easy to cache objects. 
+    This class is intended to make it easy to cache objects.
 
     It is based on the idea that the object is uniquely defined by a set of
     defining data (the key). There is also the possibility of some
@@ -104,19 +104,59 @@ cdef class UniqueFactory(SageObject):
         that must not only allow a weak reference, but must accept general
         attribute assignment. Otherwise, pickling won't work.
 
-    Typically one only needs to implement :meth:`create_key` and
-    :meth:`create_object`. Sometimes, one would also implement
-    :meth:`create_key_and_extra_args` or :meth:`other_keys`. Other methods are
-    not supposed to be overloaded.
+    USAGE:
 
-    In addition, it is required that a unique factory instance is provided
-    with a name that allows to find its definition.
+    A *unique factory* provides a way to create objects from parameters
+    (the type of these objects can depend on the parameters, and is often
+    determined only at runtime) and to cache them by a certain key
+    derived from these parameters, so that when the factory is being
+    called again with the same parameters (or just with parameters which
+    yield the same key), the object is being returned from cache rather
+    than constructed anew.
+
+    An implementation of a unique factory consists of a factory class and
+    an instance of this factory class.
+
+    The factory class has to be a class inheriting from ``UniqueFactory``.
+    Typically it only needs to implement :meth:`create_key` (a method that
+    creates a key from the given parameters, under which key the object
+    will be stored in the cache) and :meth:`create_object` (a method that
+    returns the actual object from the key). Sometimes, one would also
+    implement :meth:`create_key_and_extra_args` (this differs from
+    :meth:`create_key` in allowing to also create some additional
+    arguments from the given parameters, which arguments then get passed
+    to :meth:`create_object` and thus can have an effect on the initial
+    creation of the object, but do *not* affect the key) or
+    :meth:`other_keys`. Other methods are not supposed to be overloaded.
+
+    The factory class itself cannot be called to create objects. Instead,
+    an instance of the factory class has to be created first. For
+    technical reasons, this instance has to be provided with a name that
+    allows Sage to find its definition. Specifically, the name of the
+    factory instance (or the full path to it, if it is not in the global
+    namespace) has to be passed to the factory class as a string variable.
+    So, if our factory class has been called ``A`` and is located in
+    ``sage/spam/battletoads.py``, then we need to define an instance (say,
+    ``B``) of ``A`` by writing ``B = A("sage.spam.battletoads.B")``
+    (or ``B = A("B")`` if this ``B`` will be imported into global
+    namespace). This instance can then be used to create objects (by
+    calling ``B(*parameters)``).
+
+    Notice that the objects created by the factory don't inherit from the
+    factory class. They *do* know about the factory that created them (this
+    information, along with the keys under which this factory caches them,
+    is stored in the ``_factory_data`` attributes of the objects), but not
+    via inheritance.
 
     EXAMPLES:
 
-    In many cases, a factory is implemented by providing the two methods
-    :meth:`create_key` and :meth:`create_object`. In our example, we want to
-    demonstrate how to use "extra arguments" to choose a specific
+    The below examples are rather artificial and illustrate particular
+    aspects. For a "real-life" usage case of ``UniqueFactory``, see
+    the finite field factory in :mod:`sage.rings.finite_rings.constructor`.
+
+    In many cases, a factory class is implemented by providing the two
+    methods :meth:`create_key` and :meth:`create_object`. In our example,
+    we want to demonstrate how to use "extra arguments" to choose a specific
     implementation, with preference given to an instance found in the cache,
     even if its implementation is different. Hence, we implement
     :meth:`create_key_and_extra_args` rather than :meth:`create_key`, putting
@@ -138,10 +178,11 @@ cdef class UniqueFactory(SageObject):
         ....:         return E(*key)
         ....:
 
-    Now we can create a factory. It is supposed to be found under the name
-    ``"F"`` in the ``"__main__"`` module. Note that in an interactive session,
-    ``F`` would automatically be in the ``__main__`` module. Hence, the second
-    and third of the following four lines are only needed in doctests.  ::
+    Now we can create a factory instance. It is supposed to be found under the
+    name ``"F"`` in the ``"__main__"`` module. Note that in an interactive
+    session, ``F`` would automatically be in the ``__main__`` module. Hence,
+    the second and third of the following four lines are only needed in
+    doctests.  ::
 
         sage: F = MyFactory("__main__.F")
         sage: import __main__
@@ -295,8 +336,8 @@ cdef class UniqueFactory(SageObject):
         exists returns it, and otherwise creates one and stores a weak reference
         to it in its dictionary.
 
-        Do not override this method, override create_key and create_object and
-        put the docstring in the body of the class.
+        Do not override this method. Instead, override ``create_key`` and
+        ``create_object`` and put the docstring in the body of the class.
 
         EXAMPLES::
 
@@ -324,9 +365,9 @@ cdef class UniqueFactory(SageObject):
 
     cpdef get_object(self, version, key, extra_args):
         """
-        Returns the object corresponding to key, creating it with extra_args
-        if necessary (for example, it isn't in the cache or it is unpickling
-        from an older version of Sage).
+        Returns the object corresponding to ``key``, creating it with
+        ``extra_args`` if necessary (for example, it isn't in the cache
+        or it is unpickling from an older version of Sage).
 
         EXAMPLES::
 
@@ -378,7 +419,7 @@ cdef class UniqueFactory(SageObject):
         version number to change so coercion is forced between the two
         parents.
 
-        Defaults to the Sage version that is passed in, but courser
+        Defaults to the Sage version that is passed in, but coarser
         granularity can be provided.
 
         EXAMPLES::
@@ -408,8 +449,8 @@ cdef class UniqueFactory(SageObject):
 
     def create_key(self, *args, **kwds):
         """
-        Given the arguments and keywords, create a key that uniquely
-        determines this object.
+        Given the parameters (arguments and keywords), create a key
+        that uniquely determines this object.
 
         EXAMPLES::
 
@@ -442,9 +483,14 @@ cdef class UniqueFactory(SageObject):
         """
         Sometimes during object creation, certain defaults are chosen which
         may result in a new (more specific) key. This allows the more specific
-        key to be cached as well, and used for pickling.
+        key to be regarded as equivalent to the original key returned by
+        :meth:`create_key` for the purpose of lookup in the cache, and is used
+        for pickling.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        We use the ``GF`` factory to build the finite field with `27`
+        elements and generator `k`::
 
             sage: key, _ = GF.create_key_and_extra_args(27, 'k'); key
             (27, ('k',), x^3 + 2*x + 1, None, '{}', 3, 3, True)

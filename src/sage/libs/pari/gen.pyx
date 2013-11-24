@@ -7455,14 +7455,18 @@ cdef class gen(sage.structure.element.RingElement):
 
             sage: x = polygen(QQ)
             sage: K.<t> = NumberField(x^3 - x + 1)
-            sage: pari(K).nfhilbert(t, t+2)  # not tested, known bug #11868
+            sage: pari(K).nfhilbert(t, t + 2)
             -1
             sage: pari(K).nfhilbert(pari(t), pari(t+2))
             -1
             sage: P = K.ideal(t^2 + t - 2)   # Prime ideal above 5
+            sage: pari(K).nfhilbert(t, t + 2, P.pari_prime())
+            -1
             sage: pari(K).nfhilbert(pari(t), pari(t+2), P.pari_prime())
             -1
             sage: P = K.ideal(t^2 + 3*t - 1) # Prime ideal above 23, ramified
+            sage: pari(K).nfhilbert(t, t + 2, P.pari_prime())
+            1
             sage: pari(K).nfhilbert(pari(t), pari(t+2), P.pari_prime())
             1
         """

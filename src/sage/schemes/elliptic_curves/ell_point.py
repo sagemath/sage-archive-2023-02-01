@@ -432,9 +432,10 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: P._pari_()
             [Mod(1, 11), Mod(2, 11)]
 
-        We need to explicitly call ``pari()`` because of :trac:`11868`::
+        We no longer need to explicitly call ``pari(O)`` and ``pari(P)``
+        after :trac:`11868`::
 
-            sage: pari(E).elladd(pari(O), pari(P))
+            sage: pari(E).elladd(O, P)
             [Mod(1, 11), Mod(2, 11)]
         """
         if self[2]:

@@ -204,10 +204,9 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
 
     REFERENCES:
 
-    .. [OSS2011] Masato Okado, Reiho Sakamoto, Anne Schilling
-       Affine crystal structure on rigged configurations of type `D_n^{(1)}`
-       J. Algebraic Combinatorics, to appear, :doi:`10.1007/s10801-012-0383-z`,
-       `arxiv:`1109.3523` [math.QA]
+    .. [OSS2011] Masato Okado, Reiho Sakamoto, Anne Schilling,
+       Affine crystal structure on rigged configurations of type `D_n^{(1)}`,
+       J. Algebraic Combinatorics 37(3) (2013) 571-599 (:arxiv:`1109.3523` [math.QA])
 
     EXAMPLES:
 

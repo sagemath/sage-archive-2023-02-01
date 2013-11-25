@@ -833,7 +833,8 @@ class RCNonSimplyLaced(RiggedConfigurations):
     r"""
     Rigged configurations in non-simply-laced types.
 
-    These are rigged configurations which lift to a virtual configuration.
+    These are rigged configurations which lift to virtual rigged configurations
+    in a simply-laced type.
 
     For more on rigged configurations, see :class:`RiggedConfigurations`.
     """

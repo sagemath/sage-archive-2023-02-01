@@ -326,7 +326,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             c^4 + 2*c^3
         """
         pari_catch_sig_on()
-        return pari.new_gen_to_string(self.val)
+        return str(pari.new_gen(self.val))
 
     def __hash__(FiniteFieldElement_pari_ffelt self):
         """

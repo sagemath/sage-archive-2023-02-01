@@ -75,7 +75,7 @@ git which files you want to be part of the next commit::
     # Changes to be committed:
     #   (use "git reset HEAD <file>..." to unstage)
     #
-    #	new file:   foobar.txt
+    #   new file:   foobar.txt
     #
 
 Once you are satisfied with the list of staged files, you create a new
@@ -114,10 +114,10 @@ repository, use the command::
 
     [user@localhost sage]$ git remote add trac git@trac.sagemath.org:sage.git -t master
     [user@localhost sage]$ git remote -v
-    origin	git://github.com/sagemath/sage.git (fetch)
-    origin	git://github.com/sagemath/sage.git (push)
-    trac	git@trac.sagemath.org:sage.git (fetch)
-    trac	git@trac.sagemath.org:sage.git (push)
+    origin      git://github.com/sagemath/sage.git (fetch)
+    origin      git://github.com/sagemath/sage.git (push)
+    trac        git@trac.sagemath.org:sage.git (fetch)
+    trac        git@trac.sagemath.org:sage.git (push)
 
 Instead of ``trac`` you can use any local name you want, of course. It
 is perfectly fine to have multiple remote repositories for git, think
@@ -404,9 +404,9 @@ consider the following code snippet::
 
     def fibonacci(i):
         """
-	Return the `i`-th Fibonacci number
-	"""
-	return fibonacci(i-1) * fibonacci(i-2)
+        Return the `i`-th Fibonacci number
+        """
+        return fibonacci(i-1) * fibonacci(i-2)
 
 This is clearly wrong; Two developers, namely Alice and Bob, decide to
 fix it. First, in a cabin in the woods far away from any internet
@@ -433,9 +433,9 @@ formula::
 
     def fibonacci(i):
         """
-	Return the `i`-th Fibonacci number
-	"""
-	return fibonacci(i-1) + fibonacci(i-2)
+        Return the `i`-th Fibonacci number
+        """
+        return fibonacci(i-1) + fibonacci(i-2)
 
 and immediately uploads his change::
 

@@ -130,10 +130,10 @@ course free to use a different one::
 
     $ git remote add github git@github.com:github_user_name/sage.git
     $ git remote -v
-    github	git@github.com:github_user_name/sage.git (fetch)
-    github	git@github.com:github_user_name/sage.git (push)
-    trac	git@trac.sagemath.org:sage.git (fetch)
-    trac	git@trac.sagemath.org:sage.git (push)
+    github      git@github.com:github_user_name/sage.git (fetch)
+    github      git@github.com:github_user_name/sage.git (push)
+    trac        git@trac.sagemath.org:sage.git (fetch)
+    trac        git@trac.sagemath.org:sage.git (push)
     $ git fetch github
     remote: Counting objects: 107, done.
     remote: Compressing objects: 100% (63/63), done.

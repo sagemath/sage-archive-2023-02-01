@@ -94,8 +94,8 @@ class FiniteCrystals(Category):
                 Return if ``self`` is an injective crystal isomorphism by a
                 brute force check.
                 """
-                image = set([])
-                for x in self.domain:
+                image = set([None])
+                for x in self.domain():
                     y = self(x)
                     if y in image:
                         return False
@@ -108,9 +108,8 @@ class FiniteCrystals(Category):
                 Return if ``self`` is a strict crystal morphism by a
                 brute force check.
                 """
-                index_set = self.domain
-                for x in self.domain:
-                    for i in index_set:
+                for x in self.domain():
+                    for i in self._index_set:
                         if self(x.e(i)) != self(x).e(i) or self(x.f(i)) != self(x).f(i):
                             return False
                 return True
@@ -120,7 +119,20 @@ class FiniteCrystals(Category):
                 Check if ``self`` is a crystal isomorphism, which is true
                 if and only if this is a strict embedding.
                 """
-                return self.domain.is_isomorphic(self.codomain)
+                return self.domain().is_isomorphic(self.codomain())
+
+            def image(self):
+                """
+                Return the image of ``self`` in the codomain.
+                """
+                image = set([])
+                for x in self.domain():
+                    y = self(x)
+                    if y is not None:
+                        image.add(y)
+                gens = filter(lambda x: x is not None, self.im_gens())
+                return Subcrystal(self, image, gens, index_set=self._index_set,
+                                  category=self.domain().category())
 
     class ParentMethods:
         @cached_method

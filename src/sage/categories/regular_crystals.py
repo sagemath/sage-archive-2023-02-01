@@ -116,9 +116,9 @@ class RegularCrystals(Category_singleton):
                 if and only if this is a strict embedding with the same number
                 of connected components.
                 """
-                return self.is_embedding() and self.is_strict() \
-                        and self.domain.connected_components_number() == \
-                            self.codomain.connected_components_number()
+                return self.is_strict() \
+                        and self.domain().number_of_connected_components() == \
+                            self.codomain().number_of_connected_components()
 
     class ParentMethods:
 

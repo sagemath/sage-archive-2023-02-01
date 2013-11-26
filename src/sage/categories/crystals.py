@@ -143,7 +143,7 @@ class Crystals(Category_singleton):
             @abstract_method(optional=True)
             def is_injective(self):
                 """
-                Check if ``self`` is an ijective crystal morphism.
+                Check if ``self`` is an injective crystal morphism.
                 """
 
             @abstract_method(optional=True)
@@ -407,9 +407,10 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
-                sage: H = B._Hom_(B, category=Crystals()); H
-                Set of Homomorphisms from Rational Field to Rational Field
+                sage: B = ElementaryCrystal(['A',2], 1)
+                sage: H = B._Hom_(B); H
+                Set of Crystal Morphisms from The 1-elementary crystal of type ['A', 2]
+                 to The 1-elementary crystal of type ['A', 2]
             """
             if category is None:
                 category = self.category()
@@ -419,6 +420,95 @@ class Crystals(Category_singleton):
                 raise TypeError("{} is not a crystal".format(Y))
             return CrystalHomset(self, Y, category=category, **options)
 
+        # I want to call this crystal_morphism, but it will change the functionality too much
+        def morphism(self, on_gens, codomain=None, generators=None,
+                     cartan_type=None, index_set=None,
+                     automorphism=None, virtualization=None, scaling_factors=None,
+                     category=None):
+            r"""
+            Construct a crystal morphism from ``self`` to another crystal
+            ``codomain``.
+
+            INPUT:
+
+            - ``on_gens`` -- a function that determines the image of the
+              generators of ``self`` under the crystal morphism
+            - ``codomain`` -- (default: ``self``) the codomain of the morphism
+            - ``generators`` -- (optional) the generators to define the
+              morphism; the default is the generators of ``self``
+            - ``cartan_type`` -- (optional) the Cartan type of the morphism;
+              the default is the Cartan type of ``self``
+            - ``index_set`` -- (optional) the index set of the morphism;
+              the default is the index set of the Cartan type
+            - ``automorphism`` -- (optional) the automorphism to perform the
+              twisting
+
+            EXAMPLES:
+
+            We construct the natural embedding of a crystal using tableaux
+            into the tensor product of single boxes via the reading word::
+
+                sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: F = CrystalOfTableaux(['A',2], shape=[1])
+                sage: T = TensorProductOfCrystals(F, F, F)
+                sage: mg = T.highest_weight_vectors()[2]; mg
+                [[[2]], [[1]], [[1]]]
+                sage: phi = B.morphism([mg], codomain=T); phi
+                ['A', 2] Crystal morphism:
+                  From: The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]]
+                  To:   Full tensor product of the crystals
+                         [The crystal of tableaux of type ['A', 2] and shape(s) [[1]],
+                          The crystal of tableaux of type ['A', 2] and shape(s) [[1]],
+                          The crystal of tableaux of type ['A', 2] and shape(s) [[1]]]
+                  Defn: [2, 1, 1] |--> [[[2]], [[1]], [[1]]]
+                sage: b = B.module_generators[0]
+                sage: b.pp()
+                  1  1
+                  2
+                sage: phi(b)
+                [[[2]], [[1]], [[1]]]
+                sage: phi(b.f(2))
+                [[[3]], [[1]], [[1]]]
+                sage: phi(b.f_string([2,1,1]))
+                [[[3]], [[2]], [[2]]]
+                sage: lw = b.to_lowest_weight()[0]
+                sage: lw.pp()
+                  2  3
+                  3
+                sage: phi(lw)
+                [[[3]], [[2]], [[3]]]
+                sage: phi(lw) == mg.to_lowest_weight()[0]
+                True
+
+            We now take the other isomorphic factor in the tensor product::
+
+                sage: mg = T.highest_weight_vectors()[1]; mg
+                [[[1]], [[2]], [[1]]]
+                sage: phi = B.morphism([mg], codomain=T)
+                sage: phi(lw)
+                [[[3]], [[3]], [[2]]]
+            """
+            if codomain is None:
+                if hasattr(on_gens, 'codomain'):
+                    codomain = on_gens.codomain()
+                else:
+                    for x in self.module_generators:
+                        y = on_gens(x)
+                        if y is not None:
+                            codomain = y.parent()
+                            break
+            if codomain is None:
+                codomain = self
+            elif codomain not in Crystals():
+                raise ValueError("the codomain must be a crystal")
+
+            if category is None:
+                category = self.category()
+            homspace = Hom(self, codomain, category=category)
+            return homspace(on_gens, generators, cartan_type, index_set,
+                            automorphism, virtualization, scaling_factors)
+
+        # Old version
         def crystal_morphism(self, g, index_set = None, automorphism = lambda i : i, direction = 'down', direction_image = 'down',
                              similarity_factor = None, similarity_factor_domain = None, cached = False, acyclic = True):
             r"""
@@ -496,6 +586,9 @@ class Crystals(Category_singleton):
                 [[[[3]], [[2, 3]]], [[[3, 3]], [[2]]]],
                 [[[[3]], [[3, 3]]], [[[3, 3]], [[3]]]]]
             """
+            from sage.misc.superseded import deprecation
+            deprecation(0,'crystal_morphism is deprecated. Use morphism instead.')
+
             if index_set is None:
                 index_set = self.index_set()
             if similarity_factor is None:
@@ -997,7 +1090,7 @@ class Crystals(Category_singleton):
             return map(lambda mg: self.subcrystal(generators=[mg]),
                        self.connected_components_generators())
 
-        def connected_components_number(self):
+        def number_of_connected_components(self):
             """
             Return the number of connected components of ``self``.
 
@@ -1006,7 +1099,7 @@ class Crystals(Category_singleton):
                 sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
                 sage: C = CrystalOfLetters(['A',2])
                 sage: T = TensorProductOfCrystals(B,C)
-                sage: T.connected_components_number()
+                sage: T.number_of_connected_components()
                 3
             """
             return len(self.connected_components_generators())
@@ -1025,7 +1118,7 @@ class Crystals(Category_singleton):
                 sage: T.is_connected()
                 False
             """
-            return self.connected_components_number() == 1
+            return self.number_of_connected_components() == 1
 
     class ElementMethods:
 
@@ -1409,22 +1502,24 @@ class Crystals(Category_singleton):
 
 class CrystalHomset(Homset):
     """
-    The set of morphisms from one crystal to another.
+    The set of crystal morphisms from one crystal to another.
     """
-    def __init__(self, X, Y, category=None, cartan_type=None, index_set=None):
+    def __init__(self, X, Y, category=None):
         """
         Initialize ``self``.
+
+        TESTS::
+
+            sage: B = CrystalOfTableaux(['A', 2], shape=[2,1])
+            sage: H = Hom(B, B)
+            sage: B = InfinityCrystalOfTableaux(['B',2])
+            sage: H = Hom(B, B)
         """
         if category is None:
             category = Crystals()
-        if cartan_type is None:
-            cartan_type = X.cartan_type()
-        if index_set is None:
-            index_set = cartan_type.index_set()
-
-        from sage.combinat.root_system.cartan_type import CartanType
-        self._cartan_type = CartanType(cartan_type)
-        self._index_set = tuple(index_set)
+        self._generic = CrystalMorphismByGenerators
+        self._twisted = TwistedCrystalMorphismByGenerators
+        self._virtual = VirtualCrystalMorphismByGenerators
         Homset.__init__(self, X, Y, category)
 
     def _repr_(self):
@@ -1433,13 +1528,10 @@ class CrystalHomset(Homset):
 
             sage: B = CrystalOfTableaux(['A', 2], shape=[2,1])
             sage: Hom(B, B)
-            sage: Hom(B, B, index_set=[1])
+            Set of Crystal Morphisms from The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]]
+             to The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]]
         """
-        i_set = ''
-        if self._index_set is not None:
-            i_set = ' ' + repr(self._index_set)
-        return "Set of{} {}-Crystal Morphisms from {} to {}".format(i_set,
-            self.domain().cartan_type(), self.domain(), self.codomain())
+        return "Set of Crystal Morphisms from {} to {}".format(self.domain(), self.codomain())
 
     def _coerce_impl(self, x):
         """
@@ -1457,91 +1549,195 @@ class CrystalHomset(Homset):
         # Case 1: the parent fits
         if x.parent() == self:
             if isinstance(x, CrystalMorphismByGenerators):
-                return CrystalMorphismByGenerators(self, x._on_gens, x._to_mg)
-
-        if self.cartan_type() != x.cartan_type():
-            raise ValueError
+                return self._generic(self, x._on_gens)
+            if isinstance(x, TwistedCrystalMorphismByGenerators):
+                return self._twisted(self, x._on_gens, x._automorphism)
+            if isinstance(x, VirtualCrystalMorphismByGenerators):
+                return self._virtual(self, x._on_gens, x._automorphism)
 
         # Case 2: it has a smaller index set
-        if set(self._index_set).is_subset(set(x.parent()._index_set)):
-            if isinstance(x, HighestWeightCrystalMorphism):
-                return HighestWeightCrystalMorphism(self, x._on_gens, self._index_set)
-            elif isinstance(x, CrystalMorphismByGenerators):
-                return CrystalMorphismByGenerators(self, x._on_gens, x._to_mg)
+        index_set = self.domain().index_set()
+        if set(index_set).is_subset(set(x.parent()._index_set)):
+            return self._generic(self, x._on_gens, index_set)
 
         raise ValueError
 
-    def __call__(self, on_gens=None, to_module_generator=None, check=True):
+    def __call__(self, on_gens, generators=None, cartan_type=None, index_set=None,
+                 automorphism=None, virtualization=None, scaling_factors=None, check=True):
         """
         Construct a crystal morphism.
+
+        EXAMPLES::
         """
         if isinstance(on_gens, CrystalMorphism):
             return self._coerce_impl(on_gens)
 
-        if on_gens is None:
-            # Match generators by weight
-            cod_wt = dict((x.weight(), x) for x in self.codomain().module_generators)
-            if len(cod_wt) != self.codomain().module_generators:
-                raise ValueError("if no map is specified,"
-                                 " the highest weights of the codomain's"
-                                 " module generators must be unique")
-            on_gens = lambda x: cod_wt.get(x.weight(), None)
+        if cartan_type is None:
+            cartan_type = self.domain().cartan_type()
+        else:
+            from sage.combinat.root_system.cartan_type import CartanType
+            cartan_type = CartanType(cartan_type)
+        if index_set is None:
+            index_set = cartan_type.index_set()
 
         from sage.categories.highest_weight_crystals import HighestWeightCrystals
-        if self.domain() in HighestWeightCrystals():
-            from sage.categories.highest_weight_crystals import HighestWeightCrystalMorphism
-            return HighestWeightCrystalMophism(self, on_gens, self._index_set)
-        return CrystalMorphismByGenerators(self, on_gens, to_module_generator)
 
-    def cartan_type(self):
-        """
-        Return the Cartan type of this Hom space.
-        """
-        return self._cartan_type
+        # Check for twisted morphisms
+        if automorphism is not None:
+            return self._twisted(self, on_gens, automorphism,
+                                 generators, cartan_type, index_set)
 
-    def index_set(self):
-        """
-        Return the index set of this Hom space.
-        """
-        return self._index_set
+        # Check for virtual morphisms
+        if virtualization is not None:
+            return self._virtual(self, on_gens, virtualization, scaling_factors,
+                                 generators, cartan_type, index_set)
 
-    # TODO: Combine with the crystal_morphism in ParentMethods
-    def crystal_morphism(self, domain, on_gens, codomain=None, index_set=None):
-        if codomain is None:
-            if hasattr(on_gens, 'codomain'):
-                codomain = on_gens.codomain()
-            else:
-                for x in self.module_generators:
-                    y = on_gens(x)
-                    if y is not None:
-                        codomain = y.parent()
-                        break
-        if codomain is None:
-            raise ValueError("no codomain specified")
+        # Try as a natural folding
+        if cartan_type != self.codomain().cartan_type():
+            fct = self.domain().cartan_type().as_folding()
+            if fct.folding_of() == self.codomain().cartan_type():
+                return self._virtual(self, on_gens, fct.folding_orbit(), fct.scaling_factors(),
+                                     generators, cartan_type, index_set)
 
-        if category is None:
-            if codomain not in Crystals():
-                raise ValueError("the codomain must be a crystal")
-            category = Crystals()
-        parent = Hom(domain, codomain, category=category, index_set=index_set)
-        return CrystalMorphismByGenerators(parent, on_gens)
+        if check:
+            for x in generators:
+                y = on_gens(x)
+                if x.weight() != y.weight():
+                    raise ValueError("weights do not match")
+                if any(x.epsilon(i) != y.epsilon(i) for i in index_set):
+                    raise ValueError("epsilons do not match")
+                if any(x.phi(i) != y.phi(i) for i in index_set)
+                    raise ValueError("phis do not match")
+
+        # It is a regular morphism
+        return self._generic(self, on_gens, generators, cartan_type, index_set)
+
+    def _an_element_(self):
+        """
+        Return an element of ``self``. Every homspace has the crystal morphism
+        which sends all elements to ``None``.
+
+        EXAMPLES::
+
+            sage: B = CrystalOfTableaux(['A', 2], shape=[2,1])
+            sage: C = InfinityCrystalOfTableaux(['A', 2])
+            sage: H = Hom(B, C)
+            sage: H.an_element()
+            ['A', 2] Crystal morphism:
+              From: The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]]
+              To:   The infinity crystal of tableaux of type ['A', 2]
+              Defn: [2, 1, 1] |--> None
+        """
+        return self._generic(self, lambda x: None)
 
 class CrystalMorphism(Morphism):
-    """
+    r"""
     A crystal morphism.
+
+    An `I`-crystal morphism `\Psi : B \to C` is a map
+    `\Psi : B \cup \{ 0 \} \to C \cup \{ 0 \}` such that:
+
+    - `\Psi(0) = 0`
+    - if `b \in B` and `\Psi(b) \in C`, then
+      `\mathrm{wt}(\Psi(b)) = \mathrm{wt}(b)`,
+      `\varepsilon_i(\Psi(b)) = \varepsilon_i(b)`, and
+      `\varphi_i(\Psi(b)) = \varphi_i(b)` for all `i \in I`.
+    - if `b, b^{\prime} \in B`, `\Psi(b), \Psi(b^{\prime}) \in C` and
+      `f_i b = b^{\prime}`, then `f_i \Psi(b) = \Psi(b^{\prime})` and
+      `\Psi(b) = e_i \Psi(b^{\prime})` for all `i \in I`.
+
+    INPUT:
+
+    - ``parent`` -- a homspace
+    - ``cartan_type`` -- (optional) the Cartan type of the morphism; the
+      default is the Cartan type of the domain
+    - ``index_set`` -- (optional) the index set of the morphism; the
+      default is the index set of the Cartan type
     """
+    def __init__(self, parent, cartan_type=None, index_set=None):
+        """
+        Initialize ``self``.
+        """
+        if cartan_type is None:
+            cartan_type = parent.domain().cartan_type()
+        from sage.combinat.root_system.cartan_type import CartanType
+        self._cartan_type = CartanType(cartan_type)
+
+        if index_set is None:
+            index_set = self._cartan_type.index_set()
+        self._index_set = index_set
+        Morphism.__init__(self, parent)
+
     def _repr_type(self):
         """
         Used internally in printing this morphism.
 
-        TESTS::
+        EXAMPLES::
 
             sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
-            sage: phi = B.hom(B)
+            sage: H = Hom(B, B)
+            sage: phi = H.an_element()
             sage: phi._repr_type()
-            "['A', 2]-Crystal"
+            "['A', 2] Crystal"
+
+            sage: phi = H(lambda x: None, index_set=[1])
+            sage: phi._repr_type()
+            "['A', 2] (1,)-Crystal"
         """
-        return "{}-Crystal".format(self.parent()._cartan_type)
+        if self._index_set != self._cartan_type.index_set():
+            return "{} {}-Crystal".format(self._cartan_type, self._index_set)
+        return "{} Crystal".format(self._cartan_type)
+
+    def index_set(self):
+        """
+        Return the index set of ``self``.
+
+        EXAMPLES::
+
+            sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+            sage: H = Hom(B, B)
+            sage: phi = H.an_element()
+            sage: phi.index_set()
+            (1, 2)
+            sage: phi = H(lambda x: None, index_set=[1])
+            sage: phi.index_set()
+            (1,)
+        """
+        return self._index_set
+
+    def cartan_type(self):
+        """
+        Return the Cartan type of ``self``.
+
+        EXAMPLES::
+
+            sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+            sage: phi = Hom(B, B).an_element()
+            sage: phi.cartan_type()
+            ['A', 2]
+        """
+        return self._cartan_type
+
+    def __call__(self, x, *args, **kwds):
+        """
+        Apply this map to ``x``. We need to do special processing
+        for ``None``.
+
+        EXAMPLES::
+
+            sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+            sage: F = CrystalOfTableaux(['A',2], shape=[1])
+            sage: T = TensorProductOfCrystals(F, F, F)
+            sage: H = Hom(T, B)
+            sage: b = B.module_generators[0]
+            sage: phi = H((None, b, b, None), generators=T.highest_weight_vectors())
+            sage: phi(None)
+            sage: map(phi, T.highest_weight_vectors())
+            [None, [[1, 1], [2]], [[1, 1], [2]], None]
+        """
+        if x is None:
+            return None
+        return super(CrystalMorphism, self).__call__(x, *args, **kwds)
 
 class CrystalMorphismByGenerators(CrystalMorphism):
     """
@@ -1549,37 +1745,41 @@ class CrystalMorphismByGenerators(CrystalMorphism):
 
     INPUT:
 
-    - ``parent`` -- a Hom category
+    - ``parent`` -- a homspace
     - ``on_gens`` -- a function for the images of the generators
     - ``gens`` -- a list of generators to define the morphism; the
       default is to use the module generators of the crystal
+    - ``cartan_type`` -- (optional) the Cartan type of the morphism; the
+      default is the Cartan type of the domain
+    - ``index_set`` -- (optional) the index set of the morphism; the
+      default is the index set of the Cartan type
 
     If there is a fast way to find the module generators, overwrite
     :meth:`to_module_generator()` which currently looks for a module generator
     by a breath first search.
     """
-    def __init__(self, parent, on_gens, gens=None):
+    def __init__(self, parent, on_gens, gens=None, cartan_type=None, index_set=None):
         """
         Construct a crystal morphism.
 
         EXAMPLES::
         """
         if gens is None:
-            gens = dom.module_generators
+            gens = parent.domain().module_generators
         self._gens = gens
 
         # Make sure on_gens is a function
         if isinstance(on_gens, dict):
             on_gens = lambda x: on_gens[x]
         elif isinstance(on_gens, (list, tuple)):
-            dom = parent.domain()
             if len(self._gens) != len(on_gens):
                 raise ValueError("not all module generators have an image")
-            on_gens = lambda x: on_gens[self._gens.index(x)]
+            d = {x: y for x,y in zip(self._gens, on_gens)}
+            on_gens = lambda x: d[x]
         self._on_gens = on_gens
         self._path_mg_cache = {x: (x, [], []) for x in self._gens}
 
-        CrystalMorphism.__init__(self, parent, mor_type)
+        CrystalMorphism.__init__(self, parent, cartan_type, index_set)
 
     def _call_(self, x):
         """
@@ -1587,16 +1787,19 @@ class CrystalMorphismByGenerators(CrystalMorphism):
 
         EXAMPLES::
         """
-        if x is None:
-            return None
         mg, ef, indices = self.to_module_generator(x)
         cur = self._on_gens(mg)
-        for op,i in zip(ef, indices):
+        for op,i in reversed(zip(ef, indices)):
             if cur is None:
                 return None
-            cur = getattr(cur, op)(i)
+
+            if op == 'e':
+                cur = cur.f(i)
+            elif op == 'f':
+                cur = cur.e(i)
         return cur
 
+    # TODO: Does this belong in the element_class of the Crystals() category?
     def to_module_generator(self, x):
         """
         Return a generator ``mg`` and a path of `e_i` and `f_i` operations
@@ -1607,25 +1810,24 @@ class CrystalMorphismByGenerators(CrystalMorphism):
         A tuple:
 
         - a module generator,
-        - a list of 'e' and 'f' to denote which operation,
+        - a list of ``'e'`` and ``'f'`` to denote which operation,
         - a list of matching indices.
         """
-        mg = set(self._path_mg_cache.keys())
-        if x in mg:
-            return mg[x]
+        if x in self._path_mg_cache.keys():
+            return self._path_mg_cache[x]
 
+        mg = set(self._path_mg_cache.keys())
         visited = set([None, x])
-        index_set = self.parent().index_set()
+        index_set = self._index_set
+        todo = [x]
         ef = [[]]
         indices = [[]]
-        todo = [x]
 
         while len(todo) > 0:
+            cur = todo.pop(0)
+            cur_ef = ef.pop(0)
+            cur_indices = indices.pop(0)
             for i in index_set:
-                cur = todo.pop(0)
-                cur_ef = ef.pop(0)
-                cur_indices = indices.pop(0)
-
                 next = cur.e(i)
                 if next in mg:
                     gen,ef,indices = self._path_mg_cache[next]
@@ -1634,10 +1836,10 @@ class CrystalMorphismByGenerators(CrystalMorphism):
                     self._path_mg_cache[x] = (gen, ef, indices)
                     return (gen, ef, indices)
                 if next not in visited:
+                    todo.append(next)
                     ef.append(cur_ef + ['e'])
                     indices.append(cur_indices + [i])
                     visited.add(next)
-                    todo.append(next)
 
                 # Now for f's
                 next = cur.f(i)
@@ -1648,10 +1850,10 @@ class CrystalMorphismByGenerators(CrystalMorphism):
                     self._path_mg_cache[x] = (gen, ef, indices)
                     return (gen, ef, indices)
                 if next not in visited:
+                    todo.append(next)
                     ef.append(cur_ef + ['f'])
                     indices.append(cur_indices + [i])
                     visited.add(next)
-                    todo.append(next)
         raise ValueError("no module generator in the component of {}".format(x))
 
     def _repr_defn(self):
@@ -1661,13 +1863,16 @@ class CrystalMorphismByGenerators(CrystalMorphism):
         EXAMPLES::
 
             sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
-            sage: C = CrystalOfTableaux(['A',2], shape=[4,2])
-            sage: f = B.hom(B, [C(2,1,3,1,1,2)])
-            sage: print f._repr_defn()
-            x |--> x^2
-            y |--> x + y
+            sage: F = CrystalOfTableaux(['A',2], shape=[1])
+            sage: T = TensorProductOfCrystals(F, F, F)
+            sage: H = Hom(T, B)
+            sage: phi = H((None, b, b, None), generators=T.highest_weight_vectors())
+            sage: print phi._repr_defn()
+            [[[1]], [[1]], [[1]]] |--> None
+            [[[1]], [[2]], [[1]]] |--> [2, 1, 1]
+            [[[2]], [[1]], [[1]]] |--> [2, 1, 1]
+            [[[3]], [[2]], [[1]]] |--> None
         """
-        D = self.domain()
         return '\n'.join(['{} |--> {}'.format(mg, im)
                           for mg,im in zip(self._gens, self.im_gens())])
 
@@ -1675,6 +1880,16 @@ class CrystalMorphismByGenerators(CrystalMorphism):
     def im_gens(self):
         """
         Return the image of the generators of ``self`` as a tuple.
+
+        EXAMPLES::
+
+            sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+            sage: F = CrystalOfTableaux(['A',2], shape=[1])
+            sage: T = TensorProductOfCrystals(F, F, F)
+            sage: H = Hom(T, B)
+            sage: phi = H((None, b, b, None), generators=T.highest_weight_vectors())
+            sage: phi.im_gens()
+            (None, [[1, 1], [2]], [[1, 1], [2]], None)
         """
         return tuple(map(self._on_gens, self._gens))
 
@@ -1685,20 +1900,25 @@ class TwistedCrystalMorphismByGenerators(CrystalMorphismByGenerators):
 
     INPUT:
 
-    - ``parent`` -- a Hom category
+    - ``parent`` -- a homspace
     - ``on_gens`` -- a function for the images of the generators
     - ``automorphism`` -- the twisting automorphism
     - ``gens`` -- a list of generators to define the morphism; the
       default is to use the module generators of the crystal
+    - ``cartan_type`` -- (optional) the Cartan type of the morphism; the
+      default is the Cartan type of the domain
+    - ``index_set`` -- (optional) the index set of the morphism; the
+      default is the index set of the Cartan type
     """
-    def __init__(self, parent, on_gens, automorphism, gens=None):
+    def __init__(self, parent, on_gens, automorphism, gens=None, cartan_type=None, index_set=None):
         """
         Construct a twisted crystal morphism.
 
         EXAMPLES::
         """
         self._twist = automorphism
-        CrystalMorphismByGenerators.__init__(self, parent, on_gens, to_module_generator, gens)
+        CrystalMorphismByGenerators.__init__(self, parent, on_gens, gens,
+                                             cartan_type, index_set)
 
     def _call_(self, x):
         """
@@ -1706,39 +1926,50 @@ class TwistedCrystalMorphismByGenerators(CrystalMorphismByGenerators):
 
         EXAMPLES::
         """
-        if x is None:
-            return None
         mg, ef, indices = self._to_mg(x)
         cur = self._on_gens(mg)
-        for op,i in zip(ef, indices):
+        for op,i in reversed(zip(ef, indices)):
             if cur is None:
                 return None
-            cur = getattr(cur, op)(self._twist(i))
+            if op == 'e':
+                cur = cur.f(self._twist(i))
+            elif op == 'f':
+                cur = cur.e(self._twist(i))
         return cur
 
 class VirtualCrystalMorphismByGenerators(CrystalMorphismByGenerators):
-    """
+    r"""
     A crystal morphism defined by a set of generators which create a virtual
     crystal inside the codomain.
 
     INPUT:
 
-    - ``parent`` -- a Hom category
+    - ``parent`` -- a homspace
     - ``on_gens`` -- a function for the images of the generators
     - ``virtualization`` -- a dictionary whose keys are in the index set of
       the domain and whose values are lists of entries in the index set of the
       codomain
+    - ``scaling_factors`` -- a dictionary whose keys are in the index set of
+      the domain and whose values are scaling factors for the weight,
+      `\varepsilon` and `\varphi`.
     - ``gens`` -- a list of generators to define the morphism; the
       default is to use the module generators of the crystal
+    - ``cartan_type`` -- (optional) the Cartan type of the morphism; the
+      default is the Cartan type of the domain
+    - ``index_set`` -- (optional) the index set of the morphism; the
+      default is the index set of the Cartan type
     """
-    def __init__(self, parent, on_gens, virtualization, gens=None):
+    def __init__(self, parent, on_gens, virtualization, scaling_factors,
+                 gens=None, cartan_type=None, index_set=None):
         """
         Construct a virtual crystal morphism.
 
         EXAMPLES::
         """
         self._virtualization = virtualization
-        CrystalMorphismByGenerators.__init__(self, parent, on_gens, to_module_generator, gens)
+        self._scaling_factors = scaling_factors
+        CrystalMorphismByGenerators.__init__(self, parent, on_gens, gens,
+                                             cartan_type, index_set)
 
     def _call_(self, x):
         """
@@ -1746,13 +1977,19 @@ class VirtualCrystalMorphismByGenerators(CrystalMorphismByGenerators):
 
         EXAMPLES::
         """
-        if x is None:
-            return None
         mg, ef, indices = self._to_mg(x)
         cur = self._on_gens(mg)
         for op,i in zip(ef, indices):
             if cur is None:
                 return None
-            cur = getattr(cur, op + "_string")(self._virtualization[i])
+
+            s = []
+            sf = self._scaling_factors[i]
+            for j in self._virtualization[i]:
+                s += [j]*sf
+            if op == 'e':
+                cur = cur.f_string(s)
+            elif op == 'f':
+                cur = cur.e_string(s)
         return cur
 

@@ -35,47 +35,61 @@ from sage.combinat.crystals.subcrystal import Subcrystal
 
 class VirtualCrystal(Subcrystal):
     r"""
-    A virtual crystal `B` of an ambient crystal `\widehat{B}` is a crystal
-    formed by taking a subset of `\widehat{B}` and whose crystal structure is
-    given by
+    A virtual crystal `\widehat{B}` of an ambient crystal `B` is a crystal
+    formed by taking a subset of `B` and whose crystal structure is given by
 
     .. MATH::
 
-        \widehat{e}_i = \prod_{j \in \sigma_i} e_j, \quad
-        \widehat{f}_i = \prod_{j \in \sigma_i} f_j,
-
-    The below is wrong!!!
+        \widehat{e}_i = \prod_{j \in \sigma_i} e_j^{\gamma_i}, \quad
+        \widehat{f}_i = \prod_{j \in \sigma_i} f_j^{\gamma_i},
 
     .. MATH::
 
-        \widehat{\varepsilon}_i = \sum_{j \in \sigma_i} \varepsilon_j, \quad
-        \widehat{\varphi}_i = \sum_{j \in \sigma_i} \varphi_j,
+        \widehat{\varepsilon}_i = \frac{\varepsilon_j}{\gamma_j}, \quad
+        \widehat{\varphi}_i = \frac{\varphi_j}{\gamma_j}, \quad
 
-    where `\sigma_i` is a sequence of indices in `\widehat{B}`.
+    where `\sigma_i` is a set of indices in `B` and the *scaling factors*
+    `\gamma_i`. We note that for the crystal to be well-defined, we must have
+
+    .. MATH::
+
+        \varepsilon_j = \varepsilon_{j^{\prime}},
+        \quad \varphi_j = \varphi_{j^{\prime}}
+
+    for all `j, j^{\prime} \in \sigma_i` and that the order that the Kashiwara
+    operators in the ambient space are applied does not affect the result.
+    We define the weight `\widehat{\mathrm{wt}}` to be such that
+
+    .. MATH::
+
+        \widehat{\mathrm{wt}}(b) = c_i \widehat{\Lambda}_i =
+        c_i \sum_{j \in \sigma_i} \gamma_j \Lambda_j = \mathrm{wt}(b).
 
     INPUT:
 
     - ``ambient`` -- the ambient crystal
     - ``virtualization`` -- a dictionary whose key `i` corresponds
-      to `\sigma_i`
-    - ``generators`` -- (optional) the generators for the virtual crystal; the
-      default is the generators for the ambient crystal
+      to the set `\sigma_i`
+    - ``scaling_factors`` -- a dictionary whose key `i` corresponds to
+      the scaling factor `\gamma_i`
     - ``cartan_type`` -- (optional) the Cartan type for the virtual crystal;
       the default is the Cartan type for the ambient crystal
+    - ``generators`` -- (optional) the generators for the virtual crystal; the
+      default is the generators for the ambient crystal
     - ``index_set`` -- (optional) the index set for the virtual crystal; the
       default is the index set for the Cartan type
     - ``category`` -- (optional) the category for the virtual crystal; the
       default is the :class:`~sage.categories.crystals.Crystals` category
     """
-    def __init__(self, ambient, virtualization, cartan_type=None,
-                 generators=None, index_set=None, category=None):
+    def __init__(self, ambient, virtualization, scaling_factors,
+                 cartan_type=None, generators=None, index_set=None, category=None):
         """
         Initialize ``self``.
 
         EXAMPLES::
-
         """
-        self._virtualization = virtualization
+        self._virtualization = Family(virtualization)
+        self._scaling_factors = Family(scaling_factors)
         Subcrystal.__init__(ambient, None, generators, cartan_type, index_set, category)
 
     def _repr_(self):
@@ -85,34 +99,34 @@ class VirtualCrystal(Subcrystal):
         EXAMPLES::
 
         """
-        return "Virtual crystal of {}".format(self._ambient)
+        return "Virtual crystal of {} of type {}".format(self._ambient, self._cartan_type)
 
     def __contains__(self, x):
         """
         Check if ``x`` is in ``self``.
 
         EXAMPLES::
-
-            sage: B = CrystalOfTableaux(['A',4], shape=[2,1])
-            sage: S = B.subcrystal(generators=(B(2,1,1), B(5,2,4)), index_set=[1,2])
         """
         if not Subcrystal.__contains__(self, x):
             return False
         # TODO: check that it is in the vitual crystal
         return False
 
-    def index_set(self):
+    def virtualization(self):
         """
-        Return the index set of ``self``.
+        Return the virtualization sets `\sigma_i`.
 
         EXAMPLES::
-
-            sage: B = CrystalOfTableaux(['A',4], shape=[2,1])
-            sage: S = B.subcrystal(generators=(B(2,1,1), B(5,2,4)), index_set=[1,2])
-            sage: S.index_set()
-            (1, 2)
         """
-        return self._index_set
+        return self._virtualization
+
+    def scaling_factors(self):
+        """
+        Return the scaling factors `\gamma_i`.
+
+        EXAMPLES::
+        """
+        return self._scaling_factors
 
     class Element(ElementWrapper):
         def e(self, i):
@@ -121,7 +135,11 @@ class VirtualCrystal(Subcrystal):
 
             EXAMPLES::
             """
-            ret = self.value.e_string(virtualization[i])
+            s = []
+            sf = self._scaling_factors[i]
+            for j in self._virtualization[i]:
+                s += [j]*sf
+            ret = self.value.e_string(s)
             if ret is None:
                 return None
             return self.__class__(self.parent(), ret)
@@ -132,19 +150,22 @@ class VirtualCrystal(Subcrystal):
 
             EXAMPLES::
             """
-            ret = self.value.f_string(virtualization[i])
+            s = []
+            sf = self._scaling_factors[i]
+            for j in self._virtualization[i]:
+                s += [j]*sf
+            ret = self.value.f_string(s)
             if ret is None:
                 return None
             return self.__class__(self.parent(), ret)
 
-        # Phi and Epsilon are wrong
         def epsilon(self, i):
             r"""
             Return `\varepsilon_i` of ``self``.
 
             EXAMPLES::
-            """
-            return sum(self.value.epsilon(j) for j in virtualization[i])
+            """            
+            return self.value.epsilon(self._virtualization[i][0]) / self._scaling_factors[i]
 
         def phi(self, i):
             r"""
@@ -152,19 +173,17 @@ class VirtualCrystal(Subcrystal):
 
             EXAMPLES::
             """
-            return sum(self.value.phi(j) for j in virtualization[i])
+            return self.value.phi(self._virtualization[i][0]) / self._scaling_factors[i]
 
         def weight(self):
             """
             Return the weight of ``self``.
 
             EXAMPLES::
-
-                sage: B = CrystalOfTableaux(['A',4], shape=[2,1])
-                sage: S = B.subcrystal(generators=(B(2,1,1), B(5,2,4)), index_set=[1,2])
-                sage: mg = S.module_generators[1]
-                sage: mg.weight()
-                (0, 1, 0, 1, 1)
             """
-            return self.value.weight()
+            WLR = self.weight_lattice_realization()
+            wt = self.value.weight()
+            La = WLR.fundamental_weights()
+            sf = self.parent().scaling_factors()
+            return WLR.sum_of_terms((i, wt / sf[i]) for i in self.index_set())
 

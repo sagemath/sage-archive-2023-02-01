@@ -210,7 +210,7 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.rings.all import Integer, PolynomialRing, is_Polynomial, is_MPolynomial, QQ
 import sage.combinat.partition
-from sage.combinat.partition import Partitions
+from sage.combinat.partition import _Partitions, Partitions
 import sage.libs.symmetrica.all as symmetrica  # used in eval()
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
@@ -923,6 +923,49 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             #This code relied heavily on the construction of bases of
             #``SymmetricFunctions`` and on their reduction.
 
+        def Eulerian(self, n, j, k=None):
+            """
+            Return the Eulerian symmetric function `Q_{n,j}` in terms
+            of ``self``.
+
+            It is known that the Eulerian quasisymmetric functions are
+            in fact symmetric functions [SW2010]_. For more information,
+            see :meth:`QuasiSymmetricFunctions.Fundamental.Eulerian()`.
+
+            INPUT:
+
+            - ``n`` -- the value `n` or a partition
+            - ``j`` -- the number of excedences
+            - ``k`` -- (optional) if specified, determines the number of fixed
+              points of the permtutation
+
+            EXAMPLES::
+
+                sage: Sym = SymmetricFunctions(QQ)
+                sage: m = Sym.m()
+                sage: m.Eulerian(3, 1)
+                4*m[1, 1, 1] + 3*m[2, 1] + 2*m[3]
+                sage: h = Sym.h()
+                sage: h.Eulerian(4, 2)
+                h[2, 2] + h[3, 1] + h[4]
+                sage: s = Sym.s()
+                sage: s.Eulerian(5, 2)
+                s[2, 2, 1] + s[3, 1, 1] + 5*s[3, 2] + 6*s[4, 1] + 6*s[5]
+                sage: s.Eulerian([2,2,1], 2)
+                s[2, 2, 1] + s[3, 2] + s[4, 1] + s[5]
+                sage: s.Eulerian(5, 2, 2)
+                s[3, 2] + s[4, 1] + s[5]
+
+            We check Equation (5.4) in [SW2010]_::
+
+                sage: h.Eulerian([6], 3)
+                sage: s.Eulerian([6], 3)
+            """
+            from sage.combinat.ncsf_qsym.qsym import QuasiSymmetricFunctions
+            F = QuasiSymmetricFunctions(self.base_ring()).F()
+            if n in _Partitions:
+                n = _Partitions(n)
+            return self(F.Eulerian(n, j, k).to_symmetric_function())
 
     class ElementMethods:
 
@@ -992,7 +1035,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         if prefix is not None:
             self._prefix = prefix
         self._sym = Sym
-        CombinatorialFreeModule.__init__(self, Sym.base_ring(), sage.combinat.partition.Partitions(),
+        CombinatorialFreeModule.__init__(self, Sym.base_ring(), _Partitions,
                                          category = SymmetricFunctionsBases(Sym),
                                          bracket = "", prefix = prefix)
 
@@ -1247,7 +1290,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
                 cache_function(sum(part))
             # Make sure it is a partition (for #13605), this is
             #   needed for the old kschur functions - TCS
-            part = Partitions()(part)
+            part = _Partitions(part)
             for part2, c2 in cache_dict[sum(part)][part].iteritems():
                 if hasattr(c2,'subs'): # c3 may be in the base ring
                     c3 = c*BR(c2.subs(**subs_dict))
@@ -1711,7 +1754,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         # We are going to be doing everything like we are in the upper-triangular case
         # We list the partitions in "decreasing order" and work from the beginning forward.
         # If we are in the lower-triangular case, then we shouldn't reverse the list
-        l = sage.combinat.partition.Partitions(n).list()
+        l = Partitions(n).list()
         if upper_triangular:
             l.reverse()
 
@@ -2159,7 +2202,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         res = 0
         degrees = uniq([ sum(m) for m in g.support() ])
         for d in degrees:
-            for mu in sage.combinat.partition.Partitions(d):
+            for mu in Partitions(d):
                 mu_k = mu.power(k)
                 if mu_k in g:
                     res += g.coefficient(mu_k)*mu_k.centralizer_size()/mu.centralizer_size()*p(mu)

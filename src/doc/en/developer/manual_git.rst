@@ -466,6 +466,8 @@ own local branch::
 
 The file now looks like this::
 
+.. skip::    # doctester confuses >>> with input marker
+
     def fibonacci(i):
         """
         Return the `i`-th Fibonacci number

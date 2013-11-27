@@ -514,6 +514,10 @@ if not sdist:
         Cython.Compiler.Main.default_options['gdb_debug'] = True
         Cython.Compiler.Main.default_options['output_dir'] = 'build'
 
+    CYCACHE_DIR = os.environ.get('CYCACHE_DIR', os.path.join(DOT_SAGE,'cycache'))
+    if os.path.exists(os.path.join(CYCACHE_DIR, os.pardir)):
+        Cython.Compiler.Main.default_options['cache'] = CYCACHE_DIR
+
     force = True
     version_file = os.path.join(os.path.dirname(__file__), '.cython_version')
     if os.path.exists(version_file) and open(version_file).read() == Cython.__version__:
@@ -525,7 +529,6 @@ if not sdist:
     ext_modules = cythonize(
         ext_modules,
         nthreads = int(os.environ.get('SAGE_NUM_THREADS', 0)),
-        cache = os.environ.get('CYCACHE_DIR', os.path.join(DOT_SAGE,'cycache')),
         build_dir = None, # Don't "cythonize out-of-tree" (cf. #14570) until
                           # sage-clone and sage-sync-build can deal with that.
         force=force)

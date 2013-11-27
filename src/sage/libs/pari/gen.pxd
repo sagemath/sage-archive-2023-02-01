@@ -2,7 +2,9 @@ include 'decl.pxi'
 
 cimport sage.structure.element
 cimport sage.structure.parent_base
+cimport cython
 
+@cython.final
 cdef class gen(sage.structure.element.RingElement):
     cdef GEN g
     cdef object _refers_to
@@ -15,10 +17,11 @@ cdef class gen(sage.structure.element.RingElement):
     cdef GEN _deepcopy_to_python_heap(self, GEN x, pari_sp* address)
     cdef long get_var(self, v)
 
+@cython.final
 cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef gen PARI_ZERO, PARI_ONE, PARI_TWO
-    cdef gen new_gen(self, GEN x)
-    cdef gen new_gen_noclear(self, GEN x)
+    cdef inline gen new_gen(self, GEN x)
+    cdef inline gen new_gen_noclear(self, GEN x)
     cdef gen new_gen_from_mpz_t(self, mpz_t value)
     cdef inline GEN _new_GEN_from_mpz_t(self, mpz_t value)
     cdef gen new_gen_from_mpq_t(self, mpq_t value)
@@ -26,7 +29,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef gen new_gen_from_int(self, int value)
     cdef gen new_t_POL_from_int_star(self, int *vals, int length, long varnum)
     cdef gen new_gen_from_padic(self, long ordp, long relprec, mpz_t prime, mpz_t p_pow, mpz_t unit)
-    cdef void clear_stack(self)
+    cdef inline void clear_stack(self)
     cdef gen double_to_gen_c(self, double)
     cdef GEN double_to_GEN(self, double)
     cdef GEN deepcopy_to_python_heap(self, GEN x, pari_sp* address)

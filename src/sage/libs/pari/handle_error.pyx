@@ -78,6 +78,8 @@ cdef int _pari_handle_exception(long err) except 0:
     """
     from sage.libs.pari.gen import pari, PariError
     if err == errpile:
+        # PARI is out of memory.  We double the size of the PARI stack
+        # and retry the computation.
         pari.allocatemem(silent=True)
         return 0
 
@@ -97,8 +99,8 @@ cdef void _pari_err_recover(long err):
     Perform a computation that requires doubling the default stack
     several times::
 
-        sage: from sage.libs.pari.gen import init_pari_stack
-        sage: init_pari_stack(2^12)
+        sage: pari.allocatemem(2^12)
+        PARI stack size set to 4096 bytes
         sage: x = pari('2^(2^26)')
         sage: x == 2^(2^26)
         True

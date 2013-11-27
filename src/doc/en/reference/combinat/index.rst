@@ -24,6 +24,7 @@ Combinatorics
    sage/combinat/tamari_lattices
    sage/combinat/e_one_star
    sage/combinat/finite_class
+   sage/combinat/hall_polynomial
    sage/combinat/integer_list
    sage/combinat/integer_matrices
    sage/combinat/integer_vector

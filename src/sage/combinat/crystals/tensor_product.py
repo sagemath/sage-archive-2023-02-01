@@ -287,8 +287,8 @@ class CrystalOfWords(UniqueRepresentation, Parent):
             True
         """
         if q is None:
-            from sage.rings.all import QQ
-            q = QQ['q'].gens()[0]
+            from sage.rings.all import ZZ
+            q = ZZ['q'].gens()[0]
         P0 = self.weight_lattice_realization().classical()
         B = P0.algebra(q.parent())
         if group_components:

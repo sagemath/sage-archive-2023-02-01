@@ -365,7 +365,6 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             sage: RC = RiggedConfigurations(['D', 4, 1], [[4,3]])
             sage: TestSuite(RC).run() # long time
         """
-
         self._cartan_type = cartan_type
         self.dims = B
         # We store the cartan matrix for the vacancy number calculations for speed
@@ -757,7 +756,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         """
         return self.tensor_product_of_kirillov_reshetikhin_tableaux().tensor_product_of_kirillov_reshetikhin_crystals()
 
-    def fermionic_formula(self, q=None):
+    def fermionic_formula(self, q=None, only_highest_weight=False, weight=None):
         r"""
         Return the fermoinic formula associated to ``self``.
 
@@ -768,8 +767,9 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
 
             M(\lambda, L; q) = \sum_{(\nu,J)} q^{cc(\nu, J)}
 
-        where we sum over all classically highest weight rigged
-        configurations where `cc` is the :meth:`cocharge statistic
+        where we sum over all (classically highest weight) rigged
+        configurations of weight `\lambda` where `cc` is the
+        :meth:`cocharge statistic
         <sage.combinat.rigged_configurations.rigged_configuration_element.RiggedConfigurationElement.cc>`.
         This is known to reduce to
 
@@ -779,31 +779,107 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             I \times \ZZ} \begin{bmatrix} p_i^{(a)} + m_i^{(a)} \\ m_i^{(a)}
             \end{bmatrix}_q.
 
+        Here we consider a more general fermionic formula in the weight
+        algebra:
+
+        .. MATH::
+
+            M(L; q) = \sum_{\lambda \in P} M(\lambda, L; q) \lambda.
+
+        This is conjecturally equal to the
+        :meth:`one dimensional configuration sum
+        <sage.combinat.crystals.tensor_product.CrystalOfWords.one_dimensional_configuration_sum>`
+        of the corresponding tensor product of Kirillov-Reshetikhin crystals.
+
+        INPUT:
+
+        - ``q`` -- the variable `q`
+        - ``only_highest_weight`` -- use only the classicaly highest weight
+          rigged configurations
+        - ``weight`` -- return the fermionic formula `M(\lambda, L; q)` where
+          `\lambda` is the classical weight ``weight``
+
         EXAMPLES::
 
-            sage: RC = RiggedConfigurations(['A', 3, 1], [[3,1],[2,2]])
+            sage: RC = RiggedConfigurations(['A', 2, 1], [[1,1], [1,1]])
             sage: RC.fermionic_formula()
+            B[-2*Lambda[1] + 2*Lambda[2]] + (q+1)*B[-Lambda[1]]
+             + (q+1)*B[Lambda[1] - Lambda[2]] + B[2*Lambda[1]]
+             + B[-2*Lambda[2]] + (q+1)*B[Lambda[2]]
+            sage: t = QQ['t'].gen(0)
+            sage: RC.fermionic_formula(t)
+            B[-2*Lambda[1] + 2*Lambda[2]] + (t+1)*B[-Lambda[1]]
+             + (t+1)*B[Lambda[1] - Lambda[2]] + B[2*Lambda[1]]
+             + B[-2*Lambda[2]] + (t+1)*B[Lambda[2]]
+            sage: La = RC.weight_lattice_realization().classical().fundamental_weights()
+            sage: RC.fermionic_formula(weight=La[2])
             q + 1
-            sage: RC = RiggedConfigurations(['D', 4, 1], [[3,2],[4,1],[2,2]])
-            sage: RC.fermionic_formula()
-            q^6 + 6*q^5 + 11*q^4 + 14*q^3 + 11*q^2 + 4*q + 1
+            sage: RC.fermionic_formula(only_highest_weight=True, weight=La[2])
+            q
+
+        Only using the highest weight elements on other types::
+
+            sage: RC = RiggedConfigurations(['A', 3, 1], [[3,1], [2,2]])
+            sage: RC.fermionic_formula(only_highest_weight=True)
+            q*B[Lambda[1] + Lambda[2]] + B[2*Lambda[2] + Lambda[3]]
+            sage: RC = RiggedConfigurations(['D', 4, 1], [[3,1], [4,1], [2,1]])
+            sage: RC.fermionic_formula(only_highest_weight=True)
+            (q^4+q^3+q^2)*B[Lambda[1]] + (q^2+q)*B[Lambda[1] + Lambda[2]]
+             + q*B[Lambda[1] + 2*Lambda[3]] + q*B[Lambda[1] + 2*Lambda[4]]
+             + B[Lambda[2] + Lambda[3] + Lambda[4]] + (q^3+2*q^2+q)*B[Lambda[3] + Lambda[4]]
             sage: RC = RiggedConfigurations(['E', 6, 1], [[2,2]])
-            sage: RC.fermionic_formula()
-            q^2 + q + 1
-            sage: RC = RiggedConfigurations(['B', 3, 1], [[3,1],[2,2]])
-            sage: RC.fermionic_formula()
-            q^3 + 3*q^2 + 2*q + 1
-            sage: RC = RiggedConfigurations(['C', 3, 1], [[3,1],[2,2]])
-            sage: RC.fermionic_formula()
-            q^4 + 2*q^3 + 3*q^2 + 2*q + 1
-            sage: RC = RiggedConfigurations(['D', 4, 2], [[3,1],[2,2]])
-            sage: RC.fermionic_formula()
-            q^6 + 2*q^5 + 4*q^4 + 3*q^3 + 3*q^2 + q + 1
+            sage: RC.fermionic_formula(only_highest_weight=True)
+            q^2*B[0] + q*B[Lambda[2]] + B[2*Lambda[2]]
+            sage: RC = RiggedConfigurations(['B', 3, 1], [[3,1], [2,2]])
+            sage: RC.fermionic_formula(only_highest_weight=True) # long time
+            q*B[Lambda[1] + Lambda[2] + Lambda[3]] + q^2*B[Lambda[1]
+             + Lambda[3]] + (q^2+q)*B[Lambda[2] + Lambda[3]] + B[2*Lambda[2]
+             + Lambda[3]] + (q^3+q^2)*B[Lambda[3]]
+            sage: RC = RiggedConfigurations(['C', 3, 1], [[3,1], [2,2]])
+            sage: RC.fermionic_formula(only_highest_weight=True) # long time
+            (q^3+q^2)*B[Lambda[1] + Lambda[2]] + q*B[Lambda[1] + 2*Lambda[2]]
+             + (q^2+q)*B[2*Lambda[1] + Lambda[3]] + B[2*Lambda[2] + Lambda[3]]
+             + (q^4+q^3+q^2)*B[Lambda[3]]
+            sage: RC = RiggedConfigurations(['D', 4, 2], [[3,1], [2,2]])
+            sage: RC.fermionic_formula(only_highest_weight=True) # long time
+            (q^2+q)*B[Lambda[1] + Lambda[2] + Lambda[3]] + (q^5+2*q^4+q^3)*B[Lambda[1]
+             + Lambda[3]] + (q^3+q^2)*B[2*Lambda[1] + Lambda[3]] + (q^4+q^3+q^2)*B[Lambda[2]
+             + Lambda[3]] + B[2*Lambda[2] + Lambda[3]] + (q^6+q^5+q^4)*B[Lambda[3]]
+
+        TESTS::
+
+            sage: RC = RiggedConfigurations(['A', 2, 1], [[1,1], [1,1]])
+            sage: KR = RC.tensor_product_of_kirillov_reshetikhin_crystals()
+            sage: RC.fermionic_formula() == KR.one_dimensional_configuration_sum()
+            True
+            sage: RC = RiggedConfigurations(['C', 2, 1], [[2,1], [2,1]])
+            sage: KR = RC.tensor_product_of_kirillov_reshetikhin_crystals()
+            sage: RC.fermionic_formula() == KR.one_dimensional_configuration_sum() # long time
+            True
+            sage: t = QQ['t'].gen(0)
+            sage: RC = RiggedConfigurations(['D', 4, 1], [[1,1], [2,1]])
+            sage: KR = RC.tensor_product_of_kirillov_reshetikhin_crystals()
+            sage: RC.fermionic_formula(t) == KR.one_dimensional_configuration_sum(t) # long time
+            True
         """
         if q is None:
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             q = PolynomialRing(ZZ, 'q').gen(0)
-        return sum([q**x.cc() for x in self.module_generators], ZZ.zero())
+
+        if only_highest_weight:
+            L = self.module_generators
+        else:
+            L = self
+
+        P = q.parent()
+        WLR = self.weight_lattice_realization().classical()
+
+        if weight is not None:
+            weight = WLR(weight)
+            return P.sum(q**x.cc() for x in L if WLR(x.weight()) == weight)
+
+        B = WLR.algebra(P)
+        return B.sum(q**x.cc() * B(WLR(x.weight())) for x in L)
 
     def _test_bijection(self, **options):
         r"""
@@ -1177,7 +1253,7 @@ class RCTypeA2Even(RCNonSimplyLaced):
         sage: RC.cardinality()
         3
         sage: RC = RiggedConfigurations(['A',2,2], [[1,2],[1,1]])
-        sage: TestSuite(RC).run()
+        sage: TestSuite(RC).run() # long time
         sage: RC = RiggedConfigurations(['A',4,2], [[2,1]])
         sage: TestSuite(RC).run() # long time
     """
@@ -1368,7 +1444,7 @@ class RCTypeA2Dual(RCTypeA2Even):
         sage: RC.cardinality()
         3
         sage: RC = RiggedConfigurations(CartanType(['A',2,2]).dual(), [[1,2],[1,1]])
-        sage: TestSuite(RC).run()
+        sage: TestSuite(RC).run() # long time
         sage: RC = RiggedConfigurations(CartanType(['A',4,2]).dual(), [[2,1]])
         sage: TestSuite(RC).run() # long time
     """

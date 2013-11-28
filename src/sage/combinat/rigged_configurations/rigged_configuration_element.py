@@ -862,6 +862,39 @@ class RiggedConfigurationElement(ClonableArray):
 
         return(RiggedPartition(new_list, new_rigging, new_vac_nums))
 
+#    def epsilon(self, a):
+#        r"""
+#        Return `\varepsilon_a` of ``self``.
+#
+#        Let `x_{\ell}` be the smallest string of `\nu^{(a)}` or `0` if
+#        `\nu^{(a)} = \emptyset`, then we have
+#        `\varepsilon_a = -\min(0, x_{\ell})`.
+#
+#        EXAMPLES::
+#
+#            sage: RC = RiggedConfigurations(['A', 4, 1], [[2,1]])
+#        """
+#        if len(self[a-1]) == 0:
+#            return 0
+#        return -min(0, min(self[a-1].rigging))
+#
+#    def phi(self, a):
+#        r"""
+#        Return `\varphi_a` of ``self``.
+#
+#        Let `x_{\ell}` be the smallest string of `\nu^{(a)}` or `0` if
+#        `\nu^{(a)} = \emptyset`, then we have
+#        `\varepsilon_a = p_{\infty}^{(a)} - min(0, x_{\ell})`.
+#
+#        EXAMPLES::
+#
+#            sage: RC = RiggedConfigurations(['A', 4, 1], [[2,1]])
+#        """
+#        p_inf = self.parent()._calc_vacancy_number(self, a, None)
+#        if len(self[a-1]) == 0:
+#            return p_inf
+#        return p_inf - min(0, min(self[a-1].rigging))
+
     @cached_method
     def cocharge(self):
         r"""

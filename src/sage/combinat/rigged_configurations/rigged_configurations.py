@@ -852,6 +852,9 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             sage: KR = RC.tensor_product_of_kirillov_reshetikhin_crystals()
             sage: RC.fermionic_formula() == KR.one_dimensional_configuration_sum()
             True
+            sage: KT = RC.tensor_product_of_kirillov_reshetikhin_tableaux()
+            sage: RC.fermionic_formula() == KT.one_dimensional_configuration_sum()
+            True
             sage: RC = RiggedConfigurations(['C', 2, 1], [[2,1], [2,1]])
             sage: KR = RC.tensor_product_of_kirillov_reshetikhin_crystals()
             sage: RC.fermionic_formula() == KR.one_dimensional_configuration_sum() # long time

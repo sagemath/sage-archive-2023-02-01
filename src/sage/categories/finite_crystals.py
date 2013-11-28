@@ -12,7 +12,6 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.category import HomCategory
 from sage.categories.category import Category
 from sage.categories.crystals import Crystals
-from sage.categories.crystals import Crystals, CrystalMorphismByGenerators
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 class FiniteCrystals(Category):
@@ -212,8 +211,8 @@ class FiniteCrystals(Category):
 
             EXAMPLES::
 
-                sage: B = K.classical_decomposition()
                 sage: K = KirillovReshetikhinCrystal(['D',4,1], 2,1)
+                sage: B = K.classical_decomposition()
                 sage: B.is_isomorphic(K)
                 False
                 sage: K.is_isomorphic(B)

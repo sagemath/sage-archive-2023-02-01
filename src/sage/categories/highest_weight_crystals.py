@@ -9,7 +9,6 @@ Highest Weight Crystals
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.categories.category import HomCategory
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.crystals import Crystals, CrystalHomset, \
     CrystalMorphismByGenerators, TwistedCrystalMorphismByGenerators, \
@@ -213,7 +212,7 @@ class HighestWeightCrystals(Category_singleton):
             EXAMPLES::
 
                 sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
-                sage: H = B._Hom_(B, category=Crystals()); H
+                sage: H = B._Hom_(B)
                 sage: H
                 Set of Crystal Morphisms from The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]]
                  to The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]]
@@ -276,8 +275,11 @@ class HighestWeightCrystalMorphism(CrystalMorphismByGenerators):
             sage: psi = B.morphism(C.module_generators)
             sage: b = B.highest_weight_vector()
             sage: psi(b)
-            sage: psi(b.f_string([1,1,1,2,2,1,2,2]))
-            sage: C.highest_weight_vector().f_string([1,1,1,2,2,1,2,2])
+            1
+            sage: c = psi(b.f_string([1,1,1,2,2,1,2,2])); c
+            Y(1,0)^-4 Y(2,0)^4 Y(2,1)^-4 
+            sage: c == C.highest_weight_vector().f_string([1,1,1,2,2,1,2,2])
+            True
         """
         mg, path = x.to_highest_weight(self._index_set)
         y = self._on_gens(mg)
@@ -329,6 +331,7 @@ class HighestWeightTwistedCrystalMorphism(TwistedCrystalMorphismByGenerators):
             sage: H = Hom(B, B)
             sage: d = {1:1, 2:2, 3:4, 4:3}
             sage: psi = H(B.module_generators, automorphism=lambda x: d[x])
+            sage: b = B.highest_weight_vector()
             sage: psi(b.f_string([1,2,3]))
             [[-4]]
         """
@@ -421,10 +424,8 @@ class HighestWeightCrystalHomset(CrystalHomset):
 
             sage: B = CrystalOfTableaux(['A', 2], shape=[2,1])
             sage: H = Hom(B, B)
-            sage: TestSuite(H).run()
             sage: B = InfinityCrystalOfTableaux(['B',2])
             sage: H = Hom(B, B)
-            sage: TestSuite(H).run()
         """
         if category is None:
             category = HighestWeightCrystals()

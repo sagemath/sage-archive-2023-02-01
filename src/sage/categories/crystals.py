@@ -173,7 +173,7 @@ class Crystals(Category_singleton):
                     sage: C = CrystalOfTableaux(['C',2], ([2,1], [1,1]))
                     sage: psi = B.morphism(C.module_generators[1:], codomain=C)
                     sage: psi.is_strict()
-                    False
+                    True
                 """
 
     class ParentMethods:
@@ -315,32 +315,35 @@ class Crystals(Category_singleton):
                                    self.module_generators).__iter__()
 
         def subcrystal(self, index_set=None, generators=None, max_depth=float("inf"),
-                       direction="both", contained=None, category=None):
+                       direction="both", contained=None, cartan_type=None, category=None):
             r"""
             Construct the subcrystal from ``generators`` using `e_i` and `f_i`
             for all `i` in ``index_set``.
 
             INPUT:
 
-            - ``index_set`` -- (Default: ``None``) The index set; if ``None``
+            - ``index_set`` -- (default: ``None``) the index set; if ``None``
               then use the index set of the crystal
 
-            - ``generators`` -- (Default: ``None``) The list of generators; if
+            - ``generators`` -- (default: ``None``) the list of generators; if
               ``None`` then use the module generators of the crystal
 
-            - ``max_depth`` -- (Default: infinity) The maximum depth to build
+            - ``max_depth`` -- (default: infinity) the maximum depth to build
 
-            - ``direction`` -- (Default: ``'both'``) The direction to build
-              the subcrystal. It can be one of the following:
+            - ``direction`` -- (default: ``'both'``) the direction to build
+              the subcrystal; it can be one of the following:
 
-              - ``'both'`` - Using both `e_i` and `f_i`
-              - ``'upper'`` - Using `e_i`
-              - ``'lower'`` - Using `f_i`
+              - ``'both'`` - using both `e_i` and `f_i`
+              - ``'upper'`` - using `e_i`
+              - ``'lower'`` - using `f_i`
 
-            - ``contained`` -- (Optional) A function defining the containment
-              in the subcrystal
+            - ``contained`` -- (optional) a set (or function) defining the
+              containment in the subcrystal
 
-            - ``category`` -- (Optional) Specify the category of the subcrystal
+            - ``cartan_type`` -- (optional) specify the Cartan type of the
+              subcrystal
+
+            - ``category`` -- (optional) specify the category of the subcrystal
 
             EXAMPLES::
 
@@ -352,7 +355,7 @@ class Crystals(Category_singleton):
                 sage: len(S)
                 6
                 sage: list(C.subcrystal(index_set=[1,3], generators=[C(1,4)]))
-                [[[1, 4]], [[2, 4]], [[1, 3]], [[2, 3]]]
+                [[[1, 4]], [[2, 4]], [[2, 3]], [[1, 3]]]
                 sage: list(C.subcrystal(index_set=[1,3], generators=[C(1,4)], max_depth=1))
                 [[[1, 4]], [[2, 4]], [[1, 3]]]
                 sage: list(C.subcrystal(index_set=[1,3], generators=[C(1,4)], direction='upper'))
@@ -363,6 +366,11 @@ class Crystals(Category_singleton):
             from sage.combinat.crystals.subcrystal import Subcrystal
             from sage.categories.finite_crystals import FiniteCrystals
 
+            if cartan_type is None:
+                cartan_type = self.cartan_type()
+            else:
+                from sage.combinat.root_system.cartan_type import CartanType
+                cartan_type = CartanType(cartan_type)
             if index_set is None:
                 index_set = self.index_set()
             if generators is None:
@@ -374,12 +382,12 @@ class Crystals(Category_singleton):
                             and generators == self.module_generators:
                         return self
                     return Subcrystal(self, contained, generators,
-                                      index_set=index_set, category=category)
+                                      cartan_type, index_set, category)
                 if contained is None and direction == 'both':
                     if category is None:
                         category = FiniteCrystals()
                     return Subcrystal(self, contained, generators,
-                                      index_set=index_set, category=category)
+                                      cartan_type, index_set, category)
 
             from sage.combinat.backtrack import TransitiveIdealGraded
             if direction == 'both':
@@ -403,13 +411,13 @@ class Crystals(Category_singleton):
                 if contained is None and index_set == self.index_set():
                     return self
                 return Subcrystal(self, contained, generators,
-                                  index_set=index_set, category=category)
+                                  cartan_type, index_set, category)
 
             if contained is not None:
                 contained = lambda x: x in subset and contained(x)
             else:
                 contained = lambda x: x in subset
-            return Subcrystal(self, contained, generators, index_set=index_set, category=category)
+            return Subcrystal(self, contained, generators, cartan_type, index_set, category)
 
         def _Hom_(self, Y, category=None, **options):
             r"""
@@ -492,7 +500,7 @@ class Crystals(Category_singleton):
                 sage: T = TensorProductOfCrystals(F, F, F)
                 sage: mg = T.highest_weight_vectors()[2]; mg
                 [[[2]], [[1]], [[1]]]
-                sage: psi = B.morphism([mg], codomain=T); phi
+                sage: psi = B.morphism([mg], codomain=T); psi
                 ['A', 2] Crystal morphism:
                   From: The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]]
                   To:   Full tensor product of the crystals
@@ -573,7 +581,7 @@ class Crystals(Category_singleton):
             return homset(on_gens, cartan_type, index_set, generators,
                             automorphism, virtualization, scaling_factors)
 
-        # Old version
+        # TODO: Old version, should we deprecate it? Only for *strict* crystal morphisms
         def crystal_morphism(self, g, index_set = None, automorphism = lambda i : i, direction = 'down', direction_image = 'down',
                              similarity_factor = None, similarity_factor_domain = None, cached = False, acyclic = True):
             r"""
@@ -651,8 +659,8 @@ class Crystals(Category_singleton):
                 [[[[3]], [[2, 3]]], [[[3, 3]], [[2]]]],
                 [[[[3]], [[3, 3]]], [[[3, 3]], [[3]]]]]
             """
-            from sage.misc.superseded import deprecation
-            deprecation(0, 'crystal_morphism is deprecated. Use morphism instead.')
+            #from sage.misc.superseded import deprecation
+            #deprecation(0, 'crystal_morphism is deprecated. Use morphism instead.')
 
             if index_set is None:
                 index_set = self.index_set()
@@ -681,7 +689,7 @@ class Crystals(Category_singleton):
                             if d is not None:
                                 return d
                             else:
-                                raise ValueError, "This is not a morphism!"
+                                raise ValueError("This is not a morphism!")
                             #now we know that b is hw
                     return g(b)
 
@@ -695,14 +703,14 @@ class Crystals(Category_singleton):
                 # - images contains all known morphism(x)
                 # - known contains all elements x for which we know morphism(x)
                 # - todo  contains all elements x for which we haven't propagated to each child
-                while todo <> set( [] ):
+                while todo != set( [] ):
                     x = todo.pop()
                     for i in index_set:
                         eix  = getattr(x, f_string)([i for k in range(similarity_factor_domain[i])])
                         eigx = getattr(morphism[x], f_string)([automorphism(i) for k in range(similarity_factor[i])])
-                        if bool(eix is None) <> bool(eigx is None):
+                        if bool(eix is None) != bool(eigx is None):
                             # This is not a crystal morphism!
-                            raise ValueError, "This is not a morphism!" #, print("x="x,"g(x)="g(x),"i="i)
+                            raise ValueError("This is not a morphism!") #, print("x="x,"g(x)="g(x),"i="i)
                         if (eix is not None) and (eix not in known):
                             todo.add(eix)
                             known.add(eix)
@@ -719,8 +727,7 @@ class Crystals(Category_singleton):
 
             if cached:
                 return morphism
-            else:
-                return CachedFunction(morphism)
+            return CachedFunction(morphism)
 
         def digraph(self, subset=None, index_set=None):
             """
@@ -1515,41 +1522,44 @@ class Crystals(Category_singleton):
                     return [lw[0], [i] + lw[1]]
             return [self, []]
 
-        def subcrystal(self, index_set=None, max_depth=float("inf"),
-                       direction="both", contained=None, category=None):
+        def subcrystal(self, index_set=None, max_depth=float("inf"), direction="both",
+                       contained=None, cartan_type=None, category=None):
             r"""
             Construct the subcrystal generated by ``self`` using `e_i` and/or
             `f_i` for all `i` in ``index_set``.
 
             INPUT:
 
-            - ``index_set`` -- (Default: ``None``) The index set; if ``None``
+            - ``index_set`` -- (default: ``None``) the index set; if ``None``
               then use the index set of the crystal
 
-            - ``max_depth`` -- (Default: infinity) The maximum depth to build
+            - ``max_depth`` -- (default: infinity) the maximum depth to build
 
-            - ``direction`` -- (Default: ``'both'``) The direction to build
-              the subcrystal. It can be one of the following:
+            - ``direction`` -- (default: ``'both'``) the direction to build
+              the subcrystal; it can be one of the following:
 
-              - ``'both'`` - Using both `e_i` and `f_i`
-              - ``'upper'`` - Using `e_i`
-              - ``'lower'`` - Using `f_i`
+              - ``'both'`` - using both `e_i` and `f_i`
+              - ``'upper'`` - using `e_i`
+              - ``'lower'`` - using `f_i`
 
-            - ``contained`` -- (Optional) A function defining the containment
-              in the subcrystal
+            - ``contained`` -- (optional) a set (or function) defining the
+              containment in the subcrystal
 
-            - ``category`` -- (Optional) Specify the category of the subcrystal
+            - ``cartan_type`` -- (optional) specify the Cartan type of the
+              subcrystal
+
+            - ``category`` -- (optional) specify the category of the subcrystal
 
             .. SEEALSO::
 
-                - :meth:`Crystals.ParentMethods.subcrystal()`.
+                - :meth:`Crystals.ParentMethods.subcrystal()`
 
             EXAMPLES::
 
                 sage: C = KirillovReshetikhinCrystal(['A',3,1], 1, 2)
                 sage: elt = C(1,4)
                 sage: list(elt.subcrystal(index_set=[1,3]))
-                [[[1, 4]], [[2, 4]], [[1, 3]], [[2, 3]]]
+                [[[1, 4]], [[2, 4]], [[2, 3]], [[1, 3]]]
                 sage: list(elt.subcrystal(index_set=[1,3], max_depth=1))
                 [[[1, 4]], [[2, 4]], [[1, 3]]]
                 sage: list(elt.subcrystal(index_set=[1,3], direction='upper'))
@@ -1559,7 +1569,8 @@ class Crystals(Category_singleton):
             """
             return self.parent().subcrystal(generators=[self], index_set=index_set,
                                             max_depth=max_depth, direction=direction,
-                                            contained=contained, category=category)
+                                            contained=contained, cartan_type=cartan_type,
+                                            category=category)
 
 
 ###############################################################################
@@ -1594,7 +1605,7 @@ class CrystalMorphism(Morphism):
 
         if index_set is None:
             index_set = self._cartan_type.index_set()
-        self._index_set = index_set
+        self._index_set = tuple(index_set)
         Morphism.__init__(self, parent)
 
     def _repr_type(self):
@@ -1611,10 +1622,10 @@ class CrystalMorphism(Morphism):
 
             sage: psi = H(lambda x: None, index_set=[1])
             sage: psi._repr_type()
-            "['A', 2] (1,)-Crystal"
+            "['A', 2] [1]-Crystal"
         """
         if self._index_set != self._cartan_type.index_set():
-            return "{} {}-Crystal".format(self._cartan_type, self._index_set)
+            return "{} {}-Crystal".format(self._cartan_type, list(self._index_set))
         return "{} Crystal".format(self._cartan_type)
 
     def index_set(self):
@@ -1676,7 +1687,7 @@ class CrystalMorphism(Morphism):
             sage: b = B.module_generators[0]
             sage: psi = H((None, b, b, None), generators=T.highest_weight_vectors())
             sage: psi(None)
-            sage: map(phi, T.highest_weight_vectors())
+            sage: map(psi, T.highest_weight_vectors())
             [None, [[1, 1], [2]], [[1, 1], [2]], None]
         """
         if x is None:
@@ -1776,7 +1787,7 @@ class CrystalMorphismByGenerators(CrystalMorphism):
             sage: H = Hom(B, B)
             sage: psi = H(B.module_generators)
             sage: psi(B.highest_weight_vector())
-            [[1, 1]]
+            [[1, 1], [2]]
         """
         mg, ef, indices = self.to_module_generator(x)
         cur = self._on_gens(mg)
@@ -1866,6 +1877,7 @@ class CrystalMorphismByGenerators(CrystalMorphism):
             sage: F = CrystalOfTableaux(['A',2], shape=[1])
             sage: T = TensorProductOfCrystals(F, F, F)
             sage: H = Hom(T, B)
+            sage: b = B.highest_weight_vector()
             sage: psi = H((None, b, b, None), generators=T.highest_weight_vectors())
             sage: print psi._repr_defn()
             [[[1]], [[1]], [[1]]] |--> None
@@ -1887,6 +1899,7 @@ class CrystalMorphismByGenerators(CrystalMorphism):
             sage: F = CrystalOfTableaux(['A',2], shape=[1])
             sage: T = TensorProductOfCrystals(F, F, F)
             sage: H = Hom(T, B)
+            sage: b = B.highest_weight_vector()
             sage: psi = H((None, b, b, None), generators=T.highest_weight_vectors())
             sage: psi.im_gens()
             (None, [[1, 1], [2]], [[1, 1], [2]], None)
@@ -1964,6 +1977,7 @@ class TwistedCrystalMorphismByGenerators(CrystalMorphismByGenerators):
             sage: H = Hom(B, B)
             sage: d = {1:1, 2:2, 3:4, 4:3}
             sage: psi = H(B.module_generators, automorphism=lambda x: d[x])
+            sage: b = B.highest_weight_vector()
             sage: psi(b.f_string([1,2,3]))
             [[-4]]
             sage: psi(b.f_string([1,2,4]))
@@ -2078,6 +2092,15 @@ class VirtualCrystalMorphismByGenerators(CrystalMorphismByGenerators):
                 cur = cur.e_string(s)
         return cur
 
+    def image(self):
+        """
+        Return the image of ``self`` in the codomain as a
+        :class:`~sage.combinat.crystals.virtual_crystal.VirtualCrystal`.
+        """
+        from sage.combinat.crystals.virtual_crystal import VirtualCrystal
+        return VirtualCrystal(self.codomain(), self._virtualization, self._scaling_factors, self.im_gens(),
+                              self.cartan_type(), self.index_set(), self.domain().category())
+
 ###############################################################################
 ## Homset
 
@@ -2163,6 +2186,7 @@ class CrystalHomset(Homset):
 
         sage: B0 = CrystalOfTableaux(['A',1], shape=[])
         sage: D = DirectSumOfCrystals([B, B0])
+        sage: H = Hom(T, D)
         sage: psi = H(D.module_generators)
         sage: psi
         ['A', 1] Crystal morphism:
@@ -2182,8 +2206,8 @@ class CrystalHomset(Homset):
 
         sage: Binf = InfinityCrystalOfTableaux(['B', 2])
         sage: B = CrystalOfTableaux(['B',2], shape=[1])
-        sage: H = Hom(B, Binf)
-        sage: psi = H(lambda x: None, codomain=B)
+        sage: H = Hom(Binf, B)
+        sage: psi = H(lambda x: None)
         sage: psi(Binf.highest_weight_vector())
 
     For Kirillov-Reshetikhin crystals, we consider the map to the
@@ -2205,6 +2229,7 @@ class CrystalHomset(Homset):
         sage: H = Hom(B, B)
         sage: d = {1:1, 2:2, 3:4, 4:3}
         sage: psi = H(B.module_generators, automorphism=lambda x: d[x])
+        sage: b = B.highest_weight_vector()
         sage: b.f_string([1,2,3])
         [[4]]
         sage: b.f_string([1,2,4])
@@ -2275,8 +2300,8 @@ class CrystalHomset(Homset):
             sage: B = CrystalOfTableaux(['B',3], shape=[2,1])
             sage: H = Hom(B, B)
             sage: H(H.an_element()) # indirect doctest
-            ['D', 4] Crystal endomorphism of The crystal of tableaux of type ['D', 4] and shape(s) [[1, 1]]
-              Defn: [2, 1] |--> None
+            ['B', 3] Crystal endomorphism of The crystal of tableaux of type ['B', 3] and shape(s) [[2, 1]]
+              Defn: [2, 1, 1] |--> None
         """
         if not isinstance(x, CrystalMorphism):
             raise TypeError
@@ -2325,8 +2350,6 @@ class CrystalHomset(Homset):
             cartan_type = CartanType(cartan_type)
         if index_set is None:
             index_set = cartan_type.index_set()
-
-        from sage.categories.highest_weight_crystals import HighestWeightCrystals
 
         # Check for twisted morphisms
         if automorphism is not None:

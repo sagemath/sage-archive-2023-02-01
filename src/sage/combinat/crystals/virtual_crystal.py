@@ -29,9 +29,10 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element_wrapper import ElementWrapper
 from sage.categories.crystals import Crystals
-from sage.categories.sets_cat import Sets
+from sage.categories.finite_crystals import FiniteCrystals
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.crystals.subcrystal import Subcrystal
+from sage.sets.family import Family
 
 class VirtualCrystal(Subcrystal):
     r"""
@@ -82,16 +83,56 @@ class VirtualCrystal(Subcrystal):
     - ``category`` -- (optional) the category for the virtual crystal; the
       default is the :class:`~sage.categories.crystals.Crystals` category
     """
+    @staticmethod
+    def __classcall_private__(cls, ambient, virtualization, scaling_factors,
+                              generators=None, cartan_type=None, index_set=None, category=None):
+        """
+        Normalize arguments to ensure a unique representation.
+
+        EXAMPLES::
+
+            sage: B = CrystalOfTableaux(['B',3], shape=[1])
+            sage: C = CrystalOfTableaux(['D',4], shape=[2])
+            sage: psi1 = B.morphism(C.module_generators)
+            sage: V1 = psi1.image()
+            sage: psi2 = B.morphism(C.module_generators, index_set=[1,2,3])
+            sage: V2 = psi2.image()
+            sage: V1 is V2
+            True
+        """
+        if cartan_type is None:
+            cartan_type = ambient.cartan_type()
+        else:
+            cartan_type = CartanType(cartan_type)
+        if index_set is None:
+            index_set = cartan_type.index_set
+        if generators is None:
+            generators = ambient.module_generators
+        virtualization = Family(virtualization)
+        scaling_factors = Family(scaling_factors)
+
+        category = Crystals().or_subcategory(category)
+
+        return super(Subcrystal, cls).__classcall__(cls, ambient, virtualization, scaling_factors,
+                                                    tuple(generators), cartan_type, tuple(index_set),
+                                                    category)
+
     def __init__(self, ambient, virtualization, scaling_factors,
-                 cartan_type=None, generators=None, index_set=None, category=None):
+                 generators, cartan_type, index_set, category):
         """
         Initialize ``self``.
 
         EXAMPLES::
+
+            sage: B = CrystalOfTableaux(['B',3], shape=[1])
+            sage: C = CrystalOfTableaux(['D',4], shape=[2])
+            sage: psi = B.morphism(C.module_generators)
+            sage: V = psi.image()
+            sage: TestSuite(V).run()
         """
-        self._virtualization = Family(virtualization)
-        self._scaling_factors = Family(scaling_factors)
-        Subcrystal.__init__(ambient, None, generators, cartan_type, index_set, category)
+        self._virtualization = virtualization
+        self._scaling_factors = scaling_factors
+        Subcrystal.__init__(self, ambient, None, generators, cartan_type, index_set, category)
 
     def _repr_(self):
         """
@@ -99,6 +140,11 @@ class VirtualCrystal(Subcrystal):
 
         EXAMPLES::
 
+            sage: B = CrystalOfTableaux(['B',3], shape=[1])
+            sage: C = CrystalOfTableaux(['D',4], shape=[2])
+            sage: psi = B.morphism(C.module_generators)
+            sage: psi.image()
+            Virtual crystal of The crystal of tableaux of type ['D', 4] and shape(s) [[2]] of type ['B', 3]
         """
         return "Virtual crystal of {} of type {}".format(self._ambient, self._cartan_type)
 
@@ -107,17 +153,44 @@ class VirtualCrystal(Subcrystal):
         Check if ``x`` is in ``self``.
 
         EXAMPLES::
+
+            sage: B = CrystalOfTableaux(['B',3], shape=[1])
+            sage: C = CrystalOfTableaux(['D',4], shape=[2])
+            sage: psi = B.morphism(C.module_generators)
+            sage: V = psi.image()
+            sage: mg = C.module_generators[0]
+            sage: mg in V
+            True
+            sage: mg.f(1) in V
+            False
+            sage: mg.f(1).f(1) in V
+            True
         """
         if not Subcrystal.__contains__(self, x):
             return False
-        # TODO: check that it is in the vitual crystal
-        return False
+        if self in FiniteCrystals():
+            if isinstance(x, self._ambient.element_class):
+                if x.parent() == self:
+                    x = self.element_class(self, self._ambient(x))
+                elif x.parent() == self._ambient:
+                    x = self.element_class(self, self._ambient(x))
+            elif isinstance(x, self.element_class) and x.parent() != self:
+                x = self.element_class(self, x.value)
+            return x in self.list()
+        return True
 
     def virtualization(self):
         """
         Return the virtualization sets `\sigma_i`.
 
         EXAMPLES::
+
+            sage: B = CrystalOfTableaux(['B',3], shape=[1])
+            sage: C = CrystalOfTableaux(['D',4], shape=[2])
+            sage: psi = B.morphism(C.module_generators)
+            sage: V = psi.image()
+            sage: V.virtualization()
+            Finite family {1: (1,), 2: (2,), 3: (3, 4)}
         """
         return self._virtualization
 
@@ -126,65 +199,132 @@ class VirtualCrystal(Subcrystal):
         Return the scaling factors `\gamma_i`.
 
         EXAMPLES::
+
+            sage: B = CrystalOfTableaux(['B',3], shape=[1])
+            sage: C = CrystalOfTableaux(['D',4], shape=[2])
+            sage: psi = B.morphism(C.module_generators)
+            sage: V = psi.image()
+            sage: V.scaling_factors()
+            Finite family {1: 2, 2: 2, 3: 1}
         """
         return self._scaling_factors
 
-    class Element(ElementWrapper):
+    class Element(Subcrystal.Element):
+        """
+        An element of a virtual (sub)crystal. Wraps an element in the
+        ambient crystal.
+        """
         def e(self, i):
             """
             Return `e_i` of ``self``.
 
             EXAMPLES::
+
+                sage: B = CrystalOfTableaux(['B',3], shape=[1])
+                sage: C = CrystalOfTableaux(['D',4], shape=[2])
+                sage: psi = B.morphism(C.module_generators)
+                sage: V = psi.image()
+                sage: mg = V.module_generators[0]
+                sage: mg.e(1)
+                sage: b = psi(B.module_generators[0].f(1))
+                sage: V(b).e(1)
+                [[1, 1]]
             """
             s = []
-            sf = self._scaling_factors[i]
-            for j in self._virtualization[i]:
+            P = self.parent()
+            sf = P._scaling_factors[i]
+            for j in P._virtualization[i]:
                 s += [j]*sf
             ret = self.value.e_string(s)
             if ret is None:
                 return None
-            return self.__class__(self.parent(), ret)
+            return self.__class__(P, ret)
 
         def f(self, i):
             """
             Return `f_i` of ``self``.
 
             EXAMPLES::
+
+                sage: B = CrystalOfTableaux(['B',3], shape=[1])
+                sage: C = CrystalOfTableaux(['D',4], shape=[2])
+                sage: psi = B.morphism(C.module_generators)
+                sage: V = psi.image()
+                sage: mg = V.module_generators[0]
+                sage: mg.f(1)
+                [[2, 2]]
+                sage: mg.f(2)
             """
             s = []
-            sf = self._scaling_factors[i]
-            for j in self._virtualization[i]:
+            P = self.parent()
+            sf = P._scaling_factors[i]
+            for j in P._virtualization[i]:
                 s += [j]*sf
             ret = self.value.f_string(s)
             if ret is None:
                 return None
-            return self.__class__(self.parent(), ret)
+            return self.__class__(P, ret)
 
         def epsilon(self, i):
             r"""
             Return `\varepsilon_i` of ``self``.
 
             EXAMPLES::
-            """            
-            return self.value.epsilon(self._virtualization[i][0]) / self._scaling_factors[i]
+
+                sage: B = CrystalOfTableaux(['B',3], shape=[1])
+                sage: C = CrystalOfTableaux(['D',4], shape=[2])
+                sage: psi = B.morphism(C.module_generators)
+                sage: V = psi.image()
+                sage: mg = V.module_generators[0]
+                sage: mg.epsilon(2)
+                0
+                sage: mg.f(1).epsilon(1)
+                1
+            """
+            P = self.parent()
+            return self.value.epsilon(P._virtualization[i][0]) / P._scaling_factors[i]
 
         def phi(self, i):
             r"""
             Return `\varphi_i` of ``self``.
 
             EXAMPLES::
+
+                sage: B = CrystalOfTableaux(['B',3], shape=[1])
+                sage: C = CrystalOfTableaux(['D',4], shape=[2])
+                sage: psi = B.morphism(C.module_generators)
+                sage: V = psi.image()
+                sage: mg = V.module_generators[0]
+                sage: mg.phi(1)
+                1
+                sage: mg.phi(2)
+                0
             """
-            return self.value.phi(self._virtualization[i][0]) / self._scaling_factors[i]
+            P = self.parent()
+            return self.value.phi(P._virtualization[i][0]) / P._scaling_factors[i]
 
         def weight(self):
             """
             Return the weight of ``self``.
 
             EXAMPLES::
+
+                sage: B = CrystalOfTableaux(['B',3], shape=[1])
+                sage: C = CrystalOfTableaux(['D',4], shape=[2])
+                sage: psi = B.morphism(C.module_generators)
+                sage: V = psi.image()
+                sage: mg = V.module_generators[0]
+                sage: mg.weight()
+                (1, 0, 0)
+                sage: mg.f(1).weight()
+                (0, 1, 0)
             """
-            WLR = self.weight_lattice_realization()
+            P = self.parent()
+            WLR = P.weight_lattice_realization()
             wt = self.value.weight()
+            ac = P._ambient.weight_lattice_realization().simple_coroots()
             La = WLR.fundamental_weights()
-            sf = self.parent().scaling_factors()
-            return WLR.sum_of_terms((i, wt / sf[i]) for i in self.index_set())
+            v = P._virtualization
+            sf = P._scaling_factors
+            return WLR.sum(wt.scalar(ac[v[i][0]]) / sf[i] * La[i] for i in self.index_set())
 

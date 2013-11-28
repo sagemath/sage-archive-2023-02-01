@@ -22,7 +22,6 @@ from sage.categories.category import HomCategory
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.crystals import Crystals
 from sage.combinat.subset import Subsets
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 class RegularCrystals(Category_singleton):
     r"""
@@ -129,10 +128,11 @@ class RegularCrystals(Category_singleton):
                     ....:         return True
                     sage: psi = Psi(H, C.module_generators)
                     sage: psi
-                    ['B', 2] Crystal morphism:
-                      From: The infinity crystal of tableaux of type ['B', 2]
-                      To:   Infinity Crystal of modified Nakajima monomials of type ['B', 2]
-                      Defn: [2, 1, 1] |--> 1
+                    ['A', 2, 1] Crystal morphism:
+                      From: The crystal of LS paths of type ['A', 2, 1] and weight Lambda[0]
+                      To:   Highest weight crystal of generalized Young walls of Cartan type ['A', 2, 1]
+                             and highest weight Lambda[0].
+                      Defn: (Lambda[0],) |--> []
                     sage: psi.is_isomorphism()
                     True
                 """

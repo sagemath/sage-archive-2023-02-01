@@ -660,7 +660,7 @@ class Crystals(Category_singleton):
                 [[[[3]], [[3, 3]]], [[[3, 3]], [[3]]]]]
             """
             #from sage.misc.superseded import deprecation
-            #deprecation(0, 'crystal_morphism is deprecated. Use morphism instead.')
+            #deprecation(15463, 'crystal_morphism is deprecated. Use morphism instead.')
 
             if index_set is None:
                 index_set = self.index_set()

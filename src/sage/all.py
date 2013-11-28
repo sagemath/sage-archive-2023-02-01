@@ -74,7 +74,7 @@ from sage.misc.sh import sh
 
 from sage.libs.all       import *
 from sage.doctest.all    import *
-if SAGE_ROOT is not None:
+if SAGE_ROOT is not None and os.path.exists(os.path.join(SAGE_ROOT, '.git')):
     from sage.dev.all        import *
 
 from sage.rings.all      import *

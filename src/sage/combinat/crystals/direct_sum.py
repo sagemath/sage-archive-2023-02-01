@@ -96,7 +96,7 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
             sage: D1 is D2
             True
             sage: D3 = DirectSumOfCrystals([B, C, C])
-            sage: D4 = DirectSumOfCrystals([U1, C])
+            sage: D4 = DirectSumOfCrystals([D1, C])
             sage: D3 is D4
             True
         """
@@ -115,10 +115,11 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
                 ret += list(x.crystals)
             else:
                 ret.append(x)
+        category = Category.meet([Category.join(c.categories()) for c in ret])
         return super(DirectSumOfCrystals, cls).__classcall__(cls,
             Family(ret), facade=facade, keepkey=keepkey, category=category)
 
-    def __init__(self, crystals, **options):
+    def __init__(self, crystals, facade, keepkey, category, **options):
         """
         TESTS::
 
@@ -132,7 +133,6 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
             sage: isinstance(B, DirectSumOfCrystals)
             True
         """
-        category = Category.meet([Category.join(crystal.categories()) for crystal in crystals])
         Parent.__init__(self, category = category)
         DisjointUnionEnumeratedSets.__init__(self, crystals, keepkey = keepkey, facade = facade)
         self.rename("Direct sum of the crystals %s"%(crystals,))

@@ -189,7 +189,7 @@ class HighestWeightCrystals(Category_singleton):
 
         # TODO: This is not correct if a factor has multiple heads (i.e., we
         #   should have a category for uniqueness of highest/lowest weights)
-        generators_connected_components = highest_weight_vectors
+        connected_components_generators = highest_weight_vectors
 
         def _Hom_(self, Y, category=None, **options):
             r"""
@@ -231,10 +231,187 @@ class HighestWeightCrystals(Category_singleton):
     class ElementMethods:
         pass
 
+###############################################################################
+## Morphisms
+
+class HighestWeightCrystalMorphism(CrystalMorphismByGenerators):
+    """
+    A crystal morphism whose domain is a highest weight crystal.
+
+    INPUT:
+
+    - ``parent`` -- a homset
+    - ``on_gens`` -- a function for the images of the module generators
+    - ``cartan_type`` -- (optional) the Cartan type of the morphism; the
+      default is the Cartan type of the domain
+    - ``index_set`` -- (optional) the index set of the morphism; the
+      default is the index set of the Cartan type
+    - ``gens`` -- a list of generators to define the morphism; the
+      default is to use the highest weight vectors of the crystal
+    - ``check`` -- (default: ``True``) check if the crystal morphism is valid
+    """
+    def __init__(self, parent, on_gens, cartan_type=None, index_set=None, gens=None, check=True):
+        """
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: B = InfinityCrystalOfTableaux(['B',2])
+            sage: C = InfinityCrystalOfNakajimaMonomials(['B',2])
+            sage: psi = B.morphism(C.module_generators)
+        """
+        if gens is None:
+            gens = parent.domain().highest_weight_vectors()
+        return CrystalMorphismByGenerators.__init__(self, parent, on_gens, cartan_type,
+                                                    index_set, gens, check)
+
+    def _call_(self, x):
+        """
+        Return the image of ``x`` under ``self``.
+
+        EXAMPLES::
+
+            sage: B = InfinityCrystalOfTableaux(['B',2])
+            sage: C = InfinityCrystalOfNakajimaMonomials(['B',2])
+            sage: psi = B.morphism(C.module_generators)
+            sage: b = B.highest_weight_vector()
+            sage: psi(b)
+            sage: psi(b.f_string([1,1,1,2,2,1,2,2]))
+            sage: C.highest_weight_vector().f_string([1,1,1,2,2,1,2,2])
+        """
+        mg, path = x.to_highest_weight(self._index_set)
+        y = self._on_gens(mg)
+        if y is None:
+            return None
+        return y.f_string(reversed(path))
+
+class HighestWeightTwistedCrystalMorphism(TwistedCrystalMorphismByGenerators):
+    """
+    A twisted crystal morphism whose domain is a highest weight crystal.
+
+    INPUT:
+
+    - ``parent`` -- a homset
+    - ``on_gens`` -- a function for the images of the generators
+    - ``automorphism`` -- the twisting automorphism
+    - ``cartan_type`` -- (optional) the Cartan type of the morphism; the
+      default is the Cartan type of the domain
+    - ``index_set`` -- (optional) the index set of the morphism; the
+      default is the index set of the Cartan type
+    - ``gens`` -- a list of generators to define the morphism; the
+      default is to use the highest weight vectors of the crystal
+    - ``check`` -- (default: ``True``) check if the crystal morphism is valid
+    """
+    def __init__(self, parent, on_gens, automorphism, cartan_type=None,
+                 index_set=None, gens=None, check=True):
+        """
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: B = CrystalOfTableaux(['D',4], shape=[1])
+            sage: H = Hom(B, B)
+            sage: d = {1:1, 2:2, 3:4, 4:3}
+            sage: psi = H(B.module_generators, automorphism=lambda x: d[x])
+        """
+        if gens is None:
+            gens = parent.domain().highest_weight_vectors()
+        return TwistedCrystalMorphismByGenerators.__init__(self, parent, on_gens, automorphism,
+                                                           cartan_type, index_set, gens, check)
+
+    def _call_(self, x):
+        """
+        Return the image of ``x`` under ``self``.
+
+        TESTS::
+
+            sage: B = CrystalOfTableaux(['D',4], shape=[1])
+            sage: H = Hom(B, B)
+            sage: d = {1:1, 2:2, 3:4, 4:3}
+            sage: psi = H(B.module_generators, automorphism=lambda x: d[x])
+            sage: psi(b.f_string([1,2,3]))
+            [[-4]]
+        """
+        mg, path = x.to_highest_weight(self._index_set)
+        y = self._on_gens(mg)
+        if y is None:
+            return None
+        return y.f_string(map(self._twist, reversed(path)))
+
+class HighestWeightVirtualCrystalMorphism(VirtualCrystalMorphismByGenerators):
+    r"""
+    A virtual crystal morphism whose domain is a highest weight crystal.
+
+    INPUT:
+
+    - ``parent`` -- a homset
+    - ``on_gens`` -- a function for the images of the generators
+    - ``virtualization`` -- a dictionary whose keys are in the index set of
+      the domain and whose values are lists of entries in the index set of the
+      codomain
+    - ``scaling_factors`` -- a dictionary whose keys are in the index set of
+      the domain and whose values are scaling factors for the weight,
+      `\varepsilon` and `\varphi`.
+    - ``cartan_type`` -- (optional) the Cartan type of the morphism; the
+      default is the Cartan type of the domain
+    - ``index_set`` -- (optional) the index set of the morphism; the
+      default is the index set of the Cartan type
+    - ``gens`` -- a list of generators to define the morphism; the
+      default is to use the highest weight vectors of the crystal
+    - ``check`` -- (default: ``True``) check if the crystal morphism is valid
+    """
+    def __init__(self, parent, on_gens, virtualization, scaling_factors,
+                 cartan_type=None, index_set=None, gens=None, check=True):
+        """
+        Construct a virtual crystal morphism.
+
+        TESTS::
+
+            sage: B = CrystalOfTableaux(['B',3], shape=[1])
+            sage: C = CrystalOfTableaux(['D',4], shape=[2])
+            sage: H = Hom(B, C)
+            sage: psi = H(C.module_generators)
+        """
+        if gens is None:
+            gens = parent.domain().highest_weight_vectors()
+        VirtualCrystalMorphismByGenerators.__init__(self, parent, on_gens,
+                                                    virtualization, scaling_factors,
+                                                    cartan_type, index_set, gens, check)
+
+    def _call_(self, x):
+        """
+        Return the image of ``x`` under ``self``.
+
+        TESTS::
+
+            sage: B = CrystalOfTableaux(['B',3], shape=[1])
+            sage: C = CrystalOfTableaux(['D',4], shape=[2])
+            sage: H = Hom(B, C)
+            sage: psi = H(C.module_generators)
+            sage: psi(B.module_generators[0])
+            [[1, 1]]
+        """
+        mg, path = x.to_highest_weight(self._index_set)
+        cur = self._on_gens(mg)
+        for i in reversed(path):
+            if cur is None:
+                return None
+            s = []
+            sf = self._scaling_factors[i]
+            for j in self._virtualization[i]:
+                s += [j]*sf
+            cur = cur.f_string(s)
+        return cur
+
 class HighestWeightCrystalHomset(CrystalHomset):
     """
     The set of crystal morphisms from a highest weight crystal to
     another crystal.
+
+    .. SEEALSO::
+
+        See :class:`sage.categories.crystals.CrystalHomset` for more
+        information.
     """
     def __init__(self, X, Y, category=None):
         """
@@ -251,128 +428,8 @@ class HighestWeightCrystalHomset(CrystalHomset):
         """
         if category is None:
             category = HighestWeightCrystals()
-        self._generic = HighestWeightCrystalMorphism
-        self._twisted = HighestWeightTwistedCrystalMorphism
-        self._virtual = HighestWeightVirtualCrystalMorphism
         CrystalHomset.__init__(self, X, Y, category)
 
-class HighestWeightCrystalMorphism(CrystalMorphismByGenerators):
-    """
-    A crystal morphism whose domain is a highest weight crystal.
-
-    INPUT:
-
-    - ``parent`` -- a homspace
-    - ``on_gens`` -- a function for the images of the module generators
-    - ``gens`` -- a list of generators to define the morphism; the
-      default is to use the highest weight vectors of the crystal
-    - ``cartan_type`` -- (optional) the Cartan type of the morphism; the
-      default is the Cartan type of the domain
-    - ``index_set`` -- (optional) the index set of the morphism; the
-      default is the index set of the Cartan type
-    """
-    def __init__(self, parent, on_gens, gens=None, cartan_type=None, index_set=None):
-        """
-        Initialize ``self``.
-        """
-        if gens is None:
-            gens = parent.domain().highest_weight_vectors()
-        return CrystalMorphismByGenerators.__init__(self, parent, on_gens,
-                                                    gens, cartan_type, index_set)
-
-    def _call_(self, x):
-        """
-        Return the image of ``x`` under ``self``.
-
-        EXAMPLES::
-        """
-        mg, path = x.to_highest_weight(self._index_set)
-        return self._on_gens(mg).f_string(reversed(path))
-
-class HighestWeightTwistedCrystalMorphism(TwistedCrystalMorphismByGenerators):
-    """
-    A twisted crystal morphism whose domain is a highest weight crystal.
-
-    INPUT:
-
-    - ``parent`` -- a homspace
-    - ``on_gens`` -- a function for the images of the generators
-    - ``automorphism`` -- the twisting automorphism
-    - ``gens`` -- a list of generators to define the morphism; the
-      default is to use the highest weight vectors of the crystal
-    - ``cartan_type`` -- (optional) the Cartan type of the morphism; the
-      default is the Cartan type of the domain
-    - ``index_set`` -- (optional) the index set of the morphism; the
-      default is the index set of the Cartan type
-    """
-    def __init__(self, parent, on_gens, automorphism, gens=None, cartan_type=None, index_set=None):
-        """
-        Initialize ``self``.
-
-        EXAMPLES::
-        """
-        if gens is None:
-            gens = parent.domain().highest_weight_vectors()
-        return CrystalMorphismByGenerators.__init__(self, parent, on_gens, automorphism,
-                                                    gens, cartan_type, index_set)
-
-    def _call_(self, x):
-        """
-        Return the image of ``x`` under ``self``.
-
-        EXAMPLES::
-        """
-        mg, path = x.to_highest_weight(self._index_set)
-        return self._on_gens(mg).f_string(map(self._twist, reversed(path)))
-
-class HighestWeightVirtualCrystalMorphism(VirtualCrystalMorphismByGenerators):
-    r"""
-    A virtual crystal morphism whose domain is a highest weight crystal.
-
-    INPUT:
-
-    - ``parent`` -- a homspace
-    - ``on_gens`` -- a function for the images of the generators
-    - ``virtualization`` -- a dictionary whose keys are in the index set of
-      the domain and whose values are lists of entries in the index set of the
-      codomain
-    - ``scaling_factors`` -- a dictionary whose keys are in the index set of
-      the domain and whose values are scaling factors for the weight,
-      `\varepsilon` and `\varphi`.
-    - ``gens`` -- a list of generators to define the morphism; the
-      default is to use the highest weight vectors of the crystal
-    - ``cartan_type`` -- (optional) the Cartan type of the morphism; the
-      default is the Cartan type of the domain
-    - ``index_set`` -- (optional) the index set of the morphism; the
-      default is the index set of the Cartan type
-    """
-    def __init__(self, parent, on_gens, virtualization, scaling_factors,
-                 gens=None, cartan_type=None, index_set=None):
-        """
-        Construct a virtual crystal morphism.
-
-        EXAMPLES::
-        """
-        if gens is None:
-            gens = parent.domain().highest_weight_vectors()
-        CrystalMorphismByGenerators.__init__(self, parent, on_gens, gens,
-                                             cartan_type, index_set)
-
-    def _call_(self, x):
-        """
-        Return the image of ``x`` under ``self``.
-
-        EXAMPLES::
-        """
-        mg, path = x.to_highest_weight(self._index_set)
-        cur = self._on_gens(mg)
-        for i in reversed(path):
-            if cur is None:
-                return None
-            s = []
-            sf = self._scaling_factors[i]
-            for j in self._virtualization[i]:
-                s += [j]*sf
-            cur = cur.f_string(s)
-        return cur
-
+    _generic = HighestWeightCrystalMorphism
+    _twisted = HighestWeightTwistedCrystalMorphism
+    _virtual = HighestWeightVirtualCrystalMorphism

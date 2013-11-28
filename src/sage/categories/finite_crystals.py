@@ -88,11 +88,23 @@ class FiniteCrystals(Category):
         and an arbitrary crystal `Y`.
         """
         class ElementMethods:
+            # Should be is_injective, but that is defined in the class itself
             @cached_method
-            def is_injective(self):
+            def is_embedding(self):
                 """
                 Return if ``self`` is an injective crystal isomorphism by a
                 brute force check.
+
+                EXAMPLES::
+
+                    sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+                    sage: C = CrystalOfTableaux(['A',2], ([2,1], [1,1]))
+                    sage: psi = B.morphism(C.module_generators[:1], codomain=C)
+                    sage: psi.is_embedding()
+                    True
+                    sage: psi = C.morphism([B.module_generators[0], None], codomain=B)
+                    sage: psi.is_embedding()
+                    False
                 """
                 image = set([None])
                 for x in self.domain():
@@ -107,9 +119,23 @@ class FiniteCrystals(Category):
                 """
                 Return if ``self`` is a strict crystal morphism by a
                 brute force check.
+
+                EXAMPLES::
+
+                    sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+                    sage: C = CrystalOfTableaux(['A',2], ([2,1], [1,1]))
+                    sage: psi = B.morphism(C.module_generators[:1], codomain=C)
+                    sage: psi.is_strict()
+                    True
+                    sage: psi = C.morphism([B.module_generators[0], None], codomain=B)
+                    sage: psi.is_strict()
+                    False
                 """
                 for x in self.domain():
                     for i in self._index_set:
+                        y = self(x)
+                        if y is None:
+                            return False
                         if self(x.e(i)) != self(x).e(i) or self(x.f(i)) != self(x).f(i):
                             return False
                 return True
@@ -118,12 +144,35 @@ class FiniteCrystals(Category):
                 """
                 Check if ``self`` is a crystal isomorphism, which is true
                 if and only if this is a strict embedding.
+
+                EXAMPLES::
+
+                    sage: B = CrystalOfTableaux(['A',2], shape=[1,1])
+                    sage: C = CrystalOfTableaux(['A',2], ([2,1], [1,1]))
+                    sage: psi = B.morphism(C.module_generators[1:], codomain=C)
+                    sage: psi.is_isomorphism()
+                    False
+                    sage: K = KirillovReshetikhinCrystal(['A',2,1], 2,1)
+                    sage: psi = K.morphism(B.module_generators, codomain=B, cartan_type=['A',2])
+                    sage: psi.is_isomorphism()
+                    True
                 """
-                return self.domain().is_isomorphic(self.codomain())
+                return self.domain().is_isomorphic(self.codomain(), self.index_set())
 
             def image(self):
                 """
-                Return the image of ``self`` in the codomain.
+                Return the image of ``self`` in the codomain as a subcrystal.
+
+                EXAMPLES::
+
+                    sage: B = CrystalOfTableaux(['D',4], shape=[])
+                    sage: K = KirillovReshetikhinTableaux(['D',4,1], 2,1)
+                    sage: psi = B.morphism(K.module_generators[:1], codomain=K, category=FiniteCrystals())
+                    sage: S = psi.image()
+                    sage: S
+                    Subcrystal of Kirillov-Reshetikhin tableaux of type ['D', 4, 1] and shape (2, 1)
+                    sage: list(S)
+                    [[[1], [-1]]]
                 """
                 image = set([])
                 for x in self.domain():
@@ -131,8 +180,9 @@ class FiniteCrystals(Category):
                     if y is not None:
                         image.add(y)
                 gens = filter(lambda x: x is not None, self.im_gens())
-                return Subcrystal(self, image, gens, index_set=self._index_set,
-                                  category=self.domain().category())
+                from sage.combinat.crystals.subcrystal import Subcrystal
+                return Subcrystal(self.codomain(), image, gens, self.cartan_type(),
+                                  self.index_set(), category=self.domain().category())
 
     class ParentMethods:
         @cached_method
@@ -140,16 +190,43 @@ class FiniteCrystals(Category):
             """
             Return a tuple of generators for each of the connected components
             of ``self``.
+
+            EXAMPLES::
+
+                sage: K = KirillovReshetikhinCrystal(['D',4,1], 2,1)
+                sage: K.connected_components_generators()
+                ([[1], [2]],)
             """
             return tuple(map(lambda x: x[0], self.digraph().connected_components()))
 
-        def is_isomorphic(self, X):
+        def is_isomorphic(self, X, index_set=None):
             """
-            Check if ``self`` is isomorphic to another crystal ``X`` by a
-            brute force check of their digraphs.
+            Check if ``self`` is isomorphic as `I`-crystals to another
+            crystal ``X`` by a brute force check of their digraphs.
+
+            INPUT:
+
+            - ``X`` -- another crystal
+            - ``index_set`` -- (optional) the set `I`; the default is to use
+              the index set of ``self``.
+
+            EXAMPLES::
+
+                sage: B = K.classical_decomposition()
+                sage: K = KirillovReshetikhinCrystal(['D',4,1], 2,1)
+                sage: B.is_isomorphic(K)
+                False
+                sage: K.is_isomorphic(B)
+                False
+                sage: K.is_isomorphic(B, index_set=[1,2,3,4])
+                True
+                sage: B.is_isomorphic(K, index_set=[1,2,3,4])
+                True
             """
             from sage.rings.infinity import infinity
             if X.cardinality() == infinity:
                 return False
-            return self.digraph().is_ismorphic(X.digraph(), edge_labels=True)
+            G = self.digraph(index_set=index_set)
+            GX = X.digraph(index_set=index_set)
+            return G.is_isomorphic(GX, edge_labels=True)
 

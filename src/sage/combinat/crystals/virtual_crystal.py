@@ -49,7 +49,8 @@ class VirtualCrystal(Subcrystal):
         \widehat{\varphi}_i = \frac{\varphi_j}{\gamma_j}, \quad
 
     where `\sigma_i` is a set of indices in `B` and the *scaling factors*
-    `\gamma_i`. We note that for the crystal to be well-defined, we must have
+    `\gamma_i \in \ZZ`. We note that for the crystal to be well-defined,
+    we must have
 
     .. MATH::
 

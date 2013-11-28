@@ -921,10 +921,10 @@ class ElementaryCrystal(Parent, UniqueRepresentation):
 
                 sage: B = ElementaryCrystal(['C',14],12)
                 sage: B(-385).weight()
-                -385*alpha[12]
+                (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -385, 385, 0)
             """
-            Q = self.parent().cartan_type().root_system().root_lattice()
-            return self._m * Q.simple_root(self.parent()._i)
+            WLR = self.parent().weight_lattice_realization()
+            return self._m * WLR.simple_root(self.parent()._i)
 
 class ComponentCrystal(Parent,UniqueRepresentation):
     r"""

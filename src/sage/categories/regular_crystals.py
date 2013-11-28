@@ -115,6 +115,26 @@ class RegularCrystals(Category_singleton):
                 Check if ``self`` is a crystal isomorphism, which is true
                 if and only if this is a strict embedding with the same number
                 of connected components.
+
+                EXAMPLES::
+
+                    sage: La = RootSystem(['A',2,1]).weight_space().fundamental_weights()
+                    sage: B = CrystalOfLSPaths(La[0])
+                    sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()
+                    sage: C = CrystalOfGeneralizedYoungWalls(2, La[0])
+                    sage: H = Hom(B, C)
+                    sage: from sage.categories.highest_weight_crystals import HighestWeightCrystalMorphism
+                    sage: class Psi(HighestWeightCrystalMorphism):
+                    ....:     def is_strict(self):
+                    ....:         return True
+                    sage: psi = Psi(H, C.module_generators)
+                    sage: psi
+                    ['B', 2] Crystal morphism:
+                      From: The infinity crystal of tableaux of type ['B', 2]
+                      To:   Infinity Crystal of modified Nakajima monomials of type ['B', 2]
+                      Defn: [2, 1, 1] |--> 1
+                    sage: psi.is_isomorphism()
+                    True
                 """
                 return self.is_strict() \
                         and self.domain().number_of_connected_components() == \

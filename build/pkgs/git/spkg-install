@@ -25,6 +25,14 @@ done
 [ -n "$INSTALL" ] || die 'No install program found'
 echo "Using install program $INSTALL"
 
+# Gettext is a soft build dependency (i18n)
+command -v gettext >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+    gettext='NO_GETTEXT=YesPlease'
+else
+    gettext=''
+fi
+
 
 cd src
 # Apply patches.
@@ -60,16 +68,10 @@ fi
 
 
 echo "Building git..."
-gettext=''
-$MAKE
+$MAKE $gettext
 if [ $? -ne 0 ]; then
-    echo "Retrying build without gettext (i18n will not be available)."
-    gettext='NO_GETTEXT=1'
-    $MAKE $gettext
-    if [ $? -ne 0 ]; then
-	echo >&2 "Error building git."
-	exit 1
-    fi
+    echo >&2 "Error building git."
+    exit 1
 fi
 
 

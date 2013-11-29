@@ -26,7 +26,7 @@ done
 echo "Using install program $INSTALL"
 
 # Gettext is a soft build dependency (i18n)
-command -v gettext >/dev/null 2>&1
+command -v msgfmt >/dev/null 2>&1
 if [ $? -ne 0 ]; then
     gettext='NO_GETTEXT=YesPlease'
 else

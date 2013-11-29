@@ -115,7 +115,11 @@ class GitProxy(object):
 
         Check that we refuse to touch the live source code in doctests::
 
-            sage: dev.git.status()
+            sage: git_config = config['git']
+            sage: git_config['dot_git'] = sage.env.DOT_SAGE
+            sage: git_config['src'] = sage.env.SAGE_ROOT
+            sage: git = GitInterface(git_config, DoctestUserInterface(config["UI"]))
+            sage: git.status()
             Traceback (most recent call last):
             ...
             AssertionError: working with the sage repository in a doctest

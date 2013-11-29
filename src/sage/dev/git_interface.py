@@ -215,20 +215,13 @@ class GitProxy(object):
             GitError: git returned with non-zero exit code (129) for
             "git -c user.email=doc@test.test -c user.name=doctest status --foo".
             output to stderr: error: unknown option `foo'
-             usage: git status [options] [--] <filepattern>...
+             usage: git status [options] [--] ...
             <BLANKLINE>
                  -v, --verbose         be verbose
                  -s, --short           show status concisely
                  -b, --branch          show branch information
                  --porcelain           machine-readable output
-                 -z, --null            terminate entries with NUL
-                 -u, --untracked-files[=<mode>]
-                                       show untracked files, optional modes: all, normal, no. (Default: all)
-                 --ignored             show ignored files
-                 --ignore-submodules[=<when>]
-                                       ignore changes to submodules, optional when: all, dirty, untracked. (Default: all)
-                 --column[=<style>]    list untracked files in columns
-            <BLANKLINE>
+            ...
         """
         exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds)
         if exit_code:
@@ -262,20 +255,13 @@ class GitProxy(object):
             GitError: git returned with non-zero exit code (129) for
             "git -c user.email=doc@test.test -c user.name=doctest status --foo".
             output to stderr: error: unknown option `foo'
-             usage: git status [options] [--] <filepattern>...
+             usage: git status [options] [--] ...
             <BLANKLINE>
                  -v, --verbose         be verbose
                  -s, --short           show status concisely
                  -b, --branch          show branch information
                  --porcelain           machine-readable output
-                 -z, --null            terminate entries with NUL
-                 -u, --untracked-files[=<mode>]
-                                       show untracked files, optional modes: all, normal, no. (Default: all)
-                 --ignored             show ignored files
-                 --ignore-submodules[=<when>]
-                                       ignore changes to submodules, optional when: all, dirty, untracked. (Default: all)
-                 --column[=<style>]    list untracked files in columns
-            <BLANKLINE>
+            ...
         """
         exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds)
         if exit_code:
@@ -758,14 +744,12 @@ class GitInterface(ReadStdoutGitProxy):
 
             sage: git.clean_wrapper(remove_untracked_files=True)
             Removing untracked
-            Not removing untracked_dir/
             sage: git.clean_wrapper(
             ....:     remove_untracked_files=True, remove_untracked_directories=True)
             Removing untracked_dir/
             sage: git.clean_wrapper(
             ....:     remove_untracked_files=True, remove_ignored=True)
             Removing ignored
-            Not removing ignored_dir/
             sage: git.clean_wrapper(
             ....:     remove_untracked_files=True,
             ....:     remove_untracked_directories=True,

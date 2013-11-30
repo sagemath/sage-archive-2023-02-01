@@ -182,6 +182,9 @@ from sage.misc.misc_c import is_64_bit
 include 'pari_err.pxi'
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/python.pxi'
+include 'sage/ext/interrupt.pxi'
+
+cimport libc.stdlib
 
 cdef extern from "misc.h":
     int     factorint_withproof_sage(GEN* ans, GEN x, GEN cutoff)
@@ -364,7 +367,7 @@ def prec_words_to_dec(int prec_in_words):
 
 # The unique running Pari instance.
 cdef PariInstance pari_instance, P
-pari_instance = PariInstance(16000000, 500000)
+pari_instance = PariInstance()
 P = pari_instance   # shorthand notation
 
 # PariInstance.__init__ must not create gen objects because their parent is not constructed yet
@@ -8666,15 +8669,13 @@ cdef class gen(sage.structure.element.RingElement):
 
         INPUT:
 
-
-        -  ``limit`` - (default: -1) is optional and can be set
+        -  ``limit`` -- (default: -1) is optional and can be set
            whenever x is of (possibly recursive) rational type. If limit is
            set return partial factorization, using primes up to limit (up to
            primelimit if limit=0).
 
-
-        proof - (default: True) optional. If False (not the default),
-        returned factors `<10^{15}` may only be pseudoprimes.
+        - ``proof`` -- (default: True) optional. If False (not the default),
+          returned factors larger than `2^{64}` may only be pseudoprimes.
 
         .. note::
 
@@ -8704,9 +8705,13 @@ cdef class gen(sage.structure.element.RingElement):
             PariError: sorry, factor for general polynomials is not yet implemented
         """
         cdef int r
+        cdef GEN cutoff
         if limit == -1 and typ(self.g) == t_INT and proof:
             pari_catch_sig_on()
-            r = factorint_withproof_sage(&t0, self.g, ten_to_15)
+            # cutoff for checking true primality: 2^64 according to the
+            # PARI documentation ??ispseudoprime.
+            cutoff = mkintn(3, 1, 0, 0)  # expansion of 2^64 in base 2^32: (1,0,0)
+            r = factorint_withproof_sage(&t0, self.g, cutoff)
             z = P.new_gen(t0)
             if not r:
                 return z
@@ -9285,24 +9290,24 @@ cdef void sage_pariErr_flush():
 
 
 cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
-    def __init__(self, long size=16000000, unsigned long maxprime=500000):
+    def __init__(self, long size=1000000, unsigned long maxprime=500000):
         """
         Initialize the PARI system.
 
         INPUT:
 
 
-        -  ``size`` - long, the number of bytes for the initial
+        -  ``size`` -- long, the number of bytes for the initial
            PARI stack (see note below)
 
-        -  ``maxprime`` - unsigned long, upper limit on a
+        -  ``maxprime`` -- unsigned long, upper limit on a
            precomputed prime number table (default: 500000)
 
 
         .. note::
 
-           In py_pari, the PARI stack is different than in gp or the
-           PARI C library. In Python, instead of the PARI stack
+           In Sage, the PARI stack is different than in GP or the
+           PARI C library. In Sage, instead of the PARI stack
            holding the results of all computations, it *only* holds
            the results of an individual computation. Each time a new
            Python/PARI object is computed, it it copied to its own
@@ -9362,6 +9367,27 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         pariErr.puts = sage_pariErr_puts
         pariErr.flush = sage_pariErr_flush
 
+    def debugstack(self):
+        r"""
+        Print the internal PARI variables ``top`` (top of stack), ``avma``
+        (available memory address, think of this as the stack pointer),
+        ``bot`` (bottom of stack).
+
+        EXAMPLE::
+
+            sage: pari.debugstack()  # random
+            top =  0x60b2c60
+            avma = 0x5875c38
+            bot =  0x57295e0
+            size = 1000000
+        """
+        # We deliberately use low-level functions to minimize the
+        # chances that something goes wrong here (for example, if we
+        # are out of memory).
+        global avma, top, bot
+        printf("top =  %p\navma = %p\nbot =  %p\nsize = %lu\n", top, avma, bot, <unsigned long>(top) - <unsigned long>(bot))
+        fflush(stdout)
+
     def __dealloc__(self):
         """
         Deallocation of the Pari instance.
@@ -9379,9 +9405,10 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         if bot:
             sage_free(<void*>bot)
-        global top, bot
+        global top, bot, avma
         top = 0
         bot = 0
+        avma = 0
         pari_close()
 
     def __repr__(self):
@@ -9940,17 +9967,138 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     # Initialization
     ############################################################
 
+    def stacksize(self):
+        r"""
+        Returns the current size of the PARI stack, which is `10^6`
+        by default.  However, the stack size is automatically doubled
+        when needed.  It can also be set directly using
+        ``pari.allocatemem()``.
+
+        EXAMPLES::
+
+            sage: pari.stacksize()
+            1000000
+
+        """
+        global top, bot
+        return (<size_t>(top) - <size_t>(bot))
+
+    def _allocate_huge_mem(self):
+        r"""
+        This function tries to allocate an impossibly large amount of
+        PARI stack in order to test ``init_stack()`` failing.
+
+        TESTS::
+
+            sage: pari.allocatemem(10^6, silent=True)
+            sage: pari._allocate_huge_mem()
+            Traceback (most recent call last):
+            ...
+            MemoryError: Unable to allocate ... (instead, allocated 1000000 bytes)
+
+        Test that the PARI stack is sane after this failure::
+
+            sage: a = pari('2^10000000')
+            sage: pari.allocatemem(10^6, silent=True)
+        """
+        # Since size_t is unsigned, this should wrap over to a very
+        # large positive number.
+        init_stack(<size_t>(-4096))
+
+    def _setup_failed_retry(self):
+        r"""
+        This function pretends that the PARI stack is larger than it
+        actually is such that allocatemem(0) will allocate much more
+        than double the current stack.  That allocation will then fail.
+        This function is meant to be used only in this doctest.
+
+        TESTS::
+
+            sage: pari.allocatemem(4096, silent=True)
+            sage: pari._setup_failed_retry()
+            sage: try:  # Any result is fine as long as it's not a segfault
+            ....:     a = pari('2^1000000')
+            ....: except MemoryError:
+            ....:     pass
+            sage: pari.allocatemem(10^6, silent=True)
+        """
+        global top
+        # Pretend top is at a very high address
+        top = <pari_sp>(<size_t>(-16))
+
     def allocatemem(self, s=0, silent=False):
         r"""
-        Double the *PARI* stack.
+        Change the PARI stack space to the given size (or double the
+        current size if ``s`` is `0`).
+
+        If `s = 0` and insufficient memory is avaible to double, the
+        PARI stack will be enlarged by a smaller amount.  In any case,
+        a ``MemoryError`` will be raised if the requested memory cannot
+        be allocated.
+
+        The PARI stack is never automatically shrunk.  You can use the
+        command ``pari.allocatemem(10^6)`` to reset the size to `10^6`,
+        which is the default size at startup.  Note that the results of
+        computations using Sage's PARI interface are copied to the
+        Python heap, so they take up no space in the PARI stack.
+        The PARI stack is cleared after every computation.
+
+        It does no real harm to set this to a small value as the PARI
+        stack will be automatically doubled when we run out of memory.
+        However, it could make some calculations slower (since they have
+        to be redone from the start after doubling the stack until the
+        stack is big enough).
+
+        INPUT:
+
+        - ``s`` - an integer (default: 0).  A non-zero argument should
+          be the size in bytes of the new PARI stack.  If `s` is zero,
+          try to double the current stack size.
+
+        EXAMPLES::
+
+            sage: pari.allocatemem(10^7)
+            PARI stack size set to 10000000 bytes
+            sage: pari.allocatemem()  # Double the current size
+            PARI stack size set to 20000000 bytes
+            sage: pari.stacksize()
+            20000000
+            sage: pari.allocatemem(10^6)
+            PARI stack size set to 1000000 bytes
+
+        The following computation will automatically increase the PARI
+        stack size::
+
+            sage: a = pari('2^100000000')
+
+        ``a`` is now a Python variable on the Python heap and does not
+        take up any space on the PARI stack.  The PARI stack is still
+        large because of the computation of ``a``::
+
+            sage: pari.stacksize()
+            16000000
+            sage: pari.allocatemem(10^6)
+            PARI stack size set to 1000000 bytes
+            sage: pari.stacksize()
+            1000000
+
+        TESTS:
+
+        Do the same without using the string interface and starting
+        from a very small stack size::
+
+            sage: pari.allocatemem(1)
+            PARI stack size set to 1024 bytes
+            sage: a = pari(2)^100000000
+            sage: pari.stacksize()
+            16777216
         """
-        if s == 0 and not silent:
-            print "Doubling the PARI stack."
-        s = int(s)
-        cdef size_t a = s
-        if int(a) != s:
-            raise ValueError, "s must be nonnegative and not too big."
+        s = long(s)
+        if s < 0:
+            raise ValueError("Stack size must be nonnegative")
         init_stack(s)
+        if not silent:
+            print "PARI stack size set to", self.stacksize(), "bytes"
 
     def pari_version(self):
         return str(PARIVERSION)
@@ -10372,9 +10520,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         cdef gen x
 
         pari_catch_sig_on()
-         # The gtomat is very important!!  Without sage/PARI will segfault.
-         # I do not know why. -- William Stein
-        A = self.new_gen(gtomat(zeromat(m,n)))
+        A = self.new_gen(zeromatcopy(m,n))
         if entries is not None:
             if len(entries) != m*n:
                 raise IndexError, "len of entries (=%s) must be %s*%s=%s"%(len(entries),m,n,m*n)
@@ -10388,107 +10534,107 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         return A
 
 
-##############################################
-# Used in integer factorization -- must be done
-# after the pari_instance creation above:
-
-cdef gen _tmp = P.new_gen_noclear(gp_read_str('1000000000000000'))
-cdef GEN ten_to_15 = _tmp.g
-
-##############################################
-
-def init_pari_stack(size=8000000):
+def init_pari_stack(s=8000000):
     """
-    Change the PARI scratch stack space to the given size.
-
-    The main application of this command is that you've done some
-    individual PARI computation that used a lot of stack space. As a
-    result the PARI stack may have doubled several times and is now
-    quite large. That object you computed is copied off to the heap,
-    but the PARI stack is never automatically shrunk back down. If you
-    call this function you can shrink it back down.
-
-    If you set this too small then it will automatically be increased
-    if it is exceeded, which could make some calculations initially
-    slower (since they have to be redone until the stack is big
-    enough).
-
-    INPUT:
-
-
-    -  ``size`` - an integer (default: 8000000)
-
+    Deprecated, use ``pari.allocatemem()`` instead.
 
     EXAMPLES::
 
-        sage: get_memory_usage()                       # random output
-        '122M+'
-        sage: a = pari('2^100000000')
-        sage: get_memory_usage()                       # random output
-        '157M+'
-        sage: del a
-        sage: get_memory_usage()                       # random output
-        '145M+'
-
-    Hey, I want my memory back!
-
-    ::
-
-        sage: sage.libs.pari.gen.init_pari_stack()
-        sage: get_memory_usage()                       # random output
-        '114M+'
-
-    Ahh, that's better.
+        sage: from sage.libs.pari.gen import init_pari_stack
+        sage: init_pari_stack()
+        doctest:...: DeprecationWarning: init_pari_stack() is deprecated; use pari.allocatemem() instead.
+        See http://trac.sagemath.org/10018 for details.
+        sage: pari.stacksize()
+        8000000
     """
-    init_stack(size)
+    from sage.misc.superseded import deprecation
+    deprecation(10018, 'init_pari_stack() is deprecated; use pari.allocatemem() instead.')
+    P.allocatemem(s, silent=True)
 
-cdef int init_stack(size_t size) except -1:
-    cdef size_t s
-    cdef pari_sp cur_stack_size
 
+cdef int init_stack(size_t requested_size) except -1:
+    r"""
+    Low-level Cython function to allocate the PARI stack.  This
+    function should not be called directly, use ``pari.allocatemem()``
+    instead.
+    """
     global top, bot, avma, mytop
 
+    cdef size_t old_size = <size_t>(top) - <size_t>(bot)
 
-    err = False    # whether or not a memory allocation error occurred.
+    cdef size_t new_size
+    cdef size_t max_size = <size_t>(-1)
+    if (requested_size == 0):
+        if old_size < max_size/2:
+            # Double the stack
+            new_size = 2*old_size
+        elif old_size < 4*(max_size/5):
+            # We cannot possibly double since we already use over half
+            # the addressable memory: take the average of current and
+            # maximum size
+            new_size = max_size/2 + old_size/2
+        else:
+            # We already use 80% of the addressable memory => give up
+            raise MemoryError("Unable to enlarge PARI stack (instead, kept the stack at %s bytes)"%(old_size))
+    else:
+        new_size = requested_size
 
+    # Align size to 16 bytes and take 1024 bytes as a minimum
+    new_size = (new_size/16)*16
+    if (new_size < 1024):
+        new_size = 1024
 
-    # delete this if get core dumps and change the 2* to a 1* below.
-    if bot:
-        sage_free(<void*>bot)
+    # Disable interrupts
+    sig_on()
+    sig_block()
 
-    prev_stack_size = top - bot
-    if size == 0:
-        size = 2 * prev_stack_size
+    # If this is non-zero, the size we failed to allocate
+    cdef size_t failed_size = 0
 
-    # Decide on size
-    s = fix_size(size)
+    try:
+        # Free the current stack
+        if bot:
+            libc.stdlib.free(<void*>bot)
 
-    # Allocate memory for new stack using Python's memory allocator.
-    # As explained in the python/C API reference, using this instead
-    # of malloc is much better (and more platform independent, etc.)
-    bot = <pari_sp> sage_malloc(s)
+        # Allocate memory for new stack.
+        bot = <pari_sp> libc.stdlib.malloc(new_size)
 
-    while not bot:
-        err = True
-        s = fix_size(prev_stack_size)
-        bot = <pari_sp> sage_malloc(s)
+        # If doubling failed, instead add 25% to the current stack size.
+        # We already checked that we use less than 80% of the maximum value
+        # for s, so this will not overflow.
+        if (bot == 0) and (requested_size == 0):
+            new_size = (old_size/64)*80
+            bot = <pari_sp> libc.stdlib.malloc(new_size)
+
         if not bot:
-            prev_stack_size /= 2
+            failed_size = new_size
+            # We lost our PARI stack and are not able to allocate the
+            # requested size.  If we just raise an exception now, we end up
+            # *without* a PARI stack which is not good.  We will raise an
+            # exception later, after allocating *some* PARI stack.
+            new_size = old_size
+            while new_size >= 1024:  # hope this never fails!
+                bot = <pari_sp> libc.stdlib.malloc(new_size)
+                if bot: break
+                new_size = (new_size/32)*16
 
-    top = bot + s
-    mytop = top
-    avma = top
+        if not bot:
+            top = 0
+            avma = 0
+            raise SystemError("Unable to allocate PARI stack, all subsequent PARI computations will crash")
 
-    if err:
-        raise MemoryError, "Unable to allocate %s bytes memory for PARI."%size
+        top = bot + new_size
+        mytop = top
+        avma = top
 
+        if failed_size:
+            raise MemoryError("Unable to allocate %s bytes for the PARI stack (instead, allocated %s bytes)"%(failed_size, new_size))
 
-cdef size_t fix_size(size_t a):
-    cdef size_t b
-    b = a - (a & (sizeof(long)-1))     # sizeof(long) | b <= a
-    if b < 1024:
-        b = 1024
-    return b
+        return 0
+    finally:
+        sig_unblock()
+        sig_off()
+
 
 cdef GEN deepcopy_to_python_heap(GEN x, pari_sp* address):
     cdef size_t s = <size_t> gsizebyte(x)
@@ -10499,7 +10645,7 @@ cdef GEN deepcopy_to_python_heap(GEN x, pari_sp* address):
     address[0] = tmp_bot
     return gcopy_avma(x, &tmp_top)
 
-cdef gen _new_gen (GEN x):
+cdef gen _new_gen(GEN x):
     cdef GEN h
     cdef pari_sp address
     cdef gen y

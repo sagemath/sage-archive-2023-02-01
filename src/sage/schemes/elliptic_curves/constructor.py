@@ -985,7 +985,7 @@ def EllipticCurve_from_plane_curve(C, P):
         sage: R.<x,y,z> = QQ[]
         sage: C = Curve(x^3+y^3+z^3)
         sage: P = C(1,-1,0)
-        sage: E = EllipticCurve_from_plane_curve(C,P);  E
+        sage: E = EllipticCurve_from_plane_curve(C,P); E  # long time (3s on sage.math, 2013)
         doctest:...: DeprecationWarning: use Jacobian(C) instead
         See http://trac.sagemath.org/3416 for details.
         Elliptic Curve defined by y^2 = x^3 - 27/4 over Rational Field

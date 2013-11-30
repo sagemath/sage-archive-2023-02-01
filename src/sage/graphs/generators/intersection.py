@@ -157,18 +157,17 @@ def PermutationGraph(second_permutation, first_permutation = None):
 
     INPUT:
 
-    - ``second_permutation`` -- either the permutation from which the
-      graph should be built (if the graph is to be built from a
-      permutation), or the second of the two lists (if the graph is to
-      be built from two lists).
+    - ``second_permutation`` -- the unique permutation/list defining the graph,
+      or the second of the two (if the graph is to be built from two
+      permutations/lists).
 
-    - ``first_permutation`` (optional) -- the first of the two lists
-      from which the graph should be built (if it is to be built from
-      two lists).
+    - ``first_permutation`` (optional) -- the first of the two
+      permutations/lists from which the graph should be built, if it is to be
+      built from two permutations/lists.
 
-      When ``first_permutation == None`` (default), it is set to be
-      equal to ``sorted(second_permutation)``, which just yields the
-      expected ordering when the elements of the graph are integers.
+      When ``first_permutation is None`` (default), it is set to be equal to
+      ``sorted(second_permutation)``, which yields the expected ordering when
+      the elements of the graph are integers.
 
     .. SEEALSO:
 
@@ -187,21 +186,22 @@ def PermutationGraph(second_permutation, first_permutation = None):
 
     EXAMPLES::
 
-        sage: from sage.graphs.generators.intersection import PermutationGraph
-
         sage: p = Permutations(5).random_element()
-        sage: edges = PermutationGraph(p).edges(labels =False)
+        sage: PG = graphs.PermutationGraph(p)
+        sage: edges = PG.edges(labels=False)
         sage: set(edges) == set(p.inverse().inversions())
         True
 
-        sage: sorted(PermutationGraph([3,4,5,1,2]).edges())
+        sage: PG = graphs.PermutationGraph([3,4,5,1,2])
+        sage: sorted(PG.edges())
         [(1, 3, None),
          (1, 4, None),
          (1, 5, None),
          (2, 3, None),
          (2, 4, None),
          (2, 5, None)]
-        sage: sorted(PermutationGraph([3,4,5,1,2], [1,4,2,5,3]).edges())
+        sage: PG = graphs.PermutationGraph([3,4,5,1,2], [1,4,2,5,3])
+        sage: sorted(PG.edges())
         [(1, 3, None),
          (1, 4, None),
          (1, 5, None),
@@ -209,7 +209,8 @@ def PermutationGraph(second_permutation, first_permutation = None):
          (2, 5, None),
          (3, 4, None),
          (3, 5, None)]
-        sage: sorted(PermutationGraph([1,4,2,5,3], [3,4,5,1,2]).edges())
+        sage: PG = graphs.PermutationGraph([1,4,2,5,3], [3,4,5,1,2])
+        sage: sorted(PG.edges())
         [(1, 3, None),
          (1, 4, None),
          (1, 5, None),
@@ -218,15 +219,17 @@ def PermutationGraph(second_permutation, first_permutation = None):
          (3, 4, None),
          (3, 5, None)]
 
-        sage: sorted(PermutationGraph(Permutation([1,3,2]), Permutation([1,2,3])).edges())
+        sage: PG = graphs.PermutationGraph(Permutation([1,3,2]), Permutation([1,2,3]))
+        sage: sorted(PG.edges())
         [(2, 3, None)]
 
-        sage: PermutationGraph([]).edges()
+        sage: graphs.PermutationGraph([]).edges()
         []
-        sage: PermutationGraph([], []).edges()
+        sage: graphs.PermutationGraph([], []).edges()
         []
 
-        sage: sorted(PermutationGraph("graph", "phrag").edges())
+        sage: PG = graphs.PermutationGraph("graph", "phrag")
+        sage: sorted(PG.edges())
         [('a', 'g', None),
          ('a', 'h', None),
          ('a', 'p', None),

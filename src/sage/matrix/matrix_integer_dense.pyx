@@ -78,9 +78,7 @@ include "sage/ext/random.pxi"
 
 cdef extern from "math.h":
     double log(double x)
-    double ldexp(double x, int exp)
 
-ctypedef unsigned int uint
 
 from sage.ext.multi_modular import MultiModularBasis
 from sage.ext.multi_modular cimport MultiModularBasis

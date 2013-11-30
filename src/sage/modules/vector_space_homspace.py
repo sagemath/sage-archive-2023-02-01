@@ -364,7 +364,8 @@ class VectorSpaceHomspace(sage.modules.free_module_homspace.FreeModuleHomspace):
         from vector_space_morphism import is_VectorSpaceMorphism, VectorSpaceMorphism
         D = self.domain()
         C = self.codomain()
-        if matrix.is_Matrix(A):
+        from sage.matrix.matrix import is_Matrix
+        if is_Matrix(A):
             pass
         elif is_VectorSpaceMorphism(A):
             A = A.matrix()

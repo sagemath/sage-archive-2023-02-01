@@ -267,16 +267,16 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         A curve with 2-torsion::
 
-            sage: K.<a> = NumberField(x^2 + 7, 'a')
+            sage: K.<a> = NumberField(x^2 + 7)
             sage: E = EllipticCurve(K, '15a')
-            sage: v = E.simon_two_descent(); v  # long time (about 10 seconds), points can vary
+            sage: E.simon_two_descent()  # long time (3s on sage.math, 2013), points can vary
             (1, 3, [...])
 
         A failure in the PARI/GP script ell.gp (VERSION 25/03/2009) is reported::
 
             sage: K = CyclotomicField(43).subfields(3)[0][0]
             sage: E = EllipticCurve(K, '37')
-            sage: E.simon_two_descent()
+            sage: E.simon_two_descent()  # long time (4s on sage.math, 2013)
             Traceback (most recent call last):
             ...
             RuntimeError:
@@ -1512,11 +1512,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: E = EllipticCurve('11a1')
             sage: K.<t>=NumberField(x^4 + x^3 + 11*x^2 + 41*x + 101)
-            sage: EK=E.base_extend(K)
-            sage: tor = EK.torsion_subgroup()
-            sage: tor
+            sage: EK = E.base_extend(K)
+            sage: tor = EK.torsion_subgroup()  # long time (3s on sage.math, 2013)
+            sage: tor  # long time
             Torsion Subgroup isomorphic to Z/5 + Z/5 associated to the Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 + (-10)*x + (-20) over Number Field in t with defining polynomial x^4 + x^3 + 11*x^2 + 41*x + 101
-            sage: tor.gens()
+            sage: tor.gens()  # long time
             ((16 : 60 : 1), (t : 1/11*t^3 + 6/11*t^2 + 19/11*t + 48/11 : 1))
 
         ::
@@ -1608,7 +1608,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [(0 : 1 : 0), (5 : -6 : 1), (5 : 5 : 1), (16 : -61 : 1), (16 : 60 : 1)]
             sage: K.<t> = NumberField(x^4 + x^3 + 11*x^2 + 41*x + 101)
             sage: EK = E.base_extend(K)
-            sage: EK.torsion_points()
+            sage: EK.torsion_points()  # long time (3s on sage.math, 2013)
             [(16 : 60 : 1),
              (5 : 5 : 1),
              (5 : -6 : 1),
@@ -2180,7 +2180,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             Compatible family of Galois representations associated to the Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 + (-10)*x + (-20) over Number Field in a with defining polynomial x^2 + 1
             sage: rho.is_surjective(3)
             True
-            sage: rho.is_surjective(5)
+            sage: rho.is_surjective(5)  # long time (9s on sage.math, 2013)
             False
             sage: rho.non_surjective()
             [5]

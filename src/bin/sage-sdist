@@ -54,10 +54,6 @@ echo "Sage version $SAGE_VERSION, released $SAGE_RELEASE_DATE" > VERSION.txt
     echo "import sage.misc.banner; sage.misc.banner.banner()" | python > bin/sage-banner
 )
 
-git commit -am "$SAGE_VERSION" &&
-    git tag "$SAGE_VERSION" ||
-        die "Error committing to the repository."
-
 # Copy all the upstream packages
 mkdir -p upstream
 export SAGE_CURRENT_UPSTREAM="$SAGE_ROOT/upstream"

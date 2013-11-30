@@ -91,7 +91,7 @@ chmod +x src/bin/sage-spkg
     unset SAGE_ENV_SOURCED
     unset SAGE_ROOT
     cd build
-    SAGE_BUILD_GCC=yes ./install all
+    SAGE_INSTALL_GCC=yes ./install all
 )
 
 # remove any artifacts from running install

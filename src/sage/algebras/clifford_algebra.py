@@ -694,7 +694,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
             Cl = CliffordAlgebra(Q, names)
 
         n = self._quadratic_form.dim()
-        f = lambda x: self.prod(self.sum_of_terms(((j,), m[j][i]) for j in range(n))
+        f = lambda x: self.prod(self.sum_of_terms(((j,), m[j,i]) for j in range(n))
                               for i in x)
         return Cl.module_morphism(f, codomain=self,
                                   category=GradedAlgebrasWithBasis(self.base_ring()))
@@ -715,7 +715,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
 
         OUTPUT:
 
-        THe morphism `\phi` from ``self`` to `Cl(W, \phi^{-1}(Q))
+        The morphism `\phi` from ``self`` to `Cl(W, \phi^{-1}(Q)).
 
         EXAMPLES::
 
@@ -751,7 +751,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
             Cl = CliffordAlgebra(Q, names)
 
         n = Q.dim()
-        f = lambda x: Cl.prod(Cl.sum_of_terms(((j,), m[j][i]) for j in range(n))
+        f = lambda x: Cl.prod(Cl.sum_of_terms(((j,), m[j,i]) for j in range(n))
                               for i in x)
         return self.module_morphism(f, codomain=Cl,
                                     category=GradedAlgebrasWithBasis(self.base_ring()))

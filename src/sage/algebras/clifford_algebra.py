@@ -18,7 +18,9 @@ from copy import copy
 
 from sage.categories.graded_algebras_with_basis import GradedAlgebrasWithBasis
 from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
+from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.rings.all import ZZ
+from sage.modules.free_module import FreeModule
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.subset import Subsets
 from sage.quadratic_forms.quadratic_form import QuadraticForm
@@ -44,7 +46,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
             sage: ((x^3-z)*x + y)^2
-            -2*x*y*z + 5*x*z + 5*x + 2*y + 2*z - 31
+            -2*x*y*z - x*z + 5*x - 4*y + 2*z + 2
         """
         return repr_from_monomials(self.list(), self.parent()._repr_term)
 
@@ -57,7 +59,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
             sage: latex( ((x^3-z)*x + y)^2 )
-            -2  x y z + 5  x z + 5  x + 2  y + 2  z - 31
+            -2  x y z -  x z + 5  x - 4  y + 2  z + 2
             sage: Cl.<x0,x1,x2> = CliffordAlgebra(Q)
             sage: latex(  (x1 - x2)*x0 + 5*x0*x1*x2 )
             5  x_{0} x_{1} x_{2} -  x_{0} x_{1} +  x_{0} x_{2} - 1
@@ -73,7 +75,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
             sage: (x^3 - z*y)*x*(y*z + x*y*z)
-            4*x*y*z + 4*y*z - 96*x - 24*y - 34*z + 192
+            x*y*z + y*z - 24*x + 12*y + 2*z - 24
         """
         Q = self.parent()._quadratic_form
         d = {}
@@ -94,7 +96,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
                     # Commute the factor as necessary until we are in order
                     pos = 0
                     for j in mr:
-                        if i < j:
+                        if i <= j:
                             break
                         # Add the additional term from the commutation
                         t = list(mr)
@@ -188,7 +190,8 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             sage: all(x.reflection().reflection() == x for x in Cl.basis())
             True
         """
-        return self.__class__(self.parent(), {m: (-1)**len(m)*c for m,c in self._monomial_coefficients.items()})
+        I = self._monomial_coefficients.items()
+        return self.__class__(self.parent(), {m: (-1)**len(m)*c for m,c in I})
 
     def transpose(self):
         r"""
@@ -268,75 +271,57 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
 
     clifford_conjugate = conjugate
 
-    def constant_coefficient(self):
-        """
-        Return the constant coefficient of ``self``.
-
-        .. TODO::
-
-            This isn't functorial in the underlying quadratic space.
-            Just reordering the basis is enough to break
-            functoriality, as witnessed by the following::
-
-                sage: Q = QuadraticForm(ZZ, 2, [1,1,2])
-                sage: R = QuadraticForm(ZZ, 2, [2,1,1])    # isomorphic to Q by switching variables
-                sage: ClQ = CliffordAlgebra(Q, ('x','y'))
-                sage: ClR = CliffordAlgebra(R, ('x','y'))    # isomorphic to ClQ by sending x to y, y to x
-                sage: ClQ.inject_variables()
-                Defining x, y
-                sage: (x*y).constant_coefficient()
-                0
-                sage: ClR.inject_variables()
-                Defining x, y
-                sage: (y*x).constant_coefficient()    # y*x is the image of x*y under iso induced by switching basis elements
-                1
-
-            The implementation is good for exterior algebras, though.
-            I'd suggest moving it there. There *is* a reasonable
-            way to define a "constant coefficient" if `2` is
-            invertible or, more generally, if we have a bilinear form
-            extending the quadratic form, but we might just as well
-            leave this for a later patch. -- dg
-
-        EXAMPLES::
-
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
-            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: elt = 5*x + y + x*z + 10
-            sage: elt.constant_coefficient()
-            10
-            sage: x.constant_coefficient()
-            0
-        """
-        return self._monomial_coefficients.get(self.parent().one_basis(), self.base_ring().zero())
-
-    def scalar(self, other):
-        r"""
-        Return the Clifford scalar product of ``self`` with ``other``.
-
-        The Clifford scalar (inner) product of `x, y \in Cl(V, Q)` is defined
-        by `\langle x, y \rangle = \langle x^t y \rangle` where
-        `\langle a \rangle` denotes the constant term of `a`.
-
-        .. TODO::
-
-            Pretty sure this is incorrect since `constant_coefficient` is.
-
-        EXAMPLES::
-
-            sage: Q = QuadraticForm(ZZ, 3, [1, 2, 3, 4, 5, 6])
-            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: elt = 5*x + y + x*z
-            sage: elt.scalar(z + 2*x)
-            -16
-            sage: elt.transpose() * (z + 2*x)
-            -2*x*y + 5*x*z + y*z + 12*x - z - 16
-        """
-        return (self.transpose() * other).constant_coefficient()
-
 class CliffordAlgebra(CombinatorialFreeModule):
     r"""
     The Clifford algebra of a quadratic form.
+
+    Let `Q : V \to \mathbf{k}` denote a quadratic form of a vector space `V`
+    over a field `\mathbf{k}`. The Clifford algebra `Cl(V, Q)` is defined as
+    `T(V) / I_Q` where `T(V)` is the tensor algebra of `V` and `I_Q` is the
+    two-sided ideal generated by all elements of the form `v \otimes v - Q(v)`
+    for all `v \in V`.
+
+    This construction satisfies the following universal property. Let
+    `i : V \to Cl(V, Q)` denote the natural inclusion, (which is an
+    embedding) then for every map `j : V \to A`, where `A` is any associative
+    algebra over `\mathbf{k}`, there exists a unique map `f` such that
+    `i \circ f = j`. Therefore the Clifford algebra is uniquely determined up
+    to isomorphism.
+
+    This also can be considered as a covariant functor by mapping the
+    linear map `\phi : W \to V` to the algebra morphism
+    `Cl(\phi) : Cl(W, \phi(Q)) \to Cl(V, Q)` where `\phi(Q) = \phi^T \cdot
+    Q \cdot \phi` (we consider `\phi` as a matrix). This preserves the
+    quadratic form by
+
+    .. MATH::
+
+        \phi(Q)(x) = x^T \cdot \phi^T \cdot Q \codt \phi \cdot x
+        = (\phi \cdot x)^T \cdot Q \cdot (\phi \cdot x) = Q(\phi(x)).
+
+    Hence we have `\phi(v)^2 = -\phi(Q)(v) = -Q(\phi(v))`.
+
+    If `\phi` is an isometry of `Q` (i.e. the quadratic form is preserved),
+    then this is an algebra morphism.
+
+    From the definition, a basis of `Cl(V, Q)` is given by monomials of
+    the form
+
+    .. MATH::
+
+        \{ e_{i_1} \wedge \cdots \wedge e_{i_k} \mid 1 \leq i_1 < \cdots <
+        i_k \leq n \},
+
+    where `n = \dim(V)`. Hence
+
+    .. MATH::
+
+        \dim(Cl(V, Q)) = \sum_{k=0}^n \binom{n}{k} = 2^n.
+
+    .. NOTE::
+
+        This is a `\ZZ_2` graded algebra since in general it is only
+        `\ZZ`-graded as a vector vector.
 
     REFERENCES:
 
@@ -554,19 +539,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
         r"""
         Return the degree of the monomial index by ``m``.
 
-        .. WARNING::
-
-            This is a degree in the sense of super-algebra, i. e., it
-            distinguishes "even" from "odd" elements. It is not a
-            `\ZZ`-valued degree. In general, Clifford algebras are not
-            `\ZZ`-graded.
-
-        .. TODO::
-
-            As far as I understand, this method spills over to the
-            exterior algebra, which IS `\ZZ`-graded, and provides
-            unexpected results there. Should we do anything about it?
-            -- dg
+        The `\ZZ_2` grading of ``m`` is defined to be the length of ``m``
+        taken mod 2.
 
         EXAMPLES::
 
@@ -578,6 +552,19 @@ class CliffordAlgebra(CombinatorialFreeModule):
             0
         """
         return len(m) % ZZ(2)
+
+    def free_module(self):
+        """
+        Return the underlying free module `V` of ``self``.
+
+        EXAMPLES::
+
+            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
+            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
+            sage: Cl.free_module()
+            Ambient free module of rank 3 over the principal ideal domain Integer Ring
+        """
+        return FreeModule(self.base_ring(), self._quadratic_form.dim())
 
     def dimension(self):
         """
@@ -594,6 +581,134 @@ class CliffordAlgebra(CombinatorialFreeModule):
             8
         """
         return ZZ(2)**self._quadratic_form.dim()
+
+    def lift_morphism(self, m, names=None):
+        """
+        Lift the matrix ``m`` to a morphism of Clifford algebras.
+
+        INPUT:
+
+        - ``m`` -- a matrix
+
+        EXAMPLES::
+
+            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
+            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
+            sage: m = matrix([[1,-1,-1],[0,1,-1],[1,1,1]])
+            sage: phi = Cl.lift_morphism(m, 'abc')
+            sage: phi
+            Generic morphism:
+              From: The Clifford algebra of the Quadratic form in 3 variables over Integer Ring with coefficients: 
+            [ 10 17 3 ]
+            [ * 11 0 ]
+            [ * * 5 ]
+              To:   The Clifford algebra of the Quadratic form in 3 variables over Integer Ring with coefficients: 
+            [ 1 2 3 ]
+            [ * 4 5 ]
+            [ * * 6 ]
+            sage: a,b,c = phi.domain().gens()
+            sage: phi(a)
+            x + z
+            sage: phi(b)
+            -x + y + z
+            sage: phi(c)
+            -x - y + z
+            sage: phi(a + 3*b)
+            -2*x + 3*y + 4*z
+            sage: phi(a) + 3*phi(b)
+            -2*x + 3*y + 4*z
+            sage: phi(a*b)
+            x*y + 2*x*z - y*z + 7
+            sage: phi(b*a)
+            -x*y - 2*x*z + y*z + 10
+            sage: phi(a*b + c)
+            x*y + 2*x*z - y*z - x - y + z + 7
+            sage: phi(a*b) + phi(c)
+            x*y + 2*x*z - y*z - x - y + z + 7
+
+        Since ``m`` does not fix the quadratic form, the lifted map does not
+        necessarily preserve multiplication::
+
+            sage: phi(a)*phi(b)
+            x*y + 2*x*z - y*z + 7
+            sage: phi(a*b)
+            x*y + 2*x*z - y*z + 7
+            sage: phi(a*a)
+            10
+            sage: phi(a)*phi(a)
+            10
+            sage: phi(b*a)
+            -x*y - 2*x*z + y*z + 10
+            sage: phi(b) * phi(a)
+            -x*y - 2*x*z + y*z + 10
+
+        However if ``m`` is an isometry for the quadratic form, then the
+        lifted map is an algebra morphism::
+
+            sage: m = matrix([[1,1,2],[0,1,1],[0,0,1]])
+            sage: phi = Cl.lift_morphism(m, 'abc')
+            sage: a,b,c = phi.domain().gens()
+            sage: phi(a)
+            x
+            sage: phi(b)
+            x + y
+            sage: phi(a*b)
+            x*y + 1
+            sage: phi(a) * phi(b)
+            x*y + 1
+
+        We can also lift arbitrary linear maps::
+
+            sage: m = matrix([[1,1],[0,1],[1,1]])
+            sage: phi = Cl.lift_morphism(m, 'ab')
+            sage: a,b = phi.domain().gens()
+            sage: phi(a)
+            x + z
+            sage: phi(b)
+            x + y + z
+            sage: phi(a*b)
+            x*y - y*z + 15
+            sage: phi(a)*phi(b)
+            x*y - y*z + 15
+            sage: phi(b*a)
+            -x*y + y*z + 12
+            sage: phi(b)*phi(a)
+            -x*y + y*z + 12
+
+            sage: m = matrix([[1,1,1,2], [0,1,1,1], [0,1,1,1]])
+            sage: phi = Cl.lift_morphism(m, 'abcd')
+            sage: a,b,c,d = phi.domain().gens()
+            sage: phi(a)
+            x
+            sage: phi(b)
+            x + y + z
+            sage: phi(c)
+            x + y + z
+            sage: phi(d)
+            2*x + y + z
+            sage: phi(a*b*c + d*a)
+            -x*y - x*z + 2x + 7
+            sage: phi(a*b*c*d)
+            2x*y + 2x*z + 42
+        """
+        Q = self._quadratic_form(m)
+
+        if m.is_invertible():
+            category = GradedAlgebrasWithBasis(self.base_ring())
+        else:
+            category = ModulesWithBasis(self.base_ring())
+
+        if Q == self._quadratic_form and names is None:
+            Cl = self
+        else:
+            if names is None:
+                names = 'e'
+            Cl = CliffordAlgebra(Q, names)
+
+        n = self._quadratic_form.dim()
+        f = lambda x: self.prod(self.sum_of_terms(((j,), m[j][i]) for j in range(n))
+                              for i in x)
+        return Cl.module_morphism(f, codomain=self, category=category)
 
     Element = CliffordAlgebraElement
 
@@ -624,7 +739,7 @@ class ExteriorAlgebra(CliffordAlgebra):
     as the Clifford algebra of `V` and the quadratic form `Q(v) = 0`
     for all vectors `v \in V`.
 
-    The exterior algebra of an `R`-module `V` is a graded connected
+    The exterior algebra of an `R`-module `V` is a `\ZZ`-graded connected
     Hopf superalgebra.
 
     INPUT:
@@ -743,6 +858,22 @@ class ExteriorAlgebra(CliffordAlgebra):
             x^y^z
         """
         return self.element_class(self, {tuple(range(self.ngens())): self.base_ring().one()})
+
+    def degree_on_basis(self, m):
+        r"""
+        Return the degree of the monomial index by ``m``.
+
+        The `\ZZ` grading of ``m`` is defined to be the length of ``m``.
+
+        EXAMPLES::
+
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: E.degree_on_basis((0,))
+            1
+            sage: E.degree_on_basis((0,1))
+            2
+        """
+        return ZZ(len(m))
 
     def coproduct_on_basis(self, a):
         r"""
@@ -953,4 +1084,48 @@ class ExteriorAlgebra(CliffordAlgebra):
             """
             volume_form = self.parent().volume_form()
             return volume_form.internal_product(self)
+
+        def constant_coefficient(self):
+            """
+            Return the constant coefficient of ``self``.
+
+            .. TODO::
+
+                Define a similar method for general Clifford algebras once
+                the morphism to exterior algebras is implemented.
+
+            EXAMPLES::
+
+                sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+                sage: elt = 5*x + y + x*z + 10
+                sage: elt.constant_coefficient()
+                10
+                sage: x.constant_coefficient()
+                0
+            """
+            return self._monomial_coefficients.get(self.parent().one_basis(), self.base_ring().zero())
+
+        def scalar(self, other):
+            r"""
+            Return the Clifford scalar product of ``self`` with ``other``.
+
+            The Clifford scalar (inner) product of `x, y \in Cl(V, Q)` is
+            defined by `\langle x, y \rangle = \langle x^t y \rangle` where
+            `\langle a \rangle` denotes the degree 0 term of `a`.
+
+            .. TODO::
+
+                Define a similar method for general Clifford algebras once
+                the morphism to exterior algebras is implemented.
+
+            EXAMPLES::
+
+                sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+                sage: elt = 5*x + y + x*z
+                sage: elt.scalar(z + 2*x)
+                0
+                sage: elt.transpose() * (z + 2*x)
+                -2*x^y + 5*x^z + y^z
+            """
+            return (self.transpose() * other).constant_coefficient()
 

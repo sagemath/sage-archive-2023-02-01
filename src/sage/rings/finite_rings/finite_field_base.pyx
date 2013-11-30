@@ -958,10 +958,10 @@ cdef class FiniteField(Field):
                 return []
             elif hasattr(self, '_prefix'):
                 K = GF(p**degree, name=name, conway=True, prefix=self._prefix)
-                return [(K, self.coerce_map_from(K))]
+                return [(K, self.coerce_map_from(K).__copy__())]
             elif degree == 1:
                 K = GF(p)
-                return [(K, self.coerce_map_from(K))]
+                return [(K, self.coerce_map_from(K).__copy__())]
             else:
                 gen = self.gen()**((self.order() - 1)//(p**degree - 1))
                 K = GF(p**degree, modulus=gen.minimal_polynomial(), name=name)

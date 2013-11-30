@@ -102,7 +102,8 @@ AUTHORS:
 
 from sage.graphs.graph import Graph
 from sage.interfaces.all import maxima
-from sage.matrix.all import matrix, is_Matrix
+from sage.matrix.all import matrix
+from sage.matrix.matrix import is_Matrix
 from sage.misc.all import tmp_filename
 from sage.misc.misc import SAGE_SHARE
 from sage.modules.all import vector

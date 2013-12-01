@@ -1722,21 +1722,29 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             Return the Eulerian (quasi)symmetric function `Q_{n,j}` defined
             in [SW2010]_ in terms of the fundamental quasisymmetric functions.
 
-            The Eulerian quasisymmetric function `Q_{n,j}` is defined as
+            If `n` and `j` are nonnegative integers, then the Eulerian
+            quasisymmetric function `Q_{n,j}` is defined as
 
             .. MATH::
 
-                Q_{n,j} := \sum_{\sigma} F_{\mathrm{dex}(\sigma)}
+                Q_{n,j} := \sum_{\sigma} F_{\mathrm{Dex}(\sigma)}
 
             where we sum over all permutations `\sigma \in S_n` such that
-            the number of excedances is `j` and `\mathrm{dex}(\sigma)` is set
-            of `i \in [n-1]` such that either:
+            the number of excedances of `\sigma` is `j`, and where
+            `\mathrm{Dex}(\sigma)` is a composition of `n` defined as follows:
+            Let `S` be the set of all `i \in \{ 1, 2, \ldots, n-1 \}` such
+            that either `\sigma_i > \sigma_{i+1} > i+1` or
+            `i \geq \sigma_i > \sigma_{i+1}` or
+            `\sigma_{i+1} > i + 1 > \sigma_i`. Then,
+            `\mathrm{Dex}(\sigma)` is set to be the composition of `n` whose
+            descent set is `S`.
 
-            - `i` is a descent and `i` is not an excedance or `i + 1` is, or
-            - `i` is not an excedance and `i+1` is.
+            Here, an excedance of a permutation `\sigma \in S_n` means an
+            element `i \in \{ 1, 2, \ldots, n-1 \}` satisfying `\sigma_i > i`.
 
             We can define similar functions `Q_{\lambda, j}` where we restrict
-            the sum to all permutations whose cycle type is `\sigma`.
+            the sum to all permutations `\sigma` whose cycle type is
+            `\lambda`.
             Analogously we can define `Q_{n,j,k}` by restricting the sum to
             all permutations that have exactly `k` fixed points.
 
@@ -1745,7 +1753,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             - ``n`` -- the value `n` or a partition
             - ``j`` -- the number of excedances
             - ``k`` -- (optional) if specified, determines the number of fixed
-              points of the permtutation
+              points of the permtutations which are being summed over
 
             REFERENCES:
 
@@ -1813,7 +1821,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 # Converting to a composition
                 d = [ -1 ] + dex + [n-1]
-                monomials.append(Composition( [d[i+1]-d[i] for i in range(len(d)-1)] ))
+                monomials.append(Compositions()( [d[i+1]-d[i] for i in range(len(d)-1)] ))
 
             return self.sum_of_monomials(monomials)
 

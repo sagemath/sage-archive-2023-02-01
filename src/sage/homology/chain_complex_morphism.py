@@ -133,6 +133,10 @@ class ChainComplexMorphism(SageObject):
         initial_matrices = dict(matrices)
         matrices = dict()
         for i in degrees:
+            if i - d not in degrees:
+                if not (C.free_module_rank(i) == D.free_module_rank(i) == 0):
+                    raise ValueError('{} and {} are not rank 0 in degree {}'.format(C, D, i))
+                continue
             try:
                 matrices[i] = initial_matrices.pop(i)
             except KeyError:

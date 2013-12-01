@@ -571,12 +571,12 @@ class ChainComplex_class(Parent):
     See :func:`ChainComplex` for full documentation.
 
     The differentials are required to be in the following canonical form:
-     
-    * All differentials that are not `0\times 0` must be specified
+
+    * All differentials that are not `0 \times 0` must be specified
       (even if they have zero rows or zero columns), and
 
     * Differentials that are `0 \times 0` must not be specified.
-    
+
     * Immutable matrices over the ``base_ring``
 
     This and more is ensured by the assertions in the

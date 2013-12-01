@@ -4,7 +4,11 @@ from sage.misc.lazy_import import lazy_import
 
 from sf import SymmetricFunctions
 
-from sfa import SymmetricFunctionAlgebra, SFAPower, SFASchur, SFAHomogeneous, SFAElementary, SFAMonomial
+# These are, or should be, deprecated:
+lazy_import('sage.combinat.sf.sfa', ['SymmetricFunctionAlgebra', 'SFAPower', 'SFASchur',
+                                     'SFAHomogeneous', 'SFAElementary', 'SFAMonomial'])
+
+# Advanced stuff (q,t-deformed bases, k-Schurs etc.):
 
 lazy_import('sage.combinat.sf.hall_littlewood', ['HallLittlewoodP',
                                                  'HallLittlewoodQ',

@@ -336,7 +336,7 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
 
             .. MATH::
 
-                f_n m_{(\lambda_1, \lambda_2, \lambda_3, \ldots)} =
+                \mathbf{f}_n m_{(\lambda_1, \lambda_2, \lambda_3, \ldots)} =
                 m_{(n\lambda_1, n\lambda_2, n\lambda_3, \ldots)}
 
             for every partition `(\lambda_1, \lambda_2, \lambda_3, \ldots)`

@@ -11,9 +11,7 @@ Number fields
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
-from sage.misc.cachefunc import cached_method
 from sage.categories.basic import Fields
 
 class NumberFields(Category_singleton):

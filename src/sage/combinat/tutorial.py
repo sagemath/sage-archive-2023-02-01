@@ -922,7 +922,7 @@ The command below should return 16, but it is not yet implemented::
     sage: C.cardinality()
     Traceback (most recent call last):
     ...
-    AttributeError: 'MatrixSpace' object has no attribute 'cardinality'
+    NotImplementedError: unknown cardinality
 
 .. topic:: Exercise
 

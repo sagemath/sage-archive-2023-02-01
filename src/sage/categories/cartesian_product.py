@@ -12,7 +12,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.categories.category import Category
 from sage.categories.covariant_functorial_construction import CovariantFunctorialConstruction, CovariantConstructionCategory
 
 class CartesianProductFunctor(CovariantFunctorialConstruction):
@@ -63,10 +62,15 @@ class CartesianProductFunctor(CovariantFunctorialConstruction):
     :class:`~sage.categories.covariant_functorial_construction.CovariantFunctorialConstruction`)::
 
          sage: C.categories()
-         [Category of Cartesian products of monoids, Category of monoids,
-          Category of Cartesian products of semigroups, Category of semigroups,
-          Category of Cartesian products of magmas, Category of magmas,
-          Category of Cartesian products of sets, Category of sets,
+         [Category of Cartesian products of monoids,
+          Category of monoids,
+          Category of Cartesian products of semigroups,
+          Category of semigroups,
+          Category of Cartesian products of magmas,
+          Category of unital magmas,
+          Category of magmas,
+          Category of Cartesian products of sets,
+          Category of sets,
           Category of sets with partial maps,
           Category of objects]
 
@@ -155,28 +159,3 @@ class CartesianProductsCategory(CovariantConstructionCategory):
             Integer Ring
         """
         return self.base_category().base_ring()
-
-# This is Category.CartesianProducts
-def CartesianProducts(self):
-    """
-    INPUT:
-
-     - ``self`` -- a concrete category
-
-    Returns the category of parents constructed as cartesian products
-    of parents in ``self``.
-
-    See :class:`CartesianProductFunctor` for more information
-
-    EXAMPLES::
-
-        sage: Sets().CartesianProducts()
-        Category of Cartesian products of sets
-        sage: Semigroups().CartesianProducts()
-        Category of Cartesian products of semigroups
-        sage: EuclideanDomains().CartesianProducts()
-        Category of Cartesian products of monoids
-    """
-    return CartesianProductsCategory.category_of(self)
-
-Category.CartesianProducts = CartesianProducts

@@ -8,23 +8,19 @@ Polyhedral subsets of free ZZ, QQ or RR-modules.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.structure.element_wrapper import ElementWrapper
-from sage.categories.category_types import Category_over_base_ring
 from sage.misc.cachefunc import cached_method
-from sage.categories.category import HomCategory
-
-
+from sage.categories.category_types import Category_over_base_ring
 
 class PolyhedralSets(Category_over_base_ring):
     r"""
-    The category of Polyhedra over a ring.
+    The category of polyhedra over a ring.
 
     EXAMPLES:
 
     We create the category of polyhedra over `\QQ`::
 
         sage: PolyhedralSets(QQ)
-        Category of Polyhedra over Rational Field
+        Category of polyhedral sets over Rational Field
 
     TESTS::
 
@@ -32,13 +28,13 @@ class PolyhedralSets(Category_over_base_ring):
 
         sage: P = Polyhedron()
         sage: P.parent().category().element_class
-        <class 'sage.categories.category.PolyhedralSets.element_class'>
+        <class 'sage.categories.polyhedra.PolyhedralSets.element_class'>
         sage: P.parent().category().element_class.mro()
-        [<class 'sage.categories.category.PolyhedralSets.element_class'>,
+        [<class 'sage.categories.polyhedra.PolyhedralSets.element_class'>,
          <class 'sage.categories.magmas.Magmas.element_class'>,
          <class 'sage.categories.additive_magmas.AdditiveMagmas.element_class'>,
          <class 'sage.categories.sets_cat.Sets.element_class'>,
-         <class 'sage.categories.category.SetsWithPartialMaps.element_class'>,
+         <class 'sage.categories.sets_with_partial_maps.SetsWithPartialMaps.element_class'>,
          <class 'sage.categories.objects.Objects.element_class'>,
          <type 'object'>]
         sage: isinstance(P, P.parent().category().element_class)
@@ -57,7 +53,7 @@ class PolyhedralSets(Category_over_base_ring):
         from sage.rings.all import ZZ, QQ, RDF
         if R not in [ZZ, QQ, RDF]:
             raise TypeError, 'base ring R (='+str(R)+') must be ZZ, QQ, or RDF.'
-        Category_over_base_ring.__init__(self, R, 'Polyhedra')
+        Category_over_base_ring.__init__(self, R)
 
     @cached_method
     def super_categories(self):

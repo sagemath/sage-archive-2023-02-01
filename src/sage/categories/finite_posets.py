@@ -17,12 +17,9 @@ Here is some terminology used in this file:
 #******************************************************************************
 
 from sage.misc.abstract_method import abstract_method
-from sage.misc.cachefunc import cached_method
-from sage.categories.category import Category
-from sage.categories.posets import Posets
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.categories.category_with_axiom import CategoryWithAxiom
 
-class FinitePosets(Category):
+class FinitePosets(CategoryWithAxiom):
     r"""
     The category of finite posets i.e. finite sets with a partial
     order structure.
@@ -32,7 +29,7 @@ class FinitePosets(Category):
         sage: FinitePosets()
         Category of finite posets
         sage: FinitePosets().super_categories()
-        [Category of posets, Category of finite enumerated sets]
+        [Category of posets, Category of finite sets]
         sage: FinitePosets().example()
         NotImplemented
 
@@ -41,21 +38,11 @@ class FinitePosets(Category):
     TESTS::
 
         sage: C = FinitePosets()
+        sage: C is Posets().Finite()
+        True
         sage: TestSuite(C).run()
 
     """
-    @cached_method
-    def super_categories(self):
-        r"""
-        Returns a list of the (immediate) super categories of
-        ``self``, as per :meth:`Category.super_categories`.
-
-        EXAMPLES::
-
-            sage: FinitePosets().super_categories()
-            [Category of posets, Category of finite enumerated sets]
-        """
-        return [Posets(), FiniteEnumeratedSets()]
 
     class ParentMethods:
 

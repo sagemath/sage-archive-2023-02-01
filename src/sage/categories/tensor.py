@@ -12,7 +12,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.categories.category import Category
 from sage.categories.covariant_functorial_construction import CovariantFunctorialConstruction, CovariantConstructionCategory
 
 class TensorProductFunctor(CovariantFunctorialConstruction):
@@ -102,25 +101,3 @@ class TensorProductsCategory(CovariantConstructionCategory):
             Integer Ring
         """
         return self.base_category().base()
-
-# This is Category.TensorProducts
-def TensorProducts(self):
-    """
-    INPUT:
-
-     - ``self`` -- a subcategory of ``ModulesWithBasis(...)``
-
-    Returns the category of objects constructed as tensor products of
-    objects of ``self``.
-
-    See :class:`TensorProductFunctor` for more information
-
-    EXAMPLES::
-
-        sage: ModulesWithBasis(QQ).TensorProducts()
-        Category of tensor products of modules with basis over Rational Field
-    """
-    return TensorProductsCategory.category_of(self)
-
-
-Category.TensorProducts = TensorProducts

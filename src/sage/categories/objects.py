@@ -5,23 +5,21 @@ Objects
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
 #                2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
-#                2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2008-2013 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
 from sage.categories.category import HomCategory
-from sage.categories.category import Category
-from sage.categories.homset import Homset
-from sage.misc.cachefunc import cached_method
+from sage.categories.category_singleton import Category_singleton
 
 #############################################################
 # Generic category (default when requesting category of
 # an object using misc.functional.category
 #############################################################
 
-class Objects(Category):
+class Objects(Category_singleton):
     """
     The category of all objects
     the basic category

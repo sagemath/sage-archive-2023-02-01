@@ -404,9 +404,9 @@ coincide::
 
     sage: import inspect
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
-    55
+    56
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    78
+    79
     sage: MS1.__class__ is MS2.__class__
     True
 
@@ -526,7 +526,7 @@ monoids\---see
 :meth:`~sage.categories.commutative_additive_monoids.CommutativeAdditiveMonoids.ParentMethods.sum`::
 
     sage: P.sum.__module__
-    'sage.categories.commutative_additive_monoids'
+    'sage.categories.additive_monoids'
 
 .. end of output
 

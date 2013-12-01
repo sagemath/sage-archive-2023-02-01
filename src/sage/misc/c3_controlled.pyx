@@ -296,9 +296,13 @@ We now consider a hierarchy of categories::
     sage: from operator import attrgetter
     sage: x = HierarchyElement(Groups(), attrcall("super_categories"), attrgetter("_cmp_key"))
     sage: x.mro
-    [Category of groups, Category of monoids, Category of semigroups, Category of magmas, Category of sets, Category of sets with partial maps, Category of objects]
+    [Category of groups, Category of monoids, Category of semigroups,
+     Category of inverse unital magmas, Category of unital magmas, Category of magmas,
+     Category of sets, Category of sets with partial maps, Category of objects]
     sage: x.mro_standard
-    [Category of groups, Category of monoids, Category of semigroups, Category of magmas, Category of sets, Category of sets with partial maps, Category of objects]
+    [Category of groups, Category of monoids, Category of semigroups,
+     Category of inverse unital magmas, Category of unital magmas, Category of magmas,
+     Category of sets, Category of sets with partial maps, Category of objects]
 
 For a typical category, few bases, if any, need to be added to force
 ``C3`` to give the desired order::
@@ -306,28 +310,34 @@ For a typical category, few bases, if any, need to be added to force
     sage: C = FiniteFields()
     sage: x = HierarchyElement(C, attrcall("super_categories"), attrgetter("_cmp_key"))
     sage: x.mro == x.mro_standard
-    True
+    False
     sage: x.all_bases_len()
-    31
+    63
     sage: x.all_bases_controlled_len()
-    31
+    65
 
     sage: C = GradedHopfAlgebrasWithBasis(QQ)
     sage: x = HierarchyElement(C, attrcall("super_categories"), attrgetter("_cmp_key"))
     sage: x._test_mro()
     sage: x.mro == x.mro_standard
-    True
+    False
     sage: x.all_bases_len()
-    61
+    83
     sage: x.all_bases_controlled_len()
-    61
+    90
 
 The following can be used to search through the Sage named categories
 for any that requires the addition of some bases; currently none!::
 
     sage: from sage.categories.category import category_sample
-    sage: [C for C in category_sample() if len(C._super_categories_for_classes) != len(C.super_categories())]
-    []
+    sage: sorted([C for C in category_sample() if len(C._super_categories_for_classes) != len(C.super_categories())], key=str)
+    [Category of affine weyl groups,
+     Category of commutative rings,
+     Category of fields,
+     Category of finite dimensional algebras with basis over Rational Field,
+     Category of finite dimensional hopf algebras with basis over Rational Field,
+     Category of graded hopf algebras with basis over Rational Field,
+     Category of hopf algebras with basis over Rational Field]
 
 AUTHOR:
 
@@ -349,20 +359,20 @@ from sage.structure.dynamic_class import dynamic_class
 # Implementation of the total order between categories
 ##############################################################################
 
-cdef tuple atoms = ("FacadeSets", "Finite", "Infinite", "EnumeratedSets",
-                    "FiniteDimensionalModulesWithBasis", "GradedModules", "ModulesWithBasis",
-                    "AdditiveMagmas",
-                    "Magmas", "Semigroups", "Monoids", "FinitePermutationGroups",
-                    "Rngs", "Domains")
+cdef tuple atoms = ("FacadeSets",
+                    "FiniteSets", "Sets.Infinite", "EnumeratedSets", "SetsWithGrading",
+                    "Posets", "LatticePosets", "Crystals", "AdditiveMagmas",
+                    "FiniteDimensionalModules", "GradedModules", "ModulesWithBasis",
+                    "Magmas", "Semigroups", "Monoids", "PermutationGroups",
+                    "DistributiveMagmasAndAdditiveMagmas", "Rngs", "Domains", "HopfAlgebras")
+
 
 cdef dict flags = { atom: 1 << i for i,atom in enumerate(atoms) }
-flags["FiniteEnumeratedSets"]   = flags["Finite"]
-flags["InfiniteEnumeratedSets"] = flags["Infinite"]
 
 cpdef inline tuple category_sort_key(object category):
     """
     Return ``category._cmp_key``.
-
+ 
     This helper function is used for sorting lists of categories.
 
     It is semantically equivalent to
@@ -410,8 +420,7 @@ cdef class CmpKey:
     And so on. The choice of the flags is adhoc and was primarily
     crafted so that the order between categories would not change
     too much upon integration of :trac:`13589` and would be
-    reasonably session independent, in waiting for a better logic
-    to be implemented in :trac:`10963`. The number ``i`` is there
+    reasonably session independent. The number ``i`` is there
     to resolve ambiguities; it is session dependent, and is
     assigned increasingly when new categories are created.
 
@@ -424,7 +433,7 @@ cdef class CmpKey:
 
     .. TODO::
 
-        - Handle nicely (covariant) functorial constructions?
+        - Handle nicely (covariant) functorial constructions and axioms
 
     EXAMPLES::
 
@@ -434,33 +443,49 @@ cdef class CmpKey:
         (0, 1)
         sage: Sets()._cmp_key
         (0, 2)
-        sage: Magmas()._cmp_key
-        (256, ...)
+        sage: Sets().Facade()._cmp_key
+        (1, ...)
+        sage: Sets().Finite()._cmp_key
+        (2, ...)
+        sage: Sets().Infinite()._cmp_key
+        (4, ...)
         sage: EnumeratedSets()._cmp_key
         (8, ...)
         sage: FiniteEnumeratedSets()._cmp_key
         (10, ...)
+        sage: SetsWithGrading()._cmp_key
+        (16, ...)
+        sage: Posets()._cmp_key
+        (32, ...)
+        sage: LatticePosets()._cmp_key
+        (96, 133)
+        sage: Crystals()._cmp_key
+        (136, ...)
+        sage: AdditiveMagmas()._cmp_key
+        (256, ...)
+        sage: Magmas()._cmp_key
+        (4096, ...)
         sage: CommutativeAdditiveSemigroups()._cmp_key
-        (128, ...)
-        sage: GradedCoalgebrasWithBasis(QQ)._cmp_key
-        (224, ...)
+        (256, ...)
         sage: Rings()._cmp_key
-        (6016, ...)
+        (225536, ...)
         sage: Algebras(QQ)._cmp_key
-        (6016, ...)
+        (225536, ...)
         sage: AlgebrasWithBasis(QQ)._cmp_key
-        (6080, ...)
+        (227584, ...)
         sage: GradedAlgebras(QQ)._cmp_key
-        (6048, ...)
+        (226560, ...)
         sage: GradedAlgebrasWithBasis(QQ)._cmp_key
-        (6112, ...)
+        (228608, ...)
 
-    For backward compatibility we want ``Sets().Facades()`` to
-    come after ``EnumeratedSets()``::
+    For backward compatibility we currently want the following comparisons::
 
-        sage: EnumeratedSets()._cmp_key > Sets().Facades()._cmp_key
+        sage: EnumeratedSets()._cmp_key > Sets().Facade()._cmp_key
         True
-        sage: Category.join([EnumeratedSets(), Sets().Facades()]).parent_class._an_element_.__module__
+        sage: AdditiveMagmas()._cmp_key > EnumeratedSets()._cmp_key
+        True
+
+        sage: Category.join([EnumeratedSets(), Sets().Facade()]).parent_class._an_element_.__module__
         'sage.categories.enumerated_sets'
 
         sage: CommutativeAdditiveSemigroups()._cmp_key < Magmas()._cmp_key
@@ -489,10 +514,11 @@ cdef class CmpKey:
 
             sage: C = Algebras(FractionField(QQ['x']))
             sage: C._cmp_key
-            (6016, ...)
+            (225536, ...)
             sage: '_cmp_key' in C.__dict__    # indirect doctest
             True
         """
+        # assert not isinstance(inst, JoinCategory)
         # Note that cls is a DynamicClassMetaclass, hence not a type
         cdef str classname = cls.__base__.__name__
         cdef int flag = flags.get(classname, 0)

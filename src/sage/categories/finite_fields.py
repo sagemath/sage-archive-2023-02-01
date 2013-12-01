@@ -11,13 +11,9 @@ Finite Fields
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.misc.cachefunc import cached_method
-from sage.categories.category import Category
-from sage.categories.fields import Fields
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-_Fields = Fields()
+from sage.categories.category_with_axiom import CategoryWithAxiom
 
-class FiniteFields(Category):
+class FiniteFields(CategoryWithAxiom):
     """
     The category of finite fields
 
@@ -26,6 +22,14 @@ class FiniteFields(Category):
         sage: K = FiniteFields()
         sage: K
         Category of finite fields
+
+    A finite field is ...::
+
+        sage: K.super_categories()
+        [Category of fields, Category of finite monoids]
+
+    Some examples of membership testing and coercion::
+
         sage: FiniteField(17) in K
         True
         sage: RationalField() in K
@@ -38,17 +42,9 @@ class FiniteFields(Category):
     TESTS::
 
         sage: TestSuite(FiniteFields()).run()
+        sage: FiniteFields().is_subcategory(FiniteEnumeratedSets())
+        True
     """
-
-    @cached_method
-    def super_categories(self):
-        """
-        EXAMPLES::
-
-            sage: FiniteFields().super_categories()
-            [Category of fields, Category of finite enumerated sets]
-        """
-        return [Fields(), FiniteEnumeratedSets()]
 
     def __contains__(self, x):
         """
@@ -61,7 +57,8 @@ class FiniteFields(Category):
             sage: IntegerModRing(4) in FiniteFields()
             False
         """
-        return x in _Fields and x.is_finite()
+        from sage.categories.fields import Fields
+        return x in Fields() and x.is_finite()
 
     # As is, this does no more than the usual __call__ of Category, but for the error message
     def _call_(self, x):

@@ -10,7 +10,6 @@ Commutative ring ideals
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.misc.cachefunc import cached_method
 from category_types import Category_ideal
 from sage.categories.commutative_rings import CommutativeRings
 from ring_ideals import RingIdeals

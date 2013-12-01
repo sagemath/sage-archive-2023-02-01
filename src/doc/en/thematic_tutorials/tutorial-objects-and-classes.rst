@@ -308,11 +308,11 @@ Some particular actions modify the data structure of ``el``::
         <type 'sage.groups.perm_gps.permgroup_element.PermutationGroupElement'>
         sage: id4.__dict__
         dict_proxy({'__module__': 'sage.categories.category',
-        '_reduction': (<built-in function getattr>, (Join of Category
-        of finite permutation groups and Category of finite weyl
-        groups, 'element_class')), '__doc__': '\n Put methods for
-        elements here.\n ', '_sage_src_lines_': <staticmethod object
-        at 0x...>})
+        '_reduction': (<built-in function getattr>,
+                      (Join of Category of finite permutation groups
+                           and Category of finite weyl groups, 'element_class')),
+        '__doc__': "...",
+        '_sage_src_lines_': <staticmethod object at 0x...>})
 
 .. note::
 

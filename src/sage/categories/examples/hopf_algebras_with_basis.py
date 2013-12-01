@@ -80,7 +80,7 @@ class MyGroupAlgebra(CombinatorialFreeModule):
     @cached_method
     def algebra_generators(self):
         r"""
-        The generators of this algebra, as per :meth:`Algebras.ParentMethods.algebra_generators`.
+        Return the generators of this algebra, as per :meth:`~.magmatic_algebras.MagmaticAlgebras.ParentMethods.algebra_generators`.
 
         They correspond to the generators of the group.
 

@@ -5,7 +5,7 @@ cd src
 echo "Testing git..."
 $MAKE test 
 if [ $? -ne 0 ]; then
-    echo >&2 "Error running git's combined build/test suite."
+    echo >&2 "Error running git's test suite."
     exit 1
 fi
 

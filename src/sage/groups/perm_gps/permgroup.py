@@ -123,7 +123,6 @@ REFERENCES:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import re
 from functools import wraps
 
 from sage.misc.randstate import current_randstate
@@ -1607,10 +1606,15 @@ class PermutationGroup_generic(group.Group):
     @cached_method
     def structure_description(self, latex=False):
         r"""
-        Return a string that try to describe the structure of ``self``.
-        It wraps the GAP method ``StructureDescription``.
+        Return a string that tries to describe the structure of ``self``.
 
-        Requires "optional" database_gap package.
+        This methods wraps GAP's ``StructureDescription`` method.
+
+        Requires the *optional* ``database_gap`` package.
+
+        For full details, including the form of the returned string and the
+        algorithm to build it, see `GAP's documentation
+        <http://www.gap-system.org/Manuals/doc/ref/chap39.html>`_
 
         INPUT:
 
@@ -1620,6 +1624,14 @@ class PermutationGroup_generic(group.Group):
         OUTPUT:
 
         - string
+
+        .. WARNING::
+
+            From GAP's documentation: The string returned by
+            ``StructureDescription`` is **not** an isomorphism invariant:
+            non-isomorphic groups can have the same string value, and two
+            isomorphic groups in different representations can produce different
+            strings.
 
         EXAMPLES::
 
@@ -1645,25 +1657,20 @@ class PermutationGroup_generic(group.Group):
             sage: D4.structure_description()    # optional - database_gap
             'D4'
 
-        For full details, including the form of the returned string and
-        the algorithm to build it, see GAP documentation:
-        http://www.gap-system.org/Manuals/doc/ref/chap39.html
-
-        An important note from the GAP documentation:
-            The string returned by StructureDescription is not an isomorphism
-            invariant: non-isomorphic groups can have the same string value,
-            and two isomorphic groups in different representations can produce
-            different strings.
         """
+        import re
         def correct_dihedral_degree(match):
-            return "%sD%d" % (match.group(1), int(match.group(2))/2)
+             return "%sD%d" % (match.group(1), int(match.group(2))/2)
 
         description = self._gap_().StructureDescription().str()
         description = re.sub(r"(\A|\W)D(\d+)", correct_dihedral_degree, description)
         if not latex:
             return description
         description = description.replace("x", r"\times").replace(":", r"\rtimes")
-        return re.sub(r"([A-Za-z])([0-9]+)", r"\g<1>_{\g<2>}", description)
+        description = re.sub(r"([A-Za-z]+)([0-9]+)", r"\g<1>_{\g<2>}", description)
+        description = re.sub(r"O([+-])", r"O^{\g<1>}", description)
+
+        return description
 
     def center(self):
         """

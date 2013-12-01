@@ -743,7 +743,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 INPUT:
 
                 - ``n`` -- the value `n` or a partition
-                - ``j`` -- the number of excedences
+                - ``j`` -- the number of excedances
                 - ``k`` -- (optional) if specified, determines the number of
                   fixed points of the permtutation
 
@@ -1729,11 +1729,11 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 Q_{n,j} := \sum_{\sigma} F_{\mathrm{dex}(\sigma)}
 
             where we sum over all permutations `\sigma \in S_n` such that
-            the number of excedences is `j` and `\mathrm{dex}(\sigma)` is set
+            the number of excedances is `j` and `\mathrm{dex}(\sigma)` is set
             of `i \in [n-1]` such that either:
 
-            - `i` is a descent and `i` is not an excedence or `i + 1` is, or
-            - `i` is not an excedence and `i+1` is.
+            - `i` is a descent and `i` is not an excedance or `i + 1` is, or
+            - `i` is not an excedance and `i+1` is.
 
             We can define similar functions `Q_{\lambda, j}` where we restrict
             the sum to all permutations whose cycle type is `\sigma`.
@@ -1743,7 +1743,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             INPUT:
 
             - ``n`` -- the value `n` or a partition
-            - ``j`` -- the number of excedences
+            - ``j`` -- the number of excedances
             - ``k`` -- (optional) if specified, determines the number of fixed
               points of the permtutation
 

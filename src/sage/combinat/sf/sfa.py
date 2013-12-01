@@ -935,7 +935,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             INPUT:
 
             - ``n`` -- the value `n` or a partition
-            - ``j`` -- the number of excedences
+            - ``j`` -- the number of excedances
             - ``k`` -- (optional) if specified, determines the number of fixed
               points of the permtutation
 

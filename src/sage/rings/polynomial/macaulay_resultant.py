@@ -296,8 +296,7 @@ def macaulay_resultant(flist):
     d = sum(dlist) - len(dlist) + 1
     one_list = [1 for i in xrange(0,len(dlist))]
     mons = WeightedIntegerVectors(d, one_list)  # returns a list of integer vectors representing the list of all monomials of degree d 
-    #RRR mon_d = [prod([xlist[i]**(deg[n-i]) for i in xrange(0,len(deg))]) for deg in degs]
-    #RRR M = len(mon_d)
+    mon_d = [prod([xlist[i]**(deg[n-i]) for i in xrange(0,len(deg))]) for deg in mons]
     mons_num = len(mons)
     mons_to_keep = []
     newflist = []
@@ -312,19 +311,9 @@ def macaulay_resultant(flist):
     	new_mon[si_mon] -= dlist[si_mon]
         quo = prod([xlist[k]**(new_mon[k]) for k in xrange(0,n+1)]) # this produces the actual monomial
         new_f = flist[si_mon]*quo
-        print(new_f)
         # we strip the coefficients of the new polynomial:
-        result.append([new_f.monomial_coefficient(prod([xlist[k]**(mon[k]) for k in xrange(0,n+1)])) for mon in mons])
+        result.append([new_f.monomial_coefficient(mon) for mon in mon_d])
 
-    # for mon in mon_d:
-    #     degs_mon = [mon.degree(x) for x in xlist]
-        
-    #     degs_mon[si_mon] -= dlist[si_mon]
-    #     quo = prod([xlist[k]**(degs_mon[k]) for k in xrange(0,n+1)])
-    #     newflist.append(flist[si_mon]*quo)
-    
-    #for f in newflist:
-    #    result.append([f.monomial_coefficient(mon) for mon in mon_d])
     numer_matrix = matrix(result)
     denom_matrix = numer_matrix.matrix_from_rows_and_columns(mons_to_keep,mons_to_keep)
     if denom_matrix.dimensions()[0] == 0:

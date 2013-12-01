@@ -25,12 +25,12 @@ done
 [ -n "$INSTALL" ] || die 'No install program found'
 echo "Using install program $INSTALL"
 
-# Msgfmt is a soft build dependency (i18n)
+# Gettext is a soft build dependency (i18n)
 command -v msgfmt >/dev/null 2>&1
 if [ $? -ne 0 ]; then
-    msgfmt='NO_MSGFMT=YesPlease'
+    gettext='NO_GETTEXT=YesPlease'
 else
-    msgfmt=''
+    gettext=''
 fi
 
 
@@ -68,7 +68,7 @@ fi
 
 
 echo "Building git..."
-$MAKE $msgfmt
+$MAKE $gettext
 if [ $? -ne 0 ]; then
     echo >&2 "Error building git."
     exit 1
@@ -76,7 +76,7 @@ fi
 
 
 echo "Installing git..."
-$MAKE -j1 INSTALL="$INSTALL" install $msgfmt
+$MAKE -j1 INSTALL="$INSTALL" install $gettext
 if [ $? -ne 0 ]; then
     echo >&2 'Error installing git.'
     exit 1

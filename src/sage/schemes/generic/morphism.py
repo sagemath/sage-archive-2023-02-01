@@ -227,10 +227,28 @@ class SchemeMorphism(Element):
                 return self.pushforward(x,*args,**kwds)
             except (AttributeError, TypeError, NotImplementedError):
                 pass # raise TypeError, "%s must be coercible into %s"%(x, self.domain())
-            try:
-                x = D(x)
-            except (TypeError, NotImplementedError):
-                raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain())
+            # Here, we would like to do
+            ##try:
+            ##    x = D(x).
+            ##except (TypeError, NotImplementedError):
+            ##    raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain())
+            # However, this would involve a test whether x.codomain() ==
+            # self. This would trigger a Gröbner basis computation, that
+            # (1) could be slow and (2) could involve an even slower toy
+            # implementation, resulting in a warning.
+            #
+            # Contract: If x is a scheme morphism point, then _call_ knows
+            # what to do with it (e.g., use the _coords attribute). Otherwise,
+            # we can try a conversion into the domain (e.g., if x is a list),
+            # WITHOUT to trigger a Groebner basis computation.
+            if kwds.get('check', True):
+                if not isinstance(x, SchemeMorphism_point):
+                    try:
+                        x = D(x)
+                    except (TypeError, NotImplementedError):
+                        raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain())
+                elif self.domain()!=x.codomain():
+                    raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain())
         else:
             x = converter(x)
         if not args and not kwds:
@@ -480,8 +498,13 @@ class SchemeMorphism(Element):
             sage: f * g
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand type(s) for *:
-            'SchemeMorphism_structure_map' and 'SchemeMorphism_id'
+            TypeError: self (=Scheme morphism:
+              From: Affine Space of dimension 2 over Rational Field
+              To:   Spectrum of Rational Field
+              Defn: Structure map) domain must equal right (=Scheme morphism:
+              From: Spectrum of Rational Field
+              To:   Spectrum of Integer Ring
+              Defn: Structure map) codomain
         """
         category = self.category_for()._meet_(right.category_for())
         H = Hom(right.domain(), self._codomain, category)
@@ -782,8 +805,8 @@ class SchemeMorphism_spec(SchemeMorphism):
             map's domain Spectrum of Rational Field, but a `pushforward`
             method is not properly implemented
         """
-        if not is_SchemeTopologicalPoint(x) and x in self.domain():
-            raise TypeError, "x (=%s) must be a topological scheme point of %s"%(x, self)
+        # By virtue of argument preprocessing in __call__, we can assume that
+        # x is a topological scheme point of self
         S = self.ring_homomorphism().inverse_image(x.prime_ideal())
         return self._codomain(S)
 
@@ -1005,8 +1028,8 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         ::
 
-        It is possible to avoid the checks on the resulting point which can be useful for indeterminacies,
-        but be careful!!
+        It is possible to avoid the checks on the resulting point which can be
+        useful for indeterminacies, but be careful!!
 
             sage: PS.<x,y>=ProjectiveSpace(QQ,1)
             sage: H=Hom(PS,PS)
@@ -1039,6 +1062,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
               x^2 - y^2, but a `pushforward` method is not properly implemented
 
         """
+        # Checks were done in __call__
         P = [f(x._coords) for f in self.defining_polynomials()]
         return self._codomain.point(P,check=True)
 
@@ -1132,11 +1156,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             check = args[0]
         else:
             check = kwds.get("check", False)
-        if check:
-            if not isinstance(x,SchemeMorphism_point):
-                x = self.domain()(x)
-            elif x._codomain!=self.domain():
-                raise TypeError, "Point must be in the domain of the function"
+        # containment of x in the domain has already been checked, in __call__
         P = [f(x._coords) for f in self.defining_polynomials()]
         return self._codomain.point(P,check)
 

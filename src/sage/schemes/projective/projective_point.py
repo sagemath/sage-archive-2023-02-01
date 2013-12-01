@@ -816,7 +816,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
             #normalize coordinates and evaluate
             P.scale_by(1/P[j])
-            P = F(P,False)
+            P = F(P, check=False)
 
         return g
 

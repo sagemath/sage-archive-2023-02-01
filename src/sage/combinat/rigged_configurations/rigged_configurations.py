@@ -118,28 +118,29 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
     REFERENCES:
 
     .. [HKOTT2002] G. Hatayama, A. Kuniba, M. Okado, T. Takagi, Z. Tsuboi.
-       Paths, Crystals and Fermionic Formulae
-       Prog.Math.Phys. 23 (2002) 205-272
+       Paths, Crystals and Fermionic Formulae.
+       Prog. Math. Phys. **23** (2002) Pages 205-272.
 
     .. [CrysStructSchilling06] Anne Schilling.
        Crystal structure on rigged configurations.
        International Mathematics Research Notices.
-       Volume 2006. 2006. Article ID 97376. Pages 1-27.
+       Volume 2006. (2006) Article ID 97376. Pages 1-27.
 
     .. [RigConBijection] Masato Okado, Anne Schilling, Mark Shimozono.
        A crystal to rigged configuration bijection for non-exceptional affine
        algebras.
        Algebraic Combinatorics and Quantum Groups.
-       Edited by N. Jing. World Scientific. 2003. Pages 85-124.
+       Edited by N. Jing. World Scientific. (2003) Pages 85-124.
 
     .. [BijectionDn] Anne Schilling.
        A bijection between type `D_n^{(1)}` crystals and rigged configurations.
-       J. Algebra. 285. 2005. 292-334
+       J. Algebra. **285** (2005) 292-334
 
     .. [BijectionLRT] Anatol N. Kirillov, Anne Schilling, Mark Shimozono.
        A bijection between Littlewood-Richardson tableaux and rigged
        configurations.
-       Selecta Mathematica (N.S.). 8. 2002. 67-135 (:mathscinet:`MR1890195`).
+       Selecta Mathematica (N.S.). **8** (2002) Pages 67-135.
+        (:mathscinet:`MR1890195`).
 
     EXAMPLES::
 
@@ -790,6 +791,11 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         :meth:`one dimensional configuration sum
         <sage.combinat.crystals.tensor_product.CrystalOfWords.one_dimensional_configuration_sum>`
         of the corresponding tensor product of Kirillov-Reshetikhin crystals.
+        This has been proven in general for type `A_n^{(1)}` [BijectionLRT]_,
+        single factors `B^{r,s}` in type `D_n^{(1)}` [OSS2011]_ with the result
+        from [Sakamoto13]_, as well as for a tensor product of single columns
+        [OSS2003]_ or a tensor product of single rows [OSS03]_ for all
+        non-exceptional types.
 
         INPUT:
 
@@ -798,6 +804,17 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
           rigged configurations
         - ``weight`` -- return the fermionic formula `M(\lambda, L; q)` where
           `\lambda` is the classical weight ``weight``
+
+        REFERENCES:
+
+        .. [OSS2003] Masato Okado, Anne Schilling, and Mark Shimozono.
+           Virtual crystals and fermionic formulas of type `D_{n+1}^{(2)}`,
+           `A_{2n}^{(2)}`, and `C_n^{(1)}`. Representation Theory. **7** (2003)
+           :arxiv:`math.QA/0105017`.
+
+        .. [Sakamoto13] Reiho Sakamoto.
+           Rigged configurations and Kashiwara operators.
+           (2013) :arxiv:`1302.4562v1`.
 
         EXAMPLES::
 
@@ -867,7 +884,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         """
         if q is None:
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-            q = PolynomialRing(ZZ, 'q').gen(0)
+            q = PolynomialRing(QQ, 'q').gen(0)
 
         if only_highest_weight:
             L = self.module_generators

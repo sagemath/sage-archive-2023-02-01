@@ -93,7 +93,7 @@ def monomials(d,R):
     return [prod([xlist[i]**(deg[n-i]) for i in xrange(0,len(deg))])
              for deg in degs]
 
-def is_reduced(mon,dlist,xlist):
+def is_reduced(mon_degs,dlist,xlist):
     r"""
     A monomial in the variables x_0,...,x_n is called reduced with respect to the list of degrees d_0,...,d_n
     if the degree of x_i in the monomial is >= d_i for exactly one i. This function checks this property for an inputted monomial.
@@ -119,8 +119,10 @@ def is_reduced(mon,dlist,xlist):
         sage: is_reduced(x*y^3*z^2,[2,3,3],[x,y,z])
         True
     """
-    deg = [mon.degree(xi) for xi in xlist]
-    diff = [deg[i] - dlist[i] for i in xrange(0,len(dlist))]
+    #TODO fix comments to reflect change in input parameters 
+    #RRR deg = [mon.degree(xi) for xi in xlist]
+
+    diff = [mon_degs[i] - dlist[i] for i in xrange(0,len(dlist))]
     return len([1 for d in diff if d >= 0]) == 1
 
 def construct_universal_polynomial(dlist):
@@ -152,6 +154,7 @@ def construct_universal_polynomial(dlist):
     d = sum(dlist) - len(dlist) + 1
     flist = []
     R = PolynomialRing(U,'x',n+1)
+    #TODO remove ugly prints
     #print R
     ulist  = U.gens()
     for d in dlist:
@@ -219,7 +222,6 @@ def macaulay_resultant(flist):
 
     The following example recreates Proposition 2.10 in Ch.3 of Using Algebraic Geometry::
 
-
         sage: flist,_ = construct_universal_polynomial([1,1,2])
         sage: macaulay_resultant(flist)
         u2^2*u4^2*u6 - 2*u1*u2*u4*u5*u6 + u1^2*u5^2*u6 - u2^2*u3*u4*u7 + u1*u2*u3*u5*u7 + u0*u2*u4*u5*u7 - u0*u1*u5^2*u7 + u1*u2*u3*u4*u8 - u0*u2*u4^2*u8 - u1^2*u3*u5*u8 + u0*u1*u4*u5*u8 + u2^2*u3^2*u9 - 2*u0*u2*u3*u5*u9 + u0^2*u5^2*u9 - u1*u2*u3^2*u10 + u0*u2*u3*u4*u10 + u0*u1*u3*u5*u10 - u0^2*u4*u5*u10 + u1^2*u3^2*u11 - 2*u0*u1*u3*u4*u11 + u0^2*u4^2*u11
@@ -283,32 +285,46 @@ def macaulay_resultant(flist):
         True
 
     """
+    #TODO add test that checks that the output of the function is a polynomial
     assert len(flist) > 0, 'you have to input least 1 polynomial in the list'
     assert all([f.is_homogeneous() for f in flist]), 'resultant for non-homogeneous polynomials is not supported'
     R  = flist[0].parent()
     dlist = [f.degree() for f in flist]
     xlist = R.gens()
-    assert len(xlist) == len(dlist), 'number of polynomials(= %d) must equal to number of variables (= %d)' % (len(dlist),len(xlist))
+    assert len(xlist) == len(dlist), 'number of polynomials(= %d) must equal number of variables (= %d)' % (len(dlist),len(xlist))
     n  = len(dlist) - 1
     d = sum(dlist) - len(dlist) + 1
     one_list = [1 for i in xrange(0,len(dlist))]
-    degs = WeightedIntegerVectors(d, one_list)
-    mon_d = [prod([xlist[i]**(deg[n-i]) for i in xrange(0,len(deg))]) for deg in degs]
-    M = len(mon_d)
+    mons = WeightedIntegerVectors(d, one_list)  # returns a list of integer vectors representing the list of all monomials of degree d 
+    #RRR mon_d = [prod([xlist[i]**(deg[n-i]) for i in xrange(0,len(deg))]) for deg in degs]
+    #RRR M = len(mon_d)
+    mons_num = len(mons)
     mons_to_keep = []
-    for j in xrange(0,M):
-        if not is_reduced(mon_d[j],dlist,xlist):
-            mons_to_keep.append(j)
     newflist = []
-    for mon in mon_d:
-        degs_mon = [mon.degree(x) for x in xlist]
-        si_mon = getS(degs_mon, dlist)
-        degs_mon[si_mon] -= dlist[si_mon]
-        quo = prod([xlist[k]**(degs_mon[k]) for k in xrange(0,n+1)])
-        newflist.append(flist[si_mon]*quo)
     result = []
-    for f in newflist:
-        result.append([f.monomial_coefficient(mon) for mon in mon_d])
+
+    for j in xrange(0,mons_num):
+        if not is_reduced(mons[j],dlist,xlist):
+            mons_to_keep.append(j)
+        si_mon = getS(mons[j], dlist)
+    	# Monomial is in S_i under the partition, now we reduce the i'th degree of the monomial
+    	new_mon = list(mons[j])
+    	new_mon[si_mon] -= dlist[si_mon]
+        quo = prod([xlist[k]**(new_mon[k]) for k in xrange(0,n+1)]) # this produces the actual monomial
+        new_f = flist[si_mon]*quo
+        print(new_f)
+        # we strip the coefficients of the new polynomial:
+        result.append([new_f.monomial_coefficient(prod([xlist[k]**(mon[k]) for k in xrange(0,n+1)])) for mon in mons])
+
+    # for mon in mon_d:
+    #     degs_mon = [mon.degree(x) for x in xlist]
+        
+    #     degs_mon[si_mon] -= dlist[si_mon]
+    #     quo = prod([xlist[k]**(degs_mon[k]) for k in xrange(0,n+1)])
+    #     newflist.append(flist[si_mon]*quo)
+    
+    #for f in newflist:
+    #    result.append([f.monomial_coefficient(mon) for mon in mon_d])
     numer_matrix = matrix(result)
     denom_matrix = numer_matrix.matrix_from_rows_and_columns(mons_to_keep,mons_to_keep)
     if denom_matrix.dimensions()[0] == 0:

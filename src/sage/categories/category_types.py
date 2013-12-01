@@ -454,5 +454,5 @@ class ChainComplexes(Category_module):
         base_ring = self.base_ring()
         if base_ring in Fields():
             return [VectorSpaces(base_ring)]
-        else:
-            return [FreeModules(base_ring)]
+        return [FreeModules(base_ring)]
+

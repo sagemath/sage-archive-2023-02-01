@@ -1926,8 +1926,7 @@ class SimplicialComplex(GenericCellComplex):
         zero = HomologyGroup(0, base_ring)
         if isinstance(dim, (list, tuple)):
             return dict([d, answer.get(d, zero)] for d in dim)
-        else:
-            return answer.get(dim, zero)
+        return answer.get(dim, zero)
 
     def add_face(self, face):
         """

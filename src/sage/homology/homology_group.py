@@ -65,7 +65,7 @@ class HomologyGroup_class(AdditiveAbelianGroup_fixed_gens):
 
     def _repr_(self):
         """
-        Print representation
+        Print representation of ``self``.
 
         EXAMPLES::
 
@@ -92,7 +92,7 @@ class HomologyGroup_class(AdditiveAbelianGroup_fixed_gens):
                 too_many = (numfac > 4)
                 if too_many:
                     if t not in printed:
-                        g.append("C%s^%s" % (t, numfac))
+                        g.append("C{}^{}".format(t, numfac))
                         printed.append(t)
                 else:
                     g.append("C%s" % t)
@@ -101,7 +101,7 @@ class HomologyGroup_class(AdditiveAbelianGroup_fixed_gens):
 
     def _latex_(self):
         """
-        LaTeX representation
+        LaTeX representation of ``self``.
 
         EXAMPLES::
 
@@ -118,7 +118,7 @@ class HomologyGroup_class(AdditiveAbelianGroup_fixed_gens):
         rank = len(filter(lambda x: x == 0, eldv))
         torsion = sorted(filter(lambda x: x, eldv))
         if rank > 4:
-            g = ["\\ZZ^{%s}" % rank]
+            g = ["\\ZZ^{{{}}}".format(rank)]
         else:
             g = ["\\ZZ"] * rank
         if len(torsion) != 0:
@@ -128,25 +128,26 @@ class HomologyGroup_class(AdditiveAbelianGroup_fixed_gens):
                 too_many = (numfac > 4)
                 if too_many:
                     if t not in printed:
-                        g.append("C_{%s}^{%s}" % (t, numfac))
+                        g.append("C_{{{}}}^{{{}}}".format(t, numfac))
                         printed.append(t)
                 else:
-                    g.append("C_{%s}" % t)
+                    g.append("C_{{{}}}".format(t))
         times = " \\times "
         return times.join(g)
 
 def HomologyGroup(n, base_ring, invfac=None):
     """
-    Abelian group on `n` generators.
+    Abelian group on `n` generators which represents a homology group in a
+    fixed degree.
 
     INPUT:
     
-    - ``n`` -- integer. The number of generators.
+    - ``n`` -- integer; the number of generators
 
-    - ``base_ring`` -- ring. The base ring over which the homology is computed.
+    - ``base_ring`` -- ring; the base ring over which the homology is computed
 
-    - ``inv_fac`` -- list of integers. The invariant factors. Ignored
-      if the base ring is a field.
+    - ``inv_fac`` -- list of integers; the invariant factors -- ignored
+      if the base ring is a field
 
     OUTPUT:
 
@@ -180,6 +181,7 @@ def HomologyGroup(n, base_ring, invfac=None):
     if len(invfac) < n:
         invfac = [0] * (n - len(invfac)) + invfac
     elif len(invfac) > n:
-        raise ValueError, "invfac (=%s) must have length n (=%s)"%(invfac, n)
+        raise ValueError("invfac (={}) must have length n (={})".format(invfac, n))
     M = HomologyGroup_class(n, invfac)
     return M
+

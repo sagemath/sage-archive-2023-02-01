@@ -31,16 +31,18 @@ def dhsw_snf(mat, verbose=False):
 
     .. NOTE::
 
-        'snf' stands for 'Smith Normal Form.'
+        'snf' stands for 'Smith Normal Form'.
 
     INPUT:
 
-    -  ``mat`` -- an integer matrix, either sparse or dense.
+    - ``mat`` -- an integer matrix, either sparse or dense.
 
     (They use the transpose of the matrix considered here, so they use
     rows instead of columns.)
 
-    Algorithm: go through ``mat`` one column at a time.  For each
+    ALGORITHM:
+
+    Go through ``mat`` one column at a time.  For each
     column, add multiples of previous columns to it until either
 
     - it's zero, in which case it should be deleted.
@@ -71,9 +73,9 @@ def dhsw_snf(mat, verbose=False):
 
     REFERENCES:
 
-    .. [DHSW] Dumas, Heckenbach, Saunders, Welker, "Computing simplicial
-        homology based on efficient Smith normal form algorithms," in
-        "Algebra, geometry, and software systems" (2003), 177-206.
+    .. [DHSW] Dumas, Heckenbach, Saunders, and Welker. *Computing simplicial
+       homology based on efficient Smith normal form algorithms*.
+       Algebra, geometry, and software systems. (2003) 177-206.
     """
     ring = mat.base_ring()
     rows = mat.nrows()
@@ -207,6 +209,5 @@ def dhsw_snf(mat, verbose=False):
 
     if len(ed) < rows:
         return ed + [0]*(rows - len(ed))
-    else:
-        return ed[:rows]
+    return ed[:rows]
 

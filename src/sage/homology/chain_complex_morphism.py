@@ -121,7 +121,7 @@ class ChainComplexMorphism(SageObject):
             terms over Integer Ring to Chain complex with at most 1 nonzero terms 
             over Integer Ring
         """
-        if not C.base_ring()==D.base_ring():
+        if not C.base_ring() == D.base_ring():
             raise NotImplementedError('morphisms between chain complexes of different'
                                       ' base rings are not implemented')
         d = C.degree_of_differential()
@@ -133,9 +133,6 @@ class ChainComplexMorphism(SageObject):
         initial_matrices = dict(matrices)
         matrices = dict()
         for i in degrees:
-            if i - d not in degrees:
-                assert C.free_module_rank(i) == D.free_module_rank(i) == 0
-                continue
             try:
                 matrices[i] = initial_matrices.pop(i)
             except KeyError:
@@ -144,14 +141,17 @@ class ChainComplexMorphism(SageObject):
                                                  C.differential(i).ncols(), sparse=True)
         if check:
             # all remaining matrices given must be 0x0
-            assert all(m.ncols() == m.nrows() == 0 for m in initial_matrices.values())
+            if not all(m.ncols() == m.nrows() == 0 for m in initial_matrices.values()):
+                raise ValueError('the remaining matrices are not empty')
             # check commutativity
             for i in degrees:
                 if i - d not in degrees:
-                    assert C.free_module_rank(i) == D.free_module_rank(i) == 0
+                    if not (C.free_module_rank(i) == D.free_module_rank(i) == 0):
+                        raise ValueError('{} and {} are not rank 0 in degree {}'.format(C, D, i))
                     continue
                 if i + d not in degrees:
-                    assert C.free_module_rank(i+d) == D.free_module_rank(i+d) == 0
+                    if not (C.free_module_rank(i+d) == D.free_module_rank(i+d) == 0):
+                        raise ValueError('{} and {} are not rank 0 in degree {}'.format(C, D, i+d))
                     continue
                 Dm = D.differential(i) * matrices[i]
                 mC = matrices[i+d] * C.differential(i)
@@ -192,7 +192,7 @@ class ChainComplexMorphism(SageObject):
         f = dict()
         for i in self._matrix_dictionary.keys():
             f[i] = -self._matrix_dictionary[i]
-        return ChainComplexMorphism(f,self._domain,self._codomain)
+        return ChainComplexMorphism(f, self._domain, self._codomain)
 
     def __add__(self,x):
         """
@@ -223,15 +223,15 @@ class ChainComplexMorphism(SageObject):
 
         """
         if not isinstance(x,ChainComplexMorphism) or self._codomain != x._codomain or self._domain != x._domain or self._matrix_dictionary.keys() != x._matrix_dictionary.keys():
-            raise TypeError, "Unsupported operation."
+            raise TypeError("Unsupported operation.")
         f = dict()
         for i in self._matrix_dictionary.keys():
             f[i] = self._matrix_dictionary[i] + x._matrix_dictionary[i]
-        return ChainComplexMorphism(f,self._domain,self._codomain)
+        return ChainComplexMorphism(f, self._domain, self._codomain)
 
     def __mul__(self,x):
         """
-        Returns ``self * x`` if ``self`` and ``x`` are composable morphisms
+        Return ``self * x`` if ``self`` and ``x`` are composable morphisms
         or if ``x`` is an element of the base ring.
 
         EXAMPLES::
@@ -278,7 +278,7 @@ class ChainComplexMorphism(SageObject):
             try:
                 y = self._domain.base_ring()(x)
             except TypeError:
-                raise TypeError, "Multiplication is not defined."
+                raise TypeError("multiplication is not defined")
             f = dict()
             for i in self._matrix_dictionary.keys():
                 f[i] = self._matrix_dictionary[i] * y
@@ -306,7 +306,7 @@ class ChainComplexMorphism(SageObject):
         try:
             y = self._domain.base_ring()(x)
         except TypeError:
-            raise TypeError, "Multiplication is not defined."
+            raise TypeError("multiplication is not defined")
         f = dict()
         for i in self._matrix_dictionary.keys():
             f[i] = y * self._matrix_dictionary[i]
@@ -314,7 +314,7 @@ class ChainComplexMorphism(SageObject):
 
     def __sub__(self,x):
         """
-        Returns ``self - x``.
+        Return ``self - x``.
 
         EXAMPLES::
 
@@ -344,7 +344,7 @@ class ChainComplexMorphism(SageObject):
 
     def __eq__(self,x):
         """
-        Returns ``True`` if and only if ``self == x``.
+        Return ``True`` if and only if ``self == x``.
 
         EXAMPLES::
 
@@ -362,14 +362,14 @@ class ChainComplexMorphism(SageObject):
             sage: x == y
             True
         """
-        if not isinstance(x,ChainComplexMorphism) or self._codomain != x._codomain or self._domain != x._domain or self._matrix_dictionary != x._matrix_dictionary:
-            return False
-        else:
-            return True
+        return isinstance(x,ChainComplexMorphism) \
+                and self._codomain == x._codomain \
+                and self._domain == x._domain \
+                and self._matrix_dictionary == x._matrix_dictionary
 
     def _repr_(self):
         """
-        Returns the string representation of ``self``.
+        Return the string representation of ``self``.
 
         EXAMPLES::
 
@@ -384,4 +384,5 @@ class ChainComplexMorphism(SageObject):
             'Chain complex morphism from Trivial chain complex over Integer Ring
             to Trivial chain complex over Integer Ring'
         """
-        return "Chain complex morphism from " + self._domain._repr_() + " to " + self._codomain._repr_()
+        return "Chain complex morphism from {} to {}".format(self._domain, self._codomain)
+

@@ -32,7 +32,8 @@ field.  The modules may be indexed by any free abelian group.  The
 differentials may increase degree by 1 or decrease it, or indeed
 change it by any fixed amount: this is controlled by the
 ``degree_of_differential`` parameter used in defining the chain
-complex.  """
+complex.
+"""
 
 
 ########################################################################
@@ -88,8 +89,7 @@ def _latex_module(R, m):
     """
     if m == 0:
         return str(latex(0))
-    else:
-        return str(latex(FreeModule(R, m)))
+    return str(latex(FreeModule(R, m)))
 
 
 @rename_keyword(deprecation=15151, check_products='check', check_diffs='check')
@@ -99,18 +99,18 @@ def ChainComplex(data=None, **kwds):
 
     INPUT:
 
-    -  ``data`` -- the data defining the chain complex; see below for
-       more details.
+    - ``data`` -- the data defining the chain complex; see below for
+      more details.
     
     The following keyword arguments are supported:
 
-    -  ``base_ring`` -- a commutative ring (optional), the ring over
-       which the chain complex is defined. If this is not specified,
-       it is determined by the data defining the chain complex.
+    - ``base_ring`` -- a commutative ring (optional), the ring over
+      which the chain complex is defined. If this is not specified,
+      it is determined by the data defining the chain complex.
 
     - ``grading_group`` -- a additive free abelian group (optional,
-       default ``ZZ``), the group over which the chain complex is
-       indexed.
+      default ``ZZ``), the group over which the chain complex is
+      indexed.
 
     - ``degree_of_differential`` -- element of grading_group
        (optional, default ``1``). The degree of the differential.
@@ -118,10 +118,12 @@ def ChainComplex(data=None, **kwds):
     - ``degree`` -- alias for ``degree_of_differential``.
 
     - ``check`` -- boolean (optional, default ``True``). If ``True``,
-       check that each consecutive pair of differentials are
-       composable and have composite equal to zero.
+      check that each consecutive pair of differentials are
+      composable and have composite equal to zero.
 
-    OUTPUT: a chain complex
+    OUTPUT:
+
+    A chain complex.
 
     .. WARNING::
 
@@ -144,11 +146,11 @@ def ChainComplex(data=None, **kwds):
        is `\ZZ` and ``degree`` is 1.
 
     3. a list/tuple/iterable of the form `[r_0, d_0, r_1, d_1, r_2,
-       d_2, ...]`, where `r_i` is the rank of the free module `C_i`
+       d_2, \ldots]`, where `r_i` is the rank of the free module `C_i`
        and each `d_i` is a matrix, as above.  This only makes sense if
        ``grading_group`` is `\ZZ` and ``degree`` is 1.
 
-    4. a list/tuple/iterable of the form `[d_0, d_1, d_2, ...]` where
+    4. a list/tuple/iterable of the form `[d_0, d_1, d_2, \ldots]` where
        each `d_i` is a matrix, as above.  This only makes sense if
        ``grading_group`` is `\ZZ` and ``degree`` is 1.
 
@@ -307,11 +309,11 @@ def ChainComplex(data=None, **kwds):
             try:
                 prod = mat1 * mat0
             except TypeError:
-                raise TypeError('the differentials d_{%s} and d_{%s} are not compatible: '
-                                'their product is not defined' % (n, n+degree))
+                raise TypeError('the differentials d_{{{}}} and d_{{{}}} are not compatible: '
+                                'their product is not defined'.format(n, n+degree))
             if not prod.is_zero():
-                raise ValueError('the differentials d_{%s} and d_{%s} are not compatible: '
-                                 'their composition is not zero.' % (n, n+degree))
+                raise ValueError('the differentials d_{{{}}} and d_{{{}}} are not compatible: '
+                                 'their composition is not zero.'.format(n, n+degree))
 
     return ChainComplex_class(grading_group, degree, base_ring, data_dict)
     
@@ -326,7 +328,7 @@ class Chain_class(ModuleElement):
         of the chain complex `(C_n, d_n)`. There is no restriction on
         how the differentials `d_n` act on the elements of the chain.
         
-        .. note: 
+        .. NOTE::
 
             You must use the chain complex to construct chains.
 
@@ -389,12 +391,13 @@ class Chain_class(ModuleElement):
         n = len(self._vec)
         if n == 0:
             return 'Trivial chain'
-        elif n == 1:
+
+        if n == 1:
             deg, vec = self._vec.iteritems().next()
             return 'Chain({0}:{1})'.format(deg, vec)
-        else:
-            return 'Chain with {0} nonzero terms over {1}'.format(
-                n, self.parent().base_ring())
+
+        return 'Chain with {0} nonzero terms over {1}'.format(
+            n, self.parent().base_ring())
 
     def _ascii_art_(self):
         """
@@ -564,32 +567,34 @@ class Chain_class(ModuleElement):
         
 
 class ChainComplex_class(Parent):
+    r"""
+    See :func:`ChainComplex` for full documentation.
 
+    The differentials are required to be in the following canonical form:
+     
+    * All differentials that are not `0\times 0` must be specified
+      (even if they have zero rows or zero columns), and
+
+    * Differentials that are `0 \times 0` must not be specified.
+    
+    * Immutable matrices over the ``base_ring``
+
+    This and more is ensured by the assertions in the
+    constructor. The :func:`ChainComplex` factory function must
+    ensure that only valid input is passed.
+
+    EXAMPLES::
+
+        sage: C = ChainComplex(); C
+        Trivial chain complex over Integer Ring
+
+        sage: D = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
+        sage: D
+        Chain complex with at most 2 nonzero terms over Integer Ring
+    """
     def __init__(self, grading_group, degree_of_differential, base_ring, differentials):
-        r"""
-        See :func:`ChainComplex` for full documentation.
-
-        The differentials are required to be in the following canonical form:
-         
-        * All differentials that are not `0\times 0` must be specified
-          (even if they have zero rows or zero columns), and
-
-        * Differentials that are `0\times 0` must not be specified.
-        
-        * Immutable matrices over the `base_ring`
-
-        This and more is ensured by the assertions in the
-        constructor. The :func:`ChainComplex` factory function must
-        ensure that only valid input is passed.
-
-        EXAMPLES::
-
-            sage: C = ChainComplex(); C
-            Trivial chain complex over Integer Ring
-
-            sage: D = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
-            sage: D
-            Chain complex with at most 2 nonzero terms over Integer Ring
+        """
+        Initialize ``self``.
 
         TESTS::
 
@@ -599,16 +604,21 @@ class ChainComplex_class(Parent):
             sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
             sage: TestSuite(C).run()
         """
-        assert all(d.base_ring() == base_ring and d.is_immutable() and 
-                   (d.ncols(), d.nrows()) != (0, 0)
-                   for d in differentials.values())
-        assert degree_of_differential.parent() is grading_group
-        assert grading_group is ZZ or not grading_group.is_multiplicative()
+        if any(d.base_ring() != base_ring or not d.is_immutable() or
+                   (d.ncols(), d.nrows()) == (0, 0)
+                   for d in differentials.values()):
+            raise ValueError('invalid differentials')
+        if degree_of_differential.parent() is not grading_group:
+            raise ValueError('the degree_of_differential.parent() must be grading_group')
+        if grading_group is not ZZ and grading_group.is_multiplicative():
+            raise ValueError('grading_group must be either ZZ or multiplicative')
         # all differentials (excluding the 0x0 ones) must be specified to the constructor
-        assert all(dim+degree_of_differential in differentials or d.nrows() == 0
-                   for dim, d in differentials.iteritems())
-        assert all(dim-degree_of_differential in differentials or d.ncols() == 0
-                   for dim, d in differentials.iteritems())
+        if any(dim+degree_of_differential not in differentials and d.nrows() != 0
+               for dim, d in differentials.iteritems()):
+            raise ValueError('invalid differentials')
+        if any(dim-degree_of_differential not in differentials and d.ncols() != 0
+               for dim, d in differentials.iteritems()):
+            raise ValueError('invalid differentials')
         self._grading_group = grading_group
         self._degree_of_differential = degree_of_differential
         self._diff = differentials
@@ -681,10 +691,10 @@ class ChainComplex_class(Parent):
         
         - ``degree`` -- an element `\delta` of the grading
           group. Which differential `d_{\delta}` we want to know the
-          rank of.
+          rank of
         
-        - ``ring`` -- a commutative ring `S` or ``None`` (default). If
-          specified, the rank is computed after changing to this ring.
+        - ``ring`` -- (optional) a commutative ring `S`;
+          if specified, the rank is computed after changing to this ring
     
         OUTPUT:
 
@@ -710,12 +720,11 @@ class ChainComplex_class(Parent):
             return ZZ.zero()
         if ring is None:
             return d.rank()
-        else:
-            return d.change_ring(ring).rank()
+        return d.change_ring(ring).rank()
 
     def grading_group(self):
         r"""
-        Return the grading group
+        Return the grading group.
 
         OUTPUT:
 
@@ -764,11 +773,11 @@ class ChainComplex_class(Parent):
 
         INPUT:
 
-        - ``start`` -- a degree (element of the grading group) or
-          ``None`` (default).
+        - ``start`` -- (default: ``None``) a degree (element of the grading
+          group) or ``None``
 
         - ``exclude_first`` -- boolean (optional; default:
-          ``False``). Whether to exclude the lowest degree. This is a
+          ``False``); whether to exclude the lowest degree -- this is a
           handy way to just get the degrees of the non-zero modules,
           as the domain of the first differential is zero.
 
@@ -777,9 +786,9 @@ class ChainComplex_class(Parent):
         If ``start`` has been specified, the longest tuple of degrees
 
         * containing ``start`` (unless ``start`` would be the first
-          and ``exclude_first=True``)
+          and ``exclude_first=True``),
         
-        * in ascending order relative to :meth:`degree_of_differential` 
+        * in ascending order relative to :meth:`degree_of_differential`, and
 
         * such that none of the corresponding differentials are `0\times 0`. 
 
@@ -814,18 +823,22 @@ class ChainComplex_class(Parent):
                 result.append(ordered)
             result.sort()
             return tuple(result)
+
         import collections
         deg = start
         result = collections.deque()
         result.append(start)
+
         next_deg = start + self.degree_of_differential()
         while next_deg in self._diff:
             result.append(next_deg)
             next_deg += self.degree_of_differential()
+
         prev_deg = start - self.degree_of_differential()
         while prev_deg in self._diff:
             result.appendleft(prev_deg)
             prev_deg -= self.degree_of_differential()
+
         if exclude_first:
             result.popleft()
         return tuple(result)
@@ -853,12 +866,14 @@ class ChainComplex_class(Parent):
         INPUT:
 
         - ``dim`` -- element of the grading group (optional, default
-           ``None``).  If this is ``None``, return a dictionary of all
-           of the differentials.  If this is a single element, return
-           the differential starting in that dimension.
+          ``None``); if this is ``None``, return a dictionary of all
+          of the differentials, or if this is a single element, return
+          the differential starting in that dimension
 
-        OUTPUT: either a dictionary of all of the differentials or a single
-        differential (i.e., a matrix)
+        OUTPUT:
+
+        Either a dictionary of all of the differentials or a single
+        differential (i.e., a matrix).
 
         EXAMPLES::
 
@@ -871,7 +886,8 @@ class ChainComplex_class(Parent):
             [0 2]
             sage: C = ChainComplex({0: identity_matrix(ZZ, 40)})
             sage: C.differential()
-            {0: 40 x 40 dense matrix over Integer Ring, 1: [], -1: 40 x 0 dense matrix over Integer Ring}
+            {0: 40 x 40 dense matrix over Integer Ring, 1: [],
+             -1: 40 x 0 dense matrix over Integer Ring}
         """
         if dim is None:
             return copy(self._diff)
@@ -891,8 +907,7 @@ class ChainComplex_class(Parent):
         dual in dimension `n` is isomorphic to the original chain
         complex in dimension `n`, and the corresponding boundary
         matrix is the transpose of the matrix in the original complex.
-        This converts a chain complex to a cochain complex and vice
-        versa.
+        This converts a chain complex to a cochain complex and vice versa.
 
         EXAMPLES::
 
@@ -921,7 +936,7 @@ class ChainComplex_class(Parent):
 
         INPUT:
 
-        - ``degree`` -- an element of the grading group.
+        - ``degree`` -- an element of the grading group
 
         OUTPUT:
 
@@ -945,7 +960,7 @@ class ChainComplex_class(Parent):
 
         INPUT:
 
-        - ``degree`` -- an element of the grading group or ``None`` (default). 
+        - ``degree`` -- an element of the grading group or ``None`` (default).
 
         OUTPUT:
 
@@ -1005,7 +1020,7 @@ class ChainComplex_class(Parent):
 
     def _homology_chomp(deg, base_ring, verbose, generators):
         """
-        Helper function for :meth:`homology`
+        Helper function for :meth:`homology`.
 
         EXAMPLES::
 
@@ -1032,25 +1047,32 @@ class ChainComplex_class(Parent):
         INPUT:
 
         - ``deg`` -- an element of the grading group for the chain
-           complex (optional, default ``None``): the degree in which
-           to compute homology. If this is ``None``, return the
-           homology in every degree in which the chain complex is
-           possibly nonzero.
+          complex (default: ``None``); the degree in which
+          to compute homology -- if this is ``None``, return the
+          homology in every degree in which the chain complex is
+          possibly nonzero
 
-        -  ``base_ring`` -- a commutative ring (optional, default is the
-           base ring for the chain complex).  Must be either the
-           integers `\ZZ` or a field.
+        - ``base_ring`` -- a commutative ring (optional, default is the
+          base ring for the chain complex); must be either the
+          integers `\ZZ` or a field
 
-        -  ``generators`` -- boolean (optional, default ``False``).  If
-           ``True``, return generators for the homology groups along with
-           the groups. See :trac:`6100`.
+        - ``generators`` -- boolean (optional, default ``False``); if
+          ``True``, return generators for the homology groups along with
+          the groups. See :trac:`6100`
 
-        -  ``verbose`` - boolean (optional, default ``False``).  If
-           ``True``, print some messages as the homology is computed.
+        - ``verbose`` - boolean (optional, default ``False``); if
+          ``True``, print some messages as the homology is computed
 
-        - ``algorithm`` - string (optional, default ``'auto'``).  The
-           options are ``'auto'``, ``'chomp'``, ``'dhsw'``, ``'pari'``
-           or ``'no_chomp'``.  See below for descriptions.
+        - ``algorithm`` - string (optional, default ``'auto'``); the
+          options are:
+
+          * ``'auto'``
+          * ``'chomp'``
+          * ``'dhsw'``
+          * ``'pari'``
+          * ``'no_chomp'``
+
+        see below for descriptions
 
         OUTPUT:
 
@@ -1249,7 +1271,7 @@ class ChainComplex_class(Parent):
 
     def _homology_generators_snf(self, d_in, d_out, d_out_rank):
         """
-        Compute the homology generators using Smith normal form
+        Compute the homology generators using the Smith normal form.
 
         EXAMPLES::
 
@@ -1292,19 +1314,19 @@ class ChainComplex_class(Parent):
         INPUT:
 
         - ``deg`` -- an element of the grading group for the chain
-           complex or None (optional, default ``None``).  If ``None``,
-           then return every Betti number, as a dictionary indexed by
-           degree.  If an element of the grading group, then return
-           the Betti number in that degree.
+          complex or None (default ``None``); if ``None``,
+          then return every Betti number, as a dictionary indexed by
+          degree, or if an element of the grading group, then return
+          the Betti number in that degree
 
-        -  ``base_ring`` -- a commutative ring (optional, default is the
-           base ring for the chain complex).  Compute homology with
-           these coefficients.  Must be either the integers or a
-           field.
+        - ``base_ring`` -- a commutative ring (optional, default is the
+          base ring for the chain complex); compute homology with
+          these coefficients -- must be either the integers or a
+          field
 
         OUTPUT: 
 
-        The Betti number in degree ``deg`` - the rank of the free
+        The Betti number in degree ``deg`` -- the rank of the free
         part of the homology module in this degree.
 
         EXAMPLES::
@@ -1336,11 +1358,11 @@ class ChainComplex_class(Parent):
 
         INPUT:
 
-        -  ``max_prime`` -- prime number: search for torsion mod `p` for
-           all `p` strictly less than this number.
+        -  ``max_prime`` -- prime number; search for torsion mod `p` for
+           all `p` strictly less than this number
 
-        -  ``min_prime`` -- prime (optional, default 2): search for
-           torsion mod `p` for primes at least as big as this.
+        -  ``min_prime`` -- prime (optional, default 2); search for
+           torsion mod `p` for primes at least as big as this
 
         Return a list of pairs `(p, d)` where `p` is a prime at which
         there is torsion and `d` is a list of dimensions in which this
@@ -1349,7 +1371,9 @@ class ChainComplex_class(Parent):
         The base ring for the chain complex must be the integers; if
         not, an error is raised.
 
-        Algorithm: let `C` denote the chain complex.  Let `P` equal
+        ALGORITHM:
+
+        let `C` denote the chain complex.  Let `P` equal
         ``max_prime``.  Compute the mod `P` homology of `C`, and use
         this as the base-line computation: the assumption is that this
         is isomorphic to the integral homology tensored with
@@ -1515,8 +1539,8 @@ class ChainComplex_class(Parent):
         EXAMPLES::
 
             sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
-            sage: C._repr_()
-            'Chain complex with at most 2 nonzero terms over Integer Ring'
+            sage: C
+            Chain complex with at most 2 nonzero terms over Integer Ring
         """
         diffs = filter(lambda mat: mat.nrows() + mat.ncols() > 0,
                        self._diff.values())
@@ -1538,15 +1562,15 @@ class ChainComplex_class(Parent):
 
             sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0]), 1:zero_matrix(1,2)})
             sage: ascii_art(C)
-                                    [3 0 0]      
-                        [0 0]       [0 0 0]      
+                                    [3 0 0]
+                        [0 0]       [0 0 0]
              0 <-- C_2 <------ C_1 <-------- C_0 <-- 0
         
             sage: one = matrix(ZZ, [[1]])
             sage: D = ChainComplex({0: one, 2: one, 6:one})
             sage: ascii_art(D)
-                        [1]                             [1]       [0]       [1]      
-             0 <-- C_7 <---- C_6 <-- 0  ...  0 <-- C_3 <---- C_2 <---- C_1 <---- C_0 <-- 0 
+                        [1]                             [1]       [0]       [1]
+             0 <-- C_7 <---- C_6 <-- 0  ...  0 <-- C_3 <---- C_2 <---- C_1 <---- C_0 <-- 0
         """
         from sage.misc.ascii_art import AsciiArt
 

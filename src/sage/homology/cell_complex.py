@@ -20,8 +20,8 @@ by developers producing new classes, not casual users.
     the :meth:`~GenericCellComplex.homology` method get passed on to
     the :meth:`~GenericCellComplex.chain_complex` method and also to
     the constructor for chain complexes in
-    :class:`sage.homology.chain_complex.ChainComplex_class <ChainComplex>`, as well its
-    associated
+    :class:`sage.homology.chain_complex.ChainComplex_class <ChainComplex>`,
+    as well as its associated
     :meth:`~sage.homology.chain_complex.ChainComplex_class.homology` method.
     This means that those keywords should have consistent meaning in
     all of those situations.  It also means that it is easy to
@@ -350,21 +350,21 @@ class GenericCellComplex(SageObject):
 
         Some keywords to possibly implement in a derived class:
 
-        - ``subcomplex`` - a subcomplex: compute the relative chain complex
-        - ``augmented`` - a bool: whether to return the augmented complex
-        - ``verbose`` - a bool: whether to print informational messages as
+        - ``subcomplex`` -- a subcomplex: compute the relative chain complex
+        - ``augmented`` -- a bool: whether to return the augmented complex
+        - ``verbose`` -- a bool: whether to print informational messages as
           the chain complex is being computed
-        - ``check_diffs`` - a bool: whether to check that the each
+        - ``check_diffs`` -- a bool: whether to check that the each
           composite of two consecutive differentials is zero
-        -  ``dimensions`` - if None, compute the chain complex in all
+        -  ``dimensions`` -- if ``None``, compute the chain complex in all
            dimensions.  If a list or tuple of integers, compute the
            chain complex in those dimensions, setting the chain groups
            in all other dimensions to zero.
 
         Definitely implement the following:
 
-        -  ``base_ring`` - commutative ring (optional, default ZZ)
-        -  ``cochain`` - a bool: whether to return the cochain complex
+        -  ``base_ring`` -- commutative ring (optional, default ZZ)
+        -  ``cochain`` -- a bool: whether to return the cochain complex
 
         EXAMPLES::
 
@@ -518,15 +518,14 @@ class GenericCellComplex(SageObject):
             elif isinstance(self, SimplicialComplex):
                 if have_chomp('homsimpl'):
                     H = homsimpl(self, subcomplex, **kwds)
+
             # now pick off the requested dimensions
             if H:
                 answer = {}
                 if not dims:
-                    for d in range(self.dimension() + 1):
-                        answer[d] = H.get(d, HomologyGroup(0, base_ring))
-                else:
-                    for d in dims:
-                        answer[d] = H.get(d, HomologyGroup(0, base_ring))
+                    dims =range(self.dimension() + 1)
+                for d in dims:
+                    answer[d] = H.get(d, HomologyGroup(0, base_ring))
                 if dim is not None:
                     if not isinstance(dim, (list, tuple)):
                         answer = answer.get(dim, HomologyGroup(0, base_ring))
@@ -545,8 +544,7 @@ class GenericCellComplex(SageObject):
         zero = HomologyGroup(0, base_ring)
         if isinstance(dim, (list, tuple)):
             return dict([d, answer.get(d, zero)] for d in dim)
-        else:
-            return answer.get(dim, zero)
+        return answer.get(dim, zero)
 
     def cohomology(self, dim=None, **kwds):
         r"""

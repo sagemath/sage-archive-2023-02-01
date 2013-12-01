@@ -1719,15 +1719,18 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         @cached_method
         def Eulerian(self, n, j, k=None):
             r"""
-            Return the Eulerian (quasi)symmetric function `Q_{n,j}` defined
-            in [SW2010]_ in terms of the fundamental quasisymmetric functions.
+            Return the Eulerian (quasi)symmetric function `Q_{n,j}` (with
+            `n` either an integer or a partition) defined in [SW2010]_ in
+            terms of the fundamental quasisymmetric functions.
+            Or, if the optional argument ``k`` is specified, return the
+            function `Q_{n,j,k}` defined ibidem.
 
             If `n` and `j` are nonnegative integers, then the Eulerian
             quasisymmetric function `Q_{n,j}` is defined as
 
             .. MATH::
 
-                Q_{n,j} := \sum_{\sigma} F_{\mathrm{Dex}(\sigma)}
+                Q_{n,j} := \sum_{\sigma} F_{\mathrm{Dex}(\sigma)},
 
             where we sum over all permutations `\sigma \in S_n` such that
             the number of excedances of `\sigma` is `j`, and where
@@ -1742,18 +1745,31 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             Here, an excedance of a permutation `\sigma \in S_n` means an
             element `i \in \{ 1, 2, \ldots, n-1 \}` satisfying `\sigma_i > i`.
 
-            We can define similar functions `Q_{\lambda, j}` where we restrict
-            the sum to all permutations `\sigma` whose cycle type is
-            `\lambda`.
-            Analogously we can define `Q_{n,j,k}` by restricting the sum to
-            all permutations that have exactly `k` fixed points.
+            Similarly we can define a quasisymmetric function `Q_{\lambda, j}`
+            for every partition `\lambda` and every nonnegative integer `j`.
+            This differs from `Q_{n,j}` only in that the sum is restricted to
+            all permutations `\sigma \in S_n` whose cycle type is `\lambda`
+            (where `n = |\lambda|`, and where we still require the number of
+            excedances to be `j`). The method at hand allows computing these
+            functions by passing `\lambda` as the ``n`` parameter.
+
+            Analogously we can define a quasisymmetric function `Q_{n,j,k}` for
+            any nonnegative integers `n`, `j` and `k` by restricting the sum to
+            all permutations `\sigma \in S_n` that have exactly `k` fixed
+            points (and `j` excedances). This can be obtained by specifying the
+            optional ``k`` argument in this method.
+
+            All three versions of Eulerian quasisymmetric functions
+            (`Q_{n,j}`, `Q_{\lambda,j}` and `Q_{n,j,k}`) are actually
+            symmetric functions. See
+            :meth:`~sage.combinat.sf.SymmetricFunctionsBases.ParentMethods.Eulerian`.
 
             INPUT:
 
-            - ``n`` -- the value `n` or a partition
+            - ``n`` -- the nonnegative integer `n` or a partition
             - ``j`` -- the number of excedances
             - ``k`` -- (optional) if specified, determines the number of fixed
-              points of the permtutations which are being summed over
+              points of the permutations which are being summed over
 
             REFERENCES:
 
@@ -1780,6 +1796,14 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 F[1, 1, 2, 1] + F[1, 2, 1, 1] + 2*F[1, 2, 2] + F[1, 3, 1]
                  + F[1, 4] + F[2, 1, 2] + 2*F[2, 2, 1] + 2*F[2, 3]
                  + 2*F[3, 2] + F[4, 1] + F[5]
+                sage: F.Eulerian(0, 0)
+                F[]
+                sage: F.Eulerian(0, 1)
+                0
+                sage: F.Eulerian(1, 0)
+                F[1]
+                sage: F.Eulerian(1, 1)
+                0
 
             TESTS::
 
@@ -1789,9 +1813,6 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 ...
                 ValueError: invalid input, k cannot be specified
             """
-            if n == 0 or n == []:
-                return self.one()
-
             from sage.combinat.partition import _Partitions
             if n in _Partitions:
                 if k is not None:
@@ -1801,11 +1822,18 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             else:
                 la = None
 
+            if n == 0:
+                if k is not None and k != 0:
+                    return self.zero()
+                if j != 0:
+                    return self.zero()
+                return self.one()
+
             monomials = []
             for p in Permutations(n):
                 dex = []
                 exc = 0
-                for i in range(len(p)-1):
+                for i in range(n-1):
                     if p[i] > i + 1:
                         exc += 1
                     if (p[i] > p[i+1] or (p[i] <= i+1 and p[i+1] > i+2)) \
@@ -1820,7 +1848,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     continue
 
                 # Converting to a composition
-                d = [ -1 ] + dex + [n-1]
+                d = [-1] + dex + [n-1]
                 monomials.append(Compositions()( [d[i+1]-d[i] for i in range(len(d)-1)] ))
 
             return self.sum_of_monomials(monomials)

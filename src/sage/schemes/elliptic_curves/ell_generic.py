@@ -2769,7 +2769,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         p = rings.Integer(p)
         if not p.is_prime():
-            raise ValueError, "p (=%s) should be prime"%p
+            raise ValueError("p (=%s) should be prime" % p)
 
         if m is None:
             from sage.rings.infinity import Infinity

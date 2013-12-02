@@ -26,9 +26,10 @@ from sage.rings.integer_ring import ZZ
 class HomologyGroup_class(AdditiveAbelianGroup_fixed_gens):
     """
     Discrete Abelian group on `n` generators. This class inherits from
-    :class:`AdditiveAbelianGroup`; see that for more
-    documentation. The main difference between the classes is in the
-    print representation.
+    :class:`~sage.groups.additive_abelian.additive_abelian_group.AdditiveAbelianGroup_fixed_gens`;
+    see :mod:`sage.groups.additive_abelian.additive_abelian_group` for more
+    documentation. The main difference between the classes is in the print
+    representation.
 
     EXAMPLES::
 

@@ -453,7 +453,7 @@ instances of quite different classes::
     <class 'sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro_with_category'>
     sage: Kp = GF(next_prime_power(1000000)^2, 'x')
     sage: type(Kp)
-    <class 'sage.rings.finite_rings.finite_field_ext_pari.FiniteField_ext_pari_with_category'>
+    <class 'sage.rings.finite_rings.finite_field_pari_ffelt.FiniteField_pari_ffelt_with_category'>
 
 This can be confusing to the user. Namely, the user might determine the class
 of an instance and try to create further instances by calling the class rather
@@ -805,14 +805,28 @@ class CachedRepresentation:
     cache uses weak references. Hence, when all other references to, say,
     ``MyClass(1)`` have been deleted, the instance is actually deleted from
     memory. A later call to ``MyClass(1)`` reconstructs the instance from
-    scratch, *most likely with a different id*.
+    scratch.
     ::
 
-        sage: n = id(SymmetricGroup(17))
-        sage: import gc
-        sage: _ = gc.collect()
-        sage: n == id(SymmetricGroup(17))
+        sage: class SomeClass(UniqueRepresentation):
+        ....:     def __init__(self, i):
+        ....:         print "creating new instance for argument %s"%i
+        ....:         self.i = i
+        ....:     def __del__(self):
+        ....:         print "deleting instance for argument %s"%self.i
+        ....:
+        sage: O = SomeClass(1)
+        creating new instance for argument 1
+        sage: O is SomeClass(1)
+        True
+        sage: O is SomeClass(2)
+        creating new instance for argument 2
+        deleting instance for argument 2
         False
+        sage: del O
+        deleting instance for argument 1
+        sage: O = SomeClass(1)
+        creating new instance for argument 1
 
     .. rubric:: Cached representation and pickling
 

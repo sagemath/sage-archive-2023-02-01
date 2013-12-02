@@ -2596,6 +2596,29 @@ class Graphics(SageObject):
 
         return figure
 
+        def save_image(self, filename=None, *args, **kwds): 
+            r""" 
+            Save an image representation of self.  The image type is 
+            determined by the extension of the filename.  For example, 
+            this could be ``.png``, ``.jpg``, ``.gif``, ``.pdf``, 
+            ``.svg``.  Currently this is implemented by calling the 
+            :meth:`save` method of self, passing along all arguments and 
+            keywords. 
+            
+            .. Note:: 
+            
+                Not all image types are necessarily implemented for all 
+                graphics types.  See :meth:`save` for more details. 
+
+            EXAMPLES:: 
+ 
+                sage: c = circle((1,1), 1, color='red') 
+                sage: filename = os.path.join(SAGE_TMP, 'test.png') 
+                sage: c.save_image(filename, xmin=-1, xmax=3, ymin=-1, ymax=3) 
+            """ 
+            self.save(filename, *args, **kwds) 
+
+    
     # ALLOWED_EXTENSIONS is the list of recognized formats.
     # filename argument is written explicitly so that it can be used as a
     # positional one, which is a very likely usage for this function.
@@ -3074,6 +3097,28 @@ class GraphicsArray(SageObject):
                          verify=do_verify, axes = axes, **args)
         g.save(filename, dpi=dpi, figure=figure, sub=subplot,
                verify=do_verify, axes = axes, **args)
+
+    def save_image(self, filename=None, *args, **kwds): 
+        r""" 
+        Save an image representation of self.  The image type is 
+        determined by the extension of the filename.  For example, 
+        this could be ``.png``, ``.jpg``, ``.gif``, ``.pdf``, 
+        ``.svg``.  Currently this is implemented by calling the 
+        :meth:`save` method of self, passing along all arguments and 
+        keywords. 
+
+        .. Note:: 
+
+            Not all image types are necessarily implemented for all 
+            graphics types.  See :meth:`save` for more details. 
+
+        EXAMPLES:: 
+
+            sage: plots = [[plot(m*cos(x + n*pi/4), (x,0, 2*pi)) for n in range(3)] for m in range(1,3)] 
+            sage: G = graphics_array(plots) 
+            sage: G.save_image(tmp_filename()+'.png') 
+        """ 
+        self.save(filename, *args, **kwds) 
 
     def save(self, filename=None, dpi=DEFAULT_DPI, figsize=None,
              axes = None, **args):

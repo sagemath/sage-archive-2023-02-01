@@ -444,8 +444,8 @@ class Animation(SageObject):
         for i, frame in enumerate(self._frames):
             filename = '%s/%s'%(d,sage.misc.misc.pad_zeros(i,8))
             try:
-                frame.save(filename + '.png', **self._kwds)
-            except (AttributeError,TypeError):
+                frame.save_image(filename + '.png', **self._kwds)
+            except AttributeError:
                 self.make_image(frame, filename + '.png', **self._kwds)
         self._png_dir = d
         return d

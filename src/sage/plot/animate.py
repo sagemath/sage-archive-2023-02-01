@@ -30,7 +30,7 @@ Animate using ffmpeg instead of ImageMagick::
 
     sage: a.show(use_ffmpeg=True) # optional -- ffmpeg
 
-An animated :class:`sage.plot.plot.GraphicsArray` of rotating ellipses::
+An animated :class:`sage.plot.graphics.GraphicsArray` of rotating ellipses::
 
     sage: ellipses = (graphics_array([[ellipse((0,0),a,b,angle=t,xmin=-3,xmax=3)+circle((0,0),3,color='blue') for a in range(1,3)] for b in range(2,4)]) for t in sxrange(0,pi/4,.15))
     sage: E = animate(ellipses)
@@ -403,16 +403,18 @@ class Animation(SageObject):
     def png(self, dir=None):
         r"""
         Render PNG images of the frames in this animation, saving them
-        in `dir`.  Return the absolute path to that directory.  If the
-        frames have been previously rendered, just return the
-        directory in which they are stored.  In this case, the input
-        `dir` is ignored.
+        in ``dir``.  Return the absolute path to that directory.  If
+        the frames have been previously rendered and ``dir`` is
+        ``None``, just return the directory in which they are stored.
 
-        INPUT::
+        When ``dir`` is other than ``None``, force re-rendering of
+        frames.
+        
+        INPUT:
 
-            - dir -- Directory in which to store frames.  Default
-              `None`; in this case, a temporary directory will be
-              created for storing the frames.
+        - ``dir`` -- Directory in which to store frames.  Default
+          ``None``; in this case, a temporary directory will be
+          created for storing the frames.
 
         EXAMPLES::
 
@@ -441,10 +443,10 @@ class Animation(SageObject):
 
     def graphics_array(self, ncols=3):
         r"""
-        Return a :class:`sage.plot.plot.GraphicsArray` with plots of the
+        Return a :class:`sage.plot.graphics.GraphicsArray` with plots of the
         frames of this animation, using the given number of columns.
         The frames must be acceptable inputs for
-        :class:`sage.plot.plot.GraphicsArray`.
+        :class:`sage.plot.graphics.GraphicsArray`.
 
 
         EXAMPLES::
@@ -493,8 +495,8 @@ class Animation(SageObject):
         This function will only work if either (a) the ImageMagick
         software suite is installed, i.e., you have the ``convert``
         command or (b) ``ffmpeg`` is installed.  See
-        www.imagemagick.org for more about ImageMagick, and see
-        www.ffmpeg.org for more about ``ffmpeg``.  By default, this
+        [IM] for more about ImageMagick, and see
+        [FF] for more about ``ffmpeg``.  By default, this
         produces the gif using ``convert`` if it is present.  If this
         can't find ``convert`` or if ``use_ffmpeg`` is True, then it
         uses ``ffmpeg`` instead.
@@ -545,6 +547,7 @@ class Animation(SageObject):
         AUTHORS:
 
         - William Stein
+
         """
         from sage.misc.sage_ostools import have_program
         have_convert = have_program('convert')
@@ -671,7 +674,7 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
                ffmpeg_options='', delay=None, iterations=0, verbose=False):
         """
         Returns a movie showing an animation composed from rendering
-        the graphics objects in self.
+        the frames in self.
 
         This function will only work if ffmpeg is installed.  See
         http://www.ffmpeg.org for information about ffmpeg.
@@ -734,7 +737,7 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
               a movie file in any format other than GIF requires this software, so
               please install it and try again.
 
-           See www.ffmpeg.org for more information.
+              See www.ffmpeg.org for more information.
         """
         if not self._have_ffmpeg():
             msg = """Error: ffmpeg does not appear to be installed. Saving an animation to
@@ -804,7 +807,7 @@ please install it and try again."""
         filename ends in '.sobj', save to an sobj file.  Otherwise,
         try to determine the format from the filename extension
         ('.mpg', '.gif', '.avi', etc.).  If the format cannot be
-        determined, default to gif.
+        determined, default to GIF.
 
         For GIF files, either ffmpeg or the ImageMagick suite must be
         installed.  For other movie formats, ffmpeg must be installed.

@@ -615,11 +615,47 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             False
             sage: WordPaths('bacd') == WordPaths('abcd')
             False
+
+        TESTS:
+
+        :trac:`15480`::
+
+            sage: Words(3, 10) == Words(3,900)
+            False
+            sage: Words(2, finite=False) == Words(2)
+            False
+            sage: Words(2) == Words(2,30)
+            False
+            sage: Words(10,0) == Words(20,0)
+            True
+            sage: WordPaths('abcd') == Words("abcd",3)
+            False
         """
-        if isinstance(other, Words_all):
+        from paths import WordPaths_all
+        # Specific case of Words_over_Alphabet and WordPath. See #15480
+        # i.e. when self,other in Words_over_Alphabet, WordPath and one of them at least is a wordpath
+        if ((isinstance(self,WordPaths_all) and isinstance(other,WordPaths_all)) or
+            (type(self) is Words_over_OrderedAlphabet and isinstance(other,WordPaths_all)) or
+            (type(other) is Words_over_OrderedAlphabet and isinstance(self,WordPaths_all))):
             return self.alphabet() == other.alphabet()
-        else:
-            return NotImplemented
+
+        if not (type(self) is type(other)):
+            return False
+
+        cardinality = self.cardinality()
+
+        if cardinality != other.cardinality():
+            return False
+        if cardinality == 1:
+            return True
+        if self.alphabet() != other.alphabet():
+            return False
+
+        # This method's code cannot be trusted. It's the only way I see to fix
+        # the wrong results reports in #15480 though. But really, this kind of
+        # code should not be trusted. It would become wrong if some new more
+        # complicated classes extending Words_all are added.
+        return True
 
     def __ne__(self, other):
         r"""

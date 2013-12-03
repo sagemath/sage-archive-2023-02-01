@@ -29,7 +29,7 @@ def repr_from_monomials(monomials, term_repr, use_latex=False):
     INPUT:
 
     - ``monomials`` -- a list of pairs ``[m, c]`` where ``m`` is the index
-      and ``c`` is the cofficient
+      and ``c`` is the coefficient
     - ``term_repr`` -- a function which returns a string given an index
     - ``use_latex`` -- (default: ``False``) if ``True`` then the output is
       in latex format

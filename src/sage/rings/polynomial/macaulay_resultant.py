@@ -93,7 +93,7 @@ def monomials(d,R):
     return [prod([xlist[i]**(deg[n-i]) for i in xrange(0,len(deg))])
              for deg in degs]
 
-def is_reduced(mon_degs,dlist,xlist):
+def is_reduced(mon_degs,dlist):
     r"""
     A monomial in the variables x_0,...,x_n is called reduced with respect to the list of degrees d_0,...,d_n
     if the degree of x_i in the monomial is >= d_i for exactly one i. This function checks this property for an inputted monomial.
@@ -112,16 +112,15 @@ def is_reduced(mon_degs,dlist,xlist):
 
         sage: from sage.rings.polynomial.macaulay_resultant import is_reduced
         sage: R.<x,y,z> = PolynomialRing(QQ,3)
-        sage: is_reduced(x^2*y^3*z,[2,3,3],[x,y,z])
+        sage: is_reduced([2,3,1],[2,3,3]) # the monomial x^2*y^3*z is not reduced w.r.t. degrees vector [2,3,3]
         False
 
         sage: R.<x,y,z> = PolynomialRing(QQ,3)
-        sage: is_reduced(x*y^3*z^2,[2,3,3],[x,y,z])
+        sage: is_reduced([1,3,2],[2,3,3]) # the monomial x*y^3*z^2 is not reduced w.r.t. degrees vector [2,3,3]
         True
     """
     #TODO fix comments to reflect change in input parameters 
     #RRR deg = [mon.degree(xi) for xi in xlist]
-
     diff = [mon_degs[i] - dlist[i] for i in xrange(0,len(dlist))]
     return len([1 for d in diff if d >= 0]) == 1
 
@@ -200,6 +199,16 @@ def macaulay_resultant(flist):
 
     EXAMPLES:
 
+
+    The number of polynomials has to match the number of variables::
+
+        sage: R.<x,y,z> = PolynomialRing(QQ,3)
+        sage: macaulay_resultant([y,x+z])
+        ...
+        Traceback (most recent call last):
+        ...
+        AssertionError: number of polynomials(= 2) must equal to number of variables (= 3)
+
     The polynomials need to be all homogeneous::
 
         sage: from sage.rings.polynomial.macaulay_resultant import *
@@ -208,17 +217,6 @@ def macaulay_resultant(flist):
         Traceback (most recent call last):
         ...
         AssertionError: resultant for non-homogeneous polynomials is not supported
-
-
-    The number of polynomials has to match the number of variables::
-
-        sage: R.<x,y,z> = PolynomialRing(QQ,3)
-        sage: macaulay_resultant([y,x+z])
-        Traceback (most recent call last):
-        ...
-        AssertionError: number of polynomials(= 2) must equal to number of variables (= 3)
-
-
 
     The following example recreates Proposition 2.10 in Ch.3 of Using Algebraic Geometry::
 
@@ -283,7 +281,6 @@ def macaulay_resultant(flist):
         sage: f =  x^2+1; g = x^5+1
         sage: f.resultant(g) == macaulay_resultant([f.homogenize(),g.homogenize()])
         True
-
     """
     #TODO add test that checks that the output of the function is a polynomial
     assert len(flist) > 0, 'you have to input least 1 polynomial in the list'
@@ -291,11 +288,11 @@ def macaulay_resultant(flist):
     R  = flist[0].parent()
     dlist = [f.degree() for f in flist]
     xlist = R.gens()
-    assert len(xlist) == len(dlist), 'number of polynomials(= %d) must equal number of variables (= %d)' % (len(dlist),len(xlist))
+    assert len(xlist) == len(dlist), 'number of polynomials(= %d) must equal number of variables (= %d)'%(len(dlist),len(xlist))
     n  = len(dlist) - 1
     d = sum(dlist) - len(dlist) + 1
     one_list = [1 for i in xrange(0,len(dlist))]
-    mons = WeightedIntegerVectors(d, one_list)  # returns a list of integer vectors representing the list of all monomials of degree d 
+    mons = WeightedIntegerVectors(d, one_list)  # returns a list of integer vectors representing the list of all monomials of degree d
     mon_d = [prod([xlist[i]**(deg[n-i]) for i in xrange(0,len(deg))]) for deg in mons]
     mons_num = len(mons)
     mons_to_keep = []
@@ -303,7 +300,7 @@ def macaulay_resultant(flist):
     result = []
 
     for j in xrange(0,mons_num):
-        if not is_reduced(mons[j],dlist,xlist):
+        if not is_reduced(mons[j],dlist):
             mons_to_keep.append(j)
         si_mon = getS(mons[j], dlist)
     	# Monomial is in S_i under the partition, now we reduce the i'th degree of the monomial

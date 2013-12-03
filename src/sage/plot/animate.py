@@ -45,7 +45,7 @@ A simple animation of a circle shooting up to the right::
     sage: c.show() # optional -- ImageMagick
 
 
-An animation of 3d objects::
+Animations of 3d objects::
 
     sage: var('s,t')
     (s, t)
@@ -56,6 +56,15 @@ An animation of 3d objects::
     sage: sp[0]      # first frame
     sage: sp[-1]     # last frame
     sage: sp.show()  # optional -- ImageMagick
+
+    sage: (x,y,z) = var('x,y,z')
+    sage: def frame(t):
+    ....:     return implicit_plot3d((x^2 + y^2 + z^2), (x, -2, 2), (y, -2, 2), (z, -2, 2), plot_points=60, contour=[1,3,5], region=lambda x,y,z: x<=t or y>=t or z<=t)
+    ....: 
+    sage: a = animate([frame(t) for t in srange(.01,1.5,.2)])
+    sage: a[0]       # first frame
+    sage: a.show()   # optional -- ImageMagick
+
 
 If the input objects do not have a ``save_image`` method, then the
 animation object attempts to make an image by calling its internal

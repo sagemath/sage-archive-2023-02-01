@@ -275,6 +275,23 @@ class Tachyon(SageObject):
             sage: q.sphere((0,-1,1),1,'s')
             sage: tempname = tmp_filename()
             sage: q.save_image(tempname)
+
+        TESTS:
+
+        :meth:`save_image` is used for generating animations::
+
+            sage: def tw_cubic(t):
+            ....:     q = Tachyon()
+            ....:     q.light((1,1,11), 1,(1,1,1))
+            ....:     q.texture('s')
+            ....:     for i in srange(-1,t,0.05):
+            ....:         q.sphere((i,i^2-0.5,i^3), 0.1, 's')
+            ....:     return q
+            ....: 
+            sage: a = animate([tw_cubic(t) for t in srange(-1,1,.3)])
+            sage: a
+            Animation with 7 frames
+            sage: a.show() # optional -- ImageMagick            
         """
         self.save(filename, *args, **kwds)
 

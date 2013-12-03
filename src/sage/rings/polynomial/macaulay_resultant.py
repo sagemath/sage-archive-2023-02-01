@@ -204,7 +204,6 @@ def macaulay_resultant(flist):
 
         sage: R.<x,y,z> = PolynomialRing(QQ,3)
         sage: macaulay_resultant([y,x+z])
-        ...
         Traceback (most recent call last):
         ...
         AssertionError: number of polynomials(= 2) must equal to number of variables (= 3)
@@ -293,7 +292,7 @@ def macaulay_resultant(flist):
     d = sum(dlist) - len(dlist) + 1
     one_list = [1 for i in xrange(0,len(dlist))]
     mons = WeightedIntegerVectors(d, one_list)  # returns a list of integer vectors representing the list of all monomials of degree d
-    mon_d = [prod([xlist[i]**(deg[n-i]) for i in xrange(0,len(deg))]) for deg in mons]
+    mon_d = [prod([xlist[i]**(deg[i]) for i in xrange(0,len(deg))]) for deg in mons]
     mons_num = len(mons)
     mons_to_keep = []
     newflist = []
@@ -303,9 +302,9 @@ def macaulay_resultant(flist):
         if not is_reduced(mons[j],dlist):
             mons_to_keep.append(j)
         si_mon = getS(mons[j], dlist)
-    	# Monomial is in S_i under the partition, now we reduce the i'th degree of the monomial
-    	new_mon = list(mons[j])
-    	new_mon[si_mon] -= dlist[si_mon]
+        # Monomial is in S_i under the partition, now we reduce the i'th degree of the monomial
+        new_mon = list(mons[j])
+        new_mon[si_mon] -= dlist[si_mon]
         quo = prod([xlist[k]**(new_mon[k]) for k in xrange(0,n+1)]) # this produces the actual monomial
         new_f = flist[si_mon]*quo
         # we strip the coefficients of the new polynomial:

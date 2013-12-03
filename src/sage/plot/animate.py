@@ -567,7 +567,7 @@ www.ffmpeg.org, or use 'convert' to produce gifs instead."""
                 raise OSError, msg
         else:
             if not savefile:
-                savefile = tmp_filename(ext='gif')
+                savefile = tmp_filename(ext='.gif')
             if not savefile.endswith('.gif'):
                 savefile += '.gif'
             savefile = os.path.abspath(savefile)
@@ -742,22 +742,24 @@ please install it and try again."""
         else:
             if not savefile:
                 if output_format is None:
-                    output_format = 'mpg'
+                    output_format = '.mpg'
+                else:
+                    if output_format[0] != '.':
+                        output_format = '.'+output_format
                 savefile = tmp_filename(ext=output_format)
             else:
                 if output_format is None:
                     suffix = os.path.splitext(savefile)[1]
                     if len(suffix) > 0:
-                        suffix = suffix.lstrip('.')
                         output_format = suffix
                     else:
-                        output_format = 'mpg'
-            if not savefile.endswith('.' + output_format):
-                savefile += '.' + output_format
+                        output_format = '.mpg'
+            if not savefile.endswith(output_format):
+                savefile += output_format
             early_options = ''
-            if output_format == 'gif':
+            if output_format == '.gif':
                 ffmpeg_options += ' -pix_fmt rgb24 -loop_output %s ' % iterations
-            if delay is not None and output_format != 'mpeg' and output_format != 'mpg':
+            if delay is not None and output_format != '.mpeg' and output_format != '.mpg':
                 early_options += ' -r %s -g 3 ' % int(100/delay)
             savefile = os.path.abspath(savefile)
             pngdir = self.png()

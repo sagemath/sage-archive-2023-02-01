@@ -239,6 +239,74 @@ class IndexedMonoidElement(MonoidElement):
         """
         return not self.__eq__(y)
 
+    def __lt__(self, y):
+        """
+        Check less than.
+
+        EXAMPLES::
+
+            sage: F = IndexedFreeMonoid(ZZ)
+            sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
+            sage: a < b
+            True
+            sage: a*b < b*a
+            True
+            sage: a*b < a*a
+            False
+            sage: a^2*b < a*b*b
+            True
+        """
+        if not isinstance(y, IndexedMonoidElement):
+            return False
+        lhs = sum([[x[0]]*x[1] for x in self._sorted_items()], [])
+        rhs = sum([[x[0]]*x[1] for x in y._sorted_items()], [])
+        return lhs < rhs
+
+    def __gt__(self, y):
+        """
+        Check less than.
+
+        EXAMPLES::
+
+            sage: F = IndexedFreeMonoid(ZZ)
+            sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
+            sage: b > a
+            True
+            sage: a*b > b*a
+            False
+            sage: a*b > a*a
+            True
+        """
+        if not isinstance(y, IndexedMonoidElement):
+            return False
+        return y.__lt__(self)
+
+    def __le__(self, y):
+        """
+        Check less than or equals.
+
+        EXAMPLES::
+
+            sage: F = IndexedFreeMonoid(ZZ)
+            sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
+            sage: a*b <= b*a
+            True
+        """
+        return self.__eq__(y) or self.__lt__(y)
+
+    def __ge__(self, y):
+        """
+        Check greater than or equals.
+
+        EXAMPLES::
+
+            sage: F = IndexedFreeMonoid(ZZ)
+            sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
+            sage: a*b <= b*a
+            True
+        """
+        return self.__eq__(y) or self.__gt__(y)
+
     def __len__(self):
         """
         Return the length of ``self``.

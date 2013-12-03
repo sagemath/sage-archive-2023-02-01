@@ -22,7 +22,8 @@ AUTHORS:
 from copy import copy
 from sage.categories.groups import Groups
 from sage.groups.group import Group, AbelianGroup
-from sage.monoids.indexed_monoid import IndexedFreeMonoid, IndexedFreeAbelianMonoid
+from sage.monoids.indexed_monoid import IndexedMonoidElement, IndexedFreeMonoid, \
+        IndexedFreeAbelianMonoid
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
@@ -63,32 +64,6 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
             Free group indexed by Integer Ring
         """
         return 'Free group indexed by {}'.format(self._indices)
-
-    def __len__(self):
-        """
-        Return the length of ``self``.
-
-        EXAMPLES::
-
-            sage: F = IndexedFreeGroup(ZZ)
-            sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
-            sage: elt = a*c^-3*b^-2*a
-            sage: elt.length()
-            7
-            sage: len(elt)
-            7
-
-            sage: F = IndexedFreeAbelianGroup(ZZ)
-            sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
-            sage: elt = a*c^-3*b^-2*a
-            sage: elt.length()
-            7
-            sage: len(elt)
-            7
-        """
-        return sum(abs(exp) for gen,exp in self._sorted_items())
-
-    length = __len__
 
     def order(self):
         r"""
@@ -132,6 +107,58 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
     rank = IndexedFreeMonoid.ngens
 
     class Element(IndexedFreeMonoid.Element):
+        def __lt__(self, y):
+            """
+            Check less than.
+
+            EXAMPLES::
+
+                sage: F = IndexedFreeGroup(ZZ)
+                sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
+                sage: a < b
+                True
+                sage: a^-1*b < b^-1*a
+                True
+                sage: a*b < a*a^-1
+                False
+                sage: a^-1*a < a^2
+                True
+                sage: a^2*b < a*b^-1*a*b
+                True
+            """
+            if not isinstance(y, IndexedMonoidElement):
+                return False
+            sign = lambda x: 1 if x > 0 else -1 # It is never 0
+            lhs = sum([[ (x[0], sign(x[1])) ]*abs(x[1]) for x in self._sorted_items()], [])
+            rhs = sum([[ (x[0], sign(x[1])) ]*abs(x[1]) for x in y._sorted_items()], [])
+            return lhs < rhs
+
+        def __len__(self):
+            """
+            Return the length of ``self``.
+
+            EXAMPLES::
+
+                sage: F = IndexedFreeGroup(ZZ)
+                sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
+                sage: elt = a*c^-3*b^-2*a
+                sage: elt.length()
+                7
+                sage: len(elt)
+                7
+
+                sage: F = IndexedFreeAbelianGroup(ZZ)
+                sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
+                sage: elt = a*c^-3*b^-2*a
+                sage: elt.length()
+                7
+                sage: len(elt)
+                7
+            """
+            return sum(abs(exp) for gen,exp in self._sorted_items())
+
+        length = __len__
+
         def _mul_(self, y):
             """
             Multiply ``self`` by ``y``.
@@ -290,7 +317,7 @@ class IndexedFreeAbelianGroup(IndexedFreeAbelianMonoid, AbelianGroup):
 
     rank = IndexedFreeAbelianMonoid.ngens
 
-    class Element(IndexedFreeAbelianMonoid.Element):
+    class Element(IndexedFreeAbelianMonoid.Element, IndexedFreeGroup.Element):
         def _mul_(self, y):
             """
             Multiply ``self`` by ``y``.

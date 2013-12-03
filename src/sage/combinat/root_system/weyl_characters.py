@@ -19,6 +19,7 @@ from sage.misc.flatten import flatten
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.functional import is_even, is_odd
 from sage.modules.free_module_element import vector
+from sage.structure.sage_object import SageObject
 from sage.rings.all import ZZ, QQ
 
 class WeylCharacterRing(CombinatorialFreeModule):
@@ -1439,6 +1440,34 @@ def branch_weyl_character(chi, R, S, rule="default"):
     also give some branching rules to subgroups that are not maximal.
     For example, a Levi subgroup may or may not be maximal.
 
+    For example, there is a "levi" branching rule defined from `SL(5)` (with
+    Cartan type `A_4`) to `SL(4)` (with Cartan type `A_3`), so
+    we may compute the branching rule as follows:
+
+    EXAMPLES::
+
+        sage: A3=WeylCharacterRing("A3",style="coroots")
+        sage: A2=WeylCharacterRing("A2",style="coroots")
+        sage: [A3(fw).branch(A2,rule="levi") for fw in A3.fundamental_weights()]
+        [A2(0,0) + A2(1,0), A2(0,1) + A2(1,0), A2(0,0) + A2(0,1)]
+
+    In this case the Levi branching rule is the default branching rule
+    so we may omit the specification rule="levi".
+
+    If a subgroup is not maximal, you may specify a branching rule
+    by finding a chain of intermediate subgroups. For this
+    purpose, branching rules may be multiplied as in the following
+    example.
+
+    EXAMPLES::
+
+        sage: A4=WeylCharacterRing("A4",style="coroots")
+        sage: A2=WeylCharacterRing("A2",style="coroots")
+        sage: br=get_branching_rule("A4","A3")
+        sage: br=get_branching_rule("A4","A3")*get_branching_rule("A3","A2")
+        sage: A4(1,0,0,0).branch(A2,rule=br)
+        2*A2(0,0) + A2(1,0)
+
     You may try omitting the rule if it is "obvious". Default
     rules are provided for the following cases:
 
@@ -2147,7 +2176,31 @@ def branch_weyl_character(chi, R, S, rule="default"):
             mdict[h] = chi_mdict[k]
     return S.char_from_weights(mdict)
 
-def get_branching_rule(Rtype, Stype, rule):
+class BranchingRule(SageObject):
+    def __init__(self, R, S, f, name="default"):
+        """
+        R, S: CartanTypes
+        f a function from the weight lattice of R to the weight lattice of S.
+        """
+        self._R = R
+        self._S = S
+        self._f = f
+        self._name = name
+
+    def __repr__(self):
+        return "%s branching rule from %s to %s"%(self._name, self._R, self._S)
+
+    def __call__(self, x):
+        return self._f(x)
+
+    def __mul__(self, other):
+        if self._S == other._R:
+            f  = lambda x : other._f(self._f(x))
+            return BranchingRule(self._R, other._S, f, "composite")
+        else:
+            raise ValueError, "unable to define composite morphism."
+
+def get_branching_rule(Rtype, Stype, rule="default"):
     """
     Creates a branching rule.
 
@@ -2211,34 +2264,34 @@ def get_branching_rule(Rtype, Stype, rule):
         if Rtype[0] == 'A':
             if Stype.is_compound():
                 if all(ct[0]=='A' for ct in stypes) and rdim == sdim:
-                    return lambda x : x
+                    return BranchingRule(Rtype, Stype, lambda x : x, "levi")
                 else:
                     raise ValueError("Rule not found")
             elif Stype[0] == 'A':
-                return lambda x : list(x)[:r]
+                return BranchingRule(Rtype, Stype, lambda x : list(x)[:r], "levi")
             else:
                 raise ValueError("Rule not found")
         elif Rtype[0] in ['B', 'C', 'D']:
             if Stype.is_atomic():
                 if Stype[0] == 'A':
-                    return  lambda x : x
+                    return BranchingRule(Rtype, Stype, lambda x : x, "levi")
                 elif Stype[0] == Rtype[0]:
-                    return lambda x : list(x)[1:]
+                    return BranchingRule(Rtype, Stype, lambda x : list(x)[1:], "levi")
             elif stypes[-1][0] == Rtype[0] and all(t[0] == 'A' for t in stypes[:-1]):
-                return lambda x : x
+                return BranchingRule(Rtype, Stype, lambda x : x, "levi")
             else:
                 raise ValueError("Rule not found")
         elif Rtype[0] == 'E':
             if Stype.is_atomic():
                 if Stype[0] == 'D':
                     if r == 6:
-                        return lambda x : [-x[4],-x[3],-x[2],-x[1],-x[0]]
+                        return BranchingRule(Rtype, Stype, lambda x : [-x[4],-x[3],-x[2],-x[1],-x[0]], "levi")
                     if r == 7:
-                        return lambda x : [-x[5],-x[4],-x[3],-x[2],-x[1],-x[0]]
+                        return BranchingRule(Rtype, Stype, lambda x : [-x[5],-x[4],-x[3],-x[2],-x[1],-x[0]], "levi")
                     if r == 8:
-                        return lambda x : [-x[6],-x[5],-x[4],-x[3],-x[2],-x[1],-x[0]]
+                        return BranchingRule(Rtype, Stype, lambda x : [-x[6],-x[5],-x[4],-x[3],-x[2],-x[1],-x[0]], "levi")
                 elif r in [7,8] and Stype[0] == 'E':
-                    return lambda x : x
+                    return BranchingRule(Rtype, Stype, lambda x : x, "levi")
                 elif Stype[0] == 'A':
                     if r == 6:
                         raise NotImplementedError('A5 Levi is not maximal. Branch to A5xA1 (rule="extended").')
@@ -2247,13 +2300,13 @@ def get_branching_rule(Rtype, Stype, rule):
             raise NotImplementedError("Not implemented yet")
         elif Rtype[0] == 'F' and s == 3:
             if Stype[0] == 'B':
-                return lambda x : list(x)[1:][:3]
+                return BranchingRule(Rtype, Stype, lambda x : list(x)[1:][:3], "levi")
             elif Stype[0] == 'C':
-                return lambda x : [x[1]-x[0],x[2]+x[3],x[2]-x[3]]
+                return BranchingRule(Rtype, Stype, lambda x : [x[1]-x[0],x[2]+x[3],x[2]-x[3]], "levi")
             else:
                 raise NotImplementedError("Not implemented yet")
         elif Rtype[0] == 'G' and Stype[0] == 'A':
-            return lambda x : list(x)[1:][:2]
+            return BranchingRule(Rtype, Stype, lambda x : list(x)[1:][:2], "levi")
         else:
             raise ValueError("Rule not found")
     elif rule == "automorphic":
@@ -2261,10 +2314,10 @@ def get_branching_rule(Rtype, Stype, rule):
             raise ValueError("Cartan types must agree for automorphic branching rule")
         elif Rtype[0] == 'A':
             def rule(x) : y = [-i for i in x]; y.reverse(); return y
-            return rule
+            return BranchingRule(Rtype, Stype, rule, "automorphic")
         elif Rtype[0] == 'D':
             def rule(x) : x[len(x)-1] = -x[len(x)-1]; return x
-            return rule
+            return BranchingRule(Rtype, Stype, rule, "automorphic")
         elif Rtype[0] == 'E' and r == 6:
             M = matrix(QQ,[(3, 3, 3, -3, 0, 0, 0, 0), \
                            (3, 3, -3, 3, 0, 0, 0, 0), \
@@ -2274,7 +2327,7 @@ def get_branching_rule(Rtype, Stype, rule):
                            (0, 0, 0, 0, -3, 5, -1, 1), \
                            (0, 0, 0, 0, -3, -1, 5, 1), \
                            (0, 0, 0, 0, 3, 1, 1, 5)])/6
-            return lambda x : tuple(M*vector(x))
+            return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "automorphic")
         else:
             raise ValueError("No automorphism found")
     elif rule == "triality":
@@ -2283,19 +2336,19 @@ def get_branching_rule(Rtype, Stype, rule):
         elif not Rtype[0] == 'D' and r == 4:
             raise ValueError("Triality is for D4 only")
         else:
-            return lambda x : [(x[0]+x[1]+x[2]+x[3])/2,(x[0]+x[1]-x[2]-x[3])/2,(x[0]-x[1]+x[2]-x[3])/2,(-x[0]+x[1]+x[2]-x[3])/2]
+            return BranchingRule(Rtype, Stype, lambda x : [(x[0]+x[1]+x[2]+x[3])/2,(x[0]+x[1]-x[2]-x[3])/2,(x[0]-x[1]+x[2]-x[3])/2,(-x[0]+x[1]+x[2]-x[3])/2], "triality")
     elif rule == "symmetric":
         if Rtype[0] == 'A':
             if (Stype[0] == 'C' or Stype[0] == 'D' and r == 2*s-1) or (Stype[0] == 'B' and r == 2*s):
-                return lambda x : [x[i]-x[r-i] for i in range(s)]
+                return BranchingRule(Rtype, Stype, lambda x : [x[i]-x[r-i] for i in range(s)], "symmetric")
             else:
                 raise ValueError("Rule not found")
         elif Rtype[0] == 'D' and Stype[0] == 'B' and s == r-1:
-            return lambda x : x[:s]
+            return BranchingRule(Rtype, Stype, lambda x : x[:s], "symmetric")
         elif Rtype[0] == 'D' and r == 4 and Stype[0] == 'G':
-            return lambda x : [x[0]+x[1], -x[1]+x[2], -x[0]-x[2]]
+            return BranchingRule(Rtype, Stype, lambda x : [x[0]+x[1], -x[1]+x[2], -x[0]-x[2]], "symmetric")
         elif Rtype[0] == 'E' and Stype[0] == 'F' and r == 6 and s == 4:
-            return lambda x : [(x[4]-3*x[5])/2,(x[0]+x[1]+x[2]+x[3])/2,(-x[0]-x[1]+x[2]+x[3])/2,(-x[0]+x[1]-x[2]+x[3])/2]
+            return BranchingRule(Rtype, Stype, lambda x : [(x[4]-3*x[5])/2,(x[0]+x[1]+x[2]+x[3])/2,(-x[0]-x[1]+x[2]+x[3])/2,(-x[0]+x[1]-x[2]+x[3])/2], "symmetric")
         else:
             raise ValueError("Rule not found")
     elif rule == "extended" or rule == "orthogonal_sum":
@@ -2314,12 +2367,12 @@ def get_branching_rule(Rtype, Stype, rule):
                     else:
                         sdeg += 2*t[1]+1
                 if rdeg == sdeg:
-                    return lambda x : x[:s]
+                    return BranchingRule(Rtype, Stype, lambda x : x[:s], "symmetric")
                 else:
                     raise ValueError("Rule not found")
             elif Rtype[0] == 'C':
                 if all(t[0] == Rtype[0] for t in stypes):
-                    return lambda x : x
+                    return BranchingRule(Rtype, Stype, lambda x : x, "symmetric")
             if rule == "orthogonal_sum":
                 raise ValueError("Rule not found")
             elif Rtype[0] == 'E':
@@ -2345,10 +2398,10 @@ def get_branching_rule(Rtype, Stype, rule):
                                        (0, 0, -2, -2, -2, 2, 2, -2), \
                                        (3, 3, 1, 1, 1, -1, -1, 1), \
                                        (-3, -3, 1, 1, 1, -1, -1, 1)])/6
-                        return lambda x : tuple(M*vector(x))
+                        return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "symmetric")
                 elif r == 7:
                     if stypes[0][0] == 'D' and stypes[0][1] == 6 and stypes[1][0] == 'A' and stypes[1][1] == 1:
-                        return lambda x : [x[5],x[4],x[3],x[2],x[1],x[0],x[6],x[7]] # need doctest
+                        return BranchingRule(Rtype, Stype, lambda x : [x[5],x[4],x[3],x[2],x[1],x[0],x[6],x[7]], "symmetric") # need doctest
                     elif stypes[0][0] == 'A' and stypes[1][0] == 'A':
                         if stypes[0][1] == 5 and stypes[1][1] == 2:
                             M = matrix(QQ,[(5, 1, 1, 1, 1, 1, 0, 0), \
@@ -2360,7 +2413,7 @@ def get_branching_rule(Rtype, Stype, rule):
                                            (1, -1, -1, -1, -1, -1, 0, -6), \
                                            (1, -1, -1, -1, -1, -1, -6, 0), \
                                            (-2, 2, 2, 2, 2, 2, -3, -3)])/6
-                            return lambda x : tuple(M*vector(x))
+                            return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "symmetric")
                         if len(stypes) == 3 and stypes[2][0] == 'A' and [stypes[0][1],stypes[1][1],stypes[2][1]] == [3,3,1]: # need doctest
                             M = matrix(QQ, [(0, 0, -1, -1, -1, -1, 2, -2), \
                                             (0, 0, -1, -1, -1, -1, -2, 2), \
@@ -2372,7 +2425,7 @@ def get_branching_rule(Rtype, Stype, rule):
                                             (0, 0, 3, -1, -1, -1, 0, 0), \
                                             (2, 2, 0, 0, 0, 0, -2, -2), \
                                             (-2, -2, 0, 0, 0, 0, -2, -2)])/4
-                            return lambda x : tuple(M*vector(x))
+                            return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "symmetric")
                 elif r == 8:
                     if stypes[0][0] == 'A' and stypes[1][0] == 'A':
                         if stypes[0][1] == 7 and stypes[1][1] == 1:
@@ -2388,7 +2441,7 @@ def get_branching_rule(Rtype, Stype, rule):
                                            (0, 0, 0, 2, 2, -8, 2, -2), \
                                            (0, 0, 0, 2, 2, 2, -8, -2), \
                                            (0, 0, 0, 2, 2, 2, 2, 8)])/10
-                            return lambda x : tuple(M*vector(x))
+                            return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "symmetric")
                         elif len(stypes)==3:
                             if stypes[0][1] == 5 and stypes[1][0] == 2 and stypes[2][0] == 1:
                                 raise NotImplementedError("Not maximal: first branch to A7xA1")
@@ -2397,19 +2450,21 @@ def get_branching_rule(Rtype, Stype, rule):
                             raise NotImplementedError("Not maximal: first branch to D8 then D5xD3=D5xA3")
                     elif stypes[0][0] == 'E' and stypes[1][0] == 'A':
                         if stypes[0][1] == 6 and stypes[1][1] == 2:
-                            return lambda x : [x[0],x[1],x[2],x[3],x[4], \
+                            br = lambda x : [x[0],x[1],x[2],x[3],x[4], \
                                                (x[5]+x[6]-x[7])/3,(x[5]+x[6]-x[7])/3,(-x[5]-x[6]+x[7])/3, \
                                                (-x[5]-x[6]-2*x[7])/3,(-x[5]+2*x[6]+x[7])/3,(2*x[5]-x[6]+x[7])/3]
+                            return BranchingRule(Rtype, Stype, br, "symmetric")
                         elif stypes[0][1] == 7 and stypes[1][1] == 1:
-                            return lambda x : [x[0],x[1],x[2],x[3],x[4],x[5],(x[6]-x[7])/2,(-x[6]+x[7])/2,(-x[6]-x[7])/2,(x[6]+x[7])/2]
+                            br = lambda x : [x[0],x[1],x[2],x[3],x[4],x[5],(x[6]-x[7])/2,(-x[6]+x[7])/2,(-x[6]-x[7])/2,(x[6]+x[7])/2]
+                            return BranchingRule(Rtype, Stype, br, "symmetric")
                 raise ValueError("Rule not found")
             elif Rtype[0] == 'F':
                 if stypes[0][0] == 'C' and stypes[0][1] == 3:
                     if stypes[1][0] == 'A' and stypes[1][1] == 1:
-                        return lambda x : [x[0]-x[1],x[2]+x[3],x[2]-x[3],(-x[0]-x[1])/2,(x[0]+x[1])/2]
+                        return BranchingRule(Rtype, Stype, lambda x : [x[0]-x[1],x[2]+x[3],x[2]-x[3],(-x[0]-x[1])/2,(x[0]+x[1])/2], "symmetric")
                 if stypes[0][0] == 'A' and stypes[0][1] == 1:
                     if stypes[1][0] == 'C' and stypes[1][1] == 3:
-                        return lambda x : [(-x[0]-x[1])/2,(x[0]+x[1])/2,x[0]-x[1],x[2]+x[3],x[2]-x[3]]
+                        return BranchingRule(Rtype, Stype, lambda x : [(-x[0]-x[1])/2,(x[0]+x[1])/2,x[0]-x[1],x[2]+x[3],x[2]-x[3]], "symmetric")
                 if stypes[0][0] == 'A' and stypes[1][0] == 'A':
                     if stypes[0][1] == 2 and stypes[1][1] == 2:
                         M = matrix(QQ,[(-2, -1, -1, 0), (1, 2, -1, 0), (1, -1, 2, 0), (1, -1, -1, 3), (1, -1, -1, -3), (-2, 2, 2, 0)])/3
@@ -2417,17 +2472,17 @@ def get_branching_rule(Rtype, Stype, rule):
                         M = matrix(QQ,[(-3, -1, -1, -1), (1, 3, -1, -1), (1, -1, 3, -1), (1, -1, -1, 3), (2, -2, -2, -2), (-2, 2, 2, 2)])/4
                     elif stypes[0][1] == 1 and stypes[1][1] == 3:
                         M = matrix(QQ,[(2, -2, -2, -2), (-2, 2, 2, 2), (-3, -1, -1, -1), (1, 3, -1, -1), (1, -1, 3, -1), (1, -1, -1, 3)])/4
-                    return lambda x : tuple(M*vector(x))
+                    return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "symmetric")
                 else:
                     raise ValueError("Rule not found")
             elif Rtype[0] == 'G':
                 if all(t[0] == 'A' and t[1] == 1 for t in stypes):
-                    return lambda x : [(x[1]-x[2])/2,-(x[1]-x[2])/2, x[0]/2, -x[0]/2]
+                    return BranchingRule(Rtype, Stype, lambda x : [(x[1]-x[2])/2,-(x[1]-x[2])/2, x[0]/2, -x[0]/2], "symmetric")
             else:
                 raise ValueError("Rule not found")
         else: # irreducible Stype
             if Rtype[0] == 'B' and Stype[0] == 'D':
-                return lambda x : x
+                return BranchingRule(Rtype, Stype, lambda x : x, "symmetric")
             elif Rtype[0] == 'E':
                 if r == 7:
                     if Stype[0] == 'A':
@@ -2439,7 +2494,7 @@ def get_branching_rule(Rtype, Stype, rule):
                                         (1, 1, 1, -3, 1, 1, 0, 0), \
                                         (1, 1, 1, 1, -3, 1, 2, 2), \
                                         (1, 1, 1, 1, 1, -3, 2, 2)])/4
-                        return lambda x : tuple(M*vector(x))
+                        return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "symmetric")
                 elif r == 8:
                     if Stype[0] == 'D':
                         return lambda x : [-x[7],x[6],x[5],x[4],x[3],x[2],x[1],x[0]]

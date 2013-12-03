@@ -630,6 +630,10 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             True
             sage: WordPaths('abcd') == Words("abcd",3)
             False
+            sage: Words(3) == Words(3,finite=False)
+            False
+            sage: Words(3) == Words(3,infinite=False)
+            False
         """
         from paths import WordPaths_all
         # Specific case of Words_over_Alphabet and WordPath. See #15480

@@ -36,7 +36,6 @@ An animated :class:`sage.plot.plot.GraphicsArray` of rotating ellipses::
     sage: E = animate(ellipses)
     sage: E         # animations produced from a generator do not have a known length
     Animation with unknown number of frames
-    sage: E[5]      # a single frame
     sage: E.show()  # optional -- ImageMagick
 
 A simple animation of a circle shooting up to the right::
@@ -422,11 +421,11 @@ class Animation(SageObject):
             sage: v = os.listdir(d); v.sort(); v
             ['00000000.png', '00000001.png', '00000002.png', '00000003.png']
         """
-        try:
-            return self._png_dir
-        except AttributeError:
-            pass
         if dir is None:
+            try:
+                return self._png_dir
+            except AttributeError:
+                pass
             d = tmp_dir()
         else:
             d = dir
@@ -568,7 +567,7 @@ www.ffmpeg.org, or use 'convert' to produce gifs instead."""
                 raise OSError, msg
         else:
             if not savefile:
-                savefile = sage.misc.temporary_file.graphics_filename(ext='gif')
+                savefile = tmp_filename(ext='gif')
             if not savefile.endswith('.gif'):
                 savefile += '.gif'
             savefile = os.path.abspath(savefile)
@@ -744,7 +743,7 @@ please install it and try again."""
             if not savefile:
                 if output_format is None:
                     output_format = 'mpg'
-                savefile = sage.misc.temporary_file.graphics_filename(ext=output_format)
+                savefile = tmp_filename(ext=output_format)
             else:
                 if output_format is None:
                     suffix = os.path.splitext(savefile)[1]

@@ -143,7 +143,7 @@ class kSchurFunctions_generic(sfa.SymmetricFunctionAlgebra_generic):
         """
         orig = el
         P = el.parent()
-        zero = self.base_ring()(0)
+        zero = self.base_ring().zero()
         out = {}
         while not el.is_zero():
             l = el.support()
@@ -338,9 +338,9 @@ class kSchurFunctions_t(kSchurFunctions_generic):
         pass
         if x in sage.combinat.partition.Partitions():
             if len(x) > 0 and max(x) > self.k:
-                return self(0)
+                return self.zero()
             x = sage.combinat.partition.Partition(x)
-            return self._from_dict({x:self.base_ring()(1)})
+            return self._from_dict({x:self.base_ring().one()})
 
 
     def _s_cache(self, n):
@@ -364,11 +364,11 @@ class kSchurFunctions_t(kSchurFunctions_generic):
         R = self.base_ring()
         t = self.t
         s = self._s
-        zero = s(0)
+        zero = s.zero()
 
         if n == 0:
             p = sage.combinat.partition.Partition([])
-            self._self_to_s_cache[0] = {p: {p:R(1)}}
+            self._self_to_s_cache[0] = {p: {p:R.one()}}
             return
         else:
             self._self_to_s_cache[n] = {}

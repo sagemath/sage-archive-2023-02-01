@@ -384,7 +384,7 @@ def test_signal_segv(long delay = DEFAULT_DELAY):
         sage: test_signal_segv()
         Traceback (most recent call last):
         ...
-        RuntimeError: Segmentation fault
+        SignalError: Segmentation fault
     """
     sig_on()
     signal_after_delay(SIGSEGV, delay)
@@ -398,7 +398,7 @@ def test_signal_fpe(long delay = DEFAULT_DELAY):
         sage: test_signal_fpe()
         Traceback (most recent call last):
         ...
-        RuntimeError: Floating point exception
+        FloatingPointError: Floating point exception
     """
     sig_on()
     signal_after_delay(SIGFPE, delay)
@@ -412,7 +412,7 @@ def test_signal_ill(long delay = DEFAULT_DELAY):
         sage: test_signal_ill()
         Traceback (most recent call last):
         ...
-        RuntimeError: Illegal instruction
+        SignalError: Illegal instruction
     """
     sig_on()
     signal_after_delay(SIGILL, delay)
@@ -440,7 +440,7 @@ def test_signal_bus(long delay = DEFAULT_DELAY):
         sage: test_signal_bus()
         Traceback (most recent call last):
         ...
-        RuntimeError: Bus error
+        SignalError: Bus error
     """
     sig_on()
     signal_after_delay(SIGBUS, delay)
@@ -478,7 +478,7 @@ def test_dereference_null_pointer():
         sage: test_dereference_null_pointer()
         Traceback (most recent call last):
         ...
-        RuntimeError: ...
+        SignalError: ...
     """
     sig_on()
     dereference_null_pointer()

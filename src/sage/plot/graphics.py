@@ -2596,27 +2596,27 @@ class Graphics(SageObject):
 
         return figure
 
-        def save_image(self, filename=None, *args, **kwds): 
-            r""" 
-            Save an image representation of self.  The image type is 
-            determined by the extension of the filename.  For example, 
-            this could be ``.png``, ``.jpg``, ``.gif``, ``.pdf``, 
-            ``.svg``.  Currently this is implemented by calling the 
-            :meth:`save` method of self, passing along all arguments and 
-            keywords. 
+    def save_image(self, filename=None, *args, **kwds): 
+        r""" 
+        Save an image representation of self.  The image type is 
+        determined by the extension of the filename.  For example, 
+        this could be ``.png``, ``.jpg``, ``.gif``, ``.pdf``, 
+        ``.svg``.  Currently this is implemented by calling the 
+        :meth:`save` method of self, passing along all arguments and 
+        keywords. 
             
-            .. Note:: 
+        .. Note:: 
             
-                Not all image types are necessarily implemented for all 
-                graphics types.  See :meth:`save` for more details. 
+            Not all image types are necessarily implemented for all 
+            graphics types.  See :meth:`save` for more details. 
 
-            EXAMPLES:: 
+        EXAMPLES:: 
  
-                sage: c = circle((1,1), 1, color='red') 
-                sage: filename = os.path.join(SAGE_TMP, 'test.png') 
-                sage: c.save_image(filename, xmin=-1, xmax=3, ymin=-1, ymax=3) 
-            """ 
-            self.save(filename, *args, **kwds) 
+            sage: c = circle((1,1), 1, color='red') 
+            sage: filename = os.path.join(SAGE_TMP, 'test.png') 
+            sage: c.save_image(filename, xmin=-1, xmax=3, ymin=-1, ymax=3) 
+        """ 
+        self.save(filename, *args, **kwds) 
 
     
     # ALLOWED_EXTENSIONS is the list of recognized formats.

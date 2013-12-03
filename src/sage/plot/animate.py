@@ -432,11 +432,14 @@ class Animation(SageObject):
         G = self._frames
         for i, frame in enumerate(self._frames):
             filename = '%s/%s'%(d,sage.misc.misc.pad_zeros(i,8))
-            frame.save(filename + '.png', **self._kwds)
+            try:
+                frame.save(filename + '.png', **self._kwds)
+            except (AttributeError,TypeError):
+                self.make_image(frame, filename + '.png', **self._kwds)
         self._png_dir = d
         return d
 
-    def graphics_array(self, ncols=3, nrows=None):
+    def graphics_array(self, ncols=3):
         r"""
         Return a :class:`sage.plot.plot.GraphicsArray` with plots of the
         frames of this animation, using the given number of columns.
@@ -453,34 +456,33 @@ class Animation(SageObject):
             Animation with 4 frames
             sage: a.show() # optional -- ImageMagick
 
-        ::
+        Modify the default arrangement of array::
 
-            sage: g = a.graphics_array()
-            sage: print g
-            Graphics Array of size 1 x 3
+            sage: g = a.graphics_array(); print g
+            Graphics Array of size 2 x 3
             sage: g.show(figsize=[4,1]) # optional
 
-        ::
+        Specify different arrangement of array and save with different file name::
 
-            sage: g = a.graphics_array(ncols=2)
-            sage: print g
+            sage: g = a.graphics_array(ncols=2); print g
             Graphics Array of size 2 x 2
             sage: g.show('sage.png') # optional
 
-        ::
+        Frames can be specified as a generator too; it is internally converted to a list::
 
-            sage: b = animate((sin(c*pi*t) for c in sxrange(1,2,.2)))
-            sage: g = b.graphics_array(ncols=2,nrows=5)
+            sage: t = var('t')
+            sage: b = animate((plot(sin(c*pi*t)) for c in sxrange(1,2,.2)))
+            sage: g = b.graphics_array(); print g
+            Graphics Array of size 2 x 3
             sage: g.show() # optional
         """
         ncols = int(ncols)
-        if nrows is None:
-            try:
-                n = len(self)
-                nrows = int(n/ncols)
-            except TypeError:
-                raise ValueError("Cannot determine number of rows for graphics array; please specify explicitly")
-        return plot.graphics_array(self._frames, nrows,  ncols)
+        frame_list = list(self._frames)
+        n = len(frame_list)
+        nrows, rem = divmod(n,ncols)
+        if rem > 0:
+            nrows += 1
+        return plot.graphics_array(frame_list, nrows,  ncols)
 
     def gif(self, delay=20, savefile=None, iterations=0, show_path=False,
             use_ffmpeg=False):

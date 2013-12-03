@@ -192,8 +192,16 @@ class Yangian(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: Y = Yangian(QQ, 4)
+            sage: Y.gen(2,1,1).degree()
+            2
+            sage: x.degree()
+            20
+            sage: elt = Y.gen(2, 1, 1) * Y.gen(10,3,1); elt
+            t(11)[3,1] + t(10)[3,1] + t(2)[1,1]*t(10)[3,1]
+             + t(1)[1,1]*t(10)[3,1] - t(1)[3,1]*t(10)[1,1]
+            sage: for s in elt.support(): s, Y.degree_on_basis(s)
         """
-        return sum(r[0] for r in m)
+        return sum(r[0][0] * r[1] for r in m._sorted_items())
 
     def dimension(self):
         """
@@ -215,6 +223,9 @@ class Yangian(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: Y = Yangian(QQ, 4)
+            sage: Y.gen(12, 2, 1) * Y.gen(2, 1, 1) # indirect doctest
+            -t(1)[2,1]*t(12)[1,1] + t(13)[2,1] + t(2)[1,1]*t(12)[2,1]
+             + t(1)[1,1]*t(12)[2,1] + t(12)[2,1]
         """
         # If x or y indexed by (), it is 1, so return the other
         if len(x) == 0:
@@ -229,7 +240,7 @@ class Yangian(CombinatorialFreeModule):
         #   a time until all have been applied
         if len(x) != 1:
             cur = self.monomial(y)
-            for gen,exp in reversed(x):
+            for gen,exp in reversed(list(x)):
                 for i in range(exp):
                     cur = self.monomial(gen) * cur
             return cur
@@ -276,6 +287,19 @@ class Yangian(CombinatorialFreeModule):
             \sum t_{ab}^{(m)} t_{cd}^{(l)}
 
         where `m + l < r + s` and `t_{ab}^{(m)} < t_{cd}^{(l)}`.
+
+        EXAMPLES::
+
+            sage: Y.product_on_gens((2,1,1), (12,2,1))
+            t(2)[1,1]*t(12)[2,1]
+            sage: Y.gen(2, 1, 1) * Y.gen(12, 2, 1)
+            t(2)[1,1]*t(12)[2,1]
+            sage: Y.product_on_gens((12,2,1), (2,1,1))
+            -t(1)[2,1]*t(12)[1,1] + t(13)[2,1] + t(2)[1,1]*t(12)[2,1]
+             + t(1)[1,1]*t(12)[2,1] + t(12)[2,1]
+            sage: Y.gen(12, 2, 1) * Y.gen(2, 1, 1)
+            -t(1)[2,1]*t(12)[1,1] + t(13)[2,1] + t(2)[1,1]*t(12)[2,1]
+             + t(1)[1,1]*t(12)[2,1] + t(12)[2,1]
         """
         I = self._indices
         if a <= b:
@@ -293,6 +317,18 @@ class Yangian(CombinatorialFreeModule):
     def coproduct_on_basis(self, m):
         """
         Return the coproduct on the basis element indexed by ``m``.
+
+        EXAMPLES::
+
+            sage: Y.gen(2,1,1).coproduct() # indirect doctest
+            1 # t(2)[1,1] + t(1)[1,1] # t(1)[1,1] + t(2)[1,1] # 1
+             + t(1)[1,4] # t(1)[4,1] + t(1)[1,2] # t(1)[2,1] + t(1)[1,3] # t(1)[3,1]
+            sage: Y.gen(2,3,1).coproduct()
+            1 # t(2)[3,1] + t(1)[3,4] # t(1)[4,1] + t(1)[3,3] # t(1)[3,1]
+             + t(1)[3,2] # t(1)[2,1] + t(2)[3,1] # 1 + t(1)[3,1] # t(1)[1,1]
+            sage: Y.gen(2,2,3).coproduct()
+            t(1)[2,2] # t(1)[2,3] + t(1)[2,4] # t(1)[4,3] + t(1)[2,3] # t(1)[3,3]
+             + t(1)[2,1] # t(1)[1,3] + 1 # t(2)[2,3] + t(2)[2,3] # 1
         """
         T = self.tensor_square()
         I = self._indices
@@ -303,15 +339,6 @@ class Yangian(CombinatorialFreeModule):
                                         for s in range(1, a[0])])
                       for a,exp in m._sorted_items() for p in range(exp))
 
-#    def antipode_on_basis(self, m):
-#        """
-#        Return the antipode on the basis element indexed by ``m``.
-#
-#        EXAMPLES::
-#
-#            sage: Y = Yangian(QQ, 4)
-#        """
-
     def counit_on_basis(self, m):
         """
         Return the antipode on the basis element indexed by ``m``.
@@ -319,9 +346,9 @@ class Yangian(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: Y = Yangian(QQ, 4)
-            sage: Y.antipode_on_basis(((2, 1, 1),))
+            sage: Y.gen(2,3,1).counit() # indirect doctest
             0
-            sage: Y.antipode_on_basis(())
+            sage: Y.gen(0,0,0).counit()
             1
         """
         if len(m) == 0:

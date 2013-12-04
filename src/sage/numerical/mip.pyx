@@ -170,7 +170,6 @@ from sage.structure.sage_object cimport SageObject
 from sage.misc.cachefunc import cached_method
 from sage.numerical.linear_functions import is_LinearFunction, is_LinearConstraint
 
-
 cdef class MixedIntegerLinearProgram(SageObject):
     r"""
     The ``MixedIntegerLinearProgram`` class is the link between Sage, linear
@@ -358,7 +357,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         Return the parent for all linear constraints
 
-        See :mod:`~sage.numerical.linear_constraints` for more
+        See :mod:`~sage.numerical.linear_functions` for more
         details.
 
         EXAMPLES::
@@ -527,14 +526,10 @@ cdef class MixedIntegerLinearProgram(SageObject):
         argument you may like, as ``x[5]`` or ``x["b"]``, and has methods
         ``items()`` and ``keys()``.
 
-        Any of its fields exists, and is uniquely defined.
+        .. WARNING::
 
-        By default, all ``x[i]`` are assumed to be non-negative
-        reals. They can be defined as binary through the parameter
-        ``binary=True`` (or integer with ``integer=True``). Lower and
-        upper bounds can be defined or re-defined (for instance when you want
-        some variables to be negative) using ``MixedIntegerLinearProgram`` methods
-        ``set_min`` and ``set_max``.
+            By default, all ``x[i]`` are assumed to be non-negative. See
+            :meth:`set_min` to set a different lower bound.
 
         INPUT:
 
@@ -549,6 +544,14 @@ cdef class MixedIntegerLinearProgram(SageObject):
         - ``name`` (string) -- Associates a name to the variable. This is
           only useful when exporting the linear program to a file using
           ``write_mps`` or ``write_lp``, and has no other effect.
+
+        .. SEEALSO::
+
+            - :meth:`set_min`,:meth:`get_min` -- set/get the lower bound of a
+              variable. Note that by default, all variables are non-negative.
+
+            - :meth:`set_max`,:meth:`get_max` -- set/get the upper bound of a
+              variable.
 
         EXAMPLE::
 
@@ -739,11 +742,11 @@ cdef class MixedIntegerLinearProgram(SageObject):
         INPUT:
 
         All arguments given to this method are forwarded to the constructor of
-        the :class:`Polyhedron` class.
+        the :func:`Polyhedron` class.
 
         OUTPUT:
 
-        A :class:`Polyhedron` object whose `i`-th variable represents the `i`-th
+        A :func:`Polyhedron` object whose `i`-th variable represents the `i`-th
         variable of ``self``.
 
         .. warning::
@@ -1739,14 +1742,11 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         return self._backend.is_variable_continuous(self._variables[e])
 
-    def solve(self, solver=None, log=None, objective_only=False):
+    def solve(self, log=None, objective_only=False):
         r"""
         Solves the ``MixedIntegerLinearProgram``.
 
         INPUT:
-
-        - ``solver`` -- DEPRECATED -- the solver now has to be set
-          when calling the class' constructor
 
         - ``log`` -- integer (default: ``None``) The verbosity level. Indicates
           whether progress should be printed during computation. The solver is
@@ -1761,6 +1761,11 @@ cdef class MixedIntegerLinearProgram(SageObject):
         OUTPUT:
 
         The optimal value taken by the objective function.
+
+        .. WARNING::
+
+            By default, all variables of a LP are assumed to be positive. See
+            :meth:`set_min` to change it.
 
         EXAMPLES:
 
@@ -1813,9 +1818,6 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.solve()
             9.0
         """
-        if solver != None:
-            raise ValueError("Solver argument deprecated. This parameter now has to be set when calling the class' constructor")
-
         if log != None: self._backend.set_verbosity(log)
 
         self._backend.solve()
@@ -1826,12 +1828,20 @@ cdef class MixedIntegerLinearProgram(SageObject):
         r"""
         Sets the minimum value of a variable.
 
+        .. WARNING::
+
+            By default, all variables are defined to be non-negative.
+
         INPUT:
 
         - ``v`` -- a variable (not a ``MIPVariable``, but one of its
           elements).
         - ``min`` -- the minimum value the variable can take.
           When ``min=None``, the variable has no lower bound.
+
+        .. SEEALSO::
+
+            - :meth:`get_min` -- get the minimum value of a variable.
 
         EXAMPLE::
 
@@ -1994,13 +2004,14 @@ cdef class MixedIntegerLinearProgram(SageObject):
     cpdef sum(self, L):
         r"""
         Efficiently computes the sum of a sequence of
-        :class:`~sage.numerical.linear_function.LinearFunction` elements
+        :class:`~sage.numerical.linear_functions.LinearFunction` elements
 
         INPUT:
 
         - ``mip`` -- the :class:`MixedIntegerLinearProgram` parent.
 
-        - ``L`` -- list of :class:`~sage.numerical.linear_function.LinearFunction` instances.
+        - ``L`` -- list of
+          :class:`~sage.numerical.linear_functions.LinearFunction` instances.
 
         .. NOTE::
 
@@ -2025,7 +2036,6 @@ cdef class MixedIntegerLinearProgram(SageObject):
             for id,coeff  in v.iteritems():
                 d[id] = coeff + d.get(id,0)
         return self.linear_functions_parent()(d)
-
 
     def get_backend(self):
         r"""

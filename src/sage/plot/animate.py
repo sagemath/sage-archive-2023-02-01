@@ -28,7 +28,8 @@ The sine function::
 
 Animate using ffmpeg instead of ImageMagick::
 
-    sage: a.show(use_ffmpeg=True) # optional -- ffmpeg
+    sage: f = sage.misc.temporary_file.tmp_filename(ext='.gif')
+    sage: a.save(filename=f,use_ffmpeg=True) # optional -- ffmpeg
 
 An animated :class:`sage.plot.graphics.GraphicsArray` of rotating ellipses::
 
@@ -64,7 +65,6 @@ Animations of 3d objects::
     sage: a = animate([frame(t) for t in srange(.01,1.5,.2)])
     sage: a[0]       # first frame
     sage: a.show()   # optional -- ImageMagick
-
 
 If the input objects do not have a ``save_image`` method, then the
 animation object attempts to make an image by calling its internal
@@ -175,6 +175,14 @@ class Animation(SageObject):
         sage: a = animate([plot(sin(x + float(k)), (0, 2*pi), ymin=-5, ymax=5)
         ...            for k in srange(0,2*pi,0.3)])
         sage: a.show() # optional -- ImageMagick
+
+    Do not convert input iterator to a list::
+
+        sage: a = animate((x^p for p in sxrange(1,2,.1))); a
+        Animation with unknown number of frames
+        sage: a._frames
+        <generator object ...
+        
     """
     def __init__(self, v=None, **kwds):
         r"""
@@ -247,13 +255,12 @@ class Animation(SageObject):
 
         EXAMPLES::
 
-            sage: a = animate([x, x^2, x^3, x^4])
-            sage: frame2 = a[2]       # indirect doctest
-            sage: frame2.show()       # optional -- ImageMagick
             sage: a = animate([circle((i,-i), 1-1/(i+1), hue=i/10) for i in srange(0,2,0.2)],
             ...               xmin=0,ymin=-2,xmax=2,ymax=0,figsize=[2,2])
             sage: a
             Animation with 10 frames
+            sage: frame2 = a[2]
+            sage: frame2.show()
             sage: a.show() # optional -- ImageMagick
             sage: a[3:7]   # indirect doctest
             Animation with 4 frames
@@ -539,8 +546,8 @@ class Animation(SageObject):
             sage: a.gif(savefile=dir + 'my_animation.gif', delay=35, iterations=3)  # optional -- ImageMagick
             sage: a.gif(savefile=dir + 'my_animation.gif', show_path=True) # optional -- ImageMagick
             Animation saved to .../my_animation.gif.
-            sage: a.gif(savefile=dir + 'my_animation.gif', show_path=True, use_ffmpeg=True) # optional -- ffmpeg
-            Animation saved to .../my_animation.gif.
+            sage: a.gif(savefile=dir + 'my_animation_2.gif', show_path=True, use_ffmpeg=True) # optional -- ffmpeg
+            Animation saved to .../my_animation_2.gif.
 
         .. note::
 
@@ -564,7 +571,7 @@ class Animation(SageObject):
         if use_ffmpeg or not have_convert:
             if have_ffmpeg:
                 self.ffmpeg(savefile=savefile, show_path=show_path,
-                            output_format='gif', delay=delay,
+                            output_format='.gif', delay=delay,
                             iterations=iterations)
             else:
                 if not have_convert:
@@ -680,8 +687,8 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         return have_program('ffmpeg')
 
     def ffmpeg(self, savefile=None, show_path=False, output_format=None,
-               ffmpeg_options='', delay=None, iterations=0, verbose=False):
-        """
+               ffmpeg_options='', delay=None, iterations=0):
+        r"""
         Returns a movie showing an animation composed from rendering
         the frames in self.
 
@@ -703,7 +710,7 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
           suffix to use for the video.  This may be 'mpg', 'mpeg',
           'avi', 'gif', or any other format that ffmpeg can handle.
           If this is None and the user specifies ``savefile`` with a
-          suffix, say ``savefile=animation.avi``, try to determine the
+          suffix, say ``savefile='animation.avi'``, try to determine the
           format ('avi' in this case) from that file name.  If no file
           is specified or if the suffix cannot be determined, 'mpg' is
           used.
@@ -720,11 +727,10 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
           of animation. If 0, loop forever.  This is only supported
           for animated gif output.
 
-        - ``verbose`` - boolean (default: False); if True, print
-          messages produced by the ffmpeg command.
-
-        If ``savefile`` is not specified: in notebook mode, display the
-        animation; otherwise, save it to a default file name.
+        If ``savefile`` is not specified: in notebook mode, display
+        the animation; otherwise, save it to a default file name.  Use
+        :func:`sage.misc.misc.set_verbose` with ``level=1`` to see
+        additional output.
 
         EXAMPLES::
 
@@ -754,7 +760,7 @@ a movie file in any format other than GIF requires this software, so
 please install it and try again."""
             raise OSError, msg
         else:
-            if not savefile:
+            if savefile is None:
                 if output_format is None:
                     output_format = '.mpg'
                 else:
@@ -785,11 +791,13 @@ please install it and try again."""
             cmd = 'cd "%s"; sage-native-execute ffmpeg -y -f image2 %s -i %s %s %s' % (pngdir, early_options, pngs, ffmpeg_options, savefile)
             from subprocess import check_call, CalledProcessError, PIPE
             try:
-                if verbose:
-                    print "Executing %s " % cmd
-                    check_call(cmd, shell=True)
+                if sage.misc.misc.get_verbose() > 0:
+                    set_stderr = None
                 else:
-                    check_call(cmd, shell=True, stderr=PIPE)
+                    set_stderr = PIPE
+                sage.misc.misc.verbose("Executing '%s'" % cmd,level=1)
+                sage.misc.misc.verbose("\n---- ffmpeg output below ----\n")
+                check_call(cmd, shell=True, stderr=set_stderr)
                 if show_path:
                     print "Animation saved to file %s." % savefile
             except (CalledProcessError, OSError):

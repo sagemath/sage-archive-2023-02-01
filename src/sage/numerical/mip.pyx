@@ -41,7 +41,7 @@ A mixed integer linear program can give you an answer:
      :meth:`add_constraint <sage.numerical.mip.MixedIntegerLinearProgram.add_constraint>`.
   #. Also add the inequality constraint.
   #. Add an inequality constraint `w_3 \geq 1` to exclude the trivial solution.
-  #. By default, all variables have a minimum of `0`. We remove that constraint
+  #. By default, all variables are non-negative. We remove that constraint
      via ``p.set_min(variable, None)``, see :meth:`set_min <sage.numerical.mip.MixedIntegerLinearProgram.set_min>`.
   #. Specify the objective function via :meth:`set_objective <sage.numerical.mip.MixedIntegerLinearProgram.set_objective>`.
      In our case that is just `w_3`. If it
@@ -175,19 +175,17 @@ cdef class MixedIntegerLinearProgram(SageObject):
     The ``MixedIntegerLinearProgram`` class is the link between Sage, linear
     programming (LP) and mixed integer programming (MIP) solvers.
 
-    See the Wikipedia article on `linear programming
-    <http://en.wikipedia.org/wiki/Linear_programming>`_ for further information
-    on linear programming and the documentation of the :mod:`MILP module
-    <sage.numerical.mip>` for its use in Sage.
+    A Mixed Integer Linear Program (MILP) consists of variables, linear
+    constraints on these variables, and an objective function which is to be
+    maximised or minimised under these constraints.
 
-    A mixed integer program consists of variables, linear constraints on these
-    variables, and an objective function which is to be maximised or minimised
-    under these constraints. An instance of ``MixedIntegerLinearProgram`` also
-    requires the information on the direction of the optimization.
+    See the :wikipedia:`Linear_programming` for further information on linear
+    programming, and the :mod:`MILP module <sage.numerical.mip>` for its use in
+    Sage.
 
     INPUT:
 
-    - ``solver`` -- the following solvers should be available through this class:
+    - ``solver`` -- selects a solver:
 
       - GLPK (``solver="GLPK"``). See the `GLPK
         <http://www.gnu.org/software/glpk/>`_ web site.
@@ -205,7 +203,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
           web site.
 
       - If ``solver=None`` (default), the default solver is used (see
-        ``default_mip_solver`` method.
+        :func:`default_mip_solver`)
 
     - ``maximization``
 
@@ -217,6 +215,11 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
     - ``constraint_generation`` -- whether to require the returned solver to
       support constraint generation (excludes Coin). ``False by default``.
+
+    .. WARNING::
+
+        All LP variables are non-negative by default (see :meth:`new_variable`
+        and :meth:`set_min`).
 
     .. SEEALSO::
 

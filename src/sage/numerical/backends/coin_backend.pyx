@@ -979,10 +979,21 @@ cdef class CoinBackend(GenericBackend):
             sage: p.variable_upper_bound(0, 5)                         # optional - Coin
             sage: p.col_bounds(0)                              # optional - Coin
             (0.0, 5.0)
+
+        TESTS:
+
+        :trac:`14581`::
+
+            sage: P = MixedIntegerLinearProgram(solver="Coin") # optional - Coin
+            sage: x = P["x"]                                   # optional - Coin
+            sage: P.set_max(x, 0)                              # optional - Coin
+            sage: P.get_max(x)                                 # optional - Coin
+            0.0
+
         """
         cdef double * ub
 
-        if value == False:
+        if value is False:
             ub = <double*> self.si.getColUpper()
             return ub[index] if ub[index] != + self.si.getInfinity() else None
         else:
@@ -1011,10 +1022,21 @@ cdef class CoinBackend(GenericBackend):
             sage: p.variable_lower_bound(0, 5)                         # optional - Coin
             sage: p.col_bounds(0)                              # optional - Coin
             (5.0, None)
+
+        TESTS:
+
+        :trac:`14581`::
+
+            sage: P = MixedIntegerLinearProgram(solver="Coin") # optional - Coin
+            sage: x = P["x"]                                   # optional - Coin
+            sage: P.set_min(x, 5)                              # optional - Coin
+            sage: P.set_min(x, 0)                              # optional - Coin
+            sage: P.get_min(x)                                 # optional - Coin
+            0.0
         """
         cdef double * lb
 
-        if value == False:
+        if value is False:
             lb = <double*> self.si.getColLower()
             return lb[index] if lb[index] != - self.si.getInfinity() else None
         else:

@@ -27,16 +27,16 @@ and this additional inequality:
 
  - `w_0 - w_1 - w_2 \geq 0`
 
-where all `w_i \in \mathbb{Z}`. You know that the trivial solution is
-`w_i = 0 \; \forall i`, but what is the first non-trivial one with
-`w_3 \geq 1`?
+where all `w_i \in \mathbb{Z}^+`. You know that the trivial solution is `w_i=0`,
+but what is the first non-trivial one with `w_3 \geq 1`?
 
 A mixed integer linear program can give you an answer:
 
   #. You have to create an instance of :class:`MixedIntegerLinearProgram` and
      -- in our case -- specify that it is a minimization.
-  #. Create a variable vector ``w`` via ``w = p.new_variable(integer=True)`` and
-     tell the system that it is over the integers.
+  #. Create an dictionary ``w`` of integer variables ``w`` via ``w =
+     p.new_variable(integer=True)`` (note that **by default all variables are
+     non-negative**, cf :meth:`~MixedIntegerLinearProgram.new_variable`).
   #. Add those three equations as equality constraints via
      :meth:`add_constraint <sage.numerical.mip.MixedIntegerLinearProgram.add_constraint>`.
   #. Also add the inequality constraint.
@@ -53,7 +53,7 @@ A mixed integer linear program can give you an answer:
 The following example shows all these steps::
 
     sage: p = MixedIntegerLinearProgram(maximization=False, solver = "GLPK")
-    sage: w = p.new_variable(integer=True)
+    sage: w = p.new_variable(integer=True) # all variables are non-negative by default
     sage: p.add_constraint(w[0] + w[1] + w[2] - 14*w[3] == 0)
     sage: p.add_constraint(w[1] + 2*w[2] - 8*w[3] == 0)
     sage: p.add_constraint(2*w[2] - 3*w[3] == 0)

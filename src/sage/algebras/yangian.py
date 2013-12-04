@@ -31,6 +31,11 @@ class Yangian(CombinatorialFreeModule):
     r"""
     The Yangian `Y(\mathfrak{gl}_n)`.
 
+    .. NOTE::
+
+        We using the grading defined by `\deg t_{ij}^{(r)} = r - 1` as opposed
+        to the natural filtering of `\deg t_{ij}^{(r)} = r`.
+
     INPUT:
 
     - ``base_ring`` -- the base ring
@@ -49,14 +54,20 @@ class Yangian(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: Yangian(QQ, 4)
-            The Yangian of gl(4) over Rational Field
-            sage: Yangian(QQ, 4, 3)
-            The Yangian of level 3 of gl(4) over Rational Field
+            sage: Y = Yangian(QQ, 4)
+            sage: Y2 = Yangian(QQ, 4)
+            sage: Y is Y2
+            True
+            sage: YL = Yangian(QQ, 4, 3)
+            sage: YL2 = Yangian(QQ, 4, 3)
+            sage: YL is YL2
+            True
         """
         if level is not None:
             return YangianLevel(base_ring, n, level, variable_name)
-        return super(Yangian, cls).__classcall__(cls, base_ring, n, variable_name)
+        # We need to specify the parameter name for pickling, so it doesn't pass
+        #   ``variable_name`` as ``level``
+        return super(Yangian, cls).__classcall__(cls, base_ring, n, variable_name=variable_name)
 
     def __init__(self, base_ring, n, variable_name):
         r"""
@@ -65,7 +76,7 @@ class Yangian(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: Y = Yangian(QQ, 4)
-            sage: TestSuite(Y).run()
+            sage: TestSuite(Y).run(skip="_test_antipode")
         """
         self._n = n
         category = HopfAlgebrasWithBasis(base_ring).Graded()
@@ -97,7 +108,7 @@ class Yangian(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: Y = Yangian(QQ, 4)
-            sage: I = Y.indices
+            sage: I = Y._indices
             sage: Y._repr_term(I.gen((3,1,2)) * I.gen((4,3,1)))
             't(3)[1,2]*t(4)[3,1]'
         """
@@ -116,6 +127,7 @@ class Yangian(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: Y = Yangian(QQ, 4)
+            sage: I = Y._indices
             sage: Y._latex_term(I.gen((3,1,2)) * I.gen((4,3,1)))
             't^{(3)}_{1,2} t^{(4)}_{3,1}'
         """
@@ -156,7 +168,7 @@ class Yangian(CombinatorialFreeModule):
 
             sage: Y = Yangian(QQ, 4)
             sage: Y.ngens()
-            +Infinty
+            +Infinity
         """
         return infinity
 
@@ -169,7 +181,7 @@ class Yangian(CombinatorialFreeModule):
 
             sage: Y = Yangian(QQ, 4)
             sage: Y.one_basis()
-            ()
+            1
         """
         return self._indices.one()
 
@@ -189,19 +201,28 @@ class Yangian(CombinatorialFreeModule):
         """
         Return the degree of the monomial index by ``m``.
 
+        The degree of `t_{ij}^{(r)}` is equal to `r - 1`.
+
         EXAMPLES::
 
             sage: Y = Yangian(QQ, 4)
             sage: Y.gen(2,1,1).degree()
-            2
+            1
+            sage: x = Y.gen(5,2,3)^4
             sage: x.degree()
-            20
-            sage: elt = Y.gen(2, 1, 1) * Y.gen(10,3,1); elt
-            t(11)[3,1] + t(10)[3,1] + t(2)[1,1]*t(10)[3,1]
-             + t(1)[1,1]*t(10)[3,1] - t(1)[3,1]*t(10)[1,1]
+            16
+            sage: elt = Y.gen(10,3,1) * Y.gen(2,1,1) * Y.gen(1,2,4); elt
+            -t(1)[3,1]*t(10)[1,1]*t(10)[1,1] + t(1)[2,4]*t(11)[3,1]
+             + t(1)[1,1]*t(1)[2,4]*t(10)[3,1] + t(1)[2,4]*t(10)[3,1]
+             + t(2)[1,1]*t(10)[3,1]*t(10)[3,1]
             sage: for s in elt.support(): s, Y.degree_on_basis(s)
+            (t[1, 1, 1]*t[1, 2, 4]*t[10, 3, 1], 9)
+            (t[1, 2, 4]*t[10, 3, 1], 9)
+            (t[1, 2, 4]*t[11, 3, 1], 10)
+            (t[1, 3, 1]*t[10, 1, 1]^2, 18)
+            (t[2, 1, 1]*t[10, 3, 1]^2, 19)
         """
-        return sum(r[0][0] * r[1] for r in m._sorted_items())
+        return sum(max(0, r[0][0] - 1) * r[1] for r in m._sorted_items())
 
     def dimension(self):
         """
@@ -254,7 +275,7 @@ class Yangian(CombinatorialFreeModule):
         if rhs[0][1] == 1:
             rhs.pop(0)
         else:
-            rhs[0] = (rhs[0], rhs[1]-1)
+            rhs[0] = (rhs[0][0], rhs[0][1]-1)
         rem_y = self._indices.element_class(self._indices, dict(rhs))
         return self.product_on_gens(tuple(x.support()[0]), tuple(rhs[0][0])) * self.monomial(rem_y)
 
@@ -290,6 +311,7 @@ class Yangian(CombinatorialFreeModule):
 
         EXAMPLES::
 
+            sage: Y = Yangian(QQ, 4)
             sage: Y.product_on_gens((2,1,1), (12,2,1))
             t(2)[1,1]*t(12)[2,1]
             sage: Y.gen(2, 1, 1) * Y.gen(12, 2, 1)
@@ -320,15 +342,16 @@ class Yangian(CombinatorialFreeModule):
 
         EXAMPLES::
 
+            sage: Y = Yangian(QQ, 4)
             sage: Y.gen(2,1,1).coproduct() # indirect doctest
-            1 # t(2)[1,1] + t(1)[1,1] # t(1)[1,1] + t(2)[1,1] # 1
-             + t(1)[1,4] # t(1)[4,1] + t(1)[1,2] # t(1)[2,1] + t(1)[1,3] # t(1)[3,1]
+            1 # t(2)[1,1] + t(1)[1,1] # t(1)[1,1] + t(1)[1,2] # t(1)[2,1]
+             + t(1)[1,3] # t(1)[3,1] + t(1)[1,4] # t(1)[4,1] + t(2)[1,1] # 1
             sage: Y.gen(2,3,1).coproduct()
-            1 # t(2)[3,1] + t(1)[3,4] # t(1)[4,1] + t(1)[3,3] # t(1)[3,1]
-             + t(1)[3,2] # t(1)[2,1] + t(2)[3,1] # 1 + t(1)[3,1] # t(1)[1,1]
+            1 # t(2)[3,1] + t(1)[3,1] # t(1)[1,1] + t(1)[3,2] # t(1)[2,1]
+             + t(1)[3,3] # t(1)[3,1] + t(1)[3,4] # t(1)[4,1] + t(2)[3,1] # 1
             sage: Y.gen(2,2,3).coproduct()
-            t(1)[2,2] # t(1)[2,3] + t(1)[2,4] # t(1)[4,3] + t(1)[2,3] # t(1)[3,3]
-             + t(1)[2,1] # t(1)[1,3] + 1 # t(2)[2,3] + t(2)[2,3] # 1
+            1 # t(2)[2,3] + t(1)[2,1] # t(1)[1,3] + t(1)[2,2] # t(1)[2,3]
+             + t(1)[2,3] # t(1)[3,3] + t(1)[2,4] # t(1)[4,3] + t(2)[2,3] # 1
         """
         T = self.tensor_square()
         I = self._indices
@@ -366,7 +389,7 @@ class YangianLevel(Yangian):
         EXAMPLES::
 
             sage: Y = Yangian(QQ, 4, 3)
-            sage: TestSuite(Y).run()
+            sage: TestSuite(Y).run(skip="_test_antipode")
         """
         self._level = level
         Yangian.__init__(self, base_ring, n, variable_name)
@@ -433,15 +456,14 @@ class YangianLevel(Yangian):
 
             sage: Y = Yangian(QQ, 2, 2)
             sage: Y.quantum_determinant()
-            u^4
-             + (-2 + t(1)[1,1] + t(1)[2,2])*u^3
-             + (1 - t(1)[1,1] + t(1)[1,1]*t(1)[2,2] - t(1)[1,2]*t(1)[2,1]
-                - 2*t(1)[2,2] + t(2)[1,1] + t(2)[2,2])*u^2
-             + (-t(1)[1,1]*t(1)[2,2] + t(1)[1,1]*t(2)[2,2]
-                + t(1)[1,2]*t(1)[2,1] - t(1)[1,2]*t(2)[2,1] - t(1)[2,1]*t(2)[1,2]
-                + t(1)[2,2] + t(1)[2,2]*t(2)[1,1] - t(2)[1,1] - t(2)[2,2])*u
-             - t(1)[1,1]*t(2)[2,2] + t(1)[1,2]*t(2)[2,1] + t(2)[1,1]*t(2)[2,2]
-                - t(2)[1,2]*t(2)[2,1] + t(2)[2,2] + t(3)[1,1] - t(3)[2,2]
+            u^4 + (-2 + t(1)[1,1] + t(1)[2,2])*u^3
+             + (t(2)[1,1] + 1 - t(1)[1,1] + t(2)[2,2] + t(1)[1,1]*t(1)[2,2]
+                - t(1)[1,2]*t(1)[2,1] - 2*t(1)[2,2])*u^2
+             + (-t(1)[1,2]*t(2)[2,1] + t(1)[1,1]*t(2)[2,2]
+                + t(1)[1,2]*t(1)[2,1] - t(2)[1,1] + t(1)[2,2]*t(2)[1,1] - t(2)[2,2]
+                - t(1)[1,1]*t(1)[2,2] - t(1)[2,1]*t(2)[1,2] + t(1)[2,2])*u
+             + t(1)[1,2]*t(2)[2,1] - t(2)[1,2]*t(2)[2,1] - t(3)[2,2]
+                - t(1)[1,1]*t(2)[2,2] + t(3)[1,1] + t(2)[1,1]*t(2)[2,2] + t(2)[2,2]
         """
         if u is None:
             u = PolynomialRing(self.base_ring(), 'u').gen(0)
@@ -480,6 +502,8 @@ class YangianLevel(Yangian):
 
             sage: Y = Yangian(QQ, 2, 2)
             sage: Y.gens()
+            (t(1)[1,1], t(2)[1,1], t(1)[1,2], t(2)[1,2], t(1)[2,1],
+             t(2)[2,1], t(1)[2,2], t(2)[2,2])
         """
         return tuple(self.gen(r, i, j)
                      for i in range(1, self._n+1)
@@ -506,9 +530,18 @@ class YangianLevel(Yangian):
         .. SEEALSO::
 
             :meth:`Yangian.product_on_gens()`
+
+        EXAMPLES::
+
+            sage: Y = Yangian(QQ, 4, 3)
+            sage: elt = Y.gen(3,2,1) * Y.gen(1,1,3)
+            sage: elt * Y.gen(1, 1, 2) # indirect doctest
+            t(1)[1,3]*t(3)[2,1]*t(3)[2,1] - t(3)[1,3] + t(1)[1,3]*t(3)[2,2]
+             + t(1)[1,2]*t(3)[2,3] - t(1)[1,3]*t(3)[1,1]
         """
         ret = super(YangianLevel, self).product_on_basis(x, y)
-        return self._from_dict({m:c for m,c in ret if len(m) == 0 or m[-1][0] <= self._level})
+        return self._from_dict({m:c for m,c in ret
+                               if len(m) == 0 or m.trailing_support()[0] <= self._level})
 
     @cached_method
     def product_on_gens(self, a, b):
@@ -518,7 +551,18 @@ class YangianLevel(Yangian):
         .. SEEALSO::
 
             :meth:`Yangian.product_on_gens()`
+
+        EXAMPLES::
+
+            sage: Y = Yangian(QQ, 4, 3)
+            sage: Y.gen(1,2,2) * Y.gen(2,1,3) # indirect doctest
+            t(1)[2,2]*t(2)[1,3]
+            sage: Y.gen(1,2,1) * Y.gen(2,1,3) # indirect doctest
+            t(1)[2,1]*t(2)[1,3]
+            sage: Y.gen(3,2,1) * Y.gen(1,1,3) # indirect doctest
+            t(3)[2,3] + t(1)[1,3]*t(3)[2,1]
         """
         ret = super(YangianLevel, self).product_on_gens(a, b)
-        return self._from_dict({m:c for m,c in ret if len(m) == 0 or m[-1][0] <= self._level})
+        return self._from_dict({m:c for m,c in ret
+                               if len(m) == 0 or m.trailing_support()[0] <= self._level})
 

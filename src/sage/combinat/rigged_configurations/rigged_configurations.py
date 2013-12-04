@@ -761,7 +761,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         r"""
         Return the fermoinic formula associated to ``self``.
 
-        Given a set of rigged configurations `RC(\Lambda, L)`, the fermonic
+        Given a set of rigged configurations `RC(\lambda, L)`, the fermonic
         formula is defined as:
 
         .. MATH::
@@ -780,8 +780,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             I \times \ZZ} \begin{bmatrix} p_i^{(a)} + m_i^{(a)} \\ m_i^{(a)}
             \end{bmatrix}_q.
 
-        Here we consider a more general fermionic formula in the weight
-        algebra:
+        The generating function of `M(\lambda, L; q)` in the weight algebra subsumes all fermionic formulas:
 
         .. MATH::
 
@@ -790,11 +789,11 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         This is conjecturally equal to the
         :meth:`one dimensional configuration sum
         <sage.combinat.crystals.tensor_product.CrystalOfWords.one_dimensional_configuration_sum>`
-        of the corresponding tensor product of Kirillov-Reshetikhin crystals.
+        of the corresponding tensor product of Kirillov-Reshetikhin crystals, see [HKOTT2002]_.
         This has been proven in general for type `A_n^{(1)}` [BijectionLRT]_,
         single factors `B^{r,s}` in type `D_n^{(1)}` [OSS2011]_ with the result
         from [Sakamoto13]_, as well as for a tensor product of single columns
-        [OSS2003]_ or a tensor product of single rows [OSS03]_ for all
+        [OSS2003]_, [BijectionDn]_ or a tensor product of single rows [OSS03]_ for all
         non-exceptional types.
 
         INPUT:

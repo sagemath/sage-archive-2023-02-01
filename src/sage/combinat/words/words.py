@@ -131,6 +131,13 @@ class Words_all(InfiniteAbstractCombinatorialClass):
 
         sage: Words() is Words()   # todo: not implemented
         True
+
+    .. WARNING::
+
+       The design of these classes is not particularly robust so extra care must
+       be taken when extending this class in oder to prevent unintended
+       side-effects. This is particularly evident in the equality test
+       :meth:`__eq__` for words.
     """
     @lazy_attribute
     def _element_classes(self):
@@ -635,6 +642,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             sage: Words(3) == Words(3,infinite=False)
             False
         """
+
         from paths import WordPaths_all
         # Specific case of Words_over_Alphabet and WordPath. See #15480
         # i.e. when self,other in Words_over_Alphabet, WordPath and one of them at least is a wordpath
@@ -656,9 +664,9 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             return False
 
         # This method's code cannot be trusted. It's the only way I see to fix
-        # the wrong results reports in #15480 though. But really, this kind of
-        # code should not be trusted. It would become wrong if some new more
-        # complicated classes extending Words_all are added.
+        # the wrong results reported in #15480. But really, this kind of
+        # code should not be trusted. It is likely to return wrong results if
+        # whenever new classes extending Words_all are added.
         return True
 
     def __ne__(self, other):

@@ -1251,14 +1251,36 @@ def tau123(T1, T2):
 
     return (cells_map, t1, t2, t3)
 
-
 def isotopism(p):
     """
-    Returns a Permutation object that represents an isotopism (for
-    rows, columns or symbols of a partial latin square). Since matrices
-    in Sage are indexed from 0, this function translates +1 to agree
-    with the Permutation class. We also handle
-    PermutationGroupElements.
+    Returns a Permutation object that represents an isotopism (for rows, columns
+    or symbols of a partial latin square).
+
+    Technically, all this function does is take as input a
+    representation of a permutation of `0,...,n-1` and return a
+    :class:`Permutation` object defined on `1,...,n`.
+
+    For a definition of isotopism, see the :wikipedia:`wikipedia section on
+    isotopism <Latin_square#Equivalence_classes_of_Latin_squares>`.
+
+    INPUT:
+
+    According to the type of input (see examples below) :
+
+    - an integer `n` -- the functions returns the identity on `1,...,n`.
+
+    - a string representing a permutation in disjoint cycles notation,
+      i.e. `(0,1,2)(3,4,5)` -- the corresponding permutation is returned,
+      shifted by 1 to act on `1,...,n`.
+
+    - list/tuple of tuples -- assumes disjoint cycle notation, see previous
+      entry.
+
+    - a list of integers -- the function adds 1 to each member of the list, and
+      returns the corresponding permutation.
+
+    - a :class:`PermutationGroupElement` ``p`` -- returns a permutation
+      describing ``p`` **without** any shift.
 
     EXAMPLES::
 
@@ -1315,7 +1337,7 @@ def isotopism(p):
             x = isotopism(p[0])
 
             for i in range(1, len(p)):
-                x = x * isotopism(p[i])
+                x = x._left_to_right_multiply_on_left(isotopism(p[i]))
 
             return x
 

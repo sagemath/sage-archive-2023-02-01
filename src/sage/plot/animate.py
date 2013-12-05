@@ -147,7 +147,7 @@ class Animation(SageObject):
         sage: a.show()          # optional -- ImageMagick
         sage: a[:5].show()      # optional -- ImageMagick
 
-    The :meth:`show` function takes arguments to specify the
+    The :meth:`show` method takes arguments to specify the
     delay between frames (measured in hundredths of a second, default
     value 20) and the number of iterations (default value 0, which
     means to iterate forever). To iterate 4 times with half a second

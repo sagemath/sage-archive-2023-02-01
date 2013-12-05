@@ -291,7 +291,7 @@ def macaulay_resultant(flist):
     n  = len(dlist) - 1
     d = sum(dlist) - len(dlist) + 1
     one_list = [1 for i in xrange(0,len(dlist))]
-    mons = WeightedIntegerVectors(d, one_list)  # returns a list of integer vectors representing the list of all monomials of degree d
+    mons = WeightedIntegerVectors(d, one_list)  # list of exponent-vectors(/lists) of monomials of degree d
     #mon_d = [prod([xlist[i]**(deg[i]) for i in xrange(0,len(deg))]) for deg in mons]
     mons_num = len(mons)
     mons_to_keep = []
@@ -305,18 +305,20 @@ def macaulay_resultant(flist):
         # Monomial is in S_i under the partition, now we reduce the i'th degree of the monomial
         new_mon = list(mons[j])
         new_mon[si_mon] -= dlist[si_mon]
-        quo = prod([xlist[k]**(new_mon[k]) for k in xrange(0,n+1)]) # this produces the actual monomial
+        quo = prod([xlist[k]**(new_mon[k]) for k in xrange(0,n+1)]) # this produces the actual reduced monomial
         new_f = flist[si_mon]*quo
         # we strip the coefficients of the new polynomial:
         result.append([new_f[mon] for mon in mons])
 
     numer_matrix = matrix(result)
     denom_matrix = numer_matrix.matrix_from_rows_and_columns(mons_to_keep,mons_to_keep)
-    if denom_matrix.dimensions()[0] == 0:
+    if denom_matrix.dimensions()[0] == 0: # here we choose the determinant of an empty matrix to be 1
         return numer_matrix.det()
     denom_det = denom_matrix.det()
     if denom_det != 0:
         return numer_matrix.det()/denom_det
+    # if we get to this point, the determinant of the denominator was 0, and we get the resultant
+    # by taking the free coefficient of the quotient of two characteristic polynomials
     poly_num  = numer_matrix.characteristic_polynomial('T')
     poly_denom  = denom_matrix.characteristic_polynomial('T')
     poly_quo  = poly_num.quo_rem(poly_denom)[0]

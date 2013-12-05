@@ -206,7 +206,7 @@ def macaulay_resultant(flist):
         sage: macaulay_resultant([y,x+z])
         Traceback (most recent call last):
         ...
-        AssertionError: number of polynomials(= 2) must equal to number of variables (= 3)
+        AssertionError: number of polynomials(= 2) must equal number of variables (= 3)
 
     The polynomials need to be all homogeneous::
 
@@ -292,7 +292,7 @@ def macaulay_resultant(flist):
     d = sum(dlist) - len(dlist) + 1
     one_list = [1 for i in xrange(0,len(dlist))]
     mons = WeightedIntegerVectors(d, one_list)  # returns a list of integer vectors representing the list of all monomials of degree d
-    mon_d = [prod([xlist[i]**(deg[i]) for i in xrange(0,len(deg))]) for deg in mons]
+    #mon_d = [prod([xlist[i]**(deg[i]) for i in xrange(0,len(deg))]) for deg in mons]
     mons_num = len(mons)
     mons_to_keep = []
     newflist = []
@@ -308,7 +308,7 @@ def macaulay_resultant(flist):
         quo = prod([xlist[k]**(new_mon[k]) for k in xrange(0,n+1)]) # this produces the actual monomial
         new_f = flist[si_mon]*quo
         # we strip the coefficients of the new polynomial:
-        result.append([new_f.monomial_coefficient(mon) for mon in mon_d])
+        result.append([new_f[mon] for mon in mons])
 
     numer_matrix = matrix(result)
     denom_matrix = numer_matrix.matrix_from_rows_and_columns(mons_to_keep,mons_to_keep)

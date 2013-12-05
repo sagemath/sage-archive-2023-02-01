@@ -1242,23 +1242,6 @@ class Word_class(SageObject):
             if p.is_palindrome():
                 yield p
 
-    def alphabet(self):
-        r"""
-        EXAMPLES::
-
-            sage: w = Word('abaccefa')
-            sage: w. alphabet()
-            doctest:1: DeprecationWarning: alphabet() is deprecated, use parent().alphabet() instead
-            See http://trac.sagemath.org/8429 for details.
-            Set of Python objects of type 'object'
-            sage: y = Words('456')('64654564')
-            sage: y.alphabet()
-            {'4', '5', '6'}
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(8429, "alphabet() is deprecated, use parent().alphabet() instead")
-        return self.parent().alphabet()
-
     def _partial_sums_iterator(self, start, mod=None):
         r"""
         Iterator over the partial sums of the prefixes of self.

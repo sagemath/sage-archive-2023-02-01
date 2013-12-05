@@ -44,52 +44,12 @@ docstrings.
 
 .. WARNING::
 
-   The following functions are deprecated and will soon be removed.
-
-    - Combinations of a multiset, :func:`combinations`,
-      :func:`combinations_iterator`, and :func:`number_of_combinations`. These
-      are unordered selections without repetition of k objects from a multiset
-      S.
-
-    - Arrangements of a multiset, :func:`arrangements` and
-      :func:`number_of_arrangements` These are ordered selections without
-      repetition of k objects from a multiset S.
+   The following function is deprecated and will soon be removed.
 
     - Permutations of a multiset, :func:`permutations`,
       :func:`permutations_iterator`, :func:`number_of_permutations`. A
       permutation is a list that contains exactly the same elements but possibly
       in different order.
-
-**Partitions:**
-
--  Partitions of a set, :func:`partitions_set`,
-   :func:`number_of_partitions_set`. An unordered partition
-   of set S is a set of pairwise disjoint nonempty sets with union S
-   and is represented by a sorted list of such sets.
-
--  Partitions of an integer, :func:`Partitions`.
-   An unordered partition of n is an unordered sum
-   `n = p_1+p_2 +\ldots+ p_k` of positive integers and is
-   represented by the list `p = [p_1,p_2,\ldots,p_k]`, in
-   nonincreasing order, i.e., `p1\geq p_2 ...\geq p_k`.
-
--  Ordered partitions of an integer,
-   :func:`ordered_partitions`,
-   :func:`number_of_ordered_partitions`. An ordered
-   partition of n is an ordered sum
-   `n = p_1+p_2 +\ldots+ p_k` of positive integers and is
-   represented by the list `p = [p_1,p_2,\ldots,p_k]`, in
-   nonincreasing order, i.e., `p1\geq p_2 ...\geq p_k`.
-
--  :func:`partitions_greatest` implements a special type
-   of restricted partition.
-
--  :func:`partitions_greatest_eq` is another type of
-   restricted partition.
-
--  Tuples of partitions, :class:`PartitionTuples`. A `k`-tuple of partitions is
-   represented by a list of all `k`-tuples of partitions which together form a
-   partition of `n`.
 
 **Related functions:**
 
@@ -199,7 +159,6 @@ from sage.misc.misc import prod
 from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.superseded import deprecation
 from combinat_cython import _stirling_number2
 ######### combinatorial sequences
 
@@ -2262,6 +2221,7 @@ def number_of_combinations(mset,k):
         12
     """
     from sage.combinat.combination import Combinations
+    from sage.misc.superseded import deprecation
     deprecation(14138, 'Use Combinations(mset,k).cardinality() instead.')
     return Combinations(mset,k).cardinality()
 
@@ -2278,6 +2238,7 @@ def number_of_arrangements(mset,k):
         22
     """
     from sage.combinat.permutation import Arrangements
+    from sage.misc.superseded import deprecation
     deprecation(14138, 'Use Arrangements(mset,k).cardinality() instead.')
     return Arrangements(mset, k).cardinality()
 
@@ -2460,6 +2421,7 @@ def permutations(mset):
         sage: permutations(rows)
         [[(1, 0), (1, 1)], [(1, 1), (1, 0)]]
     """
+    from sage.misc.superseded import deprecation
     deprecation(14772, 'Use the Permutations object instead.')
     from sage.combinat.permutation import Permutations
     ans = Permutations(mset)
@@ -2512,6 +2474,7 @@ def permutations_iterator(mset,n=None):
         sage: [x for x in X]
         [[0, 1], [0, 2], [1, 0], [1, 2], [2, 0], [2, 1]]
     """
+    from sage.misc.superseded import deprecation
     deprecation(14138, 'Use the Permutations object instead.')
     items = mset
     if n is None:
@@ -2553,6 +2516,7 @@ def number_of_permutations(mset):
         See http://trac.sagemath.org/14138 for details.
         10
     """
+    from sage.misc.superseded import deprecation
     deprecation(14138, 'Use the Permutations object instead.')
     from sage.combinat.permutation import Permutations
     return Permutations(mset).cardinality()
@@ -2591,6 +2555,7 @@ def cyclic_permutations(mset):
         sage: cyclic_permutations([1,1,1])
         [[1, 1, 1]]
     """
+    from sage.misc.superseded import deprecation
     deprecation(14772, 'Use the CyclicPermutations object instead.')
     return list(cyclic_permutations_iterator(mset))
 
@@ -2627,6 +2592,7 @@ def cyclic_permutations_iterator(mset):
         sage: cyclic_permutations([1,1,1])
         [[1, 1, 1]]
     """
+    from sage.misc.superseded import deprecation
     deprecation(14772, 'Use the CyclicPermutations object instead.')
     if len(mset) > 2:
         from sage.combinat.permutation import Permutations

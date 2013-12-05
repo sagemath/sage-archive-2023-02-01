@@ -547,6 +547,15 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             H=max(H,h)
         return(H)
 
+    def jacobian (self):
+        try:
+            return self.__jacobian
+        except AttributeError:
+            pass
+        from sage.calculus.functions import jacobian
+        self.__jacobian = jacobian(list(self),self.domain().gens())
+        return self.__jacobian
+
 class SchemeMorphism_polynomial_affine_space_field(SchemeMorphism_polynomial_affine_space):
     pass
 

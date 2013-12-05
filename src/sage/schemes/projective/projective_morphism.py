@@ -993,6 +993,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
               Defn: Defined on coordinates by sending (x0, x1) to
                     (x1^2/x0, x1^2/x0)
         """
+        try:
+            return self.__dehomogenization[n]
+        except AttributeError:
+            self.__dehomogenization = {}
+        except KeyError:
+            pass
         PS = self.domain()
         A = PS.ambient_space()
         if self._polys[n].substitute({A.gen(n):1}) == 0:
@@ -1007,7 +1013,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                 if i != n:
                     F.append(phi(self._polys[i]) / phi(self._polys[n]))
             H = Hom(Aff, Aff)
-            return(H(F))
+            self.__dehomogenization[n]=H(F)
+            return self.__dehomogenization[n]
 
     def orbit(self, P, N, **kwds):
         r"""
@@ -1713,20 +1720,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             while R[index] == 0:
                 index -= 1
             indexlist.append(index)
-            S = PolynomialRing(FractionField(self.codomain().base_ring()), N, 'x')
-            CR = self.coordinate_ring()
-            map_vars = list(S.gens())
-            map_vars.insert(indexlist[i], 1)
-            phi = CR.hom(map_vars, S)
-            #make map between correct affine patches
-            for j in range(N + 1):
-                if j != indexlist[i + 1]:
-                    F.append(phi(self._polys[j]) / phi(self._polys[indexlist[i + 1]]))
-                J = matrix(FractionField(S), N, N)
-            for j1 in range(0, N):
-                for j2 in range(0, N):
-                    J[j1, j2] = F[j1].derivative(S.gen(j2))
-            l = J(tuple(Q.dehomogenize(indexlist[i]))) * l #get the correct order for chain rule matrix multiplication
+            F = self.dehomogenize(indexlist[i])
+            l = F.jacobian()(tuple(Q.dehomogenize(indexlist[i])))*l #get the correct order for chain rule matrix multiplication
             Q = R
         return l
 

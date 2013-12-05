@@ -76,6 +76,11 @@ illustrated by the following example::
     sage: a.show()  # optional -- ImageMagick
 
 
+AUTHORS:
+
+- William Stein
+- John Palmieri
+- Niles Johnson (2013-12): Expand to animate more graphics objects
 
 REFERENCES:
 
@@ -197,19 +202,6 @@ class Animation(SageObject):
             sage: a
             Animation with 21 frames
         """
-        ## 
-        ## code for type-checking input -- seems like a bad idea
-        ##
-        # if typecheck_input:
-        #     w = []
-        #     for x in v:
-        #         if not is_graphic(x):
-        #             x = plot.plot(x, (kwds.get('xmin',0), kwds.get('xmax', 1)))
-        #         w.append(x)
-        #     if len(w) == 0:
-        #         w = [plot.Graphics()]
-        # else:
-        #     w = v
         self._frames = v
         self._kwds = kwds
 
@@ -259,7 +251,7 @@ class Animation(SageObject):
             ...               xmin=0,ymin=-2,xmax=2,ymax=0,figsize=[2,2])
             sage: a
             Animation with 10 frames
-            sage: frame2 = a[2]
+            sage: frame2 = a[2]  # indirect doctest
             sage: frame2.show()
             sage: a.show() # optional -- ImageMagick
             sage: a[3:7]   # indirect doctest
@@ -360,19 +352,6 @@ class Animation(SageObject):
             5
         """
         return len(self._frames)
-    
-    def duration(self):
-        """
-        This method is not yet implemented.
-        Return duration of this animation as a Python ``timedelta``.
-
-        EXAMPLES::
-
-            sage: a = animate([x, x^2, x^3, x^4])
-            sage: a.duration()  # not tested
-        """
-        #from datetime import timedelta
-        raise NotImplementedError('duration is not implemented')
     
     def make_image(self, frame, filename, **kwds):
         r"""
@@ -559,11 +538,6 @@ class Animation(SageObject):
               packages, so please install one of them and try again.
 
               See www.imagemagick.org and www.ffmpeg.org for more information.
-
-        AUTHORS:
-
-        - William Stein
-
         """
         from sage.misc.sage_ostools import have_program
         have_convert = have_program('convert')

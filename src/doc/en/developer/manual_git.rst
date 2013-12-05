@@ -468,18 +468,18 @@ The file now looks like this::
 
 .. skip::    # doctester confuses >>> with input marker
 
-    def fibonacci(i):
-        """
-        Return the `i`-th Fibonacci number
-        """
-    <<<<<<< HEAD
-        if i > 1:
-            return fibonacci(i-1) * fibonacci(i-2)
-        return i
-    =======
-        return fibonacci(i-1) + fibonacci(i-2)
-    >>>>>>> 41675dfaedbfb89dcff0a47e520be4aa2b6c5d1b
-    
+|    def fibonacci(i):
+|        """
+|        Return the `i`-th Fibonacci number
+|        """
+|    <<<<<<< HEAD
+|        if i > 1:
+|            return fibonacci(i-1) * fibonacci(i-2)
+|        return i
+|    =======
+|        return fibonacci(i-1) + fibonacci(i-2)
+|    >>>>>>> 41675dfaedbfb89dcff0a47e520be4aa2b6c5d1b
+
 The conflict is shown between the conflict markers ``<<<<<<<`` and
 ``>>>>>>>``. The first half (up to the ``=======`` marker) is Alice's
 current version, the second half is Bob's version. The 40-digit hex

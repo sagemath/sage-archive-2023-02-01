@@ -135,7 +135,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
     .. WARNING::
 
        The design of these classes is not particularly robust so extra care must
-       be taken when extending this class in oder to prevent unintended
+       be taken when extending this class in order to prevent unintended
        side-effects. This is particularly evident in the equality test
        :meth:`__eq__` for words.
     """

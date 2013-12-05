@@ -487,7 +487,7 @@ class Animation(SageObject):
         Returns an animated gif composed from rendering the graphics
         objects in self.
 
-        This function will only work if either (a) the ImageMagick
+        This method will only work if either (a) the ImageMagick
         software suite is installed, i.e., you have the ``convert``
         command or (b) ``ffmpeg`` is installed.  See
         [IM] for more about ImageMagick, and see
@@ -666,7 +666,7 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         Returns a movie showing an animation composed from rendering
         the frames in self.
 
-        This function will only work if ffmpeg is installed.  See
+        This method will only work if ffmpeg is installed.  See
         http://www.ffmpeg.org for information about ffmpeg.
 
         INPUT:

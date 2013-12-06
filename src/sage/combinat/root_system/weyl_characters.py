@@ -1463,8 +1463,8 @@ def branch_weyl_character(chi, R, S, rule="default"):
 
         sage: A4=WeylCharacterRing("A4",style="coroots")
         sage: A2=WeylCharacterRing("A2",style="coroots")
-        sage: br=get_branching_rule("A4","A3")
-        sage: br=get_branching_rule("A4","A3")*get_branching_rule("A3","A2")
+        sage: br=branching_rule("A4","A3")
+        sage: br=branching_rule("A4","A3")*branching_rule("A3","A2")
         sage: A4(1,0,0,0).branch(A2,rule=br)
         2*A2(0,0) + A2(1,0)
 
@@ -1956,6 +1956,10 @@ def branch_weyl_character(chi, R, S, rule="default"):
         sage: A2xG2 = WeylCharacterRing("A2xG2",style="coroots")
         sage: E6(1,0,0,0,0,0).branch(A2xG2,rule="miscellaneous")
         A2xG2(0,1,1,0) + A2xG2(2,0,0,0)
+        sage: F4=WeylCharacterRing("F4",style="coroots")
+        sage: G2xA1=WeylCharacterRing("G2xA1",style="coroots")
+        sage: F4(0,0,1,0).branch(G2xA1,rule="miscellaneous")
+        G2xA1(1,0,0) + G2xA1(1,0,2) + G2xA1(1,0,4) + G2xA1(1,0,6) + G2xA1(0,1,4) + G2xA1(2,0,2) + G2xA1(0,0,2) + G2xA1(0,0,6)
 
     .. RUBRIC:: Branching Rules From Plethysms
 
@@ -2163,7 +2167,7 @@ def branch_weyl_character(chi, R, S, rule="default"):
         True
     """
     if type(rule) is str or type(rule) is list:
-        rule = get_branching_rule(R._cartan_type, S._cartan_type, rule)
+        rule = branching_rule(R._cartan_type, S._cartan_type, rule)
     mdict = {}
     for k in chi.weight_multiplicities():
         # TODO: Could this use the new from_vector of ambient_space ?
@@ -2191,8 +2195,8 @@ class BranchingRule(SageObject):
         f a function from the weight lattice of R to the weight lattice of S.
 
         """
-        self._R = R
-        self._S = S
+        self._R = CartanType(R)
+        self._S = CartanType(S)
         self._f = f
         self._name = name
 
@@ -2214,7 +2218,10 @@ class BranchingRule(SageObject):
             sage: b([2,1,0,0])
             [2, 1]
         """
-        return self._f(x)
+        try:
+            return self._f(x)
+        except:
+            return self._f(x.to_vector())
 
     def __mul__(self, other):
         """
@@ -2357,7 +2364,7 @@ def get_branching_rule(Rtype, Stype, rule="default"):
             raise NotImplementedError("Not implemented yet")
         elif Rtype[0] == 'F' and s == 3:
             if Stype[0] == 'B':
-                return BranchingRule(Rtype, Stype, lambda x : list(x)[1:][:3], "levi")
+                return BranchingRule(Rtype, Stype, lambda x : x[1:], "levi")
             elif Stype[0] == 'C':
                 return BranchingRule(Rtype, Stype, lambda x : [x[1]-x[0],x[2]+x[3],x[2]-x[3]], "levi")
             else:
@@ -2697,12 +2704,20 @@ def get_branching_rule(Rtype, Stype, rule="default"):
     elif rule == "miscellaneous":
         if Rtype[0] == 'B' and Stype[0] == 'G' and r == 3:
             return BranchingRule(Rtype, Stype, lambda x : [x[0]+x[1], -x[1]+x[2], -x[0]-x[2]], "miscellaneous")
-        if Rtype[0] == 'E' and Rtype[1] == 6:
+        elif Rtype[0] == 'E' and Rtype[1] == 6:
             if Stype.is_compound():
                 if stypes == [CartanType("A2"),CartanType("G2")]:
                     return BranchingRule(Rtype, Stype, lambda x : [2*x[7],2*x[6]+x[4]-x[5],x[5]-x[4],-x[2]-x[3],-x[1]+x[2],x[1]+x[3]], "miscellaneous")
                 elif stypes == [CartanType("G2"),CartanType("A2")]:
                     return BranchingRule(Rtype, Stype, lambda x : [-x[2]-x[3],-x[1]+x[2],x[1]+x[3],2*x[7],2*x[6]+x[4]-x[5],x[5]-x[4]], "miscellaneous")
+                else:
+                    raise ValueError("Rule not found")
+        elif Rtype[0] == 'F':
+            if Stype.is_compound():
+                if stypes == [CartanType("A1"),CartanType("G2")]:
+                    return BranchingRule("F4","A1xG2", lambda x : [ 2*x[0], -2*x[0], x[1]+x[2], -x[2]+x[3], -x[1]-x[3]], "miscellaneous")
+                elif stypes == [CartanType("G2"),CartanType("A1")]:
+                    return BranchingRule("F4","G2xA1", lambda x : [x[1]+x[2], -x[2]+x[3], -x[1]-x[3], 2*x[0], -2*x[0]], "miscellaneous")
                 else:
                     raise ValueError("Rule not found")
         else:

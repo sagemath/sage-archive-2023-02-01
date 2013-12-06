@@ -137,7 +137,8 @@ In the previous example, we obtained variables through ``p['x'], p['y']`` and
 ``p['z']``, which is a convenient shortcut when our LP is defined over a small
 number of variables. This being said, larger LP/MILP will require us to
 associate a LP variable to many Sage objects, which can be integers, strings, or
-even the vertices and edges of a graph. We use in this case an alternative syntax.
+even the vertices and edges of a graph. We use in this case an alternative
+syntax.
 
 If we need 15 variables `x_1, \dots, x_{15}`, we will first define a dictionary
 of variables with the ``new_variable`` method

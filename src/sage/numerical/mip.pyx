@@ -564,11 +564,11 @@ cdef class MixedIntegerLinearProgram(SageObject):
          of real type, and the second of integer type ::
 
             sage: x = p.new_variable(real=True)
-            sage: y = p.new_variable(dim=2, integer=True)
-            sage: p.add_constraint(x[2] + y[3][5], max=2)
+            sage: y = p.new_variable(integer=True)
+            sage: p.add_constraint(x[2] + y[3,5], max=2)
             sage: p.is_integer(x[2])
             False
-            sage: p.is_integer(y[3][5])
+            sage: p.is_integer(y[3,5])
             True
 
         An exception is raised when two types are supplied ::
@@ -2170,6 +2170,12 @@ cdef class MIPVariable(SageObject):
         self._vtype = vtype
 
         self._hasname = (len(name) >0)
+
+        if dim > 1:
+            from sage.misc.superseded import deprecation
+            deprecation(15489, "The 'dim' argument will soon disappear. "+
+                        "Fortunately variable[1,2] is easier to use than "+
+                        "variable[1][2]")
 
         # create a temporary char *
         cdef char *name_c = name

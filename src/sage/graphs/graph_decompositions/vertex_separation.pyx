@@ -816,48 +816,48 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
     p = MixedIntegerLinearProgram( maximization = False, solver = solver )
 
     # Declaration of variables.
-    x = p.new_variable( binary = integrality, dim = 2 )
-    u = p.new_variable( binary = integrality, dim = 2 )
-    y = p.new_variable( binary = True, dim = 2 )
+    x = p.new_variable( binary = integrality)
+    u = p.new_variable( binary = integrality)
+    y = p.new_variable( binary = True)
     z = p.new_variable( integer = True, dim = 1 )
 
     N = G.num_verts()
     V = G.vertices()
 
-    # (2) x[v][t] <= x[v][t+1]   for all v in V, and for t:=0..N-2
-    # (3) y[v][t] <= y[v][t+1]   for all v in V, and for t:=0..N-2
+    # (2) x[v,t] <= x[v,t+1]   for all v in V, and for t:=0..N-2
+    # (3) y[v,t] <= y[v,t+1]   for all v in V, and for t:=0..N-2
     for v in V:
         for t in xrange(N-1):
-            p.add_constraint( x[v][t] - x[v][t+1] <= 0 )
-            p.add_constraint( y[v][t] - y[v][t+1] <= 0 )
+            p.add_constraint( x[v,t] - x[v,t+1] <= 0 )
+            p.add_constraint( y[v,t] - y[v,t+1] <= 0 )
 
-    # (4) y[v][t] <= x[w][t]  for all v in V, for all w in N^+(v), and for all t:=0..N-1
+    # (4) y[v,t] <= x[w,t]  for all v in V, for all w in N^+(v), and for all t:=0..N-1
     for v in V:
         for w in G.neighbors_out(v):
             for t in xrange(N):
-                p.add_constraint( y[v][t] - x[w][t] <= 0 )
+                p.add_constraint( y[v,t] - x[w,t] <= 0 )
 
-    # (5) sum_{v in V} y[v][t] == t+1 for t:=0..N-1
+    # (5) sum_{v in V} y[v,t] == t+1 for t:=0..N-1
     for t in xrange(N):
-        p.add_constraint( p.sum([ y[v][t] for v in V ]) == t+1 )
+        p.add_constraint( p.sum([ y[v,t] for v in V ]) == t+1 )
 
-    # (6) u[v][t] >= x[v][t]-y[v][t]    for all v in V, and for all t:=0..N-1
+    # (6) u[v,t] >= x[v,t]-y[v,t]    for all v in V, and for all t:=0..N-1
     for v in V:
         for t in xrange(N):
-            p.add_constraint( x[v][t] - y[v][t] - u[v][t] <= 0 )
+            p.add_constraint( x[v,t] - y[v,t] - u[v,t] <= 0 )
 
-    # (7) z >= sum_{v in V} u[v][t]   for all t:=0..N-1
+    # (7) z >= sum_{v in V} u[v,t]   for all t:=0..N-1
     for t in xrange(N):
-        p.add_constraint( p.sum([ u[v][t] for v in V ]) - z['z'] <= 0 )
+        p.add_constraint( p.sum([ u[v,t] for v in V ]) - z['z'] <= 0 )
 
-    # (8)(9) 0 <= x[v][t] and u[v][t] <= 1
+    # (8)(9) 0 <= x[v,t] and u[v,t] <= 1
     if not integrality:
         for v in V:
             for t in xrange(N):
-                p.add_constraint( 0 <= x[v][t] <= 1 )
-                p.add_constraint( 0 <= u[v][t] <= 1 )
+                p.add_constraint( 0 <= x[v,t] <= 1 )
+                p.add_constraint( 0 <= u[v,t] <= 1 )
 
-    # (10) y[v][t] in {0,1}
+    # (10) y[v,t] in {0,1}
     p.set_binary( y )
 
     # (11) 0 <= z <= |V|
@@ -880,7 +880,7 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
     seq = []
     for t in xrange(N):
         for v in V:
-            if (taby[v][t] > 0) and (not v in seq):
+            if (taby[v,t] > 0) and (not v in seq):
                 seq.append(v)
                 break
     vs = int(round( tabz['z'] ))

@@ -14,7 +14,7 @@ Miscellaneous arithmetic functions
 import math
 import sys
 import sage.misc.misc as misc
-from sage.libs.pari.gen import pari, vecsmall_to_intlist
+from sage.libs.pari.gen import pari
 import sage.libs.flint.arith as flint_arith
 
 from sage.rings.rational_field import QQ
@@ -3914,8 +3914,7 @@ class Moebius:
             n = len(range(start, stop, step)) # stupid
             v = pari('vector(%s, i, moebius(%s*(i-1) + %s))'%(
                 n, step, start))
-        w = vecsmall_to_intlist(v.Vecsmall())
-        return [Z(x) for x in w]
+        return [Z(x) for x in v]
 
 moebius = Moebius()
 

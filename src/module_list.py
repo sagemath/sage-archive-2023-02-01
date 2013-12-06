@@ -504,6 +504,9 @@ ext_modules = [
     Extension('sage.groups.perm_gps.permgroup_element',
               sources = ['sage/groups/perm_gps/permgroup_element.pyx']),
 
+    Extension('sage.groups.semimonomial_transformations.semimonomial_transformation',
+              sources = ['sage/groups/semimonomial_transformations/semimonomial_transformation.pyx']),
+
         ###################################
         ##
         ## sage.groups.perm_gps.partn_ref
@@ -699,6 +702,10 @@ ext_modules = [
 
     Extension('sage.libs.pari.gen',
               sources = ["sage/libs/pari/gen.pyx"],
+              libraries = ['pari', 'gmp']),
+
+    Extension('sage.libs.pari.handle_error',
+              sources = ["sage/libs/pari/handle_error.pyx"],
               libraries = ['pari', 'gmp']),
 
     Extension('sage.libs.ppl',
@@ -1240,6 +1247,9 @@ ext_modules = [
     Extension('sage.misc.stopgap',
               sources = ['sage/misc/stopgap.pyx']),
 
+    Extension('sage.misc.weak_dict',
+              sources = ['sage/misc/weak_dict.pyx']),
+
     ################################
     ##
     ## sage.modular
@@ -1587,6 +1597,19 @@ ext_modules = [
     Extension('sage.rings.finite_rings.element_pari_ffelt',
               sources = ['sage/rings/finite_rings/element_pari_ffelt.pyx'],
               libraries = ['pari', 'gmp']),
+
+    Extension('sage.rings.finite_rings.hom_finite_field',
+              sources = ["sage/rings/finite_rings/hom_finite_field.pyx"]),
+
+    Extension('sage.rings.finite_rings.hom_prime_finite_field',
+              sources = ["sage/rings/finite_rings/hom_prime_finite_field.pyx"]),
+
+    Extension('sage.rings.finite_rings.hom_finite_field_givaro',
+              sources = ["sage/rings/finite_rings/hom_finite_field_givaro.pyx"],
+              # this order is needed to compile under windows.
+              libraries = ['givaro', 'ntl', 'gmpxx', 'gmp', 'm', 'stdc++', ],
+              language='c++',
+              extra_compile_args = givaro_extra_compile_args),
 
         ################################
         ##

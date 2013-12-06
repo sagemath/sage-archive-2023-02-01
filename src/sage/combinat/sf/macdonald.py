@@ -1252,7 +1252,7 @@ class MacdonaldPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
                 0
                 sage: H([2,2,1]).nabla(t=1/H.t)  # long time (4s on sage.math, 2012)
                 q^2/t^4*McdH[2, 2, 1]
-                sage: H([2,2,1]).nabla(t=1/H.t,power=-1)
+                sage: H([2,2,1]).nabla(t=1/H.t,power=-1)  # long time (4s on sage.math, 2013)
                 t^4/q^2*McdH[2, 2, 1]
             """
             parent = self.parent()

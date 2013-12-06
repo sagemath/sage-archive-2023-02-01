@@ -435,11 +435,12 @@ class Composition(CombinatorialObject, Element):
         """
         # Speaking in terms of the definition in the docstring, we have
         # I = self and J = other.
-        factors = []
-        signs = []
 
         if check and (sum(self) != sum(other)):
             raise ValueError("{} is not the same size as {}".format(self, other))
+
+        factors = []
+        signs = []
 
         I_iter = iter(self)
         i = 0
@@ -468,6 +469,259 @@ class Composition(CombinatorialObject, Element):
                     break
 
         return (tuple(factors), tuple(signs))
+
+    def join(self, other, check=True):
+        r"""
+        Return the join of ``self`` with a composition ``other`` of the
+        same size.
+
+        The join of two compositions `I` and `J` of size `n` is the
+        coarsest composition of `n` which refines each of `I` and `J`. It
+        can be described as the composition whose descent set is the
+        union of the descent sets of `I` and `J`. It is also the
+        concatenation of `I_1, I_2, \cdots , I_m`, where
+        `I = I_1 \bullet I_2 \bullet \ldots \bullet I_m` is the ribbon
+        decomposition of `I` with respect to `J` (see
+        :meth:`ribbon_decomposition`).
+
+        INPUT:
+
+        - ``other`` -- composition of same size as ``self``
+
+        - ``check`` -- (default: ``True``) a Boolean determining whether
+          to check the input compositions for having the same size
+
+        OUTPUT:
+
+        - the join of the compositions ``self`` and ``other``
+
+        EXAMPLES::
+
+            sage: Composition([3, 1, 1, 3, 1]).join([4, 3, 2])
+            [3, 1, 1, 2, 1, 1]
+            sage: Composition([9, 6]).join([1, 3, 6, 3, 2])
+            [1, 3, 5, 1, 3, 2]
+            sage: Composition([9, 6]).join([1, 3, 5, 1, 3, 2])
+            [1, 3, 5, 1, 3, 2]
+            sage: Composition([1, 1, 1, 1, 1]).join([3, 2])
+            [1, 1, 1, 1, 1]
+            sage: Composition([4, 2]).join([3, 3])
+            [3, 1, 2]
+            sage: Composition([]).join([])
+            []
+
+        Let us verify on small examples that the join
+        of `I` and `J` refines both of `I` and `J`::
+
+            sage: all( all( I.join(J).is_finer(I) and
+            ....:           I.join(J).is_finer(J)
+            ....:           for J in Compositions(4) )
+            ....:      for I in Compositions(4) )
+            True
+
+        and is the coarsest composition to do so::
+
+            sage: all( all( all( K.is_finer(I.join(J))
+            ....:                for K in I.finer()
+            ....:                if K.is_finer(J) )
+            ....:           for J in Compositions(3) )
+            ....:      for I in Compositions(3) )
+            True
+
+        Let us check that the join of `I` and `J` is indeed the
+        conctenation of `I_1, I_2, \cdots , I_m`, where
+        `I = I_1 \bullet I_2 \bullet \ldots \bullet I_m` is the ribbon
+        decomposition of `I` with respect to `J`::
+
+            sage: all( all( Composition.sum(I.ribbon_decomposition(J)[0])
+            ....:           == I.join(J) for J in Compositions(4) )
+            ....:      for I in Compositions(4) )
+            True
+
+        Also, the descent set of the join of `I` and `J` is the
+        union of the descent sets of `I` and `J`::
+
+            sage: all( all( I.to_subset().union(J.to_subset())
+            ....:           == I.join(J).to_subset()
+            ....:           for J in Compositions(4) )
+            ....:      for I in Compositions(4) )
+            True
+
+        TESTS::
+
+            sage: Composition([3, 1, 1, 3, 1]).join([4, 3, 1])
+            Traceback (most recent call last):
+            ...
+            ValueError: [3, 1, 1, 3, 1] is not the same size as [4, 3, 1]
+
+        .. SEEALSO::
+
+            :meth:`meet`, :meth:`ribbon_decomposition`
+
+        AUTHORS:
+
+        - Darij Grinberg (2013-09-05)
+        """
+        # The following code is a slimmed down version of the
+        # ribbon_decomposition method. It is a lot faster than
+        # using to_subset() and from_subset, and also a lot
+        # faster than ribbon_decomposition.
+
+        # Speaking in terms of the definition in the docstring, we have
+        # I = self and J = other.
+
+        if check and (sum(self) != sum(other)):
+            raise ValueError("{} is not the same size as {}".format(self, other))
+
+        factors = []
+
+        I_iter = iter(self)
+        i = 0
+        for j in other:
+            current_factor_size = 0
+            while True:
+                if i == 0:
+                    try:
+                        i = I_iter.next()
+                    except StopIteration:
+                        return Composition(factors)
+                if current_factor_size + i <= j:
+                    factors.append(i)
+                    current_factor_size += i
+                    i = 0
+                else:
+                    if not j == current_factor_size:
+                        factors.append(j - current_factor_size)
+                        i -= j - current_factor_size
+                    break
+
+        return Composition(factors)
+
+    sup = join
+
+    def meet(self, other, check=True):
+        r"""
+        Return the meet of ``self`` with a composition ``other`` of the
+        same size.
+
+        The meet of two compositions `I` and `J` of size `n` is the
+        finest composition of `n` which is coarser than each of `I` and
+        `J`. It can be described as the composition whose descent set is
+        the intersection of the descent sets of `I` and `J`.
+
+        INPUT:
+
+        - ``other`` -- composition of same size as ``self``
+
+        - ``check`` -- (default: ``True``) a Boolean determining whether
+          to check the input compositions for having the same size
+
+        OUTPUT:
+
+        - the meet of the compositions ``self`` and ``other``
+
+        EXAMPLES::
+
+            sage: Composition([3, 1, 1, 3, 1]).meet([4, 3, 2])
+            [4, 5]
+            sage: Composition([9, 6]).meet([1, 3, 6, 3, 2])
+            [15]
+            sage: Composition([9, 6]).meet([1, 3, 5, 1, 3, 2])
+            [9, 6]
+            sage: Composition([1, 1, 1, 1, 1]).meet([3, 2])
+            [3, 2]
+            sage: Composition([4, 2]).meet([3, 3])
+            [6]
+            sage: Composition([]).meet([])
+            []
+            sage: Composition([1]).meet([1])
+            [1]
+
+        Let us verify on small examples that the meet
+        of `I` and `J` is coarser than both of `I` and `J`::
+
+            sage: all( all( I.is_finer(I.meet(J)) and
+            ....:           J.is_finer(I.meet(J))
+            ....:           for J in Compositions(4) )
+            ....:      for I in Compositions(4) )
+            True
+
+        and is the finest composition to do so::
+
+            sage: all( all( all( I.meet(J).is_finer(K)
+            ....:                for K in I.fatter()
+            ....:                if J.is_finer(K) )
+            ....:           for J in Compositions(3) )
+            ....:      for I in Compositions(3) )
+            True
+
+        The descent set of the meet of `I` and `J` is the
+        intersection of the descent sets of `I` and `J`::
+
+            sage: def test_meet(n):
+            ....:     return all( all( I.to_subset().intersection(J.to_subset())
+            ....:                      == I.meet(J).to_subset()
+            ....:                      for J in Compositions(n) )
+            ....:                 for I in Compositions(n) )
+            sage: all( test_meet(n) for n in range(1, 5) )
+            True
+            sage: all( test_meet(n) for n in range(5, 9) )  # long time
+            True
+
+        TESTS::
+
+            sage: Composition([3, 1, 1, 3, 1]).meet([4, 3, 1])
+            Traceback (most recent call last):
+            ...
+            ValueError: [3, 1, 1, 3, 1] is not the same size as [4, 3, 1]
+
+        .. SEEALSO::
+
+            :meth:`join`
+
+        AUTHORS:
+
+        - Darij Grinberg (2013-09-05)
+        """
+        # The following code is much faster than using to_subset()
+        # and from_subset.
+
+        # Speaking in terms of the definition in the docstring, we have
+        # I = self and J = other.
+
+        if check and (sum(self) != sum(other)):
+            raise ValueError("{} is not the same size as {}".format(self, other))
+
+        factors = []
+        current_part = 0
+
+        I_iter = iter(self)
+        i = 0
+        for j in other:
+            current_factor_size = 0
+            while True:
+                if i == 0:
+                    try:
+                        i = I_iter.next()
+                    except StopIteration:
+                        factors.append(current_part)
+                        return Composition(factors)
+                if current_factor_size + i <= j:
+                    current_part += i
+                    current_factor_size += i
+                    i = 0
+                else:
+                    if j == current_factor_size:
+                        factors.append(current_part)
+                        current_part = 0
+                    else:
+                        i -= j - current_factor_size
+                        current_part += j - current_factor_size
+                    break
+
+        return Composition(factors)
+
+    inf = meet
 
     def finer(self):
         """

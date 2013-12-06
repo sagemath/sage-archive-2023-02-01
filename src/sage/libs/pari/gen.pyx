@@ -173,12 +173,22 @@ import sage.structure.element
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.structure.parent cimport Parent
 from sage.misc.randstate cimport randstate, current_randstate
+from sage.libs.pari.handle_error cimport pari_error_string, \
+        _pari_init_error_handling, _pari_check_warning, \
+        _pari_handle_exception, _pari_err_recover
 
 from sage.misc.misc_c import is_64_bit
 
 include 'pari_err.pxi'
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/python.pxi'
+include 'sage/ext/interrupt.pxi'
+
+cimport libc.stdlib
+
+cdef extern from "misc.h":
+    int     factorint_withproof_sage(GEN* ans, GEN x, GEN cutoff)
+    int     gcmp_sage(GEN x, GEN y)
 
 cdef extern from "mpz_pylong.h":
     cdef int mpz_set_pylong(mpz_t dst, src) except -1
@@ -357,7 +367,7 @@ def prec_words_to_dec(int prec_in_words):
 
 # The unique running Pari instance.
 cdef PariInstance pari_instance, P
-pari_instance = PariInstance(16000000, 500000)
+pari_instance = PariInstance()
 P = pari_instance   # shorthand notation
 
 # PariInstance.__init__ must not create gen objects because their parent is not constructed yet
@@ -1071,7 +1081,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: J.bid_get_gen()
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: missing bid generators. Use idealstar(,,2)
         """
         pari_catch_sig_on()
         return self.new_gen(bid_get_gen(self.g))
@@ -1596,8 +1606,10 @@ cdef class gen(sage.structure.element.RingElement):
 
     def __int__(gen self):
         """
-        Return Python int. Very fast, and if the number is too large to fit
-        into a C int, a Python long is returned instead.
+        Convert ``self`` to a Python integer.
+
+        If the number is too large to fit into a Pyhon ``int``, a
+        Python ``long`` is returned instead.
 
         EXAMPLES::
 
@@ -1617,38 +1629,10 @@ cdef class gen(sage.structure.element.RingElement):
             -2147483648
             sage: int(pari("Pol(10)"))
             10
+            sage: int(pari("Mod(2, 7)"))
+            2
         """
-        cdef GEN x
-        cdef long lx, *xp
-        if  typ(self.g)==t_POL and self.poldegree()<=0:
-            # Change a constant polynomial to its constant term
-            x = constant_term(self.g)
-        else:
-            x = self.g
-        if typ(x) != t_INT:
-            raise TypeError, "gen must be of PARI type t_INT or t_POL of degree 0"
-        if not signe(x):
-            return 0
-        lx = lgefint(x)-3   # take 1 to account for the MSW
-        xp = int_MSW(x)
-        # special case 1 word so we return int if it fits
-        if not lx:
-            if   signe(x) |  xp[0] > 0:     # both positive
-                return xp[0]
-            elif signe(x) & -xp[0] < 0:     # both negative
-                return -xp[0]
-        i = <ulong>xp[0]
-        while lx:
-            xp = int_precW(xp)
-            i = i << BITS_IN_LONG | <ulong>xp[0]
-            lx = lx-1
-        if signe(x) > 0:
-            return i
-        else:
-            return -i
-        # NOTE: Could use int_unsafe below, which would be much faster, but
-        # the default PARI prints annoying stuff to the screen when
-        # the number is large.
+        return int(Integer(self))
 
     def int_unsafe(gen self):
         """
@@ -1683,7 +1667,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('[2^150,1]').intvec_unsafe()
             Traceback (most recent call last):
             ...
-            PariError:  (15)
+            PariError: overflow in t_INT-->long assignment
         """
         cdef int n, L
         cdef object v
@@ -1703,7 +1687,7 @@ cdef class gen(sage.structure.element.RingElement):
     def python_list_small(gen self):
         """
         Return a Python list of the PARI gens. This object must be of type
-        t_VECSMALL, and the resulting list contains python 'int's
+        t_VECSMALL, and the resulting list contains python 'int's.
 
         EXAMPLES::
 
@@ -1714,7 +1698,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: type(w[0])
             <type 'int'>
         """
-        cdef long n
+        cdef long n, m
         if typ(self.g) != t_VECSMALL:
             raise TypeError, "Object (=%s) must be of type t_VECSMALL."%self
         V = []
@@ -1726,10 +1710,11 @@ cdef class gen(sage.structure.element.RingElement):
     def python_list(gen self):
         """
         Return a Python list of the PARI gens. This object must be of type
-        t_VEC
+        t_VEC.
 
-        INPUT: NoneOUTPUT:
+        INPUT: None
 
+        OUTPUT:
 
         -  ``list`` - Python list whose elements are the
            elements of the input gen.
@@ -1754,8 +1739,6 @@ cdef class gen(sage.structure.element.RingElement):
         m = glength(self.g)
         V = []
         for n from 0 <= n < m:
-##            t = P.new_ref(<GEN> (self.g[n+1]), V)
-##            V.append(t)
             V.append(self.__getitem__(n))
         return V
 
@@ -1820,9 +1803,30 @@ cdef class gen(sage.structure.element.RingElement):
 
     def __long__(gen self):
         """
-        Return Python long.
+        Convert ``self`` to a Python ``long``.
+
+        EXAMPLES::
+
+            sage: long(pari(0))
+            0L
+            sage: long(pari(10))
+            10L
+            sage: long(pari(-10))
+            -10L
+            sage: long(pari(123456789012345678901234567890))
+            123456789012345678901234567890L
+            sage: long(pari(-123456789012345678901234567890))
+            -123456789012345678901234567890L
+            sage: long(pari(2^31-1))
+            2147483647L
+            sage: long(pari(-2^31))
+            -2147483648L
+            sage: long(pari("Pol(10)"))
+            10L
+            sage: long(pari("Mod(2, 7)"))
+            2L
         """
-        return long(int(self))
+        return long(Integer(self))
 
     def __float__(gen self):
         """
@@ -1855,7 +1859,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: complex(g)
             Traceback (most recent call last):
             ...
-            PariError: incorrect type (11)
+            PariError: incorrect type in greal/gimag
         """
         cdef double re, im
         pari_catch_sig_on()
@@ -2513,7 +2517,7 @@ cdef class gen(sage.structure.element.RingElement):
                sage: pari('x+y').Pol('y')
                Traceback (most recent call last):
                ...
-               PariError:  (5)
+               PariError: variable must have higher priority in gtopoly
 
         INPUT:
 
@@ -2632,7 +2636,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(3).Qfb(7, 2)  # discriminant is 25
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: square discriminant in Qfb
         """
         t0GEN(b); t1GEN(c); t2GEN(D)
         pari_catch_sig_on()
@@ -2991,7 +2995,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('x^2 + 2*x + 3').Vecsmall()
             Traceback (most recent call last):
             ...
-            PariError: incorrect type (11)
+            PariError: incorrect type in vectosmall
 
         We demonstate the `n` argument::
 
@@ -3399,7 +3403,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('x').component(0)
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: nonexistent component
         """
         pari_catch_sig_on()
         return P.new_gen(compo(x.g, n))
@@ -3431,7 +3435,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('Mod(x,x^3-3)').conj()
             Traceback (most recent call last):
             ...
-            PariError: incorrect type (11)
+            PariError: incorrect type in gconj
         """
         pari_catch_sig_on()
         return P.new_gen(gconj(x.g))
@@ -3528,7 +3532,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('"hello world"').floor()
             Traceback (most recent call last):
             ...
-            PariError: incorrect type (11)
+            PariError: incorrect type in gfloor
         """
         pari_catch_sig_on()
         return P.new_gen(gfloor(x.g))
@@ -3554,7 +3558,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('sqrt(-2)').frac()
             Traceback (most recent call last):
             ...
-            PariError: incorrect type (11)
+            PariError: incorrect type in gfloor
         """
         pari_catch_sig_on()
         return P.new_gen(gfrac(x.g))
@@ -4893,7 +4897,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(-1).gamma()
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: non-positive integer argument in ggamma
         """
         pari_catch_sig_on()
         return P.new_gen(ggamma(s.g, pbw(precision)))
@@ -7616,42 +7620,32 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('x^2 + 10^100 + 1').nfinit(precision=64)
             Traceback (most recent call last):
             ...
-            PariError: precision too low (10)
+            PariError: precision too low in floorr (precision loss in truncation)
             sage: pari('x^2 + 10^100 + 1').nfinit()
             [...]
 
-        Throw a PARI error which is not precer::
+        Throw a PARI error which is not of type ``precer``::
 
             sage: pari('1.0').nfinit()
             Traceback (most recent call last):
             ...
-            PariError: incorrect type (11)
+            PariError: incorrect type in checknf
         """
-
         # If explicit precision is given, use only that
         if precision:
-            return self._nfinit_with_prec(flag, precision)
+            pari_catch_sig_on()
+            return P.new_gen(nfinit0(self.g, flag, pbw(precision)))
 
         # Otherwise, start with 64 bits of precision and increase as needed:
         precision = 64
         while True:
             try:
-                return self._nfinit_with_prec(flag, precision)
-            except PariError, err:
+                return self.nfinit(flag, precision)
+            except PariError as err:
                 if err.errnum() == precer:
                     precision *= 2
                 else:
-                    raise err
-
-    # NOTE: because of the way pari_catch_sig_on() and Cython exceptions work, this
-    # function MUST NOT be folded into nfinit() above. It has to be a
-    # seperate function.
-    def _nfinit_with_prec(self, long flag, long precision):
-        """
-        See ``self.nfinit()``.
-        """
-        pari_catch_sig_on()
-        return P.new_gen(nfinit0(self.g, flag, pbw(precision)))
+                    raise
 
     def nfisisom(self, gen other):
         """
@@ -7840,7 +7834,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(-12).quadhilbert()   # Not fundamental
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: quadray needs a fundamental discriminant
         """
         pari_catch_sig_on()
         # Precision argument is only used for real quadratic extensions
@@ -8675,15 +8669,13 @@ cdef class gen(sage.structure.element.RingElement):
 
         INPUT:
 
-
-        -  ``limit`` - (default: -1) is optional and can be set
+        -  ``limit`` -- (default: -1) is optional and can be set
            whenever x is of (possibly recursive) rational type. If limit is
            set return partial factorization, using primes up to limit (up to
            primelimit if limit=0).
 
-
-        proof - (default: True) optional. If False (not the default),
-        returned factors `<10^{15}` may only be pseudoprimes.
+        - ``proof`` -- (default: True) optional. If False (not the default),
+          returned factors larger than `2^{64}` may only be pseudoprimes.
 
         .. note::
 
@@ -8710,12 +8702,16 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('x^3 - y^3').factor()
             Traceback (most recent call last):
             ...
-            PariError:  (7)
+            PariError: sorry, factor for general polynomials is not yet implemented
         """
         cdef int r
+        cdef GEN cutoff
         if limit == -1 and typ(self.g) == t_INT and proof:
             pari_catch_sig_on()
-            r = factorint_withproof_sage(&t0, self.g, ten_to_15)
+            # cutoff for checking true primality: 2^64 according to the
+            # PARI documentation ??ispseudoprime.
+            cutoff = mkintn(3, 1, 0, 0)  # expansion of 2^64 in base 2^32: (1,0,0)
+            r = factorint_withproof_sage(&t0, self.g, cutoff)
             z = P.new_gen(t0)
             if not r:
                 return z
@@ -8838,7 +8834,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: f.change_variable_name("I")
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: I already exists with incompatible valence
             sage: f.subst("x", "I")
             0
         """
@@ -9259,40 +9255,59 @@ cdef unsigned long num_primes
 cdef PariOUT sage_pariOut
 
 cdef void sage_putchar(char c):
-    cdef char str[2]
-    str[0] = c
-    str[1] = 0
-    sys.stdout.write(str)
-    return
+    cdef char s[2]
+    s[0] = c
+    s[1] = 0
+    sys.stdout.write(s)
+    # Let PARI think the last character was a newline,
+    # so it doesn't print one when an error occurs.
+    pari_set_last_newline(1)
 
 cdef void sage_puts(char* s):
     sys.stdout.write(s)
-    return
+    pari_set_last_newline(1)
 
 cdef void sage_flush():
     sys.stdout.flush()
-    return
+
+cdef PariOUT sage_pariErr
+
+cdef void sage_pariErr_putchar(char c):
+    cdef char s[2]
+    s[0] = c
+    s[1] = 0
+    global pari_error_string
+    pari_error_string += str(s)
+    pari_set_last_newline(1)
+
+cdef void sage_pariErr_puts(char *s):
+    global pari_error_string
+    pari_error_string += str(s)
+    pari_set_last_newline(1)
+
+cdef void sage_pariErr_flush():
+    pass
 
 
 cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
-    def __init__(self, long size=16000000, unsigned long maxprime=500000):
+    def __init__(self, long size=1000000, unsigned long maxprime=500000):
         """
         Initialize the PARI system.
 
         INPUT:
 
 
-        -  ``size`` - long, the number of bytes for the initial
+        -  ``size`` -- long, the number of bytes for the initial
            PARI stack (see note below)
 
-        -  ``maxprime`` - unsigned long, upper limit on a
+        -  ``maxprime`` -- unsigned long, upper limit on a
            precomputed prime number table (default: 500000)
 
 
         .. note::
 
-           In py_pari, the PARI stack is different than in gp or the
-           PARI C library. In Python, instead of the PARI stack
+           In Sage, the PARI stack is different than in GP or the
+           PARI C library. In Sage, instead of the PARI stack
            holding the results of all computations, it *only* holds
            the results of an individual computation. Each time a new
            Python/PARI object is computed, it it copied to its own
@@ -9319,12 +9334,13 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         global num_primes, avma, top, bot, prec
 
         # The size here doesn't really matter, because we will allocate
-        # our own stack anyway. We ask PARI not to set up signal handlers.
-        pari_init_opts(10000, maxprime, INIT_JMPm | INIT_DFTm)
-        num_primes = maxprime
+        # our own stack anyway. We ask PARI not to set up signal and
+        # error handlers.
+        pari_init_opts(10000, maxprime, INIT_DFTm)
 
-        # NOTE: pari_catch_sig_on() can only come AFTER pari_init_opts()!
-        pari_catch_sig_on()
+        _pari_init_error_handling()
+
+        num_primes = maxprime
 
         # Free the PARI stack and allocate our own (using Cython)
         pari_free(<void*>bot); bot = 0
@@ -9339,12 +9355,38 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         GP_DATA.fmt.sigd = prec_bits_to_dec(53)
 
         # Set printing functions
-        global pariOut
+        global pariOut, pariErr
+
         pariOut = &sage_pariOut
         pariOut.putch = sage_putchar
         pariOut.puts = sage_puts
         pariOut.flush = sage_flush
-        pari_catch_sig_off()
+
+        pariErr = &sage_pariErr
+        pariErr.putch = sage_pariErr_putchar
+        pariErr.puts = sage_pariErr_puts
+        pariErr.flush = sage_pariErr_flush
+
+    def debugstack(self):
+        r"""
+        Print the internal PARI variables ``top`` (top of stack), ``avma``
+        (available memory address, think of this as the stack pointer),
+        ``bot`` (bottom of stack).
+
+        EXAMPLE::
+
+            sage: pari.debugstack()  # random
+            top =  0x60b2c60
+            avma = 0x5875c38
+            bot =  0x57295e0
+            size = 1000000
+        """
+        # We deliberately use low-level functions to minimize the
+        # chances that something goes wrong here (for example, if we
+        # are out of memory).
+        global avma, top, bot
+        printf("top =  %p\navma = %p\nbot =  %p\nsize = %lu\n", top, avma, bot, <unsigned long>(top) - <unsigned long>(bot))
+        fflush(stdout)
 
     def __dealloc__(self):
         """
@@ -9363,9 +9405,10 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         if bot:
             sage_free(<void*>bot)
-        global top, bot
+        global top, bot, avma
         top = 0
         bot = 0
+        avma = 0
         pari_close()
 
     def __repr__(self):
@@ -9924,17 +9967,138 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     # Initialization
     ############################################################
 
+    def stacksize(self):
+        r"""
+        Returns the current size of the PARI stack, which is `10^6`
+        by default.  However, the stack size is automatically doubled
+        when needed.  It can also be set directly using
+        ``pari.allocatemem()``.
+
+        EXAMPLES::
+
+            sage: pari.stacksize()
+            1000000
+
+        """
+        global top, bot
+        return (<size_t>(top) - <size_t>(bot))
+
+    def _allocate_huge_mem(self):
+        r"""
+        This function tries to allocate an impossibly large amount of
+        PARI stack in order to test ``init_stack()`` failing.
+
+        TESTS::
+
+            sage: pari.allocatemem(10^6, silent=True)
+            sage: pari._allocate_huge_mem()
+            Traceback (most recent call last):
+            ...
+            MemoryError: Unable to allocate ... (instead, allocated 1000000 bytes)
+
+        Test that the PARI stack is sane after this failure::
+
+            sage: a = pari('2^10000000')
+            sage: pari.allocatemem(10^6, silent=True)
+        """
+        # Since size_t is unsigned, this should wrap over to a very
+        # large positive number.
+        init_stack(<size_t>(-4096))
+
+    def _setup_failed_retry(self):
+        r"""
+        This function pretends that the PARI stack is larger than it
+        actually is such that allocatemem(0) will allocate much more
+        than double the current stack.  That allocation will then fail.
+        This function is meant to be used only in this doctest.
+
+        TESTS::
+
+            sage: pari.allocatemem(4096, silent=True)
+            sage: pari._setup_failed_retry()
+            sage: try:  # Any result is fine as long as it's not a segfault
+            ....:     a = pari('2^1000000')
+            ....: except MemoryError:
+            ....:     pass
+            sage: pari.allocatemem(10^6, silent=True)
+        """
+        global top
+        # Pretend top is at a very high address
+        top = <pari_sp>(<size_t>(-16))
+
     def allocatemem(self, s=0, silent=False):
         r"""
-        Double the *PARI* stack.
+        Change the PARI stack space to the given size (or double the
+        current size if ``s`` is `0`).
+
+        If `s = 0` and insufficient memory is avaible to double, the
+        PARI stack will be enlarged by a smaller amount.  In any case,
+        a ``MemoryError`` will be raised if the requested memory cannot
+        be allocated.
+
+        The PARI stack is never automatically shrunk.  You can use the
+        command ``pari.allocatemem(10^6)`` to reset the size to `10^6`,
+        which is the default size at startup.  Note that the results of
+        computations using Sage's PARI interface are copied to the
+        Python heap, so they take up no space in the PARI stack.
+        The PARI stack is cleared after every computation.
+
+        It does no real harm to set this to a small value as the PARI
+        stack will be automatically doubled when we run out of memory.
+        However, it could make some calculations slower (since they have
+        to be redone from the start after doubling the stack until the
+        stack is big enough).
+
+        INPUT:
+
+        - ``s`` - an integer (default: 0).  A non-zero argument should
+          be the size in bytes of the new PARI stack.  If `s` is zero,
+          try to double the current stack size.
+
+        EXAMPLES::
+
+            sage: pari.allocatemem(10^7)
+            PARI stack size set to 10000000 bytes
+            sage: pari.allocatemem()  # Double the current size
+            PARI stack size set to 20000000 bytes
+            sage: pari.stacksize()
+            20000000
+            sage: pari.allocatemem(10^6)
+            PARI stack size set to 1000000 bytes
+
+        The following computation will automatically increase the PARI
+        stack size::
+
+            sage: a = pari('2^100000000')
+
+        ``a`` is now a Python variable on the Python heap and does not
+        take up any space on the PARI stack.  The PARI stack is still
+        large because of the computation of ``a``::
+
+            sage: pari.stacksize()
+            16000000
+            sage: pari.allocatemem(10^6)
+            PARI stack size set to 1000000 bytes
+            sage: pari.stacksize()
+            1000000
+
+        TESTS:
+
+        Do the same without using the string interface and starting
+        from a very small stack size::
+
+            sage: pari.allocatemem(1)
+            PARI stack size set to 1024 bytes
+            sage: a = pari(2)^100000000
+            sage: pari.stacksize()
+            16777216
         """
-        if s == 0 and not silent:
-            print "Doubling the PARI stack."
-        s = int(s)
-        cdef size_t a = s
-        if int(a) != s:
-            raise ValueError, "s must be nonnegative and not too big."
+        s = long(s)
+        if s < 0:
+            raise ValueError("Stack size must be nonnegative")
         init_stack(s)
+        if not silent:
+            print "PARI stack size set to", self.stacksize(), "bytes"
 
     def pari_version(self):
         return str(PARIVERSION)
@@ -9954,8 +10118,8 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             sage: pari.init_primes(2^62)
             Traceback (most recent call last):
             ...
-            PariError: not enough memory (28)            # 64-bit
-            OverflowError: long int too large to convert # 32-bit
+            PariError: not enough memory                  # 64-bit
+            OverflowError: long int too large to convert  # 32-bit
             sage: pari.init_primes(200000)
         """
         cdef unsigned long M
@@ -10284,11 +10448,11 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             sage: pari.setrand(0)
             Traceback (most recent call last):
             ...
-            PariError: incorrect type (11)
+            PariError: incorrect type in setrand
             sage: pari.setrand("foobar")
             Traceback (most recent call last):
             ...
-            PariError: incorrect type (11)
+            PariError: incorrect type in setrand
         """
         t0GEN(seed)
         pari_catch_sig_on()
@@ -10356,9 +10520,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         cdef gen x
 
         pari_catch_sig_on()
-         # The gtomat is very important!!  Without sage/PARI will segfault.
-         # I do not know why. -- William Stein
-        A = self.new_gen(gtomat(zeromat(m,n)))
+        A = self.new_gen(zeromatcopy(m,n))
         if entries is not None:
             if len(entries) != m*n:
                 raise IndexError, "len of entries (=%s) must be %s*%s=%s"%(len(entries),m,n,m*n)
@@ -10372,107 +10534,107 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         return A
 
 
-##############################################
-# Used in integer factorization -- must be done
-# after the pari_instance creation above:
-
-cdef gen _tmp = P.new_gen_noclear(gp_read_str('1000000000000000'))
-cdef GEN ten_to_15 = _tmp.g
-
-##############################################
-
-def init_pari_stack(size=8000000):
+def init_pari_stack(s=8000000):
     """
-    Change the PARI scratch stack space to the given size.
-
-    The main application of this command is that you've done some
-    individual PARI computation that used a lot of stack space. As a
-    result the PARI stack may have doubled several times and is now
-    quite large. That object you computed is copied off to the heap,
-    but the PARI stack is never automatically shrunk back down. If you
-    call this function you can shrink it back down.
-
-    If you set this too small then it will automatically be increased
-    if it is exceeded, which could make some calculations initially
-    slower (since they have to be redone until the stack is big
-    enough).
-
-    INPUT:
-
-
-    -  ``size`` - an integer (default: 8000000)
-
+    Deprecated, use ``pari.allocatemem()`` instead.
 
     EXAMPLES::
 
-        sage: get_memory_usage()                       # random output
-        '122M+'
-        sage: a = pari('2^100000000')
-        sage: get_memory_usage()                       # random output
-        '157M+'
-        sage: del a
-        sage: get_memory_usage()                       # random output
-        '145M+'
-
-    Hey, I want my memory back!
-
-    ::
-
-        sage: sage.libs.pari.gen.init_pari_stack()
-        sage: get_memory_usage()                       # random output
-        '114M+'
-
-    Ahh, that's better.
+        sage: from sage.libs.pari.gen import init_pari_stack
+        sage: init_pari_stack()
+        doctest:...: DeprecationWarning: init_pari_stack() is deprecated; use pari.allocatemem() instead.
+        See http://trac.sagemath.org/10018 for details.
+        sage: pari.stacksize()
+        8000000
     """
-    init_stack(size)
+    from sage.misc.superseded import deprecation
+    deprecation(10018, 'init_pari_stack() is deprecated; use pari.allocatemem() instead.')
+    P.allocatemem(s, silent=True)
 
-cdef int init_stack(size_t size) except -1:
-    cdef size_t s
-    cdef pari_sp cur_stack_size
 
+cdef int init_stack(size_t requested_size) except -1:
+    r"""
+    Low-level Cython function to allocate the PARI stack.  This
+    function should not be called directly, use ``pari.allocatemem()``
+    instead.
+    """
     global top, bot, avma, mytop
 
+    cdef size_t old_size = <size_t>(top) - <size_t>(bot)
 
-    err = False    # whether or not a memory allocation error occurred.
+    cdef size_t new_size
+    cdef size_t max_size = <size_t>(-1)
+    if (requested_size == 0):
+        if old_size < max_size/2:
+            # Double the stack
+            new_size = 2*old_size
+        elif old_size < 4*(max_size/5):
+            # We cannot possibly double since we already use over half
+            # the addressable memory: take the average of current and
+            # maximum size
+            new_size = max_size/2 + old_size/2
+        else:
+            # We already use 80% of the addressable memory => give up
+            raise MemoryError("Unable to enlarge PARI stack (instead, kept the stack at %s bytes)"%(old_size))
+    else:
+        new_size = requested_size
 
+    # Align size to 16 bytes and take 1024 bytes as a minimum
+    new_size = (new_size/16)*16
+    if (new_size < 1024):
+        new_size = 1024
 
-    # delete this if get core dumps and change the 2* to a 1* below.
-    if bot:
-        sage_free(<void*>bot)
+    # Disable interrupts
+    sig_on()
+    sig_block()
 
-    prev_stack_size = top - bot
-    if size == 0:
-        size = 2 * prev_stack_size
+    # If this is non-zero, the size we failed to allocate
+    cdef size_t failed_size = 0
 
-    # Decide on size
-    s = fix_size(size)
+    try:
+        # Free the current stack
+        if bot:
+            libc.stdlib.free(<void*>bot)
 
-    # Allocate memory for new stack using Python's memory allocator.
-    # As explained in the python/C API reference, using this instead
-    # of malloc is much better (and more platform independent, etc.)
-    bot = <pari_sp> sage_malloc(s)
+        # Allocate memory for new stack.
+        bot = <pari_sp> libc.stdlib.malloc(new_size)
 
-    while not bot:
-        err = True
-        s = fix_size(prev_stack_size)
-        bot = <pari_sp> sage_malloc(s)
+        # If doubling failed, instead add 25% to the current stack size.
+        # We already checked that we use less than 80% of the maximum value
+        # for s, so this will not overflow.
+        if (bot == 0) and (requested_size == 0):
+            new_size = (old_size/64)*80
+            bot = <pari_sp> libc.stdlib.malloc(new_size)
+
         if not bot:
-            prev_stack_size /= 2
+            failed_size = new_size
+            # We lost our PARI stack and are not able to allocate the
+            # requested size.  If we just raise an exception now, we end up
+            # *without* a PARI stack which is not good.  We will raise an
+            # exception later, after allocating *some* PARI stack.
+            new_size = old_size
+            while new_size >= 1024:  # hope this never fails!
+                bot = <pari_sp> libc.stdlib.malloc(new_size)
+                if bot: break
+                new_size = (new_size/32)*16
 
-    top = bot + s
-    mytop = top
-    avma = top
+        if not bot:
+            top = 0
+            avma = 0
+            raise SystemError("Unable to allocate PARI stack, all subsequent PARI computations will crash")
 
-    if err:
-        raise MemoryError, "Unable to allocate %s bytes memory for PARI."%size
+        top = bot + new_size
+        mytop = top
+        avma = top
 
+        if failed_size:
+            raise MemoryError("Unable to allocate %s bytes for the PARI stack (instead, allocated %s bytes)"%(failed_size, new_size))
 
-cdef size_t fix_size(size_t a):
-    cdef size_t b
-    b = a - (a & (sizeof(long)-1))     # sizeof(long) | b <= a
-    if b < 1024:
-        b = 1024
-    return b
+        return 0
+    finally:
+        sig_unblock()
+        sig_off()
+
 
 cdef GEN deepcopy_to_python_heap(GEN x, pari_sp* address):
     cdef size_t s = <size_t> gsizebyte(x)
@@ -10483,7 +10645,7 @@ cdef GEN deepcopy_to_python_heap(GEN x, pari_sp* address):
     address[0] = tmp_bot
     return gcopy_avma(x, &tmp_top)
 
-cdef gen _new_gen (GEN x):
+cdef gen _new_gen(GEN x):
     cdef GEN h
     cdef pari_sp address
     cdef gen y
@@ -10537,41 +10699,12 @@ cdef GEN _Vec_append(GEN v, GEN a, long n):
         return v
 
 
-#######################
-# Base gen class
-#######################
-
-
-cdef extern from "pari/pari.h":
-    char *errmessage[]
-    int talker2, bugparier, alarmer, openfiler, talker, flagerr, impl, \
-        archer, notfuncer, precer, typeer, consister, user, errpile, \
-        overflower, matinv1, mattype1, arither1, primer1, invmoder, \
-        constpoler, notpoler, redpoler, zeropoler, operi, operf, gdiver, \
-        memer, negexper, sqrter5, noer
-    int warner, warnprec, warnfile, warnmem
-
-cdef extern from "misc.h":
-    int     factorint_withproof_sage(GEN* ans, GEN x, GEN cutoff)
-    int     gcmp_sage(GEN x, GEN y)
-
-def __errmessage(d):
-    if d <= 0 or d > noer:
-        return "unknown"
-    return errmessage[d]
-
-# FIXME: we derive PariError from RuntimeError, for backward
-# compatibility with code that catches the latter. Once this is
-# in production, we should change the base class to StandardError.
-from exceptions import RuntimeError
-
-# can we have "cdef class" ?
-# because of the inheritance, need to somehow "import" the built-in
-# exception class...
-class PariError (RuntimeError):
-
-    errmessage = staticmethod(__errmessage)
-
+# We derive PariError from RuntimeError, for backward compatibility with
+# code that catches the latter.
+class PariError(RuntimeError):
+    """
+    Error raised by PARI
+    """
     def errnum(self):
         r"""
         Return the PARI error number corresponding to this exception.
@@ -10579,12 +10712,30 @@ class PariError (RuntimeError):
         EXAMPLES::
 
             sage: try:
-            ...     pari('1/0')
-            ... except PariError, err:
-            ...     print err.errnum()
+            ....:     pari('1/0')
+            ....: except PariError as err:
+            ....:     print err.errnum()
             27
         """
         return self.args[0]
+
+    def errtext(self):
+        """
+        Return the message output by PARI when this error occurred.
+
+        EXAMPLE::
+
+            sage: try:
+            ....:     pari('pi()')
+            ....: except PariError as e:
+            ....:     print e.errtext()
+            ....:
+              ***   at top-level: pi()
+              ***                 ^----
+              ***   not a function in function call
+
+        """
+        return self.args[1]
 
     def __repr__(self):
         r"""
@@ -10597,52 +10748,21 @@ class PariError (RuntimeError):
 
     def __str__(self):
         r"""
+        Return a suitable message for displaying this exception.
+
+        This is the last line of ``self.errtext()``, with the leading
+        ``"  ***   "`` and trailing period (if any) removed.
+
         EXAMPLES::
 
             sage: try:
-            ...     pari('1/0')
-            ... except PariError, err:
-            ...     print err
-            division by zero (27)
+            ....:     pari('1/0')
+            ....: except PariError as err:
+            ....:     print err
+            _/_: division by zero
         """
-        return "%s (%d)"%(self.errmessage(self.errnum()), self.errnum())
-
-
-# We expose a trap function to C.
-# If this function returns without raising an exception,
-# the code is retried.
-# This is a proof-of-concept example.
-# THE TRY CODE IS NOT REENTRANT -- NO CALLS TO PARI FROM HERE !!!
-#              - Gonzalo Tornario
-
-cdef void _pari_trap "_pari_trap"(long errno, long retries) except *:
-    if retries > 100:
-        pari_catch_sig_off()
-        raise RuntimeError("_pari_trap recursion too deep")
-    if errno == errpile:
-        P.allocatemem(silent=True)
-    elif errno == user:
-        pari_catch_sig_off()
-        raise RuntimeError("PARI user exception")
-    else:
-        pari_catch_sig_off()
-        raise PariError(errno)
-
-
-def vecsmall_to_intlist(gen v):
-    """
-    INPUT:
-
-
-    -  ``v`` - a gen of type Vecsmall
-
-
-    OUTPUT: a Python list of Python ints
-    """
-    if typ(v.g) != t_VECSMALL:
-        raise TypeError, "input v must be of type vecsmall (use v.Vecsmall())"
-    return [v.g[k+1] for k in range(glength(v.g))]
-
+        lines = self.errtext().split('\n')
+        return lines[-1].lstrip(" *").rstrip(" .")
 
 
 cdef _factor_int_when_pari_factor_failed(x, failed_factorization):

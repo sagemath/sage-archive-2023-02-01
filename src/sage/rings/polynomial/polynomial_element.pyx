@@ -1066,7 +1066,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         - Robert Bradshaw (2007-05-31)
         """
-        from sage.rings.all import is_Ideal
+        from sage.rings.ideal import is_Ideal
         if is_Ideal(m):
             v = m.gens_reduced()
             if len(v) > 1:
@@ -3107,7 +3107,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: K.pari_polynomial('a').nffactor("x^2+1")
             Traceback (most recent call last):
             ...
-            PariError: precision too low (10)
+            PariError: precision too low in floorr (precision loss in truncation)
             sage: factor(x^2 + 1)
             x^2 + 1
             sage: factor( (x - a) * (x + 2*a) )
@@ -4379,7 +4379,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: pari(f)
             Traceback (most recent call last):
             ...
-            PariError: (5)
+            PariError: variable must have higher priority in gtopoly
 
         Stacked polynomial rings, first with a univariate ring on the
         bottom::

@@ -23,6 +23,7 @@ import random, os, sys, time, json, re, types
 import sage.misc.flatten
 from sage.structure.sage_object import SageObject
 from sage.env import DOT_SAGE, SAGE_LIB, SAGE_SRC
+from sage.ext.c_lib import AlarmInterrupt, _init_csage
 
 from sources import FileDocTestSource, DictAsObject
 from forker import DocTestDispatcher
@@ -347,14 +348,29 @@ class DocTestController(SageObject):
             sage: DC.log("hello world")
             hello world
             sage: DC.logfile.close()
-            sage: with open(DD.logfile) as logger: print logger.read()
+            sage: print open(DD.logfile).read()
+            hello world
+
+        Check that no duplicate logs appear, even when forking (:trac:`15244`)::
+
+            sage: DD = DocTestDefaults(logfile=tmp_filename())
+            sage: DC = DocTestController(DD, [])
+            sage: DC.log("hello world")
+            hello world
+            sage: if os.fork() == 0:
+            ....:     DC.logfile.close()
+            ....:     os._exit(0)
+            sage: DC.logfile.close()
+            sage: print open(DD.logfile).read()
             hello world
 
         """
         s += end
         if self.logfile is not None:
             self.logfile.write(s)
+            self.logfile.flush()
         sys.stdout.write(s)
+        sys.stdout.flush()
 
     def test_safe_directory(self, dir=None):
         """
@@ -821,23 +837,23 @@ class DocTestController(SageObject):
         if testing:
             return
 
+        # Setup Sage signal handler
+        _init_csage()
+
         import signal, subprocess
-        def handle_alrm(sig, frame):
-            raise RuntimeError
-        signal.signal(signal.SIGALRM, handle_alrm)
         p = subprocess.Popen(cmd, shell=True)
         if opt.timeout > 0:
             signal.alarm(opt.timeout)
         try:
             return p.wait()
-        except RuntimeError:
-            self.log("    Time out")
+        except AlarmInterrupt:
+            self.log("    Timed out")
             return 4
         except KeyboardInterrupt:
             self.log("    Interrupted")
             return 128
         finally:
-            signal.signal(signal.SIGALRM, signal.SIG_IGN)
+            signal.alarm(0)
             if p.returncode is None:
                 p.terminate()
 

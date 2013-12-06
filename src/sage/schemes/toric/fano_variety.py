@@ -157,9 +157,12 @@ import re
 
 from sage.geometry.all import Cone, FaceFan, Fan, LatticePolytope
 from sage.misc.all import latex, prod
-from sage.rings.all import (PolynomialRing, QQ,
-                            is_FractionField,
-                            is_MPolynomialRing, is_PolynomialRing)
+from sage.rings.all import (PolynomialRing, QQ)
+
+from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+from sage.rings.fraction_field import is_FractionField
+
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_toric
 from sage.schemes.toric.variety import (
                                             ToricVariety_field,

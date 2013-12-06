@@ -27,7 +27,7 @@ cdef extern from "math.h":
 import math
 
 from sage.misc.flatten  import flatten
-from sage.matrix.all import is_Matrix
+from sage.matrix.matrix import is_Matrix
 
 cdef double sqrt2pi = sqrt(2*math.pi)
 

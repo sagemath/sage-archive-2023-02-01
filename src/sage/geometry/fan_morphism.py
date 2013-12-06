@@ -81,12 +81,13 @@ import operator
 from sage.categories.all import Hom
 from sage.geometry.cone import Cone
 from sage.geometry.fan import Fan, is_Fan, discard_faces
-from sage.matrix.all import identity_matrix, matrix, is_Matrix
+from sage.matrix.all import identity_matrix, matrix
+from sage.matrix.matrix import is_Matrix
 from sage.misc.all import cached_method, latex, prod, walltime
 from sage.modules.free_module_morphism import (FreeModuleMorphism,
                                                is_FreeModuleMorphism)
-from sage.rings.all import Infinity, ZZ, is_Infinite
-
+from sage.rings.all import Infinity, ZZ
+from sage.rings.infinity import is_Infinite
 
 class FanMorphism(FreeModuleMorphism):
     r"""

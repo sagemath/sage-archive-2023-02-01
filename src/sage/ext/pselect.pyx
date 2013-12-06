@@ -114,18 +114,18 @@ cdef class PSelecter:
     such that they can only occur during the :meth:`pselect()` or
     :meth:`sleep()` calls.
 
-    As an example, we block the ``SIGHUP`` and ``SIGINT`` signals and
-    then raise a ``SIGINT`` signal. The interrupt will only be seen
+    As an example, we block the ``SIGHUP`` and ``SIGALRM`` signals and
+    then raise a ``SIGALRM`` signal. The interrupt will only be seen
     during the :meth:`sleep` call::
 
         sage: from sage.ext.pselect import PSelecter
         sage: import signal, time
-        sage: with PSelecter([signal.SIGHUP, signal.SIGINT]) as sel:
-        ....:     os.kill(os.getpid(), signal.SIGINT)
+        sage: with PSelecter([signal.SIGHUP, signal.SIGALRM]) as sel:
+        ....:     os.kill(os.getpid(), signal.SIGALRM)
         ....:     time.sleep(0.5)  # Simply sleep, no interrupt detected
         ....:     try:
         ....:         _ = sel.sleep(1)  # Interrupt seen here
-        ....:     except KeyboardInterrupt:
+        ....:     except AlarmInterrupt:
         ....:         print("Interrupt OK")
         ....:
         Interrupt OK
@@ -185,15 +185,15 @@ cdef class PSelecter:
 
             sage: from sage.ext.pselect import PSelecter
             sage: import signal
-            sage: with PSelecter([signal.SIGINT]) as sel:
-            ....:     os.kill(os.getpid(), signal.SIGINT)
+            sage: with PSelecter([signal.SIGALRM]) as sel:
+            ....:     os.kill(os.getpid(), signal.SIGALRM)
             ....:     with PSelecter([signal.SIGFPE]) as sel2:
             ....:         _ = sel2.sleep(0.1)
-            ....:     with PSelecter([signal.SIGINT]) as sel3:
+            ....:     with PSelecter([signal.SIGALRM]) as sel3:
             ....:         _ = sel3.sleep(0.1)
             ....:     try:
             ....:         _ = sel.sleep(0.1)
-            ....:     except KeyboardInterrupt:
+            ....:     except AlarmInterrupt:
             ....:         print("Interrupt OK")
             ....:
             Interrupt OK

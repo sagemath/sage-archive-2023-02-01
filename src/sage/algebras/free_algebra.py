@@ -586,6 +586,12 @@ class FreeAlgebra_generic(Algebra):
             sage: L.<a,b,c> = FreeAlgebra(K,3, implementation='letterplace')
             sage: F.1+(z+1)*L.2
             b + (z+1)*c
+
+        Check that :trac:`15169` is fixed::
+
+            sage: A.<x> = FreeAlgebra(CC)
+            sage: A(2)
+            2.00000000000000
         """
         if isinstance(x, FreeAlgebraElement):
             P = x.parent()
@@ -621,8 +627,7 @@ class FreeAlgebra_generic(Algebra):
         x = R(x)
         if x == 0:
             return self.element_class(self,{})
-        else:
-            return self.element_class(self,{F(1):x})
+        return self.element_class(self,{self._basis_keys.one():x})
 
     def _coerce_impl(self, x):
         """
@@ -797,8 +802,8 @@ class FreeAlgebra_generic(Algebra):
                     return True
                 else:
                     return False
-        if isinstance(R, PBWBasisOfFreeAlgebra) and self.has_coerce_map_from(R._alg):
-            return True
+        if isinstance(R, PBWBasisOfFreeAlgebra):
+            return self.has_coerce_map_from(R._alg)
 
         return self.base_ring().has_coerce_map_from(R)
 
@@ -1207,7 +1212,7 @@ class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
             PBW[x*y] + PBW[y]*PBW[x]
         """
         if isinstance(x, FreeAlgebraElement):
-            return x.parent().pbw_element(x)
+            return self._alg.pbw_element(self._alg(x))
         return CombinatorialFreeModule._element_constructor_(self, x)
 
     def _coerce_map_from_(self, R):
@@ -1284,6 +1289,18 @@ class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
             PBW[y]
         """
         return self.algebra_generators()[i]
+
+    def free_algebra(self):
+        """
+        Return the associated free algebra of ``self``.
+
+        EXAMPLES::
+
+            sage: PBW = FreeAlgebra(QQ, 2, 'x,y').pbw_basis()
+            sage: PBW.free_algebra()
+            Free Algebra on 2 generators (x, y) over Rational Field
+        """
+        return self._alg
 
     def product(self, u, v):
         """

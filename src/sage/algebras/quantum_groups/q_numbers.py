@@ -24,7 +24,7 @@ from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 @cached_function
 def q_number(n, q=None):
     r"""
-    Return the `q`-number analogue of the integer `n`.
+    Return the `q`-analogue of the integer `n`.
 
     The `q`-number of `n` is given by
 
@@ -33,11 +33,13 @@ def q_number(n, q=None):
         [n]_q = \frac{q^n - q^{-n}}{q - q^-1} = q^{n-1} + q^{n-3} + \cdots
         + q^{-n+3} + q^{-n+1}.
 
-    Note that this is not the "usual" `q`-analogue of `n`, but this is
-    analogue is useful in quantum groups.
-
     If ``q`` is unspecified, then it defaults to using the generator `q` for
-    a Laurent polynomial ring over the integers. 
+    a Laurent polynomial ring over the integers.
+
+    .. NOTE::
+
+        This is not the "usual" `q`-analogue (or `q`-number) but a variant
+        useful for quantum groups.
 
     INPUT:
 
@@ -74,17 +76,31 @@ def q_number(n, q=None):
 
 def q_factorial(n, q=None):
     """
-    Returns the `q`-analogue of the factorial `n!`
+    Return the `q`-analogue of the factorial `n!`.
 
-    If `q` is unspecified, then it defaults to using the generator `q` for
+    The `q`-factorial is defined by:
+
+    .. MATH::
+
+        [n]_q! = [n]_q \cdot [n-1]_q \cdots [2]_q \cdot [1]_q
+
+    where `[n]_q` denotes the `q`-number defined in
+    :meth:`sage.algebras.quantum_groups.q_numbers.q_number()`.
+
+    If ``q`` is unspecified, then it defaults to using the generator `q` for
     a Laurent polynomial ring over the integers.
+
+    .. NOTE::
+
+        This is not the "usual" `q`-factorial but a variant useful
+        for quantum groups.
 
     INPUT:
 
     - ``n`` -- the value `n` defined above
 
     - ``q`` -- (default: ``None``) the variable `q`; if ``None``, then use a
-      default variable in `\ZZ[q,q^{-1}]`
+      default variable in `\ZZ[q, q^{-1}]`
 
     EXAMPLES::
 
@@ -114,34 +130,43 @@ def q_binomial(n, k, q=None):
     r"""
     Return the `q`-binomial coefficient.
 
-    This is also known as the Gaussian binomial coefficient, and is defined by
+    Let `[n]_q!` denote the `q`-factorial of `n` given by
+    :meth:`sage.algebras.quantum_groups.q_numbers.q_factorial()`.
+    The `q`-binomial coefficient is defined by
 
     .. MATH::
 
-        \binom{n}{k}_q = \frac{(1-q^n)(1-q^{n-1}) \cdots (1-q^{n-k+1})}
-        {(1-q)(1-q^2)\cdots (1-q^k)}.
+        \binom{n}{k}_q = \frac{[n]_q!}{[n-k]_q! [k]_q!}.
 
-    See :wikipedia:`Gaussian binomial coefficient`.
-
-    If `q` is unspecified, then the variable is the generator `q` for
+    If ``q`` is unspecified, then the variable is the generator `q` for
     a Laurent polynomial ring over the integers.
+
+    .. NOTE::
+
+        This is not the "usual" `q`-binomial but a variant useful
+        for quantum groups.
 
     INPUT:
 
     - ``n, k`` -- the values, `n` and `k` defined above
 
     - ``q`` -- (default: ``None``) the variable `q`; if ``None``, then use a
-      default variable in `\ZZ[q,q^{-1}]`
+      default variable in `\ZZ[q, q^{-1}]`
 
-    EXAMPLES::
+    EXAMPLES:
+
+    Until Laurent polynomials divide properly, we will use rational functions::
 
         sage: from sage.algebras.quantum_groups.q_numbers import q_binomial
-        sage: q_binomial(2, 1)
-        q + q^-1
-        sage: q_binomial(2, 0)
-        q^2 + 1 + q^-2
-        sage: q_binomial(4, 1)
-        sage: q_binomial(4, 3)
+        sage: q = ZZ['q'].fraction_field().gen(0)
+        sage: q_binomial(2, 1, q)
+        (q^2 + 1)/q
+        sage: q_binomial(2, 0, q)
+        1
+        sage: q_binomial(4, 1, q)
+        (q^6 + q^4 + q^2 + 1)/q^3
+        sage: q_binomial(4, 3, q)
+        (q^6 + q^4 + q^2 + 1)/q^3
 
     TESTS::
 
@@ -162,8 +187,8 @@ def q_binomial(n, k, q=None):
         return 0
 
     k = min(n-k,k) # Pick the smallest k
-    denomin = prod([1 - q**i for i in range(1, k+1)])
-    numerat = prod([1 - q**i for i in range(n-k+1, n+1)])
+    denomin = q_factorial(n - k, q) * q_factorial(k, q)
+    numerat = q_factorial(n, q)
     try:
         return numerat // denomin
     except TypeError:

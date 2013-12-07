@@ -2588,9 +2588,9 @@ def get_branching_rule(Rtype, Stype, rule):
         if Rtype[0] == 'E' and Rtype[1] == 6:
             if Stype.is_compound():
                 if stypes == [CartanType("A2"),CartanType("G2")]:
-                    return lambda x : [2*x[7],2*x[6]+x[4]-x[5],x[5]-x[4],-x[2]-x[3],-x[1]+x[2],x[1]+x[3]]
+                    return lambda x : [-2*x[5],x[5]+x[4],x[5]-x[4],-x[2]-x[3],-x[1]+x[2],x[1]+x[3]]
                 elif stypes == [CartanType("G2"),CartanType("A2")]:
-                    return lambda x : [-x[2]-x[3],-x[1]+x[2],x[1]+x[3],2*x[7],2*x[6]+x[4]-x[5],x[5]-x[4]]
+                    return lambda x : [-x[2]-x[3],-x[1]+x[2],x[1]+x[3],-2*x[5],x[5]+x[4],x[5]-x[4]]
                 else:
                     raise ValueError("Rule not found")
         else:

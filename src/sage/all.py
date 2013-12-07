@@ -118,6 +118,7 @@ from sage.lfunctions.all import *
 
 from sage.geometry.all   import *
 from sage.geometry.triangulation.all   import *
+from sage.geometry.riemannian_manifolds.all   import *
 
 from sage.dynamics.all   import *
 

@@ -32,10 +32,11 @@ from sage.rings.all import ZZ, QQ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.fraction_field import FractionField
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
+from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
-from sage.combinat.partition import _Partitions
+from sage.combinat.partition import Partition, _Partitions
+from sage.combinat.integer_list import IntegerListsLex
 from sage.combinat.partition_tuple import PartitionTuples
-from sage.combinat.root_system.root_system import RootSystem
 from sage.algebras.quantum_groups.q_numbers import q_factorial
 
 class FockSpace(CombinatorialFreeModule):
@@ -51,7 +52,7 @@ class FockSpace(CombinatorialFreeModule):
     - ``base_ring`` -- (optional) the base ring containing ``q``
     """
     @staticmethod
-    def __classcall_private__(cls, n, r=[0], q=None, base_ring=None):
+    def __classcall_private__(cls, n, r=[0], q=None, base_ring=None, truncated=None):
         """
         Standardize input to ensure a unique representation.
 
@@ -73,11 +74,13 @@ class FockSpace(CombinatorialFreeModule):
         q = base_ring(q)
         M = IntegerModRing(n)
         if r in ZZ:
-            r = [r]
-        r = map(M, r)
-        return super(FockSpace, cls).__classcall__(cls, n, tuple(r), q, base_ring)
+            r = (r,)
+        r = tuple(map(M, r))
+        if truncated is not None:
+            return FockSpaceTruncated(n, truncated, q, base_ring)
+        return super(FockSpace, cls).__classcall__(cls, n, r, q, base_ring)
 
-    def __init__(self, n, r, q, base_ring):
+    def __init__(self, n, r, q, base_ring, indices=None):
         """
         Initialize ``self``.
 
@@ -100,7 +103,9 @@ class FockSpace(CombinatorialFreeModule):
                                             la.outside_corners())
         self._removable = lambda la,i: filter(lambda x: la.content(*x, multicharge=self._r) == i,
                                               la.corners())
-        CombinatorialFreeModule.__init__(self, base_ring, PartitionTuples(len(r)),
+        if indices is None:
+            indices = PartitionTuples(len(r))
+        CombinatorialFreeModule.__init__(self, base_ring, indices,
                                          prefix='', bracket=['|', '>'],
                                          latex_bracket=['\\lvert', '\\rangle'],
                                          monomial_cmp=lambda x,y: -cmp(x,y),
@@ -274,7 +279,7 @@ class FockSpace(CombinatorialFreeModule):
                 - sum(1 for y in P._removable(la, i) if P._above(y, x))
             q = P._q
             return P.sum_of_terms( [(la.add_cell(*x), c * q**N_right(la, x, i))
-                                for la,c in self for x in P._addable(la, i)] )
+                                    for la,c in self for x in P._addable(la, i)] )
 
         def h(self, i):
             """
@@ -351,10 +356,6 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
 
     .. [Fayers2010] Matthew Fayers. *An LLT-type algorithm for computing
        higher-level canonical bases*. (2010). :arxiv:`0908.1749v3`.
-
-    .. [GW1998] Frederick M. Goodman and Hans Wenzl. *Crystal bases of quantum
-       affine algebras and affine Kazhdan-Lusztig polyonmials*. (1998).
-       :arxiv:`math/9807014v1`.
     """
     @staticmethod
     def __classcall_private__(cls, n, r=[0], q=None, base_ring=None):
@@ -388,8 +389,6 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
             sage: x = B.a_realization() # This should be removed, but is needed so the test suite correctly obtains an element
             sage: TestSuite(B).run()
         """
-        self._n = fock_space._n
-        self._q = fock_space._q
         self._fock = fock_space
         R = fock_space.base_ring()
 
@@ -406,7 +405,7 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
             Highest weight representation of ['A', 1, 1] of weight Lambda[0]
         """
         from sage.combinat.root_system.cartan_type import CartanType
-        ct = CartanType(['A', self._n - 1, 1])
+        ct = CartanType(['A', self._fock._n - 1, 1])
         P = ct.root_system().weight_lattice()
         wt = P.sum_of_monomials(self._fock._r)
         return "Highest weight representation of {} of weight {}".format(ct, wt)
@@ -472,10 +471,8 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
                 sage: TestSuite(A).run()
             """
             self._basis_name = "approximation"
-            self._n = basic._n
-            self._q = basic._q
             level = len(basic._fock._r)
-            CombinatorialFreeModule.__init__(self, self._q.parent(), PartitionTuples(level),
+            CombinatorialFreeModule.__init__(self, basic.base_ring(), PartitionTuples(level),
                                              prefix='A', bracket=False,
                                              monomial_cmp=lambda x,y: -cmp(x,y),
                                              category=HighestWeightRepresentationBases(basic))
@@ -503,7 +500,6 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
             if la.size() == 0:
                 return fock.highest_weight_vector()
 
-            G = self.realization_of().G()
             if len(fock._r) > 1:
                 # Find the first to be non-empty partition
                 # Note this is one more than the first non-empty partition
@@ -533,8 +529,8 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
             # Get the ladders and apply it to the current element
             corners = la.corners()
             cells = set(la.cells())
-            q = self._q
-            k = self._n - 1 # This is sl_{k+1}
+            q = fock._q
+            k = fock._n - 1 # This is sl_{k+1}
             r = fock._r[0]
             b = ZZ.zero()
             while any(c[1]*k + c[0] >= b for c in corners): # While there is some cell left to count
@@ -691,10 +687,8 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
                 sage: TestSuite(G).run()
             """
             self._basis_name = "lower global crystal"
-            self._n = basic._n
-            self._q = basic._q
             level = len(basic._fock._r)
-            CombinatorialFreeModule.__init__(self, self._q.parent(), PartitionTuples(level),
+            CombinatorialFreeModule.__init__(self, basic.base_ring(), PartitionTuples(level),
                                              prefix='G', bracket=False,
                                              monomial_cmp=lambda x,y: -cmp(x,y),
                                              category=HighestWeightRepresentationBases(basic))
@@ -749,13 +743,14 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
             s.sort(cmp=dom_cmp) # Sort via dominance order
             s.pop() # Remove the largest
 
+            q = self.realization_of()._fock._q
             while len(s) != 0:
                 mu = s.pop()
                 d = cur[mu].denominator()
                 k = d.degree()
                 n = cur[mu].numerator()
                 if k != 0 or n.constant_coefficient() != 0:
-                    gamma = sum(n[i] * (self._q**(i-k) + self._q**(k-i))
+                    gamma = sum(n[i] * (q**(i-k) + q**(k-i))
                                 for i in range(min(n.degree(), k)))
                     gamma += n[k]
                     cur -= gamma * self._G_to_fock_basis(mu)
@@ -813,7 +808,7 @@ class HighestWeightRepresentationBases(Category_realization_of_parent):
             sage: HighestWeightRepresentationBases(B)
             Category of bases of Highest weight representation of ['A', 1, 1] of weight Lambda[0]
         """
-        return "Category of bases of %s" % self.base()
+        return "Category of bases of {}".format(self.base())
 
     def super_categories(self):
         r"""
@@ -845,7 +840,7 @@ class HighestWeightRepresentationBases(Category_realization_of_parent):
                 sage: B.G()
                 Highest weight representation of ['A', 1, 1] of weight Lambda[0] in the lower global crystal basis
             """
-            return "%s in the %s basis"%(self.realization_of(), self._basis_name)
+            return "{} in the {} basis".format(self.realization_of(), self._basis_name)
 
         @cached_method
         def highest_weight_vector(self):
@@ -926,11 +921,430 @@ class HighestWeightRepresentationBases(Category_realization_of_parent):
             if i.size() == 0:
                 return self.highest_weight_vector()
 
-            level = len(self.realization_of()._fock._r)
+            fock = self.realization_of()._fock
+            level = len(fock._r)
             if level == 1:
-                if max(i.to_exp()) >= self._n:
-                    raise ValueError("{} is not a {}-regular partition".format(i, self._n))
-            elif max(map(lambda x: max(x.to_exp() + [0]), i)) >= self._n:
-                raise ValueError("{} is not a {}-regular partition tuple".format(i, self._n))
+                if max(i.to_exp()) >= fock._n:
+                    raise ValueError("{} is not a {}-regular partition".format(i, fock._n))
+            elif max(map(lambda x: max(x.to_exp() + [0]), i)) >= fock._n:
+                raise ValueError("{} is not a {}-regular partition tuple".format(i, fock._n))
             return self.monomial(i)
+
+###############################################################################
+## Truncated Fock space
+
+class IndexingSet(IntegerListsLex):
+    """
+    Helper class which is used for the indexing set of the truncated Fock
+    space. This is needed so that the elements of the truncated Fock space
+    can pickle properly.
+    """
+    def __init__(self, k):
+        """
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: from sage.algebras.quantum_groups.fock_space import IndexingSet
+            sage: I = IndexingSet(4)
+            sage: loads(dumps(I)) == I
+            True
+        """
+        IntegerListsLex.__init__(self, NonNegativeIntegers(), max_slope=0, min_part=1, max_length=k)
+
+    Element = Partition
+    global_options = _Partitions.global_options
+
+class FockSpaceTruncated(FockSpace):
+    """
+    This is the Fock space given by partitions of length no more than `k`.
+
+    This can be formed as the quotient `\mathcal{F} / \mathcak{F}_k` where
+    `\mathcal{F}_k` is the submodule spanned by all diagrams of length
+    (strictly) more than `k`.
+    """
+    @staticmethod
+    def __classcall_private__(cls, n, k, q=None, base_ring=None):
+        """
+        Standardize input to ensure a unique representation.
+
+        EXAMPLES::
+
+            sage: R.<q> = QQ[]
+            sage: F1 = FockSpace(3, truncated=2)
+            sage: F2 = FockSpace(3, q=q, truncated=2)
+            sage: F3 = FockSpace(3, q=q, base_ring=R, truncated=2)
+            sage: F1 is F2 and F2 is F3
+            True
+            sage: from sage.algebras.quantum_groups.fock_space import FockSpaceTruncated
+            sage: F4 = FockSpaceTruncated(3, 2, q, R)
+            sage: F1 is F4
+            True
+        """
+        if q is None:
+            base_ring = PolynomialRing(QQ, 'q')
+            q = base_ring.gen(0)
+        if base_ring is None:
+            base_ring = q.parent()
+        base_ring = FractionField(base_ring)
+        q = base_ring(q)
+        return super(FockSpace, cls).__classcall__(cls, n, k, q, base_ring)
+
+    def __init__(self, n, k, q, base_ring):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: F = FockSpace(2, truncated=3)
+            sage: TestSuite(F).run()
+        """
+        M = IntegerModRing(n)
+        self._k = k
+        indices = IndexingSet(k)
+        FockSpace.__init__(self, n, (M(0),), q, base_ring, indices)
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: FockSpace(2, truncated=3)
+            Fock space of rank 2 truncated at 3 over Fraction Field of
+             Univariate Polynomial Ring in q over Rational Field
+        """
+        return "Fock space of rank {} truncated at {} over {}".format(self._n, self._k, self.base_ring())
+
+    def highest_weight_representation(self):
+        """
+        Return the highest weight representation `B(\Lambda)` in ``self``.
+
+        EXAMPLES::
+
+            sage: F = FockSpace(2, truncated=3)
+            sage: F.highest_weight_representation()
+            Highest weight representation of ['A', 1, 1] of weight Lambda[0] truncated at 3
+        """
+        return HighestWeightRepresentationTruncated(self)
+
+    class Element(FockSpace.Element):
+        """
+        An element in the trucated Fock space.
+        """
+        def f(self, i):
+            """
+            Apply the action of `f_i` on ``self``.
+
+            EXAMPLES::
+
+            sage: F = FockSpace(2, truncated=3)
+            sage: mg = F.highest_weight_vector()
+            sage: mg.f(0)
+            |[1]>
+            sage: mg.f(0).f(1)
+            |[2]> + q*|[1, 1]>
+            sage: mg.f(0).f(1).f(2)
+            |[3]> + q*|[1, 1, 1]>
+            sage: mg.f(0).f(1).f(2).f(0)
+            0
+            sage: mg.f(0).f(1).f(2).f(1)
+            |[4]> + q*|[3, 1]> + q*|[2, 1, 1]>
+            sage: mg.f(0).f(1).f(2).f(1).f(2)
+            |[5]> + |[3, 2]> + 2*q*|[3, 1, 1]> + q^2*|[2, 2, 1]>
+            """
+            P = self.parent()
+            N_right = lambda la, x, i: \
+                sum(1 for y in P._addable(la, i) if P._above(y, x)) \
+                - sum(1 for y in P._removable(la, i) if P._above(y, x))
+            q = P._q
+            return P.sum_of_terms( [(la.add_cell(*x), c * q**N_right(la, x, i))
+                                    for la,c in self for x in P._addable(la, i) if x[0] < P._k] )
+
+
+class HighestWeightRepresentationTruncated(Parent, UniqueRepresentation):
+    """
+    The highest weight representation `B(\Lambda)` of
+    `U_q(\widehat{\mathfrak{sl}}_n)` truncated at `k`.
+
+    We realize this a subspace of the corresponding
+    :class:`truncated Fock space <FockSpaceTruncated>`. We have two bases:
+
+    - The approximation basis which comes from LLT(-type) algorithms.
+    - The lower global crystal basis.
+
+    REFERENCES:
+
+    .. [GW1998] Frederick M. Goodman and Hans Wenzl. *Crystal bases of quantum
+       affine algebras and affine Kazhdan-Lusztig polyonmials*. (1998).
+       :arxiv:`math/9807014v1`.
+    """
+    @staticmethod
+    def __classcall_private__(cls, n, k=None, q=None, base_ring=None):
+        """
+        Standardize input to ensure a unique representation.
+
+        EXAMPLES::
+
+            sage: F = FockSpace(2, truncated=3)
+            sage: B1 = F.highest_weight_representation()
+            sage: from sage.algebras.quantum_groups.fock_space import HighestWeightRepresentationTruncated
+            sage: B2 = HighestWeightRepresentationTruncated(2, 3)
+            sage: R.<q> = QQ[]
+            sage: B3 = HighestWeightRepresentationTruncated(2, 3, q, R)
+            sage: B1 is B2 and B2 is B3
+            True
+        """
+        if isinstance(n, FockSpaceTruncated):
+            return super(HighestWeightRepresentationTruncated, cls).__classcall__(cls, n)
+        F = FockSpaceTruncated(n, k, q, base_ring)
+        return super(HighestWeightRepresentationTruncated, cls).__classcall__(cls, F)
+
+    def __init__(self, fock_space):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: F = FockSpace(2, truncated=3)
+            sage: B = F.highest_weight_representation()
+            sage: x = B.a_realization() # This should be removed, but is needed so the test suite correctly obtains an element
+            sage: TestSuite(B).run()
+        """
+        self._fock = fock_space
+        R = fock_space.base_ring()
+        Parent.__init__(self, base=R, category=ModulesWithBasis(R).WithRealizations())
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: F = FockSpace(2)
+            sage: F.highest_weight_representation()
+            Highest weight representation of ['A', 1, 1] of weight Lambda[0]
+        """
+        from sage.combinat.root_system.cartan_type import CartanType
+        ct = CartanType(['A', self._fock._n - 1, 1])
+        P = ct.root_system().weight_lattice()
+        return "Highest weight representation of {} of weight {} truncated at {}".format(ct,
+                    P.monomial(0), self._fock._k)
+
+    def a_realization(self):
+        """
+        Return a realization of ``self``.
+
+        EXAMPLES::
+
+            sage: F = FockSpace(2, truncated=3)
+            sage: B = F.highest_weight_representation()
+            sage: B.a_realization()
+            Highest weight representation of ['A', 1, 1] of weight Lambda[0]
+             truncated at 3 in the lower global crystal basis
+        """
+        return self.G()
+
+    class A(CombinatorialFreeModule, BindableClass):
+        """
+        The `A` basis of the Fock space which is the approximation of the
+        lower global crystal basis.
+
+        EXAMPLES::
+        """
+        def __init__(self, basic):
+            """
+            Initialize ``self``.
+
+            EXAMPLES::
+
+                sage: F = FockSpace(2, truncated=3)
+                sage: B = F.highest_weight_representation()
+                sage: A = B.A()
+                sage: TestSuite(A).run()
+            """
+            self._basis_name = "approximation"
+            CombinatorialFreeModule.__init__(self, basic.base_ring(), IndexingSet(basic._fock._k),
+                                             prefix='A', bracket=False,
+                                             monomial_cmp=lambda x,y: -cmp(x,y),
+                                             category=HighestWeightRepresentationBases(basic))
+            self.module_morphism(self._A_to_fock_basis,
+                                 triangular='upper', unitriangular=True,
+                                 codomain=basic._fock).register_as_coercion()
+
+        @cached_method
+        def _LLT(self, la):
+            """
+            Return the regular LLT algorithm on the partition ``la`` to
+            compute the `A`-basis element in the Fock space.
+            """
+            fock = self.realization_of()._fock
+            k = fock._k
+            I = fock._indices
+
+            cur = fock.highest_weight_vector()
+            # Get the ladders and apply it to the current element
+            corners = la.corners()
+            cells = set(la.cells())
+            q = fock._q
+            k = fock._n - 1 # This is sl_{k+1}
+            r = fock._r[0]
+            b = ZZ.zero()
+            while any(c[1]*k + c[0] >= b for c in corners): # While there is some cell left to count
+                power = 0
+                i = -b + r # This will be converted to a mod n number
+                for x in range(0, b // k + 1):
+                    if (b-x*k, x) in cells:
+                        power += 1
+                        cur = cur.f(i)
+                cur /= q_factorial(power, q)
+                b += 1
+            return cur
+
+        @cached_method
+        def _A_to_fock_basis(self, la):
+            """
+            Return the `A` basis indexed by ``la`` in the natural basis.
+
+            EXAMPLES::
+
+                sage: F = FockSpace(3, truncated=2)
+                sage: B = F.highest_weight_representation()
+                sage: A = B.A()
+                sage: A._A_to_fock_basis(Partition([3]))
+                |[3]> + q*|[2, 1]>
+                sage: A._A_to_fock_basis(Partition([2,1]))
+                |[2, 1]>
+            """
+            fock = self.realization_of()._fock
+            k = fock._k
+
+            # We do some special cases first
+            # For the empty partition
+            if la.size() == 0:
+                return fock.highest_weight_vector()
+
+            # For length k partitions
+            if len(la) == k:
+                G = self.realization_of().G()
+                return G._G_to_fock_basis(la)
+
+            # For critical partitions
+            n = fock._n
+            is_critical = lambda mu: all((mu[i] - mu[i+1] + 1) % n == 0 for i in range(len(mu)-1))
+            if is_critical(la):
+                return fock.monomial(la)
+
+            # For interior partitions
+            if all(la[i] >= (n - 1)*(k - 1 - i) for i in range(len(la))):
+                # Construct the d's and the critical partition
+                d = [(la[i] - la[i+1] + 1) % n for i in range(len(la)-1)]
+                crit = list(la)
+                for i,k in enumerate(d):
+                    for j in range(i):
+                        crit[j] -= k
+                crit = self._indices(crit)
+                cur = fock.monomial(crit)
+                # Now apply the sequence of f's
+                # TODO
+                return cur
+
+            return self._LLT(la)
+
+    approximation = A
+
+    class G(CombinatorialFreeModule, BindableClass):
+        """
+        The lower global crystal basis living inside of Fock space.
+
+        EXAMPLES::
+        """
+        def __init__(self, basic):
+            """
+            Initialize ``self``.
+
+            EXAMPLES::
+
+                sage: F = FockSpace(2, truncated=3)
+                sage: B = F.highest_weight_representation()
+                sage: G = B.G()
+                sage: TestSuite(G).run()
+            """
+            self._basis_name = "lower global crystal"
+            CombinatorialFreeModule.__init__(self, basic.base_ring(), IndexingSet(basic._fock._k),
+                                             prefix='G', bracket=False,
+                                             monomial_cmp=lambda x,y: -cmp(x,y),
+                                             category=HighestWeightRepresentationBases(basic))
+            self.module_morphism(self._G_to_fock_basis,
+                                 triangular='upper', unitriangular=True,
+                                 codomain=basic._fock).register_as_coercion()
+
+        @cached_method
+        def _G_to_fock_basis(self, la):
+            """
+            Return the `G` basis indexed by ``la`` in the natural basis.
+
+            EXAMPLES::
+
+                sage: F = FockSpace(3, truncated=3)
+                sage: B = F.highest_weight_representation()
+                sage: G = B.G()
+                sage: G._G_to_fock_basis(Partition([3]))
+                |[3]> + q*|[2, 1]>
+                sage: G._G_to_fock_basis(Partition([2,1]))
+                |[2, 1]> + q*|[1, 1, 1]>
+            """
+            fock = self.realization_of()._fock
+
+            # Special cases:
+            # For the empty partition
+            if la.size() == 0:
+                return fock.highest_weight_vector()
+
+            # For length k partitions
+            n = fock._n
+            k = fock._k
+            if len(la) == k:
+                I = fock._indices
+                x = la[-1]
+                mu = Partition([p - x for p in la])
+                add_cols = lambda nu: I([ v + x for v in list(nu) + [0]*(k - len(nu)) ])
+                return fock.sum_of_terms((add_cols(nu), c) for nu,c in self._G_to_fock_basis(mu))
+
+            # For critical partitions
+            n = fock._n
+            is_critical = lambda mu: all((mu[i] - mu[i+1] + 1) % n == 0 for i in range(len(mu)-1))
+            if is_critical(la):
+                return fock.monomial(la)
+
+            # Perform the triangular reduction
+            cur = self.realization_of().A()._A_to_fock_basis(la)
+            dom_cmp = lambda x,y: -1 if y.dominates(x) else 1
+            s = cur.support()
+            s.sort(cmp=dom_cmp) # Sort via dominance order
+            s.pop() # Remove the largest
+
+            q = fock._q
+            while len(s) != 0:
+                mu = s.pop()
+                d = cur[mu].denominator()
+                k = d.degree()
+                n = cur[mu].numerator()
+                if k != 0 or n.constant_coefficient() != 0:
+                    gamma = sum(n[i] * (q**(i-k) + q**(k-i))
+                                for i in range(min(n.degree(), k)))
+                    gamma += n[k]
+                    cur -= gamma * self._G_to_fock_basis(mu)
+
+                    # Add any new support elements
+                    for x in cur.support():
+                        if x == mu or not mu.dominates(x): # Add only things (strictly) dominated by mu
+                            continue
+                        for i in reversed(range(len(s))):
+                            if not s[i].dominates(x):
+                                s.insert(i+1, x)
+                                break
+            return cur
+
+    lower_global_crystal_basis = G
 

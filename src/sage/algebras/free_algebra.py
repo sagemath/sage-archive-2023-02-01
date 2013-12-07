@@ -419,7 +419,7 @@ class FreeAlgebra_generic(Algebra):
             raise TypeError("Argument R must be a ring.")
         self.__ngens = n
         #sage.structure.parent_gens.ParentWithGens.__init__(self, R, names)
-        self._basis_keys = FreeMonoid(n, names=names)
+        self._indices = FreeMonoid(n, names=names)
         Algebra.__init__(self, R, names, category=AlgebrasWithBasis(R))
 
     def one_basis(self):
@@ -434,7 +434,7 @@ class FreeAlgebra_generic(Algebra):
             sage: F.one_basis().parent()
             Free monoid on 2 generators (x, y)
         """
-        return self._basis_keys.one()
+        return self._indices.one()
 
     # Needed for the category AlgebrasWithBasis (but not for Algebras)
     def term(self, index, coeff=None):
@@ -603,7 +603,7 @@ class FreeAlgebra_generic(Algebra):
             P = x.parent()
             if self.has_coerce_map_from(P): # letterplace versus generic
                 ngens = P.ngens()
-                M = self._basis_keys
+                M = self._indices
                 def exp_to_monomial(T):
                     out = []
                     for i in xrange(len(T)):
@@ -617,7 +617,7 @@ class FreeAlgebra_generic(Algebra):
             return sage_eval(x,locals=self.gens_dict())
         R = self.base_ring()
         # coercion from free monoid
-        if isinstance(x, FreeMonoidElement) and x.parent() is self._basis_keys:
+        if isinstance(x, FreeMonoidElement) and x.parent() is self._indices:
             return self.element_class(self,{x:R(1)})
         # coercion from the PBW basis
         if isinstance(x, PBWBasisOfFreeAlgebra.Element) \
@@ -627,7 +627,7 @@ class FreeAlgebra_generic(Algebra):
         x = R(x)
         if x == 0:
             return self.element_class(self,{})
-        return self.element_class(self,{self._basis_keys.one():x})
+        return self.element_class(self,{self._indices.one():x})
 
     def _coerce_impl(self, x):
         """
@@ -732,7 +732,7 @@ class FreeAlgebra_generic(Algebra):
             R = x.parent()
 
             # monoid
-            if R is self._basis_keys:
+            if R is self._indices:
                 return self(x)
 
             # polynomial rings in the same variable over any base that coerces in:
@@ -792,7 +792,7 @@ class FreeAlgebra_generic(Algebra):
             b + (z+1)*c
 
         """
-        if self._basis_keys.has_coerce_map_from(R):
+        if self._indices.has_coerce_map_from(R):
             return True
 
         # free algebras in the same variable over any base that coerces in:
@@ -821,7 +821,7 @@ class FreeAlgebra_generic(Algebra):
         if i < 0 or not i < n:
             raise IndexError("Argument i (= %s) must be between 0 and %s."%(i, n-1))
         R = self.base_ring()
-        F = self._basis_keys
+        F = self._indices
         return self.element_class(self,{F.gen(i):R(1)})
 
     def quotient(self, mons, mats, names):
@@ -876,7 +876,7 @@ class FreeAlgebra_generic(Algebra):
             sage: F.monoid()
             Free monoid on 3 generators (x, y, z)
         """
-        return self._basis_keys
+        return self._indices
 
     def g_algebra(self, relations, names=None, order='degrevlex', check = True):
         """
@@ -1035,7 +1035,7 @@ class FreeAlgebra_generic(Algebra):
         """
         if not w:
             return self.one()
-        M = self._basis_keys
+        M = self._indices
 
         if len(w) == 1:
             return self(M(w))
@@ -1258,7 +1258,7 @@ class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
             sage: PBW.one_basis().parent()
             Free monoid on 2 generators (x, y)
         """
-        return self._basis_keys.one()
+        return self._indices.one()
 
     def algebra_generators(self):
         """
@@ -1272,7 +1272,7 @@ class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
             sage: all(g.parent() is PBW for g in gens)
             True
         """
-        return tuple(self.monomial(x) for x in self._basis_keys.gens())
+        return tuple(self.monomial(x) for x in self._indices.gens())
 
     gens = algebra_generators
 

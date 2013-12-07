@@ -1419,7 +1419,7 @@ class PartitionAlgebra_generic(CombinatorialAlgebra):
         """
         self.k = k
         self.n = n
-        self._basis_keys = cclass
+        self._indices = cclass
         self._name = "Generic partition algebra with k = %s and n = %s and basis %s"%( self.k, self.n, cclass) if name is None else name
         self._one = identity(ceil(self.k))
         self._prefix = "" if prefix is None else prefix

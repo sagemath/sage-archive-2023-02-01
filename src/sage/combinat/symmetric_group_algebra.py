@@ -326,7 +326,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         a[1] = 1
         b = range(2, self.n+2)
         b[self.n-1] = 1
-        return [self.monomial(self._basis_keys(a)), self.monomial(self._basis_keys(b))]
+        return [self.monomial(self._indices(a)), self.monomial(self._indices(b))]
 
     def _conjugacy_classes_representatives_underlying_group(self):
         r"""
@@ -943,7 +943,7 @@ class HeckeAlgebraSymmetricGroup_generic(CombinatorialAlgebra):
             Hecke algebra of the symmetric group of order 3 with q=1 on the T basis over Rational Field
         """
         self.n = n
-        self._basis_keys = permutation.Permutations(n)
+        self._indices = permutation.Permutations(n)
         self._name = "Hecke algebra of the symmetric group of order %s"%self.n
         self._one = permutation.Permutation(range(1,n+1))
 

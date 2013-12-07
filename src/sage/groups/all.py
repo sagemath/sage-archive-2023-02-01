@@ -17,6 +17,7 @@ lazy_import('sage.groups.conjugacy_classes', ['ConjugacyClass', 'ConjugacyClassG
 
 lazy_import('sage.groups.free_group', 'FreeGroup')
 lazy_import('sage.groups.braid', 'BraidGroup')
+lazy_import('sage.groups.indexed_group', ['IndexedFreeGroup', 'IndexedFreeAbelianGroup'])
 
 lazy_import('sage.groups.affine_gps.affine_group', 'AffineGroup')
 lazy_import('sage.groups.affine_gps.euclidean_group', 'EuclideanGroup')

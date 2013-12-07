@@ -38,7 +38,7 @@ symmetric functions.
     sage: ps(2)
     2*p[]
 
-The important things to define are ._basis_keys which
+The important things to define are ._indices which
 specifies the combinatorial class that indexes the basis elements,
 ._one which specifies the identity element in the algebra, ._name
 which specifies the name of the algebra, .print_options is used to set
@@ -192,8 +192,11 @@ class CombinatorialAlgebra(CombinatorialFreeModule):
             category = AlgebrasWithBasis(R)
 
         # for backward compatibility
-        if cc is None and hasattr(self, "_basis_keys"):
-            cc = self._basis_keys
+        if cc is None:
+            if hasattr(self, "_basis_keys"):
+                cc = self._basis_keys
+            elif hasattr(self, "_indices"):
+                cc = self._indices
         assert(cc is not None)
 
         CombinatorialFreeModule.__init__(self, R, cc, element_class, category = category)

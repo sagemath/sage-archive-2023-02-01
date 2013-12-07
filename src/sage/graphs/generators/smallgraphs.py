@@ -2823,9 +2823,6 @@ def LjubljanaGraph(embedding=1):
     g.name("Ljubljana graph")
 
     if embedding == 1:
-        return g
-
-    elif embedding == 2:
         dh = HeawoodGraph().get_pos()
 
         # Correspondence between the vertices of the Heawood Graph and
@@ -2855,6 +2852,9 @@ def LjubljanaGraph(embedding=1):
             _circle_embedding(g, vertices, center=dh[u], radius=.1,
                     shift=8.*i/14)
 
+        return g
+
+    elif embedding == 2:
         return g
 
     else:

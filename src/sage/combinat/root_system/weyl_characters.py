@@ -149,7 +149,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: WeylCharacterRing("A2").ambient()
-            The Weight ring attached to The Weyl Character Ring of Type ['A', 2] with Integer Ring coefficients
+            The Weight ring attached to The Weyl Character Ring of Type A2 with Integer Ring coefficients
         """
         return WeightRing(self)
 
@@ -229,8 +229,8 @@ class WeylCharacterRing(CombinatorialFreeModule):
             sage: A2 = WeylCharacterRing("A2")
             sage: A2.lift
             Generic morphism:
-              From: The Weyl Character Ring of Type ['A', 2] with Integer Ring coefficients
-              To:   The Weight ring attached to The Weyl Character Ring of Type ['A', 2] with Integer Ring coefficients
+              From: The Weyl Character Ring of Type A2 with Integer Ring coefficients
+              To:   The Weight ring attached to The Weyl Character Ring of Type A2 with Integer Ring coefficients
 
         ::
 
@@ -294,8 +294,8 @@ class WeylCharacterRing(CombinatorialFreeModule):
             sage: a2 = WeightRing(A2)
             sage: A2.retract
             Generic morphism:
-              From: The Weight ring attached to The Weyl Character Ring of Type ['A', 2] with Integer Ring coefficients
-              To:   The Weyl Character Ring of Type ['A', 2] with Integer Ring coefficients
+              From: The Weight ring attached to The Weyl Character Ring of Type A2 with Integer Ring coefficients
+              To:   The Weyl Character Ring of Type A2 with Integer Ring coefficients
 
         ::
 
@@ -332,9 +332,9 @@ class WeylCharacterRing(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: WeylCharacterRing("A3")
-            The Weyl Character Ring of Type ['A', 3] with Integer Ring coefficients
+            The Weyl Character Ring of Type A3 with Integer Ring coefficients
         """
-        return "The Weyl Character Ring of Type {} with {} coefficients".format(self._cartan_type, self._base_ring)
+        return "The Weyl Character Ring of Type {} with {} coefficients".format(self._cartan_type._repr_(compact=True), self._base_ring)
 
     def __call__(self, *args):
         """
@@ -2853,7 +2853,7 @@ class WeightRing(CombinatorialFreeModule):
             sage: A3 = WeylCharacterRing("A3", style="coroots")
             sage: a3 = WeightRing(A3)
             sage: a3.cartan_type(), a3.base_ring(), a3.parent()
-            (['A', 3], Integer Ring, The Weyl Character Ring of Type ['A', 3] with Integer Ring coefficients)
+            (['A', 3], Integer Ring, The Weyl Character Ring of Type A3 with Integer Ring coefficients)
         """
         return super(WeightRing, cls).__classcall__(cls, parent, prefix=prefix)
 
@@ -2903,7 +2903,7 @@ class WeightRing(CombinatorialFreeModule):
             sage: P.<q>=QQ[]
             sage: G2 = WeylCharacterRing(['G',2], base_ring = P)
             sage: WeightRing(G2) # indirect doctest
-            The Weight ring attached to The Weyl Character Ring of Type ['G', 2] with Univariate Polynomial Ring in q over Rational Field coefficients
+            The Weight ring attached to The Weyl Character Ring of Type G2 with Univariate Polynomial Ring in q over Rational Field coefficients
         """
         return "The Weight ring attached to %s"%self._parent
 
@@ -3014,7 +3014,7 @@ class WeightRing(CombinatorialFreeModule):
             sage: A2=WeylCharacterRing("A2")
             sage: a2=WeightRing(A2)
             sage: a2.parent()
-            The Weyl Character Ring of Type ['A', 2] with Integer Ring coefficients
+            The Weyl Character Ring of Type A2 with Integer Ring coefficients
             sage: a2.parent() == A2
             True
 
@@ -3030,7 +3030,7 @@ class WeightRing(CombinatorialFreeModule):
             sage: A2=WeylCharacterRing("A2")
             sage: a2=WeightRing(A2)
             sage: a2.weyl_character_ring()
-            The Weyl Character Ring of Type ['A', 2] with Integer Ring coefficients
+            The Weyl Character Ring of Type A2 with Integer Ring coefficients
         """
         return self._parent
 

@@ -676,7 +676,7 @@ class StaticSparseBackend(CGraphBackend):
         INPUT:
 
         - ``directed`` (boolean) -- whether to consider the graph as directed or
-          not (
+          not.
 
         TEST::
 
@@ -684,6 +684,14 @@ class StaticSparseBackend(CGraphBackend):
             sage: g = StaticSparseBackend(graphs.PetersenGraph())
             sage: g.num_edges(False)
             15
+
+        Testing the exception::
+
+            sage: g = StaticSparseBackend(digraphs.Circuit(4))
+            sage: g.num_edges(False)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Sorry, I have no idea what is expected in this situation. I don't think that it is well-defined either, especially for multigraphs.
 
         :trac:`15491`::
 
@@ -693,13 +701,15 @@ class StaticSparseBackend(CGraphBackend):
             True
         """
         cdef StaticSparseCGraph cg = <StaticSparseCGraph> self._cg
-        cdef unsigned int m
+
         if directed:
             if cg.directed:
                 # Returns the real number of directed arcs
                 return int(cg.g.m)
             else:
-                # Returns twice the number of edges, minus the number of loops
+                # Returns twice the number of edges, minus the number of
+                # loops. This is actually equal to the index of
+                # cg.g.neighbors[cg.g.n] in the array `cg.g.edges`
                 return int(cg.g.neighbors[cg.g.n]-cg.g.edges)
         else:
             if cg.directed:

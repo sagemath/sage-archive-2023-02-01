@@ -20,6 +20,8 @@ Algebras
 
    sage/algebras/hall_algebra
 
+   quantum_groups
+
    sage/algebras/shuffle_algebra
 
    sage/algebras/steenrod/steenrod_algebra

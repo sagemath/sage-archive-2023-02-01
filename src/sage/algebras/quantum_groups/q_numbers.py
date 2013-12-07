@@ -136,7 +136,8 @@ def q_binomial(n, k, q=None):
 
     .. MATH::
 
-        \binom{n}{k}_q = \frac{[n]_q!}{[n-k]_q! [k]_q!}.
+        \begin{bmatrix} n \\ k \end{bmatrix}_q
+        = \frac{[n]_q!}{[n-k]_q! \cdot [k]_q!}.
 
     If ``q`` is unspecified, then the variable is the generator `q` for
     a Laurent polynomial ring over the integers.

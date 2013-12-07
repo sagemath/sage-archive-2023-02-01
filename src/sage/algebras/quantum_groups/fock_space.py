@@ -183,6 +183,9 @@ class FockSpace(CombinatorialFreeModule):
         return self.monomial( self._indices([[]]*len(self._r)) )
 
     class Element(CombinatorialFreeModuleElement):
+        """
+        An element in the Fock space.
+        """
         def e(self, i):
             """
             Apply the action of `e_i` on ``self``.
@@ -332,7 +335,7 @@ class FockSpace(CombinatorialFreeModule):
 class HighestWeightRepresentation(Parent, UniqueRepresentation):
     """
     The highest weight representation `B(\Lambda)` of
-    `U_q(\widetilde{\mathfrak{sl}}_n)`.
+    `U_q(\widehat{\mathfrak{sl}}_n)`.
 
     We realize this a subspace of the corresponding
     :class:`Fock space <FockSpace>`. We have two bases:
@@ -443,7 +446,7 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
             sage: F(G[5])
             |[5]> + q*|[3, 1, 1]> + q^2*|[1, 1, 1, 1, 1]>
 
-        We construct the examples in Section 5.1 of [Feyers2010]_::
+        We construct the examples in Section 5.1 of [Fayers2010]_::
 
             sage: F = FockSpace(2, [0, 0])
             sage: B = F.highest_weight_representation()

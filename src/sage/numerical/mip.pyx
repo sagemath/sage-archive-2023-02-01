@@ -1767,8 +1767,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         .. WARNING::
 
-            By default, all variables of a LP are assumed to be positive. See
-            :meth:`set_min` to change it.
+            By default, all variables of a LP are assumed to be
+            non-negative. See :meth:`set_min` to change it.
 
         EXAMPLES:
 

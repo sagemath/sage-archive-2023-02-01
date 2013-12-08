@@ -6594,7 +6594,8 @@ class ANRoot(ANDescr):
             sage: y._interval_fast(128)
             -0.68232780382801932736948373971104825689?
 
-        Check that #15493 is fixed:
+        Check that #15493 is fixed::
+
             sage: y._interval_fast(20).parent() is RealIntervalField(20)
             True
         """

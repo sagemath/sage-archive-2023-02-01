@@ -472,6 +472,22 @@ class GenericGraph(GenericGraph_pyx):
         The hash value of an immutable graph relies on the tuple
         of vertices and the tuple of edges. The resulting value
         is cached.
+
+        EXAMPLE::
+
+            sage: G = graphs.PetersenGraph()
+            sage: {G:1}[G]
+            Traceback (most recent call last):
+            ...
+            TypeError: This graph is mutable, and thus not hashable
+            sage: G_imm = Graph(G, data_structure="static_sparse")
+            sage: G_imm == G
+            True
+            sage: {G_imm:1}[G_imm]  # indirect doctest
+            1
+            sage: G_imm.__hash__() is G_imm.__hash__()
+            True
+
         """
         if getattr(self, "_immutable", False):
             return hash((tuple(self.vertices()), tuple(self.edges())))
@@ -902,7 +918,7 @@ class GenericGraph(GenericGraph_pyx):
           neighbors.
 
         * If ``edge_labels == False`` and ``multiple_edges == True``, the output
-          is a dictionary the same as previously with one difference : the
+          is a dictionary the same as previously with one difference: the
           neighbors are listed with multiplicity.
 
         * If ``edge_labels == True`` and ``multiple_edges == False``, the output
@@ -2189,7 +2205,7 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``new`` (optional bool): If it is provided, then the weightedness
-          flag is set accordingly.
+          flag is set accordingly. This is not allowed for immutable graphs.
 
         .. NOTE::
 
@@ -2226,7 +2242,7 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        Ensure that ticket #10490 is fixed: allows a weighted graph to be
+        Ensure that :trac:`10490` is fixed: allows a weighted graph to be
         set as unweighted. ::
 
             sage: G = Graph({1:{2:3}})
@@ -2248,6 +2264,29 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.weighted(True)
             sage: G.weighted()
             True
+
+        Ensure that graphs using the static sparse backend can not be mutated
+        using this method, as fixed in :trac:`15278`::
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.weighted()
+            False
+            sage: H = copy(G)
+            sage: H == G
+            True
+            sage: H.weighted(True)
+            sage: H == G
+            False
+            sage: G_imm = Graph(G, data_structure="static_sparse")
+            sage: G_imm == G
+            True
+            sage: G_imm.weighted()
+            False
+            sage: G_imm.weighted(True)
+            Traceback (most recent call last):
+            ...
+            TypeError: This graph is immutable and can thus not be changed
+
         """
         if new is not None:
             if getattr(self, '_immutable', False):
@@ -6171,7 +6210,7 @@ class GenericGraph(GenericGraph_pyx):
         NOTE:
 
         This function, as ``is_hamiltonian``, computes a Hamiltonian
-        cycle if it exists : the user should *NOT* test for
+        cycle if it exists: the user should *NOT* test for
         Hamiltonicity using ``is_hamiltonian`` before calling this
         function, as it would result in computing it twice.
 
@@ -6407,7 +6446,7 @@ class GenericGraph(GenericGraph_pyx):
                     break
 
                 if verbose:
-                    print "Adding a constraint on circuit : ",certificate
+                    print "Adding a constraint on circuit: ",certificate
 
                 # There is a circuit left. Let's add the corresponding
                 # constraint !
@@ -7191,7 +7230,7 @@ class GenericGraph(GenericGraph_pyx):
 
         .. NOTE::
 
-            This function is topological : it does not take the eventual
+            This function is topological: it does not take the eventual
             weights of the edges into account.
 
         EXAMPLE:
@@ -7901,13 +7940,12 @@ class GenericGraph(GenericGraph_pyx):
         if vertex not in self:
             raise RuntimeError("Vertex (%s) not in the graph."%str(vertex))
 
+        self._backend.del_vertex(vertex)
         attributes_to_update = ('_pos', '_assoc', '_embedding')
         for attr in attributes_to_update:
             if hasattr(self, attr) and getattr(self, attr) is not None:
                 getattr(self, attr).pop(vertex, None)
         self._boundary = [v for v in self._boundary if v != vertex]
-
-        self._backend.del_vertex(vertex)
 
     def delete_vertices(self, vertices):
         """
@@ -7931,6 +7969,8 @@ class GenericGraph(GenericGraph_pyx):
         for vertex in vertices:
             if vertex not in self:
                 raise RuntimeError("Vertex (%s) not in the graph."%str(vertex))
+
+        self._backend.del_vertices(vertices)
         attributes_to_update = ('_pos', '_assoc', '_embedding')
         for attr in attributes_to_update:
             if hasattr(self, attr) and getattr(self, attr) is not None:
@@ -7939,8 +7979,6 @@ class GenericGraph(GenericGraph_pyx):
                     attr_dict.pop(vertex, None)
 
         self._boundary = [v for v in self._boundary if v not in vertices]
-
-        self._backend.del_vertices(vertices)
 
     def has_vertex(self, vertex):
         """
@@ -16876,7 +16914,7 @@ class GenericGraph(GenericGraph_pyx):
 
         This function, as ``hamiltonian_cycle`` and
         ``traveling_salesman_problem``, computes a Hamiltonian
-        cycle if it exists : the user should *NOT* test for
+        cycle if it exists: the user should *NOT* test for
         Hamiltonicity using ``is_hamiltonian`` before calling
         ``hamiltonian_cycle`` or ``traveling_salesman_problem``
         as it would result in computing it twice.

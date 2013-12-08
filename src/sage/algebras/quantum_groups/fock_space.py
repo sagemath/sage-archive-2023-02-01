@@ -960,6 +960,24 @@ class FockSpaceTruncated(FockSpace):
     This can be formed as the quotient `\mathcal{F} / \mathcak{F}_k` where
     `\mathcal{F}_k` is the submodule spanned by all diagrams of length
     (strictly) more than `k`.
+
+    EXAMPLES::
+
+        sage: F = FockSpace(2, truncated=2)
+        sage: mg = F.highest_weight_vector()
+        sage: mg.f(0)
+        |[1]>
+        sage: mg.f(0).f(1)
+        |[2]> + q*|[1, 1]>
+        sage: mg.f(0).f(1).f(0)
+        |[3]>
+
+    Compare this to the full Fock space::
+
+        sage: F = FockSpace(2)
+        sage: mg = F.highest_weight_vector()
+        sage: mg.f(0).f(1).f(0)
+        |[3]> + q*|[1, 1, 1]>
     """
     @staticmethod
     def __classcall_private__(cls, n, k, q=None, base_ring=None):
@@ -1036,20 +1054,20 @@ class FockSpaceTruncated(FockSpace):
 
             EXAMPLES::
 
-            sage: F = FockSpace(2, truncated=3)
-            sage: mg = F.highest_weight_vector()
-            sage: mg.f(0)
-            |[1]>
-            sage: mg.f(0).f(1)
-            |[2]> + q*|[1, 1]>
-            sage: mg.f(0).f(1).f(2)
-            |[3]> + q*|[1, 1, 1]>
-            sage: mg.f(0).f(1).f(2).f(0)
-            0
-            sage: mg.f(0).f(1).f(2).f(1)
-            |[4]> + q*|[3, 1]> + q*|[2, 1, 1]>
-            sage: mg.f(0).f(1).f(2).f(1).f(2)
-            |[5]> + |[3, 2]> + 2*q*|[3, 1, 1]> + q^2*|[2, 2, 1]>
+                sage: F = FockSpace(2, truncated=3)
+                sage: mg = F.highest_weight_vector()
+                sage: mg.f(0)
+                |[1]>
+                sage: mg.f(0).f(1)
+                |[2]> + q*|[1, 1]>
+                sage: mg.f(0).f(1).f(0)
+                |[3]> + q*|[1, 1, 1]>
+                sage: mg.f(0).f(1).f(0).f(0)
+                0
+                sage: mg.f(0).f(1).f(0).f(1)
+                |[4]> + q*|[3, 1]> + q*|[2, 1, 1]>
+                sage: mg.f(0).f(1).f(0).f(1).f(0)
+                |[5]> + |[3, 2]> + 2*q*|[3, 1, 1]> + q^2*|[2, 2, 1]>
             """
             P = self.parent()
             N_right = lambda la, x, i: \
@@ -1148,9 +1166,41 @@ class HighestWeightRepresentationTruncated(Parent, UniqueRepresentation):
         The `A` basis of the Fock space which is the approximation of the
         lower global crystal basis.
 
+        INPUT:
+
+        - ``algorithm`` -- (default ``'GW'``) the algorithm to use when
+          computing this basis in the Fock space; the possible values are:
+
+          * ``'GW'`` -- use the algorithm given by Goodman and Wenzl
+            in [GW1998]_
+          * ``'LLT'`` -- use the LLT algorithm given in [LLT1996]_
+
+        .. NOTE::
+
+            The bases produced by the two algorithms are not the same
+            in general.
+
         EXAMPLES::
+
+            sage: F = FockSpace(5, truncated=4)
+            sage: B = F.highest_weight_representation()
+            sage: A = B.A()
+
+        We demonstrate that they are different bases, but both algorithms
+        still compute the basis `G`::
+
+            sage: A2 = B.A('LLT')
+            sage: G = B.G()
+            sage: F(A[12,9])
+            |[12, 9]> + q*|[12, 4, 4, 1]> + q*|[8, 8, 5]> + (q^2+1)*|[8, 8, 4, 1]>
+            sage: F(A2[12,9])
+            |[12, 9]> + q*|[12, 4, 4, 1]> + q*|[8, 8, 5]> + (q^2+2)*|[8, 8, 4, 1]>
+            sage: G._G_to_fock_basis(Partition([12,9]), 'GW')
+            |[12, 9]> + q*|[12, 4, 4, 1]> + q*|[8, 8, 5]> + q^2*|[8, 8, 4, 1]>
+            sage: G._G_to_fock_basis(Partition([12,9]), 'LLT')
+            |[12, 9]> + q*|[12, 4, 4, 1]> + q*|[8, 8, 5]> + q^2*|[8, 8, 4, 1]>
         """
-        def __init__(self, basic):
+        def __init__(self, basic, algorithm='GW'):
             """
             Initialize ``self``.
 
@@ -1160,8 +1210,13 @@ class HighestWeightRepresentationTruncated(Parent, UniqueRepresentation):
                 sage: B = F.highest_weight_representation()
                 sage: A = B.A()
                 sage: TestSuite(A).run()
+                sage: A2 = B.A('LLT')
+                sage: TestSuite(A2).run()
             """
             self._basis_name = "approximation"
+            if algorithm not in ['GW', 'LLT']:
+                raise ValueError("invalid algorithm")
+            self._alg = algorithm
             CombinatorialFreeModule.__init__(self, basic.base_ring(), basic._fock._indices,
                                              prefix='A', bracket=False,
                                              monomial_cmp=lambda x,y: -cmp(x,y),
@@ -1176,6 +1231,16 @@ class HighestWeightRepresentationTruncated(Parent, UniqueRepresentation):
             Return the result from the regular LLT algorithm on the partition
             ``la`` to compute the `A`-basis element in the corresponding
             Fock space.
+
+            EXAMPLES::
+
+                sage: F = FockSpace(5, truncated=4)
+                sage: B = F.highest_weight_representation()
+                sage: A = B.A()
+                sage: F(A[12,9])
+                |[12, 9]> + q*|[12, 4, 4, 1]> + q*|[8, 8, 5]> + (q^2+1)*|[8, 8, 4, 1]>
+                sage: A.LLT(Partition([12,9]))
+                |[12, 9]> + q*|[12, 4, 4, 1]> + q*|[8, 8, 5]> + (q^2+2)*|[8, 8, 4, 1]>
             """
             fock = self.realization_of()._fock
             k = fock._k
@@ -1204,6 +1269,18 @@ class HighestWeightRepresentationTruncated(Parent, UniqueRepresentation):
             """
             Return the action of the skew tableaux formed from ``nu`` by
             applying the ``d`` fundamental weights.
+
+            EXAMPLES::
+
+                sage: F = FockSpace(3, truncated=3)
+                sage: B = F.highest_weight_representation()
+                sage: A = B.A()
+                sage: G = B.G()
+                sage: sk = A._skew_tableau(F(G[6,3]), Partition([6,3]), [1,1]); sk
+                |[8, 4]> + q*|[8, 2, 2]> + q*|[7, 4, 1]> + q^2*|[7, 3, 2]>
+                 + q*|[6, 6]> + q^2*|[6, 5, 1]> + q^2*|[5, 4, 3]> + q^3*|[4, 4, 4]>
+                sage: sk == F(A[8,4])
+                True
             """
             fock = self.realization_of()._fock
             last = None
@@ -1211,8 +1288,9 @@ class HighestWeightRepresentationTruncated(Parent, UniqueRepresentation):
             q = fock._q
             for i in reversed(range(len(d))):
                 for dummy in range(d[i]):
-                    for c in filter(lambda x: x[0] <= i, nu.addable_cells()):
-                        res = nu.content(*c, multicharge=fock._r)
+                    for j in range(i+1):
+                        col = nu[j] if j < len(nu) else 0
+                        res = nu.content(j, col, multicharge=fock._r)
                         if res != last:
                             cur /= q_factorial(power, q)
                             power = 1
@@ -1220,7 +1298,7 @@ class HighestWeightRepresentationTruncated(Parent, UniqueRepresentation):
                         else:
                             power += 1
                         cur = cur.f(res)
-                        nu = nu.add_cell(*c)
+                        nu = nu.add_cell(j, col)
             return cur / q_factorial(power, q)
 
         @cached_method
@@ -1238,8 +1316,21 @@ class HighestWeightRepresentationTruncated(Parent, UniqueRepresentation):
                 sage: F(A[3,1])
                 |[3, 1]> + q*|[2, 2]> + q^2*|[2, 1, 1]>
                 sage: A._A_to_fock_basis(Partition([3]))
-                |[3]> + q*|[2, 1]>
+                |[3]> + q*|[1, 1, 1]>
+
+                sage: F = FockSpace(2, truncated=5)
+                sage: B = F.highest_weight_representation()
+                sage: A = B.A()
+                sage: F(A[7,4,3])
+                |[7, 4, 3]> + q*|[7, 4, 1, 1, 1]> + q^2*|[7, 2, 2, 2, 1]>
+                 + |[5, 4, 3, 2]> + 2*q*|[5, 4, 3, 1, 1]> + 2*q^2*|[5, 4, 2, 2, 1]>
+                 + 2*q^3*|[5, 3, 3, 2, 1]> + q^4*|[4, 4, 3, 2, 1]>
+                sage: F(A[7,4,3,2])
+                |[7, 4, 3, 2]> + q*|[7, 4, 3, 1, 1]> + q^2*|[7, 4, 2, 2, 1]>
+                 + q^3*|[7, 3, 3, 2, 1]> + q^4*|[6, 4, 3, 2, 1]>
             """
+            if self._alg == 'LLT':
+                return self.LLT(la)
             fock = self.realization_of()._fock
             k = fock._k
 
@@ -1255,10 +1346,8 @@ class HighestWeightRepresentationTruncated(Parent, UniqueRepresentation):
 
             # For critical partitions
             n = fock._n
-            is_critical = lambda mu: len(mu) == k-1 \
-                    and all((mu[i] - mu[i+1] + 1) % n == 0 for i in range(k-2)) \
-                    and (mu[-1] + 1) % n == 0
-            if is_critical(la):
+            if len(la) == k-1 and all((la[i] - la[i+1] + 1) % n == 0 for i in range(k-2)) \
+                    and (la[-1] + 1) % n == 0:
                 return fock.monomial(la)
 
             # For interior partitions
@@ -1272,27 +1361,22 @@ class HighestWeightRepresentationTruncated(Parent, UniqueRepresentation):
                     for j in range(i+1):
                         crit[j] -= d_i
                 nu = self._indices(crit)
-                assert all(v < n for v in d), "not a translate of the fundamental box: {}".format(d)
-                assert is_critical(nu), "not critical: {}".format(nu)
                 return self._skew_tableau(fock.monomial(nu), nu, d)
 
             # For non-interior partitions
             # Construct the d's and the partition ``a``
-            print "in A non-interior:", la
             a = list(la) + [0]*(k - 1 - len(la)) # Add 0's to get the correct length
             a = [a[i] + (k - 1 - i) for i in range(k-1)] # Shift the diagram
             #shifted = list(a) # Make a copy of the shifted partition in case we need it later
             d = [(a[i] - a[i+1]) % n for i in range(k-2)]
             d.append(a[-1] % n)
-            print "shifted,d:", a, d
             for i,d_i in enumerate(d):
                 for j in range(i+1):
                     a[j] -= d_i
-            print "a:", a
             if sum(a) == 0: # a is contained in the fundamental box
                 return self.LLT(la)
 
-            p = list(a) # Make a copy that we can change (maybe unnecessary)
+            p = list(a) # Make a copy that we can change
             for i in range(k-2):
                 if a[i] - a[i+1] == 0:
                     d[i] -= 1
@@ -1302,15 +1386,40 @@ class HighestWeightRepresentationTruncated(Parent, UniqueRepresentation):
                 d[-1] -= 1
                 for j in range(k-1):
                     p[j] += 1
-            print "p,d:", p, d
+            p = [p[i] - (k - 1 - i) for i in range(k-1)]
+            I = self._indices
+            nu = I(p)
 
-            assert all(v >= 0 for v in d)
-            nu = self._indices([p[i] - (k - 1 - i) for i in range(k-1)])
+            is_regular = lambda mu: max(mu.to_exp()) < fock._n
+            while not is_regular(nu):
+                # It is not regular, so we need to find the first regular
+                #   partition after adding columns
+                while d[-1] == 0:
+                    d.pop()
+                for j in range(d[-1]):
+                    p[j] += 1
+                nu = I(p)
+
+            if la == nu:
+                j = -1
+                for i in range(k-2):
+                    if p[i] - p[i+1] == 0:
+                        j = -2
+                        break
+                    if p[i] > n and p[i] - p[i+1] > n:
+                        j = i
+                if j != -2 and p[-1] > n:
+                    j = k - 1
+                if j < 0:
+                    return self.LLT(la)
+
+                G = self.realization_of().G()
+                nu = I([p[i] - n if i <= j else p[i] for i in range(k-1)])
+                d = [0]*j + [n]
+                return self._skew_tableau(G._G_to_fock_basis(nu), nu, d)
+
             G = self.realization_of().G()
-            print "nu:", nu
-            #print G._G_to_fock_basis(nu)
             return self._skew_tableau(G._G_to_fock_basis(nu), nu, d)
-            return self.LLT(la)
 
     approximation = A
 
@@ -1319,6 +1428,45 @@ class HighestWeightRepresentationTruncated(Parent, UniqueRepresentation):
         The lower global crystal basis living inside of Fock space.
 
         EXAMPLES::
+
+            sage: F = FockSpace(4, truncated=2)
+            sage: B = F.highest_weight_representation()
+            sage: G = B.G()
+            sage: F(G[3,1])
+            |[3, 1]>
+            sage: F(G[6,2])
+            |[6, 2]> + q*|[5, 3]>
+            sage: F(G[14])
+            |[14]> + q*|[11, 3]>
+
+            sage: F = FockSpace(3, truncated=4)
+            sage: B = F.highest_weight_representation()
+            sage: G = B.G()
+            sage: F(G[4,1])
+            |[4, 1]> + q*|[3, 2]>
+            sage: F(G[4,2,2])
+            |[4, 2, 2]> + q*|[3, 2, 2, 1]>
+
+        We check agianst the tables in [LLT1996]_ (after truncating)::
+
+            sage: F = FockSpace(3, truncated=3)
+            sage: B = F.highest_weight_representation()
+            sage: G = B.G()
+            sage: F(G[10])
+            |[10]> + q*|[8, 2]> + q*|[7, 2, 1]>
+            sage: F(G[6,4])
+            |[6, 4]> + q*|[6, 2, 2]> + q^2*|[4, 4, 2]>
+            sage: F(G[5,5])
+            |[5, 5]> + q*|[4, 3, 3]>
+
+            sage: F = FockSpace(4, truncated=3)
+            sage: G = F.highest_weight_representation().G()
+            sage: F(G[3,3,1])
+            |[3, 3, 1]>
+            sage: F(G[3,2,2])
+            |[3, 2, 2]>
+            sage: F(G[7])
+            |[7]> + q*|[3, 3, 1]>
         """
         def __init__(self, basic):
             """
@@ -1327,8 +1475,10 @@ class HighestWeightRepresentationTruncated(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: F = FockSpace(2, truncated=3)
-                sage: B = F.highest_weight_representation()
-                sage: G = B.G()
+                sage: G = F.highest_weight_representation().G()
+                sage: TestSuite(G).run()
+                sage: F = FockSpace(4, truncated=3)
+                sage: G = F.highest_weight_representation().G()
                 sage: TestSuite(G).run()
             """
             self._basis_name = "lower global crystal"
@@ -1341,7 +1491,7 @@ class HighestWeightRepresentationTruncated(Parent, UniqueRepresentation):
                                  codomain=basic._fock).register_as_coercion()
 
         @cached_method
-        def _G_to_fock_basis(self, la):
+        def _G_to_fock_basis(self, la, algorithm='GW'):
             """
             Return the `G` basis indexed by ``la`` in the natural basis.
 
@@ -1354,6 +1504,8 @@ class HighestWeightRepresentationTruncated(Parent, UniqueRepresentation):
                 |[3]> + q*|[2, 1]>
                 sage: G._G_to_fock_basis(Partition([2,1]))
                 |[2, 1]> + q*|[1, 1, 1]>
+                sage: G._G_to_fock_basis(Partition([2,1]), 'LLT')
+                |[2, 1]> + q*|[1, 1, 1]>
             """
             fock = self.realization_of()._fock
 
@@ -1363,26 +1515,24 @@ class HighestWeightRepresentationTruncated(Parent, UniqueRepresentation):
                 return fock.highest_weight_vector()
 
             # For length k partitions
-            n = fock._n
-            k = fock._k
-            if len(la) == k:
-                I = fock._indices
-                x = la[-1]
-                mu = Partition([p - x for p in la])
-                add_cols = lambda nu: I([ v + x for v in list(nu) + [0]*(k - len(nu)) ])
-                return fock.sum_of_terms((add_cols(nu), c) for nu,c in self._G_to_fock_basis(mu))
+            if algorithm == 'GW':
+                n = fock._n
+                k = fock._k
+                if len(la) == k:
+                    I = fock._indices
+                    x = la[-1]
+                    mu = Partition([p - x for p in la])
+                    add_cols = lambda nu: I([ v + x for v in list(nu) + [0]*(k - len(nu)) ])
+                    return fock.sum_of_terms((add_cols(nu), c) for nu,c in self._G_to_fock_basis(mu))
 
-            # For critical partitions
-            n = fock._n
-            is_critical = lambda mu: len(mu) == k-1 \
-                    and all((mu[i] - mu[i+1] + 1) % n == 0 for i in range(k-2)) \
-                    and (mu[-1] + 1) % n == 0
-            if is_critical(la):
-                return fock.monomial(la)
+                # For critical partitions
+                n = fock._n
+                if len(la) == k-1 and all((la[i] - la[i+1] + 1) % n == 0 for i in range(k-2)) \
+                        and (la[-1] + 1) % n == 0:
+                    return fock.monomial(la)
 
             # Perform the triangular reduction
-            print "in G:", la
-            cur = self.realization_of().A()._A_to_fock_basis(la)
+            cur = self.realization_of().A(algorithm)._A_to_fock_basis(la)
             dom_cmp = lambda x,y: -1 if y.dominates(x) else 1
             s = cur.support()
             s.sort(cmp=dom_cmp) # Sort via dominance order
@@ -1398,7 +1548,7 @@ class HighestWeightRepresentationTruncated(Parent, UniqueRepresentation):
                     gamma = sum(n[i] * (q**(i-k) + q**(k-i))
                                 for i in range(min(n.degree(), k)))
                     gamma += n[k]
-                    cur -= gamma * self._G_to_fock_basis(mu)
+                    cur -= gamma * self._G_to_fock_basis(mu, algorithm)
 
                     # Add any new support elements
                     for x in cur.support():

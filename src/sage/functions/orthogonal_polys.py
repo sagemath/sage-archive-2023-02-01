@@ -452,63 +452,37 @@ class OrthogonalPolynomial(BuiltinFunction):
             (n, x)
             sage: chebyshev_T(5,x)
             16*x^5 - 20*x^3 + 5*x
-            sage: chebyshev_T(64, x)
-            2*(2*(2*(2*(2*(2*x^2 - 1)^2 - 1)^2 - 1)^2 - 1)^2 - 1)^2 - 1
-            sage: chebyshev_T(n,-1)
-            (-1)^n
-            sage: chebyshev_T(-7,x)
-            64*x^7 - 112*x^5 + 56*x^3 - 7*x
-            sage: chebyshev_T(3/2,x)
-            chebyshev_T(3/2, x)
-            sage: R.<t> = QQ[]
-            sage: chebyshev_T(2,t)
-            2*t^2 - 1
-            sage: chebyshev_U(2,t)
-            4*t^2 - 1
-            sage: parent(chebyshev_T(4, RIF(5)))
-            Real Interval Field with 53 bits of precision
-            sage: RR2 = RealField(5)
-            sage: chebyshev_T(100000,RR2(2))
-            8.9e57180
-            sage: chebyshev_T(5,Qp(3)(2))
-            2 + 3^2 + 3^3 + 3^4 + 3^5 + O(3^20)
-            sage: chebyshev_T(100001/2, 2)
-            doctest:...: RuntimeWarning: mpmath failed, keeping expression unevaluated
-            chebyshev_T(100001/2, 2)
-            sage: chebyshev_U._eval_(1.5, Mod(8,9)) is None
-            True
         """
-        args_is_symbolic = any(is_Expression(x) for x in args)
+        return None
 
-        # n is an integer => evaluate algebraically (as polynomial)
-        if n in ZZ:
-            n = ZZ(n)
-            # Expanded symbolic expression only for small values of n
-            if args_is_symbolic and n.abs() < 32:
-                return self.eval_formula(n, *args)
-            else:
-                return self.eval_algebraic(n, *args)
+    def __call__(self, n, *args, **kwds):
+        """
+        This overides the call method from SageObject to avoid problems with coercions,
+        since the _eval_ method is able to handle more data types than symbolic functions
+        would normally allow.
+        Thus we have the distinction between algebraic objects (if n is an integer),
+        and else as symbolic function.
 
-        if args_is_symbolic or is_Expression(n):
-            # Check for known identities
-            try:
-                return self._eval_special_values_(n, *args)
-            except ValueError:
-                # Don't evaluate => keep symbolic
-                return None
+        EXAMPLES::
 
-        # n is not an integer and neither n nor x is symbolic.
-        # We assume n and x are real/complex and evaluate numerically
-        try:
-            import sage.libs.mpmath.all as mpmath
-            return self._evalf_(n, *args)
-        except mpmath.NoConvergence:
-            warnings.warn("mpmath failed, keeping expression unevaluated",
-                          RuntimeWarning)
-            return None
-        except StandardError:
-            # Numerical evaluation failed => keep symbolic
-            return None
+            sage: K.<a> = NumberField(x^3-x-1)
+            sage: chebyshev_T(5, a)
+            16*a^2 + a - 4
+        """
+        return super(OrthogonalPolynomial,self).__call__(n, *args, **kwds)
+
+    
+
+class ChebyshevPolynomial(OrthogonalPolynomial):
+    """
+    Super class for Chebyshev polynomials of the first and second kind.
+
+    EXAMPLES::
+
+        sage: chebyshev_T(3,x)
+        4*x^3 - 3*x
+
+    """
 
     def __call__(self, n, *args, **kwds):
         """
@@ -543,9 +517,78 @@ class OrthogonalPolynomial(BuiltinFunction):
             except StandardError:
                 pass
 
-        return super(OrthogonalPolynomial,self).__call__(n, *args, **kwds)
+        return super(ChebyshevPolynomial,self).__call__(n, *args, **kwds)
+    
 
-class Func_chebyshev_T(OrthogonalPolynomial):
+    def _eval_(self, n, x):
+        """
+        The _eval_ method decides which evaluation suits best
+        for the given input, and returns a proper value.
+
+        EXAMPLES::
+
+            sage: var('n,x')
+            (n, x)
+            sage: chebyshev_T(5,x)
+            16*x^5 - 20*x^3 + 5*x
+            sage: chebyshev_T(64, x)
+            2*(2*(2*(2*(2*(2*x^2 - 1)^2 - 1)^2 - 1)^2 - 1)^2 - 1)^2 - 1
+            sage: chebyshev_T(n,-1)
+            (-1)^n
+            sage: chebyshev_T(-7,x)
+            64*x^7 - 112*x^5 + 56*x^3 - 7*x
+            sage: chebyshev_T(3/2,x)
+            chebyshev_T(3/2, x)
+            sage: R.<t> = QQ[]
+            sage: chebyshev_T(2,t)
+            2*t^2 - 1
+            sage: chebyshev_U(2,t)
+            4*t^2 - 1
+            sage: parent(chebyshev_T(4, RIF(5)))
+            Real Interval Field with 53 bits of precision
+            sage: RR2 = RealField(5)
+            sage: chebyshev_T(100000,RR2(2))
+            8.9e57180
+            sage: chebyshev_T(5,Qp(3)(2))
+            2 + 3^2 + 3^3 + 3^4 + 3^5 + O(3^20)
+            sage: chebyshev_T(100001/2, 2)
+            doctest:...: RuntimeWarning: mpmath failed, keeping expression unevaluated
+            chebyshev_T(100001/2, 2)
+            sage: chebyshev_U._eval_(1.5, Mod(8,9)) is None
+            True
+        """
+        # n is an integer => evaluate algebraically (as polynomial)
+        if n in ZZ:
+            n = ZZ(n)
+            # Expanded symbolic expression only for small values of n
+            if is_Expression(x) and n.abs() < 32:
+                return self.eval_formula(n, x)
+            else:
+                return self.eval_algebraic(n, x)
+
+        if is_Expression(x) or is_Expression(n):
+            # Check for known identities
+            try:
+                return self._eval_special_values_(n, x)
+            except ValueError:
+                # Don't evaluate => keep symbolic
+                return None
+
+        # n is not an integer and neither n nor x is symbolic.
+        # We assume n and x are real/complex and evaluate numerically
+        try:
+            import sage.libs.mpmath.all as mpmath
+            return self._evalf_(n, x)
+        except mpmath.NoConvergence:
+            warnings.warn("mpmath failed, keeping expression unevaluated",
+                          RuntimeWarning)
+            return None
+        except StandardError:
+            # Numerical evaluation failed => keep symbolic
+            return None
+
+    
+class Func_chebyshev_T(ChebyshevPolynomial):
     """
     Chebyshev polynomials of the first kind.
 
@@ -555,8 +598,6 @@ class Func_chebyshev_T(OrthogonalPolynomial):
 
     EXAMPLES::
 
-       sage: chebyshev_T(3,x)
-       4*x^3 - 3*x
        sage: chebyshev_T(5,x)
        16*x^5 - 20*x^3 + 5*x
        sage: var('k')
@@ -852,7 +893,7 @@ class Func_chebyshev_T(OrthogonalPolynomial):
 
 chebyshev_T = Func_chebyshev_T()
 
-class Func_chebyshev_U(OrthogonalPolynomial):
+class Func_chebyshev_U(ChebyshevPolynomial):
     """
     Class for the Chebyshev polynomial of the second kind.
 

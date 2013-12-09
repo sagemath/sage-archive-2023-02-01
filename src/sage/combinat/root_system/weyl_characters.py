@@ -1579,11 +1579,12 @@ def branch_weyl_character(chi, R, S, rule="default"):
         sage: C3 = WeylCharacterRing("C3")
         sage: D3 = WeylCharacterRing("D3")
         sage: D4 = WeylCharacterRing("D4")
-        sage: D5 = WeylCharacterRing("D5")
         sage: G2 = WeylCharacterRing("G2")
         sage: F4 = WeylCharacterRing("F4",style="coroots")
         sage: E6=WeylCharacterRing("E6",style="coroots")
+        sage: E7=WeylCharacterRing("E7",style="coroots")
         sage: D5=WeylCharacterRing("D5",style="coroots")
+        sage: D6=WeylCharacterRing("D6",style="coroots")
         sage: [B3(w).branch(A2,rule="levi") for w in B3.fundamental_weights()]
         [A2(0,0,0) + A2(1,0,0) + A2(0,0,-1),
         A2(0,0,0) + A2(1,0,0) + A2(1,1,0) + A2(1,0,-1) + A2(0,-1,-1) + A2(0,0,-1),
@@ -1631,8 +1632,11 @@ def branch_weyl_character(chi, R, S, rule="default"):
         [D5(0,0,0,0,0) + D5(0,0,0,0,1) + D5(1,0,0,0,0),
          D5(0,0,0,0,0) + D5(0,0,0,1,0) + D5(0,0,0,0,1) + D5(0,1,0,0,0),
          D5(0,0,0,0,0) + D5(0,0,0,1,0) + D5(1,0,0,0,0)]
-        sage: E7=WeylCharacterRing("E7",style="coroots")
-        sage: D6=WeylCharacterRing("D6",style="coroots")
+         sage: E7=WeylCharacterRing("E7",style="coroots")
+         sage: A3xA3xA1=WeylCharacterRing("A3xA3xA1",style="coroots")
+         sage: E7(1,0,0,0,0,0,0).branch(A3xA3xA1,rule="extended") # long time (0.7s)
+         A3xA3xA1(0,0,1,0,0,1,1) + A3xA3xA1(0,1,0,0,1,0,0) + A3xA3xA1(1,0,0,1,0,0,1) + 
+          A3xA3xA1(1,0,1,0,0,0,0) + A3xA3xA1(0,0,0,1,0,1,0) + A3xA3xA1(0,0,0,0,0,0,2)
         sage: fw = E7.fundamental_weights()
         sage: [E7(fw[i]).branch(D6,rule="levi") for i in [1,2,7]] # long time (0.3s)
         [3*D6(0,0,0,0,0,0) + 2*D6(0,0,0,0,1,0) + D6(0,1,0,0,0,0),
@@ -1798,7 +1802,6 @@ def branch_weyl_character(chi, R, S, rule="default"):
         sage: A3xA1 = WeylCharacterRing("A3xA1", style="coroots")
         sage: A2xA2 = WeylCharacterRing("A2xA2", style="coroots")
         sage: A1xC3 = WeylCharacterRing("A1xC3",style="coroots")
-
         sage: E6(1,0,0,0,0,0).branch(A5xA1,rule="extended") # (0.7s)
          A5xA1(0,0,0,1,0,0) + A5xA1(1,0,0,0,0,1)
         sage: E6(1,0,0,0,0,0).branch(A2xA2xA2, rule="extended") # (0.7s)
@@ -1807,6 +1810,12 @@ def branch_weyl_character(chi, R, S, rule="default"):
         sage: A7=WeylCharacterRing("A7",style="coroots")
         sage: E7(1,0,0,0,0,0,0).branch(A7,rule="extended")
          A7(0,0,0,1,0,0,0) + A7(1,0,0,0,0,0,1)
+        sage: D6xA1=WeylCharacterRing("D6xA1",style="coroots")
+        sage: E7(1,0,0,0,0,0,0).branch(D6xA1,rule="extended")
+         D6xA1(0,0,0,0,1,0,1) + D6xA1(0,1,0,0,0,0,0) + D6xA1(0,0,0,0,0,0,2)
+        sage: A5xA2=WeylCharacterRing("A5xA2",style="coroots")
+        sage: E7(1,0,0,0,0,0,0).branch(A5xA2,rule="extended")
+        A5xA2(0,0,0,1,0,1,0) + A5xA2(0,1,0,0,0,0,1) + A5xA2(1,0,0,0,1,0,0) + A5xA2(0,0,0,0,0,1,1)
         sage: E8=WeylCharacterRing("E8",style="coroots")
         sage: D8=WeylCharacterRing("D8",style="coroots")
         sage: E8(0,0,0,0,0,0,0,1).branch(D8,rule="extended") # long time (0.1s)
@@ -1942,8 +1951,9 @@ def branch_weyl_character(chi, R, S, rule="default"):
 
         \begin{aligned}
         B_3 & \to G_2,
-        \\ F_4 & \to G_2 \times A_1 \text{(not implemented yet)},
+        \\ F_4 & \to G_2 \times A_1,
         \\ E_6 & \to G_2 \times A_2.
+        \\ E_8 & \to G_2 \times F_4.
         \end{aligned}
 
     EXAMPLES::
@@ -1952,14 +1962,18 @@ def branch_weyl_character(chi, R, S, rule="default"):
         sage: [fw1, fw2, fw3] = B3.fundamental_weights()
         sage: B3(fw1+fw3).branch(G2, rule="miscellaneous")
         G2(1,0,-1) + G2(2,-1,-1) + G2(2,0,-2)
-        sage: E6 = WeylCharacterRing("E6",style="coroots")
-        sage: A2xG2 = WeylCharacterRing("A2xG2",style="coroots")
-        sage: E6(1,0,0,0,0,0).branch(A2xG2,rule="miscellaneous")
-        A2xG2(0,1,1,0) + A2xG2(2,0,0,0)
         sage: F4=WeylCharacterRing("F4",style="coroots")
         sage: G2xA1=WeylCharacterRing("G2xA1",style="coroots")
         sage: F4(0,0,1,0).branch(G2xA1,rule="miscellaneous")
         G2xA1(1,0,0) + G2xA1(1,0,2) + G2xA1(1,0,4) + G2xA1(1,0,6) + G2xA1(0,1,4) + G2xA1(2,0,2) + G2xA1(0,0,2) + G2xA1(0,0,6)
+        sage: E6 = WeylCharacterRing("E6",style="coroots")
+        sage: A2xG2 = WeylCharacterRing("A2xG2",style="coroots")
+        sage: E6(1,0,0,0,0,0).branch(A2xG2,rule="miscellaneous")
+        A2xG2(0,1,1,0) + A2xG2(2,0,0,0)
+        sage: E8 = WeylCharacterRing("E8",style="coroots")
+        sage: G2xF4 = WeylCharacterRing("G2xF4",style="coroots")
+        sage: E8(0,0,0,0,0,0,0,1).branch(G2xF4,rule="miscellaneous")
+        G2xF4(1,0,0,0,0,1) + G2xF4(0,1,0,0,0,0) + G2xF4(0,0,1,0,0,0)
 
     .. RUBRIC:: Branching Rules From Plethysms
 
@@ -2347,12 +2361,11 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                 raise ValueError("Rule not found")
         elif Rtype[0] == 'E':
             if Stype.is_atomic():
-                if Stype[0] == 'D':
-                    if r == 6:
-                        return BranchingRule(Rtype, Stype, lambda x : [-x[4],-x[3],-x[2],-x[1],-x[0]], "levi")
-                    if r == 7:
-                        return BranchingRule(Rtype, Stype, lambda x : [-x[5],-x[4],-x[3],-x[2],-x[1],-x[0]], "levi")
-                    if r == 8:
+                if r == 6 and Stype == CartanType("D5"):
+                    return BranchingRule(Rtype, Stype, lambda x : [-x[4],-x[3],-x[2],-x[1],-x[0]], "levi")
+                if r == 7 and Stype == CartanType("D6"):
+                    return BranchingRule(Rtype, Stype, lambda x : [-x[5],-x[4],-x[3],-x[2],-x[1],-x[0]], "levi")
+                if r == 8 and Stype == CartanType("D7"):
                         return BranchingRule(Rtype, Stype, lambda x : [-x[6],-x[5],-x[4],-x[3],-x[2],-x[1],-x[0]], "levi")
                 elif r in [7,8] and Stype[0] == 'E':
                     return BranchingRule(Rtype, Stype, lambda x : x, "levi")
@@ -2361,6 +2374,9 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                         raise NotImplementedError('A5 Levi is not maximal. Branch to A5xA1 (rule="extended").')
                     if r == 7:
                         raise NotImplementedError('A5 Levi is not maximal. Branch to A5xA1 (rule="extended").')
+                    if stypes[0][1] == 7 and stypes[1][1] == 1:
+                            raise NotImplementedError("Not maximal: first branch to E7xA1")
+
             raise NotImplementedError("Not implemented yet")
         elif Rtype[0] == 'F' and s == 3:
             if Stype[0] == 'B':
@@ -2441,18 +2457,27 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                 raise ValueError("Rule not found")
             elif Rtype[0] == 'E':
                 if r == 6:
-                    if stypes[0][0] == 'A' and stypes[0][1] == 5: # need doctest
-                        if stypes[1][0] == 'A' and stypes[1][1] == 1:
-                            M = matrix(QQ,[(-3, -3, -3, -3, -3, -5, -5, 5), \
-                                           (-9, 3, 3, 3, 3, 1, 1, -1), \
-                                           (3, -9, 3, 3, 3, 1, 1, -1), \
-                                           (3, 3, -9, 3, 3, 1, 1, -1), \
-                                           (3, 3, 3, -9, 3, 1, 1, -1), \
-                                           (3, 3, 3, 3, -9, 9, -3, 3), \
-                                           (-3, -3, -3, -3, -3, -1, 11, 1), \
-                                           (3, 3, 3, 3, 3, 1, 1, 11)])/12
-                            return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "extended")
-                    if len(stypes) == 3 and all(x[0] == 'A' and x[1] == 2 for x in stypes): # need doctest
+                    if stypes == [CartanType("A5"),CartanType("A1")]:
+                        M = matrix(QQ,[(-3, -3, -3, -3, -3, -5, -5, 5), \
+                                       (-9, 3, 3, 3, 3, 1, 1, -1), \
+                                       (3, -9, 3, 3, 3, 1, 1, -1), \
+                                       (3, 3, -9, 3, 3, 1, 1, -1), \
+                                       (3, 3, 3, -9, 3, 1, 1, -1), \
+                                       (3, 3, 3, 3, -9, 9, -3, 3), \
+                                       (-3, -3, -3, -3, -3, -1, 11, 1), \
+                                       (3, 3, 3, 3, 3, 1, 1, 11)])/12
+                        return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "extended")
+                    if stypes == [CartanType("A1"),CartanType("A5")]:
+                        M = matrix(QQ,[(-3, -3, -3, -3, -3, -1, 11, 1), \
+                                       (3, 3, 3, 3, 3, 1, 1, 11), \
+                                       (-3, -3, -3, -3, -3, -5, -5, 5), \
+                                       (-9, 3, 3, 3, 3, 1, 1, -1), \
+                                       (3, -9, 3, 3, 3, 1, 1, -1), \
+                                       (3, 3, -9, 3, 3, 1, 1, -1), \
+                                       (3, 3, 3, -9, 3, 1, 1, -1), \
+                                       (3, 3, 3, 3, -9, 9, -3, 3)])/12
+                        return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "extended")
+                    if stypes == [CartanType("A2"),CartanType("A2"),CartanType("A2")]:
                         M = matrix(QQ,[(0, 0, -2, -2, -2, -2, -2, 2), \
                                        (-3, 3, 1, 1, 1, 1, 1, -1), \
                                        (3, -3, 1, 1, 1, 1, 1, -1), \
@@ -2462,39 +2487,38 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                                        (0, 0, -2, -2, -2, 2, 2, -2), \
                                        (3, 3, 1, 1, 1, -1, -1, 1), \
                                        (-3, -3, 1, 1, 1, -1, -1, 1)])/6
-                        return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "symmetric")
+                        return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "extended")
                 elif r == 7:
-                    if stypes[0][0] == 'D' and stypes[0][1] == 6 and stypes[1][0] == 'A' and stypes[1][1] == 1:
-                        return BranchingRule(Rtype, Stype, lambda x : [x[5],x[4],x[3],x[2],x[1],x[0],x[6],x[7]], "symmetric") # need doctest
-                    elif stypes[0][0] == 'A' and stypes[1][0] == 'A':
-                        if stypes[0][1] == 5 and stypes[1][1] == 2:
-                            M = matrix(QQ,[(5, 1, 1, 1, 1, 1, 0, 0), \
-                                           (-1, -5, 1, 1, 1, 1, 0, 0), \
-                                           (-1, 1, -5, 1, 1, 1, 0, 0), \
-                                           (-1, 1, 1, -5, 1, 1, 0, 0), \
-                                           (-1, 1, 1, 1, -5, 1, 0, 0), \
-                                           (-1, 1, 1, 1, 1, -5, 0, 0), \
-                                           (1, -1, -1, -1, -1, -1, 0, -6), \
-                                           (1, -1, -1, -1, -1, -1, -6, 0), \
-                                           (-2, 2, 2, 2, 2, 2, -3, -3)])/6
-                            return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "symmetric")
-                        if len(stypes) == 3 and stypes[2][0] == 'A' and [stypes[0][1],stypes[1][1],stypes[2][1]] == [3,3,1]: # need doctest
-                            M = matrix(QQ, [(0, 0, -1, -1, -1, -1, 2, -2), \
-                                            (0, 0, -1, -1, -1, -1, -2, 2), \
-                                            (-2, 2, 1, 1, 1, 1, 0, 0), \
-                                            (2, -2, 1, 1, 1, 1, 0, 0), \
-                                            (0, 0, -1, -1, -1, 3, 0, 0), \
-                                            (0, 0, -1, -1, 3, -1, 0, 0), \
-                                            (0, 0, -1, 3, -1, -1, 0, 0), \
-                                            (0, 0, 3, -1, -1, -1, 0, 0), \
-                                            (2, 2, 0, 0, 0, 0, -2, -2), \
-                                            (-2, -2, 0, 0, 0, 0, -2, -2)])/4
-                            return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "symmetric")
+                    if stypes == [CartanType("D6"),CartanType("A1")]:
+                        return BranchingRule(Rtype, Stype, lambda x : [x[5],x[4],x[3],x[2],x[1],x[0],x[6],x[7]], "extended")
+                    elif stypes == [CartanType("A1"),CartanType("D6")]:
+                        return BranchingRule(Rtype, Stype, lambda x : [x[6],x[7],x[5],x[4],x[3],x[2],x[1],x[0]], "extended")
+                    elif stypes == [CartanType("A5"),CartanType("A2")]:
+                        M = matrix(QQ,[(5, 1, 1, 1, 1, 1, 0, 0), \
+                                       (-1, -5, 1, 1, 1, 1, 0, 0), \
+                                       (-1, 1, -5, 1, 1, 1, 0, 0), \
+                                       (-1, 1, 1, -5, 1, 1, 0, 0), \
+                                       (-1, 1, 1, 1, -5, 1, 0, 0), \
+                                       (-1, 1, 1, 1, 1, -5, 0, 0), \
+                                       (1, -1, -1, -1, -1, -1, 0, -6), \
+                                       (1, -1, -1, -1, -1, -1, -6, 0), \
+                                       (-2, 2, 2, 2, 2, 2, -3, -3)])/6
+                        return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "extended")
+                    elif stypes == [CartanType("A3"),CartanType("A3"),CartanType("A1")]:
+                        M = matrix(QQ, [(0, 0, -1, -1, -1, -1, 2, -2), \
+                                        (0, 0, -1, -1, -1, -1, -2, 2), \
+                                        (-2, 2, 1, 1, 1, 1, 0, 0), \
+                                        (2, -2, 1, 1, 1, 1, 0, 0), \
+                                        (0, 0, -1, -1, -1, 3, 0, 0), \
+                                        (0, 0, -1, -1, 3, -1, 0, 0), \
+                                        (0, 0, -1, 3, -1, -1, 0, 0), \
+                                        (0, 0, 3, -1, -1, -1, 0, 0), \
+                                        (2, 2, 0, 0, 0, 0, -2, -2), \
+                                        (-2, -2, 0, 0, 0, 0, -2, -2)])/4
+                        return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "extended")
                 elif r == 8:
                     if stypes[0][0] == 'A' and stypes[1][0] == 'A':
-                        if stypes[0][1] == 7 and stypes[1][1] == 1:
-                            raise NotImplementedError("Not maximal: first branch to E7xA1")
-                        elif stypes[0][1] == 4 and stypes[1][1] == 4:
+                        if stypes[0][1] == 4 and stypes[1][1] == 4:
                             M = matrix(QQ,[(0, 0, 0, -4, -4, -4, -4, 4), \
                                            (-5, 5, 5, 1, 1, 1, 1, -1), \
                                            (5, -5, 5, 1, 1, 1, 1, -1), \
@@ -2523,12 +2547,10 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                             return BranchingRule(Rtype, Stype, br, "symmetric")
                 raise ValueError("Rule not found")
             elif Rtype[0] == 'F':
-                if stypes[0][0] == 'C' and stypes[0][1] == 3:
-                    if stypes[1][0] == 'A' and stypes[1][1] == 1:
-                        return BranchingRule(Rtype, Stype, lambda x : [x[0]-x[1],x[2]+x[3],x[2]-x[3],(-x[0]-x[1])/2,(x[0]+x[1])/2], "symmetric")
-                if stypes[0][0] == 'A' and stypes[0][1] == 1:
-                    if stypes[1][0] == 'C' and stypes[1][1] == 3:
-                        return BranchingRule(Rtype, Stype, lambda x : [(-x[0]-x[1])/2,(x[0]+x[1])/2,x[0]-x[1],x[2]+x[3],x[2]-x[3]], "symmetric")
+                if stypes == [CartanType("C3"), CartanType("A1")]:
+                    return BranchingRule(Rtype, Stype, lambda x : [x[0]-x[1],x[2]+x[3],x[2]-x[3],(-x[0]-x[1])/2,(x[0]+x[1])/2], "extended")
+                if stypes == [CartanType("A1"), CartanType("C3")]:
+                    return BranchingRule(Rtype, Stype, lambda x : [(-x[0]-x[1])/2,(x[0]+x[1])/2,x[0]-x[1],x[2]+x[3],x[2]-x[3]], "extended")
                 if stypes[0][0] == 'A' and stypes[1][0] == 'A':
                     if stypes[0][1] == 2 and stypes[1][1] == 2:
                         M = matrix(QQ,[(-2, -1, -1, 0), (1, 2, -1, 0), (1, -1, 2, 0), (1, -1, -1, 3), (1, -1, -1, -3), (-2, 2, 2, 0)])/3
@@ -2558,7 +2580,7 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                                         (1, 1, 1, -3, 1, 1, 0, 0), \
                                         (1, 1, 1, 1, -3, 1, 2, 2), \
                                         (1, 1, 1, 1, 1, -3, 2, 2)])/4
-                        return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "symmetric")
+                        return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "extended")
                 elif r == 8:
                     if Stype[0] == 'D':
                         return lambda x : [-x[7],x[6],x[5],x[4],x[3],x[2],x[1],x[0]]
@@ -2710,6 +2732,14 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                     return BranchingRule(Rtype, Stype, lambda x : [-2*x[5],x[5]+x[4],x[5]-x[4],-x[2]-x[3],-x[1]+x[2],x[1]+x[3]], "miscellaneous")
                 elif stypes == [CartanType("G2"),CartanType("A2")]:
                     return BranchingRule(Rtype, Stype, lambda x : [-x[2]-x[3],-x[1]+x[2],x[1]+x[3],-2*x[5],x[5]+x[4],x[5]-x[4]], "miscellaneous")
+                else:
+                    raise ValueError("Rule not found")
+        elif Rtype[0] == 'E' and Rtype[1] == 8:
+            if Stype.is_compound():
+                if stypes == [CartanType("F4"),CartanType("G2")]:
+                    return BranchingRule(Rtype, Stype, lambda x : [x[7], x[6], x[5], x[4], x[1]+x[2], -x[2]+x[3], -x[1]-x[3]], "miscellaneous")
+                elif stypes == [CartanType("G2"),CartanType("F4")]:
+                    return BranchingRule(Rtype, Stype, lambda x : [x[1]+x[2], -x[2]+x[3], -x[1]-x[3], x[7], x[6], x[5], x[4]], "miscellaneous")
                 else:
                     raise ValueError("Rule not found")
         elif Rtype[0] == 'F':

@@ -1307,9 +1307,6 @@ class SimplicialComplex(GenericCellComplex):
             for A,B in Subsets( [ F for F in Fs if X.is_face(F) ], 2 ):
                 G.add_edge((A,B))
         return G
-            if len([a for a in [s.is_face(f) for f in F] if a]) != 2:
-                return False
-        return G
 
     def is_pseudomanifold(self):
         """

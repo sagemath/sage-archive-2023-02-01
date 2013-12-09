@@ -1279,22 +1279,52 @@ class SimplicialComplex(GenericCellComplex):
         EXAMPLES::
 
             sage: S0 = simplicial_complexes.Sphere(0)
-            sage: S0.flip_graph()
-            ???
-            sage: (S0.wedge(S0)).flip_graph()
-            ???
+            sage: G = S0.flip_graph()
+            sage: G.vertices(); G.edges(labels=False)
+            [(0,), (1,)]
+            [((0,), (1,))]
+
+            sage: G = (S0.wedge(S0)).flip_graph()
+            sage: G.vertices(); G.edges(labels=False)
+            [(0,), ('L1',), ('R1',)]
+            [((0,), ('L1',)), ((0,), ('R1',)), (('L1',), ('R1',))]
+
             sage: S1 = simplicial_complexes.Sphere(1)
             sage: S2 = simplicial_complexes.Sphere(2)
-            sage: (S1.wedge(S1)).flip_graph()
-            ???
-            sage: (S1.wedge(S2)).flip_graph()
-            ???
-            sage: S2.flip_graph()
-            ???
+            sage: G = (S1.wedge(S1)).flip_graph()
+            sage: G.vertices(); G.edges(labels=False)
+            [(0, 'L1'), (0, 'L2'), (0, 'R1'), (0, 'R2'), ('L1', 'L2'), ('R1', 'R2')]
+            [((0, 'L1'), (0, 'L2')),
+             ((0, 'L1'), (0, 'R1')),
+             ((0, 'L1'), (0, 'R2')),
+             ((0, 'L1'), ('L1', 'L2')),
+             ((0, 'L2'), (0, 'R1')),
+             ((0, 'L2'), (0, 'R2')),
+             ((0, 'L2'), ('L1', 'L2')),
+             ((0, 'R1'), (0, 'R2')),
+             ((0, 'R1'), ('R1', 'R2')),
+             ((0, 'R2'), ('R1', 'R2'))]
+
+            sage: (S1.wedge(S2)).flip_graph() is None
+            True
+
+            sage: G = S2.flip_graph()
+            sage: G.vertices(); G.edges(labels=False)
+            [(0, 1, 2), (0, 1, 3), (0, 2, 3), (1, 2, 3)]
+            [((0, 1, 2), (0, 1, 3)),
+             ((0, 1, 2), (0, 2, 3)),
+             ((0, 1, 2), (1, 2, 3)),
+             ((0, 1, 3), (0, 2, 3)),
+             ((0, 1, 3), (1, 2, 3)),
+             ((0, 2, 3), (1, 2, 3))]
+
             sage: T = simplicial_complexes.Torus()
-            sage: T.suspension(4).flip_graph()
-            ???
+            sage: G = T.suspension(4).flip_graph()
+            sage: len(G.vertices()); len(G.edges(labels=False))
+            46
+            161
         """
+        from sage.combinat.subset import Subsets
         if not self.is_pure():
             return None
         d = self.dimension()

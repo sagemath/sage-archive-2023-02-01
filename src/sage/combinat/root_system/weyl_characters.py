@@ -2432,8 +2432,8 @@ def get_branching_rule(Rtype, Stype, rule="default"):
         else:
             raise ValueError("Rule not found")
     elif rule == "extended" or rule == "orthogonal_sum":
-        if rule == "extended" and not s == r:
-            raise ValueError('Ranks should be equal for rule="extended"')
+        if not s == r:
+            raise ValueError('Ranks should be equal for rule=%s'%rule)
         if Stype.is_compound():
             if Rtype[0] in ['B','D'] and all(t[0] in ['B','D'] for t in stypes):
                 if Rtype[0] == 'D':
@@ -2447,12 +2447,12 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                     else:
                         sdeg += 2*t[1]+1
                 if rdeg == sdeg:
-                    return BranchingRule(Rtype, Stype, lambda x : x[:s], "symmetric")
+                    return BranchingRule(Rtype, Stype, lambda x : x[:s], "orthogonal_sum")
                 else:
                     raise ValueError("Rule not found")
             elif Rtype[0] == 'C':
                 if all(t[0] == Rtype[0] for t in stypes):
-                    return BranchingRule(Rtype, Stype, lambda x : x, "symmetric")
+                    return BranchingRule(Rtype, Stype, lambda x : x, "orthogonal_sum")
             if rule == "orthogonal_sum":
                 raise ValueError("Rule not found")
             elif Rtype[0] == 'E':
@@ -2517,58 +2517,56 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                                         (-2, -2, 0, 0, 0, 0, -2, -2)])/4
                         return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "extended")
                 elif r == 8:
-                    if stypes[0][0] == 'A' and stypes[1][0] == 'A':
-                        if stypes[0][1] == 4 and stypes[1][1] == 4:
-                            M = matrix(QQ,[(0, 0, 0, -4, -4, -4, -4, 4), \
-                                           (-5, 5, 5, 1, 1, 1, 1, -1), \
-                                           (5, -5, 5, 1, 1, 1, 1, -1), \
-                                           (5, 5, -5, 1, 1, 1, 1, -1), \
-                                           (-5, -5, -5, 1, 1, 1, 1, -1), \
-                                           (0, 0, 0, -8, 2, 2, 2, -2), \
-                                           (0, 0, 0, 2, -8, 2, 2, -2), \
-                                           (0, 0, 0, 2, 2, -8, 2, -2), \
-                                           (0, 0, 0, 2, 2, 2, -8, -2), \
-                                           (0, 0, 0, 2, 2, 2, 2, 8)])/10
-                            return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "symmetric")
-                        elif len(stypes)==3:
-                            if stypes[0][1] == 5 and stypes[1][0] == 2 and stypes[2][0] == 1:
-                                raise NotImplementedError("Not maximal: first branch to A7xA1")
-                    elif stypes[0][0] == 'D' and stypes[1][0] == 'A':
-                        if stypes[0][1] == 5 and stypes[1][1] == 3:
-                            raise NotImplementedError("Not maximal: first branch to D8 then D5xD3=D5xA3")
-                    elif stypes[0][0] == 'E' and stypes[1][0] == 'A':
-                        if stypes[0][1] == 6 and stypes[1][1] == 2:
-                            br = lambda x : [x[0],x[1],x[2],x[3],x[4], \
-                                               (x[5]+x[6]-x[7])/3,(x[5]+x[6]-x[7])/3,(-x[5]-x[6]+x[7])/3, \
-                                               (-x[5]-x[6]-2*x[7])/3,(-x[5]+2*x[6]+x[7])/3,(2*x[5]-x[6]+x[7])/3]
-                            return BranchingRule(Rtype, Stype, br, "symmetric")
-                        elif stypes[0][1] == 7 and stypes[1][1] == 1:
-                            br = lambda x : [x[0],x[1],x[2],x[3],x[4],x[5],(x[6]-x[7])/2,(-x[6]+x[7])/2,(-x[6]-x[7])/2,(x[6]+x[7])/2]
-                            return BranchingRule(Rtype, Stype, br, "symmetric")
+                    if stypes == [CartanType("A4"),CartanType("A4")]:
+                        M = matrix(QQ,[(0, 0, 0, -4, -4, -4, -4, 4), \
+                                       (-5, 5, 5, 1, 1, 1, 1, -1), \
+                                       (5, -5, 5, 1, 1, 1, 1, -1), \
+                                       (5, 5, -5, 1, 1, 1, 1, -1), \
+                                       (-5, -5, -5, 1, 1, 1, 1, -1), \
+                                       (0, 0, 0, -8, 2, 2, 2, -2), \
+                                       (0, 0, 0, 2, -8, 2, 2, -2), \
+                                       (0, 0, 0, 2, 2, -8, 2, -2), \
+                                       (0, 0, 0, 2, 2, 2, -8, -2), \
+                                       (0, 0, 0, 2, 2, 2, 2, 8)])/10
+                        return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "extended")
+                    elif len(stypes)==3:
+                        if 5 in stypes[0][i]: # S is A5xA2xA1
+                            raise NotImplementedError("Not maximal: first branch to A7xA1")
+                    elif stypes == [CartanType("D5"), CartanType("A3")]:
+                        raise NotImplementedError("Not maximal: first branch to D8 then D5xD3=D5xA3")                        
+                    elif stypes == [CartanType("A3"), CartanType("D5")]:
+                        raise NotImplementedError("Not maximal: first branch to D8 then D5xD3=D5xA3")
+                    elif stypes == [CartanType("E6"), CartanType("A2")]:
+                        br = lambda x : [x[0],x[1],x[2],x[3],x[4], \
+                                         (x[5]+x[6]-x[7])/3,(x[5]+x[6]-x[7])/3,(-x[5]-x[6]+x[7])/3, \
+                                         (-x[5]-x[6]-2*x[7])/3,(-x[5]+2*x[6]+x[7])/3,(2*x[5]-x[6]+x[7])/3]
+                        return BranchingRule(Rtype, Stype, br, "extended")
+                    elif stypes == [CartanType("E7"), CartanType("A1")]:
+                        br = lambda x : [x[0],x[1],x[2],x[3],x[4],x[5],(x[6]-x[7])/2,(-x[6]+x[7])/2,(-x[6]-x[7])/2,(x[6]+x[7])/2]
+                        return BranchingRule(Rtype, Stype, br, "extended")
                 raise ValueError("Rule not found")
             elif Rtype[0] == 'F':
                 if stypes == [CartanType("C3"), CartanType("A1")]:
                     return BranchingRule(Rtype, Stype, lambda x : [x[0]-x[1],x[2]+x[3],x[2]-x[3],(-x[0]-x[1])/2,(x[0]+x[1])/2], "extended")
-                if stypes == [CartanType("A1"), CartanType("C3")]:
+                elif stypes == [CartanType("A1"), CartanType("C3")]:
                     return BranchingRule(Rtype, Stype, lambda x : [(-x[0]-x[1])/2,(x[0]+x[1])/2,x[0]-x[1],x[2]+x[3],x[2]-x[3]], "extended")
-                if stypes[0][0] == 'A' and stypes[1][0] == 'A':
-                    if stypes[0][1] == 2 and stypes[1][1] == 2:
-                        M = matrix(QQ,[(-2, -1, -1, 0), (1, 2, -1, 0), (1, -1, 2, 0), (1, -1, -1, 3), (1, -1, -1, -3), (-2, 2, 2, 0)])/3
-                    elif stypes[0][1] == 3 and stypes[1][1] == 1:
-                        M = matrix(QQ,[(-3, -1, -1, -1), (1, 3, -1, -1), (1, -1, 3, -1), (1, -1, -1, 3), (2, -2, -2, -2), (-2, 2, 2, 2)])/4
-                    elif stypes[0][1] == 1 and stypes[1][1] == 3:
-                        M = matrix(QQ,[(2, -2, -2, -2), (-2, 2, 2, 2), (-3, -1, -1, -1), (1, 3, -1, -1), (1, -1, 3, -1), (1, -1, -1, 3)])/4
-                    return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "symmetric")
+                elif stypes == [CartanType("A2"), CartanType("A2")]:
+                    M = matrix(QQ,[(-2, -1, -1, 0), (1, 2, -1, 0), (1, -1, 2, 0), (1, -1, -1, 3), (1, -1, -1, -3), (-2, 2, 2, 0)])/3
+                elif stypes == [CartanType("A3"), CartanType("A1")]:
+                    M = matrix(QQ,[(-3, -1, -1, -1), (1, 3, -1, -1), (1, -1, 3, -1), (1, -1, -1, 3), (2, -2, -2, -2), (-2, 2, 2, 2)])/4
+                elif stypes == [CartanType("A1"), CartanType("A3")]:
+                    M = matrix(QQ,[(2, -2, -2, -2), (-2, 2, 2, 2), (-3, -1, -1, -1), (1, 3, -1, -1), (1, -1, 3, -1), (1, -1, -1, 3)])/4
                 else:
                     raise ValueError("Rule not found")
+                return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "extended")
             elif Rtype[0] == 'G':
-                if all(t[0] == 'A' and t[1] == 1 for t in stypes):
-                    return BranchingRule(Rtype, Stype, lambda x : [(x[1]-x[2])/2,-(x[1]-x[2])/2, x[0]/2, -x[0]/2], "symmetric")
+                if stypes == [CartanType("A1"), CartanType("A1")]:
+                    return BranchingRule(Rtype, Stype, lambda x : [(x[1]-x[2])/2,-(x[1]-x[2])/2, x[0]/2, -x[0]/2], "extended")
             else:
                 raise ValueError("Rule not found")
         else: # irreducible Stype
             if Rtype[0] == 'B' and Stype[0] == 'D':
-                return BranchingRule(Rtype, Stype, lambda x : x, "symmetric")
+                return BranchingRule(Rtype, Stype, lambda x : x, "extended")
             elif Rtype[0] == 'E':
                 if r == 7:
                     if Stype[0] == 'A':
@@ -2594,11 +2592,11 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                                     (1, 1, 1, 1, 1, -5, 1, -1), \
                                     (1, 1, 1, 1, 1, 1, -5, -1), \
                                     (1, 1, 1, 1, 1, 1, 1, 5)])/6 # doctest needed
-                        return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "symmetric")
+                        return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "extended")
             elif Rtype[0] == 'F' and Stype[0] == 'B' and s == r:
-                return BranchingRule(Rtype, Stype, lambda x : [-x[0], x[1], x[2], x[3]], "symmetric")
+                return BranchingRule(Rtype, Stype, lambda x : [-x[0], x[1], x[2], x[3]], "extended")
             elif Rtype[0] == 'G' and Stype[0] == 'A' and s == r:
-                return BranchingRule(Rtype, Stype, lambda x : [(x[0]-x[2])/3, (-x[1]+x[2])/3, (-x[0]+x[1])/3], "symmetric")
+                return BranchingRule(Rtype, Stype, lambda x : [(x[0]-x[2])/3, (-x[1]+x[2])/3, (-x[0]+x[1])/3], "extended")
             else:
                 raise ValueError("Rule not found")
     elif rule == "isomorphic":

@@ -1265,6 +1265,52 @@ class SimplicialComplex(GenericCellComplex):
             g.append(h[i] - h[i-1])
         return g
 
+    def flip_graph(self):
+        """
+        If ``self`` is pure, then it returns the the flip graph of ``self``,
+        otherwise, it returns ``None``.
+
+        The flip graph of a pure simplicial complex is the (undirected) graph
+        with vertices being the facets, such that two facets are joined by
+        an edge if they meet in a codimension `1` face.
+
+        The flip graph is used to detect if ``self`` is a pseudomanifold.
+
+        EXAMPLES::
+
+            sage: S0 = simplicial_complexes.Sphere(0)
+            sage: S0.flip_graph()
+            ???
+            sage: (S0.wedge(S0)).flip_graph()
+            ???
+            sage: S1 = simplicial_complexes.Sphere(1)
+            sage: S2 = simplicial_complexes.Sphere(2)
+            sage: (S1.wedge(S1)).flip_graph()
+            ???
+            sage: (S1.wedge(S2)).flip_graph()
+            ???
+            sage: S2.flip_graph()
+            ???
+            sage: T = simplicial_complexes.Torus()
+            sage: T.suspension(4).flip_graph()
+            ???
+        """
+        if not self.is_pure():
+            return None
+        d = self.dimension()
+        Fs = self.facets()
+        Xs = self.n_faces(d-1)
+        G = Graph()
+        G.add_vertices(Fs)
+        # go through all codim 1 faces to build the edge
+        for X in Xs:
+            for A,B in Subsets( [ F for F in Fs if X.is_face(F) ], 2 ):
+                G.add_edge((A,B))
+        return G
+            if len([a for a in [s.is_face(f) for f in F] if a]) != 2:
+                return False
+        return G
+
     def is_pseudomanifold(self):
         """
         Return True if self is a pseudomanifold.

@@ -827,6 +827,8 @@ class CachedRepresentation:
         deleting instance for argument 1
         sage: O = SomeClass(1)
         creating new instance for argument 1
+        sage: del O
+        deleting instance for argument 1
 
     .. rubric:: Cached representation and pickling
 

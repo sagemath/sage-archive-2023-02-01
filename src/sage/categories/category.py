@@ -167,11 +167,12 @@ class Category(UniqueRepresentation, SageObject):
 
     - ``Groups()``: the category of groups
     - ``EuclideanDomains()``: the category of euclidean rings
-    - ``VectorSpaces(QQ)``: the category of vector spaces over the field of rational
+    - ``VectorSpaces(QQ)``: the category of vector spaces over the field of
+      rationals
 
     See :mod:`sage.categories.primer` for an introduction to
     categories in Sage, their relevance, purpose and usage. The
-    documentation below focus on their implementation.
+    documentation below will focus on their implementation.
 
     Technically, a category is an instance of the class
     :class:`Category` or some of its subclasses. Some categories, like
@@ -180,7 +181,7 @@ class Category(UniqueRepresentation, SageObject):
     hand, ``EuclideanDomains()`` is the single instance of the class
     :class:`EuclideanDomains`.
 
-    Recall that an algebraic structure (say the ring `QQ[x]`) is
+    Recall that an algebraic structure (say, the ring `\QQ[x]`) is
     modelled in Sage by an object which is called a parent. This
     object belongs to certain categories (here ``EuclideanDomains()`` and
     ``Algebras()``). The elements of the ring are themselves objects.
@@ -189,8 +190,9 @@ class Category(UniqueRepresentation, SageObject):
 
     - Operations on the category itself (what is its super categories?
       its category of morphisms? its dual category?)
-    - Generic operations on parents in this category, like the ring `QQ[x]`
-    - Generic operations on elements of this ring (Euclid algorithm for computing gcds)
+    - Generic operations on parents in this category, like the ring `\QQ[x]`
+    - Generic operations on elements of this ring (e. g., the Euclidean
+      algorithm for computing gcds)
 
     This is achieved as follows::
 
@@ -217,10 +219,10 @@ class Category(UniqueRepresentation, SageObject):
     operations. The hierarchy between the different categories is
     defined once at the level of the categories. Behind the scene, a
     parallel hierarchy of classes is built automatically from all the
-    .ParentMethods classes. Then, a parent in a category receives the
-    appropriate operations from all the super categories by usual
+    ``.ParentMethods`` classes. Then, a parent in a category receives
+    the appropriate operations from all the super categories by usual
     class inheritance. Similarly, a third hierarchy of classes is
-    built for elements from the .Elements.
+    built for elements from the ``.Elements``.
 
     EXAMPLES:
 
@@ -287,8 +289,8 @@ class Category(UniqueRepresentation, SageObject):
         sage: As().parent_class == As().parent_class
         True
 
-    We construct a parent in the category Ds() (that is an instance of
-    Ds().parent_class), and check that it has access to all the
+    We construct a parent in the category Ds() (that, is an instance of
+    ``Ds().parent_class``), and check that it has access to all the
     methods provided by all the categories, with the appropriate
     inheritance order::
 
@@ -344,11 +346,11 @@ class Category(UniqueRepresentation, SageObject):
         [<class '__main__.Ds.parent_class'>, <class '__main__.Cs.parent_class'>, <class '__main__.Bs.parent_class'>, <class '__main__.As.parent_class'>, <type 'object'>]
 
     Note that that two categories in the same class need not have the
-    same super_categories. For example, Algebras(QQ) has
-    VectorSpaces(QQ) as super category, whereas Algebras(ZZ) only has
-    Modules(ZZ) as super category. In particular, the constructed
-    parent class and element class will differ (inheriting, or not,
-    methods specific for vector spaces)::
+    same ``super_categories``. For example, ``Algebras(QQ)`` has
+    ``VectorSpaces(QQ)`` as super category, whereas ``Algebras(ZZ)``
+    only has ``Modules(ZZ)`` as super category. In particular, the
+    constructed parent class and element class will differ (inheriting,
+    or not, methods specific for vector spaces)::
 
         sage: Algebras(QQ).parent_class is Algebras(ZZ).parent_class
         False
@@ -2900,7 +2902,6 @@ class JoinCategory(CategoryWithParameters):
         This uses :meth:`._without_axioms` which may fail if this
         category is not obtained by adjoining axioms to some super
         categories::
-
 
             sage: Category.join((Groups(), CommutativeAdditiveMonoids()))._repr_object_names()
             Traceback (most recent call last):

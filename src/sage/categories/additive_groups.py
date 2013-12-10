@@ -16,7 +16,7 @@ from sage.structure.sage_object import have_same_parent
 class AdditiveGroups(CategoryWithAxiom_singleton):
     """
 
-    The category of additive groups, i.e. sets with an associative
+    The category of additive groups, i.e. sets with an internal binary
     operation + which is associative, admits a zero, and where every
     element can be negated.
 

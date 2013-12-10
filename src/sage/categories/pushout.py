@@ -1,7 +1,7 @@
 """
 Coercion via Construction Functors
 """
-from functor import Functor, IdentityFunctor_generic
+from functor import Functor
 from basic import *
 
 from sage.structure.parent import CoercionException

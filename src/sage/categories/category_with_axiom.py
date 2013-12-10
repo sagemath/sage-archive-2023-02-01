@@ -68,7 +68,7 @@ TESTS::
     sage: Domains().Commutative()
     Category of integral domains
 
-Wederburn theorem; not yet implemented::
+Wedderburn's theorem::
 
     sage: DivisionRings().Finite()
     Category of finite fields
@@ -91,7 +91,7 @@ Wederburn theorem; not yet implemented::
       systematically a singleton category? Same thing for category
       with base ring?
 
-    - Once full subcategories are implemented (see #10668),
+    - Once full subcategories are implemented (see :trac:`10668`),
       make category with axioms be such. Should all full subcategories
       be implemented in term of axioms?
 """

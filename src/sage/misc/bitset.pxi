@@ -39,6 +39,9 @@ cdef inline bint bitset_init(bitset_t bits, unsigned long size) except -1:
 
     Size must be at least 1.
     """
+    if size <= 0:
+        raise ValueError("bitset capacity must be greater than 0")
+
     bits.size = size
     bits.limbs = (size - 1) / (8 * sizeof(unsigned long)) + 1
     bits.bits = <unsigned long*>sage_malloc(bits.limbs * sizeof(unsigned long))
@@ -55,6 +58,9 @@ cdef inline bint bitset_realloc(bitset_t bits, unsigned long size) except -1:
     cdef unsigned long size_old = bits.size
     if size_old == size:
         return 0
+    if size <= 0:
+        raise ValueError("bitset capacity must be greater than 0")
+
     bits.limbs = (size - 1) / (8 * sizeof(unsigned long)) + 1
     tmp = <unsigned long*>sage_realloc(bits.bits, bits.limbs * sizeof(unsigned long))
     if tmp != NULL:

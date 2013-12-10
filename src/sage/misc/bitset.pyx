@@ -70,7 +70,7 @@ cdef class FrozenBitset:
 
       - string -- If a nonempty string, then the bitset is initialized by
         including an element if the index of the string is ``1``. If the
-        string is empty, then the bitset is set to the empty set.
+        string is empty, then raise a ``ValueError``.
 
       - iterable -- If an iterable, then it is assumed to contain a list of
         nonnegative integers and those integers are placed in the set.
@@ -100,35 +100,53 @@ cdef class FrozenBitset:
 
     EXAMPLES:
 
-    The empty bitset::
+    The default bitset, which has capacity 1::
 
         sage: FrozenBitset()
         0
-        sage: FrozenBitset([])
-        0
-        sage: FrozenBitset(list())
-        0
-        sage: FrozenBitset(())
-        0
-        sage: FrozenBitset(tuple())
-        0
-        sage: FrozenBitset("")
-        0
         sage: FrozenBitset(None)
         0
+
+    Trying to create an empty bitset fails::
+
+        sage: FrozenBitset([])
+        Traceback (most recent call last):
+        ...
+        ValueError: Bitsets must not be empty
+        sage: FrozenBitset(list())
+        Traceback (most recent call last):
+        ...
+        ValueError: Bitsets must not be empty
+        sage: FrozenBitset(())
+        Traceback (most recent call last):
+        ...
+        ValueError: Bitsets must not be empty
+        sage: FrozenBitset(tuple())
+        Traceback (most recent call last):
+        ...
+        ValueError: Bitsets must not be empty
+        sage: FrozenBitset("")
+        Traceback (most recent call last):
+        ...
+        ValueError: Bitsets must not be empty
+
+    We can create the all-zero bitset as follows::
+
+        sage: FrozenBitset(capacity=10)
+        0000000000
+        sage: FrozenBitset([], capacity=10)
+        0000000000
 
     We can initialize a :class:`FrozenBitset` with a :class:`Bitset` or
     another :class:`FrozenBitset`, and compare them for equality. As they
     are logically the same bitset, the equality test should return ``True``.
     Furthermore, each bitset is a subset of the other. ::
 
-        sage: # custom function for comparing bitsets
-        sage: def bitcmp(a, b, c):
-        ...       print(a == b == c)
-        ...       print(a <= b, b <= c, a <= c)
-        ...       print(a >= b, b >= c, a >= c)
-        ...       print(a != b, b != c, a != c)
-        sage: # a hard-coded bitset
+        sage: def bitcmp(a, b, c):  # custom function for comparing bitsets
+        ....:     print(a == b == c)
+        ....:     print(a <= b, b <= c, a <= c)
+        ....:     print(a >= b, b >= c, a >= c)
+        ....:     print(a != b, b != c, a != c)
         sage: a = Bitset("1010110"); b = FrozenBitset(a); c = FrozenBitset(b)
         sage: a; b; c
         1010110
@@ -143,7 +161,9 @@ cdef class FrozenBitset:
         (True, True, True)
         (True, True, True)
         (False, False, False)
-        sage: # a random bitset
+
+    Try a random bitset::
+
         sage: a = Bitset(randint(0, 1) for n in range(1, randint(1, 10^4)))
         sage: b = FrozenBitset(a); c = FrozenBitset(b)
         sage: bitcmp(a, b, c)
@@ -189,13 +209,17 @@ cdef class FrozenBitset:
         sage: F = FrozenBitset(p); F; FrozenBitset(tuple(p))
         001101010001010001010001000001
         001101010001010001010001000001
-        sage: # recover the primes from the bitset
+
+    Recover the primes from the bitset::
+
         sage: for b in F:
-        ...       print b,
+        ....:     print b,
         2 3 5 7 11 13 17 19 23 29
         sage: list(F)
         [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
-        sage: # query the bitset
+
+    Query the bitset::
+
         sage: len(F)
         10
         sage: len(list(F))
@@ -235,33 +259,28 @@ cdef class FrozenBitset:
         Traceback (most recent call last):
         ...
         ValueError: bitset capacity does not match passed string
-        sage: FrozenBitset("", capacity=0)
+        sage: FrozenBitset("110110", capacity=100)
         Traceback (most recent call last):
         ...
-        MemoryError...
+        ValueError: bitset capacity does not match passed string
 
     The parameter ``capacity`` must be positive::
 
         sage: FrozenBitset("110110", capacity=0)
         Traceback (most recent call last):
         ...
-        MemoryError...
-        sage: FrozenBitset("110110", capacity=-0)
-        Traceback (most recent call last):
-        ...
-        MemoryError...
+        ValueError: bitset capacity must be greater than 0
         sage: FrozenBitset("110110", capacity=-2)
         Traceback (most recent call last):
         ...
         OverflowError: can't convert negative value to unsigned long
     """
-
     def __cinit__(self, iter=None, capacity=None):
         """
         Allocate the bitset.
 
-        See the class documentation of ``FrozenBitset`` for details on the
-        parameters.
+        See the class documentation of :class:`FrozenBitset` for details
+        on the parameters.
 
         EXAMPLES::
 
@@ -356,24 +375,22 @@ cdef class FrozenBitset:
                 raise ValueError("bitset capacity does not match passed bitset")
             bitset_copy(self._bitset, b._bitset)
         elif isinstance(iter, str):
+            if len(iter) == 0:
+                raise ValueError("Bitsets must not be empty")
             if capacity is None:
-                if len(iter) > 0:
-                    bitset_realloc(self._bitset, len(iter))
-                else:
-                    bitset_realloc(self._bitset, len(iter) + 1)
+                bitset_realloc(self._bitset, len(iter))
             elif self._bitset.size != len(iter):
                 raise ValueError("bitset capacity does not match passed string")
-            if len(iter) > 0:
-                bitset_from_str(self._bitset, iter)
-            else:
-                bitset_clear(self._bitset)
+            bitset_from_str(self._bitset, iter)
         else:  # an iterable
             iter = list(iter)
             if len(iter) > 0:
                 need_capacity = max(iter) + 1
             else:
-                need_capacity = 1
+                need_capacity = 0
             if capacity is None:
+                if need_capacity == 0:
+                    raise ValueError("Bitsets must not be empty")
                 bitset_realloc(self._bitset, need_capacity)
             elif self._bitset.size < need_capacity:
                 raise ValueError("bitset capacity does not allow storing the passed iterable")

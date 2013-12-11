@@ -443,7 +443,7 @@ class OrthogonalPolynomial(BuiltinFunction):
 
     def _eval_(self, n, *args):
         """
-        The _eval_ method decides which evaluation suits best
+        The :meth:`_eval_()` method decides which evaluation suits best
         for the given input, and returns a proper value.
 
         EXAMPLES::
@@ -471,19 +471,15 @@ class OrthogonalPolynomial(BuiltinFunction):
         """
         return super(OrthogonalPolynomial,self).__call__(n, *args, **kwds)
 
-    
-
 class ChebyshevPolynomial(OrthogonalPolynomial):
     """
-    Super class for Chebyshev polynomials of the first and second kind.
+    Abstract base class for Chebyshev polynomials of the first and second kind.
 
     EXAMPLES::
 
         sage: chebyshev_T(3,x)
         4*x^3 - 3*x
-
     """
-
     def __call__(self, n, *args, **kwds):
         """
         This overides the call method from SageObject to avoid problems with coercions,
@@ -518,11 +514,10 @@ class ChebyshevPolynomial(OrthogonalPolynomial):
                 pass
 
         return super(ChebyshevPolynomial,self).__call__(n, *args, **kwds)
-    
 
     def _eval_(self, n, x):
         """
-        The _eval_ method decides which evaluation suits best
+        The :meth:`_eval_()` method decides which evaluation suits best
         for the given input, and returns a proper value.
 
         EXAMPLES::
@@ -563,8 +558,7 @@ class ChebyshevPolynomial(OrthogonalPolynomial):
             # Expanded symbolic expression only for small values of n
             if is_Expression(x) and n.abs() < 32:
                 return self.eval_formula(n, x)
-            else:
-                return self.eval_algebraic(n, x)
+            return self.eval_algebraic(n, x)
 
         if is_Expression(x) or is_Expression(n):
             # Check for known identities
@@ -617,9 +611,9 @@ class Func_chebyshev_T(ChebyshevPolynomial):
             sage: chebyshev_T2(1,x)
             x
         """
-        super(Func_chebyshev_T,self).__init__("chebyshev_T", nargs=2,
-                                      conversions=dict(maxima='chebyshev_t',
-                                                       mathematica='ChebyshevT'))
+        ChebyshevPolynomial.__init__(self, "chebyshev_T", nargs=2,
+                                     conversions=dict(maxima='chebyshev_t',
+                                                      mathematica='ChebyshevT'))
 
     def _eval_special_values_(self, n, x):
         """
@@ -711,7 +705,7 @@ class Func_chebyshev_T(ChebyshevPolynomial):
                     real_parent = CC
 
         if not is_RealField(real_parent) and not is_ComplexField(real_parent):
-            raise TypeError("cannot evaluate chebyshev_T with parent %s"%real_parent)
+            raise TypeError("cannot evaluate chebyshev_T with parent {}".format(real_parent))
 
         from sage.libs.mpmath.all import call as mpcall
         from sage.libs.mpmath.all import chebyt as mpchebyt
@@ -730,10 +724,8 @@ class Func_chebyshev_T(ChebyshevPolynomial):
             'x'
             sage: maxima(chebyshev_T(n, chebyshev_T(n, x)))
             chebyshev_t(n,chebyshev_t(n,x))
-
         """
         return maxima.eval('chebyshev_t({0},{1})'.format(n._maxima_init_(), x._maxima_init_()))
-
 
     def eval_formula(self, n, x):
         """
@@ -762,7 +754,6 @@ class Func_chebyshev_T(ChebyshevPolynomial):
             512*x^10 - 1280*x^8 + 1120*x^6 - 400*x^4 + 50*x^2 - 1
             sage: chebyshev_T.eval_algebraic(10,x).expand()
             512*x^10 - 1280*x^8 + 1120*x^6 - 400*x^4 + 50*x^2 - 1
-
         """
         if n < 0:
             return self.eval_formula(-n, x)
@@ -814,16 +805,15 @@ class Func_chebyshev_T(ChebyshevPolynomial):
         """
         if n == 0:
             return parent(x).one()
-        if n > 0:
-            return self._eval_recursive_(n, x)[0]
-        else:
+        if n < 0:
             return self._eval_recursive_(-n, x)[0]
+        return self._eval_recursive_(n, x)[0]
 
     def _eval_recursive_(self, n, x, both=False):
         """
-        If ``both=True``, compute `(T(n,x), T(n-1,x))` using a
+        If ``both=True``, compute ``(T(n,x), T(n-1,x))`` using a
         recursive formula.
-        If ``both=False``, return instead a tuple `(T(n,x), False)`.
+        If ``both=False``, return instead a tuple ``(T(n,x), False)``.
 
         EXAMPLES::
 
@@ -888,8 +878,7 @@ class Func_chebyshev_T(ChebyshevPolynomial):
             raise NotImplementedError("derivative w.r.t. to the index is not supported yet")
         elif diff_param == 1:
             return n*chebyshev_U(n-1, x)
-        else:
-            raise ValueError("illegal differentiation parameter %s"%diff_param)
+        raise ValueError("illegal differentiation parameter {}".format(diff_param))
 
 chebyshev_T = Func_chebyshev_T()
 
@@ -920,9 +909,9 @@ class Func_chebyshev_U(ChebyshevPolynomial):
             sage: chebyshev_U2(1,x)
             2*x
         """
-        OrthogonalPolynomial.__init__(self, "chebyshev_U", nargs=2,
-                                      conversions=dict(maxima='chebyshev_u',
-                                                       mathematica='ChebyshevU'))
+        ChebyshevPolynomial.__init__(self, "chebyshev_U", nargs=2,
+                                     conversions=dict(maxima='chebyshev_u',
+                                                      mathematica='ChebyshevU'))
 
     def eval_formula(self, n, x):
         """
@@ -1005,16 +994,15 @@ class Func_chebyshev_U(ChebyshevPolynomial):
         """
         if n == -1:
             return parent(x).zero()
-        if n >= 0:
-            return self._eval_recursive_(n, x)[0]
-        else:
+        if n < 0:
             return -self._eval_recursive_(-n-2, x)[0]
+        return self._eval_recursive_(n, x)[0]
 
     def _eval_recursive_(self, n, x, both=False):
         """
-        If ``both=True``, compute `(U(n,x), U(n-1,x))` using a
+        If ``both=True``, compute ``(U(n,x), U(n-1,x))`` using a
         recursive formula.
-        If ``both=False``, return instead a tuple `(U(n,x), False)`.
+        If ``both=False``, return instead a tuple ``(U(n,x), False)``.
 
         EXAMPLES::
 
@@ -1022,7 +1010,6 @@ class Func_chebyshev_U(ChebyshevPolynomial):
             (4*((2*x + 1)*(2*x - 1) - 2*x^2)*x, False)
             sage: chebyshev_U._eval_recursive_(3, x, True)
             (4*((2*x + 1)*(2*x - 1) - 2*x^2)*x, ((2*x + 1)*(2*x - 1) + 2*x)*((2*x + 1)*(2*x - 1) - 2*x))
-
         """
         if n == 0:
             return parent(x).one(), 2*x
@@ -1081,7 +1068,7 @@ class Func_chebyshev_U(ChebyshevPolynomial):
                     real_parent = CC
 
         if not is_RealField(real_parent) and not is_ComplexField(real_parent):
-            raise TypeError("cannot evaluate chebyshev_U with parent %s"%real_parent)
+            raise TypeError("cannot evaluate chebyshev_U with parent {}".format(real_parent))
 
         from sage.libs.mpmath.all import call as mpcall
         from sage.libs.mpmath.all import chebyu as mpchebyu
@@ -1142,7 +1129,6 @@ class Func_chebyshev_U(ChebyshevPolynomial):
         from scipy.special import eval_chebyu
         return eval_chebyu(n, x)
 
-
     def _derivative_(self, n, x, diff_param):
         """
         Return the derivative of :class:`chebyshev_U` in form of the Chebyshev
@@ -1164,9 +1150,8 @@ class Func_chebyshev_U(ChebyshevPolynomial):
         if diff_param == 0:
             raise NotImplementedError("derivative w.r.t. to the index is not supported yet")
         elif diff_param == 1:
-            return ((n+1)*chebyshev_T(n+1, x) - x*chebyshev_U(n,x))/(x*x-1)
-        else:
-            raise ValueError("illegal differentiation parameter %s"%diff_param)
+            return ((n+1)*chebyshev_T(n+1, x) - x*chebyshev_U(n,x)) / (x*x-1)
+        raise ValueError("illegal differentiation parameter {}".format(diff_param))
 
 chebyshev_U = Func_chebyshev_U()
 

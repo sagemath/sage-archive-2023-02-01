@@ -19,7 +19,7 @@ Website: http://rpy.sourceforge.net/rpy2.html
 == Dependencies ==
 
 == Special Update/Build Instructions ==
- * setup.py change takes care of a few parsing issues and location issues
+ * setup.py change takes care of a few parsing issues
  * does this need to be reported upstream, or is it Sage-specific?
 
 == Changelog ==

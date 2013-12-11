@@ -2224,15 +2224,24 @@ def branch_weyl_character(chi, R, S, rule="default"):
     return S.char_from_weights(mdict)
 
 class BranchingRule(SageObject):
-    def __init__(self, R, S, f, name="default"):
+    """
+    A class for branching rules.
+    """
+    def __init__(self, R, S, f, name="default", intermediate_types=[], intermediate_names=[]):
         """
-        R, S: CartanTypes
-        f a function from the weight lattice of R to the weight lattice of S.
+        INPUT:
 
+        - ''R, S'' -- CartanTypes
+        -  ``f`` -- a function from the weight lattice of R to the weight lattice of S.
         """
         self._R = CartanType(R)
         self._S = CartanType(S)
         self._f = f
+        self._intermediate_types = intermediate_types
+        if len(intermediate_names) > 0:
+            self._intermediate_names = intermediate_names
+        else:
+            self._intermediate_names = [name]
         self._name = name
 
     def __repr__(self):
@@ -2240,10 +2249,20 @@ class BranchingRule(SageObject):
         EXAMPLES::
 
             sage: branching_rule("E6","F4","symmetric")
-            symmetric branching rule from E6 to F4
-
+            symmetric branching rule E6 => F4
+            sage: b=branching_rule("F4","B3",rule="levi")*branching_rule("B3","G2",rule="miscellaneous"); b
+            composite branching rule F4 => (levi) B3 => (miscellaneous) G2
         """
-        return "%s branching rule from %s to %s"%(self._name, self._R._repr_(compact=True), self._S._repr_(compact=True))
+        if self._name is "composite":
+            ret = "composite branching rule %s => "%self._R._repr_(compact=True)
+            for i in range(len(self._intermediate_types)):
+                intt = self._intermediate_types[i]
+                intn = self._intermediate_names[i]
+                ret += "(%s) %s => "%(intn, intt._repr_(compact=True))
+            ret += "(%s) %s"%(self._intermediate_names[-1], self._S._repr_(compact=True))
+            return ret
+        else:
+            return "%s branching rule %s => %s"%(self._name, self._R._repr_(compact=True), self._S._repr_(compact=True))
 
     def __call__(self, x):
         """
@@ -2264,14 +2283,16 @@ class BranchingRule(SageObject):
 
             sage: E6=WeylCharacterRing("E6",style="coroots")
             sage: A5=WeylCharacterRing("A5",style="coroots")
-            sage: br = branching_rule("E6","A5xA1",rule="extended")*branching_rule("A5xA1","A5",rule=["identity","omit"]); br
-            composite via A5xA1 branching rule from E6 to A5
+            sage: br = branching_rule("E6","A5xA1",rule="extended")*branching_rule("A5xA1","A5",rule="proj1"); br
+            composite branching rule E6 => (extended) A5xA1 => (compound) A5
             sage: E6(1,0,0,0,0,0).branch(A5,rule=br)
             A5(0,0,0,1,0) + 2*A5(1,0,0,0,0)
         """
         if self._S == other._R:
+            intermediates = flatten([self._intermediate_types, self._S, other._intermediate_types])
+            internames = flatten([self._intermediate_names, other._intermediate_names])
             f  = lambda x : other._f(self._f(x))
-            return BranchingRule(self._R, other._S, f, "composite via %s"%self._S._repr_(compact=True))
+            return BranchingRule(self._R, other._S, f, "composite", intermediate_types=intermediates, intermediate_names=internames)
         else:
             raise ValueError, "unable to define composite: source and target don't agree"
 

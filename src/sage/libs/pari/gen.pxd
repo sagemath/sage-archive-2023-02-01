@@ -15,3 +15,5 @@ cdef class gen(sage.structure.element.RingElement):
     cdef gen pari(self, object x)
     cdef GEN _deepcopy_to_python_heap(self, GEN x, pari_sp* address)
     cdef long get_var(self, v)
+
+cdef gen objtogen(object s)

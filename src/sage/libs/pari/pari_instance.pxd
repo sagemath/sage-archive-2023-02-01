@@ -3,6 +3,8 @@ include 'decl.pxi'
 cimport sage.structure.parent_base
 cimport cython
 
+from sage.libs.pari.gen cimport gen
+
 @cython.final
 cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef gen PARI_ZERO, PARI_ONE, PARI_TWO
@@ -27,5 +29,3 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef gen integer_matrix(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc, bint permute_for_hnf)
     cdef GEN _new_GEN_from_mpq_t_matrix(self, mpq_t** B, Py_ssize_t nr, Py_ssize_t nc)
     cdef gen rational_matrix(self, mpq_t** B, Py_ssize_t nr, Py_ssize_t nc)
-
-cdef GEN _Vec_append(GEN v, GEN a, long n)

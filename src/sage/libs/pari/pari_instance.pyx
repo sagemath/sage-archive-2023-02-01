@@ -153,8 +153,22 @@ Sage (ticket #9636)::
 
 """
 
-cdef extern from "mpz_pylong.h":
-    cdef int mpz_set_pylong(mpz_t dst, src) except -1
+include 'pari_err.pxi'
+include 'sage/ext/stdsage.pxi'
+include 'sage/ext/python.pxi'
+include 'sage/ext/interrupt.pxi'
+
+import sys
+
+cimport libc.stdlib
+cimport cython
+
+from sage.structure.parent cimport Parent
+
+from sage.libs.pari.gen cimport gen, objtogen
+from sage.libs.pari.handle_error cimport pari_error_string, \
+        _pari_init_error_handling, _pari_check_warning, \
+        _pari_handle_exception, _pari_err_recover
 
 # so Galois groups are represented in a sane way
 # See the polgalois section of the PARI users manual.
@@ -195,10 +209,10 @@ def prec_bits_to_dec(int prec_in_bits):
 
     EXAMPLES::
 
-        sage: import sage.libs.pari.gen as gen
-        sage: gen.prec_bits_to_dec(53)
+        sage: from sage.libs.pari.pari_instance import prec_bits_to_dec
+        sage: prec_bits_to_dec(53)
         15
-        sage: [(32*n,gen.prec_bits_to_dec(32*n)) for n in range(1,9)]
+        sage: [(32*n, prec_bits_to_dec(32*n)) for n in range(1, 9)]
         [(32, 9),
         (64, 19),
         (96, 28),
@@ -218,10 +232,10 @@ def prec_dec_to_bits(int prec_in_dec):
 
     EXAMPLES::
 
-        sage: import sage.libs.pari.gen as gen
-        sage: gen.prec_dec_to_bits(15)
+        sage: from sage.libs.pari.pari_instance import prec_dec_to_bits
+        sage: prec_dec_to_bits(15)
         49
-        sage: [(n,gen.prec_dec_to_bits(n)) for n in range(10,100,10)]
+        sage: [(n, prec_dec_to_bits(n)) for n in range(10, 100, 10)]
         [(10, 33),
         (20, 66),
         (30, 99),
@@ -244,14 +258,14 @@ def prec_bits_to_words(int prec_in_bits=0):
 
     EXAMPLES::
 
-        sage: import sage.libs.pari.gen as gen
-        sage: gen.prec_bits_to_words(70)
+        sage: from sage.libs.pari.pari_instance import prec_bits_to_words
+        sage: prec_bits_to_words(70)
         5   # 32-bit
         4   # 64-bit
 
     ::
 
-        sage: [(32*n,gen.prec_bits_to_words(32*n)) for n in range(1,9)]
+        sage: [(32*n, prec_bits_to_words(32*n)) for n in range(1, 9)]
         [(32, 3), (64, 4), (96, 5), (128, 6), (160, 7), (192, 8), (224, 9), (256, 10)] # 32-bit
         [(32, 3), (64, 3), (96, 4), (128, 4), (160, 5), (192, 5), (224, 6), (256, 6)] # 64-bit
     """
@@ -275,11 +289,11 @@ def prec_words_to_bits(int prec_in_words):
 
     EXAMPLES::
 
-        sage: import sage.libs.pari.gen as gen
-        sage: gen.prec_words_to_bits(10)
+        sage: from sage.libs.pari.pari_instance import prec_words_to_bits
+        sage: prec_words_to_bits(10)
         256   # 32-bit
         512   # 64-bit
-        sage: [(n,gen.prec_words_to_bits(n)) for n in range(3,10)]
+        sage: [(n, prec_words_to_bits(n)) for n in range(3, 10)]
         [(3, 32), (4, 64), (5, 96), (6, 128), (7, 160), (8, 192), (9, 224)]  # 32-bit
         [(3, 64), (4, 128), (5, 192), (6, 256), (7, 320), (8, 384), (9, 448)] # 64-bit
     """
@@ -294,11 +308,11 @@ def prec_dec_to_words(int prec_in_dec):
 
     EXAMPLES::
 
-        sage: import sage.libs.pari.gen as gen
-        sage: gen.prec_dec_to_words(38)
+        sage: from sage.libs.pari.pari_instance import prec_dec_to_words
+        sage: prec_dec_to_words(38)
         6   # 32-bit
         4   # 64-bit
-        sage: [(n,gen.prec_dec_to_words(n)) for n in range(10,90,10)]
+        sage: [(n, prec_dec_to_words(n)) for n in range(10, 90, 10)]
         [(10, 4), (20, 5), (30, 6), (40, 7), (50, 8), (60, 9), (70, 10), (80, 11)] # 32-bit
         [(10, 3), (20, 4), (30, 4), (40, 5), (50, 5), (60, 6), (70, 6), (80, 7)] # 64-bit
     """
@@ -312,11 +326,11 @@ def prec_words_to_dec(int prec_in_words):
 
     EXAMPLES::
 
-        sage: import sage.libs.pari.gen as gen
-        sage: gen.prec_words_to_dec(5)
+        sage: from sage.libs.pari.pari_instance import prec_words_to_dec
+        sage: prec_words_to_dec(5)
         28   # 32-bit
         57   # 64-bit
-        sage: [(n,gen.prec_words_to_dec(n)) for n in range(3,10)]
+        sage: [(n, prec_words_to_dec(n)) for n in range(3, 10)]
         [(3, 9), (4, 19), (5, 28), (6, 38), (7, 48), (8, 57), (9, 67)] # 32-bit
         [(3, 19), (4, 38), (5, 57), (6, 77), (7, 96), (8, 115), (9, 134)] # 64-bit
     """
@@ -1183,7 +1197,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
         EXAMPLES:
             sage: pari._primelimit()
-            500519
+            500000
             sage: pari.init_primes(600000)
             sage: pari._primelimit()
             600000
@@ -1270,6 +1284,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
 
     def nth_prime(self, long n):
+        from sage.libs.pari.gen import PariError
         try:
             return self.__nth_prime(n)
         except PariError:

@@ -39,17 +39,12 @@ AUTHORS:
 #*****************************************************************************
 
 
-import sys
 import math
 import types
 import operator
 import sage.structure.element
 from sage.structure.element cimport ModuleElement, RingElement, Element
-from sage.structure.parent cimport Parent
 from sage.misc.randstate cimport randstate, current_randstate
-from sage.libs.pari.handle_error cimport pari_error_string, \
-        _pari_init_error_handling, _pari_check_warning, \
-        _pari_handle_exception, _pari_err_recover
 
 from sage.misc.misc_c import is_64_bit
 
@@ -58,16 +53,26 @@ include 'sage/ext/stdsage.pxi'
 include 'sage/ext/python.pxi'
 include 'sage/ext/interrupt.pxi'
 
-cimport libc.stdlib
 cimport cython
 
 cdef extern from "misc.h":
     int     factorint_withproof_sage(GEN* ans, GEN x, GEN cutoff)
     int     gcmp_sage(GEN x, GEN y)
 
+cdef extern from "mpz_pylong.h":
+    cdef int mpz_set_pylong(mpz_t dst, src) except -1
+
 # Will be imported as needed
 Integer = None
 
+import pari_instance
+from pari_instance cimport PariInstance
+cdef PariInstance P, pari
+P = pari = pari_instance.pari
+
+from pari_instance import pbw, prec_bits_to_words, prec_words_to_dec
+
+cdef long prec = prec_bits_to_words(53)
 
 @cython.final
 cdef class gen(sage.structure.element.RingElement):
@@ -80,7 +85,7 @@ cdef class gen(sage.structure.element.RingElement):
         self._refers_to = {}
 
     def parent(self):
-        return pari_instance
+        return P
 
     cdef void init(self, GEN g, pari_sp b):
         """
@@ -5334,9 +5339,8 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(500509).primepi()
             41581
         """
-        global num_primes
         pari_catch_sig_on()
-        if self > num_primes:
+        if self > P._primelimit():
             P.init_primes(self + 10)
         if signe(self.g) != 1:
             pari_catch_sig_off()

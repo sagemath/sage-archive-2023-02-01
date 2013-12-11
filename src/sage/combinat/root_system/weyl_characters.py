@@ -2367,8 +2367,10 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                     return BranchingRule(Rtype, Stype, lambda x : [-x[5],-x[4],-x[3],-x[2],-x[1],-x[0]], "levi")
                 if r == 8 and Stype == CartanType("D7"):
                         return BranchingRule(Rtype, Stype, lambda x : [-x[6],-x[5],-x[4],-x[3],-x[2],-x[1],-x[0]], "levi")
-                elif r in [7,8] and Stype[0] == 'E':
-                    return BranchingRule(Rtype, Stype, lambda x : x, "levi")
+                if r == 7 and Stype == CartanType("E6"):
+                    return BranchingRule(Rtype, Stype, lambda x : [x[0], x[1], x[2], x[3], x[4], (x[5]+x[6]-x[7])/3, (2*x[5]+5*x[6]+x[7])/6, (-2*x[5]+x[6]+5*x[7])/6], "levi")
+                elif r == 8 and Stype == CartanType("E7"):
+                    return BranchingRule(Rtype, Stype, [x[0],x[1],x[2],x[3],x[4],x[5],(x[6]-x[7])/2,(x[7]-x[6])/2], "levi")
                 elif Stype[0] == 'A':
                     if r == 6:
                         raise NotImplementedError('A5 Levi is not maximal. Branch to A5xA1 (rule="extended").')

@@ -58,19 +58,14 @@ class JmolData(SageObject):
             sage: type(JData.is_jvm_available())
             <type 'bool'>
         """
-        #scratch file for  Jmol errors and status
-        jmolscratch = os.path.join(DOT_SAGE, "sage_notebook.sagenb", "jmol_scratch")
-        if not os.path.exists(jmolscratch):
-            sage_makedirs(jmolscratch)
-        scratchout = os.path.join(jmolscratch,"jmolout.txt")
-        jout=open(scratchout,'w')
-        testjavapath = os.path.join(SAGE_LOCAL, "share", "jmol", "testjava.sh")
-        result = subprocess.call([testjavapath],stdout=jout)
-        jout.close()
-        if (result == 0):
-            return (True)
-        else:
-            return (False)
+        try:
+            version = subprocess.check_output(['java', '-version'], stderr=subprocess.STDOUT)
+        except (subprocess.CalledProcessError, OSError):
+            return False
+
+        import re
+        java_version = re.search("version.*[1][.][567]", version)
+        return java_version is not None
 
     def export_image(self,
         targetfile,

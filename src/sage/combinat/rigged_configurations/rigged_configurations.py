@@ -1772,3 +1772,25 @@ class RCTypeA2Dual(RCTypeA2Even):
         return self.element_class(self, partition_list=partitions,
                                   rigging_list=riggings, vacancy_numbers_list=vac_nums)
 
+def HighestWeightRiggedConfigurations(cartan_type, B):
+    """
+    Deprecated in :trac:`13872`. Use instead the attribute
+    ``module_generators`` of :class:`RiggedConfigurations`.
+
+    EXAMPLES::
+
+        sage: HighestWeightRiggedConfigurations(['A',2,1], [[1,1]])
+        doctest:...: DeprecationWarning: this class is deprecated.
+         Use RiggedConfigurations(cartan_type, B).module_generators instead
+        See http://trac.sagemath.org/13872 for details.
+        (
+        (/)
+        <BLANKLINE>
+        (/)
+        ,)
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(13872, 'this class is deprecated. Use RiggedConfigurations('
+                       'cartan_type, B).module_generators instead')
+    return RiggedConfigurations(cartan_type, B).module_generators
+

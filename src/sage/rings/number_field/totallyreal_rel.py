@@ -870,7 +870,7 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False):
 
     The following was fixed in :trac:`13101`::
 
-        sage: enumerate_totallyreal_fields_all(8, 10^6)
+        sage: enumerate_totallyreal_fields_all(8, 10^6)  # long time (about 2 s)
         []
     """
 

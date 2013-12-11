@@ -2097,10 +2097,29 @@ def branch_weyl_character(chi, R, S, rule="default"):
         sage: [D2(fw).branch(A1xA1,rule="isomorphic") for fw in D2.fundamental_weights()]
         [A1xA1(1,0), A1xA1(0,1)]
 
-    .. RUBRIC:: Branching From a Reducible Root System
+    .. RUBRIC:: Branching From a Reducible WeylCharacterRing
 
-    If you are branching from a reducible root system, the branching rule
-    to be supplied can be a *list* of rules, one *component rule* for each
+    If the Cartan Type of R is reducible, we may project a character onto
+    any of the components, or any combination of components. The rule to
+    project on the first component is specified by the string ``"proj1"``,
+    the rule to project on the second component is ``"proj2". To
+    project on the first and third components, use ``"proj13"`` and so on.
+
+    EXAMPLES::
+
+        sage: A2xG2=WeylCharacterRing("A2xG2",style="coroots")
+        sage: A2=WeylCharacterRing("A2",style="coroots")
+        sage: G2=WeylCharacterRing("G2",style="coroots")
+        sage: A2xG2(1,0,1,0).branch(A2,rule="proj1")
+        7*A2(1,0)
+        sage: A2xG2(1,0,1,0).branch(G2,rule="proj2")
+        3*G2(1,0)
+        sage: A2xA2xG2=WeylCharacterRing("A2xA2xG2",style="coroots")
+        sage: A2xA2xG2(0,1,1,1,0,1).branch(A2xG2,rule="proj13")
+        8*A2xG2(0,1,0,1)    
+
+    A more general way of specifying a branching rule from a reducible type is
+    to supply a *list* of rules, one *component rule* for each
     component type in the root system. In the following example, we branch the
     fundamental representations of `D_4` down to `A_1\times A_1\times A_1
     \times A_1` through the intermediate group `D_2\times D_2`. We use
@@ -2126,7 +2145,8 @@ def branch_weyl_character(chi, R, S, rule="default"):
     of both the target and the source are the same, and the component
     branching rule is to be the identity map. For example, we have
     projection maps from `A_3\times A_2` to `A_3` and `A_2`, and
-    the corresponding branching may be accomplished as follows.
+    the corresponding branching may be accomplished as follows. In
+    this example the same could be accomplished using ``rule="proj2"``.
 
     EXAMPLES::
 
@@ -2138,6 +2158,7 @@ def branch_weyl_character(chi, R, S, rule="default"):
         sage: A2=WeylCharacterRing("A2",style="coroots")
         sage: chi.branch(A2,rule=["omit","identity"])
         6*A2(1,0)
+
 
     .. RUBRIC:: Writing Your Own (Branching) Rules
 
@@ -2284,6 +2305,17 @@ def get_branching_rule(Rtype, Stype, rule="default"):
     sdim = Stype.root_system().ambient_space().dimension()
     if Rtype.is_compound():
         Rtypes = Rtype.component_types()
+        if type(rule) is str:
+            if rule[:4] == "proj":
+                proj = [int(j)-1 for j in rule[4:]]
+                rule = []
+                for j in range(len(Rtypes)):
+                    if j in proj:
+                        rule.append("identity")
+                    else:
+                        rule.append("omit")
+            else:
+                raise ValueError("Rule not found")
         rules = []
         stor = []
         for i in range(len(Rtypes)):

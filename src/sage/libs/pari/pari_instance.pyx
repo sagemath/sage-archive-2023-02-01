@@ -174,8 +174,6 @@ from sage.libs.pari.handle_error cimport pari_error_string, \
 # See the polgalois section of the PARI users manual.
 new_galois_format = 1
 
-cdef pari_sp mytop
-
 # real precision in decimal digits: see documentation for
 # get_real_precision() and set_real_precision().  This variable is used
 # in gp to set the precision of input quantities (e.g. sqrt(2)), and for
@@ -603,9 +601,9 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         pari_catch_sig_off()`` block.
 
         """
-        global mytop, avma
+        global top, avma
         if _signals.sig_on_count <= 1:
-            avma = mytop
+            avma = top
         pari_catch_sig_off()
 
     cdef inline gen new_gen(self, GEN x):
@@ -1554,7 +1552,7 @@ cdef int init_stack(size_t requested_size) except -1:
     function should not be called directly, use ``pari.allocatemem()``
     instead.
     """
-    global top, bot, avma, mytop
+    global top, bot, avma
 
     cdef size_t old_size = <size_t>(top) - <size_t>(bot)
 
@@ -1620,7 +1618,6 @@ cdef int init_stack(size_t requested_size) except -1:
             raise SystemError("Unable to allocate PARI stack, all subsequent PARI computations will crash")
 
         top = bot + new_size
-        mytop = top
         avma = top
 
         if failed_size:

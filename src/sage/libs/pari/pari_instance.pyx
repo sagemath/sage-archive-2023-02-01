@@ -279,8 +279,6 @@ def prec_bits_to_words(int prec_in_bits=0):
     padded_bits = (prec_in_bits + wordsize - 1) & ~(wordsize - 1)
     return int(padded_bits/wordsize + 2)
 
-pbw = prec_bits_to_words
-
 def prec_words_to_bits(int prec_in_words):
     r"""
     Convert from pari real precision expressed in words to precision
@@ -1303,7 +1301,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             0.577215664901532860606512090082...
         """
         pari_catch_sig_on()
-        return self.new_gen(mpeuler(pbw(precision)))
+        return self.new_gen(mpeuler(prec_bits_to_words(precision)))
 
     def pi(self, precision=0):
         """
@@ -1318,7 +1316,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             3.1415926535897932384626433832...
         """
         pari_catch_sig_on()
-        return self.new_gen(mppi(pbw(precision)))
+        return self.new_gen(mppi(prec_bits_to_words(precision)))
 
     def pollegendre(self, long n, v=-1):
         """

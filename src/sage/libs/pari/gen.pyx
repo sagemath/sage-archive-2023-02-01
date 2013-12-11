@@ -70,7 +70,7 @@ from pari_instance cimport PariInstance
 cdef PariInstance P, pari
 P = pari = pari_instance.pari
 
-from pari_instance import pbw, prec_bits_to_words, prec_words_to_dec
+from pari_instance import prec_bits_to_words, prec_words_to_dec
 
 cdef long prec = prec_bits_to_words(53)
 
@@ -3946,7 +3946,7 @@ cdef class gen(sage.structure.element.RingElement):
             0.849343054245252 - 1.09770986682533*I
         """
         pari_catch_sig_on()
-        return P.new_gen(gacos(x.g, pbw(precision)))
+        return P.new_gen(gacos(x.g, prec_bits_to_words(precision)))
 
     def acosh(gen x, precision=0):
         r"""
@@ -3971,7 +3971,7 @@ cdef class gen(sage.structure.element.RingElement):
             0.881373587019543 + 1.57079632679490*I
         """
         pari_catch_sig_on()
-        return P.new_gen(gach(x.g, pbw(precision)))
+        return P.new_gen(gach(x.g, prec_bits_to_words(precision)))
 
     def agm(gen x, y, precision=0):
         r"""
@@ -4019,7 +4019,7 @@ cdef class gen(sage.structure.element.RingElement):
             0.463647609000806
         """
         pari_catch_sig_on()
-        return P.new_gen(garg(x.g, pbw(precision)))
+        return P.new_gen(garg(x.g, prec_bits_to_words(precision)))
 
     def asin(gen x, precision=0):
         r"""
@@ -4041,7 +4041,7 @@ cdef class gen(sage.structure.element.RingElement):
             1.57079632679490 - 1.31695789692482*I
         """
         pari_catch_sig_on()
-        return P.new_gen(gasin(x.g, pbw(precision)))
+        return P.new_gen(gasin(x.g, prec_bits_to_words(precision)))
 
     def asinh(gen x, precision=0):
         r"""
@@ -4062,7 +4062,7 @@ cdef class gen(sage.structure.element.RingElement):
             1.52857091948100 + 0.427078586392476*I
         """
         pari_catch_sig_on()
-        return P.new_gen(gash(x.g, pbw(precision)))
+        return P.new_gen(gash(x.g, prec_bits_to_words(precision)))
 
     def atan(gen x, precision=0):
         r"""
@@ -4083,7 +4083,7 @@ cdef class gen(sage.structure.element.RingElement):
             1.10714871779409 + 0.255412811882995*I
         """
         pari_catch_sig_on()
-        return P.new_gen(gatan(x.g, pbw(precision)))
+        return P.new_gen(gatan(x.g, prec_bits_to_words(precision)))
 
     def atanh(gen x, precision=0):
         r"""
@@ -4105,7 +4105,7 @@ cdef class gen(sage.structure.element.RingElement):
             0.549306144334055 - 1.57079632679490*I
         """
         pari_catch_sig_on()
-        return P.new_gen(gath(x.g, pbw(precision)))
+        return P.new_gen(gath(x.g, prec_bits_to_words(precision)))
 
     def bernfrac(gen x):
         r"""
@@ -4358,7 +4358,7 @@ cdef class gen(sage.structure.element.RingElement):
             1 - 1/2*x^2 + 1/24*x^4 - 1/720*x^6 + 1/40320*x^8 + O(x^9)
         """
         pari_catch_sig_on()
-        return P.new_gen(gcos(x.g, pbw(precision)))
+        return P.new_gen(gcos(x.g, prec_bits_to_words(precision)))
 
     def cosh(gen x, precision=0):
         """
@@ -4380,7 +4380,7 @@ cdef class gen(sage.structure.element.RingElement):
             1 + 1/2*x^2 + 1/24*x^4 + 1/720*x^6 + O(x^8)
         """
         pari_catch_sig_on()
-        return P.new_gen(gch(x.g, pbw(precision)))
+        return P.new_gen(gch(x.g, prec_bits_to_words(precision)))
 
     def cotan(gen x, precision=0):
         """
@@ -4407,7 +4407,7 @@ cdef class gen(sage.structure.element.RingElement):
             -8.17674825 E15
         """
         pari_catch_sig_on()
-        return P.new_gen(gcotan(x.g, pbw(precision)))
+        return P.new_gen(gcotan(x.g, prec_bits_to_words(precision)))
 
     def dilog(gen x, precision=0):
         r"""
@@ -4429,7 +4429,7 @@ cdef class gen(sage.structure.element.RingElement):
             0.616850275068085 + 1.46036211675312*I
         """
         pari_catch_sig_on()
-        return P.new_gen(dilog(x.g, pbw(precision)))
+        return P.new_gen(dilog(x.g, prec_bits_to_words(precision)))
 
     def eint1(gen x, long n=0, precision=0):
         r"""
@@ -4457,9 +4457,9 @@ cdef class gen(sage.structure.element.RingElement):
         """
         pari_catch_sig_on()
         if n <= 0:
-            return P.new_gen(eint1(x.g, pbw(precision)))
+            return P.new_gen(eint1(x.g, prec_bits_to_words(precision)))
         else:
-            return P.new_gen(veceint1(x.g, stoi(n), pbw(precision)))
+            return P.new_gen(veceint1(x.g, stoi(n), prec_bits_to_words(precision)))
 
     def erfc(gen x, precision=0):
         r"""
@@ -4482,7 +4482,7 @@ cdef class gen(sage.structure.element.RingElement):
             0.157299207050285
         """
         pari_catch_sig_on()
-        return P.new_gen(gerfc(x.g, pbw(precision)))
+        return P.new_gen(gerfc(x.g, prec_bits_to_words(precision)))
 
     def eta(gen x, flag=0, precision=0):
         r"""
@@ -4511,8 +4511,8 @@ cdef class gen(sage.structure.element.RingElement):
         """
         pari_catch_sig_on()
         if flag == 1:
-            return P.new_gen(trueeta(x.g, pbw(precision)))
-        return P.new_gen(eta(x.g, pbw(precision)))
+            return P.new_gen(trueeta(x.g, prec_bits_to_words(precision)))
+        return P.new_gen(eta(x.g, prec_bits_to_words(precision)))
 
     def exp(gen self, precision=0):
         """
@@ -4533,7 +4533,7 @@ cdef class gen(sage.structure.element.RingElement):
             1 + x + 1/2*x^2 + 1/6*x^3 + 1/24*x^4 + 1/120*x^5 + 1/720*x^6 + 1/5040*x^7 + O(x^8)
         """
         pari_catch_sig_on()
-        return P.new_gen(gexp(self.g, pbw(precision)))
+        return P.new_gen(gexp(self.g, prec_bits_to_words(precision)))
 
     def gamma(gen s, precision=0):
         """
@@ -4562,7 +4562,7 @@ cdef class gen(sage.structure.element.RingElement):
             PariError: non-positive integer argument in ggamma
         """
         pari_catch_sig_on()
-        return P.new_gen(ggamma(s.g, pbw(precision)))
+        return P.new_gen(ggamma(s.g, prec_bits_to_words(precision)))
 
     def gammah(gen s, precision=0):
         """
@@ -4584,7 +4584,7 @@ cdef class gen(sage.structure.element.RingElement):
             0.575315188063452 + 0.0882106775440939*I
         """
         pari_catch_sig_on()
-        return P.new_gen(ggamd(s.g, pbw(precision)))
+        return P.new_gen(ggamd(s.g, prec_bits_to_words(precision)))
 
     def hyperu(gen a, b, x, precision=0):
         r"""
@@ -4699,7 +4699,7 @@ cdef class gen(sage.structure.element.RingElement):
             0.E-19 + 1.57079632679490*I
         """
         pari_catch_sig_on()
-        return P.new_gen(glog(x.g, pbw(precision)))
+        return P.new_gen(glog(x.g, prec_bits_to_words(precision)))
 
     def lngamma(gen x, precision=0):
         r"""
@@ -4742,7 +4742,7 @@ cdef class gen(sage.structure.element.RingElement):
             359.134205369575
         """
         pari_catch_sig_on()
-        return P.new_gen(glngamma(x.g, pbw(precision)))
+        return P.new_gen(glngamma(x.g, prec_bits_to_words(precision)))
 
     def polylog(gen x, long m, flag=0, precision=0):
         """
@@ -4770,7 +4770,7 @@ cdef class gen(sage.structure.element.RingElement):
             -0.400459056163451
         """
         pari_catch_sig_on()
-        return P.new_gen(polylog0(m, x.g, flag, pbw(precision)))
+        return P.new_gen(polylog0(m, x.g, flag, prec_bits_to_words(precision)))
 
     def psi(gen x, precision=0):
         r"""
@@ -4790,7 +4790,7 @@ cdef class gen(sage.structure.element.RingElement):
             -0.577215664901533
         """
         pari_catch_sig_on()
-        return P.new_gen(gpsi(x.g, pbw(precision)))
+        return P.new_gen(gpsi(x.g, prec_bits_to_words(precision)))
 
     def sin(gen x, precision=0):
         """
@@ -4810,7 +4810,7 @@ cdef class gen(sage.structure.element.RingElement):
             1.29845758141598 + 0.634963914784736*I
         """
         pari_catch_sig_on()
-        return P.new_gen(gsin(x.g, pbw(precision)))
+        return P.new_gen(gsin(x.g, prec_bits_to_words(precision)))
 
     def sinh(gen x, precision=0):
         """
@@ -4830,7 +4830,7 @@ cdef class gen(sage.structure.element.RingElement):
             0.634963914784736 + 1.29845758141598*I
         """
         pari_catch_sig_on()
-        return P.new_gen(gsh(x.g, pbw(precision)))
+        return P.new_gen(gsh(x.g, prec_bits_to_words(precision)))
 
     def sqr(gen x):
         """
@@ -4874,7 +4874,7 @@ cdef class gen(sage.structure.element.RingElement):
             1.41421356237310
         """
         pari_catch_sig_on()
-        return P.new_gen(gsqrt(x.g, pbw(precision)))
+        return P.new_gen(gsqrt(x.g, prec_bits_to_words(precision)))
 
     def sqrtn(gen x, n, precision=0):
         r"""
@@ -4954,7 +4954,7 @@ cdef class gen(sage.structure.element.RingElement):
             0.E-19 + 0.761594155955765*I
         """
         pari_catch_sig_on()
-        return P.new_gen(gtan(x.g, pbw(precision)))
+        return P.new_gen(gtan(x.g, prec_bits_to_words(precision)))
 
     def tanh(gen x, precision=0):
         """
@@ -4979,7 +4979,7 @@ cdef class gen(sage.structure.element.RingElement):
             1.55740772465490
         """
         pari_catch_sig_on()
-        return P.new_gen(gth(x.g, pbw(precision)))
+        return P.new_gen(gth(x.g, prec_bits_to_words(precision)))
 
     def teichmuller(gen x):
         r"""
@@ -5030,7 +5030,7 @@ cdef class gen(sage.structure.element.RingElement):
             0.548978532560341
         """
         pari_catch_sig_on()
-        return P.new_gen(thetanullk(q.g, k, pbw(precision)))
+        return P.new_gen(thetanullk(q.g, k, prec_bits_to_words(precision)))
 
     def weber(gen x, flag=0, precision=0):
         r"""
@@ -5061,7 +5061,7 @@ cdef class gen(sage.structure.element.RingElement):
             1.09050773266526
         """
         pari_catch_sig_on()
-        return P.new_gen(weber0(x.g, flag, pbw(precision)))
+        return P.new_gen(weber0(x.g, flag, prec_bits_to_words(precision)))
 
     def zeta(gen s, precision=0):
         """
@@ -5457,7 +5457,7 @@ cdef class gen(sage.structure.element.RingElement):
             [0, x, 0, 2*x, 1, 4*x, 4*x, 4, -4*x^2 + 4*x, 16*x^2 - 96*x, -64*x^3 + 576*x^2 - 864, 64*x^4 - 576*x^3 + 576*x^2 - 432, (256*x^6 - 4608*x^5 + 27648*x^4 - 55296*x^3)/(4*x^4 - 36*x^3 + 36*x^2 - 27)]
         """
         pari_catch_sig_on()
-        return P.new_gen(ellinit0(self.g, flag, pbw(precision)))
+        return P.new_gen(ellinit0(self.g, flag, prec_bits_to_words(precision)))
 
     def ellglobalred(self):
         """
@@ -5623,7 +5623,7 @@ cdef class gen(sage.structure.element.RingElement):
             [2, 1.51863300057685]
         """
         pari_catch_sig_on()
-        return self.new_gen(ellanalyticrank(self.g, <GEN>0, pbw(precision)))
+        return self.new_gen(ellanalyticrank(self.g, <GEN>0, prec_bits_to_words(precision)))
 
     def ellap(self, p):
         r"""
@@ -7306,7 +7306,7 @@ cdef class gen(sage.structure.element.RingElement):
         # If explicit precision is given, use only that
         if precision:
             pari_catch_sig_on()
-            return P.new_gen(nfinit0(self.g, flag, pbw(precision)))
+            return P.new_gen(nfinit0(self.g, flag, prec_bits_to_words(precision)))
 
         # Otherwise, start with 64 bits of precision and increase as needed:
         precision = 64

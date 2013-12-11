@@ -210,119 +210,17 @@ cdef class gen(sage.structure.element.RingElement):
         pari_catch_sig_on()
         return P.new_gen(gadd(self.g, (<gen>right).g))
 
-    def _add_unsafe(gen self, gen right):
-        """
-        VERY FAST addition of self and right on stack (and leave on stack)
-        without any type checking.
-
-        Basically, this is often about 10 times faster than just typing
-        "self + right". The drawback is that (1) if self + right would give
-        an error in PARI, it will totally crash Sage, and (2) the memory
-        used by self + right is *never* returned - it gets allocated on
-        the PARI stack and will never be freed.
-
-        EXAMPLES::
-
-            sage: pari(2)._add_unsafe(pari(3))
-            5
-        """
-        global mytop
-        cdef GEN z
-        cdef gen w
-        z = gadd(self.g, right.g)
-        w = PY_NEW(gen)
-        w.init(z,0)
-        mytop = avma
-        return w
-
     cpdef ModuleElement _sub_(self, ModuleElement right):
         pari_catch_sig_on()
         return P.new_gen(gsub(self.g, (<gen> right).g))
-
-    def _sub_unsafe(gen self, gen right):
-        """
-        VERY FAST subtraction of self and right on stack (and leave on
-        stack) without any type checking.
-
-        Basically, this is often about 10 times faster than just typing
-        "self - right". The drawback is that (1) if self - right would give
-        an error in PARI, it will totally crash Sage, and (2) the memory
-        used by self - right is *never* returned - it gets allocated on
-        the PARI stack and will never be freed.
-
-        EXAMPLES::
-
-            sage: pari(2)._sub_unsafe(pari(3))
-            -1
-        """
-        global mytop
-        cdef GEN z
-        cdef gen w
-        z = gsub(self.g, right.g)
-        w = PY_NEW(gen)
-        w.init(z, 0)
-        mytop = avma
-        return w
 
     cpdef RingElement _mul_(self, RingElement right):
         pari_catch_sig_on()
         return P.new_gen(gmul(self.g, (<gen>right).g))
 
-    def _mul_unsafe(gen self, gen right):
-        """
-        VERY FAST multiplication of self and right on stack (and leave on
-        stack) without any type checking.
-
-        Basically, this is often about 10 times faster than just typing
-        "self \* right". The drawback is that (1) if self \* right would
-        give an error in PARI, it will totally crash Sage, and (2) the
-        memory used by self \* right is *never* returned - it gets
-        allocated on the PARI stack and will never be freed.
-
-        EXAMPLES::
-
-            sage: pari(2)._mul_unsafe(pari(3))
-            6
-        """
-        global mytop
-        cdef GEN z
-        cdef gen w
-        z = gmul(self.g, right.g)
-        w = PY_NEW(gen)
-        w.init(z, 0)
-        mytop = avma
-        return w
-
     cpdef RingElement _div_(self, RingElement right):
         pari_catch_sig_on()
         return P.new_gen(gdiv(self.g, (<gen>right).g))
-
-    def _div_unsafe(gen self, gen right):
-        """
-        VERY FAST division of self and right on stack (and leave on stack)
-        without any type checking.
-
-        Basically, this is often about 10 times faster than just typing
-        "self / right". The drawback is that (1) if self / right would give
-        an error in PARI, it will totally crash Sage, and (2) the memory
-        used by self / right is *never* returned - it gets allocated on
-        the PARI stack and will never be freed.
-
-        EXAMPLES::
-
-            sage: pari(2)._div_unsafe(pari(3))
-            2/3
-        """
-        global mytop
-        cdef GEN z
-        cdef gen w
-        z = gdiv(self.g, right.g)
-        w = PY_NEW(gen)
-        w.init(z, 0)
-        mytop = avma
-        return w
-
-    #################################################################
 
     def _add_one(gen self):
         """
@@ -1273,56 +1171,6 @@ cdef class gen(sage.structure.element.RingElement):
             import sage.rings.integer
             Integer = sage.rings.integer.Integer
         return int(Integer(self))
-
-    def int_unsafe(gen self):
-        """
-        Returns int form of self, but raises an exception if int does not
-        fit into a long integer.
-
-        This is about 5 times faster than the usual int conversion.
-        """
-        return gtolong(self.g)
-
-    def intvec_unsafe(self):
-        """
-        Returns Python int list form of entries of self, but raises an
-        exception if int does not fit into a long integer. Here self must
-        be a vector.
-
-        EXAMPLES::
-
-            sage: pari('[3,4,5]').type()
-            't_VEC'
-            sage: pari('[3,4,5]').intvec_unsafe()
-            [3, 4, 5]
-            sage: type(pari('[3,4,5]').intvec_unsafe()[0])
-            <type 'int'>
-
-        TESTS::
-
-            sage: pari(3).intvec_unsafe()
-            Traceback (most recent call last):
-            ...
-            TypeError: gen must be of PARI type t_VEC
-            sage: pari('[2^150,1]').intvec_unsafe()
-            Traceback (most recent call last):
-            ...
-            PariError: overflow in t_INT-->long assignment
-        """
-        cdef int n, L
-        cdef object v
-        cdef GEN g
-        g = self.g
-        if typ(g) != t_VEC:
-            raise TypeError, "gen must be of PARI type t_VEC"
-
-        pari_catch_sig_on()
-        L = glength(g)
-        v = []
-        for n from 0 <= n < L:
-            v.append(gtolong(<GEN> (g[n+1])))
-        pari_catch_sig_off()
-        return v
 
     def python_list_small(gen self):
         """

@@ -47,6 +47,7 @@ import math, operator
 
 import sage.libs.pari.pari_instance
 from sage.libs.pari.pari_instance cimport PariInstance
+cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
 import sage.rings.integer
 import sage.rings.rational
@@ -1527,8 +1528,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF(1.5)._pari_()
             1.50000000000000
         """
-        cdef PariInstance P = sage.libs.pari.pari_instance.pari
-        return P.double_to_gen(self._value)
+        return pari.double_to_gen_c(self._value)
 
 
     ###########################################

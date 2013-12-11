@@ -1,9 +1,8 @@
-#!/bin/sh
+#!/usr/bin/env bash
+
+rm -rf "$SAGE_LOCAL"/lib/python*/site-packages/setuptools*
+rm -rf "$SAGE_LOCAL"/lib/python*/site-packages/distribute*
 
 cd src
 
-patch -p0 < ../patches/setuptools-noexecs.patch
-patch -p0 < ../patches/distribute-0.6.16-fix_deprecation_warnings.patch
-
 python setup.py install
-

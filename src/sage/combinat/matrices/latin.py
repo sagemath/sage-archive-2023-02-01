@@ -1253,8 +1253,8 @@ def tau123(T1, T2):
 
 def isotopism(p):
     """
-    Returns a Permutation object that represents an isotopism (for rows, columns
-    or symbols of a partial latin square).
+    Return a Permutation object that represents an isotopism (for rows,
+    columns or symbols of a partial latin square).
 
     Technically, all this function does is take as input a
     representation of a permutation of `0,...,n-1` and return a
@@ -1267,17 +1267,17 @@ def isotopism(p):
 
     According to the type of input (see examples below) :
 
-    - an integer `n` -- the functions returns the identity on `1,...,n`.
+    - an integer `n` -- the function returns the identity on `1,...,n`.
 
     - a string representing a permutation in disjoint cycles notation,
-      i.e. `(0,1,2)(3,4,5)` -- the corresponding permutation is returned,
+      e.g. `(0,1,2)(3,4,5)` -- the corresponding permutation is returned,
       shifted by 1 to act on `1,...,n`.
 
     - list/tuple of tuples -- assumes disjoint cycle notation, see previous
       entry.
 
-    - a list of integers -- the function adds 1 to each member of the list, and
-      returns the corresponding permutation.
+    - a list of integers -- the function adds `1` to each member of the
+      list, and returns the corresponding permutation.
 
     - a :class:`PermutationGroupElement` ``p`` -- returns a permutation
       describing ``p`` **without** any shift.

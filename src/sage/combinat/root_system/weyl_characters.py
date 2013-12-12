@@ -2284,7 +2284,7 @@ class BranchingRule(SageObject):
             sage: E6=WeylCharacterRing("E6",style="coroots")
             sage: A5=WeylCharacterRing("A5",style="coroots")
             sage: br = branching_rule("E6","A5xA1",rule="extended")*branching_rule("A5xA1","A5",rule="proj1"); br
-            composite branching rule E6 => (extended) A5xA1 => (compound) A5
+            composite branching rule E6 => (extended) A5xA1 => (proj1) A5
             sage: E6(1,0,0,0,0,0).branch(A5,rule=br)
             A5(0,0,0,1,0) + 2*A5(1,0,0,0,0)
         """
@@ -2328,6 +2328,7 @@ def get_branching_rule(Rtype, Stype, rule="default"):
         Rtypes = Rtype.component_types()
         if type(rule) is str:
             if rule[:4] == "proj":
+                name = rule
                 proj = [int(j)-1 for j in rule[4:]]
                 rule = []
                 for j in range(len(Rtypes)):
@@ -2337,6 +2338,8 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                         rule.append("omit")
             else:
                 raise ValueError("Rule not found")
+        else:
+            name = rule.__repr__()
         rules = []
         stor = []
         for i in range(len(Rtypes)):
@@ -2347,6 +2350,7 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                 else:
                     rules.append(l)
                 stor.append(i)
+        print rules
         Stypes = [CartanType(l._S) for l in rules]
         ntypes = len(Stypes)
         shifts = Rtype._shifts
@@ -2355,7 +2359,7 @@ def get_branching_rule(Rtype, Stype, rule="default"):
             for i in range(ntypes):
                 yl.append(rules[i](x[shifts[stor[i]]:shifts[stor[i]+1]]))
             return flatten(yl)
-        return BranchingRule(Rtype, Stype, br, "compound")
+        return BranchingRule(Rtype, Stype, br, name)
     if Stype.is_compound():
         stypes = Stype.component_types()
     if rule == "default":
@@ -2423,7 +2427,7 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                 if r == 7 and Stype == CartanType("E6"):
                     return BranchingRule(Rtype, Stype, lambda x : [x[0], x[1], x[2], x[3], x[4], (x[5]+x[6]-x[7])/3, (2*x[5]+5*x[6]+x[7])/6, (-2*x[5]+x[6]+5*x[7])/6], "levi")
                 elif r == 8 and Stype == CartanType("E7"):
-                    return BranchingRule(Rtype, Stype, [x[0],x[1],x[2],x[3],x[4],x[5],(x[6]-x[7])/2,(x[7]-x[6])/2], "levi")
+                    return BranchingRule(Rtype, Stype, lambda x : [x[0],x[1],x[2],x[3],x[4],x[5],(x[6]-x[7])/2,(x[7]-x[6])/2], "levi")
                 elif Stype[0] == 'A':
                     if r == 6:
                         raise NotImplementedError('A5 Levi is not maximal. Branch to A5xA1 (rule="extended").')

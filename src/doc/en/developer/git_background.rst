@@ -53,8 +53,8 @@ formatted output of the diff) to ``git wdiff``. You can do this with::
     [user@localhost ~] git config --global alias.br branch
     [user@localhost ~] git config --global alias.wdiff "diff --color-words"
 
-will create an ``alias`` section in your ``.gitconfig`` file with contents
-like this::
+The above commands will create an ``alias`` section in your ``.gitconfig``
+file with contents like this::
 
     [alias]
         ci = commit -a
@@ -124,10 +124,10 @@ Tutorials and summaries
 * `Github help <http://help.github.com>`_ has an excellent series of
   how-to guides.
 
-* `Learn.github <http://learn.github.com>`_ has an excellent series
-  of tutorials.
+* The `pro git book <http://git-scm.com/book>`_ is a good in-depth book on git.
 
-* The `pro git book <http://progit.org/>`_ is a good in-depth book on git.
+* `Github Training <http://training.github.com>`_ has an excellent series
+  of tutorials as well as videos and screencasts.
 
 * A `git cheat sheet <http://github.com/guides/git-cheat-sheet>`_ is a
   page giving summaries of common commands.
@@ -137,13 +137,8 @@ Tutorials and summaries
 
 * The `git tutorial <http://schacon.github.com/git/gittutorial.html>`_.
 
-* The `git community book <http://book.git-scm.com/>`_.
-
 * `Git ready <http://www.gitready.com/>`_ is a nice series of
   tutorials.
-
-* `Git casts <http://www.gitcasts.com/>`_ has video and screencasts
-  for git.
 
 * `Git magic
   <http://www-cs-students.stanford.edu/~blynn/gitmagic/index.html>`_
@@ -176,7 +171,7 @@ There are many ways of working with git; here are some posts on the
 rules of thumb that other projects have come up with:
 
 * Linus Torvalds on `git management
-  <http://kerneltrap.org/Linux/Git_Management>`_
+  <https://web.archive.org/web/20120511084711/http://kerneltrap.org/Linux/Git_Management>`_
 
 * Linus Torvalds on `linux git workflow
   <http://www.mail-archive.com/dri-devel@lists.sourceforge.net/msg39091.html>`_. Summary:

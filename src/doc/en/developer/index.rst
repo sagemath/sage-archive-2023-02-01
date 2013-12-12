@@ -42,8 +42,8 @@ Git and Sage Development
 .. toctree::
    :maxdepth: 3
 
-   git_background
    manual_git
+   git_background
    advanced_git
    workflows
 

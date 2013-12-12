@@ -1,8 +1,8 @@
 .. _chapter-git-background:
 
-==============
-Git Background
-==============
+===================
+Tips and References
+===================
 
 This chapter contains additional material about the git revision
 control system. It is not necessary if you stick with the Sage
@@ -16,8 +16,8 @@ steps needed for Sage development.
 
 .. _section-git-configuration:
 
-Configuration
-=============
+Configuration Tips
+==================
 
 Your personal git configurations are saved in the ``~/.gitconfig``
 file in your home directory. Here is an example::
@@ -165,8 +165,8 @@ Tutorials and summaries
   <http://subversion.tigris.org/>`_
 
 
-Advanced git workflow
-=====================
+Git best practices
+==================
 
 There are many ways of working with git; here are some posts on the
 rules of thumb that other projects have come up with:

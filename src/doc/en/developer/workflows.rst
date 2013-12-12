@@ -6,7 +6,7 @@ Distributed Development
 
 Git is a tool to exchange commits (organized into branches) with other
 developers. As a distributed revision control system, it does not have
-the notion of a central server; The Sage trac server is just one of
+the notion of a central server. The Sage trac server is just one of
 many possible remote repositories from your point of view. This lets
 you use and experiment with different ways to interact with other
 developers. In this chapter, we describe some common ways to develop
@@ -97,7 +97,7 @@ branch name. Now all ticket authors push to the same remote branch.
 
 5. Bob uploads his changes to the joint remote repository::
 
-       [bob@localhost sage]$ git push local_branch:public/alice/description
+       [bob@localhost sage]$ git push trac local_branch:public/alice/description
 
 6. Alice :ref:`retrieves Bob's updates <section-git-pull>`, makes
    more changes, commits, and pushes them to trac.
@@ -158,7 +158,7 @@ create a new branch::
      * [new branch]      my_branch -> my_branch
 
 Because of the ``--track`` option, the ``git pull`` command will
-default to downloading your coauthor 's changes from your github
+default to downloading your coauthor's changes from your github
 branch. Alternatively, you can create a new branch on your fork's
 GitHub webpage.
 

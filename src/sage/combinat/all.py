@@ -123,6 +123,7 @@ from sloane_functions import sloane
 from root_system.all import *
 from sf.all import *
 from ncsf_qsym.all import *
+from ncsym.all import *
 from matrices.all import *
 # Posets
 from posets.all import *
@@ -158,3 +159,10 @@ from knutson_tao_puzzles import KnutsonTaoPuzzleSolver
 
 # Gelfand-Tsetlin patterns
 from gelfand_tsetlin_patterns import GelfandTsetlinPattern, GelfandTsetlinPatterns
+
+# Finite State Machines (Automaton, Transducer)
+sage.misc.lazy_import.lazy_import('sage.combinat.finite_state_machine',
+                                  ['Automaton', 'Transducer',
+                                   'FiniteStateMachine'])
+# Binary Recurrence Sequences
+from binary_recurrence_sequences import BinaryRecurrenceSequence

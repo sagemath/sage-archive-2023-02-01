@@ -18,7 +18,8 @@ The basic command syntax is as follows::
 """
 from constructor import random_matrix, Matrix
 from sage.rings.all import ZZ, QQ, GF
-from sage.misc.misc import alarm, cputime
+from sage.misc.misc import alarm, cancel_alarm, cputime
+from sage.ext.c_lib import AlarmInterrupt
 
 verbose = False
 
@@ -63,9 +64,9 @@ def report(F, title, systems = ['sage', 'magma'], **kwds):
             alarm(timeout)
             try:
                 t = f(system=s, **kwds)
-            except KeyboardInterrupt:
+            except AlarmInterrupt:
                 t = -timeout
-            alarm(0)
+            cancel_alarm()
             w.append(float(t))
         if len(w) > 1:
             if w[1] == 0:

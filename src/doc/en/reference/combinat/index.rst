@@ -71,6 +71,7 @@ Combinatorics
    tableaux
    symmetric_functions
    ncsf_qsym
+   ncsym
    root_systems
 
    sage/combinat/kazhdan_lusztig

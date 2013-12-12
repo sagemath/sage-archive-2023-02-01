@@ -123,6 +123,7 @@ from sloane_functions import sloane
 from root_system.all import *
 from sf.all import *
 from ncsf_qsym.all import *
+from ncsym.all import *
 from matrices.all import *
 # Posets
 from posets.all import *

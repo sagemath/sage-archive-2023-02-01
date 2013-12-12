@@ -62,8 +62,8 @@ contains various guidelines on using the trac server.
 Generating and Uploading your SSH Keys
 --------------------------------------
 
-Git will use SSH public key cryptography to decide if and where you are allowed
-to upload code to. This is not required if you just want to report a bug or
+The git installation on the development server uses SSH keys to decide if and
+where you are allowed to upload code. No SSH key is required to report a bug or
 comment on a ticket, but as soon as you want to contribute code yourself you
 need to provide trac with the public half of your own personal key. In recent
 versions of Sage, you can use Sage to generate an upload an SSH key
@@ -86,11 +86,7 @@ described in the following two sections.
 Manually Generating your SSH Keys
 ---------------------------------
 
-Git will use SSH public key cryptography to decide if and where you
-are allowed to upload code to. This is not required if you just want
-to report a bug or comment on a ticket, but as soon as you want to
-contribute code yourself you need to provide trac with the public half
-of your own personal key. If you don't have a private key yet, you can
+If you don't have a private key yet, you can
 create it with the ``ssh-keygen`` tool::
 
     [user@localhost ~]$ ssh-keygen

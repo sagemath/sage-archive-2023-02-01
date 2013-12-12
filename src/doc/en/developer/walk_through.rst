@@ -263,8 +263,9 @@ no longer listed in the output of ``sage -dev diff``.
     ticket B and ticket B merged ticket A, there is no way to
     distinguish commits that were originally made in ticket A or in
     ticket B. Effectively, merging both ways combines the branches and
-    makes individual review impossible. Effectively, you should never
-    merge unless one of the following holds:
+    makes individual review impossible.
+
+    In practice, you should only merge when one of the following holds:
 
     * Either two tickets conflict, then you have to merge one into the
       other in order to resolve the merge conflict.
@@ -299,7 +300,7 @@ command is::
 
     [user@localhost]$ sage -dev diff
 
-which lists all souce code changes that are part of the current
+which lists all source code changes that are part of the current
 branch. That is, it lists the changes from the current master to the
 current branch. If the ticket were to be positively reviewed, this is
 the code that will be added to Sage. Note that there is no way to

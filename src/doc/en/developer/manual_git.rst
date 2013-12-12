@@ -4,8 +4,8 @@
 Git the Hard Way
 ================
 
-For beginners to Sage development we recommend using the Sage
-development scripts as explained in :ref:`chapter-walk-through`, which
+For beginners to Sage development with no git experience, we recommend using
+the Sage development scripts as explained in :ref:`chapter-walk-through`, which
 simplify using git and the trac server. However, you can use git
 directly to work on Sage if you want to take off the training
 wheels. This chapter will tell you how to do so assuming some
@@ -14,7 +14,7 @@ basic familiarity with git.
 We assume that you have a copy of the Sage git repository, for example
 by running::
 
-    [user@localhost ~]$ git clone git://github.com/sagemath/sage.git -b master
+    [user@localhost ~]$ git clone git://github.com/sagemath/sage.git
     [user@localhost ~]$ cd sage
     [user@localhost sage]$ make
 
@@ -146,7 +146,7 @@ set up the remote to use the git protocol without authentication::
 
     [user@localhost sage]$ git remote add trac git://trac.sagemath.org/sage.git -t master
 
-Setting up the remote repository this way allows you to do perform all
+Setting up the remote repository this way allows you to perform all
 steps covered this manual (except for :ref:`section-git-push`) without
 having a trac account. To switch between the two setups, just remove
 the current remote repository with ``git remote remove trac`` and then
@@ -206,8 +206,8 @@ Pushing Your Changes to a Ticket
 To add your local branch to a trac ticket, you should first decide on
 a name on the Sage trac repository. In order to avoid name clashes,
 you have push permissions to branches of the form ``u/user/*`` where
-``user`` is your trac username and ``*`` is a wildcard, that is, any
-valid git branch name. By default, you do *not* have push permissions
+``user`` is your trac username and ``*`` is any valid git branch name.
+By default, you do *not* have push permissions
 to other user's branches or the Sage master branch. In the following,
 we will be using ``u/user/description`` as the branch name, where it
 is understood that you replaced
@@ -230,12 +230,10 @@ or use::
 if your branch already has an upstream branch.  The ``HEAD`` means
 that you are pushing the most recent commit (and, by extension, all of
 its parent commits) of the current local branch to the remote
-branch. The remaining arguments are
+branch.
 
-* ``user`` is your trac username,
-* ``description`` the description of your branch.
-
-The ``Branch`` field is color coded: red means there is an issue,
+The ``Branch`` field on the trac ticket page is color coded:
+red means there is an issue,
 green means it will merge cleanly into ``master``. If it is red, the
 tooltip will tell you what is wrong.  If it is green, then it will
 link to a diff of the changes against ``master``.
@@ -464,21 +462,21 @@ own local branch::
     CONFLICT (content): Merge conflict in fibonacci.py
     Automatic merge failed; fix conflicts and then commit the result.
 
+.. skip    # doctester confuses >>> with input marker
+
 The file now looks like this::
 
-.. skip::    # doctester confuses >>> with input marker
-
-|    def fibonacci(i):
-|        """
-|        Return the `i`-th Fibonacci number
-|        """
-|    <<<<<<< HEAD
-|        if i > 1:
-|            return fibonacci(i-1) * fibonacci(i-2)
-|        return i
-|    =======
-|        return fibonacci(i-1) + fibonacci(i-2)
-|    >>>>>>> 41675dfaedbfb89dcff0a47e520be4aa2b6c5d1b
+    def fibonacci(i):
+        """
+        Return the `i`-th Fibonacci number
+        """
+    <<<<<<< HEAD
+        if i > 1:
+            return fibonacci(i-1) * fibonacci(i-2)
+        return i
+    =======
+        return fibonacci(i-1) + fibonacci(i-2)
+    >>>>>>> 41675dfaedbfb89dcff0a47e520be4aa2b6c5d1b
 
 The conflict is shown between the conflict markers ``<<<<<<<`` and
 ``>>>>>>>``. The first half (up to the ``=======`` marker) is Alice's

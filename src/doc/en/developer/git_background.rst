@@ -72,6 +72,7 @@ To set the editor to use for editing commit messages, you can use::
 
     [user@localhost ~] git config --global core.editor vim
 
+or set the `EDITOR` environment variable.
 
 Merging
 -------

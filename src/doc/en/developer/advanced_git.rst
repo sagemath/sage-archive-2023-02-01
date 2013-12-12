@@ -74,12 +74,12 @@ Reset and Recovery
 Git makes it very hard to truly mess up. Here is a short way to get
 back onto your feet, no matter what. First, if you just want to go
 back to a working Sage installation you can always abandon your
-working branch by switching to your local copy of the ``build_system``
+working branch by switching to your local copy of the ``master``
 branch::
 
-    [user@localhost sage]$ git checkout build_system
+    [user@localhost sage]$ git checkout master
 
-As long as you did not make any changes to the ``build_system`` branch
+As long as you did not make any changes to the ``master`` branch
 directly, this will give you back a working Sage.
 
 If you want to keep your branch but go back to a previous commit you
@@ -96,6 +96,10 @@ which is some 40-digit hexadecimal number (the SHA1 hash). Then use
         Commit message
     ...
     [user@localhost sage]$ git reset --hard eafae
+
+.. warning::
+
+    Any *uncommitted* changes will be lost!
 
 You only need to type the first couple of hex digits, git will
 complain if this does not uniquely specify a commit. Also, there is
@@ -268,8 +272,7 @@ commits and instuctions for how to modify them::
     # Note that empty commits are commented out
    
 To only use commit B, we delete the first and third line. Then save
-and edit your favorite editor, and your branch now consists only of
-the B commit.
+and quit your editor, and your branch now consists only of the B commit.
 
 You still have to delete the B commit from the first branch, so you
 would go back (``git checkout first_branch``) and then run the same

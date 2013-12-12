@@ -176,7 +176,7 @@ Then in the file ``SAGE_ROOT/src/sage/all.py``, add a line ::
     from sage.measure_theory.all import *
 
 
-An example is worth a thousand words
+An Example Is Worth a Thousand Words
 ====================================
 
 For all of the conventions discussed here, you can find many examples
@@ -190,7 +190,7 @@ search, but restricted to function definitions, while
 docstrings for more information and more options.
 
 
-Headings of Sage library code files
+Headings of Sage Library Code Files
 ===================================
 
 The top of each Sage code file should follow this format::
@@ -235,11 +235,11 @@ license).
 
 .. _section-docstrings:
 
-Documentation strings
+Documentation Strings
 =====================
 
 
-Docstring markup with ReST and Sphinx
+Docstring Markup With ReST and Sphinx
 -------------------------------------
 
 **Every** function must have a docstring that includes the following
@@ -547,7 +547,7 @@ one already. That is, you can do the following::
 
 .. _section-latex-typeset:
 
-LaTeX typesetting
+LaTeX Typesetting
 -----------------
 
 
@@ -638,7 +638,7 @@ See the file ``$SAGE_ROOT/src/sage/misc/latex_macros.py`` for a
 full list and for details about how to add more macros.
 
 
-Writing testable examples
+Writing Testable Examples
 -------------------------
 
 The code in the examples should pass automatic testing. This means
@@ -698,7 +698,7 @@ When writing documentation, keep the following points in mind:
 
 .. _section-further_conventions:
 
-Special markup to influence tests
+Special Markup to Influence Tests
 ---------------------------------
 
 There are a number of magic comments that you can put into the example
@@ -870,7 +870,7 @@ further development on Sage.
 
 .. _chapter-testing:
 
-Running automated tests
+Running Automated Tests
 =======================
 
 This section describes Sage's automated testing of test files of the
@@ -885,7 +885,7 @@ doctesting modules in the Sage library.
 
 .. _section-testpython:
 
-Testing .py, .pyx and .sage files
+Testing .py, .pyx and .sage Files
 ---------------------------------
 
 Run ``sage -t <filename.py>`` to test all code examples in
@@ -908,7 +908,7 @@ write for the documentation and have them work.
 For more information, see :ref:`chapter-doctesting`.
 
 
-Testing ReST documentation
+Testing ReST Documentation
 --------------------------
 
 Run ``sage -t <filename.rst>`` to test the examples in verbatim
@@ -988,7 +988,7 @@ see :func:`sage.structure.sage_object.register_unpickle_override`
 
 .. _chapter-randomtesting:
 
-Randomized testing
+Randomized Testing
 ==================
 
 In addition to all the examples in your docstrings, which serve as

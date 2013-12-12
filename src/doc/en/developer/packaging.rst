@@ -308,7 +308,7 @@ package_name``. If your package contains any
     [user@localhost]$ SAGE_CHECK=yes sage -f package_name
 
 
-License information
+License Information
 ===================
 
 If you are patching a standard Sage spkg, then you should make sure

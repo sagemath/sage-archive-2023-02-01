@@ -175,7 +175,7 @@ issuing some basic gitolite commands, for example::
         writable
 
 
-Reporting bugs
+Reporting Bugs
 ==============
 
 If you think you have found a bug in Sage, you should first search
@@ -237,7 +237,7 @@ following information:
 Thank you in advance for reporting bugs to improve Sage in the future!
 
 
-Guidelines for opening tickets
+Guidelines for Opening Tickets
 ==============================
 
 In addition to bug reports, you should also open a ticket if you
@@ -359,7 +359,7 @@ field. Stopgap tickets should be marked as blockers.
     Sage crashes, this is not an issue.
 
 
-Working on tickets
+Working on Tickets
 ==================
 
 If you manage to fix a bug or enhance Sage you are our hero. See
@@ -394,7 +394,7 @@ issues:
 
 .. _section-review-patches:
 
-Reviewing patches
+Reviewing Patches
 =================
 
 All code that goes into Sage is peer-reviewed, to ensure that the
@@ -477,7 +477,7 @@ tickets on the trac server to see how things are done.
 
 
 
-Closing tickets
+Closing Tickets
 ===============
 
 Only the Sage release manager will close tickets. Most likely, this is
@@ -493,7 +493,7 @@ re-opening a ticket that is already closed. Instead, open a new ticket
 and provide a link in the description to the old ticket.
 
 
-Reasons to invalidate tickets
+Reasons to Invalidate Tickets
 =============================
 
 **One Issue Per Ticket**: A ticket must cover only one issue

@@ -57,7 +57,7 @@ You should implement the ``_latex_`` and ``_repr_`` method for every
 object. The other methods depend on the nature of the object.
 
 
-LaTeX representation
+LaTeX Representation
 --------------------
 
 Every object ``x`` in Sage should support the command ``latex(x)``, so
@@ -109,7 +109,7 @@ representing the object ``a``. Calling ``view(a)`` will display the
 typeset version of this.
 
 
-Print representation
+Print Representation
 --------------------
 
 The standard Python printing method is ``__repr__(self)``. In Sage,
@@ -143,7 +143,7 @@ Here is an example of the ``_latex_`` and ``_repr_`` functions for the
             return "\\pi"
 
 
-Matrix or vector from object
+Matrix or Vector from Object
 ----------------------------
 
 Provide a ``_matrix_`` method for an object that can be coerced to a
@@ -566,7 +566,7 @@ this::
     1
 
 
-Using optional packages
+Using Optional Packages
 =======================
 
 If a function requires an optional package, that function should fail

@@ -336,7 +336,7 @@ exceptions raised by subroutines inside the ``try``::
         return something
 
 
-Other signals
+Other Signals
 -------------
 
 Apart from handling interrupts, ``sig_on()`` provides more general
@@ -396,7 +396,7 @@ raised.
 
 .. _advanced-sig:
 
-Advanced functions
+Advanced Functions
 ------------------
 
 There are several more specialized functions for dealing with
@@ -452,7 +452,7 @@ to ``sig_str(s)``.
     See the file :file:`SAGE_ROOT/src/sage/tests/interrupt.pyx`
     for more examples of how to use the various ``sig_*()`` functions.
 
-Testing interrupts
+Testing Interrupts
 ------------------
 
 .. highlight:: python

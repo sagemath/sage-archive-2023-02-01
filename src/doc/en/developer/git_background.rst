@@ -119,7 +119,7 @@ Using this ``lg`` alias gives you the changelog with a colored ascii graph::
 
 
 
-Tutorials and summaries
+Tutorials and Summaries
 =======================
 
 * `Github help <http://help.github.com>`_ has an excellent series of
@@ -165,7 +165,7 @@ Tutorials and summaries
   <http://subversion.tigris.org/>`_
 
 
-Git best practices
+Git Best Practices
 ==================
 
 There are many ways of working with git; here are some posts on the
@@ -181,7 +181,7 @@ rules of thumb that other projects have come up with:
   branches where you are doing active development.
 
 
-Manual pages online
+Manual Pages Online
 ===================
 
 You can get these on your own machine with (e.g) ``git help push`` or

@@ -1,5 +1,5 @@
 ================
- Making a patch
+ Making a Patch
 ================
 
 You've discovered a bug or something else you want to change
@@ -20,7 +20,7 @@ about "pull requests" at :ref:`edit-flow`.
 
 .. _making-patches:
 
-Making patches
+Making Patches
 ==============
 
 Overview
@@ -52,7 +52,7 @@ mailing list`_ or better, open an issue at the `Sage Notebook github`_
 site (see :ref:`github-development`) and cut and paste your patch in a
 comment there.  In either case we will thank you warmly.
 
-In detail
+In Detail
 ---------
 
 #. Tell git who you are so it can label the commits you've
@@ -116,7 +116,7 @@ code, just return to the ``master`` branch::
 
    git checkout master
 
-Moving from patching to development
+Moving from Patching to Development
 ===================================
 
 If you find you have done some patches, and you have one or

@@ -1,7 +1,7 @@
 .. _github-development:
 
 =====================
- Git for development
+ Git for Development
 =====================
 
 Contents:

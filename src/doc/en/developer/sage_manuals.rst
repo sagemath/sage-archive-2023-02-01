@@ -229,7 +229,7 @@ the following line::
 
 .. _section-building-manuals:
 
-Building the manuals
+Building the Manuals
 ====================
 
 All of the Sage manuals are built using the ``sage --docbuild``
@@ -256,7 +256,7 @@ help commands, while::
 (or ``-H``) shows a somewhat more comprehensive help message.
 
 
-Document names
+Document Names
 --------------
 
 The ``<document-name>`` has the form::

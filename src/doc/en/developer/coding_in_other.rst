@@ -20,7 +20,7 @@ In this chapter, we discuss interfaces between Sage and :ref:`PARI
 
 .. _section-pari-library:
 
-The PARI C library interface
+The PARI C Library Interface
 ============================
 
 Here is a step-by-step guide to adding new PARI functions to Sage. We

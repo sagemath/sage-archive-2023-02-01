@@ -641,7 +641,7 @@ and then doctest that::
         cpu time: 0.0 seconds
         cumulative wall time: 0.0 seconds
 
-Doctesting from within Sage
+Doctesting from Within Sage
 ===========================
 
 You can run doctests from within Sage, which can be useful since you
@@ -666,7 +666,7 @@ function in the global namespace, passing it either a string or a module::
 Optional Arguments
 ==================
 
-Run long tests
+Run Long Tests
 --------------
 
 Use the ``--long`` flag to run doctests that have been marked with
@@ -771,7 +771,7 @@ You can also pass in an explicit amount of time::
         cpu time: 24.8 seconds
         cumulative wall time: 26.3 seconds
 
-Run optional tests
+Run Optional Tests
 ------------------
 
 You can run tests that require optional packages by using the
@@ -836,7 +836,7 @@ To run all tests, regardless of whether they are marked optional, pass ``all`` a
         cpu time: 4.7 seconds
         cumulative wall time: 11.2 seconds
 
-Running tests in parallel
+Running Tests in Parallel
 -------------------------
 
 If you're testing many files, you can get big speedups by using more
@@ -871,7 +871,7 @@ you would like to use (by default Sage just uses 1)::
         cpu time: 4.2 seconds
         cumulative wall time: 21.5 seconds
 
-Doctesting all of Sage
+Doctesting All of Sage
 ----------------------
 
 To doctest the whole Sage library use the ``--all`` flag (``-a`` for
@@ -1005,7 +1005,7 @@ test by using the ``--failed`` flag (``-f`` for short)::
     No files to doctest
 
 
-Miscellaneous options
+Miscellaneous Options
 ---------------------
 
 There are various other options that change the behavior of Sage's

@@ -45,7 +45,7 @@ http://www.sagemath.org/download-packages.html lists spkg's available
 for download.
 
 
-Naming your spkg
+Naming Your SPKG
 ----------------
 
 Each Sage spkg has a name of the following form::
@@ -74,7 +74,7 @@ put your files in that directory -- the next section describes the
 directory structure.
 
 
-Directory structure
+Directory Structure
 -------------------
 
 Put your files in a directory with a name like ``mypackage-0.1``, as
@@ -146,7 +146,7 @@ section in ``SPKG.txt``!
 
 .. _section-old-spkg-install:
 
-The file spkg-install
+The File spkg-install
 ---------------------
 
 The script ``spkg-install`` is run during installation of the Sage
@@ -272,7 +272,7 @@ the actual output intended for the user.
 
 .. _section-old-spkg-SPKG-txt:
 
-The file SPKG.txt
+The File SPKG.txt
 -----------------
 
 The old-style ``SPKG.txt`` file is the same as described in
@@ -334,7 +334,7 @@ automatically install it by typing ``sage -i mypackage-version.spkg``.
 
 .. _section-old-spkg-avoiding-troubles:
 
-Avoiding troubles
+Avoiding Troubles
 =================
 
 This section contains some guidelines on what an spkg must never do to
@@ -352,7 +352,7 @@ self-contained as possible.
 
 .. _section-old-spkg-patching-overview:
 
-Overview of patching SPKGs
+Overview of Patching SPKGs
 ==========================
 
 Make sure you are familiar with the structure and conventions relating

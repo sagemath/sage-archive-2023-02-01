@@ -6,7 +6,11 @@ Coding in Cython
 
 This chapter discusses Cython, which is a compiled language based on
 Python.  The major advantage it has over Python is that code can be
-much faster (sometimes orders of magnitude).
+much faster (sometimes orders of magnitude) and can directly call
+C and C++ code.  As Cython is essentially a superset of the Python
+language, one often doesn’t make a distinction between Cython and 
+Python code in Sage (e.g. one talks of the “Sage Python Library”
+and “Python Coding Conventions”).
 
 Python is an interpreted language and has no declared data types for
 variables. These features make it easy to write and debug, but Python
@@ -67,11 +71,6 @@ There are several ways to create and build Cython code in Sage.
       ``SAGE_ROOT/src/module_list.py``. See the
       ``distutils.extension.Extension`` class for more information on
       creating a new Cython extension.
-
-   #. Then, if you created a new directory for your ``.pyx`` file, add
-      the directory name to the ``packages`` list in the file
-      ``SAGE_ROOT/src/sage/setup.py``.  (See also the section on
-      "Creating a new directory" in :ref:`chapter-python`.)
 
    #. Run ``sage -b`` to rebuild Sage.
 

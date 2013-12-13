@@ -6,7 +6,7 @@
 set -e
 
 # Update sources
-local/bin/sage-update
+local/bin/sage-update "$@"
 
 # Run top-level make with SAGE_UPGRADING set
 export SAGE_UPGRADING=yes

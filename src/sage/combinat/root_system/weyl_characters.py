@@ -847,7 +847,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             0   1   3   4   5   6   7
             E7~
         """
-        return DynkinDiagram([self.cartan_type()[0],self.cartan_type()[1],1])
+        return self.cartan_type().affine().dynkin_diagram()
 
     def rank(self):
         """
@@ -2296,6 +2296,82 @@ class BranchingRule(SageObject):
         else:
             raise ValueError, "unable to define composite: source and target don't agree"
 
+    def describe(self, verbose=False, debug=False):
+        """
+        Describes how extended roots restrict under self.
+
+        EXAMPLES::
+
+            sage: branching_rule("G2","A2","extended").describe()
+            root restrictions:
+            0 => 2
+            2 => 1
+            <BLANKLINE>
+              3
+            O=<=O---O
+            1   2   0
+            G2~
+            <BLANKLINE>
+            O---O
+            1   2
+            A2
+
+        In this example, `0` is the affine root, that is, the negative
+        of the highest root, for `"G2"`. If `i => j` is printed, this
+        means that the i-th simple (or affine) root of the ambient
+        group restricts to the j-th simple root of the subgroup.
+        For reference the Dynkin diagrams are also printed. The
+        extended Dynkin diagram of the ambient group is printed if
+        the affine root restricts to a simple root. More information
+        is printed if the parameter `verbose` is true.
+        """
+        Rspace = RootSystem(self._R).ambient_space()
+        Sspace = RootSystem(self._S).ambient_space()
+        affine = False
+        print "root restrictions:"
+        for j in range(self._R[1]+1):
+            if j == 0:
+                r = -Rspace.highest_root()
+            else:
+                r = Rspace.simple_roots()[j]
+            resr = Sspace(self(r))
+            if debug:
+                print "root %d: r = %s, b(r)=%s"%(j, r, resr)
+            done = False
+            if resr == Sspace.zero():
+                done = True
+                if verbose:
+                    if j == 0:
+                        affine = True
+                    print "%s => (zero)"
+            else:
+                for s in Sspace.roots():
+                    if s == resr:
+                        for i in range(1,self._S[1]+1):
+                            if s == Sspace.simple_root(i):
+                                print "%s => %s"%(j,i)
+                                done = True
+                                if j == 0:
+                                    affine = True
+                                break
+                        if not done:
+                            done = True
+                            if verbose:
+                                if j == 0:
+                                    affine = True
+                                print "%s => root %s"%(j,s)
+            if not done:
+                done = True
+                if verbose:
+                    if j == 0:
+                        affine = True
+                    print "%s => weight %s"%(j,resr)
+        if affine:
+            print "\n", self._R.affine().dynkin_diagram()
+        else:
+            print "\n", self._R.dynkin_diagram()
+        print "\n", self._S.dynkin_diagram()
+
 def get_branching_rule(Rtype, Stype, rule="default"):
     """
     Creates a branching rule.
@@ -2350,7 +2426,6 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                 else:
                     rules.append(l)
                 stor.append(i)
-        print rules
         Stypes = [CartanType(l._S) for l in rules]
         ntypes = len(Stypes)
         shifts = Rtype._shifts
@@ -2621,8 +2696,7 @@ def get_branching_rule(Rtype, Stype, rule="default"):
             elif Rtype[0] == 'G':
                 if stypes == [CartanType("A1"), CartanType("A1")]:
                     return BranchingRule(Rtype, Stype, lambda x : [(x[1]-x[2])/2,-(x[1]-x[2])/2, x[0]/2, -x[0]/2], "extended")
-            else:
-                raise ValueError("Rule not found")
+            raise ValueError("Rule not found")
         else: # irreducible Stype
             if Rtype[0] == 'B' and Stype[0] == 'D':
                 return BranchingRule(Rtype, Stype, lambda x : x, "extended")
@@ -2654,8 +2728,8 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                         return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "extended")
             elif Rtype[0] == 'F' and Stype[0] == 'B' and s == r:
                 return BranchingRule(Rtype, Stype, lambda x : [-x[0], x[1], x[2], x[3]], "extended")
-            elif Rtype[0] == 'G' and Stype[0] == 'A' and s == r:
-                return BranchingRule(Rtype, Stype, lambda x : [(x[0]-x[2])/3, (-x[1]+x[2])/3, (-x[0]+x[1])/3], "extended")
+            elif Rtype == CartanType("G2") and Stype == CartanType("A2"):
+                return BranchingRule(Rtype, Stype, lambda x : [(-x[1]+x[2])/3, (-x[0]+x[1])/3, (x[0]-x[2])/3], "extended")
             else:
                 raise ValueError("Rule not found")
     elif rule == "isomorphic":

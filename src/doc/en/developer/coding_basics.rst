@@ -5,38 +5,11 @@ General Conventions
 ===================
 
 
-If there is something you would like to implement and make available
-in Sage, you have a wide range of options:
-
-#. Implement it as Sage scripts, see :ref:`section-preparsing`.
-
-#. Implement it as Python scripts that use the Sage library, see
-   :ref:`chapter-python`.
-
-#. Implement it in C/C++ and make the result accessible to Sage using
-   Cython.
-
-#. Implement it using Cython.
-
-#. Implement it using one or more of the following: Flint, FpLLL, GAP,
-   GSL, IML, LinBox, M4RI, Matplotlib, Maxima, MWRank, ECLib,
-   NetworkX, NTL, Numpy, PARI/GP, PolyBoRi, R, Scipy, Singular, Sympy
-   or any of the other libraries included with Sage [1]_.
-
-#. Or any combination of the above.
-
-#. If you have Magma, Maple or Mathematica and do not mind restricting
-   who can use your code, you could also implement parts of your
-   program in one of these systems and make it available in Sage
-   through interfaces to these non-free systems.
-
-Flint, FpLLL, GAP, GSL, IML, LinBox, M4RI, Matplotlib, Maxima, MWRank,
-ECLib, NetworkX, NTL, Numpy, PARI/GP, PolyBoRi, R, Scipy, Singular,
-Sympy are all included with all distributions of Sage. GAP, Singular,
-and PARI are very mature, and each implements a great amount of
-functionality, though in different domains. GAP addresses group theory
-well, Singular attacks polynomial computation, and PARI contains
-sophisticated, optimized number theory algorithms.
+There are many ways to contribute to Sage including sharing scripts
+and Sage worksheets that implement new functionality using Sage,
+improving to the Sage library, or to working on the many underlying
+libraries distributed with Sage [1]_.
+This guide focuses on editing the Sage library itself.
 
 Sage is not just about gathering together functionality. It is about
 providing a clear, systematic and consistent way to access a large

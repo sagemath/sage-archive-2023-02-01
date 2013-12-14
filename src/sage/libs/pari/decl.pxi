@@ -988,6 +988,10 @@ cdef extern from 'pari/pari.h':
     long    nfhilbert(GEN bnf,GEN a,GEN b)
     long    nfhilbert0(GEN bnf,GEN a,GEN b,GEN p)
 
+    # compile.c
+
+    GEN     strtofunction(const char *s)
+
     # default.c
 
     extern int d_SILENT, d_ACKNOWLEDGE, d_INITRC, d_RETURN
@@ -1116,6 +1120,7 @@ cdef extern from 'pari/pari.h':
 
     # eval.c
 
+    GEN     closure_callgen1(GEN C, GEN x)
     GEN     closure_callgenvec(GEN C, GEN args)
 
     # FF.c

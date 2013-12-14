@@ -73,7 +73,6 @@ cdef int *hamming_weights():
         ham_wts[i] = ham_wts[i & 255] + ham_wts[(i>>8) & 255]
     return ham_wts
 
-include 'sage/misc/bitset_pxd.pxi'
 include 'sage/misc/bitset.pxi'
 def weight_dist(M):
     """

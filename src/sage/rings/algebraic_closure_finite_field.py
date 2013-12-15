@@ -246,6 +246,22 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
         """
         return self._value._latex_()
 
+    def minpoly(self):
+        """
+        Return the minimal polynomial of ``self`` over the prime
+        field.
+
+        EXAMPLE::
+
+            sage: F = GF(11).algebraic_closure()
+            sage: F.gen(3).minpoly()
+            x^3 + 2*x + 9
+
+        """
+        return self._value.minpoly()
+
+    minimal_polynomial = minpoly
+
     def is_square(self):
         """
         Return ``True`` if ``self`` is a square.
@@ -779,6 +795,31 @@ class AlgebraicClosureFiniteField_generic(Field):
         F = self._subfield(n)
         return self(F.gen())
 
+    def gens(self):
+        """
+        Return a family of generators of ``self``.
+
+        OUTPUT:
+
+        - a :class:`~sage.sets.family.Family`, indexed by the positive
+          integers, whose `n`-th element is ``self.gen(n)``.
+
+        EXAMPLE::
+
+            sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField
+            sage: F = AlgebraicClosureFiniteField(GF(5), 'z')
+            sage: g = F.gens()
+            sage: g
+            Lazy family (<lambda>(i))_{i in Positive integers}
+            sage: g[3]
+            z3
+
+        """
+        from sage.sets.family import Family
+        from sage.sets.positive_integers import PositiveIntegers
+
+        return Family(PositiveIntegers(), lambda n: self.gen(n))
+
     def _first_ngens(self, n):
         """
         Return the first `n` generators of ``self``.
@@ -808,6 +849,18 @@ class AlgebraicClosureFiniteField_generic(Field):
 
         """
         return self
+
+    def _an_element_(self):
+        """
+        TEST::
+
+            sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField
+            sage: F = AlgebraicClosureFiniteField(GF(5), 'w')
+            sage: F.an_element()  # indirect doctest
+            w2
+
+        """
+        return self.gen(2)
 
 
 class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_generic):

@@ -22,7 +22,7 @@ elif os.path.exists('%s/lib/libatlas.so'%os.environ['SAGE_LOCAL']):
 elif os.path.exists('/usr/lib/libcblas.dylib') or \
      os.path.exists('/usr/lib/libcblas.so'):
     BLAS='cblas'
-    BLAS2='atlas'
+    BLAS2='cblas'
 elif os.path.exists('/usr/lib/libblas.dll.a'):
     BLAS='gslcblas'
     BLAS2='gslcblas'

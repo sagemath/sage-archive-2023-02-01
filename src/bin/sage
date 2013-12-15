@@ -37,10 +37,10 @@ usage() {
     echo "                           --optional - controls which optional tests are run"
     echo "                           --sagenb - test all sagenb files"
     echo "                           --help - show all testing options"
-    echo "  -upgrade [url]      -- download, build and install standard packages from"
-    echo "                         given url.  If url not given, automatically selects a"
-    echo "                         suitable mirror.  If url='ask', it lets you select"
-    echo "                         the mirror (uses SAGE_SERVER as default)."
+    echo "  -upgrade [version]  -- download, build and install the given version. Here,"
+    echo "                         'version' is a git branch or tag name. Useful values"
+    echo "                         are 'master' (the currend development version, this"
+    echo "                         is the default) or a version number like '5.13'."
     echo "  -v, -version        -- print the Sage version"
     exit 0
 }
@@ -125,10 +125,10 @@ usage_advanced() {
     echo "  -standard           -- list all standard packages that can be installed"
    #echo "  -update             -- download latest non-optional Sage packages (do not build them)"
    #echo "  -update-build       -- build and install all downloaded non-optional Sage packages"
-    echo "  -upgrade [url]      -- download, build and install standard packages from"
-    echo "                         given url.  If url not given, automatically selects a"
-    echo "                         suitable mirror.  If url='ask', it lets you select"
-    echo "                         the mirror (uses SAGE_SERVER as default)."
+    echo "  -upgrade [version]  -- download, build and install the given version. Here,"
+    echo "                         'version' is a git branch or tag name. Useful values"
+    echo "                         are 'master' (the currend development version, this"
+    echo "                         is the default) or a version number like '5.13'."
 
     echo
     ####  1.......................26..................................................78

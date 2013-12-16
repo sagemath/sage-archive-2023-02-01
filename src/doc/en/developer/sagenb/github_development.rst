@@ -1,7 +1,7 @@
-.. _git-development:
+.. _github-development:
 
 =====================
- Git for development
+ Git for Development
 =====================
 
 Contents:
@@ -11,6 +11,5 @@ Contents:
 
    forking_hell
    set_up_fork
-   configure_git
    development_workflow
    maintainer_workflow

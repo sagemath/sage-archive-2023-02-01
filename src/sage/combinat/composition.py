@@ -269,7 +269,7 @@ class Composition(CombinatorialObject, Element):
         If `I` is the empty composition, then the complement is the empty
         composition as well. Otherwise, let `S` be the descent set of `I`
         (that is, the subset
-        `\{ i_1, i_1 + i_2, \ldots, i_1 + i_2 + \ldots + i_{k-1} \}`
+        `\{ i_1, i_1 + i_2, \ldots, i_1 + i_2 + \cdots + i_{k-1} \}`
         of `\{ 1, 2, \ldots, |I|-1 \}`, where `I` is written as
         `(i_1, i_2, \ldots, i_k)`). Then, the complement of `I` is
         defined as the composition of size `|I|` whose descent set is

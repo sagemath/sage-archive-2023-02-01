@@ -29,7 +29,7 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.categories.realizations import Category_realization_of_parent
 from sage.categories.modules_with_basis import ModulesWithBasis, ModuleMorphismByLinearity
-from sage.combinat.composition import Composition, Compositions
+from sage.combinat.composition import Composition
 from sage.combinat.partition import Partition
 from sage.combinat.permutation import Permutations
 from sage.rings.integer import Integer
@@ -114,9 +114,9 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 assert len(rest) == 0
             else:
                 if len(rest) > 0 or isinstance(c, (int, Integer)):
-                    c = Compositions()([c] + list(rest))
+                    c = self._basis_keys([c] + list(rest))
                 else:
-                    c = Compositions()(list(c))
+                    c = self._basis_keys(list(c))
             return self.monomial(c)
 
         # could go to Algebras(...).Graded().Connected() or Modules(...).Graded().Connected()
@@ -137,7 +137,7 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 sage: parent(L).one_basis()
                 []
             """
-            return Compositions()([])
+            return Composition([])
 
         # Combinatorial rules
 
@@ -294,7 +294,7 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 sage: elementary.sum_of_partition_rearrangements(Partition([]))
                 L[]
             """
-            return self.sum_of_monomials( Compositions()(comp) for comp in Permutations(par) )
+            return self.sum_of_monomials( self._basis_keys(comp) for comp in Permutations(par) )
 
         def _comp_to_par(self, comp):
             """

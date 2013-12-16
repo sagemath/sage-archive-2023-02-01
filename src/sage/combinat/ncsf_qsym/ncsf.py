@@ -29,13 +29,15 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.functions.other import factorial
 from sage.categories.realizations import Category_realization_of_parent
 from sage.categories.rings import Rings
 from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
-from sage.combinat.composition import Composition, Compositions
+from sage.combinat.composition import Compositions
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.ncsf_qsym.generic_basis_code import BasesOfQSymOrNCSF
-from sage.combinat.ncsf_qsym.combinatorics import *
+from sage.combinat.ncsf_qsym.combinatorics import (coeff_pi, coeff_lp,
+        coeff_sp, coeff_ell, m_to_s_stat, number_of_fCT)
 from sage.combinat.partition import Partition
 from sage.combinat.permutation import Permutations
 
@@ -684,7 +686,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 # componentwise, then convert back.
                 parent = self.parent()
                 S = parent.realization_of().S()
-                dct = {Compositions()(map(lambda i: i // n, I)): coeff
+                C = parent._basis_keys
+                dct = {C(map(lambda i: i // n, I)): coeff
                        for (I, coeff) in S(self).monomial_coefficients().items()
                        if all(i % n == 0 for i in I)}
                 return parent(S._from_dict(dct))
@@ -1129,7 +1132,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 """
                 from sage.sets.family import Family
                 from sage.sets.positive_integers import PositiveIntegers
-                return Family(PositiveIntegers(), lambda i: self.monomial(Compositions()([i])))
+                return Family(PositiveIntegers(), lambda i: self.monomial(self._basis_keys([i])))
 
             def product_on_basis(self, composition1, composition2):
                 """
@@ -1374,7 +1377,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 """
                 if i<1:
                     return "Not a positive integer: %s" % `i`
-                def C(i): return Compositions()([i]) if i else Compositions()([])
+                def C(i): return self._basis_keys([i]) if i else self._basis_keys([])
                 T = self.tensor_square()
                 return T.sum_of_monomials( (C(j), C(i-j)) for j in range(0,i+1) )
 
@@ -1617,8 +1620,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             elif J == []:
                 return self.monomial(I)
             else:
-                return self.monomial(Compositions()(I[:] + J[:])) + \
-                       self.monomial(Compositions()(I[:-1] + [I[-1]+J[0]] + J[1:]))
+                return self.monomial(self._basis_keys(I[:] + J[:])) + \
+                       self.monomial(self._basis_keys(I[:-1] + [I[-1]+J[0]] + J[1:]))
 
         def antipode_on_basis(self, composition):
             """
@@ -1812,13 +1815,14 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     True
                 """
                 parent = self.parent()
+                C = parent._basis_keys
                 def ribbon_mapper(I, coeff):
                     # return \mathbf{V}_n ( coeff * R_I ) as pair
                     # (composition, coefficient)
                     M = sum(I)
                     m = M // n
                     J = I.meet([n] * m)
-                    Jn = Compositions()([j // n for j in J])
+                    Jn = C([j // n for j in J])
                     if (len(I) - len(J)) % 2 == 1:
                         return (Jn, - coeff)
                     else:
@@ -2156,6 +2160,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                         for n in I)
 
         class Element(CombinatorialFreeModule.Element):
+            """
+            An element in the Complete basis.
+            """
             def psi_involution(self):
                 r"""
                 Return the image of the noncommutative symmetric function
@@ -2176,12 +2183,12 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 where `I^c` denotes the complement of the composition `I`, and
                 `\ell(I)` denotes the length of `I`, and where standard
                 notations for classical bases of `NCSF` are being used
-                (`S` for the complete basis, `\Lambda` for the elementary basis,
-                `\Phi` for the basis of the power sums of the second kind,
-                and `R` for the ribbon basis). The map `\psi` is an involution
-                and a graded Hopf algebra automorphism of `NCSF`. If `\pi`
-                denotes the projection from `NCSF` to the ring of symmetric
-                functions (:meth:`to_symmetric_function`), then
+                (`S` for the complete basis, `\Lambda` for the elementary
+                basis, `\Phi` for the basis of the power sums of the second
+                kind, and `R` for the ribbon basis). The map `\psi` is an
+                involution and a graded Hopf algebra automorphism of `NCSF`.
+                If `\pi` denotes the projection from `NCSF` to the ring of
+                symmetric functions (:meth:`to_symmetric_function`), then
                 `\pi(\psi(f)) = \omega(\pi(f))` for every `f \in NCSF`, where
                 the `\omega` on the right hand side denotes the omega
                 automorphism of `Sym`.
@@ -2227,8 +2234,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 parent = self.parent()
                 return parent.sum( (-1) ** (I.size() - len(I)) * coeff
                                    * parent.alternating_sum_of_finer_compositions(I)
-                                   for I, coeff in
-                                   self._monomial_coefficients.items() )
+                                   for I, coeff in self._monomial_coefficients.items() )
 
     S = complete = Complete
 
@@ -2582,7 +2588,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             """
             # Equation (58) of NCSF I article
             one = self.base_ring().one()
-            I = Compositions()([n])
+            I = self._basis_keys([n])
             # TODO: I being trivial, there is no refinement going on here, so
             # one can probably be a bit more explicit / fast
             return self.sum_of_terms((J, one/coeff_pi(J,I)) for J in Compositions(n))
@@ -2791,7 +2797,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     True
                 """
                 parent = self.parent()
-                return parent.sum_of_terms([(Compositions()([i // n for i in I]),
+                C = parent._basis_keys
+                return parent.sum_of_terms([(C([i // n for i in I]),
                                             coeff * (n ** len(I)))
                                             for (I, coeff) in self
                                             if all(i % n == 0 for i in I)],
@@ -3061,7 +3068,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     True
                 """
                 parent = self.parent()
-                return parent.sum_of_terms([(Compositions()([i // n for i in I]),
+                C = parent._basis_keys
+                return parent.sum_of_terms([(C([i // n for i in I]),
                                             coeff * (n ** len(I)))
                                             for (I, coeff) in self
                                             if all(i % n == 0 for i in I)],
@@ -3288,7 +3296,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 S[1, 1, 1] - 2*S[1, 2] - S[2, 1] + 3*S[3]
             """
             S = NonCommutativeSymmetricFunctions(self.base_ring()).S()
-            return sum(m_to_s_stat(self.base_ring(),I,K) * S(K) for K in Compositions(Composition(I).size()))
+            return sum( m_to_s_stat(self.base_ring(),I,K) * S(K) for K in Compositions(sum(I)) )
 
         def _from_psi_on_basis(self, I):
             r"""
@@ -3322,7 +3330,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             for J in Compositions(I.size()):
                 if I.is_finer(J):
                     len_of_J = len(J)
-                    p = [0] + Composition(I).refinement_splitting_lengths(J).partial_sums()
+                    p = [0] + self._basis_keys(I).refinement_splitting_lengths(J).partial_sums()
                     sum_of_elements += prod( (len_of_J - k)**(p[k+1]-p[k]) for k in range(len_of_J) ) * M(J)
             return sum_of_elements
 
@@ -3474,6 +3482,6 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 return I([])
             else:
                 return sum( number_of_fCT(comp_content,comp_shape) * I(comp_shape) \
-                            for comp_shape in Compositions(Composition(comp_content).size()) )
+                            for comp_shape in Compositions(sum(comp_content)) )
 
     I = Immaculate

@@ -538,7 +538,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         - ``dim`` (integer) -- Defines the dimension of the dictionary.
           If ``x`` has dimension `2`, its fields will be of the form
-          ``x[key1][key2]``.
+          ``x[key1][key2]``. Deprecated.
 
         - ``binary, integer, real`` (boolean) -- Set one of these arguments
           to ``True`` to ensure that the variable gets the corresponding
@@ -1108,15 +1108,15 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
             sage: p = MixedIntegerLinearProgram()
             sage: x = p.new_variable()
-            sage: y = p.new_variable(dim=2)
-            sage: p.set_objective(x[3] + 3*y[2][9] + x[5])
-            sage: p.add_constraint(x[3] + y[2][9] + 2*x[5], max=2)
+            sage: y = p.new_variable()
+            sage: p.set_objective(x[3] + 3*y[2,9] + x[5])
+            sage: p.add_constraint(x[3] + y[2,9] + 2*x[5], max=2)
             sage: p.solve()
             6.0
 
-        To return  the optimal value of ``y[2][9]``::
+        To return  the optimal value of ``y[2,9]``::
 
-            sage: p.get_values(y[2][9])
+            sage: p.get_values(y[2,9])
             2.0
 
         To get a dictionary identical to ``x`` containing optimal
@@ -1137,6 +1137,19 @@ cdef class MixedIntegerLinearProgram(SageObject):
         Or::
 
             sage: [x_sol, y_sol] = p.get_values([x, y])
+
+        TESTS:
+
+        When 'dim' will be removed, also remove from this function the code that
+        uses it::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: b = p.new_variable(dim=2)
+            doctest:839: DeprecationWarning: The 'dim' argument will soon disappear. Fortunately variable[1,2] is easier to use than variable[1][2]
+            See http://trac.sagemath.org/15489 for details.
+            sage: p.add_constraint(b[1][2] +  b[2][3] == 0)
+            sage: _ = p.solve()
+            sage: _ = p.get_values(b)
         """
         val = []
         for l in lists:
@@ -1562,6 +1575,16 @@ cdef class MixedIntegerLinearProgram(SageObject):
         variables as real while keeping the others as they are::
 
             sage: p.set_real(x[3])
+
+        TESTS::
+
+        When 'dim' will be removed, also remove all the ``is_*`` and ``set_*``
+        functions the code that uses it::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: b = p.new_variable(dim=2)
+            sage: p.add_constraint(b[1][2] +  b[2][3] == 0)
+            sage: p.set_binary(b)
         """
         cdef MIPVariable e
         e = <MIPVariable> ee

@@ -829,7 +829,7 @@ def binpacking(items,maximum=1,k=None):
 
     boxes=[[] for i in range(k)]
 
-    for i,b,value in box.iteritems():
+    for (i,b),value in box.iteritems():
         if value == 1:
             boxes[b].append(items[i])
 

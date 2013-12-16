@@ -7,17 +7,9 @@ from sf import SymmetricFunctions
 # This is deprecated:
 lazy_import('sage.combinat.sf.sfa', ['SymmetricFunctionAlgebra'])
 
-# Advanced stuff (q,t-deformed bases, k-Schurs etc.):
-
-lazy_import('sage.combinat.sf.hall_littlewood', ['HallLittlewoodP',
-                                                 'HallLittlewoodQ',
-                                                 'HallLittlewoodQp'])
-
-from jack import JackPolynomialsP, JackPolynomialsJ,JackPolynomialsQ, JackPolynomialsQp, ZonalPolynomials
+# Advanced stuff:
 
 lazy_import('sage.combinat.sf.kfpoly', 'KostkaFoulkesPolynomial')
-
-from macdonald import MacdonaldPolynomialsP, MacdonaldPolynomialsQ, MacdonaldPolynomialsJ, MacdonaldPolynomialsH, MacdonaldPolynomialsHt, MacdonaldPolynomialsS
 
 lazy_import('sage.combinat.sf.kschur', 'kSchurFunctions')
 

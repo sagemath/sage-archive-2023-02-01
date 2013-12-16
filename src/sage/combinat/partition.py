@@ -4216,8 +4216,8 @@ class Partitions(UniqueRepresentation, Parent):
 
     Valid keywords are: ``starting``, ``ending``, ``min_part``,
     ``max_part``, ``max_length``, ``min_length``, ``length``,
-    ``max_slope``, ``min_slope``, ``inner``, ``outer``, and
-    ``parts_in``. They have the following meanings:
+    ``max_slope``, ``min_slope``, ``inner``, ``outer``, ``parts_in``
+    and ``regular``. They have the following meanings:
 
     - ``starting=p`` specifies that the partitions should all be less
       than or equal to `p` in lex order.
@@ -4246,6 +4246,10 @@ class Partitions(UniqueRepresentation, Parent):
     - ``parts_in=S`` specifies that the partitions have parts in the set
       `S`, which can be any sequence of pairwise distinct positive
       integers.
+
+    - ``regular=ell`` specifies that the partitions are `\ell`-regular,
+      and can only be combined with the ``max_part`` keyword if `n` is
+      not specified
 
     The ``max_*`` versions, along with ``inner`` and ``ending``, work
     analogously.
@@ -4454,6 +4458,10 @@ class Partitions(UniqueRepresentation, Parent):
                 if len(kwargs) == 1:
                     if 'max_part' in kwargs:
                         return Partitions_all_bounded(kwargs['max_part'])
+                    if 'regular' in kwargs:
+                        return RegularPartitions_all(kwargs['regular'])
+                elif len(kwargs) == 2 and 'max_part' in kwargs and 'regular' in kwargs:
+                    return RegularPartitions_all_bounded(kwargs['regular'], kwargs['max_part'])
                 raise ValueError("the size must be specified with any keyword argument")
             return Partitions_all()
         else:
@@ -4473,6 +4481,8 @@ class Partitions(UniqueRepresentation, Parent):
                 return Partitions_starting(n, kwargs['starting'])
             elif 'ending' in kwargs:
                 return Partitions_ending(n, kwargs['ending'])
+            elif 'regular' in kwargs:
+                return RegularPartitions_n(n, kwargs['regular'])
 
             if 'min_part' not in kwargs:
                 kwargs['min_part'] = 1
@@ -4500,9 +4510,7 @@ class Partitions(UniqueRepresentation, Parent):
                 else:
                     kwargs['min_length'] = len(inner)
                 del kwargs['inner']
-            kwargs['element_class'] = Partition
-            kwargs['global_options'] = Partitions.global_options
-            return IntegerListsLex(n, **kwargs)
+            return Partitions_with_constraints(n, **kwargs)
 
     def __init__(self, is_infinite=False):
         """
@@ -5908,6 +5916,276 @@ class Partitions_constraints(IntegerListsLex):
         constraints.update(data['constraints'])
         self.__init__(n, **constraints)
 
+class Partitions_with_constraints(IntegerListsLex):
+    """
+    Partitions which satisfy a set of constraints.
+
+    EXAMPLES::
+
+        sage: P = Partitions(6, inner=[1,1], max_slope=-1)
+        sage: list(P)
+        [[5, 1], [4, 2], [3, 2, 1]]
+    """
+    def __init__(self, n, **kwargs):
+        """
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: P = Partitions(6, min_part=2, max_slope=-1)
+            sage: TestSuite(P).run()
+
+        Test that :trac:`-1` is fixed::
+
+            sage: loads(dumps(P)) == P
+            True
+        """
+        IntegerListsLex.__init__(self, n, **kwargs)
+
+    Element = Partition
+    global_options = PartitionOptions
+
+######################
+# Regular Partitions #
+######################
+
+class RegularPartitions(Partitions):
+    r"""
+    Base class for `\ell`-regular partitions.
+
+    A partition is `\ell`-regular if `m_i < \ell` for all `i`.
+    """
+    def __init__(self, ell, is_infinte=False):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(regular=2)
+            sage: TestSuite(P).run()
+        """
+        self.ell = ell
+        Partitions.__init__(self, is_infinte)
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: P = Partitions(regular=3)
+            sage: [5] in P
+            True
+            sage: [] in P
+            True
+            sage: [3, 3, 2, 2] in P
+            True
+            sage: [3, 3, 3, 1] in P
+            False
+            sage: [4, 0, 0, 0, 0, 0] in P
+            True
+            sage: Partition([4,2,2,1]) in P
+            True
+            sage: Partition([4,2,2,2]) in P
+            False
+        """
+        if not Partitions.__contains__(self, x):
+            return False
+        if isinstance(x, Partition):
+            return max(x.to_exp(1)) < self.ell
+        return all(x.count(i) < self.ell for i in set(x) if i > 0)
+
+    def _fast_iterator(self, n, max_part):
+        """
+        A fast (recursive) iterator which returns a list.
+
+        EXAMPLES::
+
+            sage: P = Partitions(regular=3)
+            sage: list(P._fast_iterator(5, 5))
+            [[5], [4, 1], [3, 2], [3, 1, 1], [2, 2, 1]]
+            sage: list(P._fast_iterator(5, 3))
+            [[3, 2], [3, 1, 1], [2, 2, 1]]
+            sage: list(P._fast_iterator(5, 6))
+            [[5], [4, 1], [3, 2], [3, 1, 1], [2, 2, 1]]
+        """
+        if n == 0:
+            yield []
+            return
+
+        if n < max_part:
+            max_part = n
+        bdry = self.ell - 1
+
+        for i in reversed(range(1, max_part+1)):
+            for p in self._fast_iterator(n-i, i):
+                if p.count(i) < bdry:
+                    yield [i] + p
+
+class RegularPartitions_all(RegularPartitions):
+    r"""
+    The class of all `\ell`-regular partitions.
+    """
+    def __init__(self, ell):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(regular=4)
+            sage: TestSuite(P).run()
+        """
+        RegularPartitions.__init__(self, ell, True)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: from sage.combinat.partition import RegularPartitions_all
+            sage: RegularPartitions_all(3)
+            3-Regular Partitions
+        """
+        return "{}-Regular Partitions".format(self.ell)
+
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(regular=3)
+            sage: it = P.__iter__()
+            sage: [it.next() for x in range(10)]
+            [[], [1], [2], [1, 1], [3], [2, 1], [4], [3, 1], [2, 2], [2, 1, 1]]
+        """
+        n = 0
+        while True:
+            for p in self._fast_iterator(n, n):
+                yield self.element_class(self, p)
+            n += 1
+
+class RegularPartitions_all_bounded(RegularPartitions):
+    r"""
+    The class of `\ell`-regular partitions bounded by `k`.
+    """
+    def __init__(self, ell, k):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(regular=4, max_part=3)
+            sage: TestSuite(P).run()
+        """
+        self.k = k
+        RegularPartitions.__init__(self, ell, False)
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: P = Partitions(regular=4, max_part=3)
+            sage: [3, 3, 3] in P
+            True
+            sage: [] in P
+            True
+            sage: [4, 2, 1] in P
+            False
+        """
+        return len(x) == 0 or (x[0] <= self.k and RegularPartitions.__contains__(self, x))
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: from sage.combinat.partition import RegularPartitions_all_bounded
+            sage: RegularPartitions_all_bounded(4, 3)
+            3-Bounded 4-Regular Partitions
+        """
+        return "{}-Bounded {}-Regular Partitions".format(self.k, self.ell)
+
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(regular=2, max_part=3)
+            sage: list(P)
+            [[3, 2, 1], [3, 2], [3, 1], [3], [2, 1], [2], [1], []]
+        """
+        k = self.k
+        for n in reversed(range(k*(k+1)/2 * self.ell)):
+            for p in self._fast_iterator(n, k):
+                yield self.element_class(self, p)
+
+class RegularPartitions_n(RegularPartitions, Partitions_n):
+    r"""
+    The class of `\ell`-regular partitions of `n`.
+    """
+    def __init__(self, n, ell):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(5, regular=3)
+            sage: TestSuite(P).run()
+        """
+        RegularPartitions.__init__(self, ell)
+        Partitions_n.__init__(self, n)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: from sage.combinat.partition import RegularPartitions_n
+            sage: RegularPartitions_n(3, 5)
+            5-Regular Partitions of the integer 3
+        """
+        return "{}-Regular Partitions of the integer {}".format(self.ell, self.n)
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: P = Partitions(5, regular=3)
+            sage: [3, 1, 1] in P
+            True
+            sage: [3, 2, 1] in P
+            False
+        """
+        return RegularPartitions.__contains__(self, x) and sum(x) == self.n
+
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(5, regular=3)
+            sage: list(P)
+            [[5], [4, 1], [3, 2], [3, 1, 1], [2, 2, 1]]
+        """
+        for p in self._fast_iterator(self.n, self.n):
+            yield self.element_class(self, p)
+
+    def cardinality(self):
+        """
+        Return the cardinality of ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(5, regular=3)
+            sage: P.cardinality()
+            5
+            sage: P = Partitions(5, regular=6)
+            sage: P.cardinality()
+            7
+            sage: P.cardinality() == Partitions(5).cardinality()
+            True
+        """
+        if self.ell > self.n:
+            return Partitions_n.cardinality(self)
+        return ZZ.sum(1 for x in self)
 
 ######################
 # Ordered Partitions #

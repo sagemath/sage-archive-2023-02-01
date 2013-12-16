@@ -8903,7 +8903,7 @@ class PariError(RuntimeError):
             ....:     print err
             _/_: division by zero
 
-        A syntax error:
+        A syntax error::
 
             sage: pari('!@#$%^&*()')
             Traceback (most recent call last):

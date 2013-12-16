@@ -49,11 +49,11 @@ cdef extern from 'pari/pari.h':
 
     # parierr.h
 
-    int talker2, bugparier, alarmer, openfiler, talker, flagerr, impl, \
-        archer, notfuncer, precer, typeer, consister, user, errpile, \
-        overflower, matinv1, mattype1, arither1, primer1, invmoder, \
-        constpoler, notpoler, redpoler, zeropoler, operi, operf, gdiver, \
-        memer, negexper, sqrter5, noer
+    int syntaxer, bugparier, alarmer, openfiler, talker, flagerr, \
+        impl, archer, notfuncer, precer, typeer, consister, user, \
+        errpile, overflower, matinv1, mattype1, arither1, primer1, \
+        invmoder, constpoler, notpoler, redpoler, zeropoler, operi, \
+        operf, gdiver, memer, negexper, sqrter5, noer
 
     int warner, warnprec, warnfile, warnmem
 

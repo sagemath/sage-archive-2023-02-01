@@ -2911,7 +2911,7 @@ class Graph(GenericGraph):
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
 
         p = MixedIntegerLinearProgram(maximization=False, solver=solver)
-        b = p.new_variable()
+        b = p.new_variable(binary=True)
 
         reorder = lambda x,y: (x,y) if x<y else (y,x)
 
@@ -2934,7 +2934,6 @@ class Graph(GenericGraph):
             p.add_constraint(p.sum([ b[reorder(x,y)]*weight(l) for x,y,l in self.edges_incident(v)]), min=minimum, max=maximum)
 
         p.set_objective(p.sum([ b[reorder(x,y)]*weight(l) for x,y,l in self.edge_iterator()]))
-        p.set_binary(b)
 
         try:
             p.solve(log=verbose)
@@ -3119,9 +3118,9 @@ class Graph(GenericGraph):
         # and indicates whether the edge uv
         # with u<v goes from u to v ( equal to 0 )
         # or from v to u ( equal to 1)
-        orientation = p.new_variable(binary = True)
+        orientation = p.new_variable(binary=True)
 
-        degree = p.new_variable()
+        degree = p.new_variable(nonnegative=True)
 
         # Whether an edge adjacent to a vertex u counts
         # positively or negatively
@@ -3750,7 +3749,7 @@ class Graph(GenericGraph):
         if core:
 
             # the value of m is one if the corresponding vertex of h is used.
-            m = p.new_variable()
+            m = p.new_variable(nonnegative=True)
             for uh in H:
                 for ug in self:
                     p.add_constraint(b[ug,uh] <= m[uh])
@@ -3828,7 +3827,7 @@ class Graph(GenericGraph):
         p = MixedIntegerLinearProgram(constraint_generation = True)
 
         # One variable per edge
-        r = p.new_variable()
+        r = p.new_variable(nonnegative=True)
         R = lambda x,y : r[x,y] if x<y else r[y,x]
 
         # We want to maximize the sum of weights on the edges
@@ -3941,8 +3940,8 @@ class Graph(GenericGraph):
 
         p = MixedIntegerLinearProgram(maximization=True, solver = solver)
 
-        d = p.new_variable()
-        one = p.new_variable()
+        d = p.new_variable(nonnegative=True)
+        one = p.new_variable(nonnegative=True)
 
         # Reorders u and v so that uv and vu are not considered
         # to be different edges
@@ -4054,7 +4053,7 @@ class Graph(GenericGraph):
 
         # Boolean variable indicating whether the vertex
         # is the representative of some set
-        vertex_taken=p.new_variable()
+        vertex_taken=p.new_variable(binary=True)
 
         # Boolean variable in two dimension whose first
         # element is a vertex and whose second element
@@ -4085,8 +4084,6 @@ class Graph(GenericGraph):
             p.add_constraint(vertex_taken[u]+vertex_taken[v],max=1)
 
         p.set_objective(None)
-
-        p.set_binary(vertex_taken)
 
         try:
             p.solve(log=verbose)
@@ -4226,7 +4223,7 @@ class Graph(GenericGraph):
 
         # a tree  has no cycle
         epsilon = 1/(5*Integer(self.order()))
-        r_edges = p.new_variable()
+        r_edges = p.new_variable(nonnegative=True)
 
         for h in H:
             for u,v in self.edges(labels=None):
@@ -4237,7 +4234,7 @@ class Graph(GenericGraph):
 
         # Once the representative sets are described, we must ensure
         # there are arcs corresponding to those of H between them
-        h_edges = p.new_variable()
+        h_edges = p.new_variable(nonnegative=True)
 
         for h1, h2 in H.edges(labels=None):
 
@@ -5441,7 +5438,7 @@ class Graph(GenericGraph):
 
             from sage.numerical.mip import MixedIntegerLinearProgram
             p = MixedIntegerLinearProgram(maximization=False, solver=solver)
-            b = p.new_variable()
+            b = p.new_variable(binary=True)
 
             # minimizes the number of vertices in the set
             p.set_objective(p.sum([b[v] for v in g.vertices()]))
@@ -5449,8 +5446,6 @@ class Graph(GenericGraph):
             # an edge contains at least one vertex of the minimum vertex cover
             for (u,v) in g.edges(labels=None):
                 p.add_constraint(b[u] + b[v], min=1)
-
-            p.set_binary(b)
 
             if value_only:
                 size_cover_g = p.solve(objective_only=True, log=verbosity)

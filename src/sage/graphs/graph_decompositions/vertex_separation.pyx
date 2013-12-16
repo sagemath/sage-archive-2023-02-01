@@ -816,10 +816,10 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
     p = MixedIntegerLinearProgram( maximization = False, solver = solver )
 
     # Declaration of variables.
-    x = p.new_variable( binary = integrality)
-    u = p.new_variable( binary = integrality)
-    y = p.new_variable( binary = True)
-    z = p.new_variable( integer = True, dim = 1 )
+    x = p.new_variable(binary = integrality, nonnegative=bool(not integrality)) # at least one has to be set (#15221)
+    u = p.new_variable(binary = integrality, nonnegative=bool(not integrality))
+    y = p.new_variable(binary = True)
+    z = p.new_variable(integer = True)
 
     N = G.num_verts()
     V = G.vertices()

@@ -2296,7 +2296,7 @@ class BranchingRule(SageObject):
         else:
             raise ValueError, "unable to define composite: source and target don't agree"
 
-    def describe(self, verbose=False, debug=False):
+    def describe(self, verbose=False, debug=False, no_r=False):
         """
         Describes how extended roots restrict under self.
 
@@ -2327,50 +2327,49 @@ class BranchingRule(SageObject):
         """
         Rspace = RootSystem(self._R).ambient_space()
         Sspace = RootSystem(self._S).ambient_space()
-        affine = False
-        print "root restrictions:"
-        for j in range(self._R[1]+1):
-            if j == 0:
-                r = -Rspace.highest_root()
-            else:
-                r = Rspace.simple_roots()[j]
-            resr = Sspace(self(r))
-            if debug:
-                print "root %d: r = %s, b(r)=%s"%(j, r, resr)
-            done = False
-            if resr == Sspace.zero():
-                done = True
-                if verbose:
-                    if j == 0:
-                        affine = True
-                    print "%s => (zero)"
-            else:
-                for s in Sspace.roots():
-                    if s == resr:
-                        for i in range(1,self._S[1]+1):
-                            if s == Sspace.simple_root(i):
-                                print "%s => %s"%(j,i)
-                                done = True
-                                if j == 0:
-                                    affine = True
-                                break
-                        if not done:
-                            done = True
-                            if verbose:
-                                if j == 0:
-                                    affine = True
-                                print "%s => root %s"%(j,s)
-            if not done:
-                done = True
-                if verbose:
-                    if j == 0:
-                        affine = True
-                    print "%s => weight %s"%(j,resr)
-        if affine:
-            print "\n", self._R.affine().dynkin_diagram()
+        if self._R.is_compound():
+            raise ValueError,"Cannot describe branching rule from reducible type"
+        if not no_r:
+            print "\n%s\n"%(self._R.affine().dynkin_diagram()).__repr__()
+        if self._S.is_compound():
+            for j in range(len(self._S.component_types())):
+                ctype = self._S.component_types()[j]
+                component_rule = self*branching_rule(self._S, ctype,"proj%s"%j)
+                print "projection %d on %s "%(j+1, ctype._repr_(compact=True)),
+                component_rule.describe(verbose=verbose, no_r=True)
+                print "for information on all roots use verbose=True"
         else:
-            print "\n", self._R.dynkin_diagram()
-        print "\n", self._S.dynkin_diagram()
+            print "root restrictions %s => %s:"%(self._R._repr_(compact=True),self._S._repr_(compact=True))
+            print "\n%s\n"%(self._S.dynkin_diagram().__repr__())
+            for j in range(self._R[1]+1):
+                if j == 0:
+                    r = -Rspace.highest_root()
+                else:
+                    r = Rspace.simple_roots()[j]
+                resr = Sspace(self(r))
+                if debug:
+                    print "root %d: r = %s, b(r)=%s"%(j, r, resr)
+                done = False
+                if resr == Sspace.zero():
+                    done = True
+                    if verbose:
+                        print "%s => (zero)"%j
+                else:
+                    for s in Sspace.roots():
+                        if s == resr:
+                            for i in range(1,self._S[1]+1):
+                                if s == Sspace.simple_root(i):
+                                    print "%s => %s"%(j,i)
+                                    done = True
+                                    break
+                            if not done:
+                                done = True
+                                if verbose:
+                                    print "%s => root %s"%(j,s)
+                if not done:
+                    done = True
+                    if verbose:
+                        print "%s => weight %s"%(j,resr)
 
 def get_branching_rule(Rtype, Stype, rule="default"):
     """
@@ -2429,11 +2428,17 @@ def get_branching_rule(Rtype, Stype, rule="default"):
         Stypes = [CartanType(l._S) for l in rules]
         ntypes = len(Stypes)
         shifts = Rtype._shifts
-        def br(x):
-            yl = []
-            for i in range(ntypes):
-                yl.append(rules[i](x[shifts[stor[i]]:shifts[stor[i]+1]]))
-            return flatten(yl)
+        if Stype.is_compound():
+            def br(x):
+                yl = []
+                for i in range(ntypes):
+                    yl.append(rules[i](x[shifts[stor[i]]:shifts[stor[i]+1]]))
+                return flatten(yl)
+        else:
+            j = stor[0]
+            rulej = rules[0]
+            def br(x):
+                return rulej(x[shifts[j]:shifts[j+1]])
         return BranchingRule(Rtype, Stype, br, name)
     if Stype.is_compound():
         stypes = Stype.component_types()

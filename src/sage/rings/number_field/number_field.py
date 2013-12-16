@@ -3014,13 +3014,13 @@ class NumberField_generic(number_field_base.NumberField):
             sage: k.pari_polynomial('I')
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: I already exists with incompatible valence
             sage: k.pari_polynomial('i')
             i^2 + 1
             sage: k.pari_polynomial('theta')
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: theta already exists with incompatible valence
         """
         try:
             return self.__pari_polynomial.change_variable_name(name)
@@ -5539,9 +5539,9 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.zeta(2, all=True)
             [-1]
             sage: K.zeta(3)
-            1/2*z - 1/2
+            -1/2*z - 1/2
             sage: K.zeta(3, all=True)
-            [1/2*z - 1/2, -1/2*z - 1/2]
+            [-1/2*z - 1/2, 1/2*z - 1/2]
             sage: K.zeta(4)
             Traceback (most recent call last):
             ...
@@ -5552,9 +5552,9 @@ class NumberField_generic(number_field_base.NumberField):
             sage: r.<x> = QQ[]
             sage: K.<b> = NumberField(x^2+1)
             sage: K.zeta(4)
-            b
+            -b
             sage: K.zeta(4,all=True)
-            [b, -b]
+            [-b, b]
             sage: K.zeta(3)
             Traceback (most recent call last):
             ...
@@ -5633,22 +5633,32 @@ class NumberField_generic(number_field_base.NumberField):
         """
         Return a generator of the roots of unity in this field.
 
+        OUTPUT: a primitive root of unity. No guarantee is made about
+        which primitive root of unity this returns, not even for
+        cyclotomic fields.
+
         .. note::
 
            We do not create the full unit group since that can be
            expensive, but we do use it if it is already known.
 
+        ALGORITHM:
+
+        We use the PARI function ``nfrootsof1`` in all cases. This is
+        required (even for cyclotomic fields) in order to be consistent
+        with the full unit group, which is also computed by PARI.
+
         EXAMPLES::
 
             sage: K.<i> = NumberField(x^2+1)
             sage: z = K.primitive_root_of_unity(); z
-            i
+            -i
             sage: z.multiplicative_order()
             4
 
             sage: K.<a> = NumberField(x^2+x+1)
             sage: z = K.primitive_root_of_unity(); z
-            -a
+            a + 1
             sage: z.multiplicative_order()
             6
 
@@ -5658,24 +5668,45 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.<c> = F.extension(y^2 - (1 + a)*(a + b)*a*b)
             sage: K.primitive_root_of_unity()
             -1
+
+        We do not special-case cyclotomic fields, so we do not always
+        get the most obvious primitive root of unity::
+
+            sage: K.<a> = CyclotomicField(3)
+            sage: z = K.primitive_root_of_unity(); z
+            a + 1
+            sage: z.multiplicative_order()
+            6
+
+            sage: K = CyclotomicField(7)
+            sage: z = K.primitive_root_of_unity(); z
+            zeta7^5 + zeta7^4 + zeta7^3 + zeta7^2 + zeta7 + 1
+            sage: z.multiplicative_order()
+            14
+
+        TESTS:
+
+        Check for :trac:`15027`. We use a new variable name::
+
+            sage: K.<f> = QuadraticField(-3)
+            sage: K.primitive_root_of_unity()
+            -1/2*f + 1/2
+            sage: UK = K.unit_group()
+            sage: K.primitive_root_of_unity()
+            -1/2*f + 1/2
         """
         try:
-            return self._unit_group.torsion_generator()
+            return self._unit_group.torsion_generator().value()
         except AttributeError:
             pass
         try:
-            return self._unit_group_no_proof.torsion_generator()
+            return self._unit_group_no_proof.torsion_generator().value()
         except AttributeError:
             pass
 
         pK = self.pari_nf()
         n, z = pK.nfrootsof1()
-        n = ZZ(n)
-        z = self(z)
-
-        primitives = [z**i for i in n.coprime_integers(n)]
-        primitives.sort(cmp=lambda z,w: len(str(z))-len(str(w)))
-        return primitives[0]
+        return self(z)
 
     def roots_of_unity(self):
         """
@@ -5685,7 +5716,7 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: K.<b> = NumberField(x^2+1)
             sage: zs = K.roots_of_unity(); zs
-            [b, -1, -b, 1]
+            [-b, -1, b, 1]
             sage: [ z**K.number_of_roots_of_unity() for z in zs ]
             [1, 1, 1, 1]
         """
@@ -7699,9 +7730,7 @@ class NumberField_absolute(NumberField_generic):
         a = self(a)
         b = self(b)
         if P is None:
-            # We MUST convert a and b to pari before calling the function
-            # to work around Trac #11868 -- Jeroen Demeyer
-            return pari(self).nfhilbert(pari(a), pari(b))
+            return pari(self).nfhilbert(a, b)
 
         from sage.rings.morphism import is_RingHomomorphism
         if is_RingHomomorphism(P):
@@ -7728,9 +7757,7 @@ class NumberField_absolute(NumberField_generic):
             raise ValueError, "P (=%s) should be an ideal of self (=%s) in hilbert_symbol, not of %s" % (P, self, P.number_field())
         if not P.is_prime():
             raise ValueError, "Non-prime ideal P (=%s) in hilbert_symbol" % P
-        # We MUST convert a and b to pari before calling the function
-        # to work around Trac #11868 -- Jeroen Demeyer
-        return pari(self).nfhilbert(pari(a), pari(b), P.pari_prime())
+        return pari(self).nfhilbert(a, b, P.pari_prime())
 
     def hilbert_conductor(self,a,b):
         """
@@ -9015,27 +9042,6 @@ class NumberField_cyclotomic(NumberField_absolute):
             v += [-x for x in v]
         return v
 
-    def primitive_root_of_unity(self):
-        """
-        Return a generator of the roots of unity in this field.
-
-        EXAMPLES::
-
-            sage: K.<a> = CyclotomicField(3)
-            sage: z = K.primitive_root_of_unity(); z
-            -a
-            sage: z.multiplicative_order()
-            6
-
-            sage: K.<a> = CyclotomicField(10)
-            sage: z = K.primitive_root_of_unity(); z
-            a
-            sage: z.multiplicative_order()
-            10
-        """
-        if self._n()%2:
-            return -self.gen()
-        return self.gen()
 
 class NumberField_quadratic(NumberField_absolute):
     r"""

@@ -1284,7 +1284,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
 
     def nth_prime(self, long n):
-        from sage.libs.pari.gen import PariError
+        from sage.libs.pari.all import PariError
         try:
             return self.__nth_prime(n)
         except PariError:

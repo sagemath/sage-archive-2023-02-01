@@ -2074,7 +2074,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         E = self.curve()
 
         # Special code for curves over Q, calling PARI
-        from sage.libs.pari.gen import PariError
+        from sage.libs.pari.all import PariError
         try:
             n = int(E.pari_curve().ellorder(self))
             if n == 0:

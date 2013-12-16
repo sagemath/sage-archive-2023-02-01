@@ -50,7 +50,7 @@ from sage.rings.rational cimport Rational
 
 from sage.modules.free_module_element import vector
 
-from sage.libs.pari.gen import gen as pari_gen
+from sage.libs.pari.all import pari_gen
 from sage.structure.element cimport Element, generic_power_c
 from sage.structure.element import canonical_coercion, parent
 

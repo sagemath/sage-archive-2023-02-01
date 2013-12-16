@@ -50,7 +50,7 @@ cdef extern from "pari/pari.h":
 
 from sage.rings.integer_ring import ZZ
 from sage.libs.pari.gen cimport gen as pari_gen
-from sage.libs.pari.pari_instance import pari
+from sage.libs.pari.all import pari
 from sage.rings.integer cimport Integer
 
 cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False):

@@ -746,7 +746,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             else:
                 algorithm = "iml"
         if algorithm == "pari":
-            from sage.libs.pari.gen import PariError
+            from sage.libs.pari.all import PariError
             try:
                 return self._invert_pari()
             except PariError:

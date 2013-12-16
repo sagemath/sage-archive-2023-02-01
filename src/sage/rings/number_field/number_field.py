@@ -199,8 +199,7 @@ from sage.structure.parent_gens import ParentWithGens
 import number_field_element
 import number_field_element_quadratic
 from number_field_ideal import is_NumberFieldIdeal, NumberFieldFractionalIdeal
-from sage.libs.pari.pari_instance import pari
-from sage.libs.pari.gen import gen as pari_gen
+from sage.libs.pari.all import pari, pari_gen
 
 QQ = rational_field.RationalField()
 ZZ = integer_ring.IntegerRing()

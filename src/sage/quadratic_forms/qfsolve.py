@@ -96,9 +96,9 @@ def qfsolve(G, factD=None):
     gp = _gp_for_simon()
     if factD is not None:
         raise NotImplementedError, "qfsolve not implemented with parameter factD"
-    ret = gp('Qfsolve(%s)' % G._pari_())._pari_()
-    if ret.type() == 't_COL':
-        return tuple([QQ(r) for r in ret])
+    ret = gp('Qfsolve(%s)' % G._pari_init_())
+    if str(ret.type()) == 't_COL':  # Need explicit str(), see #15522
+        return tuple(QQ(r) for r in ret)
     return ZZ(ret)
 
 def qfparam(G, sol):
@@ -137,6 +137,6 @@ def qfparam(G, sol):
     gp = _gp_for_simon()
     R = QQ['t']
     t = R.gen()
-    s = 'Qfparam(%s, (%s)~)*[t^2,t,1]~' % (G._pari_(), gp(sol)._pari_())
-    ret = gp(s)._pari_()
-    return tuple([R(r) for r in ret])
+    s = 'Qfparam((%s), (%s)~)*[t^2,t,1]~' % (G._pari_init_(), list(sol))
+    ret = gp(s)
+    return tuple(R(str(r)) for r in ret)

@@ -85,7 +85,7 @@ def pari(x):
         sage: type(pari("dummy = 0; kill(dummy)"))
         <type 'NoneType'>
     """
-    from sage.libs.pari.pari_instance import pari
+    from sage.libs.pari.all import pari
     return pari(x)
 
 def python(z, locals=None):

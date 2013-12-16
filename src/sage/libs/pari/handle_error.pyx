@@ -79,14 +79,14 @@ cdef int _pari_handle_exception(long err) except 0:
     if err == errpile:
         # PARI is out of memory.  We double the size of the PARI stack
         # and retry the computation.
-        from sage.libs.pari.pari_instance import pari
+        from sage.libs.pari.all import pari
         pari.allocatemem(silent=True)
         return 0
 
     if err == user:
         raise RuntimeError("PARI user exception\n%s" % pari_error_string)
     else:
-        from sage.libs.pari.gen import PariError
+        from sage.libs.pari.all import PariError
         raise PariError(err, pari_error_string)
 
 cdef void _pari_err_recover(long err):

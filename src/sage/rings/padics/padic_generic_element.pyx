@@ -1839,7 +1839,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         if self.valuation() is infinity:
             return self
 
-        from sage.libs.pari.gen import PariError
+        from sage.libs.pari.all import PariError
         try:
             # use pari
             ans = self.parent()(self._pari_().sqrt())

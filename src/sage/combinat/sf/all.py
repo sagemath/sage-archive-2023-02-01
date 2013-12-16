@@ -17,8 +17,6 @@ from jack import JackPolynomialsP, JackPolynomialsJ,JackPolynomialsQ, JackPolyno
 
 lazy_import('sage.combinat.sf.kfpoly', 'KostkaFoulkesPolynomial')
 
-from llt import LLT, LLTHSpin, LLTHCospin
-
 from macdonald import MacdonaldPolynomialsP, MacdonaldPolynomialsQ, MacdonaldPolynomialsJ, MacdonaldPolynomialsH, MacdonaldPolynomialsHt, MacdonaldPolynomialsS
 
 lazy_import('sage.combinat.sf.kschur', 'kSchurFunctions')

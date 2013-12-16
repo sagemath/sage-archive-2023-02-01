@@ -2303,19 +2303,21 @@ class BranchingRule(SageObject):
         EXAMPLES::
 
             sage: branching_rule("G2","A2","extended").describe()
-            root restrictions:
-            0 => 2
-            2 => 1
-            <BLANKLINE>
-              3
+            <BLANKLINE>            
+            3
             O=<=O---O
             1   2   0
             G2~
             <BLANKLINE>
+            root restrictions G2 => A2:
+            <BLANKLINE>
             O---O
             1   2
             A2
-
+            <BLANKLINE>
+            0 => 2
+            2 => 1
+  
         In this example, `0` is the affine root, that is, the negative
         of the highest root, for `"G2"`. If `i => j` is printed, this
         means that the i-th simple (or affine) root of the ambient

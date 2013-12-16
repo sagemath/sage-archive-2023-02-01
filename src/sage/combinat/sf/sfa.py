@@ -7,8 +7,8 @@ For a comprehensive tutorial on how to use symmetric functions in Sage
 
 We define the algebra of symmetric functions in the Schur and elementary bases::
 
-    sage: s = SymmetricFunctionAlgebra(QQ, basis='schur')
-    sage: e = SymmetricFunctionAlgebra(QQ, basis='elementary')
+    sage: s = SymmetricFunctions(QQ).schur()
+    sage: e = SymmetricFunctions(QQ).elementary()
 
 Each is actually a graded Hopf algebra whose basis is indexed by
 integer partitions::
@@ -167,7 +167,7 @@ Check that we can handle large integers properly (:trac:`13413`)::
     sage: max(s(p([1]*36)).coefficients())  # long time (4s on sage.math, 2013)
     40971642983700000000
 
-RECENT BACKWARD INCOMPATIBLE CHANGES:
+BACKWARD INCOMPATIBLE CHANGES (:trac:`5457`):
 
 The symmetric functions code has been refactored to take
 advantage of the coercion systems. This introduced a couple of glitches:
@@ -225,12 +225,8 @@ from copy import copy
 
 def SymmetricFunctionAlgebra(R, basis="schur"):
     r"""
-    Return the symmetric function ring over `R` in a given basis
-    ``basis``.
-
-    .. TODO::
-
-        This is a backward compatibility function, and should be deprecated.
+    This is deprecated in :trac:`15473`. Use instead
+    :class:`SymmetricFunctions` as ``SymmetricFunctions(R).basis()``
 
     INPUT:
 
@@ -244,18 +240,11 @@ def SymmetricFunctionAlgebra(R, basis="schur"):
     EXAMPLES::
 
         sage: SymmetricFunctionAlgebra(QQ)
+        doctest:...: DeprecationWarning: this function is deprecated. Use SymmetricFunctions(R).basis()
+        See http://trac.sagemath.org/15473 for details.
         Symmetric Functions over Rational Field in the Schur basis
-
-    ::
-
-        sage: SymmetricFunctionAlgebra(QQ, basis='m')
-        Symmetric Functions over Rational Field in the monomial basis
-
-    ::
-
-        sage: SymmetricFunctionAlgebra(QQ, basis='power')
-        Symmetric Functions over Rational Field in the powersum basis
     """
+    sage.misc.superseded.deprecation(15473, "this function is deprecated. Use SymmetricFunctions(R).basis()")
     from sage.combinat.sf.sf import SymmetricFunctions
     Sym = SymmetricFunctions(R)
     if basis == 'schur' or basis == 's':
@@ -271,120 +260,6 @@ def SymmetricFunctionAlgebra(R, basis="schur"):
     else:
         raise ValueError("unknown basis (= %s)"%basis)
 
-def SFAPower(R):
-    """
-    Returns the symmetric function algebra over ``R`` with the power-sum
-    symmetric functions as the basis.
-
-    This function is deprecated.  Use instead:
-    SymmetricFunctions(R).power()
-
-    EXAMPLES::
-
-        sage: SymmetricFunctions(QQ).power()
-        Symmetric Functions over Rational Field in the powersum basis
-
-    TESTS::
-
-        sage: p = SFAPower(QQ)
-        doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).power()
-        See http://trac.sagemath.org/5457 for details.
-    """
-    sage.misc.superseded.deprecation(5457,"Deprecation warning: In the future use SymmetricFunctions(R).power()")
-    return SymmetricFunctionAlgebra(R, basis='power')
-
-
-def SFAElementary(R):
-    """
-    Returns the symmetric function algebra over ``R`` with the elementary
-    symmetric functions as the basis.
-
-    This function is deprecated.  Use instead:
-    SymmetricFunctions(R).elementary()
-
-    EXAMPLES::
-
-        sage: SymmetricFunctions(QQ).elementary()
-        Symmetric Functions over Rational Field in the elementary basis
-
-    TESTS::
-
-        sage: p = SFAElementary(QQ)
-        doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).elementary()
-        See http://trac.sagemath.org/5457 for details.
-    """
-    sage.misc.superseded.deprecation(5457,"Deprecation warning: In the future use SymmetricFunctions(R).elementary()")
-    return SymmetricFunctionAlgebra(R, basis='elementary')
-
-
-def SFAHomogeneous(R):
-    """
-    Returns the symmetric function algebra over R with the Homogeneous
-    symmetric functions as the basis.
-
-    This function is deprecated.  Use instead:
-    SymmetricFunctions(R).homogeneous()
-
-    EXAMPLES::
-
-        sage: SymmetricFunctions(QQ).homogeneous()
-        Symmetric Functions over Rational Field in the homogeneous basis
-
-    TESTS::
-
-        sage: p = SFAHomogeneous(QQ)
-        doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).homogeneous()
-        See http://trac.sagemath.org/5457 for details.
-    """
-    sage.misc.superseded.deprecation(5457,"Deprecation warning: In the future use SymmetricFunctions(R).homogeneous()")
-    return SymmetricFunctionAlgebra(R, basis='homogeneous')
-
-
-def SFASchur(R):
-    """
-    Returns the symmetric function algebra over R with the Schur
-    symmetric functions as the basis.
-
-    This function is deprecated.  Use instead:
-    SymmetricFunctions(R).schur()
-
-    EXAMPLES::
-
-        sage: SymmetricFunctions(QQ).schur()
-        Symmetric Functions over Rational Field in the Schur basis
-
-    TESTS::
-
-        sage: p = SFASchur(QQ)
-        doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).schur()
-        See http://trac.sagemath.org/5457 for details.
-    """
-    sage.misc.superseded.deprecation(5457,"Deprecation warning: In the future use SymmetricFunctions(R).schur()")
-    return SymmetricFunctionAlgebra(R, basis='schur')
-
-
-def SFAMonomial(R):
-    """
-    Returns the symmetric function algebra over R with the monomial
-    symmetric functions as the basis.
-
-    This function is deprecated.  Use instead:
-    SymmetricFunctions(R).homogeneous()
-
-    EXAMPLES::
-
-        sage: SymmetricFunctions(QQ).monomial()
-        Symmetric Functions over Rational Field in the monomial basis
-
-    TESTS::
-
-        sage: p = SFAMonomial(QQ)
-        doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).monomial()
-        See http://trac.sagemath.org/5457 for details.
-    """
-    sage.misc.superseded.deprecation(5457, "Deprecation warning: In the future use SymmetricFunctions(R).monomial()")
-    return SymmetricFunctionAlgebra(R, basis='monomial')
-
 def is_SymmetricFunctionAlgebra(x):
     """
     Checks whether ``x`` is a symmetric function algebra.
@@ -396,7 +271,7 @@ def is_SymmetricFunctionAlgebra(x):
         False
         sage: is_SymmetricFunctionAlgebra(ZZ)
         False
-        sage: is_SymmetricFunctionAlgebra(SymmetricFunctionAlgebra(ZZ,'schur'))
+        sage: is_SymmetricFunctionAlgebra(SymmetricFunctions(ZZ).schur())
         True
         sage: is_SymmetricFunctionAlgebra(SymmetricFunctions(QQ).e())
         True

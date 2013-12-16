@@ -35,10 +35,6 @@ set -e
 SAGE_VERSION=`echo "$1" | sed 's/^sage-//'`
 SAGE_RELEASE_DATE=`date -u +'%Y-%m-%d'`
 
-# Update Sage version file
-echo "Sage version $SAGE_VERSION, released $SAGE_RELEASE_DATE" \
-    > "$SAGE_ROOT/VERSION.txt"
-
 # Update Sage version file for Python in SAGE_SRC/sage
 cat <<EOF > "$SAGE_SRC/sage/version.py"
 """nodoctests"""
@@ -47,6 +43,13 @@ cat <<EOF > "$SAGE_SRC/sage/version.py"
 version = '$SAGE_VERSION'
 date = '$SAGE_RELEASE_DATE'
 EOF
+
+# Rebuild the Sage library for the change in version.py to take effect
+"$SAGE_ROOT/sage" -b
+
+# Update Sage version file
+echo "Sage version $SAGE_VERSION, released $SAGE_RELEASE_DATE" \
+    > "$SAGE_ROOT/VERSION.txt"
 
 # Update Sage version file for shell scripts in SAGE_SRC/bin/version.sh
 cat <<EOF > "$SAGE_SRC/bin/sage-version.sh"

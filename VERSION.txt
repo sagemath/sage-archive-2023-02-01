@@ -1,1 +1,1 @@
-Sage version 6.0.rc0, released 2013-12-16
+Sage version 6.0.rc1, released 2013-12-17

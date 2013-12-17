@@ -2913,7 +2913,7 @@ cdef class gen(sage.structure.element.RingElement):
             [-0.414213562373095, 2.41421356237310]~
             sage: pari('Mod(x,x^3-3)').conjvec()
             [1.44224957030741, -0.721124785153704 + 1.24902476648341*I, -0.721124785153704 - 1.24902476648341*I]~
-            sage: pari('Mod(1+x,x^2-2)').conjvec(precision=160)[0].sage()
+            sage: pari('Mod(1+x,x^2-2)').conjvec(precision=192)[0].sage()
             -0.414213562373095048801688724209698078569671875376948073177
         """
         pari_catch_sig_on()
@@ -3933,7 +3933,7 @@ cdef class gen(sage.structure.element.RingElement):
 
             sage: pari(18).bernreal()
             54.9711779448622
-            sage: pari(18).bernreal(precision=160).sage()
+            sage: pari(18).bernreal(precision=192).sage()
             54.9711779448621553884711779448621553884711779448621553885
         """
         pari_catch_sig_on()
@@ -5904,8 +5904,8 @@ cdef class gen(sage.structure.element.RingElement):
             sage: e = pari([0,1,1,-2,0]).ellinit()
             sage: e.elllseries(2.1)
             0.402838047956645
-            sage: e.elllseries(1)
-            -5.24750372566629 E-19
+            sage: e.elllseries(1, precision=128)
+            2.87490929644255 E-38
             sage: e.elllseries(1, precision=256)
             3.00282377034977 E-77
             sage: e.elllseries(-2)
@@ -6303,7 +6303,8 @@ cdef class gen(sage.structure.element.RingElement):
             sage: e = pari([0,0,0,1,0]).ellinit()
             sage: C.<i> = ComplexField()
             sage: e.ellztopoint(1+i)
-            [7.96075508054992 E-21 - 1.02152286795670*I, -0.149072813701096 - 0.149072813701096*I]
+            [0.E-19                - 1.02152286795670*I, -0.149072813701096 - 0.149072813701096*I]  # 32-bit
+            [7.96075508054992 E-21 - 1.02152286795670*I, -0.149072813701096 - 0.149072813701096*I]  # 64-bit
 
         Complex numbers belonging to the period lattice of e are of course
         sent to the point at infinity on e::

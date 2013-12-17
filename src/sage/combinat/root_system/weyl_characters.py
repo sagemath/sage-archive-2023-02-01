@@ -2317,6 +2317,8 @@ class BranchingRule(SageObject):
             <BLANKLINE>
             0 => 2
             2 => 1
+            <BLANKLINE>
+            for more detailed information use verbose=True
   
         In this example, `0` is the affine root, that is, the negative
         of the highest root, for `"G2"`. If `i => j` is printed, this
@@ -2336,10 +2338,10 @@ class BranchingRule(SageObject):
         if self._S.is_compound():
             for j in range(len(self._S.component_types())):
                 ctype = self._S.component_types()[j]
-                component_rule = self*branching_rule(self._S, ctype,"proj%s"%j)
+                component_rule = self*branching_rule(self._S, ctype,"proj%s"%(j+1))
                 print "projection %d on %s "%(j+1, ctype._repr_(compact=True)),
                 component_rule.describe(verbose=verbose, no_r=True)
-                print "for information on all roots use verbose=True"
+            print "\nfor more detailed information use verbose=True"
         else:
             print "root restrictions %s => %s:"%(self._R._repr_(compact=True),self._S._repr_(compact=True))
             print "\n%s\n"%(self._S.dynkin_diagram().__repr__())
@@ -2372,6 +2374,8 @@ class BranchingRule(SageObject):
                     done = True
                     if verbose:
                         print "%s => weight %s"%(j,resr)
+            if not no_r:
+                print "\nfor more detailed information use verbose=True"
 
 def get_branching_rule(Rtype, Stype, rule="default"):
     """
@@ -2451,7 +2455,6 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                     return get_branching_rule(Rtype, Stype, rule="levi")
                 except StandardError:
                     pass
-
             if Rtype[0] == "A":
                 if Stype[0] == "B" and r == 2*s:
                     return get_branching_rule(Rtype, Stype, rule="symmetric")

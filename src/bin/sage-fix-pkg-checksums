@@ -1,4 +1,4 @@
-#/usr/bin/env bash
+#!/usr/bin/env bash
 
 for upstream in $SAGE_ROOT/upstream/*.tar*
 do

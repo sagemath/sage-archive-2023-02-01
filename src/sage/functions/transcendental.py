@@ -28,9 +28,10 @@ from sage.structure.coerce import parent
 from sage.symbolic.expression import Expression
 from sage.functions.log import exp
 
-from sage.rings.all import (is_RealNumber, RealField,
-                            is_ComplexNumber, ComplexField,
+from sage.rings.all import (ComplexField,
                             ZZ, RR, RDF, CDF, prime_range)
+from sage.rings.complex_number import is_ComplexNumber
+from sage.rings.real_mpfr import (RealField, is_RealNumber)
 
 from sage.symbolic.function import GinacFunction, BuiltinFunction, is_inexact
 

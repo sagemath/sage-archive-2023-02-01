@@ -90,8 +90,9 @@ def init_sage():
           + x
     """
     # Do this once before forking.
-    import sage.all_cmdline
+    import sage.doctest
     sage.doctest.DOCTEST_MODE=True
+    import sage.all_cmdline
     sage.interfaces.quit.invalidate_all()
     import sage.misc.displayhook
     sys.displayhook = sage.misc.displayhook.DisplayHook(sys.displayhook)

@@ -69,8 +69,8 @@ computer:
   a wide variety of C compilers is supported.
   Many GCC versions work,
   from as old as version 3.4.3 to the most recent release.
+  Clang also works.
   On Solaris systems, the Sun compiler should also work.
-  Clang currently does not work.
   See also `Using alternative compilers`_.
 - **make**: GNU make, version 3.80 or later. Version 3.82 or later is recommended.
 - **m4**: GNU m4 1.4.2 or later (non-GNU or older versions might also work).
@@ -217,15 +217,16 @@ Using alternative compilers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Sage developers tend to use fairly recent versions of GCC.
-Nonetheless, Sage build process should succeed with any reasonable C compiler.
+Nonetheless, the Sage build process should succeed with any reasonable C compiler.
 This is because Sage will build GCC first (if needed) and then use that newly
 built GCC to compile Sage.
 
 If you don't want this and want to try building Sage with a different set of
 compilers,
 you need to set the environment variable :envvar:`SAGE_INSTALL_GCC` to ``no``.
+Make sure you have C, C++ and Fortran compilers installed!
 
-Clang is currently not supported, see :trac:`12426`.
+Building all of Sage with Clang is currently not supported, see :trac:`12426`.
 
 If you are interested in working on support for commerical compilers from
 `HP <http://docs.hp.com/en/5966-9844/ch01s03.html>`_,
@@ -1309,4 +1310,4 @@ would be appropriate if you have a Core i3/5/7 processor with AVX support.
 
 
 
-**This page was last updated in June 2013 (Sage 5.10).**
+**This page was last updated in October 2013 (Sage 5.12).**

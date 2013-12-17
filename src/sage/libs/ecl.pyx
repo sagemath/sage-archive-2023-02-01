@@ -105,12 +105,10 @@ def test_sigint_before_ecl_sig_on():
     ordinary KeyboardInterrupt::
 
         sage: from sage.libs.ecl import test_sigint_before_ecl_sig_on
-        sage: try:
-        ...     test_sigint_before_ecl_sig_on()
-        ... except KeyboardInterrupt:
-        ...     print "Success!"
+        sage: test_sigint_before_ecl_sig_on()
+        Traceback (most recent call last):
         ...
-        Success!
+        KeyboardInterrupt
     """
     # Raise a SIGINT *now*.  Since we are outside of sig_on() at this
     # point, this SIGINT will not be seen yet.

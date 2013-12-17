@@ -64,7 +64,7 @@ wget --timestamping http://pari.math.u-bordeaux.fr/pub/pari/packages/seadata-sma
 
 
 # Use the specified git version
-git checkout pari-2.5.4
+git checkout pari-2.5.5
 
 
 # make pari (must run bison, etc...) but disable optimization to speed

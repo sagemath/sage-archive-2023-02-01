@@ -103,6 +103,47 @@ cdef class Morphism(Map):
     def is_endomorphism(self):
         return self.parent().is_endomorphism_set()
 
+    def is_identity(self):
+        """
+        Return true if this morphism is the identity morphism.
+
+        .. NOTE::
+
+            Implemented only when the domain has a method gens()
+
+        EXAMPLES:
+
+            sage: R.<t> = ZZ[]
+            sage: f = R.hom([t])
+            sage: f.is_identity()
+            True
+            sage: g = R.hom([t+1])
+            sage: g.is_identity()
+            False
+
+        A morphism between two different spaces can't be the identity::
+
+            sage: R2.<t2> = QQ[]
+            sage: h = R.hom([t2])
+            sage: h.is_identity()
+            False
+
+        AUTHOR:
+
+        - Xavier Caruso (2012-06-29)
+        """
+        domain = self.domain()
+        if domain != self.codomain():
+            return False
+        try:
+            gens = domain.gens()
+            for x in gens:
+                if self(x) != x:
+                    return False
+            return True
+        except (AttributeError, NotImplementedError):
+            return NotImplementedError
+
     def __invert__(self):  # notation in python is (~f) for the inverse of f.
         raise NotImplementedError
 
@@ -174,6 +215,56 @@ cdef class Morphism(Map):
             -1
         """
         self.codomain().register_conversion(self)
+
+    # You *must* override this method in all cython classes
+    # deriving from this class.
+    # If you are happy with this implementation (typically
+    # is your domain has generators), simply write:
+    # def __hash__(self):
+    #     return Morphism.__hash__(self)
+    def __hash__(self):
+        """
+        Return a hash of this morphism.
+
+        It is the hash of the triple (domain, codomain, definition)
+        where ``definition`` is:
+
+        - a tuple consisting of the images of the generators
+          of the domain if domain has generators
+
+        - the string representation of this morphism otherwise
+
+        AUTHOR:
+
+        - Xavier Caruso (2012-07-09)
+        """
+        domain = self.domain()
+        codomain = self.codomain()
+        try:
+            gens = domain.gens()
+            definition = tuple([self(x) for x in gens])
+        except (AttributeError, NotImplementedError):
+            definition = self.__repr__()
+        return hash((domain, codomain, definition))
+
+    def __richcmp__(left, right, int op):
+        return (<Element>left)._richcmp(right, op)
+
+    cdef int _cmp_c_impl(left, Element right) except -2:
+        if left is right: return 0
+        domain = left.domain()
+        c = cmp(domain, right.domain())
+        if c: return c
+        c = cmp(left.codomain(), right.codomain())
+        if c: return c
+        try:
+            gens = domain.gens()
+            for x in gens:
+                c = cmp(left(x), right(x))
+                if c: return c
+        except (AttributeError, NotImplementedError):
+            raise NotImplementedError
+
 
 cdef class FormalCoercionMorphism(Morphism):
     def __init__(self, parent):

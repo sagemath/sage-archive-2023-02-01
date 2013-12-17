@@ -385,8 +385,8 @@ class Category_ideal(Category_in_ambient):
         """
         if super(Category_ideal, self).__contains__(x):
             return True
-        import sage.rings.all
-        if sage.rings.all.is_Ideal(x) and x.ring() == self.ring():
+        from sage.rings.ideal import is_Ideal
+        if is_Ideal(x) and x.ring() == self.ring():
             return True
         return False
 

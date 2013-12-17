@@ -71,6 +71,9 @@ import sage.rings.arith                     as arith
 import sage.rings.number_field.number_field as number_field
 import sage.structure.parent_gens           as parent_gens
 
+from sage.rings.rational_field import is_RationalField
+from sage.rings.ring import is_Ring
+
 from sage.misc.cachefunc                    import cached_method
 from sage.rings.arith                       import binomial, bernoulli
 from sage.structure.element                 import MultiplicativeGroupElement
@@ -845,7 +848,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         G = self.parent()
         K = G.base_ring()
-        if not (rings.is_CyclotomicField(K) or rings.is_RationalField(K)):
+        if not (rings.is_CyclotomicField(K) or is_RationalField(K)):
             raise NotImplementedError, "Gauss sums only currently implemented when the base ring is a cyclotomic field or QQ."
         g = 0
         m = G.modulus()
@@ -908,7 +911,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         G = self.parent()
         K = G.base_ring()
-        if not (rings.is_CyclotomicField(K) or rings.is_RationalField(K)):
+        if not (rings.is_CyclotomicField(K) or is_RationalField(K)):
             raise NotImplementedError, "Gauss sums only currently implemented when the base ring is a cyclotomic field or QQ."
         phi = K.complex_embedding(prec)
         CC = phi.codomain()
@@ -1065,7 +1068,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         G = self.parent()
         K = G.base_ring()
-        if not (rings.is_CyclotomicField(K) or rings.is_RationalField(K)):
+        if not (rings.is_CyclotomicField(K) or is_RationalField(K)):
             raise NotImplementedError, "Kloosterman sums only currently implemented when the base ring is a cyclotomic field or QQ."
         g = 0
         m = G.modulus()
@@ -1112,7 +1115,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         G = self.parent()
         K = G.base_ring()
-        if not (rings.is_CyclotomicField(K) or rings.is_RationalField(K)):
+        if not (rings.is_CyclotomicField(K) or is_RationalField(K)):
             raise NotImplementedError, "Kloosterman sums only currently implemented when the base ring is a cyclotomic field or QQ."
         phi = K.complex_embedding(prec)
         CC = phi.codomain()
@@ -1741,7 +1744,7 @@ def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None,
         if integral:
             base_ring = base_ring.ring_of_integers()
 
-    if not rings.is_Ring(base_ring):
+    if not is_Ring(base_ring):
         raise TypeError, "base_ring (=%s) must be a ring"%base_ring
 
     if zeta is None:

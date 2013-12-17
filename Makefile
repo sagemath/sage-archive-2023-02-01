@@ -21,6 +21,12 @@ build: logs
 		"tee -a ../logs/install.log"
 	./sage -b
 
+# Preemptively download all standard upstream source tarballs.
+download:
+	export SAGE_ROOT=$$(pwd) && \
+	export PATH=$$SAGE_ROOT/src/bin:$$PATH && \
+	./src/bin/sage-download-upstream
+
 # ssl: build Sage, and also install pyOpenSSL. This is necessary for
 # running the secure notebook. This make target requires internet
 # access. Note that this requires that your system have OpenSSL

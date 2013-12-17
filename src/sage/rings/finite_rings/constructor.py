@@ -68,7 +68,7 @@ EXAMPLES::
 ::
 
     sage: k = GF(3^16,'c'); type(k)
-    <class 'sage.rings.finite_rings.finite_field_ext_pari.FiniteField_ext_pari_with_category'>
+    <class 'sage.rings.finite_rings.finite_field_pari_ffelt.FiniteField_pari_ffelt_with_category'>
 
 Finite Fields support iteration, starting with 0.
 
@@ -112,7 +112,7 @@ We output the base rings of several finite fields.
 ::
 
     sage: k = GF(3^40,'b'); type(k)
-    <class 'sage.rings.finite_rings.finite_field_ext_pari.FiniteField_ext_pari_with_category'>
+    <class 'sage.rings.finite_rings.finite_field_pari_ffelt.FiniteField_pari_ffelt_with_category'>
     sage: k.base_ring()
     Finite Field of size 3
 
@@ -168,7 +168,6 @@ import sage.rings.polynomial.multi_polynomial_element as multi_polynomial_elemen
 from finite_field_givaro import FiniteField_givaro
 
 import sage.interfaces.gap
-import sage.databases.conway
 
 from sage.structure.factory import UniqueFactory
 
@@ -180,44 +179,34 @@ class FiniteFieldFactory(UniqueFactory):
 
     INPUT:
 
+    - ``order`` -- a prime power
 
-    -  ``order`` - int
+    - ``name`` -- string; must be specified unless ``order`` is prime.
 
-    -  ``name`` - string; must be specified if not a prime
-       field
+    - ``modulus`` -- (optional) either a defining polynomial for the
+      field, or a string specifying an algorithm to use to generate
+      such a polynomial.  If ``modulus`` is a string, it is passed to
+      :meth:`~sage.rings.polynomial.irreducible_element()` as the
+      parameter ``algorithm``; see there for the permissible values of
+      this parameter.
 
-    -  ``modulus`` - (optional) either a defining polynomial for the
-       field, i.e., generator of the field will be a root of this
-       polynomial; or a string:
+    - ``elem_cache`` -- cache all elements to avoid creation time
+      (default: order < 500)
 
-          - 'conway': force the use of a Conway polynomial, will
-            raise a RuntimeError if none is found in the database;
-          - 'random': use a random irreducible polynomial;
-          - 'default': a Conway polynomial is used if found. Otherwise
-            a sparse polynomial is used for binary fields and a
-            random polynomial is used for other characteristics.
+    - ``check_irreducible`` -- verify that the polynomial modulus is
+      irreducible
 
-       Other options might be available depending on the
-       implementation.
-
-    -  ``elem_cache`` - cache all elements to avoid
-       creation time (default: order < 500)
-
-    -  ``check_irreducible`` - verify that the polynomial
-       modulus is irreducible
-
-    - ``proof`` -- bool (default: True); if True use provable
+    - ``proof`` -- bool (default: ``True``): if ``True``, use provable
       primality test; otherwise only use pseudoprimality test.
 
-    -  ``args`` - additional parameters passed to finite
-       field implementations
+    - ``args`` -- additional parameters passed to finite field
+      implementations
 
-    -  ``kwds`` - additional keyword parameters passed to
-       finite field implementations
+    - ``kwds`` -- additional keyword parameters passed to finite field
+      implementations
 
-
-    ALIAS: You can also use GF instead of FiniteField - they are
-    identical.
+    ALIAS: You can also use ``GF`` instead of ``FiniteField`` -- they
+    are identical.
 
     EXAMPLES::
 
@@ -229,9 +218,14 @@ class FiniteFieldFactory(UniqueFactory):
         y^2 + 2*y + 2
 
     We illustrate the proof flag.  The following example would hang
-    for a very long time if we didn't use proof=False.  (NOTE: Magma
-    only supports proof=False for making finite fields, so falsely
-    appears to be faster than Sage -- see Trac 10975.)::
+    for a very long time if we didn't use ``proof=False``.
+
+    .. NOTE::
+
+        Magma only supports ``proof=False`` for making finite fields,
+        so falsely appears to be faster than Sage -- see :trac:10975.
+
+    ::
 
         sage: k = FiniteField(10^1000 + 453, proof=False)
         sage: k = FiniteField((10^1000 + 453)^2, 'a', proof=False)      # long time -- about 5 seconds
@@ -247,21 +241,20 @@ class FiniteFieldFactory(UniqueFactory):
 
     The modulus must be irreducible::
 
-        sage: K.<a> = GF(5**5, name='a', modulus=x^5 - x )
+        sage: K.<a> = GF(5**5, name='a', modulus=x^5 - x)
         Traceback (most recent call last):
         ...
         ValueError: finite field modulus must be irreducible but it is not.
 
-    You can't accidentally fool the constructor into thinking the modulus
-    is irreducible when it isn't mod p, since it actually tests
-    irreducibility modulo p.  Also, the modulus has to be of the right degree.
-
-    ::
+    You can't accidentally fool the constructor into thinking the
+    modulus is irreducible when it is not, since it actually tests
+    irreducibility modulo `p`.  Also, the modulus has to be of the
+    right degree::
 
         sage: F.<x> = QQ[]
         sage: factor(x^5 + 2)
         x^5 + 2
-        sage: K.<a> = GF(5**5, name='a', modulus=x^5 + 2 )
+        sage: K.<a> = GF(5**5, name='a', modulus=x^5 + 2)
         Traceback (most recent call last):
         ...
         ValueError: finite field modulus must be irreducible but it is not.
@@ -272,16 +265,15 @@ class FiniteFieldFactory(UniqueFactory):
         cardinality of the field.
 
     If you wish to live dangerously, you can tell the constructor not
-    to test irreducibility using check_irreducible=False, but this can
-    easily lead to crashes and hangs - so do not do it unless you know
-    that the modulus really is irreducible and has the correct degree!
+    to test irreducibility using ``check_irreducible=False``, but this
+    can easily lead to crashes and hangs -- so do not do it unless you
+    know that the modulus really is irreducible and has the correct
+    degree!
 
     ::
 
         sage: F.<x> = GF(5)[]
         sage: K.<a> = GF(5**2, name='a', modulus=x^2 + 2, check_irreducible=False)
-
-    ::
 
         sage: L = GF(3**2, name='a', modulus=QQ[x](x - 1), check_irreducible=False)
         sage: L.list()  # random
@@ -308,9 +300,7 @@ class FiniteFieldFactory(UniqueFactory):
         True
 
     We check that various ways of creating the same finite field yield
-    the same object, which is cached.
-
-    ::
+    the same object, which is cached::
 
         sage: K = GF(7, 'a')
         sage: L = GF(7, 'b')
@@ -325,16 +315,42 @@ class FiniteFieldFactory(UniqueFactory):
         sage: K is M
         True
 
-    You may print finite field elements as integers. This
-    currently only works if the order of field is `<2^{16}`,
-    though.
-
-    ::
+    You may print finite field elements as integers. This currently
+    only works if the order of field is `<2^{16}`, though::
 
         sage: k.<a> = GF(2^8, repr='int')
         sage: a
         2
 
+    The following demonstrate coercions for finite fields using Conway
+    polynomials::
+
+        sage: k = GF(5^2, conway=True, prefix='z'); a = k.gen()
+        sage: l = GF(5^5, conway=True, prefix='z'); b = l.gen()
+        sage: a + b
+        3*z10^5 + z10^4 + z10^2 + 3*z10 + 1
+
+    Note that embeddings are compatible in lattices of such finite
+    fields::
+
+        sage: m = GF(5^3, conway=True, prefix='z'); c = m.gen()
+        sage: (a+b)+c == a+(b+c)
+        True
+        sage: (a*b)*c == a*(b*c)
+        True
+        sage: from sage.categories.pushout import pushout
+        sage: n = pushout(k, l)
+        sage: o = pushout(l, m)
+        sage: q = pushout(n, o)
+        sage: q(o(b)) == q(n(b))
+        True
+
+    Another check that embeddings are defined properly::
+
+        sage: k = GF(3**10, conway=True, prefix='z')
+        sage: l = GF(3**20, conway=True, prefix='z')
+        sage: l(k.gen()**10) == l(k.gen())**10
+        True
     """
     def create_key_and_extra_args(self, order, name=None, modulus=None, names=None,
                                   impl=None, proof=None, **kwds):
@@ -363,6 +379,51 @@ class FiniteFieldFactory(UniqueFactory):
                 name = normalize_names(1,name)
 
                 p, n = arith.factor(order)[0]
+
+                # The following is a temporary solution that allows us
+                # to construct compatible systems of finite fields
+                # until algebraic closures of finite fields are
+                # implemented in Sage.  It requires the user to
+                # specify two parameters:
+                #
+                # - `conway` -- boolean; if True, this field is
+                #   constructed to fit in a compatible system using
+                #   a Conway polynomial.
+                # - `prefix` -- a string used to generate names for
+                #   automatically constructed finite fields
+                #
+                # See the docstring of FiniteFieldFactory for examples.
+                #
+                # Once algebraic closures of finite fields are
+                # implemented, this syntax should be superseded by
+                # something like the following:
+                #
+                #     sage: Fpbar = GF(5).algebraic_closure('z')
+                #     sage: F, e = Fpbar.subfield(3)  # e is the embedding into Fpbar
+                #     sage: F
+                #     Finite field in z3 of size 5^3
+                #
+                # This temporary solution only uses actual Conway
+                # polynomials (no pseudo-Conway polynomials), since
+                # pseudo-Conway polynomials are not unique, and until
+                # we have algebraic closures of finite fields, there
+                # is no good place to store a specific choice of
+                # pseudo-Conway polynomials.
+                if name is None:
+                    if not (kwds.has_key('conway') and kwds['conway']):
+                        raise ValueError("parameter 'conway' is required if no name given")
+                    if not kwds.has_key('prefix'):
+                        raise ValueError("parameter 'prefix' is required if no name given")
+                    name = kwds['prefix'] + str(n)
+
+                if kwds.has_key('conway') and kwds['conway']:
+                    from conway_polynomials import conway_polynomial
+                    if not kwds.has_key('prefix'):
+                        raise ValueError("a prefix must be specified if conway=True")
+                    if modulus is not None:
+                        raise ValueError("no modulus may be specified if conway=True")
+                    # The following raises a RuntimeError if no polynomial is found.
+                    modulus = conway_polynomial(p, n)
 
                 if modulus is None or isinstance(modulus, str):
                     # A string specifies an algorithm to find a suitable modulus.
@@ -416,7 +477,7 @@ class FiniteFieldFactory(UniqueFactory):
             # Using a check option here is probably a worthwhile
             # compromise since this constructor is simple and used a
             # huge amount.
-            K = FiniteField_prime_modn(order, check=False, **kwds)
+            K = FiniteField_prime_modn(order, check=False)
         else:
             # We have to do this with block so that the finite field
             # constructors below will use the proof flag that was
@@ -443,21 +504,29 @@ class FiniteFieldFactory(UniqueFactory):
                     elif order % 2 == 0:
                         impl = 'ntl'
                     else:
-                        impl = 'pari_mod'
+                        impl = 'pari_ffelt'
                 if impl == 'givaro':
-                    K = FiniteField_givaro(order, name, modulus, cache=elem_cache,**kwds)
+                    if kwds.has_key('repr'):
+                        repr = kwds['repr']
+                    else:
+                        repr = 'poly'
+                    K = FiniteField_givaro(order, name, modulus, repr=repr, cache=elem_cache)
                 elif impl == 'ntl':
                     from finite_field_ntl_gf2e import FiniteField_ntl_gf2e
-                    K = FiniteField_ntl_gf2e(order, name, modulus, **kwds)
+                    K = FiniteField_ntl_gf2e(order, name, modulus)
                 elif impl == 'pari_ffelt':
                     from finite_field_pari_ffelt import FiniteField_pari_ffelt
-                    K = FiniteField_pari_ffelt(p, modulus, name, **kwds)
+                    K = FiniteField_pari_ffelt(p, modulus, name)
                 elif (impl == 'pari_mod'
                       or impl == 'pari'):    # for unpickling old pickles
                     from finite_field_ext_pari import FiniteField_ext_pari
-                    K = FiniteField_ext_pari(order, name, modulus, **kwds)
+                    K = FiniteField_ext_pari(order, name, modulus)
                 else:
                     raise ValueError("no such finite field implementation: %s" % impl)
+
+            # Temporary; see create_key_and_extra_args() above.
+            if kwds.has_key('prefix'):
+                K._prefix = kwds['prefix']
 
         return K
 
@@ -528,84 +597,5 @@ def is_PrimeFiniteField(x):
 
     return isinstance(x, FiniteField_prime_modn) or \
            (isinstance(x, FiniteField_generic) and x.degree() == 1)
-
-##################################################################
-
-def conway_polynomial(p, n):
-    r"""
-    Return the Conway polynomial of degree n over GF(p), which is
-    loaded from a table.
-
-    If the requested polynomial is not known, this function raises a
-    RuntimeError exception.
-
-    INPUT:
-
-
-    -  ``p`` - int
-
-    -  ``n`` - int
-
-
-    OUTPUT:
-
-
-    -  ``Polynomial`` - a polynomial over the prime finite
-       field GF(p).
-
-
-    .. note::
-
-       The first time this function is called a table is read from
-       disk, which takes a fraction of a second. Subsequent calls do
-       not require reloading the table.
-
-    See also the ``ConwayPolynomials()`` object, which is a
-    table of Conway polynomials. For example, if
-    ``c=ConwayPolynomials()``, then
-    ``c.primes()`` is a list of all primes for which the
-    polynomials are known, and for a given prime `p`,
-    ``c.degree(p)`` is a list of all degrees for which the
-    Conway polynomials are known.
-
-    EXAMPLES::
-
-        sage: conway_polynomial(2,5)
-        x^5 + x^2 + 1
-        sage: conway_polynomial(101,5)
-        x^5 + 2*x + 99
-        sage: conway_polynomial(97,101)
-        Traceback (most recent call last):
-        ...
-        RuntimeError: requested conway polynomial not in database.
-    """
-    (p,n)=(int(p),int(n))
-    R = FiniteField(p)['x']
-    try:
-        return R(sage.databases.conway.ConwayPolynomials()[p][n])
-    except KeyError:
-        raise RuntimeError("requested conway polynomial not in database.")
-
-def exists_conway_polynomial(p, n):
-    r"""
-    Return True if the Conway polynomial over `F_p` of degree
-    `n` is in the database and False otherwise.
-
-    If the Conway polynomial is in the database, to obtain it use the
-    command ``conway_polynomial(p,n)``.
-
-    EXAMPLES::
-
-        sage: exists_conway_polynomial(2,3)
-        True
-        sage: exists_conway_polynomial(2,-1)
-        False
-        sage: exists_conway_polynomial(97,200)
-        False
-        sage: exists_conway_polynomial(6,6)
-        False
-    """
-    return sage.databases.conway.ConwayPolynomials().has_polynomial(p,n)
-
 
 zech_log_bound = 2**16

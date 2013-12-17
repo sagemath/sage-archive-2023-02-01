@@ -13,8 +13,10 @@ test.spyx
 --advanced
 -c
 --cython
+--dev
 --ecl
 --experimental
+--fixdoctests
 --gap
 --gdb
 --gp
@@ -384,6 +386,47 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         ...
         RuntimeError: refusing to run doctests...
 
+    Now run a test for the fixdoctests script and, in particular, check that the
+    issues raised in :trac:`10589` are fixed. We have to go to slightly silly
+    lengths to doctest the output.::
+
+        sage: test='r\"\"\"Add a doc-test for the fixdoctest command line option and, in particular, check that\n:trac:`10589` is fixed.\n\nEXAMPLES::\n\n    sage: 1+1              # incorrect output\n    3\n    sage: m=matrix(ZZ,3)   # output when none is expected\n    [0 0 0]\n    [0 0 0]\n    [1 0 0]\n    sage: (2/3)*m          # no output when it is expected\n    sage: mu=PartitionTuple([[4,4],[3,3,2,1],[1,1]])   # output when none is expected\n    [4, 4, 3, 3, 2, 1, 1]\n    sage: mu.pp()          # uneven indentation\n    ****\n    ****\n    sage: PartitionTuples.global_options(convention="French")\n    sage: mu.pp()         # fix doctest with uneven indentation\n    sage: PartitionTuples.global_options.reset()\n\"\"\"\n'
+        sage: test_file = os.path.join(tmp_dir(), 'test_file.py')
+        sage: F = open(test_file, 'w')
+        sage: F.write(test)
+        sage: F.close()
+        sage: (out, err, ret) = test_executable(["sage", "--fixdoctests", test_file])
+        sage: print err
+        <BLANKLINE>
+        sage: output=out.replace('sage:', 'SAGE:')  # so we don't doctest the output
+        sage: print output[output.find('     SAGE: 1+1'):output.find('reset()')+7]
+             SAGE: 1+1              # incorrect output
+        -    3
+        +    2
+             SAGE: m=matrix(ZZ,3)   # output when none is expected
+        +    SAGE: (2/3)*m          # no output when it is expected
+             [0 0 0]
+             [0 0 0]
+        -    [1 0 0]
+        -    SAGE: (2/3)*m          # no output when it is expected
+        +    [0 0 0]
+             SAGE: mu=PartitionTuple([[4,4],[3,3,2,1],[1,1]])   # output when none is expected
+        -    [4, 4, 3, 3, 2, 1, 1]
+             SAGE: mu.pp()          # uneven indentation
+        -    ****
+        -    ****
+        +       ****   ***   *
+        +       ****   ***   *
+        +              **
+        +              *
+             SAGE: PartitionTuples.global_options(convention="French")
+             SAGE: mu.pp()         # fix doctest with uneven indentation
+        +    *
+        +    **
+        +    ****   ***   *
+        +    ****   ***   *
+             SAGE: PartitionTuples.global_options.reset()
+
     Test external programs being called by Sage::
 
         sage: (out, err, ret) = test_executable(["sage", "--sh"], "echo Hello World\nexit 42\n")
@@ -419,6 +462,17 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         Cython (http://cython.org) is a compiler for code written in the
         Cython language.  Cython is based on Pyrex by Greg Ewing.
         ...
+
+        sage: (out, err, ret) = test_executable(["sage", "--dev", "help"])
+        sage: ret, err
+        (0, '')
+        sage: print out    # random output
+        usage: sage-dev [-h] subcommand ...
+        <BLANKLINE>
+        The developer interface for sage.
+        ...
+        sage: ('usage: sage-dev' in out) or ('Developer interface disabled' in out)
+        True
 
         sage: (out, err, ret) = test_executable(["sage", "--ecl"], "(* 12345 54321)\n")
         sage: out.find("Embeddable Common-Lisp") >= 0

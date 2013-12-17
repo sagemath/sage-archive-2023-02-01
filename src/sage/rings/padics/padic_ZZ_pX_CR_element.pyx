@@ -193,7 +193,7 @@ from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 from sage.libs.pari.gen import gen as pari_gen
 from sage.interfaces.gp import GpElement
-from sage.rings.all import is_IntegerMod
+from sage.rings.finite_rings.integer_mod import is_IntegerMod
 from sage.rings.padics.padic_ext_element cimport pAdicExtElement
 from sage.rings.padics.precision_error import PrecisionError
 

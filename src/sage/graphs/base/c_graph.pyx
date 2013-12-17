@@ -2656,16 +2656,22 @@ class CGraphBackend(GenericGraphBackend):
            False
 
         A graph with non-integer vertex labels::
+
             sage: Graph(graphs.CubeGraph(3), implementation='c_graph').is_connected()
             True
         """
-        cdef int v_int = 0
-        v_int = bitset_first((<CGraph>self._cg).active_vertices)
+        cdef int v_int
+        cdef CGraph cg = <CGraph> self._cg
+
+        if cg.num_edges() < cg.num_verts - 1:
+            return False
+
+        v_int = bitset_first(cg.active_vertices)
 
         if v_int == -1:
             return True
-        v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
-        return len(list(self.depth_first_search(v, ignore_direction=True))) == (<CGraph>self._cg).num_verts
+        v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, cg)
+        return len(list(self.depth_first_search(v, ignore_direction=True))) == cg.num_verts
 
     def is_strongly_connected(self):
         r"""

@@ -1680,7 +1680,7 @@ def sage_getsourcelines(obj, is_binary=False):
 
         sage: from sage.misc.sageinspect import sage_getsourcelines
         sage: sage_getsourcelines(matrix, True)[1]
-        731
+        732
         sage: sage_getsourcelines(matrix, False)[0][0][6:]
         'MatrixFactory(object):\n'
 
@@ -1697,7 +1697,7 @@ def sage_getsourcelines(obj, is_binary=False):
         sage: sage_getsourcelines(obj)
         (['def create_set_partition_function(letter, k):\n',
         ...
-        '    raise ValueError("k must be an integer or an integer + 1/2")\n'], 31)
+        '    raise ValueError("k must be an integer or an integer + 1/2")\n'], 32)
 
     Here are some cases that were covered in :trac`11298`;
     note that line numbers may easily change, and therefore we do

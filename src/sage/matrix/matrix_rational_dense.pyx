@@ -2636,7 +2636,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             sage: matrix(QQ,2,[1,2,2,4])._invert_pari()
             Traceback (most recent call last):
             ...
-            PariError: non invertible matrix in gauss (16)
+            PariError: non invertible matrix in gauss
         """
         if self._nrows != self._ncols:
             raise ValueError("self must be a square matrix")

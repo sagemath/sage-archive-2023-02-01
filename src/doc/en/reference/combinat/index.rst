@@ -7,6 +7,7 @@ Combinatorics
    sage/combinat/tutorial
    sage/combinat/combinat
    sage/combinat/sloane_functions
+   sage/databases/oeis
    sage/combinat/expnums
    sage/combinat/alternating_sign_matrix
    sage/combinat/cartesian_product
@@ -23,6 +24,8 @@ Combinatorics
    sage/combinat/tamari_lattices
    sage/combinat/e_one_star
    sage/combinat/finite_class
+   sage/combinat/hall_polynomial
+   sage/combinat/matrices/hadamard_matrix
    sage/combinat/integer_list
    sage/combinat/integer_matrices
    sage/combinat/integer_vector
@@ -30,7 +33,6 @@ Combinatorics
    sage/combinat/integer_vectors_mod_permgroup
    sage/combinat/enumeration_mod_permgroup
    sage/combinat/restricted_growth
-   sage/combinat/yamanouchi
    sage/combinat/yang_baxter_graph
    sage/combinat/gelfand_tsetlin_patterns
    sage/combinat/graph_path
@@ -62,12 +64,14 @@ Combinatorics
    sage/combinat/tuple
    sage/combinat/vector_partition
    cluster_algebras
+   sage/combinat/binary_recurrence_sequences
 
    algebra
    partitions
    tableaux
    symmetric_functions
    ncsf_qsym
+   ncsym
    root_systems
 
    sage/combinat/kazhdan_lusztig
@@ -79,11 +83,11 @@ Combinatorics
    designs
    species
    developer
+   sage/combinat/finite_state_machine
    words
 
    sage/combinat/dict_addition
    sage/combinat/misc
    sage/combinat/combinatorial_map
-
 
 .. include:: ../footer.txt

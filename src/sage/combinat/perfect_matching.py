@@ -205,9 +205,28 @@ class PerfectMatching(ElementWrapper):
         # executed and we do not have an infinite loop.
         return PerfectMatchings(objects)(data)
 
+    def __iter__(self):
+        r"""
+        Iterate over the edges of the matching ``self``.
+
+        The edges are yielded as 2-tuples. Neither the elements of these
+        tuples nor the tuples are necessarily sorted in any predictable
+        way.
+
+        EXAMPLES::
+
+            sage: list(PerfectMatching([('a','e'),('b','c'),('d','f')]))
+            [('a', 'e'), ('b', 'c'), ('d', 'f')]
+            sage: list(PerfectMatchings(2)[0])
+            [(1, 2)]
+            sage: list(PerfectMatching([3,8,1,7,6,5,4,2]))
+            [(1, 3), (2, 8), (4, 7), (5, 6)]
+        """
+        return self.value.__iter__()
+
     def _repr_(self):
         r"""
-        returns the name of the object
+        Return a string representation of the matching ``self``.
 
         EXAMPLES::
 

@@ -23,8 +23,8 @@ fi
 
 # It is very important that we have SAGE_LOCAL set, otherwise this
 # might potentially delete stuff in /lib
-echo "Deleting $SAGE_LOCAL/lib/python2.*/site-packages/sympy*"
-rm -rf $SAGE_LOCAL/lib/python2.*/site-packages/sympy*
+echo "Deleting $SAGE_LOCAL/lib/python*/site-packages/sympy*"
+rm -rf "$SAGE_LOCAL"/lib/python*/site-packages/sympy*
 
 echo "installing sympy"
 python -S setup.py install

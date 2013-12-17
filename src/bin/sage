@@ -207,9 +207,7 @@ usage_advanced() {
     echo "  -crap sage-ver.tar  -- detect suspicious garbage in sage source tarball"
     echo "  -pkg <dir>          -- create Sage package dir.spkg from a given directory"
     echo "  -pkg_nc <dir>       -- as -pkg, but do not compress the package"
-    echo "  -rsyncdist VER      -- build an rsyncable source distribution of Sage (you"
-    echo "                         must first run sage -sdist VER for this to work)"
-    echo "  -sdist VER          -- build a source distribution of Sage"
+    echo "  -sdist              -- build a source distribution of Sage"
 
     echo
     ####  1.......................26..................................................78

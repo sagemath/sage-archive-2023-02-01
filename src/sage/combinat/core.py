@@ -108,6 +108,33 @@ class Core(CombinatorialObject, Element):
         CombinatorialObject.__init__(self, core)
         Element.__init__(self, parent)
 
+    def __hash__(self):
+        """
+        Computes the hash of ``self`` by computing the hash of the
+        underlying list and of the additional parameter.
+        The hash is cached and stored in ``self._hash``.
+
+        EXAMPLES::
+
+            sage: c = Core([4,2,1,1],3)
+            sage: c._hash is None
+            True
+            sage: hash(c) #random
+            1335416675971793195
+            sage: c._hash #random
+            1335416675971793195
+
+        TESTS::
+
+            sage: c = Core([4,2,1,1],5)
+            sage: d = Core([4,2,1,1],6)
+            sage: hash(c) == hash(d)
+            False
+        """
+        if self._hash is None:
+            self._hash = hash(tuple(self._list)) + hash(self.parent().k)
+        return self._hash
+
     def _latex_(self):
         """
         Outputs the LaTeX representation of this core as a partition. See the

@@ -89,11 +89,11 @@ usage_advanced() {
     echo "  -ipython [...]      -- run Sage's IPython using the default environment (not"
     echo "                         Sage), passing additional options to IPython"
     echo "  -kash [...]         -- run Sage's Kash with given arguments"
-    test -x "$SAGE_LOCAL/bin/kash" || \
+    command -v kash &>/dev/null || \
     echo "                         (not installed currently, run sage -i kash)"
     echo "  -lisp [...]         -- run Lisp interpreter included with Sage"
     echo "  -M2 [...]           -- run Sage's Macaulay2 with given arguments"
-    test -x "$SAGE_LOCAL/bin/M2" || \
+    command -v M2 &>/dev/null || \
     echo "                         (not installed currently, run sage -i macaulay2)"
     echo "  -maxima [...]       -- run Sage's Maxima with given arguments"
     echo "  -mwrank [...]       -- run Sage's mwrank with given arguments"
@@ -378,22 +378,22 @@ fi
 
 if [ "$1" = '-gap' -o "$1" = '--gap' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/gap" "$@"
+    exec gap "$@"
 fi
 
 if [ "$1" = '-gp' -o "$1" = '--gp' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/gp" "$@"
+    exec gp "$@"
 fi
 
 if [ "$1" = '-singular' -o "$1" = '--singular' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/singular" "$@"
+    exec singular "$@"
 fi
 
 if [ "$1" = '-sqlite3' -o "$1" = '--sqlite3' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/sqlite3" "$@"
+    exec sqlite3 "$@"
 fi
 
 if [ "$1" = '-sws2rst' -o "$1" = '--sws2rst' ]; then
@@ -403,22 +403,22 @@ fi
 
 if [ "$1" = '-twistd' -o "$1" = '--twistd' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/twistd" "$@"
+    exec twistd "$@"
 fi
 
 if [ "$1" = '-ecl' -o "$1" = '--ecl' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/ecl" "$@"
+    exec ecl "$@"
 fi
 
 if [ "$1" = '-lisp' -o "$1" = '--lisp' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/ecl" "$@"
+    exec ecl "$@"
 fi
 
 if [ "$1" = '-kash' -o "$1" = '--kash' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/kash" "$@"
+    exec kash "$@"
 fi
 
 if [ "$1" = '-fixdoctests' -o "$1" = '--fixdoctests' ]; then
@@ -428,22 +428,22 @@ fi
 
 if [ "$1" = '-maxima' -o "$1" = '--maxima' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/maxima" "$@"
+    exec maxima "$@"
 fi
 
 if [ "$1" = '-mwrank' -o "$1" = '--mwrank' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/mwrank" "$@"
+    exec mwrank "$@"
 fi
 
 if [ "$1" = '-M2' -o "$1" = '--M2' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/M2" "$@"
+    exec M2 "$@"
 fi
 
 if [ "$1" = '-scons' -o "$1" = '--scons' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/scons" "$@"
+    exec scons "$@"
 fi
 
 if [ "$1" = '-python' -o "$1" = '--python' ]; then
@@ -453,17 +453,17 @@ fi
 
 if [ "$1" = '-R' -o "$1" = '--R' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/R" "$@"
+    exec R "$@"
 fi
 
 if [ "$1" = '-ipython' -o "$1" = '--ipython' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/ipython" "$@"
+    exec ipython "$@"
 fi
 
 if [ "$1" = '-git' -o "$1" = '--git' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/git" "$@"
+    exec git "$@"
 fi
 
 if [ "$1" = '-sh' -o "$1" = '--sh' ]; then

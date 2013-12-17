@@ -483,6 +483,7 @@ Verify that :trac:`10981` is fixed::
     sage: P.partial_fraction_decomposition()
     (0, [(-0.3535533905932738?*x + 1/2)/(x^2 - 1.414213562373095?*x + 1), (0.3535533905932738?*x + 1/2)/(x^2 + 1.414213562373095?*x + 1)])
 """
+import itertools
 
 import sage.rings.ring
 from sage.structure.sage_object import SageObject
@@ -4511,6 +4512,61 @@ class AlgebraicReal(AlgebraicNumber_base):
             raise ValueError("Cannot coerce irrational Algebraic Real %s to Integer" % self)
 
         return ZZ(self._descr.rational_value())
+
+    def _floor_ceil(self, method):
+        r"""
+        Helper method used by floor() and ceil().
+
+        TESTS::
+
+            sage: x = polygen(QQ)
+            sage: a = AA.polynomial_root(x^5 - (1-2^(-80)), RIF((0,2)))
+            sage: b = AA.polynomial_root(x^5 - (1+2^(-80)), RIF((0,2)))
+            sage: two = (a+b)^5 - 5*(a^4*b+a*b^4) - 10*(a^3*b^2+a^2*b^3)
+            sage: [[z.floor(), z.ceil()] for z in [a, -a, b, -b, 6*(a+two)]] # indirect doctest
+            [[0, 1], [-1, 0], [1, 2], [-2, -1], [17, 18]]
+            sage: [[z.floor(), z.ceil()] for z in [two, a*b]] # long time
+            [[2, 2], [0, 1]]
+        """
+        for i in itertools.count():
+            candidate = method(self._value.lower())
+            if candidate == method(self._value.upper()):
+                return candidate
+            self._more_precision()
+            if i == 3 and not self._descr.is_field_element(): # field elements are irrational by construction
+                try: return self._integer_()
+                except ValueError, TypeError:
+                    pass
+
+    def floor(self):
+        r"""
+        Return the largest integer not greater than x.
+
+        EXAMPLES::
+
+            sage: AA(sqrt(2)).floor()
+            1
+            sage: AA(-sqrt(2)).floor()
+            -2
+            sage: AA(42).floor()
+            42
+        """
+        return self._floor_ceil(lambda x: x.floor())
+
+    def ceil(self):
+        r"""
+        Return the smallest integer not smaller than x.
+
+        EXAMPLES::
+
+            sage: AA(sqrt(2)).ceil()
+            2
+            sage: AA(-sqrt(2)).ceil()
+            -1
+            sage: AA(42).ceil()
+            42
+        """
+        return self._floor_ceil(lambda x: x.ceil())
 
     def _rational_(self):
         """

@@ -130,7 +130,7 @@ class HallLittlewood(UniqueRepresentation):
 
         OUTPUT:
 
-        - returns the base ring of the symmetric functions
+        The base ring of the symmetric functions.
 
         EXAMPLES ::
 
@@ -142,9 +142,9 @@ class HallLittlewood(UniqueRepresentation):
 
     def P(self):
         r"""
-        Returns the algebra of symmetric functions in Hall-Littlewood `P`
-        basis. This is the same as the `HL` basis in John Stembridge's SF
-        examples file.
+        Return the algebra of symmetric functions in the Hall-Littlewood
+        `P` basis. This is the same as the `HL` basis in John Stembridge's
+        SF examples file.
 
         INPUT:
 
@@ -152,7 +152,7 @@ class HallLittlewood(UniqueRepresentation):
 
         OUTPUT:
 
-        - returns the class of the Hall-Littlewood `P` basis
+        The class of the Hall-Littlewood `P` basis.
 
         EXAMPLES::
 
@@ -189,7 +189,7 @@ class HallLittlewood(UniqueRepresentation):
 
             2. Hall-Littlewood polynomials in the `Q` basis
 
-            3.  Hall-Littlewood polynomials in the `Q^\prime` basis (via the Schurs)
+            3. Hall-Littlewood polynomials in the `Q^\prime` basis (via the Schurs)
 
             4. Classical symmetric functions
 

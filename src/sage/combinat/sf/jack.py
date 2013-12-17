@@ -171,6 +171,8 @@ class Jack(UniqueRepresentation):
             s[2, 2, 1]
             sage: JP(s([2,2,1]))
             JackP[2, 2, 1]
+            sage: JP([2,1])^2
+            JackP[2, 2, 1, 1] + JackP[2, 2, 2] + JackP[3, 1, 1, 1] + 2*JackP[3, 2, 1] + JackP[3, 3] + JackP[4, 1, 1] + JackP[4, 2]
 
         At `t = 2`, the Jack polynomials in the `P` basis are the zonal
         polynomials.
@@ -304,7 +306,7 @@ class Jack(UniqueRepresentation):
 
         At `t = 1`, the Jack polynomials in the `J` basis are scalar multiples
         of the Schur functions with the scalar given by a Partition's
-        hook_product method at 1::
+        :meth:`~sage.combinat.partition.Partition.hook_product` method at 1::
 
             sage: Sym = SymmetricFunctions(QQ)
             sage: JJ = Sym.jack(t=1).J()
@@ -315,7 +317,7 @@ class Jack(UniqueRepresentation):
 
         At `t = 2`, the Jack polynomials in the `J` basis are scalar multiples
         of the zonal polynomials with the scalar given by a Partition's
-        hook_product method at 1.
+        :meth:`~sage.combinat.partition.Partition.hook_product` method at 2.
 
         ::
 

@@ -77,8 +77,6 @@ _s_to_S_cache = {}
 
 _qt_kostka_cache = {}
 
-QQqt = FractionField(QQ['q','t'])
-
 class Macdonald(UniqueRepresentation):
 
     def __repr__(self):
@@ -343,7 +341,7 @@ class Macdonald(UniqueRepresentation):
             sage: Q(P(Q([2])))
             McdQ[2]
 
-        By transitivity, one get coercions from the classical bases::
+        By transitivity, one gets coercions from the classical bases::
 
             sage: Q(s([2]))
             ((q^2-q*t-q+t)/(t^3-t^2-t+1))*McdQ[1, 1] + ((q^3-q^2-q+1)/(q*t^2-q*t-t+1))*McdQ[2]

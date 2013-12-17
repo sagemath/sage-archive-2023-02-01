@@ -1435,7 +1435,7 @@ class SingularElement(ExpectElement):
             sage: singular.eval('minpoly = 1+z+z2+z3+z4')
             'minpoly = 1+z+z2+z3+z4;'
             sage: singular('r3').sage_global_ring()
-            Multivariate Polynomial Ring in a, b, c over Univariate Quotient Polynomial Ring in z over Finite Field of size 3 with modulus z^4 + z^3 + z^2 + z + 1
+            Multivariate Polynomial Ring in a, b, c over Finite Field in z of size 3^4
 
         Real and complex fields in both Singular and Sage are defined with a precision.
         The precision in Singular is given in terms of digits, but in Sage it is given
@@ -1522,7 +1522,7 @@ class SingularElement(ExpectElement):
                     singular.eval('short=%s'%is_short)
                 else:
                     minpoly = ZZ[charstr[1]](minpoly)
-                BR = br.extension(minpoly)
+                BR = br.extension(minpoly,name=charstr[1])
         else:
             BR = br
 
@@ -1585,7 +1585,7 @@ class SingularElement(ExpectElement):
             'minpoly = 1+z+z2+z3+z4;'
             sage: p = singular('z^4*a^3+z^2*a*b*c')
             sage: p.sage_poly()
-            (2*z^3 + 2*z^2 + 2*z + 2)*a^3 + z^2*a*b*c
+            (-z^3 - z^2 - z - 1)*a^3 + (z^2)*a*b*c
             sage: singular('z^4')
             (-z3-z2-z-1)
 

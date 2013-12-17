@@ -952,7 +952,7 @@ class HallLittlewood_p(HallLittlewood_generic):
         """
         from sage.combinat.sf.kfpoly import schur_to_hl
         t = QQt.gen()
-        zero = self.base_ring()(0)
+        zero = self.base_ring().zero()
         res_dict = schur_to_hl(part, t)
         f = lambda part2: res_dict.get(part2,zero)
         return f
@@ -1157,7 +1157,7 @@ class HallLittlewood_qp(HallLittlewood_generic):
         t = QQt.gen()
 
         if part == []:
-            return lambda part2: QQt(1)
+            return lambda part2: QQt.one()
 
         res = hall_littlewood(part) # call to symmetrica (returns in variable x)
         f = lambda part2: res.coefficient(part2).subs(x=t)

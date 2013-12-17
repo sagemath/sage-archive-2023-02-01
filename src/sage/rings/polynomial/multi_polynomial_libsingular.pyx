@@ -4004,6 +4004,14 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: factor(p*q)
             (x^2 + y^2 + x + 1) * (x^4 + x^2*y^2 + y^4 + x*y^2 + x^2 + y^2 + 1)
 
+        Check that :trac:`13770` is fixed::
+
+            sage: U.<y,t> = GF(2)[]
+            sage: f = y*t^8 + y^5*t^2 + y*t^6 + t^7 + y^6 + y^5*t + y^2*t^4 + y^2*t^2 + y^2*t + t^3 + y^2 + t^2
+            sage: l = f.factor()
+            sage: l[0][0]==t^2 + y + t + 1 or l[1][0]==t^2 + y + t + 1
+            True
+
         The following used to sometimes take a very long time or get
         stuck, see :trac:`12846`. These 100 iterations should take less
         than 1 second::

@@ -50,14 +50,14 @@ do
         # don't mess with diff or patch files
         new_object=$object
     else
-        lines=`git cat-file -p $object | sed 's+\s*++g' | egrep -n '^..*$' | sed 's+:.*++' | tail -1`
+        lines=`git cat-file -p $object | sed 's+\s*++g' | GREP_OPTIONS= egrep -n '^..*$' | sed 's+:.*++' | tail -1`
         if [ \
             "${path: -3}" == ".py" -o \
             "${path: -4}" == ".pyx" -o \
             "${path: -4}" == ".pxd" -o \
             "${path: -4}" == ".pxi" -o \
             "${path: -4}" == ".rst" ]; then
-            tabs="-e 's+\t+    +g'"
+            tabs="-e s+\t+    +g"
         else
             tabs=""
         fi
@@ -89,14 +89,20 @@ do
             "${path: -4}" == ".pxd" -o \
             "${path: -4}" == ".pxi" -o \
             "${path: -4}" == ".rst" ]; then
-            tabs="-e 's+\t+    +g'"
+            tabs="-e s+\t+    +g"
         else
             tabs=""
         fi
         sed -i -e 's+\s*$++' $tabs $path
-        lines=`sed 's+\s*++g' $path | sed 's+:.*++' | tail -1`
-        head -n $lines $path > $path.new && mv $path.new $path
-        echo "Replaced all tab characters in $path with 4 spaces"
+        echo "$path: removed all trailing whitespace"
+        if [ -n "$tabs" ]; then
+            echo "$path: replaced all tab characters with 4 spaces"
+        fi
+        lines=`sed 's+\s*++g' $path | GREP_OPTIONS= egrep -n '^..*$' | sed 's+:.*++' | tail -1`
+        if [ $lines -ne `wc -l $path | cut -d' ' -f1` ]; then
+            head -n $lines $path > $path.new && mv $path.new $path
+            echo "$path: removed all empty trailing newlines"
+        fi
     fi
 done
 

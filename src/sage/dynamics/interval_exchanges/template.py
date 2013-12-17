@@ -34,6 +34,8 @@ from sage.rings.integer import Integer
 from sage.combinat.words.alphabet import Alphabet
 from sage.graphs.graph import DiGraph
 from sage.matrix.constructor import identity_matrix, matrix
+from sage.misc.nested_class import NestedClassMetaclass
+
 
 def interval_conversion(interval=None):
     r"""
@@ -1975,6 +1977,7 @@ class FlippedPermutationLI(FlippedPermutation, PermutationLI):
                 res.append(l[1][i])
         return list(set(res))
 
+
 class RauzyDiagram(SageObject):
     r"""
     Template for Rauzy diagrams.
@@ -1987,7 +1990,9 @@ class RauzyDiagram(SageObject):
 
     - Vincent Delecroix (2008-12-20): initial version
     """
-#TODO: pickle problem of Path (it does not understand what is its parent)
+    # TODO: pickle problem of Path (it does not understand what is its parent)
+    __metaclass__ = NestedClassMetaclass
+
     class Path(SageObject):
         r"""
         Path in Rauzy diagram.
@@ -2004,9 +2009,15 @@ class RauzyDiagram(SageObject):
 
             TEST::
 
-                sage: p = iet.Permutation('a b c','c b a')
+                sage: p = iet.Permutation('a b c', 'c b a')
                 sage: r = p.rauzy_diagram()
-                sage: g = r.path(p,0,1,0)
+                sage: g = r.path(p, 0, 1, 0); g
+                Path of length 3 in a Rauzy diagram
+
+            Check for :trac:`8388`::
+
+                sage: loads(dumps(g)) == g
+                True
             """
             self._parent = parent
 

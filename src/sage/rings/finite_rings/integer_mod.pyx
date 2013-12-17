@@ -50,6 +50,11 @@ TESTS::
     sage: a = R(824362); b = R(205942)
     sage: a * b
     851127
+
+    sage: type(IntegerModRing(2^31-1).an_element())
+    <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int64'>
+    sage: type(IntegerModRing(2^31).an_element())
+    <type 'sage.rings.finite_rings.integer_mod.IntegerMod_gmp'>
 """
 
 #################################################################################
@@ -2043,8 +2048,8 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
         """
         cdef IntegerMod_gmp x = self._new_c()
+        sig_on()
         try:
-            sig_on()
             mpz_pow_helper(x.value, self.value, exp, self.__modulus.sageInteger.value)
             return x
         finally:
@@ -2162,6 +2167,9 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         """
         IntegerMod_abstract.__init__(self, parent)
         if empty:
+            return
+        if self.__modulus.int32 == 1:
+            self.ivalue = 0
             return
         cdef long x
         if PY_TYPE_CHECK(value, int):
@@ -2595,8 +2603,8 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         elif PY_TYPE_CHECK_EXACT(exp, Integer) and mpz_cmpabs_ui((<Integer>exp).value, 100000) == -1:
             long_exp = mpz_get_si((<Integer>exp).value)
         else:
+            sig_on()
             try:
-                sig_on()
                 mpz_init(res_mpz)
                 base = self.lift()
                 mpz_pow_helper(res_mpz, (<Integer>base).value, exp, self.__modulus.sageInteger.value)
@@ -3477,8 +3485,8 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         elif PY_TYPE_CHECK_EXACT(exp, Integer) and mpz_cmpabs_ui((<Integer>exp).value, 100000) == -1:
             long_exp = mpz_get_si((<Integer>exp).value)
         else:
+            sig_on()
             try:
-                sig_on()
                 mpz_init(res_mpz)
                 base = self.lift()
                 mpz_pow_helper(res_mpz, (<Integer>base).value, exp, self.__modulus.sageInteger.value)

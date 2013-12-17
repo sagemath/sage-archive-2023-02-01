@@ -2,8 +2,16 @@
 p-adic Capped Relative Dense Polynomials
 """
 
+#*****************************************************************************
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 import sage.rings.polynomial.polynomial_element_generic
 from sage.rings.polynomial.polynomial_element import Polynomial
+from sage.rings.polynomial.padics.polynomial_padic import Polynomial_padic
 import sage.rings.polynomial.polynomial_integer_dense_ntl
 import sage.rings.integer
 import sage.rings.integer_ring
@@ -14,7 +22,6 @@ import copy
 
 from sage.libs.all import pari, pari_gen
 from sage.libs.ntl.all import ZZX
-from sage.structure.factorization import Factorization
 from sage.rings.infinity import infinity
 
 min = misc.min
@@ -24,7 +31,7 @@ Integer = sage.rings.integer.Integer
 Polynomial_generic_domain = sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_domain
 Polynomial_integer_dense = sage.rings.polynomial.polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl
 
-class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
+class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomial_padic):
     def __init__(self, parent, x=None, check=True, is_gen=False, construct = False, absprec = infinity, relprec = infinity):
         """
         TESTS::
@@ -302,43 +309,6 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         if self._list is None:
             self._comp_list()
         return list(self._list)
-
-    def _repr(self, name=None):
-        """
-        TESTS::
-
-            sage: k = Qp(5,10)
-            sage: R.<x> = k[]
-            sage: f = R([k(0,-3), 0, k(0,-1)]); f
-            (O(5^-1))*x^2 + (O(5^-3))
-            sage: f + f
-            (O(5^-1))*x^2 + (O(5^-3))
-        """
-        # TODO: what is new here (that doesn't come from parent class)?
-        s = " "
-        coeffs = self.list()
-        m = len(coeffs)
-        while m > 0 and coeffs[m-1].valuation() == infinity:
-            m -= 1
-        r = reversed(xrange(m))
-        if name is None:
-            name = self.parent().variable_name()
-        for n in r:
-            x = coeffs[n]
-            if x.valuation() < infinity:
-                if n != m-1:
-                    s += " + "
-                x = "(%s)"%x
-                if n > 1:
-                    var = "*%s^%s"%(name,n)
-                elif n==1:
-                    var = "*%s"%name
-                else:
-                    var = ""
-                s += "%s%s"%(x,var)
-        if s==" ":
-            return "0"
-        return s[1:]
 
     def content(self):
         """
@@ -1003,73 +973,110 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
     #def resultant(self):
     #    raise NotImplementedError
 
-    def newton_slopes(self):
-        """
-        Returns a list of the Newton slopes of this polynomial.  These are the valuations of the roots of this polynomial.
-
-        EXAMPLES::
-
-            sage: K = Qp(13)
-            sage: R.<t> = K[]
-            sage: f = t^4 + 13^5*t^2 + 4*13^2*t - 13^7
-            sage: f.newton_polygon()
-            [(0, 7), (1, 2), (4, 0)]
-            sage: f.newton_slopes()
-            [5, 2/3, 2/3, 2/3]
-        """
-        polygon = self.newton_polygon()
-        if polygon == []:
-            return []
-        answer = [infinity] * polygon[0][0]
-        for m in range(1, len(polygon)):
-            dx = polygon[m][0] - polygon[m - 1][0]
-            dy = polygon[m][1] - polygon[m - 1][1]
-            answer.extend([-dy / dx] * dx)
-        return answer
-
     def newton_polygon(self):
         r"""
-        Returns a list of vertices of the Newton polygon of this polynomial.
+        Returns the Newton polygon of this polynomial.
 
-        NOTES:
-        The vertices are listed so that the first coordinates are strictly increasing, up to the polynomial's degree (not the limit of available precision information).  Also note that if some coefficients have very low precision an error is raised.
+        .. NOTE::
+
+            If some coefficients have not enough precision an error is raised.
+
+        OUTPUT:
+
+        - a Newton polygon
 
         EXAMPLES::
 
-            sage: K = Qp(13)
-            sage: R.<t> = K[]
-            sage: f = t^4 + 13^5*t^2 + 4*13^2*t - 13^7
+            sage: K = Qp(2, prec=5)
+            sage: P.<x> = K[]
+            sage: f = x^4 + 2^3*x^3 + 2^13*x^2 + 2^21*x + 2^37
             sage: f.newton_polygon()
-            [(0, 7), (1, 2), (4, 0)]
+            Finite Newton polygon with 4 vertices: (0, 37), (1, 21), (3, 3), (4, 0)
+
+            sage: K = Qp(5)
+            sage: R.<t> = K[]
+            sage: f = 5 + 3*t + t^4 + 25*t^10
+            sage: f.newton_polygon()
+            Finite Newton polygon with 4 vertices: (0, 1), (1, 0), (4, 0), (10, 2)
+
+        Here is an example where the computation fails because precision is
+        not sufficient::
+
+            sage: g = f + K(0,0)*t^4; g
+            (5^2 + O(5^22))*t^10 + (O(5^0))*t^4 + (3 + O(5^20))*t + (5 + O(5^21))
+            sage: g.newton_polygon()
+            Traceback (most recent call last):
+            ...
+            PrecisionError: The coefficient of t^4 has not enough precision
+
+        TESTS:
+
+            sage: (5*f).newton_polygon()
+            Finite Newton polygon with 4 vertices: (0, 2), (1, 1), (4, 1), (10, 3)
+
+        AUTHOR:
+
+        - Xavier Caruso (2013-03-20)
         """
-        if self._poly == 0:
-            return []
-        for x in range(len(self._relprecs)):
-            if not self._relprecs[x] is infinity:
-                break
         if self._valaddeds is None:
             self._comp_valaddeds()
-        if self._poly[x] == 0:
-            raise PrecisionError, "first term with non-infinite valuation must have determined valuation"
-        yrel = self._valaddeds[x]
-        answer = [(x, self._valbase + yrel)]
-        xf = self._poly.degree()
-        if xf == x:
-            return answer
-        yfrel = self._valaddeds[xf]
-        curslope = (yfrel - yrel) / (xf - x)
-        for i in range(x + 1, xf):
-            yrel += curslope
-            if self._valaddeds[i] < yrel:
-                if self._relprecs[i] == self._valaddeds[i]:
-                    raise PrecisionError, "not enough precision known in coefficient %s to compute newton polygon"%i
-                yrel = self._valaddeds[i]
-                answer.append((i, self._valbase + yrel))
-                curslope = (yfrel - yrel) / (xf - i)
-        from sage.misc.stopgap import stopgap
-        stopgap("Check that the Newton polygon below is actually convex.", 6667)
-        answer.append((xf, self._valbase + self._valaddeds[xf]))
-        return answer
+        from sage.geometry.newton_polygon import NewtonPolygon
+        valbase = self._valbase
+        polygon = NewtonPolygon([(x, val + valbase)
+                                 for x, val in enumerate(self._valaddeds)])
+        polygon_prec = NewtonPolygon([(x, val + valbase)
+                                      for x, val in enumerate(self._relprecs)])
+        vertices = polygon.vertices(copy=False)
+        vertices_prec = polygon_prec.vertices(copy=False)
+
+        # The two following tests should always fail (i.e. the corresponding errors
+        # should never be raised). However, it's probably safer to keep them.
+        if vertices[0][0] > vertices_prec[0][0]:
+            raise PrecisionError("The constant coefficient has not enough precision")
+        if vertices[-1][0] < vertices_prec[-1][0]:
+            raise PrecisionError("The leading coefficient has not enough precision")
+
+        for (x, y) in vertices:
+            if polygon_prec(x) <= y:
+                raise PrecisionError("The coefficient of %s^%s has not enough precision" % (self.parent().variable_name(), x))
+        return polygon
+
+    def newton_slopes(self, repetition=True):
+        """
+        Returns a list of the Newton slopes of this polynomial.
+
+        These are the valuations of the roots of this polynomial.
+
+        If ``repetition`` is ``True``, each slope is repeated a number of
+        times equal to its multiplicity. Otherwise it appears only one time.
+
+        INPUT:
+
+        - ``repetition`` -- boolean (default ``True``)
+
+        OUTPUT:
+
+        - a list of rationals
+
+        EXAMPLES::
+
+            sage: K = Qp(5)
+            sage: R.<t> = K[]
+            sage: f = 5 + 3*t + t^4 + 25*t^10
+            sage: f.newton_polygon()
+            Finite Newton polygon with 4 vertices: (0, 1), (1, 0), (4, 0), (10, 2)
+            sage: f.newton_slopes()
+            [1, 0, 0, 0, -1/3, -1/3, -1/3, -1/3, -1/3, -1/3]
+
+            sage: f.newton_slopes(repetition=False)
+            [1, 0, -1/3]
+
+        AUTHOR:
+
+        - Xavier Caruso (2013-03-20)
+        """
+        polygon = self.newton_polygon()
+        return [-s for s in polygon.slopes(repetition=repetition)]
 
     def hensel_lift(self, a):
         raise NotImplementedError
@@ -1086,21 +1093,6 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         elif min(self._relprecs) <= 0:
             raise PrecisionError, "Polynomial is not known to high enough precision"
         return self._poly.factor_mod(self.base_ring().prime())
-
-    def factor(self):
-        # This will eventually be improved.
-        if self == 0:
-            raise ValueError, "Factorization of the zero polynomial not defined"
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.rings.padics.factory import ZpCA
-        base = self.base_ring()
-        #print self.list()
-        m = min([x.precision_absolute() for x in self.list()])
-        #print m
-        R = ZpCA(base.prime(), prec = m)
-        S = PolynomialRing(R, self.parent().variable_name())
-        F = S(self).factor()
-        return Factorization([(self.parent()(a), b) for (a, b) in F], base(F.unit()))
 
 def _extend_by_infinity(L, n):
     return L + [infinity] * (n - len(L))

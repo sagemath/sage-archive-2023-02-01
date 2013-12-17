@@ -166,7 +166,8 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         # EllipticCurvePoint_finite_field for finite rings, so that we
         # can do some arithmetic on points over Z/NZ, for teaching
         # purposes.
-        from sage.rings.all import is_FiniteField, is_IntegerModRing
+        from sage.rings.finite_rings.constructor import is_FiniteField
+        from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
         if is_FiniteField(K) or is_IntegerModRing(K):
             self._morphism = self._point = ell_point.EllipticCurvePoint_finite_field
         elif K.is_field():
@@ -2921,7 +2922,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E.pari_curve()
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: valuation of j must be negative in p-adic ellinit
         """
         try:
             return self._pari_curve

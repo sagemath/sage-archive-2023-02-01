@@ -8,14 +8,14 @@ Nil-Coxeter Algebra
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebraT
+from sage.algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.combinat.sf.kschur import kSchurFunctions
 from sage.misc.misc_c import prod
 from sage.rings.rational_field import QQ
 from sage.combinat.partition import Partitions
 
-class NilCoxeterAlgebra(IwahoriHeckeAlgebraT):
+class NilCoxeterAlgebra(IwahoriHeckeAlgebra.T):
     r"""
     Construct the Nil-Coxeter algebra of given type. This is the algebra
     with generators `u_i` for every node `i` of the corresponding Dynkin
@@ -40,12 +40,13 @@ class NilCoxeterAlgebra(IwahoriHeckeAlgebraT):
         sage: u2*u1*u2 == u1*u2*u1
         True
         sage: U.an_element()
-        2*u0 + 3*u0*u1 + 1 + u0*u1*u2*u3
+        u[0,1,2,3] + 3*u[0,1] + 2*u[0] + 1
     """
 
     def __init__(self, W, base_ring = QQ, prefix='u'):
         r"""
-        Initiate the affine nil-Coxeter algebra corresponding to the Weyl group `W` over the base ring.
+        Initiate the affine nil-Coxeter algebra corresponding to the Weyl
+        group `W` over the base ring.
 
         EXAMPLES::
 
@@ -62,7 +63,8 @@ class NilCoxeterAlgebra(IwahoriHeckeAlgebraT):
         self._n = W.n
         self._base_ring = base_ring
         self._cartan_type = W.cartan_type()
-        IwahoriHeckeAlgebraT.__init__(self, W, 0, 0, base_ring, prefix=prefix)
+        H = IwahoriHeckeAlgebra(W, 0, 0, base_ring=base_ring)
+        super(IwahoriHeckeAlgebra.T,self).__init__(H, prefix=prefix)
 
     def _repr_(self):
         r"""
@@ -90,11 +92,11 @@ class NilCoxeterAlgebra(IwahoriHeckeAlgebraT):
 
             sage: U = NilCoxeterAlgebra(WeylGroup(['A',3,1]))
             sage: U.homogeneous_generator_noncommutative_variables(2)
-            u1*u0 + u2*u0 + u0*u3 + u3*u2 + u3*u1 + u2*u1
+            u[1,0] + u[2,0] + u[0,3] + u[3,2] + u[3,1] + u[2,1]
 
             sage: U = NilCoxeterAlgebra(WeylGroup(['B',4]))
             sage: U.homogeneous_generator_noncommutative_variables(2)
-            u1*u2 + u2*u1 + u3*u1 + u4*u1 + u2*u3 + u3*u2 + u4*u2 + u3*u4 + u4*u3
+            u[1,2] + u[2,1] + u[3,1] + u[4,1] + u[2,3] + u[3,2] + u[4,2] + u[3,4] + u[4,3]
 
             sage: U = NilCoxeterAlgebra(WeylGroup(['C',3]))
             sage: U.homogeneous_generator_noncommutative_variables(2)
@@ -129,7 +131,7 @@ class NilCoxeterAlgebra(IwahoriHeckeAlgebraT):
 
             sage: U = NilCoxeterAlgebra(WeylGroup(['B',2,1]))
             sage: U.homogeneous_noncommutative_variables([2,1])
-            u1*u2*u0 + 2*u2*u1*u0 + u0*u2*u0 + u0*u2*u1 + u1*u2*u1 + u2*u1*u2 + u2*u0*u2 + u1*u0*u2
+            u[1,2,0] + 2*u[2,1,0] + u[0,2,0] + u[0,2,1] + u[1,2,1] + u[2,1,2] + u[2,0,2] + u[1,0,2]
 
         TESTS::
 
@@ -158,7 +160,7 @@ class NilCoxeterAlgebra(IwahoriHeckeAlgebraT):
 
             sage: A = NilCoxeterAlgebra(WeylGroup(['A',3,1]))
             sage: A.k_schur_noncommutative_variables([2,2])
-            u0*u3*u1*u0 + u3*u1*u2*u0 + u1*u2*u0*u1 + u3*u2*u0*u3 + u2*u0*u3*u1 + u2*u3*u1*u2
+            u[0,3,1,0] + u[3,1,2,0] + u[1,2,0,1] + u[3,2,0,3] + u[2,0,3,1] + u[2,3,1,2]
 
         TESTS::
 

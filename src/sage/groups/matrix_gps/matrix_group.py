@@ -47,11 +47,13 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-
-from sage.rings.all import ZZ, is_Integer, is_Ring
+from sage.rings.all import ZZ
+from sage.rings.integer import is_Integer
+from sage.rings.ring import is_Ring
 from sage.rings.finite_rings.constructor import is_FiniteField
 from sage.interfaces.gap import gap
-from sage.matrix.all import MatrixSpace, is_MatrixSpace, is_Matrix
+from sage.matrix.matrix import is_Matrix
+from sage.matrix.matrix_space import MatrixSpace, is_MatrixSpace
 from sage.misc.latex import latex
 from sage.structure.sequence import Sequence
 from sage.structure.sage_object import SageObject
@@ -228,9 +230,9 @@ class MatrixGroup_base(Group):
             return 'Matrix group over {0} with {1} generators'.format(
                 self.base_ring(), self.ngens())
         else:
-            from sage.misc.displayhook import format_obj
+            from sage.misc.displayhook import format_list
             return 'Matrix group over {0} with {1} generators {2}'.format(
-                self.base_ring(), self.ngens(), format_obj(self.gens()))
+                self.base_ring(), self.ngens(), format_list(self.gens()))
 
     def _repr_option(self, key):
         """

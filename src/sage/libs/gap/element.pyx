@@ -1464,13 +1464,28 @@ cdef class GapElement_Cyclotomic(GapElement):
             zeta3
             sage: libgap.E(3).sage(ring=CyclotomicField(6))
             zeta6 - 1
+
+        TESTS:
+
+        Check that :trac:`15204` is fixed::
+
+            sage: libgap.E(3).sage(ring=UniversalCyclotomicField())
+            E(3)
+            sage: libgap.E(3).sage(ring=CC)
+            -0.500000000000000 + 0.866025403784439*I
         """
         if ring is None:
             conductor = self.Conductor()
             from sage.rings.number_field.number_field import CyclotomicField
             ring = CyclotomicField(conductor.sage())
         else:
-            conductor = ring._n()
+            try:
+                conductor = ring._n()
+            except AttributeError:
+                from sage.rings.number_field.number_field import CyclotomicField
+                conductor = self.Conductor()
+                cf = CyclotomicField(conductor.sage())
+                return ring(cf(self.CoeffsCyc(conductor).sage()))
         coeff = self.CoeffsCyc(conductor).sage()
         return ring(coeff)
 
@@ -2562,4 +2577,3 @@ cdef class GapElement_RecordIterator(object):
         val = make_any_gap_element(self.rec.parent(), result)
         self.i += 1
         return (key, val)
-

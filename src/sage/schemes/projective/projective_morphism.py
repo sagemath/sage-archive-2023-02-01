@@ -39,7 +39,6 @@ AUTHORS:
 
 from sage.categories.homset        import Hom
 from sage.functions.all            import sqrt
-from sage.libs.pari.gen            import pari
 from sage.matrix.constructor       import matrix, identity_matrix
 from sage.misc.cachefunc           import cached_method
 from sage.misc.misc                import subsets
@@ -1025,7 +1024,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         d=self.degree()
         f=F[0].substitute({y:1})
         g=F[1].substitute({y:1})
-        res=(f.lc()**(d-g.degree())*g.lc()**(d-f.degree())*pari(f).polresultant(g,x))
+        res=(f.lc()**(d-g.degree())*g.lc()**(d-f.degree())*f._pari_().polresultant(g, x))
         return(self.codomain().base_ring()(res))
 
     @cached_method

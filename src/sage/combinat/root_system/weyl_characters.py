@@ -2203,6 +2203,9 @@ def branch_weyl_character(chi, R, S, rule="default"):
     """
     if type(rule) is str or type(rule) is list:
         rule = branching_rule(R._cartan_type, S._cartan_type, rule)
+    if hasattr(rule,"_S"):
+        if rule._S != S.cartan_type():
+            raise ValueError,"rule has wrong target Cartan type"        
     mdict = {}
     for k in chi.weight_multiplicities():
         # TODO: Could this use the new from_vector of ambient_space ?
@@ -2341,7 +2344,8 @@ class BranchingRule(SageObject):
                 component_rule = self*branching_rule(self._S, ctype,"proj%s"%(j+1))
                 print "projection %d on %s "%(j+1, ctype._repr_(compact=True)),
                 component_rule.describe(verbose=verbose, no_r=True)
-            print "\nfor more detailed information use verbose=True"
+            if not verbose:
+                print "\nfor more detailed information use verbose=True"
         else:
             print "root restrictions %s => %s:"%(self._R._repr_(compact=True),self._S._repr_(compact=True))
             print "\n%s\n"%(self._S.dynkin_diagram().__repr__())
@@ -2350,7 +2354,7 @@ class BranchingRule(SageObject):
                     r = -Rspace.highest_root()
                 else:
                     r = Rspace.simple_roots()[j]
-                resr = Sspace(self(r))
+                resr = Sspace(self(list(r.to_vector())))
                 if debug:
                     print "root %d: r = %s, b(r)=%s"%(j, r, resr)
                 done = False
@@ -2374,7 +2378,7 @@ class BranchingRule(SageObject):
                     done = True
                     if verbose:
                         print "%s => weight %s"%(j,resr)
-            if not no_r:
+            if not no_r and not verbose:
                 print "\nfor more detailed information use verbose=True"
 
 def get_branching_rule(Rtype, Stype, rule="default"):
@@ -2867,15 +2871,15 @@ def get_branching_rule(Rtype, Stype, rule="default"):
     elif rule == "miscellaneous":
         if Rtype[0] == 'B' and Stype[0] == 'G' and r == 3:
             return BranchingRule(Rtype, Stype, lambda x : [x[0]+x[1], -x[1]+x[2], -x[0]-x[2]], "miscellaneous")
-        elif Rtype[0] == 'E' and Rtype[1] == 6:
+        elif Rtype == CartanType("E6"):
             if Stype.is_compound():
                 if stypes == [CartanType("A2"),CartanType("G2")]:
-                    return BranchingRule(Rtype, Stype, lambda x : [-2*x[5],x[5]+x[4],x[5]-x[4],-x[2]-x[3],-x[1]+x[2],x[1]+x[3]], "miscellaneous")
+                    return BranchingRule(Rtype, Stype, lambda x : [-2*x[5],x[5]+x[4],x[5]-x[4],x[2]+x[3],x[1]-x[2],-x[1]-x[3]], "miscellaneous")
                 elif stypes == [CartanType("G2"),CartanType("A2")]:
-                    return BranchingRule(Rtype, Stype, lambda x : [-x[2]-x[3],-x[1]+x[2],x[1]+x[3],-2*x[5],x[5]+x[4],x[5]-x[4]], "miscellaneous")
+                    return BranchingRule(Rtype, Stype, lambda x : [x[2]+x[3],x[1]-x[2],-x[1]-x[3],-2*x[5],x[5]+x[4],x[5]-x[4]], "miscellaneous")
                 else:
                     raise ValueError("Rule not found")
-        elif Rtype[0] == 'E' and Rtype[1] == 8:
+        elif Rtype == CartanType("E8"):
             if Stype.is_compound():
                 if stypes == [CartanType("F4"),CartanType("G2")]:
                     return BranchingRule(Rtype, Stype, lambda x : [x[7], x[6], x[5], x[4], x[1]+x[2], -x[2]+x[3], -x[1]-x[3]], "miscellaneous")

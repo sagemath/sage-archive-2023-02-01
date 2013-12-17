@@ -194,13 +194,13 @@ new_galois_format = 1
 # which should be a words precision.  In many cases this is redundant
 # and is simply ignored.  In our wrapping of these functions we use
 # the variable prec here for convenience only.
-cdef unsigned long prec
+cdef long prec
 
 #################################################################
 # conversions between various real precision models
 #################################################################
 
-def prec_bits_to_dec(long prec_in_bits):
+def prec_bits_to_dec(unsigned long prec_in_bits):
     r"""
     Convert from precision expressed in bits to precision expressed in
     decimal.
@@ -220,10 +220,10 @@ def prec_bits_to_dec(long prec_in_bits):
         (224, 67),
         (256, 77)]
     """
-    log_2 = 0.301029995663981
+    cdef double log_2 = 0.301029995663981
     return int(prec_in_bits*log_2)
 
-def prec_dec_to_bits(long prec_in_dec):
+def prec_dec_to_bits(unsigned long prec_in_dec):
     r"""
     Convert from precision expressed in decimal to precision expressed
     in bits.
@@ -244,10 +244,10 @@ def prec_dec_to_bits(long prec_in_dec):
         (80, 265),
         (90, 298)]
     """
-    log_10 = 3.32192809488736
+    cdef double log_10 = 3.32192809488736
     return int(prec_in_dec*log_10)
 
-cpdef prec_bits_to_words(long prec_in_bits=0):
+cpdef long prec_bits_to_words(unsigned long prec_in_bits):
     r"""
     Convert from precision expressed in bits to pari real precision
     expressed in words. Note: this rounds up to the nearest word,
@@ -269,13 +269,10 @@ cpdef prec_bits_to_words(long prec_in_bits=0):
     """
     if not prec_in_bits:
         return prec
-    cdef long wordsize
-    wordsize = BITS_IN_LONG
+    cdef unsigned long wordsize = BITS_IN_LONG
 
-    # increase prec_in_bits to the nearest multiple of wordsize
-    cdef long padded_bits
-    padded_bits = (prec_in_bits + wordsize - 1) & ~(wordsize - 1)
-    return int(padded_bits/wordsize + 2)
+    # This equals ceil(prec_in_bits/wordsize) + 2
+    return (prec_in_bits - 1)//wordsize + 3
 
 def prec_words_to_bits(long prec_in_words):
     r"""
@@ -294,7 +291,7 @@ def prec_words_to_bits(long prec_in_words):
         [(3, 64), (4, 128), (5, 192), (6, 256), (7, 320), (8, 384), (9, 448)] # 64-bit
     """
     # see user's guide to the pari library, page 10
-    return int((prec_in_words - 2) * BITS_IN_LONG)
+    return (prec_in_words - 2) * BITS_IN_LONG
 
 def prec_dec_to_words(long prec_in_dec):
     r"""
@@ -1310,7 +1307,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             self.init_primes(max(2*num_primes,20*n))
             return self.nth_prime(n)
 
-    def euler(self, precision=0):
+    def euler(self, unsigned long precision=0):
         """
         Return Euler's constant to the requested real precision (in bits).
 
@@ -1324,7 +1321,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         pari_catch_sig_on()
         return self.new_gen(mpeuler(prec_bits_to_words(precision)))
 
-    def pi(self, precision=0):
+    def pi(self, unsigned long precision=0):
         """
         Return the value of the constant pi to the requested real precision
         (in bits).

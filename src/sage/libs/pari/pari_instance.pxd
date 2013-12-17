@@ -5,7 +5,7 @@ cimport cython
 
 from sage.libs.pari.gen cimport gen
 
-cpdef prec_bits_to_words(long prec_in_bits=*)
+cpdef long prec_bits_to_words(unsigned long prec_in_bits)
 
 @cython.final
 cdef class PariInstance(sage.structure.parent_base.ParentWithBase):

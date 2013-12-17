@@ -40,6 +40,7 @@ Schemes
    sage/schemes/toric/morphism
    sage/schemes/toric/weierstrass
    sage/schemes/toric/weierstrass_covering
+   sage/schemes/toric/weierstrass_higher
 
 
 .. include:: ../footer.txt

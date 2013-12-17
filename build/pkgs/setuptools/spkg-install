@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# distribute doesn't allow itself to be replaced by setuptools
+# so we manually have to delete it
 rm -rf "$SAGE_LOCAL"/lib/python*/site-packages/setuptools*
 rm -rf "$SAGE_LOCAL"/lib/python*/site-packages/distribute*
 

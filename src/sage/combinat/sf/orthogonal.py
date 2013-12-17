@@ -25,8 +25,6 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.all import ZZ, QQ, Integer
 from sage.matrix.all import matrix
 
-# TODO: Don't make it into a realization of the symmetric functions since it
-#    does not preserve the Hopf structure and is a filtered basis
 class SymmetricFunctionAlgebra_orthogonal(sfa.SymmetricFunctionAlgebra_generic):
     r"""
     The orthogonal symmetric function basis (or orthogonal basis, to be short).
@@ -220,3 +218,4 @@ class SymmetricFunctionAlgebra_orthogonal(sfa.SymmetricFunctionAlgebra_generic):
                                             for nu in Partitions(j)
                                                 if all(x % 2 == 0 for x in nu) )
                                  for i in range(sum(lam)+1) for mu in Partitions(i) })
+

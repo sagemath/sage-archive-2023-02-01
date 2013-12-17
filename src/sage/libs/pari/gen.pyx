@@ -82,21 +82,7 @@ cdef class gen(sage.structure.element.RingElement):
     def __init__(self):
         self.b = 0
         self._parent = P
-        self._refers_to = {}
-
-    def parent(self):
-        return P
-
-    cdef void init(self, GEN g, pari_sp b):
-        """
-        g - PARI GEN b - pointer to memory chunk where PARI gen lives (if
-        nonzero then this memory is freed when the object goes out of
-        scope)
-        """
-        self.g = g
-        self.b = b
-        self._parent = P
-        self._refers_to = {}
+        # self.refers_to is initialised as needed
 
     def __dealloc__(self):
         if self.b:
@@ -720,15 +706,18 @@ cdef class gen(sage.structure.element.RingElement):
 
             ind = (i,j)
 
-            if PyDict_Contains(self._refers_to, ind):
-                return self._refers_to[ind]
+            if self.refers_to is not None and PyDict_Contains(self.refers_to, ind):
+                return self.refers_to[ind]
             else:
                 ## In this case, we're being asked to return
                 ## a GEN that has no gen pointing to it, so
                 ## we need to create such a gen, add it to
-                ## self._refers_to, and return it.
+                ## self.refers_to, and return it.
                 val = P.new_ref(gmael(self.g, j+1, i+1), self)
-                self._refers_to[ind] = val
+                if self.refers_to is None:
+                    self.refers_to = {ind: val}
+                else:
+                    self.refers_to[ind] = val
                 return val
 
         elif isinstance(n, slice):
@@ -773,15 +762,18 @@ cdef class gen(sage.structure.element.RingElement):
         elif pari_type == t_VEC or pari_type == t_MAT:
             #t_VEC    : row vector        [ code ] [  x_1  ] ... [  x_k  ]
             #t_MAT    : matrix            [ code ] [ col_1 ] ... [ col_k ]
-            if PyDict_Contains(self._refers_to, n):
-                return self._refers_to[n]
+            if self.refers_to is not None and PyDict_Contains(self.refers_to, n):
+                return self.refers_to[n]
             else:
                 ## In this case, we're being asked to return
                 ## a GEN that has no gen pointing to it, so
                 ## we need to create such a gen, add it to
-                ## self._refers_to, and return it.
+                ## self.refers_to, and return it.
                 val = P.new_ref(gel(self.g, n+1), self)
-                self._refers_to[n] = val
+                if self.refers_to is None:
+                    self.refers_to = {n: val}
+                else:
+                    self.refers_to[n] = val
                 return val
 
         elif pari_type == t_VECSMALL:
@@ -955,7 +947,10 @@ cdef class gen(sage.structure.element.RingElement):
                     raise IndexError, "row i(=%s) must be between 0 and %s"%(i,self.nrows()-1)
                 if j < 0 or j >= glength(self.g):
                     raise IndexError, "column j(=%s) must be between 0 and %s"%(j,self.ncols()-1)
-                self._refers_to[ind] = x
+                if self.refers_to is None:
+                    self.refers_to = {ind: x}
+                else:
+                    self.refers_to[ind] = x
 
                 (<GEN>(self.g)[j+1])[i+1] = <long>(x.g)
                 return
@@ -980,7 +975,10 @@ cdef class gen(sage.structure.element.RingElement):
             # so python memory manager will work correctly
             # and not free x if PARI part of self is the
             # only thing pointing to it.
-            self._refers_to[i] = x
+            if self.refers_to is None:
+                self.refers_to = {i: x}
+            else:
+                self.refers_to[i] = x
 
             ## correct indexing for t_POLs
             if typ(self.g) == t_POL:

@@ -58,6 +58,37 @@ ambient toric varieties::
     sage: S = P1xP1.subscheme([s*x-t*y])
     sage: type(S.Hom(S))
     <class 'sage.schemes.toric.homset.SchemeHomset_toric_variety_with_category'>
+
+Finally, you can have morphisms defined through homogeneous
+coordinates where the codomain is not implemented as a toric variety::
+
+    sage: P2_toric.<x,y,z> = toric_varieties.P2()
+    sage: P2_native.<u,v,w> = ProjectiveSpace(QQ, 2)
+    sage: toric_to_native = P2_toric.Hom(P2_native);  toric_to_native
+    Set of morphisms
+      From: 2-d CPR-Fano toric variety covered by 3 affine patches
+      To:   Projective Space of dimension 2 over Rational Field
+    sage: type(toric_to_native)
+    <class 'sage.schemes.toric.homset.SchemeHomset_toric_variety_with_category'>
+    sage: toric_to_native([x^2, y^2, z^2])
+    Scheme morphism:
+      From: 2-d CPR-Fano toric variety covered by 3 affine patches
+      To:   Projective Space of dimension 2 over Rational Field
+      Defn: Defined on coordinates by sending [x : y : z] to
+            (x^2 : y^2 : z^2)
+
+    sage: native_to_toric = P2_native.Hom(P2_toric);  native_to_toric
+    Set of morphisms
+      From: Projective Space of dimension 2 over Rational Field
+      To:   2-d CPR-Fano toric variety covered by 3 affine patches
+    sage: type(native_to_toric)
+    <class 'sage.schemes.generic.homset.SchemeHomset_generic_with_category'>
+    sage: native_to_toric([u^2, v^2, w^2])
+    Scheme morphism:
+      From: Projective Space of dimension 2 over Rational Field
+      To:   2-d CPR-Fano toric variety covered by 3 affine patches
+      Defn: Defined on coordinates by sending (u : v : w) to
+            [u^2 : v^2 : w^2]
 """
 
 
@@ -138,7 +169,9 @@ class SchemeHomset_toric_variety(SchemeHomset_generic):
                     to Rational polyhedral fan in 1-d lattice N.
         """
         SchemeHomset_generic.__init__(self, X, Y, category=category, check=check, base=base)
-        self.register_conversion(MatrixSpace(ZZ, X.fan().dim(), Y.fan().dim()))
+        from sage.schemes.toric.variety import is_ToricVariety
+        if is_ToricVariety(X) and is_ToricVariety(Y):
+            self.register_conversion(MatrixSpace(ZZ, X.fan().dim(), Y.fan().dim()))
 
     def _element_constructor_(self, x, check=True):
         """

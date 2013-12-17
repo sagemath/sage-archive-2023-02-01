@@ -137,7 +137,7 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 sage: parent(L).one_basis()
                 []
             """
-            return Composition([])
+            return Compositions()([])
 
         # Combinatorial rules
 

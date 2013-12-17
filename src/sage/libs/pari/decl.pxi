@@ -1928,6 +1928,8 @@ cdef extern from *:   # paristio.h
 
 
 cdef extern from 'pari/paripriv.h':
+    int gpd_QUIET, gpd_TEST, gpd_EMACS, gpd_TEXMACS
+
     struct pariout_t:
         char format  # e,f,g
         long fieldw  # 0 (ignored) or field width
@@ -1937,6 +1939,7 @@ cdef extern from 'pari/paripriv.h':
         int TeXstyle
 
     struct gp_data:
-        jmp_buf env
         pariout_t *fmt
+        unsigned long flags
+    
     extern gp_data* GP_DATA

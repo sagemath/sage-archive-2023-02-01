@@ -472,6 +472,11 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         # Disable pretty-printing
         GP_DATA.fmt.prettyp = 0
 
+        # This causes PARI/GP to use output independent of the terminal
+        # (which is want we want for the PARI library interface).
+        GP_DATA.flags = gpd_TEST
+
+
     def debugstack(self):
         r"""
         Print the internal PARI variables ``top`` (top of stack), ``avma``

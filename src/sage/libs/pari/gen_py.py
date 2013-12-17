@@ -63,7 +63,7 @@ def pari(x):
         sage: pari(v)
         Traceback (most recent call last):
         ...
-        PariError: syntax error, unexpected ')', expecting )-> or ',': ...00000000,5.60000000000000)
+        PariError: syntax error, unexpected ')', expecting )-> or ','
         sage: b = pari(list(v)); b,b.type()
         ([1.20000000000000, 3.40000000000000, 5.60000000000000], 't_VEC')
 

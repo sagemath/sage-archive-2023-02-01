@@ -8891,8 +8891,8 @@ class PariError(RuntimeError):
         Return a suitable message for displaying this exception.
 
         This is the last line of ``self.errtext()``, with the leading
-        ``"  ***   "`` and trailing period (if any) removed. An
-        exception is syntax errors, where the "syntax error" line is
+        ``"  ***   "`` and trailing periods and colons (if any) removed.
+        An exception is syntax errors, where the "syntax error" line is
         shown.
 
         EXAMPLES::
@@ -8914,8 +8914,8 @@ class PariError(RuntimeError):
         if self.errnum() == syntaxer:
             for line in lines:
                 if "syntax error" in line:
-                    return line.lstrip(" *").rstrip(" .")
-        return lines[-1].lstrip(" *").rstrip(" .")
+                    return line.lstrip(" *").rstrip(" .:")
+        return lines[-1].lstrip(" *").rstrip(" .:")
 
 
 cdef _factor_int_when_pari_factor_failed(x, failed_factorization):

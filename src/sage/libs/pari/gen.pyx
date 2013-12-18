@@ -7389,6 +7389,11 @@ cdef class gen(sage.structure.element.RingElement):
             sage: f.eval(x=2)
             5
 
+        The notation ``f(x)`` is an alternative for ``f.eval(x)``::
+
+            sage: f(3) == f.eval(3)
+            True
+
         Evaluating multivariate polynomials::
         
             sage: f = pari('y^2 + x^3')

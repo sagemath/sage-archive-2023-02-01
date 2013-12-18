@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+if [ -z "$SAGE_LOCAL" ]; then
+    echo "SAGE_LOCAL undefined - exiting ..."
+    echo "Maybe run 'sage -sh'?"
+    exit 1
+fi
+
+cd src
+
+python setup.py install
+
+if [ $? -ne 0 ]; then
+    echo "Error building / installing Pillow"
+    exit 1
+fi

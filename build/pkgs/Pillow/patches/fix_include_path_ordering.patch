@@ -1,5 +1,5 @@
 diff --git a/setup.py b/setup.py
-index 5f3d22e..814f853 100644
+index 5885703..2724c73 100644
 --- a/setup.py
 +++ b/setup.py
 @@ -37,7 +37,10 @@ _LIB_IMAGING = (
@@ -54,37 +54,32 @@ index 5f3d22e..814f853 100644
          elif sys.platform.startswith("linux"):
              for platform_ in (plat.processor(), plat.architecture()[0]):
  
-@@ -215,33 +242,8 @@ class pil_build_ext(build_ext):
-                     _add_directory(library_dirs, "/usr/pkg/lib")
-                     _add_directory(include_dirs, "/usr/pkg/include")
+@@ -211,24 +238,11 @@ class pil_build_ext(build_ext):
+             # work ;-)
+             self.add_multiarch_paths()
  
 -        _add_directory(library_dirs, "/usr/local/lib")
-         # FIXME: check /opt/stuff directories here?
- 
--        # respect CFLAGS/LDFLAGS
--        for k in ('CFLAGS', 'LDFLAGS'):
--            if k in os.environ:
--                for match in re.finditer(r'-I([^\s]+)', os.environ[k]):
--                    _add_directory(include_dirs, match.group(1))
--                for match in re.finditer(r'-L([^\s]+)', os.environ[k]):
--                    _add_directory(library_dirs, match.group(1))
+-        # FIXME: check /opt/stuff directories here?
 -
 -        # include, rpath, if set as environment variables:
--        for k in ('C_INCLUDE_PATH', 'INCLUDE'):
+-        for k in 'C_INCLUDE_PATH INCLUDE'.split():
 -            if k in os.environ:
 -                for d in os.environ[k].split(os.path.pathsep):
 -                    _add_directory(include_dirs, d)
 -
--        for k in ('LD_RUN_PATH', 'LIBRARY_PATH', 'LIB'):
+-        for k in 'LD_RUN_PATH LIBRARY_PATH LIB'.split():
 -            if k in os.environ:
 -                for d in os.environ[k].split(os.path.pathsep):
 -                    _add_directory(library_dirs, d)
--
++        elif sys.platform.startswith("netbsd"):
++                    _add_directory(library_dirs, "/usr/pkg/lib")
++                    _add_directory(include_dirs, "/usr/pkg/include")
+ 
 -        prefix = sysconfig.get_config_var("prefix")
 -        if prefix:
 -            _add_directory(library_dirs, os.path.join(prefix, "lib"))
 -            _add_directory(include_dirs, os.path.join(prefix, "include"))
--
++        # FIXME: check /opt/stuff directories here?
+ 
          #
          # locate tkinter libraries
- 

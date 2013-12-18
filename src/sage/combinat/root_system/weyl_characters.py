@@ -2321,7 +2321,7 @@ class BranchingRule(SageObject):
             0 => 2
             2 => 1
             <BLANKLINE>
-            for more detailed information use verbose=True
+            For more detailed information use verbose=True
   
         In this example, `0` is the affine root, that is, the negative
         of the highest root, for `"G2"`. If `i => j` is printed, this
@@ -2349,7 +2349,7 @@ class BranchingRule(SageObject):
         else:
             print "root restrictions %s => %s:"%(self._R._repr_(compact=True),self._S._repr_(compact=True))
             print "\n%s\n"%(self._S.dynkin_diagram().__repr__())
-            for j in range(self._R[1]+1):
+            for j in self._R.affine().index_set():
                 if j == 0:
                     r = -Rspace.highest_root()
                 else:
@@ -2365,7 +2365,7 @@ class BranchingRule(SageObject):
                 else:
                     for s in Sspace.roots():
                         if s == resr:
-                            for i in range(1,self._S[1]+1):
+                            for i in self._S.index_set():
                                 if s == Sspace.simple_root(i):
                                     print "%s => %s"%(j,i)
                                     done = True
@@ -2378,8 +2378,13 @@ class BranchingRule(SageObject):
                     done = True
                     if verbose:
                         print "%s => weight %s"%(j,resr)
+            if verbose:
+                print "\nfundamental weight restrictions %s => %s:"%(self._R._repr_(compact=True),self._S._repr_(compact=True))
+                for j in self._R.index_set():
+                    resfw = Sspace(self(list(Rspace.fundamental_weight(j).to_vector())))
+                print "%d => %s"%(j, tuple([resfw.inner_product(a) for a in Sspace.simple_coroots()]))
             if not no_r and not verbose:
-                print "\nfor more detailed information use verbose=True"
+                print "\nFor more detailed information use verbose=True"
 
 def get_branching_rule(Rtype, Stype, rule="default"):
     """

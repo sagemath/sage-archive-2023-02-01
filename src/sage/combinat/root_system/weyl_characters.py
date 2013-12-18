@@ -2382,7 +2382,7 @@ class BranchingRule(SageObject):
                 print "\nfundamental weight restrictions %s => %s:"%(self._R._repr_(compact=True),self._S._repr_(compact=True))
                 for j in self._R.index_set():
                     resfw = Sspace(self(list(Rspace.fundamental_weight(j).to_vector())))
-                print "%d => %s"%(j, tuple([resfw.inner_product(a) for a in Sspace.simple_coroots()]))
+                    print "%d => %s"%(j, tuple([resfw.inner_product(a) for a in Sspace.simple_coroots()]))
             if not no_r and not verbose:
                 print "\nFor more detailed information use verbose=True"
 
@@ -2585,8 +2585,8 @@ def get_branching_rule(Rtype, Stype, rule="default"):
         else:
             raise ValueError("Rule not found")
     elif rule == "extended" or rule == "orthogonal_sum":
-        if not s == r:
-            raise ValueError('Ranks should be equal for rule=%s'%rule)
+        if rule == "extended" and not s == r:
+            raise ValueError('Ranks should be equal for rule="extended"')
         if Stype.is_compound():
             if Rtype[0] in ['B','D'] and all(t[0] in ['B','D'] for t in stypes):
                 if Rtype[0] == 'D':

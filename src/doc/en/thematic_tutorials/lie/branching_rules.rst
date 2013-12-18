@@ -32,27 +32,147 @@ What Sage has memorized (in a series of built-in encoded rules)
 are the various embeddings of maximal tori of maximal subgroups of `G`.
 This approach to computing branching rules has a limitation: the
 character must fit into memory and be computable by Sage's
-internal code (based on the Freudenthal multiplicity formula)
-in real time.
+internal code in real time.
 
-Sage has enough built-in branching rules to handle all cases where `G`
-is a classical group, that is, type A, B, C or D. It also has many
-built-in cases where `G` is an exceptional group.
+It is believed that Sage has enough built-in branching rules to handle all
+cases where `G` is a classical group, that is, type A, B, C or D. It also has
+many built-in cases where `G` is an exceptional group.
 
-Clearly it is sufficient to consider the case where `H` is a maximal
+It is sufficient to consider the case where `H` is a maximal
 subgroup of `G`, since if this is known then one may branch down
 successively through a series of subgroups, each maximal in its
 predecessors. A problem is therefore to understand the maximal
-subgroups in a Lie group, and to give branching rules for each.
+subgroups in a Lie group, and to give branching rules for each,
+and a goal of this tutorial is to explain the embeddings of
+maximal subgroups.
 
-For convenience Sage includes some branching rules to non-maximal
-subgroups, but strictly speaking these are not necessary, since
-one could do any branching rule to a non-maximal subgroup using
-only branching rules to maximal subgroups. The goal is
-to give a sufficient set of built-in branching rules for all maximal
-subgroups, and this is accomplished for classical groups (types A, B,
-C or D) at least up to rank 8, and for many maximal subgroups of
-exceptional groups.
+Sage has a class ``BranchingRule`` for branching rules. The function
+``branching_rule`` returns elements of this class. For example,
+the natural embedding of `Sp(4)` into `SL(4)` corresponds to
+the branching rule that we may create as follows::
+
+    sage: b=branching_rule("A3","C2",rule="symmetric"); b
+    symmetric branching rule A3 => C2
+
+The name "symmetric" of this branching rule will be
+explained further later, but it means that `Sp(4)` is
+the fixed subgroup of an involution of `Sl(4)`.
+Here ``A3`` and ``C2`` are the Cartan Types of the groups
+`G=SL(4)` and `H=Sp(4)`.
+
+Now we may see how representations of `SL(4)` decompose
+into irreducibles when they are restricted to `Sp(4)`.
+
+.. link
+
+::
+    sage: A3=WeylCharacterRing("A3",style="coroots")
+    sage: chi=A3(1,0,1); chi.degree()
+    15
+    sage: C2=WeylCharacterRing("C2",style="coroots")
+    sage: chi.branch(C2,rule=b)
+    C2(0,1) + C2(2,0)
+
+Since this is a built-in branching rule we could have
+gotten the same result with just ``chi.branch(C2,rule="symmetric")``.
+However, not all branching rules correspond to built-in
+embeddings, and we may compose branching rules to build
+up embeddings. For example, here are two different
+embeddings of `Sp(4)` with Cartan type ``C2`` in
+`Sp(8)`, with Cartan type ``C4``. One embedding
+factors through `Sp(4)\times Sp(4)`, while the
+other factors through `SL(4)`. To check that the embeddings
+are not conjugate, we branch a (randomly chosen) representation.
+Observe that we do not have to build the intermediate
+WeylCharacterRings.
+
+.. link
+
+::
+
+    sage: C4=WeylCharacterRing("C4",style="coroots")
+    sage: b1=branching_rule("C4","A3","levi")*branching_rule("A3","C2","symmetric"); b1
+    composite branching rule C4 => (levi) A3 => (symmetric) C2
+    sage: b2=branching_rule("C4","C2xC2","orthogonal_sum")*branching_rule("C2xC2","C2","proj1"); b2
+    composite branching rule C4 => (orthogonal_sum) C2xC2 => (proj1) C2
+    sage: C2=WeylCharacterRing("C2",style="coroots")
+    sage: C4=WeylCharacterRing("C4",style="coroots")
+    sage: [C4(2,0,0,1).branch(C2, rule=br) for br in [b1,b2]]
+    [4*C2(0,0) + 7*C2(0,1) + 15*C2(2,0) + 7*C2(0,2) + 11*C2(2,1) + C2(0,3) + 6*C2(4,0) + 3*C2(2,2),
+     10*C2(0,0) + 40*C2(1,0) + 50*C2(0,1) + 16*C2(2,0) + 20*C2(1,1) + 4*C2(3,0) + 5*C2(2,1)]
+
+
+What's in a branching rule?
+---------------------------
+
+The essence of the branching rule is a function from the
+weight lattice of `G` to the weight lattice of the subgroup `H`,
+usually implemented as a function on the ambient vector
+spaces. Indeed, we may conjugate the embedding so that a
+Cartan subalgebra `U` of `H` is contained in a Cartan subalgebra
+`T` of `G`. Since the ambient vector space of the weight
+lattice of `G` is `\hbox{Lie}(T)^*`, we get map
+`\hbox{Lie}(T)^*\to\hbox{Lie}(U)^*`, and this must be
+implemented as a function. For speed, the function may return just
+a list, which can be coerced into \hbox{Lie}(U)^*.
+
+::
+
+    sage: b = branching_rule("A3","C2","symmetric")
+    sage: for r in RootSystem("A3").ambient_space().simple_roots(): print r, b(r)
+    (1, -1, 0, 0) [1, -1]
+    (0, 1, -1, 0) [0, 2]
+    (0, 0, 1, -1) [1, -1]
+
+We could conjugate this map by an element of the Weyl
+group of `G`, and the resulting map would give the same
+decomposition of representations of `G` into irreducibles
+of `H`. However it is a good idea to choose the map so
+that it takes dominant weights to dominant weights, and,
+insofar as possible, simple roots of `G` into
+simple roots of `H`. This includes sometimes the affine root `\alpha_0`
+of `G`, which we recall is the negative of the highest root.
+The branching rule has a ``describe()`` method that shows how
+the roots (including the affine root) restrict.
+
+.. link
+
+    sage: b.describe()
+    <BLANKLINE>
+     0
+     O-------+
+     |       |
+     |       |
+     O---O---O
+     1   2   3
+     A3~
+     <BLANKLINE>
+     root restrictions A3 => C2:
+     <BLANKLINE>
+     O=<=O
+     1   2
+     C2
+     <BLANKLINE>
+     1 => 1
+     2 => 2
+     3 => 1
+     <BLANKLINE>
+    For more detailed information use verbose=True
+    
+The extended Dynkin diagram of `G` and the ordinary
+Dynkin diagram of `H` are shown for reference, and
+``3 => 1`` means that the third simple root `\alpha_3`
+of `G` restricts to the first simple root of 
+In this example, the affine root does not restrict to
+a simple roots, so it is omitted from the list of
+restrictions. If you add the parameter ``verbose=true`` you will
+be shown the restriction of all simple roots and the
+affine root, and also the restrictions of the fundamental weights
+(in coroot notation).
+
+We suggest that you look at the ``describe`` methods
+of branching rules for the ``levi``, ``symmetric`` and
+``extended`` types, which will be described below.
 
 
 Levi subgroups
@@ -75,7 +195,9 @@ For example, here is the A3 Dynkin diagram:
 
 We see that we may remove the node 3 and obtain A2, or the node 2 and
 obtain A1xA1. These correspond to the Levi subgroups `GL(3)` and
-`GL(2) \times GL(2)` of `GL(4)`. Let us construct the irreducible
+`GL(2) \times GL(2)` of `GL(4)`.
+
+Let us construct the irreducible
 representations of `GL(4)` and branch them down to these down to
 `GL(3)` and `GL(2) \times GL(2)`::
 
@@ -459,6 +581,7 @@ element of the Weyl group of `H`. The *rule* is this map
 `\hbox{Lie}(T)^*` ``= G.space()`` to
 `\hbox{Lie}(U)^*` ``= H.space()``, which you may implement as a
 function.
+
 
 As an example, let us consider how to implement the branching rule
 ``A3 -> C2``.  Here ``H = C2 = Sp(4)`` embedded as a subgroup in

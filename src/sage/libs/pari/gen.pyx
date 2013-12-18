@@ -7434,6 +7434,19 @@ cdef class gen(sage.structure.element.RingElement):
             sage: f.eval(5, 6)
             30
 
+        Default arguments work, missing arguments are treated as zero
+        (like in GP)::
+
+            sage: f = pari("(x, y, z=1.0) -> [x, y, z]")
+            sage: f(1, 2, 3)
+            [1, 2, 3]
+            sage: f(1, 2)
+            [1, 2, 1.00000000000000]
+            sage: f(1)
+            [1, 0, 1.00000000000000]
+            sage: f()
+            [0, 0, 1.00000000000000]
+
         Using keyword arguments, we can substitute in more complicated
         objects, for example a number field::
 
@@ -7458,8 +7471,8 @@ cdef class gen(sage.structure.element.RingElement):
             # XXX: use undocumented internals to get arity of closure
             # (In PARI 2.6, there is closure_arity() which does this)
             arity = self.g[1]
-            if nargs != arity:
-                raise TypeError("PARI closure takes exactly %d argument%s (%d given)"%(
+            if nargs > arity:
+                raise TypeError("PARI closure takes at most %d argument%s (%d given)"%(
                     arity, "s" if (arity!=1) else "", nargs))
             t0 = objtogen(args)
             pari_catch_sig_on()
@@ -7521,11 +7534,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('() -> 42')(1,2,3)
             Traceback (most recent call last):
             ...
-            TypeError: PARI closure takes exactly 0 arguments (3 given)
-            sage: pari('n -> n')()
-            Traceback (most recent call last):
-            ...
-            TypeError: PARI closure takes exactly 1 argument (0 given)
+            TypeError: PARI closure takes at most 0 arguments (3 given)
             sage: pari('n -> n')(n=2)
             Traceback (most recent call last):
             ...

@@ -4550,6 +4550,14 @@ class AlgebraicReal(AlgebraicNumber_base):
             -2
             sage: AA(42).floor()
             42
+
+        TESTS:
+
+        Check that :trac:`15501` is fixed::
+
+            sage: a = QQbar((-1)^(1/4)).real()
+            sage: (floor(a-a) + a).parent()
+            Algebraic Real Field
         """
         return self._floor_ceil(lambda x: x.floor())
 

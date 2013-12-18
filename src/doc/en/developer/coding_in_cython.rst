@@ -290,11 +290,12 @@ Python exceptions::
             # (handle interrupt)
 
 Certain C libraries in Sage are written in a way that they will raise
-Python exceptions: NTL and PARI are examples of this.
-NTL can raise ``RuntimeError`` and PARI can raise ``PariError``.
-Since these use the ``sig_on()`` mechanism,
-these exceptions can be caught just like the ``KeyboardInterrupt``
-in the example above.
+Python exceptions:
+libGAP and NTL can raise ``RuntimeError`` and PARI can raise ``PariError``.
+These exceptions behave exactly like the ``KeyboardInterrupt``
+in the example above and can be caught by putting the ``sig_on()``
+inside a ``try``/``except`` block.
+See :ref:`sig-error` to see how this is implmented.
 
 It is possible to stack ``sig_on()`` and ``sig_off()``.
 If you do this, the effect is exactly the same as if only the outer
@@ -420,6 +421,36 @@ With regard to ordinary interrupts (i.e. SIGINT), ``sig_str(s)``
 behaves the same as ``sig_on()``:
 a simple ``KeyboardInterrupt`` is raised.
 
+.. _sig-error:
+
+Error Handling in C Libraries
+-----------------------------
+
+Some C libraries can produce errors and use some sort of callback
+mechanism to report errors: an external error handling function needs
+to be set up which will be called by the C library if an error occurs.
+
+The function ``sig_error()`` can be used to deal with these errors.
+This function should be called within a ``sig_on()`` block (otherwise
+Sage will crash hard) after raising a Python exception. You need to
+use the `Python/C API <http://docs.python.org/2/c-api/exceptions.html>`_
+for this and call ``sig_error()`` after calling some variant of
+:func:`PyErr_SetObject`. Even within Cython, you cannot use the ``raise``
+statement, because then the ``sig_error()`` will never be executed.
+The call to ``sig_error()`` will use the ``sig_on()`` machinery
+such that the exception will be seen by ``sig_on()``.
+
+A typical error handler implemented in Cython would look as follows::
+
+    include "sage/ext/interrupt.pxi"
+    from cpython.exc cimport PyErr_SetString
+
+    cdef void error_handler(char *msg):
+        PyErr_SetString(RuntimeError, msg)
+        sig_error()
+
+In Sage, this mechanism is used for libGAP, NTL and PARI.
+
 .. _advanced-sig:
 
 Advanced Functions
@@ -486,6 +517,11 @@ All the functions related to interrupt and signal handling are declared
 ``with nogil`` blocks. If ``sig_on()`` needs to raise an exception,
 the GIL is temporarily acquired internally.
 
+If you use C libraries without the GIL and you want to raise an exception
+after :ref:`sig_error() <sig-error>`, remember to acquire the GIL
+while raising the exception. Within Cython, you can use a
+`with gil context <http://docs.cython.org/src/userguide/external_C_code.html#acquiring-the-gil>`_.
+
 .. WARNING::
 
     The GIL should never be released or acquired inside a ``sig_on()``
@@ -493,12 +529,11 @@ the GIL is temporarily acquired internally.
     ``sig_on()`` and ``sig_off()`` inside that block. When in doubt,
     choose to use ``sig_check()`` instead, which is always safe to use.
 
-
 Unpickling Cython Code
 ======================
 
-Pickling for python classes and extension classes, such as cython, is different.
-This is discussed in the `python pickling documentation`_. For the unpickling of
+Pickling for Python classes and extension classes, such as Cython, is different.
+This is discussed in the `Python pickling documentation`_. For the unpickling of
 extension classes you need to write a :meth:`__reduce__` method which typically
 returns a tuple ``(f, args, ...)`` such that ``f(*args)`` returns (a copy of) the
 original object. As an example, the following code snippet is the

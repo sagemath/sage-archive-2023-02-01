@@ -134,6 +134,8 @@ from cluster_algebra_quiver.all import *
 
 #import lrcalc
 
+import ranker
+
 from integer_vector import IntegerVectors
 from integer_vector_weighted import WeightedIntegerVectors
 from integer_vectors_mod_permgroup import IntegerVectorsModPermutationGroup

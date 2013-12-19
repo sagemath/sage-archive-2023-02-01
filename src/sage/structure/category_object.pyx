@@ -48,7 +48,7 @@ This example illustrates generators for a free module over `\ZZ`.
 
 import generators
 import sage_object
-from sage.categories.category import Category, JoinCategory
+from sage.categories.category import Category
 from sage.structure.debug_options import debug
 
 def guess_category(obj):
@@ -141,6 +141,10 @@ cdef class CategoryObject(sage_object.SageObject):
         """
         Sets the category or categories of this object.
 
+        INPUT:
+
+         - ``category`` -- a category, or list or tuple thereof, or ``None``
+
         EXAMPLES::
 
             sage: A = sage.structure.category_object.CategoryObject()
@@ -150,17 +154,20 @@ cdef class CategoryObject(sage_object.SageObject):
             sage: A._init_category_((Semigroups(), CommutativeAdditiveSemigroups()))
             sage: A.category()
             Join of Category of semigroups and Category of commutative additive semigroups
+            sage: A._init_category_(None)
+            sage: A.category()
+            Category of objects
+
+            sage: P = Parent(category = None)
+            sage: P.category()
+            Category of sets
         """
         if category is None:
             if debug.bad_parent_warnings:
                 print "No category for %s" % type(self)
             category = guess_category(self) # so generators don't crash
-        elif (type(category) == tuple or type(category) == list):
-            assert(len(category)>0) # or we should decide of the semantic for an empty category
-            if len(category) == 1:
-                category = category[0]
-            else:
-                category = JoinCategory(category)
+        elif isinstance(category, (list, tuple)):
+            category = Category.join(category)
         self._category = category
 
     def _refine_category_(self, category):
@@ -216,6 +223,8 @@ cdef class CategoryObject(sage_object.SageObject):
 
     def categories(self):
         """
+        Return the categories of ``self``.
+
         EXAMPLES::
 
             sage: ZZ.categories()
@@ -225,19 +234,10 @@ cdef class CategoryObject(sage_object.SageObject):
              Category of gcd domains,
              Category of integral domains,
              Category of domains,
-             Category of commutative rings,
-             Category of rings,
-             Category of rngs,
-             Category of semirings,
-             Category of monoids,
-             Category of semigroups,
-             Category of magmas,
-             Category of commutative additive groups,
-             Category of commutative additive monoids,
-             Category of commutative additive semigroups,
-             Category of additive magmas,
-             Category of sets,
-             Category of sets with partial maps,
+             Category of commutative rings, ...
+             Category of monoids, ...,
+             Category of commutative additive groups, ...,
+             Category of sets, ...,
              Category of objects]
         """
         return self.category().all_super_categories()

@@ -14,16 +14,16 @@ Monoids
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
-from sage.categories.category import Category
-from sage.categories.category_singleton import Category_singleton
+from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.semigroups import Semigroups
+from sage.misc.lazy_import import LazyImport
 from sage.categories.subquotients import SubquotientsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory, cartesian_product
 from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.with_realizations import WithRealizationsCategory
 from sage.structure.element import generic_power
 
-class Monoids(Category_singleton):
+class Monoids(CategoryWithAxiom):
     r"""
     The category of (multiplicative) monoids, i.e. semigroups with a unit.
 
@@ -31,12 +31,14 @@ class Monoids(Category_singleton):
 
         sage: Monoids()
         Category of monoids
+        sage: Semigroups().Unital()
+        Category of monoids
         sage: Monoids().super_categories()
-        [Category of semigroups]
+        [Category of semigroups, Category of unital magmas]
         sage: Monoids().all_super_categories()
         [Category of monoids,
          Category of semigroups,
-         Category of magmas,
+         Category of unital magmas, Category of magmas,
          Category of sets,
          Category of sets with partial maps,
          Category of objects]
@@ -47,17 +49,11 @@ class Monoids(Category_singleton):
         sage: TestSuite(C).run()
 
     """
-    def super_categories(self):
-        """
-        Returns a list of the immediate super categories of ``self``.
 
-        EXAMPLES::
+    _base_category_class_and_axiom = [Semigroups, "Unital"]
 
-            sage: Monoids().super_categories()
-            [Category of semigroups]
-
-        """
-        return [Semigroups()]
+    Finite = LazyImport('sage.categories.finite_monoids', 'FiniteMonoids', at_startup=True)
+    Inverse = LazyImport('sage.categories.groups', 'Groups', at_startup=True)
 
     class ParentMethods:
         @cached_method
@@ -250,7 +246,8 @@ class Monoids(Category_singleton):
                 Returns the unit of this monoid
 
                 This default implementation returns the unit of the
-                realization of ``self`` given by :meth:`a_realization`.
+                realization of ``self`` given by
+                :meth:`~Sets.WithRealizations.ParentMethods.a_realization`.
 
                 EXAMPLES::
 
@@ -301,7 +298,7 @@ class Monoids(Category_singleton):
                 sage: Monoids().CartesianProducts().super_categories()
                 [Category of monoids, Category of Cartesian products of semigroups]
             """
-            return [self.base_category()]
+            return [Monoids()]
 
         class ParentMethods:
 
@@ -322,20 +319,13 @@ class Monoids(Category_singleton):
             EXAMPLES::
 
                 sage: Monoids().Algebras(QQ).extra_super_categories()
-                [Category of algebras with basis over Rational Field]
+                [Category of monoids]
                 sage: Monoids().Algebras(QQ).super_categories()
-                [Category of semigroup algebras over Rational Field]
-
-                sage: Monoids().example().algebra(ZZ).categories()
-                [Category of monoid algebras over Integer Ring,
-                 Category of semigroup algebras over Integer Ring,
-                 Category of algebras with basis over Integer Ring,
-                 ...
-                 Category of objects]
-
+                [Category of algebras with basis over Rational Field,
+                 Category of semigroup algebras over Rational Field,
+                 Category of unital magma algebras over Rational Field]
             """
-            from sage.categories.algebras_with_basis import AlgebrasWithBasis
-            return [AlgebrasWithBasis(self.base_ring())]
+            return [Monoids()]
 
         class ParentMethods:
 

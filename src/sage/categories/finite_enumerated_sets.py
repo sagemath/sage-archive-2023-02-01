@@ -8,15 +8,15 @@ Finite Enumerated Sets
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-
-from category_types import Category
+from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.enumerated_sets import EnumeratedSets
+from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.isomorphic_objects   import IsomorphicObjectsCategory
-from sage.rings.integer import Integer
 from sage.misc.cachefunc import cached_method
-from sage.misc.decorators import sage_wraps
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.rings.integer", "Integer")
 
-class FiniteEnumeratedSets(Category):
+class FiniteEnumeratedSets(CategoryWithAxiom):
     """
     The category of finite enumerated sets
 
@@ -25,10 +25,11 @@ class FiniteEnumeratedSets(Category):
         sage: FiniteEnumeratedSets()
         Category of finite enumerated sets
         sage: FiniteEnumeratedSets().super_categories()
-        [Category of enumerated sets]
+        [Category of enumerated sets, Category of finite sets]
         sage: FiniteEnumeratedSets().all_super_categories()
         [Category of finite enumerated sets,
          Category of enumerated sets,
+         Category of finite sets,
          Category of sets,
          Category of sets with partial maps,
          Category of objects]
@@ -37,25 +38,17 @@ class FiniteEnumeratedSets(Category):
 
         sage: C = FiniteEnumeratedSets()
         sage: TestSuite(C).run()
+        sage: sorted(C.Algebras(QQ).super_categories(), key=str)
+        [Category of finite dimensional modules with basis over Rational Field,
+         Category of set algebras over Rational Field]
 
-    TODO:
+    .. TODO::
 
     :class:`sage.combinat.debruijn_sequence.DeBruijnSequences` should
     not inherit from this class. If that is solved, then
     :class:`FiniteEnumeratedSets` shall be turned into a subclass of
     :class:`~sage.categories.category_singleton.Category_singleton`.
     """
-
-    @cached_method
-    def super_categories(self):
-        """
-        EXAMPLES::
-
-            sage: FiniteEnumeratedSets().super_categories()
-            [Category of enumerated sets]
-        """
-        return [EnumeratedSets()]
-
 
     def _call_(self, X):
         """
@@ -83,18 +76,6 @@ class FiniteEnumeratedSets(Category):
         return EnumeratedSets()._call_(X)
 
     class ParentMethods:
-
-        def is_finite(self):
-            """
-            Returns ``True`` since self is finite.
-
-            EXAMPLES::
-
-                sage: C = FiniteEnumeratedSets().example()
-                sage: C.is_finite()
-                True
-            """
-            return True
 
         def _cardinality_from_iterator(self, *ignored_args, **ignored_kwds):
             """
@@ -474,14 +455,67 @@ class FiniteEnumeratedSets(Category):
                 ...
                 AssertionError: False is not true
             """
+            # isinstance with LazyImported classes is not robust
+            from sage.rings.integer import Integer
             tester = self._tester(**options)
             if self.cardinality != self._cardinality_from_iterator:
                 card = self.cardinality()
-                tester.assert_(type(card) is Integer)
+                tester.assert_(isinstance(card, Integer))
                 if card <= tester._max_runs:
                     tester.assertEqual(card,
                                        self._cardinality_from_iterator())
 
+
+    class CartesianProducts(CartesianProductsCategory):
+
+        def extra_super_categories(self):
+            """
+            A cartesian product of finite enumerated sets is a finite enumerated set
+
+            EXAMPLES::
+
+                sage: C = FiniteEnumeratedSets().CartesianProducts()
+                sage: C.extra_super_categories()
+                [Category of finite enumerated sets]
+            """
+            return [FiniteEnumeratedSets()]
+
+        class ParentMethods:
+            def __iter__(self):
+                """
+                Return an iterator for the elements of this cartesian product
+
+                From Recipe 19.9 in the Python Cookbook by Alex Martelli and David Ascher.
+
+                EXAMPLES::
+
+                    sage: A = FiniteEnumeratedSets()(["a", "b"])
+                    sage: B = FiniteEnumeratedSets().example(); B
+                    An example of a finite enumerated set: {1,2,3}
+                    sage: C = cartesian_product([A, B, A]); C
+                    The cartesian product of ({'a', 'b'}, An example of a finite enumerated set: {1,2,3}, {'a', 'b'})
+                    sage: C in FiniteEnumeratedSets()
+                    True
+                    sage: list(C)
+                    [('a', 1, 'a'), ('a', 1, 'b'), ('a', 2, 'a'), ('a', 2, 'b'), ('a', 3, 'a'), ('a', 3, 'b'),
+                     ('b', 1, 'a'), ('b', 1, 'b'), ('b', 2, 'a'), ('b', 2, 'b'), ('b', 3, 'a'), ('b', 3, 'b')]
+                """
+                import __builtin__
+                # visualize an odometer, with "wheels" displaying "digits"...:
+                summands = list(self.summands())
+                wheels = map(iter, summands)
+                digits = [it.next() for it in wheels]
+                while True:
+                    yield self._cartesian_product_of_elements(digits)
+                    for i in range(len(digits)-1, -1, -1):
+                        try:
+                            digits[i] = wheels[i].next()
+                            break
+                        except StopIteration:
+                            wheels[i] = iter(summands[i])
+                            digits[i] = wheels[i].next()
+                    else:
+                        break
 
     class IsomorphicObjects(IsomorphicObjectsCategory):
 

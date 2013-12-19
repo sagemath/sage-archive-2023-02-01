@@ -5,19 +5,24 @@ Modules
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
 #                2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
-#                2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2008-2011 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.category import HomCategory
-from category_types import Category_module
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_import import LazyImport
+from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
+from sage.categories.category import HomCategory
+from category import JoinCategory
+from category_types import Category_module, Category_over_base_ring
+from tensor import TensorProductsCategory
+from dual import DualObjectsCategory
+from sage.categories.sets_cat import Sets
 from sage.categories.bimodules import Bimodules
 from sage.categories.fields import Fields
 _Fields = Fields()
-from vector_spaces import VectorSpaces
 
 class Modules(Category_module):
     r"""
@@ -38,9 +43,9 @@ class Modules(Category_module):
 
     EXAMPLES::
 
-        sage: Modules(IntegerRing())
+        sage: Modules(ZZ)
         Category of modules over Integer Ring
-        sage: Modules(RationalField())
+        sage: Modules(QQ)
         Category of vector spaces over Rational Field
 
         sage: Modules(Integers(9))
@@ -104,6 +109,7 @@ class Modules(Category_module):
         """
         if dispatch:
             if base_ring in _Fields:
+                from vector_spaces import VectorSpaces
                 return VectorSpaces(base_ring, check=False)
         result = super(Modules, cls).__classcall__(cls, base_ring)
         result._reduction[2]['dispatch'] = False
@@ -125,6 +131,228 @@ class Modules(Category_module):
         """
         R = self.base_ring()
         return [Bimodules(R,R)]
+
+    class SubcategoryMethods:
+
+        @cached_method
+        def base_ring(self):
+            """
+            Return the base ring for ``self``.
+
+            This implements a ``base_ring`` method for join categories
+            which are subcategories of some ``Modules(K)``.
+
+            .. NOTE::
+
+                - This uses the fact that join categories are
+                  flattened; thus some direct subcategory of
+                  ``self`` should be a category over a base ring.
+                - Generalize this to any :class:`Category_over_base_ring`.
+                - Should this code be in :class:`JoinCategory`?
+                - This assumes that a subcategory of a
+                  :class`~.category_types.Category_over_base_ring` is a
+                  :class:`~.category.JoinCategory` or a
+                  :class`~.category_types.Category_over_base_ring`.
+
+            EXAMPLES::
+
+                sage: C = Modules(QQ) & Semigroups(); C
+                Join of Category of semigroups and Category of vector spaces over Rational Field
+                sage: C.base_ring()
+                Rational Field
+                sage: C.base_ring.__module__
+                'sage.categories.modules'
+            """
+            assert isinstance(self, JoinCategory)
+            for x in self.super_categories():
+                if isinstance(x, Category_over_base_ring):
+                    return x.base_ring()
+            assert False, "some subcategory of %s should be a category over base ring"%self
+
+        def TensorProducts(self):
+            r"""
+            Return the full subcategory of objects of ``self`` constructed as tensor products.
+
+            .. SEEALSO::
+
+                - :class:`.tensor.TensorProductsCategory`
+                - :class:`~.covariant_functorial_construction.RegressiveCovariantFunctorialConstruction`.
+
+            EXAMPLES::
+
+                sage: ModulesWithBasis(QQ).TensorProducts()
+                Category of tensor products of modules with basis over Rational Field
+            """
+            return TensorProductsCategory.category_of(self)
+
+        @cached_method
+        def DualObjects(self):
+            r"""
+            Return the category of duals of objects of ``self``.
+
+            The dual of a vector space `V` is the space consisting of
+            all linear functionals on `V` (see :wikipedia:`Dual_space`).
+            Additional structure on `V` can endow its dual with
+            additional structure; e.g. if `V` is an algebra, then its
+            dual is a coalgebra.
+
+            This returns the category of dual of spaces in ``self`` endowed
+            with the appropriate additional structure.
+
+            .. SEEALSO::
+
+                - :class:`.dual.DualObjectsCategory`
+                - :class:`~.covariant_functorial_construction.CovariantFunctorialConstruction`.
+
+            .. TODO:: add support for graded duals.
+
+            EXAMPLES::
+
+                sage: VectorSpaces(QQ).DualObjects()
+                Category of duals of vector spaces over Rational Field
+
+            The dual of a vector space is a vector space::
+
+                sage: VectorSpaces(QQ).DualObjects().super_categories()
+                [Category of vector spaces over Rational Field]
+
+            The dual of an algebra is a coalgebra::
+
+                sage: sorted(Algebras(QQ).DualObjects().super_categories(), key=str)
+                [Category of coalgebras over Rational Field,
+                 Category of duals of vector spaces over Rational Field]
+
+            The dual of a coalgebra is an algebra::
+
+                sage: sorted(Coalgebras(QQ).DualObjects().super_categories(), key=str)
+                [Category of algebras over Rational Field,
+                 Category of duals of vector spaces over Rational Field]
+
+            As a shorthand, this category can be accessed with the
+            :meth:`~Modules.SubcategoryMethods.dual` method::
+
+                sage: VectorSpaces(QQ).dual()
+                Category of duals of vector spaces over Rational Field
+
+            TESTS::
+
+                sage: C = VectorSpaces(QQ).DualObjects()
+                sage: C.base_category()
+                Category of vector spaces over Rational Field
+                sage: C.super_categories()
+                [Category of vector spaces over Rational Field]
+                sage: latex(C)
+                \mathbf{DualObjects}(\mathbf{VectorSpaces}_{\Bold{Q}})
+                sage: TestSuite(C).run()
+            """
+            return DualObjectsCategory.category_of(self)
+
+        dual = DualObjects
+
+        @cached_method
+        def FiniteDimensional(self):
+            r"""
+            Return the full subcategory of the finite dimensional objects of ``self``.
+
+            EXAMPLES::
+
+                sage: Modules(ZZ).FiniteDimensional()
+                Category of finite dimensional modules over Integer Ring
+                sage: Coalgebras(QQ).FiniteDimensional()
+                Category of finite dimensional coalgebras over Rational Field
+                sage: AlgebrasWithBasis(QQ).FiniteDimensional()
+                Category of finite dimensional algebras with basis over Rational Field
+
+            TESTS::
+
+                sage: TestSuite(Modules(ZZ).FiniteDimensional()).run()
+                sage: Coalgebras(QQ).FiniteDimensional.__module__
+                'sage.categories.modules'
+            """
+            return self._with_axiom("FiniteDimensional")
+
+        @cached_method
+        def Graded(self, base_ring=None):
+            r"""
+            Return the full subcategory of the graded objects of ``self``.
+
+            INPUT::
+
+            - ``base_ring`` -- this is ignored
+
+            EXAMPLES::
+
+                sage: Modules(ZZ).Graded()
+                Category of graded modules over Integer Ring
+
+                sage: Coalgebras(QQ).Graded()
+                Join of Category of graded modules over Rational Field and Category of coalgebras over Rational Field
+
+                sage: AlgebrasWithBasis(QQ).Graded()
+                Category of graded algebras with basis over Rational Field
+
+            .. TODO::
+
+                - Explain why this does not commute with :meth:`WithBasis`
+                - Improve the support for covariant functorial
+                  constructions categories over a base ring so as to
+                  get rid of the ``base_ring`` argument.
+
+            TESTS::
+
+                sage: Coalgebras(QQ).Graded.__module__
+                'sage.categories.modules'
+            """
+            assert base_ring is None or base_ring is self.base_ring()
+            from sage.categories.graded_modules import GradedModulesCategory
+            return GradedModulesCategory.category_of(self)
+
+        @cached_method
+        def WithBasis(self):
+            r"""
+            Return the full subcategory of the finite dimensional objects of ``self``.
+
+            EXAMPLES::
+
+                sage: Modules(ZZ).WithBasis()
+                Category of modules with basis over Integer Ring
+                sage: Coalgebras(QQ).WithBasis()
+                Category of coalgebras with basis over Rational Field
+                sage: AlgebrasWithBasis(QQ).WithBasis()
+                Category of algebras with basis over Rational Field
+
+            TESTS::
+
+                sage: TestSuite(Modules(ZZ).WithBasis()).run()
+                sage: Coalgebras(QQ).WithBasis.__module__
+                'sage.categories.modules'
+            """
+            return self._with_axiom("WithBasis")
+
+    class FiniteDimensional(CategoryWithAxiom_over_base_ring):
+
+        def extra_super_categories(self):
+            """
+            Implements the fact that a finite dimensional module over a finite ring is finite
+
+            EXAMPLES::
+
+                sage: Modules(IntegerModRing(4)).FiniteDimensional().extra_super_categories()
+                [Category of finite sets]
+                sage: Modules(ZZ).FiniteDimensional().extra_super_categories()
+                []
+                sage: Modules(GF(5)).FiniteDimensional().is_subcategory(Sets().Finite())
+                True
+                sage: Modules(ZZ).FiniteDimensional().is_subcategory(Sets().Finite())
+                False
+            """
+            if self.base_ring() in Sets().Finite():
+                return [Sets().Finite()]
+            else:
+                return []
+
+    Graded = LazyImport('sage.categories.graded_modules', 'GradedModules')
+    WithBasis = LazyImport('sage.categories.modules_with_basis', 'ModulesWithBasis')
 
     class ParentMethods:
         pass

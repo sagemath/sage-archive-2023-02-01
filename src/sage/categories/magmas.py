@@ -9,11 +9,13 @@ Magmas
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_import import LazyImport
 from sage.misc.abstract_method import abstract_method
-from sage.categories.category import Category
-from sage.categories.category_singleton import Category_singleton
 from sage.categories.subquotients import SubquotientsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
+from sage.categories.algebra_functor import AlgebrasCategory
+from sage.categories.category_with_axiom import CategoryWithAxiom
+from sage.categories.category_singleton import Category_singleton
 from sage.categories.sets_cat import Sets
 from sage.categories.realizations import RealizationsCategory
 from sage.structure.sage_object import have_same_parent
@@ -32,6 +34,23 @@ class Magmas(Category_singleton):
         sage: Magmas().all_super_categories()
         [Category of magmas, Category of sets, Category of sets with partial maps, Category of objects]
 
+    The following axioms are defined by this category::
+
+        sage: Magmas().Associative()
+        Category of semigroups
+        sage: Magmas().Unital()
+        Category of unital magmas
+        sage: Magmas().Commutative()
+        Category of commutative magmas
+        sage: Magmas().Unital().Inverse()
+        Category of inverse unital magmas
+        sage: Magmas().Associative()
+        Category of semigroups
+        sage: Magmas().Associative().Unital()
+        Category of monoids
+        sage: Magmas().Associative().Unital().Inverse()
+        Category of groups
+
     TESTS::
 
         sage: C = Magmas()
@@ -45,6 +64,178 @@ class Magmas(Category_singleton):
             [Category of sets]
         """
         return [Sets()]
+
+    class SubcategoryMethods:
+
+        @cached_method
+        def Associative(self):
+            """
+            Returns the full subcategory of the associative objects of ``self``.
+
+            EXAMPLES::
+
+                sage: Magmas().Associative()
+                Category of semigroups
+
+            TESTS::
+
+                sage: TestSuite(Magmas().Associative()).run()
+                sage: Rings().Associative.__module__
+                'sage.categories.magmas'
+            """
+            return self._with_axiom('Associative')
+
+        @cached_method
+        def Commutative(self):
+            """
+            Returns the full subcategory of the commutative objects of ``self``.
+
+            EXAMPLES::
+
+                sage: Magmas().Commutative()
+                Category of commutative magmas
+                sage: Monoids().Commutative()
+                Category of commutative monoids
+
+            TESTS::
+
+                sage: TestSuite(Magmas().Commutative()).run()
+                sage: Rings().Commutative.__module__
+                'sage.categories.magmas'
+            """
+            return self._with_axiom('Commutative')
+
+        @cached_method
+        def Unital(self):
+            r"""
+            Returns the full subcategory of the unital objects of ``self``.
+
+            EXAMPLES::
+
+                sage: Magmas().Unital()
+                Category of unital magmas
+                sage: Semigroups().Unital()
+                Category of monoids
+                sage: Monoids().Unital()
+                Category of monoids
+                sage: from sage.categories.associative_algebras import AssociativeAlgebras
+                sage: AssociativeAlgebras(QQ).Unital()
+                Category of algebras over Rational Field
+
+            TESTS::
+
+                sage: TestSuite(Magmas().Unital()).run()
+                sage: Semigroups().Unital.__module__
+                'sage.categories.magmas'
+            """
+            return self._with_axiom("Unital")
+
+    Associative = LazyImport('sage.categories.semigroups', 'Semigroups', at_startup=True)
+
+    class Algebras(AlgebrasCategory):
+
+        def extra_super_categories(self):
+            """
+            EXAMPLES:
+
+                sage: Magmas().Commutative().Algebras(QQ).extra_super_categories()
+                [Category of commutative magmas]
+
+            This implements the fact that the algebra of a commutative magma is commutative::
+
+                sage: Magmas().Commutative().Algebras(QQ).super_categories()
+                [Category of magma algebras over Rational Field, Category of commutative magmas]
+
+            In particular, commutative monoid algebras are commutative algebras::
+
+                sage: Monoids().Commutative().Algebras(QQ).is_subcategory(Algebras(QQ).Commutative())
+                True
+            """
+            from sage.categories.magmatic_algebras import MagmaticAlgebras
+            return [MagmaticAlgebras(self.base_ring())]
+
+    class Commutative(CategoryWithAxiom):
+
+        class ParentMethods:
+            def is_commutative(self):
+                """
+                Return True, since commutative magmas are commutative.
+
+                EXAMPLES::
+
+                    sage: Parent(QQ,category=CommutativeRings()).is_commutative()
+                    True
+                    """
+                return True
+
+        class Algebras(AlgebrasCategory):
+
+            def extra_super_categories(self):
+                """
+                EXAMPLES:
+
+                    sage: Magmas().Commutative().Algebras(QQ).extra_super_categories()
+                    [Category of commutative magmas]
+
+                This implements the fact that the algebra of a commutative magma is commutative::
+
+                    sage: Magmas().Commutative().Algebras(QQ).super_categories()
+                    [Category of magma algebras over Rational Field, Category of commutative magmas]
+
+                In particular, commutative monoid algebras are commutative algebras::
+
+                    sage: Monoids().Commutative().Algebras(QQ).is_subcategory(Algebras(QQ).Commutative())
+                    True
+                """
+                return [Magmas().Commutative()]
+
+    class Unital(CategoryWithAxiom):
+
+        class SubcategoryMethods:
+
+            @cached_method
+            def Inverse(self):
+                r"""
+                Returns the full subcategory of the unital objects of ``self``.
+
+                EXAMPLES::
+
+                    sage: Magmas().Unital().Inverse()
+                    Category of inverse unital magmas
+                    sage: Monoids().Inverse()
+                    Category of groups
+
+                TESTS::
+
+                    sage: TestSuite(Magmas().Unital().Inverse()).run()
+                    sage: Algebras(QQ).Inverse.__module__
+                    'sage.categories.magmas'
+                """
+                return self._with_axiom("Inverse")
+
+        class Inverse(CategoryWithAxiom):
+            pass
+
+        class Algebras(AlgebrasCategory):
+
+            def extra_super_categories(self):
+                """
+                EXAMPLES:
+
+                    sage: Magmas().Commutative().Algebras(QQ).extra_super_categories()
+                    [Category of commutative magmas]
+
+                This implements the fact that the algebra of a commutative magma is commutative::
+
+                    sage: Magmas().Commutative().Algebras(QQ).super_categories()
+                    [Category of magma algebras over Rational Field, Category of commutative magmas]
+
+                In particular, commutative monoid algebras are commutative algebras::
+
+                    sage: Monoids().Commutative().Algebras(QQ).is_subcategory(Algebras(QQ).Commutative())
+                    True
+                """
+                return [Magmas().Unital()]
 
     class ParentMethods:
 

@@ -11,9 +11,8 @@ Hecke modules
 #******************************************************************************
 
 from sage.categories.category_types import Category_module
-from sage.misc.cachefunc import cached_method
 from sage.categories.category import HomCategory
-from sage.categories.all import ModulesWithBasis
+from sage.categories.modules_with_basis import ModulesWithBasis
 
 class HeckeModules(Category_module):
     r"""
@@ -38,7 +37,7 @@ class HeckeModules(Category_module):
     TODO: check that this is what we want::
 
         sage: C.super_categories()
-        [Category of modules with basis over Rational Field]
+        [Category of vector spaces with basis over Rational Field]
 
     # [Category of vector spaces over Rational Field]
 
@@ -72,18 +71,33 @@ class HeckeModules(Category_module):
         from commutative_rings import CommutativeRings
         if R not in CommutativeRings():
             raise TypeError, "R (=%s) must be a commutative ring"%R
-        Category_module.__init__(self, R, "Hecke modules")
+        Category_module.__init__(self, R)
 
     def super_categories(self):
         """
         EXAMPLES::
 
             sage: HeckeModules(QQ).super_categories()
-            [Category of modules with basis over Rational Field]
+            [Category of vector spaces with basis over Rational Field]
         """
         R = self.base_ring()
         return [ModulesWithBasis(R)]
 
+
+    def _repr_object_names(self):
+        """
+        Return the names of the objects of this category.
+
+        .. SEEALSO:: :meth:`Category._repr_object_names`
+
+        EXAMPLES::
+
+            sage: HeckeModules(QQ)._repr_object_names()
+            'Hecke modules over Rational Field'
+            sage: HeckeModules(QQ)
+            Category of Hecke modules over Rational Field
+        """
+        return "Hecke modules over %s"%(self.base())
 
     class ParentMethods:
 

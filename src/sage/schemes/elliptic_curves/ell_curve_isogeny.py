@@ -3350,7 +3350,7 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi*phi
             Traceback (most recent call last):
             ...
-            TypeError: Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7 is not in Category of hom sets in Category of Schemes
+            TypeError: Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7 is not in Category of hom sets in Category of schemes
 
         Here would be the desired output::
 

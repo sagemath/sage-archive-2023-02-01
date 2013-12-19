@@ -1117,7 +1117,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
     the base ring::
 
         sage: CombinatorialFreeModule(GF(3), ((1,2), (3,4))).category()
-        Category of modules with basis over Finite Field of size 3
+        Category of vector spaces with basis over Finite Field of size 3
 
     See :mod:`sage.categories.examples.algebras_with_basis` and
     :mod:`sage.categories.examples.hopf_algebras_with_basis` for
@@ -1242,7 +1242,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
 
             sage: F.category()
-            Category of modules with basis over Rational Field
+            Category of vector spaces with basis over Rational Field
 
         One may specify the category this module belongs to::
 
@@ -1254,7 +1254,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             sage: F.basis()
             Finite family {'a': B['a'], 'c': B['c'], 'b': B['b']}
             sage: F.category()
-            Category of finite dimensional modules with basis over Rational Field
+            Category of finite dimensional vector spaces with basis over Rational Field
             sage: TestSuite(F).run()
 
         TESTS:

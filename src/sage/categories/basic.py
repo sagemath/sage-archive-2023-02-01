@@ -29,8 +29,8 @@ from partially_ordered_monoids import PartiallyOrderedMonoids
 # For backward compatibility; might be deprecated at some point
 OrderedMonoids = PartiallyOrderedMonoids
 
-# TODO: commutative and finite variants once the variants infrastructure will be implemented
-
+from distributive_magmas_and_additive_magmas import DistributiveMagmasAndAdditiveMagmas
+DistributiveMagmasAndAdditiveMagmas
 from rngs import Rngs
 from semirings import Semirings
 from rings import Rings

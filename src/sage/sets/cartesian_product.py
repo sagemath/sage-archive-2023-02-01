@@ -60,6 +60,20 @@ class CartesianProduct(UniqueRepresentation, Parent):
         """
         return "The cartesian product of %s"%(self._sets,)
 
+    def summands(self):
+        """
+        Return the summands of ``self``
+
+        .. see also:: :meth:`Sets.CartesianProducts.ParentMethods.summands()
+            <sage.categories.sets_cat.Sets.CartesianProducts.ParentMethods.summands>`.
+
+        EXAMPLES::
+
+            sage: cartesian_product([QQ, ZZ, ZZ]).summands()
+            (Rational Field, Integer Ring, Integer Ring)
+        """
+        return self._sets
+
     def _sets_keys(self):
         """
         Returns the indices of the summands of ``self``

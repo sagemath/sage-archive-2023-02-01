@@ -58,7 +58,11 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
     one generator in each degree::
 
         sage: NCSF.category()
-        Join of Category of graded hopf algebras over Rational Field and Category of monoids with realizations and Category of coalgebras over Rational Field with realizations
+        Join of Category of hopf algebras over Rational Field
+            and Category of graded algebras over Rational Field
+            and Category of monoids with realizations
+            and Category of coalgebras over Rational Field with realizations
+
         sage: [S[i].degree() for i in range(10)]
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 

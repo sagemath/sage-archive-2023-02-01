@@ -309,7 +309,17 @@ where `H` has rank one less than `G`.
 Orthogonal and symplectic subgroups of orthogonal and symplectic groups
 -----------------------------------------------------------------------
 
-If `G = SO(r+s)` then `G` has a subgroup `SO(r) \times SO(s)`. This
+If `G = \hbox{SO}(n)` then `G` has a subgroup `\hbox{SO}(n-1)`. Depending on
+whether `n` is even or odd, we thus have branching rules
+``['D',r]`` to ``['B',r-1]`` or ``['B',r]`` to ``['D',r]``. These are
+handled as follows::
+
+     sage: branching_rule("B4","D4",rule="extended")
+     extended branching rule B4 => D4
+     sage: branching_rule("D4","B3",rule="symmetric")
+     symmetric branching rule D4 => B3
+
+If `G = \hbox{SO}(r+s)` then `G` has a subgroup `\hbox{SO}(r) \times \hbox{SO}(s)`. This
 lifts to an embedding of the universal covering groups
 
 .. MATH::

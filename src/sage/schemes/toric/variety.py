@@ -336,6 +336,7 @@ from sage.schemes.affine.affine_space import AffineSpace
 from sage.schemes.generic.ambient_space import AmbientSpace
 from sage.schemes.toric.homset import SchemeHomset_points_toric_field
 from sage.categories.fields import Fields
+from sage.misc.cachefunc import ClearCacheOnPickle
 _Fields = Fields()
 
 
@@ -526,7 +527,7 @@ def AffineToricVariety(cone, *args, **kwds):
     return ToricVariety(fan, *args, **kwds)
 
 
-class ToricVariety_field(AmbientSpace):
+class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
     r"""
     Construct a toric variety associated to a rational polyhedral fan.
 
@@ -1935,6 +1936,7 @@ class ToricVariety_field(AmbientSpace):
             self._linear_equivalence_ideal = self._fan.linear_equivalence_ideal(R)
         return self._linear_equivalence_ideal
 
+    @cached_method
     def cohomology_ring(self):
         r"""
         Return the cohomology ring of the toric variety.
@@ -1972,14 +1974,23 @@ class ToricVariety_field(AmbientSpace):
             ('x', 'u', 'y', 'v', 'z', 'w')
             sage: X.cohomology_ring().gens()
             ([y + v - w], [-y + z + w], [y], [v], [z], [w])
-        """
-        if "_cohomology_ring" not in self.__dict__:
-            if self.base_ring().characteristic()>0:
-                raise NotImplementedError('Only characteristic 0 base fields '
-                                          'are implemented.')
-            self._cohomology_ring = CohomologyRing(self)
-        return self._cohomology_ring
 
+        TESTS:
+
+        The cohomology ring is a circular reference that is
+        potentially troublesome on unpickling, see :trac:`15050` ::
+
+            sage: variety = toric_varieties.P(1)
+            sage: _ = variety.cohomology_ring(), variety.cohomology_basis(), variety.volume_class()
+            sage: loads(dumps(variety)) == variety
+            True
+        """
+        if self.base_ring().characteristic()>0:
+            raise NotImplementedError('Only characteristic 0 base fields '
+                                      'are implemented.')
+        return CohomologyRing(self)
+
+    @cached_method
     def cohomology_basis(self, d=None):
         r"""
         Return a basis for the cohomology of the toric variety.
@@ -2009,10 +2020,6 @@ class ToricVariety_field(AmbientSpace):
         if d!=None:
             return self.cohomology_basis()[d]
 
-        try:
-            return self._cohomology_basis
-        except AttributeError:
-            pass
         H = self.cohomology_ring()
         # Make an empty list for each d-piece
         basis = [[] for d in range(self.dimension() + 1)]
@@ -2021,11 +2028,10 @@ class ToricVariety_field(AmbientSpace):
             basis[x.total_degree()].append(x)
         # Convert list of lists of polynomials to
         # tuple of tuples of cohomology classes
-        basis = tuple(tuple(H(x) for x in dbasis)
-                      for dbasis in basis)
-        self._cohomology_basis = basis
-        return self._cohomology_basis
+        return tuple(tuple(H(x) for x in dbasis)
+                     for dbasis in basis)
 
+    @cached_method
     def volume_class(self):
         r"""
         Return the cohomology class of the volume form on the toric
@@ -2096,16 +2102,15 @@ class ToricVariety_field(AmbientSpace):
             Sheldon Katz and Stein Arild Stromme,
             A Maple package for intersection theory and enumerative geometry.
         """
-        if "_volume_class" not in self.__dict__:
-            if not self.is_orbifold():
-                raise NotImplementedError('Cohomology computations are only '
-                                          'implemented for orbifolds.')
-            HH = self.cohomology_ring()
-            dim = self.dimension_relative()
-            self._volume_class = HH(self.fan().generating_cone(0)).part_of_degree(dim)
-        if self._volume_class.is_zero():
+        if not self.is_orbifold():
+            raise NotImplementedError('Cohomology computations are only '
+                                      'implemented for orbifolds.')
+        HH = self.cohomology_ring()
+        dim = self.dimension_relative()
+        dVol = HH(self.fan().generating_cone(0)).part_of_degree(dim)
+        if dVol.is_zero():
             raise ValueError, 'Volume class does not exist.'
-        return self._volume_class
+        return dVol
 
     def integrate(self, cohomology_class):
         """

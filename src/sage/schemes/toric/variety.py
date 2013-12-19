@@ -1450,6 +1450,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         """
         return self.fan().is_smooth()
 
+    @cached_method
     def Kaehler_cone(self):
         r"""
         Return the closure of the Kähler cone of ``self``.
@@ -1481,23 +1482,22 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
             Basis lattice of The toric rational divisor class group of a
             2-d CPR-Fano toric variety covered by 4 affine patches
         """
-        if "_Kaehler_cone" not in self.__dict__:
-            fan = self.fan()
-            GT = fan.Gale_transform().columns()
-            from sage.schemes.toric.divisor import \
-                ToricRationalDivisorClassGroup_basis_lattice
-            L = ToricRationalDivisorClassGroup_basis_lattice(
-                                                    self.rational_class_group())
-            n = fan.nrays()
-            K = None
-            for cone in fan:
-                sigma = Cone([GT[i] for i in range(n)
-                                    if i not in cone.ambient_ray_indices()],
-                             lattice=L)
-                K = K.intersection(sigma) if K is not None else sigma
-            self._Kaehler_cone = K
-        return self._Kaehler_cone
+        fan = self.fan()
+        GT = fan.Gale_transform().columns()
+        from sage.schemes.toric.divisor import \
+            ToricRationalDivisorClassGroup_basis_lattice
+        L = ToricRationalDivisorClassGroup_basis_lattice(
+                                                self.rational_class_group())
+        n = fan.nrays()
+        K = None
+        for cone in fan:
+            sigma = Cone([GT[i] for i in range(n)
+                                if i not in cone.ambient_ray_indices()],
+                         lattice=L)
+            K = K.intersection(sigma) if K is not None else sigma
+        return K
 
+    @cached_method
     def Mori_cone(self):
         r"""
         Returns the Mori cone of ``self``.
@@ -1537,13 +1537,11 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
             in Ambient free module of rank 7
             over the principal ideal domain Integer Ring
         """
-        if "_Mori_cone" not in self.__dict__:
-            # Ideally, self.Kaehler_cone().dual() should be it, but
-            # so far this is not the case.
-            rays = (ray * self._fan.Gale_transform()
-                    for ray in self.Kaehler_cone().dual().rays())
-            self._Mori_cone = Cone(rays, lattice=ZZ**(self._fan.nrays()+1))
-        return self._Mori_cone
+        # Ideally, self.Kaehler_cone().dual() should be it, but
+        # so far this is not the case.
+        rays = (ray * self._fan.Gale_transform()
+                for ray in self.Kaehler_cone().dual().rays())
+        return Cone(rays, lattice=ZZ**(self._fan.nrays()+1))
 
     def plot(self, **options):
         r"""
@@ -1978,10 +1976,12 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         TESTS:
 
         The cohomology ring is a circular reference that is
-        potentially troublesome on unpickling, see :trac:`15050` ::
+        potentially troublesome on unpickling, see :trac:`15050`
+        and :trac:`15149` ::
 
             sage: variety = toric_varieties.P(1)
-            sage: _ = variety.cohomology_ring(), variety.cohomology_basis(), variety.volume_class()
+            sage: a = [variety.cohomology_ring(), variety.cohomology_basis(), variety.volume_class()]
+            sage: b = [variety.Todd_class(), variety.Chern_class(), variety.Chern_character(), variety.Kaehler_cone(), variety.Mori_cone()]
             sage: loads(dumps(variety)) == variety
             True
         """
@@ -2171,6 +2171,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         if top_form.is_zero(): return 0
         return top_form.lc() / self.volume_class().lc()
 
+    @cached_method
     def Chern_class(self, deg=None):
         """
         Return Chern classes of the (tangent bundle of the) toric variety.
@@ -2208,17 +2209,13 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
             True
         """
         assert self.is_orbifold(), "Requires the toric variety to be an orbifold."
-        try:
-            c = self._chern_class
-        except AttributeError:
-            c = prod([ 1+self.cohomology_ring().gen(i) for i in range(0,self._fan.nrays()) ])
-            self._chern_class = c
-
+        c = prod([ 1+self.cohomology_ring().gen(i) for i in range(0,self._fan.nrays()) ])
         if deg==None:
             return c
         else:
             return c.part_of_degree(deg)
 
+    @cached_method
     def Chern_character(self, deg=None):
         """
         Return the Chern character (of the tangent bundle) of the toric
@@ -2253,19 +2250,15 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
             True
         """
         assert self.is_orbifold(), "Requires the toric variety to be an orbifold."
-        try:
-            ch = self._chern_character
-        except AttributeError:
-            n_rels = self._fan.nrays() - self.dimension()
-            ch = sum([ self.cohomology_ring().gen(i).exp()
-                       for i in range(0,self._fan.nrays()) ]) - n_rels
-            self._chern_character = ch
-
+        n_rels = self._fan.nrays() - self.dimension()
+        ch = sum([ self.cohomology_ring().gen(i).exp()
+                   for i in range(0,self._fan.nrays()) ]) - n_rels
         if deg==None:
             return ch
         else:
             return ch.part_of_degree(deg)
 
+    @cached_method
     def Todd_class(self, deg=None):
         """
         Return the Todd class (of the tangent bundle) of the toric variety.
@@ -2297,26 +2290,21 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
             sage: dP6.integrate( dP6.Td() )
             1
         """
-        try:
-            Td = self._Todd
-        except AttributeError:
-            Td = QQ(1)
-            if self.dimension() >= 1:
-                c1 = self.Chern_class(1)
-                Td += QQ(1)/2 * c1
-            if self.dimension() >= 2:
-                c2 = self.Chern_class(2)
-                Td += QQ(1)/12 * (c1**2 + c2)
-            if self.dimension() >= 3:
-                Td += QQ(1)/24 * c1*c2
-            if self.dimension() >= 4:
-                c3 = self.Chern_class(3)
-                c4 = self.Chern_class(4)
-                Td += -QQ(1)/720 * (c1**4 -4*c1**2*c2 -3*c2**2 -c1*c3 +c4)
-            if self.dimension() >= 5:
-                raise NotImplemented, 'Todd class is currently only implemented up to degree 4'
-            self._Todd = Td
-
+        Td = QQ(1)
+        if self.dimension() >= 1:
+            c1 = self.Chern_class(1)
+            Td += QQ(1)/2 * c1
+        if self.dimension() >= 2:
+            c2 = self.Chern_class(2)
+            Td += QQ(1)/12 * (c1**2 + c2)
+        if self.dimension() >= 3:
+            Td += QQ(1)/24 * c1*c2
+        if self.dimension() >= 4:
+            c3 = self.Chern_class(3)
+            c4 = self.Chern_class(4)
+            Td += -QQ(1)/720 * (c1**4 -4*c1**2*c2 -3*c2**2 -c1*c3 +c4)
+        if self.dimension() >= 5:
+            raise NotImplementedError('Todd class is currently only implemented up to degree 4')
         if deg==None:
             return Td
         else:

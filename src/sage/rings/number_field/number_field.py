@@ -6139,35 +6139,18 @@ class NumberField_absolute(NumberField_generic):
         from sage.rings.number_field.order import is_NumberFieldOrder
         if is_NumberFieldOrder(R) and self.has_coerce_map_from(R.number_field()):
             return self._generic_convert_map(R)
-        if is_NumberField(R) and R != QQ:
-            if R.coerce_embedding() is not None:
-                if self.coerce_embedding() is not None:
-                    try:
-                        try:
-                            return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self)
-                        except ValueError: # no embedding found
-                            pass
-                        Remb = R.coerce_embedding().codomain()
-                        while Remb.coerce_embedding() is not None:
-                            Remb = Remb.coerce_embedding().codomain()
-                        semb = self.coerce_embedding().codomain()
-                        while semb.coerce_embedding() is not None:
-                            semb = semb.coerce_embedding().codomain()
-                        ambient_field = pushout(Remb, semb)
-                        # By trac #15331, EmbeddedNumberFieldMorphism has already
-                        # tried to use this pushout. Hence, if we are here, our
-                        # only chance for success is the algebrais closure.
-                        if ambient_field is not None:
-                            return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self,
-                                                                           ambient_field.algebraic_closure())
-                    except (AttributeError, ValueError, TypeError, NotImplementedError, sage.structure.coerce_exceptions.CoercionException),msg:
-                        # no success at all
-                        return
-                else:
-                    # R is embedded, self isn't. So, we could only have
-                    # the forgetful coercion. But this yields to non-commuting
-                    # coercions, as was pointed out at ticket #8800
+        # R is not QQ by the above tests
+        if is_NumberField(R) and R.coerce_embedding() is not None:
+            if self.coerce_embedding() is not None:
+                try:
+                    return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self)
+                except ValueError: # no common embedding found
                     return None
+            else:
+                # R is embedded, self isn't. So, we could only have
+                # the forgetful coercion. But this yields to non-commuting
+                # coercions, as was pointed out at ticket #8800
+                return None
 
     def base_field(self):
         """

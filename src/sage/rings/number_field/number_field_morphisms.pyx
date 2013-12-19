@@ -20,6 +20,7 @@ fields (generally `\RR` or `\CC`).
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import sage.rings.complex_double
 
 from sage.structure.element cimport Element
 from sage.categories.morphism cimport Morphism
@@ -173,33 +174,33 @@ cdef class EmbeddedNumberFieldMorphism(NumberFieldEmbedding):
 
         """
         if ambient_field is None:
-            from sage.rings.complex_double import CDF
-            default_ambient_field = CDF
-            Kemb = K.coerce_embedding()
-            if Kemb is None:
+            if K.coerce_embedding() is None:
                 raise TypeError("No embedding available for %s"%K)
-            Kemb = Kemb.codomain()
+            Kemb = K
             while Kemb.coerce_embedding() is not None:
                 Kemb = Kemb.coerce_embedding().codomain()
-            Lemb = L.coerce_embedding()
-            if Lemb is None:
+            if L.coerce_embedding() is None:
                 raise TypeError("No embedding available for %s"%L)
-            Lemb = Lemb.codomain()
+            Lemb = L
             while Lemb.coerce_embedding() is not None:
                 Lemb = Lemb.coerce_embedding().codomain()
-                ambient_field = pushout(Kemb, Lemb)
+            ambient_field = pushout(Kemb, Lemb)
+            candidate_ambient_fields = [ambient_field, sage.rings.complex_double.CDF]
+            try:
+                candidate_ambient_fields.append(ambient_field.algebraic_closure())
+            except NotImplementedError:
+                pass
         else:
-            default_ambient_field = None
-        gen_image = matching_root(K.polynomial().change_ring(L), K.gen(), ambient_field=ambient_field, margin=2)
-        if gen_image is None and default_ambient_field is not None:
-            ambient_field = default_ambient_field
-            gen_image = matching_root(K.polynomial().change_ring(L), K.gen(),
-                                      ambient_field=ambient_field, margin=2)
-        if gen_image is None:
-            raise ValueError, "No consistent embedding of all of %s into %s." % (K, L)
+            candidate_ambient_fields = [ambient_field]
 
-        NumberFieldEmbedding.__init__(self, K, L, gen_image)
-        self.ambient_field = ambient_field
+        for ambient_field in candidate_ambient_fields:
+            gen_image = matching_root(K.polynomial().change_ring(L), K.gen(), ambient_field=ambient_field, margin=2)
+            if gen_image is not None:
+                NumberFieldEmbedding.__init__(self, K, L, gen_image)
+                self.ambient_field = ambient_field
+                return
+        else:
+            raise ValueError, "No consistent embedding of all of %s into %s." % (K, L)
 
     def section(self):
         """

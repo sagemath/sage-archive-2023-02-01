@@ -61,11 +61,8 @@ Here ``A3`` and ``C2`` are the Cartan Types of the groups
 `G=SL(4)` and `H=Sp(4)`.
 
 Now we may see how representations of `SL(4)` decompose
-into irreducibles when they are restricted to `Sp(4)`.
+into irreducibles when they are restricted to `Sp(4)`::
 
-.. link
-
-::
     sage: A3=WeylCharacterRing("A3",style="coroots")
     sage: chi=A3(1,0,1); chi.degree()
     15
@@ -85,8 +82,6 @@ other factors through `SL(4)`. To check that the embeddings
 are not conjugate, we branch a (randomly chosen) representation.
 Observe that we do not have to build the intermediate
 WeylCharacterRings.
-
-.. link
 
 ::
 
@@ -113,8 +108,8 @@ Cartan subalgebra `U` of `H` is contained in a Cartan subalgebra
 `T` of `G`. Since the ambient vector space of the weight
 lattice of `G` is `\hbox{Lie}(T)^*`, we get map
 `\hbox{Lie}(T)^*\to\hbox{Lie}(U)^*`, and this must be
-implemented as a function. For speed, the function may return just
-a list, which can be coerced into \hbox{Lie}(U)^*.
+implemented as a function. For speed, the function usually
+just returns a list, which can be coerced into `\hbox{Lie}(U)^*`.
 
 ::
 
@@ -135,7 +130,7 @@ of `G`, which we recall is the negative of the highest root.
 The branching rule has a ``describe()`` method that shows how
 the roots (including the affine root) restrict.
 
-.. link
+::
 
     sage: b.describe()
     <BLANKLINE>
@@ -162,7 +157,7 @@ the roots (including the affine root) restrict.
 The extended Dynkin diagram of `G` and the ordinary
 Dynkin diagram of `H` are shown for reference, and
 ``3 => 1`` means that the third simple root `\alpha_3`
-of `G` restricts to the first simple root of 
+of `G` restricts to the first simple root of `H`.
 In this example, the affine root does not restrict to
 a simple roots, so it is omitted from the list of
 restrictions. If you add the parameter ``verbose=true`` you will
@@ -568,29 +563,51 @@ representation is orthogonal, and factors through `SO(14)`, that is, `D7`.
 Miscellaneous other subgroups
 -----------------------------
 
-Use ``rule="miscellaneous"`` for the branching rule ``B3 => G2``. This
-may also be obtained using a plethysm but for convenience this one is
-hand-coded.
+Use ``rule="miscellaneous"`` for the following rules.
 
+    .. MATH::
 
-Nuts and bolts of branching rules
----------------------------------
+        \begin{aligned}
+        B_3 & \to G_2,
+        \\ F_4 & \to G_2 \times A_1,
+        \\ E_6 & \to G_2 \times A_2,
+        \\ E_7 & \to G_2 \times C_3,
+        \\ E_8 & \to G_2 \times F_4.
+        \end{aligned}
+
+The first rule corresponds to the embedding of ``G_2`` in
+``\hbox{SO}(7)`` in its action on the trace zero octonions.
+Regarding the branching rule ``E_6\to G_2\times A_2``,
+Rubenthaler [Rubenthaler2008]_ describes the embedding.
+
+Writing your own branching rules
+--------------------------------
 
 Sage has many built-in branching rules, enough to handle most
-cases. However, if you find a case where there is no existing rule,
-you may code it by hand. Moreover, it may be useful to understand how
-the built-in rules work.
+cases. We believe there are only a few branching rules that
+cannot be created by using the tools you already have, all
+of which are related to the exceptional groups. Of all the
+branching rules listed in [McKayPatera1981]_ the only ones
+that are not implemented or constructible by plethysms
+are given by the following table. (The information given
+in this table is of course not sufficent to describe the embedding.)
+Some of these may eventually be implemented.
 
-Suppose you want to branch from a group `G` to a subgroup `H`.
-Arrange the embedding so that a Cartan subalgebra `U` of `H` is
-contained in a Cartan subalgebra `T` of `G`. There is thus a mapping
-from the weight spaces `\hbox{Lie}(T)^* \to \hbox{Lie}(U)^*`.  Two
-embeddings will produce identical branching rules if they differ by an
-element of the Weyl group of `H`. The *rule* is this map
-`\hbox{Lie}(T)^*` ``= G.space()`` to
-`\hbox{Lie}(U)^*` ``= H.space()``, which you may implement as a
-function.
+    .. MATH::
 
+      \begin{aligned}
+      E_6 & \to C_4, A_2, G_2
+      \\ E_7 &\to A_2,  A_1, A_1, A_1\times F_4, A_1\times G_2, A_1\times A_1
+      \\ E_8 & \to C_7 , A_1\times A_2 , A_1 , A_1 , A_1                                                           
+      \\ F_4 & \to A_1
+      \end{aligned}
+
+If you need a case such as one of these where there
+is no existing rule, you may code it by hand. As we
+have already explained, the branching rule is a
+function from the weight lattice of ``G`` to the
+weight lattice of ``H``, and if you supply this you
+can write your own branching rules.
 
 As an example, let us consider how to implement the branching rule
 ``A3 -> C2``.  Here ``H = C2 = Sp(4)`` embedded as a subgroup in
@@ -620,6 +637,14 @@ Let us check that this agrees with the built-in rule::
     sage: A3(1,1,0,0).branch(C2, rule="symmetric")
     C2(0,0) + C2(1,1)
 
+Although this works, it is better to make the rule
+into an element of the BranchingRule class, as follows.
+
+::
+
+    sage: brule = BranchingRule("A3","C2",lambda x : [x[0]-x[3], x[1]-x[2]],"custom")
+    sage: A3(1,1,0,0).branch(C2, rule=brule)
+    C2(0,0) + C2(1,1)
 
 Automorphisms and triality
 --------------------------

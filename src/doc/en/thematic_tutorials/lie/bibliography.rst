@@ -39,7 +39,7 @@ Bibliography
    pp. 205--272.
 
 .. [HainesEtAl2009] T. J. Haines, R. E. Kottwitz, and
-   A. Parsad. Iwahori-Hecke Algebras. arXiv:math/0309168,
+   A. Prasad. Iwahori-Hecke Algebras. arXiv:math/0309168,
    http://arxiv.org/abs/math/0309168.
 
 .. [HongKang2002] J. Hong and S.-J. Kang. *Introduction to Quantum
@@ -93,6 +93,10 @@ Bibliography
 .. [OkadoSchilling2008] M. Okado, A.Schilling. Existence of crystal bases for
    Kirillov--Reshetikhin crystals for nonexceptional types.
    *Representation Theory* 12:186--207, 2008.
+
+.. [Rubenthaler2008] H. Rubenthaler, 
+   The (A2,G2) duality in E6, octonions and the triality principle.
+   Trans. Amer. Math. Soc. 360 (2008), no. 1, 347–367 
 
 .. [SchillingTingley2011] A. Schilling, P. Tingley.
    Demazure crystals, Kirillov-Reshetikhin crystals, and the energy function.

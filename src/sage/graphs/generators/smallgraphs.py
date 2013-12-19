@@ -958,6 +958,10 @@ def BlanusaFirstSnarkGraph():
     The Blanusa graphs are two snarks on 18 vertices and 27 edges. For more
     information on them, see the :wikipedia:`Blanusa_snarks`.
 
+    .. SEEALSO::
+
+        * :meth:`~sage.graphs.graph_generators.GraphGenerators.BlanusaSecondSnarkGraph`.
+
     EXAMPLES::
 
         sage: g = graphs.BlanusaFirstSnarkGraph()
@@ -988,6 +992,10 @@ def BlanusaSecondSnarkGraph():
 
     The Blanusa graphs are two snarks on 18 vertices and 27 edges. For more
     information on them, see the :wikipedia:`Blanusa_snarks`.
+
+    .. SEEALSO::
+
+        * :meth:`~sage.graphs.graph_generators.GraphGenerators.BlanusaFirstSnarkGraph`.
 
     EXAMPLES::
 

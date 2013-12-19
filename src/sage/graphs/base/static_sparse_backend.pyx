@@ -39,6 +39,7 @@ from sage.graphs.base.static_sparse_graph cimport (init_short_digraph,
                                                    edge_label)
 from c_graph import CGraphBackend
 from sage.misc.bitset cimport FrozenBitset
+from libc.stdint cimport uint32_t
 
 cdef class StaticSparseCGraph(CGraph):
     """
@@ -212,7 +213,7 @@ cdef class StaticSparseCGraph(CGraph):
             raise LookupError("The vertex does not belong to the graph")
 
         cdef int i
-        return [self.g.neighbors[u][i] for i in range(out_degree(self.g,u))]
+        return [<int> self.g.neighbors[u][i] for i in range(out_degree(self.g,u))]
 
     cpdef list in_neighbors(self, int u):
         r"""
@@ -236,7 +237,7 @@ cdef class StaticSparseCGraph(CGraph):
             raise LookupError("The vertex does not belong to the graph")
 
         cdef int i
-        return [self.g_rev.neighbors[u][i] for i in range(out_degree(self.g_rev,u))]
+        return [<int> self.g_rev.neighbors[u][i] for i in range(out_degree(self.g_rev,u))]
 
     cpdef int out_degree(self, int u):
         r"""
@@ -433,7 +434,7 @@ class StaticSparseBackend(CGraphBackend):
         cdef StaticSparseCGraph cg = self._cg
         cdef list l
 
-        cdef ushort * edge = has_edge(cg.g,u,v)
+        cdef uint32_t * edge = has_edge(cg.g,u,v)
         if edge == NULL:
             raise LookupError("The edge does not exist")
 
@@ -475,8 +476,7 @@ class StaticSparseBackend(CGraphBackend):
             sage: g.has_edge(0,4,None)
             True
         """
-        cdef ushort * edge = NULL
-        cdef ushort * tmp = NULL
+        cdef uint32_t * edge = NULL
         cdef StaticSparseCGraph cg = <StaticSparseCGraph> (self._cg)
         try:
             u = self._vertex_to_int[u]

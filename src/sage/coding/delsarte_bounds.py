@@ -103,8 +103,7 @@ def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
         p.add_constraint(sum([A[r] for r in xrange(n+1)]), max=maxc)
     return A, p
 
-def delsarte_bound_hamming_space(n, d, q,
-                    isinteger=False, return_data=False, solver="PPL"):
+def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL"):
     """
     Find the classical Delsarte bound [1]_ on codes in Hamming space
     ``H_q^n`` of minimal distance ``d``
@@ -117,9 +116,6 @@ def delsarte_bound_hamming_space(n, d, q,
     - ``d`` -- the (lower bound on) minimal distance of the code
 
     - ``q`` -- the size of the alphabet
-
-    - ``isinteger`` -- if ``True``, uses an integer programming solver (ILP), rather
-        that an LP solver. Can be very slow if set to ``True``.
 
     - ``return_data`` -- if ``True``, return a triple ``(W,LP,bound)``, where ``W`` is
         a weights vector,  and ``LP`` the Delsarte bound LP; both of them are Sage LP
@@ -170,7 +166,7 @@ def delsarte_bound_hamming_space(n, d, q,
 
     """
     from sage.numerical.mip import MIPSolverException
-    A, p = _delsarte_LP_building(n, d, 0, q, isinteger,  solver)
+    A, p = _delsarte_LP_building(n, d, 0, q, isinteger=False,  solver)
     try:
         bd=p.solve()
     except MIPSolverException, exc:

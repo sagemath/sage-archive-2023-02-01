@@ -416,8 +416,8 @@ class EisensteinExtensionRingCappedAbsolute(EisensteinExtensionGeneric, pAdicCap
         EXAMPLES::
 
             sage: R = ZpCA(3, 10000, print_pos=False); S.<x> = ZZ[]; f = x^3 + 9*x - 3
-            sage: W.<w> = R.ext(f); W #indirect doctest
-            Eisenstein Extension of 3-adic Ring with capped absolute precision 10000 in w defined by (1 + O(3^10000))*x^3 + (O(3^10000))*x^2 + (3^2 + O(3^10000))*x + (-3 + 3^10000 + O(3^10000))
+            sage: W.<w> = R.ext(f); W
+            Eisenstein Extension of 3-adic Ring with capped absolute precision 10000 in w defined by (1 + O(3^10000))*x^3 + (O(3^10000))*x^2 + (3^2 + O(3^10000))*x + (-3 + O(3^10000))
             sage: W.precision_cap()
             30000
 

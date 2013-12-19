@@ -490,7 +490,7 @@ for file in "$SAGE_SRC/bin/"*; do
     echo >&3 "                 \$(SAGE_SRC)${file#$SAGE_SRC} \\"
 done
 echo >&3
-echo >&3 'SCRIPT_TARGETS = \'
+echo >&3 'SCRIPTS = \'
 for file in "$SAGE_SRC/bin/"*; do
     echo >&3 "                 \$(SAGE_LOCAL)${file#$SAGE_SRC} \\"
 done
@@ -500,7 +500,7 @@ for file in `find "$SAGE_SRC"/ext -type f`; do
     echo >&3 "                  \$(SAGE_SRC)${file#$SAGE_SRC} \\"
 done
 echo >&3
-echo >&3 'EXTCODE_TARGETS = \'
+echo >&3 'EXTCODE = \'
 for file in `find "$SAGE_SRC"/ext -type f`; do
     echo >&3 "                  \$(SAGE_EXTCODE)${file#$SAGE_SRC/ext} \\"
 done

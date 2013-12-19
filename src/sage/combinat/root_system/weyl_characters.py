@@ -1952,7 +1952,8 @@ def branch_weyl_character(chi, R, S, rule="default"):
         \begin{aligned}
         B_3 & \to G_2,
         \\ F_4 & \to G_2 \times A_1,
-        \\ E_6 & \to G_2 \times A_2.
+        \\ E_6 & \to G_2 \times A_2,
+        \\ E_7 & \to G_2 \times C_3,
         \\ E_8 & \to G_2 \times F_4.
         \end{aligned}
 
@@ -1970,9 +1971,13 @@ def branch_weyl_character(chi, R, S, rule="default"):
         sage: A2xG2 = WeylCharacterRing("A2xG2",style="coroots")
         sage: E6(1,0,0,0,0,0).branch(A2xG2,rule="miscellaneous")
         A2xG2(0,1,1,0) + A2xG2(2,0,0,0)
+        sage: E7=WeylCharacterRing("E7",style="coroots")
+        sage: G2xC3=WeylCharacterRing("G2xC3",style="coroots")
+        sage: E7(0,1,0,0,0,0,0).branch(G2xC3,rule="miscellaneous") # long time (1.84s)
+        G2xC3(1,0,1,0,0) + G2xC3(1,0,1,1,0) + G2xC3(0,1,0,0,1) + G2xC3(2,0,1,0,0) + G2xC3(0,0,1,1,0)
         sage: E8 = WeylCharacterRing("E8",style="coroots")
         sage: G2xF4 = WeylCharacterRing("G2xF4",style="coroots")
-        sage: E8(0,0,0,0,0,0,0,1).branch(G2xF4,rule="miscellaneous")
+        sage: E8(0,0,0,0,0,0,0,1).branch(G2xF4,rule="miscellaneous") # long time (0.76s)
         G2xF4(1,0,0,0,0,1) + G2xF4(0,1,0,0,0,0) + G2xF4(0,0,1,0,0,0)
 
     .. RUBRIC:: Branching Rules From Plethysms
@@ -2337,12 +2342,12 @@ class BranchingRule(SageObject):
         if self._R.is_compound():
             raise ValueError,"Cannot describe branching rule from reducible type"
         if not no_r:
-            print "\n%s\n"%(self._R.affine().dynkin_diagram()).__repr__()
+            print "\n%s"%(self._R.affine().dynkin_diagram()).__repr__()
         if self._S.is_compound():
             for j in range(len(self._S.component_types())):
                 ctype = self._S.component_types()[j]
                 component_rule = self*branching_rule(self._S, ctype,"proj%s"%(j+1))
-                print "projection %d on %s "%(j+1, ctype._repr_(compact=True)),
+                print "\nprojection %d on %s "%(j+1, ctype._repr_(compact=True)),
                 component_rule.describe(verbose=verbose, no_r=True)
             if not verbose:
                 print "\nfor more detailed information use verbose=True"
@@ -2884,12 +2889,20 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                     return BranchingRule(Rtype, Stype, lambda x : [x[2]+x[3],x[1]-x[2],-x[1]-x[3],-2*x[5],x[5]+x[4],x[5]-x[4]], "miscellaneous")
                 else:
                     raise ValueError("Rule not found")
+        elif Rtype == CartanType("E7"):
+            if Stype.is_compound():
+                if stypes == [CartanType("C3"),CartanType("G2")]:
+                    return BranchingRule(Rtype, Stype, lambda x : [-2*x[6],x[4]+x[5],-x[4]+x[5],x[1]+x[3],x[2]-x[3],-x[1]-x[2]],"miscellaneous")
+                elif stypes == [CartanType("G2"),CartanType("C3")]:
+                    return BranchingRule(Rtype, Stype, lambda x : [x[1]+x[3],x[2]-x[3],-x[1]-x[2],-2*x[6],x[4]+x[5],-x[4]+x[5]],"miscellaneous")
+                else:
+                    raise ValueError("Rule not found")
         elif Rtype == CartanType("E8"):
             if Stype.is_compound():
                 if stypes == [CartanType("F4"),CartanType("G2")]:
-                    return BranchingRule(Rtype, Stype, lambda x : [x[7], x[6], x[5], x[4], x[1]+x[2], -x[2]+x[3], -x[1]-x[3]], "miscellaneous")
+                    return BranchingRule(Rtype, Stype, lambda x : [x[7], x[6], x[5], x[4], x[1]+x[3], -x[3]+x[2], -x[1]-x[2]], "miscellaneous")
                 elif stypes == [CartanType("G2"),CartanType("F4")]:
-                    return BranchingRule(Rtype, Stype, lambda x : [x[1]+x[2], -x[2]+x[3], -x[1]-x[3], x[7], x[6], x[5], x[4]], "miscellaneous")
+                    return BranchingRule(Rtype, Stype, lambda x : [x[1]+x[3], -x[3]+x[2], -x[1]-x[2], x[7], x[6], x[5], x[4]], "miscellaneous")
                 else:
                     raise ValueError("Rule not found")
         elif Rtype[0] == 'F':
@@ -2956,7 +2969,7 @@ def branching_rule_from_plethysm(chi, cartan_type, return_matrix = False):
         M = matrix(ret).transpose()
         if len(M.columns()) != ct[1] + 1:
             raise ValueError("representation has wrong degree for type {}".format(ct))
-        return BranchingRule(ct, chi.parent().cartan_type(), lambda x : tuple(M*vector(x)), "plethysm")
+        return BranchingRule(ct, chi.parent().cartan_type(), lambda x : tuple(M*vector(x)), "plethysm (along %s)"%chi)
     if ct[0] in ["B","D"]:
         if chi.frobenius_schur_indicator() != 1:
             raise ValueError("character is not orthogonal")
@@ -2988,7 +3001,7 @@ def branching_rule_from_plethysm(chi, cartan_type, return_matrix = False):
     if return_matrix:
         return M
     else:
-        return BranchingRule(ct, chi.parent().cartan_type(), lambda x : tuple(M*vector(x)), "plethysm")
+        return BranchingRule(ct, chi.parent().cartan_type(), lambda x : tuple(M*vector(x)), "plethysm (along %s)"%chi)
 
 class WeightRing(CombinatorialFreeModule):
     """

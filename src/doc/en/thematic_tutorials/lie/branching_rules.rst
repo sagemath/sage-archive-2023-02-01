@@ -174,7 +174,6 @@ We suggest that you look at the ``describe`` methods
 of branching rules for the ``levi``, ``symmetric`` and
 ``extended`` types, which will be described below.
 
-
 Levi subgroups
 --------------
 

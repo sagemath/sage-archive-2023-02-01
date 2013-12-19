@@ -80,9 +80,7 @@ cdef class gen(sage.structure.element.RingElement):
     Python extension class that models the PARI GEN type.
     """
     def __init__(self):
-        self.b = 0
-        self._parent = P
-        # self.refers_to is initialised as needed
+        raise RuntimeError("PARI objects cannot be instantiated directly; use pari(x) to convert x to PARI")
 
     def __dealloc__(self):
         if self.b:

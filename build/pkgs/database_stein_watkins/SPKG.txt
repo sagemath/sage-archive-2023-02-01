@@ -1,0 +1,27 @@
+= database_stein_watkins =
+
+== Description ==
+The Stein-Watkins database of elliptic curves (full version)
+
+See http://modular.math.washington.edu/papers/stein-watkins/
+
+This is an optional (huge) package, not included by default.
+
+== License ==
+None
+
+== SPKG Maintainers ==
+ * William Stein
+ * John Cremona
+
+== Dependencies ==
+None
+
+=== Patches ===
+ * None
+
+==ChangeLog ==
+
+=== database_stein_watkins (John Cremona, December 20th 2013) ===
+ * Converted to the new git package format
+

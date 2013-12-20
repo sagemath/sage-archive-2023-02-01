@@ -5544,17 +5544,29 @@ cdef class gen(sage.structure.element.RingElement):
         pari_catch_sig_on()
         return P.new_gen(fibo(long(x)))
 
+    def gcd(gen x, y=None):
+        """
+        Return the greatest common divisor of `x` and `y`.
 
-    def gcd(gen x, y, long flag=0):
+        If `y` is ``None``, then `x` must be a vector and the
+        greatest common divisor of its components is returned.
+
+        EXAMPLES::
+
+            sage: pari(10).gcd(15)
+            5
+            sage: pari([5, 'y']).gcd()
+            1
+
         """
-        gcd(x,y,flag=0): greatest common divisor of x and y. flag is
-        optional, and can be 0: default, 1: use the modular gcd algorithm
-        (x and y must be polynomials), 2 use the subresultant algorithm (x
-        and y must be polynomials)
-        """
-        cdef gen t0 = objtogen(y)
-        pari_catch_sig_on()
-        return P.new_gen(ggcd0(x.g, t0.g))
+        cdef gen t0
+        if y is None:
+            pari_catch_sig_on()
+            return P.new_gen(ggcd0(x.g, NULL))
+        else:
+            t0 = objtogen(y)
+            pari_catch_sig_on()
+            return P.new_gen(ggcd0(x.g, t0.g))
 
     def issquare(gen x, find_root=False):
         """
@@ -5591,16 +5603,29 @@ cdef class gen(sage.structure.element.RingElement):
         pari_catch_sig_off()
         return t != 0
 
-    def lcm(gen x, y):
+    def lcm(gen x, y=None):
         """
-        Return the least common multiple of x and y. EXAMPLES::
+        Return the least common multiple of `x` and `y`.
+
+        If `y` is ``None``, then `x` must be a vector and the
+        least common multiple of its components is returned.
+
+        EXAMPLES::
 
             sage: pari(10).lcm(15)
             30
+            sage: pari([5, 'y']).lcm()
+            5*y
+
         """
-        cdef gen t0 = objtogen(y)
-        pari_catch_sig_on()
-        return P.new_gen(glcm(x.g, t0.g))
+        cdef gen t0
+        if y is None:
+            pari_catch_sig_on()
+            return P.new_gen(glcm0(x.g, NULL))
+        else:
+            t0 = objtogen(y)
+            pari_catch_sig_on()
+            return P.new_gen(glcm0(x.g, t0.g))
 
     def numdiv(gen n):
         """

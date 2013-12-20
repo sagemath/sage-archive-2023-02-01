@@ -344,20 +344,15 @@ class Tachyon(SageObject):
             sage: q.light((-1,-1,10), 1,(1,1,1))
             sage: q.texture('s')
             sage: q.sphere((0,0,0),1,'s')
-            sage: q.show(verbose = False)
+            sage: q.show(verbose=False)
         """
-        import sage.plot.plot
-        if sage.doctest.DOCTEST_MODE:
-            filename = graphics_filename()
-            self.save(os.path.join(SAGE_TMP, 'test.png'), verbose=verbose, extra_opts=extra_opts)
-            return
-        if sage.plot.plot.EMBEDDED_MODE:
-            filename = graphics_filename()
-            self.save(filename, verbose=verbose, extra_opts=extra_opts)
-            return
-        filename = tmp_filename(ext='.png')
+        filename = graphics_filename()
         self.save(filename, verbose=verbose, extra_opts=extra_opts)
-        os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.viewer.png_viewer(), filename))
+
+        from sage.doctest import DOCTEST_MODE
+        from sage.plot.plot import EMBEDDED_MODE
+        if not DOCTEST_MODE and not EMBEDDED_MODE:
+            os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.viewer.png_viewer(), filename))
 
     def _res(self):
         r"""

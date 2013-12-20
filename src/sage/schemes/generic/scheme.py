@@ -24,9 +24,12 @@ AUTHORS:
 
 from sage.structure.parent import Parent
 from sage.misc.all import cached_method
-from sage.rings.all import (IntegerRing, is_CommutativeRing,
-                            ZZ, is_RingHomomorphism, GF, PowerSeriesRing,
+from sage.rings.all import (IntegerRing,
+                            ZZ, GF, PowerSeriesRing,
                             Rationals)
+
+from sage.rings.commutative_ring import is_CommutativeRing
+from sage.rings.morphism import is_RingHomomorphism
 
 def is_Scheme(x):
     """

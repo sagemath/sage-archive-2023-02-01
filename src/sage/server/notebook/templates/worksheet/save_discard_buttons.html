@@ -1,7 +1,0 @@
-{#
-INPUT:
-doc_worksheet - boolean stating whether this worksheet is the doc worksheet
-#}
-{% if not doc_worksheet %}
-<button name="button_save" title="Save changes" onClick="save_worksheet();">Save</button><button title="Save changes and close window" onClick="save_worksheet_and_close();" name="button_save">Save & quit</button><button title="Discard changes to this worksheet" onClick="worksheet_discard();">Discard & quit</button>
-{% endif %}

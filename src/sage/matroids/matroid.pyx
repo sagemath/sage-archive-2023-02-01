@@ -301,11 +301,6 @@ from itertools import combinations, permutations
 from set_system cimport SetSystem
 from sage.combinat.subset import Subsets
 
-import minor_matroid
-import dual_matroid
-cimport basis_exchange_matroid
-cimport basis_matroid
-cimport extension
 from utilities import newlabel, sanitize_contractions_deletions
 from sage.calculus.all import var
 from sage.rings.all import ZZ
@@ -1068,6 +1063,7 @@ cdef class Matroid(SageObject):
             {'e', 'f', 'g', 'h'}, {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'}},
             4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
         """
+        import minor_matroid
         return minor_matroid.MinorMatroid(self, contractions, deletions)
 
     cpdef _has_minor(self, N):
@@ -1163,6 +1159,7 @@ cdef class Matroid(SageObject):
             sage: [sorted(C) for C in N.circuits() if len(C) == 3]
             [[0, 1, 6]]
         """
+        import basis_matroid
         return basis_matroid.BasisMatroid(self)._extension(element, hyperplanes)
 
     # ** user-facing methods **
@@ -2952,13 +2949,14 @@ cdef class Matroid(SageObject):
             sage: M._is_isomorphism(N, morphism)
             True
         """
-        cdef basis_matroid.BasisMatroid sf = basis_matroid.BasisMatroid(self)
-        cdef basis_exchange_matroid.BasisExchangeMatroid ot
+        import basis_exchange_matroid
+        import basis_matroid
+        sf = basis_matroid.BasisMatroid(self)
         if not isinstance(other, basis_exchange_matroid.BasisExchangeMatroid):
             ot = basis_matroid.BasisMatroid(other)
         else:
             ot = other
-        return sf.__is_isomorphism(ot, morphism)
+        return sf._is_isomorphism(ot, morphism)
 
     def __hash__(self):
         r"""
@@ -3027,6 +3025,7 @@ cdef class Matroid(SageObject):
             sage: M1 == M3  # indirect doctest
             True
         """
+        import basis_matroid
         if op in [0, 1, 4, 5]:  # <, <=, >, >=
             return NotImplemented
         if left.__class__ != right.__class__:
@@ -3351,6 +3350,7 @@ cdef class Matroid(SageObject):
             {'a', 'e', 'i'}, {'b', 'd', 'i'}, {'g', 'h', 'i'}},
             3: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'}}}'
         """
+        import dual_matroid
         return dual_matroid.DualMatroid(self)
 
     cpdef truncation(self):
@@ -3807,6 +3807,7 @@ cdef class Matroid(SageObject):
             sage: len(list(M.linear_subclasses(line_length=5)))
             44
         """
+        import extension
         return extension.LinearSubclasses(self, line_length=line_length, subsets=subsets)
 
     cpdef extensions(self, element=None, line_length=None, subsets=None):
@@ -3865,6 +3866,7 @@ cdef class Matroid(SageObject):
             5
 
         """
+        import extension
         if element is None:
             element = newlabel(self.groundset())
         else:

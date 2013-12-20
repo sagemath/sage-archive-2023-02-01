@@ -223,6 +223,26 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
             [0|1 2]
             [-+---]
             [3|4 5]
+            sage: R.<x> = QQ['x']
+            sage: a = matrix(R,2,[x+1,2/3,  x^2/2, 1+x^3]); a
+            [  x + 1     2/3]
+            [1/2*x^2 x^3 + 1]
+            sage: b = copy(a)
+            sage: b[0,0] = 5
+            sage: b
+            [      5     2/3]
+            [1/2*x^2 x^3 + 1]
+            sage: a
+            [  x + 1     2/3]
+            [1/2*x^2 x^3 + 1]
+
+        ::
+
+            sage: b = copy(a)
+            sage: f = b[0,0]; f[0] = 10
+            Traceback (most recent call last):
+            ...
+            IndexError: polynomials are immutable
         """
         A = self.__class__(self._parent, self._entries, copy = True, coerce=False)
         if self._subdivisions is not None:
@@ -345,4 +365,3 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
         """
         import copy
         return self.__class__(self._parent, copy.deepcopy(self._entries), copy = False, coerce=False)
-

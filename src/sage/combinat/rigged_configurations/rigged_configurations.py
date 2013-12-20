@@ -514,10 +514,9 @@ class AbstractRiggedConfigurations(UniqueRepresentation, Parent):
 
             sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 2]])
             sage: RC.kleber_tree
-            Kleber tree of Cartan type ['A', 4] and root weight [0, 2, 0, 0]
+            Kleber tree of Cartan type ['A', 4, 1] and B = ((2, 2),)
         """
-        #return KleberTree(self._cartan_type.classical(), self.dims)
-        return KleberTree(self._cartan_type, self.dims)
+        return KleberTree(self._affine_ct, self.dims)
 
     def tensor_product_of_Kirillov_Reshetikhin_tableaux(self):
         """

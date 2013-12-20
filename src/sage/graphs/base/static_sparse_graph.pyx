@@ -264,7 +264,7 @@ cdef int init_short_digraph(short_digraph g, G, edge_labelled = False) except -1
                 g.neighbors[v_id][i] = j
                 edge_labels[(g.neighbors[v_id]+i)-g.edges] = label
 
-        g.edge_labels = <void *> edge_labels
+        g.edge_labels = <PyObject *> <void *> edge_labels
         cpython.Py_XINCREF(g.edge_labels)
 
 cdef inline int n_edges(short_digraph g):
@@ -291,7 +291,7 @@ cdef int init_empty_copy(short_digraph dst, short_digraph src) except -1:
 
     if src.edge_labels != NULL:
         edge_labels = [None]*n_edges(src)
-        dst.edge_labels = <void *> edge_labels
+        dst.edge_labels = <PyObject *> <void *> edge_labels
         cpython.Py_XINCREF(dst.edge_labels)
 
 cdef int init_reverse(short_digraph dst, short_digraph src) except -1:

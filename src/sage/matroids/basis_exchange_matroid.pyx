@@ -42,7 +42,6 @@ include 'sage/misc/bitset.pxi'
 DEF BINT_EXCEPT = -2 ** 31 - 1
 
 from matroid cimport Matroid
-cimport basis_matroid
 from set_system cimport SetSystem
 from copy import copy
 from itertools import combinations, permutations
@@ -1831,6 +1830,7 @@ cdef class BasisExchangeMatroid(Matroid):
             True
         """
         if not isinstance(other, BasisExchangeMatroid):
+            import basis_matroid
             ot = basis_matroid.BasisMatroid(other)
         else:
             ot = other

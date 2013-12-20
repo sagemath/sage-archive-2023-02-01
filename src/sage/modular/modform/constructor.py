@@ -34,6 +34,8 @@ import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.rings.all as rings
 
+from sage.rings.commutative_ring import is_CommutativeRing
+
 import ambient_eps
 import ambient_g0
 import ambient_g1
@@ -121,7 +123,7 @@ def canonical_parameters(group, level, weight, base_ring):
             raise ValueError, "group and level do not match."
         group = arithgroup.Gamma0(m)
 
-    if not rings.is_CommutativeRing(base_ring):
+    if not is_CommutativeRing(base_ring):
         raise TypeError, "base_ring (=%s) must be a commutative ring"%base_ring
 
     # it is *very* important to include the level as part of the data
@@ -429,7 +431,7 @@ def Newforms(group, weight=2, base_ring=None, names=None):
     base field that is not minimal for that character::
 
         sage: K.<i> = QuadraticField(-1)
-        sage: chi = DirichletGroup(5, K).gen(0)
+        sage: chi = DirichletGroup(5, K)[3]
         sage: len(Newforms(chi, 7, names='a'))
         1
         sage: x = polygen(K); L.<c> = K.extension(x^2 - 402*i)
@@ -438,7 +440,7 @@ def Newforms(group, weight=2, base_ring=None, names=None):
         sage: sorted([N[0][2], N[1][2]]) == sorted([1/2*c - 5/2*i - 5/2, -1/2*c - 5/2*i - 5/2])
         True
 
-    We test that #8630 is fixed::
+    We test that :trac:`8630` is fixed::
 
         sage: chi = DirichletGroup(109, CyclotomicField(3)).0
         sage: CuspForms(chi, 2, base_ring = CyclotomicField(9))

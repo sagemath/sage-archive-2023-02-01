@@ -16,10 +16,8 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.misc.cachefunc import cached_method
-from sage.structure.misc import getattr_from_other_class
 
 from sage.rings.infinity import Infinity
-from sage.rings.integer_ring import ZZ
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.geometry.polyhedron.base import is_Polyhedron
 
@@ -579,6 +577,12 @@ class ParentNewtonPolygon(Parent, UniqueRepresentation):
 
     The corresponding Newton polygon.
 
+    .. note::
+
+        By convention, a Newton polygon always contains the point
+        at infinity `(0, \infty)`. These polygons are attached to
+        polynomials or series over discrete valuation rings (e.g. padics).
+
     EXAMPLES:
 
     We specify here a Newton polygon by its vertices::
@@ -592,6 +596,12 @@ class ParentNewtonPolygon(Parent, UniqueRepresentation):
 
         sage: NewtonPolygon([ (0,0), (1,1), (2,8), (3,5) ])
         Finite Newton polygon with 3 vertices: (0, 0), (1, 1), (3, 5)
+
+    Note that the value ``+Infinity`` is allowed as the second coordinate
+    of a vertex::
+
+        sage: NewtonPolygon([ (0,0), (1,Infinity), (2,8), (3,5) ])
+        Finite Newton polygon with 2 vertices: (0, 0), (3, 5)
 
     If last_slope is set, the returned Newton polygon is infinite
     and ends with an infinite line having the specified slope::
@@ -632,6 +642,21 @@ class ParentNewtonPolygon(Parent, UniqueRepresentation):
         Infinite Newton polygon with 3 vertices: (0, 0), (1, 0), (3, 1) ending by an infinite line of slope 2/3
         sage: NP.slopes()
         [0, 1/2, 1/2]
+
+    ::
+
+    Be careful, do not confuse Newton polygons provided by this class
+    with Newton polytopes. Compare::
+
+        sage: NP = NewtonPolygon([ (0,0), (1,45), (3,6) ]); NP
+        Finite Newton polygon with 2 vertices: (0, 0), (3, 6)
+
+        sage: x, y = polygen(QQ,'x, y')
+        sage: p = 1 + x*y**45 + x**3*y**6
+        sage: p.newton_polytope()
+        A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
+        sage: p.newton_polytope().vertices()
+        (A vertex at (0, 0), A vertex at (1, 45), A vertex at (3, 6))
     """
 
     Element = NewtonPolygon_element
@@ -743,7 +768,7 @@ class ParentNewtonPolygon(Parent, UniqueRepresentation):
         if len(arg) > 0 and arg[0] in self.base_ring():
             if sort_slopes: arg.sort()
             x = y = 0
-            vertices = [ (x,y) ]
+            vertices = [(x, y)]
             for slope in arg:
                 if not slope in self.base_ring():
                     raise TypeError("argument must be a list of coordinates or a list of (rational) slopes")
@@ -751,7 +776,7 @@ class ParentNewtonPolygon(Parent, UniqueRepresentation):
                 y += slope
                 vertices.append((x,y))
         else:
-            vertices = arg
+            vertices = [(x, y) for (x, y) in arg if y is not Infinity]
         if len(vertices) == 0:
             polyhedron = Polyhedron(base_ring=self.base_ring(), ambient_dim=2)
         else:

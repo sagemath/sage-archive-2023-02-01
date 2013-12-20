@@ -615,7 +615,7 @@ class Order(IntegralDomain):
 
             sage: F.<alpha> = NumberField(x**2+3)
             sage: F.ring_of_integers().zeta(6)
-            1/2*alpha + 1/2
+            -1/2*alpha + 1/2
             sage: O = F.order([3*alpha])
             sage: O.zeta(3)
             Traceback (most recent call last):

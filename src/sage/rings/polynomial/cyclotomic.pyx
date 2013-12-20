@@ -30,9 +30,6 @@ include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/ext/cdefs.pxi"
 
-cdef extern from *:
-    void memset(void *, char, int)
-
 from sage.rings.arith import factor
 from sage.rings.infinity import infinity
 from sage.misc.misc import prod, subsets

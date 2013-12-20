@@ -211,7 +211,7 @@ class AlternatingSignMatrix(Element):
             sage: d = A([[0,1,0],[1,-1,1],[0,1,0]]).to_dyck_word(); d
             [1, 1, 0, 1, 0, 0]
             sage: parent(d)
-            <class 'sage.combinat.dyck_word.DyckWord_complete'>
+            Complete Dyck words
         """
         MT = self.to_monotone_triangle()
         nplus = self._matrix.nrows() + 1

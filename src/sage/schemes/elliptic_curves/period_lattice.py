@@ -95,7 +95,9 @@ AUTHORS:
 """
 
 from sage.modules.free_module import FreeModule_generic_pid
-from sage.rings.all import ZZ, QQ, RealField, ComplexField, is_RealField, is_ComplexField, QQbar, AA
+from sage.rings.all import ZZ, QQ, RealField, ComplexField, QQbar, AA
+from sage.rings.real_mpfr import is_RealField
+from sage.rings.complex_field import is_ComplexField
 from sage.rings.real_mpfr import RealNumber as RealNumber
 from sage.rings.complex_number import ComplexNumber as ComplexNumber
 from sage.rings.number_field.number_field import refine_embedding

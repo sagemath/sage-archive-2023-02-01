@@ -23,7 +23,7 @@ whose result should be unique irregardless of said optional argument.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-import weakref, types, copy_reg
+import types, copy_reg
 
 from sage_object cimport SageObject
 
@@ -38,6 +38,7 @@ for i in range(len(sage_version)):
         pass
 sage_version = tuple(sage_version)
 
+import sage.misc.weak_dict
 
 cdef class UniqueFactory(SageObject):
     """
@@ -79,7 +80,7 @@ cdef class UniqueFactory(SageObject):
             Rational Field
         """
         self._name = name
-        self._cache = weakref.WeakValueDictionary()
+        self._cache = sage.misc.weak_dict.WeakValueDictionary()
 
     def __reduce__(self):
         """

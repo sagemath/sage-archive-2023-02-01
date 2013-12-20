@@ -52,7 +52,6 @@ class Config(collections.MutableMapping):
         [trac]
         username = doctest
         ''')
-
     """
     def __init__(self, devrc = DEVRC):
         r"""
@@ -63,7 +62,6 @@ class Config(collections.MutableMapping):
             sage: from sage.dev.config import Config
             sage: type(Config())
             <class 'sage.dev.config.Config'>
-
         """
         self._config = configparser.ConfigParser()
         self._devrc = devrc
@@ -80,9 +78,11 @@ class Config(collections.MutableMapping):
             sage: c = DoctestConfig()
             sage: repr(c)
             "Config('''\n[trac]\n...\n[UI]\n...\n[git]...\n[sagedev]\n''')"
-
         """
-        return "Config('''\n"+"".join([ "[%s]\n"%s+"".join(["%s = %s\n"%(o,self[s][o]) for o in self[s] ]) for s in self ])+"''')"
+        config = "".join([ "[%s]\n"%s + 
+                           "".join(["%s = %s\n"%(o,self[s][o]) for o in self[s] ]) 
+                           for s in self ])
+        return "Config('''\n"+ config +"''')"
 
     def _read_config(self):
         r"""
@@ -120,7 +120,6 @@ class Config(collections.MutableMapping):
             ...
             [sagedev]
             ''')
-
         """
         if os.path.exists(self._devrc):
             self._config.read(self._devrc)
@@ -139,7 +138,6 @@ class Config(collections.MutableMapping):
             sage: c._write_config()
             sage: os.path.exists(c._devrc)
             True
-
         """
         import sage.doctest
         assert not sage.doctest.DOCTEST_MODE or self._devrc != DEVRC, "attempt to overwrite devrc in doctest"
@@ -167,7 +165,6 @@ class Config(collections.MutableMapping):
             Traceback (most recent call last):
             ...
             KeyError: 'tig'
-
         """
         if not section in self:
             raise KeyError(section)
@@ -185,7 +182,6 @@ class Config(collections.MutableMapping):
                 username = doctest
                 ticket_cache = ...
                 ''')
-
             """
             def __init__(this, section):
                 r"""
@@ -197,7 +193,6 @@ class Config(collections.MutableMapping):
                     sage: c = DoctestConfig()
                     sage: type(c['trac'])
                     <class 'sage.dev.config.IndexableForSection'>
-
                 """
                 this._section = section
 
@@ -214,7 +209,6 @@ class Config(collections.MutableMapping):
                     username = doctest
                     ticket_cache = ...
                     ''')
-
                 """
                 return "IndexableForSection('''\n"+"\n".join(["%s = %s"%(o,this[o]) for o in this])+"\n''')"
 
@@ -233,7 +227,6 @@ class Config(collections.MutableMapping):
                     Traceback (most recent call last):
                     ...
                     KeyError: 'nousername'
-
                 """
                 try:
                     return self._config.get(this._section, option)
@@ -250,7 +243,6 @@ class Config(collections.MutableMapping):
                     sage: c = DoctestConfig()
                     sage: list(c["trac"])
                     ['username', 'ticket_cache']
-
                 """
                 return iter(self._config.options(this._section))
 
@@ -265,7 +257,6 @@ class Config(collections.MutableMapping):
                     sage: c["trac"]["username"] = "foo"
                     sage: c["trac"]["username"]
                     'foo'
-
                 """
                 self._config.set(this._section, option, value)
                 self._write_config()
@@ -283,7 +274,6 @@ class Config(collections.MutableMapping):
                     Traceback (most recent call last):
                     ...
                     KeyError: 'username'
-
                 """
                 self._config.remove_option(this._section, option)
                 self._write_config()
@@ -298,7 +288,6 @@ class Config(collections.MutableMapping):
                     sage: c = DoctestConfig()
                     sage: len(c["trac"])
                     2
-
                 """
                 return len(self._config.options(this._section))
 
@@ -312,7 +301,6 @@ class Config(collections.MutableMapping):
                     sage: c = DoctestConfig()
                     sage: "username" in c["trac"]
                     True
-
                 """
                 return option in self._config.options(this._section)
 
@@ -330,7 +318,6 @@ class Config(collections.MutableMapping):
             True
             sage: 'nottrac' in c
             False
-
         """
         return section in self._config.sections()
 
@@ -344,7 +331,6 @@ class Config(collections.MutableMapping):
             sage: c = DoctestConfig()
             sage: list(c)
             ['trac', 'UI', 'git', 'sagedev']
-
         """
         return iter(self._config.sections())
 
@@ -359,7 +345,6 @@ class Config(collections.MutableMapping):
             sage: c["foo"] = {"foo":"foo"}
             sage: c["foo"]["foo"]
             'foo'
-
         """
         was_empty = True
 
@@ -383,7 +368,6 @@ class Config(collections.MutableMapping):
             sage: c = DoctestConfig()
             sage: len(c)
             4
-
         """
         return len(self._config.sections())
 
@@ -401,7 +385,7 @@ class Config(collections.MutableMapping):
             username = doctest
             ticket_cache = ...
             [UI]
-            log_level = 0
+            log_level = 1
             [git]
             ssh_key_set = True
             repository_anonymous = remote_repository_undefined
@@ -418,10 +402,9 @@ class Config(collections.MutableMapping):
             username = doctest
             ticket_cache = ...
             [UI]
-            log_level = 0
+            log_level = 1
             [sagedev]
             ''')
-
         """
         self._config.remove_section(section)
         self._write_config()

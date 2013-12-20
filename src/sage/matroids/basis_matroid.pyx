@@ -79,7 +79,6 @@ from itertools import permutations
 from sage.rings.arith import binomial
 from set_system cimport SetSystem
 from itertools import combinations
-import sage.matroids.unpickling
 
 # class of general matroids, represented by their list of bases
 
@@ -1141,6 +1140,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
             sage: loads(dumps(M))
             Vamos
         """
+        import sage.matroids.unpickling
         BB = bitset_pickle(self._bb)
         data = (self._E, self._matroid_rank, getattr(self, '__custom_name'), BB)
         version = 0

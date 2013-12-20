@@ -155,6 +155,12 @@ def delsarte_bound_hamming_space(n, d, q,
        sage: delsarte_bound_hamming_space(11,3,4)
        327680/3
 
+    Such an input is invalid::
+
+       sage: delsarte_bound_hamming_space(11,3,-4)
+       Solver exception:  'PPL : There is no feasible solution' ()
+       False
+
     REFERENCES:
 
     .. [1] P. Delsarte, An algebraic approach to the association schemes of coding theory,
@@ -163,10 +169,11 @@ def delsarte_bound_hamming_space(n, d, q,
 
 
     """
+    from sage.numerical.mip import MIPSolverException
     A, p = _delsarte_LP_building(n, d, 0, q, isinteger,  solver)
     try:
         bd=p.solve()
-    except sage.numerical.mip.MIPSolverException, exc:
+    except MIPSolverException, exc:
         print "Solver exception: ", exc, exc.args
         if return_data:
             return A,p,False
@@ -235,7 +242,14 @@ def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
        sage: delsarte_bound_additive_hamming_space(11,3,4,q_base=2)
        16
 
+   Such a d_star is not possible::
+
+       sage: delsarte_bound_additive_hamming_space(11,3,4,d_star=9)
+       Solver exception:  'PPL : There is no feasible solution' ()
+       False
+
    """
+   from sage.numerical.mip import MIPSolverException
    if q_base == 0:
       q_base = q
 
@@ -260,7 +274,7 @@ def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
       A, p = _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, q_base**m)
       try:
         bd=p.solve()
-      except sage.numerical.mip.MIPSolverException, exc:
+      except MIPSolverException, exc:
         print "Solver exception: ", exc, exc.args
         if return_data:
            return A,p,False
@@ -277,4 +291,3 @@ def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
       return A, p, m
    else:
       return m
-

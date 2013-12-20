@@ -395,6 +395,13 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         return True
 
+    def extension(self, poly, name=None, names=None, embedding=None):
+        if self.modulus() == 1:
+            return self
+        else:
+            from sage.rings.ring import CommutativeRing
+            return CommutativeRing.extension(self, poly, name, names, embedding)
+
     @cached_method
     def is_prime_field(self):
         """

@@ -18,6 +18,7 @@ Matrix Constructor
 #*****************************************************************************
 import types
 import sage.rings.all as rings
+from sage.rings.ring import is_Ring
 import sage.matrix.matrix_space as matrix_space
 from sage.modules.free_module_element import vector
 from sage.structure.element import is_Vector
@@ -543,7 +544,7 @@ def _matrix_constructor(*args, **kwds):
         # integer ring.
         return matrix_space.MatrixSpace(rings.ZZ, 0, 0, sparse=sparse)([])
 
-    if len(args) >= 1 and rings.is_Ring(args[0]):
+    if len(args) >= 1 and is_Ring(args[0]):
         # A ring is specified
         if kwds.get('ring', args[0]) != args[0]:
             raise ValueError, "Specified rings are not the same"
@@ -802,7 +803,7 @@ def prepare(w):
         ring = rings.RDF
     elif ring is complex:
         ring = rings.CDF
-    elif not rings.is_Ring(ring):
+    elif not is_Ring(ring):
         raise TypeError, "unable to find a common ring for all elements"
     return entries, ring
 
@@ -1536,7 +1537,7 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
     # Leads with a ring?
     # Formats 3, 4, else remains None
     ring = None
-    if rings.is_Ring(arg0):
+    if is_Ring(arg0):
         ring = arg0
         arg0 = arg1
         arg1 = arg2
@@ -2063,10 +2064,10 @@ def elementary_matrix(arg0, arg1=None, **kwds):
     """
     import sage.structure.element
     # determine ring and matrix size
-    if not arg1 is None and not rings.is_Ring(arg0):
+    if not arg1 is None and not is_Ring(arg0):
         raise TypeError('optional first parameter must be a ring, not {0}'.format(arg0))
     scale = kwds.pop('scale', None)
-    if rings.is_Ring(arg0):
+    if is_Ring(arg0):
         R = arg0
         arg0 = arg1
     elif scale is not None:
@@ -2543,7 +2544,7 @@ def block_matrix(*args, **kwds):
         else:
             return matrix_space.MatrixSpace(rings.ZZ, 0, 0)([])
 
-    if len(args) >= 1 and rings.is_Ring(args[0]):
+    if len(args) >= 1 and is_Ring(args[0]):
         # A ring is specified
         if kwds.get('ring', args[0]) != args[0]:
             raise ValueError("base ring specified twice and they are different")

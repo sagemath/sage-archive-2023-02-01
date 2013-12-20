@@ -8,10 +8,13 @@ implementation in sage.
 
 REFERENCES:
 
-    .. [Jack1970] A class of symmetric functions with a parameter, Proc. R
-       Soc. Edinburgh (A), 69, 1-18.
+    .. [Jack1970] H. Jack,
+       *A class of symmetric functions with a parameter*,
+       Proc. R. Soc. Edinburgh (A), 69, 1-18.
 
-    .. [Ma1995] I. G. Macdonald, Symmetric functions and Hall polynomials, second ed.,
+    .. [Ma1995] I. G. Macdonald,
+       *Symmetric functions and Hall polynomials*,
+       second ed.,
        The Clarendon Press, Oxford University Press, New York, 1995, With contributions
        by A. Zelevinsky, Oxford Science Publications.
 """
@@ -34,7 +37,8 @@ REFERENCES:
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.calculus.var import var
 import sage.categories.all
-from sage.rings.all import Integer, gcd, lcm, QQ, is_FractionField
+from sage.rings.all import Integer, gcd, lcm, QQ
+from sage.rings.fraction_field import is_FractionField
 from sage.misc.misc import prod
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom, End

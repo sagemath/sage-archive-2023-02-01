@@ -622,14 +622,14 @@ cdef class NumberFieldElement(FieldElement):
             sage: theta._pari_('theta')
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: theta already exists with incompatible valence
             sage: theta._pari_()
             Mod(y, y^2 + 1)
             sage: k.<I> = QuadraticField(-1)
             sage: I._pari_('I')
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: I already exists with incompatible valence
 
         Instead, request the variable be named different for the coercion::
 
@@ -709,7 +709,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: b._pari_init_('theta')
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: theta already exists with incompatible valence
 
         Fortunately pari_init returns everything in terms of y by
         default::

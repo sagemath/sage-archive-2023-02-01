@@ -52,14 +52,20 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
 
         \\ \mathrm{wt}(b(m)) & = \wt(b) + m \delta.
         \end{aligned}
+
+    EXAMPLES::
+
+        sage: K = KirillovReshetikhinCrystal(['A',2,1], 1, 1)
+        sage: A = K.affinization()
     """
     def __init__(self, B):
         """
         Initialize ``self``.
         """
         self._B = B
+        self._cartan_type = B.cartan_type()
         Parent.__init__(self, category=(RegularCrystals(), InfiniteEnumeratedSets()))
-        self.moodule_generators = (self.element_class(self, self._B.module_generator(), 0),)
+        self.module_generators = (self.element_class(self, self._B.module_generator(), 0),)
 
     def _repr_(self):
         """
@@ -77,7 +83,7 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
         """
         An element in an affinization crystal.
         """
-        def __init__(self, parent b, m):
+        def __init__(self, parent, b, m):
             """
             Initialize ``self``.
             """
@@ -85,21 +91,40 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
             self._m = m
             Element.__init__(self, parent)
 
+        def _repr_(self):
+            """
+            Return a string representation of ``self``.
+            """
+            return "{}({})".format(self._b, self._m)
+
+        def _latex_(self):
+            r"""
+            Return a LaTeX representation of ``self``.
+            """
+            from sage.misc.latex import latex
+            return latex(self._b) + "({})".format(self._m)
+
         def e(self, i):
             """
             Return the action of `e_i` on ``self``.
             """
+            bp = self._b.e(i)
+            if bp is None:
+                return None
             if i == 0:
-                return self.__class__(self.parent(), self._b.e(0), self._m+1)
-            return self.__class__(self.parent(), self._b.e(i), self._m)
+                return self.__class__(self.parent(), bp, self._m+1)
+            return self.__class__(self.parent(), bp, self._m)
 
         def f(self, i):
             """
             Return the action of `f_i` on ``self``.
             """
+            bp = self._b.f(i)
+            if bp is None:
+                return None
             if i == 0:
-                return self.__class__(self.parent(), self._b.f(0), self._m+1)
-            return self.__class__(self.parent(), self._b.f(i), self._m)
+                return self.__class__(self.parent(), bp, self._m+1)
+            return self.__class__(self.parent(), bp, self._m)
 
         def epsilon(self, i):
             r"""

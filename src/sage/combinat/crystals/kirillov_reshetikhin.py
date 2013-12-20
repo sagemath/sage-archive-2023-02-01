@@ -628,6 +628,19 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
         from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinTableaux
         return KirillovReshetikhinTableaux(self.cartan_type(), self._r, self._s)
 
+    def affinization(self):
+        """
+        Return the corresponding affinization crystal of ``self``.
+
+        EXAMPLES::
+
+            sage: K = KirillovReshetikhinCrystal(['A',2,1], 1, 1)
+            sage: K.affinization()
+            Affinization of Kirillov-Reshetikhin crystal of type ['A', 2, 1] with (r,s)=(1,1)
+        """
+        from sage.combinat.crystals.affinization import AffinizationCrystal
+        return AffinizationCrystal(self)
+
 class KirillovReshetikhinGenericCrystalElement(AffineCrystalFromClassicalElement):
     """
     Abstract class for all Kirillov-Reshetikhin crystal elements.

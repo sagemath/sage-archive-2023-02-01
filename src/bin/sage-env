@@ -246,6 +246,7 @@ fi
 
 # Setting Sage-related location environment variables.
 export SAGE_LOCAL="$SAGE_ROOT/local"
+export SAGE_ETC="$SAGE_LOCAL/etc"
 export SAGE_SHARE="$SAGE_LOCAL/share"
 export SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
 export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"

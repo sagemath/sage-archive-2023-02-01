@@ -3258,6 +3258,14 @@ p-norm use 'normalized', and for division by the first nonzero entry use \
             Sparse vector space of dimension 0 over Real Double Field
             sage: parent(vector(RDF, (), sparse=False).apply_map(lambda x: x, sparse=False))
             Vector space of dimension 0 over Real Double Field
+
+        Check that the bug in :trac:`14558` has been fixed::
+
+            sage: F.<a> = GF(9)
+            sage: v = vector([a, 0,0,0], sparse=True)
+            sage: f = F.hom([a**3])
+            sage: v.apply_map(f)
+            (2*a + 1, 0, 0, 0)
         """
         if sparse is None:
             sparse = self.is_sparse()
@@ -3274,6 +3282,7 @@ p-norm use 'normalized', and for division by the first nonzero entry use \
         v = None
 
         if self.is_sparse():
+            zero_res = 0
             if len(self.dict(copy=False)) < self._degree:
                 # OK, we have some zero entries.
                 zero_res = phi(self.base_ring()(0))
@@ -3286,6 +3295,9 @@ p-norm use 'normalized', and for division by the first nonzero entry use \
             if v is None:
                 # phi maps 0 to 0 (or else we don't have any zeroes at all)
                 v = dict([(i,phi(z)) for i,z in self.dict(copy=False).items()])
+                # add a zero at the last position, if it is not already set.
+                # This will help the constructor to determine the right degree.
+                v.setdefault(self._degree-1, zero_res)
         else:
             v = [phi(z) for z in self.list()]
 

@@ -90,6 +90,7 @@ class Point(GraphicPrimitive_xydata):
             'How big the point is (i.e., area in points^2=(1/72 inch)^2).'
         """
         return {'alpha':'How transparent the point is.',
+                'legend_color':'The color of the legend text',
                 'legend_label':'The label for this item in the legend.',
                 'size': 'How big the point is (i.e., area in points^2=(1/72 inch)^2).',
                 'faceted': 'If True color the edge of the point.',
@@ -312,7 +313,8 @@ def point(points, **kwds):
         return point3d(points, **kwds)
 
 @rename_keyword(color='rgbcolor', pointsize='size')
-@options(alpha=1, size=10, faceted=False, rgbcolor=(0,0,1), legend_label=None, aspect_ratio='automatic')
+@options(alpha=1, size=10, faceted=False, rgbcolor=(0,0,1),
+         legend_color=None, legend_label=None, aspect_ratio='automatic')
 def point2d(points, **options):
     r"""
     A point of size ``size`` defined by point = `(x,y)`.
@@ -352,6 +354,11 @@ def point2d(points, **options):
 
         sage: point((0,0), rgbcolor='black', pointsize=40, legend_label='origin')
 
+    The legend can be colored::
+
+        sage: P = points([(0,0),(1,0)], pointsize=40, legend_label='origin', legend_color='red')
+        sage: P + plot(x^2,(x,0,1), legend_label='plot', legend_color='green')
+
     Extra options will get passed on to show(), as long as they are valid::
 
         sage: point([(cos(theta), sin(theta)) for theta in srange(0, 2*pi, pi/8)], frame=True)
@@ -382,6 +389,7 @@ def point2d(points, **options):
     g.add_primitive(Point(xdata, ydata, options))
     if options['legend_label']:
         g.legend(True)
+        g._legend_colors = [options['legend_color']]
     return g
 
 points = point

@@ -32,6 +32,7 @@ from sage.matrix.matrix_integer_sparse import Matrix_integer_sparse
 from sage.rings.all import ZZ
 from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
 from sage.combinat.root_system.root_system import RootSystem
+from sage.sets.family import Family
 
 class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
     r"""
@@ -228,14 +229,20 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             cartan_type = None
             dynkin_diagram = None
             subdivisions = None
-            try:
-                cartan_type = CartanType(args[0])
-                dynkin_diagram = cartan_type.dynkin_diagram()
-            except (TypeError, ValueError):
-                pass
+
+            from sage.combinat.root_system.dynkin_diagram import DynkinDiagram_class
+            if isinstance(args[0], DynkinDiagram_class):
+                dynkin_diagram = args[0]
+                cartan_type = args[0]._cartan_type
+            else:
+                try:
+                    cartan_type = CartanType(args[0])
+                    dynkin_diagram = cartan_type.dynkin_diagram()
+                except (TypeError, ValueError):
+                    pass
 
             if dynkin_diagram is not None:
-                n = cartan_type.rank()
+                n = dynkin_diagram.rank()
                 index_set = dynkin_diagram.index_set()
                 reverse = dict((index_set[i], i) for i in range(len(index_set)))
                 data = {(i, i): 2 for i in range(n)}
@@ -259,7 +266,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
                 if cartan_type is not None:
                     index_set = tuple(cartan_type.index_set())
                 else:
-                    index_set = tuple(range(M.ncols()))
+                    index_set = tuple(range(n))
             elif len(args) == 2:
                 index_set = tuple(args[1])
                 if len(index_set) != n and len(set(index_set)) != n:
@@ -321,22 +328,56 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             sage: C.reflection_group()
             Weyl Group of type ['A', 3] (as a matrix group acting on the root space)
         """
-        from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         RS = self.root_space()
-        G = RS.weyl_group()
+
         if type == "matrix":
-            return G
-        elif type == "permutation":
-            assert G.is_finite()
+            return RS.weyl_group()
+
+        if type == "permutation":
+            if not self.is_finite():
+                raise ValueError("only works for finite types")
             Phi = RS.roots()
             gens = {}
+            from sage.groups.perm_gps.permgroup_named import SymmetricGroup
             S = SymmetricGroup(len(Phi))
             for i in self.index_set():
                 pi = S([ Phi.index( beta.simple_reflection(i) ) + 1 for beta in Phi ])
                 gens[i] = pi
             return S.subgroup( gens[i] for i in gens )
-        else:
-            raise ValueError("The reflection group is only available as a matrix group or as a permutation group.")
+
+        raise ValueError("The reflection group is only available as a matrix group or as a permutation group.")
+
+    def symmetrizer(self):
+        """
+        Return the symmetrizer of ``self``.
+
+        EXAMPLES::
+
+            sage: cm = CartanMatrix([[2,-5],[-2,2]])
+            sage: cm.symmetrizer()
+            Finite family {0: 2, 1: 5}
+
+        TESTS:
+
+        Check that the symmetrizer computed from the Cartan matrix agrees
+        with the values given by the Cartan type::
+
+            sage: ct = CartanType(['B',4,1])
+            sage: ct.symmetrizer()
+            Finite family {0: 2, 1: 2, 2: 2, 3: 2, 4: 1}
+            sage: ct.cartan_matrix().symmetrizer()
+            Finite family {0: 2, 1: 2, 2: 2, 3: 2, 4: 1}
+        """
+        sym = self.is_symmetrizable(True)
+        if not sym:
+            raise ValueError("the Cartan matrix is not symmetrizable")
+        iset = self.index_set()
+        # The result from is_symmetrizable needs to be scaled
+        # to integer coefficients
+        from sage.rings.arith import LCM
+        from sage.rings.all import QQ
+        scalar = LCM(map(lambda x: QQ(x).denominator(), sym))
+        return Family( {iset[i]: ZZ(val*scalar) for i, val in enumerate(sym)} )
 
     ##########################################################################
     # Cartan type methods
@@ -358,7 +399,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
 
     def cartan_type(self):
         """
-        Return the Cartan type of ``self`` or ``None`` if unknown.
+        Return the Cartan type of ``self`` or ``self`` if unknown.
 
         EXAMPLES::
 
@@ -370,7 +411,12 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
 
             sage: C = CartanMatrix([[2,-1,-2], [-1,2,-1], [-2,-1,2]])
             sage: C.cartan_type()
+            [ 2 -1 -2]
+            [-1  2 -1]
+            [-2 -1  2]
         """
+        if self._cartan_type is None:
+            return self
         return self._cartan_type
 
     def rank(self):
@@ -410,17 +456,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         from sage.combinat.root_system.dynkin_diagram import DynkinDiagram
         if self._cartan_type is not None:
             return DynkinDiagram(self._cartan_type)
-
-        from dynkin_diagram import DynkinDiagram_class
-        n = self.nrows()
-        g = DynkinDiagram_class(self)
-        for i in range(n):
-            for j in range(n):
-                if self[i,j] == -1:
-                    g.add_edge(i, j)
-                elif self[i,j] < -1:
-                    g.add_edge(i, j, -self[i,j])
-        return g
+        return DynkinDiagram(self)
 
     def cartan_matrix(self):
         r"""
@@ -455,8 +491,23 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             True
             sage: M.dual().cartan_type() == ct.dual()
             True
+
+        An example with arbitrary Cartan matrices::
+
+            sage: cm = CartanMatrix([[2,-5], [-2, 2]]); cm
+            [ 2 -5]
+            [-2  2]
+            sage: cm.dual()
+            [ 2 -2]
+            [-5  2]
+            sage: cm.dual() == CartanMatrix(cm.transpose())
+            True
+            sage: cm.dual().dual() == cm
+            True
         """
-        return CartanMatrix(self._cartan_type.dual())
+        if self._cartan_type is not None:
+            return CartanMatrix(self._cartan_type.dual())
+        return CartanMatrix(self.transpose())
 
     def is_crystallographic(self):
         """
@@ -509,9 +560,12 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             sage: M = CartanMatrix(['D',4,1])
             sage: M.is_finite()
             False
+            sage: M = CartanMatrix([[2, -4], [-3, 2]])
+            sage: M.is_finite()
+            False
         """
         if self._cartan_type is None:
-            return False
+            return self.det() > 0
         return self._cartan_type.is_finite()
 
     def is_affine(self):
@@ -526,9 +580,12 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             sage: M = CartanMatrix(['D',4,1])
             sage: M.is_affine()
             True
+            sage: M = CartanMatrix([[2, -4], [-3, 2]])
+            sage: M.is_affine()
+            False
         """
         if self._cartan_type is None:
-            return False
+            return self.det() == 0
         return self._cartan_type.is_affine()
 
 def is_generalized_cartan_matrix(M):

@@ -1478,11 +1478,15 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             sage: S = SymmetricFunctions(QQ)
             sage: s = S.s(); p = S.p()
             sage: ss = tensor([s,s]); pp = tensor([p,p])
-            sage: a = tensor((s[5],s[5]))
-            sage: pp(a) # used to yield p[[5]] # p[[5]]
-            Traceback (most recent call last):
-               ...
-            NotImplementedError
+            sage: a = tensor((s[2],s[2]))
+
+        The following originally used to yield ``p[[2]] # p[[2]]``, and if
+        there was no natural coercion between ``s`` and ``p``, this would
+        raise a ``NotImplementedError``. Since :trac:`15305`, this takes the
+        coercion between ``s`` and ``p`` and lifts it to the tensor product. ::
+
+            sage: pp(a)
+            1/4*p[1, 1] # p[1, 1] + 1/4*p[1, 1] # p[2] + 1/4*p[2] # p[1, 1] + 1/4*p[2] # p[2]
 
         Extensions of the ground ring should probably be reintroduced
         at some point, but via coercions, and with stronger sanity
@@ -1604,6 +1608,18 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             +Infinity
         """
         return self._basis_keys.cardinality()
+
+    def gens(self):
+        """
+        Return a tuple consisting of the basis elements of ``self``.
+
+        EXAMPLES::
+
+            sage: F = CombinatorialFreeModule(ZZ, ['a', 'b', 'c'])
+            sage: F.gens()
+            (B['a'], B['b'], B['c'])
+        """
+        return tuple(self.basis().values())
 
     def set_order(self, order):
         """
@@ -1877,7 +1893,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         return r
 
     def _latex_term(self, m):
-        """
+        r"""
         Returns a string for the LaTeX code for the basis element
         indexed by m.
 
@@ -1915,13 +1931,13 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             2[1, 2, 3] + 4[3, 2, 1]
             sage: QS3.print_options(latex_bracket=True)
             sage: latex(a)                     # indirect doctest
-            2\left[[1, 2, 3]\right] + 4\left[[3, 2, 1]\right]
+            2\left[ [1, 2, 3] \right] + 4\left[ [3, 2, 1] \right]
             sage: QS3.print_options(latex_bracket="(")
             sage: latex(a)                     # indirect doctest
-            2\left([1, 2, 3]\right) + 4\left([3, 2, 1]\right)
+            2\left( [1, 2, 3] \right) + 4\left( [3, 2, 1] \right)
             sage: QS3.print_options(latex_bracket=('\\myleftbracket', '\\myrightbracket'))
             sage: latex(a)                     # indirect doctest
-            2\myleftbracket[1, 2, 3]\myrightbracket + 4\myleftbracket[3, 2, 1]\myrightbracket
+            2\myleftbracket [1, 2, 3] \myrightbracket + 4\myleftbracket [3, 2, 1] \myrightbracket
             sage: QS3.print_options(**original_print_options) # reset
 
         TESTS::
@@ -1929,7 +1945,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             sage: F = CombinatorialFreeModule(QQ, [('a', 'b'), (0,1,2)])
             sage: e = F.basis()
             sage: latex(e[('a','b')])    # indirect doctest
-            B_{\left(a, b\right)}
+            B_{('a', 'b')}
             sage: latex(2*e[(0,1,2)])    # indirect doctest
             2B_{\left(0, 1, 2\right)}
             sage: F = CombinatorialFreeModule(QQ, [('a', 'b'), (0,1,2)], prefix="")
@@ -1940,10 +1956,9 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         from sage.misc.latex import latex
 
         s = latex(m)
-        if s.find('\\verb') != -1:
-            import re
-            s = re.sub("\\\\verb(.)(.*?)\\1", "\\2", s)
-            s = s.replace("\\phantom{x}", " ")
+        if s.find('\\text{\\textt') != -1:
+            # m contains "non-LaTeXed" strings, use string representation
+            s = str(m)
 
         # dictionary with left-right pairs of "brackets".  put pairs
         # in here accept \\left and \\right as prefixes.
@@ -2527,7 +2542,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 sage: F.rename("F")
                 sage: G.rename("G")
                 sage: latex(tensor([F, F, G])) # indirect doctest
-                \verb|F| \otimes \verb|F| \otimes \verb|G|
+                \text{\texttt{F}} \otimes \text{\texttt{F}} \otimes \text{\texttt{G}}
                 sage: F._latex_ = lambda : "F"
                 sage: G._latex_ = lambda : "G"
                 sage: latex(tensor([F, F, G])) # indirect doctest
@@ -2643,6 +2658,69 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 2*B[1] # B[3] # B[5] + 2*B[1] # B[3] # B[6] + B[1] # B[4] # B[5] + B[1] # B[4] # B[6] + 4*B[2] # B[3] # B[5] + 4*B[2] # B[3] # B[6] + 2*B[2] # B[4] # B[5] + 2*B[2] # B[4] # B[6]
             """
             return self.tensor_constructor(tuple(element.parent() for element in elements))(*elements)
+
+        def _coerce_map_from_(self, R):
+            """
+            Return ``True`` if there is a coercion from ``R`` into ``self`` and
+            ``False`` otherwise.  The things that coerce into ``self`` are:
+
+            - Anything with a coercion into ``self.base_ring()``.
+
+            - A tensor algebra whose factors have a coercion into the
+              corresponding factors of ``self``.
+
+            TESTS::
+
+                sage: C = CombinatorialFreeModule(ZZ, ZZ)
+                sage: C2 = CombinatorialFreeModule(ZZ, NN)
+                sage: M = C.module_morphism(lambda x: C2.monomial(abs(x)), codomain=C2)
+                sage: M.register_as_coercion()
+                sage: C2(C.basis()[3])
+                B[3]
+                sage: C2(C.basis()[3] + C.basis()[-3])
+                2*B[3]
+                sage: S = C.tensor(C)
+                sage: S2 = C2.tensor(C2)
+                sage: S2.has_coerce_map_from(S)
+                True
+                sage: S.has_coerce_map_from(S2)
+                False
+                sage: S.an_element()
+                3*B[0] # B[-1] + 2*B[0] # B[0] + 2*B[0] # B[1]
+                sage: S2(S.an_element())
+                2*B[0] # B[0] + 5*B[0] # B[1]
+
+            ::
+
+                sage: C = CombinatorialFreeModule(ZZ, Set([1,2]))
+                sage: D = CombinatorialFreeModule(ZZ, Set([2,4]))
+                sage: f = C.module_morphism(on_basis=lambda x: D.monomial(2*x), codomain=D)
+                sage: f.register_as_coercion()
+                sage: T = tensor((C,C))
+                sage: p = D.an_element()
+                sage: T(tensor((p,p)))
+                Traceback (most recent call last):
+                ...
+                NotImplementedError
+                sage: T = tensor((D,D))
+                sage: p = C.an_element()
+                sage: T(tensor((p,p)))
+                4*B[2] # B[2] + 4*B[2] # B[4] + 4*B[4] # B[2] + 4*B[4] # B[4]
+            """
+            if R in ModulesWithBasis(self.base_ring()).TensorProducts() \
+                    and isinstance(R, CombinatorialFreeModule_Tensor) \
+                    and len(R._sets) == len(self._sets) \
+                    and all(self._sets[i].has_coerce_map_from(M)
+                            for i,M in enumerate(R._sets)):
+                modules = R._sets
+                vector_map = [self._sets[i].coerce_map_from(M)
+                              for i,M in enumerate(modules)]
+                return R.module_morphism(lambda x: self._tensor_of_elements(
+                        [vector_map[i](M.monomial(x[i]))
+                         for i,M in enumerate(modules)]),
+                                         codomain=self)
+
+            return super(CombinatorialFreeModule_Tensor, self)._coerce_map_from_(R)
 
 class CartesianProductWithFlattening(object):
     """

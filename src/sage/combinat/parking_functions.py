@@ -372,7 +372,7 @@ class ParkingFunctions_n(CombinatorialClass):
             return
         for res in iterator_rec(self.n):
             for pi in Permutations(res):
-                yield ParkingFunction(pi)
+                yield ParkingFunction(list(pi))
         return
 
 def ParkingFunction(pf=None, labelling=None, area_sequence=None, labelled_dyck_word = None):
@@ -910,11 +910,12 @@ class ParkingFunction_class(CombinatorialObject):
     @combinatorial_map(name='to ides composition')
     def ides_composition(self):
         r"""
-        Returns the :meth:`~sage.combinat.permutation.Permutation_class.descents_composition`
+        Return the :meth:`~sage.combinat.permutation.Permutation.descents_composition`
         of the inverse of the :meth:`diagonal_reading_word` of corresponding parking
         function.  For example, ``ides_composition(PF) = [4, 2, 1]``
-        means that the descents of the inverse of the permtuation
-        :meth:`diagonal_reading_word` are at the 4th and 6th positions.
+        means that the descents of the inverse of the permutation
+        :meth:`diagonal_reading_word` of the parking function with word ``PF`` are at
+        the 4th and 6th positions.
 
         INPUT:
 
@@ -922,7 +923,7 @@ class ParkingFunction_class(CombinatorialObject):
 
         OUTPUT:
 
-        - returns the descents sequence of the inverse of the
+        - the descents composition of the inverse of the
           :meth:`diagonal_reading_word` of the parking function
 
         EXAMPLES::
@@ -944,8 +945,8 @@ class ParkingFunction_class(CombinatorialObject):
 
     def ides(self):
         r"""
-        Returns the :meth:`~sage.combinat.permutation.Permutation_class.descents` sequence
-        of the inverse of a :meth:`diagonal_reading_word` of ``self``.
+        Return the :meth:`~sage.combinat.permutation.Permutation.descents` sequence
+        of the inverse of the :meth:`diagonal_reading_word` of ``self``.
         For example, ``ides(PF) = [1, 2, 3, 5]`` means that descents are at the 2nd, 3rd,
         4th and 6th positions in the inverse of the
         :meth:`diagonal_reading_word` of the parking function (see [GXZ]_ p. 2).
@@ -956,7 +957,7 @@ class ParkingFunction_class(CombinatorialObject):
 
         OUTPUT:
 
-        - returns the descents sequence of the inverse of the
+        - the descents sequence of the inverse of the
           :meth:`diagonal_reading_word` of the parking function
 
         EXAMPLES::

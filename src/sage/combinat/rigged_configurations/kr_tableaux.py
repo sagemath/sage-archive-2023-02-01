@@ -497,7 +497,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
             sage: TestSuite(elt).run()
         """
         # Make sure we are a list of letters
-        if list != [] and type(list[0]) is not CrystalOfLetters:
+        if list != [] and type(list[0]) is not parent.letters.element_class:
             list = [parent.letters(x) for x in list]
         TensorProductOfRegularCrystalsElement.__init__(self, parent, list)
 

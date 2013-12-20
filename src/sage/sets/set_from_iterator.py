@@ -900,9 +900,9 @@ class EnumeratedSetFromIterator_method_decorator(object):
         :mod:`sage.combinat.permutation`) because its method ``bruhat_succ``
         and ``bruhat_pred`` are decorated with ``set_from_method``::
 
-            sage: from sage.combinat.permutation import Permutation_class
-            sage: loads(dumps(Permutation_class))
-            <class 'sage.combinat.permutation.Permutation_class'>
+            sage: from sage.combinat.permutation import Permutation
+            sage: loads(dumps(Permutation))
+            <class 'sage.combinat.permutation.Permutation'>
             sage: p = Permutation([3,2,1])
             sage: loads(dumps(p)) == p
             True

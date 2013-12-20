@@ -226,15 +226,19 @@ class Spec(AffineScheme):
         """
         Call syntax for Spec.
 
-        INPUT:
+        INPUT/OUTPUT:
 
-        - ``x`` -- a prime ideal of the coordinate ring, or an element
-          (or list of elements) of the coordinate ring which generates
-          a prime ideal.
+        The argument ``x`` must be one of the following:
 
-        OUTPUT:
+        - a prime ideal of the coordinate ring; the output will
+          be the corresponding point of X
 
-        A point of this Spec.
+        - an element (or list of elements) of the coordinate ring
+          which generates a prime ideal; the output will be the
+          corresponding point of X
+
+        - a ring or a scheme S; the output will be the set X(S) of
+          S-valued points on X
 
         EXAMPLES::
 
@@ -252,7 +256,20 @@ class Spec(AffineScheme):
             Point on Spectrum of Multivariate Polynomial Ring
             in x, y, z over Rational Field defined by the Ideal (x, y, z)
             of Multivariate Polynomial Ring in x, y, z over Rational Field
+
+        This indicates the fix of :trac:`12734`::
+            sage: S = Spec(ZZ)
+            sage: S(ZZ)
+            Set of rational points of Spectrum of Integer Ring
+            sage: S(S)
+            Set of rational points of Spectrum of Integer Ring
         """
+        if is_CommutativeRing(x):
+            return self.point_homset(x)
+        from sage.schemes.all import is_Scheme
+        if is_Scheme(x):
+            return x.Hom(self)
+
         return SchemeTopologicalPoint_prime_ideal(self, x)
 
     def _an_element_(self):

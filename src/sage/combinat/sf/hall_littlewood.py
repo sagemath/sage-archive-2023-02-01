@@ -29,7 +29,6 @@ from sage.calculus.var import var
 from sage.libs.symmetrica.all import hall_littlewood
 import sfa
 import sage.combinat.partition
-import kfpoly
 from sage.matrix.all import matrix
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
@@ -48,14 +47,27 @@ QQt = QQ['t'].fraction_field()
 # Qp basis is computed using symmetrica, while P basis is computed using rigged
 # configurations
 class HallLittlewood(UniqueRepresentation):
+    r"""
+    The family of Hall-Littlewood symmetric function bases.
 
+    The Hall-Littlewood symmetric functions are a family of symmetric
+    functions that depend on a parameter `t`.
+
+    INPUT:
+
+    By default the parameter for these functions is `t`, and
+    whatever the parameter is, it must be in the base ring.
+
+    EXAMPLES::
+
+        sage: SymmetricFunctions(QQ).hall_littlewood(1)
+        Hall-Littlewood polynomials with t=1 over Rational Field
+        sage: SymmetricFunctions(QQ['t'].fraction_field()).hall_littlewood()
+        Hall-Littlewood polynomials over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+    """
     def __repr__(self):
         r"""
         A string representing the family of Hall-Littlewood symmetric function bases
-
-        INPUT:
-
-        - ``self`` -- a class of Hall-Littlewood symmetric function bases
 
         OUTPUT:
 
@@ -69,21 +81,13 @@ class HallLittlewood(UniqueRepresentation):
         return self._name+ " over %s"%self._sym.base_ring()
 
     def __init__(self, Sym, t = 't'):
-        r"""
-        The family of Hall-Littlewood symmetric function bases
-        By default the paramter for these functions is `t` and
-        whatever the paramter is, it must be in the base ring.
-
-        INPUT:
-
-        - ``self`` -- a class of Hall-Littlewood symmetric function bases
+        """
+        Initialize ``self``.
 
         EXAMPLES::
 
-            sage: SymmetricFunctions(QQ).hall_littlewood(1)
-            Hall-Littlewood polynomials with t=1 over Rational Field
-            sage: SymmetricFunctions(QQ['t'].fraction_field()).hall_littlewood()
-            Hall-Littlewood polynomials over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            sage: HL = SymmetricFunctions(FractionField(QQ['t'])).hall_littlewood()
+            sage: TestSuite(HL).run()
         """
         self._sym = Sym
         if not (t in Sym.base_ring() or var(t) in Sym.base_ring()):
@@ -126,7 +130,7 @@ class HallLittlewood(UniqueRepresentation):
 
         OUTPUT:
 
-        - returns the base ring of the symmetric functions
+        The base ring of the symmetric functions.
 
         EXAMPLES ::
 
@@ -138,9 +142,9 @@ class HallLittlewood(UniqueRepresentation):
 
     def P(self):
         r"""
-        Returns the algebra of symmetric functions in Hall-Littlewood `P`
-        basis. This is the same as the `HL` basis in John Stembridge's SF
-        examples file.
+        Return the algebra of symmetric functions in the Hall-Littlewood
+        `P` basis. This is the same as the `HL` basis in John Stembridge's
+        SF examples file.
 
         INPUT:
 
@@ -148,7 +152,7 @@ class HallLittlewood(UniqueRepresentation):
 
         OUTPUT:
 
-        - returns the class of the Hall-Littlewood `P` basis
+        The class of the Hall-Littlewood `P` basis.
 
         EXAMPLES::
 
@@ -185,7 +189,7 @@ class HallLittlewood(UniqueRepresentation):
 
             2. Hall-Littlewood polynomials in the `Q` basis
 
-            3.  Hall-Littlewood polynomials in the `Q^\prime` basis (via the Schurs)
+            3. Hall-Littlewood polynomials in the `Q^\prime` basis (via the Schurs)
 
             4. Classical symmetric functions
 
@@ -349,188 +353,6 @@ class HallLittlewood(UniqueRepresentation):
         """
         return HallLittlewood_qp(self)
 
-
-
-##################################
-# TO BE DEPRECATED
-##################################
-#Still under major development!!!#
-##################################
-def NoneConvention( R, t ):
-    """
-    Helper function to mimic behavior of old conventions.
-
-    INPUT:
-
-    - ``R`` -- ring
-    - ``t`` -- parameter
-
-    EXAMPLES::
-
-        sage: sage.combinat.sf.hall_littlewood.NoneConvention(QQ, None)
-        (Fraction Field of Univariate Polynomial Ring in t over Rational Field, t)
-        sage: R = QQ['t']
-        sage: sage.combinat.sf.hall_littlewood.NoneConvention(R, R.gen())
-        (Univariate Polynomial Ring in t over Rational Field, t)
-    """
-    if t is None:
-        R = R['t'].fraction_field()
-        t = R.gen()
-    elif t not in R:
-        raise ValueError, "t (=%s) must be in R (=%s)"%(t,R)
-    else:
-        t = R(t)
-    return (R, t)
-
-def HallLittlewoodP(R,t = None):
-    """
-    Returns the algebra of symmetric functions in Hall-Littlewood `P`
-    basis. This is the same as the `HL` basis in John Stembridge's SF
-    examples file.
-
-    If `t` is not specified, then the base ring will be obtained by
-    making the univariate polynomial ring over `R` with the variable `t`
-    and taking its fraction field.
-
-    This function is deprecated.  Use instead:
-    SymmetricFunctions(R).hall_littlewood(t=value).P()
-
-    EXAMPLES::
-
-        sage: HallLittlewoodP(QQ)
-        doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).hall_littlewood(t=t).P()
-        See http://trac.sagemath.org/5457 for details.
-        Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Hall-Littlewood P basis
-        sage: HallLittlewoodP(QQ,t=-1)
-        doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).hall_littlewood(t=-1).P()
-        See http://trac.sagemath.org/5457 for details.
-        Symmetric Functions over Rational Field in the Hall-Littlewood P with t=-1 basis
-        sage: HLP = HallLittlewoodP(QQ)
-        sage: s = HLP.realization_of().s()
-        sage: s(HLP([2,1]))
-        (-t^2-t)*s[1, 1, 1] + s[2, 1]
-
-    The Hall-Littlewood polynomials in the `P` basis at `t = 0` are the
-    Schur functions.
-
-    ::
-
-        sage: HLP = HallLittlewoodP(QQ,t=0)
-        doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).hall_littlewood(t=0).P()
-        See http://trac.sagemath.org/5457 for details.
-        sage: s = HLP.realization_of().s()
-        sage: s(HLP([2,1])) == s([2,1])
-        True
-
-    The Hall-Littlewood polynomials in the `P` basis at `t = 1` are the
-    monomial symmetric functions.
-
-    ::
-
-        sage: HLP = HallLittlewoodP(QQ,t=1)
-        doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).hall_littlewood(t=1).P()
-        See http://trac.sagemath.org/5457 for details.
-        sage: m = HLP.realization_of().m()
-        sage: m(HLP([2,2,1])) == m([2,2,1])
-        True
-
-    We end with some examples of coercions between:
-
-        1. Hall-Littlewood `P` basis.
-
-        2. Hall-Littlewood polynomials in the `Q` basis
-
-        3.  Hall-Littlewood polynomials in the `Q^\prime` basis (via the Schurs)
-
-        4. Classical symmetric functions
-
-    EXAMPLES::
-
-        sage: HLP  = HallLittlewoodP(QQ)
-        sage: HLQ  = HallLittlewoodQ(QQ)
-        doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).hall_littlewood(t=t).Q()
-        See http://trac.sagemath.org/5457 for details.
-        sage: HLQp = HallLittlewoodQp(QQ)
-        doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).hall_littlewood(t=t).Qp()
-        See http://trac.sagemath.org/5457 for details.
-        sage: s = HLP.realization_of().s(); p = HLP.realization_of().p()
-        sage: HLP(HLQ([2])) # indirect doctest
-        (-t+1)*HLP[2]
-        sage: HLP(HLQp([2]))
-        t*HLP[1, 1] + HLP[2]
-        sage: HLP(s([2]))
-        t*HLP[1, 1] + HLP[2]
-        sage: HLP(p([2]))
-        (t-1)*HLP[1, 1] + HLP[2]
-
-    TESTS::
-
-        sage: HLP(s[[]])
-        HLP[]
-        sage: HLQ(s[[]])
-        HLQ[]
-        sage: HLQp(s[[]])
-        HLQp[]
-    """
-    (R, t) = NoneConvention(R, t)
-    sage.misc.superseded.deprecation(5457, "Deprecation warning: In the future use SymmetricFunctions(R).hall_littlewood(t=%s).P()"%(t))
-    return sage.combinat.sf.sf.SymmetricFunctions(R).hall_littlewood(t = t).P()
-
-def HallLittlewoodQ(R,t = None):
-    """
-    Returns the algebra of symmetric functions in Hall-Littlewood `Q`
-    basis. This is the same as the `Q` basis in John Stembridge's SF
-    examples file.
-
-    If `t` is not specified, then the base ring will be obtained by
-    making the univariate polynomial ring over `R` with the variable `t`
-    and taking its fraction field.
-
-    EXAMPLES::
-
-        sage: HallLittlewoodQ(QQ)
-        doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).hall_littlewood(t=t).Q()
-        See http://trac.sagemath.org/5457 for details.
-        Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Hall-Littlewood Q basis
-        sage: HallLittlewoodQ(QQ,t=-1)
-        doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).hall_littlewood(t=-1).Q()
-        See http://trac.sagemath.org/5457 for details.
-        Symmetric Functions over Rational Field in the Hall-Littlewood Q with t=-1 basis
-    """
-    (R, t) = NoneConvention(R, t)
-    sage.misc.superseded.deprecation(5457, "Deprecation warning: In the future use SymmetricFunctions(R).hall_littlewood(t=%s).Q()"%(t))
-    return sage.combinat.sf.sf.SymmetricFunctions(R).hall_littlewood(t = t).Q()
-
-def HallLittlewoodQp(R,t = None):
-    """
-    Returns the algebra of symmetric functions in Hall-Littlewood `Q^\prime` (Qp)
-    basis. This is dual to the Hall-Littlewood `P` basis with respect to
-    the standard scalar product.
-
-    If `t` is not specified, then the base ring will be obtained by
-    making the univariate polynomial ring over `R` with the variable `t`
-    and taking its fraction field.
-
-    EXAMPLES::
-
-        sage: HallLittlewoodQp(QQ)
-        doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).hall_littlewood(t=t).Qp()
-        See http://trac.sagemath.org/5457 for details.
-        Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Hall-Littlewood Qp basis
-        sage: HallLittlewoodQp(QQ,t=-1)
-        doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).hall_littlewood(t=-1).Qp()
-        See http://trac.sagemath.org/5457 for details.
-        Symmetric Functions over Rational Field in the Hall-Littlewood Qp with t=-1 basis
-    """
-    (R, t) = NoneConvention(R, t)
-    sage.misc.superseded.deprecation(5457, "Deprecation warning: In the future use SymmetricFunctions(R).hall_littlewood(t=%s).Qp()"%(t))
-    return sage.combinat.sf.sf.SymmetricFunctions(R).hall_littlewood(t = t).Qp()
-
-
-##################################
-# END OF TO BE DEPRECATED
-##################################
-
 class HallLittlewood_generic(sfa.SymmetricFunctionAlgebra_generic):
     def __init__(self, hall_littlewood):
         r"""
@@ -627,7 +449,7 @@ class HallLittlewood_generic(sfa.SymmetricFunctionAlgebra_generic):
     def transition_matrix(self, basis, n):
         r"""
         Returns the transitions matrix between ``self`` and ``basis`` for the
-        homogenous component of degree ``n``.
+        homogeneous component of degree ``n``.
 
         INPUT:
 
@@ -946,9 +768,10 @@ class HallLittlewood_p(HallLittlewood_generic):
             sage: [f21(p) for p in Partitions(3)]
             [0, 1, t^2 + t]
         """
+        from sage.combinat.sf.kfpoly import schur_to_hl
         t = QQt.gen()
-        zero = self.base_ring()(0)
-        res_dict = kfpoly.schur_to_hl(part, t)
+        zero = self.base_ring().zero()
+        res_dict = schur_to_hl(part, t)
         f = lambda part2: res_dict.get(part2,zero)
         return f
 
@@ -1152,7 +975,7 @@ class HallLittlewood_qp(HallLittlewood_generic):
         t = QQt.gen()
 
         if part == []:
-            return lambda part2: QQt(1)
+            return lambda part2: QQt.one()
 
         res = hall_littlewood(part) # call to symmetrica (returns in variable x)
         f = lambda part2: res.coefficient(part2).subs(x=t)

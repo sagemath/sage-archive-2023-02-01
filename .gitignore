@@ -4,3 +4,52 @@
 /local
 /logs
 /upstream
+
+###################
+# Temporary Files #
+###################
+
+# Various editors
+*~
+
+# Emacs
+\#*\#
+.\#*
+
+# Vim
+*.s[a-w][a-z]
+*.un~
+.netrwhist
+
+# PyCharm
+.idea
+.iml
+
+# Eclipse
+*.pydevproject
+.project
+.metadata
+*.tmp
+*.bak
+*.swp
+*~.nib
+.classpath
+.settings/
+.loadpath
+.externalToolBuilders/
+.cproject
+.buildpath
+
+# OSX specific temporary files
+.DS_Store
+._*
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+
+# Windows
+$RECYCLE.BIN/
+
+# SublimeText
+*.sublime-workspace

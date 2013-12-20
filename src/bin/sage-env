@@ -162,8 +162,9 @@ fi
 # - sage-4.7.1: version 1 (#10469)
 # - sage-5.4:   version 2 (#13395)
 # - sage-5.10:  version 3 (#14699)
+# - sage-6.0:   version 4 (#14715)
 #
-SAGE_ENV_VERSION=3
+SAGE_ENV_VERSION=4
 if [ "$SAGE_ENV_SOURCED" = "$SAGE_ENV_VERSION" ]; then
     # Already sourced, nothing to do.
     return 0
@@ -245,6 +246,7 @@ fi
 
 # Setting Sage-related location environment variables.
 export SAGE_LOCAL="$SAGE_ROOT/local"
+export SAGE_ETC="$SAGE_LOCAL/etc"
 export SAGE_SHARE="$SAGE_LOCAL/share"
 export SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
 export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
@@ -314,9 +316,13 @@ if [ "$SAGE_UPSTREAM" = "" ]; then
     SAGE_UPSTREAM="http://www.sagemath.org/packages/upstream/"
     export SAGE_UPSTREAM
 fi
-if [ -z "$SAGE_REPO" ]; then
-    SAGE_REPO="git://github.com/sagemath/sage.git"
-    export SAGE_REPO
+if [ -z "$SAGE_REPO_ANONYMOUS" ]; then
+    SAGE_REPO_ANONYMOUS="git://trac.sagemath.org/sage.git"
+    export SAGE_REPO_ANONYMOUS
+fi
+if [ -z "$SAGE_REPO_AUTHENTICATED" ]; then
+	SAGE_REPO_AUTHENTICATED="ssh://git@trac.sagemath.org:2222/sage.git"
+	export SAGE_REPO_AUTHENTICATED
 fi
 if [ -z "$SAGE_DISTFILES" ]; then
     SAGE_DISTFILES="$SAGE_ROOT/upstream"
@@ -525,14 +531,33 @@ if [ -z "$CCACHE_BASEDIR" ]; then
     export CCACHE_BASEDIR="$SAGE_ROOT"
 fi
 
-if [ "$LD" = "" ]; then
-    LD="ld"  && export LD
+# Set AS to assembler used by $CC ("as" by default)
+if [ "$AS" = "" ]; then
+    CC_as=`$CC -print-file-name=as 2>/dev/null`
+    if command -v $CC_as >/dev/null 2>/dev/null; then
+        AS="$CC_as"
+    fi
+    if [ "$AS" = "" ]; then
+        AS=as
+    fi
 fi
+export AS
+
+# Set LD to linker used by $CC ("ld" by default)
+if [ "$LD" = "" ]; then
+    CC_ld=`$CC -print-file-name=ld 2>/dev/null`
+    if command -v $CC_ld >/dev/null 2>/dev/null; then
+        LD="$CC_ld"
+    fi
+    if [ "$LD" = "" ]; then
+        LD=ld
+    fi
+fi
+export LD
+
+
 if [ "$AR" = "" ]; then
     AR="ar"  && export AR
-fi
-if [ "$AS" = "" ]; then
-    AS="as"  && export AS
 fi
 
 if [ "$LDFLAGS" = "" ]; then
@@ -632,3 +657,8 @@ if [ -r "$SAGE_RC_FILE" ]; then
         exit 1
     fi
 fi
+
+# If we move the Sage tree then ncurses cannot find terminfo, hence, we
+# tell it where to find it. See Trac Ticket #15091
+
+export TERMINFO="$SAGE_LOCAL/share/terminfo"

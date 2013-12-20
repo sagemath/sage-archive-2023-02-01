@@ -249,7 +249,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
             tester     = self._tester(**options)
             Lambda     = self.fundamental_weights()
             alphacheck = self.simple_coroots()
-            tester.assertEqual(Lambda.keys(), self.index_set())
+            tester.assertEqual(tuple(Lambda.keys()), self.index_set())
 
             # Check the consistency between simple_root and simple_roots
             for i in self.index_set():

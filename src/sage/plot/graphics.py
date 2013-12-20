@@ -36,7 +36,6 @@ from colors import rgbcolor
 ALLOWED_EXTENSIONS = ['.eps', '.pdf', '.png', '.ps', '.sobj', '.svg']
 DEFAULT_DPI = 100
 DOCTEST_MODE_FILE = os.path.join(sage.misc.misc.SAGE_TMP, 'test.png')
-SHOW_DEFAULT = True
 
 def show_default(default=None):
     r"""
@@ -47,36 +46,22 @@ def show_default(default=None):
     when displayed will be displayed as an actual plot instead of text,
     i.e., the show command is not needed.
 
-    EXAMPLES: The default starts out as ``True``::
+    EXAMPLES:
+
+    The default starts out as ``True`` in interactive use and
+    ``False`` in doctests::
 
         sage: show_default()
-        True
-
-    We set it to ``False``.
-
-    ::
-
-        sage: show_default(False)
-
-    We see that it is ``False``.
-
-    ::
-
-        sage: show_default()
+        doctest:1: DeprecationWarning: this is done automatically by the doctest framework
+        See http://trac.sagemath.org/14469 for details.
         False
-
-    Now plot commands will not display their plots by default.
-
-    Turn back on default display.
-
-    ::
-
-        sage: show_default(True)
     """
-    global SHOW_DEFAULT
+    from sage.misc.superseded import deprecation
+    deprecation(14469, 'this is done automatically by the doctest framework')
+    import sage.doctest
     if default is None:
-        return SHOW_DEFAULT
-    SHOW_DEFAULT = bool(default)
+        return not sage.doctest.DOCTEST_MODE
+    sage.doctest.DOCTEST_MODE = not bool(default)
 
 # If do_verify is True, options are checked when drawing a
 # GraphicsPrimitive.  See primitive.py
@@ -161,6 +146,7 @@ class Graphics(SageObject):
         self._bbox_extra_artists = []
         self._extra_kwds = {}
         self._fontsize = 10
+        self._legend_colors = []
         self._legend_opts = {}
         self._objects = []
         self._show_axes = True
@@ -780,90 +766,81 @@ class Graphics(SageObject):
 
     def _repr_(self):
         r"""
-        Show this graphics objects.
+        Return a string representation of the graphics objects.
 
-        If the ``show_default`` function has been called with
-        True (the default), then you'll see this graphics object displayed.
-        Otherwise you'll see a text representation of it.
+        OUTPUT:
 
-        EXAMPLES: We create a plot and call ``_repr_`` on it,
-        which causes it to be displayed as a plot::
+        String.
+
+        EXAMPLES:
+
+        We create a plot and call :meth:`show` on it, which causes it
+        to be displayed as a plot::
 
             sage: P = plot(cos, (-1,1))
-            sage: P._repr_()
-            ''
+            sage: P.show()
 
         Just doing this also displays the plot::
 
             sage: P
 
-        Note that printing P with the ``print`` statement does
-        not display the plot::
+        Using the Python `repr` or `str` commands do not display the
+        plot::
 
-            sage: print P
+            sage: repr(P)
+            'Graphics object consisting of 1 graphics primitive'
+            sage: str(P)
+            'Graphics object consisting of 1 graphics primitive'
+            sage: print(P)
             Graphics object consisting of 1 graphics primitive
 
-        Now we turn off showing plots by default::
-
-            sage: show_default(False)
-
-        Now we just get a string. To show P you would have to do
-        ``show(P)``.
-
-        ::
+        TESTS::
 
             sage: P._repr_()
             'Graphics object consisting of 1 graphics primitive'
-            sage: P
-            Graphics object consisting of 1 graphics primitive
-
-        Finally, we turn ``show_default`` back on::
-
-            sage: show_default(True)
         """
-        if SHOW_DEFAULT:
-            self.show()
-            return ''
-        else:
-            return self.__str__()
+        return self.__str__()
+
+    def _graphics_(self):
+        """
+        Show graphics.
+
+        The presence of this method is used by the displayhook to
+        decide that we want to see a graphical output by default.
+
+        OUTPUT:
+
+        Return ``True`` if graphical output was generated (might not
+        be shown in doctest mode), otherwise ``False``.
+
+        EXAMPLES::
+
+            sage: g = Graphics()
+            sage: g._graphics_()
+            True
+            sage: [g, g]
+            [Graphics object consisting of 0 graphics primitives,
+             Graphics object consisting of 0 graphics primitives]
+        """
+        self.show()
+        return True
 
     def __str__(self):
         r"""
         Return string representation of this plot.
 
+        OUTPUT:
+
+        String.
+
         EXAMPLES::
 
             sage: S = circle((0,0), 2); S.__str__()
             'Graphics object consisting of 1 graphics primitive'
+            sage: str(S)
+            'Graphics object consisting of 1 graphics primitive'
             sage: print S
             Graphics object consisting of 1 graphics primitive
-
-        .. warning::
-
-           ``__str__`` is not called when printing lists of graphics
-           objects, which can be confusing, since they will all pop
-           up. One workaround is to call ``show_default``:
-
-        For example, below when we do ``print v`` two plots are
-        displayed::
-
-            sage: v = [circle((0,0), 2), circle((2,3), 1)]
-            sage: print v
-            [, ]
-
-        However, if we call ``show_default`` then we see the
-        text representations of the graphics::
-
-            sage: show_default(False)
-            sage: print v
-            [Graphics object consisting of 1 graphics primitive, Graphics object consisting of 1 graphics primitive]
-            sage: v
-            [Graphics object consisting of 1 graphics primitive,
-             Graphics object consisting of 1 graphics primitive]
-
-        ::
-
-            sage: show_default(True)
         """
         s = "Graphics object consisting of %s graphics primitives"%(len(self))
         if len(self) == 1:
@@ -1037,6 +1014,7 @@ class Graphics(SageObject):
         g._show_legend = self._show_legend or other._show_legend
         g._extra_kwds.update(self._extra_kwds)
         g._extra_kwds.update(other._extra_kwds)
+        g._legend_colors = self._legend_colors + other._legend_colors
         g._legend_opts.update(self._legend_opts)
         g._legend_opts.update(other._legend_opts)
         if self.aspect_ratio()=='automatic':
@@ -1735,19 +1713,16 @@ class Graphics(SageObject):
             sage: plot(1.5/(1+e^(-x)), (x, -10, 10), ticks=[None, 1.5/4]) # It's right at f(x)=0.75!
 
         But be careful to leave enough room for at least two major ticks, so that
-        the user can tell what the scale is.
+        the user can tell what the scale is::
 
-        ::
-
-            sage: plot(x^2,(x,1,8),ticks=6)
+            sage: plot(x^2,(x,1,8),ticks=6).show()
             Traceback (most recent call last):
             ...
-            ValueError: Expand the range of the independent variable to allow two multiples of your tick locator (option `ticks`).
+            ValueError: Expand the range of the independent variable to
+            allow two multiples of your tick locator (option `ticks`).
 
         We can also do custom formatting if you need it.  See above for full
-        details.
-
-        ::
+        details::
 
             sage: plot(2*x+1,(x,0,5),ticks=[[0,1,e,pi,sqrt(20)],2],tick_formatter="latex")
 
@@ -1782,7 +1757,7 @@ class Graphics(SageObject):
         If the number of tick labels do not match the number of positions of
         tick labels, then it results in an error.::
 
-            sage: plot(x**2, (x,0,2), ticks=[[2], None], tick_formatter=[["$x_1$","$x_2$"], None])
+            sage: plot(x**2, (x,0,2), ticks=[[2], None], tick_formatter=[["$x_1$","$x_2$"], None]).show()
             Traceback (most recent call last):
             ...
             ValueError: If the first component of the list `tick_formatter` is a list then the first component of `ticks` must also be a list of equal length.
@@ -1808,7 +1783,6 @@ class Graphics(SageObject):
             ValueError: 'title_pos' must be a list or tuple of two real numbers.
 
         """
-
         # This option should not be passed on to save().
         linkmode = kwds.pop('linkmode', False)
 
@@ -2286,7 +2260,10 @@ class Graphics(SageObject):
                 # color
                 lframe = leg.get_frame()
                 lframe.set_facecolor(color)
-
+                from sage.plot.colors import to_mpl_color
+                for txt,color in zip(leg.get_texts(), self._legend_colors):
+                    if color is not None:
+                        txt.set_color(to_mpl_color(color))
 
         subplot.set_xlim([xmin, xmax])
         subplot.set_ylim([ymin, ymax])
@@ -2817,7 +2794,7 @@ class GraphicsArray(SageObject):
             sage: graphics_array(L)
             Traceback (most recent call last):
             ...
-            TypeError: array (=[[, ], []]) must be a list of lists of Graphics objects
+            TypeError: array (=[[Graphics object consisting of 1 graphics primitive, Graphics object consisting of 1 graphics primitive], [Graphics object consisting of 1 graphics primitive]]) must be a list of lists of Graphics objects
             sage: G = plot(x,(x,0,1))
             sage: graphics_array(G)
             Traceback (most recent call last):
@@ -2859,21 +2836,31 @@ class GraphicsArray(SageObject):
 
             sage: R = rainbow(6)
             sage: L = [plot(x^n,(x,0,1),color=R[n]) for n in range(6)]
-            sage: G = graphics_array(L,2,3)
-            sage: G # plot shown is default (indirect doctest)
-
-        We can make commands not display their plots by default. ::
-
-            sage: show_default(False)
-            sage: graphics_array(L) # indirect doctest
-            Graphics Array of size 1 x 6
-            sage: show_default(True)
+            sage: graphics_array(L,2,3)
         """
-        if SHOW_DEFAULT:
-            self.show()
-            return ''
-        else:
-            return self.__str__()
+        return self.__str__()
+
+    def _graphics_(self):
+        """
+        Show graphics.
+
+        The presence of this method is used by the displayhook to
+        decide that we want to see a graphical output by default.
+
+        OUTPUT:
+
+        Return ``True`` if graphical output was generated (might not
+        be shown in doctest mode), otherwise ``False``.
+
+        EXAMPLES::
+
+            sage: from sage.plot.graphics import GraphicsArray
+            sage: g = GraphicsArray([])
+            sage: g._graphics_()
+            True
+        """
+        self.show()
+        return True
 
     def __str__(self):
         """
@@ -2884,15 +2871,10 @@ class GraphicsArray(SageObject):
             sage: R = rainbow(6)
             sage: L = [plot(x^n,(x,0,1),color=R[n]) for n in range(6)]
             sage: G = graphics_array(L,2,3)
+            sage: G.__str__()
+            'Graphics Array of size 2 x 3'
             sage: str(G)
             'Graphics Array of size 2 x 3'
-
-        We can make commands not display their plots by default. ::
-
-            sage: show_default(False)
-            sage: graphics_array(L)
-            Graphics Array of size 1 x 6
-            sage: show_default(True)
         """
         return "Graphics Array of size %s x %s"%(self._rows, self._cols)
 
@@ -3068,12 +3050,19 @@ class GraphicsArray(SageObject):
         EXAMPLES::
 
             sage: graphics_array([[plot(sin), plot(cos)], [plot(tan), plot(sec)]])
+
+        TESTS::
+
+            sage: graphics_array([])
         """
         #glist is a list of Graphics objects:
         glist = self._glist
         rows = self._rows
         cols = self._cols
         dims = self._dims
+        if rows == 0 or cols == 0:
+            glist = [Graphics()]
+            rows = cols = dims = 1
         #make a blank matplotlib Figure:
         from matplotlib.figure import Figure
         figure = Figure(figsize)

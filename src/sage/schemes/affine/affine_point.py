@@ -30,8 +30,13 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
 from copy                          import copy
+from sage.categories.number_fields import NumberFields
+_NumberFields = NumberFields()
+from sage.rings.integer_ring       import ZZ
+from sage.rings.number_field.order import is_NumberFieldOrder
+from sage.rings.rational_field     import QQ
+from sage.rings.real_mpfr          import RealField
 from sage.schemes.generic.morphism import (SchemeMorphism_point, SchemeMorphism, is_SchemeMorphism)
 from sage.structure.sequence       import Sequence
 
@@ -132,7 +137,8 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
 
     def orbit(self,f,N):
         r"""
-        Returns the orbit of self by `f`. If `n` is an integer it returns `[self,f(self),\ldots,f^{n}(self)]]`.
+        Returns the orbit of self by `f`. If `n` is an integer it returns `[self,f(self),\ldots,f^{n}(self)]`.
+
         If `n` is a list or tuple `n=[m,k]` it returns `[f^{m}(self),\ldots,f^{k}(self)]`.
 
         INPUT:
@@ -181,6 +187,59 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
             Q=f(Q)
             Orb.append(Q)
         return(Orb)
+
+    def global_height(self, prec=None):
+        r"""
+        Returns the logarithmic height of the point.
+
+        INPUT:
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number
+
+        EXAMPLES::
+
+            sage: P.<x,y>=AffineSpace(QQ,2)
+            sage: Q=P(41,1/12)
+            sage: Q.global_height()
+            3.71357206670431
+
+        ::
+
+            sage: P=AffineSpace(ZZ,4,'x')
+            sage: Q=P(3,17,-51,5)
+            sage: Q.global_height()
+            3.93182563272433
+
+        ::
+
+            sage: R.<x>=PolynomialRing(QQ)
+            sage: k.<w>=NumberField(x^2+5)
+            sage: A=AffineSpace(k,2,'z')
+            sage: A([3,5*w+1]).global_height(prec=100)
+            2.4181409534757389986565376694
+
+        .. TODO::
+
+            p-adic heights
+
+            add heights to integer.pyx and remove special case
+        """
+        if self.domain().base_ring() == ZZ:
+            if prec is None:
+                R = RealField()
+            else:
+                R = RealField(prec)
+            H=max([self[i].abs() for i in range(self.codomain().ambient_space().dimension_relative())])
+            return(R(max(H,1)).log())
+        if self.domain().base_ring() in _NumberFields or is_NumberFieldOrder(self.domain().base_ring()):
+            return(max([self[i].global_height(prec) for i in range(self.codomain().ambient_space().dimension_relative())]))
+        else:
+            raise NotImplementedError("Must be over a Numberfield or a Numberfield Order")
 
 class SchemeMorphism_point_affine_field(SchemeMorphism_point_affine):
     pass

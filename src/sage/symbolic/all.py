@@ -2,7 +2,7 @@ from pynac import I
 i = I
 from ring import SR
 from constants import (pi, e, NaN, golden_ratio, log2, euler_gamma, catalan,
-                       khinchin, twinprime, merten, mertens, glaisher, brun)
+                       khinchin, twinprime, mertens, glaisher, brun)
 from expression import Expression
 from callable import is_CallableSymbolicExpressionRing, CallableSymbolicExpressionRing
 

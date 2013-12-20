@@ -15,5 +15,7 @@ import lattice_polytope
 
 from toric_lattice import ToricLattice
 
+import sage.geometry.pseudolines
+
 
 import toric_plotter

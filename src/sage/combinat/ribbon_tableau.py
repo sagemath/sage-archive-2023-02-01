@@ -16,14 +16,28 @@ Ribbon Tableaux
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from combinat import CombinatorialObject, CombinatorialClass
-import skew_tableau, permutation, partition, skew_partition
+from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.element import Element
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.categories.sets_cat import Sets
 from sage.rings.all import QQ, ZZ
+from sage.combinat.combinat import CombinatorialObject
+from sage.combinat.skew_partition import SkewPartition, SkewPartitions
+from sage.combinat.skew_tableau import SkewTableau, SkewTableaux, SemistandardSkewTableaux
+from sage.combinat.tableau import TableauOptions
+from sage.combinat.partition import Partition, _Partitions
+import permutation
 import functools
 
-def RibbonTableau(rt=None, expr=None):
-    """
-    Returns a ribbon tableau object.
+class RibbonTableau(SkewTableau):
+    r"""
+    A ribbon tableau.
+
+    A ribbon is a skew tableau such that the skew shape does not
+    contain any `2 \times 2` boxes.  A ribbon tableau is a skew tableau
+    that is partitioned into ribbons.
 
     EXAMPLES::
 
@@ -34,26 +48,72 @@ def RibbonTableau(rt=None, expr=None):
         sage: rt.outer_shape()
         [2, 2]
 
+        sage: rt = RibbonTableau([[None, None, 0, 0, 0], [None, 0, 0, 2], [1, 0, 1]]); rt.pp()
+          .  .  0  0  0
+          .  0  0  2
+          1  0  1
+
+    In the previous example, each ribbon is uniquely determined by a
+    non-zero entry.  The 0 entries are used to fill in the rest of the
+    skew shape.
+
+    .. NOTE::
+
+       Sanity checks are not performed, lists can contain anyobject.
+
     ::
 
         sage: RibbonTableau(expr=[[1,1],[[5],[3,4],[1,2]]])
         [[None, 1, 2], [None, 3, 4], [5]]
     """
-    if expr is not None:
-        return from_expr(expr)
+    #The following method is private and will only get called
+    #when calling RibbonTableau() directly, and not via element_class
+    @staticmethod
+    def __classcall_private__(cls, rt=None, expr=None):
+        """
+        Return a ribbon tableau object.
 
-    for row in rt:
-        if not isinstance(row, list):
-            raise TypeError, "each element of the ribbon tableau must be a list"
-        if row == []:
-            raise TypeError, "a ribbon tableau cannot have an empty list for a row"
+        EXAMPLES::
 
-    return RibbonTableau_class(rt)
+            sage: rt = RibbonTableau([[None, 1],[2,3]]); rt
+            [[None, 1], [2, 3]]
+            sage: TestSuite(rt).run()
+        """
+        if expr is not None:
+            return RibbonTableaux().from_expr(expr)
 
-class RibbonTableau_class(skew_tableau.SkewTableau_class):
+        for row in rt:
+            if not isinstance(row, list):
+                raise TypeError("each element of the ribbon tableau must be a list")
+            if row == []:
+                raise TypeError("a ribbon tableau cannot have an empty list for a row")
+        #calls the inherited __init__ method (of SkewTableau )
+        return RibbonTableaux()(rt)
+
+    def __setstate__(self, state):
+        r"""
+        In order to maintain backwards compatibility and be able to unpickle
+        a old pickle from ``RibbonTableau_class`` we have to override the
+        default ``__setstate__``.
+
+        EXAMPLES::
+
+            sage: loads('x\x9c5\xcc\xbd\x0e\xc2 \x14@\xe1\xb4Z\x7f\xd0\x07\xc1\x85D}\x8f\x0e\x8d\x1d\t\xb9\x90\x1bJ\xa44\x17\xe8h\xa2\x83\xef-\xda\xb8\x9do9\xcf\xda$\xb0(\xcc4j\x17 \x8b\xe8\xb4\x9e\x82\xca\xa0=\xc2\xcc\xba\x1fo\x8b\x94\xf1\x90\x12\xa3\xea\xf4\xa2\xfaA+\xde7j\x804\xd0\xba-\xe5]\xca\xd4H\xdapI[\xde.\xdf\xe8\x82M\xc2\x85\x8c\x16#\x1b\xe1\x8e\xea\x0f\xda\xf5\xd5\xf9\xdd\xd1\x1e%1>\x14]\x8a\x0e\xdf\xb8\x968"\xceZ|\x00x\xef5\x11')
+            [[None, 1], [2, 3]]
+
+            sage: loads(dumps( RibbonTableau([[None, 1],[2,3]]) ))
+            [[None, 1], [2, 3]]
+        """
+        if isinstance(state, dict):   # for old pickles from RibbonTableau_class
+            self._set_parent(RibbonTableaux())
+            self.__dict__ = state
+        else:
+            self._set_parent(state[0])
+            self.__dict__ = state[1]
+
     def length(self):
         """
-        Returns the length of the ribbons into a ribbon tableau.
+        Return the length of the ribbons into a ribbon tableau.
 
         EXAMPLES::
 
@@ -79,7 +139,7 @@ class RibbonTableau_class(skew_tableau.SkewTableau_class):
 
     def to_word(self):
         """
-        Returns a word obtained from a row reading of self.
+        Return a word obtained from a row reading of ``self``.
 
         EXAMPLES::
 
@@ -95,7 +155,7 @@ class RibbonTableau_class(skew_tableau.SkewTableau_class):
 
     def evaluation(self):
         """
-        Returns the evaluation of the ribbon tableau
+        Return the evaluation of the ribbon tableau.
 
         EXAMPLES::
 
@@ -107,73 +167,195 @@ class RibbonTableau_class(skew_tableau.SkewTableau_class):
         m = max(entries) + 1 if entries else -1
         return [ed.get(k,0) for k in range(1,m)]
 
-def from_expr(l):
-    """
-    Returns a RibbonTableau from a MuPAD-Combinat expr for a skew
-    tableau. The first list in expr is the inner shape of the skew
-    tableau. The second list are the entries in the rows of the skew
-    tableau from bottom to top.
-
-    Provided primarily for compatibility with MuPAD-Combinat.
-
-    EXAMPLES::
-
-        sage: import sage.combinat.ribbon_tableau as ribbon_tableau
-        sage: sage.combinat.ribbon_tableau.from_expr([[1,1],[[5],[3,4],[1,2]]])
-        [[None, 1, 2], [None, 3, 4], [5]]
-        sage: type(_)
-        <class 'sage.combinat.ribbon_tableau.RibbonTableau_class'>
-    """
-    return RibbonTableau_class(skew_tableau.from_expr(l)._list)
-
-
 #####################
 # Ribbon Tableaux   #
 #####################
 
-def RibbonTableaux(shape, weight, length):
-    """
-    Returns the combinatorial class of ribbon tableaux of skew shape
-    shape and weight weight tiled by ribbons of length length.
+class RibbonTableaux(Parent, UniqueRepresentation):
+    r"""
+    Ribbon tableaux.
+
+    A ribbon tableau is a skew tableau whose skew shape ``shape`` is
+    tiled by ribbons of length ``length``. The weight ``weight`` is
+    calculated from the labels on the ribbons.
+
+    .. NOTE::
+
+        Here we inpose the condition that the ribbon tableaux are semistandard.
+
+    INPUT(Optional):
+
+    - ``shape``  -- skew shape as a list of lists or an object of type
+      SkewPartition
+
+    - ``length`` -- integer, ``shape`` is partitioned into ribbons of
+      length ``length``
+
+    - ``weight`` -- list of integers, computed from the values of
+      non-zero entries labeling the ribbons
 
     EXAMPLES::
 
-        sage: RibbonTableaux([[2,1],[]],[1,1,1],1)
-        Ribbon tableaux of shape [[2, 1], []] and weight [1, 1, 1] with 1-ribbons
+        sage: RibbonTableaux([[2,1],[]], [1,1,1], 1)
+        Ribbon tableaux of shape [2, 1] / [] and weight [1, 1, 1] with 1-ribbons
+
+        sage: R = RibbonTableaux([[5,4,3],[2,1]], [2,1], 3)
+        sage: for i in R: i.pp(); print
+          .  .  0  0  0
+          .  0  0  2
+          1  0  1
+        <BLANKLINE>
+          .  .  1  0  0
+          .  0  0  0
+          1  0  2
+        <BLANKLINE>
+          .  .  0  0  0
+          .  1  0  1
+          2  0  0
+        <BLANKLINE>
+
+    REFRENCES:
+
+    .. [vanLeeuwen91] Marc. A. A. van Leeuwen *Edge sequences, ribbon tableaux,
+       and an action of affine permutations*. Europe J. Combinatorics. **20**
+       (1999). http://wwwmathlabo.univ-poitiers.fr/~maavl/pdf/edgeseqs.pdf
     """
-    if shape in partition.Partitions():
-        shape = partition.Partition(shape)
-        shape = skew_partition.SkewPartition([shape, shape.core(length)])
-    else:
-        shape = skew_partition.SkewPartition(shape)
+    @staticmethod
+    def __classcall_private__(cls, shape=None, weight=None, length=None):
+        """
+        Return the correct parent object.
 
-    if shape.size() != length*sum(weight):
-        raise ValueError
+        EXAMPLES::
 
-    weight = [i for i in weight if i != 0]
+            sage: R = RibbonTableaux([[2,1],[]],[1,1,1],1)
+            sage: R2 = RibbonTableaux(SkewPartition([[2,1],[]]),(1,1,1),1)
+            sage: R is R2
+            True
+        """
+        if shape is None and weight is None and length is None:
+            return super(RibbonTableaux, cls).__classcall__(cls)
 
-    return RibbonTableaux_shapeweightlength(shape, weight,length)
+        return RibbonTableaux_shape_weight_length(shape, weight, length)
 
+    def __init__(self):
+        """
+        EXAMPLES::
 
-class RibbonTableaux_shapeweightlength(CombinatorialClass):
+            sage: R = RibbonTableaux()
+            sage: TestSuite(R).run()
+        """
+        Parent.__init__(self, category=Sets())
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: RibbonTableaux()
+            Ribbon tableaux
+        """
+        return "Ribbon tableaux"
+
+    def _element_constructor_(self, rt):
+        """
+        Construct an element of ``self`` from ``rt``.
+
+        EXAMPLES::
+
+            sage: R = RibbonTableaux()
+            sage: elt = R([[0, 0, 3, 0], [1, 1, 0], [2, 0, 4]]); elt
+            [[0, 0, 3, 0], [1, 1, 0], [2, 0, 4]]
+            sage: elt.parent() is R
+            True
+        """
+        return self.element_class(self, rt)
+
+    def from_expr(self, l):
+        """
+        Return a :class:`RibbonTableau` from a MuPAD-Combinat expr for a skew
+        tableau. The first list in ``expr`` is the inner shape of the skew
+        tableau. The second list are the entries in the rows of the skew
+        tableau from bottom to top.
+
+        Provided primarily for compatibility with MuPAD-Combinat.
+
+        EXAMPLES::
+
+            sage: RibbonTableaux().from_expr([[1,1],[[5],[3,4],[1,2]]])
+            [[None, 1, 2], [None, 3, 4], [5]]
+        """
+        return self.element_class(self, SkewTableaux().from_expr(l))
+
+    Element = RibbonTableau
+    global_options = TableauOptions
+
+class RibbonTableaux_shape_weight_length(RibbonTableaux):
+    """
+    Ribbon tableaux of a given shape, weight, and length.
+    """
+    @staticmethod
+    def __classcall_private__(cls, shape, weight, length):
+        """
+        Normalize input to ensure a unique representation.
+
+        EXAMPLES::
+
+            sage: R = RibbonTableaux([[2,1],[]],[1,1,1],1)
+            sage: R2 = RibbonTableaux(SkewPartition([[2,1],[]]),(1,1,1),1)
+            sage: R is R2
+            True
+        """
+        if shape in _Partitions:
+            shape = _Partitions(shape)
+            shape = SkewPartition([shape, shape.core(length)])
+        else:
+            shape = SkewPartition(shape)
+
+        if shape.size() != length*sum(weight):
+            raise ValueError("Incompatible shape and weight")
+
+        return super(RibbonTableaux, cls).__classcall__(cls, shape, tuple(weight), length)
+
     def __init__(self, shape, weight, length):
         """
         EXAMPLES::
 
-            sage: r = RibbonTableaux([[2,1],[]],[1,1,1],1)
-            sage: r == loads(dumps(r))
-            True
+            sage: R = RibbonTableaux([[2,1],[]],[1,1,1],1)
+            sage: TestSuite(R).run()
         """
-        self._shape  =  shape
-        self._weight =  weight
-        self._length =  length
-        self._name = "Ribbon tableaux of shape %s and weight %s with %s-ribbons"%(shape, weight, length)
+        self._shape  = shape
+        self._weight = weight
+        self._length = length
+        Parent.__init__(self, category=FiniteEnumeratedSets())
 
+    def __iter__(self):
+        """
+        EXAMPLES::
+
+            sage: RibbonTableaux([[2,1],[]],[1,1,1],1).list()
+            [[[1, 3], [2]], [[1, 2], [3]]]
+            sage: RibbonTableaux([[2,2],[]],[1,1],2).list()
+            [[[0, 0], [1, 2]], [[1, 0], [2, 0]]]
+        """
+        for x in graph_implementation_rec(self._shape, self._weight, self._length, list_rec):
+            yield self.from_expr(x)
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: RibbonTableaux([[2,1],[]], [1,1,1], 1)
+            Ribbon tableaux of shape [2, 1] / [] and weight [1, 1, 1] with 1-ribbons
+        """
+        return "Ribbon tableaux of shape %s and weight %s with %s-ribbons"%(repr(self._shape), list(self._weight), self._length)
 
     def __contains__(self, x):
         """
-        Note that this just checks to see if x appears in self.list(). This
-        should be improved to provide actual checking.
+        Note that this just checks to see if ``x`` appears is in ``self``.
+        This should be improved to provide actual checking.
 
         EXAMPLES::
 
@@ -185,22 +367,19 @@ class RibbonTableaux_shapeweightlength(CombinatorialClass):
             sage: [[0, 1], [2, 0]] in r
             False
         """
+        try:
+            x = RibbonTableau(x)
+        except (ValueError, TypeError):
+            return False
         return x in self.list()
 
-    def list(self):
-        """
-        EXAMPLES::
-
-            sage: RibbonTableaux([[2,1],[]],[1,1,1],1).list()
-            [[[1, 3], [2]], [[1, 2], [3]]]
-            sage: RibbonTableaux([[2,2],[]],[1,1],2).list()
-            [[[0, 0], [1, 2]], [[1, 0], [2, 0]]]
-        """
-        res = graph_implementation_rec(self._shape, self._weight, self._length, list_rec)
-        return [from_expr(x) for x in res]
+        #return x.is_ribbon() and x.shape() == self._shape \
+            #and tuple(x.weight()) == self._weight and x in list(self)
 
     def cardinality(self):
         """
+        Return the cardinality of ``self``.
+
         EXAMPLES::
 
             sage: RibbonTableaux([[2,1],[]],[1,1,1],1).cardinality()
@@ -222,45 +401,43 @@ class RibbonTableaux_shapeweightlength(CombinatorialClass):
             5
             sage: RibbonTableaux([3,3,3,2,1], [1,1,1,1], 3).cardinality()
             12
-            sage: RibbonTableaux([5,4,3,2,1],[2,2,1],3).cardinality()
+            sage: RibbonTableaux([5,4,3,2,1], [2,2,1], 3).cardinality()
             10
 
         ::
 
-            sage: RibbonTableaux([8,7,6,5,1,1],[3,2,2,1],3).cardinality()
+            sage: RibbonTableaux([8,7,6,5,1,1], [3,2,2,1], 3).cardinality()
             85
-            sage: RibbonTableaux([5,4,3,2,1,1,1],[2,2,1],3).cardinality()
+            sage: RibbonTableaux([5,4,3,2,1,1,1], [2,2,1], 3).cardinality()
             10
 
         ::
 
-            sage: RibbonTableaux([7,7,7,2,1,1],[3,2,0,1,1],3).cardinality()
+            sage: RibbonTableaux([7,7,7,2,1,1], [3,2,0,1,1], 3).cardinality()
             25
 
-        Weights with some zeros in the middle and end
-
-        ::
+        Weights with some zeros in the middle and end::
 
             sage: RibbonTableaux([3,3,3], [0,1,0,2,0], 3).cardinality()
             3
-            sage: RibbonTableaux([3,3,3],[1,0,1,0,1,0,0,0],3).cardinality()
+            sage: RibbonTableaux([3,3,3], [1,0,1,0,1,0,0,0], 3).cardinality()
             6
         """
-        return graph_implementation_rec(self._shape, self._weight, self._length, count_rec)[0]
+        # Strip zeros for graph_implementation_rec
+        wt = [i for i in self._weight if i != 0]
+        return graph_implementation_rec(self._shape, wt, self._length, count_rec)[0]
 
 def insertion_tableau(skp, perm, evaluation, tableau, length):
     """
     INPUT:
 
+    -  ``skp`` -- skew partitions
 
-    -  ``skp`` - skew partitions
+    -  ``perm, evaluation`` -- non-negative integers
 
-    -  ``perm, evaluation`` - non-negative integers
+    -  ``tableau`` -- skew tableau
 
-    -  ``tableau`` - skew tableau
-
-    -  ``length`` - integer
-
+    -  ``length`` -- integer
 
     TESTS::
 
@@ -288,10 +465,10 @@ def insertion_tableau(skp, perm, evaluation, tableau, length):
         sage: insertion_tableau([[2, 2], [1]], [3, 0], 1, [[], []], 3)
         [[1], [[1, 0], [0]]]
     """
-    psave = partition.Partition(skp[1])
+    psave = Partition(skp[1])
     partc = skp[1] + [0]*(len(skp[0])-len(skp[1]))
 
-    tableau = skew_tableau.SkewTableau(expr=tableau).to_expr()[1]
+    tableau = SkewTableau(expr=tableau).to_expr()[1]
 
     for k in range(len(tableau)):
         tableau[-(k+1)] += [0]* ( skp[0][k] - partc[k] - len(tableau[-(k+1)]))
@@ -299,10 +476,10 @@ def insertion_tableau(skp, perm, evaluation, tableau, length):
     ## We construct a tableau from the southwest corner to the northeast one
     tableau =  [[0]*(skp[0][k] - partc[k]) for k in reversed(range(len(tableau), len(skp[0])))] + tableau
 
-    tableau = skew_tableau.from_expr([skp[1], tableau]).conjugate()
+    tableau = SkewTableaux().from_expr([skp[1], tableau]).conjugate()
     tableau = tableau.to_expr()[1]
 
-    skp = skew_partition.SkewPartition(skp).conjugate().to_list()
+    skp = SkewPartition(skp).conjugate().to_list()
     skp[1].extend( [0]*(len(skp[0])-len(skp[1])) )
 
     if len(perm) > len(skp[0]):
@@ -312,20 +489,18 @@ def insertion_tableau(skp, perm, evaluation, tableau, length):
         if perm[ -(k+1) ] !=0:
             tableau[len(tableau)-len(perm)+k][ skp[0][len(perm)-(k+1)] - skp[1][ len(perm)-(k+1) ] - 1 ] = evaluation
 
-    return skew_tableau.SkewTableau(expr=[psave.conjugate(),tableau]).conjugate().to_expr()
+    return SkewTableau(expr=[psave.conjugate(),tableau]).conjugate().to_expr()
 
 
 def count_rec(nexts, current, part, weight, length):
     """
     INPUT:
 
+    -  ``nexts, current, part`` -- skew partitions
 
-    -  ``nexts, current, part`` - skew partitions
+    -  ``weight`` -- non-negative integer list
 
-    -  ``weight`` - non-negative integer list
-
-    -  ``length`` - integer
-
+    -  ``length`` -- integer
 
     TESTS::
 
@@ -356,13 +531,11 @@ def list_rec(nexts, current, part, weight, length):
     """
     INPUT:
 
+    -  ``nexts, current, part`` -- skew partitions
 
-    -  ``nexts, current, part`` - skew partitions
+    -  ``weight`` -- non-negative integer list
 
-    -  ``weight`` - non-negative integer list
-
-    -  ``length`` - integer
-
+    -  ``length`` -- integer
 
     TESTS::
 
@@ -410,7 +583,6 @@ def list_rec(nexts, current, part, weight, length):
         return res
 
 
-
 #############################
 #Spin and Cospin Polynomials#
 #############################
@@ -420,14 +592,11 @@ def spin_rec(t, nexts, current, part, weight, length):
 
     INPUT:
 
+    -  ``weight`` -- list of non-negative integers
 
-    -  ``weight`` - list of non-negative integers
+    -  ``length`` -- the length of the ribbons we're tiling with
 
-    -  ``length`` - the length of the ribbons we're tiling
-       with
-
-    -  ``t`` - the variable
-
+    -  ``t`` -- the variable
 
     EXAMPLES::
 
@@ -468,9 +637,9 @@ def spin_rec(t, nexts, current, part, weight, length):
 
 
 def spin_polynomial_square(part, weight, length):
-    """
-    Returns the spin polynomial associated with part, weight, and
-    length, with the substitution t -> t^2 made.
+    r"""
+    Returns the spin polynomial associated with ``part``, ``weight``, and
+    ``length``, with the substitution `t \to t^2` made.
 
     EXAMPLES::
 
@@ -493,20 +662,20 @@ def spin_polynomial_square(part, weight, length):
     R = ZZ['t']
     t = R.gen()
 
-    if part in partition.Partitions():
-        part = skew_partition.SkewPartition([part,partition.Partition([])])
-    elif part in skew_partition.SkewPartitions():
-        part = skew_partition.SkewPartition(part)
+    if part in _Partitions:
+        part = SkewPartition([part,_Partitions([])])
+    elif part in SkewPartitions():
+        part = SkewPartition(part)
 
     if part == [[],[]] and weight == []:
         return t.parent()(1)
 
     return R(graph_implementation_rec(part, weight, length, functools.partial(spin_rec,t))[0])
 
-def spin_polynomial(part,weight,length):
+def spin_polynomial(part, weight, length):
     """
-    Returns the spin polynomial associated to part, weight, and
-    length.
+    Returns the spin polynomial associated to ``part``, ``weight``, and
+    ``length``.
 
     EXAMPLES::
 
@@ -532,11 +701,10 @@ def spin_polynomial(part,weight,length):
     c = sp.coeffs()
     return sum([c[i]*t**(QQ(i)/2) for i in range(len(c))])
 
-
 def cospin_polynomial(part, weight, length):
     """
-    Returns the cospin polynomial associated to part, weight, and
-    length.
+    Return the cospin polynomial associated to ``part``, ``weight``, and
+    ``length``.
 
     EXAMPLES::
 
@@ -570,24 +738,19 @@ def cospin_polynomial(part, weight, length):
     d = len(coeffs)-1
     exponents = [d-e for e in range(len(coeffs))]
 
-
     return R(sum([ coeffs[i]*t**exponents[i] for i in range(len(coeffs))]))
-
-
 
 
 ##     //////////////////////////////////////////////////////////////////////////////////////////
 ##     // Generic function for driving into the graph of partitions coding all ribbons
 ##     // tableaux of a given shape and weight
 ##     //////////////////////////////////////////////////////////////////////////////////////////
-
 ##     //This function construct the graph of the set of k-ribbon tableaux
 ##     //of a given skew shape and a given weight.
 ##     //The first argument is always a skew partition.
 ##     //In the case where the inner partition is empty there is no branch without solutions
 ##     //In the other cases there is in average a lot of branches without solutions
 ##     /////////////////////////////////////////////////////////////////////////////////////////
-
 
 
 def graph_implementation_rec(skp, weight, length, function):
@@ -602,8 +765,6 @@ def graph_implementation_rec(skp, weight, length, function):
         sage: graph_implementation_rec(SkewPartition([[], []]), [0], 1, list_rec)
         [[[], []]]
     """
-    inn = "graph_implementation_rec(%s, %s, %s, %s)"%(skp, weight, length, function)
-    #print "!!!", inn
     if sum(weight) == 0:
         weight = []
 
@@ -623,8 +784,7 @@ def graph_implementation_rec(skp, weight, length, function):
         retire = [ retire[i] - len(partp) + (i+1) for i in range(len(retire))]
 
         if retire[-1] >= 0 and retire == [i for i in reversed(sorted(retire))]:
-            retire = partition.Partition(filter(lambda x: x != 0, retire)).conjugate()
-
+            retire = Partition(filter(lambda x: x != 0, retire)).conjugate()
 
             # Cutting branches if the retired partition has a line strictly included into the inner one
             append = True
@@ -635,7 +795,6 @@ def graph_implementation_rec(skp, weight, length, function):
                     break
             if append:
                 selection.append([retire, perms[j]])
-
 
     #selection contains the list of current nodes
     #print "selection", selection
@@ -650,12 +809,13 @@ def graph_implementation_rec(skp, weight, length, function):
         return function(a, selection, skp, weight, length)
 
 
-
 ##############################################################
-def MultiSkewTableau(x):
+
+
+
+class MultiSkewTableau(CombinatorialObject, Element):
     """
-    Returns a multi skew tableau object which is a tuple of skew
-    tableau.
+    A multi skew tableau which is a tuple of skew tableau.
 
     EXAMPLES::
 
@@ -665,18 +825,40 @@ def MultiSkewTableau(x):
         sage: s.weight()
         [2, 3, 1]
         sage: s.shape()
-        [[[2, 2], [1]], [[2, 1], []]]
+        [[2, 2] / [1], [2, 1] / []]
     """
-    if isinstance(x, MultiSkewTableau_class):
-        return x
+    __metaclass__ = ClasscallMetaclass
 
-    return MultiSkewTableau_class([skew_tableau.SkewTableau(i) for i in x] )
+    @staticmethod
+    def __classcall_private__(cls, x):
+        """
+        Construct a multi skew tableau.
 
-class MultiSkewTableau_class(CombinatorialObject):
+        EXAMPLES::
+
+            sage: s = MultiSkewTableau([ [[None,1],[2,3]], [[1,2],[2]] ])
+        """
+        if isinstance(x, MultiSkewTableau):
+            return x
+
+        return MultiSkewTableaux()([SkewTableau(i) for i in x] )
+
+    def __init__(self, parent, x):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: mst = MultiSkewTableau([ [[None,1],[2,3]], [[1,2],[2]] ])
+            sage: TestSuite(mst).run()
+        """
+        CombinatorialObject.__init__(self, x)
+        Element.__init__(self, parent)
+
     def size(self):
         """
-        Returns the size of self, which is the sum of the sizes of the skew
-        tableaux in self.
+        Return the size of ``self``, which is the sum of the sizes of the skew
+        tableaux in ``self``.
 
         EXAMPLES::
 
@@ -689,7 +871,7 @@ class MultiSkewTableau_class(CombinatorialObject):
 
     def weight(self):
         """
-        Returns the weight of self.
+        Return the weight of ``self``.
 
         EXAMPLES::
 
@@ -708,20 +890,20 @@ class MultiSkewTableau_class(CombinatorialObject):
 
     def shape(self):
         """
-        Returns the shape of self.
+        Return the shape of ``self``.
 
         EXAMPLES::
 
             sage: s = SemistandardSkewTableaux([[2,2],[1]]).list()
             sage: a = MultiSkewTableau([s[0],s[1],s[2]])
             sage: a.shape()
-            [[[2, 2], [1]], [[2, 2], [1]], [[2, 2], [1]]]
+            [[2, 2] / [1], [2, 2] / [1], [2, 2] / [1]]
         """
         return [x.shape() for x in self]
 
     def inversion_pairs(self):
         """
-        Returns a list of the inversion pairs of self.
+        Return a list of the inversion pairs of ``self``.
 
         EXAMPLES::
 
@@ -743,7 +925,7 @@ class MultiSkewTableau_class(CombinatorialObject):
 
     def inversions(self):
         """
-        Returns the number of inversion pairs of self.
+        Return the number of inversion pairs of ``self``.
 
         EXAMPLES::
 
@@ -765,8 +947,8 @@ class MultiSkewTableau_class(CombinatorialObject):
 
     def _inversion_pairs_from_position(self, k, ij):
         """
-        Returns the number of inversions at the cell position i,j in the kth
-        tableaux in self.
+        Return the number of inversions at the cell position `(i,j)` in the
+        ``k``-th tableaux in ``self``.
 
         EXAMPLES::
 
@@ -801,17 +983,58 @@ class MultiSkewTableau_class(CombinatorialObject):
         return res
 
 
-def SemistandardMultiSkewTableaux(shape, weight):
+class MultiSkewTableaux(Parent, UniqueRepresentation):
+    r"""
+    Multiskew tableaux.
     """
-    Returns the combinatorial class of semistandard multi skew
-    tableaux. A multi skew tableau is a k-tuple of skew tableaux of
-    givens shape with a specified total weight.
+    def __init__(self, category=None):
+        """
+        EXAMPLES::
+
+            sage: R = MultiSkewTableaux()
+            sage: TestSuite(R).run()
+        """
+        if category is None:
+            category = Sets()
+        Parent.__init__(self, category=category)
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: MultiSkewTableaux()
+            Multi Skew Tableaux tableaux
+        """
+        return "Multi Skew Tableaux tableaux"
+
+    def _element_constructor_(self, rt):
+        """
+        Construct an element of ``self`` from ``rt``.
+
+        EXAMPLES::
+
+            sage: R = MultiSkewTableaux()
+            sage: R([[[1, 1], [2]], [[None, 2], [3, 3]]])
+            [[[1, 1], [2]], [[None, 2], [3, 3]]]
+        """
+        return self.element_class(self, rt)
+
+    Element = MultiSkewTableau
+
+class SemistandardMultiSkewTableaux(MultiSkewTableaux):
+    """
+    Semistandard multi skew tableaux.
+
+    A multi skew tableau is a `k`-tuple of skew tableaux of
+    given shape with a specified total weight.
 
     EXAMPLES::
 
-        sage: s = SemistandardMultiSkewTableaux([ [[2,1],[]], [[2,2],[1]] ], [2,2,2]); s
-        Semistandard multi skew tableaux of shape [[[2, 1], []], [[2, 2], [1]]] and weight [2, 2, 2]
-        sage: s.list()
+        sage: S = SemistandardMultiSkewTableaux([ [[2,1],[]], [[2,2],[1]] ], [2,2,2]); S
+        Semistandard multi skew tableaux of shape [[2, 1] / [], [2, 2] / [1]] and weight [2, 2, 2]
+        sage: S.list()
         [[[[1, 1], [2]], [[None, 2], [3, 3]]],
          [[[1, 2], [2]], [[None, 1], [3, 3]]],
          [[[1, 3], [2]], [[None, 2], [1, 3]]],
@@ -823,26 +1046,48 @@ def SemistandardMultiSkewTableaux(shape, weight):
          [[[1, 3], [3]], [[None, 1], [2, 2]]],
          [[[2, 3], [3]], [[None, 1], [1, 2]]]]
     """
-    shape = [skew_partition.SkewPartition(x) for x in shape]
-    weight = partition.Partition(weight)
+    @staticmethod
+    def __classcall_private__(cls, shape, weight):
+        """
+        Normalize input to ensure a unique representation.
 
-    if sum(weight) != sum(s.size() for s in shape):
-        raise ValueError, "the sum of weight must be the sum of the sizes of shape"
+        EXAMPLES::
 
-    return SemistandardMultiSkewTtableaux_shapeweight(shape, weight)
+            sage: S1 = SemistandardMultiSkewTableaux([ [[2,1],[]], [[2,2],[1]] ], [2,2,2])
+            sage: shape_alt = ( SkewPartition([[2,1],[]]), SkewPartition([[2,2],[1]]) )
+            sage: S2 = SemistandardMultiSkewTableaux(shape_alt, (2,2,2))
+            sage: S1 is S2
+            True
+        """
+        shape = tuple(SkewPartition(x) for x in shape)
+        weight = Partition(weight)
 
-class SemistandardMultiSkewTtableaux_shapeweight(CombinatorialClass):
+        if sum(weight) != sum(s.size() for s in shape):
+            raise ValueError("the sum of weight must be the sum of the sizes of shape")
+
+        return super(SemistandardMultiSkewTableaux, cls).__classcall__(cls, shape, weight)
+
     def __init__(self, shape, weight):
         """
         TESTS::
 
-            sage: s = SemistandardMultiSkewTableaux([ [[2,1],[]], [[2,2],[1]] ], [2,2,2])
-            sage: s == loads(dumps(s))
-            True
+            sage: S = SemistandardMultiSkewTableaux([ [[2,1],[]], [[2,2],[1]] ], [2,2,2])
+            sage: TestSuite(S).run()
         """
         self._shape  = shape
         self._weight = weight
-        self._name   = "Semistandard multi skew tableaux of shape %s and weight %s"%(shape, weight)
+        MultiSkewTableaux.__init__(self, category=FiniteEnumeratedSets())
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: SemistandardMultiSkewTableaux([ [[2,1],[]], [[2,2],[1]] ], [2,2,2])
+            Semistandard multi skew tableaux of shape [[2, 1] / [], [2, 2] / [1]] and weight [2, 2, 2]
+        """
+        return "Semistandard multi skew tableaux of shape %s and weight %s"%(list(self._shape), self._weight)
 
     def __contains__(self, x):
         """
@@ -856,11 +1101,10 @@ class SemistandardMultiSkewTtableaux_shapeweight(CombinatorialClass):
             x = MultiSkewTableau(x)
         except TypeError:
             return False
-
-        if x.weight() != self._weight:
+        if x.weight() != list(self._weight):
             return False
 
-        if x.shape() != self._shape:
+        if x.shape() != list(self._shape):
             return False
 
         if not all( x[i].is_semistandard() for i in range(len(x)) ):
@@ -868,7 +1112,7 @@ class SemistandardMultiSkewTtableaux_shapeweight(CombinatorialClass):
 
         return True
 
-    def list(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
@@ -906,15 +1150,60 @@ class SemistandardMultiSkewTtableaux_shapeweight(CombinatorialClass):
             parttmp = [ outer_current + parttmp[0], inner_current + parttmp[1] ]
 
         #List the corresponding skew tableaux
-        l = [ st.to_word() for st in skew_tableau.SemistandardSkewTableaux(parttmp, mu) ]
+        l = [ st.to_word() for st in SemistandardSkewTableaux(parttmp, mu) ]
 
-        res = []
+        S = SkewTableaux()
         for k in range(len(l)):
             pos = 0  #Double check this
-            restmp = [ skew_tableau.from_shape_and_word(parts[0], [l[k][j] for j in range(s[0])]) ]
+            restmp = [ S.from_shape_and_word(parts[0], [l[k][j] for j in range(s[0])]) ]
             for i in range(1, len(parts)):
                 w = [l[k][j] for j in range(pos+s[i-1], pos+s[i-1]+s[i])]
-                restmp.append( skew_tableau.from_shape_and_word(parts[i], w) )
-            res.append(MultiSkewTableau_class(restmp))
-        return res
+                restmp.append( S.from_shape_and_word(parts[i], w) )
+            yield self.element_class(self, restmp)
+
+def from_expr(l):
+    """
+    Deprecated in :trac:`14101`. Use instead :meth:`RibbonTableaux.from_expr()`.
+
+    EXAMPLES::
+
+        sage: sage.combinat.ribbon_tableau.from_expr([[1,1],[[5],[3,4],[1,2]]])
+        doctest:...: DeprecationWarning: from_expr is deprecated. Use RibbonTableaux().from_expr instead
+        See http://trac.sagemath.org/14101 for details.
+        [[None, 1, 2], [None, 3, 4], [5]]
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(14101, 'from_expr is deprecated. Use RibbonTableaux().from_expr instead')
+    return RibbonTableaux().from_expr(l)
+
+def RibbonTableaux_shapeweightlength(shape, weight, length):
+    """
+    EXAMPLES::
+
+        sage: sage.combinat.ribbon_tableau.RibbonTableaux_shapeweightlength([[2,1],[]], [1,1,1], 1)
+        doctest:...: DeprecationWarning: this class is deprecated. Use RibbonTableaux instead
+        See http://trac.sagemath.org/14101 for details.
+        Ribbon tableaux of shape [2, 1] / [] and weight [1, 1, 1] with 1-ribbons
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(14101, 'this class is deprecated. Use RibbonTableaux instead')
+    return RibbonTableaux(shape, weight, length)
+
+def SemistandardMultiSkewTtableaux_shapeweight(shape, weight):
+    """
+    EXAMPLES::
+
+        sage: sage.combinat.ribbon_tableau.SemistandardMultiSkewTtableaux_shapeweight([ [[2,1],[]], [[2,2],[1]] ], [2,2,2])
+        doctest:...: DeprecationWarning: this class is deprecated. Use SemistandardMultiSkewTableaux instead
+        See http://trac.sagemath.org/14101 for details.
+        Semistandard multi skew tableaux of shape [[2, 1] / [], [2, 2] / [1]] and weight [2, 2, 2]
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(14101, 'this class is deprecated. Use SemistandardMultiSkewTableaux instead')
+    return SemistandardMultiSkewTableaux(shape, weight)
+
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.combinat.ribbon_tableau', 'RibbonTableau_class', RibbonTableau)
+register_unpickle_override('sage.combinat.ribbon_tableau', 'RibbonTableaux_shapeweightlength', RibbonTableaux)
+register_unpickle_override('sage.combinat.ribbon_tableau', 'SemistandardMultiSkewTtableaux_shapeweight', SemistandardMultiSkewTableaux)
 

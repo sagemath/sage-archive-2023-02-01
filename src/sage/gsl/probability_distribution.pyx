@@ -198,19 +198,37 @@ cdef class SphericalDistribution(ProbabilityDistribution):
     cdef double* vec
 
     def __init__(self, dimension=3, rng='default', seed=None):
-        """
+        r"""
         EXAMPLES::
 
             sage: T = SphericalDistribution()
             sage: T.get_random_element() # random
             (-0.872578667429, -0.29632873418, -0.388324285164)
-        """
 
+        TESTS:
+
+        Until :trac:`15089` a value of the ``seed`` keyword
+        besides ``None`` was ignored. We check here that setting
+        a seed is effective. ::
+
+            sage: T = SphericalDistribution(seed=876)
+            sage: one = [T.get_random_element() for _ in range(10)]
+            sage: T = SphericalDistribution(seed=876)
+            sage: two = [T.get_random_element() for _ in range(10)]
+            sage: T = SphericalDistribution(seed=123)
+            sage: three = [T.get_random_element() for _ in range(10)]
+            sage: one == two
+            True
+            sage: one == three
+            False
+        """
         gsl_rng_env_setup()
         self.set_random_number_generator(rng)
         self.r = gsl_rng_alloc(self.T)
         if seed == None:
             self.seed = random.randint(1, sys.maxint)
+        else:
+            self.seed = seed
         self.set_seed(self.seed)
         self.dimension = dimension
         self.vec = <double *>sage_malloc(self.dimension*(sizeof(double)))
@@ -488,13 +506,29 @@ cdef class RealDistribution(ProbabilityDistribution):
     #cdef _get_random_element_c(self)
 
     def __init__(self, type = 'uniform', parameters = [], rng = 'default', seed = None):
-        """
+        r"""
         EXAMPLES::
 
             sage: T = RealDistribution('gaussian', 1, seed = 0)
             sage: T.get_random_element()
             0.133918608119
 
+        TESTS:
+
+        Until :trac:`15089` a value of the ``seed`` keyword
+        besides ``None`` was ignored. We check here that setting
+        a seed is effective. ::
+
+            sage: T = RealDistribution("beta",[1.6,4.3], seed=876)
+            sage: one = [T.get_random_element() for _ in range(10)]
+            sage: T = RealDistribution("beta",[1.6,4.3], seed=876)
+            sage: two = [T.get_random_element() for _ in range(10)]
+            sage: T = RealDistribution("beta",[1.6,4.3], seed=123)
+            sage: three = [T.get_random_element() for _ in range(10)]
+            sage: one == two
+            True
+            sage: one == three
+            False
         """
 
         gsl_rng_env_setup()
@@ -503,6 +537,8 @@ cdef class RealDistribution(ProbabilityDistribution):
         self.r = gsl_rng_alloc(self.T)
         if seed == None:
             self.seed = random.randint(1, sys.maxint)
+        else:
+            self.seed = seed
         self.set_seed(self.seed)
         self.name = " "
         self.set_distribution(type, parameters)
@@ -748,10 +784,16 @@ cdef class RealDistribution(ProbabilityDistribution):
 
             sage: T = RealDistribution('gaussian', 1, seed = 10)
             sage: [T.get_random_element() for _ in range(10)]
-            [0.133918608119, -0.0881009918314, 1.67440840625, 0.733641107293, 0.997524631602, -1.277502081, -2.39671528273, -0.679280164729, -0.0390913184336, 0.893555545521]
+            [-0.746099959575, -0.00464460662641, -0.872053831721,
+             0.691625992167, 2.67668674666, 0.632500281366,
+             -0.797426352196, -0.528497689337, 1.13531198495,
+             0.991250567323]
             sage: T.reset_distribution()
             sage: [T.get_random_element() for _ in range(10)]
-            [0.133918608119, -0.0881009918314, 1.67440840625, 0.733641107293, 0.997524631602, -1.277502081, -2.39671528273, -0.679280164729, -0.0390913184336, 0.893555545521]
+            [-0.746099959575, -0.00464460662641, -0.872053831721,
+             0.691625992167, 2.67668674666, 0.632500281366,
+             -0.797426352196, -0.528497689337, 1.13531198495,
+             0.991250567323]
         """
 
         if self.r != NULL:
@@ -964,7 +1006,7 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
     cdef long seed
 
     def __init__(self, P, rng = 'default', seed = None):
-        """
+        r"""
         Given a list of probabilities P construct an instance of a gsl
         discrete random variable generator.
 
@@ -973,13 +1015,32 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
             sage: P = [0.3, 0.4, 0.3]
             sage: X = GeneralDiscreteDistribution(P)
             sage: assert X.get_random_element() in range(len(P))
-        """
 
+        TESTS:
+
+        Until :trac:`15089` a value of the ``seed`` keyword
+        besides ``None`` was ignored. We check here that setting
+        a seed is effective. ::
+
+            sage: P = [0.2, 0.3, 0.1, 0.4]
+            sage: T = GeneralDiscreteDistribution(P, seed=876)
+            sage: one = [T.get_random_element() for _ in range(50)]
+            sage: T = GeneralDiscreteDistribution(P, seed=876)
+            sage: two = [T.get_random_element() for _ in range(50)]
+            sage: T = GeneralDiscreteDistribution(P, seed=123)
+            sage: three = [T.get_random_element() for _ in range(50)]
+            sage: one == two
+            True
+            sage: one == three
+            False
+        """
         gsl_rng_env_setup()
         self.set_random_number_generator(rng)
         self.r = gsl_rng_alloc(self.T)
         if seed == None:
             self.seed = random.randint(1, sys.maxint)
+        else:
+            self.seed = seed
         self.set_seed(self.seed)
 
         cdef int n
@@ -1075,4 +1136,3 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
         if self.r != NULL: gsl_rng_free(self.r)
         self.r = gsl_rng_alloc(self.T)
         self.set_seed(self.seed)
-

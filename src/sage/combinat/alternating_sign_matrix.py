@@ -211,7 +211,7 @@ class AlternatingSignMatrix(Element):
             sage: d = A([[0,1,0],[1,-1,1],[0,1,0]]).to_dyck_word(); d
             [1, 1, 0, 1, 0, 0]
             sage: parent(d)
-            <class 'sage.combinat.dyck_word.DyckWord_complete'>
+            Complete Dyck words
         """
         MT = self.to_monotone_triangle()
         nplus = self._matrix.nrows() + 1
@@ -264,7 +264,7 @@ class AlternatingSignMatrix(Element):
             sage: p = asm.to_permutation(); p
             [2, 1, 3]
             sage: parent(p)
-            <class 'sage.combinat.permutation.Permutation_class'>
+            Standard permutations
             sage: asm = A([[0,1,0],[1,-1,1],[0,1,0]])
             sage: asm.to_permutation()
             Traceback (most recent call last):
@@ -361,7 +361,7 @@ class AlternatingSignMatrix(Element):
             sage: t = A([[0,1,0],[1,-1,1],[0,1,0]]).left_key_as_permutation(); t
             [1, 3, 2]
             sage: parent(t)
-            <class 'sage.combinat.permutation.Permutation_class'>
+            Standard permutations
         """
         return self.left_key().to_permutation()
 

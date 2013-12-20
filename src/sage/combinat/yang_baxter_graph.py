@@ -19,6 +19,7 @@ from sage.graphs.digraph import DiGraph
 from sage.structure.sage_object import SageObject
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.combinat.partition import Partition
+from sage.combinat.permutation import Permutation
 
 def YangBaxterGraph(partition=None, root=None, operators=None):
     r"""
@@ -809,6 +810,8 @@ class SwapOperator(SageObject):
             [1, 2, 3, 5, 4]
         """
         i = self._position
+        if isinstance(u, Permutation):
+            return Permutation(u[:i] + u[i:i+2][::-1] + u[i+2:])
         return type(u)(u[:i] + u[i:i+2][::-1] + u[i+2:])
 
     def position(self):
@@ -867,6 +870,8 @@ class SwapIncreasingOperator(SwapOperator):
         if u[i] < u[j]:
             v = list(u)
             (v[j], v[i]) = (v[i], v[j])
+            if isinstance(u, Permutation):
+                return Permutation(v)
             return type(u)(v)
         else:
             return u

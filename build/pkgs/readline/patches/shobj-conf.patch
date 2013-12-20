@@ -1,5 +1,18 @@
---- src/support/shobj-conf	2009-10-28 06:20:21.000000000 -0700
-+++ src/support/shobj-conf	2011-09-30 09:49:02.000000000 -0700
+--- src/support/shobj-conf	2009-10-28 13:20:21.000000000 +0000
++++ new/support/shobj-conf	2013-08-14 13:38:06.634576906 +0100
+@@ -39,10 +39,10 @@
+ SHOBJ_LD=
+ SHOBJ_LDFLAGS=
+ SHOBJ_XLDFLAGS=
+-SHOBJ_LIBS=
++SHOBJ_LIBS='-ltinfo'
+ 
+ SHLIB_XLDFLAGS=
+-SHLIB_LIBS=
++SHLIB_LIBS='-ltinfo'
+ 
+ SHLIB_DOT='.'
+ SHLIB_LIBPREF='lib'
 @@ -109,7 +109,7 @@
  	;;
  
@@ -9,7 +22,7 @@
  	SHOBJ_CFLAGS=-fPIC
  	SHOBJ_LD='${CC}'
  	SHOBJ_LDFLAGS='-shared -Wl,-soname,$@'
-@@ -132,11 +132,12 @@
+@@ -132,7 +132,7 @@
  	SHOBJ_CFLAGS=-fPIC
  	SHOBJ_LD='${CC}'
  
@@ -18,12 +31,7 @@
  		SHOBJ_LDFLAGS='-shared -Wl,-soname,$@'
  
  		SHLIB_XLDFLAGS='-Wl,-rpath,$(libdir)'
- 		SHLIB_LIBVERSION='$(SHLIB_LIBSUFF).$(SHLIB_MAJOR)'
-+                SHLIB_LIBS='-ltermcap'
- 	else
- 		SHOBJ_LDFLAGS='-shared'
- 
-@@ -146,30 +147,28 @@
+@@ -146,32 +146,30 @@
  	;;
  
  # FreeBSD-4.x and later have only ELF
@@ -36,10 +44,10 @@
 -
 -	SHLIB_LIBVERSION='$(SHLIB_LIBSUFF).$(SHLIB_MAJOR)'
 +freebsdelf*|dragonfly*)
-+        SHOBJ_CFLAGS=-fPIC 
-+        SHOBJ_LD='${CC}' 
-+        SHOBJ_LDFLAGS='-shared -Wl,-soname,$@' 
-+        SHLIB_XLDFLAGS='-Wl,-rpath,$(libdir)' 
++       SHOBJ_CFLAGS=-fPIC 
++       SHOBJ_LD='${CC}' 
++       SHOBJ_LDFLAGS='-shared -Wl,-soname,$@' 
++       SHLIB_XLDFLAGS='-Wl,-rpath,$(libdir)' 
 +	SHLIB_LIBVERSION='$(SHLIB_LIBSUFF).$(SHLIB_MAJOR)' 
  	;;
  
@@ -62,9 +70,12 @@
 +	SHOBJ_LDFLAGS='-dynamiclib -dynamic -undefined dynamic_lookup'
 +	SHLIB_XLDFLAGS='-dynamiclib -install_name $(libdir)/$@ -current_version $(SHLIB_MAJOR)$(SHLIB_MINOR) -compatibility_version $(SHLIB_MAJOR) -v'
  
- 	SHLIB_LIBS='-lncurses'	# see if -lcurses works on MacOS X 10.1 
+-	SHLIB_LIBS='-lncurses'	# see if -lcurses works on MacOS X 10.1 
++	SHLIB_LIBS='-ltinfo -lncurses'	# see if -lcurses works on MacOS X 10.1 
  	;;
-@@ -186,11 +185,11 @@
+ 
+ darwin*|macosx*)
+@@ -186,15 +184,15 @@
  	SHLIB_LIBSUFF='dylib'
  
  	case "${host_os}" in
@@ -79,3 +90,8 @@
  			;;
  	esac
  
+-	SHLIB_LIBS='-lncurses'	# see if -lcurses works on MacOS X 10.1 
++	SHLIB_LIBS='-ltinfo -lncurses'	# see if -lcurses works on MacOS X 10.1 
+ 	;;
+ 
+ openbsd*|netbsd*)

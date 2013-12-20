@@ -208,7 +208,7 @@ class NumberField_relative(NumberField_generic):
             sage: b
             Traceback (most recent call last):
             ...
-            PariError: incorrect type (11)
+            PariError: incorrect type in core2partial
 
         However, if the polynomial is linear, rational coefficients should work::
 
@@ -1642,8 +1642,6 @@ class NumberField_relative(NumberField_generic):
             sage: K.<a, b> = NumberField( [x^2 + x + 1, x^4 + 1] )
             sage: K.number_of_roots_of_unity()
             24
-            sage: K.roots_of_unity()[:5]
-            [-b^3*a, b^2*a + b^2, -b, -a, -b^3*a - b^3]
         """
         return self.absolute_field('a').number_of_roots_of_unity()
 
@@ -1655,7 +1653,7 @@ class NumberField_relative(NumberField_generic):
 
             sage: K.<a, b> = NumberField( [x^2 + x + 1, x^4 + 1] )
             sage: K.roots_of_unity()[:5]
-            [-b^3*a, b^2*a + b^2, -b, -a, -b^3*a - b^3]
+            [b*a, -b^2*a - b^2, b^3, -a, b*a + b]
         """
         abs = self.absolute_field('a')
         from_abs, _ = abs.structure()

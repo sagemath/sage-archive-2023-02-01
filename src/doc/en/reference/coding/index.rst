@@ -8,6 +8,7 @@ Coding Theory
    sage/coding/code_constructions
    sage/coding/sd_codes
    sage/coding/code_bounds
+   sage/coding/delsarte_bounds
    sage/coding/source_coding/huffman
 
 .. include:: ../footer.txt

@@ -423,7 +423,24 @@ class Sage(Expect):
         """
         return SageElement(self, x)
 
+
 class SageElement(ExpectElement):
+
+    def _graphics_(self):
+        """
+        Disable graphical output.
+
+        This is necessary because otherwise our :meth:`__getattr__`
+        would be called.
+
+        EXAMPLES::
+
+            sage: m = sage0(4)
+            sage: m._graphics_()
+            False
+        """
+        return False
+
     def __getattr__(self, attrname):
         """
         EXAMPLES::

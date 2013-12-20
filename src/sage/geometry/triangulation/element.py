@@ -41,6 +41,8 @@ from sage.structure.element import Element
 from sage.rings.all import QQ, ZZ
 from sage.modules.all import vector
 from sage.misc.cachefunc import cached_method
+from sage.sets.set import Set
+from sage.graphs.graph import Graph
 
 
 ########################################################################
@@ -786,5 +788,37 @@ class Triangulation(Element):
         from sage.geometry.cone import _Cone_from_PPL
         return _Cone_from_PPL(cone, lattice=ambient)
 
+    def adjacency_graph(self):
+        """
+        Returns a graph showing which simplices are adjacent in the
+        triangulation
 
+        OUTPUT:
+
+        A graph consisting of vertices referring to the simplices in the
+        triangulation, and edges showing which simplices are adjacent to each
+        other.
+
+        .. SEEALSO::
+
+            * To obtain the triangulation's 1-skeleton, use
+              :meth:`SimplicialComplex.graph` through
+              ``MyTriangulation.simplicial_complex().graph()``.
+
+        AUTHORS:
+
+        * Stephen Farley (2013-08-10): initial version
+
+        EXAMPLES::
+
+            sage: p = PointConfiguration([[1,0,0], [0,1,0], [0,0,1], [-1,0,1],
+            ....:                         [1,0,-1], [-1,0,0], [0,-1,0], [0,0,-1]])
+            sage: t = p.triangulate()
+            sage: t.adjacency_graph()
+            Graph on 8 vertices
+
+        """
+        vertices = map(Set,list(self))
+        return Graph([vertices,
+                  lambda x,y: len(x-y)==1])
 

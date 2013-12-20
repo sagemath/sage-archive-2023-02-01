@@ -622,14 +622,14 @@ cdef class NumberFieldElement(FieldElement):
             sage: theta._pari_('theta')
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: theta already exists with incompatible valence
             sage: theta._pari_()
             Mod(y, y^2 + 1)
             sage: k.<I> = QuadraticField(-1)
             sage: I._pari_('I')
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: I already exists with incompatible valence
 
         Instead, request the variable be named different for the coercion::
 
@@ -709,7 +709,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: b._pari_init_('theta')
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: theta already exists with incompatible valence
 
         Fortunately pari_init returns everything in terms of y by
         default::
@@ -2606,6 +2606,43 @@ cdef class NumberFieldElement(FieldElement):
             norm = self._pari_('x').norm()
             return QQ(norm) if self._parent.is_field() else ZZ(norm)
         return self.matrix(K).determinant()
+
+    def absolute_norm(self):
+        """
+        Return the absolute norm of this number field element.
+
+        EXAMPLES::
+
+            sage: K1.<a1> = CyclotomicField(11)
+            sage: K2.<a2> = K1.extension(x^2 - 3)
+            sage: K3.<a3> = K2.extension(x^2 + 1)
+            sage: (a1 + a2 + a3).absolute_norm()
+            1353244757701
+
+            sage: QQ(7/5).absolute_norm()
+            7/5
+        """
+        return self.norm()
+
+    def relative_norm(self):
+        """
+        Return the relative norm of this number field element over the next field
+        down in some tower of number fields.
+
+        EXAMPLES::
+
+            sage: K1.<a1> = CyclotomicField(11)
+            sage: K2.<a2> = K1.extension(x^2 - 3)
+            sage: (a1 + a2).relative_norm()
+            a1^2 - 3
+            sage: (a1 + a2).relative_norm().relative_norm() == (a1 + a2).absolute_norm()
+            True
+
+            sage: K.<x,y,z> = NumberField([x^2 + 1, x^3 - 3, x^2 - 5])
+            sage: (x + y + z).relative_norm()
+            y^2 + 2*z*y + 6
+        """
+        return self.norm(self.parent().base_field())
 
     def vector(self):
         """

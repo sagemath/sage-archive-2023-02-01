@@ -63,16 +63,8 @@ from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
 from sage.libs.pari.gen cimport gen, PariInstance
 from sage.libs.pari.gen import pari
 
-cdef extern from 'pari/pari.h':
-    GEN     zeromat(long m, long n)
-    GEN     mathnf0(GEN x,long flag)
-    GEN     det0(GEN a,long flag)
-    GEN     gcoeff(GEN,long,long)
-    GEN     gtomat(GEN x)
-    GEN     gel(GEN,long)
-    long    glength(GEN x)
-    GEN     ginv(GEN x)
-    long    rank(GEN x)
+include "sage/libs/pari/decl.pxi"
+include "sage/libs/pari/pari_err.pxi"
 
 cdef extern from "convert.h":
     cdef void t_INT_to_ZZ( mpz_t value, long *g )
@@ -86,9 +78,7 @@ include "sage/ext/random.pxi"
 
 cdef extern from "math.h":
     double log(double x)
-    double ldexp(double x, int exp)
 
-ctypedef unsigned int uint
 
 from sage.ext.multi_modular import MultiModularBasis
 from sage.ext.multi_modular cimport MultiModularBasis
@@ -3707,6 +3697,36 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A*C == d*B
             True
 
+        Test wrong dimensions::
+
+            sage: A = random_matrix(ZZ, 4, 4)
+            sage: B = random_matrix(ZZ, 2, 3)
+            sage: B._solve_iml(A)
+            Traceback (most recent call last):
+            ...
+            ValueError: self must be a square matrix
+            sage: A._solve_iml(B, right=False)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: B's number of columns must match self's number of rows
+            sage: A._solve_iml(B, right=True)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: B's number of rows must match self's number of columns
+
+        Check that this can be interrupted properly (:trac:`15453`)::
+
+            sage: A = random_matrix(ZZ, 2000, 2000)
+            sage: B = random_matrix(ZZ, 2000, 2000)
+            sage: t0 = walltime()
+            sage: alarm(2); A._solve_iml(B)  # long time
+            Traceback (most recent call last):
+            ...
+            AlarmInterrupt
+            sage: t = walltime(t0)
+            sage: t < 10 or t
+            True
+
         ALGORITHM: Uses IML.
 
         AUTHORS:
@@ -3720,11 +3740,12 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         if self._nrows != self._ncols:
             # This is *required* by the IML function we call below.
-            raise ArithmeticError("self must be a square matrix")
+            raise ValueError("self must be a square matrix")
 
         if self.nrows() == 1:
             return B, self[0,0]
 
+        cdef SOLU_POS solu_pos
 
         if right:
             if self._ncols != B._nrows:
@@ -3732,6 +3753,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             n = self._ncols
             m = B._ncols
+
             P = self.matrix_space(n, m)
             if self._nrows == 0 or self._ncols == 0:
                 return P.zero_matrix(), Integer(1)
@@ -3739,12 +3761,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             if m == 0 or n == 0:
                 return self.new_matrix(nrows = n, ncols = m), Integer(1)
 
-            mpz_init(mp_D)
-            mp_N = <mpz_t *> sage_malloc( n * m * sizeof(mpz_t) )
-            for i from 0 <= i < n * m:
-                mpz_init( mp_N[i] )
-
-            nonsingSolvLlhsMM(RightSolu, n, m, self._entries, B._entries, mp_N, mp_D)
+            solu_pos = RightSolu
 
         else: # left
             if self._nrows != B._ncols:
@@ -3760,26 +3777,34 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             if m == 0 or n == 0:
                 return self.new_matrix(nrows = m, ncols = n), Integer(1)
 
-            mpz_init(mp_D)
-            mp_N = <mpz_t *> sage_malloc( n * m * sizeof(mpz_t) )
-            for i from 0 <= i < n * m:
-                mpz_init( mp_N[i] )
+            solu_pos = LeftSolu
 
-            nonsingSolvLlhsMM(LeftSolu, n, m, self._entries, B._entries, mp_N, mp_D)
+        sig_check()
 
+        mp_N = <mpz_t *> sage_malloc( n * m * sizeof(mpz_t) )
+        for i from 0 <= i < n * m:
+            mpz_init(mp_N[i])
+        mpz_init(mp_D)
 
-        M = Matrix_integer_dense.__new__(Matrix_integer_dense, P, None, None, None)
-        for i from 0 <= i < n*m:
-            mpz_init_set(M._entries[i], mp_N[i])
-            mpz_clear(mp_N[i])
-        sage_free(mp_N)
-        M._initialized = True
+        try:
+            sig_on()
+            nonsingSolvLlhsMM(solu_pos, n, m, self._entries, B._entries, mp_N, mp_D)
+            sig_off()
 
-        D = PY_NEW(Integer)
-        mpz_set(D.value, mp_D)
-        mpz_clear(mp_D)
+            M = Matrix_integer_dense.__new__(Matrix_integer_dense, P, None, None, None)
+            for i from 0 <= i < n*m:
+                mpz_init_set(M._entries[i], mp_N[i])
+            M._initialized = True
 
-        return M,D
+            D = PY_NEW(Integer)
+            mpz_set(D.value, mp_D)
+
+            return M, D
+        finally:
+            mpz_clear(mp_D)
+            for i from 0 <= i < n*m:
+                mpz_clear(mp_N[i])
+            sage_free(mp_N)
 
     def _rational_echelon_via_solve(self):
         r"""
@@ -4883,7 +4908,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             0
         """
         cdef PariInstance P = sage.libs.pari.gen.pari
-        sig_on()
+        pari_catch_sig_on()
         cdef GEN d = det0(pari_GEN(self), flag)
         # now convert d to a Sage integer e
         cdef Integer e = Integer()
@@ -4903,7 +4928,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             2
         """
         cdef PariInstance P = sage.libs.pari.gen.pari
-        sig_on()
+        pari_catch_sig_on()
         cdef long r = rank(pari_GEN(self))
         P.clear_stack()
         return r
@@ -4971,11 +4996,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         cdef PariInstance P = sage.libs.pari.gen.pari
         cdef GEN A
-        sig_on()
+        pari_catch_sig_on()
         A = P._new_GEN_from_mpz_t_matrix_rotate90(self._matrix, self._nrows, self._ncols)
         cdef GEN H = mathnf0(A, flag)
         B = self.extract_hnf_from_pari_matrix(H, flag, include_zero_rows)
-        P.clear_stack()  # This calls sig_off()
+        P.clear_stack()  # This calls pari_catch_sig_off()
         return B
 
 
@@ -5035,7 +5060,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef PariInstance P = sage.libs.pari.gen.pari
         cdef gen H = P.integer_matrix(self._matrix, self._nrows, self._ncols, 1)
         H = H.mathnf(flag)
-        return self.extract_hnf_from_pari_matrix(H.g, flag, include_zero_rows)
+        pari_catch_sig_on()
+        B = self.extract_hnf_from_pari_matrix(H.g, flag, include_zero_rows)
+        P.clear_stack()  # This calls pari_catch_sig_off()
+        return B
 
     cdef extract_hnf_from_pari_matrix(self, GEN H, int flag, bint include_zero_rows):
         # Throw away the transformation matrix (yes, we should later

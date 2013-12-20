@@ -68,7 +68,7 @@ class GHlist:
 
             sage: L1 = sage.modular.modsym.ghlist.GHlist(GammaH(18, [11]))
             sage: L2 = sage.modular.modsym.ghlist.GHlist(GammaH(18, [13]))
-            sage: L1 < L2
+            sage: L1 > L2
             True
             sage: L1 == QQ
             False

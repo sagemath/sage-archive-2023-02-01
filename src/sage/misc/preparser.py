@@ -970,6 +970,8 @@ def preparse_generators(code):
         gens = [v.strip() for v in gens.split(',')]
         constructor = constructor.rstrip()
         if constructor[-1] == ')':
+            if '(' not in constructor:
+                raise SyntaxError("Mismatched ')'")
             opening = constructor.rindex('(')
             # Only use comma if there are already arguments to the constructor
             comma = ', ' if constructor[opening+1:-1].strip() != '' else ''
@@ -977,6 +979,8 @@ def preparse_generators(code):
             constructor = constructor[:-1] + comma + "names=%s)" % names
         elif constructor[-1] == ']':
             # Could be nested.
+            if '[' not in constructor:
+                raise SyntaxError("Mismatched ']'")
             opening = constructor.rindex('[')
             closing = constructor.index(']', opening)
             if constructor[opening+1:closing].strip() == '':

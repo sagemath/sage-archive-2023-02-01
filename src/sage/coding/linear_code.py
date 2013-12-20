@@ -2310,7 +2310,11 @@ class LinearCode(module.Module_old):
         """
         G = self.gen_mat()
         GL = G.matrix_from_columns([i for i in range(G.ncols()) if i not in L])
-        return LinearCode(GL.row_space().basis_matrix())
+        r = GL.rank()
+        if r < GL.nrows():
+            GL.echelonize()
+            GL = GL[:r]
+        return LinearCode(GL)
 
     def random_element(self, *args, **kwds):
         """
@@ -2584,9 +2588,7 @@ class LinearCode(module.Module_old):
         """
         Cd = self.dual_code()
         Cdp = Cd.punctured(L)
-        Cdpd = Cdp.dual_code()
-        Gs = Cdpd.gen_mat()
-        return LinearCode(Gs)
+        return Cdp.dual_code()
 
     @rename_keyword(deprecation=11033, method="algorithm")
     def spectrum(self, algorithm=None):
@@ -2768,14 +2770,19 @@ class LinearCode(module.Module_old):
         V = VectorSpace(F,n+1)
         return V(self.spectrum()).support()
 
-    def weight_enumerator(self, names="xy"):
+    def weight_enumerator(self, names="xy", name2=None):
         """
         Returns the weight enumerator of the code.
 
         INPUT:
 
         - ``names`` - String of length 2, containing two variable names
-          (default: ``"xy"``)
+          (default: ``"xy"``). Alternatively, it can be a variable name or
+          a string, or a tuple of variable names or strings.
+
+        - ``name2`` - string or symbolic variable (default: ``None``).
+          If ``name2`` is provided then it is assumed that ``names``
+          contains only one variable.
 
         OUTPUT:
 
@@ -2788,7 +2795,18 @@ class LinearCode(module.Module_old):
             x^7 + 7*x^4*y^3 + 7*x^3*y^4 + y^7
             sage: C.weight_enumerator(names="st")
             s^7 + 7*s^4*t^3 + 7*s^3*t^4 + t^7
+            sage: (var1, var2) = var('var1, var2')
+            sage: C.weight_enumerator((var1, var2))
+            var1^7 + 7*var1^4*var2^3 + 7*var1^3*var2^4 + var2^7
+            sage: C.weight_enumerator(var1, var2)
+            var1^7 + 7*var1^4*var2^3 + 7*var1^3*var2^4 + var2^7
+
         """
+        if name2 is not None:
+            # We assume that actual variable names or strings are provided
+            # for names if names2 is also provided. That is, names is not
+            # a tuple or a list. Otherwise, PolynomialRing will return error
+            names = (names, name2)
         spec = self.spectrum()
         n = self.length()
         R = PolynomialRing(QQ,2,names)

@@ -391,11 +391,25 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
             True
             sage: m == n
             False
+
+        TEST:
+
+        Check that :trac:`14688` is fixed::
+
+            sage: from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
+            sage: M2ZSpace = MatrixSpace_ZZ_2x2()
+            sage: A = M2ZSpace([-5, -3, 7, 4])
+            sage: B = M2ZSpace([1,0,-2,1])
+            sage: A < B
+            True
         """
-        return mpz_cmp(left.a, (<Matrix_integer_2x2>right).a) or \
-               mpz_cmp(left.b, (<Matrix_integer_2x2>right).b) or \
-               mpz_cmp(left.c, (<Matrix_integer_2x2>right).c) or \
-               mpz_cmp(left.d, (<Matrix_integer_2x2>right).d)
+        cdef int c = mpz_cmp(left.a, (<Matrix_integer_2x2>right).a) or \
+                     mpz_cmp(left.b, (<Matrix_integer_2x2>right).b) or \
+                     mpz_cmp(left.c, (<Matrix_integer_2x2>right).c) or \
+                     mpz_cmp(left.d, (<Matrix_integer_2x2>right).d)
+        if c < 0: return -1
+        if c > 0: return 1
+        return 0
 
     def __neg__(self):
         """

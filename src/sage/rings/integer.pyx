@@ -396,14 +396,14 @@ cdef class IntegerWrapper(Integer):
     specifying an alternative parent to ``IntegerRing()``.
     """
 
-    def __init__(self, x=None, unsigned int base=0, parent=None):
+    def __init__(self, parent=None, x=None, unsigned int base=0):
         """
         We illustrate how to create integers with parents different
         from ``IntegerRing()``::
 
             sage: from sage.rings.integer import IntegerWrapper
 
-            sage: n = IntegerWrapper(3, parent=Primes()) # indirect doctest
+            sage: n = IntegerWrapper(Primes(), 3) # indirect doctest
             sage: n
             3
             sage: n.parent()
@@ -460,23 +460,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     def __cinit__(self):
         mpz_init(self.value)
         self._parent = <SageObject>the_integer_ring
-
-    def __pyxdoc__init__(self):
-        """
-        You can create an integer from an int, long, string literal, or
-        integer modulo N.
-
-        EXAMPLES::
-
-            sage: Integer(495)
-            495
-            sage: Integer('495949209809328523')
-            495949209809328523
-            sage: Integer(Mod(3,7))
-            3
-            sage: 2^3
-            8
-        """
 
     def __init__(self, x=None, base=0):
         """
@@ -581,7 +564,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: ZZ(pari("1e100"))
             Traceback (most recent call last):
             ...
-            PariError: precision too low (10)
+            PariError: precision too low in truncr (precision loss in truncation)
             sage: ZZ(pari("10^50"))
             100000000000000000000000000000000000000000000000000
             sage: ZZ(pari("Pol(3)"))
@@ -635,6 +618,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef unsigned int ibase
 
         cdef Element lift
+        cdef PariInstance pari
 
         if x is None:
             if mpz_sgn(self.value) != 0:
@@ -688,6 +672,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                         break
                     elif paritype == t_POLMOD:
                         x = x.lift()
+                    elif paritype == t_FFELT:
+                        # x = (f modulo defining polynomial of finite field);
+                        # we extract f.
+                        pari = sage.libs.pari.gen.pari
+                        sig_on()
+                        x = pari.new_gen(FF_to_FpXQ_i((<pari_gen>x).g))
                     else:
                         raise TypeError, "Unable to coerce PARI %s to an Integer"%x
 
@@ -1957,9 +1947,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             <type 'sage.rings.integer.Integer'>
             sage: type(int(3)^int(2))
             <type 'int'>
+
+        Check that a ``MemoryError`` is thrown if the resulting number
+        would be ridiculously large, see :trac:`15363`::
+
+            sage: 2^(2^63-2)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: exponent must be at most 2147483647          # 32-bit
+            MemoryError: failed to allocate 1152921504606847008 bytes  # 64-bit
         """
         if modulus is not None:
-            #raise RuntimeError, "__pow__ dummy argument ignored"
             from sage.rings.finite_rings.integer_mod import Mod
             return Mod(self, modulus) ** n
 
@@ -1978,7 +1976,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         except TypeError:
             s = parent_c(n)(self)
             return s**n
-
         except OverflowError:
             if mpz_cmp_si(_self.value, 1) == 0:
                 return self
@@ -4143,6 +4140,41 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         parians = self._pari_().ispower()
         return Integer(parians[1]), Integer(parians[0])
 
+    def global_height(self, prec=None):
+        r"""
+        Returns the absolute logarithmic height of this rational integer.
+
+        INPUT:
+
+        - ``prec`` (int) -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        (real) The absolute logarithmic height of this rational integer.
+
+        ALGORITHM:
+
+        The height of the integer `n` is `\log |n|`.
+
+        EXAMPLES::
+
+            sage: ZZ(5).global_height()
+            1.60943791243410
+            sage: ZZ(-2).global_height(prec=100)
+            0.69314718055994530941723212146
+            sage: exp(_)
+            2.0000000000000000000000000000
+        """
+        from sage.rings.real_mpfr import RealField
+        if prec is None:
+            R = RealField()
+        else:
+            R = RealField(prec)
+        if self.is_zero():
+            return R.zero_element()
+        return R(self).abs().log()
+
     cdef bint _is_power_of(Integer self, Integer n):
         r"""
         Returns a non-zero int if there is an integer b with
@@ -5166,6 +5198,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             <type 'sage.rings.real_mpfr.RealNumber'>
             sage: type(Integer(-5).sqrt(prec=53))
             <type 'sage.rings.complex_number.ComplexNumber'>
+
+        TESTS:
+
+        Check that :trac:`9466` is fixed::
+
+            sage: 3.sqrt(extend=False, all=True)
+            []
         """
         if mpz_sgn(self.value) == 0:
             return [self] if all else self
@@ -5188,7 +5227,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         if non_square:
             if not extend:
-                raise ValueError, "square root of %s not an integer"%self
+                if not all:
+                   raise ValueError, "square root of %s not an integer"%self
+                else:
+                    return []
             from sage.functions.other import _do_sqrt
             return _do_sqrt(self, prec=prec, all=all)
 

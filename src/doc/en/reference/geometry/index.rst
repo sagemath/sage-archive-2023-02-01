@@ -6,7 +6,7 @@ fans, lattice and reflexive polytopes (with integral coordinates), and generic
 polytopes and polyhedra (with rational or numerical coordinates).
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    sage/geometry/toric_lattice
    sage/geometry/cone
@@ -31,6 +31,7 @@ polytopes and polyhedra (with rational or numerical coordinates).
    sage/geometry/polyhedron/backend_cdd
    sage/geometry/polyhedron/backend_ppl
    sage/geometry/polyhedron/cdd_file_format
+   sage/geometry/pseudolines
 
    sage/geometry/triangulation/point_configuration
    sage/geometry/triangulation/base

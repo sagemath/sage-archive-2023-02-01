@@ -221,9 +221,9 @@ class SchubertPolynomialRing_xbasis(CombinatorialAlgebra):
             #checking the input to avoid symmetrica crashing Sage, see trac 12924
             if not x in Permutations():
                 raise ValueError, "The input %s is not a valid permutation"%(x)
-            perm = permutation.Permutation_class(x).remove_extra_fixed_points()
+            perm = permutation.Permutation(x).remove_extra_fixed_points()
             return self._from_dict({ perm: self.base_ring()(1) })
-        elif isinstance(x, permutation.Permutation_class):
+        elif isinstance(x, permutation.Permutation):
             if not list(x) in Permutations():
                 raise ValueError, "The input %s is not a valid permutation"%(x)
             perm = x.remove_extra_fixed_points()

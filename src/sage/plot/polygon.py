@@ -147,6 +147,7 @@ class Polygon(GraphicPrimitive_xydata):
                 'thickness': 'How thick the border line is.',
                 'fill':'Whether or not to fill the polygon.',
                 'legend_label':'The label for this item in the legend.',
+                'legend_color':'The color of the legend text.',
                 'rgbcolor':'The color as an RGB tuple.',
                 'hue':'The color given as a hue.',
                 'zorder':'The layer level in which to draw'}
@@ -275,7 +276,8 @@ def polygon(points, **options):
         return polygon3d(points, **options)
 
 @rename_keyword(color='rgbcolor')
-@options(alpha=1, rgbcolor=(0,0,1), thickness=None, legend_label=None, aspect_ratio=1.0, fill=True)
+@options(alpha=1, rgbcolor=(0,0,1), thickness=None, legend_label=None, legend_color=None,
+         aspect_ratio=1.0, fill=True)
 def polygon2d(points, **options):
     r"""
     Returns a 2-dimensional polygon defined by ``points``.
@@ -347,6 +349,10 @@ def polygon2d(points, **options):
         sage: L = [[sin(pi*i/100)+sin(pi*i/50),-(1+cos(pi*i/100)+cos(pi*i/50))] for i in range(-100,100)]
         sage: polygon2d(L, rgbcolor=(1,1/4,1/2))
 
+    One can do the same one with a colored legend label::
+
+        sage: polygon2d(L, color='red', legend_label='For you!', legend_color='red')
+
     Polygons have a default aspect ratio of 1.0::
 
         sage: polygon2d([[1,2], [5,6], [5,0]]).aspect_ratio()
@@ -379,4 +385,5 @@ def polygon2d(points, **options):
     g.add_primitive(Polygon(xdata, ydata, options))
     if options['legend_label']:
         g.legend(True)
+        g._legend_colors = [options['legend_color']]
     return g

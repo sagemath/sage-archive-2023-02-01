@@ -26,7 +26,8 @@ from affine_permutation import AffinePermutationGroup
 from derangements import Derangements
 
 #RSK
-from rsk import RSK, RSK_inverse, RobinsonSchenstedKnuth, RobinsonSchenstedKnuth_inverse
+from rsk import RSK, RSK_inverse, robinson_schensted_knuth, robinson_schensted_knuth_inverse,\
+                RobinsonSchenstedKnuth, RobinsonSchenstedKnuth_inverse
 
 #PerfectMatchings
 from perfect_matching import PerfectMatching, PerfectMatchings
@@ -56,8 +57,17 @@ from skew_partition import SkewPartition, SkewPartitions
 #Partition algebra
 from partition_algebra import SetPartitionsAk, SetPartitionsPk, SetPartitionsTk, SetPartitionsIk, SetPartitionsBk, SetPartitionsSk, SetPartitionsRk, SetPartitionsRk, SetPartitionsPRk
 
+#Diagram algebra
+from diagram_algebras import PartitionAlgebra, BrauerAlgebra, TemperleyLiebAlgebra, PlanarAlgebra, PropagatingIdeal
+
+#Descent algebra
+from descent_algebra import DescentAlgebra
+
 #Vector Partitions
 from vector_partition import VectorPartition, VectorPartitions
+
+#Similarity class types
+from similarity_class_type import PrimarySimilarityClassType, PrimarySimilarityClassTypes, SimilarityClassType, SimilarityClassTypes
 
 #Cores
 from core import Core, Cores
@@ -65,10 +75,16 @@ from core import Core, Cores
 #Tableaux
 from tableau import Tableau, SemistandardTableau, StandardTableau, \
         Tableaux, StandardTableaux, SemistandardTableaux
-from skew_tableau import SkewTableau, StandardSkewTableaux, SemistandardSkewTableaux
+from skew_tableau import SkewTableau, SkewTableaux, StandardSkewTableaux, SemistandardSkewTableaux
+from ribbon_shaped_tableau import RibbonShapedTableau, StandardRibbonShapedTableaux
+from ribbon_tableau import RibbonTableaux, RibbonTableau, MultiSkewTableaux, MultiSkewTableau, SemistandardMultiSkewTableaux
+from composition_tableau import CompositionTableau, CompositionTableaux
+#deprecated
 from ribbon import Ribbon, StandardRibbons
-from ribbon_tableau import RibbonTableaux, RibbonTableau, MultiSkewTableau, SemistandardMultiSkewTableaux
+
+
 from sage.combinat.tableau_tuple import TableauTuple, StandardTableauTuple, TableauTuples, StandardTableauTuples
+from k_tableau import WeakTableau, WeakTableaux, StrongTableau, StrongTableaux
 
 #Words
 from words.all import *
@@ -106,7 +122,8 @@ from sloane_functions import sloane
 
 from root_system.all import *
 from sf.all import *
-from ncsf_qsym.all import QuasiSymmetricFunctions, NonCommutativeSymmetricFunctions
+from ncsf_qsym.all import *
+from ncsym.all import *
 from matrices.all import *
 # Posets
 from posets.all import *
@@ -143,3 +160,9 @@ from knutson_tao_puzzles import KnutsonTaoPuzzleSolver
 # Gelfand-Tsetlin patterns
 from gelfand_tsetlin_patterns import GelfandTsetlinPattern, GelfandTsetlinPatterns
 
+# Finite State Machines (Automaton, Transducer)
+sage.misc.lazy_import.lazy_import('sage.combinat.finite_state_machine',
+                                  ['Automaton', 'Transducer',
+                                   'FiniteStateMachine'])
+# Binary Recurrence Sequences
+from binary_recurrence_sequences import BinaryRecurrenceSequence

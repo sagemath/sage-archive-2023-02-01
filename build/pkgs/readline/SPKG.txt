@@ -13,11 +13,11 @@ Website: http://tiswww.case.edu/php/chet/readline/rltop.html
 
 == License ==
 
- * GPL V2+
+ * GPL V3+
 
 == SPKG Maintainers ==
 
- * Nobody
+ * Volker Braun
 
 == Upstream Contact ==
 
@@ -25,29 +25,28 @@ Website: http://tiswww.case.edu/php/chet/readline/rltop.html
 
 == Dependencies ==
 
- * GNU patch
-
- * libtermcap (or libncurses or libtinfo), but not Sage's one,
-   since we only build a static version. I.e., the system has
-   to provide one of these.
+ * ncurses
 
 == Special Update/Build Instructions ==
 
- * Deleted some files from the doc directory from the standard distro,
-   since it took tons of space; didn't delete anything else.
- * Work around some MacOSX dynamic lib flags.
- * When self-tests are added upstream, we may have to set up
-   variables like CFLAGS in the script spkg-check: imitate the
-   settings in spkg-install.  For self-tests, when we use the system's
-   version of libreadline (e.g. [Open]SuSE or Arch Linux), we have to
-   make sure we don't try to run the test suite in `spkg-check`, since
-   this wouldn't work (and wouldn't make any sense either).
- * In #11882, we turned off the fixes for Arch Linux and OpenSuSE by
-   changing various tests in spkg-install from "if ..." to "if false
-   && ...".  When Arch Linux or OpenSuSE are updated, modified
-   versions of these tests may need to be reinstated.
+We build readline using ncurses. Readline needs to be told to link
+with libtinfo (part of ncurses), this is what the patch to shobj-conf
+does.
+
+
+== Patches ==
+
+ * shobj-conf.patch: Readline's hand-crafted shared library options
+   are buggy (should be using libtool).
+
 
 == Changelog ==
+
+=== readline-6.2.p4 (Volker Braun, 3 April 2013) ===
+ * Do not build static libraries
+ * Use ncurses instead of termcap
+ * Remove various commented-out hacks
+ * Patch to src/shlib/Makefile.in removed, this belongs into shobj-conf
 
 === readline-6.2.p3 (Leif Leonhardy, 3 January 2012) ===
  * #11970: Support Ubuntu 11.10 by adding the library libreadline depends on

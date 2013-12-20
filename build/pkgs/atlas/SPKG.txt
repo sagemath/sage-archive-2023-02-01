@@ -36,6 +36,9 @@ Solaris, but should also work on OSX and Cygwin.
  * patches/threads.patch: Avoid thread-related symbols
    ATL_(Set|Reset|Free|Dec)AtomicCount symbols in single-threaded
    library.
+ * patches/do_not_force_mutex.patch: always use assembly over mutex
+   since the mutex version fails to build a shared library. See #15045
+   for details.
  * lapack-x.y.z.tgz: The netlib lapack tarball. If you update this,
    make sure you also update the LAPACK_TARBALL variable in
    spkg-install.
@@ -91,6 +94,26 @@ The package can be configured via three environment variables:
    file is created and saved to the given path.
 
 == ChangeLog ==
+
+=== atlas-3.10.1.p7, lapack-3.4.2 (Jean-Pierre Flori, 25 November 2013) ===
+ * Trac #14410: Let ATLAS build and install shared libraries on Cygwin.
+ * Bunch of modifications to the autotools project generating shared libraries
+   so that it does not invoke libtool on Cygwin.
+ * Fix a bug in spkg-install.
+ * Cleanup spkg-check.
+
+=== atlas-3.10.1.p6, lapack-3.4.2 (Volker Braun, 11 October 2013) ===
+ * Trac #15270: Do not give up if the upstream shared library build
+   fails
+ * Solaris / ZFS fixes
+
+=== atlas-3.10.1.p5, lapack-3.4.2 (Volker Braun, 30 August 2013) ===
+ * Trac #15045: Another workaround for shared library bug that does
+   not involve static libraries
+
+=== atlas-3.10.1.p4, lapack-3.4.2 (Volker Braun, 14 August 2013) ===
+ * Trac #15045: Workaround for shared library bug,
+   non-deterministically affecting some old platforms
 
 === atlas-3.10.1.p3, lapack-3.4.2 (Volker Braun, 6 July 2013) ===
  * Trac #14781: move untracked files to src/ in preparation for git

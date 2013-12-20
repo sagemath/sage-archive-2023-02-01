@@ -10,6 +10,7 @@
 #   -s: do not delete temporary build directory
 #   -c: after installing, run the test suite for the spkg. This should
 #       override the settings of SAGE_CHECK and SAGE_CHECK_PACKAGES.
+#   -d: only download the package
 #
 #  A package may assume that the following environment
 #  variables are defined:
@@ -26,11 +27,14 @@
 #  This script does the following:
 #
 #      1. Set environment variables (by calling sage-env)
-#      2. Decompress package into a build directory
+#      2. Extract the metadata and upstream sources into a build directory
 #      3. Run the script in the package called spkg-install
 #      4. Return error 1 if anything goes wrong.
 #
 # AUTHORS:
+#
+# - Robert Bradshaw, R. Andrew Ohana (2013): #14480: extend functionality to
+#   support the unified git repository.
 #
 # - Jeroen Demeyer (2012-02-27): #12602: refactor code to find packages,
 #   download them and extract them.
@@ -79,8 +83,7 @@ lookup_param()
 {
     local param=$1
     local file=$2
-    RESULT=`GREP_OPTIONS= grep "^$param\ *="  $file| sed "s/^$param\ *=\ *//"`
-    echo $RESULT
+    sed -n "s/^${param} *= *//p" $file
 }
 
 verify_checksum()
@@ -95,17 +98,18 @@ verify_checksum()
 
     if command -v shasum > /dev/null; then
         expected=`lookup_param sha1 $checksums`
-        actual=`shasum -a 1 $file | sed 's/ .*//'`
+        actual=`shasum -a 1 $file | sed 's/[^0-9a-f].*//'`
     elif command -v md5sum > /dev/null; then
         expected=`lookup_param md5 $checksums`
-        actual=`md5sum $file | sed 's/ .*//'`
+        actual=`md5sum $file | sed 's/[^0-9a-f].*//'`
     elif command -v md5 > /dev/null; then
         expected=`lookup_param md5 $checksums`
-        actual=`md5 $file | sed 's/.*= *//'`
+        actual=`md5 $file | sed 's/[^0-9a-f].*//'`
     else
-        # POSIX
+        # POSIX; Note that Solaris is not compliant and its sed
+	# does not understand [[:space:]]
         expected=`lookup_param cksum $checksums`
-        actual=`cksum $file | sed 's/ .*//'`
+        actual=`cksum $file | sed 's/[^0-9].*//'`
     fi
 
     echo "Checksum: $expected vs $actual"
@@ -259,6 +263,11 @@ fi
 PKG_NAME=`basename "$PKG_SRC" | sed 's/\.spkg$//'`
 PKG_BASE=`echo "$PKG_NAME" | sed 's/-[0-9].*//'`
 
+# USE_LOCAL_SCRIPTS is a flag that if non-empty will cause
+# this script to try to install the package using local metadata
+# i.e. use upstream tarballs (vs spkgs) and scripts located in build/pkgs/$PKG_BASE
+# the value of this flag is set in the next codeblock
+USE_LOCAL_SCRIPTS=
 
 if [ -f "$PKG_SRC" ]; then
     # PKG_SRC is a file.  If it is given by a relative path, prepend `pwd`
@@ -275,7 +284,7 @@ elif [ -z "$PKG_HAS_PATH" ]; then
     PKG_VER="${PKG_VER#-}"
     PKG_SCRIPTS="$SAGE_ROOT/build/pkgs/$PKG_BASE"
     LOCAL_PKG_VER=`cat $PKG_SCRIPTS/package-version.txt 2>/dev/null`
-    if [ -n "$LOCAL_PKG_VER" ] && [ -z "$PKG_VER" -o "$PKG_VER" == "$LOCAL_PKG_VER" ]; then
+    if [ -n "$LOCAL_PKG_VER" ] && [ -z "$PKG_VER" -o "$PKG_VER" = "$LOCAL_PKG_VER" ]; then
         PKG_VER="$LOCAL_PKG_VER"
         if [ -z "$PKG_VER" ]; then
             PKG_NAME="${PKG_BASE}"
@@ -283,20 +292,18 @@ elif [ -z "$PKG_HAS_PATH" ]; then
             PKG_NAME="${PKG_BASE}-${PKG_VER}"
         fi
         USE_LOCAL_SCRIPTS=yes
-        PKG_NAME_UPSTREAM="${PKG_BASE}-`echo $PKG_VER | sed 's/\.p[0-9][0-9]*$//'`"
-        echo "Using local scripts to install $PKG_NAME"
+        PKG_BASE_VER=`echo $PKG_VER | sed 's/\.p[0-9][0-9]*$//'`
+        PKG_NAME_UPSTREAM=`lookup_param tarball "$PKG_SCRIPTS/checksums.ini" | sed "s/VERSION/$PKG_BASE_VER/"`
+        echo "Found local metadata for $PKG_NAME"
 
         if [ $INFO -eq 0 ]; then
             # see if we can the source tarball locally
             cd "$SAGE_DISTFILES"
-            for tarball in `ls -1t ${PKG_NAME_UPSTREAM}.tar* 2>/dev/null`; do
-                if [ -f "$tarball" ]; then
-                    # Found a good tarball
-                    echo "Found local sources at $SAGE_DISTFILES/$tarball"
-                    PKG_SRC="`pwd`/$tarball"
-                    break
-                fi
-            done
+            if [ -f "$SAGE_DISTFILES/$PKG_NAME_UPSTREAM" ]; then
+                # Found a good tarball
+                PKG_SRC="$SAGE_DISTFILES/$PKG_NAME_UPSTREAM"
+                echo "Found local sources at $PKG_SRC"
+            fi
         fi
     else
         cd "$SAGE_DISTFILES"
@@ -312,7 +319,7 @@ elif [ -z "$PKG_HAS_PATH" ]; then
     fi
 fi
 
-if [ $INFO -ne 0 -a "$USE_LOCAL_SCRIPTS" == yes ]; then
+if [ $INFO -ne 0 -a "$USE_LOCAL_SCRIPTS" = yes ]; then
     cat "$PKG_SCRIPTS/SPKG.txt"
     exit 0
 fi
@@ -341,7 +348,7 @@ if [ ! -f "$PKG_SRC" ]; then
     if [ -n "$PKG_HAS_PATH" ]; then
         PKG_URL="$PKG_SRC"
     else
-        if [ "$USE_LOCAL_SCRIPTS" == yes ]; then
+        if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
             PKG_URL="$SAGE_UPSTREAM/$PKG_BASE/$PKG_NAME_UPSTREAM"
         else
             # Handle cases 2a and 3, where the package name is something
@@ -440,34 +447,22 @@ if [ ! -f "$PKG_SRC" ]; then
     # Download to a temporary file (such that we don't end up with a
     # corrupted .spkg file).
     PKG_TMP="${PKG_URL##*/}.tmp"
-    if [ "$USE_LOCAL_SCRIPTS" == yes ]; then
-        EXT_LIST=".tar.bz2 .tar.gz .tar"
-    else
-        EXT_LIST=".spkg"
-    fi
-    for EXT in $EXT_LIST; do
-        REAL_PKG_URL="$PKG_URL${EXT#.spkg}"
-        echo ">>> Trying to download $REAL_PKG_URL"
-        sage-download-file "$REAL_PKG_URL" >"$PKG_TMP"
-        if [ $? -eq 0 ]; then
-            DOWNLOAD_SUCCESS=yes
-            break
-        fi
-    done
-    if [ -z "$DOWNLOAD_SUCCESS" ]; then
+    echo ">>> Trying to download $PKG_URL"
+    sage-download-file "$PKG_URL" >"$PKG_TMP"
+    if [ $? -ne 0 ]; then
         # Delete failed download
         rm -f "$PKG_TMP"
         echo >&2 "Error: failed to download package $PKG_NAME"
         exit 1
     fi
 
-    PKG_SRC="`pwd`/${PKG_URL##*/}${EXT#.spkg}"
-    if [ "$USE_LOCAL_SCRIPTS" == yes ]; then
+    PKG_SRC="`pwd`/${PKG_URL##*/}"
+    if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
         verify_checksum "$PKG_TMP" "$PKG_SCRIPTS/checksums.ini"
     fi
     mv -f "$PKG_TMP" "$PKG_SRC"
 else
-    if [ "$USE_LOCAL_SCRIPTS" == yes ]; then
+    if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
         verify_checksum "$PKG_SRC" "$PKG_SCRIPTS/checksums.ini"
     fi
 fi
@@ -524,6 +519,10 @@ if [ ! -w "$SAGE_BUILD_DIR" ]; then
     echo >&2 "Error: no write access to build directory $SAGE_BUILD_DIR."
     exit 1
 fi
+if [ ! -d "$SAGE_LOCAL" ]; then
+    # If you just unpack Sage and run "sage -f <pkg>" then local does not yet exist
+    mkdir "$SAGE_LOCAL"
+fi
 if [ ! -w "$SAGE_LOCAL" ]; then
     echo >&2 "Error: no write access to installation directory $SAGE_LOCAL."
     exit 1
@@ -561,7 +560,7 @@ fi
 # Extract the package
 ##################################################################
 
-if [ "$USE_LOCAL_SCRIPTS" == yes ]; then
+if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
     echo "Setting up build directory for $PKG_NAME"
     cp -Rp "$PKG_SCRIPTS" "$PKG_NAME"
     cd "$PKG_NAME"
@@ -576,8 +575,8 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-if [ "$USE_LOCAL_SCRIPTS" == yes ]; then
-    mv "$PKG_NAME_UPSTREAM" src
+if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
+    mv "${PKG_NAME_UPSTREAM%.tar*}" src
     cd ..
     echo "Finished set up"
 else
@@ -649,6 +648,12 @@ echo "C compiler: $CC"
 echo "C compiler version:"
 $CC -v
 echo "****************************************************"
+
+##################################################################
+# Remove install markers for any other versions of this spkg.
+##################################################################
+
+rm -f "$SAGE_SPKG_INST/$PKG_BASE-"*
 
 ##################################################################
 # Actually install

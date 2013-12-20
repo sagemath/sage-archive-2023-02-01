@@ -14,7 +14,7 @@ Miscellaneous arithmetic functions
 import math
 import sys
 import sage.misc.misc as misc
-from sage.libs.pari.gen import pari, vecsmall_to_intlist
+from sage.libs.pari.gen import pari
 import sage.libs.flint.arith as flint_arith
 
 from sage.rings.rational_field import QQ
@@ -156,6 +156,11 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
         x^8 - 40*x^6 + 352*x^4 - 960*x^2 + 576
         sage: f(a).expand()
         0
+
+    TESTS::
+
+        sage: algdep(complex("1+2j"), 4)
+        x^2 - 2*x + 5
     """
     if proof and not height_bound:
         raise ValueError, "height_bound must be given for proof=True"
@@ -175,9 +180,9 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
         return z.denominator()*x - z.numerator()
 
     if isinstance(z, float):
-        z = sage.rings.real_mpfr.RR(z)
+        z = sage.rings.all.RR(z)
     elif isinstance(z, complex):
-        z = sage.rings.complex_field.CC(z)
+        z = sage.rings.all.CC(z)
 
     if isinstance(z, (sage.rings.real_mpfr.RealNumber,
                       sage.rings.complex_number.ComplexNumber)):
@@ -3909,8 +3914,7 @@ class Moebius:
             n = len(range(start, stop, step)) # stupid
             v = pari('vector(%s, i, moebius(%s*(i-1) + %s))'%(
                 n, step, start))
-        w = vecsmall_to_intlist(v.Vecsmall())
-        return [Z(x) for x in w]
+        return [Z(x) for x in v]
 
 moebius = Moebius()
 

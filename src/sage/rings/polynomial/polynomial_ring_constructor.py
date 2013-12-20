@@ -40,6 +40,7 @@ import sage.rings.ring as ring
 import sage.rings.padics.padic_base_leaves as padic_base_leaves
 
 from sage.rings.integer import Integer
+from sage.rings.finite_rings.constructor import is_FiniteField
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 
 from sage.misc.cachefunc import weak_cached_function
@@ -53,8 +54,8 @@ _ID = IntegralDomains()
 from sage.categories.commutative_rings import CommutativeRings
 _CommutativeRings = CommutativeRings()
 
-import weakref
-_cache = weakref.WeakValueDictionary()
+import sage.misc.weak_dict
+_cache = sage.misc.weak_dict.WeakValueDictionary()
 
 def PolynomialRing(base_ring, arg1=None, arg2=None,
                    sparse=False, order='degrevlex',
@@ -65,7 +66,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
     Return the globally unique univariate or multivariate polynomial
     ring with given properties and variable name or names.
 
-    There are four ways to call the polynomial ring constructor:
+    There are five ways to call the polynomial ring constructor:
 
     1. ``PolynomialRing(base_ring, name,    sparse=False)``
     2. ``PolynomialRing(base_ring, names,   order='degrevlex')``
@@ -509,7 +510,6 @@ def _get_from_cache(key):
 
 def _save_in_cache(key, R):
     try:
-        #_cache[key] = weakref.ref(R)
          _cache[key] = R
     except TypeError as msg:
         raise TypeError('key = %s\n%s'%(key,msg))
@@ -533,6 +533,9 @@ def _single_variate(base_ring, name, sparse, implementation):
             else:  # n == 1!
                 R = m.PolynomialRing_integral_domain(base_ring, name)   # specialized code breaks in this case.
 
+        elif is_FiniteField(base_ring) and not sparse:
+            R = m.PolynomialRing_dense_finite_field(base_ring, name, implementation=implementation)
+
         elif isinstance(base_ring, padic_base_leaves.pAdicFieldCappedRelative):
             R = m.PolynomialRing_dense_padic_field_capped_relative(base_ring, name)
 
@@ -546,7 +549,7 @@ def _single_variate(base_ring, name, sparse, implementation):
             R = m.PolynomialRing_dense_padic_ring_fixed_mod(base_ring, name)
 
         elif base_ring.is_field(proof = False):
-            R = m.PolynomialRing_field(base_ring, name, sparse, implementation=implementation)
+            R = m.PolynomialRing_field(base_ring, name, sparse)
 
         elif base_ring.is_integral_domain(proof = False):
             R = m.PolynomialRing_integral_domain(base_ring, name, sparse, implementation)
@@ -680,9 +683,9 @@ def BooleanPolynomialRing_constructor(n=None, names=None, order="lex"):
         (Degree lexicographic term order of length 3,
          Degree lexicographic term order of length 2)
 
-        sage: R = BooleanPolynomialRing(3,'x',order='degrevlex')
+        sage: R = BooleanPolynomialRing(3,'x',order='degneglex')
         sage: R.term_order()
-        Degree reverse lexicographic term order
+        Degree negative lexicographic term order
 
         sage: BooleanPolynomialRing(names=('x','y'))
         Boolean PolynomialRing in x, y
@@ -692,11 +695,11 @@ def BooleanPolynomialRing_constructor(n=None, names=None, order="lex"):
 
     TESTS::
 
-        sage: P.<x,y> = BooleanPolynomialRing(2,order='degrevlex')
+        sage: P.<x,y> = BooleanPolynomialRing(2,order='deglex')
         sage: x > y
         True
 
-        sage: P.<x0, x1, x2, x3> = BooleanPolynomialRing(4,order='degrevlex(2),degrevlex(2)')
+        sage: P.<x0, x1, x2, x3> = BooleanPolynomialRing(4,order='deglex(2),deglex(2)')
         sage: x0 > x1
         True
         sage: x2 > x3
@@ -731,4 +734,3 @@ def BooleanPolynomialRing_constructor(n=None, names=None, order="lex"):
 #########################################################################################
 # END (Factory function for making polynomial rings)
 #########################################################################################
-

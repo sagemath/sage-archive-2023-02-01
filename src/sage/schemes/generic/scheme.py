@@ -24,9 +24,12 @@ AUTHORS:
 
 from sage.structure.parent import Parent
 from sage.misc.all import cached_method
-from sage.rings.all import (IntegerRing, is_CommutativeRing,
-                            ZZ, is_RingHomomorphism, GF, PowerSeriesRing,
+from sage.rings.all import (IntegerRing,
+                            ZZ, GF, PowerSeriesRing,
                             Rationals)
+
+from sage.rings.commutative_ring import is_CommutativeRing
+from sage.rings.morphism import is_RingHomomorphism
 
 def is_Scheme(x):
     """
@@ -294,7 +297,7 @@ class Scheme(Parent):
         return self.point(args)
 
     @cached_method
-    def point_homset(self, S = None):
+    def point_homset(self, S=None):
         """
         Return the set of S-valued points of this scheme.
 
@@ -353,11 +356,19 @@ class Scheme(Parent):
             sage: A2 = AffineSpace(QQ,2)
             sage: A2.point([4,5])
             (4, 5)
+
+            sage: R.<t> = PolynomialRing(QQ)
+            sage: E = EllipticCurve([t + 1, t, t, 0, 0])
+            sage: E.point([0, 0])
+            (0 : 0 : 1)
         """
         # todo: update elliptic curve stuff to take point_homset as argument
         from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
         if is_EllipticCurve(self):
-            return self._point(self, v, check=check)
+            try:
+                return self._point(self.point_homset(), v, check=check)
+            except AttributeError:  # legacy code without point_homset
+                return self._point(self, v, check=check)
 
         return self.point_homset() (v, check=check)
 
@@ -727,10 +738,10 @@ class Scheme(Parent):
 
         INPUT:
 
-        -  ``n`` - the number of terms of the power series to
+        -  ``n`` -- the number of terms of the power series to
            compute
 
-        -  ``t`` - the variable which the series should be
+        -  ``t`` -- the variable which the series should be
            returned
 
 
@@ -759,8 +770,11 @@ class Scheme(Parent):
 
         F = self.base_ring()
         if not F.is_finite():
-            raise TypeError, "Zeta functions only defined for schemes over finite fields"
-        a = self.count_points(n)
+            raise TypeError('zeta functions only defined for schemes over finite fields')
+        try:
+            a = self.count_points(n)
+        except AttributeError:
+            raise NotImplementedError('count_points() required but not implemented')
         R = PowerSeriesRing(Rationals(), 'u')
         u = R.gen()
         temp = sum(a[i-1]*(u.O(n+1))**i/i for i in range(1,n+1))
@@ -842,3 +856,4 @@ class AffineScheme(Scheme):
                 import spec
                 Y = spec.Spec(x.domain())
         return Scheme.hom(self, x, Y)
+

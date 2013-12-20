@@ -25,7 +25,7 @@ PATCH_DIR = os.path.join(conf['SPKG_DIR'], 'patches')
 LAPACK_TARFILE = os.path.join(conf['SPKG_DIR'], 'src', 'lapack-3.4.2.tar')
 
 # temporary directory to build everything in
-BUILD_DIR = os.path.join(conf['SPKG_DIR'], 'ATLAS-build')
+BUILD_DIR = os.path.join(conf['SPKG_DIR'], 'src', 'ATLAS-build')
 
 # the shared library autotools stub project
 BUILD_LIB_DIR = os.path.join(conf['SPKG_DIR'], 'src', 'ATLAS-lib')
@@ -66,27 +66,12 @@ def assert_success(rc, good=None, bad=None):
 ### Skip building ATLAS on specific systems
 ######################################################################
 
-# On Cygwin we simply require that the system-wide lapack is installed.
-# This includes BLAS and LAPACK and is enough to build the rest of Sage.
-if conf['CYGWIN?'] and not os.environ.has_key('SAGE_ATLAS_ARCH'):
-    libraries = ['/usr/lib/libblas.dll.a', '/usr/lib/liblapack.dll.a']
-    for lib in libraries:
-        if not os.path.exists(lib):
-            print '*'*75
-            print 'Could not locate required file: "' + lib + '".'
-            print 'On Cygwin you must install the following standard LAPACK Cygwin packages'
-            print 'via the Cygwin setup.exe program in the "Math" category:'
-            print '* lapack,'
-            print '* liblapack-devel.'
-            print 'Alternatively you can try building your own ATLAS by setting'
-            print 'SAGE_ATLAS_ARCH to something sensible although that is not'
-            print 'officially supported.'
-            print '*'*75
-            sys.exit(1)
-    for lib in libraries:
-        cp(lib, os.path.join(conf['SAGE_LOCAL'], 'lib'))
-    sys.exit(0)
-
+# On Cygwin, we used to require that the system-wide lapack packages were
+# installed (this included the lapack-devel and lapack packages).
+# These packages indeed include BLAS and LAPACK and are enough to build
+# the rest of Sage, whereas building ATLAS was problematic.
+# For the record, the corresponding files to symlink from the system-wide
+# packages are: '/usr/lib/libblas.dll.a' and  '/usr/lib/liblapack.dll.a'.
 
 if conf['Darwin?'] and not os.environ.has_key('SAGE_ATLAS_ARCH'):
     print 'Skipping build of ATLAS on OS X, using system library instead.'
@@ -107,8 +92,12 @@ if conf['Darwin?'] and not os.environ.has_key('SAGE_ATLAS_ARCH'):
 
 if os.environ.has_key('SAGE_ATLAS_LIB'):
     ATLAS_LIB = os.environ['SAGE_ATLAS_LIB']
-    libraries = ['libatlas', 'liblapack', 'libcblas', 'libf77blas']
-    libraries_optional = ['libptcblas', 'libptf77blas']
+    if conf['CYGWIN?']:
+        libraries = ['libblas', 'liblapack']
+        libraries_optional = []
+    else:
+        libraries = ['libatlas', 'liblapack', 'libcblas', 'libf77blas']
+        libraries_optional = ['libptcblas', 'libptf77blas']
 
     def is_atlas_lib_path(path):
         if path is None:
@@ -164,7 +153,7 @@ if os.environ.has_key('SAGE_ATLAS_LIB'):
         for fname in filenames:
             source = os.path.join(ATLAS_LIB, fname)
             destination = os.path.join(SAGE_LOCAL_LIB, fname)
-            print 'Symlinking '+source+' -> '+destination
+            print 'Symlinking '+destination+' -> '+source
             try:
                 os.remove(destination)
             except OSError:
@@ -268,6 +257,7 @@ def configure(arch=None, isa_ext=None):
     print 'Running configure with arch = '+str(arch)+ \
         ', isa extensions '+str(isa_ext), ' thread limit '+str(thread_limit)
     if os.path.isdir(BUILD_DIR):
+        os.chdir(conf['SPKG_DIR'])   # Solaris/ZFS can't delete cwd
         shutil.rmtree(BUILD_DIR)
     os.mkdir(BUILD_DIR)
     os.chdir(BUILD_DIR)
@@ -292,7 +282,7 @@ def configure(arch=None, isa_ext=None):
     else:
         CCbin, CCopt = CC, ''
 
-    cmd = '../src/ATLAS/configure'
+    cmd = '../ATLAS/configure'
     cmd += ' --prefix=' + conf['SAGE_LOCAL']
     cmd += ' --with-netlib-lapack-tarfile=' + LAPACK_TARFILE
     cmd += ' --cc="' + CC + '"'
@@ -529,13 +519,16 @@ build_and_save_archdef()
 ######################################################################
 
 rc = make_atlas_library('shared')
-assert_success(rc, bad='Failed to install ATLAS single-threaded shared library',
-               good='Installed ATLAS single-threaded shared library')
+if rc!=0:
+    print 'Failed to build shared library (using the ATLAS build system)'
+else:
+    print 'Installed ATLAS shared library (ATLAS build system)'
 
 rc = make_atlas_library('ptshared')
 if rc!=0:
-    print 'Failed to build threaded library, possibly because your'
-    print 'system does not support it.'
+    print 'Failed to build threaded library (using the ATLAS build system)'
+else:
+    print 'Installed ATLAS multi-threaded shared library (ATLAS build system)'
 
 
 ######################################################################
@@ -543,8 +536,8 @@ if rc!=0:
 ######################################################################
 
 rc = configure_shared_library()
-assert_success(rc, bad='Configuring shared ATLAS library failed.',
-               good='Finished configuring shared ATLAS library.')
+assert_success(rc, bad='Configuring shared ATLAS library failed (libtool).',
+               good='Finished configuring shared ATLAS library (libtool).')
 
 have_serial_libs = False
 have_parallel_libs = False
@@ -552,14 +545,14 @@ have_parallel_libs = False
 rc = make_shared_library()
 if rc!=0:
     print 'Failed to build serial+parallel shared libraries, possibly because your'
-    print 'system does not support both. Trying to build serial libraries only.'
+    print 'system does not support both. Trying to build serial libraries only (libtool).'
     rc = make_shared_library('all_serial')
     if rc!=0:
-        print 'Failed to build any shared library, installing static library as last resort.'
+        print 'Failed to build any shared library, installing static library as last resort (libtool).'
         INSTALL_STATIC_LIBRARIES = True
     else:
-        print 'Finished building serial shared ATLAS library.'
-    have_serial_libs = True
+        print 'Finished building serial shared ATLAS library (libtool).'
+        have_serial_libs = True
 else:
     have_parallel_libs = True
 
@@ -570,13 +563,13 @@ else:
 
 if have_parallel_libs:
     rc = make_shared_library('install')
-    assert_success(rc, bad='Installing the parallel+serial shared ATLAS library failed.',
-                   good='Finished installing parallel+serial shared ATLAS library.')
+    assert_success(rc, bad='Installing the parallel+serial shared ATLAS library failed (libtool).',
+                   good='Finished installing parallel+serial shared ATLAS library (libtool).')
 
 if have_serial_libs:
     rc = make_shared_library('install_serial')
-    assert_success(rc, bad='Installing the serial shared ATLAS library failed.',
-                   good='Finished installing serial shared ATLAS library.')
+    assert_success(rc, bad='Installing the serial shared ATLAS library failed (libtool).',
+                   good='Finished installing serial shared ATLAS library (libtool).')
 
 
 ######################################################################

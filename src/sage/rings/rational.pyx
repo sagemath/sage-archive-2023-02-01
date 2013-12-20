@@ -2625,6 +2625,34 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return self
 
+    def relative_norm(self):
+        """
+        Returns the norm from Q to Q of x (which is just x). This was added for compatibility with NumberFields
+
+        EXAMPLES::
+
+            sage: (6/5).relative_norm()
+            6/5
+
+            sage: QQ(7/5).relative_norm()
+            7/5
+        """
+        return self
+
+    def absolute_norm(self):
+        """
+        Returns the norm from Q to Q of x (which is just x). This was added for compatibility with NumberFields
+
+        EXAMPLES::
+
+            sage: (6/5).absolute_norm()
+            6/5
+
+            sage: QQ(7/5).absolute_norm()
+            7/5
+        """
+        return self
+
     def trace(self):
         r"""
         Returns the trace from `\QQ` to `\QQ` of `x` (which is just `x`). This

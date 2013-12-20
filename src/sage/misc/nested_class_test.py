@@ -122,6 +122,16 @@ class TestParent4(Parent):
         """
         return self.__class__ == other.__class__
 
+    def __ne__(self, other):
+        """
+        EXAMPLES::
+
+            sage: from sage.misc.nested_class_test import TestParent4
+            sage: TestParent4() != TestParent4()
+            False
+        """
+        return self.__class__ != other.__class__
+
     class Element(ElementWrapper):
         pass
 

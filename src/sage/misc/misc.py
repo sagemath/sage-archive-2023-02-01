@@ -1929,38 +1929,43 @@ def sourcefile(object):
 #################################################################
 # alarm
 #################################################################
-__alarm_time=0
-def __mysig(a,b):
-    raise KeyboardInterrupt, "computation timed out because alarm was set for %s seconds"%__alarm_time
-
 def alarm(seconds):
     """
-    Raise a KeyboardInterrupt exception in a given number of seconds.
-    This is useful for automatically interrupting long computations and
-    can be trapped using exception handling (just catch
-    KeyboardInterrupt).
+    Raise an :class:`AlarmInterrupt` exception in a given number of
+    seconds. This is useful for automatically interrupting long
+    computations and can be trapped using exception handling.
 
     INPUT:
 
+    -  ``seconds`` -- positive number, may be floating point
 
-    -  ``seconds`` - integer
+    EXAMPLES::
 
-
-    TESTS::
-
-        sage: try: alarm(1); sleep(2)
-        ... except KeyboardInterrupt: print "Alarm went off"
-        Alarm went off
+        sage: alarm(0.5); factor(2^1031-1)
+        Traceback (most recent call last):
+        ...
+        AlarmInterrupt
+        sage: alarm(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: alarm() time must be positive
     """
-    seconds = int(seconds)
-    # Set our alarm signal handler.
-    signal.signal(signal.SIGALRM, __mysig)
-    global __alarm_time
-    __alarm_time = seconds
-    signal.alarm(seconds)
+    if seconds <= 0:
+        raise ValueError("alarm() time must be positive")
+    signal.setitimer(signal.ITIMER_REAL, seconds, 0)
 
 def cancel_alarm():
-    signal.signal(signal.SIGALRM, signal.SIG_IGN)
+    """
+    Cancel a previously scheduled alarm (if any).
+
+    EXAMPLES::
+
+        sage: alarm(0.5)
+        sage: cancel_alarm()
+        sage: cancel_alarm()  # Calling more than once doesn't matter
+        sage: sleep(0.6)      # sleep succeeds
+    """
+    signal.setitimer(signal.ITIMER_REAL, 0, 0)
 
 
 #################################################################

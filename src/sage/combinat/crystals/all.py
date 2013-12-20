@@ -4,6 +4,7 @@ from spins import CrystalOfSpinsPlus
 from spins import CrystalOfSpinsMinus
 from tensor_product import TensorProductOfCrystals
 from tensor_product import CrystalOfTableaux
+from kyoto_path_model import KyotoPathModel
 from fast_crystals import FastCrystal
 from affine import AffineCrystalFromClassical
 from affine import AffineCrystalFromClassicalAndPromotion

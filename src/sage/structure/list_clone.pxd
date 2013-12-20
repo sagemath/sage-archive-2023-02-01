@@ -26,8 +26,6 @@ cdef class ClonableElement(Element):
     cpdef _set_mutable(self)
 
     cpdef ClonableElement clone(self, bint check=?)
-    cpdef ClonableElement __enter__(self)
-    cpdef bint __exit__(self, typ, value, tracback) except -2
 
 cdef class ClonableArray(ClonableElement):
     cdef list _list
@@ -48,6 +46,9 @@ cdef class ClonableList(ClonableArray):
     cpdef insert(self, int index, el)
     cpdef pop(self, int index=*)
     cpdef remove(self, el)
+
+cdef class NormalizedClonableList(ClonableList):
+    cpdef normalize(self)
 
 cdef class ClonableIntArray(ClonableElement):
     cdef int _len

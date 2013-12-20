@@ -8,8 +8,8 @@ AUTHORS:
 
 .. WARNING::
 
-    The list(self) function in this file used the :class:`Permutation_class` class improperly, returning
-    the list of, generally speaking, invalid permutations (repeated entries, including 0).
+    The list(self) function in this file used the :class:`Permutation` class improperly, returning
+    a list of, generally speaking, invalid permutations (repeated entries, including 0).
 """
 #*****************************************************************************
 #  Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
@@ -28,7 +28,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.combinat.words.word import Word
-from permutation import Permutation_class
+from permutation import Permutation
 
 def WeightedIntegerVectors(n = None, weight = None):
     """
@@ -155,7 +155,7 @@ class WeightedIntegerVectors_all(DisjointUnionEnumeratedSets):
             sage: [3,-1,0] in WeightedIntegerVectors([2,1,1])
             False
         """
-        return isinstance(x, (builtinlist, Permutation_class)) and \
+        return isinstance(x, (builtinlist, Permutation)) and \
             len(x) == len(self._weights)   and \
             all(isinstance(i, (int, Integer)) and i>=0 for i in x)
 
@@ -231,7 +231,7 @@ class WeightedIntegerVectors_nweight(UniqueRepresentation, Parent):
             sage: [0] in WeightedIntegerVectors(0, [])
             False
         """
-        if not isinstance(x, (builtinlist, Permutation_class)):
+        if not isinstance(x, (builtinlist, Permutation)):
             return False
         if len(self._weights) != len(x):
             return False
@@ -297,4 +297,4 @@ class WeightedIntegerVectors_nweight(UniqueRepresentation, Parent):
         l = [x for x in sorted(self._weights)]
         for x in self._recfun(self._n, l):
             yield perm.action(x)
-            #_left_to_right_multiply_on_right(Permutation_class(x))
+            #_left_to_right_multiply_on_right(Permutation(x))

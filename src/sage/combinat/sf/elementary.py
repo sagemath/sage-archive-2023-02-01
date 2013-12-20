@@ -95,16 +95,20 @@ class SymmetricFunctionAlgebra_elementary(multiplicative.SymmetricFunctionAlgebr
 
     class Element(classical.SymmetricFunctionAlgebra_classical.Element):
         def omega(self):
-            """
-            Returns the image of self under the Frobenius / omega automorphism.
+            r"""
+            Return the image of ``self`` under the omega automorphism.
 
-            INPUT:
+            The omega automorphism is defined to be the unique algebra
+            endomorphism `\omega` of the ring of symmetric functions that
+            satisfies `\omega(e_k) = h_k` for all positive integers `k`
+            (where `e_k` stands for the `k`-th elementary symmetric
+            function, and `h_k` stands for the `k`-th complete homogeneous
+            symmetric function). It furthermore is a Hopf algebra
+            endomorphism, and sends the power-sum symmetric function `p_k`
+            to `(-1)^{k-1} p_k` for every positive integer `k`.
 
-            - ``self`` -- an element of the elementary basis of the symmetric functions
-
-            OUTPUT:
-
-            - returns the image of the element under the omega automorphism
+            The default implementation converts to the Schurs, then
+            performs the automorphism and changes back.
 
             EXAMPLES::
 
@@ -124,6 +128,118 @@ class SymmetricFunctionAlgebra_elementary(multiplicative.SymmetricFunctionAlgebr
             h = e.realization_of().h()
             return e( h._from_element(self) )
 
+        def verschiebung(self, n):
+            r"""
+            Return the image of the symmetric function ``self`` under the
+            `n`-th Verschiebung operator.
+
+            The `n`-th Verschiebung operator `\mathbf{V}_n` is defined to be
+            the unique algebra endomorphism `V` of the ring of symmetric
+            functions that satisfies `V(h_r) = h_{r/n}` for every positive
+            integer `r` divisible by `n`, and satisfies `V(h_r) = 0` for
+            every positive integer `r` not divisible by `n`. This operator
+            `\mathbf{V}_n` is a Hopf algebra endomorphism. For every
+            nonnegative integer `r` with `n \mid r`, it satisfies
+
+            .. MATH::
+
+                \mathbf{V}_n(h_r) = h_{r/n},
+                \quad \mathbf{V}_n(p_r) = n p_{r/n},
+                \quad \mathbf{V}_n(e_r) = (-1)^{r - r/n} e_{r/n}
+
+            (where `h` is the complete homogeneous basis, `p` is the
+            powersum basis, and `e` is the elementary basis). For every
+            nonnegative integer `r` with `n \nmid r`, it satisfes
+
+            .. MATH::
+
+                \mathbf{V}_n(h_r) = \mathbf{V}_n(p_r) = \mathbf{V}_n(e_r) = 0.
+
+            The `n`-th Verschiebung operator is also called the `n`-th
+            Verschiebung endomorphism. Its name derives from the Verschiebung
+            (German for "shift") endomorphism of the Witt vectors.
+
+            The `n`-th Verschiebung operator is adjoint to the `n`-th
+            Frobenius operator (see :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.frobenius`
+            for its definition) with respect to the Hall scalar product
+            (:meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.scalar`).
+
+            The action of the `n`-th Verschiebung operator on the Schur basis
+            can also be computed explicitly. The following (probably clumsier
+            than necessary) description can be obtained by solving exercise
+            7.61 in Stanley [STA]_.
+
+            Let `\lambda` be a partition. Let `n` be a positive integer. If
+            the `n`-core of `\lambda` is nonempty, then
+            `\mathbf{V}_n(s_\lambda) = 0`. Otherwise, the following method
+            computes `\mathbf{V}_n(s_\lambda)`: Write the partition `\lambda`
+            in the form `(\lambda_1, \lambda_2, ..., \lambda_{ns})` for some
+            nonnegative integer `s`. (If `n` does not divide the length of
+            `\lambda`, then this is achieved by adding trailing zeroes to
+            `\lambda`.) Set `\beta_i = \lambda_i + ns - i` for every
+            `s \in \{ 1, 2, \ldots, ns \}`. Then,
+            `(\beta_1, \beta_2, ..., \beta_{ns})` is a strictly decreasing
+            sequence of nonnegative integers. Stably sort the list
+            `(1, 2, \ldots, ns)` in order of (weakly) increasing remainder of
+            `-1 - \beta_i` modulo `n`. Let `\xi` be the sign of the
+            permutation that is used for this sorting. Let `\psi` be the sign
+            of the permutation that is used to stably sort the list
+            `(1, 2, \ldots, ns)` in order of (weakly) increasing remainder of
+            `i - 1` modulo `n`. (Notice that `\psi = (-1)^{n(n-1)s(s-1)/4}`.)
+            Then, `\mathbf{V}_n(s_\lambda) = \xi \psi \prod_{i=0}^{n-1}
+            s_{\lambda^{(i)}}`, where
+            `(\lambda^{(0)}, \lambda^{(1)}, \ldots, \lambda^{(n - 1)})`
+            is the `n`-quotient of `\lambda`.
+
+            INPUT:
+
+            - ``n`` -- a positive integer
+
+            OUTPUT:
+
+            The result of applying the `n`-th Verschiebung operator (on the
+            ring of symmetric functions) to ``self``.
+
+            EXAMPLES::
+
+                sage: Sym = SymmetricFunctions(ZZ)
+                sage: e = Sym.e()
+                sage: e[3].verschiebung(2)
+                0
+                sage: e[4].verschiebung(4)
+                -e[1]
+
+            The Verschiebung endomorphisms are multiplicative::
+
+                sage: all( all( e(lam).verschiebung(2) * e(mu).verschiebung(2)
+                ....:           == (e(lam) * e(mu)).verschiebung(2)
+                ....:           for mu in Partitions(4) )
+                ....:      for lam in Partitions(4) )
+                True
+
+            TESTS:
+
+            Let us check that this method on the elementary basis gives the
+            same result as the implementation in :module`sage.combinat.sf.sfa`
+            on the complete homogeneous basis::
+
+                sage: Sym = SymmetricFunctions(QQ)
+                sage: e = Sym.e(); h = Sym.h()
+                sage: all( h(e(lam)).verschiebung(3) == h(e(lam).verschiebung(3))
+                ....:      for lam in Partitions(6) )
+                True
+                sage: all( e(h(lam)).verschiebung(2) == e(h(lam).verschiebung(2))
+                ....:      for lam in Partitions(4) )
+                True
+            """
+            parent = self.parent()
+            e_coords_of_self = self.monomial_coefficients().items()
+            dct = {Partition(map(lambda i: i // n, lam)):
+                   (-1) ** (sum(lam) - (sum(lam) // n)) * coeff
+                   for (lam, coeff) in e_coords_of_self
+                   if all( i % n == 0 for i in lam )}
+            result_in_e_basis = parent._from_dict(dct)
+            return parent(result_in_e_basis)
 
         def expand(self, n, alphabet='x'):
             """

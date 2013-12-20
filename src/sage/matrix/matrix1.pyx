@@ -752,6 +752,15 @@ cdef class Matrix(matrix0.Matrix):
             [(x, 2/3*x), (x^2, x^5 + 1)]
             sage: parent(c[1])
             Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field
+
+        TESTS:
+
+        Check that the returned rows are immutable as per :trac:`14874`::
+
+            sage: m = Mat(ZZ,3,3)(range(9))
+            sage: v = m.dense_columns()
+            sage: map(lambda x: x.is_mutable(), v)
+            [False, False, False]
         """
         x = self.fetch('dense_columns')
         if not x is None:
@@ -760,6 +769,10 @@ cdef class Matrix(matrix0.Matrix):
         cdef Py_ssize_t i
         A = self if self.is_dense() else self.dense_matrix()
         C = [A.column(i) for i in range(self._ncols)]
+
+        # Make the vectors immutable since we are caching them
+        map(lambda x: x.set_immutable(), C)
+
         # cache result
         self.cache('dense_columns', C)
         if copy:
@@ -792,6 +805,15 @@ cdef class Matrix(matrix0.Matrix):
             sage: m[0,0] = 10
             sage: m.dense_rows()
             [(10, 1, 2), (3, 4, 5), (6, 7, 8)]
+
+        TESTS:
+
+        Check that the returned rows are immutable as per :trac:`14874`::
+
+            sage: m = Mat(ZZ,3,3)(range(9))
+            sage: v = m.dense_rows()
+            sage: map(lambda x: x.is_mutable(), v)
+            [False, False, False]
         """
         x = self.fetch('dense_rows')
         if not x is None:
@@ -801,6 +823,9 @@ cdef class Matrix(matrix0.Matrix):
         cdef Py_ssize_t i
         A = self if self.is_dense() else self.dense_matrix()
         R = [A.row(i) for i in range(self._nrows)]
+
+        # Make the vectors immutable since we are caching them
+        map(lambda x: x.set_immutable(), R)
 
         # cache result
         self.cache('dense_rows', R)
@@ -831,13 +856,20 @@ cdef class Matrix(matrix0.Matrix):
 
         TESTS:
 
-        Columns of sparse matrices having no columns were fixed on Trac #10714.  ::
+        Columns of sparse matrices having no columns were fixed on :trac:`10714`::
 
             sage: m = matrix(10, 0, sparse=True)
             sage: m.ncols()
             0
             sage: m.columns()
             []
+
+        Check that the returned columns are immutable as per :trac:`14874`::
+
+            sage: m = Mat(ZZ,3,3,sparse=True)(range(9))
+            sage: v = m.sparse_columns()
+            sage: map(lambda x: x.is_mutable(), v)
+            [False, False, False]
         """
         x = self.fetch('sparse_columns')
         if not x is None:
@@ -867,6 +899,9 @@ cdef class Matrix(matrix0.Matrix):
             C.append(F(entries, coerce=False, copy=False, check=False))
             while len(C) < self._ncols:
                 C.append(F(0))
+
+        # Make the vectors immutable since we are caching them
+        map(lambda x: x.set_immutable(), C)
 
         # cache and return result
         self.cache('sparse_columns', C)
@@ -902,13 +937,20 @@ cdef class Matrix(matrix0.Matrix):
 
         TESTS:
 
-        Rows of sparse matrices having no rows were fixed on Trac #10714.  ::
+        Rows of sparse matrices having no rows were fixed on :trac:`10714`::
 
             sage: m = matrix(0, 10, sparse=True)
             sage: m.nrows()
             0
             sage: m.rows()
             []
+
+        Check that the returned rows are immutable as per :trac:`14874`::
+
+            sage: m = Mat(ZZ,3,3,sparse=True)(range(9))
+            sage: v = m.sparse_rows()
+            sage: map(lambda x: x.is_mutable(), v)
+            [False, False, False]
         """
         x = self.fetch('sparse_rows')
         if not x is None:
@@ -938,6 +980,9 @@ cdef class Matrix(matrix0.Matrix):
             R.append(F(entries, coerce=False, copy=False, check=False))
             while len(R) < self._nrows:
                 R.append(F(0))
+
+        # Make the vectors immutable since we are caching them
+        map(lambda x: x.set_immutable(), R)
 
         # cache and return result
         self.cache('sparse_rows', R)

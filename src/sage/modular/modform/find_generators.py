@@ -190,14 +190,27 @@ class ModularFormsRing(SageObject):
              q^3 + 66*q^7 + 832*q^9 + O(q^10),
              q^4 + 40*q^6 + 528*q^8 + O(q^10),
              q^5 + 20*q^7 + 190*q^9 + O(q^10)]
+
+        TESTS:
+
+        Check that :trac:`15037` is fixed::
+
+            sage: ModularFormsRing(3.4)
+            Traceback (most recent call last):
+            ...
+            ValueError: Group (=3.40000000000000) should be a congruence subgroup
+            sage: ModularFormsRing(Gamma0(2), base_ring=PolynomialRing(ZZ,x))
+            Traceback (most recent call last):
+            ...
+            ValueError: Base ring (=Univariate Polynomial Ring in x over Integer Ring) should be QQ, ZZ or a finite prime field
         """
         if isinstance(group, (int, long, Integer)):
             group = Gamma0(group)
         elif not is_CongruenceSubgroup(group):
-            raise ValueError("Group (=%s) should be a congruence subgroup")
+            raise ValueError("Group (=%s) should be a congruence subgroup" % group)
 
         if base_ring != ZZ and not base_ring.is_prime_field():
-            raise ValueError("Base ring (=%s) should be QQ, ZZ or a finite prime field")
+            raise ValueError("Base ring (=%s) should be QQ, ZZ or a finite prime field" % base_ring)
 
         self.__group = group
         self.__base_ring = base_ring
@@ -205,8 +218,6 @@ class ModularFormsRing(SageObject):
         self.__cached_gens = []
         self.__cached_cusp_maxweight = ZZ(-1)
         self.__cached_cusp_gens = []
-
-
 
     def group(self):
         r"""

@@ -472,17 +472,14 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
             sage: [1, 3, 6, 2, 4, 12] in L
             False
 
-            sage: [p for p in Permutations(list(P)) if p in L]
+            sage: [p for p in Permutations(list(P)) if list(p) in L]
             [[1, 2, 3, 4, 6, 12], [1, 2, 3, 6, 4, 12], [1, 2, 4, 3, 6, 12], [1, 3, 2, 4, 6, 12], [1, 3, 2, 6, 4, 12]]
 
         """
         if not self._is_facade:
             return super(LinearExtensionsOfPoset, self).__contains__(obj)
-        return \
-            isinstance(obj, (list, tuple)) and \
-            len(obj) == len(self.poset())  and \
-            set(obj) == set(self.poset())  and \
-            self.poset().is_linear_extension(obj)
+        return (isinstance(obj, (list, tuple)) and
+                self.poset().is_linear_extension(obj))
 
     def markov_chain_digraph(self, action = 'promotion', labeling = 'identity'):
         r"""

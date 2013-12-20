@@ -33,6 +33,7 @@ util/fetch_deps.py in the sagenb directory):
  * Werkzeug
  * speaklater
  * python-openid
+ * itsdangerous
  * Flask
  * Flask-Silk
  * Flask-AutoIndex
@@ -76,6 +77,10 @@ To produce a new spkg:
  * A winner is you!
 
 == Changelog ==
+
+=== sagenb-0.10.7.2 (Punarbasu Purkayastha, 2013-08-08) ===
+
+ * Upgraded to 0.10.7.2 (minor fix for trac ticket 14469)
 
 === sagenb-0.10.7.1 (Keshav Kini, 2013-06-25) ===
 

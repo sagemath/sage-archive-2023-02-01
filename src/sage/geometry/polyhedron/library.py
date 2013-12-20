@@ -22,7 +22,7 @@ REFERENCES:
 from sage.rings.all import Integer, QQ, ZZ, RDF
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
-from sage.combinat.combinat import permutations
+from sage.combinat.permutation import Permutations
 from sage.groups.perm_gps.permgroup_named import AlternatingGroup
 from sage.misc.functional import norm
 from sage.functions.other import sqrt, floor, ceil
@@ -109,7 +109,7 @@ class Polytopes():
         EXAMPLES::
 
             sage: from sage.geometry.polyhedron.library import Polytopes
-            sage: Polytopes._pfunc(1,2,permutations(3)[0])
+            sage: Polytopes._pfunc(1,2,Permutations(3)[0])
             0
         """
         if perm[i-1] == j:
@@ -160,9 +160,8 @@ class Polytopes():
             sage: b3.n_vertices()
             6
         """
-        perms = permutations(range(1,n+1))
         verts = []
-        for p in perms:
+        for p in Permutations(range(1,n+1)):
             verts += [ [Polytopes._pfunc(i,j,p) for j in range(1,n+1)
                         for i in range(1,n+1) ] ]
         return Polyhedron(vertices=verts)
@@ -191,7 +190,7 @@ class Polytopes():
             sage: s5.dim()
             5
         """
-        verts = permutations([0 for i in range(dim_n)] + [1])
+        verts = Permutations([0 for i in range(dim_n)] + [1]).list()
         if project: verts = [Polytopes.project_1(x) for x in verts]
         return Polyhedron(vertices=verts)
 
@@ -454,8 +453,8 @@ class Polytopes():
                     base[2] = base[2]*(-1)
                 base[1] = base[1]*(-1)
             base[0] = base[0]*(-1)
-        verts = verts + permutations([0,0,0,1])
-        verts = verts + permutations([0,0,0,-1])
+        verts = verts + Permutations([0,0,0,1]).list()
+        verts = verts + Permutations([0,0,0,-1]).list()
         return Polyhedron(vertices=verts)
 
 
@@ -489,10 +488,8 @@ class Polytopes():
                     base[2] = base[2]*(-1)
                 base[1] = base[1]*(-1)
             base[0] = base[0]*(-1)
-        for x in permutations([0,0,0,1]):
-            verts.append(x)
-        for x in permutations([0,0,0,-1]):
-            verts.append(x)
+        verts += Permutations([0,0,0,1]).list()
+        verts += Permutations([0,0,0,-1]).list()
         g = QQ(1618033)/1000000 # Golden ratio approximation
         verts = verts + [i([q12,g/2,1/(g*2),0]) for i in AlternatingGroup(4)]
         verts = verts + [i([q12,g/2,-1/(g*2),0]) for i in AlternatingGroup(4)]
@@ -558,7 +555,7 @@ class Polytopes():
             8
         """
         vert0 = [0]*(dim_n-k) + [1]*k
-        verts = permutations(vert0)
+        verts = Permutations(vert0).list()
         if project:
             verts = [Polytopes.project_1(x) for x in verts]
         return Polyhedron(vertices=verts)
@@ -587,7 +584,7 @@ class Polytopes():
             sage: polytopes.permutahedron(5).show()    # long time
         """
         verts = range(1,n+1)
-        verts = permutations(verts)
+        verts = Permutations(verts).list()
         if project:
             verts = [Polytopes.project_1(x) for x in verts]
         p = Polyhedron(vertices=verts)
@@ -646,8 +643,8 @@ class Polytopes():
             sage: four_cross.n_vertices()
             8
         """
-        verts = permutations([0 for i in range(dim_n-1)] + [1])
-        verts = verts + permutations([0 for i in range(dim_n-1)] + [-1])
+        verts = Permutations([0 for i in range(dim_n-1)] + [1]).list()
+        verts += Permutations([0 for i in range(dim_n-1)] + [-1]).list()
         return Polyhedron(vertices=verts)
 
 

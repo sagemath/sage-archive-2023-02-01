@@ -14,11 +14,10 @@ Congruence Subgroup `\Gamma_0(N)`
 #
 ################################################################################
 
-from congroup_gammaH import GammaH_class, is_GammaH
+from congroup_gammaH import GammaH_class
 from congroup_gamma1 import is_Gamma1
 from sage.modular.modsym.p1list import lift_to_sl2z
-from congroup_generic import is_CongruenceSubgroup, CongruenceSubgroup
-from arithgroup_element import ArithmeticSubgroupElement
+from congroup_generic import CongruenceSubgroup
 
 from sage.modular.cusps import Cusp
 from sage.misc.cachefunc import cached_method
@@ -120,7 +119,8 @@ class Gamma0_class(GammaH_class):
 
             sage: G = Gamma0(11); G
             Congruence Subgroup Gamma0(11)
-            sage: loads(G.dumps()) == G
+            sage: TestSuite(G).run()
+            sage: G is loads(dumps(G))
             True
 
         TESTS::
@@ -143,49 +143,6 @@ class Gamma0_class(GammaH_class):
         # methods.
         #
         #GammaH_class.__init__(self, level, [int(x) for x in IntegerModRing(level).unit_gens()])
-
-    def __cmp__(self, other):
-        """
-        Compare self to other.
-
-        The ordering on congruence subgroups of the form GammaH(N) for
-        some H is first by level and then by the subgroup H. In
-        particular, this means that we have Gamma1(N) < GammaH(N) <
-        Gamma0(N) for every nontrivial subgroup H.
-
-        EXAMPLES::
-
-            sage: G = Gamma0(86)
-            sage: G.__cmp__(G)
-            0
-            sage: G.__cmp__(GammaH(86, [11])) is not 0
-            True
-            sage: Gamma1(17) < Gamma0(17)
-            True
-            sage: Gamma0(1) == SL2Z
-            True
-            sage: Gamma0(11) == GammaH(11, [2])
-            True
-            sage: Gamma0(2) == Gamma1(2)
-            True
-        """
-        if not is_CongruenceSubgroup(other):
-            return cmp(type(self), type(other))
-
-        c = cmp(self.level(), other.level())
-        if c: return c
-
-        # Since Gamma0(N) is GammaH(N) for H all of (Z/N)^\times,
-        # we know how to compare it to any other GammaH without having
-        # to look at self._list_of_elements_in_H().
-        from all import is_GammaH, is_Gamma0
-        if is_GammaH(other):
-            if is_Gamma0(other):
-                return 0
-            else:
-                H = other._list_of_elements_in_H()
-                return cmp(len(H), arith.euler_phi(self.level()))
-        return cmp(type(self), type(other))
 
     def _repr_(self):
         """
@@ -448,38 +405,35 @@ class Gamma0_class(GammaH_class):
         R = IntegerModRing(N)
         return [GammaH(N, H) for H in R.multiplicative_subgroups()]
 
-    def __call__(self, x, check=True):
+    def _contains_sl2(self, a,b,c,d):
         r"""
-        Create an element of this congruence subgroup from x.
-
-        If the optional flag check is True (default), check whether
-        x actually gives an element of self.
+        Test whether x is an element of this group.
 
         EXAMPLES::
 
             sage: G = Gamma0(12)
-            sage: G([1, 0, 24, 1])
-            [ 1  0]
-            [24  1]
-            sage: G(matrix(ZZ, 2, [1, 1, -12, -11]))
-            [  1   1]
-            [-12 -11]
-            sage: G([1, 0, 23, 1])
+            sage: [1, 0, 24, 1] in G
+            True
+            sage: matrix(ZZ, 2, [1, 1, -12, -11]) in G
+            True
+            sage: SL2Z([0,-1,1,0]) in G
+            False
+            sage: 1 in G
+            True
+            sage: -1 in G
+            True
+            sage: 2 in G
+            False
+
+        The _element_constructor_ method calls this method::
+
+            sage: G([1, 0, 23, 1]) # indirect doctest
             Traceback (most recent call last):
             ...
-            TypeError: matrix must have lower left entry (=23) divisible by 12
+            TypeError: matrix [ 1  0]
+            [23  1] is not an element of Congruence Subgroup Gamma0(12)
         """
-        from all import SL2Z
-        x = SL2Z(x, check)
-        if not check:
-            return x
-
-        c = x.c()
-        N = self.level()
-        if c%N == 0:
-            return x
-        else:
-            raise TypeError, "matrix must have lower left entry (=%s) divisible by %s" %(c, N)
+        return (c % self.level() == 0)
 
     def _find_cusps(self):
         r"""

@@ -127,7 +127,6 @@ Functions
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-include "sage/misc/bitset_pxd.pxi"
 include "sage/misc/bitset.pxi"
 from libc.stdint cimport uint64_t
 from sage.graphs.base.c_graph cimport CGraph
@@ -164,13 +163,13 @@ cdef inline all_pairs_shortest_path_BFS(gg,
     # The list of waiting vertices, the beginning and the end of the list
 
     cdef unsigned short * waiting_list = <unsigned short *> sage_malloc(n*sizeof(unsigned short))
-    if waiting_list==NULL:
+    if waiting_list == NULL:
         raise MemoryError()
     cdef unsigned short waiting_beginning = 0
     cdef unsigned short waiting_end = 0
 
     cdef int * degree = <int *> sage_malloc(n*sizeof(int))
-    if degree==NULL:
+    if degree == NULL:
         sage_free(waiting_list)
         raise MemoryError()
 
@@ -193,7 +192,7 @@ cdef inline all_pairs_shortest_path_BFS(gg,
         c_distances = distances
     else:
         c_distances = <unsigned short *> sage_malloc( n * sizeof(unsigned short))
-        if c_distances==NULL:
+        if c_distances == NULL:
             sage_free(waiting_list)
             sage_free(degree)
             raise MemoryError()
@@ -309,10 +308,10 @@ cdef unsigned short * c_shortest_path_all_pairs(G) except NULL:
 
     cdef unsigned int n = G.order()
     cdef unsigned short * distances = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
-    if distances==NULL:
+    if distances == NULL:
         raise MemoryError()
     cdef unsigned short * predecessors = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
-    if predecessors==NULL:
+    if predecessors == NULL:
         sage_free(distances)
         raise MemoryError()
     all_pairs_shortest_path_BFS(G, predecessors, distances, NULL)
@@ -401,7 +400,7 @@ cdef unsigned short * c_distances_all_pairs(G):
 
     cdef unsigned int n = G.order()
     cdef unsigned short * distances = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
-    if distances==NULL:
+    if distances == NULL:
         raise MemoryError()
     all_pairs_shortest_path_BFS(G, NULL, distances, NULL)
 
@@ -463,6 +462,107 @@ def distances_all_pairs(G):
     sage_free(distances)
     return d
 
+def is_distance_regular(G, parameters = False):
+    r"""
+    Tests if the graph is distance-regular
+
+    A graph `G` is distance-regular if there exist integers `d_1,...,d_n` such
+    that for every vertex `v\in G` we have `d_i=\#\{u:d_G(u,v) =i\}`. Thus a
+    strongly-regular graph is also distance-regular, and a distance-regular
+    graph is necessarily regular too.
+
+    For more information on distance-regular graphs, see its associated
+    :wikipedia:`wikipedia page <Distance-regular_graph>`.
+
+    INPUT:
+
+    - ``parameters`` (boolean) -- whether to replace ``True`` answers with a
+      dictionary associating `d_i` to an integer `i>0` if `d_i>0` (one can then
+      obtain `d_i` by doing ``dictionary.get(i,0)``). Set to ``False`` by
+      default.
+
+    .. SEEALSO::
+
+        * :meth:`Graph.is_regular`
+        * :meth:`Graph.is_strongly_regular`
+
+    EXAMPLES::
+
+        sage: g = graphs.PetersenGraph()
+        sage: g.is_distance_regular()
+        True
+        sage: g.is_distance_regular(parameters = True)
+        {1: 3, 2: 6}
+
+    Cube graphs, which are not strongly regular, are a bit more interesting::
+
+        sage: graphs.CubeGraph(4).is_distance_regular(parameters = True)
+        {1: 4, 2: 6, 3: 4, 4: 1}
+
+    TESTS::
+
+        sage: graphs.PathGraph(2).is_distance_regular(parameters = True)
+        {1: 1}
+
+    """
+    cdef int i,l
+    cdef int n = G.order()
+
+    if n <= 1:
+        return {} if parameters else True
+
+    if not G.is_regular():
+        return False
+
+    cdef unsigned short * distance_matrix = c_distances_all_pairs(G)
+
+    # - d_array is the vector of d_i corresponding to the first vertex
+    #
+    # - d_tmp is a vector that we use to check that d_array is the same for
+    #   every vertex v
+    cdef unsigned short * d_array = <unsigned short *> sage_calloc(2*n, sizeof(unsigned short))
+    cdef unsigned short * d_tmp   = d_array + n
+
+    if d_array == NULL:
+        sage_free(distance_matrix)
+        raise MemoryError()
+
+    # Filling d_array
+    cdef unsigned short * pointer = distance_matrix
+    for i in range(n):
+        if pointer[i] < n:
+            d_array[pointer[i]] += 1
+    pointer += n
+
+    # For each of the n-1 other vertices
+    for l in range(1,n):
+
+        # We set d_tmp and fill it with the data from the l^th row
+        memset(d_tmp, 0, n*sizeof(unsigned short))
+        for i in range(n):
+            if pointer[i] < n:
+                d_tmp[pointer[i]] += 1
+
+        # If d_tmp != d_array, we are done
+        if memcmp(d_array, d_tmp, n*sizeof(unsigned short)) != 0:
+            sage_free(distance_matrix)
+            sage_free(d_array)
+            return False
+
+        pointer += n
+
+    cdef dict dict_parameters
+    if parameters:
+        dict_parameters = {i:d_array[i] for i in range(n) if i and d_array[i] > 0}
+
+    sage_free(distance_matrix)
+    sage_free(d_array)
+
+    if parameters:
+        return dict_parameters
+    else:
+        return True
+
 ###################################
 # Both distances and predecessors #
 ###################################
@@ -520,11 +620,11 @@ def distances_and_predecessors_all_pairs(G):
         return {}, {}
 
     cdef unsigned short * distances = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
-    if distances==NULL:
+    if distances == NULL:
         raise MemoryError()
     cdef unsigned short * c_distances = distances
     cdef unsigned short * predecessor = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
-    if predecessor==NULL:
+    if predecessor == NULL:
         sage_free(distances)
         raise MemoryError()
     cdef unsigned short * c_predecessor = predecessor
@@ -580,10 +680,10 @@ cdef unsigned short * c_eccentricity(G) except NULL:
     cdef unsigned int n = G.order()
 
     cdef unsigned short * ecc = <unsigned short *> sage_malloc(n*sizeof(unsigned short))
-    if ecc==NULL:
+    if ecc == NULL:
         raise MemoryError()
     cdef unsigned short * distances = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
-    if distances==NULL:
+    if distances == NULL:
         sage_free(ecc)
         raise MemoryError()
     all_pairs_shortest_path_BFS(G, NULL, distances, ecc)
@@ -905,10 +1005,10 @@ def floyd_warshall(gg, paths = True, distances = False):
 
     # init dist
     t_dist = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
-    if t_dist==NULL:
+    if t_dist == NULL:
         raise MemoryError()
     dist = <unsigned short **> sage_malloc(n*sizeof(unsigned short *))
-    if dist==NULL:
+    if dist == NULL:
         sage_free(t_dist)
         raise MemoryError()
     dist[0] = t_dist
@@ -924,12 +1024,12 @@ def floyd_warshall(gg, paths = True, distances = False):
     if paths:
         # init prec
         t_prec = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
-        if t_prec==NULL:
+        if t_prec == NULL:
             sage_free(t_dist)
             sage_free(dist)
             raise MemoryError()
         prec = <unsigned short **> sage_malloc(n*sizeof(unsigned short *))
-        if prec==NULL:
+        if prec == NULL:
             sage_free(t_dist)
             sage_free(dist)
             sage_free(t_prec)

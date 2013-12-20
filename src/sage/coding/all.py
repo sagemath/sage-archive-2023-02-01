@@ -1,3 +1,5 @@
+from sage.misc.lazy_import import lazy_import
+
 from ag_code import ag_code
 
 from code_constructions import (permutation_action,
@@ -55,3 +57,5 @@ from linear_code import (LinearCode, LinearCodeFromVectorSpace,
 
 from sd_codes import self_dual_codes_binary
 
+lazy_import("sage.coding.delsarte_bounds",
+    ["Krawtchouk", "delsarte_bound_hamming_space", "delsarte_bound_additive_hamming_space"])

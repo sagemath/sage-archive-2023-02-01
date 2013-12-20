@@ -268,26 +268,23 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             self.__decomposition_matrix_inverse_cache = ~self.decomposition_matrix()
             return self.__decomposition_matrix_inverse_cache
 
-    def degeneracy_map(self, level, t=1):
+    def degeneracy_map(self, codomain, t=1):
         """
-        The t-th degeneracy map from self to the module ``codomain``.  The
+        The `t`-th degeneracy map from self to the module ``codomain``.  The
         level of the codomain must be a divisor or multiple of level, and t
         must be a divisor of the quotient.
 
         INPUT:
 
-
-        -  ``level`` - a Hecke module, which should be of the same type as
+        -  ``codomain`` - a Hecke module, which should be of the same type as
            self, or a positive integer (in which case Sage will use
            :meth:`~hecke_module_of_level` to find the "natural" module of the
            corresponding level).
-
         -  ``t`` - int, the parameter of the degeneracy map, i.e., the map is
            related to `f(q)` - `f(q^t)`.
 
 
-        OUTPUT: A morphism from self to corresponding the Hecke module of
-        given level.
+        OUTPUT: A morphism from self to codomain.
 
         EXAMPLES::
 
@@ -358,12 +355,20 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
 
             sage: loads(dumps(J0(33).decomposition()[0].modular_symbols()))
             Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field
+
+        We check that certain absurd inputs are correctly caught::
+
+            sage: chi = kronecker_character(7)
+            sage: ModularSymbols(Gamma0(7), 4).degeneracy_map(ModularSymbols(chi, 4))
+            Traceback (most recent call last):
+            ...
+            ValueError: The characters of the domain and codomain must match
         """
-        if is_AmbientHeckeModule(level):
-            M = level
+        if is_AmbientHeckeModule(codomain):
+            M = codomain
             level = int(M.level())
         else:
-            level = int(level)
+            level = int(codomain)
             M = None
 
         t = int(t)
@@ -392,6 +397,10 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
 
         if M is None:
             M = self.hecke_module_of_level(level)
+
+        if eps is not None and M.character() is not None:
+            if eps.primitive_character() != M.character().primitive_character():
+                raise ValueError("The characters of the domain and codomain must match")
 
         key = (M.group(), t)
         # bad idea to use (M, t) as the key, because using complicated objects

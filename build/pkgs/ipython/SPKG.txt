@@ -50,6 +50,9 @@ ipython-user@scipy.org
 
 == Changelog ==
 
+=== ipython-0.13.2 (Volker Braun, June 24, 2013) ===
+ * Upgrade to 0.13.2 (trac #14810)
+
 === ipython-0.13.1 (Jason Grout, Volker Braun, Jan 22, 2013) ===
  * Upgrade to 0.13.1
  * Add backport of history fixes (to catch invalid databases)

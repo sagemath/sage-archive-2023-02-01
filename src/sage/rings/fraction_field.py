@@ -473,6 +473,8 @@ class FractionField_generic(field.Field):
             1
             sage: F._element_constructor_(F.gen(0)/F.gen(1))
             x/y
+            sage: F._element_constructor_('1 + x/y')
+            (x + y)/y
 
         ::
 
@@ -484,13 +486,23 @@ class FractionField_generic(field.Field):
             sage: F._element_constructor_(x/y)
             x/y
         """
-        if isinstance(x, self._element_class):
+        Element = self._element_class
+        if isinstance(x, Element):
             if x.parent() is self:
                 return x
             else:
-                return self._element_class(self, x.numerator(), x.denominator())
-        return self._element_class(self, x, y,
-                coerce=coerce, reduce = self.is_exact())
+                return Element(self, x.numerator(), x.denominator())
+        elif isinstance(x, basestring):
+            try:
+                from sage.misc.sage_eval import sage_eval
+                x = sage_eval(x, self.gens_dict_recursive())
+                y = sage_eval(str(y), self.gens_dict_recursive())
+                return Element(self, x, y, coerce=coerce, reduce=True)
+            except NameError, e:
+                raise TypeError, "unable to convert string"
+        else:
+            return Element(self, x, y,
+                           coerce=coerce, reduce=self.is_exact())
 
     def construction(self):
         """

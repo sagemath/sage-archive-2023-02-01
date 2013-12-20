@@ -2381,6 +2381,32 @@ class MPolynomialIdeal_singular_repr(
         quotient = sage.libs.singular.ff.quotient
         return R.ideal(quotient(self, J))
 
+    def saturation(self, other):
+        r"""
+        Returns the saturation (and saturation exponent) of the ideal ``self`` with respect to the ideal ``other``
+
+        INPUT:
+
+        - ``other`` -- another ideal in the same ring
+
+        OUTPUT:
+
+        - a pair (ideal, integer)
+
+        EXAMPLES::
+
+            sage: R.<x, y, z> = QQ[]
+            sage: I = R.ideal(x^5*z^3, x*y*z, y*z^4)
+            sage: J = R.ideal(z)
+            sage: I.saturation(J)
+            (Ideal (y, x^5) of Multivariate Polynomial Ring in x, y, z over Rational Field, 4)
+        """
+        from sage.libs.singular import ff
+        sat = ff.elim__lib.sat
+        R = self.ring()
+        ideal, expo = sat(self, other)
+        return (R.ideal(ideal), ZZ(expo))
+
     @require_field
     def variety(self, ring=None):
         r"""

@@ -371,7 +371,7 @@ class AffineGroup(UniqueRepresentation, Group):
                   [2 3 0]     [0]
         """
         A = self.matrix_space()(A)
-        return self.element_class(A, self.vector_space().zero(), self, check=True, convert=False)
+        return self.element_class(self, A, self.vector_space().zero(), check=True, convert=False)
 
     def translation(self, b):
         """
@@ -394,7 +394,7 @@ class AffineGroup(UniqueRepresentation, Group):
                   [0 0 1]     [3]
         """
         b = self.vector_space()(b)
-        return self.element_class(self.matrix_space().one(), b, self, check=False, convert=False)
+        return self.element_class(self, self.matrix_space().one(), b, check=False, convert=False)
 
     def reflection(self, v):
         """
@@ -433,7 +433,7 @@ class AffineGroup(UniqueRepresentation, Group):
             raise ValueError('v has norm zero')
         from sage.matrix.constructor import identity_matrix
         A = self.matrix_space().one() - v.column() * (v.row() * two_norm2inv)
-        return self.element_class(A, self.vector_space().zero(), self, check=True, convert=False)
+        return self.element_class(self, A, self.vector_space().zero(), check=True, convert=False)
 
     def random_element(self):
         """
@@ -454,7 +454,7 @@ class AffineGroup(UniqueRepresentation, Group):
         while not A.is_invertible():  # a generic matrix is invertible
             A.randomize()
         b = self.vector_space().random_element()
-        return self.element_class(A, b, self, check=False, convert=False)
+        return self.element_class(self, A, b, check=False, convert=False)
 
     @cached_method
     def _an_element_(self):
@@ -471,5 +471,5 @@ class AffineGroup(UniqueRepresentation, Group):
         while not A.is_invertible():  # a generic matrix is not always invertible
             A.randomize()
         b = self.vector_space().an_element()
-        return self.element_class(A, b, self, check=False, convert=False)
+        return self.element_class(self, A, b, check=False, convert=False)
 

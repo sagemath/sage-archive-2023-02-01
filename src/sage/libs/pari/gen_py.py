@@ -2,7 +2,6 @@ import sage.libs.pari.gen as gen
 from sage.misc.sage_eval import sage_eval
 
 from sage.rings.all import *
-I = ComplexField().gen()
 
 def pari(x):
     """
@@ -112,7 +111,8 @@ def python(z, locals=None):
     t_REAL:   ComplexField(prec) for equivalent precision
     t_INTMOD, t_PADIC: raise NotImplementedError
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: a = pari('(3+I)').python(); a
         i + 3
         sage: a.parent()
@@ -155,13 +155,16 @@ def python(z, locals=None):
         Complex Field with 128 bits of precision # 64-bit
 
     For architecture-independent complex numbers, start from a
-    suitable ComplexField:
+    suitable ComplexField::
+
         sage: z = pari(CC(1.0+2.0*I)); z
         1.00000000000000 + 2.00000000000000*I
         sage: a=z.python(); a
         1.00000000000000000 + 2.00000000000000000*I
         sage: a.parent()
         Complex Field with 64 bits of precision
+
+    Vectors and matrices::
 
         sage: a = pari('[1,2,3,4]')
         sage: a
@@ -181,6 +184,12 @@ def python(z, locals=None):
         [3 4]
         sage: b.parent()
         Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
+
+        sage: a = pari('Vecsmall([1,2,3,4])')
+        sage: a.type()
+        't_VECSMALL'
+        sage: a.python()
+        [1, 2, 3, 4]
 
     We use the locals dictionary::
 
@@ -240,7 +249,7 @@ def python(z, locals=None):
     elif t == "t_VEC":
         return [python(x) for x in z.python_list()]
     elif t == "t_VECSMALL":
-        return [IntegerRing(x) for x in z.python_list_small()]
+        return z.python_list_small()
     elif t == "t_MAT":
         from sage.matrix.constructor import matrix
         return matrix(z.nrows(),z.ncols(),[python(z[i,j]) for i in range(z.nrows()) for j in range(z.ncols())])

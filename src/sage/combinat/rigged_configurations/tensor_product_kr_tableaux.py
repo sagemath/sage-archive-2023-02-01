@@ -185,7 +185,7 @@ class AbstractTensorProductOfKRTableaux(FullTensorProductOfRegularCrystals):
             sage: L = KRT._convert_to_letters(0, [3, 2, 2]); L
             [3, 2, 2]
             sage: type(L[0])
-            <class 'sage.combinat.crystals.letters.ClassicalCrystalOfLetters_with_category.element_class'>
+            <type 'sage.combinat.crystals.letters.Crystal_of_letters_type_A_element'>
             sage: L[0].value
             3
         """

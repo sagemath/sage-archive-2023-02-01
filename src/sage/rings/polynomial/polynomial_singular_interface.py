@@ -5,6 +5,8 @@ AUTHORS:
 
 - Martin Albrecht <malb@informatik.uni-bremen.de> (2006-04-21)
 - Robert Bradshaw: Re-factor to avoid multiple inheritance vs. Cython (2007-09)
+- Syed Ahmad Lavasani: Added function field to _singular_init_ (2011-12-16)
+       Added non-prime finite fields to _singular_init_ (2012-1-22)
 
 TESTS::
 
@@ -46,7 +48,10 @@ from sage.rings.complex_double import is_ComplexDoubleField
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.real_double import is_RealDoubleField
 from sage.rings.rational_field import is_RationalField
+from sage.rings.function_field.function_field import is_RationalFunctionField
+from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.rings.integer_ring import ZZ
+
 import sage.rings.arith
 import sage.rings.finite_rings.constructor
 
@@ -168,6 +173,21 @@ class PolynomialRing_singular_repr:
             //                  : names    x y
             //        block   2 : ordering C
 
+            sage: k.<a> = FiniteField(25)
+            sage: R = k['x']
+            sage: K = R.fraction_field()
+            sage: S = K['y']
+            sage: singular(S)
+            //   characteristic : 5
+            //   1 parameter    : x
+            //   minpoly        : 0
+            //   number of vars : 2
+            //        block   1 : ordering lp
+            //                  : names    a y
+            //        block   2 : ordering C
+            // quotient ring from ideal
+            _[1]=a2-a+2
+
         .. warning::
 
             - If the base ring is a finite extension field or a number field
@@ -252,6 +272,7 @@ class PolynomialRing_singular_repr:
             # not the prime field!
             gen = str(base_ring.gen())
             r = singular.ring( "(%s,%s)"%(self.characteristic(),gen), _vars, order=order, check=False)
+
             self.__minpoly = (str(base_ring.modulus()).replace("x",gen)).replace(" ","")
             if  singular.eval('minpoly') != "(" + self.__minpoly + ")":
                 singular.eval("minpoly=%s"%(self.__minpoly) )
@@ -273,12 +294,27 @@ class PolynomialRing_singular_repr:
 
             self.__singular = r
 
-        elif sage.rings.fraction_field.is_FractionField(base_ring) and (base_ring.base_ring() is ZZ or base_ring.base_ring().is_prime_field()):
+        elif sage.rings.fraction_field.is_FractionField(base_ring) and (base_ring.base_ring() is ZZ or base_ring.base_ring().is_prime_field() or is_FiniteField(base_ring.base_ring())):
             if base_ring.ngens()==1:
               gens = str(base_ring.gen())
             else:
               gens = str(base_ring.gens())
-            self.__singular = singular.ring( "(%s,%s)"%(base_ring.characteristic(),gens), _vars, order=order, check=False)
+
+            if not (not base_ring.base_ring().is_prime_field() and is_FiniteField(base_ring.base_ring())) :
+                self.__singular = singular.ring( "(%s,%s)"%(base_ring.characteristic(),gens), _vars, order=order, check=False)
+            else:
+                ext_gen = str(base_ring.base_ring().gen())
+                _vars = '(' + ext_gen + ', ' + _vars[1:];
+
+                R = self.__singular = singular.ring( "(%s,%s)"%(base_ring.characteristic(),gens), _vars, order=order, check=False)
+
+                self.base_ring().__minpoly = (str(base_ring.base_ring().modulus()).replace("x",ext_gen)).replace(" ","")
+                singular.eval('setring '+R._name);
+                self.__singular = singular("std(ideal(%s))"%(self.base_ring().__minpoly),type='qring')
+
+        elif sage.rings.function_field.function_field.is_RationalFunctionField(base_ring) and base_ring.constant_field().is_prime_field():
+            gen = str(base_ring.gen())
+            self.__singular = singular.ring( "(%s,%s)"%(base_ring.characteristic(),gen), _vars, order=order, check=False)
 
         elif is_IntegerModRing(base_ring):
             ch = base_ring.characteristic()
@@ -327,9 +363,10 @@ def can_convert_to_singular(R):
              or is_RealDoubleField(base_ring)
              or is_ComplexDoubleField(base_ring)
              or number_field.all.is_NumberField(base_ring)
-             or ( sage.rings.fraction_field.is_FractionField(base_ring) and ( base_ring.base_ring().is_prime_field() or base_ring.base_ring() is ZZ ) )
+             or ( sage.rings.fraction_field.is_FractionField(base_ring) and ( base_ring.base_ring().is_prime_field() or base_ring.base_ring() is ZZ or is_FiniteField(base_ring.base_ring()) ) )
              or base_ring is ZZ
-             or is_IntegerModRing(base_ring) )
+             or is_IntegerModRing(base_ring)
+             or (is_RationalFunctionField(base_ring) and base_ring.constant_field().is_prime_field()) )
 
 
 class Polynomial_singular_repr:

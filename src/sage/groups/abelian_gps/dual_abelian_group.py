@@ -259,7 +259,7 @@ class DualAbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         x = [0]*n
         if self.gens_orders()[i] != 1:
             x[i] = 1
-        return self.element_class(x, self)
+        return self.element_class(self, x)
 
     def gens(self):
         """

@@ -333,7 +333,6 @@ class RootSystem(UniqueRepresentation, SageObject):
         # only affects the pretty printing
         if as_dual_of is None:
             self.dual_side = False
-            self.dual = RootSystem(self._cartan_type.dual(), as_dual_of=self);
             # still fails for CartanType G2xA1
             try:
                 self.dual = RootSystem(self._cartan_type.dual(), as_dual_of=self);
@@ -423,12 +422,13 @@ class RootSystem(UniqueRepresentation, SageObject):
         """
         return self.cartan_type().cartan_matrix()
 
+    @cached_method
     def index_set(self):
         """
         EXAMPLES::
 
             sage: RootSystem(['A',3]).index_set()
-            [1, 2, 3]
+            (1, 2, 3)
         """
         return self.cartan_type().index_set()
 

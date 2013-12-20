@@ -15,13 +15,14 @@ Congruence Subgroup `\Gamma(N)`
 ################################################################################
 
 from congroup_generic import CongruenceSubgroup
-from arithgroup_element import ArithmeticSubgroupElement
 from sage.misc.misc import prod
 from sage.rings.all import ZZ, Zmod, gcd, QQ
 from sage.rings.integer import GCD_list
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.matrix.constructor import matrix
 from sage.modular.cusps import Cusp
+
+from congroup_sl2z import SL2Z
 
 _gamma_cache = {}
 def Gamma_constructor(N):
@@ -35,12 +36,19 @@ def Gamma_constructor(N):
         sage: G = Gamma(23)
         sage: G is Gamma(23)
         True
-        sage: G == loads(dumps(G))
-        True
+        sage: TestSuite(G).run()
+
+    Test global uniqueness::
+
+        sage: G = Gamma(17)
         sage: G is loads(dumps(G))
         True
+        sage: G2 = sage.modular.arithgroup.congroup_gamma.Gamma_class(17)
+        sage: G == G2
+        True
+        sage: G is G2
+        False
     """
-    from all import SL2Z
     if N == 1: return SL2Z
     try:
         return _gamma_cache[N]
@@ -90,11 +98,13 @@ class Gamma_class(CongruenceSubgroup):
             True
             sage: Gamma(5) == Gamma(5)
             True
+            sage: Gamma(3) == Gamma(3).as_permutation_group()
+            True
         """
-        if not is_Gamma(other):
-            return cmp(type(self), type(other))
-        else:
+        if is_Gamma(other):
             return cmp(self.level(), other.level())
+        else:
+            return CongruenceSubgroup.__cmp__(self, other)
 
     def index(self):
         r"""
@@ -112,44 +122,23 @@ class Gamma_class(CongruenceSubgroup):
         """
         return prod([p**(3*e-2)*(p*p-1) for (p,e) in self.level().factor()])
 
-    def __call__(self, x, check=True):
+    def _contains_sl2(self, a,b,c,d):
         r"""
-        Create an element of this congruence subgroup from x.
-
-        If the optional flag check is True (default), check whether
-        x actually gives an element of self.
-
         EXAMPLES::
 
             sage: G = Gamma(5)
-            sage: G([1, 0, -10, 1])
-            [ 1   0]
-            [-10  1]
-            sage: G(matrix(ZZ, 2, [26, 5, 5, 1]))
-            [26  5]
-            [ 5  1]
-            sage: G([1, 1, 6, 7])
-            Traceback (most recent call last):
-            ...
-            TypeError: matrix must have diagonal entries (=1, 7) congruent to 1
-            modulo 5, and off-diagonal entries (=1,6) divisible by 5
+            sage: [1, 0, -10, 1] in G
+            True
+            sage: 1 in G
+            True
+            sage: SL2Z([26, 5, 5, 1]) in G
+            True
+            sage: SL2Z([1, 1, 6, 7]) in G
+            False
         """
-        from all import SL2Z
-        x = SL2Z(x, check)
-        if not check:
-            return x
-
-        a = x.a()
-        b = x.b()
-        c = x.c()
-        d = x.d()
         N = self.level()
-        if (a%N == 1) and (c%N == 0) and (d%N == 1) and (b%N == 0):
-            return x
-        else:
-            raise TypeError, "matrix must have diagonal entries (=%s, %s)\
-            congruent to 1 modulo %s, and off-diagonal entries (=%s,%s)\
-            divisible by %s" %(a, d, N, b, c, N)
+        # don't need to check d == 1 as this is automatic from det
+        return ((a%N == 1) and (b%N == 0) and (c%N == 0))
 
     def ncusps(self):
         r"""

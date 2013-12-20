@@ -3,20 +3,20 @@ Spin Crystals
 
 These are the crystals associated with the three spin
 representations: the spin representations of odd orthogonal groups
-(or rather their double covers); and the + and - spin
+(or rather their double covers); and the `+` and `-` spin
 representations of the even orthogonal groups.
 
 We follow Kashiwara and Nakashima (Journal of Algebra 165, 1994) in
 representing the elements of the spin Crystal by sequences of signs
-+/-. Two other representations are available as attributes
-internal_repn and signature of the crystal element.
+`\pm`. Two other representations are available as attributes
+:meth:`Spin.internal_repn` and :meth:`Spin.signature` of the crystal element.
 
-- A numerical internal representation, an integer N such that if N-1
-  is written in binary and the 1's are replaced by ``-``, the 0's by
+- A numerical internal representation, an integer `n` such that if `n-1`
+  is written in binary and the `1`'s are replaced by ``-``, the `0`'s by
   ``+``
 
-- The signature, which is a list in which ``+`` is replaced by +1 and
-  ``-`` by -1.
+- The signature, which is a list in which ``+`` is replaced by `+1` and
+  ``-`` by `-1`.
 """
 
 #*****************************************************************************
@@ -36,10 +36,11 @@ internal_repn and signature of the crystal element.
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
+from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.classical_crystals import ClassicalCrystals
-from sage.combinat.crystals.letters import Letter
+from sage.combinat.crystals.letters import LetterTuple
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.tableau import Tableau
 
@@ -50,18 +51,17 @@ from sage.combinat.tableau import Tableau
 
 def CrystalOfSpins(ct):
     r"""
-    Return the spin crystal of the given type B.
+    Return the spin crystal of the given type `B`.
 
     This is a combinatorial model for the crystal with highest weight
-    `Lambda_n` (the n-th fundamental weight). It has
+    `Lambda_n` (the `n`-th fundamental weight). It has
     `2^n` elements, here called Spins. See also
-    CrystalOfLetters, CrystalOfSpinsPlus and CrystalOfSpinsMinus.
+    :func:`CrystalOfLetters`, :func:`CrystalOfSpinsPlus`,
+    and :func:`CrystalOfSpinsMinus`.
 
     INPUT:
 
-
-    -  ``['B',n]`` - A CartanType of type B.
-
+    -  ``['B', n]`` - A Cartan type `B_n`.
 
     EXAMPLES::
 
@@ -96,13 +96,11 @@ def CrystalOfSpinsPlus(ct):
     Return the plus spin crystal of the given type D.
 
     This is the crystal with highest weight `Lambda_n` (the
-    n-th fundamental weight).
+    `n`-th fundamental weight).
 
     INPUT:
 
-
-    -  ``['D',n]`` - A CartanType of type D.
-
+    -  ``['D', n]`` - A Cartan type `D_n`.
 
     EXAMPLES::
 
@@ -130,13 +128,11 @@ def CrystalOfSpinsMinus(ct):
     Return the minus spin crystal of the given type D.
 
     This is the crystal with highest weight `Lambda_{n-1}`
-    (the (n-1)-st fundamental weight).
+    (the `(n-1)`-st fundamental weight).
 
     INPUT:
 
-
-    -  ``['D',n]`` - A CartanType of type D.
-
+    -  ``['D', n]`` - A Cartan type `D_n`.
 
     EXAMPLES::
 
@@ -161,6 +157,9 @@ def CrystalOfSpinsMinus(ct):
         raise NotImplementedError
 
 class GenericCrystalOfSpins(UniqueRepresentation, Parent):
+    """
+    A generic crystal of spins.
+    """
     def __init__(self, ct, element_class, case):
         """
         EXAMPLES::
@@ -185,7 +184,7 @@ class GenericCrystalOfSpins(UniqueRepresentation, Parent):
             generator.append(-1)
         else:
             generator = [1]*ct[1]
-        self.module_generators = [self(generator)]
+        self.module_generators = (self._element_constructor_(tuple(generator)),)
         self._list = list(self)
 #        self._digraph = ClassicalCrystal.digraph(self)
         self._digraph = super(GenericCrystalOfSpins, self).digraph()
@@ -193,6 +192,8 @@ class GenericCrystalOfSpins(UniqueRepresentation, Parent):
 
     def __call__(self, value):
         """
+        Parse input for ``cached_method``.
+
         EXAMPLES::
 
             sage: C = CrystalOfSpins(['B',3])
@@ -201,12 +202,24 @@ class GenericCrystalOfSpins(UniqueRepresentation, Parent):
         """
         if value.__class__ == self.element_class and value.parent() == self:
             return value
-        else:
-            return self.element_class(self, value)
+        return self._element_constructor_(tuple(value))
+
+    @cached_method
+    def _element_constructor_(self, value):
+        """
+        Construct an element of ``self`` from ``value``.
+
+        EXAMPLES::
+
+            sage: C = CrystalOfSpins(['B',3])
+            sage: C((1,1,1))
+            +++
+        """
+        return self.element_class(self, value)
 
     def list(self):
         """
-        Returns a list of the elements of self.
+        Return a list of the elements of ``self``.
 
         EXAMPLES::
 
@@ -217,7 +230,7 @@ class GenericCrystalOfSpins(UniqueRepresentation, Parent):
 
     def digraph(self):
         """
-        Returns the directed graph associated to self.
+        Return the directed graph associated to ``self``.
 
         EXAMPLES::
 
@@ -228,8 +241,8 @@ class GenericCrystalOfSpins(UniqueRepresentation, Parent):
 
     def lt_elements(self, x,y):
         r"""
-        Returns True if and only if there is a path from x to y in the
-        crystal graph.
+        Return ``True`` if and only if there is a path from ``x`` to ``y``
+        in the crystal graph.
 
         Because the crystal graph is classical, it is a directed acyclic
         graph which can be interpreted as a poset. This function implements
@@ -247,13 +260,16 @@ class GenericCrystalOfSpins(UniqueRepresentation, Parent):
             sage: C.lt_elements(x,x)
             False
         """
-        assert x.parent() == self and y.parent() == self
+        if x.parent() is not self or y.parent() is not self:
+            raise ValueError("Both elements must be in this crystal")
         if self._digraph_closure.has_edge(x,y):
             return True
         return False
 
-class Spin(Letter):
+class Spin(LetterTuple):
     """
+    A spin letter in the crystal of spins.
+
     EXAMPLES::
 
         sage: C = CrystalOfSpins(['B',3])
@@ -278,22 +294,9 @@ class Spin(Letter):
         sage: b == c
         False
     """
-
-    def __hash__(self):
-        """
-        EXAMPLES::
-
-            sage: C = CrystalOfSpins(['B',3])
-            sage: c = C([1,1,1])
-            sage: type(hash(c))
-            <type 'int'>
-        """
-
-        return hash(tuple(self.value))
-
     def signature(self):
         """
-        Returns the signature of self.
+        Return the signature of ``self``.
 
         EXAMPLES::
 
@@ -324,7 +327,7 @@ class Spin(Letter):
         return self.signature()
 
     def _latex_(self):
-        """
+        r"""
         Gives the latex output of a spin column.
 
         EXAMPLES::
@@ -342,6 +345,35 @@ class Spin(Letter):
         """
         return Tableau([[i] for i in reversed(self.signature())])._latex_()
 
+    def epsilon(self, i):
+        r"""
+        Return `\varepsilon_i` of ``self``.
+
+        EXAMPLES::
+
+            sage: C = CrystalOfSpins(['B',3])
+            sage: [[C[m].epsilon(i) for i in range(1,4)] for m in range(8)]
+            [[0, 0, 0], [0, 0, 1], [0, 1, 0], [1, 0, 0],
+             [0, 0, 1], [1, 0, 1], [0, 1, 0], [0, 0, 1]]
+        """
+        if self.e(i) is None:
+            return 0
+        return 1
+
+    def phi(self, i):
+        r"""
+        Return `\varphi_i` of ``self``.
+
+        EXAMPLES::
+
+            sage: C = CrystalOfSpins(['B',3])
+            sage: [[C[m].phi(i) for i in range(1,4)] for m in range(8)]
+            [[0, 0, 1], [0, 1, 0], [1, 0, 1], [0, 0, 1],
+             [1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, 0]]
+        """
+        if self.f(i) is None:
+            return 0
+        return 1
 
 class Spin_crystal_type_B_element(Spin):
     r"""

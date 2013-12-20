@@ -404,6 +404,10 @@ cdef class RingMap(Morphism):
         """
         return "Set-theoretic ring"
 
+    def __hash__(self):
+        return Morphism.__hash__(self)
+
+
 cdef class RingMap_lift(RingMap):
     r"""
     Given rings `R` and `S` such that for any
@@ -1020,6 +1024,9 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             im_gens = copy.copy(im_gens)
             im_gens.set_immutable()
         self.__im_gens = im_gens
+
+    def __hash__(self):
+        return Morphism.__hash__(self)
 
     def im_gens(self):
         """
@@ -1727,4 +1734,214 @@ cdef class RingHomomorphism_from_quotient(RingHomomorphism):
             1/2*xx + 3*yy
         """
         return self.phi(self.lift(x))
+
+
+cdef class FrobeniusEndomorphism_generic(RingHomomorphism):
+    """
+    A class implementing Frobenius endomorphisms on rings of prime
+    characteristic.
+    """
+    def __init__(self, domain, n=1):
+        """
+        INPUT:
+
+        -  ``domain`` -- a ring
+
+        -  ``n`` -- a nonnegative integer (default: 1)
+
+        OUTPUT:
+
+        The `n`-th power of the absolute (arithmetic) Frobenius
+        endomorphism on ``domain``
+
+        TESTS::
+
+            sage: from sage.rings.morphism import FrobeniusEndomorphism_generic
+            sage: K.<u> = PowerSeriesRing(GF(5))
+            sage: FrobeniusEndomorphism_generic(K)
+            Frobenius endomorphism x |--> x^5 of Power Series Ring in u over Finite Field of size 5
+            sage: FrobeniusEndomorphism_generic(K, 2)
+            Frobenius endomorphism x |--> x^(5^2) of Power Series Ring in u over Finite Field of size 5
+        """
+        from commutative_ring import is_CommutativeRing
+        from sage.categories.homset import Hom
+        if not is_CommutativeRing(domain):
+            raise TypeError("The base ring must be a commutative ring")
+        self._p = domain.characteristic()
+        if not self._p.is_prime():
+            raise TypeError("The caracteristic of the base ring must be prime")
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("n (=%s) is not a nonnegative integer" % n)
+        if n < 0:
+            raise TypeError("n (=%s) is not a nonnegative integer" % n)
+        self._power = n
+        self._q = self._p ** self._power
+        RingHomomorphism.__init__(self, Hom(domain, domain))
+
+    def _repr_(self):
+        """
+        Return a string representation of this endomorphism.
+
+        EXAMPLES::
+
+            sage: K.<u> = PowerSeriesRing(GF(5))
+            sage: Frob = K.frobenius_endomorphism(); Frob
+            Frobenius endomorphism x |--> x^5 of Power Series Ring in u over Finite Field of size 5
+
+            sage: Frob._repr_()
+            'Frobenius endomorphism x |--> x^5 of Power Series Ring in u over Finite Field of size 5'
+        """
+        if self._power == 0:
+            s = "Identity endomorphism"
+        elif self._power == 1:
+            s = "Frobenius endomorphism x |--> x^%s" % self._p
+        else:
+            s = "Frobenius endomorphism x |--> x^(%s^%s)" % (self._p, self._power)
+        s += " of %s" % self.domain()
+        return s
+
+    def _repr_short(self):
+        """
+        Return a short string representation of this endomorphism.
+
+        EXAMPLES::
+
+            sage: K.<u> = PowerSeriesRing(GF(5))
+            sage: Frob = K.frobenius_endomorphism()
+            sage: Frob._repr_short()
+            'Frob'
+            sage: (Frob^2)._repr_short()
+            'Frob^2'
+        """
+        if self._power == 0:
+            s = "Identity"
+        elif self._power == 1:
+            s = "Frob"
+        else:
+            s = "Frob^%s" % self._power
+        return s
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of this endomorphism.
+
+        EXAMPLES::
+
+            sage: K.<u> = PowerSeriesRing(GF(5))
+            sage: Frob = K.frobenius_endomorphism(2);
+            sage: Frob._latex_()
+            '\\verb"Frob"^{2}'
+        """
+        if self._power == 0:
+            s = '\\verb"id"'
+        elif self._power == 1:
+            s = '\\verb"Frob"'
+        else:
+            s = '\\verb"Frob"^{%s}' % self._power
+        return s
+
+    cpdef Element _call_ (self, x):
+        """
+        TESTS::
+
+            sage: K.<u> = PowerSeriesRing(GF(5))
+            sage: Frob = K.frobenius_endomorphism()
+            sage: Frob(u)
+            u^5
+            sage: (Frob^2)(1+u)
+            1 + u^25
+        """
+        return x ** self._q
+
+    def power(self):
+        """
+        Return an integer `n` such that this endormorphism
+        is the `n`-th power of the absolute (arithmetic)
+        Frobenius.
+
+        EXAMPLES::
+
+            sage: K.<u> = PowerSeriesRing(GF(5))
+            sage: Frob = K.frobenius_endomorphism()
+            sage: Frob.power()
+            1
+            sage: (Frob^9).power()
+            9
+        """
+        return self._power
+
+    def __pow__(self, n, ignored):
+        """
+        Return the `n`-th iterate of this endomorphism.
+
+        EXAMPLES::
+
+            sage: K.<u> = PowerSeriesRing(GF(5))
+            sage: Frob = K.frobenius_endomorphism(); Frob
+            Frobenius endomorphism x |--> x^5 of Power Series Ring in u over Finite Field of size 5
+            sage: Frob^2
+            Frobenius endomorphism x |--> x^(5^2) of Power Series Ring in u over Finite Field of size 5
+        """
+        return self.__class__(self.domain(), self.power()*n)
+
+    def _composition(self, right):
+        """
+        Return self o right.
+
+        EXAMPLES::
+
+            sage: K.<u> = PowerSeriesRing(GF(5))
+            sage: f = K.frobenius_endomorphism(); f
+            Frobenius endomorphism x |--> x^5 of Power Series Ring in u over Finite Field of size 5
+            sage: g = K.frobenius_endomorphism(2); g
+            Frobenius endomorphism x |--> x^(5^2) of Power Series Ring in u over Finite Field of size 5
+            sage: f * g
+            Frobenius endomorphism x |--> x^(5^3) of Power Series Ring in u over Finite Field of size 5
+        """
+        if isinstance(right, FrobeniusEndomorphism_generic):
+            return self.__class__(self.domain(), self._power + right.power())
+        else:
+            return RingHomomorphism._composition(self, right)
+
+    def __hash__(self):
+        """
+        Return a hash of this morphism.
+
+        It is the hash of the triple (domain, codomain, definition)
+        where ``definition`` is:
+
+        - a tuple consisting of the images of the generators
+          of the domain if domain has generators
+
+        - the string representation of this morphism otherwise
+
+        AUTHOR:
+
+        - Xavier Caruso (2012-07-09)
+        """
+        domain = self.domain()
+        codomain = self.codomain()
+        return hash((domain, codomain, ('Frob', self._power)))
+
+    def __richcmp__(left, right, int op):
+        return (<Element>left)._richcmp(right, op)
+
+    cdef int _cmp_c_impl(left, Element right) except -2:
+        if left is right: return 0
+        domain = left.domain()
+        c = cmp(domain, right.domain())
+        if c: return c
+        c = cmp(left.codomain(), right.codomain())
+        if c: return c
+        if isinstance(right, FrobeniusEndomorphism_generic):
+            return cmp(left._power, (<FrobeniusEndomorphism_generic>right)._power)
+        try:
+            gens = domain.gens()
+            for x in gens:
+                c = cmp(left(x), right(x))
+                if c: return c
+        except (AttributeError, NotImplementedError):
+            raise NotImplementedError
 

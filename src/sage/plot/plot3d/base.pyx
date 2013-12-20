@@ -50,8 +50,6 @@ include "point_c.pxi"
 
 from sage.interfaces.tachyon import tachyon_rt
 
-from sage.plot.all import show_default
-
 # import the double infinity constant
 cdef extern from "math.h":
      enum: INFINITY
@@ -64,24 +62,45 @@ cdef class Graphics3d(SageObject):
     """
     This is the baseclass for all 3d graphics objects.
     """
-    def __repr__(self):
+    def _repr_(self):
         """
-        When show_default is True, objects are displayed rather than
-        string representations printed.
+        Return a string representation.
+
+        OUTPUT:
+
+        String.
 
         EXAMPLES::
 
             sage: S = sphere((0, 0, 0), 1)
-            sage: show_default(False); S
+            sage: print S
             Graphics3d Object
-            sage: show_default(True); S
-
         """
-        if show_default():
-            self.show()
-            return ''
-        else:
-            return str(self)
+        return str(self)
+
+    def _graphics_(self):
+        """
+        Show graphics.
+
+        The presence of this method is used by the displayhook to
+        decide that we want to see a graphical output by default.
+
+        OUTPUT:
+
+        Return ``True`` if graphical output was generated (might not
+        be shown in doctest mode), otherwise ``False``.
+
+        EXAMPLES::
+
+            sage: S = sphere((0, 0, 0), 1)
+            sage: S._graphics_()
+            True
+            sage: S  # also productes graphics
+            sage: [S, S]
+            [Graphics3d Object, Graphics3d Object]
+        """
+        self.show()
+        return True
 
     def __str__(self):
         """
@@ -145,6 +164,12 @@ cdef class Graphics3d(SageObject):
         """
         Sets or gets the preferred aspect ratio of self.
 
+        INPUT:
+
+        - ``v`` -- (default: None) must be a list or tuple of length three,
+          or the integer ``1``. If no arguments are provided then the
+          default aspect ratio is returned.
+
         EXAMPLES::
 
             sage: D = dodecahedron()
@@ -161,8 +186,9 @@ cdef class Graphics3d(SageObject):
             if v == 1:
                 v = (1,1,1)
             if not isinstance(v, (tuple, list)):
-                raise TypeError, "aspect_ratio must be a list or tuple of length 3 or the integer 1"
-            self._aspect_ratio = [float(a) for a in v]
+                raise TypeError("aspect_ratio must be a list or tuple of "
+                                "length 3 or the integer 1")
+            self._aspect_ratio = map(float, v)
         else:
             if self._aspect_ratio is None:
                 self._aspect_ratio = [1.0,1.0,1.0]
@@ -171,6 +197,12 @@ cdef class Graphics3d(SageObject):
     def frame_aspect_ratio(self, v=None):
         """
         Sets or gets the preferred frame aspect ratio of self.
+
+        INPUT:
+
+        - ``v`` -- (default: None) must be a list or tuple of length three,
+          or the integer ``1``. If no arguments are provided then the
+          default frame aspect ratio is returned.
 
         EXAMPLES::
 
@@ -188,8 +220,9 @@ cdef class Graphics3d(SageObject):
             if v == 1:
                 v = (1,1,1)
             if not isinstance(v, (tuple, list)):
-                raise TypeError, "frame_aspect_ratio must be a list or tuple of length 3 or the integer 1"
-            self._frame_aspect_ratio = [float(a) for a in v]
+                raise TypeError("frame_aspect_ratio must be a list or tuple of "
+                                "length 3 or the integer 1")
+            self._frame_aspect_ratio = map(float, v)
         else:
             if self._frame_aspect_ratio is None:
                 self._frame_aspect_ratio = [1.0,1.0,1.0]
@@ -845,7 +878,7 @@ end_scene""" % (render_params.antialiasing,
         # box defined by box_min, box_max, it has the right aspect ratio
         a_min, a_max = self._safe_bounding_box()
 
-        if aspect_ratio == "automatic":
+        if aspect_ratio == "automatic" or aspect_ratio == [1.0]*3:
             return a_min, a_max
 
         longest_side = 0; longest_length = a_max[0] - a_min[0]
@@ -944,23 +977,40 @@ end_scene""" % (render_params.antialiasing,
         for key_to_remove in SHOW_DEFAULTS.keys():
             kwds.pop(key_to_remove, None)
 
-        if opts['aspect_ratio'] == 1:
-            opts['aspect_ratio'] = (1, 1, 1)
-        if not isinstance(opts['aspect_ratio'], (str, list, tuple)):
-            raise TypeError, 'aspect ratio must be a string, list, tuple, or 1'
         # deal with any aspect_ratio instances passed from the default options to plot
         if opts['aspect_ratio'] == 'auto':
             opts['aspect_ratio'] = 'automatic'
+        if opts['aspect_ratio'] != 'automatic':
+            # We need this round about way to make sure that we do not
+            # store the aspect ratio that was passed on to show() by the
+            # user. We let the .aspect_ratio() method take care of the
+            # validity of the arguments that was passed on to show()
+            original_aspect_ratio = self.aspect_ratio()
+            self.aspect_ratio(opts['aspect_ratio'])
+            opts['aspect_ratio'] = self.aspect_ratio()
+            self.aspect_ratio(original_aspect_ratio)
 
         if opts['frame_aspect_ratio'] == 'automatic':
             if opts['aspect_ratio'] != 'automatic':
-                # Set the aspect_ratio of the frame to be the same as that of
-                # the object we are rendering given the aspect_ratio we'll use
-                # for it.
+                # Set the aspect_ratio of the frame to be the same as that
+                # of the object we are rendering given the aspect_ratio
+                # we'll use for it.
                 opts['frame_aspect_ratio'] = \
                     self._determine_frame_aspect_ratio(opts['aspect_ratio'])
             else:
                 opts['frame_aspect_ratio'] = self.frame_aspect_ratio()
+        else:
+            # We need this round about way to make sure that we do not
+            # store the frame aspect ratio that was passed on to show() by
+            # the user. We let the .frame_aspect_ratio() method take care
+            # of the validity of the arguments that was passed on to show()
+            original_aspect_ratio = self.frame_aspect_ratio()
+            self.frame_aspect_ratio(opts['frame_aspect_ratio'])
+            opts['frame_aspect_ratio'] = self.frame_aspect_ratio()
+            self.frame_aspect_ratio(original_aspect_ratio)
+
+        if opts['aspect_ratio'] == 'automatic':
+            opts['aspect_ratio'] = self.aspect_ratio()
 
         if not isinstance(opts['figsize'], (list,tuple)):
             opts['figsize'] = [opts['figsize'], opts['figsize']]
@@ -1063,7 +1113,7 @@ end_scene""" % (render_params.antialiasing,
         viewer = opts['viewer']
         verbosity = opts['verbosity']
         figsize = opts['figsize']
-        aspect_ratio = opts['aspect_ratio']
+        aspect_ratio = opts['aspect_ratio'] # this necessarily has a value now
         frame_aspect_ratio = opts['frame_aspect_ratio']
         zoom = opts['zoom']
         frame = opts['frame']

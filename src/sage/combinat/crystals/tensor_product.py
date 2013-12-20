@@ -1295,8 +1295,7 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
         """
         if self.parent().crystals[0].__module__ != 'sage.combinat.crystals.kirillov_reshetikhin':
             raise ValueError("All crystals in the tensor product need to be Kirillov-Reshetikhin crystals")
-        I = self.index_set()
-        I.remove(0)
+        I = self.cartan_type().classical().index_set()
         ell = max(ceil(K.s()/K.cartan_type().c()[K.r()]) for K in self.parent().crystals)
         for i in I:
             if self.epsilon(i) > 0:
@@ -1680,10 +1679,10 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
             sage: T = CrystalOfTableaux(['A',3], shape = [2,2])
             sage: t = T(list=[int(3),1,4,2])
             sage: type(t[0])
-            <class 'sage.combinat.crystals.letters.ClassicalCrystalOfLetters_with_category.element_class'>
+            <type 'sage.combinat.crystals.letters.Crystal_of_letters_type_A_element'>
             sage: t = T(list=[3,int(1),4,2])
             sage: type(t[1])
-            <class 'sage.combinat.crystals.letters.ClassicalCrystalOfLetters_with_category.element_class'>
+            <type 'sage.combinat.crystals.letters.Crystal_of_letters_type_A_element'>
             sage: C = KirillovReshetikhinCrystal(['A',int(3),1], 1,1)
             sage: C[0].e(0)
             [[4]]
@@ -1778,7 +1777,7 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
             sage: type(t)
             <class 'sage.combinat.tableau.Tableaux_all_with_category.element_class'>
             sage: type(t[0][0])
-            <type 'sage.rings.integer.Integer'>
+            <type 'int'>
             sage: T = CrystalOfTableaux(['D',3], shape = [1,1])
             sage: t=T(rows=[[-3],[3]]).to_tableau(); t
             [[-3], [3]]

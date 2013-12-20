@@ -74,7 +74,7 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
             sage: c.gens()
             (2, 1/2*w - 1/2)
     """
-    def __init__(self, element, parent, ideal=None):
+    def __init__(self, parent, element, ideal=None):
         """
         Returns the ideal class of this fractional ideal.
 
@@ -86,7 +86,7 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
         """
         if element is None:
             element = parent._ideal_log(ideal)
-        AbelianGroupWithValuesElement.__init__(self, element, parent, ideal)
+        AbelianGroupWithValuesElement.__init__(self, parent, element, ideal)
 
     def _repr_(self):
         r"""
@@ -426,11 +426,12 @@ class ClassGroup(AbelianGroupWithValues_class):
             [(0,), (2,), (4,)]
         """
         if isinstance(args[0], FractionalIdealClass):
-            return self.element_class(None, self, self._number_field.ideal(args[0].ideal()))
+            return self.element_class(self, None, self._number_field.ideal(args[0].ideal()))
         else:
             I = self._number_field.ideal(*args, **kwds)
-            if I.is_zero(): raise TypeError, "The zero ideal is not a fractional ideal"
-            return self.element_class(None, self, I)
+            if I.is_zero():
+                raise TypeError("The zero ideal is not a fractional ideal")
+            return self.element_class(self, None, I)
 
     def _ideal_log(self, ideal):
         """
@@ -661,11 +662,12 @@ class SClassGroup(ClassGroup):
             Fractional S-ideal class (3, a + 1)
         """
         if isinstance(args[0], FractionalIdealClass):
-            return self.element_class(None, self, args[0].ideal())
+            return self.element_class(self, None, args[0].ideal())
         else:
             I = self.number_field().ideal(*args, **kwds)
-            if I.is_zero(): raise TypeError, "The zero ideal is not a fractional ideal"
-            return self.element_class(None, self, I)
+            if I.is_zero():
+                raise TypeError("The zero ideal is not a fractional ideal")
+            return self.element_class(self, None, I)
 
     def _repr_(self):
         r"""

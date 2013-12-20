@@ -329,7 +329,7 @@ from sage.matrix.all import matrix
 from sage.misc.all import latex, prod, uniq, cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.modules.free_module_element import vector
-from sage.rings.all import PolynomialRing, ZZ, QQ
+from sage.rings.all import Infinity, PolynomialRing, ZZ, QQ
 from sage.rings.quotient_ring_element import QuotientRingElement
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.schemes.affine.affine_space import AffineSpace
@@ -383,7 +383,7 @@ def ToricVariety(fan,
                  coordinate_names=None,
                  names=None,
                  coordinate_indices=None,
-                 base_field=QQ):
+                 base_ring=QQ, base_field=None):
     r"""
     Construct a toric variety.
 
@@ -404,7 +404,11 @@ def ToricVariety(fan,
       variables. If not given, the index of each variable will coincide with
       the index of the corresponding ray of the fan;
 
-    - ``base_field`` -- base field of the toric variety (default: `\QQ`).
+    - ``base_ring`` -- base ring of the toric variety (default:
+      `\QQ`). Must be a field.
+
+    - ``base_field`` -- alias for ``base_ring``. Takes precedence if
+      both are specified.
 
     OUTPUT:
 
@@ -462,15 +466,17 @@ def ToricVariety(fan,
         sage: (a^2+b^2) * (c+d)
         a^2*c + b^2*c + a^2*d + b^2*d
     """
+    if base_field is not None:
+        base_ring = base_field
     if names is not None:
         if coordinate_names is not None:
             raise ValueError('You must not specify both coordinate_names and names!')
         coordinate_names = names
-    if base_field not in _Fields:
+    if base_ring not in _Fields:
         raise TypeError("need a field to construct a toric variety!\n Got %s"
-                        % base_field)
+                        % base_ring)
     return ToricVariety_field(fan, coordinate_names, coordinate_indices,
-                             base_field)
+                              base_ring)
 
 
 def AffineToricVariety(cone, *args, **kwds):
@@ -2747,7 +2753,126 @@ class ToricVariety_field(AmbientSpace):
         from sage.geometry.fan import discard_faces
         return ToricVariety(Fan(discard_faces(cones), check=False))
 
+    def count_points(self):
+        r"""
+        Return the number of points of ``self``.
 
+        This is an alias for ``point_set().cardinality()``, see
+        :meth:`~sage.schemes.toric.homset.SchemeHomset_points_toric_field.cardinality`
+        for details.
+
+        EXAMPLES::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: V = ToricVariety(FaceFan(o))
+            sage: V2 = V.change_ring(GF(2))
+            sage: V2.point_set().cardinality()
+            27
+            sage: V2.count_points()
+            27
+        """
+        return self.point_set().cardinality()
+
+    @cached_method
+    def Demazure_roots(self):
+        """
+        Return the Demazure roots.
+
+        OUTPUT:
+
+        The roots as points of the `M`-lattice.
+
+        REFERENCES:
+
+        ..  [Demazure]
+            M. Demazure
+            Sous-groupes algébriques de rang maximum du groupe de Cremona.
+            Ann. Sci. Ecole Norm. Sup. 1970, 3, 507–588.
+
+        ..  [Bazhov]
+            Ivan Bazhov:
+            On orbits of the automorphism group on a complete toric variety.
+            :arxiv:`1110.4275`,
+            :doi:`10.1007/s13366-011-0084-0`.
+
+        EXAMPLE::
+
+            sage: P2 = toric_varieties.P2()
+            sage: P2.Demazure_roots()
+            (M(-1, 0), M(-1, 1), M(0, -1), M(0, 1), M(1, -1), M(1, 0))
+
+        Here are the remaining three examples listed in [Bazhov]_, Example 2.1 and 2.3::
+
+            sage: s = 3
+            sage: cones = [(0,1),(1,2),(2,3),(3,0)]
+            sage: Hs = ToricVariety(Fan(rays=[(1,0),(0,-1),(-1,s),(0,1)], cones=cones))
+            sage: Hs.Demazure_roots()
+            (M(-1, 0), M(1, 0), M(0, 1), M(1, 1), M(2, 1), M(3, 1))
+
+            sage: P11s = ToricVariety(Fan(rays=[(1,0),(0,-1),(-1,s)], cones=[(0,1),(1,2),(2,0)]))
+            sage: P11s.Demazure_roots()
+            (M(-1, 0), M(1, 0), M(0, 1), M(1, 1), M(2, 1), M(3, 1))
+            sage: P11s.Demazure_roots() == Hs.Demazure_roots()
+            True
+
+            sage: Bs = ToricVariety(Fan(rays=[(s,1),(s,-1),(-s,-1),(-s,1)], cones=cones))
+            sage: Bs.Demazure_roots()
+            ()
+
+        TESTS::
+
+            sage: toric_varieties.A1().Demazure_roots()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Demazure_roots() is only implemented for complete toric varieties.
+        """
+        if not self.is_complete():
+            raise NotImplementedError('Demazure_roots() is only implemented '
+                                      'for complete toric varieties.')
+        antiK = -self.K()
+        fan_rays = self.fan().rays()
+        roots = [m for m in antiK.sections()
+                 if [ray*m for ray in fan_rays].count(-1) == 1]
+        return tuple(roots)
+
+
+    def Aut_dimension(self):
+        r"""
+        Return the dimension of the automorphism group
+
+        There are three kinds of symmetries of toric varieties:
+
+          * Toric automorphisms (rescaling of homogeneous coordinates)
+
+          * Demazure roots. These are translations `x_i \to x_i +
+            \epsilon x^m` of a homogeneous coordinate `x_i` by a
+            monomial `x^m` of the same homogeneous degree.
+
+          * Symmetries of the fan. These yield discrete subgroups.
+
+        OUTPUT:
+
+        An integer. The dimension of the automorphism group. Equals
+        the dimension of the `M`-lattice plus the number of Demazure
+        roots.
+
+        EXAMPLES::
+
+            sage: P2 = toric_varieties.P2()
+            sage: P2.Aut_dimension()
+            8
+
+        TESTS::
+
+            sage: toric_varieties.A1().Aut_dimension()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Aut_dimension() is only implemented for complete toric varieties.
+        """
+        if not self.is_complete():
+            raise NotImplementedError('Aut_dimension() is only implemented '
+                                      'for complete toric varieties.')
+        return self.fan().lattice_dim() + len(self.Demazure_roots())
 
 
 def normalize_names(names=None, ngens=None, prefix=None, indices=None,

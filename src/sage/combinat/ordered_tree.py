@@ -381,6 +381,108 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         from sage.combinat.dyck_word import DyckWord
         return DyckWord(word)
 
+    @combinatorial_map(name="To graph")
+    def to_undirected_graph(self):
+        r"""
+        Return the undirected graph obtained from the tree nodes and edges.
+
+        EXAMPLES::
+
+            sage: t = OrderedTree([])
+            sage: t.to_undirected_graph()
+            Graph on 1 vertex
+            sage: t = OrderedTree([[[]],[],[]])
+            sage: t.to_undirected_graph()
+            Graph on 5 vertices
+
+        If the tree is labelled, we use its labelling to label the graph.
+        Otherwise, we use the graph canonical labelling which means that
+        two different trees can have the same graph.
+
+        EXAMPLES::
+
+            sage: t = OrderedTree([[[]],[],[]])
+            sage: t.canonical_labelling().to_undirected_graph()
+            Graph on 5 vertices
+            sage: t.canonical_labelling().to_undirected_graph() == t.to_undirected_graph()
+            False
+            sage: OrderedTree([[],[]]).to_undirected_graph() == OrderedTree([[[]]]).to_undirected_graph()
+            True
+            sage: OrderedTree([[],[],[]]).to_undirected_graph() == OrderedTree([[[[]]]]).to_undirected_graph()
+            False
+        """
+        from sage.graphs.graph import Graph
+        g = Graph()
+        if self in LabelledOrderedTrees():
+            relabel = False
+        else:
+            self = self.canonical_labelling()
+            relabel = True
+        roots = [self]
+        g.add_vertex(name=self.label())
+        while len(roots)!=0:
+            node = roots.pop()
+            for child in node:
+                g.add_vertex(name=child.label())
+                g.add_edge(child.label(), node.label())
+                roots.append(child)
+        if(relabel):
+            g = g.canonical_label()
+        return g
+
+    @combinatorial_map(name="To poset")
+    def to_poset(self, root_to_leaf = False):
+        r"""
+        Return the poset obtained by interpreting the tree as a hasse
+        diagram. The default orientation is from leaves to root but you can
+        pass ``root_to_leaf=True`` to obtain the inverse orientation.
+
+        INPUT:
+
+        - ``root_to_leaf`` -- boolean, true if the poset orientation should
+          be from root to leaves. It is false by default.
+
+        EXAMPLES::
+
+            sage: t = OrderedTree([])
+            sage: t.to_poset()
+            Finite poset containing 1 elements
+            sage: p = OrderedTree([[[]],[],[]]).to_poset()
+            sage: p.cover_relations()
+            [[0, 4], [1, 4], [2, 3], [3, 4]]
+            sage: p = OrderedTree([[[]],[],[]]).to_poset(root_to_leaf=True)
+            sage: p.cover_relations()
+            [[0, 2], [0, 3], [0, 4], [4, 1]]
+
+        If the tree is labelled, we use its labelling to label the poset.
+        Otherwise, we use the poset canonical labelling::
+
+            sage: t = OrderedTree([[[]],[],[]]).canonical_labelling()
+            sage: t
+            1[2[3[]], 4[], 5[]]
+            sage: t.to_poset().cover_relations()
+            [[5, 1], [4, 1], [3, 2], [2, 1]]
+        """
+        if self in LabelledOrderedTrees():
+            relabel = False
+        else:
+            self = self.canonical_labelling()
+            relabel = True
+        relations = []
+        elements = [self.label()]
+        roots = [self]
+        while len(roots)!=0:
+            node = roots.pop()
+            for child in node:
+                elements.append(child.label())
+                relations.append((node.label(),child.label()) if root_to_leaf else (child.label(),node.label()))
+                roots.append(child)
+        from sage.combinat.posets.posets import Poset
+        p = Poset([elements, relations])
+        if relabel:
+            p = p.canonical_label()
+        return p
+
     @combinatorial_map(order=2,name="Left-right symmetry")
     def left_right_symmetry(self):
         r"""

@@ -5260,14 +5260,21 @@ cdef class Expression(CommutativeRingElement):
         polynomials into optimised algebraic polynomials over a given
         base ring.
 
+        You can specify either the base ring (``base_ring``) you want
+        the output polynomial to be over, or you can specify the full
+        polynomial ring (``ring``) you want the output polynomial to
+        be an element of.
+
+        INPUT:
+
+        -  ``base_ring`` - (optional) the base ring for the polynomial
+
+        -  ``ring - (optional) the parent for the polynomial
+
         .. warning::
 
            This is different from :meth:`poly` which is used to rewrite
            self as a polynomial in terms of one of the variables.
-
-        INPUT:
-
-        -  ``base_ring`` - a ring
 
         EXAMPLES::
 
@@ -5339,6 +5346,18 @@ cdef class Expression(CommutativeRingElement):
 
             sage: (pi*x).polynomial(SR)
             pi*x
+
+        Using the ``ring`` parameter, you can also create polynomials
+        rings over the symbolic ring where only certain variables are
+        considered generators of the polynomial ring and the others
+        are considered "constants"::
+
+            sage: a, x, y = var('a,x,y')
+            sage: f = a*x^10*y+3*x
+            sage: B = f.polynomial(ring=SR['x,y'])
+            sage: B.coefficients()
+            [a, 3]
+
         """
         from sage.symbolic.expression_conversions import polynomial
         return polynomial(self, base_ring=base_ring, ring=ring)

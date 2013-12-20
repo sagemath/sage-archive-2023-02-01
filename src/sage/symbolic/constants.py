@@ -380,11 +380,15 @@ class Constant(object):
         """
         Returns an expression for this constant.
 
+        INPUT:
+
+        - ``SR`` - a symbolic ring parent
+
         EXAMPLES::
 
             sage: SR(pi.pyobject())
             pi
-            sage: py.pyobject()._symbolic_(SR)
+            sage: pi.pyobject()._symbolic_(SR)
             pi
             sage: f(x,y) = 2
             sage: f.parent()(pi.pyobject())

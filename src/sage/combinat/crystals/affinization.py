@@ -22,10 +22,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element
 from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
-from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
-from sage.rings.all import ZZ
-from sage.combinat.partition_tuple import PartitionTuple
-from sage.combinat.root_system.cartan_type import CartanType
 
 class AffinizationCrystal(Parent, UniqueRepresentation):
     r"""
@@ -57,6 +53,10 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
 
         sage: K = KirillovReshetikhinCrystal(['A',2,1], 1, 1)
         sage: A = K.affinization()
+
+    REFERENCES:
+
+    - [HK02]_
     """
     def __init__(self, B):
         """
@@ -107,6 +107,10 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
         def e(self, i):
             """
             Return the action of `e_i` on ``self``.
+
+            INPUT:
+
+            - ``i`` -- an element of the index se
             """
             bp = self._b.e(i)
             if bp is None:
@@ -118,6 +122,10 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
         def f(self, i):
             """
             Return the action of `f_i` on ``self``.
+
+            INPUT:
+
+            - ``i`` -- an element of the index set
             """
             bp = self._b.f(i)
             if bp is None:
@@ -129,12 +137,20 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
         def epsilon(self, i):
             r"""
             Return `\varepsilon_i` of ``self``.
+
+            INPUT:
+
+            - ``i`` -- an element of the index set
             """
             return self._b.epsilon(i)
 
         def phi(self, i):
             r"""
             Return `\varphi_i` of ``self``.
+
+            INPUT:
+
+            - ``i`` -- an element of the index set
             """
             return self._b.phi(i)
 

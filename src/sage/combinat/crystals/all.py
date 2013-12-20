@@ -19,4 +19,5 @@ from infinity_crystals import InfinityCrystalOfTableaux
 from elementary_crystals import TCrystal, RCrystal, ElementaryCrystal, ComponentCrystal
 from monomial_crystals import InfinityCrystalOfNakajimaMonomials, CrystalOfNakajimaMonomials
 from kleshchev import KleshchevCrystal
+from multisegments import InfinityCrystalOfMultisegments
 

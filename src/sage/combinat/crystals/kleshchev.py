@@ -1,5 +1,5 @@
 """
-Kleshchev Crystals
+Kleshchev Partition (Tuple) Crystals
 """
 #*****************************************************************************
 #       Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
@@ -28,7 +28,7 @@ from sage.combinat.root_system.cartan_type import CartanType
 
 class KleshchevCrystal(Parent, UniqueRepresentation):
     r"""
-    The Kleshchev crystal.
+    The Kleshchev partition (tuple) crystal.
 
     We consider type `A_n^{(1)}` crystals, and let `r = (r_i \mid r_i \in
     \ZZ / n \ZZ)` be a finite sequence of length `k` (often called the level)
@@ -51,6 +51,12 @@ class KleshchevCrystal(Parent, UniqueRepresentation):
     of `n`-residue `i` in `\mu`. Partition tuples in the crystal are known
     as `r`-Kleshchev partition tuples, and if `r = (r_1)`, then the partitions
     are known as *Kleshchev* partitions.
+
+    .. NOTE::
+
+        We can describe `r`-Kleshchev partition tuples in `B(\lambda)` as
+        partition tuples `\mu` such that `\mu^{(t)}_{r_t - r_{t+1} + x} <
+        \mu^{(t+1)}_x` for all `x \geq 1` and `1 \leq t \leq k - 1`.
 
     INPUT:
 
@@ -122,6 +128,17 @@ class KleshchevCrystal(Parent, UniqueRepresentation):
         sage: G2 = C2.digraph(subset=S)
         sage: G.is_isomorphic(G2, edge_labels=True)
         True
+
+    REFERENCES:
+
+    .. [Ariki2001] Susumu Ariki. On the classification of simple modules for
+       cyclotomic Hecke algebras of type `G(m,1,n)` and Kleshchev
+       multipartitions. Osaka J. Math. **38** (2001). :arxiv:`9908004v2`.
+
+    .. [Vazirani2002] Monica Vazirani. *Parameterizing Hecek algebra modules:
+       Bernstein-Zelevinsky multisegments, Kleshchev multipartitions, and
+       crystal graphs*. Transform. Groups **7** (2002). pp. 267-303.
+       :arxiv:`0107052v1`, :doi:`10.1007/s00031-002-0014-1`.
     """
     @staticmethod
     def __classcall_private__(cls, n, r):
@@ -175,6 +192,10 @@ class KleshchevCrystal(Parent, UniqueRepresentation):
             r"""
             Return the action of `e_i` on ``self``.
 
+            INPUT:
+
+            - ``i`` -- an element of the index set
+
             EXAMPLES::
 
                 sage: C = KleshchevCrystal(2, [0,2])
@@ -207,6 +228,10 @@ class KleshchevCrystal(Parent, UniqueRepresentation):
         def f(self, i):
             r"""
             Return the action of `f_i` on ``self``.
+
+            INPUT:
+
+            - ``i`` -- an element of the index set
 
             EXAMPLES::
 
@@ -243,6 +268,10 @@ class KleshchevCrystal(Parent, UniqueRepresentation):
             r"""
             Return `\varepsilon_i` of ``self``.
 
+            INPUT:
+
+            - ``i`` -- an element of the index set
+
             EXAMPLES::
 
                 sage: C = KleshchevCrystal(2, [0,2])
@@ -268,6 +297,10 @@ class KleshchevCrystal(Parent, UniqueRepresentation):
         def phi(self, i):
             r"""
             Return `\varphi_i` of ``self``.
+
+            INPUT:
+
+            - ``i`` -- an element of the index set
 
             EXAMPLES::
 

@@ -21,11 +21,9 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapper
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
-from sage.categories.regular_crystals import RegularCrystals
-from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
-from sage.rings.all import ZZ
-from sage.combinat.partition_tuple import PartitionTuple
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.root_system.cartan_type import CartanType
+from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 
 class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
     r"""
@@ -41,6 +39,11 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
     REFERENCES:
 
     - [Vazirani2002]_
+    - [TingleyLN]_
+
+    .. [LTV1999] Bernard Leclerc, Jean-Yves Thibon, and Eric Vasserot.
+       *Zelevinsky's involution at roots of unity*. J. Reine Angew. Math.
+       513:33-51 (1999).
     """
     def __init__(self, n):
         """
@@ -70,11 +73,11 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
         """
         An element in a BZ multisegments crystal.
         """
-        def __init__(self, value):
+        def __init__(self, parent, value):
             """
             Initialize ``self``.
             """
-            ElementWrapper.__init__(self, tuple(sorted(value, reverse=True))
+            ElementWrapper.__init__(self, parent, tuple(sorted(value, reverse=True)))
 
         def e(self, i):
             r"""
@@ -89,18 +92,18 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
             M = self.value
             pos = [] # The positions of the uncancelled minuses
             for j,(a,b) in enumerate(M):
-                if b == i:
+                if a == i:
                     pos.append(j)
-                elif b == i + 1 and len(pos) > 0:
+                elif a + 1 == i and len(pos) > 0:
                     pos.pop()
 
             if len(pos) == 0:
                 return None
             j = pos[0]
             a,b = M[j]
-            if a == b:
+            if b == 1:
                 return self.__class__(self.parent(), M[:j] + M[j+1:])
-            return self.__class__(self.parent(), M[:j] + [(a,b-1)] + M[j+1:])
+            return self.__class__(self.parent(), M[:j] + ((a-1,b-1),) + M[j+1:])
 
         def f(self, i):
             r"""
@@ -115,16 +118,17 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
             M = self.value
             pos = [] # The positions of the uncancelled minuses
             for j,(a,b) in reversed(list(enumerate(M))):
-                if b == i + 1:
+                if a + 1 == i:
                     pos.append(j)
-                elif b == i and len(pos) > 0:
+                elif a == i and len(pos) > 0:
                     pos.pop()
 
             if len(pos) == 0:
-                return self.__class__(self.parent(), [(i, i)] + list(M))
+                Z = IntegerModRing(self.cartan_type().rank())
+                return self.__class__(self.parent(), ((Z(1), i),) + M)
             j = pos[0]
             a,b = M[j]
-            return self.__class__(self.parent(), M[:j] + [(a,b+1)] + M[j+1:])
+            return self.__class__(self.parent(), M[:j] + ((a+1,b+1),) + M[j+1:])
 
         def epsilon(self, i):
             r"""

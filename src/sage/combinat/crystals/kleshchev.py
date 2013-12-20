@@ -139,6 +139,16 @@ class KleshchevCrystal(Parent, UniqueRepresentation):
        Bernstein-Zelevinsky multisegments, Kleshchev multipartitions, and
        crystal graphs*. Transform. Groups **7** (2002). pp. 267-303.
        :arxiv:`0107052v1`, :doi:`10.1007/s00031-002-0014-1`.
+
+    .. [TingleyLN] Peter Tingley. Explicit `\widehat{\mathfrak{sl}}_n` crystal
+       maps between cylindric plane partitions, multi-partitions, and
+       multi-segments. Lecture notes.
+       http://webpages.math.luc.edu/~ptingley/lecturenotes/explicit_bijections.pdf
+
+    .. [Tingley2007] Peter Tingley. Three combinatorial models for
+       `\widehat{\mathfrak{sl}}_n` crystals, with applications to cylindric
+       plane partitions. International Mathematics Research Notices. (2007).
+       :arxiv:`0702062v3`.
     """
     @staticmethod
     def __classcall_private__(cls, n, r):

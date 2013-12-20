@@ -167,7 +167,6 @@ from sage.rings.quotient_ring_element import QuotientRingElement
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.polynomial.pbori import BooleanPolynomialRing
 
 from sage.interfaces.singular import singular
 
@@ -1021,6 +1020,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
            Cryptology ePrint Archive: Report 2007/024. available at
            http://eprint.iacr.org/2007/024
         """
+        from sage.rings.polynomial.pbori import BooleanPolynomialRing
         from polybori import gauss_on_polys
         from polybori.ll import eliminate,ll_encode,ll_red_nf_redsb
 
@@ -1099,6 +1099,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
             sage: F._groebner_strategy()
             <sage.rings.polynomial.pbori.GroebnerStrategy object at 0x...>
         """
+        from sage.rings.polynomial.pbori import BooleanPolynomialRing
         R = self.ring()
 
         if not isinstance(R, BooleanPolynomialRing):
@@ -1205,6 +1206,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
             []
 
         """
+        from sage.rings.polynomial.pbori import BooleanPolynomialRing
         from sage.modules.free_module import VectorSpace
 
         S = self

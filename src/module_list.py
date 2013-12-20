@@ -43,7 +43,6 @@ numpy_depends = [SAGE_LOCAL + '/lib/python/site-packages/numpy/core/include/nump
 
 flint_depends = [SAGE_INC + '/flint/flint.h']
 singular_depends = [SAGE_INC + '/libsingular.h', SAGE_INC + '/givaro/givconfig.h']
-ginac_depends = [SAGE_INC + '/pynac/ginac.h']
 
 #########################################################
 ### M4RI flags
@@ -1990,41 +1989,18 @@ ext_modules = [
     ## sage.symbolic
     ##
     ################################
-    Extension('sage.symbolic.constants_c',
-              sources = ['sage/symbolic/constants_c.pyx'],
-              language = 'c++',
-              depends = ginac_depends,
-              libraries = ["pynac", "gmp"]),
 
-    Extension('sage.symbolic.expression',
-              sources = ['sage/symbolic/expression.pyx'],
-              language = 'c++',
-              depends = ginac_depends,
-              libraries = ["pynac", "gmp"]),
-
-    Extension('sage.symbolic.getitem',
-              sources = ['sage/symbolic/getitem.pyx'],
-              language = 'c++',
-              depends = [SAGE_INC + "/pynac/ginac.h"],
-              libraries = ["pynac", "gmp"]),
+    # TODO: Verify numpy depends are also found automatically.
 
     Extension('sage.symbolic.function',
               sources = ['sage/symbolic/function.pyx'],
-              language = 'c++',
-              depends = ginac_depends + numpy_depends,
-              libraries = ["pynac", "gmp"]),
-
-    Extension('sage.symbolic.pynac',
-              sources = ['sage/symbolic/pynac.pyx'],
-              language = 'c++',
-              depends = ginac_depends,
-              libraries = ["pynac", "gmp", "gsl"]),
+              depends = numpy_depends),
 
     Extension('sage.symbolic.ring',
               sources = ['sage/symbolic/ring.pyx'],
-              language = 'c++',
-              depends = ginac_depends + numpy_depends,
-              libraries = ["pynac", "gmp"]),
+              depends = numpy_depends),
+
+    Extension('*', ['sage/symbolic/*.pyx']),
 
     ################################
     ##

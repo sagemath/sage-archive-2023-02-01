@@ -183,7 +183,8 @@ cpdef double odlyzko_bound_totallyreal(int n):
 
 def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False,
                                       phc=False, keep_fields=False, t_2=False,
-                                      just_print=False):
+                                      just_print=False,
+                                      return_pari_objects=True):
     r"""
     This function enumerates primitive totally real fields of degree
     `n>1` with discriminant `d \leq B`; optionally one can specify the
@@ -202,24 +203,28 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
     INPUT:
 
-    - ``n`` (integer): the degree
-    - ``B`` (integer): the discriminant bound
-    - ``a`` (list, default: []): the coefficient list to begin with
-    - ``verbose`` (integer or string, default: 0): if ``verbose == 1``
+    - ``n`` -- (integer) the degree
+    - ``B`` -- (integer) the discriminant bound
+    - ``a`` -- (list, default: []) the coefficient list to begin with
+    - ``verbose`` -- (integer or string, default: 0) if ``verbose == 1``
       (or ``2``), then print to the screen (really) verbosely; if verbose is
       a string, then print verbosely to the file specified by verbose.
-    - ``return_seqs`` (boolean, default False)If ``return_seqs``, then return
+    - ``return_seqs`` -- (boolean, default False) If ``True``, then return
       the polynomials as sequences (for easier exporting to a file).
     - ``phc`` -- boolean or integer (default: False)
-    - ``keep_fields`` (boolean or integer, default: False) If ``keep_fields`` is True,
-      then keep fields up to ``B*log(B)``; if ``keep_fields`` is an integer, then
-      keep fields up to that integer.
-    - ``t_2`` (boolean or integer, default: False) If ``t_2 = T``, then keep
-      only polynomials with t_2 norm >= T.
-    - ``just_print`` (boolean, default: False): if ``just_print`` is not False,
-      instead of creating a sorted list of totally real number fields, we simply
-      write each totally real field we find to the file whose filename is given by
-      ``just_print``. In this case, we don't return anything.
+    - ``keep_fields`` -- (boolean or integer, default: False) If
+      ``keep_fields`` is True, then keep fields up to ``B*log(B)``; if
+      ``keep_fields`` is an integer, then keep fields up to that integer.
+    - ``t_2`` -- (boolean or integer, default: False) If ``t_2 = T``, then
+      keep only polynomials with t_2 norm >= T.
+    - ``just_print`` -- (boolean, default: False): if ``just_print`` is not
+      False, instead of creating a sorted list of totally real number
+      fields, we simply write each totally real field we find to the file
+      whose filename is given by ``just_print``. In this case, we don't
+      return anything.
+    - ``return_pari_objects`` -- (boolean, default: True) if
+      ``return_seqs`` is ``False`` then it returns the elements as Sage
+      objects; otherwise it returns pari objects.
 
     OUTPUT:
 
@@ -247,6 +252,21 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         2720
         sage: len(enumerate_totallyreal_fields_prim(5,5**8)) # long time
         103
+
+    Each of the outputs must be elements of Sage if ``return_pari_objects``
+    is set to ``False``::
+
+        sage: enumerate_totallyreal_fields_prim(2, 10)
+        [[5, x^2 - x - 1], [8, x^2 - 2]]
+        sage: enumerate_totallyreal_fields_prim(2, 10)[0][1].parent()
+        Interface to the PARI C library
+        sage: enumerate_totallyreal_fields_prim(2, 10, return_pari_objects=False)[0][0].parent()
+        Integer Ring
+        sage: enumerate_totallyreal_fields_prim(2, 10, return_pari_objects=False)[0][1].parent()
+        Univariate Polynomial Ring in x over Rational Field
+        sage: enumerate_totallyreal_fields_prim(2, 10, return_seqs=True)[1][0][1][0].parent()
+        Rational Field
+
     """
 
     cdef pari_gen B_pari, d, d_poly, keepB, nf, t2val, ngt2, ng
@@ -476,6 +496,8 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
     if return_seqs:
         return [[ZZ(counts[i]) for i in range(4)],
                 [[ZZ(s[0]), map(QQ, s[1].reverse().Vec())] for s in S]]
+    elif return_pari_objects:
+        return S
     else:
         Px = PolynomialRing(QQ, 'x')
         return [[ZZ(s[0]), Px(map(QQ, s[1].list()))]

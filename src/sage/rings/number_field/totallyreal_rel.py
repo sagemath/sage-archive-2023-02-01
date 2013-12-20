@@ -634,7 +634,9 @@ class tr_data_rel:
 # Main routine
 #***********************************************************************************************
 
-def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=False):
+def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
+                                     return_seqs=False,
+                                     return_pari_objects=True):
     r"""
     This function enumerates (primitive) totally real field extensions of
     degree `m>1` of the totally real field F with discriminant `d \leq B`;
@@ -662,7 +664,11 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
     - ``B`` -- integer, the discriminant bound
     - ``a`` -- list (default: []), the coefficient list to begin with
     - ``verbose`` -- boolean or string (default: 0)
-    - ``return_seqs`` -- boolean (default: False)
+    - ``return_seqs`` -- (boolean, default False) If ``True``, then return
+      the polynomials as sequences (for easier exporting to a file).
+    - ``return_pari_objects`` -- (boolean, default: True) if
+      ``return_seqs`` is ``False`` then it returns the elements as Sage
+      objects; otherwise it returns pari objects.
 
     OUTPUT:
 
@@ -677,6 +683,22 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
         sage: F.<t> = NumberField(x^2-2)
         sage: enumerate_totallyreal_fields_rel(F, 2, 2000)
         [[1600, x^4 - 6*x^2 + 4, xF^2 + xF - 1]]
+
+    TESTS:
+
+    Each of the outputs must be elements of Sage if ``return_pari_objects``
+    is set to ``False``::
+
+        sage: enumerate_totallyreal_fields_rel(F, 2, 2000)[0][1].parent()
+        Interface to the PARI C library
+        sage: enumerate_totallyreal_fields_rel(F, 2, 2000, return_pari_objects=False)[0][0].parent()
+        Integer Ring
+        sage: enumerate_totallyreal_fields_rel(F, 2, 2000, return_pari_objects=False)[0][1].parent()
+        Univariate Polynomial Ring in x over Rational Field
+        sage: enumerate_totallyreal_fields_rel(F, 2, 2000, return_pari_objects=False)[0][2].parent()
+        Univariate Polynomial Ring in xF over Number Field in t with defining polynomial x^2 - 2
+        sage: enumerate_totallyreal_fields_rel(F, 2, 2000, return_seqs=True)[1][0][1][0].parent()
+        Rational Field
 
     AUTHORS:
 
@@ -852,14 +874,28 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
                 [[s[0], map(QQ, s[1].reverse().Vec()), s[2].coeffs()]
                  for s in S]
                ]
+    elif return_pari_objects:
+        return S
     else:
         Px = PolynomialRing(QQ, 'x')
         return [[s[0], Px(map(QQ, s[1].list())), s[2]] for s in S]
 
-def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False):
+def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
+                                     return_pari_objects=True):
     r"""
     Enumerates *all* totally real fields of degree `n` with discriminant `\le B`,
     primitive or otherwise.
+
+    INPUT:
+
+    - ``n`` -- integer, the degree
+    - ``B`` -- integer, the discriminant bound
+    - ``verbose`` -- boolean or string (default: 0)
+    - ``return_seqs`` -- (boolean, default False) If ``True``, then return
+      the polynomials as sequences (for easier exporting to a file).
+    - ``return_pari_objects`` -- (boolean, default: True) if
+      ``return_seqs`` is ``False`` then it returns the elements as Sage
+      objects; otherwise it returns pari objects.
 
     EXAMPLES::
 
@@ -869,6 +905,19 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False):
         [1600, x^4 - 6*x^2 + 4],
         [1957, x^4 - 4*x^2 - x + 1],
         [2000, x^4 - 5*x^2 + 5]]
+
+    TESTS:
+
+    Each of the outputs must be elements of Sage if ``return_pari_objects``
+    is set to ``False``::
+
+        sage: enumerate_totallyreal_fields_all(2, 10)
+        [[5, x^2 - x - 1], [8, x^2 - 2]]
+        sage: enumerate_totallyreal_fields_all(2, 10)[0][1].parent()
+        Interface to the PARI C library
+        sage: enumerate_totallyreal_fields_all(2, 10, return_pari_objects=False)[0][1].parent()
+        Univariate Polynomial Ring in x over Rational Field
+
 
     In practice most of these will be found by :func:`~sage.rings.number_field.totallyreal.enumerate_totallyreal_fields_prim`, which is guaranteed to return all primitive fields but often returns many non-primitive ones as well. For instance, only one of the five fields in the example above is primitive, but :func:`~sage.rings.number_field.totallyreal.enumerate_totallyreal_fields_prim` finds four out of the five (the exception being `x^4 - 6x^2 + 4`).
     """
@@ -922,6 +971,8 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False):
     if return_seqs:
         return [map(ZZ, counts),
                 [[ZZ(s[0]), map(QQ, s[1].reverse().Vec())] for s in S]]
+    elif return_pari_objects:
+        return S
     else:
         Px = PolynomialRing(QQ, 'x')
         return [[ZZ(s[0]), Px(map(QQ, s[1].list()))]

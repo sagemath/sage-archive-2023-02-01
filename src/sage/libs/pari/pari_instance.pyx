@@ -194,13 +194,13 @@ new_galois_format = 1
 # which should be a words precision.  In many cases this is redundant
 # and is simply ignored.  In our wrapping of these functions we use
 # the variable prec here for convenience only.
-cdef unsigned long prec
+cdef long prec
 
 #################################################################
 # conversions between various real precision models
 #################################################################
 
-def prec_bits_to_dec(int prec_in_bits):
+def prec_bits_to_dec(unsigned long prec_in_bits):
     r"""
     Convert from precision expressed in bits to precision expressed in
     decimal.
@@ -220,10 +220,10 @@ def prec_bits_to_dec(int prec_in_bits):
         (224, 67),
         (256, 77)]
     """
-    log_2 = 0.301029995663981
+    cdef double log_2 = 0.301029995663981
     return int(prec_in_bits*log_2)
 
-def prec_dec_to_bits(int prec_in_dec):
+def prec_dec_to_bits(unsigned long prec_in_dec):
     r"""
     Convert from precision expressed in decimal to precision expressed
     in bits.
@@ -244,10 +244,10 @@ def prec_dec_to_bits(int prec_in_dec):
         (80, 265),
         (90, 298)]
     """
-    log_10 = 3.32192809488736
+    cdef double log_10 = 3.32192809488736
     return int(prec_in_dec*log_10)
 
-def prec_bits_to_words(int prec_in_bits=0):
+cpdef long prec_bits_to_words(unsigned long prec_in_bits):
     r"""
     Convert from precision expressed in bits to pari real precision
     expressed in words. Note: this rounds up to the nearest word,
@@ -269,15 +269,12 @@ def prec_bits_to_words(int prec_in_bits=0):
     """
     if not prec_in_bits:
         return prec
-    cdef int wordsize
-    wordsize = BITS_IN_LONG
+    cdef unsigned long wordsize = BITS_IN_LONG
 
-    # increase prec_in_bits to the nearest multiple of wordsize
-    cdef int padded_bits
-    padded_bits = (prec_in_bits + wordsize - 1) & ~(wordsize - 1)
-    return int(padded_bits/wordsize + 2)
+    # This equals ceil(prec_in_bits/wordsize) + 2
+    return (prec_in_bits - 1)//wordsize + 3
 
-def prec_words_to_bits(int prec_in_words):
+def prec_words_to_bits(long prec_in_words):
     r"""
     Convert from pari real precision expressed in words to precision
     expressed in bits. Note: this adjusts for the two codewords of a
@@ -294,9 +291,9 @@ def prec_words_to_bits(int prec_in_words):
         [(3, 64), (4, 128), (5, 192), (6, 256), (7, 320), (8, 384), (9, 448)] # 64-bit
     """
     # see user's guide to the pari library, page 10
-    return int((prec_in_words - 2) * BITS_IN_LONG)
+    return (prec_in_words - 2) * BITS_IN_LONG
 
-def prec_dec_to_words(int prec_in_dec):
+def prec_dec_to_words(long prec_in_dec):
     r"""
     Convert from precision expressed in decimal to precision expressed
     in words. Note: this rounds up to the nearest word, adjusts for the
@@ -314,7 +311,7 @@ def prec_dec_to_words(int prec_in_dec):
     """
     return prec_bits_to_words(prec_dec_to_bits(prec_in_dec))
 
-def prec_words_to_dec(int prec_in_words):
+def prec_words_to_dec(long prec_in_words):
     r"""
     Convert from precision expressed in words to precision expressed in
     decimal. Note: this adjusts for the two codewords of a pari real,
@@ -433,7 +430,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         if bot:
             return  # pari already initialized.
 
-        global num_primes, avma, top, bot, prec
+        global num_primes, top, bot
 
         # The size here doesn't really matter, because we will allocate
         # our own stack anyway. We ask PARI not to set up signal and
@@ -448,14 +445,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         pari_free(<void*>bot); bot = 0
         init_stack(size)
 
-        GP_DATA.fmt.prettyp = 0
-
-        # how do I get the following to work? seems to be a circular import
-        #from sage.rings.real_mpfr import RealField
-        #prec_bits = RealField().prec()
-        prec = prec_bits_to_words(53)
-        GP_DATA.fmt.sigd = prec_bits_to_dec(53)
-
         # Set printing functions
         global pariOut, pariErr
 
@@ -468,6 +457,22 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         pariErr.putch = sage_pariErr_putchar
         pariErr.puts = sage_pariErr_puts
         pariErr.flush = sage_pariErr_flush
+
+        # Display only 15 digits
+        sd_format("g.15", d_SILENT)
+
+        # Init global prec variable (PARI's precision is always a
+        # multiple of the machine word size)
+        global prec
+        prec = prec_bits_to_words(64)
+
+        # Disable pretty-printing
+        GP_DATA.fmt.prettyp = 0
+
+        # This causes PARI/GP to use output independent of the terminal
+        # (which is want we want for the PARI library interface).
+        GP_DATA.flags = gpd_TEST
+
 
     def debugstack(self):
         r"""
@@ -554,7 +559,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     def set_real_precision(self, long n):
         """
-        Sets the PARI default real precision.
+        Sets the PARI default real precision in decimal digits.
 
         This is used both for creation of new objects from strings and for
         printing. It is the number of digits *IN DECIMAL* in which real
@@ -564,15 +569,22 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         effect on the precision of computations within the pari library.
 
         Returns the previous PARI real precision.
-        """
-        cdef unsigned long k
 
-        k = GP_DATA.fmt.sigd
-        s = str(n)
+        EXAMPLES::
+
+            sage: pari.set_real_precision(60)
+            15
+            sage: pari('1.2')
+            1.20000000000000000000000000000000000000000000000000000000000
+            sage: pari.set_real_precision(15)
+            60
+        """
+        prev = self.get_real_precision()
+        cdef bytes strn = str(n)
         pari_catch_sig_on()
-        sd_realprecision(s, 2)
+        sd_realprecision(strn, d_SILENT)
         pari_catch_sig_off()
-        return int(k)  # Python int
+        return prev
 
     def get_real_precision(self):
         """
@@ -584,8 +596,16 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         created by parsing strings (e.g. pari('1.2')), which is *not* the
         normal way of creating new pari objects in Sage. It has *no*
         effect on the precision of computations within the pari library.
+
+        EXAMPLES::
+
+            sage: pari.get_real_precision()
+            15
         """
-        return GP_DATA.fmt.sigd
+        pari_catch_sig_on()
+        cdef long prev = itos(sd_realprecision(NULL, d_RETURN))
+        pari_catch_sig_off()
+        return prev
 
     def set_series_precision(self, long n):
         global precdl
@@ -1287,7 +1307,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             self.init_primes(max(2*num_primes,20*n))
             return self.nth_prime(n)
 
-    def euler(self, precision=0):
+    def euler(self, unsigned long precision=0):
         """
         Return Euler's constant to the requested real precision (in bits).
 
@@ -1301,7 +1321,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         pari_catch_sig_on()
         return self.new_gen(mpeuler(prec_bits_to_words(precision)))
 
-    def pi(self, precision=0):
+    def pi(self, unsigned long precision=0):
         """
         Return the value of the constant pi to the requested real precision
         (in bits).

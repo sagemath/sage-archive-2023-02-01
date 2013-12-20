@@ -707,9 +707,7 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
         else:
             # raise NotImplementedError("fixed point set not implemented for"
             #                           " isometries of type {0}".format(M_cls))
-            from  sage.rings.real_mpfr import is_RealField
-            if is_RealField(M.base_ring()):
-                M = M.change_ring(RDF)
+            M = M.change_ring(RDF)
             p, q = [M.eigenvectors_right()[k][1][0] for k in range(2)]
             if p[1] == 0:
                 p = infinity
@@ -799,7 +797,7 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
         [a,b,c,d] = [RR.random_element() for k in range(4)]
         while abs(a*d - b*c) < EPSILON:
             [a,b,c,d] = [RR.random_element() for k in range(4)]
-        M = matrix(2,[a,b,c,d])
+        M = matrix(RDF, 2,[a,b,c,d])
         M = M/(M.det()).abs().sqrt()
         if M.det() > 0:
             if preserve_orientation:

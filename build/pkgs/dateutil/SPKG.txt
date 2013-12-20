@@ -20,7 +20,8 @@ Home page: http://labix.org/python-dateutil
 
 == Dependencies ==
 
-Python
+* Python
+* Six
 
 == Changelog ==
 

@@ -483,8 +483,8 @@ def is_distance_regular(G, parameters = False):
 
     .. SEEALSO::
 
-        * :meth:`Graph.is_regular`
-        * :meth:`Graph.is_strongly_regular`
+        * :meth:`~sage.graphs.generic_graph.GenericGraph.is_regular`
+        * :meth:`~Graph.is_strongly_regular`
 
     EXAMPLES::
 

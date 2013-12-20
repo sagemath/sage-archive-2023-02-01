@@ -707,8 +707,11 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
         else:
             # raise NotImplementedError("fixed point set not implemented for"
             #                           " isometries of type {0}".format(M_cls))
-            M = M.change_ring(RDF)
-            p, q = [M.eigenvectors_right()[k][1][0] for k in range(2)]
+            try:
+                p, q = [M.eigenvectors_right()[k][1][0] for k in range(2)]
+            except (IndexError):
+                M = M.change_ring(RDF)
+                p, q = [M.eigenvectors_right()[k][1][0] for k in range(2)]
             if p[1] == 0:
                 p = infinity
             else:

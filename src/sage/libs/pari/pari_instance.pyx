@@ -174,8 +174,6 @@ from sage.libs.pari.handle_error cimport pari_error_string, \
 # See the polgalois section of the PARI users manual.
 new_galois_format = 1
 
-cdef pari_sp mytop
-
 # real precision in decimal digits: see documentation for
 # get_real_precision() and set_real_precision().  This variable is used
 # in gp to set the precision of input quantities (e.g. sqrt(2)), and for
@@ -278,8 +276,6 @@ def prec_bits_to_words(int prec_in_bits=0):
     cdef int padded_bits
     padded_bits = (prec_in_bits + wordsize - 1) & ~(wordsize - 1)
     return int(padded_bits/wordsize + 2)
-
-pbw = prec_bits_to_words
 
 def prec_words_to_bits(int prec_in_words):
     r"""
@@ -605,9 +601,9 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         pari_catch_sig_off()`` block.
 
         """
-        global mytop, avma
+        global top, avma
         if _signals.sig_on_count <= 1:
-            avma = mytop
+            avma = top
         pari_catch_sig_off()
 
     cdef inline gen new_gen(self, GEN x):
@@ -1303,7 +1299,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             0.577215664901532860606512090082...
         """
         pari_catch_sig_on()
-        return self.new_gen(mpeuler(pbw(precision)))
+        return self.new_gen(mpeuler(prec_bits_to_words(precision)))
 
     def pi(self, precision=0):
         """
@@ -1318,7 +1314,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             3.1415926535897932384626433832...
         """
         pari_catch_sig_on()
-        return self.new_gen(mppi(pbw(precision)))
+        return self.new_gen(mppi(prec_bits_to_words(precision)))
 
     def pollegendre(self, long n, v=-1):
         """
@@ -1556,7 +1552,7 @@ cdef int init_stack(size_t requested_size) except -1:
     function should not be called directly, use ``pari.allocatemem()``
     instead.
     """
-    global top, bot, avma, mytop
+    global top, bot, avma
 
     cdef size_t old_size = <size_t>(top) - <size_t>(bot)
 
@@ -1622,7 +1618,6 @@ cdef int init_stack(size_t requested_size) except -1:
             raise SystemError("Unable to allocate PARI stack, all subsequent PARI computations will crash")
 
         top = bot + new_size
-        mytop = top
         avma = top
 
         if failed_size:

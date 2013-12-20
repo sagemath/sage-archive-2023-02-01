@@ -120,7 +120,7 @@ def parse(s):
 
 def polish_parse(s):
     r"""
-    Return the full syntax parse tree from a boolean formula s.
+    Return the full syntax parse tree from a boolean formula ``s``.
 
     INPUT:
 
@@ -128,11 +128,12 @@ def polish_parse(s):
 
     OUTPUT:
 
-    The full syntax parse tree as a nested list
+    The full syntax parse tree as a nested list.
 
     EXAMPLES:
 
-    This example illustrates how to find the full syntax parse tree of a boolean formula.
+    This example illustrates how to find the full syntax parse tree
+    of a boolean formula.
 
     ::
 
@@ -159,12 +160,12 @@ def recover_formula(prefix_tree):
 
     INPUT:
 
-    - ``prefix_tree`` -- a list. This is a full syntax parse
-      tree in prefix form.
+    - ``prefix_tree`` -- a list; this is a full syntax parse
+      tree in prefix form
 
     OUTPUT:
 
-    The formula as a string
+    The formula as a string.
 
     EXAMPLES:
 
@@ -196,11 +197,11 @@ def recover_formula(prefix_tree):
         sage: logicparser.recover_formula(s)
         'd'
 
-    .. NOTES::
+    .. NOTE::
 
         The function :func:`polish_parse` may be passed as an argument,
         but :func:`tree_parse` may not unless the parameter ``polish``
-        is set equal to True.
+        is set to ``True``.
 
     AUTHORS:
 
@@ -208,13 +209,12 @@ def recover_formula(prefix_tree):
     """
     formula = ''
     if not isinstance(prefix_tree, list):
-        raise Exception, "recover_formula takes a parse tree as input"
-    else:
-        formula = apply_func(prefix_tree, recover_formula_internal)
-        if prefix_tree[0] == '~' or len(prefix_tree) == 1:
-            return formula
-        else:
-            return formula[1:-1]
+        raise ValueError("the input must be a parse tree as a list")
+
+    formula = apply_func(prefix_tree, recover_formula_internal)
+    if prefix_tree[0] == '~' or len(prefix_tree) == 1:
+        return formula
+    return formula[1:-1]
 
 def recover_formula_internal(prefix_tree):
     r"""
@@ -222,12 +222,12 @@ def recover_formula_internal(prefix_tree):
 
     INPUT:
 
-    - ``prefix_tree`` -- a list. This is a simple tree
-      with at most one operator in prefix form.
+    - ``prefix_tree`` -- a list; this is a simple tree
+      with at most one operator in prefix form
 
     OUTPUT:
 
-    The formula as a string
+    The formula as a string.
 
     EXAMPLES:
 
@@ -253,7 +253,8 @@ def recover_formula_internal(prefix_tree):
         sage: logicparser.recover_formula_internal(s)
         'd'
 
-    We can pass :func:`recover_formula_internal` as an argument in :func:`apply_func`.
+    We can pass :func:`recover_formula_internal` as an argument
+    in :func:`apply_func`.
 
     ::
 
@@ -263,14 +264,13 @@ def recover_formula_internal(prefix_tree):
 
     .. NOTE::
 
-        This function is for internal use by logicparser.py.  The function
-        recovers the formula of a simple parse tree in prefix form.  A
+        This function is for internal use by :mod:`logicparser`. The function
+        recovers the formula of a simple parse tree in prefix form. A
         simple parse tree contains at most one operator.
-
 
         The function :func:`polish_parse` may be passed as an argument,
         but :func:`tree_parse` may not unless the parameter ``polish``
-        is set equal to True.
+        is set to ``True``.
 
     AUTHORS:
 
@@ -287,12 +287,12 @@ def prefix_to_infix(prefix_tree):
 
     INPUT:
 
-    - ``prefix_tree`` -- a list. This is a full syntax parse
-      tree in prefix form.
+    - ``prefix_tree`` -- a list; this is a full syntax parse
+      tree in prefix form
 
     OUTPUT:
 
-    A list containing the tree in infix form
+    A list containing the tree in infix form.
 
     EXAMPLES:
 
@@ -312,18 +312,18 @@ def prefix_to_infix(prefix_tree):
         sage: logicparser.prefix_to_infix(f.full_tree())
         [['a', '&', ['~', 'b']], '<->', ['~', ['~', ['~', ['c', '|', 'd']]]]]
 
-    .. NOTES::
+    .. NOTE::
 
         The function :func:`polish_parse` may be passed as an argument,
         but :func:`tree_parse` may not unless the parameter ``polish``
-        is set equal to True.
+        is set to ``True``.
 
     AUTHORS:
 
     - Paul Scurek (2013-08-06)
     """
     if not isinstance(prefix_tree, list):
-        raise Exception, "prefix_to_infix takes a parse tree as input"
+        raise TypeError("the input must be a parse tree as a list")
     return apply_func(prefix_tree, to_infix_internal)
 
 def to_infix_internal(prefix_tree):
@@ -341,7 +341,8 @@ def to_infix_internal(prefix_tree):
 
     EXAMPLES:
 
-    This example illustrates converting a simple tree from prefix to infix form.
+    This example illustrates converting a simple tree from prefix
+    to infix form.
 
     ::
 
@@ -359,15 +360,15 @@ def to_infix_internal(prefix_tree):
         sage: logicparser.apply_func(f.full_tree(), logicparser.to_infix_internal)
         [['a', '&', ['~', 'b']], '<->', ['~', ['~', ['~', ['c', '|', 'd']]]]]
 
-    .. NOTES::
+    .. NOTE::
 
-        This function is for internal use by logicparser.py. It converts a simple
-        parse tree from prefix form to infix form.  A simple parse tree contains
-        at most one operator.
+        This function is for internal use by :mod:`logicparser`. It converts
+        a simple parse tree from prefix form to infix form. A simple parse
+        tree contains at most one operator.
 
         The function :func:`polish_parse` may be passed as an argument,
         but :func:`tree_parse` may not unless the parameter ``polish``
-        is set equal to True.
+        is set to ``True``.
 
     AUTHORS:
 
@@ -375,8 +376,7 @@ def to_infix_internal(prefix_tree):
     """
     if prefix_tree[0] != '~' and len(prefix_tree) == 3:
         return [prefix_tree[1], prefix_tree[0], prefix_tree[2]]
-    else:
-        return prefix_tree
+    return prefix_tree
 
 def tokenize(s):
     r"""

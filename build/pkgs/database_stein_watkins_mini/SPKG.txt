@@ -1,0 +1,32 @@
+= database_stein_watkins_mini =
+
+== Description ==
+The Stein-Watkins database of elliptic curves (small version)
+
+See http://modular.math.washington.edu/papers/stein-watkins/
+
+This is an optional package, not included by default.
+
+== License ==
+None
+
+== SPKG Maintainers ==
+ * William Stein
+ * John Cremona
+
+== Dependencies ==
+None
+
+=== Patches ===
+ * None
+
+==ChangeLog ==
+
+=== database_stein_watkins_mini (John Cremona, December 20th 2013) ===
+ * Converted to the new git package format
+
+=== database_stein_watkins_mini.p0 (David Kirkby, March 12th 2010) ===
+ * #8512 Removed the non-POSIX option -v from 'cp' command.
+ * Added this SPKG.txt file. It is incomplete, but it never even
+   existed before.
+

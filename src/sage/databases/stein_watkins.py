@@ -15,7 +15,7 @@ time, using the command
 
 ::
 
-    sage -i database_stein_watkins_mini.p0
+    sage -i database_stein_watkins_mini
 
 This database covers a wide range of conductors, but unlike the
 :mod:`Cremona database <sage.databases.cremona>`, this database need not list
@@ -187,7 +187,7 @@ class SteinWatkinsAllData:
             raise RuntimeError("num (=%s) must be a nonnegative integer"%num)
         name = str(num)
         name = '0'*(3-len(name)) + name
-        self._file = os.path.join(SAGE_SHARE, 'stein-watkins-ecdb', 'a.%s.bz2'%name)
+        self._file = os.path.join(SAGE_SHARE, 'stein_watkins', 'swdb', 'a.%s.bz2'%name)
         self._iter = self.__iter__()
 
     def __repr__(self):
@@ -281,12 +281,15 @@ class SteinWatkinsAllData:
 
         EXAMPLE::
 
-            sage: d = SteinWatkinsAllData(2)           # optional - stein_watkins_database
+            sage: d = SteinWatkinsAllData(1)           # optional - stein_watkins_database
             sage: E = d.iter_levels()                  # optional - stein_watkins_database
             sage: E.next()                             # optional - stein_watkins_database
-            [Stein-Watkins isogeny class of conductor 200002, Stein-Watkins isogeny
-             class of conductor 200002, Stein-Watkins isogeny class of conductor
-             200002]
+            [Stein-Watkins isogeny class of conductor 100002]
+            sage: E.next()
+            [Stein-Watkins isogeny class of conductor 100005,
+            Stein-Watkins isogeny class of conductor 100005]
+            sage: E.next()
+            [Stein-Watkins isogeny class of conductor 100007]
         """
         iter = self.__iter__()
         C = []
@@ -316,7 +319,7 @@ class SteinWatkinsPrimeData(SteinWatkinsAllData):
             raise RuntimeError("num (=%s) must be a nonnegative integer"%num)
         name = str(num)
         name = '0'*(2-len(name)) + name
-        self._file = os.path.join(SAGE_SHARE,'stein-watkins-ecdb','p.%s.bz2'%name)
+        self._file = os.path.join(SAGE_SHARE,'stein_watkins','swdb','p.%s.bz2'%name)
         self._iter = self.__iter__()
 
     def __repr__(self):

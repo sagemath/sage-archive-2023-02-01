@@ -125,7 +125,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import IntegerRing
-from sage.rings.all import ZZ
+from sage.rings.all import ZZ, QQ
 from sage.misc.misc import cputime
 
 from sage.rings.number_field.totallyreal_data import tr_data, int_has_small_square_divisor
@@ -472,11 +472,14 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         sys.stdout = saveout
 
     sage_free(f_out)
+    # Make sure to return elements that belong to Sage
     if return_seqs:
-        return [[ counts[i] for i in range(4) ],
-                [[s[0],s[1].reverse().Vec()] for s in S]]
+        return [[ZZ(counts[i]) for i in range(4)],
+                [[ZZ(s[0]), map(QQ, s[1].reverse().Vec())] for s in S]]
     else:
-        return S
+        Px = PolynomialRing(QQ, 'x')
+        return [[ZZ(s[0]), Px(map(QQ, s[1].list()))]
+                for s in S]
 
 def weed_fields(S, Py_ssize_t lenS=0):
     r"""

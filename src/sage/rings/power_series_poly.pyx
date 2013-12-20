@@ -1131,31 +1131,32 @@ cdef class PowerSeries_poly(PowerSeries):
             sage: exp(z).pade(3, 3)
             (-z^3 - 12*z^2 - 60*z - 120)/(z^3 - 12*z^2 + 60*z - 120)
             sage: log(1-z).pade(4, 4)
-            (25/6*z^4 - 130/3*z^3 + 105*z^2 - 70*z)/(z^4 - 20*z^3 + 90*z^2 - 140*z + 70)
+            (25/6*z^4 - 130/3*z^3 + 105*z^2 - 70*z)/(z^4 - 20*z^3 + 90*z^2
+            - 140*z + 70)
             sage: sqrt(1+z).pade(3, 2)
             (1/6*z^3 + 3*z^2 + 8*z + 16/3)/(z^2 + 16/3*z + 16/3)
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.matrix.constructor import Matrix
         fps = self.parent()
-        anneau = PolynomialRing(fps.base_ring(), str(fps.gen()))
-        z = anneau.gen()
+        polyring = PolynomialRing(fps.base_ring(), str(fps.gen()))
+        z = polyring.gen()
         c = self.list()
-        mat = Matrix(anneau, n+1, n+1)
-        for i in range(1, n+1):
-            for j in range(n+1):
+        mat = Matrix(polyring, n + 1, n + 1)
+        for i in range(1, n + 1):
+            for j in range(n + 1):
                 mat[i, j] = c[m + i - j]
-        for j in range(n+1):
-            mat[0, j] = z**j
+        for j in range(n + 1):
+            mat[0, j] = z ** j
         resu_v = mat.determinant()
         lead_v = resu_v.leading_coefficient()
-        resu_v = resu_v/lead_v
-        for j in range(n+1):
-            mat[0, j] = z**j*(self.truncate(max(m-j+1, 0)))
+        resu_v = resu_v / lead_v
+        for j in range(n + 1):
+            mat[0, j] = z ** j * (self.truncate(max(m - j + 1, 0)))
         resu_u = mat.determinant()
         lead_u = resu_u.leading_coefficient()
-        resu_u = resu_u/lead_u
-        return lead_u/lead_v * resu_u/resu_v
+        resu_u = resu_u / lead_u
+        return lead_u / lead_v * resu_u / resu_v
 
 
 def make_powerseries_poly_v0(parent,  f, prec, is_gen):

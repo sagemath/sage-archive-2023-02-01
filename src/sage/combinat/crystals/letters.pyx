@@ -479,7 +479,7 @@ cdef class Letter(Element):
 
 cdef class EmptyLetter(Element):
     """
-    The affine)letter `\emptyset` thought of as a classical crystal letter
+    The affine letter `\emptyset` thought of as a classical crystal letter
     in classical type `B_n` and `C_n`.
 
     .. WARNING::

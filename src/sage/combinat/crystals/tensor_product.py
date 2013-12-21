@@ -1316,7 +1316,9 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             sage: y.e_string_to_ground_state()
             ()
         """
-        if self.parent().crystals[0].__module__ != 'sage.combinat.crystals.kirillov_reshetikhin':
+        from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinTableaux
+        if self.parent().crystals[0].__module__ != 'sage.combinat.crystals.kirillov_reshetikhin' and \
+                not isinstance(self.parent().crystals[0], KirillovReshetikhinTableaux):
             raise ValueError("All crystals in the tensor product need to be Kirillov-Reshetikhin crystals")
         I = self.cartan_type().classical().index_set()
         ell = max(ceil(K.s()/K.cartan_type().c()[K.r()]) for K in self.parent().crystals)

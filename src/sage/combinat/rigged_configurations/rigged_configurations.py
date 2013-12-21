@@ -118,28 +118,29 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
     REFERENCES:
 
     .. [HKOTT2002] G. Hatayama, A. Kuniba, M. Okado, T. Takagi, Z. Tsuboi.
-       Paths, Crystals and Fermionic Formulae
-       Prog.Math.Phys. 23 (2002) 205-272
+       Paths, Crystals and Fermionic Formulae.
+       Prog. Math. Phys. **23** (2002) Pages 205-272.
 
     .. [CrysStructSchilling06] Anne Schilling.
        Crystal structure on rigged configurations.
        International Mathematics Research Notices.
-       Volume 2006. 2006. Article ID 97376. Pages 1-27.
+       Volume 2006. (2006) Article ID 97376. Pages 1-27.
 
     .. [RigConBijection] Masato Okado, Anne Schilling, Mark Shimozono.
        A crystal to rigged configuration bijection for non-exceptional affine
        algebras.
        Algebraic Combinatorics and Quantum Groups.
-       Edited by N. Jing. World Scientific. 2003. Pages 85-124.
+       Edited by N. Jing. World Scientific. (2003) Pages 85-124.
 
     .. [BijectionDn] Anne Schilling.
        A bijection between type `D_n^{(1)}` crystals and rigged configurations.
-       J. Algebra. 285. 2005. 292-334
+       J. Algebra. **285** (2005) 292-334
 
     .. [BijectionLRT] Anatol N. Kirillov, Anne Schilling, Mark Shimozono.
        A bijection between Littlewood-Richardson tableaux and rigged
        configurations.
-       Selecta Mathematica (N.S.). 8. 2002. 67-135 (:mathscinet:`MR1890195`).
+       Selecta Mathematica (N.S.). **8** (2002) Pages 67-135.
+        (:mathscinet:`MR1890195`).
 
     EXAMPLES::
 
@@ -365,7 +366,6 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             sage: RC = RiggedConfigurations(['D', 4, 1], [[4,3]])
             sage: TestSuite(RC).run() # long time
         """
-
         self._cartan_type = cartan_type
         self.dims = B
         # We store the cartan matrix for the vacancy number calculations for speed
@@ -757,19 +757,20 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         """
         return self.tensor_product_of_kirillov_reshetikhin_tableaux().tensor_product_of_kirillov_reshetikhin_crystals()
 
-    def fermionic_formula(self, q=None):
+    def fermionic_formula(self, q=None, only_highest_weight=False, weight=None):
         r"""
         Return the fermoinic formula associated to ``self``.
 
-        Given a set of rigged configurations `RC(\Lambda, L)`, the fermonic
+        Given a set of rigged configurations `RC(\lambda, L)`, the fermonic
         formula is defined as:
 
         .. MATH::
 
             M(\lambda, L; q) = \sum_{(\nu,J)} q^{cc(\nu, J)}
 
-        where we sum over all classically highest weight rigged
-        configurations where `cc` is the :meth:`cocharge statistic
+        where we sum over all (classically highest weight) rigged
+        configurations of weight `\lambda` where `cc` is the
+        :meth:`cocharge statistic
         <sage.combinat.rigged_configurations.rigged_configuration_element.RiggedConfigurationElement.cc>`.
         This is known to reduce to
 
@@ -779,31 +780,125 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             I \times \ZZ} \begin{bmatrix} p_i^{(a)} + m_i^{(a)} \\ m_i^{(a)}
             \end{bmatrix}_q.
 
+        The generating function of `M(\lambda, L; q)` in the weight algebra subsumes all fermionic formulas:
+
+        .. MATH::
+
+            M(L; q) = \sum_{\lambda \in P} M(\lambda, L; q) \lambda.
+
+        This is conjecturally equal to the
+        :meth:`one dimensional configuration sum
+        <sage.combinat.crystals.tensor_product.CrystalOfWords.one_dimensional_configuration_sum>`
+        of the corresponding tensor product of Kirillov-Reshetikhin crystals, see [HKOTT2002]_.
+        This has been proven in general for type `A_n^{(1)}` [BijectionLRT]_,
+        single factors `B^{r,s}` in type `D_n^{(1)}` [OSS2011]_ with the result
+        from [Sakamoto13]_, as well as for a tensor product of single columns
+        [OSS2003]_, [BijectionDn]_ or a tensor product of single rows [OSS03]_ for all
+        non-exceptional types.
+
+        INPUT:
+
+        - ``q`` -- the variable `q`
+        - ``only_highest_weight`` -- use only the classicaly highest weight
+          rigged configurations
+        - ``weight`` -- return the fermionic formula `M(\lambda, L; q)` where
+          `\lambda` is the classical weight ``weight``
+
+        REFERENCES:
+
+        .. [OSS2003] Masato Okado, Anne Schilling, and Mark Shimozono.
+           Virtual crystals and fermionic formulas of type `D_{n+1}^{(2)}`,
+           `A_{2n}^{(2)}`, and `C_n^{(1)}`. Representation Theory. **7** (2003)
+           :arxiv:`math.QA/0105017`.
+
+        .. [Sakamoto13] Reiho Sakamoto.
+           Rigged configurations and Kashiwara operators.
+           (2013) :arxiv:`1302.4562v1`.
+
         EXAMPLES::
 
-            sage: RC = RiggedConfigurations(['A', 3, 1], [[3,1],[2,2]])
+            sage: RC = RiggedConfigurations(['A', 2, 1], [[1,1], [1,1]])
             sage: RC.fermionic_formula()
+            B[-2*Lambda[1] + 2*Lambda[2]] + (q+1)*B[-Lambda[1]]
+             + (q+1)*B[Lambda[1] - Lambda[2]] + B[2*Lambda[1]]
+             + B[-2*Lambda[2]] + (q+1)*B[Lambda[2]]
+            sage: t = QQ['t'].gen(0)
+            sage: RC.fermionic_formula(t)
+            B[-2*Lambda[1] + 2*Lambda[2]] + (t+1)*B[-Lambda[1]]
+             + (t+1)*B[Lambda[1] - Lambda[2]] + B[2*Lambda[1]]
+             + B[-2*Lambda[2]] + (t+1)*B[Lambda[2]]
+            sage: La = RC.weight_lattice_realization().classical().fundamental_weights()
+            sage: RC.fermionic_formula(weight=La[2])
             q + 1
-            sage: RC = RiggedConfigurations(['D', 4, 1], [[3,2],[4,1],[2,2]])
-            sage: RC.fermionic_formula()
-            q^6 + 6*q^5 + 11*q^4 + 14*q^3 + 11*q^2 + 4*q + 1
+            sage: RC.fermionic_formula(only_highest_weight=True, weight=La[2])
+            q
+
+        Only using the highest weight elements on other types::
+
+            sage: RC = RiggedConfigurations(['A', 3, 1], [[3,1], [2,2]])
+            sage: RC.fermionic_formula(only_highest_weight=True)
+            q*B[Lambda[1] + Lambda[2]] + B[2*Lambda[2] + Lambda[3]]
+            sage: RC = RiggedConfigurations(['D', 4, 1], [[3,1], [4,1], [2,1]])
+            sage: RC.fermionic_formula(only_highest_weight=True)
+            (q^4+q^3+q^2)*B[Lambda[1]] + (q^2+q)*B[Lambda[1] + Lambda[2]]
+             + q*B[Lambda[1] + 2*Lambda[3]] + q*B[Lambda[1] + 2*Lambda[4]]
+             + B[Lambda[2] + Lambda[3] + Lambda[4]] + (q^3+2*q^2+q)*B[Lambda[3] + Lambda[4]]
             sage: RC = RiggedConfigurations(['E', 6, 1], [[2,2]])
-            sage: RC.fermionic_formula()
-            q^2 + q + 1
-            sage: RC = RiggedConfigurations(['B', 3, 1], [[3,1],[2,2]])
-            sage: RC.fermionic_formula()
-            q^3 + 3*q^2 + 2*q + 1
-            sage: RC = RiggedConfigurations(['C', 3, 1], [[3,1],[2,2]])
-            sage: RC.fermionic_formula()
-            q^4 + 2*q^3 + 3*q^2 + 2*q + 1
-            sage: RC = RiggedConfigurations(['D', 4, 2], [[3,1],[2,2]])
-            sage: RC.fermionic_formula()
-            q^6 + 2*q^5 + 4*q^4 + 3*q^3 + 3*q^2 + q + 1
+            sage: RC.fermionic_formula(only_highest_weight=True)
+            q^2*B[0] + q*B[Lambda[2]] + B[2*Lambda[2]]
+            sage: RC = RiggedConfigurations(['B', 3, 1], [[3,1], [2,2]])
+            sage: RC.fermionic_formula(only_highest_weight=True) # long time
+            q*B[Lambda[1] + Lambda[2] + Lambda[3]] + q^2*B[Lambda[1]
+             + Lambda[3]] + (q^2+q)*B[Lambda[2] + Lambda[3]] + B[2*Lambda[2]
+             + Lambda[3]] + (q^3+q^2)*B[Lambda[3]]
+            sage: RC = RiggedConfigurations(['C', 3, 1], [[3,1], [2,2]])
+            sage: RC.fermionic_formula(only_highest_weight=True) # long time
+            (q^3+q^2)*B[Lambda[1] + Lambda[2]] + q*B[Lambda[1] + 2*Lambda[2]]
+             + (q^2+q)*B[2*Lambda[1] + Lambda[3]] + B[2*Lambda[2] + Lambda[3]]
+             + (q^4+q^3+q^2)*B[Lambda[3]]
+            sage: RC = RiggedConfigurations(['D', 4, 2], [[3,1], [2,2]])
+            sage: RC.fermionic_formula(only_highest_weight=True) # long time
+            (q^2+q)*B[Lambda[1] + Lambda[2] + Lambda[3]] + (q^5+2*q^4+q^3)*B[Lambda[1]
+             + Lambda[3]] + (q^3+q^2)*B[2*Lambda[1] + Lambda[3]] + (q^4+q^3+q^2)*B[Lambda[2]
+             + Lambda[3]] + B[2*Lambda[2] + Lambda[3]] + (q^6+q^5+q^4)*B[Lambda[3]]
+
+        TESTS::
+
+            sage: RC = RiggedConfigurations(['A', 2, 1], [[1,1], [1,1]])
+            sage: KR = RC.tensor_product_of_kirillov_reshetikhin_crystals()
+            sage: RC.fermionic_formula() == KR.one_dimensional_configuration_sum()
+            True
+            sage: KT = RC.tensor_product_of_kirillov_reshetikhin_tableaux()
+            sage: RC.fermionic_formula() == KT.one_dimensional_configuration_sum()
+            True
+            sage: RC = RiggedConfigurations(['C', 2, 1], [[2,1], [2,1]])
+            sage: KR = RC.tensor_product_of_kirillov_reshetikhin_crystals()
+            sage: RC.fermionic_formula() == KR.one_dimensional_configuration_sum() # long time
+            True
+            sage: t = QQ['t'].gen(0)
+            sage: RC = RiggedConfigurations(['D', 4, 1], [[1,1], [2,1]])
+            sage: KR = RC.tensor_product_of_kirillov_reshetikhin_crystals()
+            sage: RC.fermionic_formula(t) == KR.one_dimensional_configuration_sum(t) # long time
+            True
         """
         if q is None:
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-            q = PolynomialRing(ZZ, 'q').gen(0)
-        return sum([q**x.cc() for x in self.module_generators], ZZ.zero())
+            q = PolynomialRing(QQ, 'q').gen(0)
+
+        if only_highest_weight:
+            L = self.module_generators
+        else:
+            L = self
+
+        P = q.parent()
+        WLR = self.weight_lattice_realization().classical()
+
+        if weight is not None:
+            weight = WLR(weight)
+            return P.sum(q**x.cc() for x in L if WLR(x.weight()) == weight)
+
+        B = WLR.algebra(P)
+        return B.sum(q**x.cc() * B(WLR(x.weight())) for x in L)
 
     def _test_bijection(self, **options):
         r"""
@@ -1177,7 +1272,7 @@ class RCTypeA2Even(RCNonSimplyLaced):
         sage: RC.cardinality()
         3
         sage: RC = RiggedConfigurations(['A',2,2], [[1,2],[1,1]])
-        sage: TestSuite(RC).run()
+        sage: TestSuite(RC).run() # long time
         sage: RC = RiggedConfigurations(['A',4,2], [[2,1]])
         sage: TestSuite(RC).run() # long time
     """
@@ -1368,7 +1463,7 @@ class RCTypeA2Dual(RCTypeA2Even):
         sage: RC.cardinality()
         3
         sage: RC = RiggedConfigurations(CartanType(['A',2,2]).dual(), [[1,2],[1,1]])
-        sage: TestSuite(RC).run()
+        sage: TestSuite(RC).run() # long time
         sage: RC = RiggedConfigurations(CartanType(['A',4,2]).dual(), [[2,1]])
         sage: TestSuite(RC).run() # long time
     """
@@ -1676,4 +1771,26 @@ class RCTypeA2Dual(RCTypeA2Even):
             vac_nums[a] = [vac_val for vac_val in vrc[index].vacancy_numbers]
         return self.element_class(self, partition_list=partitions,
                                   rigging_list=riggings, vacancy_numbers_list=vac_nums)
+
+def HighestWeightRiggedConfigurations(cartan_type, B):
+    """
+    Deprecated in :trac:`13872`. Use instead the attribute
+    ``module_generators`` of :class:`RiggedConfigurations`.
+
+    EXAMPLES::
+
+        sage: HighestWeightRiggedConfigurations(['A',2,1], [[1,1]])
+        doctest:...: DeprecationWarning: this class is deprecated.
+         Use RiggedConfigurations(cartan_type, B).module_generators instead
+        See http://trac.sagemath.org/13872 for details.
+        (
+        (/)
+        <BLANKLINE>
+        (/)
+        ,)
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(13872, 'this class is deprecated. Use RiggedConfigurations('
+                       'cartan_type, B).module_generators instead')
+    return RiggedConfigurations(cartan_type, B).module_generators
 

@@ -310,15 +310,18 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
             sage: s**15 == t
             True
 
+        .. TODO::
+
+            This function could probably be made faster.
+
         """
         from sage.rings.integer import Integer
         F = self.parent()
         x = self._value
         n = Integer(n)
         l = self._level
-        # in order to be smart we look for the smallest subfield that actually
-        # contains the root.
-        #TODO: it certainly can be faster
+        # In order to be smart we look for the smallest subfield that
+        # actually contains the root.
         for d in n.divisors():
             xx = F.inclusion(l, d*l)(x)
             try:
@@ -327,7 +330,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
                 continue
             return self.__class__(F, y)
 
-        raise ValueError("this should not happen!")
+        raise AssertionError('cannot find n-th root in algebraic closure of finite field')
 
     def multiplicative_order(self):
         """

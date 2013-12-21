@@ -86,7 +86,6 @@ from sage.structure.parent_gens import localvars
 from sage.misc.cachefunc import cached_method
 
 import sage.libs.ntl.all as ntl
-import sage.libs.pari.all as pari
 import sage.interfaces.gap
 import sage.rings.arith
 
@@ -200,7 +199,7 @@ from sage.structure.parent_gens import ParentWithGens
 import number_field_element
 import number_field_element_quadratic
 from number_field_ideal import is_NumberFieldIdeal, NumberFieldFractionalIdeal
-from sage.libs.all import pari, pari_gen
+from sage.libs.pari.all import pari, pari_gen
 
 QQ = rational_field.RationalField()
 ZZ = integer_ring.IntegerRing()

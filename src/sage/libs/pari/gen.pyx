@@ -7369,13 +7369,197 @@ cdef class gen(sage.structure.element.RingElement):
         pari_catch_sig_on()
         return P.new_gen(deriv(self.g, P.get_var(v)))
 
-    def eval(self, x):
-        cdef gen t0 = objtogen(x)
-        pari_catch_sig_on()
-        return P.new_gen(poleval(self.g, t0.g))
+    def eval(self, *args, **kwds):
+        """
+        Evaluate ``self`` with the given arguments.
 
-    def __call__(self, x):
-        return self.eval(x)
+        This is currently implemented in 3 cases:
+        
+        - univariate polynomials (using a single unnamed argument or
+          keyword arguments),
+        - any PARI object supporting the PARI function ``substvec``
+          (in particular, multivariate polynomials) using keyword
+          arguments,
+        - objects of type ``t_CLOSURE`` (functions in GP bytecode form)
+          using unnamed arguments.
+
+        In no case is mixing unnamed and keyword arguments allowed.
+
+        EXAMPLES::
+
+            sage: f = pari('x^2 + 1')
+            sage: f.type()
+            't_POL'
+            sage: f.eval(I)
+            0
+            sage: f.eval(x=2)
+            5
+
+        The notation ``f(x)`` is an alternative for ``f.eval(x)``::
+
+            sage: f(3) == f.eval(3)
+            True
+
+        Evaluating multivariate polynomials::
+        
+            sage: f = pari('y^2 + x^3')
+            sage: f(1)    # Dangerous, depends on PARI variable ordering
+            y^2 + 1
+            sage: f(x=1)  # Safe
+            y^2 + 1
+            sage: f(y=1)
+            x^3 + 1
+            sage: f(1, 2)
+            Traceback (most recent call last):
+            ...
+            TypeError: evaluating a polynomial takes exactly 1 argument (2 given)
+            sage: f(y='x', x='2*y')
+            x^2 + 8*y^3
+            sage: f()
+            x^3 + y^2
+
+        It's not an error to substitute variables which do not appear::
+
+            sage: f.eval(z=37)
+            x^3 + y^2
+            sage: pari(42).eval(t=0)
+            42
+
+        We can define and evaluate closures as follows::
+
+            sage: T = pari('n -> n + 2')
+            sage: T.type()
+            't_CLOSURE'
+            sage: T.eval(3)
+            5
+
+            sage: T = pari('() -> 42')
+            sage: T()
+            42
+
+            sage: pr = pari('s -> print(s)')
+            sage: pr.eval('"hello world"')
+            hello world
+
+            sage: f = pari('myfunc(x,y) = x*y')
+            sage: f.eval(5, 6)
+            30
+
+        Default arguments work, missing arguments are treated as zero
+        (like in GP)::
+
+            sage: f = pari("(x, y, z=1.0) -> [x, y, z]")
+            sage: f(1, 2, 3)
+            [1, 2, 3]
+            sage: f(1, 2)
+            [1, 2, 1.00000000000000]
+            sage: f(1)
+            [1, 0, 1.00000000000000]
+            sage: f()
+            [0, 0, 1.00000000000000]
+
+        Using keyword arguments, we can substitute in more complicated
+        objects, for example a number field::
+
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: nf = K._pari_()
+            sage: nf
+            [y^2 + 1, [0, 1], -4, 1, [Mat([1, 0.E-19 - 1.00000000000000*I]), [1, -1.00000000000000; 1, 1.00000000000000], [1, -1; 1, 1], [2, 0; 0, -2], [2, 0; 0, 2], [1, 0; 0, -1], [1, [0, -1; 1, 0]]], [0.E-19 - 1.00000000000000*I], [1, y], [1, 0; 0, 1], [1, 0, 0, -1; 0, 1, 1, 0]]
+            sage: nf(y='x')
+            [x^2 + 1, [0, 1], -4, 1, [Mat([1, 0.E-19 - 1.00000000000000*I]), [1, -1.00000000000000; 1, 1.00000000000000], [1, -1; 1, 1], [2, 0; 0, -2], [2, 0; 0, 2], [1, 0; 0, -1], [1, [0, -1; 1, 0]]], [0.E-19 - 1.00000000000000*I], [1, x], [1, 0; 0, 1], [1, 0, 0, -1; 0, 1, 1, 0]]
+        """
+        cdef long t = typ(self.g)
+        cdef gen t0
+        cdef GEN result
+        cdef long arity
+        cdef long nargs = len(args)
+        cdef long nkwds = len(kwds)
+
+        # Closure must be evaluated using *args
+        if t == t_CLOSURE:
+            if nkwds > 0:
+                raise TypeError("cannot evaluate a PARI closure using keyword arguments")
+            # XXX: use undocumented internals to get arity of closure
+            # (In PARI 2.6, there is closure_arity() which does this)
+            arity = self.g[1]
+            if nargs > arity:
+                raise TypeError("PARI closure takes at most %d argument%s (%d given)"%(
+                    arity, "s" if (arity!=1) else "", nargs))
+            t0 = objtogen(args)
+            pari_catch_sig_on()
+            result = closure_callgenvec(self.g, t0.g)
+            if result == gnil:
+                P.clear_stack()
+                return None
+            return P.new_gen(result)
+
+        # Evaluate univariate polynomial using *args
+        if nargs > 0:
+            if nkwds > 0:
+                raise TypeError("mixing unnamed and keyword arguments not allowed when evaluating a PARI object")
+            if t == t_POL:
+                # evaluate univariate polynomial
+                if nargs != 1:
+                    raise TypeError("evaluating a polynomial takes exactly 1 argument (%d given)"%nargs)
+                t0 = objtogen(args[0])
+                pari_catch_sig_on()
+                return P.new_gen(poleval(self.g, t0.g))
+            raise TypeError("cannot evaluate %s using unnamed arguments"%self.type())
+
+        # Call substvec() using **kwds
+        vstr = kwds.keys()            # Variables as Python strings
+        t0 = objtogen(kwds.values())  # Replacements
+
+        pari_catch_sig_on()
+        cdef GEN v = cgetg(nkwds+1, t_VEC)  # Variables as PARI polynomials
+        cdef long i
+        for i in range(nkwds):
+            set_gel(v, i+1, pol_x(P.get_var(vstr[i])))
+        return P.new_gen(gsubstvec(self.g, v, t0.g))
+        
+
+    def __call__(self, *args, **kwds):
+        """
+        Evaluate ``self`` with the given arguments.
+
+        This has the same effect as :meth:`eval`.
+
+        EXAMPLES::
+
+            sage: R.<x> = GF(3)[]
+            sage: f = (x^2 + x + 1)._pari_()
+            sage: f.type()
+            't_POL'
+            sage: f(2)
+            Mod(1, 3)
+
+        TESTS::
+
+            sage: T = pari('n -> 1/n')
+            sage: T.type()
+            't_CLOSURE'
+            sage: T(0)
+            Traceback (most recent call last):
+            ...
+            PariError: _/_: division by zero
+            sage: pari('() -> 42')(1,2,3)
+            Traceback (most recent call last):
+            ...
+            TypeError: PARI closure takes at most 0 arguments (3 given)
+            sage: pari('n -> n')(n=2)
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot evaluate a PARI closure using keyword arguments
+            sage: pari('x + y')(4, y=1)
+            Traceback (most recent call last):
+            ...
+            TypeError: mixing unnamed and keyword arguments not allowed when evaluating a PARI object
+            sage: pari("12345")(4)
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot evaluate t_INT using unnamed arguments
+        """
+        return self.eval(*args, **kwds)
 
     def factornf(self, t):
         """

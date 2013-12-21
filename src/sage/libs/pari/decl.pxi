@@ -1114,6 +1114,10 @@ cdef extern from 'pari/pari.h':
     void    write1(char *s, GEN g)
     void    writetex(char *s, GEN g)
 
+    # eval.c
+
+    GEN     closure_callgenvec(GEN C, GEN args)
+
     # FF.c
 
     GEN     FF_1(GEN a)

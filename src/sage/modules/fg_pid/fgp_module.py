@@ -415,7 +415,7 @@ class FGP_Module_class(Module):
             sage: Q._coerce_map_from_(ZZ^2)
             False
 
-        Of course, `V` canonically coerces to `Q`, as does twice `V`:
+        Of course, `V` canonically coerces to `Q`, as does twice `V`::
 
             sage: Q._coerce_map_from_(V)
             True

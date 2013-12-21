@@ -394,7 +394,7 @@ class ECM:
             n -- a positive integer
             factor_digits -- the (estimated) number of digits of the smallest factor
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: n = next_prime(11^23)*next_prime(11^37)
 

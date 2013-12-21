@@ -1614,7 +1614,7 @@ class PermutationGroup_generic(group.Group):
 
         For full details, including the form of the returned string and the
         algorithm to build it, see `GAP's documentation
-        <http://www.gap-system.org/Manuals/doc/ref/chap39.html>`_
+        <http://www.gap-system.org/Manuals/doc/ref/chap39.html>`_.
 
         INPUT:
 
@@ -1660,7 +1660,7 @@ class PermutationGroup_generic(group.Group):
         """
         import re
         def correct_dihedral_degree(match):
-             return "%sD%d" % (match.group(1), int(match.group(2))/2)
+            return "%sD%d" % (match.group(1), int(match.group(2))/2)
 
         description = self._gap_().StructureDescription().str()
         description = re.sub(r"(\A|\W)D(\d+)", correct_dihedral_degree, description)

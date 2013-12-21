@@ -4485,6 +4485,20 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: z.is_prime(proof=True)
             True
 
+        When starting Sage the arithmetic proof flag is True. We can change
+        it to False as follows::
+
+            sage: proof.arithmetic()
+            True
+            sage: n = 10^100 + 267
+            sage: timeit("n.is_prime()") # random
+            5 loops, best of 3: 163 ms per loop
+            sage: proof.arithmetic(False)
+            sage: proof.arithmetic()
+            False
+            sage: timeit("n.is_prime()") # random
+            1000 loops, best of 3: 573 us per loop
+
         IMPLEMENTATION: Calls the PARI ``isprime`` function.
         """
         from sage.structure.proof.proof import get_flag

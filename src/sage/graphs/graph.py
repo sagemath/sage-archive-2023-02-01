@@ -2821,7 +2821,7 @@ class Graph(GenericGraph):
 
           - :meth:`~Graph.is_edge_transitive`
           - :meth:`~Graph.is_arc_transitive`
-          - :meth:`~Graph.is_half-transitive`
+          - :meth:`~Graph.is_half_transitive`
 
         EXAMPLES:
 
@@ -4918,7 +4918,7 @@ class Graph(GenericGraph):
            - If ``algorithm = "MILP"``, the problem is solved through a Mixed
              Integer Linear Program.
 
-             (see :class:`MixedIntegerLinearProgram <sage.numerical.mip>`)
+             (see :class:`~sage.numerical.mip.MixedIntegerLinearProgram`)
 
         .. NOTE::
 
@@ -4984,7 +4984,7 @@ class Graph(GenericGraph):
            - If ``algorithm = "MILP"``, the problem is solved through a Mixed
              Integer Linear Program.
 
-             (see :class:`MixedIntegerLinearProgram <sage.numerical.mip>`)
+             (see :class:`~sage.numerical.mip.MixedIntegerLinearProgram`)
 
         - ``cliques`` - an optional list of cliques that can be input if
           already computed. Ignored unless ``algorithm=="networkx"``.
@@ -5164,7 +5164,7 @@ class Graph(GenericGraph):
             * If ``algorithm = "MILP"``, the problem is solved through a Mixed
               Integer Linear Program.
 
-              (see :class:`MixedIntegerLinearProgram <sage.numerical.mip>`)
+              (see :class:`~sage.numerical.mip.MixedIntegerLinearProgram`)
 
         - ``value_only`` -- boolean (default: ``False``). If set to ``True``,
           only the size of a maximum independent set is returned. Otherwise,
@@ -5179,9 +5179,9 @@ class Graph(GenericGraph):
           solver to be used. If set to ``None``, the default one is used. For
           more information on LP solvers and which default solver is used, see
           the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve`
           of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+          :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
 
         - ``verbosity`` -- non-negative integer (default: ``0``). Set the level
           of verbosity you want from the linear program solver. Since the

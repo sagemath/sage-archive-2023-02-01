@@ -1041,4 +1041,3 @@ def point3d(v, size=5, **kwds):
     A = sum([Point(z, size, **kwds) for z in v])
     A._set_extra_kwds(kwds)
     return A
-

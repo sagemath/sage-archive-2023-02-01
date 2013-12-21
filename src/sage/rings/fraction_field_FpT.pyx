@@ -1110,6 +1110,19 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
             t + 1
             sage: f(2*t + 2, 2, reduce=False)
             (2*t + 2)/2
+
+        TEST:
+
+        Check that :trac:`12217` is fixed::
+
+            sage: R.<t> = GF(5)[]
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R)
+            sage: f(t, 0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: fraction has denominator 0
+
         """
         cdef Polynomial_zmod_flint x = <Polynomial_zmod_flint?> _x
         cdef FpTElement ans = <FpTElement>PY_NEW(FpTElement)
@@ -1126,7 +1139,7 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
             if PY_TYPE_CHECK(y, Integer):
                 r = mpz_fdiv_ui((<Integer>y).value, self.p)
                 if r == 0:
-                    raise ZeroDivisionError
+                    raise ZeroDivisionError('fraction has denominator 0')
                 nmod_poly_set_coeff_ui(ans._denom, 0, r)
             else:
                 # could use the coerce keyword being set to False to not check this...

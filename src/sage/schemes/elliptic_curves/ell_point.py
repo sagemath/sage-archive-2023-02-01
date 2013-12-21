@@ -130,8 +130,7 @@ from sage.rings.real_mpfr import is_RealField
 from sage.rings.all import ZZ
 from sage.groups.all import AbelianGroup
 import sage.groups.generic as generic
-from sage.libs.pari.all import pari, PariError
-from sage.libs.pari.gen import prec_words_to_bits
+from sage.libs.pari.pari_instance import pari, prec_words_to_bits
 from sage.structure.sequence import Sequence
 
 from sage.schemes.plane_curves.projective_curve import Hasse_bounds
@@ -450,9 +449,10 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: P._pari_()
             [Mod(1, 11), Mod(2, 11)]
 
-        We need to explicitly call ``pari()`` because of :trac:`11868`::
+        We no longer need to explicitly call ``pari(O)`` and ``pari(P)``
+        after :trac:`11868`::
 
-            sage: pari(E).elladd(pari(O), pari(P))
+            sage: pari(E).elladd(O, P)
             [Mod(1, 11), Mod(2, 11)]
         """
         if self[2]:
@@ -2054,6 +2054,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         E = self.curve()
 
         # Special code for curves over Q, calling PARI
+        from sage.libs.pari.all import PariError
         try:
             n = int(E.pari_curve().ellorder(self))
             if n == 0:

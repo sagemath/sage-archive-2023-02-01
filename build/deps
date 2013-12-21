@@ -458,7 +458,7 @@ $(INST)/sage: \
 		 $(INST)/$(ZNPOLY) \
 		 $(INST)/csage
 	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
-		cd $(SAGE_SRC) && . bin/sage-env && \
+		cd $(SAGE_SRC) && source bin/sage-env && \
 		$(PIPE) 'time python setup.py install 2>&1' 'tee -a $(SAGE_LOGS)/sage-$(SAGE_VERSION).log' && \
 		touch $@; \
 	fi
@@ -471,7 +471,7 @@ $(INST)/csage: $(INST)/$(SCONS) \
        $(INST)/$(PYNAC) \
        $(INST)/$(PYTHON)
 	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
-		cd $(SAGE_SRC) && . bin/sage-env && cd c_lib && \
+		cd $(SAGE_SRC) && source bin/sage-env && cd c_lib && \
 		$(PIPE) 'time scons -Q install 2>&1' 'tee -a $(SAGE_LOGS)/csage-$(SAGE_VERSION).log' && \
 		touch $@; \
 	fi

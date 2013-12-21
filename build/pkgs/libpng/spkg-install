@@ -20,17 +20,6 @@ fi
 export CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
 export LDFLAGS="-L$SAGE_LOCAL/lib $LDFLAGS"
 
-# Pick up patches
-
-for patch in ../patches/*.patch; do
-    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
-
 cd src
 
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --enable-shared=yes
@@ -43,6 +32,16 @@ fi
 if [ "$UNAME" = "CYGWIN" ]; then
     MAKE="$MAKE SYMBOL_PREFIX= "
 fi
+
+# Pick up patches
+for patch in ../patches/*.patch; do
+    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
 
 echo "Building libpng..."
 $MAKE

@@ -127,31 +127,35 @@ that it takes dominant weights to dominant weights, and,
 insofar as possible, simple roots of `G` into
 simple roots of `H`. This includes sometimes the affine root `\alpha_0`
 of `G`, which we recall is the negative of the highest root.
+
 The branching rule has a ``describe()`` method that shows how
-the roots (including the affine root) restrict.
+the roots (including the affine root) restrict. This is a
+useful way of understanding the embedding. You might
+want to try it with various branching rules of different
+kinds, ``"extended"``, ``"symmetric"``, ``"levi"`` etc.
 
 ::
 
     sage: b.describe()
     <BLANKLINE>
-     0
-     O-------+
-     |       |
-     |       |
-     O---O---O
-     1   2   3
-     A3~
-     <BLANKLINE>
-     root restrictions A3 => C2:
-     <BLANKLINE>
-     O=<=O
-     1   2
-     C2
-     <BLANKLINE>
-     1 => 1
-     2 => 2
-     3 => 1
-     <BLANKLINE>
+    0
+    O-------+
+    |       |
+    |       |
+    O---O---O
+    1   2   3
+    A3~
+    <BLANKLINE>
+    root restrictions A3 => C2:
+    <BLANKLINE>
+    O=<=O
+    1   2
+    C2
+    <BLANKLINE>
+    1 => 1
+    2 => 2
+    3 => 1
+    <BLANKLINE>
     For more detailed information use verbose=True
     
 The extended Dynkin diagram of `G` and the ordinary
@@ -164,10 +168,6 @@ restrictions. If you add the parameter ``verbose=true`` you will
 be shown the restriction of all simple roots and the
 affine root, and also the restrictions of the fundamental weights
 (in coroot notation).
-
-We suggest that you look at the ``describe`` methods
-of branching rules for the ``levi``, ``symmetric`` and
-``extended`` types, which will be described below.
 
 Levi subgroups
 --------------
@@ -405,6 +405,74 @@ You *must* use ``rule="orthogonal_sum"``::
      B2xB2(0,2,0,0) + B2xB2(0,2,1,0) + B2xB2(1,0,0,2) + B2xB2(0,0,0,2),
      B2xB2(0,1,0,1), B2xB2(0,1,0,1)]
 
+Non-maximal Levi subgroups and Projection from Reducible Types
+--------------------------------------------------------------
+
+Not all Levi subgroups are maximal. Recall that the Dynkin-diagram
+of a Levi subgroup `H` of `G` is obtained by removing a node
+from the Dynkin diagram of `G`. Removing the same node from
+the extended Dynkin diagram of `G` results in the Dynkin
+diagram of a subgroup of `G` that is strictly larger than
+`H`. However this subgroup may or may not be proper, so the
+Levi subgroup may or may not be maximal.
+
+If the Levi subgroup is not maximal, the branching rule
+may or may not be implemented in Sage. However if it is
+not implemented, it may be constructed as a composition
+of two branching rules.
+
+For example ``branching_rule("E6","A5","levi") returns
+a not-implemented error and the advice to branch to
+``A5xA1``. And we can see from the extended Dynkin
+diagram of `E_6` that indeed `A_5` is not a maximal
+subgroup, since removing node 2 from the extended
+Dynkin diagram (see below) gives ``A5xA1``. To
+construct the branching rule to `A_5` we may proceed
+as follows::
+
+   sage: b = branching_rule("E6","A5xA1","extended")*branching_rule("A5xA1","A5","proj1"); b
+   composite branching rule E6 => (extended) A5xA1 => (proj1) A5
+   sage: E6=WeylCharacterRing("E6",style="coroots")
+   sage: A5=WeylCharacterRing("A5",style="coroots")
+   sage: E6(0,1,0,0,0,0).branch(A5,rule=b)
+   3*A5(0,0,0,0,0) + 2*A5(0,0,1,0,0) + A5(1,0,0,0,1)
+   sage: b.describe()
+   <BLANKLINE>
+           O 0
+           |
+           |
+           O 2
+           |
+           |
+   O---O---O---O---O
+   1   3   4   5   6
+   E6~
+   root restrictions E6 => A5:
+   <BLANKLINE>
+   O---O---O---O---O
+   1   2   3   4   5
+   A5
+   <BLANKLINE>
+   1 => 1
+   3 => 2
+   4 => 3
+   5 => 4
+   6 => 5
+   <BLANKLINE>
+   For more detailed information use verbose=True
+
+Note that it is not necessary to construct the WeylCharacterRing
+for the intermediate group ``A5xA1``.
+
+This last example illustrates another common problem:
+how to extract one component from a reducible root system.
+We used the rule ``"proj1"`` to extract the first component.
+We could similarly use ``"proj2"`` to get the second, or
+more generally any combination of components::
+
+    sage: branching_rule("A2xB2xG2","A2xG2","proj13")
+    proj13 branching rule A2xB2xG2 => A2xG2
+
 Symmetric subgroups
 -------------------
 
@@ -576,9 +644,11 @@ Use ``rule="miscellaneous"`` for the following rules.
         \end{aligned}
 
 The first rule corresponds to the embedding of ``G_2`` in
-``\hbox{SO}(7)`` in its action on the trace zero octonions.
+`\hbox{SO}(7)` in its action on the trace zero octonions.
 Regarding the branching rule ``E_6\to G_2\times A_2``,
-Rubenthaler [Rubenthaler2008]_ describes the embedding.
+Rubenthaler [Rubenthaler2008]_ describes the embedding
+and applies it in an interesting way.
+
 
 Writing your own branching rules
 --------------------------------
@@ -666,27 +736,42 @@ effect may be computed using the branching rule code::
     A4(0,1,0,1)
 
 In the special case where `G=D4`, the Dynkin diagram has
-extra symmetries::
+extra symmetries, and these correspond to outer automorphisms
+of the group. These are implemented as the ``"triality"``
+branching rule.
 
-    sage: D4 = WeylCharacterRing("D4",style="coroots")
-    sage: D4.dynkin_diagram()
+    sage: branching_rule("D4","D4","triality").describe()
+    <BLANKLINE>
+        O 4
+        |
+        |
+    O---O---O
+    1   |2  3
+        |
+        O 0
+    D4~
+    root restrictions D4 => D4:
+    <BLANKLINE>
         O 4
         |
         |
     O---O---O
     1   2   3
     D4
+    <BLANKLINE>
+    1 => 3
+    2 => 2
+    3 => 4
+    4 => 1
+    <BLANKLINE>
+    For more detailed information use verbose=True
 
-The automorphism group of the Dynkin diagram has order 6,
-corresponds to any permutation of the three outer nodes.
-Therefore the group has extra outer automorphisms.  One
-where an additional automorphism of order three can be
-obtained using ``rule="triality"``. This is not an
-automorphisms of `SO(8)`, but of its double cover
-`spin(8)`. Note that `spin(8)` has three representations
-of degree 8, namely the standard representation of
-`SO(8)` and the two eight-dimensional spin
-representations. These are permuted by triality::
+Triality his is not an automorphisms of `SO(8)`, but
+of its double cover `spin(8)`. Note that `spin(8)` has
+three representations of degree 8, namely the standard
+representation of `SO(8)` and the two
+eight-dimensional spin representations. These are
+permuted by triality::
 
     sage: D4(0,0,0,1).branch(D4,rule="triality")
     D4(1,0,0,0)

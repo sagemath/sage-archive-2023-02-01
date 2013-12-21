@@ -2183,7 +2183,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def _mul_karatsuba(self, right, K_threshold = None):
         r"""
-        Returns the product of two polynomials using the Karatsuba divide
+        Compute the product of two polynomials using the Karatsuba divide
         and conquer multiplication algorithm. This is only used over a
         generic base ring. (Special libraries like Flint are used, e.g., for
         the integers and rationals, which are much faster.)
@@ -2191,8 +2191,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         INPUT:
 
           - ``self`` - Polynomial
-          - ``right`` - Polynomial (over same base ring as
-            self)
+          - ``right`` - Polynomial (over same base ring as self)
           - ``K_threshold`` - (optional) Integer. A threshold to fall back to
           schoolbook algorithm. In the recursion, if one of the polynomials is
           of degree less that K_threshold then the classic quadratic polynomial
@@ -2232,16 +2231,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             g0 + g1*x^n +g2*x^{2n} + ... + gq*x^{nq}
 
-        where `gi` are polynomials of degree n, `gq`of degree <= n.
-        Then compute each product `gi*right` with karatsuba multiplication and
-        reconstruct `self*right` from the partial products.
+        where `gi` are polynomials of degree <= n. We then compute each product
+        `gi*right` with Karatsuba multiplication and reconstruct `self*right`
+        from the partial products.
 
         The theoretical complexity for multiplying two polynomials of the same
-        degree n is O(n^log(3,2))
-
-        Through testing of polynomials of degree up to 5000 we get that the
-        number of operations for two polynomials of degree up to n-1 is bounded
-        by:
+        degree n is O(n^log(3,2)). Through testing of polynomials of degree up
+        to 5000 we get that the number of operations for two polynomials of
+        degree up to n-1 is bounded by:
 
         7.53*n**1.59 additions and 1.46*n**1.59 products on the base ring.
 
@@ -2250,7 +2247,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         8.11*m**0.59*n additions and 1.56*m**0.59*n products.
 
-        Although for bigger degrees the bound might be worse.
+        (The bound might be worse for larger degrees.)
 
         EXAMPLES::
 
@@ -6544,13 +6541,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
 cdef do_schoolbook_product(x, y):
     """
-    Method to compute the multiplication of two polynomials represented
-    by lists. This is the core of _mul_generic and the code that is used
-    by _mul_karatsuba bellow a threshold.
-    Doctested indirectly in _mul_generic and _mul_karatsuba. For the doctest we
-    use a ring such that default multiplication calls external libraries.
+    Compute the multiplication of two polynomials represented by lists, using
+    the schoolbook algorithm.
 
-    TESTS::
+    This is the core of _mul_generic and the code that is used by
+    _mul_karatsuba bellow a threshold.
+
+    TESTS:
+
+    Doctested indirectly in _mul_generic and _mul_karatsuba. For the doctest we
+    use a ring such that default multiplication calls external libraries::
 
         sage: K = ZZ[x]
         sage: f = K.random_element(8)
@@ -6566,10 +6566,10 @@ cdef do_schoolbook_product(x, y):
         return y
     elif d1 == 0:
         c = x[0]
-        return [c*a for a in y] #beware of noncommutative rings
+        return [c*a for a in y] # beware of noncommutative rings
     elif d2 == 0:
         c = y[0]
-        return [a*c for a in x] #beware of noncommutative rings
+        return [a*c for a in x] # beware of noncommutative rings
     coeffs = []
     for k from 0 <= k <= d1+d2:
         start = 0 if k <= d2 else k-d2  # max(0, k-d2)
@@ -6582,8 +6582,9 @@ cdef do_schoolbook_product(x, y):
 
 cdef do_karatsuba_different_size(left, right, Py_ssize_t K_threshold):
     """
-    This algorithm is to deal with karatsuba multiplication of two polynomials
-    of different degree as explained in _mul_karatsuba.
+    Multiply two polynomials of different degrees by splitting the one of
+    largest degree in chunks that are multiplied with the other using the
+    Karatsuba algorithm, as explained in _mul_karatsuba.
 
     INPUT:
 
@@ -6593,11 +6594,11 @@ cdef do_karatsuba_different_size(left, right, Py_ssize_t K_threshold):
           quadratic algorithm. During Karatsuba recursion, if one of the lists
           has length <= K_threshold the classical product is used instead.
 
-    This method is indirectly doctested in _mul_karatsuba
+    TESTS:
 
-    We use fibonacci numbers that need deepest recursion in this method.
+    This method is indirectly doctested in _mul_karatsuba.
 
-    TESTS::
+    Here, we use Fibonacci numbers that need deepest recursion in this method.
 
         sage: K = ZZ[x]
         sage: f = K.random_element(28)
@@ -6614,14 +6615,14 @@ cdef do_karatsuba_different_size(left, right, Py_ssize_t K_threshold):
         return [c*a for a in right]
     if m == 1:
         c = right[0]
-        return [a*c for a in left] #beware of noncommutative rings
+        return [a*c for a in left] # beware of noncommutative rings
     if n <= K_threshold or m <= K_threshold:
         return do_schoolbook_product(left,right)
     if n == m:
         return do_karatsuba(left, right, K_threshold, 0, 0, n)
     if n > m:
-        #left is the bigger list
-        #n is the bigger number
+        # left is the bigger list
+        # n is the bigger number
         q = n // m
         r = n % m
         output = do_karatsuba(left, right, K_threshold, 0, 0, m)
@@ -6660,22 +6661,24 @@ cdef do_karatsuba_different_size(left, right, Py_ssize_t K_threshold):
 
 cdef do_karatsuba(left, right, Py_ssize_t K_threshold,Py_ssize_t start_l, Py_ssize_t start_r,Py_ssize_t num_elts):
     """
-    Core routine for karatsuba multiplicacion. This function works for two
+    Core routine for Karatsuba multiplication. This function works for two
     polynomials of the same degree.
 
     Input:
 
         - left: a list containing a slice representing a polynomial
         - right: a list containing the slice representing a polynomial with the
-          same length of left
+          same length as left
         - K_threshold: an integer. For lists of length <= K_threshold, the
           quadratic polynomial multiplication is used.
         - start_l: the index of left where the actual polynomial starts
         - start_r: the index of right where the actual polynomial starts
-        - num_elts: the length of the polynomial.
+        - num_elts: the length of the polynomials.
 
-    Thus, the actual polynomial we want to multiply are represented by the
-    slices: left[ start_l: start_l+num_elts ], left[ right_l: right_l+num_elts ]
+    Thus, the actual polynomials we want to multiply are represented by the
+    slices: left[ start_l: start_l+num_elts ], left[ right_l: right_l+num_elts ].
+    We use this representation in order to avoid creating slices of lists and
+    create smaller lists.
 
     Output:
 
@@ -6683,10 +6686,7 @@ cdef do_karatsuba(left, right, Py_ssize_t K_threshold,Py_ssize_t start_l, Py_ssi
 
     Doctested indirectly in _mul_karatsuba
 
-    We use this representation in order to avoid creating slices of lists and
-    create smaller lists.
-
-        TESTS::
+    TESTS::
 
         sage: K.<x> = ZZ[]
         sage: f = K.random_element(50) + x^51
@@ -6707,7 +6707,7 @@ cdef do_karatsuba(left, right, Py_ssize_t K_threshold,Py_ssize_t start_l, Py_ssi
     if num_elts == 1:
         return [left[start_l]*right[start_r]]
     if num_elts <= K_threshold:
-        #Special case of degree 2, no loop, no function call
+        # Special case of degree 2, no loop, no function call
         if num_elts == 2:
             b = left[start_l]
             a = left[start_l+1]
@@ -6716,7 +6716,7 @@ cdef do_karatsuba(left, right, Py_ssize_t K_threshold,Py_ssize_t start_l, Py_ssi
             return [b*d, a*d+b*c, a*c]
         return do_schoolbook_product(left[start_l:start_l+num_elts], right[start_r:start_r+num_elts])
     if num_elts == 2:
-        #beware of noncommutative rings
+        # beware of noncommutative rings
         b = left[start_l]
         a = left[start_l+1]
         d = right[start_r]

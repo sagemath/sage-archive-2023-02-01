@@ -558,9 +558,20 @@ class RiggedConfigurationElement(ClonableArray):
         information, see
         :meth:`to_tensor_product_of_kirillov_reshetikhin_tableaux()`.
 
+        .. NOTE::
+
+            Due to the special nature of the bijection for the spinor cases in
+            types `D_n^{(1)}`, `B_n^{(1)}`, and `A_{2n-1}^{(2)}`, this map is
+            not defined in these cases.
+
         INPUT:
 
         - ``return_b`` -- return the resulting letter from `\delta`
+
+        OUTPUT:
+
+        The resulting rigged configuration or if ``return_b`` is ``True``,
+        then a tuple of the resulting rigged configuration and the letter.
 
         EXAMPLES::
 
@@ -577,9 +588,19 @@ class RiggedConfigurationElement(ClonableArray):
             sage: b
             -1
         """
+        # Don't do spinor cases
+        P = self.parent()
+        ct = P.cartan_type()
+        if ct.type() == 'D':
+            if P.dims[0][0] >= ct.rank() - 2:
+                raise ValueError("only for non-spinor cases")
+        elif ct.type() == 'B' or ct.dual().type() == 'B':
+            if P.dims[0][0] == ct.rank() - 1:
+                raise ValueError("only for non-spinor cases")
+
         from sage.combinat.rigged_configurations.bijection import RCToKRTBijection
         rc = self
-        if self.parent().dims[0][1] != 1:
+        if P.dims[0][1] != 1:
             rc = self.left_split()
         bij = RCToKRTBijection(rc)
         bij.cur_dims[0][0] -= 1 # This takes care of the indexing
@@ -587,7 +608,7 @@ class RiggedConfigurationElement(ClonableArray):
         if bij.cur_dims[0][0] == 0:
             bij.cur_dims.pop(0)
         from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
-        RC = RiggedConfigurations(self.parent()._cartan_type, bij.cur_dims)
+        RC = RiggedConfigurations(ct, bij.cur_dims)
         rc = RC(*bij.cur_partitions)
         if return_b:
             return (rc, b)

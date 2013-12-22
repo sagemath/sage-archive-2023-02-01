@@ -59,6 +59,7 @@ Below are listed all methods and classes defined in this file.
     :meth:`~sage.combinat.permutation.Permutation.longest_increasing_subsequence_length` | Returns the length of the longest increasing subsequences of ``self``.
     :meth:`~sage.combinat.permutation.Permutation.longest_increasing_subsequences` | Returns the list of the longest increasing subsequences of ``self``.
     :meth:`~sage.combinat.permutation.Permutation.cycle_type` | Returns the cycle type of ``self`` as a partition of ``len(self)``.
+    :meth:`~sage.combinat.permutation.Permutation.foata_bijection` | Returns the image of the permutation ``self`` under the Foata bijection `\phi`.
     :meth:`~sage.combinat.permutation.Permutation.to_lehmer_code` | Returns the Lehmer code of the permutation ``self``.
     :meth:`~sage.combinat.permutation.Permutation.to_lehmer_cocode` | Returns the Lehmer cocode of ``self``.
     :meth:`~sage.combinat.permutation.Permutation.reduced_word` | Returns the reduced word of the permutation ``self``.
@@ -2158,6 +2159,103 @@ class Permutation(CombinatorialObject, Element):
         cycle_type.sort(reverse=True)
         from sage.combinat.partition import Partition
         return Partition(cycle_type)
+
+    @combinatorial_map(name='foata_bijection')
+    def foata_bijection(self):
+        r"""
+        Return the image of the permutation ``self`` under the Foata
+        bijection `\phi`.
+
+        The bijection shows that `\mathrm{maj}` and `\mathrm{inv}` are
+        equidistributed: if `\phi(P) = Q`, then `\mathrm{maj}(P) =
+        \mathrm{inv}(Q)`.
+
+        The Foata bijection `\phi` is a bijection on the set of words with
+        no two equal letters. It can be defined by induction on the size
+        of the word: Given a word `w_1 w_2 \cdots w_n`, start with
+        `\phi(w_1) = w_1`. At the `i`-th step, if
+        `\phi(w_1 w_2 \cdots w_i) = v_1 v_2 \cdots v_i`, we define
+        `\phi(w_1 w_2 \cdots w_i w_{i+1})` by placing `w_{i+1}` on the end of
+        the word `v_1 v_2 \cdots v_i` and breaking the word up into blocks
+        as follows. If `w_{i+1} > v_i`, place a vertical line to the right
+        of each `v_k` for which `w_{i+1} > v_k`. Otherwise, if
+        `w_{i+1} < v_i`, place a vertical line to the right of each `v_k`
+        for which `w_{i+1} < v_k`. In either case, place a vertical line at
+        the start of the word as well. Now, within each block between
+        vertical lines, cyclically shift the entries one place to the
+        right. 
+
+        For instance, to compute `\phi([1,4,2,5,3])`, the sequence of
+        words is
+
+        * `1`,
+        * `|1|4 \to 14`,
+        * `|14|2 \to 412`,
+        * `|4|1|2|5 \to 4125`,
+        * `|4|125|3 \to 45123`.
+
+        So `\phi([1,4,2,5,3]) = [4,5,1,2,3]`.
+
+        See section 2 of [FoSc78]_.
+
+        REFERENCES:
+
+        .. [FoSc78] Dominique Foata, Marcel-Paul Schuetzenberger.
+           *Major Index and Inversion Number of Permutations*.
+           Mathematische Nachrichten, volume 83, Issue 1, pages 143-159, 1978.
+           http://igm.univ-mlv.fr/~berstel/Mps/Travaux/A/1978-3MajorIndexMathNachr.pdf
+
+        EXAMPLES::
+
+            sage: Permutation([1,2,4,3]).foata_bijection()
+            [4, 1, 2, 3]
+            sage: Permutation([2,5,1,3,4]).foata_bijection()
+            [2, 1, 3, 5, 4]
+
+            sage: P = Permutation([2,5,1,3,4])
+            sage: P.major_index() == P.foata_bijection().number_of_inversions()
+            True
+
+            sage: all( P.major_index() == P.foata_bijection().number_of_inversions()
+            ....:      for P in Permutations(4) )
+            True
+
+        The example from [FoSc78]_::
+
+            sage: Permutation([7,4,9,2,6,1,5,8,3]).foata_bijection()
+            [4, 7, 2, 6, 1, 9, 5, 8, 3]
+
+        Border cases::
+
+            sage: Permutation([]).foata_bijection()
+            []
+            sage: Permutation([1]).foata_bijection()
+            [1]
+        """
+        L = list(self)
+        M = []
+        for e in L:
+            M.append(e)
+            k = len(M)
+            if k <= 1:
+                continue
+
+            a = M[-2]
+            M_prime = [0]*k
+            if a > e:
+                index_list = [-1] + [i for i in range(k - 1) if M[i] > e]
+            else:
+                index_list = [-1] + [i for i in range(k - 1) if M[i] < e]
+
+            for j in range(1, len(index_list)):
+                start = index_list[j-1] + 1
+                end = index_list[j]
+                M_prime[start] = M[end]
+                for x in range(start + 1, end + 1):
+                    M_prime[x] = M[x-1]
+            M_prime[k-1] = e
+            M = M_prime
+        return Permutation(M)
 
     def to_lehmer_code(self):
         r"""

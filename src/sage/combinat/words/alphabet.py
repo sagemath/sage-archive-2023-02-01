@@ -137,8 +137,20 @@ def build_alphabet(data=None, names=None, name=None):
         False
         sage: 1 == A(1)
         False
+
+    We give an example of an infinite alphabet indexed by the positive
+    integers and the prime numbers::
+
+        sage: build_alphabet(oo, 'x')
+        Lazy family (x(i))_{i in Non negative integers}
+        sage: build_alphabet(Primes(), 'y')
+        Lazy family (y(i))_{i in Set of all prime numbers: 2, 3, 5, 7, ...}
     """
     if data in Sets():
+        if names is not None:
+            if not isinstance(names, str):
+                raise ValueError("only one name can be specified")
+            return Family(data, lambda i: names + str(i), name=names)
         return data
     if isinstance(data, (int,long,Integer)):
         if names is None:
@@ -153,15 +165,16 @@ def build_alphabet(data=None, names=None, name=None):
     elif data == Infinity:
         if names is None:
             return NonNegativeIntegers()
-        else:
-            Family(NonNegativeIntegers(), lambda i: 'x%d'%i)
+        if not isinstance(names, str):
+            raise ValueError("only one name can be specified")
+        return Family(NonNegativeIntegers(), lambda i: names + str(i), name=names)
     if data is None and name is None:
         from sage.structure.parent import Set_PythonType
         return Set_PythonType(object)
     if data is None:
         if name == "positive integers" or name == "PP":
-           from sage.sets.positive_integers import PositiveIntegers
-           return PositiveIntegers()
+            from sage.sets.positive_integers import PositiveIntegers
+            return PositiveIntegers()
         elif name == "natural numbers" or name == "NN":
            return NonNegativeIntegers()
         else:

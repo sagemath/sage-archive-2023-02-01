@@ -92,7 +92,7 @@ Sage example in ./integration.tex, line 490::
 
     sage: p = gp.set_precision(old_prec) # on remet la précision par défaut
     sage: gp('intnum(x=0, 1, x^(-1/2))')
-    1.999999999999999999999...
+    1.99999999999999999999...
 
 Sage example in ./integration.tex, line 496::
 
@@ -102,7 +102,7 @@ Sage example in ./integration.tex, line 496::
 Sage example in ./integration.tex, line 504::
 
     sage: gp('intnum(x=[0, -1/42], 1, x^(-1/2))')
-    1.999999999999999999999...
+    1.99999999999999999999...
 
 Sage example in ./integration.tex, line 518::
 

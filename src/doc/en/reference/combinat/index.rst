@@ -25,6 +25,7 @@ Combinatorics
    sage/combinat/e_one_star
    sage/combinat/finite_class
    sage/combinat/hall_polynomial
+   sage/combinat/matrices/hadamard_matrix
    sage/combinat/integer_list
    sage/combinat/integer_matrices
    sage/combinat/integer_vector
@@ -49,6 +50,7 @@ Combinatorics
    sage/combinat/q_bernoulli
    sage/combinat/rsk
    sage/combinat/sidon_sets
+   sage/combinat/six_vertex_model
    sage/combinat/set_partition_ordered
    sage/combinat/set_partition
    sage/combinat/abstract_tree
@@ -70,6 +72,7 @@ Combinatorics
    tableaux
    symmetric_functions
    ncsf_qsym
+   ncsym
    root_systems
 
    sage/combinat/kazhdan_lusztig
@@ -81,6 +84,7 @@ Combinatorics
    designs
    species
    developer
+   sage/combinat/finite_state_machine
    words
 
    sage/combinat/dict_addition

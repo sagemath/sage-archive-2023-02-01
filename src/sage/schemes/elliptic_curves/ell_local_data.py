@@ -155,7 +155,7 @@ class EllipticCurveLocalData(SageObject):
 
     """
     
-    def __init__(self, E, P, proof=None, algorithm="pari", globally = False):
+    def __init__(self, E, P, proof=None, algorithm="pari", globally=False):
         r"""
         Initializes the reduction data for the elliptic curve `E` at the prime `P`.
 
@@ -275,7 +275,7 @@ class EllipticCurveLocalData(SageObject):
             if self._fp>0:
                 self._reduction_type = Eint.ap(p) # = 0,-1 or +1
         else:
-            self._Emin, ch, self._val_disc, self._fp, self._KS, self._cp, self._split = self._tate(proof)
+            self._Emin, ch, self._val_disc, self._fp, self._KS, self._cp, self._split = self._tate(proof, globally)
             if self._fp>0:
                 if self._Emin.c4().valuation(p)>0:
                     self._reduction_type = 0

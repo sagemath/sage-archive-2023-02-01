@@ -1028,6 +1028,7 @@ class DiGraph(GenericGraph):
             ...        for i in range(50))                              # long time
             True
         """
+        self._scream_if_not_simple(allow_multiple_edges=True)
         return self._backend.is_directed_acyclic(certificate = certificate)
 
     def to_directed(self):

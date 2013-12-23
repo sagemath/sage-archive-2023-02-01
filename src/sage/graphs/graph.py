@@ -1762,7 +1762,6 @@ class Graph(GenericGraph):
             sage: g.size()
             10
         """
-
         if self.order() == 0:
             return False
 
@@ -2002,13 +2001,13 @@ class Graph(GenericGraph):
 
         TESTS:
 
-        Bug reported in #9925, and fixed by #9420::
+        Bug reported in :trac:`9925`, and fixed by :trac:`9420`::
 
-            sage: g = Graph(':SiBFGaCEF_@CE`DEGH`CEFGaCDGaCDEHaDEF`CEH`ABCDEF')
+            sage: g = Graph(':SiBFGaCEF_@CE`DEGH`CEFGaCDGaCDEHaDEF`CEH`ABCDEF', loops=False, multiedges=False)
             sage: g.is_even_hole_free()
             False
             sage: g.is_even_hole_free(certificate = True)
-            Subgraph of (): Looped multi-graph on 4 vertices
+            Subgraph of (): Graph on 4 vertices
 
         Making sure there are no other counter-examples around ::
 
@@ -2020,7 +2019,7 @@ class Graph(GenericGraph):
         REFERENCE:
 
         .. [ABCHRS08] L. Addario-Berry, M. Chudnovsky, F. Havet, B. Reed, P. Seymour
-          Bisimplicial  vertices in even-hole-free graphs
+          Bisimplicial vertices in even-hole-free graphs
           Journal of Combinatorial Theory, Series B
           vol 98, n.6 pp 1119-1164, 2008
         """
@@ -2360,7 +2359,7 @@ class Graph(GenericGraph):
           SIAM Monographs on Discrete Mathematics and Applications},
           1999
         """
-
+        self._scream_if_not_simple()
         # our degree sequence is numbered from 0 to n-1, so to avoid
         # any mistake, let's fix it :-)
         degree_sequence = [0] + sorted(self.degree(), reverse = True)
@@ -2445,7 +2444,7 @@ class Graph(GenericGraph):
 
         Check that :trac:`13546` has been fixed::
 
-            sage: Graph(':FgGE@I@GxGs').is_perfect()
+            sage: Graph(':FgGE@I@GxGs', loops=False, multiedges=False).is_perfect()
             False
             sage: g = Graph({0: [2, 3, 4, 5],
             ...              1: [3, 4, 5, 6],
@@ -2574,6 +2573,7 @@ class Graph(GenericGraph):
             sage: g.is_strongly_regular()
             False
         """
+        self._scream_if_not_simple(allow_loops=True)
 
         if self.size() == 0: # no vertices or no edges
             return False
@@ -2907,7 +2907,7 @@ class Graph(GenericGraph):
             sage: m.size()
             3
         """
-
+        self._scream_if_not_simple()
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
 
         p = MixedIntegerLinearProgram(maximization=False, solver=solver)
@@ -3100,7 +3100,7 @@ class Graph(GenericGraph):
           Volume 51, page 20
           Australian Computer Society, Inc. 2006
         """
-
+        self._scream_if_not_simple()
         if self.is_directed():
             raise ValueError("Cannot compute an orientation of a DiGraph. "+\
                                  "Please convert it to a Graph if you really mean it.")
@@ -3252,6 +3252,7 @@ class Graph(GenericGraph):
             ...           print "Something wrong happened"
 
         """
+        self._scream_if_not_simple()
         from sage.graphs.all import DiGraph
         n = self.order()
 
@@ -3442,6 +3443,7 @@ class Graph(GenericGraph):
             ...
             ValueError: The 'algorithm' keyword must be set to either 'DLX', 'MILP' or 'CP'.
         """
+        self._scream_if_not_simple(allow_multiple_edges=True)
         # default built-in algorithm; bad performance
         if algorithm == "DLX":
             from sage.graphs.graph_coloring import chromatic_number
@@ -3518,6 +3520,7 @@ class Graph(GenericGraph):
             ...
             ValueError: The 'algorithm' keyword must be set to either 'DLX' or 'MILP'.
         """
+        self._scream_if_not_simple(allow_multiple_edges=True)
         if algorithm == "MILP":
             from sage.graphs.graph_coloring import vertex_coloring
             return vertex_coloring(self, hex_colors=hex_colors, verbose = verbose)
@@ -3609,6 +3612,7 @@ class Graph(GenericGraph):
            ...
            ValueError: algorithm must be set to either "Edmonds" or "LP"
         """
+        self._scream_if_not_simple(allow_loops=True)
         from sage.rings.real_mpfr import RR
         weight = lambda x: x if x in RR else 1
 
@@ -3729,7 +3733,7 @@ class Graph(GenericGraph):
             sage: g.has_homomorphism_to(graphs.CycleGraph(4)) is not False
             False
         """
-
+        self._scream_if_not_simple()
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
         p = MixedIntegerLinearProgram(solver=solver, maximization = False)
         b = p.new_variable(binary = True)
@@ -3824,7 +3828,7 @@ class Graph(GenericGraph):
             sage: g.fractional_chromatic_index()
             2.5
         """
-
+        self._scream_if_not_simple()
         from sage.numerical.mip import MixedIntegerLinearProgram
 
         g = self.copy()
@@ -3938,7 +3942,7 @@ class Graph(GenericGraph):
             sage: g.is_isomorphic(mad_g)
             True
         """
-
+        self._scream_if_not_simple()
         g = self
         from sage.numerical.mip import MixedIntegerLinearProgram
 
@@ -4194,7 +4198,8 @@ class Graph(GenericGraph):
             ...
             ValueError: This graph has no minor isomorphic to H !
         """
-
+        self._scream_if_not_simple()
+        H._scream_if_not_simple()
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
         p = MixedIntegerLinearProgram(solver=solver)
 
@@ -4704,7 +4709,8 @@ class Graph(GenericGraph):
             sage: g.topological_minor(graphs.CycleGraph(3))
             False
         """
-
+        self._scream_if_not_simple()
+        H._scream_if_not_simple()
         # Useful alias ...
         G = self
 
@@ -4857,7 +4863,6 @@ class Graph(GenericGraph):
 
         return minor
 
-
     ### Cliques
 
     def cliques_maximal(self):
@@ -4954,6 +4959,7 @@ class Graph(GenericGraph):
             ...
             NotImplementedError: Only 'MILP' and 'Cliquer' are supported.
         """
+        self._scream_if_not_simple(allow_multiple_edges=True)
         if algorithm=="Cliquer":
             from sage.graphs.cliquer import max_clique
             return max_clique(self)
@@ -5024,6 +5030,7 @@ class Graph(GenericGraph):
             sage: g.clique_number(algorithm="MILP")
             2
         """
+        self._scream_if_not_simple(allow_loops=False)
         if algorithm=="Cliquer":
             from sage.graphs.cliquer import clique_number
             return clique_number(self)
@@ -5338,6 +5345,7 @@ class Graph(GenericGraph):
           the Vertex Cover Problem: Theory and Experiments. *SIAM ALENEX/ANALCO*
           2004: 62-69.
         """
+        self._scream_if_not_simple(allow_multiple_edges=True)
         g = self
 
         ppset = []
@@ -5489,7 +5497,6 @@ class Graph(GenericGraph):
                     cover_g += [u]
             cover_g.sort()
             return cover_g
-
 
     def cliques_vertex_clique_number(self, algorithm="cliquer", vertices=None,
                                      cliques=None):
@@ -5751,6 +5758,7 @@ class Graph(GenericGraph):
             sage: len(core) == 0
             True
         """
+        self._scream_if_not_simple()
         # compute the degrees of each vertex
         degrees=self.degree(labels=True)
 
@@ -5919,6 +5927,7 @@ class Graph(GenericGraph):
           vol 4, number 1, pages 41--59, 2010
           http://www.lirmm.fr/~paul/md-survey.pdf
         """
+        self._scream_if_not_simple()
         from sage.misc.stopgap import stopgap
         stopgap("Graph.modular_decomposition is known to return wrong results",13744)
 
@@ -5992,6 +6001,7 @@ class Graph(GenericGraph):
             sage: g = graphs.PetersenGraph()
             sage: t = g._gomory_hu_tree()
         """
+        self._scream_if_not_simple()
         from sage.sets.set import Set
 
         # The default capacity of an arc is 1
@@ -6158,7 +6168,6 @@ class Graph(GenericGraph):
         """
         return self._gomory_hu_tree(method=method)
 
-
     def two_factor_petersen(self):
         r"""
         Returns a decomposition of the graph into 2-factors.
@@ -6202,7 +6211,7 @@ class Graph(GenericGraph):
             sage: g.plot(edge_colors={'black':cl[0], 'red':cl[1]})
 
         """
-
+        self._scream_if_not_simple()
         d = self.eulerian_orientation()
 
         # This new graph is bipartite, and built the following way :

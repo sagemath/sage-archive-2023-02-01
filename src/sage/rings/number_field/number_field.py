@@ -6439,7 +6439,7 @@ class NumberField_absolute(NumberField_generic):
             (Number Field in a0 with defining polynomial x^2 - 23, -4.79583152331)
 
             If we take a different embedding of the large field, we get a
-            different embedding of the degree 2 subfield:
+            different embedding of the degree 2 subfield::
 
             sage: K.<a> = NumberField(x^4 - 23, embedding=-50)
             sage: L2, _, _ = K.subfields(2)[0]; L2, CDF(L2.gen()) # indirect doctest
@@ -6613,7 +6613,7 @@ class NumberField_absolute(NumberField_generic):
             ValueError: each generator must be integral
 
         Alternatively, an order can be constructed by adjoining elements to
-        `\ZZ`:
+        `\ZZ`::
 
             sage: K.<a> = NumberField(x^3 - 2)
             sage: ZZ[a]
@@ -8000,7 +8000,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         """
         Return a LibGAP representation of ``self``.
 
-        TESTS:
+        TESTS::
 
             sage: K = CyclotomicField(8)
             sage: K._libgap_()

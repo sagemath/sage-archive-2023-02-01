@@ -5129,7 +5129,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             doctest... UserWarning: NumPy does not support arbitrary precision arithmetic.  The roots found will likely have less precision than you expect.
             [(-1.77245385090551..., 1), (1.77245385090551..., 1)]
 
-        We can also find roots over number fields:
+        We can also find roots over number fields::
 
             sage: K.<z> = CyclotomicField(15)
             sage: R.<x> = PolynomialRing(K)

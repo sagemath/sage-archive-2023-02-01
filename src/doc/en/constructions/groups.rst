@@ -70,9 +70,6 @@ Another way you can choose to do this:
    ``$SAGE_ROOT/local/lib/python2.4/site-packages/sage`` of your Sage home
    directory. Last, read (i.e., ``import``) it into Sage:
 
-   (You will have line wrap instead of the above carriage returns in
-   your Sage output.)
-
    .. skip
 
    ::
@@ -90,6 +87,9 @@ Another way you can choose to do this:
        'permutation group with 6 generators'
        sage: gap("Size(cubegp)")
        '43252003274489856000'
+
+   (You will have line wrap instead of the above carriage returns in
+   your Sage output.)
 
 -  Use the ``CubeGroup`` class::
 

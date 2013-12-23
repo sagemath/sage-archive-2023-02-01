@@ -161,10 +161,11 @@ def is_line_graph(g, certificate = False):
 
         This method sequentially tests each of the forbidden subgraphs in order
         to know whether the graph is a line graph, which is a very slow
-        method. It could eventually be replaced by :meth:`root_graph` when this
-        method will not require an exponential time to run on general graphs
-        anymore (see its documentation for more information on this problem)...
-        and if it can be improved to return negative certificates !
+        method. It could eventually be replaced by
+        :func:`~sage.graphs.line_graph.root_graph` when this method will not
+        require an exponential time to run on general graphs anymore (see its
+        documentation for more information on this problem)...  and if it can be
+        improved to return negative certificates !
 
     .. NOTE::
 

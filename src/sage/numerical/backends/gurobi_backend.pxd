@@ -102,8 +102,9 @@ cdef extern from "gurobi_c.h":
 cdef class GurobiBackend(GenericBackend):
 
     cdef GRBenv * env
-    cdef GRBmodel ** model
-    cdef GurobiBackend copy(self)
+    cdef GRBenv * env_master
+    cdef GRBmodel * model
+    cpdef GurobiBackend copy(self)
 
     cdef int num_vars
 

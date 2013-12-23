@@ -2230,13 +2230,13 @@ cdef class CachedSpecialMethod(CachedMethod):
     provided by the class, not by the instance.
 
     By consequence, if ``__hash__`` would be wrapped by using
-    :class:`CachedMethod`, then ``hash(c)`` will access `C.__hash__` and bind
+    :class:`CachedMethod`, then ``hash(c)`` will access ``C.__hash__`` and bind
     it to ``c``, which means that the ``__get__`` method of
     :class:`CachedMethod` will be called. But there, we assume that Python has
     already inspected ``__dict__``, and thus a :class:`CachedMethodCaller`
     will be created over and over again.
 
-    Here, the `__get__` method will explicitly access the `__dict__`, so that
+    Here, the ``__get__`` method will explicitly access the ``__dict__``, so that
     ``hash(c)`` will rely on a single :class:`CachedMethodCaller` stored in
     the ``__dict__``.
 
@@ -2264,7 +2264,7 @@ cdef class CachedSpecialMethod(CachedMethod):
     """
     def __get__(self, object inst, cls):
         """
-        Bind a :class:`CachedMethodCaller` to a specific instance, using `__dict__`.
+        Bind a :class:`CachedMethodCaller` to a specific instance, using ``__dict__``.
 
         EXAMPLES::
 

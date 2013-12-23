@@ -331,6 +331,11 @@ cat >&3 <<EOF
 
 EOF
 
+# Use bash as shell for the Makefile (bash obviously exists, since
+# this build/install script runs under bash).
+echo >&3 "SHELL = `command -v bash`"
+echo >&3
+
 # If the user (or the Makefile) has set SAGE_PARALLEL_SPKG_BUILD=no,
 # then turn off parallel building: disable just building multiple
 # packages at the same time.   Individual packages can still be built
@@ -490,7 +495,7 @@ for file in "$SAGE_SRC/bin/"*; do
     echo >&3 "                 \$(SAGE_SRC)${file#$SAGE_SRC} \\"
 done
 echo >&3
-echo >&3 'SCRIPT_TARGETS = \'
+echo >&3 'SCRIPTS = \'
 for file in "$SAGE_SRC/bin/"*; do
     echo >&3 "                 \$(SAGE_LOCAL)${file#$SAGE_SRC} \\"
 done
@@ -500,7 +505,7 @@ for file in `find "$SAGE_SRC"/ext -type f`; do
     echo >&3 "                  \$(SAGE_SRC)${file#$SAGE_SRC} \\"
 done
 echo >&3
-echo >&3 'EXTCODE_TARGETS = \'
+echo >&3 'EXTCODE = \'
 for file in `find "$SAGE_SRC"/ext -type f`; do
     echo >&3 "                  \$(SAGE_EXTCODE)${file#$SAGE_SRC/ext} \\"
 done

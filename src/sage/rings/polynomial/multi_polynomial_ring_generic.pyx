@@ -208,7 +208,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: P.remove_var(y,z,x,w)
             Integer Ring
 
-        If possible, the term order is kept:
+        If possible, the term order is kept::
 
              sage: R.<x,y,z,w> = PolynomialRing(ZZ, order='deglex')
              sage: R.remove_var(y).term_order()

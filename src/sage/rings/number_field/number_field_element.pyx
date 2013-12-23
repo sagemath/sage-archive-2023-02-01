@@ -50,8 +50,7 @@ from sage.rings.rational cimport Rational
 
 from sage.modules.free_module_element import vector
 
-from sage.libs.all import pari_gen, pari
-from sage.libs.pari.gen import PariError
+from sage.libs.pari.all import pari_gen
 from sage.structure.element cimport Element, generic_power_c
 from sage.structure.element import canonical_coercion, parent
 
@@ -2344,7 +2343,7 @@ cdef class NumberFieldElement(FieldElement):
         - a list whose length corresponding to the degree of this
           element written in terms of a generator.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: K.<b> = NumberField(x^3 - 2)
             sage: (b^2 + 1)._coefficients()

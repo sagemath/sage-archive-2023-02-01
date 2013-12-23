@@ -196,7 +196,7 @@ def symplectic_basis_over_field(M):
         sage: F == C * E * C.transpose()
         True
 
-        The tricky case of characteristic 2:
+        The tricky case of characteristic 2::
 
         sage: E = matrix(GF(2), 8, 8, [0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0]); E
         [0 0 1 1 0 1 0 1]

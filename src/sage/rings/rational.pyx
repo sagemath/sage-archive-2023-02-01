@@ -55,13 +55,14 @@ from sage.misc.mathml import mathml
 
 import sage.misc.misc as misc
 import sage.rings.rational_field
-import sage.libs.pari.all
 
 cimport integer
 import integer
 from integer cimport Integer
 
-from sage.libs.pari.gen cimport gen as pari_gen, PariInstance
+import sage.libs.pari.pari_instance
+from sage.libs.pari.gen cimport gen as pari_gen
+from sage.libs.pari.pari_instance cimport PariInstance
 
 from integer_ring import ZZ
 
@@ -528,7 +529,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                 raise ValueError, "denominator must not be 0"
             mpq_canonicalize(self.value)
 
-        elif isinstance(x, sage.libs.pari.all.pari_gen):
+        elif isinstance(x, pari_gen):
             x = x.simplify()
             if typ((<pari_gen>x).g) == t_FRAC:
                 t_FRAC_to_QQ(self.value, (<pari_gen>x).g)
@@ -2698,7 +2699,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         QQ = self.parent()
         return QQ[var]([-self,1])
 
-    def minpoly(self, var):
+    def minpoly(self, var='x'):
         """
         Return the minimal polynomial of this rational number. This will
         always be just ``x - self``; this is really here so that code written
@@ -2712,8 +2713,10 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: (1/3).minpoly('x')
-             x - 1/3
+            sage: (1/3).minpoly()
+            x - 1/3
+            sage: (1/3).minpoly('y')
+            y - 1/3
 
         AUTHORS:
 
@@ -3442,7 +3445,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: m.type()
             't_FRAC'
         """
-        cdef PariInstance P = sage.libs.pari.gen.pari
+        cdef PariInstance P = sage.libs.pari.pari_instance.pari
         return P.new_gen_from_mpq_t(self.value)
 
     def _interface_init_(self, I=None):

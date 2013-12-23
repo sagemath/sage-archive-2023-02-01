@@ -61,6 +61,11 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
     def __init__(self, B):
         """
         Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: A = KirillovReshetikhinCrystal(['A',2,1], 1, 1).affinization()
+            sage: TestSuite(A).run() # long time
         """
         self._B = B
         self._cartan_type = B.cartan_type()
@@ -70,14 +75,25 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
     def _repr_(self):
         """
         Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: KirillovReshetikhinCrystal(['A',2,1], 1, 1).affinization()
+            Affinization of Kirillov-Reshetikhin crystal of type ['A', 2, 1] with (r,s)=(1,1)
         """
         return "Affinization of {}".format(self._B)
 
     def weight_lattice_realization(self):
         """
         Return the weight lattice realization of ``self``.
+
+        EXAMPLES::
+
+            sage: A = KirillovReshetikhinCrystal(['A',2,1], 1, 1).affinization()
+            sage: A.weight_lattice_realization()
+            Ambient space of the Root system of type ['A', 2, 1]
         """
-        return self.cartan_type().ambient_space()
+        return self.cartan_type().root_system().ambient_space()
 
     class Element(Element):
         """
@@ -103,6 +119,20 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
             """
             from sage.misc.latex import latex
             return latex(self._b) + "({})".format(self._m)
+
+        def __eq__(self, other):
+            """
+            Check equality.
+            """
+            if not isinstance(other, AffinizationCrystal.Element):
+                return False
+            return self._b == other._b and self._m == other._m
+
+        def __neq__(self, other):
+            """
+            Check inequality.
+            """
+            return not self.__eq__(other)
 
         def e(self, i):
             """

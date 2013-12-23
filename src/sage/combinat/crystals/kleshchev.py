@@ -105,10 +105,10 @@ class KleshchevCrystal(Parent, UniqueRepresentation):
         ([1, 1, 1, 1], [])
         sage: mg.f_string([2,0,1,0])
         ([2], [2])
-        sage: S = C.subcrystal(max_depth=5)
+        sage: S = C.subcrystal(max_depth=3)
         sage: G = C.digraph(subset=S)
         sage: B = CrystalOfLSPaths(['A',2,1], [1,0,1])
-        sage: SB = B.subcrystal(max_depth=5)
+        sage: SB = B.subcrystal(max_depth=3)
         sage: GB = B.digraph(subset=SB)
         sage: G.is_isomorphic(GB, edge_labels=True)
         True
@@ -175,8 +175,7 @@ class KleshchevCrystal(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: C = KleshchevCrystal(2, [0,2])
-            sage: TestSuite(C).run(skip="_test_stembridge_local_axioms")
-            sage: C._test_stembridge_local_axioms() # long time
+            sage: TestSuite(C).run() # long time
         """
         self._cartan_type = CartanType(['A', n, 1])
         self._r = r

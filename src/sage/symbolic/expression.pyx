@@ -7818,6 +7818,17 @@ cdef class Expression(CommutativeRingElement):
             sage: original - simplified
             0
 
+        The invalid simplification from :trac:`12322` should not occur
+        after :trac:`12737`::
+
+            sage: t = var('t')
+            sage: assume(t, 'complex')
+            sage: assumptions()
+            [t is complex]
+            sage: f = (1/2)*log(2*t) + (1/2)*log(1/t)
+            sage: f.simplify_full()
+            1/2*log(2*t) - 1/2*log(t)
+
         """
         x = self
         x = x.simplify_factorial()

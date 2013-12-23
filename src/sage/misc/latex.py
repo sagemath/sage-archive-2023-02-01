@@ -2670,7 +2670,7 @@ class LatexExamples():
             """
             String representation
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: from sage.misc.latex import latex_examples
                 sage: G = latex_examples.graph()

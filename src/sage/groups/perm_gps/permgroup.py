@@ -1603,6 +1603,75 @@ class PermutationGroup_generic(group.Group):
             raise ValueError('Group is not primitive')
         return Integer(self._gap_().PrimitiveIdentification())
 
+    @cached_method
+    def structure_description(self, latex=False):
+        r"""
+        Return a string that tries to describe the structure of ``self``.
+
+        This methods wraps GAP's ``StructureDescription`` method.
+
+        Requires the *optional* ``database_gap`` package.
+
+        For full details, including the form of the returned string and the
+        algorithm to build it, see `GAP's documentation
+        <http://www.gap-system.org/Manuals/doc/ref/chap39.html>`_.
+
+        INPUT:
+
+        - ``latex`` -- a boolean (default: ``False``). If ``True`` return a
+          LaTeX formatted string.
+
+        OUTPUT:
+
+        - string
+
+        .. WARNING::
+
+            From GAP's documentation: The string returned by
+            ``StructureDescription`` is **not** an isomorphism invariant:
+            non-isomorphic groups can have the same string value, and two
+            isomorphic groups in different representations can produce different
+            strings.
+
+        EXAMPLES::
+
+            sage: G = CyclicPermutationGroup(6)
+            sage: G.structure_description()             # optional - database_gap
+            'C6'
+            sage: G.structure_description(latex=True)   # optional - database_gap
+            'C_{6}'
+            sage: G2 = G.direct_product(G, maps=False)
+            sage: LatexExpr(G2.structure_description(latex=True))   # optional - database_gap
+            C_{6} \times C_{6}
+
+        This method is mainly intended for small groups or groups with few
+        normal subgroups. Even then there are some surprises::
+
+            sage: D3 = DihedralGroup(3)
+            sage: D3.structure_description()    # optional - database_gap
+            'S3'
+
+        We use the Sage notation for the degree of dihedral groups::
+
+            sage: D4 = DihedralGroup(4)
+            sage: D4.structure_description()    # optional - database_gap
+            'D4'
+
+        """
+        import re
+        def correct_dihedral_degree(match):
+            return "%sD%d" % (match.group(1), int(match.group(2))/2)
+
+        description = self._gap_().StructureDescription().str()
+        description = re.sub(r"(\A|\W)D(\d+)", correct_dihedral_degree, description)
+        if not latex:
+            return description
+        description = description.replace("x", r"\times").replace(":", r"\rtimes")
+        description = re.sub(r"([A-Za-z]+)([0-9]+)", r"\g<1>_{\g<2>}", description)
+        description = re.sub(r"O([+-])", r"O^{\g<1>}", description)
+
+        return description
+
     def center(self):
         """
         Return the subgroup of elements that commute with every element

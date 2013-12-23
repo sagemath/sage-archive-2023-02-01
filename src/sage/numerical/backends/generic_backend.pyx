@@ -848,7 +848,7 @@ cdef class GenericBackend:
         .. NOTE::
 
            The list of available parameters is available at
-           :meth:`sage.numerical.mip.MixedIntegerlinearProgram.solver_parameter`
+           :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solver_parameter`.
 
         EXAMPLE::
 

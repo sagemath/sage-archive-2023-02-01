@@ -30,7 +30,12 @@ GNU patch, GMP/MPIR, NTL, Termcap, Readline and MPFR
 See spkg-src.
 
 == Patches ==
+ * NTL6_compatibility.patch  taken from commit
+   ddb348e97a991972e5dfee690a66663ba0418f40
+ * factory_template_instantiation.patch taken from commit
+   561842a06ad4b44f3b85b28ac35e7946eaba9a30
  * assert.patch: logic seems to be broken on some platforms
+ * configure_comma.patch: remove a superfluous "," from configure.
  * install_table.patch: install singular/table.h header file, needed
    for the libsing GAP package.
  * Minor.h.patch: needs to have <time.h> included on Cygwin
@@ -92,6 +97,22 @@ Other notes
    for easier debugging of memory corruptions.
 
 == ChangeLog ==
+
+=== singular-3-1-6.p0 (Jeroen Demeyer, 26 August 2013) ===
+ * Remove the following patches, which were fixed upstream:
+   - NTL_negate.patch
+   - install_table.patch
+   - pullrequest215.patch
+   - sage_trac_12089.patch
+   - singular_15435.patch
+   - singular_part_of_changeset_baadc0f7.patch
+   - singular_trac_439.patch
+   - singular_trac_440.patch
+   - singular_trac_441.patch
+   - singular_trac_443.patch
+ * Removed cygwin-makefile.patch, which is hopefully not needed anymore.
+ * Rebased some other patches.
+ * Add configure_comma.patch.
 
 === singular-3-1-5.p9 (Paul Zimmermann, Jeroen Demeyer, 26 August 2013) ===
  * #13770: Add upstream pull request 215 for multivariate factorisation.

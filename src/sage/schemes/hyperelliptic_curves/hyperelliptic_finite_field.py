@@ -1003,9 +1003,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: C.count_points(4)
             [6, 12, 18, 96]
             sage: C.base_extend(GF(9,'a')).count_points(2)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Point counting only implemented for schemes over prime fields
+            [12, 96]
 
             sage: K = GF(2**31-1)
             sage: R.<t> = PolynomialRing(K)

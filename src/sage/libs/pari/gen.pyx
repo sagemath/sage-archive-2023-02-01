@@ -7261,7 +7261,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: nf = pari(y^2 - 6*y + 24).nfinit()
             sage: rnf = nf.rnfinit(x^2 - pari(y))
 
-        This is the relative HNF of the inert ideal (2) in rnf:
+        This is the relative HNF of the inert ideal (2) in rnf::
 
             sage: P = pari('[[[1, 0]~, [0, 0]~; [0, 0]~, [1, 0]~], [[2, 0; 0, 2], [2, 0; 0, 1/2]]]')
 

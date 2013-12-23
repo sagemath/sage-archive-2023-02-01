@@ -3761,7 +3761,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         This returns a tuple so it is immutable; see #10752.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: A = matrix(QQ, 2, 2, range(4))
             sage: A.pivots()

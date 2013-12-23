@@ -399,7 +399,7 @@ class R(Expect):
 
         EXAMPLES::
 
-            sage: r.install_packages('aaMI')       # optional - internet
+            sage: r.install_packages('aaMI')       # not tested
             ...
             R is free software and comes with ABSOLUTELY NO WARRANTY.
             You are welcome to redistribute it under certain conditions.
@@ -410,12 +410,6 @@ class R(Expect):
         cmd = """options(repos="%s"); install.packages("%s")"""%(RRepositoryURL, package_name)
         os.system("time echo '%s' | R --vanilla"%cmd)
         print "Please restart Sage in order to use '%s'."%package_name
-
-        # For now, r.restart() seems to be broken
-        #print "Please restart Sage or restart the R interface (via r.restart()) in order to use '%s'."%package_name
-
-        #s = r.eval('install.packages("%s")'%package_name)
-        #print s
 
     def __repr__(self):
         """

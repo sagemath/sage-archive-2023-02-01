@@ -55,7 +55,8 @@ use the GAP-Sage interface as follows.
 
 Another way you can choose to do this:
 
--  Create a file ``cubegroup.py`` containing the lines::
+-  Create a file ``cubegroup.py`` containing the
+   lines::
 
        cube = "cubegp := Group(
        ( 1, 3, 8, 6)( 2, 5, 7, 4)( 9,33,25,17)(10,34,26,18)(11,35,27,19),
@@ -74,7 +75,7 @@ Another way you can choose to do this:
 
    .. skip
 
-::
+   ::
 
        sage: import sage.cubegroup
        sage: sage.cubegroup.cube

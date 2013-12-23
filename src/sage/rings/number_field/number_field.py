@@ -86,7 +86,6 @@ from sage.structure.parent_gens import localvars
 from sage.misc.cachefunc import cached_method
 
 import sage.libs.ntl.all as ntl
-import sage.libs.pari.all as pari
 import sage.interfaces.gap
 import sage.rings.arith
 
@@ -200,7 +199,7 @@ from sage.structure.parent_gens import ParentWithGens
 import number_field_element
 import number_field_element_quadratic
 from number_field_ideal import is_NumberFieldIdeal, NumberFieldFractionalIdeal
-from sage.libs.all import pari, pari_gen
+from sage.libs.pari.all import pari, pari_gen
 
 QQ = rational_field.RationalField()
 ZZ = integer_ring.IntegerRing()
@@ -6440,7 +6439,7 @@ class NumberField_absolute(NumberField_generic):
             (Number Field in a0 with defining polynomial x^2 - 23, -4.79583152331)
 
             If we take a different embedding of the large field, we get a
-            different embedding of the degree 2 subfield:
+            different embedding of the degree 2 subfield::
 
             sage: K.<a> = NumberField(x^4 - 23, embedding=-50)
             sage: L2, _, _ = K.subfields(2)[0]; L2, CDF(L2.gen()) # indirect doctest
@@ -6614,7 +6613,7 @@ class NumberField_absolute(NumberField_generic):
             ValueError: each generator must be integral
 
         Alternatively, an order can be constructed by adjoining elements to
-        `\ZZ`:
+        `\ZZ`::
 
             sage: K.<a> = NumberField(x^3 - 2)
             sage: ZZ[a]
@@ -8001,7 +8000,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         """
         Return a LibGAP representation of ``self``.
 
-        TESTS:
+        TESTS::
 
             sage: K = CyclotomicField(8)
             sage: K._libgap_()

@@ -848,7 +848,7 @@ cdef class GenericBackend:
         .. NOTE::
 
            The list of available parameters is available at
-           :meth:`sage.numerical.mip.MixedIntegerlinearProgram.solver_parameter`
+           :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solver_parameter`.
 
         EXAMPLE::
 
@@ -996,7 +996,6 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
         sage: from sage.numerical.backends.generic_backend import get_solver
         sage: p = get_solver()
     """
-
     if solver is None:
         solver = default_mip_solver()
 

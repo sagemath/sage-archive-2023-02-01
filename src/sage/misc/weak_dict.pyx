@@ -351,8 +351,8 @@ cdef class WeakValueDictEraser:
         A weak reference with key.
 
         When this is called with a weak reference ``r``, then an entry from the
-        dictionary pointed to by `self.D` is removed that has ``r`` as a value
-        identically, stored under a key with hash `r.key`. If no such key
+        dictionary pointed to by ``self.D`` is removed that has ``r`` as a value
+        identically, stored under a key with hash ``r.key``. If no such key
         exists, or if the dictionary itself doesn't exist any more, then nothing
         happens.
 
@@ -799,7 +799,7 @@ cdef class WeakValueDictionary(dict):
             sage: D[ZZ]     # indirect doctest
             Rational Field
 
-        As usual, the dictionary keys are compared by `==` and not by
+        As usual, the dictionary keys are compared by ``==`` and not by
         identity::
 
             sage: D[10] = ZZ

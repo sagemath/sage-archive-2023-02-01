@@ -685,7 +685,6 @@ class FileDocTestSource(DocTestSource):
             There are 1 unexpected tests being run in sage/doctest/reporting.py
             There are 9 tests in sage/graphs/graph_plot.py that are not being run
             There are 3 tests in sage/rings/invariant_theory.py that are not being run
-            There are 4 tests in doc/en/constructions/groups.rst that are not being run
             sage: os.chdir(cwd)
         """
         expected = []

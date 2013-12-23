@@ -14,9 +14,7 @@ Permutation groups
 
 A permutation group is a subgroup of some symmetric group
 :math:`S_n`. Sage has a Python class ``PermutationGroup``, so you
-can work with such groups directly:
-
-::
+can work with such groups directly::
 
     sage: G = PermutationGroup(['(1,2,3)(4,5)'])
     sage: G
@@ -71,7 +69,12 @@ Another way you can choose to do this:
    ``$SAGE_ROOT/local/lib/python2.4/site-packages/sage`` of your Sage home
    directory. Last, read (i.e., ``import``) it into Sage:
 
-   .. skip::
+   (You will have line wrap instead of the above carriage returns in
+   your Sage output.)
+
+   .. skip
+
+::
 
        sage: import sage.cubegroup
        sage: sage.cubegroup.cube
@@ -87,9 +90,6 @@ Another way you can choose to do this:
        sage: gap("Size(cubegp)")
        '43252003274489856000'
 
-   (You will have line wrap instead of the above carriage returns in
-   your Sage output.)
-
 -  Use the ``CubeGroup`` class::
 
        sage: rubik = CubeGroup()
@@ -98,7 +98,7 @@ Another way you can choose to do this:
        sage: rubik.order()
        43252003274489856000
 
-   (1) has implemented classical groups (such as :math:`GU(3,GF(5))`)
+   (1) has implemented classical groups (such as :math:`GU(3,\GF{5})`)
    and matrix groups over a finite field with user-defined generators.
 
    (2) also has implemented finite and infinite (but finitely
@@ -238,7 +238,9 @@ directory).
 
 Another example of using the small groups database: ``group_id``
 
-.. skip::
+.. skip
+
+::
 
     sage: gap_console()
     GAP4, Version: 4.4.6 of 02-Sep-2005, x86_64-unknown-linux-gnu-gcc
@@ -264,7 +266,9 @@ Sage. The following command can be used to take their direct product (where,
 of course, the ellipses are simply being used here as a notation, and you
 actually must enter every factor in your desired product explicitly).
 
-.. skip::
+.. skip
+
+::
 
     sage: G = direct_product_permgroups([G1, G2, ..., Gn])
 
@@ -287,7 +291,9 @@ For each semidirect product in the table below we will show you how to build
 ``phi``, then assume you have read this passage and understand how to go
 from there.
 
-.. skip::
+.. skip
+
+::
 
     sage: G = H.semidirect_product(K, phi)
 
@@ -296,7 +302,9 @@ create the cyclic group of order `n`, `C_n`, and the dihedral group on `n`
 letters, `D_n`. We will present one more example of each to ensure that the
 reader understands the command, then it will be withheld.
 
-.. skip::
+.. skip
+
+::
 
     sage: G = CyclicPermutationGroup(n)
 
@@ -503,7 +511,9 @@ cyclic group of order 30.
 If ``G`` and ``H`` are finitely presented groups, we can use the following
 code to create the direct product of ``G`` and ``H``, `G \times H`.
 
-.. skip::
+.. skip
+
+::
 
     sage: D = G.direct_product(H)
 
@@ -531,13 +541,17 @@ by the following exmples.
 
 The cyclic group of order `n` can be crated with a single command:
 
-.. skip::
+.. skip
+
+::
 
     sage: C = groups.presentation.Cyclic(n)
 
 Similarly for the dihedral group of order `2n`:
 
-.. skip::
+.. skip
+
+::
 
     sage: D = groups.presentation.Dihedral(n)
  

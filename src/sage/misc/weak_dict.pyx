@@ -213,6 +213,17 @@ cdef del_dictitem_by_exact_value(PyDictObject *mp, PyObject *value, long hash):
         sage: D[1]
         Integer Ring
 
+    TESTS:
+
+    The following shows that the deletion of deeply nested structures does not
+    result in an error, by :trac:`15506`::
+
+        sage: class A: pass
+        sage: a = A(); prev = a
+        sage: M = WeakValueDictionary()
+        sage: for i in range(10^3+10): newA = A(); M[newA] = prev; prev = newA
+        sage: del a
+
     """
     cdef size_t i
     cdef size_t perturb

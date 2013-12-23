@@ -826,7 +826,7 @@ def compute_Wi(k,p,h,hj,E4,E6):
 
     - list of q-expansions (to same finite precision), and q-expansion.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.modular.overconvergent.hecke_series import compute_Wi
         sage: p = 17

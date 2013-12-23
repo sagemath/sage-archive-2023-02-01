@@ -38,7 +38,10 @@ def verify_bernoulli_mod_p(data):
     Computes checksum for bernoulli numbers.
 
     It checks the identity
-        $$ \sum_{n=0}^{(p-3)/2} 2^{2n} (2n+1) B_{2n}  \equiv  -2 \pmod p $$
+
+    .. MATH::
+
+        \sum_{n=0}^{(p-3)/2} 2^{2n} (2n+1) B_{2n}  \equiv  -2 \pmod p
 
     (see "Irregular Primes to One Million", Buhler et al)
 
@@ -85,24 +88,24 @@ def verify_bernoulli_mod_p(data):
 
 def bernoulli_mod_p(int p):
     r"""
-    Returns the bernoulli numbers $B_0, B_2, ... B_{p-3}$ modulo $p$.
+    Returns the bernoulli numbers `B_0, B_2, ... B_{p-3}` modulo `p`.
 
     INPUT:
         p -- integer, a prime
 
     OUTPUT:
-        list -- Bernoulli numbers modulo $p$ as a list
+        list -- Bernoulli numbers modulo `p` as a list
                 of integers [B(0), B(2), ... B(p-3)].
 
     ALGORITHM:
         Described in accompanying latex file.
 
     PERFORMANCE:
-        Should be complexity $O(p \log p)$.
+        Should be complexity `O(p \log p)`.
 
     EXAMPLES:
     Check the results against PARI's C-library implementation (that
-    computes exact rationals) for $p = 37$:
+    computes exact rationals) for `p = 37`::
 
         sage: bernoulli_mod_p(37)
          [1, 31, 16, 15, 16, 4, 17, 32, 22, 31, 15, 15, 17, 12, 29, 2, 0, 2]
@@ -211,16 +214,16 @@ def bernoulli_mod_p(int p):
 
 def bernoulli_mod_p_single(long p, long k):
     r"""
-    Returns the bernoulli number $B_k$ mod $p$.
+    Returns the bernoulli number `B_k` mod `p`.
 
-    If $B_k$ is not $p$-integral, an ArithmeticError is raised.
+    If `B_k` is not `p`-integral, an ArithmeticError is raised.
 
     INPUT:
         p -- integer, a prime
         k -- non-negative integer
 
     OUTPUT:
-        The $k$-th bernoulli number mod $p$.
+        The `k`-th bernoulli number mod `p`.
 
     EXAMPLES:
         sage: bernoulli_mod_p_single(1009, 48)

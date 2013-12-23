@@ -2343,7 +2343,7 @@ cdef class NumberFieldElement(FieldElement):
         - a list whose length corresponding to the degree of this
           element written in terms of a generator.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: K.<b> = NumberField(x^3 - 2)
             sage: (b^2 + 1)._coefficients()

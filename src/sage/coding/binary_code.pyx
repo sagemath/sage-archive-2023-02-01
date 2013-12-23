@@ -2586,7 +2586,7 @@ cdef class PartitionStack:
 
     def _refine(self, k, alpha, CG):
         """
-        EXAMPLE:
+        EXAMPLE::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *

@@ -33,7 +33,7 @@ Arrangements
 
 There are several ways to create hyperplane arrangements:
 
-(i) by passing individual hyperplanes to the
+Notation (i): by passing individual hyperplanes to the
 :class:`HyperplaneArrangements` object::
 
     sage: H.<x,y> = HyperplaneArrangements(QQ)
@@ -42,8 +42,8 @@ There are several ways to create hyperplane arrangements:
     sage: box == H(x, y, x-1, y-1)    # alternative syntax 
     True
  
-(ii) by passing anything that defines a hyperplane, for example a
-coefficient vector and constant term::
+Notation (ii): by passing anything that defines a hyperplane, for
+example a coefficient vector and constant term::
 
     sage: H = HyperplaneArrangements(QQ, ('x', 'y'))
     sage: triangle = H([(1, 0), 0], [(0, 1), 0], [(1,1), -1]);  triangle
@@ -61,7 +61,7 @@ supported::
     sage: a = H([(1,2,3), 4], [(5,6,7), 8]);  a
     Arrangement <y + 2*z + 3 | x + 2*y + 3*z + 4>
 
-(iii) a list or tuple of hyperplanes::
+Notation (iii): a list or tuple of hyperplanes::
 
     sage: H.<x,y,z> = HyperplaneArrangements(GF(5))
     sage: k = [x+i for i in range(4)];  k
@@ -70,7 +70,7 @@ supported::
     sage: H(k)
     Arrangement <x | x + 1 | x + 2 | x + 3>
 
-(iv) using the library of arrangements::
+Notation (iv): using the library of arrangements::
 
     sage: hyperplane_arrangements.braid(4)
     Arrangement of 6 hyperplanes of dimension 4 and rank 3
@@ -81,7 +81,7 @@ supported::
     sage: hyperplane_arrangements.Ish(5)
     Arrangement of 20 hyperplanes of dimension 5 and rank 4
 
-(v) from the bounding hyperplanes of a polyhedron::
+Notation (v): from the bounding hyperplanes of a polyhedron::
 
     sage: a = polytopes.n_cube(3).hyperplane_arrangement();  a
     Arrangement of 6 hyperplanes of dimension 3 and rank 3
@@ -282,6 +282,17 @@ TESTS::
     sage: h.n_regions()
     85
 
+    sage: H()
+    Empty hyperplane arrangement of dimension 2
+
+    sage: Zero = HyperplaneArrangements(QQ)
+    sage: Zero
+    Hyperplane arrangements in 0-dimensional linear space over Rational Field with coordinate 
+    sage: Zero()
+    Empty hyperplane arrangement of dimension 0
+    sage: Zero.an_element()
+    Empty hyperplane arrangement of dimension 0
+
 AUTHORS:
 
 - David Perkinson (2013-06): initial version
@@ -472,8 +483,12 @@ class HyperplaneArrangementElement(Element):
             Arrangement <y - 1 | y | x - 1 | x>
             sage: x | y | x - 1 | y - 1 | x + y | x - y
             Arrangement of 6 hyperplanes of dimension 2 and rank 2
+            sage: H()
+            Empty hyperplane arrangement of dimension 2
         """
-        if len(self) < 5:
+        if len(self) == 0:
+            return 'Empty hyperplane arrangement of dimension {0}'.format(self.dimension())
+        elif len(self) < 5:
             hyperplanes = ' | '.join(h._repr_linear(include_zero=False) for h in self._hyperplanes)
             return 'Arrangement <{0}>'.format(hyperplanes)
         return 'Arrangement of {0} hyperplanes of dimension {1} and rank {2}'.format(
@@ -2086,10 +2101,18 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
             Arrangement <x>
             sage: L(-x, x + y - 1, signed=False)
             Arrangement <-x - y + 1 | x>
+
+            sage: L()
+            Empty hyperplane arrangement of dimension 2
         """
-        if len(args) == 1 and isinstance(args[0], HyperplaneArrangementElement) and args[0].parent() is self:
-            # optimization if argument is already a hyperplane arrangement
-            return args[0]
+        if len(args) == 1:
+            arg = args[0]
+            if isinstance(arg, HyperplaneArrangementElement) and args[0].parent() is self:
+                # optimization if argument is already a hyperplane arrangement
+                return arg
+            if arg == 0:
+                # zero = neutral element under addition = the empty hyperplane arrangement
+                args = []
         # process keyword arguments
         not_char2 = (self.base_ring().characteristic() != 2)
         signed = kwds.pop('signed', not_char2)

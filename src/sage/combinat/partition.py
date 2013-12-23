@@ -4220,10 +4220,12 @@ class Partitions(UniqueRepresentation, Parent):
     and ``regular``. They have the following meanings:
 
     - ``starting=p`` specifies that the partitions should all be less
-      than or equal to `p` in lex order.
+      than or equal to `p` in lex order. This argument cannot be combined
+      with any other (see :trac:`15467`).
 
     - ``ending=p`` specifies that the partitions should all be greater than
-      or equal to `p` in lex order.
+      or equal to `p` in lex order. This argument cannot be combined with any
+      other (see :trac:`15467`).
 
     - ``length=k`` specifies that the partitions have
       exactly `k` parts.
@@ -4245,7 +4247,8 @@ class Partitions(UniqueRepresentation, Parent):
 
     - ``parts_in=S`` specifies that the partitions have parts in the set
       `S`, which can be any sequence of pairwise distinct positive
-      integers.
+      integers. This argument cannot be combined with any other
+      (see :trac:`15467`).
 
     - ``regular=ell`` specifies that the partitions are `\ell`-regular,
       and can only be combined with the ``max_part`` keyword if `n` is
@@ -4427,6 +4430,29 @@ class Partitions(UniqueRepresentation, Parent):
 
         sage: 1 in Partitions()
         False
+
+    Check :trac:`15467`::
+
+        sage: Partitions(5,parts_in=[1,2,3,4], length=4)
+        Traceback (most recent call last):
+        ...
+        ValueError: The parameters 'parts_in', 'starting' and 'ending' cannot be combined with anything else.
+        sage: Partitions(5,starting=[3,2], length=2)
+        Traceback (most recent call last):
+        ...
+        ValueError: The parameters 'parts_in', 'starting' and 'ending' cannot be combined with anything else.
+        sage: Partitions(5,ending=[3,2], length=2)
+        Traceback (most recent call last):
+        ...
+        ValueError: The parameters 'parts_in', 'starting' and 'ending' cannot be combined with anything else.
+        sage: Partitions(NN, length=2)
+        Traceback (most recent call last):
+        ...
+        ValueError: the size must be specified with any keyword argument
+        sage: Partitions(('la','la','laaaa'), max_part=8)
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be an integer or be equal to one of None, NN, NonNegativeIntegers()
     """
     @staticmethod
     def __classcall_private__(cls, n=None, **kwargs):
@@ -4464,17 +4490,20 @@ class Partitions(UniqueRepresentation, Parent):
                     return RegularPartitions_all_bounded(kwargs['regular'], kwargs['max_part'])
                 raise ValueError("the size must be specified with any keyword argument")
             return Partitions_all()
-        else:
+        elif isinstance(n, (int,Integer)):
             if len(kwargs) == 0:
-                if isinstance(n, (int,Integer)):
-                    return Partitions_n(n)
-                else:
-                    raise ValueError("n must be an integer")
+                return Partitions_n(n)
+
             if len(kwargs) == 1 and 'max_part' in kwargs:
                 return PartitionsGreatestLE(n, kwargs['max_part'])
 
-            # FIXME: should inherit from IntegerListLex, and implement repr, or _name as a lazy attribute
-            kwargs['name'] = "Partitions of the integer %s satisfying constraints %s"%(n, ", ".join( ["%s=%s"%(key, kwargs[key]) for key in sorted(kwargs.keys())] ))
+            if (len(kwargs) > 1 and
+                ('parts_in' in kwargs or
+                 'starting' in kwargs or
+                 'ending'   in kwargs)):
+                raise ValueError("The parameters 'parts_in', 'starting' and "+
+                                 "'ending' cannot be combined with anything else.")
+
             if 'parts_in' in kwargs:
                 return Partitions_parts_in(n, kwargs['parts_in'])
             elif 'starting' in kwargs:
@@ -4484,22 +4513,22 @@ class Partitions(UniqueRepresentation, Parent):
             elif 'regular' in kwargs:
                 return RegularPartitions_n(n, kwargs['regular'])
 
-            if 'min_part' not in kwargs:
-                kwargs['min_part'] = 1
-            elif kwargs['min_part'] <= 0:
-                kwargs['min_part'] = 1
+            # FIXME: should inherit from IntegerListLex, and implement repr, or _name as a lazy attribute
+            kwargs['name'] = "Partitions of the integer %s satisfying constraints %s"%(n, ", ".join( ["%s=%s"%(key, kwargs[key]) for key in sorted(kwargs.keys())] ))
 
-            if 'max_slope' not in kwargs:
-                kwargs['max_slope'] = 0
-            elif kwargs['max_slope'] > 0:
-                kwargs['max_slope'] = 0
+            # min_part is at least 1, and it is 1 by default
+            kwargs['min_part']  = max(1,kwargs.get('min_part',1))
+
+            # max_slope is at most 0, and it is 0 by default
+            kwargs['max_slope'] = min(0,kwargs.get('max_slope',0))
 
             if 'outer' in kwargs:
-                kwargs['ceiling'] = kwargs['outer']
                 if 'max_length' in kwargs:
                     kwargs['max_length'] = min(len(kwargs['outer']), kwargs['max_length'])
                 else:
                     kwargs['max_length'] = len(kwargs['outer'])
+
+                kwargs['ceiling'] = kwargs['outer']
                 del kwargs['outer']
 
             if 'inner' in kwargs:

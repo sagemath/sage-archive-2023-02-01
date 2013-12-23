@@ -92,7 +92,7 @@ from sage.rings.number_field.totallyreal_data import ZZx, lagrange_degree_3, int
 from sage.rings.number_field.number_field import NumberField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.number_field.totallyreal import weed_fields, odlyzko_bound_totallyreal, enumerate_totallyreal_fields_prim
-from sage.libs.pari.gen import pari
+from sage.libs.pari.all import pari
 
 import math, bisect, sys
 
@@ -865,6 +865,13 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False):
         [2000, x^4 - 5*x^2 + 5]]
 
     In practice most of these will be found by :func:`~sage.rings.number_field.totallyreal.enumerate_totallyreal_fields_prim`, which is guaranteed to return all primitive fields but often returns many non-primitive ones as well. For instance, only one of the five fields in the example above is primitive, but :func:`~sage.rings.number_field.totallyreal.enumerate_totallyreal_fields_prim` finds four out of the five (the exception being `x^4 - 6x^2 + 4`).
+
+    TESTS:
+
+    The following was fixed in :trac:`13101`::
+
+        sage: enumerate_totallyreal_fields_all(8, 10^6)  # long time (about 2 s)
+        []
     """
 
     S = []

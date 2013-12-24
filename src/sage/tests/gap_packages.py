@@ -53,7 +53,6 @@ def test_packages(packages, only_failures=False):
           Failure   HAPcryst     fail
                     Hap          true
                     autpgrp      true
-                    braid        true
                     crime        true
                     ctbllib      true
                     design       true

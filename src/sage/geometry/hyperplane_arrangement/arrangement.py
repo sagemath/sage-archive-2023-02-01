@@ -2102,15 +2102,27 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
             sage: L(-x, x + y - 1, signed=False)
             Arrangement <-x - y + 1 | x>
 
+        TESTS::
+
             sage: L()
             Empty hyperplane arrangement of dimension 2
-        """
+            sage: L(0)        # zero is equivalent to no argument, Trac #8648
+            Empty hyperplane arrangement of dimension 2
+            sage: L(0*x)      # degenerate hyperplane is NOT allowed
+            Traceback (most recent call last):
+            ...
+            ValueError: linear expression must be non-constant to define a hyperplane
+            sage: L(0*x, y)   # ditto
+            Traceback (most recent call last):
+            ...
+            ValueError: linear expression must be non-constant to define a hyperplane
+       """
         if len(args) == 1:
             arg = args[0]
             if isinstance(arg, HyperplaneArrangementElement) and args[0].parent() is self:
                 # optimization if argument is already a hyperplane arrangement
                 return arg
-            if arg == 0:
+            if arg == 0 and not isinstance(arg, Hyperplane):
                 # zero = neutral element under addition = the empty hyperplane arrangement
                 args = []
         # process keyword arguments

@@ -211,6 +211,24 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
     If on the other hand we also want to specify the riggings, this can be
     achieved as follows::
 
+        sage: RC = RiggedConfigurations(['A', 3, 1], [[3, 2], [1, 2], [1, 1]])
+        sage: RC(partition_list=[[2],[2],[2]])
+        <BLANKLINE>
+        1[ ][ ]1
+        <BLANKLINE>
+        0[ ][ ]0
+        <BLANKLINE>
+        0[ ][ ]0
+        sage: RC(partition_list=[[2],[2],[2]], rigging_list=[[0],[0],[0]])
+        <BLANKLINE>
+        1[ ][ ]0
+        <BLANKLINE>
+        0[ ][ ]0
+        <BLANKLINE>
+        0[ ][ ]0
+
+    A larger example::
+
         sage: RC = RiggedConfigurations(['D', 7, 1], [[3,3],[5,2],[4,3],[2,3],[4,4],[3,1],[1,4],[2,2]])
         sage: elt = RC(partition_list=[[2],[3,2,1],[2,2,1,1],[2,2,1,1,1,1],[3,2,1,1,1,1],[2,1,1],[2,2]],
         ....:          rigging_list=[[2],[1,0,0],[4,1,2,1],[1,0,0,0,0,0],[0,1,0,0,0,0],[0,0,0],[0,0]])
@@ -337,33 +355,17 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: RC = RiggedConfigurations(['A', 3, 1], [[3, 2], [1, 2], [1, 1]])
-            sage: RC(partition_list=[[2],[2],[2]])
-            <BLANKLINE>
-            1[ ][ ]1
-            <BLANKLINE>
-            0[ ][ ]0
-            <BLANKLINE>
-            0[ ][ ]0
-            sage: RC(partition_list=[[2],[2],[2]], rigging_list=[[0],[0],[0]])
-            <BLANKLINE>
-            1[ ][ ]0
-            <BLANKLINE>
-            0[ ][ ]0
-            <BLANKLINE>
-            0[ ][ ]0
-            sage: RC
-            Rigged configurations of type ['A', 3, 1] and factor(s) ((3, 2), (1, 2), (1, 1))
-            sage: TestSuite(RC).run()  # long time (4s on sage.math, 2012)
+            sage: RC = RiggedConfigurations(['A', 3, 1], [[3,1], [1,2]])
+            sage: TestSuite(RC).run() # long time
             sage: RC = RiggedConfigurations(['A',1,1], [[1,1], [1,1]])
             sage: TestSuite(RC).run()
             sage: RC = RiggedConfigurations(['A',2,1], [[1,1], [2,1]])
             sage: TestSuite(RC).run()
-            sage: RC = RiggedConfigurations(['D', 4, 1], [[2,2]])
+            sage: RC = RiggedConfigurations(['D', 4, 1], [[2,1], [1,1]])
             sage: TestSuite(RC).run() # long time
             sage: RC = RiggedConfigurations(['D', 4, 1], [[3,1]])
             sage: TestSuite(RC).run() # long time
-            sage: RC = RiggedConfigurations(['D', 4, 1], [[4,3]])
+            sage: RC = RiggedConfigurations(['D', 4, 1], [[4,2]])
             sage: TestSuite(RC).run() # long time
         """
         self._cartan_type = cartan_type
@@ -960,8 +962,7 @@ class RCNonSimplyLaced(RiggedConfigurations):
 
             sage: RC = RiggedConfigurations(['C',2,1], [[1,1]])
             sage: TestSuite(RC).run()
-            sage: RC = RiggedConfigurations(['C',2,1], [[1,2],[1,1],[2,1]]); RC
-            Rigged configurations of type ['C', 2, 1] and factor(s) ((1, 2), (1, 1), (2, 1))
+            sage: RC = RiggedConfigurations(['C',2,1], [[1,2],[2,1]])
             sage: TestSuite(RC).run() # long time
             sage: RC = RiggedConfigurations(['B',3,1], [[3,1],[1,1]])
             sage: TestSuite(RC).run() # long time

@@ -643,7 +643,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
             x^4 - x^3 + x^2 - x + 1
         """
         # TODO: figure out if this works for extension rings.  If not, move this to padic_base_generic_element.
-        return sage.rings.arith.algdep(self, n)
+        from sage.rings.arith import algdep
+        return algdep(self, n)
 
     def algebraic_dependency(self, n):
         """
@@ -1060,7 +1061,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
         p = self.parent().prime()
         alpha = self.unit_part().lift()
         m = Integer(p**self.precision_relative())
-        r = sage.rings.arith.rational_reconstruction(alpha, m)
+        from sage.rings.arith import rational_reconstruction
+        r = rational_reconstruction(alpha, m)
         return (Rational(p)**self.valuation())*r
 
     def _shifted_log(self, aprec, mina=0):

@@ -274,7 +274,7 @@ def igusa_clebsch_invariants(f):
 
     TESTS::
 
-        Let's check a symbolic example:
+        Let's check a symbolic example::
 
         sage: R.<a, b, c, d, e> = QQ[]
         sage: S.<x> = R[]

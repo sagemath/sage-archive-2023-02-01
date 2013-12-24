@@ -24,8 +24,8 @@ AUTHORS:
 include "sage/libs/linkages/padics/mpz.pxi"
 include "CA_template.pxi"
 
-from sage.libs.pari.gen cimport PariInstance
-cdef PariInstance P = sage.libs.pari.all.pari
+from sage.libs.pari.pari_instance cimport PariInstance
+cdef PariInstance P = sage.libs.pari.pari_instance.pari
 from sage.rings.finite_rings.integer_mod import Mod
 
 cdef class pAdicCappedAbsoluteElement(CAElement):

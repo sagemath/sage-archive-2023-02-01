@@ -144,7 +144,7 @@ cdef extern from "Python.h":
     #PyWeakref_GetObject with borrowed references. This is the recommended
     #strategy according to Cython/Includes/cpython/__init__.pxd
     PyObject* PyWeakref_GetObject(PyObject * wr)
-
+    int PyList_SetItem(object list, Py_ssize_t index,PyObject * item) except -1
     #this one's just missing.
     long PyObject_Hash(object obj)
 
@@ -213,6 +213,17 @@ cdef del_dictitem_by_exact_value(PyDictObject *mp, PyObject *value, long hash):
         sage: D[1]
         Integer Ring
 
+    TESTS:
+
+    The following shows that the deletion of deeply nested structures does not
+    result in an error, by :trac:`15506`::
+
+        sage: class A: pass
+        sage: a = A(); prev = a
+        sage: M = WeakValueDictionary()
+        sage: for i in range(10^3+10): newA = A(); M[newA] = prev; prev = newA
+        sage: del a
+
     """
     cdef size_t i
     cdef size_t perturb
@@ -235,19 +246,20 @@ cdef del_dictitem_by_exact_value(PyDictObject *mp, PyObject *value, long hash):
             return
         perturb = perturb >> 5 #this is the value of PERTURB_SHIFT
 
-    old_key = ep.me_key
+    T=PyList_New(2)
+    PyList_SetItem(T,0,ep.me_key)
     if dummy == NULL:
         raise RuntimeError("dummy needs to be initialized")
     Py_XINCREF(dummy)
     ep.me_key = dummy
-    old_value = ep.me_value
+    PyList_SetItem(T,1,ep.me_value)
     ep.me_value = NULL
     mp.ma_used -= 1
-    #in our case, the value is always a dead weakref, so decreffing that is
-    #fairly safe
-    Py_XDECREF(old_value)
-    #this could have any effect.
-    Py_XDECREF(old_key)
+    #We have transferred the to-be-deleted references to the list T
+    #we now delete the list so that the actual decref happens through a
+    #deallocation routine that uses the Python Trashcan macros to
+    #avoid stack overflow in deleting deep structures.
+    del T
 
 def test_del_dictitem_by_exact_value(D, value, h):
     """

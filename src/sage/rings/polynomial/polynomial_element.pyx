@@ -2077,17 +2077,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             0
             sage: g._mul_generic(h) - K([h*c for c in g.list()])
             0
-
-        Compare with external libraries::
-
-            sage: K = ZZ['x']
-            sage: L = []
-            sage: for i in range(10):
-            ...     f = K.random_element(randint(10,100),100)
-            ...     g = K.random_element(randint(10,100),100)
-            ...     L.append(f*g - f._mul_generic(g))
-            sage: L
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         """
         if self is right:
             return self._square_generic()
@@ -2326,17 +2315,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: h2 = f._mul_karatsuba(g,randint(0,10))
             sage: h1 == h2
             True
-
-        Compare with external libraries::
-
-            sage: K = ZZ['x']
-            sage: L = []
-            sage: for i in range(10):
-            ...     f = K.random_element(randint(10,100),100)
-            ...     g = K.random_element(randint(10,100),100)
-            ...     L.append(f*g - f._mul_karatsuba(g, randint(0,32)))
-            sage: L
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         """
         if self.is_zero():
             return self
@@ -6601,7 +6579,7 @@ cdef do_karatsuba_different_size(left, right, Py_ssize_t K_threshold):
     Here, we use Fibonacci numbers that need deepest recursion in this method.
 
         sage: K = ZZ[x]
-        sage: f = K.random_element(28)
+        sage: f = K.random_element(21)
         sage: g = K.random_element(34)
         sage: f*g - f._mul_karatsuba(g,0)
         0
@@ -6676,7 +6654,7 @@ cdef do_karatsuba(left, right, Py_ssize_t K_threshold,Py_ssize_t start_l, Py_ssi
         - num_elts: the length of the polynomials.
 
     Thus, the actual polynomials we want to multiply are represented by the
-    slices: left[ start_l: start_l+num_elts ], left[ right_l: right_l+num_elts ].
+    slices: left[ start_l: start_l+num_elts ], right[ right_l: right_l+num_elts ].
     We use this representation in order to avoid creating slices of lists and
     create smaller lists.
 

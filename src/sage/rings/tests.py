@@ -294,3 +294,21 @@ def test_random_arith(level=MAX_LEVEL, trials=1):
         if i >= trials:
             return
 
+@random_testing
+def test_karatsuba_multiplication(degree1, degree2, verbose=False):
+    """
+    Test univariate karatsuba multiplication against an external library (FLINT).
+
+    EXAMPLES::
+
+    sage: sage.rings.tests.test_karatsuba_multiplication(1000,1000)
+    """
+    from sage.all import ZZ, randint
+    threshold = randint(0,min(degree1,degree2))
+    R = ZZ['x']
+    for i in range(10):
+        f = R.random_element(degree1,100)
+        g = R.random_element(degree2,100)
+        if g*f - f._mul_karatsuba(g,threshold) != 0:
+            raise ValueError("Multiplication failed")
+    return

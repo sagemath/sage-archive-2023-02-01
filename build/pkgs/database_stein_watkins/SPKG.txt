@@ -22,6 +22,6 @@ None
 
 ==ChangeLog ==
 
-=== database_stein_watkins (John Cremona, December 20th 2013) ===
- * Converted to the new git package format
+=== database_stein_watkins (version 20030423.p1) ===
+ * Converted to the new git package format (John Cremona, December 2013)
 

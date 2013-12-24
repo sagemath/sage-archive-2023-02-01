@@ -285,10 +285,10 @@ class SteinWatkinsAllData:
             sage: E = d.iter_levels()                  # optional - stein_watkins_database
             sage: E.next()                             # optional - stein_watkins_database
             [Stein-Watkins isogeny class of conductor 100002]
-            sage: E.next()
+            sage: E.next()                             # optional - stein_watkins_database
             [Stein-Watkins isogeny class of conductor 100005,
             Stein-Watkins isogeny class of conductor 100005]
-            sage: E.next()
+            sage: E.next()                             # optional - stein_watkins_database
             [Stein-Watkins isogeny class of conductor 100007]
         """
         iter = self.__iter__()

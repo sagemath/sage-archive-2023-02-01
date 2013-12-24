@@ -480,7 +480,7 @@ $(INST)/$(GCC): $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(MPC) \
                 $(INST)/$(ZLIB)
 	+$(PIPE) "$(SAGE_SPKG) $(GCC) 2>&1" "tee -a $(SAGE_LOGS)/$(GCC).log"
 
-$(INST)/$(PILLOW): $(INST)/$(PYTHON)
+$(INST)/$(PILLOW): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(PILLOW) 2>&1" "tee -a $(SAGE_LOGS)/$(PILLOW).log"
 
 $(INST)/$(NUMPY): $(INST)/$(PYTHON) $(INST)/$(ATLAS)
@@ -503,6 +503,7 @@ $(INST)/$(CEPHES):
 # setuptools forgets to update easy-install.pth during parallel
 # builds, so we build the relevant packages serially.
 
+$(INST)/$(SQLALCHEMY): $(INST)/$(PILLOW)
 $(INST)/$(PYGMENTS): $(INST)/$(SQLALCHEMY)
 $(INST)/$(JINJA2): $(INST)/$(PYGMENTS)
 $(INST)/$(SPHINX): $(INST)/$(JINJA2)

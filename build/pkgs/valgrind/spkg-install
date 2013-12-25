@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+if [ -z "$SAGE_LOCAL" ] ; then
+    echo >&2 "Error - SAGE_LOCAL undefined ... exiting"
+    echo >&2 "Maybe run 'sage -sh'?"
+    exit 1
+fi
+
+if [ "$UNAME" = "Linux" ]; then
+    echo "Good - Valgrind works on Linux"
+    if [ "`uname -p`" = "ia64" ]; then
+        echo >&2 "But it does not work on Itanium"
+        exit 1
+    fi
+else
+    if [ "$UNAME" = "Darwin" ] && [ -z "`uname -p | grep PPC`" ] && [ `uname -r | grep -Eo '^[0-9]+'` -ge 9 ];
+    then
+        echo "Good - Valgrind works on x86 and AMD64 Darwin 9.x or 10.x"
+    else
+        echo >&2 "Sorry, Valgrind only works on x86,AMD64,PPC32,PPC64,ARM Linux"
+        echo >&2 "and x86,AMD64 on Darwin 9.x/10.x"\
+            "(Mac OS X 10.5.x or later)"
+        exit 1
+    fi
+fi
+
+cd src/
+
+for patch in ../patches/*.patch; do
+    [ -f "$patch" ] || continue
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
+
+./configure --prefix=$SAGE_LOCAL
+if [ $? -ne 0 ]; then
+    echo >&2 "Error configuring Valgrind"
+    exit 1
+fi
+
+$MAKE
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building Valgrind"
+    exit 1
+fi
+
+$MAKE install
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing Valgrind"
+    exit 1
+fi
+
+echo "Adding Sage suppression file"
+cp ../patches/sage.supp $SAGE_LOCAL/lib/valgrind/
+cp ../patches/sage-liberal.supp $SAGE_LOCAL/lib/valgrind/

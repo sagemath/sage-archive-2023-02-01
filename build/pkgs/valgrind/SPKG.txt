@@ -1,0 +1,93 @@
+= Valgrind =
+
+== Description ==
+
+This is an optional spkg. It supports Linux on x86, x86-64, ppc, ppc64 and ARM
+as well as Darwin (Mac OS X 10.5 and 10.6) on x86 and x86-64.
+
+Valgrind is an instrumentation framework for building dynamic analysis tools.
+There are Valgrind tools that can automatically detect many memory management
+and threading bugs, and profile your programs in detail. You can also use
+Valgrind to build new tools.
+
+The Valgrind distribution currently includes six production-quality tools:
+a memory error detector, two thread error detectors, a cache and
+branch-prediction profiler, a call-graph generating cache and branch-prediction
+profiler, and a heap profiler. It also includes three experimental tools: a
+heap/stack/global array overrun detector, a second heap profiler that examines
+how heap blocks are used, and a SimPoint basic block vector generator. It runs
+on the following platforms: X86/Linux, AMD64/Linux, ARM/Linux, PPC32/Linux,
+PPC64/Linux, S390X/Linux, ARM/Android (2.3.x), X86/Darwin and AMD64/Darwin
+(Mac OS X 10.6 and 10.7).
+
+== License ==
+
+Valgrind is Open Source / Free Software, and is freely available under the
+GNU General Public License, version 2.
+
+== SPKG Maintainers ==
+
+ * Tim Dumol
+ * Ivan Andrus
+
+== Upstream Contact ==
+
+ * http://www.valgrind.org/
+ * valgrind-user, valgrind-devel mailing lists
+
+== Dependencies ==
+
+ * None
+
+== Special Build Instructions ==
+
+ * To build on OS X, you need to use Apple's compiler. FSF GCC is unsupported.
+
+=== Patches ===
+
+ * None.
+
+== Changelog ==
+
+=== valgrind-3.9.0 (Jean-Pierre Flori, 25 December 2013) ===
+ * #15586: update to version 3.9.0.
+ * Removed patch now upstream.
+
+=== valgrind-3.8.1.p0 (Jean-Pierre Flori, 7 October 2013) ===
+ * #13060: support glibc 2.17 and 2.18.
+
+=== valgrind-3.8.1 (Jean-Pierre Flori, 24 December 2012) ===
+ * #13060: update Valgrind to version 3.8.1.
+
+=== valgrind-3.7.0 (Ivan Andrus, February 16th, 2012)  ===
+ * update to 3.7.0
+ * removed call to autoreconf
+ * changed `make` to `$MAKE`
+
+=== valgrind-3.6.1 (Ivan Andrus, March 23rd, 2011)  ===
+ * update to 3.6.1
+ * Add support for OS X 10.5 and 10.6
+ * No longer need to patch configure.in since support was added upstream
+
+=== valgrind-3.5.0.p0 (Tim Dumol, December 23rd, 2009) ===
+ * Update to 3.5.0 release
+
+=== valgrind-3.3.1 (Michael Abshoff, September 15th, 2008)  ===
+ * update to 3.3.1 release
+ * stop build on Itanium boxen
+ * add custom suppression file for Sage
+
+=== valgrind-3.3.0 ===
+ * update to 3.3.0 release
+ * create proper SPKG.txt
+ * check for Linux, exit on other platforms
+
+=== valgrind-3.3.0svn_omega-r7025 (Michael Abshoff) ===
+ * update to 3.3.0svb-r7025
+ * merge experimental omega tool
+
+=== valgrind-3.3.0svn-r6959 (Michael Abshoff, Oct. 8th, 2007) ===
+ * update to 3.3.0svn-r6959
+
+=== valgrind-3.3.0svn-r6814 (Michael Abshoff) ===
+ * Initial version: 3.3.0svn-r6814

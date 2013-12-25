@@ -2626,38 +2626,58 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``scalar`` -- A scalar, not necessarily in :meth:`base_ring`,
-          or a :class:`Polyhedron`.
+        - ``scalar`` -- A scalar, not necessarily in :meth:`base_ring`.
 
         OUTPUT:
 
-        Multiplication by another polyhedron returns the product
-        polytope. Multiplication by a scalar returns the polytope
-        dilated by that scalar, possibly coerced to the bigger field.
+        The polyhedron dilated by that scalar, possibly coerced to a
+        bigger field.
 
         EXAMPLES::
 
-             sage: p = Polyhedron(vertices = [[t,t^2,t^3] for t in srange(2,6)])
-             sage: p.vertex_generator().next()
-             A vertex at (2, 4, 8)
-             sage: p2 = p.dilation(2)
-             sage: p2.vertex_generator().next()
-             A vertex at (4, 8, 16)
-             sage: p.dilation(2) == p * 2
-             True
+            sage: p = Polyhedron(vertices = [[t,t^2,t^3] for t in srange(2,6)])
+            sage: p.vertex_generator().next()
+            A vertex at (2, 4, 8)
+            sage: p2 = p.dilation(2)
+            sage: p2.vertex_generator().next()
+            A vertex at (4, 8, 16)
+            sage: p.dilation(2) == p * 2
+            True
 
         TESTS:
 
         Dilation of empty polyhedrons works, see :trac:`14987`::
 
-             sage: p = Polyhedron(ambient_dim=2); p
-             The empty polyhedron in ZZ^2
-             sage: p.dilation(3)
-             The empty polyhedron in ZZ^2
+            sage: p = Polyhedron(ambient_dim=2); p
+            The empty polyhedron in ZZ^2
+            sage: p.dilation(3)
+            The empty polyhedron in ZZ^2
+
+        TESTS::
+
+            sage: p = Polyhedron(vertices=[(1,1)], rays=[(1,0)], lines=[(0,1)])
+            sage: (-p).rays()
+            (A ray in the direction (-1, 0),)
+            sage: (-p).lines()
+            (A line in the direction (0, 1),)
+
+            sage: (0*p).rays()
+            ()
+            sage: (0*p).lines()
+            ()
         """
-        new_vertices = [ list(scalar*v.vector()) for v in self.vertex_generator()]
-        new_rays =  self.rays()
-        new_lines = self.lines()
+        if scalar > 0:
+            new_vertices = [ list(scalar*v.vector()) for v in self.vertex_generator() ]
+            new_rays = self.rays()
+            new_lines = self.lines()
+        elif scalar < 0:
+            new_vertices = [ list(scalar*v.vector()) for v in self.vertex_generator() ]
+            new_rays = [ list(-r.vector()) for r in self.ray_generator()]
+            new_lines = self.lines()
+        else:
+            new_vertices = [ self.ambient_space().zero() for v in self.vertex_generator() ]
+            new_rays = []
+            new_lines = []
         return Polyhedron(vertices=new_vertices,
                           rays=new_rays, lines=new_lines,
                           base_ring=self.parent()._coerce_base_ring(scalar),
@@ -2696,6 +2716,31 @@ class Polyhedron_base(Element):
             return self.translation(actor)
         else:
             return self.dilation(actor)
+
+    def __neg__(self):
+        """
+        Negation of a polytope is defined as inverting the coordinates.
+
+        EXAMPLES::
+
+            sage: t = polytopes.n_simplex(3,project=False);  t.vertices()
+            (A vertex at (0, 0, 0, 1), A vertex at (0, 0, 1, 0), 
+             A vertex at (0, 1, 0, 0), A vertex at (1, 0, 0, 0))
+            sage: neg_ = -t
+            sage: neg_.vertices()
+            (A vertex at (-1, 0, 0, 0), A vertex at (0, -1, 0, 0), 
+             A vertex at (0, 0, -1, 0), A vertex at (0, 0, 0, -1))
+
+        TESTS::
+
+            sage: p = Polyhedron(ieqs=[[1,1,0]])
+            sage: p.rays()
+            (A ray in the direction (1, 0),)
+            sage: pneg = p.__neg__()
+            sage: pneg.rays()
+            (A ray in the direction (-1, 0),)
+        """
+        return self.dilation(-1)
 
     def __div__(self, scalar):
         """
@@ -2829,7 +2874,6 @@ class Polyhedron_base(Element):
         return Polyhedron(vertices=new_vertices, rays=new_rays,
                           lines=new_lines,
                           base_ring=self.parent()._coerce_base_ring(cut_frac))
-
 
     def _make_polyhedron_face(self, Vindices, Hindices):
         """
@@ -3044,7 +3088,8 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``face_dimension`` -- integer.
+        - ``face_dimension`` -- integer. The dimension of the faces
+          whose representation will be returned.
 
         OUTPUT:
 
@@ -3170,10 +3215,16 @@ class Polyhedron_base(Element):
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 5 vertices
             sage: p.polar()
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 6 vertices
+
+            sage: cube = polytopes.n_cube(3)
+            sage: octahedron = polytopes.cross_polytope(3)
+            sage: cube_dual = cube.polar()
+            sage: octahedron == cube_dual
+            True
         """
         assert self.is_compact(), "Not a polytope."
 
-        verts = [list(v.vector() - self.center()) for v in self.vertex_generator()]
+        verts = [list(self.center() - v.vector()) for v in self.vertex_generator()]
         base_ring = self.parent()._coerce_base_ring(self.center().parent())
         return Polyhedron(ieqs=[[1] + list(v) for v in verts], base_ring=base_ring)
 

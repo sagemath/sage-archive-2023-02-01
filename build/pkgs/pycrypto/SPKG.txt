@@ -33,6 +33,9 @@ Python 2.2 license.
 
 == Changelog ==
 
+=== pycrypto-2.6.1.p0 (Jean-Pierre Flori, 25 Decembre 2013) ===
+ * #14854; Update to version 2.6.1.
+
 === pycrypto-2.1.0.p0 (Jean-Pierre Flori, 4 July 2013) ===
  * #12399: Let pycrypto build on FreeBSD.
 

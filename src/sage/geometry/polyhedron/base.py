@@ -1880,6 +1880,8 @@ class Polyhedron_base(Element):
         """
         Return the average of the vertices.
 
+        See also :meth:`interior_point`.
+
         OUTPUT:
 
         The center of the polyhedron. All rays and lines are
@@ -1893,10 +1895,46 @@ class Polyhedron_base(Element):
             sage: p.center()
             (1, 0, 0)
         """
-        vertex_sum = vector(ZZ, [0]*self.ambient_dim())
+        vertex_sum = vector(self.base_ring(), [0]*self.ambient_dim())
         for v in self.vertex_generator():
             vertex_sum += v.vector()
+        vertex_sum.set_immutable()
         return vertex_sum / self.n_vertices()
+
+    @cached_method
+    def representative_point(self):
+        """
+        Return a "generic" point.
+
+        See also :meth:`center`.
+
+        OUTPUT:
+
+        A point as a coordinate vector. The point is chosen to be
+        interior as far as possible. If the polyhedron is not
+        full-dimensional, the point is in the relative interior. If
+        the polyhedron is zero-dimensional, its single point is
+        returned.
+
+        EXAMPLES::
+
+            sage: p = Polyhedron(vertices=[(3,2)], rays=[(1,-1)])
+            sage: p.representative_point()
+            (4, 1)
+            sage: p.center()
+            (3, 2)
+
+            sage: Polyhedron(vertices=[(3,2)]).representative_point()
+            (3, 2)
+        """
+        accumulator = vector(self.base_ring(), [0]*self.ambient_dim())
+        for v in self.vertex_generator():
+            accumulator += v.vector()
+        accumulator /= self.n_vertices()
+        for r in self.ray_generator():
+            accumulator += r.vector()
+        accumulator.set_immutable()
+        return accumulator
 
 
     @cached_method
@@ -2014,6 +2052,32 @@ class Polyhedron_base(Element):
         return all(len([vertex for vertex in face.incident()]) == d
                    for face in self.Hrepresentation())
 
+    def hyperplane_arrangement(self):
+        """
+        Return the hyperplane arrangement defined by the equations and
+        inequalities.
+
+        OUTPUT:
+
+        A :class:`hyperplane arrangement
+        <sage.geometry.hyperplane_arrangement.arrangement.HyperplaneArrangementElement>`
+        consisting of the hyperplanes defined by the
+        :meth:`~sage.geometric.hyperplane_arragement.arrangement.HyperplaneArrangementElement.Hrepresentation`. 
+        If the polytope is full-dimensional, this is the hyperplane
+        arrangement spanned by the facets of the polyhedron.
+
+        EXAMPLES::
+
+            sage: p = polytopes.n_cube(2)
+            sage: p.hyperplane_arrangement()
+            Arrangement <-t0 + 1 | -t1 + 1 | t1 + 1 | t0 + 1>
+        """
+        names = tuple('t'+str(i) for i in range(self.ambient_dim()))
+        from sage.geometry.hyperplane_arrangement.arrangement import HyperplaneArrangements
+        field = self.base_ring().fraction_field()
+        H = HyperplaneArrangements(field, names)
+        return H(self)
+        
     @cached_method
     def gale_transform(self):
         """

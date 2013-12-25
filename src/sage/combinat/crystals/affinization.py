@@ -49,14 +49,23 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
         \\ \mathrm{wt}(b(m)) & = \wt(b) + m \delta.
         \end{aligned}
 
-    EXAMPLES::
+    EXAMPLES:
 
-        sage: K = KirillovReshetikhinCrystal(['A',2,1], 1, 1)
+    We first construct a Kirillov-Reshetikhin crystal and then take it's
+    corresponding affinization::
+
+        sage: K = KirillovReshetikhinCrystal(['A',2,1], 2, 2)
         sage: A = K.affinization()
+
+    Next we construct an affinization crystal from a tensor product of KR
+    crystals::
+
+        sage: KT = TensorProductOfKirillovReshetikhinTableaux(['C',2,1], [[1,2],[2,1]])
+        sage: A = AffinizationCrystal(KT)
 
     REFERENCES:
 
-    - [HK02]_
+    - [HK02]_ Chapter 10
     """
     def __init__(self, B):
         """
@@ -64,13 +73,16 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: A = KirillovReshetikhinCrystal(['A',2,1], 1, 1).affinization()
+            sage: A = KirillovReshetikhinCrystal(['A',2,1], 2, 2).affinization()
             sage: TestSuite(A).run() # long time
         """
+        if not B.cartan_type().is_affine():
+            raise ValueError("must be an affine crystal")
         self._B = B
         self._cartan_type = B.cartan_type()
         Parent.__init__(self, category=(RegularCrystals(), InfiniteEnumeratedSets()))
-        self.module_generators = (self.element_class(self, self._B.module_generator(), 0),)
+        mg_elt = lambda b: self.element_class(self, b, 0)
+        self.module_generators = tuple(map(mg_elt, B.module_generators))
 
     def _repr_(self):
         """
@@ -95,6 +107,24 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
         """
         return self.cartan_type().root_system().ambient_space()
 
+    def digraph(self, subset=None, index_set=None):
+        """
+        Return the DiGraph associated with ``self``. See
+        :meth:`~sage.categories.crystals.ParentMethods.digraph()` for more
+        information.
+
+        EXAMPLES::
+
+            sage: A = KirillovReshetikhinCrystal(['A',2,1], 2, 2).affinization()
+            sage: S = A.subcrystal(max_depth=3)
+            sage: G = A.digraph(subset=S)
+        """
+        G = super(AffinizationCrystal, self).digraph(subset, index_set)
+        from sage.graphs.dot2tex_utils import have_dot2tex
+        if have_dot2tex():
+            G.set_latex_options(edge_options = lambda (u,v,label): ({}))
+        return G
+
     class Element(Element):
         """
         An element in an affinization crystal.
@@ -102,6 +132,12 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
         def __init__(self, parent, b, m):
             """
             Initialize ``self``.
+
+            EXAMPLES::
+
+                sage: A = KirillovReshetikhinCrystal(['A',2,1], 2, 2).affinization()
+                sage: mg = A.module_generators[0]
+                sage: TestSuite(mg).run()
             """
             self._b = b
             self._m = m
@@ -110,12 +146,33 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
         def _repr_(self):
             """
             Return a string representation of ``self``.
+
+            EXAMPLES::
+
+                sage: A = KirillovReshetikhinCrystal(['A',2,1], 2, 2).affinization()
+                sage: A.module_generators[0]
+                [[1, 1], [2, 2]](0)
+                sage: KT = TensorProductOfKirillovReshetikhinTableaux(['C',2,1], [[1,2],[2,1]])
+                sage: A = AffinizationCrystal(KT)
+                sage: A.module_generators[0]
+                [[1, 1]] (X) [[1], [2]](0)
             """
-            return "{}({})".format(self._b, self._m)
+            return "{!r}({})".format(self._b, self._m)
 
         def _latex_(self):
             r"""
             Return a LaTeX representation of ``self``.
+
+            EXAMPLES::
+
+                sage: A = KirillovReshetikhinCrystal(['A',2,1], 2, 2).affinization()
+                sage: latex(A.module_generators[0])
+                {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
+                \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
+                \lr{1}&\lr{1}\\\cline{1-2}
+                \lr{2}&\lr{2}\\\cline{1-2}
+                \end{array}$}
+                } (0)
             """
             from sage.misc.latex import latex
             return latex(self._b) + "({})".format(self._m)
@@ -123,14 +180,35 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
         def __eq__(self, other):
             """
             Check equality.
+
+            EXAMPLES::
+
+                sage: A = KirillovReshetikhinCrystal(['A',2,1], 2, 2).affinization()
+                sage: mg = A.module_generators[0]
+                sage: mg == mg
+                True
+                sage: KT = TensorProductOfKirillovReshetikhinTableaux(['C',2,1], [[1,2],[2,1]])
+                sage: A = AffinizationCrystal(KT)
+                sage: A(KT.module_generators[3], 1).f(0) == A.module_generators[0]
+                True
             """
             if not isinstance(other, AffinizationCrystal.Element):
                 return False
-            return self._b == other._b and self._m == other._m
+            return self.parent() == other.parent() \
+                    and self._b == other._b and self._m == other._m
 
         def __neq__(self, other):
             """
             Check inequality.
+
+            EXAMPLES::
+
+                sage: A = KirillovReshetikhinCrystal(['A',2,1], 2, 2).affinization()
+                sage: mg = A.module_generators[0]
+                sage: mg != mg.f(2)
+                True
+                sage: mg != mg
+                False
             """
             return not self.__eq__(other)
 
@@ -140,7 +218,17 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
 
             INPUT:
 
-            - ``i`` -- an element of the index se
+            - ``i`` -- an element of the index set
+
+            EXAMPLES::
+
+                sage: A = KirillovReshetikhinCrystal(['A',2,1], 2,2).affinization()
+                sage: mg = A.module_generators[0]
+                sage: mg.e(0)
+                [[1, 2], [2, 3]](1)
+                sage: mg.e(1)
+                sage: mg.e(0).e(1)
+                [[1, 1], [2, 3]](1)
             """
             bp = self._b.e(i)
             if bp is None:
@@ -156,12 +244,25 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
             INPUT:
 
             - ``i`` -- an element of the index set
+
+            EXAMPLES::
+
+                sage: A = KirillovReshetikhinCrystal(['A',2,1], 2,2).affinization()
+                sage: mg = A.module_generators[0]
+                sage: mg.f(2)
+                [[1, 1], [2, 3]](0)
+                sage: mg.f(2).f(2).f(0)
+                sage: mg.f_string([2,1,1])
+                sage: mg.f_string([2,1])
+                [[1, 2], [2, 3]](0)
+                sage: mg.f_string([2,1,0])
+                [[1, 1], [2, 2]](-1)
             """
             bp = self._b.f(i)
             if bp is None:
                 return None
             if i == 0:
-                return self.__class__(self.parent(), bp, self._m+1)
+                return self.__class__(self.parent(), bp, self._m-1)
             return self.__class__(self.parent(), bp, self._m)
 
         def epsilon(self, i):
@@ -171,6 +272,15 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
             INPUT:
 
             - ``i`` -- an element of the index set
+
+            EXAMPLES::
+
+                sage: A = KirillovReshetikhinCrystal(['A',2,1], 2,2).affinization()
+                sage: mg = A.module_generators[0]
+                sage: mg.epsilon(0)
+                2
+                sage: mg.epsilon(1)
+                0
             """
             return self._b.epsilon(i)
 
@@ -181,12 +291,40 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
             INPUT:
 
             - ``i`` -- an element of the index set
+
+            EXAMPLES::
+
+                sage: A = KirillovReshetikhinCrystal(['A',2,1], 2,2).affinization()
+                sage: mg = A.module_generators[0]
+                sage: mg.phi(0)
+                0
+                sage: mg.phi(2)
+                2
             """
             return self._b.phi(i)
 
         def weight(self):
             r"""
             Return the weight of ``self``.
+
+            The weight `\mathrm{wt}` of an element is:
+
+            .. MATH::
+
+                \mathrm{wt}\bigl( b(m) \bigr) = \mathrm{wt}(b) + m \delta
+
+            where `\delta` is the null root.
+
+            EXAMPLES::
+
+                sage: A = KirillovReshetikhinCrystal(['A',2,1], 2,2).affinization()
+                sage: mg = A.module_generators[0]
+                sage: mg.weight()
+                2*e[0] + 2*e[1]
+                sage: mg.e(0).weight()
+                e[1] + e['delta']
+                sage: mg.e(0).e(0).weight()
+                -2*e[0] + 2*e['delta']
             """
             WLR = self.parent().weight_lattice_realization()
             La = WLR.fundamental_weights()

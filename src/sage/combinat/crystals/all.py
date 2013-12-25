@@ -20,4 +20,5 @@ from elementary_crystals import TCrystal, RCrystal, ElementaryCrystal, Component
 from monomial_crystals import InfinityCrystalOfNakajimaMonomials, CrystalOfNakajimaMonomials
 from kleshchev import KleshchevCrystal
 from multisegments import InfinityCrystalOfMultisegments
+from affinization import AffinizationCrystal
 

@@ -78,7 +78,6 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         if check and not arith.is_prime(p):
             raise ArithmeticError, "p must be prime"
         self.__char = p
-        self._IntegerModRing_generic__factored_order = factorization.Factorization([(p,1)], integer.Integer(1))
         self._kwargs = {}
         # FiniteField_generic does nothing more than IntegerModRing_generic, and
         # it saves a non trivial overhead
@@ -188,6 +187,17 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         to_ZZ = ZZ.coerce_map_from(S)
         if to_ZZ is not None:
             return integer_mod.Integer_to_IntegerMod(self) * to_ZZ
+
+    def construction(self):
+        """
+        Returns the construction of this finite field (for use by sage.categories.pushout)
+
+        EXAMPLES::
+
+            sage: GF(3).construction()
+            (QuotientFunctor, Integer Ring)
+        """
+        return integer_mod_ring.IntegerModRing_generic.construction(self)
 
     def characteristic(self):
         r"""

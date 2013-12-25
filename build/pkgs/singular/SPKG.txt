@@ -64,6 +64,8 @@ See spkg-src.
  * osx_link.patch: #14415: Fixes linker problems on OS X PPC.
  * sanitize_gmp_header_hack.patch:
    Fix and simplify generation of `factory/cf_gmp.h` (cf. #14737).
+ * pullrequest215.patch: Backport of first 3 patches from
+   https://github.com/Singular/Sources/pull/215
 
 Other notes
  * The option '--without-dynamic-kernel' is used on *all*
@@ -90,6 +92,12 @@ Other notes
    for easier debugging of memory corruptions.
 
 == ChangeLog ==
+
+=== singular-3-1-5.p9 (Paul Zimmermann, Jeroen Demeyer, 26 August 2013) ===
+ * #13770: Add upstream pull request 215 for multivariate factorisation.
+ * spkg-install: split apply_patches step in 2 steps: choose_patches and
+   apply_patches; add a few small fixes.
+ * Remove install-sh which is no longer needed.
 
 === singular-3-1-5.p8 (Leif Leonhardy, Volker Braun, 10 July 2013) ===
  * #14737: Fix and simplify generation of `factory/cf_gmp.h`

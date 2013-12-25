@@ -34,8 +34,6 @@ AUTHORS:
 
 
 from sage.all import *
-# this is not imported in sage.all, so we have to import it
-from sage.ext.fast_callable import fast_callable
 x=SR.var('x')
 
 def library_interact(f):

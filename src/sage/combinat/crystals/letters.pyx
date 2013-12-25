@@ -23,6 +23,7 @@ Crystals of letters
 include "../../ext/python.pxi"
 
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element cimport Element
@@ -173,8 +174,6 @@ class ClassicalCrystalOfLetters(UniqueRepresentation, Parent):
                 else:
                     self._list.append(self._element_constructor_(cartan_type.rank()+1))
         self._element_print_style = element_print_style
-        self._digraph = super(ClassicalCrystalOfLetters, self).digraph()
-        self._digraph_closure = self.digraph().transitive_closure()
 
     def __call__(self, value):
         """
@@ -237,16 +236,17 @@ class ClassicalCrystalOfLetters(UniqueRepresentation, Parent):
         """
         return self._list
 
-    def digraph(self):
+    @lazy_attribute
+    def _digraph_closure(self):
         """
-        Return the directed graph associated to ``self``.
+        The transitive closure of the directed graph associated to ``self``.
 
         EXAMPLES::
 
-            sage: CrystalOfLetters(['A',5]).digraph()
-            Digraph on 6 vertices
+            sage: CrystalOfLetters(['A',5])._digraph_closure
+            Transitive closure of : Digraph on 6 vertices
         """
-        return self._digraph
+        return self.digraph().transitive_closure()
 
     def __contains__(self, x):
         """
@@ -442,7 +442,24 @@ cdef class Letter(Element):
             True
             sage: C(4) == C(4)
             True
+
+        TESTS::
+
+            sage: C = CrystalOfLetters(['C', 3])
+            sage: C('E') == C(2)
+            False
+            sage: C(2) == C('E')
+            False
+            sage: C('E') == C('E')
+            True
         """
+        # Special case for the empty letter
+        if isinstance(left, EmptyLetter):
+            return isinstance(right, EmptyLetter) \
+                   and (op == Py_EQ or op == Py_LE or op == Py_GE)
+        if isinstance(right, EmptyLetter):
+            return op == Py_NE
+
         cdef Letter self, x
         self = left
         x = right
@@ -462,11 +479,42 @@ cdef class Letter(Element):
 
 cdef class EmptyLetter(Element):
     """
-    The (affine) letter `\emptyset` thought of as a classical crystal letter
+    The affine letter `\emptyset` thought of as a classical crystal letter
     in classical type `B_n` and `C_n`.
+
+    .. WARNING::
+
+        This is not a classical letter.
 
     Used in the rigged configuration bijections.
     """
+    cdef readonly str value
+
+    def __init__(self, parent):
+        """
+        Initialize ``xelf``.
+
+        EXAMPLES::
+
+            sage: C = CrystalOfLetters(['C', 3])
+            sage: TestSuite(C('E')).run()
+        """
+        self.value = 'E'
+        Element.__init__(self, parent)
+
+    def __reduce__(self):
+        r"""
+        Used in pickling crystal of letters elements.
+
+        EXAMPLES::
+
+            sage: C = CrystalOfLetters(['C',3])
+            sage: a = C('E')
+            sage: a.__reduce__()
+            (The crystal of letters for type ['C', 3], ('E',))
+        """
+        return (self._parent, ('E',))
+
     def _repr_(self):
         """
         Return a string representation of ``self``.
@@ -491,6 +539,18 @@ cdef class EmptyLetter(Element):
         """
         return "\\emptyset"
 
+    def __hash__(self):
+        """
+        Return the hash value of ``self``.
+
+        EXAMPLES::
+
+            sage: C = CrystalOfLetters(['D', 4])
+            sage: hash(C('E')) == hash('E')
+            True
+        """
+        return hash(self.value)
+
     def weight(self):
         """
         Return the weight of ``self``.
@@ -514,7 +574,16 @@ cdef class EmptyLetter(Element):
         """
         return None
 
-    f = e
+    cpdef f(self, int i):
+        """
+        Return `f_i` of ``self`` which is ``None``.
+
+        EXAMPLES::
+
+            sage: C = CrystalOfLetters(['C', 3])
+            sage: C('E').f(1)
+        """
+        return None
 
     cpdef int epsilon(self, int i):
         r"""
@@ -528,7 +597,17 @@ cdef class EmptyLetter(Element):
         """
         return 0
 
-    phi = epsilon
+    cpdef int phi(self, int i):
+        r"""
+        Return `\varphi_i` of ``self``.
+
+        EXAMPLES::
+
+            sage: C = CrystalOfLetters(['C', 3])
+            sage: C('E').phi(1)
+            0
+        """
+        return 0
 
 #########################
 # Type A

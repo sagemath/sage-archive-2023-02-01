@@ -1,8 +1,8 @@
 """
 List Plots
 """
-
-from sage.matrix.all import is_Matrix, matrix
+from sage.matrix.matrix import is_Matrix
+from sage.matrix.all import matrix
 from sage.rings.all  import RDF
 
 def list_plot3d(v, interpolation_type='default', texture="automatic", point_list=None,**kwds):

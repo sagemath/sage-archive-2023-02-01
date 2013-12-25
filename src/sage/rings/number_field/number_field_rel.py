@@ -78,7 +78,6 @@ TESTS::
 from sage.structure.parent_gens import localvars
 
 import sage.libs.ntl.all as ntl
-import sage.libs.pari.all as pari
 import sage.rings.arith
 
 from sage.categories.map import is_Map
@@ -104,7 +103,7 @@ from sage.rings.number_field.number_field import NumberField, NumberField_generi
 from sage.rings.number_field.number_field_base import is_NumberField
 from sage.rings.number_field.order import RelativeOrder
 from sage.rings.number_field.morphism import RelativeNumberFieldHomomorphism_from_abs
-from sage.libs.all import pari, pari_gen
+from sage.libs.pari.all import pari_gen
 
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
@@ -208,7 +207,7 @@ class NumberField_relative(NumberField_generic):
             sage: b
             Traceback (most recent call last):
             ...
-            PariError: incorrect type (11)
+            PariError: incorrect type in core2partial
 
         However, if the polynomial is linear, rational coefficients should work::
 
@@ -1524,6 +1523,7 @@ class NumberField_relative(NumberField_generic):
             sage: c^2 + 3
             0
         """
+        from sage.libs.pari.all import pari
         rnfeqn = self._pari_rnfequation()
         f = (pari('x') - rnfeqn[2]*rnfeqn[1]).lift()
         g = self._element_class(self, f)
@@ -1642,8 +1642,6 @@ class NumberField_relative(NumberField_generic):
             sage: K.<a, b> = NumberField( [x^2 + x + 1, x^4 + 1] )
             sage: K.number_of_roots_of_unity()
             24
-            sage: K.roots_of_unity()[:5]
-            [-b^3*a, b^2*a + b^2, -b, -a, -b^3*a - b^3]
         """
         return self.absolute_field('a').number_of_roots_of_unity()
 
@@ -1655,7 +1653,7 @@ class NumberField_relative(NumberField_generic):
 
             sage: K.<a, b> = NumberField( [x^2 + x + 1, x^4 + 1] )
             sage: K.roots_of_unity()[:5]
-            [-b^3*a, b^2*a + b^2, -b, -a, -b^3*a - b^3]
+            [b*a, -b^2*a - b^2, b^3, -a, b*a + b]
         """
         abs = self.absolute_field('a')
         from_abs, _ = abs.structure()
@@ -2218,7 +2216,7 @@ class NumberField_relative(NumberField_generic):
             sage: R = P.order([a,b,c]); R
             Relative Order in Number Field in sqrt2 with defining polynomial x^2 - 2 over its base field
 
-        The base ring of an order in a relative extension is still `\ZZ`.:
+        The base ring of an order in a relative extension is still `\ZZ`.::
 
             sage: R.base_ring()
             Integer Ring

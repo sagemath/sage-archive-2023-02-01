@@ -58,7 +58,7 @@ AUTHOR:
 
 EXAMPLES::
 
-A weighted directed graph given as a Python dictionary:
+A weighted directed graph given as a Python dictionary::
 
     sage: from sage.sandpiles import *
     sage: g = {0: {},                    \
@@ -1682,8 +1682,7 @@ class Sandpile(DiGraph):
             sage: S = Sandpile({0:{},1:{0: 1, 2: 1, 3: 4},2:{3: 5},3:{1: 1, 2: 1}},0)
             sage: p = S.betti_complexes() # optional - 4ti2
             sage: p[0] # optional - 4ti2
-            [{0: -8, 1: 5, 2: 4, 3: 1},
-             Simplicial complex with vertex set (0, 1, 2, 3) and facets {(1, 2), (3,)}]
+            [{0: -8, 1: 5, 2: 4, 3: 1}, Simplicial complex with vertex set (1, 2, 3) and facets {(1, 2), (3,)}]
             sage: S.resolution() # optional - 4ti2
             'R^1 <-- R^5 <-- R^5 <-- R^1'
             sage: S.betti()
@@ -3504,7 +3503,7 @@ class SandpileDivisor(dict):
             sage: D = SandpileDivisor(S, [0,1,1])
             sage: eff = D.effective_div() # optional - 4ti2
             sage: D.__dict__ # optional - 4ti2
-            {'_sandpile': Digraph on 3 vertices, '_effective_div': [{0: 2, 1: 0, 2: 0}, {0: 0, 1: 1, 2: 1}], '_linear_system': {'inhomog': [[1, 0, 0], [0, -1, -1], [0, 0, 0]], 'num_inhomog': 3, 'num_homog': 2, 'homog': [[-1, -1, -1], [1, 1, 1]]}, '_vertices': [0, 1, 2]}
+            {'_sandpile': Digraph on 3 vertices, '_effective_div': [{0: 2, 1: 0, 2: 0}, {0: 0, 1: 1, 2: 1}], '_linear_system': {'inhomog': [[1, 0, 0], [0, 0, 0], [0, -1, -1]], 'num_inhomog': 3, 'num_homog': 2, 'homog': [[1, 1, 1], [-1, -1, -1]]}, '_vertices': [0, 1, 2]}
             sage: D[0] += 1 # optional - 4ti2
             sage: D.__dict__ # optional - 4ti2
             {'_sandpile': Digraph on 3 vertices, '_vertices': [0, 1, 2]}
@@ -4117,14 +4116,14 @@ class SandpileDivisor(dict):
         a = a.split('\n')
         # a starts with two numbers. We are interested in the first one
         num_homog = int(a[0].split()[0])
-        homog = [map(int,i.split()) for i in a[2:-1]]
+        homog = [map(int,i.split()) for i in a[1:-1]]
         ## second, the inhomogeneous points
         zinhom_file = open(lin_sys_zinhom,'r')
         b = zinhom_file.read()
         zinhom_file.close()
         b = b.split('\n')
         num_inhomog = int(b[0].split()[0])
-        inhomog = [map(int,i.split()) for i in b[2:-1]]
+        inhomog = [map(int,i.split()) for i in b[1:-1]]
         self._linear_system = {'num_homog':num_homog, 'homog':homog,
                 'num_inhomog':num_inhomog, 'inhomog':inhomog}
 
@@ -4143,7 +4142,7 @@ class SandpileDivisor(dict):
             sage: S = sandlib('generic')
             sage: D = SandpileDivisor(S, [0,0,0,0,0,2])
             sage: D.linear_system() # optional - 4ti2
-            {'inhomog': [[0, 0, -1, -1, 0, -2], [0, 0, 0, 0, 0, -1], [0, 0, 0, 0, 0, 0]], 'num_inhomog': 3, 'num_homog': 2, 'homog': [[1, 0, 0, 0, 0, 0], [-1, 0, 0, 0, 0, 0]]}
+            {'inhomog': [[0, 0, 0, 0, 0, -1], [0, 0, -1, -1, 0, -2], [0, 0, 0, 0, 0, 0]], 'num_inhomog': 3, 'num_homog': 2, 'homog': [[1, 0, 0, 0, 0, 0], [-1, 0, 0, 0, 0, 0]]}
 
         NOTES:
 
@@ -4203,11 +4202,9 @@ class SandpileDivisor(dict):
             sage: S = sandlib('generic')
             sage: D = SandpileDivisor(S, [0,0,0,0,0,2]) # optional - 4ti2
             sage: D.effective_div() # optional - 4ti2
-            [{0: 1, 1: 0, 2: 0, 3: 1, 4: 0, 5: 0},
-             {0: 0, 1: 0, 2: 1, 3: 1, 4: 0, 5: 0},
-             {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 2}]
+            [{0: 0, 1: 0, 2: 1, 3: 1, 4: 0, 5: 0}, {0: 1, 1: 0, 2: 0, 3: 1, 4: 0, 5: 0}, {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 2}]
             sage: D.effective_div(False) # optional - 4ti2
-            [[1, 0, 0, 1, 0, 0], [0, 0, 1, 1, 0, 0], [0, 0, 0, 0, 0, 2]]
+            [[0, 0, 1, 1, 0, 0], [1, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 2]]
         """
         if verbose:
             return deepcopy(self._effective_div)
@@ -4365,7 +4362,7 @@ class SandpileDivisor(dict):
                     break
             if test:
                 result.append(supp)
-        self._Dcomplex = SimplicialComplex(self._sandpile.vertices(),result)
+        self._Dcomplex = SimplicialComplex(result)
 
     def Dcomplex(self):
         r"""

@@ -7,8 +7,8 @@ For a comprehensive tutorial on how to use symmetric functions in Sage
 
 We define the algebra of symmetric functions in the Schur and elementary bases::
 
-    sage: s = SymmetricFunctionAlgebra(QQ, basis='schur')
-    sage: e = SymmetricFunctionAlgebra(QQ, basis='elementary')
+    sage: s = SymmetricFunctions(QQ).schur()
+    sage: e = SymmetricFunctions(QQ).elementary()
 
 Each is actually a graded Hopf algebra whose basis is indexed by
 integer partitions::
@@ -18,11 +18,11 @@ integer partitions::
     sage: s.basis().keys()
     Partitions
 
-Let us compute with some elements::
+Let us compute with some elements in different bases::
 
     sage: f1 = s([2,1]); f1
     s[2, 1]
-    sage: f2 = e(f1); f2
+    sage: f2 = e(f1); f2 # basis conversion
     e[2, 1] - e[3]
     sage: f1 == f2
     True
@@ -36,14 +36,14 @@ Let us compute with some elements::
     sage: m = SymmetricFunctions(QQ).monomial()
     sage: m([3,1])
     m[3, 1]
-    sage: m(4)
+    sage: m(4) # This is the constant 4, not the partition 4.
     4*m[]
-    sage: m([4])
+    sage: m([4]) # This is the partition 4.
     m[4]
     sage: 3*m([3,1])-1/2*m([4])
     3*m[3, 1] - 1/2*m[4]
 
-We can also do computations with various bases::
+::
 
     sage: p = SymmetricFunctions(QQ).power()
     sage: f = p(3)
@@ -67,6 +67,10 @@ One can convert symmetric functions to symmetric polynomials and vice versa::
     3*m[1, 1, 1] + 2*m[2, 1] + m[3] + 2*m[3, 1] + 2*m[4]
     sage: Sym.from_polynomial(poly) == f
     True
+    sage: g = h[1,1,1,1]
+    sage: poly = g.expand(3)
+    sage: Sym.from_polynomial(poly) == g
+    False
 
 ::
 
@@ -154,7 +158,16 @@ Here are further examples::
     sage: z.degree()
     3
 
-RECENT BACKWARD INCOMPATIBLE CHANGES:
+TESTS:
+
+Check that we can handle large integers properly (:trac:`13413`)::
+
+    sage: s = SymmetricFunctions(QQ).s()
+    sage: p = SymmetricFunctions(QQ).p()
+    sage: max(s(p([1]*36)).coefficients())  # long time (4s on sage.math, 2013)
+    40971642983700000000
+
+BACKWARD INCOMPATIBLE CHANGES (:trac:`5457`):
 
 The symmetric functions code has been refactored to take
 advantage of the coercion systems. This introduced a couple of glitches:
@@ -212,8 +225,8 @@ from copy import copy
 
 def SymmetricFunctionAlgebra(R, basis="schur"):
     r"""
-    Return the free algebra over the ring `R` on `n`
-    generators with given names.
+    This is deprecated in :trac:`15473`. Use instead
+    :class:`SymmetricFunctions` as ``SymmetricFunctions(R).basis()``
 
     INPUT:
 
@@ -227,19 +240,11 @@ def SymmetricFunctionAlgebra(R, basis="schur"):
     EXAMPLES::
 
         sage: SymmetricFunctionAlgebra(QQ)
+        doctest:...: DeprecationWarning: this function is deprecated. Use SymmetricFunctions(R).basis()
+        See http://trac.sagemath.org/15473 for details.
         Symmetric Functions over Rational Field in the Schur basis
-
-    ::
-
-        sage: SymmetricFunctionAlgebra(QQ, basis='m')
-        Symmetric Functions over Rational Field in the monomial basis
-
-    ::
-
-        sage: SymmetricFunctionAlgebra(QQ, basis='power')
-        Symmetric Functions over Rational Field in the powersum basis
     """
-    # Todo: this is a backward compatibility function, and should be deprecated
+    sage.misc.superseded.deprecation(15473, "this function is deprecated. Use SymmetricFunctions(R).basis()")
     from sage.combinat.sf.sf import SymmetricFunctions
     Sym = SymmetricFunctions(R)
     if basis == 'schur' or basis == 's':
@@ -255,120 +260,6 @@ def SymmetricFunctionAlgebra(R, basis="schur"):
     else:
         raise ValueError("unknown basis (= %s)"%basis)
 
-def SFAPower(R):
-    """
-    Returns the symmetric function algebra over ``R`` with the power-sum
-    symmetric functions as the basis.
-
-    This function is deprecated.  Use instead:
-    SymmetricFunctions(R).power()
-
-    EXAMPLES::
-
-        sage: SymmetricFunctions(QQ).power()
-        Symmetric Functions over Rational Field in the powersum basis
-
-    TESTS::
-
-        sage: p = SFAPower(QQ)
-        doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).power()
-        See http://trac.sagemath.org/5457 for details.
-    """
-    sage.misc.superseded.deprecation(5457,"Deprecation warning: In the future use SymmetricFunctions(R).power()")
-    return SymmetricFunctionAlgebra(R, basis='power')
-
-
-def SFAElementary(R):
-    """
-    Returns the symmetric function algebra over ``R`` with the elementary
-    symmetric functions as the basis.
-
-    This function is deprecated.  Use instead:
-    SymmetricFunctions(R).elementary()
-
-    EXAMPLES::
-
-        sage: SymmetricFunctions(QQ).elementary()
-        Symmetric Functions over Rational Field in the elementary basis
-
-    TESTS::
-
-        sage: p = SFAElementary(QQ)
-        doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).elementary()
-        See http://trac.sagemath.org/5457 for details.
-    """
-    sage.misc.superseded.deprecation(5457,"Deprecation warning: In the future use SymmetricFunctions(R).elementary()")
-    return SymmetricFunctionAlgebra(R, basis='elementary')
-
-
-def SFAHomogeneous(R):
-    """
-    Returns the symmetric function algebra over R with the Homogeneous
-    symmetric functions as the basis.
-
-    This function is deprecated.  Use instead:
-    SymmetricFunctions(R).homogeneous()
-
-    EXAMPLES::
-
-        sage: SymmetricFunctions(QQ).homogeneous()
-        Symmetric Functions over Rational Field in the homogeneous basis
-
-    TESTS::
-
-        sage: p = SFAHomogeneous(QQ)
-        doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).homogeneous()
-        See http://trac.sagemath.org/5457 for details.
-    """
-    sage.misc.superseded.deprecation(5457,"Deprecation warning: In the future use SymmetricFunctions(R).homogeneous()")
-    return SymmetricFunctionAlgebra(R, basis='homogeneous')
-
-
-def SFASchur(R):
-    """
-    Returns the symmetric function algebra over R with the Schur
-    symmetric functions as the basis.
-
-    This function is deprecated.  Use instead:
-    SymmetricFunctions(R).schur()
-
-    EXAMPLES::
-
-        sage: SymmetricFunctions(QQ).schur()
-        Symmetric Functions over Rational Field in the Schur basis
-
-    TESTS::
-
-        sage: p = SFASchur(QQ)
-        doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).schur()
-        See http://trac.sagemath.org/5457 for details.
-    """
-    sage.misc.superseded.deprecation(5457,"Deprecation warning: In the future use SymmetricFunctions(R).schur()")
-    return SymmetricFunctionAlgebra(R, basis='schur')
-
-
-def SFAMonomial(R):
-    """
-    Returns the symmetric function algebra over R with the monomial
-    symmetric functions as the basis.
-
-    This function is deprecated.  Use instead:
-    SymmetricFunctions(R).homogeneous()
-
-    EXAMPLES::
-
-        sage: SymmetricFunctions(QQ).monomial()
-        Symmetric Functions over Rational Field in the monomial basis
-
-    TESTS::
-
-        sage: p = SFAMonomial(QQ)
-        doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).monomial()
-        See http://trac.sagemath.org/5457 for details.
-    """
-    sage.misc.superseded.deprecation(5457, "Deprecation warning: In the future use SymmetricFunctions(R).monomial()")
-    return SymmetricFunctionAlgebra(R, basis='monomial')
-
 def is_SymmetricFunctionAlgebra(x):
     """
     Checks whether ``x`` is a symmetric function algebra.
@@ -380,7 +271,7 @@ def is_SymmetricFunctionAlgebra(x):
         False
         sage: is_SymmetricFunctionAlgebra(ZZ)
         False
-        sage: is_SymmetricFunctionAlgebra(SymmetricFunctionAlgebra(ZZ,'schur'))
+        sage: is_SymmetricFunctionAlgebra(SymmetricFunctions(ZZ).schur())
         True
         sage: is_SymmetricFunctionAlgebra(SymmetricFunctions(QQ).e())
         True
@@ -438,11 +329,11 @@ def is_SymmetricFunction(x):
 from sage.categories.realizations import Realizations, Category_realization_of_parent
 class SymmetricFunctionsBases(Category_realization_of_parent):
     r"""
-    The category of bases of symmetric functions.
+    The category of bases of the ring of symmetric functions.
     """
     def __init__(self, base):
         r"""
-        Initializes the bases of the ring of symmetric functions.
+        Initialize the bases of the ring of symmetric functions.
 
         INPUT:
 
@@ -501,14 +392,38 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
 
     class ParentMethods:
 
-        def is_field(self, proof = True):
+        def is_integral_domain(self, proof=True):
             """
-            Returns whether ``self`` is a field.
+            Return whether ``self`` is an integral domain. (It is if
+            and only if the base ring is an integral domain.)
 
             INPUT:
 
             - ``self`` -- a basis of the symmetric functions
-            - ``proof`` -- an optional argument (default value : True)
+            - ``proof`` -- an optional argument (default value: ``True``)
+
+            EXAMPLES::
+
+                sage: s = SymmetricFunctions(QQ).s()
+                sage: s.is_integral_domain()
+                True
+
+            The following doctest is disabled pending :trac:`10963`::
+
+                sage: s = SymmetricFunctions(Zmod(14)).s() # not tested
+                sage: s.is_integral_domain() # not tested
+                False
+            """
+            return self.base_ring().is_integral_domain()
+
+        def is_field(self, proof=True):
+            """
+            Return whether ``self`` is a field. (It is not.)
+
+            INPUT:
+
+            - ``self`` -- a basis of the symmetric functions
+            - ``proof`` -- an optional argument (default value: ``True``)
 
             EXAMPLES::
 
@@ -799,9 +714,20 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 sage: f = 2*m[2,1] + 4*m[1,1] - 5*m[1] - 3*m[[]]
                 sage: m.degree_negation(f)
                 -3*m[] + 5*m[1] + 4*m[1, 1] - 2*m[2, 1]
+
+            TESTS:
+
+            Using :meth:`degree_negation` on an element of a different
+            basis works correctly::
+
+                sage: e = Sym.elementary()
+                sage: m.degree_negation(e[3])
+                -m[1, 1, 1]
+                sage: m.degree_negation(m(e[3]))
+                -m[1, 1, 1]
             """
             return self.sum_of_terms([ (lam, (-1)**(sum(lam)%2) * a)
-                                      for lam, a in element._monomial_coefficients.items() ])
+                                       for lam, a in self(element) ])
 
         def corresponding_basis_over(self, R):
             r"""
@@ -1016,8 +942,9 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
 
     def _change_by_proportionality(self, x, function):
         r"""
-        Return the symmetric function obtained by scaling each basis
-        element corresponding to the partition `part` by ``function``(`part`).
+        Return the symmetric function obtained from ``x`` by scaling
+        each basis element corresponding to the partition `\lambda` by
+        ``function``(`\lambda`).
 
         INPUT:
 
@@ -1053,7 +980,10 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
 
         - ``x` -- a symmetric function
         - ``expr`` -- an expression used in the plethysm
-        - ``deg_one`` -- specifies the degree one terms
+        - ``deg_one`` -- a list (or iterable) specifying the degree one
+          variables (that is, the terms to be treated as degree-one
+          elements when encountered in ``x``; they will be taken to the
+          appropriate powers when computing the plethysm)
 
         OUTPUT:
 
@@ -2009,8 +1939,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         (To compute outer plethysms over general binomial rings, change
         bases to the fraction field.)
 
-        By default, the degree one elements are the generators for the
-        ``self``'s base ring.
+        By default, the degree one elements are taken to be the
+        generators for the ``self``'s base ring. This setting can be
+        modified by specifying the ``include`` and ``exclude`` keywords.
 
         INPUT:
 
@@ -2349,9 +2280,11 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
     def theta(self,a):
         r"""
-        Return the image of ``self`` under the theta automorphism which sends
-        `p[k]` to `a \cdot p[k]`. In general, this is well-defined outside
-        of the powersum basis only if the base ring is a `\QQ`-algebra.
+        Return the image of ``self`` under the theta endomorphism which sends
+        `p_k` to `a \cdot p_k` for every positive integer `k`.
+
+        In general, this is well-defined outside of the powersum basis only
+        if the base ring is a `\QQ`-algebra.
 
         INPUT:
 
@@ -2378,8 +2311,11 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
     def theta_qt(self,q=None,t=None):
         r"""
         Return the image of ``self`` under the `q,t`-deformed theta
-        automorphism which sends `p[k]` to `(1-q^k) / (1-t^k) \cdot p[k]`
+        endomorphism which sends `p_k` to `\frac{1-q^k}{1-t^k} \cdot p_k`
         for all positive integers `k`.
+
+        In general, this is well-defined outside of the powersum basis only
+        if the base ring is a `\QQ`-algebra.
 
         INPUT:
 
@@ -2425,14 +2361,17 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
     def omega_qt(self,q = None,t = None):
         r"""
         Return the image of ``self`` under the `q,t`-deformed omega
-        automorphism which sends `p[k]` to
-        `(-1)^{k-1} \cdot (1-q^k) / (1-t^k) \cdot p[k]` for all positive
+        automorphism which sends `p_k` to
+        `(-1)^{k-1} \cdot \frac{1-q^k}{1-t^k} \cdot p_k` for all positive
         integers `k`.
+
+        In general, this is well-defined outside of the powersum basis only
+        if the base ring is a `\QQ`-algebra.
 
         INPUT:
 
-        - ``q``, ``t`` -- parameters (default: ``None``, in which case ``q``
-          and ``t`` are used)
+        - ``q``, ``t`` -- parameters (default: ``None``, in which case
+          ``'q'`` and ``'t'`` are used)
 
         EXAMPLES::
 
@@ -2488,15 +2427,29 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
     def itensor(self, x):
         r"""
-        Return the inner (tensor) product of ``self`` and ``x`` in the
+        Return the internal (tensor) product of ``self`` and ``x`` in the
         basis of ``self``.
 
-        The inner tensor product (also known as the Kronecker product, or as
-        the second multiplication on the ring of symmetric functions) can be
-        defined as the linear extension of the definition on power sums
-        `p_{\lambda} \otimes p_{\mu} = \delta_{\lambda,\mu} z_{\lambda}
+        The internal tensor product can be defined as the linear extension
+        of the definition on power sums
+        `p_{\lambda} \ast p_{\mu} = \delta_{\lambda,\mu} z_{\lambda}
         p_{\lambda}`, where `z_{\lambda} = (1^{r_1} r_1!) (2^{r_2} r_2!)
-        \cdots` for `\lambda = (1^{r_1} 2^{r_2} \cdots )`.
+        \cdots` for `\lambda = (1^{r_1} 2^{r_2} \cdots )` and where `\ast`
+        denotes the internal tensor product.
+        The internal tensor product is also known as the Kronecker product,
+        or as the second multiplication on the ring of symmetric functions.
+
+        Note that the internal product of any two homogeneous symmetric
+        functions of equal degrees is a homogeneous symmetric function of the
+        same degree. On the other hand, the internal product of two homogeneous
+        symmetric functions of distinct degrees is `0`.
+
+        .. NOTE::
+
+            The internal product is sometimes referred to as "inner product"
+            in the literature, but unfortunately this name is shared by a
+            different operation, namely the Hall inner product
+            (see :meth:`scalar`).
 
         INPUT:
 
@@ -2505,11 +2458,11 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         OUTPUT:
 
-        - symmetric function which is of the same degree as ``self`` and ``x``
-          if ``self`` and ``x`` have the same degree, and equals `0` if
-          they don't.
+        - the internal product of ``self`` with ``x`` (an element of the
+          ring of symmetric functions in the same basis as ``self``)
 
-        The methods :meth:`itensor`, :meth:`kronecker_product`, :meth:`inner_tensor` are all
+        The methods :meth:`itensor`, :meth:`internal_product`,
+        :meth:`kronecker_product`, :meth:`inner_tensor` are all
         synonyms.
 
         EXAMPLES::
@@ -2726,11 +2679,12 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         r"""
         Return the inner coproduct of ``self`` in the basis of ``self``.
 
-        The inner coproduct (also known as the Kronecker coproduct, or as the
-        second comultiplication on the ring of symmetric functions) is a ring
-        homomorphism `\Delta^\times` from the right of symmetric functions to
-        the tensor product (over the base ring) of this ring with itself. It
-        is uniquely characterized by the formula
+        The inner coproduct (also known as the Kronecker coproduct, as the
+        internal coproduct, or as the second comultiplication on the ring of
+        symmetric functions) is a ring homomorphism `\Delta^\times` from the
+        ring of symmetric functions to the tensor product (over the base
+        ring) of this ring with itself. It is uniquely characterized by the
+        formula
 
         .. MATH::
 
@@ -2761,9 +2715,10 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             z_{\lambda} = \prod_{i=1}^\infty i^{m_i(\lambda)} m_i(\lambda)!
 
         with `m_i(\lambda)` meaning the number of appearances of `i`
-        in `\lambda` (see :meth:`~sage.combinat.sf.sfa.zee`)
+        in `\lambda` (see :meth:`~sage.combinat.sf.sfa.zee`).
 
-        The method :meth:`kronecker_coproduct` is a synonym of this one.
+        The method :meth:`kronecker_coproduct` is a synonym of
+        :meth:`internal_coproduct`.
 
         EXAMPLES::
 
@@ -2792,10 +2747,10 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             ....:     for partition_pair, coeff in h.internal_coproduct().monomial_coefficients().items():
             ....:         result += coeff * h.parent()(f).scalar(partition_pair[0]) * h.parent()(g).scalar(partition_pair[1])
             ....:     return result
-            sage: all( all( all( tensor_incopr(e[u], s[v], m[w]) == (e[u].itensor(s[v])).scalar(m[w])
+            sage: all( all( all( tensor_incopr(e[u], s[v], m[w]) == (e[u].itensor(s[v])).scalar(m[w])  # long time (10s on sage.math, 2013)
             ....:                for w in Partitions(5) )
             ....:           for v in Partitions(2) )
-            ....:      for u in Partitions(3) )   # long time
+            ....:      for u in Partitions(3) )
             True
 
         Let us check the formulas for `\Delta^{\times}(h_n)` and
@@ -2862,7 +2817,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         this arithmetic product.
 
         If `f` and `g` are two symmetric functions which are homogeneous
-        of degrees `a` and `b`, respectively, then `a \boxdot b` is
+        of degrees `a` and `b`, respectively, then `f \boxdot g` is
         homogeneous of degree `ab`.
 
         The arithmetic product is commutative and associative and has
@@ -2897,7 +2852,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
             sage: e = SymmetricFunctions(FiniteField(19)).e()
             sage: m = SymmetricFunctions(FiniteField(19)).m()
-            sage: all( all( e(p).arithmetic_product(m(q)) == m(q).arithmetic_product(e(p))
+            sage: all( all( e(p).arithmetic_product(m(q)) == m(q).arithmetic_product(e(p))  # long time (26s on sage.math, 2013)
             ....:           for q in Partitions(4) )
             ....:      for p in Partitions(4) )
             True
@@ -2906,7 +2861,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
             The currently existing implementation of this function is
             technically unsatisfactory. It distinguishes the case when the
-            base ring is a `\QQ`-algebra (in which case the Kronecker product
+            base ring is a `\QQ`-algebra (in which case the arithmetic product
             can be easily computed using the power sum basis) from the case
             where it isn't. In the latter, it does a computation using
             universal coefficients, again distinguishing the case when it is
@@ -3066,7 +3021,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: m[3,2].scalar(h[3,2], zee=lambda mu: 2**mu.length())
             2/3
 
-      TESTS::
+        TESTS::
 
             sage: m(1).scalar(h(1))
             1
@@ -3183,7 +3138,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         This scalar product is defined so that the power sum elements
         `p_{\mu}` are orthogonal and `\langle p_{\mu}, p_{\mu} \rangle =
-        z_{\mu} t^{length(\mu)}`
+        z_{\mu} t^{\ell(\mu)}`, where `\ell(\mu)` denotes the length of
+        `\mu`.
 
         INPUT:
 
@@ -3225,12 +3181,12 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
     def derivative_with_respect_to_p1(self, n=1):
         r"""
         Return the symmetric function obtained by taking the derivative of
-        ``self`` with respect to the power-sum symmetric function ``p([1])``
+        ``self`` with respect to the power-sum symmetric function `p_1`
         when the expansion of ``self`` in the power-sum basis is considered
-        as a polynomial in ``p([k])``'s.
+        as a polynomial in `p_k`'s (with `k \geq 1`).
 
         This is the same as skewing ``self`` by the first power-sum symmetric
-        function ``p[1]``.
+        function `p_1`.
 
         INPUT:
 
@@ -3293,7 +3249,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         .. MATH::
 
-            f_n m_{(\lambda_1, \lambda_2, \lambda_3, \ldots)} =
+            \mathbf{f}_n m_{(\lambda_1, \lambda_2, \lambda_3, \ldots)} =
             m_{(n\lambda_1, n\lambda_2, n\lambda_3, \ldots)}
 
         for every partition `(\lambda_1, \lambda_2, \lambda_3, \ldots)`

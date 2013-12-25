@@ -45,9 +45,9 @@ gsl_set_error_handler_off()
 
 import math, operator
 
-cimport sage.libs.pari.gen
-import sage.libs.pari.gen
-
+import sage.libs.pari.pari_instance
+from sage.libs.pari.pari_instance cimport PariInstance
+cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
 import sage.rings.integer
 import sage.rings.rational
@@ -626,10 +626,11 @@ cdef class RealDoubleElement(FieldElement):
 
     def ulp(self):
         """
-        Return the unit of least precision of ``self``, which is the weight of
-        the least significant bit of ``self``. Unless ``self`` is exactly a
-        power of two, it is gap between this number and the next closest
-        distinct  number that can be represented.
+        Returns the unit of least precision of ``self``, which is the
+        weight of the least significant bit of ``self``. This is always
+        a strictly positive number. It is also the gap between this
+        number and the closest number with larger absolute value that
+        can be represented.
 
         EXAMPLES::
 
@@ -649,9 +650,11 @@ cdef class RealDoubleElement(FieldElement):
             sage: b - b.ulp() == b
             False
 
-        Adding or subtracting something less than half an ulp never
-        gives the same number (unless the number is exactly a power of
-        2 and subtracting an ulp decreases the ulp)::
+        Since the default rounding mode is round-to-nearest, adding or
+        subtracting something less than half an ulp always gives the
+        same number, unless the result has a smaller ulp. The latter
+        can only happen if the input number is (up to sign) exactly a
+        power of 2::
 
             sage: a - a.ulp()/3 == a
             True
@@ -689,9 +692,22 @@ cdef class RealDoubleElement(FieldElement):
             +infinity
             sage: (-a).ulp()
             +infinity
-            sage: a = RR('nan')
+            sage: a = RDF('nan')
             sage: a.ulp() is a
             True
+
+        The ulp method works correctly with small numbers::
+
+            sage: u = RDF(0).ulp()
+            sage: u.ulp() == u
+            True
+            sage: x = u * (2^52-1)  # largest denormal number
+            sage: x.ulp() == u
+            True
+            sage: x = u * 2^52  # smallest normal number
+            sage: x.ulp() == u
+            True
+
         """
         # First, check special values
         if self._value == 0:
@@ -704,7 +720,11 @@ cdef class RealDoubleElement(FieldElement):
         # Normal case
         cdef int e
         frexp(self._value, &e)
-        return RealDoubleElement(ldexp(1.0, e-53))
+        e -= 53
+        # Correction for denormals
+        if e < -1074:
+            e = -1074
+        return RealDoubleElement(ldexp(1.0, e))
 
     def real(self):
         """
@@ -1508,8 +1528,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF(1.5)._pari_()
             1.50000000000000
         """
-        cdef sage.libs.pari.gen.PariInstance P = sage.libs.pari.gen.pari
-        return P.double_to_gen_c(self._value)
+        return pari.double_to_gen_c(self._value)
 
 
     ###########################################
@@ -1870,15 +1889,15 @@ cdef class RealDoubleElement(FieldElement):
 
             sage: R = RealField(128)
             sage: def check_error(x):
-            ...     x = RDF(x)
-            ...     log_RDF = x.log()
-            ...     log_RR = R(x).log()
-            ...     diff = R(log_RDF) - log_RR
-            ...     if abs(diff) <= log_RDF.ulp():
-            ...         return True
-            ...     print "logarithm check failed for %s (diff = %s ulp)"% \
-            ...         (x, diff/log_RDF.ulp())
-            ...     return False
+            ....:   x = RDF(x)
+            ....:   log_RDF = x.log()
+            ....:   log_RR = R(x).log()
+            ....:   diff = R(log_RDF) - log_RR
+            ....:   if abs(diff) < log_RDF.ulp():
+            ....:       return True
+            ....:   print "logarithm check failed for %s (diff = %s ulp)"% \
+            ....:       (x, diff/log_RDF.ulp())
+            ....:   return False
             sage: all( check_error(2^x) for x in range(-100,100) )
             True
             sage: all( check_error(x) for x in sxrange(0.01, 2.00, 0.01) )

@@ -925,9 +925,8 @@ cdef class Parent(category_object.CategoryObject):
         The old way to signal atomic string reps.
 
         True if the elements have atomic string representations, in the
-        sense that they print if they print at s, then -s means the
-        negative of s. For example, integers are atomic but polynomials are
-        not.
+        sense that if they print at s, then -s means the negative of s. For
+        example, integers are atomic but polynomials are not.
 
         EXAMPLES::
 
@@ -1306,16 +1305,13 @@ cdef class Parent(category_object.CategoryObject):
             ...
             NotImplementedError
 
-        Asking for ``list(MyIntegers)`` below  will never finish without
+        Asking for ``list(MyIntegers)`` below will never finish without
         pressing Ctrl-C.  We let it run for 1 second and then interrupt::
 
-            sage: try:
-            ....:   alarm(1)
-            ....:   list(MyIntegers)
-            ....: except KeyboardInterrupt:
-            ....:   print "Caught KeyboardInterrupt"
-            ....:
-            Caught KeyboardInterrupt
+            sage: alarm(1.0); list(MyIntegers)
+            Traceback (most recent call last):
+            ...
+            AlarmInterrupt
 
         """
         try:

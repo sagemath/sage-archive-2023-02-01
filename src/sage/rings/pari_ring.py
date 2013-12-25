@@ -49,36 +49,113 @@ class Pari(ring_element.RingElement):
         self.__x = pari.pari(x)
 
     def __repr__(self):
+        """
+        EXAMPLES::
+
+            sage: R = PariRing()
+            sage: a = R(3); a
+            3
+        """
         return str(self.__x)
 
     def _add_(self, other):
+        """
+        EXAMPLES::
+
+            sage: R = PariRing()
+            sage: b = R(11)
+            sage: a = R(3)
+            sage: a + b
+            14
+        """
         return self.__class__(self.__x + other.__x, parent=_inst)
 
     def _sub_(self, other):
+        """
+        EXAMPLES::
+
+            sage: R = PariRing()
+            sage: a = R(3)
+            sage: b = R(11)
+            sage: b - a
+            8
+        """
         return self.__class__(self.__x - other.__x, parent=_inst)
 
     def _mul_(self, other):
+        """
+        EXAMPLES::
+
+            sage: R = PariRing()
+            sage: a = R(3)
+            sage: b = R(11)
+            sage: b * a
+            33
+        """
         return self.__class__(self.__x * other.__x, parent=_inst)
 
     def _div_(self, other):
+        """
+        EXAMPLES::
+
+            sage: R = PariRing()
+            sage: a = R(3)
+            sage: b = R(11)
+            sage: b / a
+            11/3
+        """
         return self.__x * (~other.__x)
 
     def __neg__(self):
+        """
+        EXAMPLES::
+
+            sage: R = PariRing()
+            sage: a = R(3)
+            sage: -a
+            -3
+        """
         return self.__class__(-self.__x, parent=_inst)
 
     def __pow__(self, other):
-        if not isinstance(other, Pari):
-            return bin_op(self, other, operator.pow)
+        """
+        EXAMPLES::
+
+            sage: R = PariRing()
+            sage: a = R(3)
+            sage: a^2
+            9
+        """
+        if not(other in PariRing()):
+            other = Pari(other)
         return self.__class__(self.__x ** other.__x, parent=_inst)
 
     def __invert__(self):
+        """
+        EXAMPLES::
+
+            sage: R = PariRing()
+            sage: a = R(3)
+            sage: ~a
+            1/3
+        """
         return self.__class__(~self.__x, parent=_inst)
 
     def __cmp__(self, other):
+        """
+        EXAMPLES::
+
+            sage: R = PariRing()
+            sage: a = R(3)
+            sage: b = R(11)
+            sage: cmp(a,b)
+            -1
+        """
         return cmp(self.__x, other.__x)
 
     def __int__(self):
         return int(self.__x)
+
 
 class PariRing(UniqueRepresentation, ring.Ring):
     """

@@ -665,6 +665,15 @@ cdef class SetSystem:
             ....:                                      ['a', 'c', 'd']])
             sage: S._equivalence(lambda self, other, morph:True, T)
             {1: 'c', 2: 'd', 3: 'b', 4: 'a'}
+
+        Check that Trac #15189 is fixed::
+
+            sage: M = Matroid(ring=GF(5), reduced_matrix=[[1,0,3],[0,1,1],[1,1,0]])
+            sage: N = Matroid(ring=GF(5), reduced_matrix=[[1,0,1],[0,1,1],[1,1,0]])
+            sage: M.is_field_isomorphic(N)
+            False
+            sage: any(M.is_field_isomorphism(N, p) for p in Permutations(range(6)))
+            False
         """
         if SP is None or OP is None:
             SP, SEP, sh = self._equitable_partition()
@@ -683,7 +692,7 @@ cdef class SetSystem:
                 while v >= 0:
                     OP2, OEP, oh = other._equitable_partition(OP._distinguish(v))
                     if sh == oh:
-                        m = self._isomorphism(other, SP2, OP2)
+                        m = self._equivalence(is_equiv, other, SP2, OP2)
                         if m is not None:
                             return m
                     v = bitset_next(OP._subsets[i], v + 1)

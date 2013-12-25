@@ -172,11 +172,14 @@ cdef extern from "mpz_longlong.h":
 cdef extern from "convert.h":
     cdef void t_INT_to_ZZ( mpz_t value, long *g )
 
-from sage.libs.pari.gen cimport gen as pari_gen, PariInstance
+from sage.libs.pari.gen cimport gen as pari_gen
+from sage.libs.pari.pari_instance cimport PariInstance
 from sage.libs.flint.ulong_extras cimport *
 
 import sage.rings.infinity
-import sage.libs.pari.all
+
+import sage.libs.pari.pari_instance
+cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
 from sage.structure.element import canonical_coercion
 from sage.misc.superseded import deprecated_function_alias
@@ -564,7 +567,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: ZZ(pari("1e100"))
             Traceback (most recent call last):
             ...
-            PariError: precision too low (10)
+            PariError: precision too low in truncr (precision loss in truncation)
             sage: ZZ(pari("10^50"))
             100000000000000000000000000000000000000000000000000
             sage: ZZ(pari("Pol(3)"))
@@ -671,6 +674,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                         break
                     elif paritype == t_POLMOD:
                         x = x.lift()
+                    elif paritype == t_FFELT:
+                        # x = (f modulo defining polynomial of finite field);
+                        # we extract f.
+                        sig_on()
+                        x = pari.new_gen(FF_to_FpXQ_i((<pari_gen>x).g))
                     else:
                         raise TypeError, "Unable to coerce PARI %s to an Integer"%x
 
@@ -1940,9 +1948,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             <type 'sage.rings.integer.Integer'>
             sage: type(int(3)^int(2))
             <type 'int'>
+
+        Check that a ``MemoryError`` is thrown if the resulting number
+        would be ridiculously large, see :trac:`15363`::
+
+            sage: 2^(2^63-2)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: exponent must be at most 2147483647          # 32-bit
+            MemoryError: failed to allocate 1152921504606847008 bytes  # 64-bit
         """
         if modulus is not None:
-            #raise RuntimeError, "__pow__ dummy argument ignored"
             from sage.rings.finite_rings.integer_mod import Mod
             return Mod(self, modulus) ** n
 
@@ -1961,7 +1977,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         except TypeError:
             s = parent_c(n)(self)
             return s**n
-
         except OverflowError:
             if mpz_cmp_si(_self.value, 1) == 0:
                 return self
@@ -3363,6 +3378,18 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
            - ``'kash'`` - use the KASH computer algebra system (requires
              the optional kash package)
 
+           - ``'magma'`` - use the MAGMA computer algebra system (requires
+             an installation of MAGMA)
+
+           - ``'qsieve'`` - use Bill Hart's quadratic sieve code;
+             WARNING: this may not work as expected, see qsieve? for
+             more information
+
+           - ``'ecm'`` - use ECM-GMP, an implementation of Hendrik
+             Lenstra's elliptic curve method; WARNING: the factors
+             returned may not be prime, see ecm.factor? for more
+             information
+
         -  ``proof`` - bool (default: True) whether or not to
            prove primality of each factor (only applicable for PARI).
 
@@ -3413,6 +3440,27 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: n.factor(limit=1000)
             2 * 11 * 41835640583745019265831379463815822381094652231
+
+        We factor using a quadratic sieve algorithm::
+
+            sage: p = next_prime(10^20)
+            sage: q = next_prime(10^21)
+            sage: n = p*q
+            sage: n.factor(algorithm='qsieve')
+            doctest:... RuntimeWarning: the factorization returned
+            by qsieve may be incomplete (the factors may not be prime)
+            or even wrong; see qsieve? for details
+            100000000000000000039 * 1000000000000000000117
+
+        We factor using the elliptic curve method::
+
+            sage: p = next_prime(10^15)
+            sage: q = next_prime(10^21)
+            sage: n = p*q
+            sage: n.factor(algorithm='ecm')
+            doctest:... RuntimeWarning: the factors returned by ecm
+            are not guaranteed to be prime; see ecm.factor? for details
+            1000000000000037 * 1000000000000000000117
 
         TESTS::
 
@@ -3481,6 +3529,22 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             exp_type = int if int_ else Integer
             F = [(Integer(p), exp_type(e)) for p,e in zip(res[0::2], res[1::2])]
             return Factorization(F, unit)
+        elif algorithm == 'qsieve':
+            message = "the factorization returned by qsieve may be incomplete (the factors may not be prime) or even wrong; see qsieve? for details"
+            from warnings import warn
+            warn(message, RuntimeWarning, stacklevel=5)
+            from sage.interfaces.qsieve import qsieve
+            res = [(p, 1) for p in qsieve(n)[0]]
+            F = IntegerFactorization(res, unit)
+            return F
+        elif algorithm == 'ecm':
+            message = "the factors returned by ecm are not guaranteed to be prime; see ecm.factor? for details"
+            from warnings import warn
+            warn(message, RuntimeWarning, stacklevel=2)
+            from sage.interfaces.ecm import ecm
+            res = [(p, 1) for p in ecm.factor(n)]
+            F = IntegerFactorization(res, unit)
+            return F
         else:
             raise ValueError, "Algorithm is not known"
 
@@ -4126,6 +4190,41 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         parians = self._pari_().ispower()
         return Integer(parians[1]), Integer(parians[0])
 
+    def global_height(self, prec=None):
+        r"""
+        Returns the absolute logarithmic height of this rational integer.
+
+        INPUT:
+
+        - ``prec`` (int) -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        (real) The absolute logarithmic height of this rational integer.
+
+        ALGORITHM:
+
+        The height of the integer `n` is `\log |n|`.
+
+        EXAMPLES::
+
+            sage: ZZ(5).global_height()
+            1.60943791243410
+            sage: ZZ(-2).global_height(prec=100)
+            0.69314718055994530941723212146
+            sage: exp(_)
+            2.0000000000000000000000000000
+        """
+        from sage.rings.real_mpfr import RealField
+        if prec is None:
+            R = RealField()
+        else:
+            R = RealField(prec)
+        if self.is_zero():
+            return R.zero_element()
+        return R(self).abs().log()
+
     cdef bint _is_power_of(Integer self, Integer n):
         r"""
         Returns a non-zero int if there is an integer b with
@@ -4434,6 +4533,20 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
             sage: z.is_prime(proof=True)
             True
+
+        When starting Sage the arithmetic proof flag is True. We can change
+        it to False as follows::
+
+            sage: proof.arithmetic()
+            True
+            sage: n = 10^100 + 267
+            sage: timeit("n.is_prime()") # random
+            5 loops, best of 3: 163 ms per loop
+            sage: proof.arithmetic(False)
+            sage: proof.arithmetic()
+            False
+            sage: timeit("n.is_prime()") # random
+            1000 loops, best of 3: 573 us per loop
 
         IMPLEMENTATION: Calls the PARI ``isprime`` function.
         """
@@ -4899,9 +5012,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return self._pari_c()
 
     cdef _pari_c(self):
-        cdef PariInstance P
-        P = sage.libs.pari.gen.pari
-        return P.new_gen_from_mpz_t(self.value)
+        return pari.new_gen_from_mpz_t(self.value)
 
     def _interface_init_(self, I=None):
         """

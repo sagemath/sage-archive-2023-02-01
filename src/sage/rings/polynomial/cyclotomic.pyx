@@ -30,16 +30,13 @@ include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/ext/cdefs.pxi"
 
-cdef extern from *:
-    void memset(void *, char, int)
-
 from sage.rings.arith import factor
 from sage.rings.infinity import infinity
 from sage.misc.misc import prod, subsets
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.libs.pari.gen cimport gen
-from sage.libs.pari.gen import pari, PariError
+from sage.libs.pari.all import pari
 
 def cyclotomic_coeffs(nn, sparse=None):
     u"""

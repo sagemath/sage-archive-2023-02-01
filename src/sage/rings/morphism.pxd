@@ -1,5 +1,4 @@
-
-
+from sage.rings.integer cimport Integer
 from sage.structure.element cimport Element
 from sage.categories.morphism cimport Morphism
 from sage.rings.ring cimport Ring
@@ -32,3 +31,8 @@ cdef class RingHomomorphism_cover(RingHomomorphism):
 
 cdef class RingHomomorphism_from_quotient(RingHomomorphism):
     cdef phi
+
+cdef class FrobeniusEndomorphism_generic(RingHomomorphism):
+    cdef Integer _p
+    cdef Integer _q
+    cdef long _power

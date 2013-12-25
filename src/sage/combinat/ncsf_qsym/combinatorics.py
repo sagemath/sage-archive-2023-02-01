@@ -6,8 +6,14 @@ REFERENCES:
 
 .. [NCSF] Gelfand, Krob, Lascoux, Leclerc, Retakh, Thibon,
    *Noncommutative Symmetric Functions*, Adv. Math. 112 (1995), no. 2, 218-348.
+
 .. [QSCHUR] Haglund, Luoto, Mason, van Willigenburg,
    *Quasisymmetric Schur functions*, J. Comb. Theory Ser. A 118 (2011), 463-490.
+
+.. [Tev2007] Lenny Tevlin,
+   *Noncommutative Analogs of Monomial Symmetric Functions,
+   Cauchy Identity, and Hall Scalar Product*,
+   :arXiv:`0712.2201v1`.
 """
 from sage.misc.misc_c import prod
 from sage.functions.other import factorial
@@ -178,26 +184,32 @@ def compositions_order(n):
 
 def m_to_s_stat(R, I, K):
     r"""
-    Returns the statistic for the expansion of the Monomial basis element indexed by two
-    compositions, as in formula (36) of Tevlin's "Noncommutative Analogs of Monomial Symmetric
-    Functions, Cauchy Identity, and Hall Scalar Product".
+    Return the coefficient of the complete non-commutative symmetric
+    function `S^K` in the expansion of the monomial non-commutative
+    symmetric function `M^I` with respect to the complete basis
+    over the ring `R`. This is the coefficient in formula (36) of
+    Tevlin's paper [Tev2007]_.
 
     INPUT:
 
-    - ``R`` -- A ring
+    - ``R`` -- A ring, supposed to be a `\QQ`-algebra
     - ``I``, ``K`` -- compositions
 
     OUTPUT:
 
-    - An integer
+    - The coefficient of `S^K` in the expansion of `M^I` in the
+      complete basis of the non-commutative symmetric functions
+      over ``R``.
 
     EXAMPLES::
 
         sage: from sage.combinat.ncsf_qsym.combinatorics import m_to_s_stat
-        sage: m_to_s_stat(QQ,Composition([2,1]), Composition([1,1,1]))
+        sage: m_to_s_stat(QQ, Composition([2,1]), Composition([1,1,1]))
         -1
-        sage: m_to_s_stat(QQ,Composition([3]), Composition([1,2]))
+        sage: m_to_s_stat(QQ, Composition([3]), Composition([1,2]))
         -2
+        sage: m_to_s_stat(QQ, Composition([2,1,2]), Composition([2,1,2]))
+        8/3
     """
     stat = 0
     for J in Compositions(I.size()):
@@ -210,7 +222,11 @@ def m_to_s_stat(R, I, K):
 @cached_function
 def number_of_fCT(content_comp, shape_comp):
     r"""
-    Returns the number of Immaculate tableau of shape ``shape_comp`` and content ``content_comp``.
+    Return the number of Immaculate tableaux of shape
+    ``shape_comp`` and content ``content_comp``.
+
+    See [BBSSZ2012]_, Definition 3.9, for the notion of an
+    immaculate tableau.
 
     INPUT:
 
@@ -229,7 +245,6 @@ def number_of_fCT(content_comp, shape_comp):
         1
         sage: number_of_fCT(Composition([1,1,3,1]), Composition([2,1,3]))
         2
-
     """
     if content_comp.to_partition().length() == 1:
         if shape_comp.to_partition().length() == 1:

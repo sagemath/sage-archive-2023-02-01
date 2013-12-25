@@ -50,8 +50,7 @@ from sage.rings.rational cimport Rational
 
 from sage.modules.free_module_element import vector
 
-from sage.libs.all import pari_gen, pari
-from sage.libs.pari.gen import PariError
+from sage.libs.pari.all import pari_gen
 from sage.structure.element cimport Element, generic_power_c
 from sage.structure.element import canonical_coercion, parent
 
@@ -622,14 +621,14 @@ cdef class NumberFieldElement(FieldElement):
             sage: theta._pari_('theta')
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: theta already exists with incompatible valence
             sage: theta._pari_()
             Mod(y, y^2 + 1)
             sage: k.<I> = QuadraticField(-1)
             sage: I._pari_('I')
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: I already exists with incompatible valence
 
         Instead, request the variable be named different for the coercion::
 
@@ -709,7 +708,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: b._pari_init_('theta')
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: theta already exists with incompatible valence
 
         Fortunately pari_init returns everything in terms of y by
         default::
@@ -2344,7 +2343,7 @@ cdef class NumberFieldElement(FieldElement):
         - a list whose length corresponding to the degree of this
           element written in terms of a generator.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: K.<b> = NumberField(x^3 - 2)
             sage: (b^2 + 1)._coefficients()

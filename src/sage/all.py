@@ -178,6 +178,10 @@ sage.misc.superseded.deprecated_callable_import(
 
 del message, name
 
+# Disable a pycrypto warning about insecure modular exponentiation
+from Crypto.pct_warnings import PowmInsecureWarning
+import warnings
+warnings.filterwarnings(action='ignore', category=PowmInsecureWarning)
 
 ###########################################################
 #### WARNING:

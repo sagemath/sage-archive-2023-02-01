@@ -74,14 +74,18 @@ cdef inline int ccmp(mpz_t a, mpz_t b, long prec, bint reduce_a, bint reduce_b, 
     - If at least one needs to be reduced, returns
       0 (``a == b mod p^prec``) or 1 (otherwise)
     """
-    cdef mpz_t diff
     cdef int ans
     if reduce_a or reduce_b:
         mpz_sub(holder.value, a, b)
         mpz_mod(holder.value, holder.value, prime_pow.pow_mpz_t_tmp(prec))
         return mpz_sgn(holder.value)
     else:
-        return mpz_cmp(a, b)
+        ans = mpz_cmp(a,b)
+        if ans > 0:
+            return 1
+        elif ans < 0:
+            return -1
+        return 0
 
 cdef inline int cneg(mpz_t out, mpz_t a, long prec, PowComputer_class prime_pow) except -1:
     """

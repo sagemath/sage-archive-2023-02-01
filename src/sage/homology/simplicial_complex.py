@@ -1324,19 +1324,24 @@ class SimplicialComplex(GenericCellComplex):
             46
             161
         """
-        from sage.combinat.subset import Subsets
+        from collections import defaultdict
         if not self.is_pure():
             return None
         d = self.dimension()
         Fs = self.facets()
-        Xs = self.n_faces(d-1)
-        G = Graph()
-        G.add_vertices(Fs)
+        flipG = Graph()
+        flipG.add_vertices(Fs)
+        edges = defaultdict(list)
         # go through all codim 1 faces to build the edge
-        for X in Xs:
-            for A,B in Subsets( [ F for F in Fs if X.is_face(F) ], 2 ):
-                G.add_edge((A,B))
-        return G
+        for F in Fs:
+            F_tuple = sorted(F._Simplex__set)
+            for i in range(d+1):
+                coF = tuple(F_tuple[:i]+F_tuple[i+1:])
+                if coF in edges:
+                    for G in edges[coF]:
+                        flipG.add_edge((F,G))
+                edges[coF].append(F)
+        return flipG
 
     def is_pseudomanifold(self):
         """

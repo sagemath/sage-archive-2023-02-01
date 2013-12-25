@@ -709,9 +709,7 @@ class Scheme(Parent):
             sage: C.count_points(4)
             [6, 12, 18, 96]
             sage: C.base_extend(GF(9,'a')).count_points(2)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Point counting only implemented for schemes over prime fields
+            [12, 96]
         """
         F = self.base_ring()
         if not F.is_finite():
@@ -757,12 +755,12 @@ class Scheme(Parent):
             1 + 6*t + 24*t^2 + 78*t^3 + 240*t^4 + O(t^5)
 
         Note that this function depends on count_points, which is only
-        defined for prime order fields::
+        defined for prime order fields for general schemes.
+        Nonetheless, since :trac:`15108` and :trac:`15148`, it supports
+        hyperelliptic curves over non-prime fields::
 
             sage: C.base_extend(GF(9,'a')).zeta_series(4,t)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Point counting only implemented for schemes over prime fields
+            1 + 12*t + 120*t^2 + 1092*t^3 + 9840*t^4 + O(t^5)
         """
 
         F = self.base_ring()

@@ -17,3 +17,5 @@ from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveC
 from sage.groups.free_group import FreeGroup as Free
 from sage.groups.braid import BraidGroup as Braid
 from sage.groups.semimonomial_transformations.semimonomial_transformation_group import SemimonomialTransformationGroup as SemimonomialTransformation
+from sage.combinat.root_system.coxeter_group import CoxeterGroup
+from sage.combinat.root_system.weyl_group import WeylGroup

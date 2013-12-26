@@ -132,8 +132,8 @@ You can compute conjugacy classes of a finite group using
     sage: CG = G.conjugacy_classes_representatives()
     sage: gamma = CG[2]
     sage: CG; gamma
-    [(), (1,2), (1,2)(3,4), (1,2,3), (1,2,3)(4,7), (1,2,3,4), (1,2,3,4,7)]
-    (1,2)(3,4)
+    [(), (4,7), (3,4,7), (2,3)(4,7), (2,3,4,7), (1,2)(3,4,7), (1,2,3,4,7)]
+    (3,4,7)
 
 You can use the Sage-GAP interface.
 
@@ -142,11 +142,11 @@ You can use the Sage-GAP interface.
     sage: gap.eval("G := Group((1,2)(3,4),(1,2,3))")
     'Group([ (1,2)(3,4), (1,2,3) ])'
     sage: gap.eval("CG := ConjugacyClasses(G)")
-    '[ ()^G, (1,2)(3,4)^G, (1,2,3)^G, (1,2,4)^G ]'
+    '[ ()^G, (2,3,4)^G, (2,4,3)^G, (1,2)(3,4)^G ]'
     sage: gap.eval("gamma := CG[3]")
-    '(1,2,3)^G'
+    '(2,4,3)^G'
     sage: gap.eval("g := Representative(gamma)")
-    '(1,2,3)'
+    '(2,4,3)'
 
 Or, here's another (more "pythonic") way to do this type of
 computation:
@@ -158,15 +158,15 @@ computation:
     sage: gamma = CG[2]
     sage: g = gamma.Representative()
     sage: CG; gamma; g
-    [ ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), () ),
-      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (1,2) ),
-      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (1,2)(3,4) ),
-      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (1,2,3) ),
-      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (1,2,3)(4,7) ),
-      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (1,2,3,4) ),
+    [ ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), () ), 
+      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (4,7) ), 
+      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (3,4,7) ), 
+      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (2,3)(4,7) ), 
+      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (2,3,4,7) ), 
+      ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (1,2)(3,4,7) ), 
       ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (1,2,3,4,7) ) ]
-    ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (1,2) )
-    (1,2)
+    ConjugacyClass( SymmetricGroup( [ 1, 2, 3, 4, 7 ] ), (4,7) )
+    (4,7)
 
 .. index::
    pair: group; normal subgroups
@@ -207,8 +207,8 @@ Here's another way, working more directly with GAP:
     sage: print gap.eval("G := SymmetricGroup( 4 )")
     Sym( [ 1 .. 4 ] )
     sage: print gap.eval("normal := NormalSubgroups( G );")
-    [ Group(()), Group([ (1,4)(2,3), (1,3)(2,4) ]),
-      Group([ (2,4,3), (1,4)(2,3), (1,3)(2,4) ]), Sym( [ 1 .. 4 ] ) ]
+    [ Group(()), Group([ (1,4)(2,3), (1,3)(2,4) ]), Group([ (2,4,3), (1,4)
+      (2,3), (1,3)(2,4) ]), Sym( [ 1 .. 4 ] ) ]
 
 .. index::
    pair: groups; center

@@ -1843,7 +1843,7 @@ class PermutationGroup_generic(group.Group):
             sage: G = DihedralGroup(3)
             sage: G.conjugacy_classes()
             [Conjugacy class of () in Dihedral group of order 6 as a permutation group,
-            Conjugacy class of (1,2) in Dihedral group of order 6 as a permutation group,
+            Conjugacy class of (2,3) in Dihedral group of order 6 as a permutation group,
             Conjugacy class of (1,2,3) in Dihedral group of order 6 as a permutation group]
         """
         cl = self._gap_().ConjugacyClasses()
@@ -2710,9 +2710,9 @@ class PermutationGroup_generic(group.Group):
             12
             sage: G.character_table()
             [         1          1          1          1]
-            [         1          1 -zeta3 - 1      zeta3]
-            [         1          1      zeta3 -zeta3 - 1]
-            [         3         -1          0          0]
+            [         1 -zeta3 - 1      zeta3          1]
+            [         1      zeta3 -zeta3 - 1          1]
+            [         3          0          0         -1]
             sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3)]])
             sage: CT = gap(G).CharacterTable()
 

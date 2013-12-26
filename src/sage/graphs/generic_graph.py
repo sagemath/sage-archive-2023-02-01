@@ -1582,7 +1582,7 @@ class GenericGraph(GenericGraph_pyx):
         TESTS::
 
             sage: G.check_embedding_validity(d)
-            doctest:1: DeprecationWarning: check_embedding_validity is deprecated. Please use _check_embedding_validity instead.
+            doctest:...: DeprecationWarning: check_embedding_validity is deprecated. Please use _check_embedding_validity instead.
             See http://trac.sagemath.org/15551 for details.
             True
 
@@ -2146,7 +2146,7 @@ class GenericGraph(GenericGraph_pyx):
         TESTS::
 
             sage: G.check_pos_validity(p)
-            doctest:1: DeprecationWarning: check_pos_validity is deprecated. Please use _check_pos_validity instead.
+            doctest:...: DeprecationWarning: check_pos_validity is deprecated. Please use _check_pos_validity instead.
             See http://trac.sagemath.org/15551 for details.
             True
         """
@@ -3718,7 +3718,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def faces(self, embedding = None):
         """
-        Returns the faces of an embedded graph.
+        Return the faces of an embedded graph.
 
         A combinatorial embedding of a graph is a clockwise ordering of the
         neighbors of each vertex. From this information one can define the faces
@@ -3727,11 +3727,11 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``embedding`` - a combinatorial embedding dictionary. Format:
-           ``{v1:[v2,v3], v2:[v1], v3:[v1]}`` (clockwise ordering of neighbors
-           at each vertex). If set to ``None`` (default) the method will use the
-           embedding stored as ``self._embedding``. If none is stored, the
-           method will compute the set of faces from the embedding returned by
-           :meth:`is_planar` (if the graph is, of course, planar).
+          ``{v1:[v2,v3], v2:[v1], v3:[v1]}`` (clockwise ordering of neighbors at
+          each vertex). If set to ``None`` (default) the method will use the
+          embedding stored as ``self._embedding``. If none is stored, the method
+          will compute the set of faces from the embedding returned by
+          :meth:`is_planar` (if the graph is, of course, planar).
 
         .. NOTE::
 
@@ -3774,7 +3774,7 @@ class GenericGraph(GenericGraph_pyx):
         :trac:`15551` deprecated the ``trace_faces`` name::
 
             sage: T.trace_faces({0: [1, 3, 2], 1: [0, 2, 3], 2: [0, 3, 1], 3: [0, 1, 2]})
-            doctest:1: DeprecationWarning: trace_faces is deprecated. Please use faces instead.
+            doctest:...: DeprecationWarning: trace_faces is deprecated. Please use faces instead.
             See http://trac.sagemath.org/15551 for details.
             [[(0, 1), (1, 2), (2, 0)], [(3, 2), (2, 1), (1, 3)], [(2, 3), (3, 0), (0, 2)], [(0, 3), (3, 1), (1, 0)]]
 

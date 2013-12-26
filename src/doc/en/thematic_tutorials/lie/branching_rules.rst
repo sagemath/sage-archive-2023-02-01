@@ -30,6 +30,7 @@ so not by memorizing a combinatorial rule, but by computing the
 character and restricting the character to a maximal torus of `H`.
 What Sage has memorized (in a series of built-in encoded rules)
 are the various embeddings of maximal tori of maximal subgroups of `G`.
+The maximal subgroups of Lie groups were determined in [Dynkin1952]_.
 This approach to computing branching rules has a limitation: the
 character must fit into memory and be computable by Sage's
 internal code in real time.
@@ -266,7 +267,6 @@ two accidental isomorphisms ``C2=B2`` and ``D2=A1xA1``. It is much
 easier to go in one step using ``rule="levi"``, but reassuring that we
 get the same answer!
 
-
 Subgroups classified by the extended Dynkin diagram
 ---------------------------------------------------
 
@@ -300,6 +300,21 @@ For embeddings of this type, the rank of the subgroup `H` is the same
 as the rank of `G`. This is in contrast with embeddings of Levi type,
 where `H` has rank one less than `G`.
 
+Levi subgroups of `G_2`
+-----------------------
+
+The exceptional group `G_2` has two Levi subgroups of type
+`A_1`. Neither is maximal, as we can see from the extended
+Dynkin diagram: the subgroups `A_1\times A_1` and `A_2`
+are maximal and each contains a Levi subgroup. (Actually
+`A_1\times A_1` contains a conjugate of both.) Only
+the Levi subgroup containing the short root is implemented
+as an instance of ``rule="levi"``. To obtain the other,
+use the rule
+
+     branching_rule("G2","A2","extended")*branching_rule("A2","A1","levi")
+
+which branches to the `A_1` Levi subgroup containing a long root.
 
 Orthogonal and symplectic subgroups of orthogonal and symplectic groups
 -----------------------------------------------------------------------
@@ -430,36 +445,37 @@ Dynkin diagram (see below) gives ``A5xA1``. To
 construct the branching rule to `A_5` we may proceed
 as follows::
 
-   sage: b = branching_rule("E6","A5xA1","extended")*branching_rule("A5xA1","A5","proj1"); b
-   composite branching rule E6 => (extended) A5xA1 => (proj1) A5
-   sage: E6=WeylCharacterRing("E6",style="coroots")
-   sage: A5=WeylCharacterRing("A5",style="coroots")
-   sage: E6(0,1,0,0,0,0).branch(A5,rule=b)
-   3*A5(0,0,0,0,0) + 2*A5(0,0,1,0,0) + A5(1,0,0,0,1)
-   sage: b.describe()
-   <BLANKLINE>
-           O 0
-           |
-           |
-           O 2
-           |
-           |
-   O---O---O---O---O
-   1   3   4   5   6
-   E6~
-   root restrictions E6 => A5:
-   <BLANKLINE>
-   O---O---O---O---O
-   1   2   3   4   5
-   A5
-   <BLANKLINE>
-   1 => 1
-   3 => 2
-   4 => 3
-   5 => 4
-   6 => 5
-   <BLANKLINE>
-   For more detailed information use verbose=True
+    sage: b = branching_rule("E6","A5xA1","extended")*branching_rule("A5xA1","A5","proj1"); b
+    composite branching rule E6 => (extended) A5xA1 => (proj1) A5
+    sage: E6=WeylCharacterRing("E6",style="coroots")
+    sage: A5=WeylCharacterRing("A5",style="coroots")
+    sage: E6(0,1,0,0,0,0).branch(A5,rule=b)
+    3*A5(0,0,0,0,0) + 2*A5(0,0,1,0,0) + A5(1,0,0,0,1)
+    sage: b.describe()
+    <BLANKLINE>
+            O 0
+            |
+            |
+            O 2
+            |
+            |
+    O---O---O---O---O
+    1   3   4   5   6
+    E6~
+    root restrictions E6 => A5:
+    <BLANKLINE>
+    O---O---O---O---O
+    1   2   3   4   5
+    A5
+    <BLANKLINE>
+    0 => (zero)
+    1 => 1
+    3 => 2
+    4 => 3
+    5 => 4
+    6 => 5
+    <BLANKLINE>
+    For more detailed information use verbose=True
 
 Note that it is not necessary to construct the WeylCharacterRing
 for the intermediate group ``A5xA1``.
@@ -640,15 +656,90 @@ Use ``rule="miscellaneous"`` for the following rules.
         \\ F_4 & \to G_2 \times A_1,
         \\ E_6 & \to G_2 \times A_2,
         \\ E_7 & \to G_2 \times C_3,
+        \\ E_7 & \to F_4 \times A_1,
         \\ E_8 & \to G_2 \times F_4.
         \end{aligned}
 
 The first rule corresponds to the embedding of ``G_2`` in
 `\hbox{SO}(7)` in its action on the trace zero octonions.
+The remaining rules come about as follows. Let `G` be
+`F_4`, `E_6`, `E_7` or `E_8`, and let `H` be `G_2`,
+or else (if `G=E_7`) `F_4`. We embed `H` into `G`
+in the most obvious way; that is, in the chain
+of subgroups
+
+    .. MATH::
+
+       G_2\subset F_4\subset E_6 \subset E_7 \subset E_8
+
+
+
 Regarding the branching rule ``E_6\to G_2\times A_2``,
 Rubenthaler [Rubenthaler2008]_ describes the embedding
 and applies it in an interesting way.
 
+Maximal A1 subgroups of Exceptional Groups
+------------------------------------------
+
+There are seven embeddings of `SL(2)` into an exceptional
+group as a maximal subgroup: one each for `G_2` and `F_4`,
+two nonconjugate embeddings for `E_7` and three for `E_8`
+These are constructed in [Testerman1992]_. Create the
+corresponding branching rules as follows. The names of
+the rules are roman numerals referring to the seven
+cases of Testerman's Theorem 1::
+
+       sage: branching_rule("G2","A1","i")
+       i branching rule G2 => A1
+       sage: branching_rule("F4","A1","ii")
+       ii branching rule F4 => A1
+       sage: branching_rule("E7","A1","iii")
+       iii branching rule E7 => A1
+       sage: branching_rule("E7","A1","iv")
+       iv branching rule E7 => A1
+       sage: branching_rule("E8","A1","v")
+       v branching rule E8 => A1
+       sage: branching_rule("E8","A1","vi")
+       vi branching rule E8 => A1
+       sage: branching_rule("E8","A1","vii")
+       vii branching rule E8 => A1
+
+The embeddings are characterized by the root
+restrictions in their branching rules: usually
+a simple root of the ambient group `G` restricts
+to the unique simple root of `A_1`, except for
+root `\alpha_4` for rules iv, vi and vii,
+and the root `\alpha_6` for root vii; this is
+essentially the way Testerman characterizes
+the embeddings, and this information may
+be obtained from Sage by employing the 
+``describe()`` method of the branching rule.
+Thus::
+
+       sage: branching_rule("E8","A1","vii").describe()
+       <BLANKLINE>
+               O 2
+               |
+               |
+       O---O---O---O---O---O---O---O
+       1   3   4   5   6   7   8   0
+       E8~
+       root restrictions E8 => A1:
+       <BLANKLINE>
+       O
+       1
+       A1
+       <BLANKLINE>       
+       1 => 1
+       2 => 1
+       3 => 1
+       4 => (zero)
+       5 => 1
+       6 => (zero)
+       7 => 1
+       8 => 1
+       <BLANKLINE>       
+       For more detailed information use verbose=True
 
 Writing your own branching rules
 --------------------------------
@@ -659,16 +750,17 @@ cannot be created by using the tools you already have, all
 of which are related to the exceptional groups. Of all the
 branching rules listed in [McKayPatera1981]_ the only ones
 that are not implemented or constructible by plethysms
-are given by the following table. (The information given
-in this table is of course not sufficent to describe the embedding.)
-Some of these may eventually be implemented.
+are given by the following table. The information given
+in this table is not intended to suffice to describe the embedding.
+See [Dynkin1952]_ or [Seitz1991]_ for descriptions of these
+subgroups. We hope that all of these may eventually be implemented.
 
     .. MATH::
 
       \begin{aligned}
       E_6 & \to C_4, A_2, G_2
-      \\ E_7 &\to A_2,  A_1, A_1, A_1\times F_4, A_1\times G_2, A_1\times A_1
-      \\ E_8 & \to C_7 , A_1\times A_2 , A_1 , A_1 , A_1                                                           
+      \\ E_7 &\to A_2,  A_1, A_1, A_1\times A_1
+      \\ E_8 & \to C_2 , A_1\times A_2 , A_1 , A_1 , A_1                                                           
       \\ F_4 & \to A_1
       \end{aligned}
 
@@ -773,6 +865,7 @@ representation of `SO(8)` and the two
 eight-dimensional spin representations. These are
 permuted by triality::
 
+    sage: D4=WeylCharacterRing("D4",style="coroots")
     sage: D4(0,0,0,1).branch(D4,rule="triality")
     D4(1,0,0,0)
     sage: D4(0,0,0,1).branch(D4,rule="triality").branch(D4,rule="triality")

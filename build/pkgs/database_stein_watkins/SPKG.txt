@@ -8,7 +8,7 @@ See http://modular.math.washington.edu/papers/stein-watkins/
 This is an optional (huge) package, not included by default.
 
 == License ==
-None
+Public Domain
 
 == SPKG Maintainers ==
  * William Stein
@@ -19,9 +19,3 @@ None
 
 === Patches ===
  * None
-
-==ChangeLog ==
-
-=== database_stein_watkins (version 20030423.p1) ===
- * Converted to the new git package format (John Cremona, December 2013)
-

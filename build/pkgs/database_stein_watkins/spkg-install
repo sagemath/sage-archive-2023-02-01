@@ -1,7 +1,8 @@
 #!/bin/sh
-###########################################
-## database_stein_watkins
-###########################################
+
+# spkg-install file for
+# * database_stein_watkins
+# * database_stein_watkins_mini
 
 if [ -z "$SAGE_SHARE" ]; then
     echo >&2 "SAGE_SHARE undefined ... exiting"
@@ -14,10 +15,4 @@ if [ ! -d "${TARGET}" ]; then
    mkdir "${TARGET}"
 fi
 
-cd src
-
-cp -R swdb "${TARGET}/"
-if [ $? -ne 0 ]; then
-   echo "Error installing Stein-Watkins database"
-   exit 1
-fi
+exec cp -R src/swdb/* "${TARGET}/"

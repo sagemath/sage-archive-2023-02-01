@@ -4515,7 +4515,7 @@ class AlgebraicReal(AlgebraicNumber_base):
 
     def _floor_ceil(self, method):
         r"""
-        Helper method used by floor() and ceil().
+        Helper method used by floor(), ceil(), round(), and trunc().
 
         TESTS::
 
@@ -4523,18 +4523,26 @@ class AlgebraicReal(AlgebraicNumber_base):
             sage: a = AA.polynomial_root(x^5 - (1-2^(-80)), RIF((0,2)))
             sage: b = AA.polynomial_root(x^5 - (1+2^(-80)), RIF((0,2)))
             sage: two = (a+b)^5 - 5*(a^4*b+a*b^4) - 10*(a^3*b^2+a^2*b^3)
-            sage: [[z.floor(), z.ceil()] for z in [a, -a, b, -b, 6*(a+two)]] # indirect doctest
-            [[0, 1], [-1, 0], [1, 2], [-2, -1], [17, 18]]
-            sage: [[z.floor(), z.ceil()] for z in [two, a*b]] # long time
-            [[2, 2], [0, 1]]
+            sage: one_half = 1/two
+            sage: [[z.floor(), z.ceil(), z.round(), z.trunc()] # indirect doctest
+            ....: for z in [a, -a, b, -b, 6*(a+two),
+            ....:           AA(0), AA(1), AA(-1), AA(1/2), AA(-1/2)]]
+            [[0, 1, 1, 0], [-1, 0, -1, 0], [1, 2, 1, 1], [-2, -1, -1, -1],
+            [17, 18, 18, 17], [0, 0, 0, 0], [1, 1, 1, 1], [-1, -1, -1, -1],
+            [0, 1, 1, 0], [-1, 0, -1, 0]]
+            sage: [[z.floor(), z.ceil(), z.trunc()] for z in [two, a*b]] # long time
+            [[2, 2, 2], [0, 1, 0]]
+            sage: [one_half.round(), (-one_half).round()] # long time
+            [1, -1]
         """
         for i in itertools.count():
             candidate = method(self._value.lower())
             if candidate == method(self._value.upper()):
                 return candidate
             self._more_precision()
-            if i == 3 and not self._descr.is_field_element(): # field elements are irrational by construction
-                try: return self._integer_()
+            # field elements are irrational by construction
+            if i == 3 and not self._descr.is_field_element():
+                try: return method(self._rational_())
                 except ValueError, TypeError:
                     pass
 
@@ -4575,6 +4583,38 @@ class AlgebraicReal(AlgebraicNumber_base):
             42
         """
         return self._floor_ceil(lambda x: x.ceil())
+
+    def round(self):
+        r"""
+        Round self to the nearest integer.
+
+        EXAMPLES::
+
+            sage: AA(sqrt(2)).round()
+            1
+            sage: AA(1/2).round()
+            1
+            sage: AA(-1/2).round()
+            -1
+        """
+        return self._floor_ceil(lambda x: x.round())
+
+    def trunc(self):
+        r"""
+        Round self to the nearest integer toward zero.
+
+        EXAMPLES::
+
+            sage: AA(sqrt(2)).trunc()
+            1
+            sage: AA(-sqrt(2)).trunc()
+            -1
+            sage: AA(1).trunc()
+            1
+            sage: AA(-1).trunc()
+            -1
+        """
+        return self._floor_ceil(lambda x: x.trunc())
 
     def _rational_(self):
         """

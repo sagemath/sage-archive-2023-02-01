@@ -25,7 +25,7 @@ chmod -R u+w "$GAP"
 
 mkdir src
 mkdir src/pkg
-for pkg in small pkg/tomlib prim trans
+for pkg in small pkg/tomlib pkg/atlasrep prim trans
 do
     cp -rap "$GAP/$pkg" "src/$pkg"
 done

@@ -764,18 +764,14 @@ cannot be created by using the tools you already have, all
 of which are related to the exceptional groups. Of all the
 branching rules listed in [McKayPatera1981]_ the only ones
 that are not implemented or constructible by plethysms
-are given by the following table. The information given
-in this table is not intended to suffice to describe the embedding.
-See [Dynkin1952]_ or [Seitz1991]_ for descriptions of these
-subgroups. We hope that all of these may eventually be implemented.
+are given by the following table. See [Seitz1991]_ for 
+descriptions of these subgroups.
 
     .. MATH::
 
       \begin{aligned}
-      E_6 & \to C_4, A_2, G_2
-      \\ E_7 &\to A_2,  A_1, A_1, A_1\times A_1
-      \\ E_8 & \to C_2 , A_1\times A_2 , A_1 , A_1 , A_1                                                           
-      \\ F_4 & \to A_1
+      \\ E_7 &\to A_2, A_1\times A_1, A_1\times G_1
+      \\ E_8 & \to C_2 , A_1\times A_2
       \end{aligned}
 
 If you need a case such as one of these where there
@@ -844,7 +840,7 @@ effect may be computed using the branching rule code::
 In the special case where `G=D4`, the Dynkin diagram has
 extra symmetries, and these correspond to outer automorphisms
 of the group. These are implemented as the ``"triality"``
-branching rule.
+branching rule::
 
     sage: branching_rule("D4","D4","triality").describe()
     <BLANKLINE>

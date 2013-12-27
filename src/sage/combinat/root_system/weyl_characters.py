@@ -1968,12 +1968,15 @@ def branch_weyl_character(chi, R, S, rule="default"):
 
     .. RUBRIC:: Miscellaneous
 
-    Use ``rule="miscellaneous"`` for the following rules:
+    Use ``rule="miscellaneous"`` for the following rules embeddings of maximal subgroups,
+    all involving exceptional groups.
 
     .. MATH::
 
         \begin{aligned}
         B_3 & \to G_2,
+        E_6 & \to G_2,
+        E_6 & \to A_2,
         \\ F_4 & \to G_2 \times A_1,
         \\ E_6 & \to G_2 \times A_2,
         \\ E_7 & \to G_2 \times C_3,
@@ -1981,12 +1984,34 @@ def branch_weyl_character(chi, R, S, rule="default"):
         \\ E_8 & \to G_2 \times F_4.
         \end{aligned}
 
+    There are other more obvious embeddings of `A_2` and `G_2` into `E_6`.
+    The embeddings in question may be characterized by the condition that the
+    27-dimensional representations of `E_6` restrict irreducibly to `A_2` or
+    `G_2`. Since `G_2` has a subgroup isomorphic to `A_2`, it is worth
+    mentioning that the composite branching rules:
+
+        branching_rule("E6","G2","miscellaneous")*branching_rule("G2","A2","extended")
+        branching_rule("E6","A2","miscellaneous")
+
+    are distinct.
+
     EXAMPLES::
 
         sage: G2 = WeylCharacterRing("G2")
         sage: [fw1, fw2, fw3] = B3.fundamental_weights()
         sage: B3(fw1+fw3).branch(G2, rule="miscellaneous")
         G2(1,0,-1) + G2(2,-1,-1) + G2(2,0,-2)
+        sage: E6 = WeylCharacterRing("E6",style="coroots")
+        sage: G2 = WeylCharacterRing("G2",style="coroots")
+        sage: E6(1,0,0,0,0,0).branch(G2,"miscellaneous")
+        G2(2,0)
+        sage: A2=WeylCharacterRing("A2",style="coroots")
+        sage: E6(1,0,0,0,0,0).branch(A2,rule="miscellaneous")
+        A2(2,2)
+        sage: E6(0,1,0,0,0,0).branch(A2,rule="miscellaneous")
+        A2(1,1) + A2(1,4) + A2(4,1)
+        sage: E6(0,0,0,0,0,2).branch(G2,"miscellaneous") # long time (0.59s)
+        G2(0,0) + G2(2,0) + G2(1,1) + G2(0,2) + G2(4,0)
         sage: F4=WeylCharacterRing("F4",style="coroots")
         sage: G2xA1=WeylCharacterRing("G2xA1",style="coroots")
         sage: F4(0,0,1,0).branch(G2xA1,rule="miscellaneous")
@@ -2985,6 +3010,11 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                     return BranchingRule(Rtype, Stype, lambda x : [-2*x[5],x[5]+x[4],x[5]-x[4],x[2]+x[3],x[1]-x[2],-x[1]-x[3]], "miscellaneous")
                 elif stypes == [CartanType("G2"),CartanType("A2")]:
                     return BranchingRule(Rtype, Stype, lambda x : [x[2]+x[3],x[1]-x[2],-x[1]-x[3],-2*x[5],x[5]+x[4],x[5]-x[4]], "miscellaneous")
+            else:
+                if Stype == CartanType("G2"):
+                    return BranchingRule(Rtype, Stype, lambda x : [x[2]+x[3]+x[4]-3*x[5], x[1]-2*x[2]-x[3], -x[1]+x[2]-x[4]+3*x[5]],"miscellaneous")
+                if Stype == CartanType("A2"):
+                    return BranchingRule(Rtype, Stype, lambda x : [x[2]+x[3]+x[4]-3*x[5], x[1]-2*x[2]-x[3], -x[1]+x[2]-x[4]+3*x[5]],"miscellaneous")
         elif Rtype == CartanType("E7"):
             if Stype.is_compound():
                 if stypes == [CartanType("C3"),CartanType("G2")]:

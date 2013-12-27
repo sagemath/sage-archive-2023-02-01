@@ -113,5 +113,9 @@ Bibliography
 .. [Stanley1999] R. P. Stanley. *Enumerative Combinatorics, Volume
    2*. Cambridge University Press, 1999.
 
+.. [Testerman1989] Testerman, Donna M.
+   A construction of certain maximal subgroups of the algebraic groups E6 and F4. 
+   J. Algebra 122 (1989), no. 2, 299–322. 
+
 .. [Testerman1992] Testerman, Donna M. The construction of the maximal A1's in
    the exceptional algebraic groups. Proc. Amer. Math. Soc. 116 (1992), no. 3, 635–644.

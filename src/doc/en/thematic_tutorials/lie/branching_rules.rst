@@ -653,6 +653,8 @@ Use ``rule="miscellaneous"`` for the following rules.
 
         \begin{aligned}
         B_3 & \to G_2,
+	\\ E_6 & \to A_2,
+	\\ E_6 & \to G_2,
         \\ F_4 & \to G_2 \times A_1,
         \\ E_6 & \to G_2 \times A_2,
         \\ E_7 & \to G_2 \times C_3,
@@ -660,8 +662,22 @@ Use ``rule="miscellaneous"`` for the following rules.
         \\ E_8 & \to G_2 \times F_4.
         \end{aligned}
 
-The first rule corresponds to the embedding of ``G_2`` in
+The first rule corresponds to the embedding of `G_2` in
 `\hbox{SO}(7)` in its action on the trace zero octonions.
+The two branching rules from `E_6` to `G_2` or `A_2`
+are described in [Testerman1989]_. We caution the reader
+that Theorem G.2 of that paper, proved there in positive
+characteristic is false over the complex numbers. On
+the other hand, the assumption of characteristic `p`
+is not important for Theorems G.1 and A.1, which
+describe the torus embeddings, hence contain enough
+information to compute the branching rule. There
+are other ways of embedding ``G_2`` or ``A_2`` into
+``E_6``.  These may embeddings be characterized by the
+condition that the two 27-dimensional representations of
+``E_6`` restrict irreducibly to ``G_2`` or ``A_2``.
+Their images are maximal subgroups.
+
 The remaining rules come about as follows. Let `G` be
 `F_4`, `E_6`, `E_7` or `E_8`, and let `H` be `G_2`,
 or else (if `G=E_7`) `F_4`. We embed `H` into `G`
@@ -671,8 +687,6 @@ of subgroups
     .. MATH::
 
        G_2\subset F_4\subset E_6 \subset E_7 \subset E_8
-
-
 
 Regarding the branching rule ``E_6\to G_2\times A_2``,
 Rubenthaler [Rubenthaler2008]_ describes the embedding

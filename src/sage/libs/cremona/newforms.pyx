@@ -1,6 +1,7 @@
 from sage.rings.rational import Rational
 from sage.rings.integer cimport Integer
 from sage.schemes import elliptic_curves
+from sage.modular.all import Cusp
 
 #*****************************************************************************
 #       Copyright (C) 2008 Tom Boothby <boothby@u.washington.edu>
@@ -43,9 +44,9 @@ cdef class ECModularSymbol:
 
         TESTS:
 
-        This one is from trac #8042 (note that Cremona's code is more limited
+        This one is from :trac: `8042` (note that Cremona's code is more limited
         when run on a 32-bit platform, but works fine on 64-bit in this
-        case; see trac #8114).
+        case; see :trac: `8114`).
 
         ::
             sage: from sage.libs.cremona.newforms import ECModularSymbol
@@ -126,9 +127,11 @@ cdef class ECModularSymbol:
         cdef long n, d
 
         sig_on()
-        r = Rational(r)
-        d = r.denom()
-        n = r.numer() % d
+        r = Cusp(r)
+        d = r.denominator()
+        n = r.numerator()
+        if d != 0:
+            n = n % d
         _r = new_rational(n,d)
         _s = self.nfs.plus_modular_symbol(_r)
         r = Rational((rational_num(_s), rational_den(_s)))

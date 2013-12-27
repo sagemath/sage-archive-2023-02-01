@@ -30,6 +30,8 @@ The parent is
 AUTHORS:
 
 - Thomas Feulner (2012-11-15): initial version
+- Thomas Feulner (2013-12-27): :trac:`15576` dissolve dependency on 
+    Permutations().global_options()['mul']
 
 EXAMPLES::
 
@@ -177,7 +179,7 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
         v = left.perm.action(right.v)
         alpha = left.get_autom()
         v = [left.v[i]*alpha(v[i]) for i in range(left.parent().degree())]
-        return left.parent()(v=v, perm=left.perm*right.perm,
+        return left.parent()(v=v, perm=left.perm.right_action_product(right.perm),
                              autom=alpha*right.get_autom(), check=False)
 
     def __invert__(self):
@@ -241,7 +243,7 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
 
             sage: F.<a> = GF(9)
             sage: SemimonomialTransformationGroup(F, 4).an_element().__reduce__()
-            (Semimonomial transformation group over Finite Field in a of size 3^2of degree 4, (0, (a, 1, 1, 1), [4, 1, 2, 3], Ring endomorphism of Finite Field in a of size 3^2
+            (Semimonomial transformation group over Finite Field in a of size 3^2 of degree 4, (0, (a, 1, 1, 1), [4, 1, 2, 3], Ring endomorphism of Finite Field in a of size 3^2
               Defn: a |--> 2*a + 1))
         """
         return (self.parent(), (0, self.v, self.perm, self.get_autom()))

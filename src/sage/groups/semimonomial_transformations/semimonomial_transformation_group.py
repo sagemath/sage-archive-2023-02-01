@@ -360,10 +360,10 @@ class SemimonomialTransformationGroup(FiniteGroup, UniqueRepresentation):
 
             sage: F.<a> = GF(4)
             sage: SemimonomialTransformationGroup(F, 3) # indirect doctest
-            Semimonomial transformation group over Finite Field in a of size 2^2of degree 3
+            Semimonomial transformation group over Finite Field in a of size 2^2 of degree 3
         """
         return ('Semimonomial transformation group over %s'%self.base_ring() +
-                'of degree %s'%self.degree())
+                ' of degree %s'%self.degree())
 
     def _latex_(self):
         r"""

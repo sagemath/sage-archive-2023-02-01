@@ -3951,7 +3951,7 @@ def fast_lucas(mm, IntegerMod_abstract P):
     REFERENCES:
 
     .. [Pos88] H. Postl. 'Fast evaluation of Dickson Polynomials' Contrib. to
-               General Algebra, Vol. 6 (1988) pp. 223-225
+       General Algebra, Vol. 6 (1988) pp. 223-225
 
     AUTHORS:
 
@@ -3961,16 +3961,50 @@ def fast_lucas(mm, IntegerMod_abstract P):
 
         sage: from sage.rings.finite_rings.integer_mod import fast_lucas, slow_lucas
         sage: all([fast_lucas(k, a) == slow_lucas(k, a)
-        ...        for a in Integers(23)
-        ...        for k in range(13)])
+        ....:      for a in Integers(23)
+        ....:      for k in range(13)])
         True
     """
-    return lucas(mm, P)[0]
+    if mm == 0:
+        return 2
+    elif mm == 1:
+        return P
+
+    cdef sage.rings.integer.Integer m
+    m = <sage.rings.integer.Integer>mm if PY_TYPE_CHECK(mm, sage.rings.integer.Integer) else sage.rings.integer.Integer(mm)
+    two = P._new_c_from_long(2)
+    d1 = P
+    d2 = P*P - two
+
+    sig_on()
+    cdef int j
+    for j from mpz_sizeinbase(m.value, 2)-1 > j > 0:
+        if mpz_tstbit(m.value, j):
+            d1 = d1*d2 - P
+            d2 = d2*d2 - two
+        else:
+            d2 = d1*d2 - P
+            d1 = d1*d1 - two
+    sig_off()
+    if mpz_odd_p(m.value):
+        return d1*d2 - P
+    else:
+        return d1*d1 - two
 
 def slow_lucas(k, P, Q=1):
     """
     Lucas function defined using the standard definition, for
     consistency testing.
+
+    REFERENCES:
+
+    - :wikipedia:`Lucas_sequence`
+
+    TESTS::
+
+        sage: from sage.rings.finite_rings.integer_mod import slow_lucas
+        sage: [slow_lucas(k, 1, -1) for k in range(10)]
+        [2, 1, 3, 4, 7, 11, 18, 29, 47, 76]
     """
     if k == 0:
         return 2
@@ -3980,27 +4014,30 @@ def slow_lucas(k, P, Q=1):
         return P*slow_lucas(k-1, P, Q) - Q*slow_lucas(k-2, P, Q)
 
 def lucas(k, P, Q=1, n=None):
-    """
-    Return `[V_k(P, Q) mod n, Q^{floor(k/2)} mod n]` where `V_k` is the Lucas
-    function defined by the recursive relation
+    r"""
+    Return `[V_k(P, Q) \mod n, Q^{\lfloor k/2 \rfloor} \mod n]` where `V_k`
+    is the Lucas function defined by the recursive relation
 
-    `V_k(P, Q) = PV_{k-1}(P, Q) -  QV_{k-2}(P, Q)`
+    .. MATH::
+
+        V_k(P, Q) = P V_{k-1}(P, Q) -  Q V_{k-2}(P, Q)
 
     with `V_0 = 2, V_1 = P`.
 
     INPUT:
 
-    - k -- integer, index to compute
+    - ``k`` -- integer; index to compute
 
-    - P, Q -- integers or modular integers, initial values
+    - ``P``, ``Q`` -- integers or modular integers; initial values
 
-    - n -- integer, modulus to use
+    - ``n`` -- integer (optional); modulus to use if ``P`` is not a modular
+      integer
 
     REFERENCES:
 
     .. [IEEEP1363] IEEE P1363 / D13 (Draft Version 13). Standard Specifications
-                   for Public Key Cryptography Annex A (Informative).
-                   Number-Theoretic Background. Section A.2.4
+       for Public Key Cryptography Annex A (Informative).
+       Number-Theoretic Background. Section A.2.4
 
     AUTHORS:
 

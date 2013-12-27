@@ -770,7 +770,7 @@ descriptions of these subgroups.
     .. MATH::
 
       \begin{aligned}
-      \\ E_7 &\to A_2, A_1\times A_1, A_1\times G_1
+      \\ E_7 &\to A_2, A_1\times A_1, A_1\times G_2
       \\ E_8 & \to C_2 , A_1\times A_2
       \end{aligned}
 

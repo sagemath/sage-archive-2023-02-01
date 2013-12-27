@@ -594,20 +594,20 @@ cdef class FMElement(pAdicTemplateElement):
 
         OUTPUT:
 
-        The list of coefficients of this element
+        The list of coefficients of this element.
 
-        .. NOTES::
+        .. NOTE::
 
-        - Returns a list `[a_0, a_1, \ldots, a_n]` so that each `a_i`
-          is an integer and `\sum_{i = 0}^n a_i * p^i` is equal to
-          this element modulo the precision cap.
+            - Returns a list `[a_0, a_1, \ldots, a_n]` so that each `a_i`
+              is an integer and `\sum_{i = 0}^n a_i \cdot p^i` is equal to
+              this element modulo the precision cap.
 
-        - If ``lift_mode`` is ``'simple'``, `0 \le a_i < p`.
+            - If ``lift_mode`` is ``'simple'``, `0 \leq a_i < p`.
 
-        - If ``lift_mode`` is ``'smallest'``, `-p/2 < a_i \le p/2`.
+            - If ``lift_mode`` is ``'smallest'``, `-p/2 < a_i \leq p/2`.
 
-        - If ``lift_mode`` is ``'teichmuller'``, `a_i^q = a_i`, modulo
-          the precision cap.
+            - If ``lift_mode`` is ``'teichmuller'``, `a_i^q = a_i`, modulo
+              the precision cap.
 
         EXAMPLES::
 

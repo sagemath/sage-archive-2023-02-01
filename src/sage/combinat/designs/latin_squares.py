@@ -159,7 +159,7 @@ def mutually_orthogonal_latin_squares(n,k=None, partitions = False):
         if k is None:
             k = s
         elif k > s:
-            raise ValueError("I don't know how to build these MOLS.")
+            raise NotImplementedError("I don't know how to build these MOLS.")
         subcalls = [mutually_orthogonal_latin_squares(p,k) for p in subcases]
         matrices = [latin_square_product(*[sc[i] for sc in subcalls])
                     for i in range(k)]
@@ -182,6 +182,13 @@ def mutually_orthogonal_latin_squares(n,k=None, partitions = False):
 def latin_square_product(M,N,*others):
     r"""
     Returns the product of two (or more) latin squares.
+
+    Given two Latin Squares `M,N` of respective sizes `m,n`, the direct product
+    `M\times N` of size `mn` is defined by `(M\times
+    N)((i_1,i_2),(j_1,j_2))=(M(i_1,j_1),N(i_2,j_2))` where `i_1,j_1\in [m],
+    i_2,j_2\in [n]`
+
+    Each pair of values `(i,j)\in [m]\times [n]` is then relabeled to `in+j`.
 
     This is Lemma 6.25 of [Stinson2004]_.
 

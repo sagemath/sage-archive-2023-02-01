@@ -5557,6 +5557,8 @@ cdef class gen(sage.structure.element.RingElement):
             5
             sage: pari([5, 'y']).gcd()
             1
+            sage: pari(['x', x^2]).gcd()      
+            x
 
         """
         cdef gen t0
@@ -5616,6 +5618,8 @@ cdef class gen(sage.structure.element.RingElement):
             30
             sage: pari([5, 'y']).lcm()
             5*y
+            sage: pari([10, 'x', x^2]).lcm()
+            10*x^2
 
         """
         cdef gen t0

@@ -183,6 +183,21 @@ class SymmetricFunctionAlgebra_orthogonal(sfa.SymmetricFunctionAlgebra_generic):
         s = self.realization_of().schur()
         return self(s(r) * s(l))
 
+    def counit(self, x):
+        """
+        Return the counit of ``x`` in ``self``.
+
+        EXAMPLES::
+
+            sage: o = SymmetricFunctions(QQ).o()
+            sage: o.an_element()
+            2*o[] + 2*o[1] + 3*o[2]
+            sage: o.counit(o.an_element())
+            -1
+        """
+        s = self.realization_of().schur()
+        return s.counit(s(x))
+
     @cached_method
     def _s_to_o_on_basis(self, lam):
         r"""

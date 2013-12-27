@@ -185,6 +185,21 @@ class SymmetricFunctionAlgebra_symplectic(sfa.SymmetricFunctionAlgebra_generic):
         s = self.realization_of().schur()
         return self(s(r) * s(l))
 
+    def counit(self, x):
+        """
+        Return the counit of ``x`` in ``self``.
+
+        EXAMPLES::
+
+            sage: sp = SymmetricFunctions(QQ).sp()
+            sage: sp.an_element()
+            2*sp[] + 2*sp[1] + 3*sp[2]
+            sage: sp.counit(sp.an_element())
+            2
+        """
+        s = self.realization_of().schur()
+        return s.counit(s(x))
+
     @cached_method
     def _s_to_sp_on_basis(self, lam):
         r"""

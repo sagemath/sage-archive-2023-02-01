@@ -1296,7 +1296,7 @@ end_scene""" % (render_params.antialiasing,
             tachyon_rt(T.tachyon(), out_filename, opts['verbosity'], True,
                 '-res %s %s' % (opts['figsize'][0]*100, opts['figsize'][1]*100))
             if ext != 'png':
-                import Image
+                import PIL.Image as Image
                 Image.open(out_filename).save(filename)
         else:
             raise ValueError, 'filetype not supported by save()'

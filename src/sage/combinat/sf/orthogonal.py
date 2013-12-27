@@ -38,7 +38,7 @@ class SymmetricFunctionAlgebra_orthogonal(sfa.SymmetricFunctionAlgebra_generic):
         s_{\lambda} = \sum_{\mu} \left( \sum_{\nu \in H} c^{\lambda}_{\mu\nu}
         \right) o_{\mu}
 
-    where `V` is the set of all partitions with even-width rows and
+    where `H` is the set of all partitions with even-width rows and
     `c^{\lambda}_{\mu\nu}` is the usual Littlewood-Richardson (LR)
     coefficients. By the properties of LR coefficients, this can be shown to
     be a upper unitriangular change of basis.
@@ -185,7 +185,7 @@ class SymmetricFunctionAlgebra_orthogonal(sfa.SymmetricFunctionAlgebra_generic):
         return self(s(r) * s(l))
 
     def counit(self, x):
-        """
+        r"""
         Return the counit of ``x`` in ``self``.
 
         EXAMPLES::

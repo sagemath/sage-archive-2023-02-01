@@ -56,7 +56,7 @@ class SymmetricFunctionAlgebra_symplectic(sfa.SymmetricFunctionAlgebra_generic):
 
     .. [ChariKleber2000] Vyjayanthi Chari and Michael Kleber.
        *Symmetric functions and representations of quantum affine algebras*.
-       :arXiv:`0011161v1`
+       :arXiv:`math/0011161v1`
 
     EXAMPLES:
 
@@ -187,7 +187,7 @@ class SymmetricFunctionAlgebra_symplectic(sfa.SymmetricFunctionAlgebra_generic):
         return self(s(r) * s(l))
 
     def counit(self, x):
-        """
+        r"""
         Return the counit of ``x`` in ``self``.
 
         EXAMPLES::

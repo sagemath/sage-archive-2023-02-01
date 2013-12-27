@@ -45,7 +45,8 @@ class SymmetricFunctionAlgebra_orthogonal(sfa.SymmetricFunctionAlgebra_generic):
 
     .. NOTE::
 
-        This is only a filtered basis, not a graded basis.
+        This is only a filtered basis, not a `\ZZ`-graded basis. However this
+        does respect the induced `(\ZZ/2\ZZ)`-grading.
 
     INPUT:
 

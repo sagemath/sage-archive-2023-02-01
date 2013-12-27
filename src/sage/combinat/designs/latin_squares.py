@@ -1,7 +1,16 @@
 r"""
-Latin Squares and Mutually Orthogonal Latin Squares (MOLS)
+Mutually Orthogonal Latin Squares (MOLS)
 
-A Latin square is an `n\times n` array filled with `n` different symbols, each occurring exactly once in each row and exactly once in each column.
+A Latin square is an `n\times n` array filled with `n` different symbols, each
+occurring exactly once in each row and exactly once in each column. For Sage's
+methods related to Latin Squares, see the module
+:mod:`sage.combinat.matrices.latin`.
+
+This module gathers constructions of Mutually Orthogonal Latin Squares, which
+are equivalent to Transversal Designs and specific Orthogonal Arrays.
+
+For more information on MOLS, see the :wikipedia:`Wikipedia entry on MOLS
+<Graeco-Latin_square#Mutually_orthogonal_Latin_squares>`.
 
 TODO:
 
@@ -101,6 +110,13 @@ def mutually_orthogonal_latin_squares(n,k=None, partitions = False):
           [2, 8, 11, 15, 24],
           [3, 6, 14, 17, 20],
           [4, 5, 12, 16, 23]]]
+
+    TESTS::
+
+        sage: designs.mutually_orthogonal_latin_squares(5,5)
+        Traceback (most recent call last):
+        ...
+        ValueError: There exist at most n-1 MOLS of size n.
     """
     from sage.rings.finite_rings.constructor import FiniteField
     from sage.combinat.designs.block_design import AffineGeometryDesign
@@ -109,7 +125,7 @@ def mutually_orthogonal_latin_squares(n,k=None, partitions = False):
     from sage.rings.arith import factor
 
     if k is not None and k >= n:
-        raise ValueError("This does not exist (cite theorem)")
+        raise ValueError("There exist at most n-1 MOLS of size n.")
 
     if is_prime_power(n):
         if k is None:
@@ -120,7 +136,7 @@ def mutually_orthogonal_latin_squares(n,k=None, partitions = False):
         parallel_classes = [[] for _ in range(k+2)]
         for b in B:
             for p in parallel_classes:
-                if p == [] or all(i not in p[0] for i in b):
+                if (not p) or all(i not in p[0] for i in b):
                     p.append(b)
                     break
 

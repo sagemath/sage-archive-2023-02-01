@@ -245,7 +245,8 @@ We can compute the `0-1` sequence and go back and forth::
 
     sage: Partitions().from_zero_one([1, 1, 1, 1, 0, 1, 0])
     [5, 4]
-    sage: all(Partitions().from_zero_one(mu.zero_one_sequence()) == mu for n in range(5) for mu in Partitions(n))
+    sage: all(Partitions().from_zero_one(mu.zero_one_sequence())
+    ....:     == mu for n in range(5) for mu in Partitions(n))
     True
 
 We can compute the Frobenius coordinates and go back and forth::
@@ -254,8 +255,8 @@ We can compute the Frobenius coordinates and go back and forth::
     ([6, 1], [2, 0])
     sage: Partition(frobenius_coordinates=([6,1],[2,0]))
     [7, 3, 1]
-    sage: all(mu == Partition(frobenius_coordinates=mu.frobenius_coordinates()) for n in range(30)\
-    for mu in Partitions(n))
+    sage: all(mu == Partition(frobenius_coordinates=mu.frobenius_coordinates())
+    ....:     for n in range(30) for mu in Partitions(n))
     True
 
 We use the lexicographic ordering::
@@ -479,10 +480,14 @@ class Partition(CombinatorialObject, Element):
     non-increasing list of positive integers (the *parts* of the
     partition) with total sum `n`.
 
-    A partition is often representation by a diagram consisting of **cells**,
-    or **boxes**, placed in rows on top of each other with the number of cells
-    in the `i^{th}` row, reading from  top to bottom, is the `i^{th}` part of
-    the partition.
+    A partition is often represented as a diagram consisting of **cells**,
+    or **boxes**, placed in rows on top of each other such that the number of
+    cells in the `i^{th}` row, reading from top to bottom, is the `i^{th}`
+    part of the partition. The rows are left-justified (and become shorter
+    and shorter the farther down one goes). This diagram is called the
+    **Young diagram** of the partition, or more precisely its Young diagram
+    in English notation. (French and Russian notations are variations on this
+    representation.)
 
     The coordinate system related to a partition applies from the top
     to the bottom and from left to right. So, the corners of the
@@ -1869,7 +1874,8 @@ class Partition(CombinatorialObject, Element):
 
     def get_part(self, i, default=Integer(0)):
         r"""
-        Return the `i^{th}` part of self, or ``default`` if it does not exist.
+        Return the `i^{th}` part of ``self``, or ``default`` if it does
+        not exist.
 
         EXAMPLES::
 
@@ -4122,7 +4128,7 @@ class Partition(CombinatorialObject, Element):
         """
         Return the Jacobi-Trudi matrix of ``self`` thought of as a skew
         partition. See :meth:`SkewPartition.jacobi_trudi()
-        <sage.combinat.skew_partition.SkewPartition_class.jacobi_trudi>`.
+        <sage.combinat.skew_partition.SkewPartition.jacobi_trudi>`.
 
         EXAMPLES::
 
@@ -4203,15 +4209,16 @@ class Partition(CombinatorialObject, Element):
 
     def dimension(self, smaller = [], k = 1):
         r"""
-        This function computes the number of paths from the
-        ``smaller`` partition to the partition ``self``, where each step
-        consists of adding a `k`-ribbon while keeping a partition.
+        Return the number of paths from the ``smaller`` partition to
+        the partition ``self``, where each step consists of adding a
+        `k`-ribbon while keeping a partition.
 
-        Note that a 1-ribbon is just a single cell, so this gives path
-        lengths in the Young graph when `k = 1`.
+        Note that a 1-ribbon is just a single cell, so this counts paths
+        in the Young graph when `k = 1`.
 
-        Note also that the defaut case (`k = 1` and ``smaller = []``) gives the
-        dimension of characters of the symmetric groups.
+        Note also that the default case (`k = 1` and ``smaller = []``)
+        gives the dimension of the irreducible representation of the
+        symmetric group corresponding to ``self``.
 
         INPUT:
 
@@ -4259,13 +4266,16 @@ class Partition(CombinatorialObject, Element):
         A check coming from the theory of `k`-differentiable posets::
 
             sage: k=2; core = Partition([2,1])
-            sage: all(sum(mu.dimension(core,k=2)^2 for mu in Partitions(3+i*2) if mu.core(2) == core)==2^i*factorial(i) for i in range(10))
+            sage: all(sum(mu.dimension(core,k=2)^2
+            ....:         for mu in Partitions(3+i*2) if mu.core(2) == core)
+            ....:     == 2^i*factorial(i) for i in range(10))
             True
 
         Checks that the dimension satisfies the obvious recursion relation::
 
             sage: test = lambda larger, smaller: larger.dimension(smaller) == sum(mu.dimension(smaller) for mu in larger.down())
-            sage: all(test(larger,smaller) for l in xrange(1,10) for s in xrange(0,10) for larger in Partitions(l) for smaller in Partitions(s) if smaller!=larger)
+            sage: all(test(larger,smaller) for l in xrange(1,10) for s in xrange(0,10)
+            ....:     for larger in Partitions(l) for smaller in Partitions(s) if smaller != larger)
             True
 
         ALGORITHM:

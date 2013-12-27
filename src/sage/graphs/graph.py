@@ -503,7 +503,8 @@ Graphs are mutable, and thus unusable as dictionary keys, unless
     sage: {G:1}[G]
     Traceback (most recent call last):
     ...
-    TypeError: This graph is mutable, and thus not hashable
+    TypeError: This graph is mutable, and thus not hashable. Create an
+    immutable copy by `g.copy(data_structure='static_sparse')`
     sage: G_immutable = Graph(G, data_structure="static_sparse")
     sage: G_immutable == G
     True
@@ -960,7 +961,8 @@ class Graph(GenericGraph):
           sage: {G:1}[H]
           Traceback (most recent call last):
           ...
-          TypeError: This graph is mutable, and thus not hashable
+          TypeError: This graph is mutable, and thus not hashable. Create
+          an immutable copy by `g.copy(data_structure='static_sparse')`
 
     If the ``data_structure`` is equal to ``"static_sparse"``, then an
     immutable graph results. Note that this does not use the NetworkX data

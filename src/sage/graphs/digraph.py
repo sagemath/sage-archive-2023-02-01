@@ -429,7 +429,8 @@ class DiGraph(GenericGraph):
         sage: {G_imm:1}[G]
         Traceback (most recent call last):
         ...
-        TypeError: This graph is mutable, and thus not hashable
+        TypeError: This graph is mutable, and thus not hashable. Create an
+        immutable copy by `g.copy(data_structure='static_sparse')`
 
     """
     _directed = True

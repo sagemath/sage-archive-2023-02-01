@@ -3959,8 +3959,8 @@ def fast_lucas(mm, IntegerMod_abstract P):
 
     TESTS::
 
-        sage: from sage.rings.finite_rings.integer_mod import fast_lucas, slow_lucas
-        sage: all([fast_lucas(k, a) == slow_lucas(k, a)
+        sage: from sage.rings.finite_rings.integer_mod import fast_lucas
+        sage: all([fast_lucas(k, a) == BinaryRecurrenceSequence(a, -1, 2, a)(k)
         ....:      for a in Integers(23)
         ....:      for k in range(13)])
         True
@@ -3994,7 +3994,12 @@ def fast_lucas(mm, IntegerMod_abstract P):
 def slow_lucas(k, P, Q=1):
     """
     Lucas function defined using the standard definition, for
-    consistency testing.
+    consistency testing. This is deprecated in :trac:`11802`. Use
+    ``BinaryRecurrenceSequence(P, -Q, 2, P)(k)`` instead.
+
+    .. SEEALSO::
+
+        :class:`~sage.combinat.binary_recurrence_sequences.BinaryRecurrenceSequence`
 
     REFERENCES:
 
@@ -4004,14 +4009,19 @@ def slow_lucas(k, P, Q=1):
 
         sage: from sage.rings.finite_rings.integer_mod import slow_lucas
         sage: [slow_lucas(k, 1, -1) for k in range(10)]
+        doctest:...: DeprecationWarning: slow_lucas() is deprecated. Use BinaryRecurrenceSequence instead.
+        See http://trac.sagemath.org/11802 for details.
         [2, 1, 3, 4, 7, 11, 18, 29, 47, 76]
     """
+    from sage.misc.superseded import deprecation
+    deprecation(11802, 'slow_lucas() is deprecated. Use BinaryRecurrenceSequence instead.')
     if k == 0:
         return 2
     elif k == 1:
         return P
-    else:
-        return P*slow_lucas(k-1, P, Q) - Q*slow_lucas(k-2, P, Q)
+    from sage.combinat.binary_recurrence_sequences import BinaryRecurrenceSequence
+    B = BinaryRecurrenceSequence(P, -Q, 2, P)
+    return B(k)
 
 def lucas(k, P, Q=1, n=None):
     r"""

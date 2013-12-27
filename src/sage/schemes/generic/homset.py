@@ -255,6 +255,17 @@ class SchemeHomset_generic(HomsetWithBase):
     Element = SchemeMorphism
 
     def __reduce__(self):
+        """
+        Used in pickling.
+
+        EXAMPLES::
+
+            sage: A2 = AffineSpace(QQ,2)
+            sage: A3 = AffineSpace(QQ,3)
+            sage: Hom = A3.Hom(A2)
+            sage: loads(Hom.dumps()) == Hom
+            True
+        """
         #return SchemeHomset.reduce_data(self)
         return SchemeHomset, (self.domain(), self.codomain(), self.homset_category())
 

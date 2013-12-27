@@ -488,7 +488,7 @@ class FGP_Homset_class(Homset):
         Set of Morphisms from Finitely generated module V/W over Integer Ring with invariants (4, 12) to Finitely generated module V/W over Integer Ring with invariants (4, 12) in Category of modules over Integer Ring
         sage: type(H)
         <class 'sage.modules.fg_pid.fgp_morphism.FGP_Homset_class_with_category'>
-        
+
     """
     Element = FGP_Morphism
     def __init__(self, X, Y, category=None):

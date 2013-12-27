@@ -229,12 +229,36 @@ class Homspace(HomsetWithBase):
 
     @lazy_attribute
     def _matrix_space(self):
+        """
+        Return the matrix space of ``self``.
+
+        .. WARNING::
+
+            During unpickling, the domain and codomain may be unable to
+            provide the necessary information. This is why this is a lazy
+            attribute. See :trac:`14793`.
+
+        EXAMPLES::
+
+            sage: Hom(J0(11), J0(22))._matrix_space
+            Full MatrixSpace of 2 by 4 dense matrices over Integer Ring
+        """
         return MatrixSpace(ZZ,2*self.domain().dimension(), 2*self.codomain().dimension())
 
-    # The following method is used in the coercion framework. Unfortunately, the default
-    # method would get the order of parent and data different from what is expected
-    # in MatrixMorphism.__init__
     def _element_constructor_from_element_class(self, *args, **keywords):
+        """
+        Used in the coercion framework. Unfortunately, the default method
+        would get the order of parent and data different from what is expected
+        in ``MatrixMorphism.__init__``.
+
+        EXAMPLES::
+
+            sage: H = Hom(J0(11), J0(22))
+            sage: phi = H(matrix(ZZ,2,4,[5..12])); phi # indirect doctest
+            Abelian variety morphism:
+              From: Abelian variety J0(11) of dimension 1
+              To:   Abelian variety J0(22) of dimension 2
+        """
         return self.element_class(self, *args, **keywords)
 
     def __call__(self, M):
@@ -753,6 +777,15 @@ class EndomorphismSubring(Homspace, Ring):
         self._is_full_ring = gens is None
 
     def __reduce__(self):
+        """
+        Used in pickling.
+
+        EXAMPLES::
+
+            sage: E = J0(31).endomorphism_ring()
+            sage: loads(dumps(E)) == E
+            True
+        """
         return End, (self.domain(),self.domain().category())
 
     def _repr_(self):

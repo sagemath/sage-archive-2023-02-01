@@ -1981,8 +1981,13 @@ def branch_weyl_character(chi, R, S, rule="default"):
         \\ E_6 & \to G_2 \times A_2,
         \\ E_7 & \to G_2 \times C_3,
         \\ E_7 & \to F_4 \times A_1,
+        \\ E_7 & \to A_1 \times A_1,
         \\ E_8 & \to G_2 \times F_4.
         \end{aligned}
+
+    These embeddings are described more completely in the thematic tutorial at:
+
+    http://www.sagemath.org/doc/thematic_tutorials/lie.html
 
     There are other more obvious embeddings of `A_2` and `G_2` into `E_6`.
     The embeddings in question may be characterized by the condition that the
@@ -2027,6 +2032,9 @@ def branch_weyl_character(chi, R, S, rule="default"):
         sage: F4xA1=WeylCharacterRing("F4xA1",style="coroots")
         sage: E7(0,0,0,0,0,0,1).branch(F4xA1,"miscellaneous")
         F4xA1(0,0,0,1,1) + F4xA1(0,0,0,0,3)
+        sage: A1xA1=WeylCharacterRing("A1xA1",style="coroots")
+        sage: E7(0,0,0,0,0,0,1).branch(A1xA1,rule="miscellaneous")
+        A1xA1(2,5) + A1xA1(4,1) + A1xA1(6,3)
         sage: E8 = WeylCharacterRing("E8",style="coroots")
         sage: G2xF4 = WeylCharacterRing("G2xF4",style="coroots")
         sage: E8(0,0,0,0,0,0,0,1).branch(G2xF4,rule="miscellaneous") # long time (0.76s)
@@ -2249,6 +2257,18 @@ def branch_weyl_character(chi, R, S, rule="default"):
         sage: chi.branch(A2,rule=["omit","identity"])
         6*A2(1,0)
 
+    Yet another way of branching from a reducible root system with
+    repeated Cartan types is to embed along the diagonal. The
+    branching rule is equivalent to the tensor product, as
+    the example shows::
+
+        sage: G2=WeylCharacterRing("G2",style="coroots")
+        sage: G2xG2=WeylCharacterRing("G2xG2",style="coroots")
+        sage: G2=WeylCharacterRing("G2",style="coroots")
+        sage: G2xG2(1,0,0,1).branch(G2,rule="diagonal")
+        G2(1,0) + G2(2,0) + G2(1,1)
+        sage: G2xG2(1,0,0,1).branch(G2,rule="diagonal") == G2(1,0)*G2(0,1)
+        True
 
     .. RUBRIC:: Writing Your Own (Branching) Rules
 
@@ -2550,6 +2570,12 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                         rule.append("identity")
                     else:
                         rule.append("omit")
+            elif rule == "diagonal":
+                if not Stype.is_compound():
+                    k = len(Rtypes)
+                    n = RootSystem(Stype).ambient_space().dimension()
+                    return BranchingRule(Rtype, Stype, lambda x : [sum(x[i+n*j] for j in range(k)) for i in range(n)], "diagonal")
+                raise ValueError("invalid Cartan types for diagonal branching rule")
             else:
                 raise ValueError("Rule not found")
         else:
@@ -2653,7 +2679,6 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                         raise NotImplementedError('A5 Levi is not maximal. Branch to A5xA1 (rule="extended").')
                     if stypes[0][1] == 7 and stypes[1][1] == 1:
                             raise NotImplementedError("Not maximal: first branch to E7xA1")
-
             raise NotImplementedError("Not implemented yet")
         elif Rtype[0] == 'F' and s == 3:
             if Stype[0] == 'B':
@@ -3031,6 +3056,8 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                         [x0,x1,x2,x3,x4,x5,x6] = x[:7]
                         return [x5-x6,x6-x5,(x4-x5)/2-x6,(x0+x1+x2+x3)/2,(-x0-x1+x2+x3)/2,(-x0+x1-x2+x3)/2]
                     return BranchingRule(Rtype, Stype, f, "miscellaneous")
+                elif stypes == [CartanType("A1"),CartanType("A1")]:
+                    return BranchingRule(Rtype, Stype, lambda x : [x[1]+2*x[2]-2*x[3]-x[4]-2*x[6], -x[1]-2*x[2]+2*x[3]+x[4]+2*x[6], (x[3]+x[4]+x[5]-3*x[6]),-(x[3]+x[4]+x[5]-3*x[6])], "miscellaneous")
         elif Rtype == CartanType("E8"):
             if Stype.is_compound():
                 if stypes == [CartanType("F4"),CartanType("G2")]:

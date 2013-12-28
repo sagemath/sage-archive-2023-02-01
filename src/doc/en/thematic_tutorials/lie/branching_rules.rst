@@ -653,12 +653,13 @@ Use ``rule="miscellaneous"`` for the following rules.
 
         \begin{aligned}
         B_3 & \to G_2,
-	\\ E_6 & \to A_2,
-	\\ E_6 & \to G_2,
+        \\ E_6 & \to A_2,
+        \\ E_6 & \to G_2,
         \\ F_4 & \to G_2 \times A_1,
         \\ E_6 & \to G_2 \times A_2,
         \\ E_7 & \to G_2 \times C_3,
         \\ E_7 & \to F_4 \times A_1,
+        \\ E_7 & \to A_1 \times A_1,
         \\ E_8 & \to G_2 \times F_4.
         \end{aligned}
 
@@ -691,6 +692,16 @@ of subgroups
 Regarding the branching rule ``E_6\to G_2\times A_2``,
 Rubenthaler [Rubenthaler2008]_ describes the embedding
 and applies it in an interesting way.
+
+The embedding of `A_1\times A_1` into `E_7` is as
+follows. Deleting the 5 node of `E_7` gives the
+root system `A_4\times A_2`, so this is a Levi
+subgroup. We embed `\hbox{SL}(2)` into this Levi
+subgroup via the representation `[4]\otimes[2]`.
+This embeds the first copy of `A_1`. The other
+`A_1` is the connected centralizer. See [Seitz1991]_,
+particularly the proof of (3.12).
+
 
 Maximal A1 subgroups of Exceptional Groups
 ------------------------------------------

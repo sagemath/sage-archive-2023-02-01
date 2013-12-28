@@ -188,6 +188,11 @@ class IntegerModFactory(UniqueFactory):
         sage: R in Fields()
         True
 
+    To avoid side-effects of this test on other tests, we clear the cache of
+    the ring factory::
+
+        sage: IntegerModRing._cache.clear()
+
     """
     def get_object(self, version, key, extra_args):
         out = super(IntegerModFactory,self).get_object(version, key, extra_args)
@@ -735,6 +740,11 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             in other parts of Sage. Either it was a mistake of the user,
             or a probabilistic primality test has failed.
             In the latter case, please inform the developers.
+
+        To avoid side-effects of this test on other tests, we clear the cache
+        of the ring factory::
+
+            sage: IntegerModRing._cache.clear()
 
         """
         from sage.categories.fields import Fields

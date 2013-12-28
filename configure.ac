@@ -22,7 +22,10 @@ AC_PREREQ([2.63])
 
 AC_COPYRIGHT([GPL version 2 or (at your option) any later version])
 AC_CONFIG_SRCDIR([configure.ac])
+AC_CONFIG_AUX_DIR([config])
 
+# We don't really use automake, but configure needs aclocal and the
+# automake library files (like config.guess).
 AM_INIT_AUTOMAKE([1.9.6 foreign])
 
 buggy_gcc_version1="4.0.0"
@@ -470,7 +473,7 @@ case "$build_os" in
 esac
 
 dnl AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([build/Makefile-auto])
 AC_CONFIG_MACRO_DIR([m4])
 
 AC_OUTPUT

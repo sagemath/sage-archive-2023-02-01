@@ -82,12 +82,19 @@ bdist-clean: clean
 	rm -rf logs
 	rm -rf dist
 	rm -rf tmp
-	rm -f build/Makefile
+	rm -f aclocal.m4 config.log config.status confcache
+	rm -rf autom4te.cache
+	rm -f build/Makefile build/Makefile-auto
 	rm -f .BUILDSTART
 
 distclean: clean doc-clean lib-clean bdist-clean
 	@echo "Deleting all remaining output from build system ..."
 	rm -rf local
+
+# Remove absolutely everything which isn't part of the git repo
+maintainer-clean: distclean
+	rm -rf upstream
+	rm -rf config configure build/Makefile-auto.in
 
 micro_release: bdist-clean lib-clean
 	@echo "Stripping binaries ..."
@@ -140,6 +147,16 @@ ptestoptional: ptestall # just an alias
 
 ptestoptionallong: ptestalllong # just an alias
 
+config/missing:
+	[ -d config ] || mkdir config
+	aclocal -I m4
+	automake --add-missing --copy build/Makefile-auto
+
+configure: configure.ac \
+        m4/ax_c_check_flag.m4 m4/ax_gcc_option.m4 m4/ax_gcc_version.m4 m4/ax_gxx_option.m4 m4/ax_gxx_version.m4 m4/ax_prog_perl_version.m4
+	test -f config/missing || $(MAKE) config/missing
+	config/missing --run aclocal -I m4
+	config/missing --run autoconf
 
 install:
 	echo "Experimental use only!"
@@ -162,6 +179,6 @@ install:
 
 .PHONY: all build build-serial start install \
 	doc doc-html doc-html-jsmath doc-html-mathjax doc-pdf \
-	doc-clean clean lib-clean bdist-clean distclean micro_release \
+	doc-clean clean lib-clean bdist-clean distclean maintainer-clean micro_release \
 	test check testoptional testall testlong testoptionallong testallong \
 	ptest ptestoptional ptestall ptestlong ptestoptionallong ptestallong

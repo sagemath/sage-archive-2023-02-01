@@ -31,8 +31,8 @@ if [ -z "$SAGE_SRC" ]; then
     die "must be run from within a Sage enviroment, or with SAGE_SRC provided"
 fi
 
-if [ "$#" -gt 1 ]; then
-    TMP_DIR="$2"
+if [ "$#" -gt 0 ]; then
+    TMP_DIR="$1"
 else
     TMP_DIR="$SAGE_ROOT/tmp"
 fi
@@ -42,15 +42,11 @@ echo "Sage version $SAGE_VERSION, release date $SAGE_RELEASE_DATE"
 
 TARGET="sage-$SAGE_VERSION"
 
-rm -rf "$TMP_DIR/$TARGET"
-mkdir -p "$TMP_DIR/$TARGET"
-
-git clone "$SAGE_ROOT" "$TMP_DIR/$TARGET"
-cd "$TMP_DIR/$TARGET"
-git remote set-url origin "$SAGE_REPO_ANONYMOUS"
+sage-clone-source "$SAGE_ROOT" "$TMP_DIR/$TARGET"
 
 # Copy all the upstream packages
-mkdir -p upstream
+cd "$TMP_DIR/$TARGET"
+mkdir upstream
 export SAGE_CURRENT_UPSTREAM="$SAGE_ROOT/upstream"
 export SAGE_INSTALL_FETCH_ONLY=yes
 

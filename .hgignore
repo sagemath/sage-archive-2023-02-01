@@ -1,7 +1,0 @@
-configure$
-Makefile.in
-aclocal.m4
-config.guess
-config.sub
-install-sh
-missing

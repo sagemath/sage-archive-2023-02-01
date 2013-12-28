@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+########################################################################
+# Helper script for sdist/bdist
+#
+# Usage: sage-clone-source SRC DST
+#
+# Create empty directory DST (delete it if it existed) and copy all
+# Sage source files from SRC to DST using git.
+########################################################################
+
+set -e
+
+if [ $# -ne 2 ]; then
+    echo >&2 "Usage: $0 SRC DST"
+    exit 2
+fi
+
+SRC="$1"
+DST="$2"
+
+rm -rf "$DST"
+mkdir "$DST"
+
+git clone "$SRC" "$DST"
+
+# Copy autotools-generated files
+mkdir "$DST/config"
+cd "$SRC"
+for f in config/* configure build/Makefile-auto.in; do
+    cp -p "$f" "$DST/$f"
+done
+
+cd "$DST"
+git remote set-url origin "$SAGE_REPO_ANONYMOUS"
+
+echo "Finished cloning Sage sources"

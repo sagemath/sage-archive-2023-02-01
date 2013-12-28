@@ -7556,9 +7556,9 @@ cdef class gen(sage.structure.element.RingElement):
             if t == t_POL or t == t_RFRAC:
                 return P.new_gen(poleval(self.g, t0.g))
             else:  # t == t_SER
-                if typ(t0.g) == t_INT and gequal0(t0.g):
+                if isexactzero(t0.g):
                     # Work around the fact that PARI currently doesn't
-                    # support substituting gen_0 in a power series.
+                    # support substituting exact 0 in a power series.
                     # We don't try to imitate this when using keyword
                     # arguments, and hope this will be fixed in a
                     # future PARI version.

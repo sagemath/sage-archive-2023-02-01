@@ -187,12 +187,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
         OUTPUT:
 
         ``(lower, upper, list)`` where ``lower`` is a lower bound on
-        the rank, ``upper`` is an upper bound (the 2-Selmer rank) and
-        ``list`` is a list of independent points on the Weierstrass
-        model.  The length of ``list`` is equal to either ``lower``,
-        or ``lower-1``, since when ``lower`` is less than ``upper``
-        and of different parity, the value of ``lower`` is increased by
-        1.
+        the rank, ``upper`` is an upper bound (the dimension of the
+        2-Selmer group) and
+        ``list`` is a list of points of infinite order on the Weierstrass
+        model.
 
         .. note::
 

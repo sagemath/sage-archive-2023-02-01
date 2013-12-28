@@ -1880,7 +1880,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.rank()
             2
 
-        Test that the points of finite order are not imcluded :trac: `13593` ::
+        Test that the points of finite order are not included :trac: `13593` ::
 
             sage: E = EllipticCurve("17a3")
             sage: K.<t> = NumberField(x^2+3)

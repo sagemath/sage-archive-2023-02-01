@@ -140,7 +140,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
        A bijection between Littlewood-Richardson tableaux and rigged
        configurations.
        Selecta Mathematica (N.S.). **8** (2002) Pages 67-135.
-        (:mathscinet:`MR1890195`).
+       (:mathscinet:`MR1890195`).
 
     EXAMPLES::
 
@@ -293,6 +293,8 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         sage: RC = RiggedConfigurations(['D', 4, 1], [[1, 1]])
         sage: RC.cardinality()
         8
+
+
         sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 1]])
         sage: c = RC.cardinality(); c
         29
@@ -385,7 +387,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
 
     def __iter__(self):
         """
-        Returns the iterator of ``self``.
+        Iterate over ``self``.
 
         EXAMPLES::
 
@@ -421,8 +423,9 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         Module generators for this set of rigged configurations.
 
         Iterate over the highest weight rigged configurations by moving
-        through the :class:`KleberTree` and then setting appropriate
-        values of the partitions.
+        through the
+        :class:`~sage.combinat.rigged_configurations.kleber_tree.KleberTree`
+        and then setting appropriate values of the partitions.
 
         EXAMPLES::
 
@@ -519,7 +522,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
 
         INPUT:
 
-        - ``container`` -- A list of widths of the rows of the container
+        - ``container`` -- a list of widths of the rows of the container
 
         TESTS::
 
@@ -560,7 +563,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
 
         INPUT:
 
-        - ``blocks`` -- The (2-dim) array blocks of the partition values.
+        - ``blocks`` -- the (2-dim) array blocks of the partition values
 
         TESTS::
 
@@ -654,11 +657,11 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
 
         INPUT:
 
-        - ``partitions`` -- The list of rigged partitions we are using
+        - ``partitions`` -- the list of rigged partitions we are using
 
-        - ``a``          -- The rigged partition index
+        - ``a`` -- the rigged partition index
 
-        - ``i``          -- The row index of the `a`-th rigged partition
+        - ``i`` -- the row index of the `a`-th rigged partition
 
         TESTS::
 
@@ -780,7 +783,8 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             I \times \ZZ} \begin{bmatrix} p_i^{(a)} + m_i^{(a)} \\ m_i^{(a)}
             \end{bmatrix}_q.
 
-        The generating function of `M(\lambda, L; q)` in the weight algebra subsumes all fermionic formulas:
+        The generating function of `M(\lambda, L; q)` in the weight algebra
+        subsumes all fermionic formulas:
 
         .. MATH::
 
@@ -793,8 +797,8 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         This has been proven in general for type `A_n^{(1)}` [BijectionLRT]_,
         single factors `B^{r,s}` in type `D_n^{(1)}` [OSS2011]_ with the result
         from [Sakamoto13]_, as well as for a tensor product of single columns
-        [OSS2003]_, [BijectionDn]_ or a tensor product of single rows [OSS03]_ for all
-        non-exceptional types.
+        [OSS2003]_, [BijectionDn]_ or a tensor product of single rows [OSS03]_
+        for all non-exceptional types.
 
         INPUT:
 
@@ -980,11 +984,11 @@ class RCNonSimplyLaced(RiggedConfigurations):
 
         INPUT:
 
-        - ``partitions`` -- The list of rigged partitions we are using
+        - ``partitions`` -- the list of rigged partitions we are using
 
-        - ``a``          -- The rigged partition index
+        - ``a`` -- the rigged partition index
 
-        - ``i``          -- The row index of the `a`-th rigged partition
+        - ``i`` -- the row index of the `a`-th rigged partition
 
         TESTS::
 
@@ -1027,8 +1031,9 @@ class RCNonSimplyLaced(RiggedConfigurations):
         Module generators for this set of rigged configurations.
 
         Iterate over the highest weight rigged configurations by moving
-        through the :class:`KleberTree` and then setting appropriate
-        values of the partitions.
+        through the
+        :class:`~sage.combinat.rigged_configurations.kleber_tree.KleberTree`
+        and then setting appropriate values of the partitions.
 
         EXAMPLES::
 
@@ -1161,7 +1166,7 @@ class RCNonSimplyLaced(RiggedConfigurations):
 
         INPUT:
 
-        - ``rc`` -- A rigged configuration element
+        - ``rc`` -- a rigged configuration element
 
         EXAMPLES::
 
@@ -1204,7 +1209,7 @@ class RCNonSimplyLaced(RiggedConfigurations):
 
         INPUT:
 
-        - ``vrc`` -- A virtual rigged configuration
+        - ``vrc`` -- a virtual rigged configuration
 
         EXAMPLES::
 
@@ -1321,11 +1326,11 @@ class RCTypeA2Even(RCNonSimplyLaced):
 
         INPUT:
 
-        - ``partitions`` -- The list of rigged partitions we are using
+        - ``partitions`` -- the list of rigged partitions we are using
 
-        - ``a``          -- The rigged partition index
+        - ``a`` -- the rigged partition index
 
-        - ``i``          -- The row index of the `a`-th rigged partition
+        - ``i`` -- the row index of the `a`-th rigged partition
 
         TESTS::
 
@@ -1368,7 +1373,7 @@ class RCTypeA2Even(RCNonSimplyLaced):
 
         INPUT:
 
-        - ``rc`` -- A rigged configuration element
+        - ``rc`` -- a rigged configuration element
 
         EXAMPLES::
 
@@ -1413,7 +1418,7 @@ class RCTypeA2Even(RCNonSimplyLaced):
 
         INPUT:
 
-        - ``vrc`` -- A virtual rigged configuration element
+        - ``vrc`` -- a virtual rigged configuration element
 
         EXAMPLES::
 
@@ -1474,11 +1479,11 @@ class RCTypeA2Dual(RCTypeA2Even):
 
         INPUT:
 
-        - ``partitions`` -- The list of rigged partitions we are using
+        - ``partitions`` -- the list of rigged partitions we are using
 
-        - ``a``          -- The rigged partition index
+        - ``a`` -- the rigged partition index
 
-        - ``i``          -- The row index of the `a`-th rigged partition
+        - ``i`` -- the row index of the `a`-th rigged partition
 
         TESTS::
 
@@ -1523,9 +1528,10 @@ class RCTypeA2Dual(RCTypeA2Even):
         `A_{2n}^{(2)\dagger}`.
 
         Iterate over the highest weight rigged configurations by moving
-        through the :class:`KleberTree` and then setting appropriate
-        values of the partitions. This also skips rigged configurations where
-        `P_i^{(n)} < 1` when `i` is odd.
+        through the
+        :class:`~sage.combinat.rigged_configurations.kleber_tree.KleberTree`
+        and then setting appropriate values of the partitions. This also
+        skips rigged configurations where `P_i^{(n)} < 1` when `i` is odd.
 
         EXAMPLES::
 
@@ -1655,7 +1661,7 @@ class RCTypeA2Dual(RCTypeA2Even):
 
         INPUT:
 
-        - ``container`` -- A list the widths of the rows of the container
+        - ``container`` -- a list the widths of the rows of the container
 
         TESTS::
 
@@ -1694,7 +1700,7 @@ class RCTypeA2Dual(RCTypeA2Even):
 
         INPUT:
 
-        - ``rc`` -- A rigged configuration element
+        - ``rc`` -- a rigged configuration element
 
         EXAMPLES::
 
@@ -1740,7 +1746,7 @@ class RCTypeA2Dual(RCTypeA2Even):
 
         INPUT:
 
-        - ``vrc`` -- A virtual rigged configuration element
+        - ``vrc`` -- a virtual rigged configuration element
 
         EXAMPLES::
 

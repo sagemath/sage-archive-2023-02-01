@@ -512,6 +512,22 @@ class Homset(Set_generic):
         """
         Pickling, using the cache of the :func:`~sage.categories.homset.Hom` function.
 
+        TESTS::
+
+            sage: H = Hom(QQ^2, QQ^3)
+            sage: loads(H.dumps()) is H
+            True
+
+        Homsets of non-unique parents are non-unique as well::
+
+            sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
+            sage: G is loads(dumps(G))
+            False
+            sage: H = Hom(G,G)
+            sage: H is loads(dumps(H))
+            False
+            sage: H == loads(dumps(H))
+            True
 
         """
         return Hom, (self._domain, self._codomain, self.__category)

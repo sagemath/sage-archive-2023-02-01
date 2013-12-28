@@ -108,8 +108,9 @@ class IntegerModFactory(UniqueFactory):
         instance of the quotient ring will be updated to be in the category of
         fields.
 
-        **Use with care!** After putting `\ZZ / n\ZZ` into the category of
-        fields, 
+        **Use with care!** Erroneously putting `\ZZ / n\ZZ` into the category
+        of fields may have consequences that can compromise a whole Sage
+        session, so that a restart will be needed.
 
     EXAMPLES::
 
@@ -354,7 +355,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: F31a is F31b
             True
             sage: F31a.category().is_subcategory(Fields())
-            True           
+            True
 
         Next we compute with the integers modulo `16`.
 

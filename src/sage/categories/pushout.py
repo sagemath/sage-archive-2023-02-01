@@ -3336,12 +3336,18 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         # Finite fields and unramified local extensions may use
         # integers to encode degrees of extensions.
         from sage.rings.integer import Integer
+        kwds_self = dict(self.kwds.items())
+        if 'impl' in kwds_self:
+            del kwds_self['impl']
+        kwds_other = dict(other.kwds.items())
+        if 'impl' in kwds_other:
+            del kwds_other['impl']
         if (isinstance(self.polys[0], Integer)
                 and isinstance(other.polys[0], Integer)
                 and self.embeddings == other.embeddings == [None]
                 and self.structures == other.structures == [None]
-                and self.kwds == other.kwds):
-            return AlgebraicExtensionFunctor([self.polys[0].lcm(other.polys[0])], [None], **self.kwds)
+                and kwds_self == kwds_other):
+            return AlgebraicExtensionFunctor([self.polys[0].lcm(other.polys[0])], [None], **kwds_self)
 
     def __mul__(self, other):
         """

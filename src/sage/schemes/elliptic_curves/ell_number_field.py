@@ -1880,6 +1880,17 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.rank()
             2
 
+        Test that the points of finite order are not imcluded :trac: `13593` ::
+
+            sage: E = EllipticCurve("17a3")
+            sage: K.<t> = NumberField(x^2+3)
+            sage: EK = E.base_extend(K)
+            sage: EK.rank()
+            0
+            sage: EK.gens()
+            []
+
+
         IMPLEMENTATION:
 
         Uses Denis Simon's PARI/GP scripts from
@@ -1887,7 +1898,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
         """
 
         lower,upper,gens = self.simon_two_descent(verbose=verbose,lim1=lim1,lim3=lim3,limtriv=limtriv,maxprob=maxprob,limbigprime=limbigprime)
-        return gens
+        res = [P for P in gens if P.has_infinite_order()]
+        return res
 
 
     def period_lattice(self, embedding):

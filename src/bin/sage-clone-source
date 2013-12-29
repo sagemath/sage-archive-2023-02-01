@@ -28,7 +28,8 @@ git clone "$SRC" "$DST"
 mkdir "$DST/config"
 cd "$SRC"
 for f in config/* configure build/Makefile-auto.in; do
-    cp -p "$f" "$DST/$f"
+    # Don't use cp -p since we want timestamps to be updated
+    cp "$f" "$DST/$f"
 done
 
 cd "$DST"

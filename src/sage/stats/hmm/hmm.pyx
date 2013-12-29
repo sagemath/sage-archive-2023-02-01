@@ -791,7 +791,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
             - a nonnegative int
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: m = hmm.DiscreteHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [[0.1,0.9],[0.9,0.1]], [.2,.8])
             sage: set_random_seed(0)

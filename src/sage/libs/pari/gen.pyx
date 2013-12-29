@@ -5548,7 +5548,7 @@ cdef class gen(sage.structure.element.RingElement):
         """
         Return the greatest common divisor of `x` and `y`.
 
-        If `y` is ``None``, then `x` must be a vector and the
+        If `y` is ``None``, then `x` must be a list or tuple, and the
         greatest common divisor of its components is returned.
 
         EXAMPLES::
@@ -5609,7 +5609,7 @@ cdef class gen(sage.structure.element.RingElement):
         """
         Return the least common multiple of `x` and `y`.
 
-        If `y` is ``None``, then `x` must be a vector and the
+        If `y` is ``None``, then `x` must be a list or tuple, and the
         least common multiple of its components is returned.
 
         EXAMPLES::

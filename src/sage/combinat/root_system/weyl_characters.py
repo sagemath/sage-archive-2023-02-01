@@ -938,6 +938,18 @@ class WeylCharacterRing(CombinatorialFreeModule):
                     ddict[k] = -c*sdict[k]
         return hdict
 
+    def adjoint_representation(self):
+        """
+        Returns the adjoint representation as an element of the WeylCharacterRing".
+
+        EXAMPLES::
+
+            sage: G2=WeylCharacterRing("G2",style="coroots")
+            sage: G2.adjoint_representation()
+            G2(0,1)
+        """
+        return self(self.highest_root())
+
     class Element(CombinatorialFreeModule.Element):
         """
         A class for Weyl characters.
@@ -1829,20 +1841,23 @@ def branch_weyl_character(chi, R, S, rule="default"):
          A5xA1(0,0,0,1,0,0) + A5xA1(1,0,0,0,0,1)
         sage: E6(1,0,0,0,0,0).branch(A2xA2xA2, rule="extended") # (0.7s)
         A2xA2xA2(0,1,1,0,0,0) + A2xA2xA2(1,0,0,0,0,1) + A2xA2xA2(0,0,0,1,1,0)
-        sage: E7=WeylCharacterRing("E7",style="coroots")
-        sage: A7=WeylCharacterRing("A7",style="coroots")
+        sage: E7 = WeylCharacterRing("E7",style="coroots")
+        sage: A7 = WeylCharacterRing("A7",style="coroots")
         sage: E7(1,0,0,0,0,0,0).branch(A7,rule="extended")
          A7(0,0,0,1,0,0,0) + A7(1,0,0,0,0,0,1)
-        sage: D6xA1=WeylCharacterRing("D6xA1",style="coroots")
+        sage: D6xA1 = WeylCharacterRing("D6xA1",style="coroots")
         sage: E7(1,0,0,0,0,0,0).branch(D6xA1,rule="extended")
          D6xA1(0,0,0,0,1,0,1) + D6xA1(0,1,0,0,0,0,0) + D6xA1(0,0,0,0,0,0,2)
-        sage: A5xA2=WeylCharacterRing("A5xA2",style="coroots")
+        sage: A5xA2 =WeylCharacterRing("A5xA2",style="coroots")
         sage: E7(1,0,0,0,0,0,0).branch(A5xA2,rule="extended")
         A5xA2(0,0,0,1,0,1,0) + A5xA2(0,1,0,0,0,0,1) + A5xA2(1,0,0,0,1,0,0) + A5xA2(0,0,0,0,0,1,1)
-        sage: E8=WeylCharacterRing("E8",style="coroots")
-        sage: D8=WeylCharacterRing("D8",style="coroots")
-        sage: E8(0,0,0,0,0,0,0,1).branch(D8,rule="extended") # long time (0.1s)
+        sage: E8 = WeylCharacterRing("E8",style="coroots")
+        sage: D8 = WeylCharacterRing("D8",style="coroots")
+        sage: A8 = WeylCharacterRing("A8",style="coroots")
+        sage: E8(0,0,0,0,0,0,0,1).branch(D8,rule="extended") # long time (0.56s)
          D8(0,0,0,0,0,0,1,0) + D8(0,1,0,0,0,0,0,0)
+        sage: E8(0,0,0,0,0,0,0,1).branch(A8,rule="extended") # long time (0.73s)
+        A8(0,0,0,0,0,1,0,0) + A8(0,0,1,0,0,0,0,0) + A8(1,0,0,0,0,0,0,1)
         sage: F4(1,0,0,0).branch(A1xC3,rule="extended") # (0.05s)
          A1xC3(1,0,0,1) + A1xC3(2,0,0,0) + A1xC3(0,2,0,0)
         sage: G2(0,1).branch(A1xA1, rule="extended")
@@ -1982,7 +1997,9 @@ def branch_weyl_character(chi, R, S, rule="default"):
         \\ E_7 & \to G_2 \times C_3,
         \\ E_7 & \to F_4 \times A_1,
         \\ E_7 & \to A_1 \times A_1,
+        \\ E_7 & \to G_2 \times A_1,
         \\ E_8 & \to G_2 \times F_4.
+        \\ E_8 & \to A2 \times A_1.
         \end{aligned}
 
     These embeddings are described more completely in the thematic tutorial at:
@@ -2035,10 +2052,17 @@ def branch_weyl_character(chi, R, S, rule="default"):
         sage: A1xA1=WeylCharacterRing("A1xA1",style="coroots")
         sage: E7(0,0,0,0,0,0,1).branch(A1xA1,rule="miscellaneous")
         A1xA1(2,5) + A1xA1(4,1) + A1xA1(6,3)
+        sage: G2xA1=WeylCharacterRing("G2xA1",style="coroots")
+        sage: E7(1,0,0,0,0,0,0).branch(G2xA1,rule="miscellaneous")
+        G2xA1(1,0,4) + G2xA1(0,1,0) + G2xA1(2,0,2) + G2xA1(0,0,2)
         sage: E8 = WeylCharacterRing("E8",style="coroots")
         sage: G2xF4 = WeylCharacterRing("G2xF4",style="coroots")
         sage: E8(0,0,0,0,0,0,0,1).branch(G2xF4,rule="miscellaneous") # long time (0.76s)
         G2xF4(1,0,0,0,0,1) + G2xF4(0,1,0,0,0,0) + G2xF4(0,0,1,0,0,0)
+        sage: E8=WeylCharacterRing("E8",style="coroots")
+        sage: A1xA2=WeylCharacterRing("A1xA2",style="coroots")
+        sage: E8(0,0,0,0,0,0,0,1).branch(A1xA2,rule="miscellaneous") # long time (0.76s)
+        A1xA2(2,0,0) + A1xA2(2,2,2) + A1xA2(4,0,3) + A1xA2(4,3,0) + A1xA2(6,1,1) + A1xA2(0,1,1)
 
     .. RUBRIC:: A1 maximal subgroups of exceptional groups
 
@@ -2393,8 +2417,11 @@ class BranchingRule(SageObject):
     def __cmp__(self, other):
         """
         Two branching rules with the same source and target Cartan types are
-        considered equal if they have the same effect on the fundamental
-        representations.
+        considered equal if they are the same as mappings from the weight
+        lattice of the larger group to the smaller. The last example shows
+        that two rules may be different by this criterion yet describe the
+        same branching, if they differ by conjugation by an element of the
+        Weyl group.
 
         EXAMPLES::
 
@@ -2410,6 +2437,13 @@ class BranchingRule(SageObject):
             composite branching rule A3 => (isomorphic) D3 => (symmetric) B2 => (levi) A1
             sage: d == e
             False
+            sage: b1 = BranchingRule("A2","A2",lambda x : [x[2], x[1], x[0]], "long weyl element conjugation")
+            sage: b2 = BranchingRule("A2","A2",lambda x : x, "identity map")
+            sage: b1 == b2
+            False
+            sage: A2 = WeylCharacterRing("A2",style="coroots")
+            sage: [A2(f).branch(A2,rule=b1) == A2(f).branch(A2,rule=b2) for f in A2.fundamental_weights()]
+            [True, True]
         """
         Rspace = RootSystem(self._R).ambient_space()
         Rspace_other = RootSystem(other._R).ambient_space()
@@ -2631,7 +2665,6 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                     return get_branching_rule(Rtype, Stype, rule="levi")
                 except StandardError:
                     pass
-
         raise ValueError("No default rule found (you must specify the rule)")
     elif rule == "identity":
         if Rtype is not Stype:
@@ -2693,7 +2726,9 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                 return BranchingRule(Rtype, Stype, lambda x : [-x[6],-x[5],-x[4],-x[3],-x[2],-x[1],-x[0]], "levi")
             elif Stype == CartanType("E7"):
                 return BranchingRule(Rtype, Stype, lambda x : [x[0],x[1],x[2],x[3],x[4],x[5],(x[6]-x[7])/2,(x[7]-x[6])/2], "levi")
-            raise NotImplementedError("Not implemented yet")
+            elif Stype == CartanType("A7"):
+                return branching_rule("E8","A8","extended")*branching_rule("A8","A7","levi")
+            raise NotImplementedError("Not implemented yet: branch first using extended rule to get non-maximal levis")
         elif Rtype == CartanType("F4"):
             if Stype == CartanType("B3"):
                 return BranchingRule(Rtype, Stype, lambda x : x[1:], "levi")
@@ -2887,33 +2922,32 @@ def get_branching_rule(Rtype, Stype, rule="default"):
         else: # irreducible Stype
             if Rtype[0] == 'B' and Stype[0] == 'D':
                 return BranchingRule(Rtype, Stype, lambda x : x, "extended")
-            elif Rtype[0] == 'E':
-                if r == 7:
-                    if Stype[0] == 'A':
-                        M = matrix(QQ, [(-1, -1, -1, -1, -1, -1, 2, -2), \
-                                        (-1, -1, -1, -1, -1, -1, -2, 2), \
-                                        (-3, 1, 1, 1, 1, 1, 0, 0), \
-                                        (1, -3, 1, 1, 1, 1, 0, 0), \
-                                        (1, 1, -3, 1, 1, 1, 0, 0), \
-                                        (1, 1, 1, -3, 1, 1, 0, 0), \
-                                        (1, 1, 1, 1, -3, 1, 2, 2), \
-                                        (1, 1, 1, 1, 1, -3, 2, 2)])/4
-                        return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "extended")
-                elif r == 8:
-                    if Stype[0] == 'D':
-                        return lambda x : [-x[7],x[6],x[5],x[4],x[3],x[2],x[1],x[0]]
-                    elif Stype[0] == 'A':
-                        M = matrix([(-2, -2, -2, -2, -2, -2, -2, 2), \
-                                    (-5, 1, 1, 1, 1, 1, 1, -1), \
-                                    (1, -5, 1, 1, 1, 1, 1, -1), \
-                                    (1, 1, -5, 1, 1, 1, 1, -1), \
-                                    (1, 1, 1, -5, 1, 1, 1, -1), \
-                                    (1, 1, 1, 1, -5, 1, 1, -1), \
-                                    (1, 1, 1, 1, 1, -5, 1, -1), \
-                                    (1, 1, 1, 1, 1, 1, -5, -1), \
-                                    (1, 1, 1, 1, 1, 1, 1, 5)])/6 # doctest needed
-                        return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "extended")
-            elif Rtype[0] == 'F' and Stype[0] == 'B' and s == r:
+            elif Rtype == CartanType("E7"):
+                if Stype == CartanType("A7"):
+                    M = matrix(QQ, [(-1, -1, -1, -1, -1, -1, 2, -2), \
+                                    (-1, -1, -1, -1, -1, -1, -2, 2), \
+                                    (-3, 1, 1, 1, 1, 1, 0, 0), \
+                                    (1, -3, 1, 1, 1, 1, 0, 0), \
+                                    (1, 1, -3, 1, 1, 1, 0, 0), \
+                                    (1, 1, 1, -3, 1, 1, 0, 0), \
+                                    (1, 1, 1, 1, -3, 1, 2, 2), \
+                                    (1, 1, 1, 1, 1, -3, 2, 2)])/4
+                    return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "extended")
+            elif Rtype == CartanType("E8"):
+                if Stype == CartanType("D8"):
+                    return lambda x : [-x[7],x[6],x[5],x[4],x[3],x[2],x[1],x[0]]
+                elif Stype == CartanType("A8"):
+                    M = matrix([(-2, -2, -2, -2, -2, -2, -2, 2), \
+                                (-5, 1, 1, 1, 1, 1, 1, -1), \
+                                (1, -5, 1, 1, 1, 1, 1, -1), \
+                                (1, 1, -5, 1, 1, 1, 1, -1), \
+                                (1, 1, 1, -5, 1, 1, 1, -1), \
+                                (1, 1, 1, 1, -5, 1, 1, -1), \
+                                (1, 1, 1, 1, 1, -5, 1, -1), \
+                                (1, 1, 1, 1, 1, 1, -5, -1), \
+                                (1, 1, 1, 1, 1, 1, 1, 5)])/6
+                    return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "extended")
+            elif Rtype == CartanType("F4") and Stype == CartanType("B4"):
                 return BranchingRule(Rtype, Stype, lambda x : [-x[0], x[1], x[2], x[3]], "extended")
             elif Rtype == CartanType("G2") and Stype == CartanType("A2"):
                 return BranchingRule(Rtype, Stype, lambda x : [(-x[1]+x[2])/3, (-x[0]+x[1])/3, (x[0]-x[2])/3], "extended")
@@ -3071,13 +3105,30 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                         return [x5-x6,x6-x5,(x4-x5)/2-x6,(x0+x1+x2+x3)/2,(-x0-x1+x2+x3)/2,(-x0+x1-x2+x3)/2]
                     return BranchingRule(Rtype, Stype, f, "miscellaneous")
                 elif stypes == [CartanType("A1"),CartanType("A1")]:
-                    return BranchingRule(Rtype, Stype, lambda x : [x[1]+2*x[2]-2*x[3]-x[4]-2*x[6], -x[1]-2*x[2]+2*x[3]+x[4]+2*x[6], (x[3]+x[4]+x[5]-3*x[6]),-(x[3]+x[4]+x[5]-3*x[6])], "miscellaneous")
+                    return BranchingRule(Rtype, Stype, lambda x : [x[1]+2*x[2]-2*x[3]-x[4]-2*x[6], -x[1]-2*x[2]+2*x[3]+x[4]+2*x[6], \
+                                                                   (x[3]+x[4]+x[5]-3*x[6]),-(x[3]+x[4]+x[5]-3*x[6])], "miscellaneous")
+                elif stypes == [CartanType("G2"),CartanType("A1")]:
+                    f = lambda x : [(x[0]-x[1]+x[2]+3*x[3]+x[4]-x[5]+2*x[6])/2,(-3*x[0]-x[1]-x[2]-x[3]+x[4]+x[5]-2*x[6])/2,(2*x[0]+2*x[1]-2*x[3]-2*x[4])/2, \
+                                    (x[0]+x[1]+x[2]+x[3]+x[4]+x[5]-4*x[6])/2,-(x[0]+x[1]+x[2]+x[3]+x[4]+x[5]-4*x[6])/2]
+                    return BranchingRule(Rtype, Stype, f, "miscellaneous")
+                elif stypes == [CartanType("A1"),CartanType("G2")]:
+                    f = lambda x : [(x[0]+x[1]+x[2]+x[3]+x[4]+x[5]-4*x[6])/2,-(x[0]+x[1]+x[2]+x[3]+x[4]+x[5]-4*x[6])/2, \
+                        (x[0]-x[1]+x[2]+3*x[3]+x[4]-x[5]+2*x[6])/2,(-3*x[0]-x[1]-x[2]-x[3]+x[4]+x[5]-2*x[6])/2,(2*x[0]+2*x[1]-2*x[3]-2*x[4])/2]
+                    return BranchingRule(Rtype, Stype, f, "miscellaneous")
         elif Rtype == CartanType("E8"):
             if Stype.is_compound():
                 if stypes == [CartanType("F4"),CartanType("G2")]:
                     return BranchingRule(Rtype, Stype, lambda x : [x[7], x[6], x[5], x[4], x[1]+x[3], -x[3]+x[2], -x[1]-x[2]], "miscellaneous")
                 elif stypes == [CartanType("G2"),CartanType("F4")]:
                     return BranchingRule(Rtype, Stype, lambda x : [x[1]+x[3], -x[3]+x[2], -x[1]-x[2], x[7], x[6], x[5], x[4]], "miscellaneous")
+                elif stypes == [CartanType("A2"), CartanType("A1")]:
+                    f = lambda x : [(x[0]-x[1]+x[2]+x[3]+3*x[4]+x[5]-x[6]-x[7])/2,(-3*x[0]-x[1]-x[2]-x[3]-x[4]+x[5]+x[6]+x[7])/2,(2*x[0]+2*x[1]-2*x[4]-2*x[5])/2, \
+                                    (x[0]+x[1]+x[2]+x[3]+x[4]+x[5]+x[6]+5*x[7])/2, -(x[0]+x[1]+x[2]+x[3]+x[4]+x[5]+x[6]+5*x[7])/2]
+                    return BranchingRule("E8","A2xA1",f,"miscellaneous")
+                elif stypes == [CartanType("A1"), CartanType("A2")]:
+                    f = lambda x : [(x[0]+x[1]+x[2]+x[3]+x[4]+x[5]+x[6]+5*x[7])/2, -(x[0]+x[1]+x[2]+x[3]+x[4]+x[5]+x[6]+5*x[7])/2,
+                                    (x[0]-x[1]+x[2]+x[3]+3*x[4]+x[5]-x[6]-x[7])/2,(-3*x[0]-x[1]-x[2]-x[3]-x[4]+x[5]+x[6]+x[7])/2,(2*x[0]+2*x[1]-2*x[4]-2*x[5])/2]
+                    return BranchingRule("E8","A1xA2",f,"miscellaneous")
         elif Rtype[0] == 'F':
             if Stype.is_compound():
                 if stypes == [CartanType("A1"),CartanType("G2")]:
@@ -3136,7 +3187,8 @@ def branching_rule_from_plethysm(chi, cartan_type, return_matrix = False):
 
         sage: A2 = WeylCharacterRing("A2")
         sage: A2 = WeylCharacterRing("A2", style="coroots")
-        sage: ad = A2(1,1)
+        sage: ad = A2.adjoint_representation(); ad
+        A2(1,1)
         sage: ad.degree()
         8
         sage: ad.frobenius_schur_indicator()

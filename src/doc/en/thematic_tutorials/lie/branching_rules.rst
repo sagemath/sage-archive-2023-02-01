@@ -660,7 +660,9 @@ Use ``rule="miscellaneous"`` for the following rules.
         \\ E_7 & \to G_2 \times C_3,
         \\ E_7 & \to F_4 \times A_1,
         \\ E_7 & \to A_1 \times A_1,
+        \\ E_7 & \to G_2 \times A_1,
         \\ E_8 & \to G_2 \times F_4.
+        \\ E_8 & \to A_2 \times A_1.
         \end{aligned}
 
 The first rule corresponds to the embedding of `G_2` in
@@ -694,14 +696,26 @@ Rubenthaler [Rubenthaler2008]_ describes the embedding
 and applies it in an interesting way.
 
 The embedding of `A_1\times A_1` into `E_7` is as
-follows. Deleting the 5 node of `E_7` gives the
-root system `A_4\times A_2`, so this is a Levi
-subgroup. We embed `\hbox{SL}(2)` into this Levi
-subgroup via the representation `[4]\otimes[2]`.
-This embeds the first copy of `A_1`. The other
-`A_1` is the connected centralizer. See [Seitz1991]_,
-particularly the proof of (3.12).
+follows. Deleting the 5 node of the `E_7` Dynkin
+diagram gives the Dynkin diagram of `A_4\times A_2`, so this is a Levi
+subgroup. We embed `\hbox{SL}(2)` into this Levi subgroup via the
+representation `[4]\otimes[2]`.  This embeds the first copy of `A_1`. The
+other `A_1` is the connected centralizer. See [Seitz1991]_, particularly the
+proof of (3.12).
 
+The embedding if `G_2\times A_1` into `E_7` is as
+follows. Deleting the 2 node of the `E_7` Dynkin
+diagram gives the `A_6` Dynkin diagram, which is
+the Levi subgroup `\hbox{SL}(7)`. We embed `G_2` into
+`\hbox{SL}(7)` via the irreducible seven-dimensional representation
+of `G_2`. The `A_1` is the centralizer.
+
+The embedding if `A_2\times A_1` into `E_8` is as
+follows. Deleting the 2 node of the `E_8` Dynkin
+diagram gives the `A_7` Dynkin diagram, which is
+the Levi subgroup `\hbox{SL}(8)`. We embed `A_2` into
+`\hbox{SL}(8)` via the irreducible eight-dimensional adjoint
+representation of `\hbox{SL}(2)`. The `A_1` is the centralizer.
 
 Maximal A1 subgroups of Exceptional Groups
 ------------------------------------------

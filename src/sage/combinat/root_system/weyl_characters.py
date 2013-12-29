@@ -2660,34 +2660,48 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                 return BranchingRule(Rtype, Stype, lambda x : x, "levi")
             else:
                 raise ValueError("Rule not found")
-        elif Rtype[0] == 'E':
-            if Stype.is_atomic():
-                if r == 6 and Stype == CartanType("D5"):
-                    return BranchingRule(Rtype, Stype, lambda x : [-x[4],-x[3],-x[2],-x[1],-x[0]], "levi")
-                if r == 7 and Stype == CartanType("D6"):
-                    return BranchingRule(Rtype, Stype, lambda x : [-x[5],-x[4],-x[3],-x[2],-x[1],-x[0]], "levi")
-                if r == 8 and Stype == CartanType("D7"):
-                        return BranchingRule(Rtype, Stype, lambda x : [-x[6],-x[5],-x[4],-x[3],-x[2],-x[1],-x[0]], "levi")
-                if r == 7 and Stype == CartanType("E6"):
-                    return BranchingRule(Rtype, Stype, lambda x : [x[0], x[1], x[2], x[3], x[4], (x[5]+x[6]-x[7])/3, (2*x[5]+5*x[6]+x[7])/6, (-2*x[5]+x[6]+5*x[7])/6], "levi")
-                elif r == 8 and Stype == CartanType("E7"):
-                    return BranchingRule(Rtype, Stype, lambda x : [x[0],x[1],x[2],x[3],x[4],x[5],(x[6]-x[7])/2,(x[7]-x[6])/2], "levi")
-                elif Stype[0] == 'A':
-                    if r == 6:
-                        raise NotImplementedError('A5 Levi is not maximal. Branch to A5xA1 (rule="extended").')
-                    if r == 7:
-                        raise NotImplementedError('A5 Levi is not maximal. Branch to A5xA1 (rule="extended").')
-                    if stypes[0][1] == 7 and stypes[1][1] == 1:
-                            raise NotImplementedError("Not maximal: first branch to E7xA1")
+        elif Rtype == CartanType("E6"):
+            if Stype == CartanType("D5"):
+                return BranchingRule(Rtype, Stype, lambda x : [-x[4],-x[3],-x[2],-x[1],-x[0]], "levi")
+            elif Stype == CartanType("A5"): # non-maximal levi
+                return branching_rule("E6","A5xA1","extended")*branching_rule("A5xA1","A5","proj1")
+            elif Stype.is_compound():
+                if Stype[0] == CartanType("A4") and Stype[1] == CartanType("A1"): # non-maximal levi
+                    return branching_rule("E6","A5xA1","extended")*branching_rule("A5xA1","A4xA1",[branching_rule("A5","A4","levi"),"identity"])
+                if Stype[0] == CartanType("A1") and Stype[1] == CartanType("A4"): # non-maximal levi
+                    return branching_rule("E6","A1xA5","extended")*branching_rule("A1xA5","A1xA4",["identity",branching_rule("A5","A4","levi")])
+                elif Stype[0] == CartanType("A2") and Stype[1] == CartanType("A2") and Stype[2]== CartanType("A1"): # non-maximal levi
+                    return branching_rule("E6","A2xA2xA2","extended")*branching_rule("A2xA2xA2","A2xA2xA2",["identity","identity",branching_rule("A2","A2","automorphic")*branching_rule("A2","A1","levi")])
+                elif Stype[0] == CartanType("A2") and Stype[1] == CartanType("A1") and Stype[2]== CartanType("A2"): # non-maximal levi
+                    raise ValueError("Not implemented: use A2xA2xA1 levi or A2xA2xA2 extended rule. (Non-maximal Levi.)")
+                elif Stype[0] == CartanType("A1") and Stype[1] == CartanType("A2") and Stype[2]== CartanType("A2"): # non-maximal levi
+                    raise ValueError("Not implemented: use A2xA2xA1 levi or A2xA2xA2 extended rule. (Non-maximal Levi.)")
+        elif Rtype == CartanType("E7"):
+            if Stype == CartanType("D6"):
+                return branching_rule("E7","D6xA1","extended")*branching_rule("D6xA1","D6","proj1") # non-maximal levi
+            if Stype == CartanType("E6"):
+                return BranchingRule(Rtype, Stype, lambda x : [x[0], x[1], x[2], x[3], x[4], (x[5]+x[6]-x[7])/3, (2*x[5]+5*x[6]+x[7])/6, (-2*x[5]+x[6]+5*x[7])/6], "levi")
+            elif Stype == CartanType("A6"): # non-maximal levi
+                return branching_rule("E7","A7","extended")*branching_rule("A7","A7","automorphic")*branching_rule("A7","A6","levi")
+            if Stype.is_compound():
+                if Stype[0] == CartanType("A5") and Stype[1] == CartanType("A1"):
+                    return branching_rule("E7","A5xA2","extended")*branching_rule("A5xA2","A5xA1",["identity",branching_rule("A2","A2","automorphic")*branching_rule("A2","A1","levi")])
+                elif Stype[0] == CartanType("A1") and Stype[1] == CartanType("A5"):
+                    raise NotImplementedError("Not implemented: use A5xA1")
+        elif Rtype == CartanType("E8"):
+            if Stype == CartanType("D7"):
+                return BranchingRule(Rtype, Stype, lambda x : [-x[6],-x[5],-x[4],-x[3],-x[2],-x[1],-x[0]], "levi")
+            elif Stype == CartanType("E7"):
+                return BranchingRule(Rtype, Stype, lambda x : [x[0],x[1],x[2],x[3],x[4],x[5],(x[6]-x[7])/2,(x[7]-x[6])/2], "levi")
             raise NotImplementedError("Not implemented yet")
-        elif Rtype[0] == 'F' and s == 3:
-            if Stype[0] == 'B':
+        elif Rtype == CartanType("F4"):
+            if Stype == CartanType("B3"):
                 return BranchingRule(Rtype, Stype, lambda x : x[1:], "levi")
-            elif Stype[0] == 'C':
+            elif Stype == CartanType("C3"):
                 return BranchingRule(Rtype, Stype, lambda x : [x[1]-x[0],x[2]+x[3],x[2]-x[3]], "levi")
             else:
                 raise NotImplementedError("Not implemented yet")
-        elif Rtype[0] == 'G' and Stype[0] == 'A':
+        elif Rtype == CartanType("G2") and Stype == CartanType("A1"):
             return BranchingRule(Rtype, Stype, lambda x : list(x)[1:][:2], "levi")
         else:
             raise ValueError("Rule not found")

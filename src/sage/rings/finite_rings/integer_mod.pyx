@@ -3939,7 +3939,7 @@ cpdef square_root_mod_prime(IntegerMod_abstract a, p=None):
             b *= g*g
         return res
 
-def fast_lucas(mm, IntegerMod_abstract P):
+def lucas_q1(mm, IntegerMod_abstract P):
     """
     Return `V_k(P, 1)` where `V_k` is the Lucas
     function defined by the recursive relation
@@ -3959,8 +3959,8 @@ def fast_lucas(mm, IntegerMod_abstract P):
 
     TESTS::
 
-        sage: from sage.rings.finite_rings.integer_mod import fast_lucas
-        sage: all([fast_lucas(k, a) == BinaryRecurrenceSequence(a, -1, 2, a)(k)
+        sage: from sage.rings.finite_rings.integer_mod import lucas_q1
+        sage: all([lucas_q1(k, a) == BinaryRecurrenceSequence(a, -1, 2, a)(k)
         ....:      for a in Integers(23)
         ....:      for k in range(13)])
         True
@@ -3990,6 +3990,9 @@ def fast_lucas(mm, IntegerMod_abstract P):
         return d1*d2 - P
     else:
         return d1*d1 - two
+
+from sage.misc.superseded import deprecated_function_alias
+fast_lucas = deprecated_function_alias(11802, lucas_q1)
 
 def slow_lucas(k, P, Q=1):
     """

@@ -820,8 +820,7 @@ class GenericGraph(GenericGraph_pyx):
         backend, then the copy is not identic with the graph, even though it is
         considered to be hashable::
 
-            sage: P = Poset(([1,2,3,4], [[1,3],[1,4],[2,3]]),
-            linear_extension=True, facade = False)
+            sage: P = Poset(([1,2,3,4], [[1,3],[1,4],[2,3]]), linear_extension=True, facade = False)
             sage: H = P.hasse_diagram()
             sage: H._immutable = True
             sage: hash(H)   # random

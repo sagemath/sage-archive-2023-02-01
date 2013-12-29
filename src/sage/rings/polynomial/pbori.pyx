@@ -466,7 +466,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
 
         EXAMPLES::
 
-            sage: P.<x0, x1, x2, x3> = BooleanPolynomialRing(4,order='degrevlex(2),degrevlex(2)')
+            sage: P.<x0, x1, x2, x3> = BooleanPolynomialRing(4,order='degneglex(2),degneglex(2)')
             sage: F,O = P.construction()
             sage: O
             Multivariate Polynomial Ring in x0, x1, x2, x3 over Finite Field of size 2

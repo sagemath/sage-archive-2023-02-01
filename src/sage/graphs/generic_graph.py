@@ -717,7 +717,8 @@ class GenericGraph(GenericGraph_pyx):
 
         NOTE:
 
-        If the graph is immutable then the graph itself is returned, rather
+        If the graph uses :class:`~sage.graphs.base.static_sparse_backend.StaticSparseBackend`
+        and uses the _immutable flag, then ``self`` is returned, rather
         than a copy, unless one of the optional arguments is used.
 
         INPUT:
@@ -815,6 +816,19 @@ class GenericGraph(GenericGraph_pyx):
             sage: g is g.copy(data_structure='static_sparse')
             True
 
+        If a graph pretends to be immutable, but does not use the static sparse
+        backend, then the copy is not identic with the graph, even though it is
+        considered to be hashable::
+
+            sage: P = Poset(([1,2,3,4], [[1,3],[1,4],[2,3]]),
+            linear_extension=True, facade = False)
+            sage: H = P.hasse_diagram()
+            sage: H._immutable = True
+            sage: hash(H)   # random
+            -1843552882
+            sage: copy(H) is H
+            False
+
         """
         if sparse != None:
             if data_structure != None:
@@ -823,7 +837,8 @@ class GenericGraph(GenericGraph_pyx):
             data_structure = "sparse" if sparse else "dense"
 
         if getattr(self, '_immutable', False):
-            if implementation=='c_graph' and (data_structure=='static_sparse' or data_structure is None):
+            from sage.graphs.base.static_sparse_backend import StaticSparseBackend
+            if isinstance(self._backend, StaticSparseBackend) and implementation=='c_graph' and (data_structure=='static_sparse' or data_structure is None):
                 return self
 
         if data_structure is None:

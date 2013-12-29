@@ -503,8 +503,7 @@ Graphs are mutable, and thus unusable as dictionary keys, unless
     sage: {G:1}[G]
     Traceback (most recent call last):
     ...
-    TypeError: This graph is mutable, and thus not hashable. Create an
-    immutable copy by `g.copy(data_structure='static_sparse')`
+    TypeError: This graph is mutable, and thus not hashable. Create an immutable copy by `g.copy(data_structure='static_sparse')`
     sage: G_immutable = Graph(G, data_structure="static_sparse")
     sage: G_immutable == G
     True
@@ -699,6 +698,11 @@ class Graph(GenericGraph):
          that the resulting graphs can be used as dictionary keys).
 
        *Only available when* ``implementation == 'c_graph'``
+
+    - ``immutable`` (boolean) -- whether to create a immutable graph. Note that
+      ``immutable=True`` is actually a shortcut for
+      ``data_structure='static_sparse'``. Set to ``False`` by default, only
+      available when ``implementation='c_graph'``
 
     -  ``vertex_labels`` - only for implementation == 'c_graph'.
        Whether to allow any object as a vertex (slower), or
@@ -961,15 +965,14 @@ class Graph(GenericGraph):
           sage: {G:1}[H]
           Traceback (most recent call last):
           ...
-          TypeError: This graph is mutable, and thus not hashable. Create
-          an immutable copy by `g.copy(data_structure='static_sparse')`
+          TypeError: This graph is mutable, and thus not hashable. Create an immutable copy by `g.copy(data_structure='static_sparse')`
 
     If the ``data_structure`` is equal to ``"static_sparse"``, then an
     immutable graph results. Note that this does not use the NetworkX data
     structure::
 
-          sage: G_imm = Graph(g, data_structure="static_sparse")
-          sage: H_imm = Graph(g, data_structure="static_sparse")
+          sage: G_imm = Graph(g, immutable=True)
+          sage: H_imm = Graph(g, immutable=True)
           sage: G_imm == H_imm == G == H
           True
           sage: hasattr(G_imm._backend, "_nxg")
@@ -984,7 +987,7 @@ class Graph(GenericGraph):
                  boundary=None, weighted=None, implementation='c_graph',
                  data_structure="sparse", vertex_labels=True, name=None,
                  multiedges=None, convert_empty_dict_labels_to_None=None,
-                 sparse = True):
+                 sparse=True, immutable=False):
         """
         TESTS::
 
@@ -1078,6 +1081,12 @@ class Graph(GenericGraph):
             sage: G = Graph(boundary=None)
             sage: G._boundary
             []
+
+        Graphs returned when setting ``immutable=False`` are mutable::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g = Graph(g.edges(),immutable=False)
+            sage: g.add_edge("Hey", "Heyyyyyyy")
         """
         GenericGraph.__init__(self)
         msg = ''
@@ -1492,6 +1501,9 @@ class Graph(GenericGraph):
             if multiedges or weighted:
                 if data_structure == "dense":
                     raise RuntimeError("Multiedge and weighted c_graphs must be sparse.")
+
+            if immutable:
+                data_structure = 'static_sparse'
 
             # If the data structure is static_sparse, we first build a graph
             # using the sparse data structure, then reencode the resulting graph

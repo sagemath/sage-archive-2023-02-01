@@ -35,4 +35,7 @@ done
 cd "$DST"
 git remote set-url origin "$SAGE_REPO_ANONYMOUS"
 
+# save space
+git prune
+
 echo "Finished cloning Sage sources"

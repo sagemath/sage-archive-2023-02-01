@@ -1,17 +1,19 @@
 r"""
 Semimonomial transformation group
 
-A semimonomial transformation group over a ring `R` of length `n` is equal to
+The semimonomial transformation group over a ring `R` of length `n` is equal to
 the semidirect product of the monomial transformation group
 (also known as the complete monomial group) and the group of ring automorphisms.
 The multiplication of two elements `(\phi, \pi, \alpha)(\psi, \sigma, \beta)`
 with
 
-- `\phi, \psi \in  {R^*}^n`
-
-- `\pi, \sigma \in S_n` (with `(\pi * \sigma)(i) = \sigma(\pi(i))`)
-
-- `\alpha, \beta \in Aut(R)`
+    - `\phi, \psi \in  {R^*}^n`
+    
+    - `\pi, \sigma \in S_n` (with the multiplication `\pi * \sigma`
+      done from left to right (like in GAP) -- 
+      that is, `(\pi * \sigma)(i) = \sigma(\pi(i))` for all `i`.)
+    
+    - `\alpha, \beta \in Aut(R)`
 
 is defined by
 
@@ -20,9 +22,14 @@ is defined by
     (\phi, \pi, \alpha)(\psi, \sigma, \beta) =
     (\phi * \psi^{\pi, \alpha}, \pi * \sigma, \alpha * \beta)
 
-where
+with
 `\psi^{\pi, \alpha} = (\alpha(\psi_{\pi(0)}), \ldots, \alpha(\psi_{\pi(n-1)}))`
 and an elementwisely defined multiplication of vectors.
+
+.. TODO::
+
+    Up to now, this group is only implemented for finite fields because of
+    the limited support of automorphisms for arbitrary rings.
 
 AUTHORS:
 
@@ -51,7 +58,7 @@ from sage.groups.semimonomial_transformations.semimonomial_transformation import
 
 class SemimonomialTransformationGroup(FiniteGroup, UniqueRepresentation):
     r"""
-    A semimonomial transformation group over a ring `R` of
+    The semimonomial transformation group over a ring `R` of
     degree `n`.
 
     The semimonomial transformation group of degree `n` of `R`
@@ -63,7 +70,9 @@ class SemimonomialTransformationGroup(FiniteGroup, UniqueRepresentation):
 
         - `\phi, \psi \in  {R^*}^n`
 
-        - `\pi, \sigma \in S_n`
+        - `\pi, \sigma \in S_n` (with the multiplication `\pi * \sigma`
+          done from left to right (like in GAP) -- 
+          that is, `(\pi * \sigma)(i) = \sigma(\pi(i))` for all `i`.)
 
         - `\alpha, \beta \in Aut(R)`
 
@@ -74,10 +83,10 @@ class SemimonomialTransformationGroup(FiniteGroup, UniqueRepresentation):
         (\phi, \pi, \alpha)(\psi, \sigma, \beta) =
         (\phi * \psi^{\pi, \alpha}, \pi * \sigma, \alpha * \beta)
 
-    where
+    with
     `\psi^{\pi, \alpha} = (\alpha(\psi_{\pi(0)}), \ldots, \alpha(\psi_{\pi(n-1)}))`
     and an elementwisely defined multiplication of vectors.
-
+    
     .. TODO::
 
         Up to now, this group is only implemented for finite fields because of

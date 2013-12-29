@@ -1,28 +1,32 @@
 r"""
-Elements of a semimonomial transformation group
+Elements of a semimonomial transformation group.
 
-A semimonomial transformation group over a ring `R` of length `n` is equal to
+The semimonomial transformation group over a ring `R` of length `n` is equal to
 the semidirect product of the monomial transformation group
 (also known as the complete monomial group) and the group of ring automorphisms.
 The multiplication of two elements `(\phi, \pi, \alpha)(\psi, \sigma, \beta)`
 with
 
     - `\phi, \psi \in  {R^*}^n`
-
-    - `\pi, \sigma \in S_n`
-
+    
+    - `\pi, \sigma \in S_n` (with the multiplication `\pi * \sigma`
+      done from left to right (like in GAP) -- 
+      that is, `(\pi * \sigma)(i) = \sigma(\pi(i))` for all `i`.)
+    
     - `\alpha, \beta \in Aut(R)`
 
-is defined by:
+is defined by
 
 .. math::
 
-(\phi, \pi, \alpha)(\psi, \sigma, \beta) =
-(\phi * \psi^{\pi, \alpha}, \pi * \sigma, \alpha * \beta)
+    (\phi, \pi, \alpha)(\psi, \sigma, \beta) =
+    (\phi * \psi^{\pi, \alpha}, \pi * \sigma, \alpha * \beta)
 
-where
+with
 `\psi^{\pi, \alpha} = (\alpha(\psi_{\pi(0)}), \ldots, \alpha(\psi_{\pi(n-1)}))`
 and an elementwisely defined multiplication of vectors.
+
+
 
 The parent is
 :class:`~sage.groups.semimonomial_transformations.semimonomial_transformation_group.SemimonomialTransformationGroup`.
@@ -86,7 +90,7 @@ def _inverse(f, R):
 
 cdef class SemimonomialTransformation(MultiplicativeGroupElement):
     r"""
-    An element in a semimonomial group. See
+    An element in the semimonomial group over a ring `R`. See
     :class:`~sage.groups.semimonomial_transformations.semimonomial_transformation_group.SemimonomialTransformationGroup`
     for the details on the multiplication of two elements.
 
@@ -167,6 +171,30 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
 
     cpdef MonoidElement _mul_(left, MonoidElement _right):
         """
+        Multiplication of elements.
+        
+        The multiplication of two elements `(\phi, \pi, \alpha)` and 
+        `(\psi, \sigma, \beta)` with
+        
+            - `\phi, \psi \in  {R^*}^n`
+        
+            - `\pi, \sigma \in S_n`
+        
+            - `\alpha, \beta \in Aut(R)`
+        
+        is defined by:
+        
+        .. math::
+        
+        (\phi, \pi, \alpha)(\psi, \sigma, \beta) =
+        (\phi * \psi^{\pi, \alpha}, \pi * \sigma, \alpha * \beta)
+        
+        with
+        `\psi^{\pi, \alpha} = (\alpha(\psi_{\pi(0)}), \ldots, \alpha(\psi_{\pi(n-1)}))`
+        and an elementwisely defined multiplication of vectors. Furthermore,
+        the multiplication `\pi * \sigma` is done from left to right (like in GAP) -- 
+        that is, `(\pi * \sigma)(i) = \sigma(\pi(i))` for all `i`.
+        
         EXAMPLES::
 
             sage: F.<a> = GF(9)

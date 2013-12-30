@@ -693,9 +693,11 @@ of subgroups
 
        G_2\subset F_4\subset E_6 \subset E_7 \subset E_8
 
-Regarding the branching rule ``E_6\to G_2\times A_2``,
-Rubenthaler [Rubenthaler2008]_ describes the embedding
-and applies it in an interesting way.
+Then the centralizer of `H` is `A_1`, `A_2`, `C_3`, `F_4` (if `H=G_2`) or
+`A_1` (if `G=E_7` and `H=F_4`). This gives us five of the cases.
+Regarding the branching rule ``E_6\to G_2\times A_2``, Rubenthaler
+[Rubenthaler2008]_ describes the embedding and applies it in an interesting
+way.
 
 The embedding of `A_1\times A_1` into `E_7` is as
 follows. Deleting the 5 node of the `E_7` Dynkin

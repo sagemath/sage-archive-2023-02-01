@@ -43,7 +43,6 @@ def unpickle_map(_class, parent, _dict, _slots):
         sage: f = R.hom([x+y,x-y],R)
         sage: f == loads(dumps(f))  # indirect doctest
         True
-
     """
     # should we use slots?
     # from element.pyx
@@ -72,11 +71,11 @@ cdef class Map(Element):
     """
     Basic class for all maps.
 
-    NOTE:
+    .. NOTE::
 
-    The call method is of course not implemented in this base class. This must
-    be done in the sub classes, by overloading ``_call_`` and possibly also
-    ``_call_with_args``.
+        The call method is of course not implemented in this base class. This must
+        be done in the sub classes, by overloading ``_call_`` and possibly also
+        ``_call_with_args``.
 
     EXAMPLES:
 
@@ -142,12 +141,12 @@ cdef class Map(Element):
         """
         Return copy, with strong references to domain and codomain.
 
-        NOTE:
+        .. NOTE::
 
-        To implement copying on sub-classes, do not override this method, but
-        implement cdef methods ``_extra_slots()`` returning a dictionary and
-        ``_update_slots()`` using this dictionary to fill the cdef or cpdef
-        slots of the subclass.
+            To implement copying on sub-classes, do not override this method, but
+            implement cdef methods ``_extra_slots()`` returning a dictionary and
+            ``_update_slots()`` using this dictionary to fill the cdef or cpdef
+            slots of the subclass.
 
         EXAMPLES::
 
@@ -173,7 +172,6 @@ cdef class Map(Element):
             The constant function (...) -> Integer Ring
             sage: psi(3)
             3
-
         """
         cdef Map out = Element.__copy__(self)
         # Element.__copy__ updates the __dict__, but not the slots.
@@ -186,14 +184,14 @@ cdef class Map(Element):
         r"""
         Return the homset containing this map.
 
-        NOTE:
+        .. NOTE::
 
-        The method :meth:`_make_weak_references`, that is used for the maps
-        found by the coercion system, needs to remove the usual strong
-        reference from the coercion map to the homset containing it. As long
-        as the user keeps strong references to domain and codomain to the map,
-        we will be able to reconstruct the homset. However, a strong reference
-        to the coercion map does not prevent the domain from garbage collection!
+            The method :meth:`_make_weak_references`, that is used for the maps
+            found by the coercion system, needs to remove the usual strong
+            reference from the coercion map to the homset containing it. As long
+            as the user keeps strong references to domain and codomain of the map,
+            we will be able to reconstruct the homset. However, a strong reference
+            to the coercion map does not prevent the domain from garbage collection!
 
         EXAMPLES::
 
@@ -212,7 +210,6 @@ cdef class Map(Element):
             Traceback (most recent call last):
             ...
             ValueError: This map is in an invalid state, the domain has been garbage collected
-
         """
         if self._parent is None:
             D = self.domain()
@@ -226,14 +223,14 @@ cdef class Map(Element):
         """
         Only store weak references to domain and codomain of this map.
 
-        NOTE:
+        .. NOTE::
 
-        This method is internally used on maps that are used for coercions
-        or conversions between parents. Without using this method, some objects
-        would stay alive indefinitely as soon as they are involved in a coercion
-        or conversion.
+            This method is internally used on maps that are used for coercions
+            or conversions between parents. Without using this method, some objects
+            would stay alive indefinitely as soon as they are involved in a coercion
+            or conversion.
 
-        .. SEE ALSO::
+        .. SEEALSO::
 
             :meth:`_make_strong_references`
 
@@ -275,7 +272,6 @@ cdef class Map(Element):
             True
             sage: phi
             Defunct map
-
         """
         if not isinstance(self.domain, ConstantFunction):
             return
@@ -286,15 +282,15 @@ cdef class Map(Element):
         """
         Store strong references to domain and codomain of this map.
 
-        NOTE:
+        .. NOTE::
 
-        By default, maps keep strong references to domain and codomain,
-        preventing them thus from garbage collection. However, in Sage's
-        coercion system, these strong references are replaced by weak
-        references, since otherwise some objects would stay alive indefinitely
-        as soon as they are involved in a coercion or conversion.
+            By default, maps keep strong references to domain and codomain,
+            preventing them thus from garbage collection. However, in Sage's
+            coercion system, these strong references are replaced by weak
+            references, since otherwise some objects would stay alive indefinitely
+            as soon as they are involved in a coercion or conversion.
 
-        .. SEE ALSO::
+        .. SEEALSO::
 
             :meth:`_make_weak_references`
 
@@ -344,7 +340,6 @@ cdef class Map(Element):
             Traceback (most recent call last):
             ...
             ValueError: This map is in an invalid state, the domain has been garbage collected
-
         """
         if isinstance(self.domain, ConstantFunction):
             return
@@ -427,7 +422,6 @@ cdef class Map(Element):
         OUTPUT:
 
         The given dictionary, that is updated by the slots '_domain', '_codomain' and '_repr_type_str'.
-
         """
         _slots['_domain'] = self.domain()
         _slots['_codomain'] = self._codomain
@@ -444,7 +438,6 @@ cdef class Map(Element):
             sage: f = Map(Hom(QQ, ZZ, Rings()))
             sage: f._extra_slots_test({"bla": 1})
             {'_codomain': Integer Ring, '_domain': Rational Field, 'bla': 1, '_repr_type_str': None}
-
         """
         return self._extra_slots(_slots)
 
@@ -461,7 +454,6 @@ cdef class Map(Element):
             Generic map:
               From: Rational Field
               To:   Integer Ring
-
         """
         if HAS_DICTIONARY(self):
             _dict = self.__dict__
@@ -473,9 +465,9 @@ cdef class Map(Element):
         """
         Return a string describing the specific type of this map, to be used when printing ``self``.
 
-        NOTE:
+        .. NOTE::
 
-        By default, the string ``"Generic"`` is returned. Subclasses may overload this method.
+            By default, the string ``"Generic"`` is returned. Subclasses may overload this method.
 
         EXAMPLE::
 
@@ -487,7 +479,6 @@ cdef class Map(Element):
             sage: phi = R.hom([x+y,x-y],R)
             sage: print phi._repr_type()
             Ring
-
         """
         if self._repr_type_str is None:
             return "Generic"
@@ -498,7 +489,7 @@ cdef class Map(Element):
         """
         Return a string describing the definition of ``self``, to be used when printing ``self``.
 
-        NOTE:
+        .. NOTE::
 
         By default, the empty string is returned. Subclasses may overload this method.
 
@@ -513,22 +504,21 @@ cdef class Map(Element):
             sage: print f._repr_defn()
             x |--> x + y
             y |--> x - y
-
         """
         return ""
 
     def _repr_(self):
         """
-        NOTE:
+        .. NOTE::
 
-        The string representation is based on the strings returned by
-        :meth:`_repr_defn` and :meth:`_repr_type`, as well as the domain
-        and the codomain.
+            The string representation is based on the strings returned by
+            :meth:`_repr_defn` and :meth:`_repr_type`, as well as the domain
+            and the codomain.
 
-        A map that has been subject to :meth:`_make_weak_references` has
-        probably been used internally in the coercion system. Hence, it
-        may become defunct by garbage collection of the domain. In this
-        case, a warning is printed accordingly.
+            A map that has been subject to :meth:`_make_weak_references` has
+            probably been used internally in the coercion system. Hence, it
+            may become defunct by garbage collection of the domain. In this
+            case, a warning is printed accordingly.
 
         EXAMPLES::
 
@@ -559,7 +549,6 @@ cdef class Map(Element):
             sage: _ = gc.collect()
             sage: phi
             Defunct map
-
         """
         D = self.domain()
         if D is None:
@@ -597,8 +586,8 @@ garbage collection. Please use a copy."""
 
         NOTE:
 
-        This is different from the category of maps to which this
-        map belongs *as an object*.
+            This is different from the category of maps to which this
+            map belongs *as an object*.
 
         EXAMPLES::
 
@@ -743,7 +732,6 @@ garbage collection. Please use a copy."""
             Traceback (most recent call last):
             ...
             TypeError: 2/3 fails to convert into the map's domain Integer Ring, but a `pushforward` method is not properly implemented
-
         """
         P = parent_c(x)
         cdef Parent D = self.domain()
@@ -1226,7 +1214,6 @@ garbage collection. Please use a copy."""
               From: Cyclotomic Field of order 5 and degree 4
               To:   Number Field in a with defining polynomial x^4 - 5*x + 5
               Defn: z |--> 3/11*a^3 + 4/11*a^2 + 9/11*a - 14/11
-
         """
         if self.domain() is not self._codomain and n != 1 and n != -1:
             raise TypeError, "self must be an endomorphism."
@@ -1242,7 +1229,7 @@ garbage collection. Please use a copy."""
 
         NOTE:
 
-        By default, it returns ``None``. You may override it in subclasses.
+            By default, it returns ``None``. You may override it in subclasses.
 
         TEST::
 
@@ -1295,8 +1282,7 @@ cdef class Section(Map):
 
     NOTE:
 
-    Call methods are not implemented for the base class ``Section``.
-
+        Call methods are not implemented for the base class ``Section``.
 
     EXAMPLE::
 
@@ -1312,7 +1298,6 @@ cdef class Section(Map):
         Traceback (most recent call last):
         ...
         NotImplementedError: <type 'sage.categories.map.Section'>
-
     """
 
     def __init__(self, map):
@@ -1396,10 +1381,10 @@ cdef class FormalCompositeMap(Map):
     A formal composite map is formed by two maps, so that the codomain of the
     first map is contained in the domain of the second map.
 
-    NOTE:
+    .. NOTE::
 
-    When calling a composite with additional arguments, these arguments are
-    *only* passed to the second underlying map.
+        When calling a composite with additional arguments, these arguments are
+        *only* passed to the second underlying map.
 
     EXAMPLE::
 
@@ -1445,18 +1430,18 @@ cdef class FormalCompositeMap(Map):
         - ``parent``: a homset
         - ``first``, ``second``: two maps
 
-        NOTE:
+        ..  NOTE::
 
-        The intended use is of course that the codomain of the
-        first map is contained in the domain of the second map,
-        so that the two maps can be composed, and that the
-        composition belongs to ``parent``. However, none of
-        these conditions is verified in the init method.
+            The intended use is of course that the codomain of the
+            first map is contained in the domain of the second map,
+            so that the two maps can be composed, and that the
+            composition belongs to ``parent``. However, none of
+            these conditions is verified in the init method.
 
-        The user is advised to compose two maps ``f`` and ``g``
-        in multiplicative notation, ``g*f``, since this will in
-        some cases return a more efficient map object than a
-        formal composite map.
+            The user is advised to compose two maps ``f`` and ``g``
+            in multiplicative notation, ``g*f``, since this will in
+            some cases return a more efficient map object than a
+            formal composite map.
 
         TEST::
 
@@ -1483,7 +1468,6 @@ cdef class FormalCompositeMap(Map):
                             b |--> x - y
             sage: m(x), m(y)
             (2*x, 2*y)
-
         """
         Map.__init__(self, parent)
         self.__first = first
@@ -1509,7 +1493,6 @@ cdef class FormalCompositeMap(Map):
                       Polynomial base injection morphism:
                       From: Rational Field
                       To:   Multivariate Polynomial Ring in q, t over Rational Field
-
         """
         return FormalCompositeMap(self.parent(), self.__first.__copy__(), self.__second.__copy__())
 
@@ -1528,7 +1511,6 @@ cdef class FormalCompositeMap(Map):
             sage: m = FormalCompositeMap(H,f,g)
             sage: m == loads(dumps(m))    # indirect doctest
             True
-
         """
         self.__first = _slots['__first']
         self.__second = _slots['__second']
@@ -1549,7 +1531,6 @@ cdef class FormalCompositeMap(Map):
             sage: m = FormalCompositeMap(H,f,g)
             sage: m == loads(dumps(m))    # indirect doctest
             True
-
         """
         _slots['__first'] = self.__first
         _slots['__second'] = self.__second
@@ -1568,7 +1549,6 @@ cdef class FormalCompositeMap(Map):
             sage: m = FormalCompositeMap(H,f,g)
             sage: m == loads(dumps(m))
             True
-
         """
         c = cmp(type(self),type(other))
         if c == 0:
@@ -1642,7 +1622,6 @@ cdef class FormalCompositeMap(Map):
             bar called with () {}
             foo called with ('hello world',) {'test': 1}
             2
-
         """
         return self.__second._call_with_args(self.__first._call_(x), args, kwds)
 
@@ -1772,7 +1751,6 @@ cdef class FormalCompositeMap(Map):
             sage: c3 = FormalCompositeMap(Hom(V2,QQ^1,phi2.category_for()),psi2,psi1)
             sage: c3.is_injective()
             False
-
         """
         if self.__first.is_injective():
             if self.__second.is_injective():
@@ -1825,7 +1803,6 @@ cdef class FormalCompositeMap(Map):
             Traceback (most recent call last):
             ...
             NotImplementedError: Not enough information to deduce surjectivity.
-
         """
         if self.__second.is_surjective():
             if self.__first.is_surjective():

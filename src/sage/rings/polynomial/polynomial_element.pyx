@@ -701,7 +701,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             0.0
             sage: list(f._fast_float_())
             ['push 0.0']
-
         """
         from sage.ext.fast_eval import fast_float_arg, fast_float_constant
         var = (<ParentWithGens>self._parent)._names[0]
@@ -1251,7 +1250,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         .. [Coh] H. Cohen, A Course in Computational Algebraic Number
            Theory.  Springer-Verlag, 1993.
-
         """
         if not self.base_ring().is_unique_factorization_domain():
             raise NotImplementedError, "Squarefree decomposition not implemented for " + str(self.parent())
@@ -1379,7 +1377,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             False
             sage: R(0).is_square()
             True
-
         """
         if self.degree() < 0:
             if root:
@@ -1463,7 +1460,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: for _ in range(40):
             ....:     f = R.random_element(degree=4)
             ....:     assert f(f.any_root(K)) == 0
-
         """
         if self.base_ring().is_finite() and self.base_ring().is_field():
             if self.degree() < 0:
@@ -1684,7 +1680,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: division by zero in Finite Field in a of size 5^2
-
         """
         try:
             if not isinstance(right, Element) or right.parent() != self.parent():
@@ -3935,7 +3930,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             0
             sage: a.coeffs()
             []
-
         """
         if a:
             return self.__class__(P,[a], check=False) #P._element_constructor(a, check=False)
@@ -6057,7 +6051,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: c = f.content()
             sage: (f/c).is_squarefree()
             True
-
         """
         if self.parent().base_ring() not in sage.categories.principal_ideal_domains.PrincipalIdealDomains():
             raise NotImplementedError("is_squarefree() is only implemented for polynomials over principal ideal domains")
@@ -7017,7 +7010,6 @@ cdef class ConstantPolynomialSection(Map):
         Traceback (most recent call last):
         ...
         TypeError: not a constant polynomial
-
     """
     cpdef Element _call_(self, x):
         """
@@ -7062,7 +7054,7 @@ cdef class PolynomialBaseringInjection(Morphism):
     We demonstrate that most polynomial ring classes use
     polynomial base injection maps for coercion. They are
     supposed to be the fastest maps for that purpose. See
-    trac ticket #9944. Note that, by :trac:`14711`, coercion
+    :trac:`9944`. Note that, by :trac:`14711`, coercion
     maps should be copied when using them outside of the
     coercion system::
 
@@ -7087,13 +7079,12 @@ cdef class PolynomialBaseringInjection(Morphism):
           From: Rational Field
           To:   Univariate Polynomial Ring in x over Rational Field
 
-    By trac ticket #9944, there are now only very few exceptions::
+    By :trac:`9944`, there are now only very few exceptions::
 
         sage: copy(PolynomialRing(QQ,names=[]).coerce_map_from(QQ))
         Generic morphism:
           From: Rational Field
           To:   Multivariate Polynomial Ring in no variables over Rational Field
-
     """
 
     cdef RingElement _an_element
@@ -7121,7 +7112,6 @@ cdef class PolynomialBaseringInjection(Morphism):
             (1 + 2 + O(2^20))
             sage: (Qp(2).one()*3)*t
             (1 + 2 + O(2^20))*t
-
         """
         assert codomain.base_ring() is domain, "domain must be basering"
         Morphism.__init__(self, domain, codomain)
@@ -7140,7 +7130,6 @@ cdef class PolynomialBaseringInjection(Morphism):
               To:   Univariate Polynomial Ring in x over Rational Field
             sage: phi(3/1)
             3
-
         """
         _slots['_an_element'] = self._an_element
         _slots['_new_constant_poly_'] = self._new_constant_poly_
@@ -7157,7 +7146,6 @@ cdef class PolynomialBaseringInjection(Morphism):
               To:   Univariate Polynomial Ring in x over Rational Field
             sage: phi(3/1)
             3
-
         """
         Morphism._update_slots(self, _slots)
         self._an_element = _slots['_an_element']

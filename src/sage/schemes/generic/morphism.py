@@ -1,7 +1,7 @@
 r"""
 Scheme morphism
 
-.. note::
+.. NOTE::
 
     You should never create the morphisms directy. Instead, use the
     :meth:`~sage.schemes.generic.scheme.hom` and
@@ -158,7 +158,6 @@ class SchemeMorphism(Element):
         Affine Space of dimension 2 over Rational Field
         sage: A2.structure_morphism().category()
         Category of hom sets in Category of Schemes
-
     """
 
     def __init__(self, parent, codomain=None):
@@ -212,7 +211,6 @@ class SchemeMorphism(Element):
             sage: P=PS(0,1)
             sage: f(P,check=False)     # indirect doctest
             (0 : 0)
-
         """
         P = parent(x)
         D = self.domain()
@@ -233,7 +231,7 @@ class SchemeMorphism(Element):
             ##except (TypeError, NotImplementedError):
             ##    raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain())
             # However, this would involve a test whether x.codomain() ==
-            # self. This would trigger a Gröbner basis computation, that
+            # self. This would trigger a Groebner basis computation, that
             # (1) could be slow and (2) could involve an even slower toy
             # implementation, resulting in a warning.
             #
@@ -292,7 +290,6 @@ class SchemeMorphism(Element):
               From: Affine Space of dimension 2 over Rational Field
               To:   Spectrum of Rational Field
               Defn: Structure map
-
         """
         return "Scheme"
 
@@ -378,7 +375,6 @@ class SchemeMorphism(Element):
               From: Spectrum of Rational Field
               To:   Spectrum of Integer Ring
               Defn: Structure map) codomain
-
         """
         if not isinstance(right, SchemeMorphism):
             raise TypeError, "right (=%s) must be a SchemeMorphism to multiply it by %s"%(right, self)
@@ -413,7 +409,6 @@ class SchemeMorphism(Element):
             sage: id^2
             Scheme endomorphism of Affine Space of dimension 2 over Rational Field
               Defn: Identity map
-
         """
         if not self.is_endomorphism():
             raise TypeError, "self must be an endomorphism."
@@ -446,7 +441,6 @@ class SchemeMorphism(Element):
             sage: A2 = AffineSpace(QQ,2)
             sage: A2.structure_morphism().category_for()
             Category of Schemes
-
         """
         return self.parent().homset_category()
 
@@ -544,7 +538,6 @@ class SchemeMorphism(Element):
                       Generic morphism:
                       From: Spectrum of Rational Field
                       To:   Spectrum of Integer Ring
-
         """
         if not isinstance(right, Map):
             right = SetMorphism(right.parent(), right)
@@ -1060,7 +1053,6 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             Closed subscheme of Projective Space of dimension 2 over Integer
             Ring defined by:
               x^2 - y^2, but a `pushforward` method is not properly implemented
-
         """
         # Checks were done in __call__
         P = [f(x._coords) for f in self.defining_polynomials()]
@@ -1150,7 +1142,6 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             Closed subscheme of Projective Space of dimension 2 over
             Integer Ring defined by:
               x^2 - y^2, but a `pushforward` method is not properly implemented
-
         """
         if args:
             check = args[0]

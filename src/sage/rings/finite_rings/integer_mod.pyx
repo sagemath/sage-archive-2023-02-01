@@ -4010,12 +4010,14 @@ def slow_lucas(k, P, Q=1):
 cdef class IntegerMod_hom(Morphism):
     cdef IntegerMod_abstract zero
     cdef NativeIntStruct modulus
+
     def __init__(self, parent):
         Morphism.__init__(self, parent)
         # we need to use element constructor so that we can register both coercions and conversions using these morphisms.
         cdef Parent C = self._codomain
         self.zero = C._element_constructor_(0)
         self.modulus = C._pyx_order
+
     cdef dict _extra_slots(self, dict _slots):
         """
         Helper for pickling and copying.
@@ -4037,8 +4039,7 @@ cdef class IntegerMod_hom(Morphism):
                     in the coercion system. It may become defunct in the next
                     garbage collection. Please use a copy.
 
-        This method helps to implement copying.
-        ::
+        This method helps to implement copying::
 
             sage: psi = copy(phi); psi
             Natural morphism:
@@ -4046,7 +4047,6 @@ cdef class IntegerMod_hom(Morphism):
               To:   Ring of integers modulo 5
             sage: psi(R15(7))
             2
-
         """
         _slots['zero'] = self.zero
         _slots['modulus'] = self.modulus

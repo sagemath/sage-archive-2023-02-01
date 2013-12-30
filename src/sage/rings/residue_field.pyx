@@ -262,7 +262,6 @@ class ResidueFieldFactory(UniqueFactory):
         sage: K.<a> = NumberField(polygen(QQ))
         sage: K.residue_field(K.ideal(3))
         Residue field of Fractional ideal (3)
-
     """
     def create_key_and_extra_args(self, p, names = None, check=True, impl=None, **kwds):
         """
@@ -839,7 +838,6 @@ cdef class ReductionMap(Map):
             True
             sage: r(2 + a) == cr(2 + a)
             True
-
         """
         _slots['_K'] = self._K
         _slots['_F'] = self._F
@@ -868,7 +866,6 @@ cdef class ReductionMap(Map):
             True
             sage: r(2 + a) == cr(2 + a)
             True
-
         """
         Map._update_slots(self, _slots)
         self._K = _slots['_K']
@@ -1126,7 +1123,6 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
             True
             sage: psi(OK.an_element()) == phi(OK.an_element())
             True
-
         """
         _slots['_K'] = self._K
         _slots['_F'] = self._F
@@ -1156,7 +1152,6 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
             True
             sage: psi(OK.an_element()) == phi(OK.an_element())
             True
-
         """
         RingHomomorphism._update_slots(self, _slots)
         self._K = _slots['_K']
@@ -1358,7 +1353,6 @@ cdef class LiftingMap(Section):
             False
             sage: phi(F.0) == psi(F.0)
             True
-
         """
         _slots['_K'] = self._K
         _slots['_F'] = self._F
@@ -1383,7 +1377,6 @@ cdef class LiftingMap(Section):
             False
             sage: phi(F.0) == psi(F.0)
             True
-
         """
         Section._update_slots(self, _slots)
         self._K = _slots['_K']

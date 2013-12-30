@@ -3,9 +3,9 @@ Homomorphisms of rings
 
 We give a large number of examples of ring homomorphisms.
 
-EXAMPLE: Natural inclusion `\ZZ \hookrightarrow \QQ`.
+EXAMPLE:
 
-::
+Natural inclusion `\ZZ \hookrightarrow \QQ`::
 
     sage: H = Hom(ZZ, QQ)
     sage: phi = H([1])
@@ -441,7 +441,6 @@ cdef class RingMap_lift(RingMap):
         sage: Q.0*Q.1   # indirect doctest
         [0 1]
         [0 0]
-
     """
     def __init__(self, R, S):
         """
@@ -480,7 +479,6 @@ cdef class RingMap_lift(RingMap):
             True
             sage: f is g
             False
-
         """
         self.S = _slots['S']
         Morphism._update_slots(self, _slots)
@@ -495,7 +493,6 @@ cdef class RingMap_lift(RingMap):
             sage: g = copy(f)    # indirect doctest
             sage: g(3) == f(3)
             True
-
         """
         _slots['S'] = self.S
         return Morphism._extra_slots(self, _slots)
@@ -696,7 +693,6 @@ cdef class RingHomomorphism(RingMap):
             False
             sage: g(7)
             1
-
         """
         if _slots.has_key('_lift'):
             self._lift = _slots['_lift']
@@ -716,7 +712,6 @@ cdef class RingHomomorphism(RingMap):
             False
             sage: g(7)
             1
-
         """
         try:
             _slots['_lift'] = self._lift
@@ -786,7 +781,6 @@ cdef class RingHomomorphism(RingMap):
 
         - Simon King (2010-05)
         - Francis Clarke (2011-02)
-
         """
         from sage.all import Rings
         if homset.homset_category().is_subcategory(Rings()):
@@ -1123,7 +1117,6 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             False
             sage: g(y)
             x + y
-
         """
         self.__im_gens = _slots['__im_gens']
         RingHomomorphism._update_slots(self, _slots)
@@ -1143,7 +1136,6 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             False
             sage: g(y)
             x + y
-
         """
         _slots['__im_gens'] = self.__im_gens
         return RingHomomorphism._extra_slots(self, _slots)
@@ -1338,8 +1330,6 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
         sage: MPf(M)
         [                    z*t^2 + 58*t - 6*z^2 (-6/7*z^2 - 1/20*z)*t^2 + 29*z^2*t + 6*z]
         [    (-z + 1)*t^2 + 11*z^2 + 15/2*z + 1/4                           (20*z + 1)*t^2]
-
-
     """
     def __init__(self, parent, underlying):
         """
@@ -1367,7 +1357,6 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
             Traceback (most recent call last):
             ...
             ValueError: Domain and codomain must have the same functorial construction over their base rings
-
         """
         RingHomomorphism.__init__(self, parent)
         if not is_RingHomomorphism(underlying):
@@ -1394,7 +1383,6 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
             sage: g = MR.hom(f,MS)
             sage: g.underlying_map() == f
             True
-
         """
         return self.__underlying
 
@@ -1424,7 +1412,6 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
                             y |--> 3*z
             sage: psi(x*t)
             2*z*t
-
         """
         self.__underlying = _slots['__underlying']
         RingHomomorphism._update_slots(self, _slots)
@@ -1455,7 +1442,6 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
                             y |--> 3*z
             sage: psi(x*t)
             2*z*t
-
         """
         _slots['__underlying'] = self.__underlying
         return RingHomomorphism._extra_slots(self, _slots)

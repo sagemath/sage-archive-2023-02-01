@@ -142,9 +142,9 @@ cdef class Action(Functor):
         The set on which the actor acts (it is not necessarily the codomain of
         the action).
 
-        NOTE:
+        .. NOTE::
 
-        Since this is a cdef'ed method, we can only provide an indirect doctest.
+            Since this is a cdef'ed method, we can only provide an indirect doctest.
 
         EXAMPLES::
 
@@ -184,7 +184,6 @@ cdef class Action(Functor):
             Traceback (most recent call last):
             ...
             RuntimeError: This action acted on a set that became garbage collected
-
         """
         S = self.US()
         if S is None:
@@ -271,7 +270,7 @@ cdef class InverseAction(Action):
 
 cdef class PrecomposedAction(Action):
     """
-    A precomposed action first applies given maps, and then applying an action
+    A precomposed action first applies given maps, and then an action
     to the return values of the maps.
 
     EXAMPLES:
@@ -295,7 +294,6 @@ cdef class PrecomposedAction(Action):
         with precomposition on right by Conversion map:
           From: Abelian Group of all Formal Finite Sums over Integer Ring
           To:   Abelian Group of all Formal Finite Sums over Rational Field
-
     """
     def __init__(self, Action action, Map left_precomposition, Map right_precomposition):
         left = action.left_domain()
@@ -364,7 +362,6 @@ cdef class ActionEndomorphism(Morphism):
         Action of 1/2 on Univariate Polynomial Ring in x over Integer Ring
         under Left scalar multiplication by Rational Field on Univariate
         Polynomial Ring in x over Integer Ring.
-
     """
     def __init__(self, Action action, g):
         Morphism.__init__(self, homset.Hom(action.underlying_set(),
@@ -388,7 +385,6 @@ cdef class ActionEndomorphism(Morphism):
             Field on Univariate Polynomial Ring in x over Integer Ring.
             sage: psi(x) == phi(x)
             True
-
         """
         _slots['_action'] = self._action
         _slots['_g'] = self._g
@@ -410,7 +406,6 @@ cdef class ActionEndomorphism(Morphism):
             Field on Univariate Polynomial Ring in x over Integer Ring.
             sage: psi(x) == phi(x)
             True
-
         """
         self._action = _slots['_action']
         self._g = _slots['_g']

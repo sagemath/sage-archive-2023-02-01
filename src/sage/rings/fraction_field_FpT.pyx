@@ -99,7 +99,6 @@ cdef class FpTElement(RingElement):
             sage: R.<t> = FpT(GF(5)['t'])
             sage: R(7)
             2
-
         """
         RingElement.__init__(self, parent)
         if coerce:
@@ -685,7 +684,6 @@ cdef class FpTElement(RingElement):
             []
             sage: [a for a in R.iter(2) if a.is_square() and a.sqrt()^2 != a]
             []
-
         """
         if nmod_poly_is_zero(self._numer):
             return self
@@ -759,7 +757,6 @@ cdef class FpTElement(RingElement):
             (3*t + 6)/(t^6 + 3*t^3 + 4)
             sage: p.sqrt()^2 == p
             True
-
         """
         s = self._sqrt_or_None()
         if s is None:
@@ -1122,7 +1119,6 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: fraction has denominator 0
-
         """
         cdef Polynomial_zmod_flint x = <Polynomial_zmod_flint?> _x
         cdef FpTElement ans = <FpTElement>PY_NEW(FpTElement)
@@ -1252,7 +1248,6 @@ cdef class FpT_Polyring_section(Section):
             Traceback (most recent call last):
             ...
             ValueError: not integral
-
         """
         self.p = _slots['p']
         Section._update_slots(self, _slots)
@@ -1338,7 +1333,6 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
             True
             sage: g(GF(5)(2)) == f(GF(5)(2))
             True
-
         """
         _slots['p'] = self.p
         return RingHomomorphism_coercion._extra_slots(self, _slots)
@@ -1357,7 +1351,6 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
             True
             sage: g(GF(5)(2)) == f(GF(5)(2))
             True
-
         """
         self.p = _slots['p']
         RingHomomorphism_coercion._update_slots(self, _slots)
@@ -1521,7 +1514,6 @@ cdef class FpT_Fp_section(Section):
             4
             sage: g(K(0))
             0
-
         """
         _slots['p'] = self.p
         return Section._extra_slots(self, _slots)
@@ -1549,7 +1541,6 @@ cdef class FpT_Fp_section(Section):
             4
             sage: g(K(0))
             0
-
         """
         self.p = _slots['p']
         Section._update_slots(self, _slots)
@@ -1644,7 +1635,6 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
             True
             sage: g(0) == f(0)
             True
-
         """
         _slots['p'] = self.p
         return RingHomomorphism_coercion._extra_slots(self, _slots)
@@ -1665,7 +1655,6 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
             True
             sage: g(0) == f(0)
             True
-
         """
         self.p = _slots['p']
         RingHomomorphism_coercion._update_slots(self, _slots)

@@ -100,7 +100,6 @@ cdef class pAdicCoercion_ZZ_CR(RingHomomorphism_coercion):
             5 + O(5^21)
             sage: g(5) == f(5)
             True
-
         """
         _slots['prime_pow'] = self.prime_pow
         _slots['_section'] = self._section
@@ -126,7 +125,6 @@ cdef class pAdicCoercion_ZZ_CR(RingHomomorphism_coercion):
             5 + O(5^21)
             sage: g(5) == f(5)
             True
-
         """
         self.prime_pow = _slots['prime_pow']
         self._section = _slots['_section']
@@ -294,7 +292,6 @@ cdef class pAdicCoercion_QQ_CR(RingHomomorphism_coercion):
             1 + 5 + O(5^20)
             sage: g(6) == f(6)
             True
-
         """
         _slots['prime_pow'] = self.prime_pow
         _slots['_section'] = self._section
@@ -320,7 +317,6 @@ cdef class pAdicCoercion_QQ_CR(RingHomomorphism_coercion):
             1 + 5 + O(5^20)
             sage: g(6) == f(6)
             True
-
         """
         self.prime_pow = _slots['prime_pow']
         self._section = _slots['_section']
@@ -488,7 +484,6 @@ cdef class pAdicConvert_QQ_CR(Morphism):
             1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20)
             sage: g(1/6) == f(1/6)
             True
-
         """
         _slots['prime_pow'] = self.prime_pow
         _slots['_section'] = self._section
@@ -508,7 +503,6 @@ cdef class pAdicConvert_QQ_CR(Morphism):
             1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20)
             sage: g(1/6) == f(1/6)
             True
-
         """
         self.prime_pow = _slots['prime_pow']
         self._section = _slots['_section']
@@ -623,7 +617,6 @@ cdef class pAdicCoercion_ZZ_CA(RingHomomorphism_coercion):
             1 + 5 + O(5^20)
             sage: f(6) == g(6)
             True
-
         """
         _slots['prime_pow'] = self.prime_pow
         _slots['_section'] = self._section
@@ -643,7 +636,6 @@ cdef class pAdicCoercion_ZZ_CA(RingHomomorphism_coercion):
             1 + 5 + O(5^20)
             sage: f(6) == g(6)
             True
-
         """
         self.prime_pow = _slots['prime_pow']
         self._section = _slots['_section']
@@ -792,7 +784,6 @@ cdef class pAdicConvert_QQ_CA(Morphism):
             1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20)
             sage: g(1/6) == f(1/6)
             True
-
         """
         _slots['prime_pow'] = self.prime_pow
         try:
@@ -815,7 +806,6 @@ cdef class pAdicConvert_QQ_CA(Morphism):
             1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20)
             sage: g(1/6) == f(1/6)
             True
-
         """
         self.prime_pow = _slots['prime_pow']
         try:
@@ -920,7 +910,6 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism_coercion):
             1 + 5 + O(5^20)
             sage: g(6) == f(6)
             True
-
         """
         _slots['prime_pow'] = self.prime_pow
         _slots['_section'] = self._section
@@ -940,7 +929,6 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism_coercion):
             1 + 5 + O(5^20)
             sage: g(6) == f(6)
             True
-
         """
         self.prime_pow = _slots['prime_pow']
         self._section = _slots['_section']
@@ -1085,7 +1073,6 @@ cdef class pAdicConvert_QQ_FM(Morphism):
             1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20)
             sage: g(1/6) == f(1/6)
             True
-
         """
         _slots['prime_pow'] = self.prime_pow
         try:
@@ -1108,7 +1095,6 @@ cdef class pAdicConvert_QQ_FM(Morphism):
             1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20)
             sage: g(1/6) == f(1/6)
             True
-
         """
         self.prime_pow = _slots['prime_pow']
         try:

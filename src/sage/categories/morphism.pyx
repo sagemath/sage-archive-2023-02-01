@@ -54,15 +54,15 @@ cdef class Morphism(Map):
         """
         Return the string representation of self.
 
-        NOTE:
+        .. NOTE::
 
-        It uses :meth:`_repr_type` and :meth:`_repr_defn`.
+            It uses :meth:`_repr_type` and :meth:`_repr_defn`.
 
-        A morphism that has been subject to
-        :meth:`~sage.categories.map.Map._make_weak_references` has probably
-        been used internally in the coercion system. Hence, it may become
-        defunct by garbage collection of the domain. In this case, a warning
-        is printed accordingly.
+            A morphism that has been subject to
+            :meth:`~sage.categories.map.Map._make_weak_references` has probably
+            been used internally in the coercion system. Hence, it may become
+            defunct by garbage collection of the domain. In this case, a warning
+            is printed accordingly.
 
         EXAMPLES::
 

@@ -229,8 +229,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         the base ring is done by a call morphism.  Note that by :trac:`9138`,
         other algebras usually get a conversion map by multiplication with the
         one element. By :trac:`14711`, coercion and conversion maps should be
-        copied when using them outside of the coercion system.
-        ::
+        copied when using them outside of the coercion system::
 
             sage: MS = MatrixSpace(RDF, 2, 2)
             sage: copy(MS.convert_map_from(RDF))
@@ -288,15 +287,15 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         """
         Make full use of the category framework.
 
-        NOTE:
+        .. NOTE::
 
-        It turns out that it causes a massive speed regression in
-        computations with elliptic curves, if a full initialisation
-        of the category framework of matrix spaces happens at
-        initialisation: The elliptic curves code treats matrix spaces
-        as containers, not as objects of a category. Therefore,
-        making full use of the category framework is now provided by
-        a separate method (see trac ticket #11900).
+            It turns out that it causes a massive speed regression in
+            computations with elliptic curves, if a full initialisation
+            of the category framework of matrix spaces happens at
+            initialisation: The elliptic curves code treats matrix spaces
+            as containers, not as objects of a category. Therefore,
+            making full use of the category framework is now provided by
+            a separate method (see :trac:`11900`).
 
         EXAMPLES::
 
@@ -1484,20 +1483,20 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
         -  Matrix
 
-        NOTES:
+        .. NOTE::
 
-        This method will randomize a proportion of roughly ``density`` entries
-        in a newly allocated zero matrix.
+            This method will randomize a proportion of roughly ``density`` entries
+            in a newly allocated zero matrix.
 
-        By default, if the user sets the value of ``density`` explicitly, this
-        method will enforce that these entries are set to non-zero values.
-        However, if the test for equality with zero in the base ring is too
-        expensive, the user can override this behaviour by passing the
-        argument ``nonzero=False`` to this method.
+            By default, if the user sets the value of ``density`` explicitly, this
+            method will enforce that these entries are set to non-zero values.
+            However, if the test for equality with zero in the base ring is too
+            expensive, the user can override this behaviour by passing the
+            argument ``nonzero=False`` to this method.
 
-        Otherwise, if the user does not set the value of ``density``, the
-        default value is taken to be 1, and the option ``nonzero=False`` is
-        passed to the ``randomize`` method.
+            Otherwise, if the user does not set the value of ``density``, the
+            default value is taken to be 1, and the option ``nonzero=False`` is
+            passed to the ``randomize`` method.
 
         EXAMPLES::
 

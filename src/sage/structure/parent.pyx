@@ -1978,8 +1978,7 @@ cdef class Parent(category_object.CategoryObject):
         EXAMPLES:
 
         By :trac:`14711`, coerce maps should be copied when using
-        outside of the coercion system.
-        ::
+        outside of the coercion system::
 
             sage: K.<a>=NumberField(x^3+x^2+1,embedding=1)
             sage: copy(K.coerce_embedding())

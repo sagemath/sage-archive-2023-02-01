@@ -8112,10 +8112,10 @@ class NumberField_cyclotomic(NumberField_absolute):
         If `K` is not a cyclotomic field, the normal coercion rules for number
         fields are used.
 
-        NOTE:
+        .. NOTE::
 
-        By :trac:`14711`, maps from the coercion system should be copied
-        when using them outside of the coercion system.
+            By :trac:`14711`, maps from the coercion system should be copied
+            when using them outside of the coercion system.
 
         EXAMPLES::
 

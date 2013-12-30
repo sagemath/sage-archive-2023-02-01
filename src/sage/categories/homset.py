@@ -266,7 +266,6 @@ def Hom(X, Y, category=None):
         sage: S = sage.structure.parent.Set_PythonType(float)
         sage: Hom(R, S)
         Set of Morphisms from Set of Python objects of type 'int' to Set of Python objects of type 'float' in Category of sets
-
     """
     # This should use cache_function instead
     # However some special handling is currently needed for
@@ -406,7 +405,6 @@ class Homset(Set_generic):
         sage: E = End(AffineSpace(2, names='x,y'))
         sage: loads(E.dumps()) == E
         True
-
     """
     def __init__(self, X, Y, category=None, base = None, check=True):
         r"""
@@ -444,7 +442,6 @@ class Homset(Set_generic):
             Univariate Polynomial Ring in t over Integer Ring
             sage: f.domain() is f.parent().domain()
             True
-
         """
         self._domain = X
         self._codomain = Y
@@ -468,7 +465,8 @@ class Homset(Set_generic):
             sage: Hom(ZZ^2, QQ, category=Sets())._repr_()
             'Set of Morphisms from Ambient free module of rank 2 over the principal ideal domain Integer Ring to Rational Field in Category of sets'
         """
-        return "Set of Morphisms from %s to %s in %s"%(self._domain, self._codomain, self.__category)
+        return "Set of Morphisms from %s to %s in %s"%(self._domain,
+            self._codomain, self.__category)
 
     def __hash__(self):
         """
@@ -540,7 +538,6 @@ class Homset(Set_generic):
                       Conversion map:
                       From: Univariate Polynomial Ring in t over Integer Ring
                       To:   Univariate Polynomial Ring in t over Rational Field
-
         """
         if self._element_constructor is None:
             from sage.categories.morphism import CallMorphism
@@ -579,7 +576,7 @@ class Homset(Set_generic):
         that (in contrast to what is stated in the following string
         representation) it is safe to use the resulting map, since a composite
         map prevents the codomains of all constituent maps from garbage
-        collection, if there is a strong reference to its domein (which is the
+        collection, if there is a strong reference to its domain (which is the
         case here)::
 
             sage: H(phi)
@@ -608,6 +605,10 @@ class Homset(Set_generic):
                             WARNING: This morphism has apparently been used internally
                             in the coercion system. It may become defunct in the next
                             garbage collection. Please use a copy.
+
+      Also note that making a copy of the resulting map will automatically
+      make strengthened copies of the composed maps::
+
             sage: copy(H(phi))
             Composite map:
               From: Symmetric group of order 4! as a permutation group
@@ -727,7 +728,6 @@ class Homset(Set_generic):
             True
             sage: H1 != H3 != H4 != H1
             True
-
         """
         if not isinstance(other, Homset):
             return cmp(type(self), type(other))
@@ -751,7 +751,6 @@ class Homset(Set_generic):
             True
             sage: f in Hom(ZZ['t'],QQ['t'], CommutativeAdditiveGroups())  # indirect doctest
             False
-
         """
         try:
             return x.parent() == self
@@ -779,7 +778,6 @@ class Homset(Set_generic):
             Traceback (most recent call last):
             ...
             TypeError: Natural coercion morphism from Univariate Polynomial Ring in t over Rational Field to Univariate Polynomial Ring in t over Finite Field of size 3 not defined.
-
         """
         return morphism.FormalCoercionMorphism(self)   # good default in many cases
 
@@ -805,7 +803,6 @@ class Homset(Set_generic):
             Ring Coercion morphism:
               From: Integer Ring
               To:   Rational Field
-
         """
         if self.is_endomorphism_set():
             return morphism.IdentityMorphism(self)
@@ -824,7 +821,6 @@ class Homset(Set_generic):
             Univariate Polynomial Ring in t over Integer Ring
             sage: f.domain() is f.parent().domain()
             True
-
         """
         return self._domain
 
@@ -840,7 +836,6 @@ class Homset(Set_generic):
             Univariate Polynomial Ring in t over Rational Field
             sage: f.codomain() is f.parent().codomain()
             True
-
         """
         return self._codomain
 
@@ -858,7 +853,6 @@ class Homset(Set_generic):
             sage: g = P.hom([2*t])
             sage: g.parent().is_endomorphism_set()
             True
-
         """
         sD = self.domain()
         sC = self.codomain()
@@ -953,7 +947,6 @@ def is_Homset(x):
         False
         sage: is_Homset(f.parent())
         True
-
     """
     return isinstance(x, Homset)
 
@@ -971,7 +964,6 @@ def is_Endset(x):
         sage: g = P.hom([2*t])
         sage: is_Endset(g.parent())
         True
-
     """
     return isinstance(x, Homset) and x.is_endomorphism_set()
 

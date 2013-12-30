@@ -89,7 +89,6 @@ cdef class NumberFieldEmbedding(Morphism):
               Defn: a -> 1.259921049894873?
             sage: g(a)^3
             2.00000000000000?
-
         """
         _slots['_gen_image'] = self._gen_image
         return Morphism._extra_slots(self, _slots)
@@ -116,7 +115,6 @@ cdef class NumberFieldEmbedding(Morphism):
               Defn: a -> 1.259921049894873?
             sage: g(a)^3
             2.00000000000000?
-
         """
         Morphism._update_slots(self, _slots)
         self._gen_image = _slots['_gen_image']
@@ -296,7 +294,7 @@ cdef class EmbeddedNumberFieldConversion(Map):
         minpoly = x.minpoly()
         gen_image = matching_root(minpoly.change_ring(self.codomain()), x, self.ambient_field, 4)
         if gen_image is None:
-            raise ValueError, "No consistent embedding of %s into %s." %(self.domain(), self.codomain())
+            raise ValueError, "No consistent embedding of %s into %s."%(self.domain(), self.codomain())
         return gen_image
 
 

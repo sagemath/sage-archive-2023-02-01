@@ -258,7 +258,6 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         Elliptic Curve defined by y^2 = x^3 + x + 1 over Number Field in a with defining polynomial x^2 - 3
         sage: P.codomain() == P.curve()
         True
-
     """
     def __init__(self, curve, v, check=True):
         """
@@ -517,7 +516,6 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             1
             sage: E(0).order() == 1
             True
-
         """
         if self.is_zero():
             return rings.Integer(1)
@@ -835,8 +833,6 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             {(0 : 1 : 0), (1 : 0 : 1)}
             sage: Set([2*T for T in tor])
             {(0 : 1 : 0), (1 : 0 : 1)}
-
-
         """
         # Coerce the input m to an integer
         m = rings.Integer(m)

@@ -165,7 +165,6 @@ cdef class NamedConvertMap(Map):
             1/4*t^2 + 1
             sage: psi(t^2/4+1) == phi(t^2/4+1)
             True
-
         """
         _slots['method_name'] = self.method_name
         _slots['_force_use'] = self._force_use
@@ -192,7 +191,6 @@ cdef class NamedConvertMap(Map):
             1/4*t^2 + 1
             sage: psi(t^2/4+1) == phi(t^2/4+1)
             True
-
         """
         self.method_name = _slots['method_name']
         self._force_use = _slots['_force_use']
@@ -315,7 +313,6 @@ cdef class CallableConvertMap(Map):
             True
             sage: f(3) == g(3)
             True
-
         """
         _slots['_parent_as_first_arg'] = self._parent_as_first_arg
         _slots['_func'] = self._func
@@ -335,7 +332,6 @@ cdef class CallableConvertMap(Map):
             True
             sage: f(3) == g(3)
             True
-
         """
         self._func = _slots['_func']
         self._parent_as_first_arg = _slots['_parent_as_first_arg']
@@ -583,7 +579,6 @@ cdef class TryMap(Map):
             True
             sage: map(0) == cmap(0)
             True
-
         """
         _slots['_map_p'] = self._map_p
         _slots['_map_b'] = self._map_b
@@ -606,7 +601,6 @@ cdef class TryMap(Map):
             True
             sage: map(0) == cmap(0)
             True
-
         """
         self._map_p = _slots['_map_p']
         self._map_b = _slots['_map_b']

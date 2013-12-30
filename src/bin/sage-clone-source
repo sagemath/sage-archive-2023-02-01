@@ -20,7 +20,7 @@ SRC="$1"
 DST="$2"
 
 rm -rf "$DST"
-mkdir "$DST"
+mkdir -p "$DST"
 
 git clone "$SRC" "$DST"
 

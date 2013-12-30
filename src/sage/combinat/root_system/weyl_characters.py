@@ -2052,6 +2052,9 @@ def branch_weyl_character(chi, R, S, rule="default"):
         sage: A1xA1=WeylCharacterRing("A1xA1",style="coroots")
         sage: E7(0,0,0,0,0,0,1).branch(A1xA1,rule="miscellaneous")
         A1xA1(2,5) + A1xA1(4,1) + A1xA1(6,3)
+        sage: A2=WeylCharacterRing("A2",style="coroots")
+        sage: E7(0,0,0,0,0,0,1).branch(A2,rule="miscellaneous")
+        A2(0,6) + A2(6,0)
         sage: G2xA1=WeylCharacterRing("G2xA1",style="coroots")
         sage: E7(1,0,0,0,0,0,0).branch(G2xA1,rule="miscellaneous")
         G2xA1(1,0,4) + G2xA1(0,1,0) + G2xA1(2,0,2) + G2xA1(0,0,2)
@@ -3115,6 +3118,8 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                     f = lambda x : [(x[0]+x[1]+x[2]+x[3]+x[4]+x[5]-4*x[6])/2,-(x[0]+x[1]+x[2]+x[3]+x[4]+x[5]-4*x[6])/2, \
                         (x[0]-x[1]+x[2]+3*x[3]+x[4]-x[5]+2*x[6])/2,(-3*x[0]-x[1]-x[2]-x[3]+x[4]+x[5]-2*x[6])/2,(2*x[0]+2*x[1]-2*x[3]-2*x[4])/2]
                     return BranchingRule(Rtype, Stype, f, "miscellaneous")
+            elif Stype == CartanType("A2"):
+                return BranchingRule(Rtype, Stype, lambda x : (x[1]+x[2]+2*x[4]-4*x[6],-2*x[1]-x[2]+x[3]-2*x[4]+2*x[5],x[1]-x[3]-2*x[5]+4*x[6]), "miscellaneous")
         elif Rtype == CartanType("E8"):
             if Stype.is_compound():
                 if stypes == [CartanType("F4"),CartanType("G2")]:

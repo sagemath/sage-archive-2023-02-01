@@ -661,6 +661,7 @@ Use ``rule="miscellaneous"`` for the following rules.
         \\ E_7 & \to F_4 \times A_1,
         \\ E_7 & \to A_1 \times A_1,
         \\ E_7 & \to G_2 \times A_1,
+        \\ E_7 & \to A_2
         \\ E_8 & \to G_2 \times F_4.
         \\ E_8 & \to A_2 \times A_1.
         \end{aligned}
@@ -716,6 +717,12 @@ diagram gives the `A_7` Dynkin diagram, which is
 the Levi subgroup `\hbox{SL}(8)`. We embed `A_2` into
 `\hbox{SL}(8)` via the irreducible eight-dimensional adjoint
 representation of `\hbox{SL}(2)`. The `A_1` is the centralizer.
+
+The embedding `A_2` into `E_7` is proved in
+[Seitz1991]_ (5.8). In particular, he computes the
+embedding of the `\hbox{SL}(3)` torus in the
+`E_7` torus, which is what is needed to implement
+the branching rule.
 
 Maximal A1 subgroups of Exceptional Groups
 ------------------------------------------

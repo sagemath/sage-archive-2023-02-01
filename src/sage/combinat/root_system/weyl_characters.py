@@ -2000,14 +2000,16 @@ def branch_weyl_character(chi, R, S, rule="default"):
         \\ E_7 & \to G_2 \times A_1,
         \\ E_8 & \to G_2 \times F_4.
         \\ E_8 & \to A2 \times A_1.
+        \\ E_8 & \to B2.
         \end{aligned}
 
-    These embeddings are described more completely in the thematic tutorial at:
-
-    http://www.sagemath.org/doc/thematic_tutorials/lie.html
-
-    There are other more obvious embeddings of `A_2` and `G_2` into `E_6`.
-    The embeddings in question may be characterized by the condition that the
+    Except for those embeddings available by ``rule="extended"``, these
+    are the only embeddings of these groups as maximal subgroups.
+    There may be other embeddings besides these. For example,
+    there are other more obvious embeddings of `A_2` and `G_2` into `E_6`.
+    However the embeddings in this table are characterized as embeddings
+    as maximal subgroups. Regarding the embeddings of `A_2` and `G_2` in
+    `E_6`, the embeddings in question may be characterized by the condition that the
     27-dimensional representations of `E_6` restrict irreducibly to `A_2` or
     `G_2`. Since `G_2` has a subgroup isomorphic to `A_2`, it is worth
     mentioning that the composite branching rules:
@@ -2016,6 +2018,12 @@ def branch_weyl_character(chi, R, S, rule="default"):
         branching_rule("E6","A2","miscellaneous")
 
     are distinct.
+
+    These embeddings are described more completely (with references
+    to the literature) in the thematic tutorial at:
+
+    http://www.sagemath.org/doc/thematic_tutorials/lie.html
+
 
     EXAMPLES::
 
@@ -2066,6 +2074,9 @@ def branch_weyl_character(chi, R, S, rule="default"):
         sage: A1xA2=WeylCharacterRing("A1xA2",style="coroots")
         sage: E8(0,0,0,0,0,0,0,1).branch(A1xA2,rule="miscellaneous") # long time (0.76s)
         A1xA2(2,0,0) + A1xA2(2,2,2) + A1xA2(4,0,3) + A1xA2(4,3,0) + A1xA2(6,1,1) + A1xA2(0,1,1)
+        sage: B2=WeylCharacterRing("B2",style="coroots")
+        sage: E8(0,0,0,0,0,0,0,1).branch(B2,rule="miscellaneous") # long time (0.53s)
+        B2(0,2) + B2(0,6) + B2(3,2)
 
     .. RUBRIC:: A1 maximal subgroups of exceptional groups
 
@@ -2189,10 +2200,14 @@ def branch_weyl_character(chi, R, S, rule="default"):
 
     EXAMPLES::
 
+        sage: B2 = WeylCharacterRing("B2")
+        sage: C2 = WeylCharacterRing("C2")
         sage: [B2(x).branch(C2, rule="isomorphic") for x in B2.fundamental_weights()]
         [C2(1,1), C2(1,0)]
         sage: [C2(x).branch(B2, rule="isomorphic") for x in C2.fundamental_weights()]
         [B2(1/2,1/2), B2(1,0)]
+        sage: D3 = WeylCharacterRing("D3")
+        sage: A3 = WeylCharacterRing("A3")
         sage: [A3(x).branch(D3,rule="isomorphic") for x in A3.fundamental_weights()]
         [D3(1/2,1/2,1/2), D3(1,0,0), D3(1/2,1/2,-1/2)]
         sage: [D3(x).branch(A3,rule="isomorphic") for x in D3.fundamental_weights()]
@@ -3134,12 +3149,15 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                     f = lambda x : [(x[0]+x[1]+x[2]+x[3]+x[4]+x[5]+x[6]+5*x[7])/2, -(x[0]+x[1]+x[2]+x[3]+x[4]+x[5]+x[6]+5*x[7])/2,
                                     (x[0]-x[1]+x[2]+x[3]+3*x[4]+x[5]-x[6]-x[7])/2,(-3*x[0]-x[1]-x[2]-x[3]-x[4]+x[5]+x[6]+x[7])/2,(2*x[0]+2*x[1]-2*x[4]-2*x[5])/2]
                     return BranchingRule("E8","A1xA2",f,"miscellaneous")
+            elif Stype == CartanType("B2"):
+                   return BranchingRule("E8", "B2", lambda x : [-x[0] + x[2] + x[5] + 3*x[7], 2*x[0] - x[2] + x[3] + x[4] + 2*x[6] + x[7]], "miscellaneous")
         elif Rtype[0] == 'F':
             if Stype.is_compound():
                 if stypes == [CartanType("A1"),CartanType("G2")]:
                     return BranchingRule("F4","A1xG2", lambda x : [ 2*x[0], -2*x[0], x[1]+x[2], -x[2]+x[3], -x[1]-x[3]], "miscellaneous")
                 elif stypes == [CartanType("G2"),CartanType("A1")]:
                     return BranchingRule("F4","G2xA1", lambda x : [x[1]+x[2], -x[2]+x[3], -x[1]-x[3], 2*x[0], -2*x[0]], "miscellaneous")
+        raise ValueError("Rule not found")
     elif rule in ["i","ii","iii","iv","v","vi","vii"]:
         if Stype != CartanType("A1"):
             raise ValueError("Wrong target Cartan Type for rule %s"%rule)

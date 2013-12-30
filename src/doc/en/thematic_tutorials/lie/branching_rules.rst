@@ -35,10 +35,6 @@ This approach to computing branching rules has a limitation: the
 character must fit into memory and be computable by Sage's
 internal code in real time.
 
-It is believed that Sage has enough built-in branching rules to handle all
-cases where `G` is a classical group, that is, type A, B, C or D. It also has
-many built-in cases where `G` is an exceptional group.
-
 It is sufficient to consider the case where `H` is a maximal
 subgroup of `G`, since if this is known then one may branch down
 successively through a series of subgroups, each maximal in its
@@ -647,7 +643,11 @@ representation is orthogonal, and factors through `SO(14)`, that is, `D7`.
 Miscellaneous other subgroups
 -----------------------------
 
-Use ``rule="miscellaneous"`` for the following rules.
+Use ``rule="miscellaneous"`` for the following rules. Every maximal
+subgroup `H` of an exceptional group `G` are either among these,
+or the five `A_1` subgroups described in the next section,
+or (if `G` and `H` have the same rank) is available using
+``rule="extended"``.
 
     .. MATH::
 
@@ -664,6 +664,7 @@ Use ``rule="miscellaneous"`` for the following rules.
         \\ E_7 & \to A_2
         \\ E_8 & \to G_2 \times F_4.
         \\ E_8 & \to A_2 \times A_1.
+        \\ E_8 & \to B_2
         \end{aligned}
 
 The first rule corresponds to the embedding of `G_2` in
@@ -722,7 +723,11 @@ The embedding `A_2` into `E_7` is proved in
 [Seitz1991]_ (5.8). In particular, he computes the
 embedding of the `\hbox{SL}(3)` torus in the
 `E_7` torus, which is what is needed to implement
-the branching rule.
+the branching rule. The embedding of `B_2` into
+`E_8` is also constructed in [Seitz1991]_ (6.7).
+The embedding of the `B_2` Cartan subalgebra,
+needed to implement the branching rule, is
+easily deduced from (10) on page 111.
 
 Maximal A1 subgroups of Exceptional Groups
 ------------------------------------------
@@ -790,28 +795,17 @@ Thus::
 Writing your own branching rules
 --------------------------------
 
-Sage has many built-in branching rules, enough to handle most
-cases. We believe there are only a few branching rules that
-cannot be created by using the tools you already have, all
-of which are related to the exceptional groups. Of all the
-branching rules listed in [McKayPatera1981]_ the only ones
-that are not implemented or constructible by plethysms
-are given by the following table. See [Seitz1991]_ for 
-descriptions of these subgroups.
+Sage has many built-in branching rules. Indeed, at least
+up to rank eight (including all the exceptional groups)
+branching rules to all maximal subgroups are implemented
+as built in rules, except for a few obtainable using
+``branching_rule_from_plethysm``. This means that
+all the rules in [McKayPatera1981]_ are available in Sage.
 
-    .. MATH::
-
-      \begin{aligned}
-      \\ E_7 &\to A_2, A_1\times A_1, A_1\times G_2
-      \\ E_8 & \to C_2 , A_1\times A_2
-      \end{aligned}
-
-If you need a case such as one of these where there
-is no existing rule, you may code it by hand. As we
-have already explained, the branching rule is a
-function from the weight lattice of ``G`` to the
-weight lattice of ``H``, and if you supply this you
-can write your own branching rules.
+Still in this section we are including instructions for coding a rule by
+hand. As we have already explained, the branching rule is a function from the
+weight lattice of ``G`` to the weight lattice of ``H``, and if you supply this
+you can write your own branching rules.
 
 As an example, let us consider how to implement the branching rule
 ``A3 -> C2``.  Here ``H = C2 = Sp(4)`` embedded as a subgroup in

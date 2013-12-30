@@ -1416,7 +1416,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         -  ``list`` - list of points of infinite order in `E(Q)`.
 
-        To obtain a list of generators, use E.gens() after this.
+        To obtain a list of generators, use E.gens().
 
 
         IMPLEMENTATION: Uses Denis Simon's PARI/GP scripts from

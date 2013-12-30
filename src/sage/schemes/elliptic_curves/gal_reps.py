@@ -2,7 +2,7 @@
 r"""
 Galois representations attached to elliptic curves
 
-Given an elliptic curve `E` over a number field `K`
+Given an elliptic curve `E` over `\QQ`
 and a rational prime number `p`, the `p^n`-torsion
 `E[p^n]` points of `E` is a representation of the
 absolute Galois group `G_K` of `K`. As `n` varies
@@ -11,7 +11,6 @@ a representation of `G_K` on a free `\ZZ_p`-module
 of rank `2`. As `p` varies the representations
 are compatible.
 
-So far only the case  `K =\QQ` is implemented.
 Currently sage can decide whether the Galois module
 `E[p]` is reducible, i.e. if `E` admits an isogeny
 of degree `p`, and whether the image of
@@ -105,7 +104,10 @@ REFERENCES:
     associated to non-CM elliptic curves.
     With an appendix by Ernst Kani.
     Canad. Math. Bull. 48 (2005), no. 1, 16--31.
-
+.. [Zy] David Zywina,
+    On the surjectivity of mod ell representations
+    associates to elliptic curves.
+    Preprint.
 
 AUTHORS:
 
@@ -420,8 +422,8 @@ class GaloisRepresentation(SageObject):
             raise ValueError('p (=%s) must be prime' % p)
         # we do is_surjective first, since this is
         # much easier than computing isogeny_class
-        t = self.is_surjective(p)
-        if t == True:
+        t = self._is_surjective(p, A=-1)
+        if t:
             self.__is_reducible[p] = False
             return False  # definitely not reducible
         isogeny_matrix = self.E.isogeny_class(use_tuple=False).matrix(fill=True)
@@ -502,11 +504,9 @@ class GaloisRepresentation(SageObject):
         OUTPUT:
 
         - boolean. True if the mod-p representation is surjective
-          and False if (probably) not
+          and False if not.
 
-        .. note::
-
-           The answer is cached.
+        The answer is cached.
 
         EXAMPLES::
 
@@ -525,23 +525,34 @@ class GaloisRepresentation(SageObject):
             True
             sage: rho.is_surjective(11)
             False
+
             sage: rho = EllipticCurve('121d1').galois_representation()
             sage: rho.is_surjective(5)
             False
             sage: rho.is_surjective(11)
             True
 
+        Here is a case, in which the algorithm does not return an answer::
+
+            sage: rho = EllipticCurve([0,0,1,2580,549326]).galois_representation()
+            sage: rho.is_surjective(7)
+
+        In these cases, one can use image_type to get more information about the image::
+
+            sage: rho.image_type(7)
+            'The image is contained in the normalizer of a split Cartan group.'
+
+
         REMARKS:
 
         1. If `p \geq 5` then the mod-p representation is
            surjective if and only if the p-adic representation is
            surjective. When `p = 2, 3` there are
-           counterexamples. See a paper of Elkies for more
-           details when `p=3`.
+           counterexamples. See a paper of Dokchitsers and Elkies
+           for more details.
 
-        2. When `p = 2, 3` this function always gives the correct result
-           and it does not depend on ``A``, since it explicitly determines the
-           `p`-division polynomial.
+        2. For the primes `p=2` and 3, this will always answer either
+           True or False. For larger primes it might give None.
 
         """
         if not arith.is_prime(p):
@@ -564,6 +575,10 @@ class GaloisRepresentation(SageObject):
         r"""
         helper function for ``is_surjective``
 
+        The value of `A` is as before, except that
+        `A=-1` is a special code to stop before
+        testing reducibility (to avoid an infinite loop).
+
         EXAMPLES::
 
             sage: rho = EllipticCurve('37b').galois_representation()
@@ -575,7 +590,6 @@ class GaloisRepresentation(SageObject):
             sage: E = EllipticCurve('648a1')
             sage: rho = E.galois_representation()
             sage: rho._is_surjective(5,1000)
-            False
 
         """
         T = self.E.torsion_subgroup().order()
@@ -584,11 +598,12 @@ class GaloisRepresentation(SageObject):
             self.__image_type[p] = "The image is meta-cyclic inside a Borel subgroup as there is a %s-torsion point on the curve."%p
             return False
 
+        R = rings.PolynomialRing(self.E.base_ring(), 'x')
+        x = R.gen()
+
         if p == 2:
             # E is isomorphic to  [0,b2,0,8*b4,16*b6]
             b2,b4,b6,b8=self.E.b_invariants()
-            R = rings.PolynomialRing(self.E.base_ring(), 'x')
-            x = R.gen()
             f = x**3 + b2*x**2 + 8*b4*x + 16*b6
             if not f.is_irreducible():
                 if len(f.roots()) > 2:
@@ -665,6 +680,8 @@ class GaloisRepresentation(SageObject):
         if self.E.has_cm():
             return False   #, "CM"
 
+        # Now we try to prove that the rep IS surjective.
+
         Np = self.E.conductor() * p
         signs = []
         # there was a bug in the original implementation,
@@ -675,7 +692,11 @@ class GaloisRepresentation(SageObject):
         ell = 4
         k = GF(p)
 
-        while ell < A:
+        if A == -1:
+            Am = 1000
+        else:
+            Am = A
+        while ell < Am:
             ell = arith.next_prime(ell)
             if Np % ell != 0:
                 a_ell = self.E.ap(ell)
@@ -691,15 +712,22 @@ class GaloisRepresentation(SageObject):
                         self.__image_type[p] = "The image is all of GL_2(F_%s)."%p
                         return True   #,None
 
-        return False    #, signs
+        if A == -1: # we came in from is reducible. Now go out with False
+            return False
+
+        if self.is_reducible(p):
+            return False  #, Borel
+
+        # if we reach this, then we do not know if it is surjective. Most likely
+        # not but we can't be certain. See trac 11271.
+        misc.verbose("We can not conclude if the representation is surjective or not. Increasing the parameter A may help.")
+        return None
 
     def non_surjective(self, A=1000):
         r"""
         Returns a list of primes p such that the mod-p representation
-        *might* not be surjective (this list
-        usually contains 2, because of shortcomings of the algorithm). If `p`
-        is not in the returned list, then the mod-p representation
-        is provably surjective.
+        *might* not be surjective. If `p` is not in the returned list,
+        then the mod-p representation is provably surjective.
 
         By a theorem of Serre, there are only finitely
         many primes in this list, except when the curve has
@@ -710,7 +738,8 @@ class GaloisRepresentation(SageObject):
 
         INPUT:
 
-        -  ``A`` - an integer
+        - ``A`` - an integer (default 1000). By increasing this parameter
+          the resulting set might get smaller.
 
         OUTPUT:
 
@@ -791,6 +820,7 @@ class GaloisRepresentation(SageObject):
         while p <= C:
             t = self.is_surjective(p, A=A)
             misc.verbose("(%s,%s)"%(p,t))
+            # both False and None will be appended here.
             if not t:
                 B.append(p)
             p = arith.next_prime(p)
@@ -831,6 +861,7 @@ class GaloisRepresentation(SageObject):
 
             sage: E = EllipticCurve([0,0,0,-56,4848])
             sage: rho = E.galois_representation()
+
             sage: rho.image_type(5)
             'The image is contained in the normalizer of a split Cartan group.'
 

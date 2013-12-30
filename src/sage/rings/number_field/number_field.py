@@ -6485,7 +6485,7 @@ class NumberField_absolute(NumberField_generic):
             if self.coerce_embedding() is not None:
                 embedding = self.coerce_embedding()(a)
             # trac 7695 add a _ to prevent zeta70 etc.
-            if isinstance(self,NumberField_cyclotomic) and name[0:4] == 'zeta':
+            if name[-1].isdigit():
                 new_name= name+ '_' + str(i)
             else:
                 new_name = name + str(i)
@@ -7319,10 +7319,10 @@ class NumberField_absolute(NumberField_generic):
             sage: L, L_into_K, _ = K.subfields(4)[0]; L
             Number Field in z0 with defining polynomial x^4 + 16
             sage: F, F_into_L, _ = L.subfields(2)[0]; F
-            Number Field in z00 with defining polynomial x^2 + 64
+            Number Field in z0_0 with defining polynomial x^2 + 64
 
             sage: L_over_F = L.relativize(F_into_L, 'c'); L_over_F
-            Number Field in c0 with defining polynomial x^2 - 1/2*z00 over its base field
+            Number Field in c0 with defining polynomial x^2 - 1/2*z0_0 over its base field
             sage: L_over_F_into_L, _ = L_over_F.structure()
 
             sage: K_over_rel = K.relativize(L_into_K * L_over_F_into_L, 'a'); K_over_rel
@@ -7335,7 +7335,7 @@ class NumberField_absolute(NumberField_generic):
               To:   Cyclotomic Field of order 16 and degree 8
               Defn: a0 |--> z
                     c0 |--> 2*z^2
-                    z00 |--> 8*z^4, Ring morphism:
+                    z0_0 |--> 8*z^4, Ring morphism:
               From: Cyclotomic Field of order 16 and degree 8
               To:   Number Field in a0 with defining polynomial x^2 - 1/2*c0 over its base field
               Defn: z |--> a0)

@@ -6445,6 +6445,14 @@ class NumberField_absolute(NumberField_generic):
             sage: K.<a> = NumberField(x^4 - 23, embedding=-50)
             sage: L2, _, _ = K.subfields(2)[0]; L2, CDF(L2.gen()) # indirect doctest
             (Number Field in a0 with defining polynomial x^2 - 23, -4.79583152331)
+
+        Test for :trac: `7695`::
+
+            sage: F = CyclotomicField(7)
+            sage: K = F.subfields(3)[0][0]
+            sage: K
+            Number Field in zeta7_0 with defining polynomial x^3 + x^2 - 2*x - 1
+
         """
         if name is None:
             name = self.variable_names()
@@ -6476,7 +6484,12 @@ class NumberField_absolute(NumberField_generic):
             a = self(elts[i])
             if self.coerce_embedding() is not None:
                 embedding = self.coerce_embedding()(a)
-            K = NumberField(f, names=name + str(i), embedding=embedding)
+            # trac 7695 add a _ to prevent zeta70 etc.
+            if isinstance(self,NumberField_cyclotomic) and name[0:4] == 'zeta':
+                new_name= name+ '_' + str(i)
+            else:
+                new_name = name + str(i)
+            K = NumberField(f, names=new_name, embedding=embedding)
 
             from_K = K.hom([a])    # check=False here ??   would be safe unless there are bugs.
 

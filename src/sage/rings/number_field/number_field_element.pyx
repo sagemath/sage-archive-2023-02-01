@@ -2206,11 +2206,11 @@ cdef class NumberFieldElement(FieldElement):
             [a]
             sage: K.<a> = NumberField(x^3 - 2)
             sage: c = a.galois_conjugates(K.galois_closure('a1')); c
-            [1/84*a1^4 + 13/42*a1, -1/252*a1^4 - 55/126*a1, -1/126*a1^4 + 8/63*a1]
+            [1/18*a1^4, -1/36*a1^4 + 1/2*a1, -1/36*a1^4 - 1/2*a1]
             sage: c[0]^3
             2
             sage: parent(c[0])
-            Number Field in a1 with defining polynomial x^6 + 40*x^3 + 1372
+            Number Field in a1 with defining polynomial x^6 + 108
             sage: parent(c[0]).is_galois()
             True
 

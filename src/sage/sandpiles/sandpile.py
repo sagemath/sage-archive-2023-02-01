@@ -58,7 +58,7 @@ AUTHOR:
 
 EXAMPLES::
 
-A weighted directed graph given as a Python dictionary:
+A weighted directed graph given as a Python dictionary::
 
     sage: from sage.sandpiles import *
     sage: g = {0: {},                    \

@@ -777,6 +777,29 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
         """
         return ' \otimes '.join(latex(c) for c in self)
 
+    def _ascii_art_(self):
+        """
+        Return an ASCII art representation of ``self``.
+
+        EXAMPLES::
+
+            sage: KT = TensorProductOfKirillovReshetikhinTableaux(['D',4,1],[[3,3],[2,1],[1,2]])
+            sage: ascii_art(KT.module_generators[0])
+              1  1  1
+              2  2  2 #   1 #   1  1
+              3  3  3     2
+             -4 -4 -4
+        """
+        from sage.misc.ascii_art import ascii_art, AsciiArt
+        s = ascii_art(self[0])
+        s._baseline = s._h // 2
+        ret = s
+        for tableau in self[1:]:
+            s = ascii_art(tableau)
+            s._baseline = s._h // 2
+            ret += AsciiArt([" # "]) + s
+        return ret
+
     def __lt__(self, other):
         """
         Non elements of the crystal are incomparable with elements of the crystal
@@ -1293,7 +1316,9 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             sage: y.e_string_to_ground_state()
             ()
         """
-        if self.parent().crystals[0].__module__ != 'sage.combinat.crystals.kirillov_reshetikhin':
+        from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinTableaux
+        if self.parent().crystals[0].__module__ != 'sage.combinat.crystals.kirillov_reshetikhin' and \
+                not isinstance(self.parent().crystals[0], KirillovReshetikhinTableaux):
             raise ValueError("All crystals in the tensor product need to be Kirillov-Reshetikhin crystals")
         I = self.cartan_type().classical().index_set()
         ell = max(ceil(K.s()/K.cartan_type().c()[K.r()]) for K in self.parent().crystals)

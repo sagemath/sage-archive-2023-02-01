@@ -482,7 +482,7 @@ class Sha(SageObject):
             sage: EllipticCurve('858k2').sha().an_padic(7)   # rank 0, non trivial sha, long time (10s on sage.math, 2011)
             Traceback (most recent call last):                           # 32-bit (see ticket :trac: `112111`)
             ...                                                          # 32-bit
-            OverflowError: long int too large to convert to int          # 32-bit
+            OverflowError: Python int too large to convert to C long     # 32-bit
             7^2 + O(7^6) # 64-bit
             sage: EllipticCurve('300b2').sha().an_padic(3)   # 9 elements in sha, long time (2s on sage.math, 2011)
             3^2 + O(3^6)
@@ -742,7 +742,7 @@ class Sha(SageObject):
             sage: e.sha().p_primary_bound(3)  # long time (10s on sage.math, 2011)
             Traceback (most recent call last):                           # 32-bit (see :trac: `11211`)
             ...                                                          # 32-bit
-            OverflowError: long int too large to convert to int          # 32-bit
+            OverflowError: Python int too large to convert to C long     # 32-bit
             0                                                            # 64-bit
 
         Some checks for :trac:`6406`::
@@ -755,7 +755,7 @@ class Sha(SageObject):
             sage: e.sha().an_padic(7)  # long time (depends on "e.sha().p_primary_bound(3)" above)
             Traceback (most recent call last):                           # 32-bit
             ...                                                          # 32-bit
-            OverflowError: long int too large to convert to int          # 32-bit
+            OverflowError: Python int too large to convert to C long     # 32-bit
             7^2 + O(7^6)                                                 # 64-bit
 
             sage: e = EllipticCurve('11a3')

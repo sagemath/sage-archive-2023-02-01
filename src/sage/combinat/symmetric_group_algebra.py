@@ -1034,7 +1034,7 @@ def kappa(alpha):
         n = sum(alpha)
     return factorial(n) / StandardTableaux(alpha).cardinality()
 
-def a(tableau, star=0):
+def a(tableau, star=0, base_ring=QQ):
     r"""
     The row projection operator corresponding to the Young tableau
     ``tableau`` (which is supposed to contain every integer from
@@ -1052,6 +1052,25 @@ def a(tableau, star=0):
        "Introduction to representation theory",
        :arXiv:`0901.0827v5`.
 
+    INPUT:
+
+    - ``tableau`` -- Young tableau which contains every integer
+      from `1` to its size precisely once.
+
+    - ``star`` -- nonnegative integer (default: `0`). When this
+      optional variable is set, the method computes not the row
+      projection operator of ``tableau``, but the row projection
+      operator of the restriction of ``tableau`` to the entries
+      ``1, 2, ..., tableau.size() - star`` instead.
+
+    - ``base_ring`` -- commutative ring (default: ``QQ``). When this
+      optional variable is set, the row projection operator is
+      computed over a user-determined base ring instead of `\QQ`.
+      (Note that symmetric group algebras currently don't preserve
+      coercion, so e. g. a symmetric group algebra over `\ZZ`
+      does not coerce into the corresponding one over `\QQ`; so
+      convert manually or choose your base rings wisely!)
+
     EXAMPLES::
 
         sage: from sage.combinat.symmetric_group_algebra import a
@@ -1063,6 +1082,8 @@ def a(tableau, star=0):
         []
         sage: a([[1, 5], [2, 3], [4]])
         [1, 2, 3, 4, 5] + [1, 3, 2, 4, 5] + [5, 2, 3, 4, 1] + [5, 3, 2, 4, 1]
+        sage: a([[1,4], [2,3]], base_ring=ZZ)
+        [1, 2, 3, 4] + [1, 3, 2, 4] + [4, 2, 3, 1] + [4, 3, 2, 1]
     """
     t = Tableau(tableau)
     if star:
@@ -1071,14 +1092,8 @@ def a(tableau, star=0):
     rs = t.row_stabilizer().list()
     n = t.size()
 
-    # This all should be over ZZ, not over QQ, but symmetric group
-    # algebras don't seem to preserve coercion (the one over ZZ
-    # doesn't coerce into the one over QQ even for the same n),
-    # and the QQ version of this method is more important, so let
-    # me stay with QQ.
-    # TODO: Fix this.
-    sgalg = SymmetricGroupAlgebra(QQ, n)
-    one = QQ.one()
+    sgalg = SymmetricGroupAlgebra(base_ring, n)
+    one = base_ring.one()
     P = permutation.Permutation
 
     # Ugly hack for the case of an empty tableau, due to the
@@ -1092,7 +1107,7 @@ def a(tableau, star=0):
     rd = dict((P(h), one) for h in rs)
     return sgalg._from_dict(rd)
 
-def b(tableau, star=0):
+def b(tableau, star=0, base_ring=QQ):
     r"""
     The column projection operator corresponding to the Young tableau
     ``tableau`` (which is supposed to contain every integer from
@@ -1103,6 +1118,25 @@ def b(tableau, star=0):
     preserve the column of ``tableau`` (where the signs are the usual
     signs of the permutations). It is called `b_{\text{tableau}}` in
     [EtRT]_, Section 4.2.
+
+    INPUT:
+
+    - ``tableau`` -- Young tableau which contains every integer
+      from `1` to its size precisely once.
+
+    - ``star`` -- nonnegative integer (default: `0`). When this
+      optional variable is set, the method computes not the column
+      projection operator of ``tableau``, but the column projection
+      operator of the restriction of ``tableau`` to the entries
+      ``1, 2, ..., tableau.size() - star`` instead.
+
+    - ``base_ring`` -- commutative ring (default: ``QQ``). When this
+      optional variable is set, the column projection operator is
+      computed over a user-determined base ring instead of `\QQ`.
+      (Note that symmetric group algebras currently don't preserve
+      coercion, so e. g. a symmetric group algebra over `\ZZ`
+      does not coerce into the corresponding one over `\QQ`; so
+      convert manually or choose your base rings wisely!)
 
     EXAMPLES::
 
@@ -1115,6 +1149,10 @@ def b(tableau, star=0):
         []
         sage: b([[1, 2, 4], [5, 3]])
         [1, 2, 3, 4, 5] - [1, 3, 2, 4, 5] - [5, 2, 3, 4, 1] + [5, 3, 2, 4, 1]
+        sage: b([[1, 4], [2, 3]], base_ring=ZZ)
+        [1, 2, 3, 4] - [1, 2, 4, 3] - [2, 1, 3, 4] + [2, 1, 4, 3]
+        sage: b([[1, 4], [2, 3]], base_ring=Integers(5))
+        [1, 2, 3, 4] + 4*[1, 2, 4, 3] + 4*[2, 1, 3, 4] + [2, 1, 4, 3]
 
     With the ``l2r`` setting for multiplication, the unnormalized
     Young symmetrizer ``e(tableau)`` should be the product
@@ -1124,6 +1162,7 @@ def b(tableau, star=0):
         sage: from sage.combinat.symmetric_group_algebra import a, b, e
         sage: all( e(t) == b(t) * a(t) for t in StandardTableaux(5) )
         True
+
     """
     t = Tableau(tableau)
     if star:
@@ -1132,14 +1171,8 @@ def b(tableau, star=0):
     cs = t.column_stabilizer().list()
     n = t.size()
 
-    # This all should be over ZZ, not over QQ, but symmetric group
-    # algebras don't seem to preserve coercion (the one over ZZ
-    # doesn't coerce into the one over QQ even for the same n),
-    # and the QQ version of this method is more important, so let
-    # me stay with QQ.
-    # TODO: Fix this.
-    sgalg = SymmetricGroupAlgebra(QQ, n)
-    one = QQ.one()
+    sgalg = SymmetricGroupAlgebra(base_ring, n)
+    one = base_ring.one()
     P = permutation.Permutation
 
     # Ugly hack for the case of an empty tableau, due to the
@@ -1197,6 +1230,11 @@ def e(tableau, star=0):
         sage: e([[1,2],[3]])
         [1, 2, 3] + [2, 1, 3] - [3, 1, 2] - [3, 2, 1]
     """
+    # TODO:
+    # The current method only computes the e's over QQ. There should be
+    # a way to compute them over other base rings as well. Be careful
+    # with the cache.
+
     t = Tableau(tableau)
     if star:
         t = t.restrict(t.size()-star)

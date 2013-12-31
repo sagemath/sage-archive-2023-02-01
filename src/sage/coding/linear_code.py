@@ -847,7 +847,7 @@ class LinearCode(module.Module_old):
 
         EXAMPLES::
 
-            sage: C = HammingCode(3,GF(4,"z"));
+            sage: C = codes.HammingCode(3,GF(4,"z"));
             sage: C.automorphism_group_gens()
             ([((1, 1, 1, z, z + 1, z + 1, z + 1, z, z, 1, 1, 1, z, z, z + 1, z, z, z + 1, z + 1, z + 1, 1); (1,6,12,17)(2,16,4,5,11,8,14,13)(3,21,19,10,20,18,15,9), Ring endomorphism of Finite Field in z of size 2^2
                   Defn: z |--> z + 1), ((1, 1, 1, z, z + 1, 1, 1, z, z, z + 1, z, z, z + 1, z + 1, z + 1, 1, z + 1, z, z, 1, 1); (1,6,9,13,15,18)(2,21)(3,16,7)(4,5,11,10,12,14)(17,19), Ring endomorphism of Finite Field in z of size 2^2
@@ -1137,7 +1137,7 @@ class LinearCode(module.Module_old):
 
         EXAMPLES::
 
-            sage: C = HammingCode(3,GF(4,"z"));
+            sage: C = codes.HammingCode(3,GF(4,"z"));
             sage: aut_group_can_label = C._canonize("semilinear")
             sage: C_iso = LinearCode(aut_group_can_label.get_transporter()*C.gen_mat())
             sage: C_iso == aut_group_can_label.get_canonical_form()
@@ -1180,7 +1180,7 @@ class LinearCode(module.Module_old):
         EXAMPLES::
 
             sage: F.<z> = GF(4)
-            sage: C = HammingCode(3,F)
+            sage: C = codes.HammingCode(3,F)
             sage: CanRep, transp = C.canonical_representative()
 
         Check that the transporter element is correct::
@@ -2335,8 +2335,11 @@ class LinearCode(module.Module_old):
             Permutation Group with generators [(1,3,4)]
             sage: C = codes.HammingCode(2,GF(4,"z")); C
             Linear code of length 5, dimension 3 over Finite Field in z of size 2^2
-            sage: C.permutation_automorphism_group(algorithm="partition")
+            sage: G = C.permutation_automorphism_group(algorithm="partition"); G
             Permutation Group with generators [(1,3)(4,5), (1,4)(3,5)]
+            sage: GG = C.permutation_automorphism_group(algorithm="codecan") # long time
+            sage: GG == G # long time
+            True
             sage: C.permutation_automorphism_group(algorithm="gap")  # optional - gap_packages (Guava package)
             sage: C = codes.TernaryGolayCode()
             sage: C.permutation_automorphism_group(algorithm="gap")  # optional - gap_packages (Guava package)

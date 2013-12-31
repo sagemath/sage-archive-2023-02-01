@@ -1027,8 +1027,19 @@ class DiGraph(GenericGraph):
             sage: all( random_acyclic(100, .2).is_directed_acyclic()    # long time
             ...        for i in range(50))                              # long time
             True
+
+        TESTS:
+
+        What about loops?::
+
+            sage: g = digraphs.ButterflyGraph(3)
+            sage: g.allow_loops(True)
+            sage: g.is_directed_acyclic()
+            True
+            sage: g.add_edge(0,0)
+            sage: g.is_directed_acyclic()
+            False
         """
-        self._scream_if_not_simple(allow_multiple_edges=True)
         return self._backend.is_directed_acyclic(certificate = certificate)
 
     def to_directed(self):

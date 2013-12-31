@@ -9,6 +9,7 @@ AUTHORS:
  *   Travis Scrimshaw (2012-05-12) - Updated doc-strings to tell the user of
      that the class's name is a misnomer (that they only contains non-negative
      entries).
+ *   Federico Poloni (2013) - specialized rank()
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -795,6 +796,38 @@ class IntegerVectors_nk(CombinatorialClass):
             return False
 
         return True
+
+    def rank(self, x):
+        """
+        Returns the position of a given element.
+
+        INPUT:
+
+        - ``x`` - any sequence with sum(x) == n and len(x) == k
+
+        TESTS::
+
+            sage: IV = IntegerVectors(4,5) 
+            sage: range(IV.cardinality()) == [IV.rank(x) for x in IV]
+            True
+        """
+
+        n = sum(x)
+        k = len(x)
+
+        if k != self.k:
+            raise ValueError, "wrong number of elements"
+
+        if n != self.n:
+            raise ValueError, "wrong sum of elements"
+
+        r = 0
+        for i in range(k-1):
+          k -= 1
+          n -= x[i]
+          r += binomial(k+n-1,k)
+
+        return r
 
 class IntegerVectors_nkconstraints(CombinatorialClass):
     def __init__(self, n, k, constraints):

@@ -12,6 +12,7 @@ from combinatorial_algebra import CombinatorialAlgebra
 from free_module import CombinatorialFreeModule
 from sage.categories.all import FiniteDimensionalAlgebrasWithBasis
 import permutation
+from sage.combinat.permutation import Permutations
 import partition
 from tableau import Tableau, StandardTableaux_size, StandardTableaux_shape, StandardTableaux
 from sage.interfaces.all import gap
@@ -149,7 +150,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: QS3.one_basis()
             [1, 2, 3]
         """
-        return permutation.Permutation(range(1,self.n+1))
+        return permutation.Permutations()(range(1,self.n+1))
 
     def product_on_basis(self, left, right):
         """
@@ -173,7 +174,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         for two permutations `p` and `q`, the product `pq` is the
         permutation obtained by first applying `q` and then applying
         `p`. This definition of multiplication is tailored to make
-        multiplication of products associative with their action on
+        multiplication of permutations associative with their action on
         numbers if permutations are to act on numbers from the left.
 
         EXAMPLES::
@@ -208,10 +209,9 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         """
         a = self(left)
         b = self(right)
-        from sage.combinat.permutation import Permutation
-        return self.sum_of_terms([(Permutation([p[i-1] for i in q]), x * y)
+        return self.sum_of_terms([(Permutations()([p[i-1] for i in q]), x * y)
                                   for (p, x) in a for (q, y) in b])
-        # Why did we use Permutation([p[i-1] for i in q])
+        # Why did we use Permutations()([p[i-1] for i in q])
         # instead of p.left_action_product(q) ?
         # Because having cast a and b into self, we already know that
         # p and q are permutations of the same number of elements,
@@ -225,7 +225,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         for two permutations `p` and `q`, the product `pq` is the
         permutation obtained by first applying `p` and then applying
         `q`. This definition of multiplication is tailored to make
-        multiplication of products associative with their action on
+        multiplication of permutations associative with their action on
         numbers if permutations are to act on numbers from the right.
 
         EXAMPLES::
@@ -260,10 +260,10 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         """
         a = self(left)
         b = self(right)
-        from sage.combinat.permutation import Permutation
-        return self.sum_of_terms([(Permutation([q[i-1] for i in p]), x * y)
+        from sage.combinat.permutation import Permutations
+        return self.sum_of_terms([(Permutations()([q[i-1] for i in p]), x * y)
                                   for (p, x) in a for (q, y) in b])
-        # Why did we use Permutation([q[i-1] for i in p])
+        # Why did we use Permutations()([q[i-1] for i in p])
         # instead of p.right_action_product(q) ?
         # Because having cast a and b into self, we already know that
         # p and q are permutations of the same number of elements,
@@ -642,7 +642,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             for x in xs:
                 res.remove(x)
             return res
-        return self.sum_of_monomials([permutation.Permutation(complement(q) + list(q))
+        return self.sum_of_monomials([permutation.Permutations()(complement(q) + list(q))
                                       for q in permutation.Permutations_nk(n, n-k)])
 
     def binary_unshuffle_sum(self, k):
@@ -733,7 +733,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
                 res.remove(x)
             return res
         from sage.combinat.subset import Subsets
-        return self.sum_of_monomials([permutation.Permutation(sorted(q) + complement(q))
+        return self.sum_of_monomials([permutation.Permutations()(sorted(q) + complement(q))
                                       for q in Subsets(n, k)])
 
     def jucys_murphy(self, k):
@@ -1444,7 +1444,7 @@ class HeckeAlgebraSymmetricGroup_generic(CombinatorialAlgebra):
         self.n = n
         self._basis_keys = permutation.Permutations(n)
         self._name = "Hecke algebra of the symmetric group of order %s"%self.n
-        self._one = permutation.Permutation(range(1,n+1))
+        self._one = permutation.Permutations()(range(1,n+1))
 
         if q is None:
             q = PolynomialRing(R, 'q').gen()
@@ -1598,7 +1598,8 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
         if i not in range(1, self.n):
             raise ValueError("i (= %(i)d) must be between 1 and n-1 (= %(nm)d)" % {'i': i, 'nm': self.n - 1})
 
-        return self.monomial(self.basis().keys()(permutation.Permutation( (i, i+1) ) ))
+        return self.monomial(self.basis().keys()(permutation.Permutations()( range(1, i) + [i+1, i] + range(i+2, self.n+1) ) ))
+        # The permutation here is simply the transposition (i, i+1).
 
     def algebra_generators(self):
         """

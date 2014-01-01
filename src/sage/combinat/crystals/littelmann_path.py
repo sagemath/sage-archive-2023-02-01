@@ -721,15 +721,16 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
         - ``level`` -- (default: 1) positive integer
 
         A crystal `\mathcal{B}` is perfect of level `\ell` if:
-        \begin{enumerate}
-        \item `\mathcal{B}` is isomorphic to the crystal graph of a finite-dimensional `U_q^{'}(\mathfrak{g})`-module.
-        \item `\mathcal{B}\otimes \mathcal{B}` is connected.
-        \item There exists a `\lambda\in X`, such that `\wt(\mathcal{B}) \subset \lambda + \sum_{i\in I} \mathbb{Z}_{\le 0} \alpha_i`
-        and there is a unique element in `\mathcal{B}` of classical weight `\la`.
-        \item `\forall \; b \in \mathcal{B}, \;\; \lev(\varepsilon (b)) \geq \ell`.
-        \item `\forall \; \Lambda \in X_{\af}^{+\ell}`, there exist unique elements `b_{\Lambda}, b^{\Lambda} \in \mathcal{B}`,
-        such that `\ve ( b_{\Lambda}) = \Lambda = \vp( b^{\Lambda})`.
-        \end{enumerate}
+
+        - `\mathcal{B}` is isomorphic to the crystal graph of a finite-dimensional `U_q^{'}(\mathfrak{g})`-module.
+        - `\mathcal{B}\otimes \mathcal{B}` is connected.
+        - There exists a `\lambda\in X`, such that `\mathrm{wt}(\mathcal{B}) \subset \lambda
+          + \sum_{i\in I} \mathbb{Z}_{\le 0} \alpha_i` and there is a unique element in `\mathcal{B}` of classical
+          weight `\lambda`.
+        - `\forall b \in \mathcal{B}, \mathrm{level}(\varepsilon (b)) \geq \ell`.
+        - `\forall \Lambda` dominant weights of level `\ell`, there exist unique elements
+          `b_{\Lambda}, b^{\Lambda} \in \mathcal{B}`,
+          such that `\varepsilon ( b_{\Lambda}) = \Lambda = \varphi( b^{\Lambda})`.
 
         Points (1)-(3) are known to hold. This method checks points (4) and (5).
 
@@ -778,9 +779,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
                 w = sum(c[i]*La[i] for i in self.index_set())
                 if w.level() == level:
                     weights += [w]
-        if sorted([b.Phi() for b in MPhi]) == sorted(weights):
-            return True
-        return False
+        return sorted([b.Phi() for b in MPhi]) == sorted(weights)
 
     class Element(CrystalOfLSPaths.Element):
         """

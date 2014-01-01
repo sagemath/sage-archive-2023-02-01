@@ -95,7 +95,7 @@ Installation Guide:
 
    That's it! Everything is automatic and non-interactive. The build
    should work fine on all fully supported platforms. If it does not, we
-   want to know!
+   want to know! If you want to build in parallel, see below.  
 
 
 ENVIRONMENT VARIABLES

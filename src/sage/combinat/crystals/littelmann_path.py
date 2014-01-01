@@ -712,6 +712,75 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
             return sum(q**(c[0].energy_function())*B.sum(B(P0(b.weight())) for b in c) for c in C)
         return B.sum(q**(b.energy_function())*B(P0(b.weight())) for b in self)
 
+    def is_perfect(self, level=1):
+        r"""
+        Checks whether the crystal ``self`` is perfect.
+
+        INPUT:
+
+        - ``level`` -- (default: 1) positive integer
+
+        A crystal `\mathcal{B}` is perfect of level `\ell` if:
+        \begin{enumerate}
+        \item `\mathcal{B}` is isomorphic to the crystal graph of a finite-dimensional `U_q^{'}(\mathfrak{g})`-module.
+        \item `\mathcal{B}\otimes \mathcal{B}` is connected.
+        \item There exists a `\lambda\in X`, such that `\wt(\mathcal{B}) \subset \lambda + \sum_{i\in I} \mathbb{Z}_{\le 0} \alpha_i`
+        and there is a unique element in `\mathcal{B}` of classical weight `\la`.
+        \item `\forall \; b \in \mathcal{B}, \;\; \lev(\varepsilon (b)) \geq \ell`.
+        \item `\forall \; \Lambda \in X_{\af}^{+\ell}`, there exist unique elements `b_{\Lambda}, b^{\Lambda} \in \mathcal{B}`,
+        such that `\ve ( b_{\Lambda}) = \Lambda = \vp( b^{\Lambda})`.
+        \end{enumerate}
+
+        Points (1)-(3) are known to hold. This method checks points (4) and (5).
+
+        EXAMPLES::
+
+            sage: C = CartanType(['C',2,1])
+            sage: R = RootSystem(C)
+            sage: La = R.weight_space().basis()
+            sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[1])
+            sage: LS.is_perfect()
+            False
+            sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[2])
+            sage: LS.is_perfect()
+            True
+
+            sage: C = CartanType(['E',6,1])
+            sage: R = RootSystem(C)
+            sage: La = R.weight_space().basis()
+            sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[1])
+            sage: LS.is_perfect()
+            True
+            sage: LS.is_perfect(2)
+            False
+
+            sage: C = CartanType(['D',4,1])
+            sage: R = RootSystem(C)
+            sage: La = R.weight_space().basis()
+            sage: all(CrystalOfProjectedLevelZeroLSPaths(La[i]).is_perfect() for i in [1,2,3,4])
+            True
+        """
+        MPhi = []
+        for b in self:
+            p = b.Phi().level()
+            e = b.Epsilon().level()
+            assert e == p
+            if p < level:
+                return False
+            if p == level:
+                MPhi += [b]
+        weights = []
+        rank = len(self.index_set())
+        La = self.weight_lattice_realization().basis()
+        from sage.combinat.integer_vector import IntegerVectors
+        for n in range(1,level+1):
+            for c in IntegerVectors(n, rank):
+                w = sum(c[i]*La[i] for i in self.index_set())
+                if w.level() == level:
+                    weights += [w]
+        if sorted([b.Phi() for b in MPhi]) == sorted(weights):
+            return True
+        return False
 
     class Element(CrystalOfLSPaths.Element):
         """

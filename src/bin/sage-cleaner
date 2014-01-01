@@ -17,7 +17,6 @@
 #*****************************************************************************
 
 
-from __future__ import print_function
 import os, shutil, sys, time, socket, errno, signal, atexit
 
 
@@ -25,6 +24,13 @@ HOSTNAME = os.environ.get('HOSTNAME', socket.gethostname())
 DOT_SAGE = os.environ['DOT_SAGE']
 
 SAGE_TMP_ROOT = os.path.join(DOT_SAGE, 'temp', HOSTNAME)
+logfile = os.path.join(SAGE_TMP_ROOT, 'cleaner.log')
+pidfile = os.path.join(SAGE_TMP_ROOT, 'cleaner.pid')
+# pidfile used by earlier versions of sage-cleaner (before #15457)
+old_pidfile = os.path.join(DOT_SAGE, 'temp', 'cleaner-%s.pid'%HOSTNAME)
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 def mkdir_p(path):
@@ -34,9 +40,8 @@ def mkdir_p(path):
     try:
         os.makedirs(path)
     except OSError as e:
-        if e.errno == errno.EEXIST and os.path.isdir(path):
-            pass
-        else: raise
+        if not os.path.isdir(path):
+            raise
 
 
 def rm_rf(file_or_path):
@@ -61,92 +66,87 @@ def is_running(pid):
         return False
 
 
-class LogFile:
-    """
-    A file-like object that appends to a file on write and does not keep the file open.
-    """
-
-    def __init__(self, stream, filename):
-        self._stream = stream
-        self._filename = filename
-
-    def write(self, data):
-        self._stream.write(data)
-        self._stream.flush()
-        with open(self._filename, 'a') as f:
-            f.write(data)
-
-    def __getattr__(self, attr):
-        return getattr(self._stream, attr)
-
-
-
 def cleanup():
     tmp_dirs = os.listdir(SAGE_TMP_ROOT)
     try:
         tmp_dirs.remove('cleaner.pid')
         tmp_dirs.remove('cleaner.log')
     except ValueError:
-        print('BUG: No cleaner pid/log in SAGE_TMP_ROOT')
+        logger.error('No cleaner pid/log in SAGE_TMP_ROOT')
     # Convert strings to integers
     pid_list = []
     for dir_entry in tmp_dirs:
         try:
             pid_list.append(int(dir_entry))
         except ValueError:
-            dir_name = os.path.join(SAGE_TMP_ROOT, dir_entry)
-            print('File {0} must not be in SAGE_TMP_ROOT, deleting'.format(dir_name))
-            rm_rf(dir_name)
+            badfile = os.path.join(SAGE_TMP_ROOT, dir_entry)
+            logger.warning('File %s must not be in SAGE_TMP_ROOT, deleting', badfile)
+            rm_rf(badfile)
 
-    print("Checking PIDs", pid_list)
+    logger.info("Checking PIDs %s", pid_list)
     for parent_pid in pid_list:
-        if not is_running(parent_pid):
-            print("Process %s is no longer running, so we clean up"%parent_pid)
-            dir_name = os.path.join(SAGE_TMP_ROOT, str(parent_pid))
-            spawned_processes = os.path.join(dir_name, 'spawned_processes')
-            if not os.path.isdir(spawned_processes) \
-               or kill_spawned_jobs(spawned_processes, parent_pid):
-                print('Deleting {0}'.format(dir_name))
-                rm_rf(dir_name)
+        try:
+            if not is_running(parent_pid):
+                logger.info("Process %s is no longer running, so we clean up", parent_pid)
+                dir_name = os.path.join(SAGE_TMP_ROOT, str(parent_pid))
+                spawned_processes = os.path.join(dir_name, 'spawned_processes')
+                if not os.path.isfile(spawned_processes) \
+                   or kill_spawned_jobs(spawned_processes, parent_pid):
+                    logger.info('Deleting %s', dir_name)
+                    rm_rf(dir_name)
+        except Exception:
+            logger.error("Exception while cleaning up PID %s:", parent_pid, exc_info=True)
 
     return len(pid_list)
 
-def kill_spawned_jobs(file, parent_pid):
-    print("Killing %s's spawned jobs"%parent_pid)
+def kill_spawned_jobs(jobfile, parent_pid):
+    logger.info("Killing %s's spawned jobs", parent_pid)
     killed_them_all = True
-    for L in open(file).readlines():
-        i = L.find(' ')
-        pid = L[:i].strip()
-        cmd = L[i+1:].strip()
+    for job in open(jobfile).readlines():
+        pid, cmd = job.strip().split(' ', 1)
+        logger.info("--> Killing '%s' with PID %s and parent PID %s", cmd, pid, parent_pid)
+        pid = int(pid)
         try:
-            print("Killing %s with parent %s"%(pid, parent_pid) )
-            os.killpg(int(pid), signal.SIGKILL)
-        except OSError, msg:
-            try:
-                os.kill(int(pid), signal.SIGKILL)
-            except OSError, msg:
-                pass
+            pgrp = os.getpgid(pid)
+            logger.info("--> Killing process group %s", pgrp)
+            os.killpg(pgrp, signal.SIGKILL)
+        except OSError:
+            pass
         if is_running(pid):
-            print("Failed to kill %s!"%pid)
+            logger.error("--> Failed to kill %s", pid)
             # try again later
             killed_them_all = False
     return killed_them_all
 
 
-pidfile = os.path.join(SAGE_TMP_ROOT, 'cleaner.pid')
-logfile = os.path.join(SAGE_TMP_ROOT, 'cleaner.log')
-
-
 def exit_handler():
+    logger.info("Removing pidfile and logfile")
     rm_rf(pidfile)
     rm_rf(logfile)
 
 
 def setup_daemon():
-    if not os.path.isdir(SAGE_TMP_ROOT):
-        mkdir_p(SAGE_TMP_ROOT)
-    sys.stdout = LogFile(sys.stdout, logfile)
-    print("SAGE_TMP_ROOT =", SAGE_TMP_ROOT)  # initialize log file
+    mkdir_p(SAGE_TMP_ROOT)
+
+    logger.setLevel(logging.DEBUG)
+    h = logging.StreamHandler()                # log to stderr
+    h.setLevel(logging.DEBUG)
+    logger.addHandler(h)
+    h = logging.FileHandler(filename=logfile)  # log to logfile
+    h.setLevel(logging.INFO)
+    logger.addHandler(h)
+
+    logger.info("SAGE_TMP_ROOT = %s", SAGE_TMP_ROOT)
+
+    # Check old pidfile (to allow old and new sage-cleaners to peacefully coexist)
+    try:
+        pid = int(open(old_pidfile).read())
+    except (IOError, ValueError):
+        pass
+    else:
+        if is_running(pid):
+            logger.info("old sage-cleaner is already running with PID %s, exiting", pid)
+            sys.exit(0)
 
     try:
         pid = int(open(pidfile).read())
@@ -154,12 +154,10 @@ def setup_daemon():
         pass
     else:
         if is_running(pid):
-            print("sage-cleaner is already running with PID %s, exiting"%pid)
+            logger.info("sage-cleaner is already running with PID %s, exiting", pid)
             sys.exit(0)
-    with open(pidfile,'w') as f:
-        f.write(str(os.getpid()))            # initialize pid file
+    open(pidfile,'w').write(str(os.getpid()))  # initialize pid file
     atexit.register(exit_handler)
-
 
 
 def fix_old_mistakes():
@@ -170,7 +168,7 @@ def fix_old_mistakes():
     wrong_hostname = HOSTNAME.replace('-','_').replace('/','_').replace('\\','_')
     wrong_sage_tmp_root = os.path.join(DOT_SAGE, 'temp', wrong_hostname)
     if wrong_sage_tmp_root != SAGE_TMP_ROOT and os.path.exists(wrong_sage_tmp_root):
-        print('deleting invalid temp dir {0}'.format(wrong_sage_tmp_root))
+        logger.warning('Deleting invalid temp dir %s', wrong_sage_tmp_root)
         rm_rf(wrong_sage_tmp_root)
 
     # SAGE_TMP in DOT_SAGE/tmp instead of DOT_SAGE/temp
@@ -179,20 +177,17 @@ def fix_old_mistakes():
     if wrong_hostname != HOSTNAME:
         old_root += glob.glob(os.path.join(DOT_SAGE, 'tmp', wrong_hostname+'-*'))
     for old_tmp in old_root:
-        print('deleting invalid temp dir {0}'.format(old_tmp))
+        logger.warning('Deleting invalid temp dir %s', old_tmp)
         rm_rf(old_tmp)
 
-    # PID files before they were moved into SAGE_TMP_ROOT
-    old_pidfiles =  glob.glob(os.path.join(DOT_SAGE, 'temp', 'cleaner-*'))
-    for old_pidfile in old_pidfiles:
-        print('deleting old pid file {0}'.format(old_pidfile))
-        rm_rf(old_pidfile)
+    # PID file before it was moved into SAGE_TMP_ROOT
+    rm_rf(old_pidfile)
 
 
 if __name__ == '__main__':
     setup_daemon()
     fix_old_mistakes()
-    print("Starting sage-cleaner")
+    logger.info("Starting sage-cleaner with PID %s", os.getpid())
 
     if len(sys.argv) > 1:
         wait = int(sys.argv[1])
@@ -215,6 +210,6 @@ if __name__ == '__main__':
         t0 = time.time()
         running_sages = cleanup()
         cleanup_time = time.time() - t0
-        print("cleanup() #{:d} took {:.2f}s".format(count, cleanup_time))
+        logger.debug("cleanup() #{:d} took {:.2f}s".format(count, cleanup_time))
 
-    print("sage-cleaner is finished")
+    logger.info("sage-cleaner is finished")

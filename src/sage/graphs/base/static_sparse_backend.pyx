@@ -374,6 +374,24 @@ class StaticSparseBackend(CGraphBackend):
         self._vertex_to_labels = vertices
         self._vertex_to_int = {v:i for i,v in enumerate(vertices)}
 
+    def __reduce__(self):
+        """
+        Return a tuple used for pickling this graph.
+
+        TESTS::
+
+            sage: G = Graph(graphs.PetersenGraph(), immutable=True)
+            sage: _ = loads(dumps(G))
+        """
+        if self._directed:
+            from sage.graphs.digraph import DiGraph as constructor
+        else:
+            from sage.graphs.graph import Graph as constructor
+        G = constructor()
+        G.add_vertices(self.iterator_verts(None))
+        G.add_edges(list(self.iterator_edges(self.iterator_verts(None),1)))
+        return (StaticSparseBackend, (G, self._loops, self._multiedges))
+
     def has_vertex(self, v):
         r"""
         Tests if the vertex belongs to the graph

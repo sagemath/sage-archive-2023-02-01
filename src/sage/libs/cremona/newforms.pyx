@@ -119,6 +119,26 @@ cdef class ECModularSymbol:
             sage: M = ECModularSymbol(E)
             sage: [M(1/i) for i in range(1,10)]
             [0, 0, 0, 0, 4, 0, 2, 0, -2]
+
+        TESTS (see :trac: `11211`)::
+
+            sage: from sage.libs.cremona.newforms import ECModularSymbol
+            sage: E = EllipticCurve('11a')
+            sage: M = ECModularSymbol(E)
+            sage: M(oo)
+            2/5
+            sage: M(7/5)
+            3
+            sage: M("garbage")
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to convert garbage to a Cusp
+            sage: M(7/5)
+            3
+            sage: pari("1/0")
+            Traceback (most recent call last):
+            ...
+            PariError: _/_: division by zero
         """
         cdef rational _r
         cdef rational _s
@@ -126,12 +146,12 @@ cdef class ECModularSymbol:
         cdef ZZ_c *Z_n, *Z_d
         cdef long n, d
 
-        sig_on()
         r = Cusp(r)
         d = r.denominator()
         n = r.numerator()
         if d != 0:
             n = n % d
+        sig_on()
         _r = new_rational(n,d)
         _s = self.nfs.plus_modular_symbol(_r)
         r = Rational((rational_num(_s), rational_den(_s)))

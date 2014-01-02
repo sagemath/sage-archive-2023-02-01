@@ -740,7 +740,7 @@ class FinitePoset(UniqueRepresentation, Parent):
                 facade = hasse_diagram in Sets().Facades()
             hasse_diagram = hasse_diagram._hasse_diagram
         else:
-            hasse_diagram = HasseDiagram(hasse_diagram)
+            hasse_diagram = HasseDiagram(hasse_diagram, data_structure="static_sparse")
             if elements is None:
                 elements = hasse_diagram.vertices()
             if facade is None:
@@ -1490,7 +1490,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         from sage.graphs.graph import Graph
         G = Graph(self.hasse_diagram())
-        G._immutable = True
         return G
 
     def level_sets(self):

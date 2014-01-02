@@ -172,7 +172,7 @@ cdef class Parent(parent.Parent):
                 return None
             mor = self.coerce_map_from_c(sage_type)
             if mor is not None:
-                mor = mor * sage_type.coerce_map_from(S)
+                mor = mor * sage_type._internal_coerce_map_from(S)
 
         if mor is not None:
             self._coerce_from_hash.set(S, mor) # TODO: if this is None, could it be non-None in the future?
@@ -200,7 +200,7 @@ cdef class Parent(parent.Parent):
             if R is S:
                 return mor
             else:
-                connecting = R.coerce_map_from(S)
+                connecting = R._internal_coerce_map_from(S)
                 if connecting is not None:
                     return mor * connecting
 

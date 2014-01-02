@@ -740,7 +740,7 @@ garbage collection. Please use a copy."""
                 return self._call_(x)
             return self._call_with_args(x, args, kwds)
         # Is there coercion?
-        converter = D.coerce_map_from(P)
+        converter = D._internal_coerce_map_from(P)
         if converter is None:
             try:
                 return self.pushforward(x,*args,**kwds)
@@ -1097,7 +1097,7 @@ garbage collection. Please use a copy."""
         D = self.domain()
         if D is None:
             raise ValueError("This map became defunct by garbage collection")
-        cdef Map connecting = D.coerce_map_from(new_domain)
+        cdef Map connecting = D._internal_coerce_map_from(new_domain)
         if connecting is None:
             raise TypeError, "No coercion from %s to %s" % (new_domain, D)
         elif connecting.codomain() is not D:
@@ -1137,7 +1137,7 @@ garbage collection. Please use a copy."""
             ...
             TypeError: No coercion from Rational Field to Finite Field of size 7
         """
-        cdef Map connecting = new_codomain.coerce_map_from(self._codomain)
+        cdef Map connecting = new_codomain._internal_coerce_map_from(self._codomain)
         if connecting is None:
             raise TypeError, "No coercion from %s to %s" % (self._codomain, new_codomain)
         elif connecting.domain() is not self._codomain:

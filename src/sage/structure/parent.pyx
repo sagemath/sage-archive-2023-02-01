@@ -1208,7 +1208,7 @@ cdef class Parent(category_object.CategoryObject):
             sage: V.coerce(0)
             (0, 0, 0, 0, 0, 0, 0)
         """
-        mor = self.coerce_map_from(parent_c(x))
+        mor = self._internal_coerce_map_from(parent_c(x))
         if mor is None:
             if is_Integer(x) and not x:
                 try:
@@ -2086,10 +2086,10 @@ cdef class Parent(category_object.CategoryObject):
             if R is None:
                 continue
             if R is S:
-                return self.coerce_map_from(R)
-            connecting = R.coerce_map_from(S)
+                return self._internal_coerce_map_from(R)
+            connecting = R._internal_coerce_map_from(S)
             if connecting is not None:
-                return self.coerce_map_from(R) * connecting
+                return self._internal_coerce_map_from(R) * connecting
 
     cpdef bint has_coerce_map_from(self, S) except -2:
         """
@@ -2113,7 +2113,7 @@ cdef class Parent(category_object.CategoryObject):
             if debug.unique_parent_warnings:
                 print "Warning: non-unique parents %s"%(type(S))
             return True
-        return self.coerce_map_from(S) is not None
+        return self._internal_coerce_map_from(S) is not None
 
     cpdef _coerce_map_from_(self, S):
         """
@@ -2129,22 +2129,10 @@ cdef class Parent(category_object.CategoryObject):
 
     cpdef coerce_map_from(self, S):
         """
-        This returns a Map object to coerce from S to self if one exists,
-        or None if no such coercion exists.
+        Return a :class:`Map` object to coerce from ``S`` to ``self`` if one
+        exists, or ``None`` if no such coercion exists.
 
         EXAMPLES:
-
-        By :trac:`14711`, coerce maps should be copied when using them
-        outside of the coercion system::
-
-            sage: copy(ZZ.coerce_map_from(int))
-            Native morphism:
-              From: Set of Python objects of type 'int'
-              To:   Integer Ring
-            sage: copy(QQ.coerce_map_from(ZZ))
-            Natural morphism:
-              From: Integer Ring
-              To:   Rational Field
 
         By :trac:`12313`, a special kind of weak key dictionary is used to
         store coercion and conversion maps, namely
@@ -2173,12 +2161,58 @@ cdef class Parent(category_object.CategoryObject):
             sage: m = Sym.monomial()
             sage: Ht = Sym.macdonald().Ht()
             sage: phi = m.coerce_map_from(P)
+        """
+        if not good_as_coerce_domain(S):
+            return None
+        self._coercions_used = True
+        cdef map.Map mor
+
+        if isinstance(S, Set_PythonType_class):
+            return self._internal_coerce_map_from(S._type)
+        if self._coerce_from_hash is None: # this is because parent.__init__() does not always get called
+            self.init_coerce(False)
+
+        try:
+            return self._coerce_from_hash.get(S)
+        except KeyError:
+            pass
+
+        return copy(self._internal_coerce_map_from(S))
+
+    cpdef _internal_coerce_map_from(self, S):
+        """
+        Return the :class:`Map` object to coerce from ``S`` to ``self`` that
+        is used internally by the coercion system if one exists, or ``None``
+        if no such coercion exists.
+
+        EXAMPLES:
 
         By :trac:`14711`, coerce maps should be copied when using them
         outside of the coercion system, because they may become defunct
         by garbage collection::
 
-            sage: Ht.coerce_map_from(P)
+            sage: ZZ._internal_coerce_map_from(int)
+            Native morphism:
+              From: Set of Python objects of type 'int'
+              To:   Integer Ring
+            <BLANKLINE>
+                    WARNING: This morphism has apparently been used internally
+                    in the coercion system. It may become defunct in the next
+                    garbage collection. Please use a copy.
+            sage: copy(ZZ._internal_coerce_map_from(int))
+            Native morphism:
+              From: Set of Python objects of type 'int'
+              To:   Integer Ring
+            sage: copy(QQ._internal_coerce_map_from(ZZ))
+            Natural morphism:
+              From: Integer Ring
+              To:   Rational Field
+
+            sage: R = QQ['q,t'].fraction_field()
+            sage: Sym = sage.combinat.sf.sf.SymmetricFunctions(R)
+            sage: P = Sym.macdonald().P()
+            sage: Ht = Sym.macdonald().Ht()
+            sage: Ht._internal_coerce_map_from(P)
             Composite map:
               From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald P basis
               To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald Ht basis
@@ -2186,7 +2220,7 @@ cdef class Parent(category_object.CategoryObject):
                     WARNING: This map has apparently been used internally
                     in the coercion system. It may become defunct in the next
                     garbage collection. Please use a copy.
-            sage: copy(Ht.coerce_map_from(P))
+            sage: copy(Ht._internal_coerce_map_from(P))
             Composite map:
               From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald P basis
               To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald Ht basis
@@ -2217,7 +2251,7 @@ cdef class Parent(category_object.CategoryObject):
         cdef map.Map mor
 
         if isinstance(S, Set_PythonType_class):
-            return self.coerce_map_from(S._type)
+            return self._internal_coerce_map_from(S._type)
         if self._coerce_from_hash is None: # this is because parent.__init__() does not always get called
             self.init_coerce(False)
 
@@ -2325,7 +2359,7 @@ cdef class Parent(category_object.CategoryObject):
             0
             sage: c.parent() is M
             True
-            sage: copy(K.coerce_map_from(QQ))
+            sage: K.coerce_map_from(QQ)
             Conversion map:
             From: Rational Field
             To:   Number Field in a with defining polynomial x^2 - 2 over its base field
@@ -2334,7 +2368,7 @@ cdef class Parent(category_object.CategoryObject):
         if PY_TYPE_CHECK(S, Parent) and (<Parent>S)._embedding is not None:
             if (<Parent>S)._embedding.codomain() is self:
                 return (<Parent>S)._embedding
-            connecting = self.coerce_map_from((<Parent>S)._embedding.codomain())
+            connecting = self._internal_coerce_map_from((<Parent>S)._embedding.codomain())
             if connecting is not None:
                 return (<Parent>S)._embedding.post_compose(connecting)
 
@@ -2389,7 +2423,7 @@ cdef class Parent(category_object.CategoryObject):
             else:
                 connecting = None
                 if EltPair(D, S, "coerce") not in _coerce_test_dict:
-                    connecting = D.coerce_map_from(S)
+                    connecting = D._internal_coerce_map_from(S)
                 if connecting is not None:
                     mor = mor * connecting
                     if best_mor is None or mor._coerce_cost < best_mor._coerce_cost:
@@ -2443,12 +2477,12 @@ cdef class Parent(category_object.CategoryObject):
 
     cdef discover_convert_map_from(self, S):
 
-        cdef map.Map mor = self.coerce_map_from(S)
+        cdef map.Map mor = self._internal_coerce_map_from(S)
         if mor is not None:
             return mor
 
         if PY_TYPE_CHECK(S, Parent):
-            mor = S.coerce_map_from(self)
+            mor = S._internal_coerce_map_from(self)
             if mor is not None:
                 mor = mor.section()
                 if mor is not None:
@@ -2568,7 +2602,7 @@ cdef class Parent(category_object.CategoryObject):
             if R is S:
                 return action
             else:
-                connecting = R.coerce_map_from(S) # S -> R
+                connecting = R._internal_coerce_map_from(S) # S -> R
                 if connecting is not None:
                     if self_on_left:
                         return PrecomposedAction(action, None, connecting)

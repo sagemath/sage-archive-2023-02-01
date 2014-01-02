@@ -673,12 +673,12 @@ class Homset(Set_generic):
                 return x
             else:
                 if x.domain() != self.domain():
-                    mor = x.domain().coerce_map_from(self.domain())
+                    mor = x.domain()._internal_coerce_map_from(self.domain())
                     if mor is None:
                         raise TypeError, "Incompatible domains: x (=%s) cannot be an element of %s"%(x,self)
                     x = x * mor
                 if x.codomain() != self.codomain():
-                    mor = self.codomain().coerce_map_from(x.codomain())
+                    mor = self.codomain()._internal_coerce_map_from(x.codomain())
                     if mor is None:
                         raise TypeError, "Incompatible codomains: x (=%s) cannot be an element of %s"%(x,self)
                     x = mor * x

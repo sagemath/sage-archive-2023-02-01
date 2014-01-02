@@ -2713,7 +2713,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                     and all(self._sets[i].has_coerce_map_from(M)
                             for i,M in enumerate(R._sets)):
                 modules = R._sets
-                vector_map = [self._sets[i].coerce_map_from(M)
+                vector_map = [self._sets[i]._internal_coerce_map_from(M)
                               for i,M in enumerate(modules)]
                 return R.module_morphism(lambda x: self._tensor_of_elements(
                         [vector_map[i](M.monomial(x[i]))

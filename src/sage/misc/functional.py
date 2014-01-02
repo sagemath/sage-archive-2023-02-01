@@ -106,7 +106,7 @@ def base_field(x):
                 return y
             else:
                 raise AttributeError, "The base ring of %s is not a field"%x
-        except StandardError:
+        except Exception:
             raise
 
 def basis(x):

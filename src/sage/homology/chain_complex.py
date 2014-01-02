@@ -236,7 +236,7 @@ def ChainComplex(data=None, **kwds):
     degree = kwds.get('degree_of_differential', kwds.get('degree', 1))
     try:
         degree = grading_group(degree)
-    except StandardError:
+    except Exception:
         raise ValueError('degree is not an element of the grading group')
 
     # transform data into data_dict

@@ -375,7 +375,7 @@ class OperationTable(SageObject):
                     raise ValueError('%s is infinite' % S)
             try:
                 elems = tuple(S)
-            except StandardError:
+            except Exception:
                 raise ValueError('unable to determine elements of %s' % S)
         else:
             elems = []
@@ -384,7 +384,7 @@ class OperationTable(SageObject):
                     coerced = S(e)
                     if not(coerced in elems):
                         elems.append(coerced)
-            except StandardError:
+            except Exception:
                 raise TypeError('unable to coerce %s into %s' % (e, S))
         self._elts = elems
         self._n = len(self._elts)
@@ -426,7 +426,7 @@ class OperationTable(SageObject):
                     row.append(self._elts.index(result))
                 except ValueError:  # list/index condition
                     raise ValueError('%s%s%s=%s, and so the set is not closed' % (g, self._ascii_symbol, h, result))
-                except StandardError:
+                except Exception:
                     raise TypeError('elements %s and %s of %s are incompatible with operation: %s' % (g,h,S,self._operation))
             self._table.append(row)
 

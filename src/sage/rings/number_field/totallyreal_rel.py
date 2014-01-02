@@ -595,7 +595,7 @@ class tr_data_rel:
                         for a0 in a0s:
                             try:
                                 ind = self.amaxvals[0].remove(a0)
-                            except StandardError:
+                            except Exception:
                                 True
 
                     if verbose:

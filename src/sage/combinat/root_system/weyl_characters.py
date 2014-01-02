@@ -2176,7 +2176,7 @@ def get_branching_rule(Rtype, Stype, rule):
             if Stype.is_compound() and s == r-1:
                 try:
                     return get_branching_rule(Rtype, Stype, rule="levi")
-                except StandardError:
+                except Exception:
                     pass
 
             if Rtype[0] == "A":
@@ -2194,7 +2194,7 @@ def get_branching_rule(Rtype, Stype, rule):
             if s == r-1:
                 try:
                     return get_branching_rule(Rtype, Stype, rule="levi")
-                except StandardError:
+                except Exception:
                     pass
 
         raise ValueError("No default rule found (you must specify the rule)")
@@ -3187,6 +3187,6 @@ class WeightRing(CombinatorialFreeModule):
             else:
                 try:
                     return self.demazure_lusztig(i.reduced_word(),v)
-                except StandardError:
+                except Exception:
                     raise ValueError("unknown index {}".format(i))
 

@@ -890,7 +890,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             raise TypeError("Argument R must be a commutative ring.")
         try:
             R(Integer(1))
-        except StandardError:
+        except Exception:
             raise ValueError("R must have a unit element")
 
         if basis_name is not None:

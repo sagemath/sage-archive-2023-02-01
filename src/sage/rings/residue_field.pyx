@@ -896,7 +896,7 @@ cdef class ReductionMap(Map):
 
         try:
             return self._F(self._to_vs(x) * self._PBinv)
-        except StandardError: pass
+        except Exception: pass
 
         # Now we do have to work harder...below this point we handle
         # cases which failed before trac 1951 was fixed.

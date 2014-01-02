@@ -544,7 +544,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
         # Compute a linear extension of the poset (a topological sort).
         try:
             lin_ext = D.topological_sort()
-        except StandardError:
+        except Exception:
             raise ValueError, "Hasse diagram contains cycles."
 
     # Relabel using the linear_extension.

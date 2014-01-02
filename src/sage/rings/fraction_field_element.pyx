@@ -204,7 +204,7 @@ cdef class FractionFieldElement(FieldElement):
                 try:
                     num *= den.inverse_of_unit()
                     den  = den.parent().one_element()
-                except StandardError:
+                except Exception:
                     pass
             self.__numerator   = num
             self.__denominator = den

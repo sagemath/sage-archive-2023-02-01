@@ -190,7 +190,7 @@ def _normal_label(g, comb_emb, external_face):
     while g.order() > 3:
         try:
             v = contractible.pop()
-        except StandardError:
+        except Exception:
             raise RuntimeError('Contractible list is empty but graph still has %d vertices.  (Expected 3.)'%g.order())
 
             break

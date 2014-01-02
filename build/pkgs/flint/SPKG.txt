@@ -26,7 +26,15 @@ FLINT is licensed GPL v2+.
  * MPFR
  * NTL
 
+== Special Update/Build Instructions ==
+
+=== Patches ===
+  * NTL-interface-tests.patch: fix NTL interface tests.
+
 == Changelog ==
+
+=== flint-2.4.p0 (Jean-Pierre Flori, 2 January 2014) ===
+  * Trac #15574: Add patch to fix NTL interface tests.
 
 === flint-2.4 (Jean-Pierre Flori, 24 December 2013) ===
   * Trac #15574: Update to version 2.4.

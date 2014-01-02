@@ -2162,21 +2162,6 @@ cdef class Parent(category_object.CategoryObject):
             sage: Ht = Sym.macdonald().Ht()
             sage: phi = m.coerce_map_from(P)
         """
-        if not good_as_coerce_domain(S):
-            return None
-        self._coercions_used = True
-        cdef map.Map mor
-
-        if isinstance(S, Set_PythonType_class):
-            return self._internal_coerce_map_from(S._type)
-        if self._coerce_from_hash is None: # this is because parent.__init__() does not always get called
-            self.init_coerce(False)
-
-        try:
-            return self._coerce_from_hash.get(S)
-        except KeyError:
-            pass
-
         return copy(self._internal_coerce_map_from(S))
 
     cpdef _internal_coerce_map_from(self, S):

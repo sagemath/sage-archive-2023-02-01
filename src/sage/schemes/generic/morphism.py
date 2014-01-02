@@ -219,7 +219,7 @@ class SchemeMorphism(Element):
                 return self._call_(x)
             return self._call_with_args(x, args, kwds)
         # Is there coercion?
-        converter = D.coerce_map_from(P)
+        converter = D._internal_coerce_map_from(P)
         if converter is None:
             try:
                 return self.pushforward(x,*args,**kwds)

@@ -214,11 +214,11 @@ class FormalSums(UniqueRepresentation, Module):
             if self_is_left:
                 action = RightModuleAction(other, extended)
                 if extended is not self:
-                    action = PrecomposedAction(action, extended.coerce_map_from(self), None)
+                    action = PrecomposedAction(action, extended._internal_coerce_map_from(self), None)
             else:
                 action = LeftModuleAction(other, extended)
                 if extended is not self:
-                    action = PrecomposedAction(action, None, extended.coerce_map_from(self))
+                    action = PrecomposedAction(action, None, extended._internal_coerce_map_from(self))
             return action
 
     def _an_element_(self, check=False, reduce=False):

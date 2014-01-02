@@ -3378,6 +3378,18 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
            - ``'kash'`` - use the KASH computer algebra system (requires
              the optional kash package)
 
+           - ``'magma'`` - use the MAGMA computer algebra system (requires
+             an installation of MAGMA)
+
+           - ``'qsieve'`` - use Bill Hart's quadratic sieve code;
+             WARNING: this may not work as expected, see qsieve? for
+             more information
+
+           - ``'ecm'`` - use ECM-GMP, an implementation of Hendrik
+             Lenstra's elliptic curve method; WARNING: the factors
+             returned may not be prime, see ecm.factor? for more
+             information
+
         -  ``proof`` - bool (default: True) whether or not to
            prove primality of each factor (only applicable for PARI).
 
@@ -3428,6 +3440,27 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: n.factor(limit=1000)
             2 * 11 * 41835640583745019265831379463815822381094652231
+
+        We factor using a quadratic sieve algorithm::
+
+            sage: p = next_prime(10^20)
+            sage: q = next_prime(10^21)
+            sage: n = p*q
+            sage: n.factor(algorithm='qsieve')
+            doctest:... RuntimeWarning: the factorization returned
+            by qsieve may be incomplete (the factors may not be prime)
+            or even wrong; see qsieve? for details
+            100000000000000000039 * 1000000000000000000117
+
+        We factor using the elliptic curve method::
+
+            sage: p = next_prime(10^15)
+            sage: q = next_prime(10^21)
+            sage: n = p*q
+            sage: n.factor(algorithm='ecm')
+            doctest:... RuntimeWarning: the factors returned by ecm
+            are not guaranteed to be prime; see ecm.factor? for details
+            1000000000000037 * 1000000000000000000117
 
         TESTS::
 
@@ -3496,6 +3529,22 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             exp_type = int if int_ else Integer
             F = [(Integer(p), exp_type(e)) for p,e in zip(res[0::2], res[1::2])]
             return Factorization(F, unit)
+        elif algorithm == 'qsieve':
+            message = "the factorization returned by qsieve may be incomplete (the factors may not be prime) or even wrong; see qsieve? for details"
+            from warnings import warn
+            warn(message, RuntimeWarning, stacklevel=5)
+            from sage.interfaces.qsieve import qsieve
+            res = [(p, 1) for p in qsieve(n)[0]]
+            F = IntegerFactorization(res, unit)
+            return F
+        elif algorithm == 'ecm':
+            message = "the factors returned by ecm are not guaranteed to be prime; see ecm.factor? for details"
+            from warnings import warn
+            warn(message, RuntimeWarning, stacklevel=2)
+            from sage.interfaces.ecm import ecm
+            res = [(p, 1) for p in ecm.factor(n)]
+            F = IntegerFactorization(res, unit)
+            return F
         else:
             raise ValueError, "Algorithm is not known"
 
@@ -4484,6 +4533,20 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
             sage: z.is_prime(proof=True)
             True
+
+        When starting Sage the arithmetic proof flag is True. We can change
+        it to False as follows::
+
+            sage: proof.arithmetic()
+            True
+            sage: n = 10^100 + 267
+            sage: timeit("n.is_prime()") # random
+            5 loops, best of 3: 163 ms per loop
+            sage: proof.arithmetic(False)
+            sage: proof.arithmetic()
+            False
+            sage: timeit("n.is_prime()") # random
+            1000 loops, best of 3: 573 us per loop
 
         IMPLEMENTATION: Calls the PARI ``isprime`` function.
         """

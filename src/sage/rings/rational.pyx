@@ -2699,7 +2699,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         QQ = self.parent()
         return QQ[var]([-self,1])
 
-    def minpoly(self, var):
+    def minpoly(self, var='x'):
         """
         Return the minimal polynomial of this rational number. This will
         always be just ``x - self``; this is really here so that code written
@@ -2713,8 +2713,10 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: (1/3).minpoly('x')
-             x - 1/3
+            sage: (1/3).minpoly()
+            x - 1/3
+            sage: (1/3).minpoly('y')
+            y - 1/3
 
         AUTHORS:
 

@@ -2216,7 +2216,7 @@ class NumberField_relative(NumberField_generic):
             sage: R = P.order([a,b,c]); R
             Relative Order in Number Field in sqrt2 with defining polynomial x^2 - 2 over its base field
 
-        The base ring of an order in a relative extension is still `\ZZ`.:
+        The base ring of an order in a relative extension is still `\ZZ`.::
 
             sage: R.base_ring()
             Integer Ring

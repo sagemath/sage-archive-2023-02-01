@@ -303,7 +303,7 @@ def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, 
                 # In degree 4, use cubic resolvent
                 if d == 4 and mq >= 12:  # mq must be 12 or 24
                     # Compute cubic resolvent
-                    a0, a1, a2, a3, a4 = q.Vecrev()
+                    a0, a1, a2, a3, a4 = (q/q.pollead()).Vecrev()
                     assert a4 == 1
                     cubicpol = pari([4*a0*a2 - a1*a1 -a0*a3*a3, a1*a3 - 4*a0, -a2, 1]).Polrev()
                     cubicfactors = Kpol.nffactor(cubicpol)[0]

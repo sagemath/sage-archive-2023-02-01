@@ -626,7 +626,7 @@ cdef class RealField_class(sage.rings.ring.Field):
             False
             sage: RR.has_coerce_map_from(RDF)
             True
-            sage: copy(RR.coerce_map_from(ZZ))(2)
+            sage: RR.coerce_map_from(ZZ)(2)
             2.00000000000000
             sage: RR.coerce(3.4r)
             3.40000000000000
@@ -644,11 +644,7 @@ cdef class RealField_class(sage.rings.ring.Field):
             3.40000000000000
             sage: RR.coerce(2^4000)
             1.31820409343094e1204
-
-        Note that by :trac:`14711` coerce maps should be copied when using
-        them outside of the coercion system::
-
-            sage: copy(RR.coerce_map_from(float))
+            sage: RR.coerce_map_from(float)
             Generic map:
               From: Set of Python objects of type 'float'
               To:   Real Field with 53 bits of precision
@@ -671,7 +667,7 @@ cdef class RealField_class(sage.rings.ring.Field):
         elif isinstance(S, RealField_class) and S.prec() >= self.__prec:
             return RRtoRR(S, self)
         elif QQ.has_coerce_map_from(S):
-            return QQtoRR(QQ, self) * QQ.coerce_map_from(S)
+            return QQtoRR(QQ, self) * QQ._internal_coerce_map_from(S)
         from sage.rings.qqbar import AA
         from sage.rings.real_lazy import RLF
         if S == AA or S is RLF:

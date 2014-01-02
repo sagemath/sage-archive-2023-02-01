@@ -305,7 +305,7 @@ cdef class RealDoubleField_class(Field):
         from real_mpfr import RR, RealField_class
         if S in [int, float, ZZ, QQ, RLF] or isinstance(S, RealField_class) and S.prec() >= 53:
             return ToRDF(S)
-        connecting = RR.coerce_map_from(S)
+        connecting = RR._internal_coerce_map_from(S)
         if connecting is not None:
             return ToRDF(RR) * connecting
 
@@ -2442,25 +2442,25 @@ cdef class ToRDF(Morphism):
 
         EXAMPLES::
 
-            sage: f = copy(RDF.coerce_map_from(ZZ)); f
+            sage: f = RDF.coerce_map_from(ZZ); f
             Native morphism:
               From: Integer Ring
               To:   Real Double Field
             sage: f(4)
             4.0
-            sage: f = copy(RDF.coerce_map_from(QQ)); f
+            sage: f = RDF.coerce_map_from(QQ); f
             Native morphism:
               From: Rational Field
               To:   Real Double Field
             sage: f(1/2)
             0.5
-            sage: f = copy(RDF.coerce_map_from(int)); f
+            sage: f = RDF.coerce_map_from(int); f
             Native morphism:
               From: Set of Python objects of type 'int'
               To:   Real Double Field
             sage: f(3r)
             3.0
-            sage: f = copy(RDF.coerce_map_from(float)); f
+            sage: f = RDF.coerce_map_from(float); f
             Native morphism:
               From: Set of Python objects of type 'float'
               To:   Real Double Field

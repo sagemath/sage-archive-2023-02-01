@@ -416,11 +416,11 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         if S in [int, float, ZZ, QQ, RDF, RLF] or isinstance(S, RealField_class) and S.prec() >= 53:
             return FloatToCDF(S)
         elif RR.has_coerce_map_from(S):
-            return FloatToCDF(RR) * RR.coerce_map_from(S)
+            return FloatToCDF(RR) * RR._internal_coerce_map_from(S)
         elif isinstance(S, ComplexField_class) and S.prec() >= 53:
             return CCtoCDF(S, self)
         elif CC.has_coerce_map_from(S):
-            return CCtoCDF(CC, self) * CC.coerce_map_from(S)
+            return CCtoCDF(CC, self) * CC._internal_coerce_map_from(S)
 
     def _magma_init_(self, magma):
         r"""
@@ -2235,25 +2235,25 @@ cdef class FloatToCDF(Morphism):
 
     EXAMPLES::
 
-        sage: f = copy(CDF.coerce_map_from(ZZ)); f
+        sage: f = CDF.coerce_map_from(ZZ); f
         Native morphism:
           From: Integer Ring
           To:   Complex Double Field
         sage: f(4)
         4.0
-        sage: f = copy(CDF.coerce_map_from(QQ)); f
+        sage: f = CDF.coerce_map_from(QQ); f
         Native morphism:
           From: Rational Field
           To:   Complex Double Field
         sage: f(1/2)
         0.5
-        sage: f = copy(CDF.coerce_map_from(int)); f
+        sage: f = CDF.coerce_map_from(int); f
         Native morphism:
           From: Set of Python objects of type 'int'
           To:   Complex Double Field
         sage: f(3r)
         3.0
-        sage: f = copy(CDF.coerce_map_from(float)); f
+        sage: f = CDF.coerce_map_from(float); f
         Native morphism:
           From: Set of Python objects of type 'float'
           To:   Complex Double Field
@@ -2266,7 +2266,7 @@ cdef class FloatToCDF(Morphism):
 
         EXAMPLES::
 
-            sage: f = copy(CDF.coerce_map_from(ZZ)); f
+            sage: f = CDF.coerce_map_from(ZZ); f
             Native morphism:
               From: Integer Ring
               To:   Complex Double Field

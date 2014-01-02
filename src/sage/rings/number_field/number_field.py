@@ -1942,7 +1942,7 @@ class NumberField_generic(number_field_base.NumberField):
             if F.absolute_degree() == self.absolute_degree() / 2:
                 if F.is_totally_real():
                     self.__is_CM = True
-                    self.__max_tot_real_sub = [F, self.coerce_map_from(F)]
+                    self.__max_tot_real_sub = [F, self._internal_coerce_map_from(F)]
                     return True
             K = self.absolute_field('z')
 
@@ -2008,7 +2008,7 @@ class NumberField_generic(number_field_base.NumberField):
            self, sage.rings.number_field.number_field.NumberField_quadratic):
             disc = self.discriminant()
             if disc > 0:
-                self.__complex_conjugation = self.coerce_map_from(self)
+                self.__complex_conjugation = self._internal_coerce_map_from(self)
                 return self.__complex_conjugation
             else:
                 a = self.gen()
@@ -2022,7 +2022,7 @@ class NumberField_generic(number_field_base.NumberField):
             self.__complex_conjugation = self.hom([zeta ** (-1)], check=False)
             return self.__complex_conjugation
         if self.is_totally_real():
-            self.__complex_conjugation = self.coerce_map_from(self)
+            self.__complex_conjugation = self._internal_coerce_map_from(self)
             return self.__complex_conjugation
 
         if not self.is_CM():
@@ -2122,13 +2122,13 @@ class NumberField_generic(number_field_base.NumberField):
         if isinstance(
            self, sage.rings.number_field.number_field.NumberField_quadratic):
             if self.discriminant() > 0:
-                phi = self.coerce_map_from(self)
+                phi = self._internal_coerce_map_from(self)
                 if phi is not None:
                     phi = phi.__copy__()
                 self.__max_tot_real_sub = [self, phi]
                 return self.__max_tot_real_sub
             else:
-                phi = self.coerce_map_from(QQ)
+                phi = self._internal_coerce_map_from(QQ)
                 if phi is not None:
                     phi = phi.__copy__()
                 self.__max_tot_real_sub = [QQ, phi]
@@ -2139,7 +2139,7 @@ class NumberField_generic(number_field_base.NumberField):
             self.__max_tot_real_sub = self.subfield(zeta + zeta ** (-1))
             return self.__max_tot_real_sub
         if self.is_totally_real():
-            phi = self.coerce_map_from(self)
+            phi = self._internal_coerce_map_from(self)
             if phi is not None:
                 phi = phi.__copy__()
             self.__max_tot_real_sub = [self, phi]
@@ -2148,7 +2148,7 @@ class NumberField_generic(number_field_base.NumberField):
             K = self
         else:
             if self.is_CM_extension():
-                phi = self.coerce_map_from(self.base_field())
+                phi = self._internal_coerce_map_from(self.base_field())
                 if phi is not None:
                     phi = phi.__copy__()
                 self.__max_tot_real_sub = [self.base_field(), phi]
@@ -2166,7 +2166,7 @@ class NumberField_generic(number_field_base.NumberField):
                         phi = phi.post_compose(K.structure()[0]).__copy__()
                     self.__max_tot_real_sub = [F, phi]
                     return self.__max_tot_real_sub
-        phi = self.coerce_map_from(QQ)
+        phi = self._internal_coerce_map_from(QQ)
         if phi is not None:
             phi = phi.__copy__()
         self.__max_tot_real_sub = [QQ, phi]
@@ -6127,7 +6127,7 @@ class NumberField_absolute(NumberField_generic):
             sage: K.<a> = CyclotomicField(16)
             sage: K(CyclotomicField(4).0)
             a^4
-            sage: copy(QuadraticField(-3, 'a').coerce_map_from(CyclotomicField(3)))
+            sage: QuadraticField(-3, 'a').coerce_map_from(CyclotomicField(3))
             Generic morphism:
               From: Cyclotomic Field of order 3 and degree 2
               To:   Number Field in a with defining polynomial x^2 + 3
@@ -8112,23 +8112,18 @@ class NumberField_cyclotomic(NumberField_absolute):
         If `K` is not a cyclotomic field, the normal coercion rules for number
         fields are used.
 
-        .. NOTE::
-
-            By :trac:`14711`, maps from the coercion system should be copied
-            when using them outside of the coercion system.
-
         EXAMPLES::
 
             sage: K.<a> = CyclotomicField(12)
             sage: L.<b> = CyclotomicField(132)
-            sage: copy(L.coerce_map_from(K)) # indirect doctest
+            sage: L.coerce_map_from(K) # indirect doctest
             Generic morphism:
               From: Cyclotomic Field of order 12 and degree 4
               To:   Cyclotomic Field of order 132 and degree 40
               Defn: a -> b^11
             sage: a + b
             b^11 + b
-            sage: copy(L.coerce_map_from(CyclotomicField(4, 'z')))
+            sage: L.coerce_map_from(CyclotomicField(4, 'z'))
             Generic morphism:
               From: Cyclotomic Field of order 4 and degree 2
               To:   Cyclotomic Field of order 132 and degree 40
@@ -8138,23 +8133,23 @@ class NumberField_cyclotomic(NumberField_absolute):
 
             sage: K.<a> = CyclotomicField(3)
             sage: L.<b> = CyclotomicField(6)
-            sage: copy(L.coerce_map_from(K))
+            sage: L.coerce_map_from(K)
             Generic morphism:
               From: Cyclotomic Field of order 3 and degree 2
               To:   Cyclotomic Field of order 6 and degree 2
               Defn: a -> b - 1
-            sage: copy(K.coerce_map_from(L))
+            sage: K.coerce_map_from(L)
             Generic morphism:
               From: Cyclotomic Field of order 6 and degree 2
               To:   Cyclotomic Field of order 3 and degree 2
               Defn: b -> a + 1
 
-            sage: copy(CyclotomicField(33).coerce_map_from(CyclotomicField(66)))
+            sage: CyclotomicField(33).coerce_map_from(CyclotomicField(66))
             Generic morphism:
               From: Cyclotomic Field of order 66 and degree 20
               To:   Cyclotomic Field of order 33 and degree 20
               Defn: zeta66 -> -zeta33^17
-            sage: copy(CyclotomicField(15).coerce_map_from(CyclotomicField(6)))
+            sage: CyclotomicField(15).coerce_map_from(CyclotomicField(6))
             Generic morphism:
               From: Cyclotomic Field of order 6 and degree 2
               To:   Cyclotomic Field of order 15 and degree 8
@@ -8163,7 +8158,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         Check that #12632 is fixed::
 
             sage: K1 = CyclotomicField(1); K2 = CyclotomicField(2)
-            sage: copy(K1.coerce_map_from(K2))
+            sage: K1.coerce_map_from(K2)
             Generic morphism:
               From: Cyclotomic Field of order 2 and degree 1
               To:   Cyclotomic Field of order 1 and degree 1
@@ -8174,7 +8169,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: z105 = CDF(exp(2*pi*I/105))
             sage: Ka.<a> = CyclotomicField(105, embedding=z105^11)
             sage: Kb.<b> = CyclotomicField(35, embedding=z105^6)
-            sage: copy(Ka.coerce_map_from(Kb))
+            sage: Ka.coerce_map_from(Kb)
             Generic morphism:
               From: Cyclotomic Field of order 35 and degree 24
               To:   Cyclotomic Field of order 105 and degree 48
@@ -8185,13 +8180,13 @@ class NumberField_cyclotomic(NumberField_absolute):
             0.936234870639731 + 0.351374824081341*I
 
             sage: z15 = CDF(exp(2*pi*I/15))
-            sage: copy(CyclotomicField(15).coerce_map_from(CyclotomicField(6, embedding=-z15^5)))
+            sage: CyclotomicField(15).coerce_map_from(CyclotomicField(6, embedding=-z15^5))
             Generic morphism:
               From: Cyclotomic Field of order 6 and degree 2
               To:   Cyclotomic Field of order 15 and degree 8
               Defn: zeta6 -> -zeta15^5
 
-            sage: copy(CyclotomicField(15, embedding=z15^4).coerce_map_from(CyclotomicField(6, embedding=-z15^5)))
+            sage: CyclotomicField(15, embedding=z15^4).coerce_map_from(CyclotomicField(6, embedding=-z15^5))
             Generic morphism:
               From: Cyclotomic Field of order 6 and degree 2
               To:   Cyclotomic Field of order 15 and degree 8

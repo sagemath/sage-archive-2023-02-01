@@ -614,12 +614,12 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             action = ActedUponAction(extended_other, extended_self, not self_is_left)
             if self_is_left:
                 action = PrecomposedAction(action,
-                                           extended_self.coerce_map_from(self).__copy__(),
-                                           extended_other.coerce_map_from(other).__copy__())
+                                           extended_self._internal_coerce_map_from(self).__copy__(),
+                                           extended_other._internal_coerce_map_from(other).__copy__())
             else:
                 action = PrecomposedAction(action,
-                                           extended_other.coerce_map_from(other).__copy__(),
-                                           extended_self.coerce_map_from(self).__copy__())
+                                           extended_other._internal_coerce_map_from(other).__copy__(),
+                                           extended_self._internal_coerce_map_from(self).__copy__())
             return action
 
         if op is operator.mul and is_CommutativeRing(other):
@@ -630,12 +630,12 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             action = ActedUponAction(ring, extended, not self_is_left)
             if self_is_left:
                 action = PrecomposedAction(action,
-                                           extended.coerce_map_from(self).__copy__(),
-                                           ring.coerce_map_from(other).__copy__())
+                                           extended._internal_coerce_map_from(self).__copy__(),
+                                           ring._internal_coerce_map_from(other).__copy__())
             else:
                 action = PrecomposedAction(action,
-                                           ring.coerce_map_from(other).__copy__(),
-                                           extended.coerce_map_from(self).__copy__())
+                                           ring._internal_coerce_map_from(other).__copy__(),
+                                           extended._internal_coerce_map_from(self).__copy__())
             return action
 
     def _make_Inequality(self, polyhedron, data):

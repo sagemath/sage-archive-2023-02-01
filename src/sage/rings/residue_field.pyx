@@ -704,7 +704,7 @@ class ResidueField_generic(Field):
         OK = self.p.ring()
         if OK.is_field():
             OK = OK.ring_of_integers()
-        return self.coerce_map_from(OK).section()
+        return self._internal_coerce_map_from(OK).section()
 
     def __cmp__(self, x):
         """
@@ -1042,10 +1042,7 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
         sage: (1+abar)^179
         24*abar + 12
 
-    By :trac:`14711`, coerce maps should be copied when using
-    them outside of the coercion system::
-
-        sage: phi = copy(k.coerce_map_from(OK)); phi
+        sage: phi = k.coerce_map_from(OK); phi
         Ring morphism:
           From: Maximal Order in Number Field in a with defining polynomial x^3 - 7
           To:   Residue field in abar of Fractional ideal (2*a^2 + 3*a - 10)

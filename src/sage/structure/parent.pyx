@@ -2208,9 +2208,8 @@ cdef class Parent(category_object.CategoryObject):
         The following was fixed in :trac:`4740`::
 
             sage: F = GF(13)
-            sage: F.coerce_map_from(F) is F.coerce_map_from(F)
+            sage: F._internal_coerce_map_from(F) is F._internal_coerce_map_from(F)
             True
-
         """
         if not good_as_coerce_domain(S):
             return None

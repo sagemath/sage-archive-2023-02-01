@@ -1869,6 +1869,11 @@ ext_modules = [
                          flint_depends,
               libraries = ['flint', 'gmp', 'ratpoints']),
 
+
+    Extension('sage.schemes.elliptic_curves.period_lattice_region',
+              sources = ['sage/schemes/elliptic_curves/period_lattice_region.pyx'],
+              include_dirs = numpy_include_dirs),
+
     Extension('sage.schemes.hyperelliptic_curves.hypellfrob',
               sources = ['sage/schemes/hyperelliptic_curves/hypellfrob.pyx',
                          'sage/schemes/hyperelliptic_curves/hypellfrob/hypellfrob.cpp',

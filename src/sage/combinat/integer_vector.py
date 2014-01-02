@@ -803,7 +803,7 @@ class IntegerVectors_nk(CombinatorialClass):
 
         INPUT:
 
-        - ``x`` - any sequence with sum(x) == n and len(x) == k
+        - ``x`` - a list with ``sum(x) == n`` and ``len(x) == k``
 
         TESTS::
 
@@ -812,14 +812,11 @@ class IntegerVectors_nk(CombinatorialClass):
             True
         """
 
-        n = sum(x)
-        k = len(x)
+        if x not in self:
+            raise ValueError, "argument is not a member of IntegerVectors(%d,%d)" % (self.n, self.k)
 
-        if k != self.k:
-            raise ValueError, "wrong number of elements"
-
-        if n != self.n:
-            raise ValueError, "wrong sum of elements"
+        n = self.n
+        k = self.k
 
         r = 0
         for i in range(k-1):

@@ -1007,14 +1007,11 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
     """
     This class represents the coercion map from GF(p)[t] to GF(p)(t)
 
-    Note that by :trac:`14711` coerce maps should be copied before extracting
-    them from the coercion system.
-
     EXAMPLES::
 
         sage: R.<t> = GF(5)[]
         sage: K = R.fraction_field()
-        sage: f = copy(K.coerce_map_from(R)); f
+        sage: f = K.coerce_map_from(R); f
         Ring Coercion morphism:
           From: Univariate Polynomial Ring in t over Finite Field of size 5
           To:   Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 5
@@ -1045,7 +1042,7 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
 
             sage: R.<t> = GF(5)[]
             sage: K = R.fraction_field()
-            sage: f = copy(K.coerce_map_from(R)) # indirect doctest
+            sage: f = K.coerce_map_from(R) # indirect doctest
             sage: f(t^2 + 1)
             t^2 + 1
         """
@@ -1060,7 +1057,7 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
 
             sage: R.<t> = GF(5)[]
             sage: K = R.fraction_field()
-            sage: f = copy(K.coerce_map_from(R)) # indirect doctest
+            sage: f = K.coerce_map_from(R) # indirect doctest
             sage: f(t^2 + 1)
             t^2 + 1
         """
@@ -1178,14 +1175,11 @@ cdef class FpT_Polyring_section(Section):
     """
     This class represents the section from GF(p)(t) back to GF(p)[t]
 
-    Note that coerce and conversion maps should be copied before using
-    them outside of the coercion system, by :trac:`14711`.
-
     EXAMPLES::
 
         sage: R.<t> = GF(5)[]
         sage: K = R.fraction_field()
-        sage: f = copy(R.convert_map_from(K)); f
+        sage: f = R.convert_map_from(K); f
         Section map:
           From: Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 5
           To:   Univariate Polynomial Ring in t over Finite Field of size 5
@@ -1219,7 +1213,7 @@ cdef class FpT_Polyring_section(Section):
             sage: R.<t> = GF(7)[]
             sage: K = R.fraction_field()
             sage: f = K.coerce_map_from(R)
-            sage: g = copy(f.section())   # indirect doctest
+            sage: g = f.section()   # indirect doctest
             sage: t = K.gen()
             sage: g(t^2)
             t^2
@@ -1240,7 +1234,7 @@ cdef class FpT_Polyring_section(Section):
             sage: R.<t> = GF(7)[]
             sage: K = R.fraction_field()
             sage: f = K.coerce_map_from(R)
-            sage: g = copy(f.section())   # indirect doctest
+            sage: g = f.section()   # indirect doctest
             sage: t = K.gen()
             sage: g(t^2)
             t^2
@@ -1459,14 +1453,11 @@ cdef class FpT_Fp_section(Section):
     """
     This class represents the section from GF(p)(t) back to GF(p)[t]
 
-    Note that convert maps should be copied before using them outside
-    of the coercion system, by :trac:`14711`.
-
     EXAMPLES::
 
         sage: R.<t> = GF(5)[]
         sage: K = R.fraction_field()
-        sage: f = copy(GF(5).convert_map_from(K)); f
+        sage: f = GF(5).convert_map_from(K); f
         Section map:
           From: Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 5
           To:   Finite Field of size 5
@@ -1500,7 +1491,7 @@ cdef class FpT_Fp_section(Section):
             sage: R.<t> = GF(7)[]
             sage: K = R.fraction_field()
             sage: f = K.coerce_map_from(GF(7))
-            sage: g = copy(f.section())   # indirect doctest
+            sage: g = f.section()   # indirect doctest
             sage: t = K.gen()
             sage: g(t^2)
             Traceback (most recent call last):
@@ -1527,7 +1518,7 @@ cdef class FpT_Fp_section(Section):
             sage: R.<t> = GF(7)[]
             sage: K = R.fraction_field()
             sage: f = K.coerce_map_from(GF(7))
-            sage: g = copy(f.section())   # indirect doctest
+            sage: g = f.section()   # indirect doctest
             sage: t = K.gen()
             sage: g(t^2)
             Traceback (most recent call last):
@@ -1744,21 +1735,6 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
             sage: K = R.fraction_field()
             sage: f = K.coerce_map_from(ZZ)
             sage: g = f.section(); g
-            Composite map:
-              From: Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 5
-              To:   Integer Ring
-              Defn:   Section map:
-                      From: Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 5
-                      To:   Finite Field of size 5
-                    then
-                      Lifting map:
-                      From: Finite Field of size 5
-                      To:   Integer Ring
-            <BLANKLINE>        
-                            WARNING: This map has apparently been used internally
-                            in the coercion system. It may become defunct in the next
-                            garbage collection. Please use a copy.
-            sage: h = copy(g); h
             Composite map:
               From: Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 5
               To:   Integer Ring

@@ -953,17 +953,14 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
             sage: Sym = SymmetricFunctions(QQ) # indirect doctest
             sage: h = Sym.h(); w = Sym.w()
 
-        By :trac:`14711`, coerce maps should be copied before using them outside
-        of the coercion system::
-
-            sage: phi = copy(h.coerce_map_from(w)); phi
+            sage: phi = h.coerce_map_from(w); phi
             Generic morphism:
               From: Symmetric Functions over Rational Field in the Witt basis
               To:   Symmetric Functions over Rational Field in the homogeneous basis
             sage: phi(w.an_element()) == h(w.an_element())
             True
             sage: e = Sym.e(); w2 = Sym.w(coerce_e=True)
-            sage: psi = copy(e.coerce_map_from(w2)); psi
+            sage: psi = e.coerce_map_from(w2); psi
             Generic morphism:
               From: Symmetric Functions over Rational Field in the Witt basis
               To:   Symmetric Functions over Rational Field in the elementary basis

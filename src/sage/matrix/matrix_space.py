@@ -228,16 +228,15 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         We test that in the real or complex double dense case, conversion from
         the base ring is done by a call morphism.  Note that by :trac:`9138`,
         other algebras usually get a conversion map by multiplication with the
-        one element. By :trac:`14711`, coercion and conversion maps should be
-        copied when using them outside of the coercion system::
+        one element. ::
 
             sage: MS = MatrixSpace(RDF, 2, 2)
-            sage: copy(MS.convert_map_from(RDF))
+            sage: MS.convert_map_from(RDF)
             Call morphism:
               From: Real Double Field
               To:   Full MatrixSpace of 2 by 2 dense matrices over Real Double Field
             sage: MS = MatrixSpace(CDF, 2, 2)
-            sage: copy(MS.convert_map_from(CDF))
+            sage: MS.convert_map_from(CDF)
             Call morphism:
               From: Complex Double Field
               To:   Full MatrixSpace of 2 by 2 dense matrices over Complex Double Field

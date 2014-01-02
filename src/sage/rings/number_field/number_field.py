@@ -303,12 +303,10 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
 
     One can also define number fields with specified embeddings, may be used
     for arithmetic and deduce relations with other number fields which would
-    not be valid for an abstract number field. Note that by :trac:`14711` maps
-    taken from the coercion system should be copied, since the maps used
-    internally are modified to only have weak references to their domain::
+    not be valid for an abstract number field. ::
 
         sage: K.<a> = NumberField(x^3-2, embedding=1.2)
-        sage: copy(RR.coerce_map_from(K))
+        sage: RR.coerce_map_from(K)
         Composite map:
           From: Number Field in a with defining polynomial x^3 - 2
           To:   Real Field with 53 bits of precision
@@ -357,7 +355,7 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
         b^2 + b
         sage: CC(a) == CC(b)^2
         True
-        sage: copy(K.coerce_embedding())
+        sage: K.coerce_embedding()
         Generic morphism:
           From: Number Field in a with defining polynomial x^3 - x + 1/10
           To:   Number Field in b with defining polynomial x^6 - x^2 + 1/10
@@ -1592,12 +1590,12 @@ class NumberField_generic(number_field_base.NumberField):
             sage: L, K_from_L = K.subfield(z-z^2-z^3+z^4)
             sage: L
             Number Field in z0 with defining polynomial x^2 - 5
-            sage: CLF_from_K = copy(K.coerce_embedding()); CLF_from_K
+            sage: CLF_from_K = K.coerce_embedding(); CLF_from_K
             Generic morphism:
               From: Cyclotomic Field of order 5 and degree 4
               To:   Complex Lazy Field
               Defn: z -> 0.309016994374948? + 0.951056516295154?*I
-            sage: CLF_from_L = copy(L.coerce_embedding()); CLF_from_L
+            sage: CLF_from_L = L.coerce_embedding(); CLF_from_L
             Generic morphism:
               From: Number Field in z0 with defining polynomial x^2 - 5
               To:   Complex Lazy Field
@@ -2328,7 +2326,7 @@ class NumberField_generic(number_field_base.NumberField):
             True
             sage: K.gen_embedding()
             3 + 7 + 2*7^2 + 6*7^3 + 7^4 + 2*7^5 + 7^6 + 2*7^7 + 4*7^8 + 6*7^9 + 6*7^10 + 2*7^11 + 7^12 + 7^13 + 2*7^15 + 7^16 + 7^17 + 4*7^18 + 6*7^19 + O(7^20)
-            sage: copy(K.coerce_embedding())
+            sage: K.coerce_embedding()
             Generic morphism:
               From: Number Field in a with defining polynomial x^2 - 2
               To:   7-adic Field with capped relative precision 20
@@ -9140,7 +9138,7 @@ class NumberField_quadratic(NumberField_absolute):
         EXAMPLES::
 
             sage: K.<a> = QuadraticField(-3)
-            sage: f = copy(K.coerce_map_from(QQ)); f # indirect doctest
+            sage: f = K.coerce_map_from(QQ); f # indirect doctest
             Natural morphism:
               From: Rational Field
               To:   Number Field in a with defining polynomial x^2 + 3
@@ -9149,7 +9147,7 @@ class NumberField_quadratic(NumberField_absolute):
             sage: parent(f(3/5)) is K
             True
 
-            sage: g = copy(K.coerce_map_from(ZZ)); g # indirect doctest
+            sage: g = K.coerce_map_from(ZZ); g # indirect doctest
             Natural morphism:
               From: Integer Ring
               To:   Number Field in a with defining polynomial x^2 + 3

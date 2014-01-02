@@ -254,7 +254,7 @@ cdef class pAdicCoercion_QQ_CR(RingHomomorphism_coercion):
 
     EXAMPLES::
 
-        sage: f = copy(Qp(5).coerce_map_from(QQ)); f
+        sage: f = Qp(5).coerce_map_from(QQ); f
         Ring Coercion morphism:
           From: Rational Field
           To:   5-adic Field with capped relative precision 20

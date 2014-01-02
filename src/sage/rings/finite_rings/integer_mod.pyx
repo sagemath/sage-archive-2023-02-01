@@ -4026,18 +4026,10 @@ cdef class IntegerMod_hom(Morphism):
 
             sage: R5 = IntegerModRing(5)
             sage: R15 = IntegerModRing(15)
-
-        By :trac:`14711`, coercion maps should be copied when using them
-        outside of the coercion system::
-
             sage: phi = R5.coerce_map_from(R15); phi
             Natural morphism:
               From: Ring of integers modulo 15
               To:   Ring of integers modulo 5
-            <BLANKLINE>
-                    WARNING: This morphism has apparently been used internally
-                    in the coercion system. It may become defunct in the next
-                    garbage collection. Please use a copy.
 
         This method helps to implement copying::
 
@@ -4060,18 +4052,10 @@ cdef class IntegerMod_hom(Morphism):
 
             sage: R5 = IntegerModRing(5)
             sage: R15 = IntegerModRing(15)
-
-        By :trac:`14711`, coercion maps should be copied when using them
-        outside of the coercion system::
-
             sage: phi = R5.coerce_map_from(R15); phi
             Natural morphism:
               From: Ring of integers modulo 15
               To:   Ring of integers modulo 5
-            <BLANKLINE>
-                    WARNING: This morphism has apparently been used internally
-                    in the coercion system. It may become defunct in the next
-                    garbage collection. Please use a copy.
 
         This method helps to implement copying.
         ::

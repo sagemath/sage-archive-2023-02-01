@@ -2232,19 +2232,17 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         def __init_extra__(self):
             """
             Set up caches for the transition maps to and from the monomial
-            basis, and register them as coercions. Note that coerce maps
-            should be copied for usage outside of the coercion framework, by
-            :trac:`14711`.
+            basis, and register them as coercions.
 
             TESTS::
 
                 sage: HWL = QuasiSymmetricFunctions(QQ).HazewinkelLambda()
                 sage: M = QuasiSymmetricFunctions(QQ).Monomial()
-                sage: M2HWL = copy(HWL.coerce_map_from(M)); M2HWL
+                sage: M2HWL = HWL.coerce_map_from(M); M2HWL
                 Generic morphism:
                   From: Quasisymmetric functions over the Rational Field in the Monomial basis
                   To:   Quasisymmetric functions over the Rational Field in the HazewinkelLambda basis
-                sage: HWL2M = copy(M.coerce_map_from(HWL)); HWL2M
+                sage: HWL2M = M.coerce_map_from(HWL); HWL2M
                 Generic morphism:
                   From: Quasisymmetric functions over the Rational Field in the HazewinkelLambda basis
                   To:   Quasisymmetric functions over the Rational Field in the Monomial basis

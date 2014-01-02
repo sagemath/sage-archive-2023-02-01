@@ -1077,7 +1077,7 @@ garbage collection. Please use a copy."""
 
         EXAMPLES::
 
-            sage: mor = copy(CDF.coerce_map_from(RDF))
+            sage: mor = CDF.coerce_map_from(RDF)
             sage: mor.extend_domain(QQ)
             Composite map:
               From: Rational Field
@@ -1120,7 +1120,7 @@ garbage collection. Please use a copy."""
 
         EXAMPLES::
 
-            sage: mor = copy(QQ.coerce_map_from(ZZ))
+            sage: mor = QQ.coerce_map_from(ZZ)
             sage: mor.extend_codomain(RDF)
             Composite map:
               From: Integer Ring
@@ -1238,7 +1238,7 @@ garbage collection. Please use a copy."""
             sage: print f.section()
             None
 
-            sage: f = copy(QQ.coerce_map_from(ZZ)); f
+            sage: f = QQ.coerce_map_from(ZZ); f
             Natural morphism:
               From: Integer Ring
               To:   Rational Field

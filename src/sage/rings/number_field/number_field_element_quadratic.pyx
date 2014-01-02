@@ -2048,7 +2048,7 @@ cdef class Z_to_quadratic_field_element(Morphism):
         EXAMPLE::
 
             sage: K.<a> = QuadraticField(3)
-            sage: phi = copy(K.coerce_map_from(ZZ)) # indirect doctest
+            sage: phi = K.coerce_map_from(ZZ) # indirect doctest
             sage: type(phi)
             <type 'sage.rings.number_field.number_field_element_quadratic.Z_to_quadratic_field_element'>
             sage: phi == loads(dumps(phi)) # todo: comparison not implemented
@@ -2072,7 +2072,7 @@ cdef class Z_to_quadratic_field_element(Morphism):
         TESTS::
 
             sage: K.<a> = QuadraticField(3)
-            sage: phi = copy(K.coerce_map_from(ZZ)) # indirect doctest
+            sage: phi = K.coerce_map_from(ZZ) # indirect doctest
             sage: phi(4)
             4
             sage: phi(5).parent() is K
@@ -2089,7 +2089,7 @@ cdef class Z_to_quadratic_field_element(Morphism):
         TESTS::
 
             sage: K.<a> = QuadraticField(3)
-            sage: phi = copy(K.coerce_map_from(ZZ)) # indirect doctest
+            sage: phi = K.coerce_map_from(ZZ) # indirect doctest
             sage: phi(4)
             4
             sage: phi(5).parent() is K
@@ -2106,14 +2106,14 @@ cdef class Z_to_quadratic_field_element(Morphism):
         EXAMPLE::
 
             sage: K.<a> = QuadraticField(3)
-            sage: phi = copy(K.coerce_map_from(ZZ))
+            sage: phi = K.coerce_map_from(ZZ)
             sage: a = phi(2); a # indirect doctest
             2
             sage: a.parent() is K
             True
 
             sage: R.<b> = CyclotomicField(6)
-            sage: psi = copy(R.coerce_map_from(ZZ))
+            sage: psi = R.coerce_map_from(ZZ)
             sage: b = psi(-42); b # indirect doctest
             -42
             sage: b.parent() is R
@@ -2135,20 +2135,17 @@ cdef class Z_to_quadratic_field_element(Morphism):
         r"""
         Return a short name for this morphism.
 
-        EXAMPLE:
-
-        Note that by :trac:`14711`, coercion maps should be copied
-        before using them outside of the coercion system::
+        EXAMPLES::
 
             sage: K.<a> = QuadraticField(3)
-            sage: phi = copy(K.coerce_map_from(ZZ))
+            sage: phi = K.coerce_map_from(ZZ)
             sage: phi # indirect doctest
             Natural morphism:
               From: Integer Ring
               To:   Number Field in a with defining polynomial x^2 - 3
 
             sage: R.<b> = CyclotomicField(6)
-            sage: psi = copy(R.coerce_map_from(ZZ))
+            sage: psi = R.coerce_map_from(ZZ)
             sage: psi # indirect doctest
             Natural morphism:
               From: Integer Ring
@@ -2172,7 +2169,7 @@ cdef class Q_to_quadratic_field_element(Morphism):
         EXAMPLE::
 
             sage: K.<a> = QuadraticField(3)
-            sage: phi = copy(K.coerce_map_from(QQ)) # indirect doctest
+            sage: phi = K.coerce_map_from(QQ) # indirect doctest
             sage: type(phi)
             <type 'sage.rings.number_field.number_field_element_quadratic.Q_to_quadratic_field_element'>
             sage: phi == loads(dumps(phi))  # todo: comparison not implemented
@@ -2196,7 +2193,7 @@ cdef class Q_to_quadratic_field_element(Morphism):
         TESTS::
 
             sage: K.<a> = QuadraticField(-3) ## line 8983 ##
-            sage: f = copy(K.coerce_map_from(QQ)); f # indirect doctest
+            sage: f = K.coerce_map_from(QQ); f # indirect doctest
             Natural morphism:
               From: Rational Field
               To:   Number Field in a with defining polynomial x^2 + 3
@@ -2216,7 +2213,7 @@ cdef class Q_to_quadratic_field_element(Morphism):
         TESTS::
 
             sage: K.<a> = QuadraticField(-3) ## line 8983 ##
-            sage: f = copy(K.coerce_map_from(QQ)); f # indirect doctest
+            sage: f = K.coerce_map_from(QQ); f # indirect doctest
             Natural morphism:
               From: Rational Field
               To:   Number Field in a with defining polynomial x^2 + 3
@@ -2236,14 +2233,14 @@ cdef class Q_to_quadratic_field_element(Morphism):
         EXAMPLE::
 
             sage: K.<a> = QuadraticField(3)
-            sage: phi = copy(K.coerce_map_from(QQ))
+            sage: phi = K.coerce_map_from(QQ)
             sage: a = phi(2/3); a # indirect doctest
             2/3
             sage: a.parent() is K
             True
 
             sage: R.<b> = CyclotomicField(6)
-            sage: psi = copy(R.coerce_map_from(QQ))
+            sage: psi = R.coerce_map_from(QQ)
             sage: b = psi(-23/15); b # indirect doctest
             -23/15
             sage: b.parent() is R
@@ -2258,20 +2255,17 @@ cdef class Q_to_quadratic_field_element(Morphism):
         r"""
         Return a short name for this morphism.
 
-        EXAMPLE:
-
-        Note that by :trac:`14711`, coercion maps should be copied when using them
-        outside of the coercion system::
+        EXAMPLES::
 
             sage: K.<a> = QuadraticField(3)
-            sage: phi = copy(K.coerce_map_from(QQ))
+            sage: phi = K.coerce_map_from(QQ)
             sage: phi # indirect doctest
             Natural morphism:
               From: Rational Field
               To:   Number Field in a with defining polynomial x^2 - 3
 
             sage: R.<b> = CyclotomicField(6)
-            sage: psi = copy(R.coerce_map_from(QQ))
+            sage: psi = R.coerce_map_from(QQ)
             sage: psi # indirect doctest
             Natural morphism:
               From: Rational Field

@@ -1206,7 +1206,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
             sage: Sym = SymmetricFunctions(QQ) # indirect doctest
             sage: s = Sym.s(); p = Sym.p()
-            sage: f = copy(s.coerce_map_from(p)); f
+            sage: f = s.coerce_map_from(p); f
             Generic morphism:
               From: Symmetric Functions over Rational Field in the powersum basis
               To:   Symmetric Functions over Rational Field in the Schur basis

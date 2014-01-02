@@ -517,7 +517,8 @@ class Homset(Set_generic):
             sage: H = Hom(ZZ,QQ['t'], CommutativeAdditiveGroups())
             sage: P.<t> = ZZ[]
             sage: f = P.hom([2*t])
-            sage: copy(H._generic_convert_map(f.parent()))
+            sage: phi = H._generic_convert_map(f.parent()); phi
+            sage: phi = copy(phi); phi
             Call morphism:
               From: Set of Homomorphisms from Univariate Polynomial Ring in t over Integer Ring to Univariate Polynomial Ring in t over Integer Ring
               To:   Set of Morphisms from Integer Ring to Univariate Polynomial Ring in t over Rational Field in Category of commutative additive groups

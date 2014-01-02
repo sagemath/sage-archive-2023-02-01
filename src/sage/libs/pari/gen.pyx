@@ -704,7 +704,7 @@ cdef class gen(sage.structure.element.RingElement):
 
             ind = (i,j)
 
-            if self.refers_to is not None and PyDict_Contains(self.refers_to, ind):
+            if self.refers_to is not None and ind in self.refers_to:
                 return self.refers_to[ind]
             else:
                 ## In this case, we're being asked to return
@@ -760,7 +760,7 @@ cdef class gen(sage.structure.element.RingElement):
         elif pari_type == t_VEC or pari_type == t_MAT:
             #t_VEC    : row vector        [ code ] [  x_1  ] ... [  x_k  ]
             #t_MAT    : matrix            [ code ] [ col_1 ] ... [ col_k ]
-            if self.refers_to is not None and PyDict_Contains(self.refers_to, n):
+            if self.refers_to is not None and n in self.refers_to:
                 return self.refers_to[n]
             else:
                 ## In this case, we're being asked to return

@@ -620,11 +620,11 @@ by other methods::
 
     sage: G2 = WeylCharacterRing("G2", style="coroots")
     sage: D7 = WeylCharacterRing("D7", style="coroots")
-    sage: ad = G2(0,1); ad.degree()
+    sage: ad = G2.adjoint_representation(); ad.degree()
     14
     sage: ad.frobenius_schur_indicator()
     1
-    sage: for r in D7.fundamental_weights():  # long time (26s on sage.math, 2012)
+    sage: for r in D7.fundamental_weights():  # long time (1.29s)
     ....:    print D7(r).branch(G2, rule=branching_rule_from_plethysm(ad, "D7"))
     ....:
     G2(0,1)
@@ -635,10 +635,18 @@ by other methods::
     G2(1,1)
     G2(1,1)
 
-
 In this example, `ad` is the 14-dimensional adjoint representation of the
 exceptional group `G_2`. Since the Frobenius-Schur indicator is 1, the
 representation is orthogonal, and factors through `SO(14)`, that is, `D7`.
+
+We do not actually have to create the character (or for that matter
+its ambient WeylCharacterRing) in order to create the branching rule::
+
+    sage: branching_rule("D4","A2.adjoint_representation()","plethysm")
+    plethysm (along A2(1,1)) branching rule D4 => A2
+
+The adjoint representation of any semisimple Lie group is orthogonal, so we
+do not need to compute the Frobenius-Schur indicator.
 
 Miscellaneous other subgroups
 -----------------------------

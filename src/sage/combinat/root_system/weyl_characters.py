@@ -2117,8 +2117,6 @@ def branch_weyl_character(chi, R, S, rule="default"):
     or `D` are covered by the preceding rules. The function
     :func:`branching_rule_from_plethysm` covers the remaining cases.
 
-    EXAMPLES:
-
     This is a general rule that includes any branching rule
     from types `A`, `B`, `C`, or `D` as a special case. Thus it could be
     used in place of the above rules and would give the same
@@ -2179,6 +2177,13 @@ def branch_weyl_character(chi, R, S, rule="default"):
     gives a homomorphism into `SO(14)`, and that the pullback
     of the one of the two 64 dimensional spin representations
     to `SO(14)` is an irreducible representation of `G_2`.
+
+    We do not actually have to create the character or
+    its parent WeylCharacterRing to create the
+    branching rule::
+
+        sage: b = branching_rule("C7","C3(0,0,1)","plethysm"); b
+        plethysm (along C3(0,0,1)) branching rule C7 => C3
 
     .. RUBRIC:: Isomorphic Type
 
@@ -2604,6 +2609,14 @@ def get_branching_rule(Rtype, Stype, rule="default"):
        sage: [rule(x) for x in WeylCharacterRing("A3").fundamental_weights()]
        [[1, 0], [1, 1], [1, 0]]
     """
+    if rule == "plethysm":
+        try:
+            S = WeylCharacterRing(Stype.split("(")[0],style="coroots")
+            chi = S(eval("("+Stype.split("(")[1]))
+        except:
+            S = WeylCharacterRing(Stype.split(".")[0],style="coroots")
+            chi= eval("S."+Stype.split(".")[1])
+        return branching_rule_from_plethysm(chi, Rtype)
     Rtype=CartanType(Rtype)
     Stype=CartanType(Stype)
     r = Rtype.rank()
@@ -2642,9 +2655,9 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                 else:
                     rules.append(l)
                 stor.append(i)
+        shifts = Rtype._shifts
         Stypes = [CartanType(l._S) for l in rules]
         ntypes = len(Stypes)
-        shifts = Rtype._shifts
         if Stype.is_compound():
             def br(x):
                 yl = []
@@ -2953,7 +2966,7 @@ def get_branching_rule(Rtype, Stype, rule="default"):
                     return BranchingRule(Rtype, Stype, lambda x : tuple(M*vector(x)), "extended")
             elif Rtype == CartanType("E8"):
                 if Stype == CartanType("D8"):
-                    return lambda x : [-x[7],x[6],x[5],x[4],x[3],x[2],x[1],x[0]]
+                    return BranchingRule(Rtype, Stype, lambda x : [-x[7],x[6],x[5],x[4],x[3],x[2],x[1],x[0]], "extended")
                 elif Stype == CartanType("A8"):
                     M = matrix([(-2, -2, -2, -2, -2, -2, -2, 2), \
                                 (-5, 1, 1, 1, 1, 1, 1, -1), \

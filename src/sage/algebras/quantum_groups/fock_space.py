@@ -37,7 +37,7 @@ from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFree
 from sage.combinat.partition import (Partition, _Partitions,
         RegularPartitions_all, RegularPartitions_truncated)
 from sage.combinat.integer_list import IntegerListsLex
-from sage.combinat.partition_tuple import PartitionTuples, RegularPartitionTuples_level
+from sage.combinat.partition_tuple import PartitionTuples
 from sage.algebras.quantum_groups.q_numbers import q_factorial
 
 class FockSpace(CombinatorialFreeModule):
@@ -492,7 +492,7 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
                 sage: TestSuite(A).run()
             """
             self._basis_name = "approximation"
-            indices = RegularPartitionTuples_level(len(basic._fock._r), basic._fock._n)
+            indices = PartitionTuples(level=len(basic._fock._r), regular=basic._fock._n)
             CombinatorialFreeModule.__init__(self, basic.base_ring(), indices,
                                              prefix='A', bracket=False,
                                              monomial_cmp=lambda x,y: -cmp(x,y),
@@ -706,7 +706,7 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
                 sage: TestSuite(G).run()
             """
             self._basis_name = "lower global crystal"
-            indices = RegularPartitionTuples_level(len(basic._fock._r), basic._fock._n)
+            indices = PartitionTuples(level=len(basic._fock._r), regular=basic._fock._n)
             CombinatorialFreeModule.__init__(self, basic.base_ring(), indices,
                                              prefix='G', bracket=False,
                                              monomial_cmp=lambda x,y: -cmp(x,y),
@@ -925,14 +925,14 @@ class HighestWeightRepresentationBases(Category_realization_of_parent):
                 sage: A[2,2,2,1]
                 Traceback (most recent call last):
                 ...
-                ValueError: [2, 2, 2, 1] is not a 3-regular partition
+                ValueError: (2, 2, 2, 1) is not an element of 3-Regular Partitions
 
                 sage: F = FockSpace(3, [0, 0])
                 sage: A = F.highest_weight_representation().A()
                 sage: A[[], [2,2,2,1]]
                 Traceback (most recent call last):
                 ...
-                ValueError: ([], [2, 2, 2, 1]) is not a 3-regular partition tuple
+                ValueError: [[], [2, 2, 2, 1]] is not a 3-Regular partition tuples of level 2
             """
             if i in ZZ:
                 i = [i]
@@ -940,14 +940,6 @@ class HighestWeightRepresentationBases(Category_realization_of_parent):
             i = self._indices(i)
             if i.size() == 0:
                 return self.highest_weight_vector()
-
-            fock = self.realization_of()._fock
-            level = len(fock._r)
-            if level == 1:
-                if max(i.to_exp()) >= fock._n:
-                    raise ValueError("{} is not a {}-regular partition".format(i, fock._n))
-            elif max(map(lambda x: max(x.to_exp() + [0]), i)) >= fock._n:
-                raise ValueError("{} is not a {}-regular partition tuple".format(i, fock._n))
             return self.monomial(i)
 
 ###############################################################################

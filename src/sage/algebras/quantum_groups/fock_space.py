@@ -37,7 +37,7 @@ from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFree
 from sage.combinat.partition import (Partition, _Partitions,
         RegularPartitions_all, RegularPartitions_truncated)
 from sage.combinat.integer_list import IntegerListsLex
-from sage.combinat.partition_tuple import PartitionTuples
+from sage.combinat.partition_tuple import PartitionTuples, RegularPartitionTuples_level
 from sage.algebras.quantum_groups.q_numbers import q_factorial
 
 class FockSpace(CombinatorialFreeModule):
@@ -492,7 +492,8 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
                 sage: TestSuite(A).run()
             """
             self._basis_name = "approximation"
-            CombinatorialFreeModule.__init__(self, basic.base_ring(), basic._fock._indices,
+            indices = RegularPartitionTuples_level(len(basic._fock._r), basic._fock._n)
+            CombinatorialFreeModule.__init__(self, basic.base_ring(), indices,
                                              prefix='A', bracket=False,
                                              monomial_cmp=lambda x,y: -cmp(x,y),
                                              category=HighestWeightRepresentationBases(basic))
@@ -705,7 +706,8 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
                 sage: TestSuite(G).run()
             """
             self._basis_name = "lower global crystal"
-            CombinatorialFreeModule.__init__(self, basic.base_ring(), basic._fock._indices,
+            indices = RegularPartitionTuples_level(len(basic._fock._r), basic._fock._n)
+            CombinatorialFreeModule.__init__(self, basic.base_ring(), indices,
                                              prefix='G', bracket=False,
                                              monomial_cmp=lambda x,y: -cmp(x,y),
                                              category=HighestWeightRepresentationBases(basic))

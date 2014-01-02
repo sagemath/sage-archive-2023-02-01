@@ -389,7 +389,7 @@ class StaticSparseBackend(CGraphBackend):
             from sage.graphs.graph import Graph as constructor
         G = constructor()
         G.add_vertices(self.iterator_verts(None))
-        G.add_edges(list(self.iterator_edges(self.iterator_verts(None),1)))
+        G.add_edges(list(self.iterator_out_edges(self.iterator_verts(None),1)))
         return (StaticSparseBackend, (G, self._loops, self._multiedges))
 
     def has_vertex(self, v):
@@ -759,6 +759,10 @@ class StaticSparseBackend(CGraphBackend):
             (3, 4), (3, 8), (4, 9), (5, 7), (5, 8), (6, 8), (6, 9), (7, 9)]
         """
         cdef FrozenBitset fb
+
+        if self._directed:
+            raise RuntimeError("This is not meant for directed graphs.")
+
         try:
             vertices = FrozenBitset([self._vertex_to_int[x] for x in vertices])
         except KeyError:

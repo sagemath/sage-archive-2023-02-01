@@ -1940,7 +1940,7 @@ class NumberField_generic(number_field_base.NumberField):
             if F.absolute_degree() == self.absolute_degree() / 2:
                 if F.is_totally_real():
                     self.__is_CM = True
-                    self.__max_tot_real_sub = [F, self._internal_coerce_map_from(F)]
+                    self.__max_tot_real_sub = [F, self.coerce_map_from(F)]
                     return True
             K = self.absolute_field('z')
 
@@ -2006,7 +2006,7 @@ class NumberField_generic(number_field_base.NumberField):
            self, sage.rings.number_field.number_field.NumberField_quadratic):
             disc = self.discriminant()
             if disc > 0:
-                self.__complex_conjugation = self._internal_coerce_map_from(self)
+                self.__complex_conjugation = self.coerce_map_from(self)
                 return self.__complex_conjugation
             else:
                 a = self.gen()
@@ -2020,7 +2020,7 @@ class NumberField_generic(number_field_base.NumberField):
             self.__complex_conjugation = self.hom([zeta ** (-1)], check=False)
             return self.__complex_conjugation
         if self.is_totally_real():
-            self.__complex_conjugation = self._internal_coerce_map_from(self)
+            self.__complex_conjugation = self.coerce_map_from(self)
             return self.__complex_conjugation
 
         if not self.is_CM():
@@ -2120,16 +2120,10 @@ class NumberField_generic(number_field_base.NumberField):
         if isinstance(
            self, sage.rings.number_field.number_field.NumberField_quadratic):
             if self.discriminant() > 0:
-                phi = self._internal_coerce_map_from(self)
-                if phi is not None:
-                    phi = phi.__copy__()
-                self.__max_tot_real_sub = [self, phi]
+                self.__max_tot_real_sub = [self, self.coerce_map_from(self)]
                 return self.__max_tot_real_sub
             else:
-                phi = self._internal_coerce_map_from(QQ)
-                if phi is not None:
-                    phi = phi.__copy__()
-                self.__max_tot_real_sub = [QQ, phi]
+                self.__max_tot_real_sub = [QQ, self.coerce_map_from(QQ)]
             return self.__max_tot_real_sub
         if isinstance(
            self, sage.rings.number_field.number_field.NumberField_cyclotomic):
@@ -2137,19 +2131,13 @@ class NumberField_generic(number_field_base.NumberField):
             self.__max_tot_real_sub = self.subfield(zeta + zeta ** (-1))
             return self.__max_tot_real_sub
         if self.is_totally_real():
-            phi = self._internal_coerce_map_from(self)
-            if phi is not None:
-                phi = phi.__copy__()
-            self.__max_tot_real_sub = [self, phi]
+            self.__max_tot_real_sub = [self, self.coerce_map_from(self)]
             return self.__max_tot_real_sub
         if self.is_absolute():
             K = self
         else:
             if self.is_CM_extension():
-                phi = self._internal_coerce_map_from(self.base_field())
-                if phi is not None:
-                    phi = phi.__copy__()
-                self.__max_tot_real_sub = [self.base_field(), phi]
+                self.__max_tot_real_sub = [self.base_field(), self.coerce_map_from(self.base_field())]
                 return self.__max_tot_real_sub
             K = self.absolute_field('z')
 
@@ -2161,13 +2149,10 @@ class NumberField_generic(number_field_base.NumberField):
             for F, phi, _ in possibilities:
                 if F.is_totally_real():
                     if self.is_relative():
-                        phi = phi.post_compose(K.structure()[0]).__copy__()
+                        phi = phi.post_compose(K.structure()[0])
                     self.__max_tot_real_sub = [F, phi]
                     return self.__max_tot_real_sub
-        phi = self._internal_coerce_map_from(QQ)
-        if phi is not None:
-            phi = phi.__copy__()
-        self.__max_tot_real_sub = [QQ, phi]
+        self.__max_tot_real_sub = [QQ, self.coerce_map_from(QQ)]
         return self.__max_tot_real_sub
 
     def complex_embeddings(self, prec=53):
@@ -2337,7 +2322,7 @@ class NumberField_generic(number_field_base.NumberField):
             from sage.rings.real_mpfr import mpfr_prec_min
             from sage.rings.complex_field import ComplexField
             if ComplexField(mpfr_prec_min()).has_coerce_map_from(embedding.codomain()):
-                 return embedding.__copy__()
+                 return embedding
 
     def gen_embedding(self):
         """

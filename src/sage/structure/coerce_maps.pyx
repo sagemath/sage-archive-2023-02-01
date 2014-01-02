@@ -28,7 +28,7 @@ cdef class DefaultConvertMap(Map):
         self._coerce_cost = 100
         self._force_use = force_use
         if (<Parent>codomain)._element_constructor is None:
-            raise RuntimeError, "BUG in coercion model, no element constructor for %s" % type(codomain)
+            raise RuntimeError("BUG in coercion model, no element constructor for {}".format(type(codomain)))
         self._repr_type_str = "Coercion" if self._is_coercion else "Conversion"
 
     cdef dict _extra_slots(self, dict _slots):
@@ -218,11 +218,11 @@ cdef class NamedConvertMap(Map):
                 print type(x), x
                 print type(C), C
                 print self.method_name
-            raise TypeError, "Cannot coerce %s to %s"%(x, C)
+            raise TypeError("Cannot coerce {} to {}".format(x, C))
         cdef Map m
         cdef Element e = method(C)
         if e is None:
-            raise RuntimeError, "BUG in coercion model: %s method of %s returned None" % (self.method_name, type(x))
+            raise RuntimeError("BUG in coercion model: {} method of {} returned None".format(self.method_name, type(x)))
         if e._parent is not C:
             m = C.convert_map_from(e._parent)
             if m is None or m is self:
@@ -374,9 +374,9 @@ cdef class CallableConvertMap(Map):
                 print C
             raise
         if y is None:
-            raise RuntimeError, "BUG in coercion model: %s returned None" % (self._func)
+            raise RuntimeError("BUG in coercion model: {} returned None".format(self._func))
         elif y._parent is not C:
-            raise RuntimeError, "BUG in coercion model: %s returned element with wrong parent (expected %s got %s)" % (self._func, C, y._parent)
+            raise RuntimeError("BUG in coercion model: {} returned element with wrong parent (expected {} got {})".format(self._func, C, y._parent))
         return y
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):

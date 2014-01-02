@@ -584,7 +584,7 @@ garbage collection. Please use a copy."""
         """
         Returns the category self is a morphism for.
 
-        NOTE:
+        .. NOTE::
 
             This is different from the category of maps to which this
             map belongs *as an object*.

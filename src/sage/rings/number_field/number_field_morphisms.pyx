@@ -145,7 +145,7 @@ cdef class NumberFieldEmbedding(Morphism):
               To:   Real Lazy Field
               Defn: a -> 1.414213562373095?
         """
-        return "%s -> %s" % (self.domain().variable_name(), self._gen_image)
+        return "{} -> {}".format(self.domain().variable_name(), self._gen_image)
 
     def gen_image(self):
         """
@@ -294,7 +294,7 @@ cdef class EmbeddedNumberFieldConversion(Map):
         minpoly = x.minpoly()
         gen_image = matching_root(minpoly.change_ring(self.codomain()), x, self.ambient_field, 4)
         if gen_image is None:
-            raise ValueError, "No consistent embedding of %s into %s."%(self.domain(), self.codomain())
+            raise ValueError("No consistent embedding of {} into {}.".format(self.domain(), self.codomain()))
         return gen_image
 
 

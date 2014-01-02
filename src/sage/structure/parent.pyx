@@ -1757,7 +1757,7 @@ cdef class Parent(category_object.CategoryObject):
             raise TypeError("coercions must be parents or maps (got %s)" % type(mor))
         D = mor.domain()
 
-        assert not (self._coercions_used and D in self._coerce_from_hash), "coercion from %s to %s already registered or discovered"%(D, self)
+        assert not (self._coercions_used and D in self._coerce_from_hash), "coercion from {} to {} already registered or discovered".format(D, self)
         self._coerce_from_list.append(mor)
         self._registered_domains.append(D)
         self._coerce_from_hash.set(D,mor)
@@ -1967,33 +1967,30 @@ cdef class Parent(category_object.CategoryObject):
 
     def coerce_embedding(self):
         """
-        Returns the embedding of self into some other parent, if such a parent
-        exists.
+        Return the embedding of ``self`` into some other parent, if such a
+        parent exists.
 
-        This does not mean that there are no coercion maps from self into other
-        fields, this is simply a specific morphism specified out of self and
-        usually denotes a special relationship (e.g. sub-objects, choice of
-        completion, etc.)
+        This does not mean that there are no coercion maps from ``self`` into
+        other fields, this is simply a specific morphism specified out of
+        ``self`` and usually denotes a special relationship (e.g. sub-objects,
+        choice of completion, etc.)
 
-        EXAMPLES:
-
-        By :trac:`14711`, coerce maps should be copied when using
-        outside of the coercion system::
+        EXAMPLES::
 
             sage: K.<a>=NumberField(x^3+x^2+1,embedding=1)
-            sage: copy(K.coerce_embedding())
+            sage: K.coerce_embedding()
             Generic morphism:
               From: Number Field in a with defining polynomial x^3 + x^2 + 1
               To:   Real Lazy Field
               Defn: a -> -1.465571231876768?
             sage: K.<a>=NumberField(x^3+x^2+1,embedding=CC.gen())
-            sage: copy(K.coerce_embedding())
+            sage: K.coerce_embedding()
             Generic morphism:
               From: Number Field in a with defining polynomial x^3 + x^2 + 1
               To:   Complex Lazy Field
               Defn: a -> 0.2327856159383841? + 0.7925519925154479?*I
         """
-        return self._embedding
+        return copy(self._embedding) # It might be overkill to make a copy here
 
     cpdef _generic_convert_map(self, S):
         r"""

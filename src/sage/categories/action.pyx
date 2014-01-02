@@ -270,7 +270,7 @@ cdef class InverseAction(Action):
 
 cdef class PrecomposedAction(Action):
     """
-    A precomposed action first applies given maps, and then an action
+    A precomposed action first applies given maps, and then applying an action
     to the return values of the maps.
 
     EXAMPLES:

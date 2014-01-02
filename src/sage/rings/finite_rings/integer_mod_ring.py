@@ -974,8 +974,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         EXAMPLES::
 
             sage: R = Integers(15)
-            sage: f = R.coerce_map_from(Integers(450))
-            sage: f # indirect doctest
+            sage: f = R.coerce_map_from(Integers(450)); f # indirect doctest
             Natural morphism:
               From: Ring of integers modulo 450
               To:   Ring of integers modulo 15

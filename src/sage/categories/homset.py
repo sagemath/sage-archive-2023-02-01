@@ -465,7 +465,7 @@ class Homset(Set_generic):
             sage: Hom(ZZ^2, QQ, category=Sets())._repr_()
             'Set of Morphisms from Ambient free module of rank 2 over the principal ideal domain Integer Ring to Rational Field in Category of sets'
         """
-        return "Set of Morphisms from %s to %s in %s"%(self._domain,
+        return "Set of Morphisms from {} to {} in {}".format(self._domain,
             self._codomain, self.__category)
 
     def __hash__(self):

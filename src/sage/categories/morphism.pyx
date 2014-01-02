@@ -95,21 +95,21 @@ cdef class Morphism(Map):
         if D is None:
             return "Defunct morphism"
         if self.is_endomorphism():
-            s = "%s endomorphism of %s"%(self._repr_type(), self.domain())
+            s = "{} endomorphism of {}".format(self._repr_type(), self.domain())
         else:
-            s = "%s morphism:"%self._repr_type()
-            s += "\n  From: %s"%self.domain()
-            s += "\n  To:   %s"%self._codomain
+            s = "{} morphism:".format(self._repr_type())
+            s += "\n  From: {}".format(self.domain())
+            s += "\n  To:   {}".format(self._codomain)
         if isinstance(self.domain, ConstantFunction):
             d = self._repr_defn()
             if d != '':
-                s += "\n  Defn: %s"%('\n        '.join(d.split('\n')))
+                s += "\n  Defn: " + '\n        '.join(d.split('\n'))
         else:
             d = """
 WARNING: This morphism has apparently been used internally
 in the coercion system. It may become defunct in the next
 garbage collection. Please use a copy."""
-            s += "\n%s"%('\n        '.join(d.split('\n')))
+            s += "\n" + '\n        '.join(d.split('\n'))
         return s
 
     def _default_repr_(self):
@@ -117,14 +117,14 @@ garbage collection. Please use a copy."""
         if D is None:
             return "Defunct morphism"
         if self.is_endomorphism():
-            s = "%s endomorphism of %s"%(self._repr_type(), self.domain())
+            s = "{} endomorphism of {}".format(self._repr_type(), self.domain())
         else:
-            s = "%s morphism:"%self._repr_type()
-            s += "\n  From: %s"%self.domain()
-            s += "\n  To:   %s"%self._codomain
+            s = "{} morphism:".format(self._repr_type())
+            s += "\n  From: {}".format(self.domain())
+            s += "\n  To:   {}".format(self._codomain)
         d = self._repr_defn()
         if d != '':
-            s += "\n  Defn: %s"%('\n        '.join(d.split('\n')))
+            s += "\n  Defn: " + '\n        '.join(d.split('\n'))
         return s
 
     def _repr_short(self):
@@ -335,7 +335,7 @@ cdef class FormalCoercionMorphism(Morphism):
     def __init__(self, parent):
         Morphism.__init__(self, parent)
         if not self._codomain.has_coerce_map_from(self.domain()):
-            raise TypeError, "Natural coercion morphism from %s to %s not defined."%(self.domain(), self._codomain)
+            raise TypeError("Natural coercion morphism from {} to {} not defined.".format(self.domain(), self._codomain))
 
     def _repr_type(self):
         return "Coercion"

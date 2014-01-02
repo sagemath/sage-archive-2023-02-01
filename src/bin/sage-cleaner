@@ -156,7 +156,8 @@ def setup_daemon():
         if is_running(pid):
             logger.info("sage-cleaner is already running with PID %s, exiting", pid)
             sys.exit(0)
-    open(pidfile,'w').write(str(os.getpid()))  # initialize pid file
+    with open(pidfile, 'w') as f:
+        f.write(str(os.getpid()))  # initialize pid file
     atexit.register(exit_handler)
 
 

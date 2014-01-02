@@ -359,7 +359,7 @@ class FockSpace(CombinatorialFreeModule):
                  for la,c in self])
 
 class HighestWeightRepresentation(Parent, UniqueRepresentation):
-    """
+    r"""
     The highest weight representation `B(\Lambda)` of
     `U_q(\widehat{\mathfrak{sl}}_n)`.
 
@@ -368,6 +368,13 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
 
     - The approximation basis which comes from LLT(-type) algorithms.
     - The lower global crystal basis.
+
+    .. TODO::
+
+        The basis indexing set actually gives the whole tensor product space
+        `\bigotimes_i B(\Lambda_{\gamma_i})`. Once :trac:`15584` is done,
+        we should change this to a new class ``TensorProductRepresentation``
+        and have the highest weight representation living as a subspace.
 
     REFERENCES:
 

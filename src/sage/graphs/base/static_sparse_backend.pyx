@@ -417,12 +417,12 @@ class StaticSparseBackend(CGraphBackend):
 
         TEST::
 
-            sage: from sage.graphs.base.static_sparse_backend import StaticSparseCGraph
-            sage: g = StaticSparseCGraph(graphs.PetersenGraph())
+            sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
+            sage: g = StaticSparseBackend(graphs.PetersenGraph())
             sage: g.relabel([],True)
             Traceback (most recent call last):
             ...
-            ValueError: Thou shalt not remove a vertex from an immutable graph
+            ValueError: Thou shalt not relabel an immutable graph
 
         """
         raise ValueError("Thou shalt not relabel an immutable graph")

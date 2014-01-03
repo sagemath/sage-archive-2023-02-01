@@ -16401,7 +16401,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: Graph(graphs.PetersenGraph(), immutable=True).relabel({})
             Traceback (most recent call last):
             ...
-            ValueError: Thou shalt not relabel an immutable graph
+            ValueError: To relabel an immutable graph use inplace=False
         """
         from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 
@@ -16419,6 +16419,9 @@ class GenericGraph(GenericGraph_pyx):
                 return G, perm2
             else:
                 return G
+
+        if getattr(self, "_immutable", False):
+            raise ValueError("To relabel an immutable graph use inplace=False")
 
         # If perm is not a dictionary, we build one !
 

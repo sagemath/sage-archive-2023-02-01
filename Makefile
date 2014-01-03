@@ -15,7 +15,7 @@ logs:
 	mkdir -p $@
 
 build: logs
-	cd build && \
+	+cd build && \
 	"../$(PIPE)" \
 		"env SAGE_PARALLEL_SPKG_BUILD='$(SAGE_PARALLEL_SPKG_BUILD)' ./install all 2>&1" \
 		"tee -a ../logs/install.log"

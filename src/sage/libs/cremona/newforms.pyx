@@ -135,10 +135,6 @@ cdef class ECModularSymbol:
             TypeError: Unable to convert garbage to a Cusp
             sage: M(7/5)
             3
-            sage: pari("1/0")
-            Traceback (most recent call last):
-            ...
-            PariError: _/_: division by zero
         """
         cdef rational _r
         cdef rational _s
@@ -154,6 +150,5 @@ cdef class ECModularSymbol:
         sig_on()
         _r = new_rational(n,d)
         _s = self.nfs.plus_modular_symbol(_r)
-        r = Rational((rational_num(_s), rational_den(_s)))
         sig_off()
-        return r
+        return Rational((rational_num(_s), rational_den(_s)))

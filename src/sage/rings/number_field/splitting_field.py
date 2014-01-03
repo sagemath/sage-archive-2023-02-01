@@ -474,6 +474,13 @@ def splitting_field(poly, name, map=False, degree_multiple=None, abort_degree=No
         if degree_multiple % degree_divisor != 0:
             raise ValueError("inconsistent degree_multiple in splitting_field()")
         for splitting in L:
+            # The degree of the splitting field must be a multiple of
+            # the degree of the polynomial. Only do this check for
+            # SplittingData with minimal dm, because the higher dm are
+            # defined as relative degree over the splitting field of
+            # the polynomials with lesser dm.
+            if splitting.dm > L[0].dm:
+                break
             if splitting.dm % splitting.poldegree() != 0:
                 raise ValueError("inconsistent degree_multiple in splitting_field()")
 

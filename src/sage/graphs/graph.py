@@ -6280,12 +6280,12 @@ class Graph(GenericGraph):
         """
         Return the Kirchhoff-Symanzik polynomial of a graph.
 
-        This is a polynomial in variables `t_e` attached to edges of the
-        graph `G`, defined as the sum over all spanning trees:
+        This is a polynomial in variables `t_e` (each of them representing an
+        edge of the graph `G`) defined as a sum over all spanning trees:
 
         .. MATH::
 
-            \Psi_G(t) = \sum_{T} \prod_{e \\not\in T} t_e
+            \Psi_G(t) = \sum_{T\subseteq V\\atop{\\text{a spanning tree}}} \prod_{e \\not\in E(T)} t_e
 
         This is also called the first Symanzik polynomial or the Kirchhoff
         polynomial.
@@ -6298,14 +6298,20 @@ class Graph(GenericGraph):
 
         - a polynomial with integer coefficients
 
-        This is computed here using a determinant, as explained in
-        Section 3.1 of [Marcolli2009]_. As an intermediate step, one
-        has to compute a rectangular matrix with entries in `[-1,0,1]`
-        which describes which edge belong to which cycle. More
-        precisely, after fixing an arbitrary orientation for each
-        edge, and an arbitrary orientation for every cycle in a basis
-        of cycles, one gets a sign for every incident pair (edge,
-        cycle) which is 1 if the orientation are the same.
+        ALGORITHM:
+
+            This is computed here using a determinant, as explained in Section
+            3.1 of [Marcolli2009]_.
+
+            As an intermediate step, one computes a cycle basis `\mathcal C` of
+            `G` and a rectangular `|\mathcal C| \\times |E(G)|` matrix with
+            entries in `\{-1,0,1\}`, which describes which edge belong to which
+            cycle of `\mathcal C` and their respective orientations.
+
+            More precisely, after fixing an arbitrary orientation for each edge
+            `e\in E(G)` and each cycle `C\in\mathcal C`, one gets a sign for
+            every incident pair (edge, cycle) which is `1` if the orientation
+            coincide and `-1` otherwise.
 
         EXAMPLES:
 
@@ -6357,9 +6363,8 @@ class Graph(GenericGraph):
         edges = self.edges()
         cycles = self.cycle_basis(output='edge')
 
-        n_edges = len(edges)
         edge2int = {e: j for j, e in enumerate(edges)}
-        circuit_mtrx = matrix(ZZ, n_edges, len(cycles))
+        circuit_mtrx = matrix(ZZ, self.size(), len(cycles))
         for i, cycle in enumerate(cycles):
             for edge in cycle:
                 if edge in edges:
@@ -6367,9 +6372,8 @@ class Graph(GenericGraph):
                 else:
                     circuit_mtrx[edge2int[(edge[1], edge[0], edge[2])], i] = -1
 
-        D = matrix.diagonal(PolynomialRing(ZZ, name, n_edges).gens())
+        D = matrix.diagonal(PolynomialRing(ZZ, name, self.size()).gens())
         return (circuit_mtrx.transpose() * D * circuit_mtrx).determinant()
-
 
 # Aliases to functions defined in Cython modules
 import types

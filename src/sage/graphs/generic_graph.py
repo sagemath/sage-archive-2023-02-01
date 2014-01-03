@@ -2984,6 +2984,22 @@ class GenericGraph(GenericGraph_pyx):
             [[(0, 2, 'a'), (2, 0, 'b')], [(2, 1, 'd'), (1, 0, 'c'),
             (0, 2, 'a')]]
 
+        Disconnected graph::
+
+            sage: G.add_cycle(["Hey", "Wuuhuu", "Really ?"])
+            sage: G.cycle_basis()
+            [[0, 2], [2, 1, 0], ['Really ?', 'Hey', 'Wuuhuu']]
+            sage: G.cycle_basis(output='edge')
+            [[(0, 2, 'a'), (2, 0, 'b')], [(2, 1, 'd'), (1, 0, 'c'), (0, 2, 'a')],
+            [('Really ?', 'Hey', None), ('Hey', 'Wuuhuu', None), ('Wuuhuu', 'Really ?', None)]]
+
+        Graph that allows multiple edges but does not contain any::
+
+            sage: G = graphs.CycleGraph(3)
+            sage: G.allow_multiple_edges(True)
+            sage: G.cycle_basis()
+            [[2, 1, 0]]
+
         Not yet implemented for directed graphs with multiple edges::
 
             sage: G = DiGraph([(0,2,'a'),(0,2,'b'),(0,1,'c'),(1,2,'d')])
@@ -2995,11 +3011,16 @@ class GenericGraph(GenericGraph_pyx):
         """
         if not output in ['vertex', 'edge']:
             raise ValueError('output must be either vertex or edge')
-        # first case: there are multiple edges
-        if self.has_multiple_edges():
+
+        if self.allows_multiple_edges():
             if self.is_directed():
                 raise NotImplementedError('not implemented for directed '
                                           'graphs with multiple edges')
+
+            if not self.is_connected():
+                return sum([g.cycle_basis(output=output)
+                            for g in self.connected_components_subgraphs()],
+                           [])
 
             T = self.min_spanning_tree()
             return [self.subgraph(edges=T + [e]).is_forest(certificate=True,

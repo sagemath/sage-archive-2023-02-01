@@ -465,8 +465,8 @@ class FinitePosets(Category):
             `T_v : \mathbf{K}^{\widehat{P}} \dashrightarrow
             \mathbf{K}^{\widehat{P}}` as follows: For every `f \in
             \mathbf{K}^{\widehat{P}}`, the image `T_v f` should send every
-            vertex `u \in \widehat{P}` distinct from `v` to `f(u)` (so the
-            labels at all `u` don't change), while `v` is sent to
+            element `u \in \widehat{P}` distinct from `v` to `f(u)` (so the
+            labels at all `u \neq v` don't change), while `v` is sent to
 
             .. MATH::
 
@@ -474,9 +474,10 @@ class FinitePosets(Category):
                 \frac{\sum_{u \lessdot v} f(u)}
                 {\sum_{u \gtrdot v} \frac{1}{f(u)}}
 
-            (both sums are over all `u \in \widehat{P}`). Here, `\lessdot`
-            and `\gtrdot` mean (respectively) "covered by" and "covers",
-            interpreted to the poset `\widehat{P}`. This rational map `T_v`
+            (both sums are over all `u \in \widehat{P}` satisfying the
+            respectively given conditions). Here, `\lessdot` and `\gtrdot`
+            mean (respectively) "covered by" and "covers", interpreted with
+            respect to the poset `\widehat{P}`. This rational map `T_v`
             is an involution and is called the *(birational) `v`-toggle*; see
             :meth:`birational_toggle` for its implementation.
 
@@ -498,7 +499,8 @@ class FinitePosets(Category):
             <sage.rings.semirings.tropical_semiring.TropicalSemiring>`,
             in which case birational rowmotion relates to classical
             constructions such as promotion of rectangular semistandard
-            Young tableaux ([EP13]_ and future work) and rowmotion on
+            Young tableaux (page 5 of [EP13b]_ and future work, via the
+            related notion of birational *pro*motion) and rowmotion on
             order ideals of the poset ([EP13]_).
 
             The *birational free labelling* is a special labelling
@@ -540,7 +542,7 @@ class FinitePosets(Category):
               extension of ``self``) a linear extension of ``self``
               (as a linear extension or as a list), or more generally
               a list of all elements of all elements of ``self`` each
-              occuring exactly once
+              occurring exactly once
 
             - ``prefix`` -- (default: ``'x'``) the prefix to name
               the indeterminates corresponding to the elements of
@@ -578,6 +580,11 @@ class FinitePosets(Category):
                *Combinatorial, piecewise-linear, and birational homomesy
                for products of two chains*.
                :arxiv:`1310.5294v1`.
+
+            .. [EP13b] David Einstein, James Propp.
+               *Piecewise-linear and birational toggling*.
+               Extended abstract for FPSAC 2014.
+               http://faculty.uml.edu/jpropp/fpsac14.pdf
 
             .. [GR13] Darij Grinberg, Tom Roby.
                *Iterative properties of birational rowmotion I*.

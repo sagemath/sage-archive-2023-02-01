@@ -481,7 +481,7 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             TypeError: This graph is mutable, and thus not hashable. Create
-            an immutable copy by `g.copy(data_structure='static_sparse')`
+            an immutable copy by `g.copy(immutable=True)`
             sage: G_imm = Graph(G, data_structure="static_sparse")
             sage: G_imm == G
             True
@@ -494,7 +494,7 @@ class GenericGraph(GenericGraph_pyx):
         if getattr(self, "_immutable", False):
             return hash((tuple(self.vertices()), tuple(self.edges())))
         raise TypeError("This graph is mutable, and thus not hashable. "
-                        "Create an immutable copy by `g.copy(data_structure='static_sparse')`")
+                        "Create an immutable copy by `g.copy(immutable=True)`")
 
     def __mul__(self, n):
         """
@@ -820,15 +820,18 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             TypeError: This graph is mutable, and thus not hashable. Create an
-            immutable copy by `g.copy(data_structure='static_sparse')`
-            sage: g = G.copy(data_structure='static_sparse')
+            immutable copy by `g.copy(immutable=True)`
+            sage: g = G.copy(immutable=True)
             sage: hash(g)    # random
             1833517720
             sage: g==G
             True
             sage: g is copy(g) is g.copy()
             True
-            sage: g is g.copy(data_structure='static_sparse')
+
+        ``immutable=True`` is a short-cut for ``data_structure='static_sparse'``::
+
+            sage: g is g.copy(data_structure='static_sparse') is g.copy(immutable=True)
             True
 
         If a graph pretends to be immutable, but does not use the static sparse
@@ -2408,13 +2411,21 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             TypeError: This graph is immutable and can thus not be changed.
-            Create a mutable copy, e.g., by `g.copy(sparse=False)`
+            Create a mutable copy, e.g., by `g.copy(immutable=False)`
+            sage: G_mut = G_imm.copy(immutable=False)
+            sage: G_mut == G_imm
+            True
+            sage: G_mut.weighted(True)
+            sage: G_mut == G_imm
+            False
+            sage: G_mut == H
+            True
 
         """
         if new is not None:
             if getattr(self, '_immutable', False):
                 raise TypeError("This graph is immutable and can thus not be changed. "
-                                "Create a mutable copy, e.g., by `g.copy(sparse=False)`")
+                                "Create a mutable copy, e.g., by `g.copy(immutable=False)`")
             if new in [True, False]:
                 self._weighted = new
         else:

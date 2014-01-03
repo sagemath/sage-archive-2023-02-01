@@ -503,8 +503,8 @@ Graphs are mutable, and thus unusable as dictionary keys, unless
     sage: {G:1}[G]
     Traceback (most recent call last):
     ...
-    TypeError: This graph is mutable, and thus not hashable. Create an immutable copy by `g.copy(data_structure='static_sparse')`
-    sage: G_immutable = Graph(G, data_structure="static_sparse")
+    TypeError: This graph is mutable, and thus not hashable. Create an immutable copy by `g.copy(immutable=True)`
+    sage: G_immutable = Graph(G, immutable=True)
     sage: G_immutable == G
     True
     sage: {G_immutable:1}[G_immutable]
@@ -965,14 +965,14 @@ class Graph(GenericGraph):
           sage: {G:1}[H]
           Traceback (most recent call last):
           ...
-          TypeError: This graph is mutable, and thus not hashable. Create an immutable copy by `g.copy(data_structure='static_sparse')`
+          TypeError: This graph is mutable, and thus not hashable. Create an immutable copy by `g.copy(immutable=True)`
 
-    If the ``data_structure`` is equal to ``"static_sparse"``, then an
-    immutable graph results. Note that this does not use the NetworkX data
-    structure::
+    When providing the optional arguments ``data_structure="static_sparse"``
+    or ``immutable=True`` (both mean the same), then an immutable graph
+    results. Note that this does not use the NetworkX data structure::
 
           sage: G_imm = Graph(g, immutable=True)
-          sage: H_imm = Graph(g, immutable=True)
+          sage: H_imm = Graph(g, data_structure='static_sparse')
           sage: G_imm == H_imm == G == H
           True
           sage: hasattr(G_imm._backend, "_nxg")

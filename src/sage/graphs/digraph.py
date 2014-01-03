@@ -435,7 +435,17 @@ class DiGraph(GenericGraph):
         Traceback (most recent call last):
         ...
         TypeError: This graph is mutable, and thus not hashable. Create an
-        immutable copy by `g.copy(data_structure='static_sparse')`
+        immutable copy by `g.copy(immutable=True)`
+
+    The error message states that one can also create immutable graphs by
+    specifying the ``immutable`` optional argument (not only by
+    ``data_structure='static_sparse'`` as above)::
+
+        sage: J_imm = DiGraph(G, immutable=True)
+        sage: J_imm == G_imm
+        True
+        sage: type(J_imm._backend) == type(G_imm._backend)
+        True
 
     """
     _directed = True
@@ -516,6 +526,26 @@ class DiGraph(GenericGraph):
             sage: g = graphs.PetersenGraph()
             sage: g = DiGraph(g.edges(),immutable=False)
             sage: g.add_edge("Hey", "Heyyyyyyy")
+            sage: {g:1}[g]
+            Traceback (most recent call last):
+            ...
+            TypeError: This graph is mutable, and thus not hashable. Create an immutable copy by `g.copy(immutable=True)`
+            sage: copy(g) is g
+            False
+            sage: {g.copy(immutable=True):1}[g.copy(immutable=True)]
+            1
+
+        But building it with ``immutable=True`` returns an immutable graph::
+
+            sage: g = DiGraph(graphs.PetersenGraph(), immutable=True)
+            sage: g.add_edge("Hey", "Heyyyyyyy")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: {g:1}[g]
+            1
+            sage: copy(g) is g
+            True
 
         """
         msg = ''

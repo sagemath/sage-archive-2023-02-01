@@ -13560,6 +13560,7 @@ class GenericGraph(GenericGraph_pyx):
             Custom path disjoint_union Cycle graph: Graph on 5 vertices
             sage: J.vertices()
             [(0, 'a'), (0, 'b'), (1, 0), (1, 1), (1, 2)]
+
         """
         if (self._directed and not other._directed) or (not self._directed and other._directed):
             raise TypeError('both arguments must be of the same class')
@@ -13586,6 +13587,11 @@ class GenericGraph(GenericGraph_pyx):
         If the graphs have common vertices, the common vertices will be
         identified.
 
+        If one of the two graphs allows loops (or multiple edges), the resulting
+        graph will allow loops (or multiple edges).
+
+        If both graphs are immutable, the resulting graph is immutable.
+
         .. SEEALSO::
 
             * :meth:`~sage.graphs.generic_graph.GenericGraph.disjoint_union`
@@ -13602,19 +13608,48 @@ class GenericGraph(GenericGraph_pyx):
             [0, 1, 2, 3]
             sage: J.edges(labels=False)
             [(0, 1), (0, 2), (0, 3), (1, 2), (2, 3)]
+
+        TESTS:
+
+        Multiple edges and loops::
+
+            sage: g = Graph(multiedges=True, loops=True)
+            sage: g.add_edges(graphs.PetersenGraph().edges())
+            sage: g.add_edges(graphs.PetersenGraph().edges())
+            sage: g.add_edge(0,0)
+            sage: g.add_edge(0,0,"Hey")
+            sage: g.add_edge(0,9)
+            sage: g.add_edge(0,9)
+            sage: g.add_edge(0,9)
+            sage: (2*g.size()) == (2*g).size()
+            True
+
+        Immutable input ? Immutable output::
+
+            sage: g = g.copy(immutable=True)
+            sage: (2*g)._backend
+            <class 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
         """
         if (self._directed and not other._directed) or (not self._directed and other._directed):
             raise TypeError('both arguments must be of the same class')
+
+        multiedges = self.allows_multiple_edges() or other.allows_multiple_edges()
+        loops      = self.allows_loops()          or other.allows_loops()
+
         if self._directed:
             from sage.graphs.all import DiGraph
-            G = DiGraph()
+            G = DiGraph(multiedges=multiedges, loops=loops)
         else:
             from sage.graphs.all import Graph
-            G = Graph()
+            G = Graph(multiedges=multiedges, loops=loops)
         G.add_vertices(self.vertices())
         G.add_vertices(other.vertices())
         G.add_edges(self.edges())
         G.add_edges(other.edges())
+
+        if getattr(self, "_immutable", False) and getattr(other, "_immutable", False):
+            G = G.copy(immutable=True)
+
         return G
 
     def cartesian_product(self, other):

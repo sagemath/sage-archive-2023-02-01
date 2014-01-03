@@ -391,16 +391,41 @@ class StaticSparseBackend(CGraphBackend):
             sage: loads(dumps(D)) == D
             True
 
+        No problems with loops and multiple edges, with Labels::
+
+            sage: g = Graph(multiedges = True, loops = True)
+            sage: g.add_edges(2*graphs.PetersenGraph().edges())
+            sage: g.add_edge(0,0)
+            sage: g.add_edge(1,1, "a label")
+            sage: g.add_edge([(0,1,"labellll"), (0,1,"labellll"), (0,1,"LABELLLL")])
+            sage: g.add_vertex("isolated vertex")
+            sage: gi = g.copy(immutable=True)
+            sage: loads(dumps(gi)) == gi
+            True
+
+        Similar, with a directed graph::
+
+            sage: g = DiGraph(multiedges = True, loops = True)
+            sage: H = 2*(digraphs.Circuit(15)+DiGraph(graphs.PetersenGraph()))
+            sage: g.add_edges(H.edges())
+            sage: g.add_edge(0,0)
+            sage: g.add_edge(1,1, "a label")
+            sage: g.add_edge([(0,1,"labellll"), (0,1,"labellll"), (0,1,"LABELLLL")])
+            sage: g.add_vertex("isolated vertex")
+            sage: gi = g.copy(immutable=True)
+            sage: loads(dumps(gi)) == gi
+            True
         """
         if self._directed:
-            from sage.graphs.digraph import DiGraph as constructor
+            from sage.graphs.digraph import DiGraph
+            G = DiGraph(loops=self._loops, multiedges=self._multiedges)
+            G.add_edges(list(self.iterator_out_edges(self.iterator_verts(None),True)))
         else:
-            from sage.graphs.graph import Graph as constructor
-        G = constructor()
+            from sage.graphs.graph import Graph
+            G = Graph(loops=self._loops, multiedges=self._multiedges)
+            G.add_edges(list(self.iterator_edges(self.iterator_verts(None),True)))
+
         G.add_vertices(self.iterator_verts(None))
-        # In order to make things work for digraphs, we use
-        # iterator_out_edges and not iterator_edges.
-        G.add_edges(list(self.iterator_out_edges(self.iterator_verts(None),1)))
         return (StaticSparseBackend, (G, self._loops, self._multiedges))
 
     def has_vertex(self, v):

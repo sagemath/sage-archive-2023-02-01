@@ -29,9 +29,13 @@ FLINT is licensed GPL v2+.
 == Special Update/Build Instructions ==
 
 === Patches ===
-  * NTL-interface-tests.patch: fix NTL interface tests.
+  * None.
 
 == Changelog ==
+
+=== flint-2.4.1 (Jean-Pierre Flori, 3 January 2014) ===
+  * Trac #15574: Update to version 2.4.1.
+  * Remove patch now upstream.
 
 === flint-2.4.p0 (Jean-Pierre Flori, 2 January 2014) ===
   * Trac #15574: Add patch to fix NTL interface tests.

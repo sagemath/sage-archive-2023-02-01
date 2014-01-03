@@ -83,15 +83,15 @@ class SplittingData:
         """
         return "SplittingData(%s, %s)"%(self.pol, self.dm)
 
-    def _repr_numeric(self):
+    def _repr_tuple(self):
         """
         TESTS::
 
             sage: from sage.rings.number_field.splitting_field import SplittingData
-            sage: print SplittingData(pari("polcyclo(24)"), 2)._repr_numeric()
+            sage: SplittingData(pari("polcyclo(24)"), 2)._repr_tuple()
             (8, 2)
         """
-        return "(%s, %s)"%(self.poldegree(), self.dm)
+        return (self.poldegree(), self.dm)
 
 
 def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, simplify_all=False):
@@ -179,6 +179,27 @@ def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, 
           To:   Number Field in a with defining polynomial x^24 - 3*x^23 + 2*x^22 - x^20 + 4*x^19 + 32*x^18 - 35*x^17 - 92*x^16 + 49*x^15 + 163*x^14 - 15*x^13 - 194*x^12 - 15*x^11 + 163*x^10 + 49*x^9 - 92*x^8 - 35*x^7 + 32*x^6 + 4*x^5 - x^4 + 2*x^2 - 3*x + 1
           Defn: 1 |--> 1
 
+    We can enable verbose messages::
+
+        sage: set_verbose(2)
+        sage: K.<a> = (x^3 - x + 1).splitting_field()
+        verbose 1 (97: splitting_field.py, splitting_field) Starting field: y
+        verbose 1 (97: splitting_field.py, splitting_field) SplittingData to factor: [(3, 0)]
+        verbose 2 (97: splitting_field.py, splitting_field) Done factoring (time = ...)
+        verbose 1 (97: splitting_field.py, splitting_field) SplittingData to handle: [(2, 2), (3, 3)]
+        verbose 1 (97: splitting_field.py, splitting_field) Total degree multiple: 6
+        verbose 2 (97: splitting_field.py, splitting_field) Handling polynomial x^2 + 23
+        verbose 1 (97: splitting_field.py, splitting_field) New field before simplifying: x^2 + 23 (time = ...)
+        verbose 1 (97: splitting_field.py, splitting_field) New field: y^2 - y + 6 (time = ...)
+        verbose 2 (97: splitting_field.py, splitting_field) Converted polynomials to new field (time = ...)
+        verbose 1 (97: splitting_field.py, splitting_field) SplittingData to factor: []
+        verbose 2 (97: splitting_field.py, splitting_field) Done factoring (time = ...)
+        verbose 1 (97: splitting_field.py, splitting_field) SplittingData to handle: [(3, 3)]
+        verbose 1 (97: splitting_field.py, splitting_field) Total degree multiple: 6
+        verbose 2 (97: splitting_field.py, splitting_field) Handling polynomial x^3 - x + 1
+        verbose 1 (97: splitting_field.py, splitting_field) New field: y^6 + 3*y^5 + 19*y^4 + 35*y^3 + 127*y^2 + 73*y + 271 (time = ...)
+        sage: set_verbose(0)
+
     Try all Galois groups in degree 4. We use a quadratic base field
     such that ``polgalois()`` cannot be used::
 
@@ -248,7 +269,6 @@ def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, 
           Defn: 1 |--> 1)
     """
     from sage.misc.all import verbose, cputime
-    C = "splitting_field"  # For verbose()
 
     degree_multiple = Integer(degree_multiple or 0)
 
@@ -262,7 +282,7 @@ def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, 
     # (only needed if map=True)
     if map:
         Fgen = F.gen()._pari_()
-    verbose("Starting field: %s"%Kpol, caller_name=C)
+    verbose("Starting field: %s"%Kpol)
 
     # L and Lred are lists of SplittingData.
     # L contains polynomials which are irreducible over K,
@@ -273,7 +293,7 @@ def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, 
     # Main loop, handle polynomials one by one
     while True:
         # First, factor polynomials in Lred
-        verbose("SplittingData to factor: %s"%[s._repr_numeric() for s in Lred], caller_name=C)
+        verbose("SplittingData to factor: %s"%[s._repr_tuple() for s in Lred])
         
         # Factor elements of Lred and store in L
         t = cputime()
@@ -344,7 +364,7 @@ def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, 
                     mq = mq_alt
 
                 L.append(SplittingData(q, mq))
-        verbose("Done factoring", t, level=2, caller_name=C)
+        verbose("Done factoring", t, level=2)
 
         if len(L) == 0:  # Nothing left to do
             break
@@ -357,13 +377,13 @@ def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, 
 
         # Sort according to degree to handle low degrees first
         L.sort()
-        verbose("SplittingData to handle: %s"%[s._repr_numeric() for s in L], caller_name=C)
-        verbose("Total degree multiple: %s"%degree_multiple, caller_name=C)
+        verbose("SplittingData to handle: %s"%[s._repr_tuple() for s in L])
+        verbose("Total degree multiple: %s"%degree_multiple)
 
         # Add a root of f = L[0] to construct the field N = K[x]/f(x)
         splitting = L[0]
         f = splitting.pol
-        verbose("Handling polynomial %s"%(f.lift()), level=2, caller_name=C)
+        verbose("Handling polynomial %s"%(f.lift()), level=2)
         if splitting.dm % f.poldegree() != 0:
             raise ValueError("inconsistent degree_multiple in splitting_field()")
         t = cputime()
@@ -387,7 +407,7 @@ def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, 
 
         if simplify_all or (simplify and not finished):
             # Find a simpler defining polynomial Lpol for Mpol
-            verbose("New field before simplifying: %s"%Mpol, t, caller_name=C)
+            verbose("New field before simplifying: %s"%Mpol, t)
             t = cputime()
             M = Mpol.polred(flag=3)
             n = len(M[0])-1
@@ -402,11 +422,11 @@ def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, 
         NtoL = MtoL/Mdiv
         KtoL = KtoN.lift().subst("x", NtoL).Mod(Lpol)
         Kpol = Lpol   # New Kpol (for next iteration)
-        verbose("New field: %s"%Kpol, t, caller_name=C)
+        verbose("New field: %s"%Kpol, t)
         if map:
             t = cputime()
             Fgen = Fgen.lift().subst("y", KtoL)
-            verbose("Computed generator of F in K", t, level=2, caller_name=C)
+            verbose("Computed generator of F in K", t, level=2)
         if finished:
             break
 
@@ -435,7 +455,7 @@ def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, 
                 L.append(SplittingData(g, mg))
             else:
                 Lred.append(SplittingData(g, mg))
-        verbose("Converted polynomials to new field", t, level=2, caller_name=C)
+        verbose("Converted polynomials to new field", t, level=2)
 
     # Convert Kpol to Sage and construct the absolute number field
     Kpol = PolynomialRing(RationalField(), name=poly.variable_name())(Kpol/Kpol.pollead())

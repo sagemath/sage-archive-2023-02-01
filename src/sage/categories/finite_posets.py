@@ -438,7 +438,7 @@ class FinitePosets(Category):
             return result
 
         def birational_free_labelling(self, linear_extension=None,
-                                      alphabet='x', base_field=None,
+                                      prefix='x', base_field=None,
                                       reduced=False, addvars=None):
             r"""
             Return the birational free labelling of ``self``.
@@ -446,38 +446,38 @@ class FinitePosets(Category):
             Let us hold back defining this, and introduce birational
             toggles and birational rowmotion first. These notions have
             been introduced in [EP13]_ as generalizations of the notions
-            of toggles (meth:`order_ideal_toggle`) and rowmotion
-            (:meth:`rowmotion`) on order ideals of a finite poset. They
+            of toggles (:meth:`order_ideal_toggle`) and :meth:`rowmotion
+            <rowmotion>` on order ideals of a finite poset. They
             have been studied further in [GR13]_.
 
-            Let `\bf K` be a field, and `P` be a finite poset. Let
-            `\widehat P` denote the poset obtained from `P` by adding a
+            Let `\mathbf{K}` be a field, and `P` be a finite poset. Let
+            `\widehat{P}` denote the poset obtained from `P` by adding a
             new element `1` which is greater than all existing elements
             of `P`, and a new element `0` which is smaller than all
-            existing elements of `P` and `1`. Now, a *`\bf K`-labelling of
-            `P`* will mean any function from `\widehat P` to `\bf K`. The
-            image of an element `v` of `\widehat P` under this labelling
+            existing elements of `P` and `1`. Now, a `\mathbf{K}`-*labelling
+            of* `P` will mean any function from `\widehat{P}` to `\mathbf{K}`.
+            The image of an element `v` of `\widehat{P}` under this labelling
             will be called the *label* of this labelling at `v`. The set
-            of all `\bf K`-labellings of `P` is clearly
-            `\bf K^{\widehat P}`.
+            of all `\mathbf{K}`-labellings of `P` is clearly
+            `\mathbf{K}^{\widehat{P}}`.
 
             For any `v \in P`, we now define a rational map
-            `T_v : \bf K^{\widehat P} \dashrightarrow \bf K^{\widehat P}`
-            as follows: For every `f \in \bf K^{\widehat P}`, the image
-            `T_v f` should send every vertex `u \in \widehat P` distinct
-            from `v` to `f(u)` (so the labels at all `u` don't change),
-            while `v` is sent to
+            `T_v : \mathbf{K}^{\widehat{P}} \dashrightarrow
+            \mathbf{K}^{\widehat{P}}` as follows: For every `f \in
+            \mathbf{K}^{\widehat{P}}`, the image `T_v f` should send every
+            vertex `u \in \widehat{P}` distinct from `v` to `f(u)` (so the
+            labels at all `u` don't change), while `v` is sent to
 
             .. MATH::
 
                 \frac{1}{f(v)} \cdot
-                \frac{\sum_{u\in \widehat P,\ u \lessdot v} f(u)}
-                {\sum_{u\in \widehat P,\ u \gtrdot v} 1/f(u)}.
+                \frac{\sum_{u \lessdot v} f(u)}
+                {\sum_{u \gtrdot v} \frac{1}{f(u)}}
 
-            Here, `\lessdot` and `\gtrdot` mean (respectively)
-            "covered by" and "covers", interpreted to the poset
-            `\widehat P`. This rational map `T_v` is an involution and is
-            called the *(birational) `v`-toggle*; see
+            (both sums are over all `u \in \widehat{P}`). Here, `\lessdot`
+            and `\gtrdot` mean (respectively) "covered by" and "covers",
+            interpreted to the poset `\widehat{P}`. This rational map `T_v`
+            is an involution and is called the *(birational) `v`-toggle*; see
             :meth:`birational_toggle` for its implementation.
 
             Now, *birational rowmotion* is defined as the composition
@@ -485,17 +485,17 @@ class FinitePosets(Category):
             `(v_1, v_2, \ldots, v_n)` is a linear extension of `P`
             (written as a linear ordering of the elements of `P`). This
             is a rational map
-            `\bf K^{\widehat P} \dashrightarrow \bf K^{\widehat P}`
+            `\mathbf{K}^{\widehat{P}} \dashrightarrow \mathbf{K}^{\widehat{P}}`
             which does not depend on the choice of the linear extension;
             it is denoted by `R`. See :meth:`birational_rowmotion` for
             its implementation.
 
             The definitions of birational toggles and birational
-            rowmotion extend to the case of `\bf K` being any semifield
+            rowmotion extend to the case of `\mathbf{K}` being any semifield
             rather than necessarily a field (although it becomes less
             clear what constitutes a rational map in this generality).
-            The most useful case is that of the tropical semiring
-            (:class:`~sage.rings.semirings.tropical_semiring.TropicalSemiring`),
+            The most useful case is that of the :class:`tropical semiring
+            <sage.rings.semirings.tropical_semiring.TropicalSemiring>`,
             in which case birational rowmotion relates to classical
             constructions such as promotion of rectangular semistandard
             Young tableaux ([EP13]_ and future work) and rowmotion on
@@ -505,14 +505,14 @@ class FinitePosets(Category):
             defined for every finite poset `P` and every linear extension
             `(v_1, v_2, \ldots, v_n)` of `P`. It is given by sending
             every element `v_i` in `P` to `x_i`, sending the element `0`
-            of `\widehat P` to `a`, and sending the element `1` of
-            `\widehat P` to `b`, where the ground field `\bf K` is the
+            of `\widehat{P}` to `a`, and sending the element `1` of
+            `\widehat{P}` to `b`, where the ground field `\mathbf{K}` is the
             field of rational functions in `n+2` indeterminates
             `a, x_1, x_2, \ldots, x_n, b` over `\mathbb Q`.
 
             In Sage, a labelling `f` of a poset `P` is encoded as a
-            `4`-tuple `(\bf K, d, u, v)`, where `\bf K` is the ground
-            field of the labelling (i. e., its target), `d` is the
+            `4`-tuple `(\mathbf{K}, d, u, v)`, where `\mathbf{K}` is the
+            ground field of the labelling (i. e., its target), `d` is the
             dictionary containing the values of `f` at the elements of
             `P` (the keys being the respective elements of `P`), `u`
             is the label of `f` at `0`, and `v` is the label of `f` at
@@ -540,9 +540,9 @@ class FinitePosets(Category):
               extension of ``self``) a linear extension of ``self``
               (as a linear extension or as a list), or more generally
               a list of all elements of all elements of ``self`` each
-              occuring exactly once.
+              occuring exactly once
 
-            - ``alphabet`` -- (default: ``'x'``) the letter to name
+            - ``prefix`` -- (default: ``'x'``) the prefix to name
               the indeterminates corresponding to the elements of
               ``self`` in the labelling (so, setting it to
               ``'frog'`` will result in these indeterminates being
@@ -551,7 +551,7 @@ class FinitePosets(Category):
 
             - ``base_field`` -- (default: ``QQ``) the base field to
               be used instead of `\QQ` to define the rational
-              function field over. This is not going to be the base
+              function field over; this is not going to be the base
               field of the labelling, because the latter will have
               indeterminates adjoined!
 
@@ -559,12 +559,12 @@ class FinitePosets(Category):
               ``True``, the result will be the *reduced* birational
               free labelling, which differs from the regular one by
               having `0` and `1` both sent to `1` instead of `a` and
-              `b`. (The indeterminates `a` and `b` then also won't
-              appear in the ground field.)
+              `b` (the indeterminates `a` and `b` then also won't
+              appear in the ground field)
 
             - ``addvars`` -- (default: ``''``) a string containing
               names of extra variables to be adjoined to the ground
-              field (these don't have an effect on the labels).
+              field (these don't have an effect on the labels)
 
             OUTPUT:
 
@@ -613,7 +613,7 @@ class FinitePosets(Category):
                 sage: sorted(l[1].items())
                 [(1, x1), (2, x3), (3, x2)]
 
-                sage: l = P.birational_free_labelling(linear_extension=[1, 3, 2], alphabet="wut", reduced=True, addvars="spam, eggs"); l
+                sage: l = P.birational_free_labelling(linear_extension=[1, 3, 2], prefix="wut", reduced=True, addvars="spam, eggs"); l
                 (Fraction Field of Multivariate Polynomial Ring in wut1, wut2, wut3, spam, eggs over Rational Field,
                  {...},
                  1,
@@ -660,9 +660,9 @@ class FinitePosets(Category):
                 [([[1, 1], [2]], x1), ([[1, 1], [3]], x2), ([[1, 2], [2]], x3), ([[1, 2], [3]], x4),
                  ([[1, 3], [2]], x5), ([[1, 3], [3]], x6), ([[2, 2], [3]], x7), ([[2, 3], [3]], x8)]
 
-            See :meth:`birational_rowmotion`, `birational_toggle` and
-            `birational_toggles` for more substantial examples of what one
-            can do with the birational free labelling.
+            See :meth:`birational_rowmotion`, :meth:`birational_toggle` and
+            :meth:`birational_toggles` for more substantial examples of what
+            one can do with the birational free labelling.
 
             TESTS:
 
@@ -674,7 +674,7 @@ class FinitePosets(Category):
                 Finite poset containing 6 elements
                 sage: lex = [(1,0),(0,0),(1,1),(0,1),(1,2),(0,2)]
                 sage: l = P.birational_free_labelling(linear_extension=lex,
-                ....:                                 alphabet="u", reduced=True)
+                ....:                                 prefix="u", reduced=True)
                 sage: l
                 (Fraction Field of Multivariate Polynomial Ring in u1, u2, u3, u4, u5, u6 over Rational Field,
                  {...},
@@ -690,7 +690,7 @@ class FinitePosets(Category):
 
             For comparison, the standard linear extension::
 
-                sage: l = P.birational_free_labelling(alphabet="u", reduced=True); l
+                sage: l = P.birational_free_labelling(prefix="u", reduced=True); l
                 (Fraction Field of Multivariate Polynomial Ring in u1, u2, u3, u4, u5, u6 over Rational Field,
                  {...},
                  1,
@@ -709,7 +709,7 @@ class FinitePosets(Category):
 
                 sage: lex = [(0,0),(0,1),(1,0),(1,1),(0,2),(1,2)]
                 sage: l = P.birational_free_labelling(linear_extension=P.linear_extension(lex),
-                ....:                                 alphabet="u", reduced=True)
+                ....:                                 prefix="u", reduced=True)
                 sage: l
                 (Fraction Field of Multivariate Polynomial Ring in u1, u2, u3, u4, u5, u6 over Rational Field,
                  {...},
@@ -728,7 +728,7 @@ class FinitePosets(Category):
                 sage: P = Poset({1: [3], 2: [3,4]})
                 sage: lex = [1, 2, 4, 3]
                 sage: l = P.birational_free_labelling(linear_extension=lex,
-                ....:                                 alphabet="aaa",
+                ....:                                 prefix="aaa",
                 ....:                                 base_field=Zmod(13))
                 sage: l
                 (Fraction Field of Multivariate Polynomial Ring in a, aaa1, aaa2, aaa3, aaa4, b over Ring of integers modulo 13,
@@ -756,7 +756,7 @@ class FinitePosets(Category):
                  {},
                  1,
                  1)
-                sage: P.birational_free_labelling(alphabet="zzz")
+                sage: P.birational_free_labelling(prefix="zzz")
                 (Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field,
                  {},
                  a,
@@ -770,7 +770,7 @@ class FinitePosets(Category):
             n = self.cardinality()
             varstring = ""
             for i in range(1, n + 1):
-                varstring += alphabet + str(i) + ','
+                varstring += prefix + str(i) + ','
             if reduced:
                 varstring = varstring[:-1]
             else:
@@ -790,7 +790,7 @@ class FinitePosets(Category):
             # ``True``) over ``base_field``.
             # The first `n + 2` of these indeterminates are named
             # ``a, x1, x2, ..., xn, b`` (if ``reduced`` is ``False``).
-            # These will label the vertices of `\widehat P`.
+            # These will label the vertices of `\widehat{P}`.
             if reduced:
                 xs = tuple(PR.gens()[: n])
             else:
@@ -811,13 +811,13 @@ class FinitePosets(Category):
         def birational_toggle(self, v, labelling):
             r"""
             Return the result of applying the birational `v`-toggle `T_v`
-            to the `\bf K`-labelling ``labelling`` of the poset ``self``.
+            to the `\mathbf{K}`-labelling ``labelling`` of the poset ``self``.
 
             See the documentation of :meth:`birational_free_labelling`
-            for a definition of this toggle and of `\bf K`-labellings as
-            well as an explanation of how `\bf K`-labellings are to be
+            for a definition of this toggle and of `\mathbf{K}`-labellings as
+            well as an explanation of how `\mathbf{K}`-labellings are to be
             encoded to be understood by Sage. This implementation allows
-            `\bf K` to be a semifield, not just a field. The birational
+            `\mathbf{K}` to be a semifield, not just a field. The birational
             `v`-toggle is only a rational map, so an exception (most
             likely, ``ZeroDivisionError``) will be thrown if the
             denominator is zero.
@@ -825,15 +825,15 @@ class FinitePosets(Category):
             INPUT:
 
             - ``v`` -- an element of ``self`` (must have ``self`` as
-              parent if ``self`` is a ``facade=False`` poset).
+              parent if ``self`` is a ``facade=False`` poset)
 
-            - ``labelling`` -- a `\bf K`-labelling of ``self`` in the
+            - ``labelling`` -- a `\mathbf{K}`-labelling of ``self`` in the
               sense as defined in the documentation of
-              :meth:`birational_free_labelling`.
+              :meth:`birational_free_labelling`
 
             OUTPUT:
 
-            The `\bf K`-labelling `T_v f` of ``self``, where `f` is
+            The `\mathbf{K}`-labelling `T_v f` of ``self``, where `f` is
             ``labelling``.
 
             EXAMPLES:
@@ -999,7 +999,7 @@ class FinitePosets(Category):
                 a*b/x1
             """
             FF = labelling[0]       # base field
-            a = labelling[2]        # label at `0 \in \widehat P`
+            a = labelling[2]        # label at `0 \in \widehat{P}`
             b = labelling[3]
             newdict = labelling[1].copy()
             # Construct the harmonic sum ``x`` of the labels at the
@@ -1009,7 +1009,7 @@ class FinitePosets(Category):
                 x = FF.one() / b
             else:
                 x = FF.sum(FF.one() / newdict[j] for j in uppers)
-                # ``FF.sum``, not ``sum``, pending :trac:`15591`.
+                # ``FF.sum``, not ``sum``, see :trac:`15591`.
             x = FF.one() / x
             # Construct the sum ``y`` of the labels at the elements
             # covered by ``v``:
@@ -1025,14 +1025,14 @@ class FinitePosets(Category):
         def birational_toggles(self, vs, labelling):
             r"""
             Return the result of applying a sequence of birational
-            toggles (specified by ``vs``) to the `\bf K`-labelling
+            toggles (specified by ``vs``) to the `\mathbf{K}`-labelling
             ``labelling`` of the poset ``self``.
 
             See the documentation of :meth:`birational_free_labelling`
-            for a definition of birational toggles and `\bf K`-labellings
-            and for an explanation of how `\bf K`-labellings are to be
+            for a definition of birational toggles and `\mathbf{K}`-labellings
+            and for an explanation of how `\mathbf{K}`-labellings are to be
             encoded to be understood by Sage. This implementation allows
-            `\bf K` to be a semifield, not just a field. The birational
+            `\mathbf{K}` to be a semifield, not just a field. The birational
             `v`-toggle is only a rational map, so an exception (most
             likely, ``ZeroDivisionError``) will be thrown if the
             denominator is zero.
@@ -1041,15 +1041,15 @@ class FinitePosets(Category):
 
             - ``vs`` -- an iterable comprising elements of ``self``
               (which must have ``self`` as parent if ``self`` is a
-              ``facade=False`` poset).
+              ``facade=False`` poset)
 
-            - ``labelling`` -- a `\bf K`-labelling of ``self`` in the
+            - ``labelling`` -- a `\mathbf{K}`-labelling of ``self`` in the
               sense as defined in the documentation of
-              :meth:`birational_free_labelling`.
+              :meth:`birational_free_labelling`
 
             OUTPUT:
 
-            The `\bf K`-labelling `T_{v_n} T_{v_{n-1}} ... T_{v_1} f`
+            The `\mathbf{K}`-labelling `T_{v_n} T_{v_{n-1}} \cdots T_{v_1} f`
             of ``self``, where `f` is ``labelling`` and
             `(v_1, v_2, \ldots, v_n)` is ``vs`` (written as list).
 
@@ -1084,7 +1084,7 @@ class FinitePosets(Category):
                 sage: sorted(t2[1].items())
                 [(1, 1/x^2), (2, (x^2 + x + 1)/x^4), (3, (x^2 + x + 1)/(x^3 + x^2)), (4, (x^2 + x + 1)/x^3)]
 
-            Facade set to false works::
+            Facade set to ``False`` works::
 
                 sage: P = Poset({'x': ['y', 'w'], 'y': ['z'], 'w': ['z']}, facade=False)
                 sage: lex = ['x', 'y', 'w', 'z']
@@ -1100,26 +1100,26 @@ class FinitePosets(Category):
         def birational_rowmotion(self, labelling):
             r"""
             Return the result of applying birational rowmotion to the
-            `\bf K`-labelling ``labelling`` of the poset ``self``.
+            `\mathbf{K}`-labelling ``labelling`` of the poset ``self``.
 
             See the documentation of :meth:`birational_free_labelling`
             for a definition of birational rowmotion and
-            `\bf K`-labellings and for an explanation of how
-            `\bf K`-labellings are to be encoded to be understood by Sage.
-            This implementation allows `\bf K` to be a semifield, not just
-            a field. Birational rowmotion is only a rational map, so an
-            exception (most likely, ``ZeroDivisionError``) will be thrown
-            if the denominator is zero.
+            `\mathbf{K}`-labellings and for an explanation of how
+            `\mathbf{K}`-labellings are to be encoded to be understood
+            by Sage. This implementation allows `\mathbf{K}` to be a
+            semifield, not just a field. Birational rowmotion is only a
+            rational map, so an exception (most likely, ``ZeroDivisionError``)
+            will be thrown if the denominator is zero.
 
             INPUT:
 
-            - ``labelling`` -- a `\bf K`-labelling of ``self`` in the
+            - ``labelling`` -- a `\mathbf{K}`-labelling of ``self`` in the
               sense as defined in the documentation of
-              :meth:`birational_free_labelling`.
+              :meth:`birational_free_labelling`
 
             OUTPUT:
 
-            The image of the `\bf K`-labelling `f` under birational
+            The image of the `\mathbf{K}`-labelling `f` under birational
             rowmotion.
 
             EXAMPLES::
@@ -1143,7 +1143,7 @@ class FinitePosets(Category):
                  (3, (x1*x2*b + x1*x3*b)/(x3*x4)), (4, (x2*b + x3*b)/x4)]
 
             A result of [GR13]_ states that applying birational rowmotion
-            `n+m` times to a `\bf K`-labelling `f` of the poset
+            `n+m` times to a `\mathbf{K}`-labelling `f` of the poset
             `[n] \times [m]` gives back `f`. Let us check this::
 
                 sage: def test_rectangle_periodicity(n, m, k):
@@ -1179,17 +1179,17 @@ class FinitePosets(Category):
 
             Tropicalization is also what relates birational rowmotion to
             classical rowmotion on order ideals. In fact, if `T` denotes
-            the tropical semiring of `\ZZ` (as defined in
-            :class:`sage.rings.semirings.tropical_semiring.TropicalSemiring`),
-            and `P` is a finite poset, then we can define an embedding
+            the :class:`tropical semiring
+            <sage.rings.semirings.tropical_semiring.TropicalSemiring>` of
+            `\ZZ` and `P` is a finite poset, then we can define an embedding
             `\phi` from the set `J(P)` of all order ideals of `P` into the
-            set `T^{\widehat P}` of all `T`-labellings of `P` by sending
+            set `T^{\widehat{P}}` of all `T`-labellings of `P` by sending
             every `I \in J(P)` to the indicator function of `I` extended by
             the value `1` at the element `0` and the value `0` at the
             element `1`. This map `\phi` has the property that
             `R \circ \phi = \phi \circ r`, where `R` denotes birational
-            rowmotion, and `r` denotes classical rowmotion
-            (:meth:`rowmotion`) on `J(P)`. An example::
+            rowmotion, and `r` denotes :meth:`classical rowmotion <rowmotion>`
+            on `J(P)`. An example::
 
                 sage: P = Posets.IntegerPartitions(5)
                 sage: TT = TropicalSemiring(ZZ)

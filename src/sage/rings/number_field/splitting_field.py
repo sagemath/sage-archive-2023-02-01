@@ -265,6 +265,8 @@ def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, 
     verbose("Starting field: %s"%Kpol, caller_name=C)
 
     # L and Lred are lists of SplittingData.
+    # L contains polynomials which are irreducible over K,
+    # Lred contains polynomials which need to be factored.
     L = []
     Lred = [SplittingData(poly._pari_with_name(), degree_multiple)]
 
@@ -283,11 +285,18 @@ def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, 
             for q in factors:
                 d = q.poldegree()
                 fac = factorial(d)
+                # Multiple of the degree of the splitting field of q,
+                # note that the degree equals fac iff the Galois group is S_n.
                 mq = m.gcd(fac)
                 if mq == 1:
                     continue
-                # Bound assuming that the Galois group of q is contained in A_n
-                mq_alt = mq.gcd(fac/2)
+                # Multiple of the degree of the splitting field of q
+                # over the field defined by adding square root of the
+                # discriminant.
+                # If the Galois group is contained in A_n, then mq_alt is
+                # also the degree multiple over the current field K.
+                # Here, we have equality if the Galois group is A_n.
+                mq_alt = mq.gcd(fac//2)
 
                 # If we are over Q, then use PARI's polgalois() to compute
                 # these degrees exactly.
@@ -297,19 +306,23 @@ def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, 
                     except PariError:
                         pass
                     else:
-                        mq = G[0]
-                        mq_alt = mq/2 if (G[1] == -1) else mq
+                        mq = Integer(G[0])
+                        mq_alt = mq//2 if (G[1] == -1) else mq
 
-                # In degree 4, use cubic resolvent
-                if d == 4 and mq >= 12:  # mq must be 12 or 24
+                # In degree 4, use the cubic resolvent to refine the
+                # degree bounds.
+                if d == 4 and mq >= 12:  # mq equals 12 or 24
                     # Compute cubic resolvent
                     a0, a1, a2, a3, a4 = (q/q.pollead()).Vecrev()
                     assert a4 == 1
                     cubicpol = pari([4*a0*a2 - a1*a1 -a0*a3*a3, a1*a3 - 4*a0, -a2, 1]).Polrev()
                     cubicfactors = Kpol.nffactor(cubicpol)[0]
                     if len(cubicfactors) == 1:    # A4 or S4
+                        # After adding a root of the cubic resolvent,
+                        # the degree of the extension defined by q
+                        # is a factor 3 smaller.
                         L.append(SplittingData(cubicpol, 3))
-                        mq = mq.gcd(8)  # 4 or 8
+                        mq = mq//3  # 4 or 8
                         mq_alt = 4
                     elif len(cubicfactors) == 2:  # C4 or D8
                         # The irreducible degree 2 factor is
@@ -333,10 +346,10 @@ def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, 
                 L.append(SplittingData(q, mq))
         verbose("Done factoring", t, level=2, caller_name=C)
 
-        if len(L) == 0:
+        if len(L) == 0:  # Nothing left to do
             break
 
-        # Recompute degree multiple
+        # Recompute absolute degree multiple
         new_degree_multiple = Integer(Kpol.poldegree())
         for splitting in L:
             new_degree_multiple *= splitting.dm
@@ -350,9 +363,8 @@ def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, 
         # Add a root of f = L[0] to construct the field N = K[x]/f(x)
         splitting = L[0]
         f = splitting.pol
-        f_degree_multiple = splitting.dm
         verbose("Handling polynomial %s"%(f.lift()), level=2, caller_name=C)
-        if f_degree_multiple % f.poldegree() != 0:
+        if splitting.dm % f.poldegree() != 0:
             raise ValueError("inconsistent degree_multiple in splitting_field()")
         t = cputime()
         Npol, KtoN, k = Kpol.rnfequation(f, flag=1)
@@ -399,23 +411,27 @@ def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, 
             break
 
         t = cputime()
-        # Convert f and elements of L from K to L and store in Lred.
+
+        # Convert f and elements of L from K to L and store in L
+        # (if the polynomial is certain to remain irreducible) or Lred.
         Lold = L[1:]
         L = []
         Lred = []
 
-        # For f, we divide out the linear factor we just obtained.
-        g_degree_multiple = f_degree_multiple/f.poldegree()
-        if g_degree_multiple > 1:
+        # First add f divided by the linear factor we obtained,
+        # mg is the new degree multiple.
+        mg = splitting.dm//f.poldegree()
+        if mg > 1:
             g = [c.subst("y", KtoL).Mod(Lpol) for c in f.Vecrev().lift()]
             g = pari(g).Polrev()
             g /= pari([k*KtoL - NtoL, 1]).Polrev()  # divide linear factor
-            Lred.append(SplittingData(g, g_degree_multiple))
+            Lred.append(SplittingData(g, mg))
+
         for splitting in Lold:
             g = [c.subst("y", KtoL) for c in splitting.pol.Vecrev().lift()]
             g = pari(g).Polrev()
             mg = splitting.dm
-            if mg.gcd(f.poldegree()) == 1:  # linearly disjoint fields
+            if Integer(g.poldegree()).gcd(f.poldegree()) == 1:  # linearly disjoint fields
                 L.append(SplittingData(g, mg))
             else:
                 Lred.append(SplittingData(g, mg))

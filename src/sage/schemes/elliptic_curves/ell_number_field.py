@@ -96,17 +96,15 @@ import sage.matrix.all as matrix
 from sage.rings.ring import Ring
 from sage.rings.arith import gcd, prime_divisors
 from sage.misc.misc import prod
-import sage.databases.cremona
 import ell_torsion
 from ell_generic import is_EllipticCurve
 
-from sage.libs.pari.all import pari, PariError
 from gp_simon import simon_two_descent
 from constructor import EllipticCurve
 from sage.rings.all import PolynomialRing, ZZ, RealField
+import sage.misc.misc
 from sage.misc.misc import verbose, forall
 from sage.rings.integer import Integer
-from sage.rings.infinity import Infinity # just for verbose output
 from sage.rings.arith import valuation
 
 import gal_reps_number_field
@@ -150,8 +148,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
                 field = ainvs[0].parent()
         else:
             if isinstance(y, str):
+                from sage.databases.cremona import CremonaDatabase
                 field = x
-                X = sage.databases.cremona.CremonaDatabase()[y]
+                X = CremonaDatabase()[y]
                 ainvs = list(X.a_invariants())
             else:
                 field = x
@@ -309,6 +308,157 @@ class EllipticCurve_number_field(EllipticCurve_field):
         prob_gens = [self(P) for P in t[2]]
         self._simon_two_descent_data[lim1,lim3,limtriv,maxprob,limbigprime] = (prob_rank, two_selmer_rank, prob_gens)
         return prob_rank, two_selmer_rank, prob_gens
+
+    def division_field(self, p, names, map=False, **kwds):
+        """
+        Given an elliptic curve over a number field `F` and a prime number `p`,
+        construct the field `F(E[p])`.
+
+        INPUT:
+
+        - ``p`` -- a prime number (an element of `\ZZ`)
+
+        - ``names`` -- a variable name for the number field
+
+        - ``map`` -- (default: ``False``) also return an embedding of
+          ``self.base_field()`` into the resulting field.
+
+        - ``kwds`` -- additional keywords passed to 
+          :func:`sage.rings.number_field.splitting_field.splitting_field`.
+
+        OUTPUT:
+
+        If ``map`` is ``False``, the division field as an absolute number
+        field.  If ``map`` is ``True``, a tuple ``(K, phi)`` where ``phi``
+        is an embedding of the base field in the division field ``K``.
+
+        .. WARNING::
+
+            This takes a very long time when the degree of the division
+            field is large (e.g. when `p` is large or when the Galois
+            representation is surjective).  The ``simplify`` flag also
+            has a big influence on the running time: sometimes
+            ``simplify=False`` is faster, sometimes ``simplify=True`` is
+            faster.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('14a1')
+            sage: K.<b> = E.division_field(2); K
+            Number Field in b with defining polynomial x^2 + 5*x + 92
+            sage: K.<b> = E.division_field(3); K
+            Number Field in b with defining polynomial x^2 + 2*x + 13
+
+            sage: E = EllipticCurve('11a1')
+            sage: K.<b> = E.division_field(2); K
+            Number Field in b with defining polynomial x^6 + 2*x^5 - 48*x^4 - 436*x^3 + 1668*x^2 + 28792*x + 73844
+            sage: K.<b> = E.division_field(3); K  # long time (3s on sage.math, 2014)
+            Number Field in b with defining polynomial x^48 ...
+            sage: K.<b> = E.division_field(5); K
+            Number Field in b with defining polynomial x^4 - x^3 + x^2 - x + 1
+            sage: E.division_field(5, 'b', simplify=False)
+            Number Field in b with defining polynomial x^4 + x^3 + 11*x^2 + 41*x + 101
+            sage: E.base_extend(K).torsion_subgroup()  # long time (2s on sage.math, 2014)
+            Torsion Subgroup isomorphic to Z/5 + Z/5 associated to the Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 + (-10)*x + (-20) over Number Field in b with defining polynomial x^4 - x^3 + x^2 - x + 1
+
+            sage: E = EllipticCurve('27a1')
+            sage: K.<b> = E.division_field(3); K
+            Number Field in b with defining polynomial x^2 + 3*x + 9
+            sage: K.<b> = E.division_field(2); K
+            Number Field in b with defining polynomial x^6 + 6*x^5 + 24*x^4 - 52*x^3 - 228*x^2 + 744*x + 3844
+            sage: K.<b> = E.division_field(2, simplify_all=True); K
+            Number Field in b with defining polynomial x^6 - 3*x^5 + 5*x^3 - 3*x + 1
+            sage: K.<b> = E.division_field(5); K   # long time (4s on sage.math, 2014)
+            Number Field in b with defining polynomial x^48 ...
+            sage: K.<b> = E.division_field(7); K  # long time (8s on sage.math, 2014)
+            Number Field in b with defining polynomial x^72 ...
+
+        Over a number field::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: E = EllipticCurve([0,0,0,0,i])
+            sage: L.<b> = E.division_field(2); L
+            Number Field in b with defining polynomial x^4 - x^2 + 1
+            sage: L.<b>, phi = E.division_field(2, map=True); phi
+            Ring morphism:
+              From: Number Field in i with defining polynomial x^2 + 1
+              To:   Number Field in b with defining polynomial x^4 - x^2 + 1
+              Defn: i |--> -b^3
+            sage: L.<b>, phi = E.division_field(3, map=True)
+            sage: L
+            Number Field in b with defining polynomial x^24 - 6*x^22 - 12*x^21 - 21*x^20 + 216*x^19 + 48*x^18 + 804*x^17 + 1194*x^16 - 13488*x^15 + 21222*x^14 + 44196*x^13 - 47977*x^12 - 102888*x^11 + 173424*x^10 - 172308*x^9 + 302046*x^8 + 252864*x^7 - 931182*x^6 + 180300*x^5 + 879567*x^4 - 415896*x^3 + 1941012*x^2 + 650220*x + 443089
+            sage: phi
+            Ring morphism:
+              From: Number Field in i with defining polynomial x^2 + 1
+              To:   Number Field in b with defining polynomial x^24 ...
+              Defn: i |--> -215621657062634529/183360797284413355040732*b^23 ...
+
+        AUTHORS:
+
+        - Jeroen Demeyer (2014-01-06): :trac:`11905`, use
+          ``splitting_field`` method, moved from ``gal_reps.py``, make
+          it work over number fields.
+        """
+        p = Integer(p)
+        if not p.is_prime():
+            raise ValueError("p must be a prime number")
+
+        verbose("Adjoining X-coordinates of %s-torsion points"%p)
+        F = self.base_ring()
+        f = self.division_polynomial(p)
+        if p == 2:
+            # For p = 2, the division field is the splitting field of
+            # the division polynomial.
+            deg_mult = F.degree()*6
+            return f.splitting_field(names, degree_multiple=deg_mult, map=map, **kwds)
+
+        # Compute splitting field of X-coordinates.
+        # The Galois group of the division field is a subgroup of GL(2,p).
+        # The Galois group of the X-coordinates is a subgroup of GL(2,p)/{-1,+1}.
+        # We need the map to change the elliptic curve invariants to K.
+        deg_mult = F.degree()*p*(p+1)*(p-1)*(p-1)//2
+        K, F_to_K = f.splitting_field(names, degree_multiple=deg_mult, map=True, **kwds)
+
+        verbose("Adjoining Y-coordinates of %s-torsion points"%p)
+
+        # THEOREM (Cremona, http://trac.sagemath.org/ticket/11905#comment:21).
+        # Let K be a field, E an elliptic curve over K and p an odd
+        # prime number. Assume that K contains all roots of the
+        # p-division polynomial of E. Then either K contains all
+        # p-torsion points on E, or it doesn't contain any p-torsion
+        # point.
+        #
+        # PROOF. Let G be the absolute Galois group of K (every element
+        # in it fixes all elements of K). For any p-torsion point P
+        # over the algebraic closure and any sigma in G, we must have
+        # either sigma(P) = P or sigma(P) = -P (since K contains the
+        # X-coordinate of P). Now assume that K does not contain all
+        # p-torsion points. Then there exists a point P1 and a sigma in
+        # G such that sigma(P1) = -P1. Now take a different p-torsion
+        # point P2. Since sigma(P2) must be P2 or -P2 and
+        # sigma(P1+P2) = sigma(P1)+sigma(P2) = sigma(P1)-P2 must
+        # be P1+P2 or -(P1+P2), it follows that sigma(P2) = -sigma(P2).
+        # Therefore, K cannot contain any p-torsion point.
+        #
+        # This implies that it suffices to adjoin the Y-coordinate
+        # of just one point.
+
+        # First factor f over F and then compute a root X of f over K.
+        g = prime_divisors(f)[0]
+        X = g.change_ring(K).roots(multiplicities=False)[0]
+
+        # Polynomial defining the corresponding Y-coordinate
+        a1,a2,a3,a4,a6 = (F_to_K(ai) for ai in self.a_invariants())
+        rhs = X*(X*(X + a2) + a4) + a6
+        RK = PolynomialRing(K, 'x')
+        ypol = RK([-rhs, a1*X + a3, 1])
+        L = ypol.splitting_field(names, map=map, **kwds)
+        if map:
+            L, K_to_L = L
+            return L, F_to_K.post_compose(K_to_L)
+        else:
+            return L
 
     def height_pairing_matrix(self, points=None, precision=None):
         r"""
@@ -1512,7 +1662,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E = EllipticCurve('11a1')
             sage: K.<t>=NumberField(x^4 + x^3 + 11*x^2 + 41*x + 101)
             sage: EK = E.base_extend(K)
-            sage: tor = EK.torsion_subgroup()  # long time (3s on sage.math, 2013)
+            sage: tor = EK.torsion_subgroup()  # long time (2s on sage.math, 2014)
             sage: tor  # long time
             Torsion Subgroup isomorphic to Z/5 + Z/5 associated to the Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 + (-10)*x + (-20) over Number Field in t with defining polynomial x^4 + x^3 + 11*x^2 + 41*x + 101
             sage: tor.gens()  # long time
@@ -1560,7 +1710,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E = EllipticCurve('11a1')
             sage: K.<t> = NumberField(x^4 + x^3 + 11*x^2 + 41*x + 101)
             sage: EK = E.base_extend(K)
-            sage: EK.torsion_order()
+            sage: EK.torsion_order()  # long time (2s on sage.math, 2014)
             25
 
         ::
@@ -1607,7 +1757,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [(0 : 1 : 0), (5 : -6 : 1), (5 : 5 : 1), (16 : -61 : 1), (16 : 60 : 1)]
             sage: K.<t> = NumberField(x^4 + x^3 + 11*x^2 + 41*x + 101)
             sage: EK = E.base_extend(K)
-            sage: EK.torsion_points()  # long time (3s on sage.math, 2013)
+            sage: EK.torsion_points()  # long time (1s on sage.math, 2014)
             [(16 : 60 : 1),
              (5 : 5 : 1),
              (5 : -6 : 1),
@@ -2048,7 +2198,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E2 = EllipticCurve([1+i,0,1,0,0])
             sage: E2.conductor()
             Fractional ideal (4*i + 7)
-            sage: E1.is_isogenous(E2)
+            sage: E1.is_isogenous(E2)  # long time (2s on sage.math, 2014)
             Traceback (most recent call last):
             ...
             NotImplementedError: Curves appear to be isogenous (same conductor, isogenous modulo all primes of norm up to 1000), but no isogeny has been constructed.
@@ -2314,7 +2464,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         r = len(points)
         if height_matrix is None:
             height_matrix = self.height_pairing_matrix(points, precision)
-        U = pari(height_matrix).lllgram().python()
+        U = height_matrix._pari_().lllgram().python()
         new_points = [sum([U[j, i]*points[j] for j in range(r)])
                       for i in range(r)]
         return new_points, U
@@ -2342,7 +2492,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             Compatible family of Galois representations associated to the Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 + (-10)*x + (-20) over Number Field in a with defining polynomial x^2 + 1
             sage: rho.is_surjective(3)
             True
-            sage: rho.is_surjective(5)  # long time (9s on sage.math, 2013)
+            sage: rho.is_surjective(5)  # long time (4s on sage.math, 2014)
             False
             sage: rho.non_surjective()
             [5]

@@ -476,7 +476,7 @@ class EllipticCurveCanonicalHeight:
             else:
                 ep = len(kp) + 1
         else:
-            ep = lcm(self.E.reduction(p).abelian_group()[0].invariants())
+            ep = self.E.reduction(p).abelian_group().exponent()
         return ZZ(ep)
 
     @cached_method

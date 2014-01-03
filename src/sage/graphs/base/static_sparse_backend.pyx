@@ -378,10 +378,19 @@ class StaticSparseBackend(CGraphBackend):
         """
         Return a tuple used for pickling this graph.
 
-        TESTS::
+        TESTS:
+
+        Pickling of the static graph backend makes pickling of immutable
+        graphs and digraphs work::
 
             sage: G = Graph(graphs.PetersenGraph(), immutable=True)
-            sage: _ = loads(dumps(G))
+            sage: G == loads(dumps(G))
+            True
+            sage: uc = [[2,3], [], [1], [1], [1], [3,4]]
+            sage: D = DiGraph(dict([[i,uc[i]] for i in range(len(uc))]), immutable=True)
+            sage: loads(dumps(D)) == D
+            True
+
         """
         if self._directed:
             from sage.graphs.digraph import DiGraph as constructor
@@ -389,6 +398,8 @@ class StaticSparseBackend(CGraphBackend):
             from sage.graphs.graph import Graph as constructor
         G = constructor()
         G.add_vertices(self.iterator_verts(None))
+        # In order to make things work for digraphs, we use
+        # iterator_out_edges and not iterator_edges.
         G.add_edges(list(self.iterator_out_edges(self.iterator_verts(None),1)))
         return (StaticSparseBackend, (G, self._loops, self._multiedges))
 

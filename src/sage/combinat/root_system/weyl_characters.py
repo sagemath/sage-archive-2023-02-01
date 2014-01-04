@@ -2404,7 +2404,7 @@ class BranchingRule(SageObject):
             self._intermediate_names = [name]
         self._name = name
 
-    def __repr__(self):
+    def _repr_(self):
         """
         EXAMPLES::
 
@@ -2501,6 +2501,28 @@ class BranchingRule(SageObject):
         else:
             raise ValueError, "unable to define composite: source and target don't agree"
 
+    def Rtype(self):
+        """
+        In a branching rule R => S, returns the Cartan Type of the ambient group R.
+
+        EXAMPLES::
+
+            sage: branching_rule("A3","A2","levi").Rtype()
+            ['A', 3]
+        """
+        return self._R
+
+    def Stype(self):
+        """
+        In a branching rule R => S, returns the Cartan Type of the subgroup S.
+
+        EXAMPLES::
+
+            sage: branching_rule("A3","A2","levi").Stype()
+            ['A', 2]
+        """
+        return self._S
+
     def describe(self, verbose=False, debug=False, no_r=False):
         """
         Describes how extended roots restrict under self.
@@ -2586,6 +2608,7 @@ class BranchingRule(SageObject):
                     print "%d => %s"%(j, tuple([resfw.inner_product(a) for a in Sspace.simple_coroots()]))
             if not no_r and not verbose:
                 print "\nFor more detailed information use verbose=True"
+            
 
 def get_branching_rule(Rtype, Stype, rule="default"):
     """

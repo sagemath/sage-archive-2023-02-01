@@ -166,6 +166,78 @@ be shown the restriction of all simple roots and the
 affine root, and also the restrictions of the fundamental weights
 (in coroot notation).
 
+Maximal subgroups
+-----------------
+
+Sage has a database of maximal subgroups for every simple Cartan
+type of rank `\le 8`. You may access this with the command
+``maximal_subgroups`::
+
+    sage: maximal_subgroups("E7")
+    A7:branching_rule("E7","A7","extended")
+    E6:branching_rule("E7","E6","levi")
+    A2:branching_rule("E7","A2","miscellaneous")
+    A1:branching_rule("E7","A1","iii")
+    A1:branching_rule("E7","A1","iv")
+    A1xF4:branching_rule("E7","A1xF4","miscellaneous")
+    G2xC3:branching_rule("E7","G2xC3","miscellaneous")
+    A1xG2:branching_rule("E7","A1xG2","miscellaneous")
+    A1xA1:branching_rule("E7","A1xA1","miscellaneous")
+    A1xD6:branching_rule("E7","A1xD6","extended")
+    A5xA2:branching_rule("E7","A5xA2","extended")
+
+It should be understood that there are other ways of
+embedding `A_2=\hbox{SL}(3)` into the Lie group `E_7`,
+but only one way as a maximal subgroup. On the other
+hand, there are but only one way to embed it as a
+maximal subgroup. The embedding will be explained below.
+You may obtain the branching rule as follows, and use it to determine
+the decomposition of irreducible representations of `E_7`
+as follows::
+
+    sage: b = maximal_subgroups("E7",mode="get_rule")["A2"]; b
+    miscellaneous branching rule E7 => A2
+    sage: [E7,A2]=[WeylCharacterRing(x,style="coroots") for x in ["E7","A2"]]
+    sage: E7(1,0,0,0,0,0,0).branch(A2,rule=b)
+    A2(1,1) + A2(4,4)
+
+Of course you could define the rule directly without using
+this database, and this is what you would have to do if
+the rank is greater than 8::
+
+    sage: b = branching_rule("E7","A2",rule="miscellaneous"); b
+    miscellaneous branching rule E7 => A2
+
+There are two distict embeddings of `A_1=\hbox{SL}(2)` into
+`E_7` as maximal subgroups, so calling ``maximal_subgroups``
+with ``mode="get_rule"`` will return a list of rules::
+
+     sage: maximal_subgroups("E7",mode="get_rule")["A1"]
+     [iii branching rule E7 => A1, iv branching rule E7 => A1]
+
+The list of maximal subgroups returned by maximal_subgroups
+is believed to be complete up to outer automorphisms. You
+may want a list that is complete up to inner automorphisms.
+For example, `E_6` has a nontrivial Dynkin diagram automorphism
+so it has an outer automorphism that is not inner::
+
+    sage: [E6,A2xG2]=[WeylCharacterRing(x,style="coroots") for x in ["E6","A2xG2"]]
+    sage: b=maximal_subgroups("E6",mode="get_rule")["A2xG2"];b
+    miscellaneous branching rule E6 => A2xG2
+    sage: E6(1,0,0,0,0,0).branch(A2xG2,rule=b)
+    A2xG2(0,1,1,0) + A2xG2(2,0,0,0)
+    sage: E6(0,0,0,0,0,1).branch(A2xG2,rule=b)
+    A2xG2(1,0,1,0) + A2xG2(0,2,0,0)
+    
+Since as we see the two 27 dimensional irreducibles (which are
+interchanged by the outer automorphism) have different branching,
+the `A_2\times G_2` subgroup is changed to a different one
+by the outer automorphism. To obtain the second branching
+rule, we compose the given one with this automorphism::
+
+    sage: b1=branching_rule("E6","E6","automorphic")*b; b1
+    composite branching rule E6 => (automorphic) E6 => (miscellaneous) A2xG2
+
 Levi subgroups
 --------------
 

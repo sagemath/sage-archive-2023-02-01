@@ -15,7 +15,7 @@ Finite Rings
    sage/rings/finite_rings/finite_field_pari_ffelt
    sage/rings/finite_rings/finite_field_prime_modn
    sage/rings/finite_rings/homset
+   sage/rings/finite_rings/integer_mod_ring
    sage/rings/algebraic_closure_finite_field
-
 
 .. include:: ../footer.txt

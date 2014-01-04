@@ -50,6 +50,7 @@ Combinatorics
    sage/combinat/q_bernoulli
    sage/combinat/rsk
    sage/combinat/sidon_sets
+   sage/combinat/six_vertex_model
    sage/combinat/set_partition_ordered
    sage/combinat/set_partition
    sage/combinat/abstract_tree
@@ -71,6 +72,7 @@ Combinatorics
    tableaux
    symmetric_functions
    ncsf_qsym
+   ncsym
    root_systems
 
    sage/combinat/kazhdan_lusztig

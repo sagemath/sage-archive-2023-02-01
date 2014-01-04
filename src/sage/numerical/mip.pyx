@@ -358,7 +358,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         Return the parent for all linear constraints
 
-        See :mod:`~sage.numerical.linear_constraints` for more
+        See :mod:`~sage.numerical.linear_functions` for more
         details.
 
         EXAMPLES::
@@ -739,11 +739,11 @@ cdef class MixedIntegerLinearProgram(SageObject):
         INPUT:
 
         All arguments given to this method are forwarded to the constructor of
-        the :class:`Polyhedron` class.
+        the :func:`Polyhedron` class.
 
         OUTPUT:
 
-        A :class:`Polyhedron` object whose `i`-th variable represents the `i`-th
+        A :func:`Polyhedron` object whose `i`-th variable represents the `i`-th
         variable of ``self``.
 
         .. warning::
@@ -1994,13 +1994,13 @@ cdef class MixedIntegerLinearProgram(SageObject):
     cpdef sum(self, L):
         r"""
         Efficiently computes the sum of a sequence of
-        :class:`~sage.numerical.linear_function.LinearFunction` elements
+        :class:`~sage.numerical.linear_functions.LinearFunction` elements
 
         INPUT:
 
         - ``mip`` -- the :class:`MixedIntegerLinearProgram` parent.
 
-        - ``L`` -- list of :class:`~sage.numerical.linear_function.LinearFunction` instances.
+        - ``L`` -- list of :class:`~sage.numerical.linear_functions.LinearFunction` instances.
 
         .. NOTE::
 

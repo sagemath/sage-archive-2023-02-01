@@ -82,6 +82,11 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
 
         sage: line3d([(1,2,3), (1,0,-2), (3,1,4), (2,1,-2)], color='red')
 
+    The points of the line provided as a numpy array::
+
+        sage: import numpy
+        sage: line3d(numpy.array([(1,2,3), (1,0,-2), (3,1,4), (2,1,-2)]))
+
     A transparent thick green line and a little blue line::
 
         sage: line3d([(0,0,0), (1,1,1), (1,0,2)], opacity=0.5, radius=0.1, \
@@ -1016,11 +1021,23 @@ def point3d(v, size=5, **kwds):
     We check to make sure the options work::
 
         sage: point3d((4,3,2),size=20,color='red',opacity=.5)
-    """
-    if len(v) == 3 and v[0] in RDF:
-        return Point(v, size, **kwds)
-    else:
-        A = sum([Point(z, size, **kwds) for z in v])
-        A._set_extra_kwds(kwds)
-        return A
 
+    numpy arrays can be provided as input::
+
+        sage: import numpy
+        sage: point3d(numpy.array([1,2,3]))
+
+        sage: point3d(numpy.array([[1,2,3], [4,5,6], [7,8,9]]))
+
+    """
+    if len(v) == 3:
+        try:
+            # check if the first element can be changed to a float
+            tmp = RDF(v[0])
+            return Point(v, size, **kwds)
+        except TypeError:
+            pass
+
+    A = sum([Point(z, size, **kwds) for z in v])
+    A._set_extra_kwds(kwds)
+    return A

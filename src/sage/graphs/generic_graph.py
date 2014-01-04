@@ -1224,10 +1224,11 @@ class GenericGraph(GenericGraph_pyx):
         .. WARNING::
 
             The ordering of vertices in the matrix has no reason to correspond
-            to the order of vertices in :meth:`~Graph.vertices`. In particular,
-            if two integers `i,j` are vertices of a graph `G` with distance
-            matrix ``M``, then ``M[i][i]`` is not necessarily the distance
-            between vertices `i` and `j`.
+            to the order of vertices in
+            :meth:`~sage.graphs.generic_graph.GenericGraph.vertices`. In
+            particular, if two integers `i,j` are vertices of a graph `G` with
+            distance matrix ``M``, then ``M[i][i]`` is not necessarily the
+            distance between vertices `i` and `j`.
 
         EXAMPLES::
 
@@ -1250,8 +1251,8 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
-            * :meth:`~sage.graphs.generic_graph.distance_all_pairs` -- computes
-              the distance between any two vertices.
+            * :meth:`~sage.graphs.generic_graph.GenericGraph.distance_all_pairs`
+              -- computes the distance between any two vertices.
         """
 
         from sage.matrix.constructor import matrix
@@ -10828,9 +10829,10 @@ class GenericGraph(GenericGraph_pyx):
         lists_of_parameters)`` each element of ``lists_of_parameters`` can be
         used to define the graph as a circulant graph.
 
-        See the documentation of :meth:`graphs.CirculantGraph` and
-        :meth:`digraphs.CirculantGraph` for more information, and the examples
-        below.
+        See the documentation of
+        :func:`~sage.graphs.graph_generators.GraphGenerators.CirculantGraph` and
+        :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.Circulant` for
+        more information, and the examples below.
 
         .. SEEALSO::
 
@@ -11562,7 +11564,7 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
-            * :meth:`~sage.graphs.generic_graph.distance_matrix`
+            * :meth:`~sage.graphs.generic_graph.GenericGraph.distance_matrix`
         """
         if algorithm == "auto":
             if self.order() <= 20:
@@ -14731,7 +14733,7 @@ class GenericGraph(GenericGraph_pyx):
               be set through the :class:`~sage.misc.decorators.options`
               mechanism. For more information on this different way to set
               default parameters, see the help of the :class:`options decorator
-              <~sage.misc.decorators.options>`.
+              <sage.misc.decorators.options>`.
 
             - See also the :mod:`sage.graphs.graph_latex` module for ways to use
               LaTeX to produce an image of a graph.
@@ -14932,8 +14934,8 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         This method accepts any option understood by
-        :meth:`~sage.graphs.generic_graph.plot` (graph-specific) or by
-        :meth:`sage.plot.graphics.Graphics.show`.
+        :meth:`~sage.graphs.generic_graph.GenericGraph.plot` (graph-specific) or
+        by :meth:`sage.plot.graphics.Graphics.show`.
 
         .. NOTE::
 
@@ -15094,7 +15096,6 @@ class GenericGraph(GenericGraph_pyx):
 
             - :meth:`plot`
             - :meth:`graphviz_string`
-            - :meth:`_color_by_label`
         """
         import graph_plot
         layout_options = dict( (key,kwds[key]) for key in kwds.keys() if key     in graph_plot.layout_options )
@@ -15935,7 +15936,7 @@ class GenericGraph(GenericGraph_pyx):
 
         For some graphs, some of the the eigenspaces are described
         exactly by vector spaces over a
-        :class:`~sage.rings.number_field.number_field.NumberField`.
+        :func:`~sage.rings.number_field.number_field.NumberField`.
         For numerical eigenvectors use :meth:`eigenvectors`.
 
         EXAMPLES::

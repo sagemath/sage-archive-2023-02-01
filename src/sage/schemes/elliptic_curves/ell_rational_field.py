@@ -5310,20 +5310,13 @@ use_tuple=True (currently default) is deprecated.""")
             sage: xset = E.integral_x_coords_in_interval(-100,100)
             sage: xlist = list(xset); xlist.sort(); xlist
             [-3, -2, -1, 0, 1, 2, 3, 4, 8, 11, 14, 21, 37, 52, 93]
-
-        TODO: re-implement this using the much faster point searching
-        implemented in Stoll's ``ratpoints`` program.
-
         """
+        from sage.libs.ratpoints import ratpoints
         xmin=Integer(xmin)
         xmax=Integer(xmax)
-        ans = set([])
-        x = xmin
-        while x<=xmax:
-            if self.is_x_coord(x):
-                ans.add(x)
-            x+=1
-        return ans
+        coeffs = self.division_polynomial(2).coeffs()
+        H = max(xmin.abs(), xmax.abs())
+        return set([x for x,y,z in ratpoints(coeffs, H, max_x_denom=1, intervals=[[xmin,xmax]]) if z])
 
     prove_BSD = BSD.prove_BSD
 

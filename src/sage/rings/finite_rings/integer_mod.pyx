@@ -3939,8 +3939,7 @@ cpdef square_root_mod_prime(IntegerMod_abstract a, p=None):
             b *= g*g
         return res
 
-
-def fast_lucas(mm, IntegerMod_abstract P):
+def lucas_q1(mm, IntegerMod_abstract P):
     """
     Return `V_k(P, 1)` where `V_k` is the Lucas
     function defined by the recursive relation
@@ -3951,8 +3950,8 @@ def fast_lucas(mm, IntegerMod_abstract P):
 
     REFERENCES:
 
-    - H. Postl. 'Fast evaluation of Dickson Polynomials' Contrib. to
-      General Algebra, Vol. 6 (1988) pp. 223-225
+    .. [Pos88] H. Postl. 'Fast evaluation of Dickson Polynomials' Contrib. to
+       General Algebra, Vol. 6 (1988) pp. 223-225
 
     AUTHORS:
 
@@ -3960,10 +3959,10 @@ def fast_lucas(mm, IntegerMod_abstract P):
 
     TESTS::
 
-        sage: from sage.rings.finite_rings.integer_mod import fast_lucas, slow_lucas
-        sage: all([fast_lucas(k, a) == slow_lucas(k, a)
-        ...        for a in Integers(23)
-        ...        for k in range(13)])
+        sage: from sage.rings.finite_rings.integer_mod import lucas_q1
+        sage: all([lucas_q1(k, a) == BinaryRecurrenceSequence(a, -1, 2, a)(k)
+        ....:      for a in Integers(23)
+        ....:      for k in range(13)])
         True
     """
     if mm == 0:
@@ -3992,18 +3991,145 @@ def fast_lucas(mm, IntegerMod_abstract P):
     else:
         return d1*d1 - two
 
+from sage.misc.superseded import deprecated_function_alias
+fast_lucas = deprecated_function_alias(11802, lucas_q1)
+
 def slow_lucas(k, P, Q=1):
     """
     Lucas function defined using the standard definition, for
-    consistency testing.
+    consistency testing. This is deprecated in :trac:`11802`. Use
+    ``BinaryRecurrenceSequence(P, -Q, 2, P)(k)`` instead.
+
+    .. SEEALSO::
+
+        :class:`~sage.combinat.binary_recurrence_sequences.BinaryRecurrenceSequence`
+
+    REFERENCES:
+
+    - :wikipedia:`Lucas_sequence`
+
+    TESTS::
+
+        sage: from sage.rings.finite_rings.integer_mod import slow_lucas
+        sage: [slow_lucas(k, 1, -1) for k in range(10)]
+        doctest:...: DeprecationWarning: slow_lucas() is deprecated. Use BinaryRecurrenceSequence instead.
+        See http://trac.sagemath.org/11802 for details.
+        [2, 1, 3, 4, 7, 11, 18, 29, 47, 76]
     """
+    from sage.misc.superseded import deprecation
+    deprecation(11802, 'slow_lucas() is deprecated. Use BinaryRecurrenceSequence instead.')
     if k == 0:
         return 2
     elif k == 1:
         return P
-    else:
-        return P*slow_lucas(k-1, P, Q) - Q*slow_lucas(k-2, P, Q)
+    from sage.combinat.binary_recurrence_sequences import BinaryRecurrenceSequence
+    B = BinaryRecurrenceSequence(P, -Q, 2, P)
+    return B(k)
 
+def lucas(k, P, Q=1, n=None):
+    r"""
+    Return `[V_k(P, Q) \mod n, Q^{\lfloor k/2 \rfloor} \mod n]` where `V_k`
+    is the Lucas function defined by the recursive relation
+
+    .. MATH::
+
+        V_k(P, Q) = P V_{k-1}(P, Q) -  Q V_{k-2}(P, Q)
+
+    with `V_0 = 2, V_1 = P`.
+
+    INPUT:
+
+    - ``k`` -- integer; index to compute
+
+    - ``P``, ``Q`` -- integers or modular integers; initial values
+
+    - ``n`` -- integer (optional); modulus to use if ``P`` is not a modular
+      integer
+
+    REFERENCES:
+
+    .. [IEEEP1363] IEEE P1363 / D13 (Draft Version 13). Standard Specifications
+       for Public Key Cryptography Annex A (Informative).
+       Number-Theoretic Background. Section A.2.4
+
+    AUTHORS:
+
+    - Somindu Chaya Ramanna, Shashank Singh and Srinivas Vivek Venkatesh
+      (2011-09-15, ECC2011 summer school)
+
+    - Robert Bradshaw
+
+    TESTS::
+
+        sage: from sage.rings.finite_rings.integer_mod import lucas
+        sage: p = randint(0,100000)
+        sage: q = randint(0,100000)
+        sage: n = randint(0,100)
+        sage: all([lucas(k,p,q,n)[0] == Mod(lucas_number2(k,p,q),n)
+        ...        for k in Integers(20)])
+        True
+        sage: from sage.rings.finite_rings.integer_mod import lucas
+        sage: p = randint(0,100000)
+        sage: q = randint(0,100000)
+        sage: n = randint(0,100)
+        sage: k = randint(0,100)
+        sage: lucas(k,p,q,n) == [Mod(lucas_number2(k,p,q),n),Mod(q^(int(k/2)),n)]
+        True
+
+    EXAMPLES::
+
+        sage: [lucas(k,4,5,11)[0] for k in range(30)]
+        [2, 4, 6, 4, 8, 1, 8, 5, 2, 5, 10, 4, 10, 9, 8, 9, 7, 5, 7, 3, 10, 3, 6, 9, 6, 1, 7, 1, 2, 3]
+
+        sage: lucas(20,4,5,11)
+        [10, 1]
+    """
+    cdef IntegerMod_abstract p,q
+
+    if n is None and not is_IntegerMod(P):
+        raise ValueError
+
+    if n is None:
+        n = P.modulus()
+
+    if not is_IntegerMod(P):
+        p = Mod(P,n)
+    else:
+        p = P
+
+    if not is_IntegerMod(Q):
+        q = Mod(Q,n)
+    else:
+        q = Q
+
+    if k == 0:
+        return [2, 1]
+    elif k == 1:
+        return [p, 1]
+
+    cdef sage.rings.integer.Integer m
+    m = <sage.rings.integer.Integer>k if PY_TYPE_CHECK(k, sage.rings.integer.Integer) else sage.rings.integer.Integer(k)
+    two = p._new_c_from_long(2)
+
+    v0 = p._new_c_from_long(2)
+    v1 = p
+    q0 = p._new_c_from_long(1)
+    q1 = p._new_c_from_long(1)
+
+    sig_on()
+    cdef int j
+    for j from mpz_sizeinbase(m.value, 2)-1 >= j >= 0:
+        q0 = q0*q1
+        if mpz_tstbit(m.value, j):
+            q1 = q0*Q
+            v0 = v0*v1 - p*q0
+            v1 = v1*v1 - two*q1
+        else:
+            q1 = q0
+            v1 = v0*v1 - p*q0
+            v0 = v0*v0 - two*q0
+    sig_off()
+    return [v0,q0]
 
 ############# Homomorphisms ###############
 

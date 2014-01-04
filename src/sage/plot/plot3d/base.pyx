@@ -1170,6 +1170,9 @@ end_scene""" % (render_params.antialiasing,
             else:
                 ext = "spt"
                 archive_name = "%s.%s.zip" % (filename, ext)
+                with open(filename + '.' + ext, 'w') as f:
+                    f.write('set defaultdirectory "{0}"\n'.format(archive_name))
+                    f.write('script SCRIPT\n')
 
             T = self._prepare_for_jmol(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
             T.export_jmol(archive_name, force_reload=EMBEDDED_MODE, zoom=zoom*100, **kwds)
@@ -1282,7 +1285,7 @@ end_scene""" % (render_params.antialiasing,
             tachyon_rt(T.tachyon(), out_filename, opts['verbosity'], True,
                 '-res %s %s' % (opts['figsize'][0]*100, opts['figsize'][1]*100))
             if ext != 'png':
-                import Image
+                import PIL.Image as Image
                 Image.open(out_filename).save(filename)
         else:
             raise ValueError, 'filetype not supported by save()'

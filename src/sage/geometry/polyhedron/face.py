@@ -111,11 +111,11 @@ class PolyhedronFace(SageObject):
         - ``polyhedron`` -- a :class:`Polyhedron`. The ambient
           polyhedron.
 
-        - ``V_indices`` -- list of integers. The indices of the
+        - ``V_indices`` -- list of sorted integers. The indices of the
           face-spanning V-representation objects in the ambient
           polyhedron.
 
-        - ``H_indices`` -- list of integers. The indices of the
+        - ``H_indices`` -- list of sorted integers. The indices of the
           H-representation objects of the ambient polyhedron that are
           saturated on the face.
 
@@ -249,12 +249,12 @@ class PolyhedronFace(SageObject):
         EXAMPLES::
 
             sage: square = polytopes.n_cube(2)
-            sage: f = square.face_lattice()[5:9]
+            sage: f = square.faces(1)
             sage: matrix(4,4, lambda i,j: cmp(f[i], f[j]))
             [ 0 -1 -1 -1]
             [ 1  0 -1 -1]
-            [ 1  1  0  1]
-            [ 1  1 -1  0]
+            [ 1  1  0 -1]
+            [ 1  1  1  0]
         """
         if not isinstance(other, PolyhedronFace):
             return -1
@@ -285,9 +285,8 @@ class PolyhedronFace(SageObject):
         EXAMPLES::
 
             sage: square = polytopes.n_cube(2)
-            sage: for fl in square.face_lattice():
-            ...       print fl.ambient_Hrepresentation()
-            ...
+            sage: for face in square.face_lattice():
+            ...       print face.ambient_Hrepresentation()
             (An inequality (1, 0) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0,
              An inequality (-1, 0) x + 1 >= 0, An inequality (0, -1) x + 1 >= 0)
             (An inequality (1, 0) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0)

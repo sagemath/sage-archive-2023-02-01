@@ -80,7 +80,7 @@ all-sage: \
      $(INST)/$(PALP) \
      $(INST)/$(PARI) \
      $(INST)/$(PEXPECT) \
-     $(INST)/$(PIL) \
+     $(INST)/$(PILLOW) \
      $(INST)/$(POLYBORI) \
      $(INST)/$(POLYTOPES_DB) \
      $(INST)/$(PPL) \
@@ -311,7 +311,7 @@ $(INST)/$(SQLITE): $(INST)/$(READLINE)
 # SageTeX, you actually need to run Sage, produce plots,...
 $(INST)/$(SAGETEX): $(INST)/$(PYTHON) \
                     $(SAGERUNTIME) $(INST)/$(MAXIMA) $(INST)/$(SCIPY) \
-                    $(INST)/$(MATPLOTLIB) $(INST)/$(PIL) $(INST)/$(TACHYON)
+                    $(INST)/$(MATPLOTLIB) $(INST)/$(PILLOW) $(INST)/$(TACHYON)
 	+$(PIPE) "$(SAGE_SPKG) $(SAGETEX) 2>&1" "tee -a $(SAGE_LOGS)/$(SAGETEX).log"
 
 $(INST)/$(SETUPTOOLS): $(INST)/$(PYTHON)
@@ -336,7 +336,7 @@ $(INST)/$(ZLIB):
 $(INST)/$(JMOL): $(INST)/$(SAGENB)
 	+$(PIPE) "$(SAGE_SPKG) $(JMOL) 2>&1" "tee -a $(SAGE_LOGS)/$(JMOL).log"
 
-$(INST)/$(FREETYPE):
+$(INST)/$(FREETYPE): $(INST)/$(LIBPNG)
 	+$(PIPE) "$(SAGE_SPKG) $(FREETYPE) 2>&1" "tee -a $(SAGE_LOGS)/$(FREETYPE).log"
 
 $(INST)/$(LIBPNG): $(INST)/$(ZLIB)
@@ -484,8 +484,8 @@ $(INST)/$(GCC): $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(MPC) \
                 $(INST)/$(ZLIB)
 	+$(PIPE) "$(SAGE_SPKG) $(GCC) 2>&1" "tee -a $(SAGE_LOGS)/$(GCC).log"
 
-$(INST)/$(PIL): $(INST)/$(PYTHON)
-	+$(PIPE) "$(SAGE_SPKG) $(PIL) 2>&1" "tee -a $(SAGE_LOGS)/$(PIL).log"
+$(INST)/$(PILLOW): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
+	+$(PIPE) "$(SAGE_SPKG) $(PILLOW) 2>&1" "tee -a $(SAGE_LOGS)/$(PILLOW).log"
 
 $(INST)/$(NUMPY): $(INST)/$(PYTHON) $(INST)/$(ATLAS)
 	+$(PIPE) "$(SAGE_SPKG) $(NUMPY) 2>&1" "tee -a $(SAGE_LOGS)/$(NUMPY).log"
@@ -507,6 +507,7 @@ $(INST)/$(CEPHES):
 # setuptools forgets to update easy-install.pth during parallel
 # builds, so we build the relevant packages serially.
 
+$(INST)/$(SQLALCHEMY): $(INST)/$(PILLOW)
 $(INST)/$(PYGMENTS): $(INST)/$(SQLALCHEMY)
 $(INST)/$(JINJA2): $(INST)/$(PYGMENTS)
 $(INST)/$(SPHINX): $(INST)/$(JINJA2)

@@ -1128,6 +1128,10 @@ class WeakTableau_core(WeakTableau_abstract):
             Traceback (most recent call last):
             ...
             ValueError: k-charge is not defined for skew weak tableaux
+
+            sage: t = WeakTableau([[1, 1, 2, 3], [2, 4, 4], [3, 6], [5]], 4, representation='bounded')
+            sage: t.k_charge() == t.k_charge(algorithm = 'J')
+            True
         """
         if self.parent()._skew:
             raise ValueError("k-charge is not defined for skew weak tableaux")
@@ -1182,8 +1186,9 @@ class WeakTableau_core(WeakTableau_abstract):
             sage: t._height_of_restricted_subword(s,6)
             4
         """
+        R = filter(lambda v : self[v[0]][v[1]] < r, self.shape().to_partition().cells())
         L = filter(lambda v: self[v[0]][v[1]] <= r, sw)
-        return max([v[0] for v in L])
+        return max([v[0] for v in L+R])
 
 class WeakTableaux_core(WeakTableaux_abstract):
     r"""

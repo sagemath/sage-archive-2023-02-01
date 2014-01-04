@@ -1690,7 +1690,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         OUTPUT:
 
-        lower and upper bounds
+        lower and upper bounds for the rank of the Mordell-Weil group
 
 
         .. NOTE::
@@ -1707,13 +1707,22 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.rank_bounds()
             (2, 2)
 
-        Here is a curve with two-torsion, so here the algorithm gives
-        bounds on the rank::
+        Here is a curve with two-torsion, again the bounds coincide::
 
             sage: Qrt5.<rt5>=NumberField(x^2-5)
             sage: E=EllipticCurve([0,5-rt5,0,rt5,0])
             sage: E.rank_bounds()
-            (1, 2)
+            (1, 1)
+
+        Finally an example with non-trivial 2-torsion in Sha. So the
+        2-descent will not be able to determine the rank, but can only
+        give bounds::
+
+            sage: E = EllipticCurve("15a5")
+            sage: K.<t> = NumberField(x^2-6)
+            sage: EK = E.base_extend(K)
+            sage: EK.rank_bounds(lim1=1,lim3=1,limtriv=1)
+            (0, 2)
 
         IMPLEMENTATION:
 
@@ -1723,7 +1732,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
         """
 
         lower, upper, gens = self.simon_two_descent(verbose=verbose,lim1=lim1,lim3=lim3,limtriv=limtriv,maxprob=maxprob,limbigprime=limbigprime)
-        return lower,upper
+        # this was corrected in trac 13593. upper is the dimension
+        # of the 2-selmer group, so we can certainly remove the
+        # 2-torsion of the Mordell-Weil group.
+        upper -= self.two_torsion_rank()
+        return lower, upper
 
     def rank(self,verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
         r"""
@@ -1772,16 +1785,18 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.rank()
             2
 
-        Here is a curve with two-torsion, so here the bounds given by the
-        algorithm do not uniquely determine the rank::
+        Here is a curve with two-torsion in the Tate-Shafarevich group,
+        so here the bounds given by the algorithm do not uniquely
+        determine the rank::
 
-            sage: Qrt5.<rt5>=NumberField(x^2-5)
-            sage: E=EllipticCurve([0,5-rt5,0,rt5,0])
-            sage: E.rank()
+            sage: E = EllipticCurve("15a5")
+            sage: K.<t> = NumberField(x^2-6)
+            sage: EK = E.base_extend(K)
+            sage: EK.rank(lim1=1, lim3=1, limtriv=1)
             Traceback (most recent call last):
             ...
             ValueError: There is insufficient data to determine the rank -
-            2-descent gave lower bound 1 and upper bound 2
+            2-descent gave lower bound 0 and upper bound 2
 
         IMPLEMENTATION:
 
@@ -1798,7 +1813,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
     def gens(self,verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
         r"""
-        Returns some generators of this elliptic curve. Check :meth:`~rank` or
+        Returns some points of infinite order on this elliptic curve.
+        They are not necessarily linearly independent.
+
+        Check :meth:`~rank` or
         :meth:`~rank_bounds` to verify the number of generators.
 
         .. NOTE::
@@ -1825,7 +1843,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         OUTPUT:
 
-        The linearly independent elements given by the Simon two-descent.
+        A set of points of infinite order given by the Simon two-descent.
 
         .. NOTE::
 
@@ -1842,13 +1860,36 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [(-1 : 0 : 1), (1/2*a - 5/2 : -1/2*a - 13/2 : 1)]
 
 
-        Here is a curve with two-torsion, so here the algorithm does not
-        uniquely determine the rank::
+        Here is a curve of rank 2, yet the list contains many points::
 
-            sage: Qrt5.<rt5>=NumberField(x^2-5)
-            sage: E=EllipticCurve([0,5-rt5,0,rt5,0])
+            sage: K.<t> = NumberField(x^2-17)
+            sage: E = EllipticCurve(K,[-4,0])
             sage: E.gens()
-            [(3/2*rt5 + 5/2 : -9/2*rt5 - 15/2 : 1), (-1/2*rt5 + 3/2 : 3/2*rt5 - 9/2 : 1), (0 : 0 : 1)]
+            [(-1/2*t + 1/2 : -1/2*t + 1/2 : 1),
+            (-2*t + 8 : -8*t + 32 : 1),
+            (1/2*t + 3/2 : -1/2*t - 7/2 : 1),
+            (-1/8*t - 7/8 : -1/16*t - 23/16 : 1),
+            (1/8*t - 7/8 : -1/16*t + 23/16 : 1),
+            (t + 3 : -2*t - 10 : 1),
+            (2*t + 8 : -8*t - 32 : 1),
+            (1/2*t + 1/2 : -1/2*t - 1/2 : 1),
+            (-1/2*t + 3/2 : -1/2*t + 7/2 : 1),
+            (t + 7 : -4*t - 20 : 1),
+            (-t + 7 : -4*t + 20 : 1),
+            (-t + 3 : -2*t + 10 : 1)]
+            sage: E.rank()
+            2
+
+        Test that the points of finite order are not included :trac: `13593` ::
+
+            sage: E = EllipticCurve("17a3")
+            sage: K.<t> = NumberField(x^2+3)
+            sage: EK = E.base_extend(K)
+            sage: EK.rank()
+            0
+            sage: EK.gens()
+            []
+
 
         IMPLEMENTATION:
 
@@ -1857,7 +1898,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
         """
 
         lower,upper,gens = self.simon_two_descent(verbose=verbose,lim1=lim1,lim3=lim3,limtriv=limtriv,maxprob=maxprob,limbigprime=limbigprime)
-        return gens
+        res = [P for P in gens if P.has_infinite_order()]
+        return res
 
 
     def period_lattice(self, embedding):

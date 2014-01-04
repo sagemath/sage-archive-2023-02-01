@@ -5182,6 +5182,61 @@ cdef class gen(sage.structure.element.RingElement):
         """
         return x.bezout(y)
 
+    def Zn_issquare(gen self, n):
+        """
+        Return ``True`` if ``self`` is a square modulo `n`, ``False``
+        if not.
+
+        INPUT:
+
+        - ``self`` -- integer
+
+        - ``n`` -- integer or factorisation matrix
+
+        EXAMPLES::
+
+            sage: pari(3).Zn_issquare(4)
+            False
+            sage: pari(4).Zn_issquare(30.factor())
+            True
+
+        """
+        cdef gen t0 = objtogen(n)
+        pari_catch_sig_on()
+        cdef long t = Zn_issquare(self.g, t0.g)
+        pari_catch_sig_off()
+        return t != 0
+
+    def Zn_sqrt(gen self, n):
+        """
+        Return a square root of ``self`` modulo `n`, if such a square
+        root exists; otherwise, raise a ``ValueError``.
+
+        INPUT:
+
+        - ``self`` -- integer
+
+        - ``n`` -- integer or factorisation matrix
+
+        EXAMPLES::
+
+            sage: pari(3).Zn_sqrt(4)
+            Traceback (most recent call last):
+            ...
+            ValueError: 3 is not a square modulo 4
+            sage: pari(4).Zn_sqrt(30.factor())
+            22
+
+        """
+        cdef gen t0 = objtogen(n)
+        cdef GEN s
+        pari_catch_sig_on()
+        s = Zn_sqrt(self.g, t0.g)
+        if s == NULL:
+            pari_catch_sig_off()
+            raise ValueError("%s is not a square modulo %s" % (self, n))
+        return P.new_gen(s)
+
 
     ##################################################
     # 5: Elliptic curve functions

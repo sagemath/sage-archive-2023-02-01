@@ -84,21 +84,31 @@ def tdesign_params(t, v, k, L):
 
 def ProjectiveGeometryDesign(n, d, F, algorithm=None):
     """
+    Returns a projective geometry design.
+
+    A projective geometry design of parameters `n,d,F` has for points the lines
+    of `F^{n+1}`, and for blocks the `d+1`-dimensional subspaces of `F^{n+1}`,
+    each of which contains `\frac {|F|^{d+1}-1} {|F|-1}` lines.
+
     INPUT:
 
     - ``n`` is the projective dimension
 
-    - ``v`` is the number of points `PPn(GF(q))`
+    - ``d`` is the dimension of the subspaces of `P = PPn(F)` which
+      make up the blocks.
 
-    - ``d`` is the dimension of the subspaces of `P = PPn(GF(q))` which
-      make up the blocks
+    - ``F`` is a finite field.
 
-    - ``b`` is the number of `d`-dimensional subspaces of `P`
+    - ``algorithm`` -- set to ``None`` by default, which results in using Sage's
+      own implementation. In order to use GAP's implementation instead (i.e. its
+      ``PGPointFlatBlockDesign`` function) set ``algorithm="gap"``. Note that
+      GAP's "design" package must be available in this case.
 
-    Wraps GAP Design's PGPointFlatBlockDesign. Does *not* require
-    GAP's Design.
+    EXAMPLES:
 
-    EXAMPLES::
+    The points of the following design are the `\frac {2^{2+1}-1} {2-1}=7` lines
+    of `\mathbb{Z}_2^{2+1}`. It has `7` blocks, corresponding to each
+    2-dimensional subspace of `\mathbb{Z}_2^{2+1}`::
 
         sage: designs.ProjectiveGeometryDesign(2, 1, GF(2))
         Incidence structure with 7 points and 7 blocks
@@ -109,7 +119,7 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None):
     q = F.order()
     from sage.interfaces.gap import gap, GapElement
     from sage.sets.set import Set
-    if algorithm == None:
+    if algorithm is None:
         V = VectorSpace(F, n+1)
         points = list(V.subspaces(1))
         flats = list(V.subspaces(d+1))
@@ -131,6 +141,70 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None):
         for b in gblcks:
             gB.append([x-1 for x in b])
         return BlockDesign(v, gB, name="ProjectiveGeometryDesign")
+
+def DesarguesianProjectivePlaneDesign(n):
+    r"""
+    Returns a (Desarguesian) projective plane of order `n`.
+
+    A finite projective plane is a 2-design with `n^2+n+1` lines (or blocks) and
+    `n^2+n+1` points. For more information on finite projective planes, see the
+    :wikipedia:`Projective_plane#Finite_projective_planes`.
+
+    INPUT:
+
+    - ``n`` -- the finite projective plane's order
+
+    OUTPUT:
+
+    A finite projective plane obtained by considering the 1- and 2- dimensional
+    spaces of `F_n^3`.
+
+    .. SEEALSO::
+
+        :meth:`ProjectiveGeometryDesign`
+
+    EXAMPLES::
+
+        sage: designs.DesarguesianProjectivePlaneDesign(2)
+        Incidence structure with 7 points and 7 blocks
+
+    Non-existent ones::
+
+        sage: designs.DesarguesianProjectivePlaneDesign(10)
+        Traceback (most recent call last):
+        ...
+        ValueError: No projective plane design of order 10 exists.
+        sage: designs.DesarguesianProjectivePlaneDesign(14)
+        Traceback (most recent call last):
+        ...
+        ValueError: By the Bruck-Ryser-Chowla theorem, no projective plane of order 14 exists.
+
+    An unknown one::
+
+        sage: designs.DesarguesianProjectivePlaneDesign(12)
+        Traceback (most recent call last):
+        ...
+        ValueError: If such a projective plane exists, we do not know how to build it.
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.arith import two_squares
+
+    try:
+        F = FiniteField(n, 'x')
+    except ValueError:
+        if n == 10:
+            raise ValueError("No projective plane design of order 10 exists.")
+        try:
+            if (n%4) in [1,2]:
+                two_squares(n)
+        except ValueError:
+            raise ValueError("By the Bruck-Ryser-Chowla theorem, no projective"
+                             " plane of order "+str(n)+" exists.")
+
+        raise ValueError("If such a projective plane exists, "
+                         "we do not know how to build it.")
+
+    return ProjectiveGeometryDesign(2,1,F)
 
 def AffineGeometryDesign(n, d, F):
     r"""

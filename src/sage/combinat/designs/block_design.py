@@ -142,9 +142,9 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None):
             gB.append([x-1 for x in b])
         return BlockDesign(v, gB, name="ProjectiveGeometryDesign")
 
-def DesarguesianProjectivePlaneDesign(n):
+def ProjectivePlaneDesign(n, type="Desarguesian"):
     r"""
-    Returns a (Desarguesian) projective plane of order `n`.
+    Returns a projective plane of order `n`.
 
     A finite projective plane is a 2-design with `n^2+n+1` lines (or blocks) and
     `n^2+n+1` points. For more information on finite projective planes, see the
@@ -154,10 +154,11 @@ def DesarguesianProjectivePlaneDesign(n):
 
     - ``n`` -- the finite projective plane's order
 
-    OUTPUT:
+    - ``type`` -- When set to ``"Desarguesian"``, the method returns
+      Desarguesian projective planes, i.e. a finite projective plane obtained by
+      considering the 1- and 2- dimensional spaces of `F_n^3`.
 
-    A finite projective plane obtained by considering the 1- and 2- dimensional
-    spaces of `F_n^3`.
+      For the moment, no other value is available for this parameter.
 
     .. SEEALSO::
 
@@ -165,29 +166,39 @@ def DesarguesianProjectivePlaneDesign(n):
 
     EXAMPLES::
 
-        sage: designs.DesarguesianProjectivePlaneDesign(2)
+        sage: designs.ProjectivePlaneDesign(2)
         Incidence structure with 7 points and 7 blocks
 
     Non-existent ones::
 
-        sage: designs.DesarguesianProjectivePlaneDesign(10)
+        sage: designs.ProjectivePlaneDesign(10)
         Traceback (most recent call last):
         ...
         ValueError: No projective plane design of order 10 exists.
-        sage: designs.DesarguesianProjectivePlaneDesign(14)
+        sage: designs.ProjectivePlaneDesign(14)
         Traceback (most recent call last):
         ...
         ValueError: By the Bruck-Ryser-Chowla theorem, no projective plane of order 14 exists.
 
     An unknown one::
 
-        sage: designs.DesarguesianProjectivePlaneDesign(12)
+        sage: designs.ProjectivePlaneDesign(12)
         Traceback (most recent call last):
         ...
         ValueError: If such a projective plane exists, we do not know how to build it.
+
+    TESTS::
+
+        sage: designs.ProjectivePlaneDesign(10, type="AnyThingElse")
+        Traceback (most recent call last):
+        ...
+        ValueError: The value of 'type' must be 'Desarguesian'.
     """
     from sage.rings.finite_rings.constructor import FiniteField
     from sage.rings.arith import two_squares
+
+    if type != "Desarguesian":
+        raise ValueError("The value of 'type' must be 'Desarguesian'.")
 
     try:
         F = FiniteField(n, 'x')

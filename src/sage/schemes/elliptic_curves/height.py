@@ -1,5 +1,6 @@
 ##############################################################################
 #       Copyright (C) 2010 Robert Bradshaw <robertwb@math.washington.edu>
+#                     2014 John Cremona <john.cremona@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -29,10 +30,11 @@ from period_lattice_region import PeriodicRegion
 
 class UnionOfIntervals:
     r"""
-    As per the name of this class, it represents a union of
-    (closed) intervals in $R$ which can be scaled, shifted, etc.
+    A class which represents a union of closed intervals in
+    `\RR` which can be scaled, shifted, intersected, etc.
 
-    The are represented as a list of their endpoints.
+    The intervals are represented as an ordered list of their
+    endpoints, which may include $-\infty$ and $+\infty$.
 
     EXAMPLES::
 
@@ -79,7 +81,7 @@ class UnionOfIntervals:
 
     def finite_endpoints(self):
         r"""
-        Returns the endpoints of this interval contained in $\R$
+        Returns the finite endpoints of this union of intervals.
 
         EXAMPLES::
 
@@ -92,7 +94,7 @@ class UnionOfIntervals:
         return [e for e in self._endpoints if -infinity < e < infinity]
 
     def intervals(self):
-        """
+        r"""
         Returns the intervals in self, as a list of 2-tuples.
 
         EXAMPLES::
@@ -106,7 +108,7 @@ class UnionOfIntervals:
         return zip(self._endpoints[::2], self._endpoints[1::2])
 
     def is_empty(self):
-        """
+        r"""
         Returns whether self is empty.
 
         EXAMPLES::
@@ -126,7 +128,7 @@ class UnionOfIntervals:
         return not self._endpoints
 
     def __add__(left, right):
-        """
+        r"""
         If both left an right are unions of intervals, take their union,
         otherwise treat the non-union of intervals as a scalar and shift.
 
@@ -150,7 +152,7 @@ class UnionOfIntervals:
             return left.union([left, right])
 
     def __mul__(left, right):
-        """
+        r"""
         Scale a union of inervals on the left or right.
 
         EXAMPLES::
@@ -173,7 +175,7 @@ class UnionOfIntervals:
             return NotImplemented
 
     def __rmul__(self, other):
-        """
+        r"""
         Scale by an operand on the left.
 
         TESTS::
@@ -187,7 +189,7 @@ class UnionOfIntervals:
         return self * other
 
     def __radd__(self, other):
-        """
+        r"""
         Add a scalar operand on the left.
 
         TESTS::
@@ -201,10 +203,12 @@ class UnionOfIntervals:
         return self + other
 
     def __invert__(self):
-        """
+        r"""
         Return the closure of the compliment of self.
 
-        (We take the closure because open intervals are not supported.)
+        .. NOTE::
+
+        We take the closure because open intervals are not supported.
 
         EXAMPLES::
 
@@ -231,8 +235,39 @@ class UnionOfIntervals:
 
     @staticmethod
     def join(L, condition):
-        """
+        r"""
+        Utility function to form the union or intersection of a list of UnionOfIntervals.
 
+        INPUT:
+
+        - ``L`` (list) -- a list of UnionOfIntervals instances
+
+        - ``condition`` (function) -- either ``any`` or ``all``, or
+          some other boolean function of a list of boolean values.
+
+        OUTPUT:
+
+        A new UnionOfIntervals instance representing the subset of
+        '\R' equal to those reals in any/all/condition of the
+        UnionOfIntervals in the list.
+
+        .. NOTE::
+
+        This is a static method for the class.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.height import UnionOfIntervals
+            sage: A = UnionOfIntervals([1,3,5,7]); A
+            ([1, 3] U [5, 7])
+            sage: B = A+1; B
+            ([2, 4] U [6, 8])
+            sage: A.join([A,B],any) # union
+            ([1, 4] U [5, 8])
+            sage: A.join([A,B],all) # intersection
+            ([2, 3] U [6, 7])
+            sage: A.join([A,B],sum) # symmetric difference
+            ([1, 2] U [3, 4] U [5, 6] U [7, 8])
         """
         all = []
         for ix, region in enumerate(L):
@@ -251,85 +286,330 @@ class UnionOfIntervals:
 
     @classmethod
     def union(cls, L):
+        r"""
+        Return the union of a list of UnionOfIntervals.
+
+        INPUT:
+
+        - ``L`` (list) -- a list of UnionOfIntervals instances
+
+        OUTPUT:
+
+        A new UnionOfIntervals instance representing the union of the
+        UnionOfIntervals in the list.
+
+        .. NOTE::
+
+        This is a class method.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.height import UnionOfIntervals
+            sage: A = UnionOfIntervals([1,3,5,7]); A
+            ([1, 3] U [5, 7])
+            sage: B = A+1; B
+            ([2, 4] U [6, 8])
+            sage: A.union([A,B])
+            ([1, 4] U [5, 8])
+        """
         return cls.join(L, any)
 
     @classmethod
     def intersection(cls, L):
+        r"""
+        Return the intersection of a list of UnionOfIntervals.
+
+        INPUT:
+
+        - ``L`` (list) -- a list of UnionOfIntervals instances
+
+        OUTPUT:
+
+        A new UnionOfIntervals instance representing the intersection
+        of the UnionOfIntervals in the list.
+
+        .. NOTE::
+
+        This is a class method.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.height import UnionOfIntervals
+            sage: A = UnionOfIntervals([1,3,5,7]); A
+            ([1, 3] U [5, 7])
+            sage: B = A+1; B
+            ([2, 4] U [6, 8])
+            sage: A.intersection([A,B])
+            ([2, 3] U [6, 7])
+        """
         for R in L:
             if R.is_empty():
                 return R
         return cls.join(L, all)
 
     def __or__(left, right):
+        r"""
+        Return the union of a two UnionOfIntervals instances.
+
+        INPUT:
+
+        - ``left``, ``right`` (UnionOfIntervals) -- two UnionOfIntervals instances
+
+        OUTPUT:
+
+        A new UnionOfIntervals instance representing the union of ``left`` and ``right``.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.height import UnionOfIntervals
+            sage: A = UnionOfIntervals([1,3,5,7]); A
+            ([1, 3] U [5, 7])
+            sage: B = A+1; B
+            ([2, 4] U [6, 8])
+            sage: A | B
+            ([1, 4] U [5, 8])
+        """
         return left.union([left, right])
 
     def __and__(left, right):
+        r"""
+        Return the intersection of a two UnionOfIntervals instances.
+
+        INPUT:
+
+        - ``left``, ``right`` (UnionOfIntervals) -- two UnionOfIntervals instances
+
+        OUTPUT:
+
+        A new UnionOfIntervals instance representing the intersection of ``left`` and ``right``.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.height import UnionOfIntervals
+            sage: A = UnionOfIntervals([1,3,5,7]); A
+            ([1, 3] U [5, 7])
+            sage: B = A+1; B
+            ([2, 4] U [6, 8])
+            sage: A & B
+            ([2, 3] U [6, 7])
+        """
         return left.intersection([left, right])
 
     def __contains__(self, x):
-        import bisect
+        r"""
+        Return True if ``x`` is in the UnionOfIntervals.
+
+        INPUT:
+
+        - ``x`` (real) -- a real number
+
+        OUTPUT:
+
+        Boolean: True if and only if ``x`` is in the union of intervals.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.height import UnionOfIntervals
+            sage: A = UnionOfIntervals([1,3,5,7]); A
+            ([1, 3] U [5, 7])
+            sage: 1 in A
+            True
+            sage: 4 in A
+            False
+            sage: -infinity in A
+            False
+            sage: 'a' in A
+            False
+        """
         return x in self._endpoints or bisect.bisect_left(self._endpoints, x) % 2 == 1
 
     def __str__(self):
+        r"""
+        Return the string representation of this UnionOfIntervals.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.height import UnionOfIntervals
+            sage: A = UnionOfIntervals([1,3,5,7])
+            sage: str(A)
+            '([1, 3] U [5, 7])'
+        """
         return repr(self)
 
     def __repr__(self):
+        r"""
+        Return the string representation of this UnionOfIntervals.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.height import UnionOfIntervals
+            sage: A = UnionOfIntervals([1,3,5,7]); A
+            ([1, 3] U [5, 7])
+        """
         return "(%s)" % " U ".join(str(list(I)) for I in self.intervals())
 
 def nonneg_region(f):
-    """
-    returns {x : f(x) \ge 0}
+    r"""
+    Returns the UnionOfIntervals representing the region where ``f`` is non-negative.
+
+    INPUT:
+
+    - ``f`` (polynomial) -- a univariate polynomial over `\RR`.
+
+    OUTPUT:
+
+    A UnionOfIntervals representing the set `\{x \in\RR mid f(x) \ge 0\}`.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.elliptic_curves.height import nonneg_region
+        sage: x = polygen(RR)
+        sage: nonneg_region(x^2-1)
+        ([-Infinity, -1.00000000000000] U [1.00000000000000, +Infinity])
+        sage: nonneg_region(1-x^2)
+        ([-1.00000000000000, 1.00000000000000])
+        sage: nonneg_region(1-x^3)
+        ([-Infinity, 1.00000000000000])
+        sage: nonneg_region(x^3-1)
+        ([1.00000000000000, +Infinity])
+        sage: nonneg_region((x-1)*(x-2))
+        ([-Infinity, 1.00000000000000] U [2.00000000000000, +Infinity])
+        sage: nonneg_region(-(x-1)*(x-2))
+        ([1.00000000000000, 2.00000000000000])
+        sage: nonneg_region((x-1)*(x-2)*(x-3))
+        ([1.00000000000000, 2.00000000000000] U [3.00000000000000, +Infinity])
+        sage: nonneg_region(-(x-1)*(x-2)*(x-3))
+        ([-Infinity, 1.00000000000000] U [2.00000000000000, 3.00000000000000])
+        sage: nonneg_region(x^4+1)
+        ([-Infinity, +Infinity])
+        sage: nonneg_region(-x^4-1)
+        ()
     """
     roots = f.roots()
     roots.sort()
     sign_changes = [r for r,e in roots if e%2 == 1]
-    if (-f.leading_coefficient())**f.degree() > 0:
+    if (f.leading_coefficient() * (-1)**f.degree()) > 0:
         sign_changes = [-infinity] + sign_changes
     if f.leading_coefficient() > 0:
         sign_changes += [infinity]
     return UnionOfIntervals(sign_changes)
 
 def inf_max_abs(f, g, D):
-    # inf(max(|f|, |g|)) on the interval D
-    cur_min = infinity
-    extrema = f.roots() + f.derivative().roots() + g.roots() + g.derivative().roots() + (f-g).roots() + (f+g).roots()
-    extrema += [(e, None) for e in D.finite_endpoints()]
-    for r, e in extrema:
-        if r in D:
-            y = max(abs(f(r)), abs(g(r)))
-            if y < cur_min:
-                cur_min = y
-    return cur_min
+    r"""
+    Returns `\inf_D(\max(|f|, |g|))`.
+
+    INPUT:
+
+    - ``f``, ``g`` (polynomials) -- real univariate polynomaials
+
+    - ``D`` (UnionOfIntervals) -- a subset of `\RR`
+
+    OUTPUT:
+
+    A real number approximating the value of `\inf_D(\max(|f|, |g|))`.
+
+    ALGORITHM:
+
+    The extreme values must occur at an endpoint of a subinterval of
+    `D` or at a point where one of `f`, `f'`, `g`, `g'`, `f\pm g` is
+    zero.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.elliptic_curves.height import inf_max_abs, UnionOfIntervals
+        sage: x = polygen(RR)
+        sage: f = (x-10)^4+1
+        sage: g = 2*x^3+100
+        sage: inf_max_abs(f,g,UnionOfIntervals([1,2,3,4,5,6]))
+        425.638201706391
+        sage: r0 = (f-g).roots()[0][0]
+        sage: r0
+        5.46053402234697
+        sage: max(abs(f(r0)),abs(g(r0)))
+        425.638201706391
+
+    """
+    xs =  f.roots() + f.derivative().roots()
+    xs += g.roots() + g.derivative().roots()
+    xs += (f-g).roots() + (f+g).roots()
+    xs = [r for r,e in xs if r in D]  # ignore multiplicities and points outside D
+    xs += D.finite_endpoints()        # include endpoints of intervals
+    if xs:
+        return min([max(abs(f(r)), abs(g(r))) for r in xs])
+    return infinity
 
 def min_on_disk(f, tol, max_iter=10000):
+    r"""
+    Returns the minimum of a real-valued complex function on a square.
+
+    INPUT:
+
+    - ``f`` -- a function from CIF to RIF
+
+    - ``tol`` (real) -- a positive real number
+
+    - ``max_iter`` (integer, default 10000) -- a positive integer
+      bounding the number of iterations to be used
+
+    OUTPUT:
+
+    A 2-tuple `(s,t)`, where `t=f(s)` and `s` is a CIF element
+    contained in the disk `|z|\le1`, at which `f` takes its minumum
+    value.
+    """
+    # L holds a list of 4-tuples (mfs, ds, s, in_disk) where s is a
+    # subregion of the initial square, ds its relative diameter,
+    # mfs=-f(s) (actually minus the lower bound on f(s)) and in_disk
+    # is a flag indicating whether or not s is a subset of the unit
+    # disk.
+
+    # We store the negative of the lower bound on f(s) so that we can
+    # use the bisect module to sort these 4-tuples.
+
+    # Initially L contains one element, the whole unit box, which is
+    # not contained in the unit square.
+
     s = CIF(RIF(-1,1), RIF(-1,1))
     fs = f(s)
     L = [(-fs.lower(), fs.relative_diameter(), s, False)]
+
+    # min_max holds the minumum over L of fs.upper().
+
     min_max = fs.upper()
+
+    # We iterate at most max_iter times.  At each step we look at the
+    # best so far and return it if is good enough, meaning that its
+    # relative diameter is less than the given tolerance; otherwise we
+    # bisect this best region (into 4 pieces) and replace the entry in
+    # L with at most 4 smaller entries.
+
     for k in range(max_iter):
         value, err, region, in_disk = L.pop()
-        if err < tol:
+        if err < tol:       # reached desired tolerance, so return
             return region, -value
-        for s in region.bisection():
+        for s in region.bisection(): # 4 sub-regions
             if in_disk:
-                s_in_disk = True
+                s_in_disk = True     # if the original region si in the disk so are all its children
             else:
-                 r = abs(s)
+                 r = abs(s)          # otherwise we test each one
                  if r > 1:
-                     continue
-                 s_in_disk = r < 1
+                     continue        # skip this subregion if it is entirely outside the disk
+                 s_in_disk = r < 1   # meaning it is entirely inside the disk
+
             fs = f(s)
-            if fs.upper() < min_max:
+
+            if fs.upper() < min_max: # we definitely beat the record
                 min_max = fs.upper()
                 unneeded = bisect.bisect(L, (-min_max,))
-                if unneeded > 100:
+                if unneeded > 100:   # discard the worse entries (if there are many)
                     L = L[unneeded:]
-            if fs.lower() < min_max:
+
+            if fs.lower() < min_max: # we may beat the record, cannot yet tell: insert this region
+                                     # into the list at the appropriate palce to maintain sorting
                 bisect.insort(L, (-fs.lower(), fs.relative_diameter(), s, s_in_disk))
-    raise ValueError, "to many iterations"
 
-
-
+    # If we get here, then even after max_iter iterations the tolerance has not been reached.
+    raise ValueError, "too many iterations"
 
 two_pi_i_CDF = CDF(0, 2*RDF.pi())
 two_pi_i_CIF = CIF(0, 2*RIF.pi())
@@ -339,7 +619,7 @@ i_CIF = CIF.gen()
 #        We can solve for x in p1, will this allow us to find the maxima exactly?
 
 def rat_term_CIF(z, try_strict=True):
-    """
+    r"""
     $rat_term(z) = u/(1-u)^2$ where $u=exp(2*pi*i*z)$.
     """
     two_pi_i_z = two_pi_i_CIF * z
@@ -386,6 +666,28 @@ def rat_term_CIF(z, try_strict=True):
     return CIF(real_part, imag_part)
 
 def eps(err, is_real):
+    r"""
+    Return a Real or Complex interval centered on 0 with radius err.
+
+    INPUT:
+
+    - ``err`` (real) -- a positive real number, the radius of the interval
+
+    - ``is_real`` (boolean) -- if True, returns a real interval in
+      RIF, else a complex interval in CIF
+
+    OUTPUT:
+
+    An element of RIF or CIF (as specified), centered on 0, with given radius.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.elliptic_curves.height import eps
+        sage: eps(0.01, True)
+        0.0?
+        sage: eps(0.01, False)
+        0.0? + 0.0?*I
+    """
     e = RIF(-err, err)
     if is_real:
         return e
@@ -393,38 +695,162 @@ def eps(err, is_real):
         return CIF(e, e)
 
 
-############ misc number fields patch ###############
-
-QQ.factor = lambda n: factor(n)
-
-from sage.all import norm as old_norm, parent
-def norm(n):
-    if parent(n) in (ZZ, QQ):
-        return n
-    else:
-        return old_norm(n)
-
 def prime_ideals_of_bounded_norm(K, B):
+    if K is QQ:
+        return primes(B+1)
     all = []
     for p in primes(B+1):
         for pp, e in K.factor(p):
-            if norm(pp) <= B:
+            if pp.norm() <= B:
                 all.append(pp)
     return all
 
-############ sage/schemes/elliptic_curves/height.py ###############
-
 class EllipticCurveCanonicalHeight:
+    r""" Class for computing canonical heights of points on elliptic
+    curves defined over number fields, including rigorous lower bounds for
+    the canonical height of non-torsion points.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.elliptic_curves.height import EllipticCurveCanonicalHeight
+        sage: E = EllipticCurve([0,0,0,0,1])
+        sage: EllipticCurveCanonicalHeight(E)
+        EllipticCurveCanonicalHeight object associated to Elliptic Curve defined by y^2 = x^3 + 1 over Rational Field
+    """
 
     def __init__(self, E):
-        self.E = E
-        self.K = E.base_ring()
+        r"""
+        Initialize the class with an elliptic curve.
+
+        INPUT:
+
+        - `E` -- an elliptic curve defined over a number field
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.height import EllipticCurveCanonicalHeight
+            sage: E = EllipticCurve([0,0,0,0,1])
+            sage: EllipticCurveCanonicalHeight(E)
+            EllipticCurveCanonicalHeight object associated to Elliptic Curve defined by y^2 = x^3 + 1 over Rational Field
+
+        TESTS:
+
+        The base field must be a number field::
+
+            sage: from sage.schemes.elliptic_curves.height import EllipticCurveCanonicalHeight
+            sage: E = EllipticCurve(GF(7),[0,0,0,0,1])
+            sage: EllipticCurveCanonicalHeight(E)
+            Traceback (most recent call last):
+            ...
+            ValueError: EllipticCurveCanonicalHeight class can only be created from an elliptic curve defined over a number field
+        """
+        from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
+        if is_EllipticCurve(E):
+            self.E = E
+            from sage.rings.number_field.number_field_base import is_NumberField
+            K = E.base_ring()
+            if is_NumberField(K):
+                self.K = K
+            else:
+                raise ValueError, "EllipticCurveCanonicalHeight class can only be created from an elliptic curve defined over a number field"
+        else:
+            raise ValueError, "EllipticCurveCanonicalHeight class can only be created from an elliptic curve"
+
+    def __repr__(self):
+        r"""
+        Return the string representation.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.height import EllipticCurveCanonicalHeight
+            sage: E = EllipticCurve([0,0,0,0,1])
+            sage: EllipticCurveCanonicalHeight(E)
+            EllipticCurveCanonicalHeight object associated to Elliptic Curve defined by y^2 = x^3 + 1 over Rational Field
+        """
+        return "EllipticCurveCanonicalHeight object associated to %s" % self.E
+
+    def curve(self):
+        r"""
+        Return the elliptic curve.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.height import EllipticCurveCanonicalHeight
+            sage: E = EllipticCurve([0,0,0,0,1])
+            sage: H = EllipticCurveCanonicalHeight(E)
+            sage: H.curve()
+            Elliptic Curve defined by y^2 = x^3 + 1 over Rational Field
+        """
+        return self.E
+
+    def base_field(self):
+        r"""
+        Return the base field.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.height import EllipticCurveCanonicalHeight
+            sage: E = EllipticCurve([0,0,0,0,1])
+            sage: H = EllipticCurveCanonicalHeight(E)
+            sage: H.base_field()
+            Rational Field
+        """
+        return self.K
 
     def __call__(self, P):
+        r"""
+        Return the canonical height of the point ``P``.
+
+        INPUT:
+
+        - ``P`` -- a point on the elliptic curve
+
+        OUTPUT:
+
+        The canonical height of ``P``.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.height import EllipticCurveCanonicalHeight
+            sage: E = EllipticCurve([0,0,1,-1,0])
+            sage: P = E(0,0)
+            sage: P.height()
+            0.0511114082399688
+            sage: H = EllipticCurveCanonicalHeight(E)
+            sage: H(P)
+            0.0511114082399688
+            sage: H([0,0])
+            0.0511114082399688
+            sage: H((0,0))
+            0.0511114082399688
+
+        Over a number field other than `\QQ`::
+
+            sage: from sage.schemes.elliptic_curves.height import EllipticCurveCanonicalHeight
+            sage: K.<i> = QuadraticField(-1)
+            sage: E = EllipticCurve(K, [0,0,0,1,-27])
+            sage: H = EllipticCurveCanonicalHeight(E)
+            sage: H.base_field()
+            Number Field in i with defining polynomial x^2 + 1
+            sage: H((1,5*i))
+            1.22257115164148
+        """
         return self.E(P).height()
 
     @cached_method
     def alpha(self, v, tol=0.01):
+        r"""
+        Return the constant `\alpha_v` associated to the embedding ``v``.
+
+        INPUT:
+
+        - ``v`` -- an embedding of the base field into `\RR` or `\CC`
+
+        OUTPUT:
+
+        The constant `\alpha_v`.  In the notation of Cremona,
+        Prickett, Siksek (2006), `\alpha_v^3=\epsilon_v`.
+        """
         b2, b4, b6, b8 = [v(b) for b in self.E.b_invariants()]
         x = v.codomain()['x'].gen()
         f = 4*x**3 + b2*x**2 + 2*b4*x + b6
@@ -492,16 +918,12 @@ class EllipticCurveCanonicalHeight:
 
     @cached_method
     def ME(self):
-        M = 1
-        for p, e in self.K.factor(self.E.discriminant()):
-            local_data = self.E.local_data(p)
-            # local_data._val_disc shold be a method
-            M *= p ** (e - local_data._val_disc)
-        return M
+        from sage.misc.misc import prod
+        return prod([p ** (e - self.E.local_data(p).discriminant_valuation()) for p, e in self.E.discriminant().factor()], self.K.one_element())
 
     def B(self, n, mu, verbose=False):
         K = self.K
-        B = exp(K.degree() * n**2 * mu - self.DE(n)) / norm(self.ME()) ** 6
+        B = exp(K.degree() * n**2 * mu - self.DE(n)) / self.ME().norm() ** 6
         for v in K.places():
             if v(K.gen()) in RR:
                 B *= self.alpha(v)
@@ -549,7 +971,7 @@ class EllipticCurveCanonicalHeight:
         return w2/w1
 
     def wp_c(self, v):
-        """
+        r"""
         Given the recurance relations for the laurent series expansion of wp,
         it is easy to see that there is a constant c such that
 
@@ -564,7 +986,7 @@ class EllipticCurveCanonicalHeight:
         return max(RR(abs(c2)) ** 0.5, RR(abs(c3)) ** (1.0/3))
 
     def fk_intervals(self, v=None, N=20, domain=CIF):
-        """
+        r"""
         EXAMPLES::
 
             sage: E = EllipticCurve('37a')
@@ -633,7 +1055,7 @@ class EllipticCurveCanonicalHeight:
 
     @cached_method
     def wp_intervals(self, v=None, N=20, abs_only=False):
-        """
+        r"""
         EXAMPLES::
 
             sage: E = EllipticCurve('37a')
@@ -795,7 +1217,7 @@ class EllipticCurveCanonicalHeight:
         return False # Couldn't prove it...
 
     def min_gr(self, tol, n_max, verbose=False):
-        """
+        r"""
         EXAMPLES::
 
         Example from Cremona and Siksek "Computing a Lower Bound for the
@@ -826,7 +1248,7 @@ class EllipticCurveCanonicalHeight:
         return RDF(mu)
 
     def min(self, tol, n_max, verbose=False):
-        """
+        r"""
         EXAMPLES::
 
             sage: E = EllipticCurve('37a')

@@ -400,6 +400,21 @@ class EllipticCurveLocalData(SageObject):
         """
         return self._fp
 
+    def discriminant_valuation(self):
+        """
+        Return the valuation of the minimal discriminant from this local reduction data.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.ell_local_data import EllipticCurveLocalData
+            sage: E = EllipticCurve([0,0,0,0,64]); E
+            Elliptic Curve defined by y^2 = x^3 + 64 over Rational Field
+            sage: data = EllipticCurveLocalData(E,2)
+            sage: data.discriminant_valuation()
+            4
+        """
+        return self._val_disc
+
     def kodaira_symbol(self):
         r"""
         Return the Kodaira symbol from this local reduction data.

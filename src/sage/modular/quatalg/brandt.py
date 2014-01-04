@@ -1373,18 +1373,13 @@ class BrandtModule_class(AmbientHeckeModule):
             (1, 1, 1, 2, 1, 1, 2, 1, 1, 1)
             sage: BrandtModule(5,13).monodromy_weights()
             (1, 3, 1, 1, 1, 3)
+            sage: BrandtModule(2,7).monodromy_weights()
+            (3, 3)
         """
         try: return self.__monodromy_weights
         except AttributeError: pass
-        e = self.eisenstein_subspace().basis()[0].element()
-        if e.base_ring() != QQ:
-            e = e.change_ring(QQ)
-        # Normalize e by making all entries integral so that the common gcd is 1.
-        e = e * e.denominator()
-        # then divide by the LCM.
-        e = e / lcm(list(e))
-        # Then the denominators are the monodromy weights.
-        w = tuple([z.denominator() for z in e])
+        bv = B._brandt_series_vectors(2)
+        w = tuple([bv[i][i][1]*bv[i][i].denominator()/2 for i in range(len(bv))])
         self.__monodromy_weights = w
         return w
 

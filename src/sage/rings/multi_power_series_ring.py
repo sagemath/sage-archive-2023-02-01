@@ -1,7 +1,8 @@
 r"""
-Multivariate Power Series Rings
+Multivariate Power Series Rings.
 
-Construct a multivariate power series ring over a given (commutative) base ring.
+Construct a multivariate power series ring (in finitely many variables)
+over a given (commutative) base ring.
 
 EXAMPLES:
 
@@ -173,6 +174,17 @@ Coercion from symbolic ring::
     sage: f.parent() == S
     True
 
+The implementation of the multivariate power series ring uses a combination
+of multivariate polynomials and univariate power series. Namely, in order
+to construct the multivariate power series ring `R[[x_1, x_2, \cdots, x_n]]`,
+we consider the univariate power series ring `S[[T]]` over the multivariate
+polynomial ring `S := R[x_1, x_2, \cdots, x_n]`, and in it we take the
+subring formed by all power series whose `i`-th coefficient has degree `i`
+for all `i \geq 0`. This subring is isomorphic to
+`R[[x_1, x_2, \cdots, x_n]]`. This is how `R[[x_1, x_2, \cdots, x_n]]` is
+implemented in this class. The ring `S` is called the foreground polynomial
+ring, and the ring `S[[T]]` is called the background univariate power
+series ring.
 
 AUTHORS:
 
@@ -969,7 +981,7 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
             sage: T.O(10)
             0 + O(a, b)^10
         """
-        return self(0).O(prec)
+        return self.zero().O(prec)
 
     def O(self,prec):
         """

@@ -407,6 +407,7 @@ class Singular(Expect):
         """
         self.__libs = []
         Expect._start(self, alt_message)
+        self._expect.setecho(0)
         # Load some standard libraries.
         self.lib('general')   # assumed loaded by misc/constants.py
 
@@ -584,7 +585,11 @@ class Singular(Expect):
         if len(x) == 0 or x[len(x) - 1] != ';':
             x += ';'
 
-        s = Expect.eval(self, x, **kwds)
+        # Make the output start with a newline (to fake the terminal echo)
+        s = Expect.eval(self, 'print("");' + x, **kwds)
+        # expect returns the terminal echo if there is no output (bug??)
+        if len(s) == 0:
+            s = x
 
         if s.find("error") != -1 or s.find("Segment fault") != -1:
             raise SingularError('Singular error:\n%s'%s)

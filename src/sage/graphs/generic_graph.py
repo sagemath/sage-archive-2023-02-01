@@ -10631,15 +10631,12 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        This shouldn't fail (trac 10899)::
+        This shouldn't raise exceptions (:trac:`10899`)::
 
             sage: Graph(1).is_chordal()
             True
             sage: for g in graphs(5):
-            ...     try:
-            ...         forget = g.is_chordal()
-            ...     except Exception:
-            ...         print("Oh no.")
+            ....:     _ = g.is_chordal()
 
         REFERENCES:
 

@@ -1009,24 +1009,24 @@ class BipartiteGraph(Graph):
 
             sage: file_name = os.path.join(SAGE_TMP, 'deleteme.alist.txt')
             sage: for order in range(3, 13, 3):
-            ...       num_chks = int(order / 3)
-            ...       num_vars = order - num_chks
-            ...       partition = (range(num_vars), range(num_vars, num_vars+num_chks))
-            ...       for idx in range(100):
-            ...           g = graphs.RandomGNP(order, 0.5)
-            ...           try:
-            ...               b = BipartiteGraph(g, partition, check=False)
-            ...               b.save_afile(file_name)
-            ...               b2 = BipartiteGraph(file_name)
-            ...               if b != b2:
-            ...                   print "Load/save failed for code with edges:"
-            ...                   print b.edges()
-            ...                   break
-            ...           except Exception:
-            ...               print "Exception encountered for graph of order "+ str(order)
-            ...               print "with edges: "
-            ...               g.edges()
-            ...               raise
+            ....:     num_chks = int(order / 3)
+            ....:     num_vars = order - num_chks
+            ....:     partition = (range(num_vars), range(num_vars, num_vars+num_chks))
+            ....:     for idx in range(100):
+            ....:         g = graphs.RandomGNP(order, 0.5)
+            ....:         try:
+            ....:             b = BipartiteGraph(g, partition, check=False)
+            ....:             b.save_afile(file_name)
+            ....:             b2 = BipartiteGraph(file_name)
+            ....:             if b != b2:
+            ....:                 print "Load/save failed for code with edges:"
+            ....:                 print b.edges()
+            ....:                 break
+            ....:         except Exception:
+            ....:             print "Exception encountered for graph of order "+ str(order)
+            ....:             print "with edges: "
+            ....:             g.edges()
+            ....:             raise
         """
         # open the file
         try:

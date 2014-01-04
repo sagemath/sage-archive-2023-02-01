@@ -249,9 +249,8 @@ can be applied on both. Here is what it can do:
 
     :meth:`~GenericGraph.set_embedding` | Sets a combinatorial embedding dictionary to ``_embedding`` attribute.
     :meth:`~GenericGraph.get_embedding` | Returns the attribute _embedding if it exists.
-    :meth:`~GenericGraph.check_embedding_validity` | Checks whether an ``_embedding`` attribute is well defined
+    :meth:`~GenericGraph.faces` | Returns the faces of an embedded graph.
     :meth:`~GenericGraph.get_pos` | Returns the position dictionary
-    :meth:`~GenericGraph.check_pos_validity` | Checks whether pos specifies two (resp. 3) coordinates for every vertex (and no more vertices).
     :meth:`~GenericGraph.set_pos` | Sets the position dictionary.
     :meth:`~GenericGraph.set_planar_positions` | Compute a planar layout for self using Schnyder's algorithm
     :meth:`~GenericGraph.layout_planar` | Uses Schnyder's algorithm to compute a planar layout for self.
@@ -297,7 +296,6 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.subgraph_search_iterator` | Returns an iterator over the labelled copies of ``G`` in ``self``.
     :meth:`~GenericGraph.characteristic_polynomial` | Returns the characteristic polynomial of the adjacency matrix of the (di)graph.
     :meth:`~GenericGraph.genus` | Returns the minimal genus of the graph.
-    :meth:`~GenericGraph.trace_faces` | A helper function for finding the genus of a graph.
 
 Methods
 -------
@@ -310,7 +308,7 @@ from sage.rings.integer import Integer
 from sage.rings.rational import Rational
 from generic_graph_pyx import GenericGraph_pyx, spring_layout_fast
 from sage.graphs.dot2tex_utils import assert_have_dot2tex
-from sage.misc.superseded import deprecation
+from sage.misc.superseded import deprecation, deprecated_function_alias
 
 class GenericGraph(GenericGraph_pyx):
     """
@@ -1609,7 +1607,7 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: embedding is not valid for Petersen graph
         """
-        if self.check_embedding_validity(embedding):
+        if self._check_embedding_validity(embedding):
             self._embedding = embedding
         else:
             raise ValueError('embedding is not valid for %s'%self)
@@ -1631,12 +1629,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.get_embedding()
             {0: [1, 4, 5], 1: [0, 2, 6], 2: [1, 3, 7], 3: [2, 4, 8], 4: [0, 3, 9], 5: [0, 7, 8], 6: [1, 9, 8], 7: [2, 5, 9], 8: [3, 6, 5], 9: [4, 6, 7]}
         """
-        if self.check_embedding_validity():
+        if self._check_embedding_validity():
             return self._embedding
         else:
             raise ValueError('%s has been modified and the embedding is no longer valid'%self)
 
-    def check_embedding_validity(self, embedding=None):
+    def _check_embedding_validity(self, embedding=None):
         """
         Checks whether an _embedding attribute is well defined.
 
@@ -1649,8 +1647,16 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: d = {0: [1, 5, 4], 1: [0, 2, 6], 2: [1, 3, 7], 3: [8, 2, 4], 4: [0, 9, 3], 5: [0, 8, 7], 6: [8, 1, 9], 7: [9, 2, 5], 8: [3, 5, 6], 9: [4, 6, 7]}
             sage: G = graphs.PetersenGraph()
-            sage: G.check_embedding_validity(d)
+            sage: G._check_embedding_validity(d)
             True
+
+        TESTS::
+
+            sage: G.check_embedding_validity(d)
+            doctest:...: DeprecationWarning: check_embedding_validity is deprecated. Please use _check_embedding_validity instead.
+            See http://trac.sagemath.org/15551 for details.
+            True
+
         """
         if embedding is None:
             embedding = getattr(self, '_embedding', None)
@@ -1671,6 +1677,8 @@ class GenericGraph(GenericGraph_pyx):
                 if not connected(v,u):
                     return False
         return True
+
+    check_embedding_validity = deprecated_function_alias(15551, _check_embedding_validity)
 
     def has_loops(self):
         """
@@ -2183,7 +2191,7 @@ class GenericGraph(GenericGraph_pyx):
         else:
             raise ValueError("dim must be 2 or 3")
 
-    def check_pos_validity(self, pos=None, dim = 2):
+    def _check_pos_validity(self, pos=None, dim = 2):
         r"""
         Checks whether pos specifies two (resp. 3) coordinates for every vertex (and no more vertices).
 
@@ -2203,7 +2211,14 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: p = {0: [1, 5], 1: [0, 2], 2: [1, 3], 3: [8, 2], 4: [0, 9], 5: [0, 8], 6: [8, 1], 7: [9, 5], 8: [3, 5], 9: [6, 7]}
             sage: G = graphs.PetersenGraph()
+            sage: G._check_pos_validity(p)
+            True
+
+        TESTS::
+
             sage: G.check_pos_validity(p)
+            doctest:...: DeprecationWarning: check_pos_validity is deprecated. Please use _check_pos_validity instead.
+            See http://trac.sagemath.org/15551 for details.
             True
         """
         if pos is None:
@@ -2218,6 +2233,8 @@ class GenericGraph(GenericGraph_pyx):
             if len(pos[v]) != dim:
                 return False
         return True
+
+    check_pos_validity = deprecated_function_alias(15551,_check_pos_validity)
 
     def set_pos(self, pos, dim = 2):
         """
@@ -3161,7 +3178,7 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 return self.to_simple().is_planar(kuratowski=kuratowski)
         if on_embedding:
-            if self.check_embedding_validity(on_embedding):
+            if self._check_embedding_validity(on_embedding):
                 return (0 == self.genus(minimal=False,set_embedding=False,on_embedding=on_embedding))
             else:
                 raise ValueError('on_embedding is not a valid embedding for %s'%self)
@@ -3429,14 +3446,14 @@ class GenericGraph(GenericGraph_pyx):
             embedding_copy = G._embedding
         else:
             if on_embedding is not None:
-                if G.check_embedding_validity(on_embedding):
+                if G._check_embedding_validity(on_embedding):
                     if not (G.is_planar(on_embedding=on_embedding)):
                         raise ValueError('provided embedding is not a planar embedding for %s'%self )
                 else:
                     raise ValueError('provided embedding is not a valid embedding for %s. Try putting set_embedding=True'%self)
             else:
                 if hasattr(G,'_embedding'):
-                    if G.check_embedding_validity():
+                    if G._check_embedding_validity():
                         if not (G.is_planar(on_embedding=G._embedding)):
                             raise ValueError('%s has nonplanar _embedding attribute.  Try putting set_embedding=True'%self)
                         embedding_copy = G._embedding
@@ -3450,7 +3467,7 @@ class GenericGraph(GenericGraph_pyx):
         #
         # Running is_planar(set_embedding=True) has set attribute self._embedding
         #if external_face is None:
-        #    faces = trace_faces( self, self._embedding )
+        #    faces = faces( self, self._embedding )
         #    faces.sort(key=len)
         #    external_face = faces[-1]
 
@@ -3476,13 +3493,13 @@ class GenericGraph(GenericGraph_pyx):
         # Optional error-checking
         if test:
             G.is_planar(set_embedding=True) # to get new embedding
-            test_faces = G.trace_faces(G._embedding)
+            test_faces = G.faces(G._embedding)
             for face in test_faces:
                 if len(face) != 3:
                     raise RuntimeError('BUG: Triangulation returned face: %s'%face)
 
         G.is_planar(set_embedding=True)
-        faces = G.trace_faces(G._embedding)
+        faces = G.faces(G._embedding)
         # Assign a normal label to the graph
         label = _normal_label( G, G._embedding, faces[0] )
 
@@ -3725,12 +3742,12 @@ class GenericGraph(GenericGraph_pyx):
                 raise NotImplementedError("Can't work with embeddings of non-simple graphs")
             if on_embedding: #i.e., if on_embedding True (returns False if on_embedding is of type dict)
                 try:
-                    faces = len(self.trace_faces(self._embedding))
+                    faces = len(self.faces(self._embedding))
                 except AttributeError:
                     raise AttributeError('graph must have attribute _embedding set to compute current (embedded) genus')
                 return (2-verts+edges-faces)/2
             else: # compute genus on the provided dict
-                faces = len(self.trace_faces(on_embedding))
+                faces = len(self.faces(on_embedding))
                 return (2-verts+edges-faces)/2
         else: # then compute either maximal or minimal genus of all embeddings
             import genus
@@ -3769,36 +3786,81 @@ class GenericGraph(GenericGraph_pyx):
                 else:
                     return genus.simple_connected_graph_genus(G, set_embedding = False, check=False, minimal=minimal)
 
-
-
-    def trace_faces(self, comb_emb):
+    def faces(self, embedding = None):
         """
-        A helper function for finding the genus of a graph. Given a graph
-        and a combinatorial embedding (rot_sys), this function will
-        compute the faces (returned as a list of lists of edges (tuples) of
-        the particular embedding.
+        Return the faces of an embedded graph.
 
-        Note - rot_sys is an ordered list based on the hash order of the
-        vertices of graph. To avoid confusion, it might be best to set the
-        rot_sys based on a 'nice_copy' of the graph.
+        A combinatorial embedding of a graph is a clockwise ordering of the
+        neighbors of each vertex. From this information one can define the faces
+        of the embedding, which is what this method returns.
 
         INPUT:
 
+        - ``embedding`` - a combinatorial embedding dictionary. Format:
+          ``{v1:[v2,v3], v2:[v1], v3:[v1]}`` (clockwise ordering of neighbors at
+          each vertex). If set to ``None`` (default) the method will use the
+          embedding stored as ``self._embedding``. If none is stored, the method
+          will compute the set of faces from the embedding returned by
+          :meth:`is_planar` (if the graph is, of course, planar).
 
-        -  ``comb_emb`` - a combinatorial embedding
-           dictionary. Format: v1:[v2,v3], v2:[v1], v3:[v1] (clockwise
-           ordering of neighbors at each vertex.)
+        .. NOTE::
 
+            ``embedding`` is an ordered list based on the hash order of the
+            vertices of graph. To avoid confusion, it might be best to set the
+            rot_sys based on a 'nice_copy' of the graph.
+
+        .. SEEALSO::
+
+            * :meth:`set_embedding`
+            * :meth:`get_embedding`
+            * :meth:`is_planar`
 
         EXAMPLES::
 
             sage: T = graphs.TetrahedralGraph()
-            sage: T.trace_faces({0: [1, 3, 2], 1: [0, 2, 3], 2: [0, 3, 1], 3: [0, 1, 2]})
+            sage: T.faces({0: [1, 3, 2], 1: [0, 2, 3], 2: [0, 3, 1], 3: [0, 1, 2]})
             [[(0, 1), (1, 2), (2, 0)],
              [(3, 2), (2, 1), (1, 3)],
              [(2, 3), (3, 0), (0, 2)],
              [(0, 3), (3, 1), (1, 0)]]
+
+        With no embedding provided::
+
+            sage: graphs.TetrahedralGraph().faces()
+            [[(0, 1), (1, 2), (2, 0)],
+             [(3, 2), (2, 1), (1, 3)],
+             [(2, 3), (3, 0), (0, 2)],
+             [(0, 3), (3, 1), (1, 0)]]
+
+        With no embedding provided (non-planar graph)::
+
+            sage: graphs.PetersenGraph().faces()
+            Traceback (most recent call last):
+            ...
+            ValueError: No embedding is provided and the graph is not planar.
+
+        TESTS:
+
+        :trac:`15551` deprecated the ``trace_faces`` name::
+
+            sage: T.trace_faces({0: [1, 3, 2], 1: [0, 2, 3], 2: [0, 3, 1], 3: [0, 1, 2]})
+            doctest:...: DeprecationWarning: trace_faces is deprecated. Please use faces instead.
+            See http://trac.sagemath.org/15551 for details.
+            [[(0, 1), (1, 2), (2, 0)], [(3, 2), (2, 1), (1, 3)], [(2, 3), (3, 0), (0, 2)], [(0, 3), (3, 1), (1, 0)]]
+
         """
+        # Which embedding should we use ?
+        if embedding is None:
+            # Is self._embedding available ?
+            if self._check_embedding_validity():
+                embedding = self._embedding
+            else:
+                if self.is_planar(set_embedding=True):
+                    embedding = self._embedding
+                    self._embedding = None
+                else:
+                    raise ValueError("No embedding is provided and the graph is not planar.")
+
         from sage.sets.set import Set
 
         # Establish set of possible edges
@@ -3816,7 +3878,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # Trace faces
         while (len(edgeset) > 0):
-            neighbors = comb_emb[path[-1][-1]]
+            neighbors = embedding[path[-1][-1]]
             next_node = neighbors[(neighbors.index(path[-1][-2])+1)%(len(neighbors))]
             tup = (path[-1][-1],next_node)
             if tup == path[0]:
@@ -3831,6 +3893,8 @@ class GenericGraph(GenericGraph_pyx):
                 edgeset -= Set([tup])
         if (len(path) != 0): faces.append(path)
         return faces
+
+    trace_faces = deprecated_function_alias(15551, faces)
 
     ### Connectivity
 

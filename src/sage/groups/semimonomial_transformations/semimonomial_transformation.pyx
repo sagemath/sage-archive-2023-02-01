@@ -1,18 +1,20 @@
 r"""
 Elements of a semimonomial transformation group.
 
-The semimonomial transformation group over a ring `R` of length `n` is equal to
-the semidirect product of the monomial transformation group
-(also known as the complete monomial group) and the group of ring automorphisms.
+A semimonomial transformation group over a ring `R` of degree `n` is equal to
+the semidirect product of the monomial transformation group of degree `n`
+(also known as the complete monomial group over the group of units 
+`R^{\times}` of `R`) and the group of ring automorphisms.
+
 The multiplication of two elements `(\phi, \pi, \alpha)(\psi, \sigma, \beta)`
 with
 
-    - `\phi, \psi \in  {R^*}^n`
-    
-    - `\pi, \sigma \in S_n` (with the multiplication `\pi * \sigma`
+    - `\phi, \psi \in  {R^{\times}}^n`
+
+    - `\pi, \sigma \in S_n` (with the multiplication `\pi\sigma`
       done from left to right (like in GAP) -- 
-      that is, `(\pi * \sigma)(i) = \sigma(\pi(i))` for all `i`.)
-    
+      that is, `(\pi\sigma)(i) = \sigma(\pi(i))` for all `i`.)
+
     - `\alpha, \beta \in Aut(R)`
 
 is defined by
@@ -20,10 +22,10 @@ is defined by
 .. math::
 
     (\phi, \pi, \alpha)(\psi, \sigma, \beta) =
-    (\phi * \psi^{\pi, \alpha}, \pi * \sigma, \alpha * \beta)
+    (\phi \cdot \psi^{\pi, \alpha}, \pi\sigma, \alpha \circ \beta)
 
 with
-`\psi^{\pi, \alpha} = (\alpha(\psi_{\pi(0)}), \ldots, \alpha(\psi_{\pi(n-1)}))`
+`\psi^{\pi, \alpha} = (\alpha(\psi_{\pi(1)-1}), \ldots, \alpha(\psi_{\pi(n)-1}))`
 and an elementwisely defined multiplication of vectors.
 
 
@@ -176,7 +178,7 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
         The multiplication of two elements `(\phi, \pi, \alpha)` and 
         `(\psi, \sigma, \beta)` with
         
-            - `\phi, \psi \in  {R^*}^n`
+            - `\phi, \psi \in  {R^{\times}}^n`
         
             - `\pi, \sigma \in S_n`
         
@@ -185,15 +187,15 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
         is defined by:
         
         .. math::
-        
-        (\phi, \pi, \alpha)(\psi, \sigma, \beta) =
-        (\phi * \psi^{\pi, \alpha}, \pi * \sigma, \alpha * \beta)
-        
+
+            (\phi, \pi, \alpha)(\psi, \sigma, \beta) =
+            (\phi \cdot \psi^{\pi, \alpha}, \pi\sigma, \alpha \circ \beta)
+
         with
-        `\psi^{\pi, \alpha} = (\alpha(\psi_{\pi(0)}), \ldots, \alpha(\psi_{\pi(n-1)}))`
+        `\psi^{\pi, \alpha} = (\alpha(\psi_{\pi(1)-1}), \ldots, \alpha(\psi_{\pi(n)-1}))`
         and an elementwisely defined multiplication of vectors. Furthermore,
-        the multiplication `\pi * \sigma` is done from left to right (like in GAP) -- 
-        that is, `(\pi * \sigma)(i) = \sigma(\pi(i))` for all `i`.
+        the multiplication `\pi\sigma` is done from left to right (like in GAP) -- 
+        that is, `(\pi\sigma)(i) = \sigma(\pi(i))` for all `i`.
         
         EXAMPLES::
 
@@ -278,7 +280,7 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
 
     def get_v(self):
         """
-        Returns the component corresponding to `{R^*}^n` of ``self``.
+        Returns the component corresponding to `{R^{\times}}^n` of ``self``.
 
         EXAMPLES::
 
@@ -291,7 +293,7 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
     def get_v_inverse(self):
         """
         Returns the (elementwise) inverse of the component corresponding to
-        `{R^*}^n` of ``self``.
+        `{R^{\times}}^n` of ``self``.
 
         EXAMPLES::
 
@@ -328,7 +330,7 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
     def invert_v(self):
         """
         Elementwisely inverts all entries of ``self`` which
-        correspond to the component `{R^*}^n`.
+        correspond to the component `{R^{\times}}^n`.
 
         The other components of ``self`` keep unchanged.
 

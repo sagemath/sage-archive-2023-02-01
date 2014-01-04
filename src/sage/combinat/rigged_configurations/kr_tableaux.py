@@ -263,12 +263,10 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['A', 4, 1], 2, 3); KRT
-            Kirillov-Reshetikhin tableaux of type ['A', 4, 1] and shape (2, 3)
-            sage: TestSuite(KRT).run()  # long time (4s on sage.math, 2013)
-            sage: KRT = KirillovReshetikhinTableaux(['D', 4, 1], 2, 3); KRT
-            Kirillov-Reshetikhin tableaux of type ['D', 4, 1] and shape (2, 3)
-            sage: TestSuite(KRT).run()  # long time (53s on sage.math, 2013)
+            sage: KRT = KirillovReshetikhinTableaux(['A', 4, 1], 2, 2)
+            sage: TestSuite(KRT).run()  # long time
+            sage: KRT = KirillovReshetikhinTableaux(['D', 4, 1], 2, 2)
+            sage: TestSuite(KRT).run()  # long time
             sage: KRT = KirillovReshetikhinTableaux(['D', 4, 1], 4, 1); KRT
             Kirillov-Reshetikhin tableaux of type ['D', 4, 1] and shape (4, 1)
             sage: TestSuite(KRT).run()

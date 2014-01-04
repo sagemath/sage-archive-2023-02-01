@@ -16,10 +16,12 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2007 David Roe <roed@math.harvard.edu>
-#                          William Stein <wstein@gmail.com>
+#       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
+#                               William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
@@ -32,10 +34,10 @@ import sys
 
 cimport sage.rings.padics.local_generic_element
 from sage.rings.padics.local_generic_element cimport LocalGenericElement
+from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.rational cimport Rational
 from sage.rings.integer cimport Integer
 from sage.rings.infinity import infinity
-import sage.rings.rational_field
 
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 
@@ -252,16 +254,29 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: c*b + 3
             3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^20)
         """
-        if right == 0:
-            raise ZeroDivisionError
         P = self.parent()
         if P.is_field():
             return self / right
         else:
             right = P(right)
-            v, u = right.val_unit()
-            return P(self / u) >> v
+            if right._is_inexact_zero():
+                raise PrecisionError("cannot divide by something indistinguishable from zero")
+            elif right._is_exact_zero():
+                raise ZeroDivisionError("cannot divide by zero")
+            return self._floordiv_(right)
 
+    cpdef RingElement _floordiv_(self, RingElement right):
+        """
+        Implements floor division.
+
+        EXAMPLES::
+
+            sage: R = Zp(5, 5); a = R(77)
+            sage: a // 15 # indirect doctest
+            1 + 4*5 + 5^2 + 3*5^3 + O(5^4)
+        """
+        v, u = right.val_unit()
+        return self.parent()(self / u) >> v
 
     def __getitem__(self, n):
         r"""
@@ -518,6 +533,73 @@ cdef class pAdicGenericElement(LocalGenericElement):
         else:
             return infinity
 
+    def minimal_polynomial(self, name):
+        """
+        Returns a minimal polynomial of this `p`-adic element, i.e., ``x - self``
+
+        INPUT:
+
+        - ``self`` -- a `p`-adic element
+
+        - ``name`` -- string: the name of the variable
+
+        EXAMPLES::
+
+            sage: Zp(5,5)(1/3).minimal_polynomial('x')
+            (1 + O(5^5))*x + (3 + 5 + 3*5^2 + 5^3 + 3*5^4 + O(5^5))
+        """
+        R = self.parent()[name]
+        return R.gen() - R(self)
+
+    def norm(self, ground=None):
+        """
+        Returns the norm of this `p`-adic element over the ground ring.
+
+        .. WARNING::
+
+            This is not the `p`-adic absolute value.  This is a field
+            theoretic norm down to a ground ring.  If you want the
+            `p`-adic absolute value, use the ``abs()`` function
+            instead.
+
+        INPUT:
+
+        - ``ground`` -- a subring of the parent (default: base ring)
+
+        EXAMPLES::
+
+            sage: Zp(5)(5).norm()
+            5 + O(5^21)
+        """
+        if (ground is not None) and (ground != self.parent()):
+            raise ValueError("Ground Ring not a subfield")
+        else:
+            return self
+
+    def trace(self, ground=None):
+        """
+        Returns the trace of this `p`-adic element over the ground ring
+
+        INPUT:
+
+        - ``ground`` -- a subring of the ground ring (default: base
+          ring)
+
+        OUTPUT:
+
+        - ``element`` -- the trace of this `p`-adic element over the
+          ground ring
+
+        EXAMPLES::
+
+            sage: Zp(5,5)(5).trace()
+            5 + O(5^6)
+        """
+        if (ground is not None) and (ground != self.parent()):
+            raise ValueError, "Ground ring not a subring"
+        else:
+            return self
+
     def algdep(self, n):
         """
         Returns a polynomial of degree at most `n` which is approximately
@@ -561,7 +643,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
             x^4 - x^3 + x^2 - x + 1
         """
         # TODO: figure out if this works for extension rings.  If not, move this to padic_base_generic_element.
-        return sage.rings.arith.algdep(self, n)
+        from sage.rings.arith import algdep
+        return algdep(self, n)
 
     def algebraic_dependency(self, n):
         """
@@ -796,7 +879,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     def valuation(self, p = None):
         """
-        Returns the valuation of self.
+        Returns the valuation of this element.
 
         INPUT:
 
@@ -978,7 +1061,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
         p = self.parent().prime()
         alpha = self.unit_part().lift()
         m = Integer(p**self.precision_relative())
-        r = sage.rings.arith.rational_reconstruction(alpha, m)
+        from sage.rings.arith import rational_reconstruction
+        r = rational_reconstruction(alpha, m)
         return (Rational(p)**self.valuation())*r
 
     def _shifted_log(self, aprec, mina=0):
@@ -1833,6 +1917,29 @@ cdef class pAdicGenericElement(LocalGenericElement):
             1 + O(5^20)
             sage: R3(-1).square_root() == R3.teichmuller(2) or R3(-1).square_root() == R3.teichmuller(3)
             True
+
+            sage: R = Zp(3,20,'capped-abs')
+            sage: R(1).square_root()
+            1 + O(3^20)
+            sage: R(4).square_root() == R(-2)
+            True
+            sage: R(9).square_root()
+            3 + O(3^19)
+            sage: R2 = Zp(2,20,'capped-abs')
+            sage: R2(1).square_root()
+            1 + O(2^19)
+            sage: R2(4).square_root()
+            2 + O(2^18)
+            sage: R2(9).square_root() == R2(3) or R2(9).square_root() == R2(-3)
+            True
+            sage: R2(17).square_root()
+            1 + 2^3 + 2^5 + 2^6 + 2^7 + 2^9 + 2^10 + 2^13 + 2^16 + 2^17 + O(2^19)
+            sage: R3 = Zp(5,20,'capped-abs')
+            sage: R3(1).square_root()
+            1 + O(5^20)
+            sage: R3(-1).square_root() == R3.teichmuller(2) or R3(-1).square_root() == R3.teichmuller(3)
+            True
+
         """
         # need special case for zero since pari(self) is the *integer* zero
         # whose square root is a real number....!
@@ -1915,3 +2022,21 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 return Rational(0)
             return Rational(K.prime())**(-self.valuation())
 
+    cpdef bint _is_base_elt(self, p) except -1:
+        """
+        Return ``True`` if this element is an element of Zp or Qp (rather than
+        an extension).
+
+        INPUT:
+
+        - ``p`` -- a prime, which is compared with the parent of this element.
+
+        EXAMPLES::
+
+            sage: a = Zp(5)(3); a._is_base_elt(5)
+            True
+            sage: a._is_base_elt(17)
+            False
+
+        """
+        raise NotImplementedError

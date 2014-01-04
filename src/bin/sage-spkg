@@ -479,6 +479,15 @@ fi
 # up the system if we do something wrong.
 cd "$SAGE_ROOT" || exit $?
 
+# If SAGE_SPKG_COPY_UPSTREAM is set, it should be the name of a directory
+# to which all upstream files are copied. This is used in sage-sdist.
+if [ -n "$SAGE_SPKG_COPY_UPSTREAM" ]; then
+    mkdir -p "$SAGE_SPKG_COPY_UPSTREAM" && cp -p "$PKG_SRC" "$SAGE_SPKG_COPY_UPSTREAM"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Failed to copy upstream tarball to directory '$SAGE_SPKG_COPY_UPSTREAM'"
+        exit 1
+    fi
+fi
 if [ $DOWNLOAD_ONLY -ne 0 ]; then
     exit 0
 fi

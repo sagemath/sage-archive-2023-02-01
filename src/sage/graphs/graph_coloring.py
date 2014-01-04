@@ -160,6 +160,7 @@ def all_graph_colorings(G,n,count_only=False, hex_colors=False, vertex_color_dic
         1
         1
     """
+    G._scream_if_not_simple(allow_multiple_edges=True)
 
     if n == 0: return
     if n < 0: raise ValueError, "n must be non-negative."
@@ -253,6 +254,7 @@ def first_coloring(G, n=0, hex_colors=False):
         sage: first_coloring(G, 3)
         [[1, 3], [0], [2]]
     """
+    G._scream_if_not_simple(allow_multiple_edges=True)
     o = G.order()
     for m in xrange(n, o + 1):
         for C in all_graph_colorings(G, m, hex_colors=True):
@@ -318,6 +320,7 @@ def chromatic_number(G):
         sage: G.chromatic_number()
         3
     """
+    G._scream_if_not_simple(allow_multiple_edges=True)
     o = G.order()
     if o == 0:
         return 0
@@ -393,6 +396,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
        sage: vertex_coloring(g, value_only=True)
        3
     """
+    g._scream_if_not_simple(allow_multiple_edges=True)
     from sage.numerical.mip import MixedIntegerLinearProgram
     from sage.plot.colors import rainbow
 
@@ -632,6 +636,7 @@ def grundy_coloring(g, k, value_only = True, solver = None, verbose = 0):
     It would have been sufficient to set the value of ``k`` to 4 in
     this case, as `4 = \Delta(G)+1`.
     """
+    g._scream_if_not_simple(allow_multiple_edges=True)
     from sage.numerical.mip import MixedIntegerLinearProgram
     from sage.numerical.mip import MIPSolverException
 
@@ -793,6 +798,7 @@ def b_coloring(g, k, value_only = True, solver = None, verbose = 0):
     It would have been sufficient to set the value of ``k`` to 4 in
     this case, as `4 = m(G)`.
     """
+    g._scream_if_not_simple(allow_multiple_edges=True)
 
     from sage.numerical.mip import MixedIntegerLinearProgram
     from sage.numerical.mip import MIPSolverException
@@ -992,6 +998,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver = 
        sage: len(edge_coloring(graphs.CompleteGraph(20)))
        19
     """
+    g._scream_if_not_simple()
     from sage.numerical.mip import MixedIntegerLinearProgram
     from sage.plot.colors import rainbow
     from sage.numerical.mip import MIPSolverException
@@ -1229,7 +1236,7 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
       Mathematical Institute of the Slovak Academy of Sciences
       Mathematica Slovaca vol30, n4, pages 405--417, 1980
     """
-
+    g._scream_if_not_simple()
     from sage.rings.integer import Integer
 
     if plus_one is None:
@@ -1435,6 +1442,7 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
         3
 
     """
+    g._scream_if_not_simple(allow_multiple_edges=True)
 
     from sage.rings.integer import Integer
     from sage.combinat.subset import Subsets

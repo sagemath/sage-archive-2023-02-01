@@ -315,6 +315,8 @@ from sage.misc.superseded import deprecation
 class GenericGraph(GenericGraph_pyx):
     """
     Base class for graphs and digraphs.
+
+    .. autofunction:: _scream_if_not_simple
     """
 
     # Nice defaults for plotting arrays of graphs (see sage.misc.functional.show)
@@ -571,6 +573,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.num_edges()
             15
         """
+        self._scream_if_not_simple()
         vertices = self.vertices()
         n = len(vertices)
         if self._directed:
@@ -811,6 +814,74 @@ class GenericGraph(GenericGraph_pyx):
         return G
 
     copy = __copy__
+
+    def _scream_if_not_simple(self, allow_loops=False, allow_multiple_edges=False):
+        r"""
+        Raises an exception if the graph is not simple.
+
+        This function is called by some functions of the Graph library when they
+        have not been written for simple graphs only (i.e. no loops nor multiple
+        edges). It raises an exception inviting the user to convert the graph to
+        a simple graph first, before calling the function again.
+
+        Note that this function does not checl the existence of loops or
+        multiple edges, which would take linear time : it merely checks that the
+        graph *does not allow* multiple edges nor loops, which takes a constant
+        time.
+
+        INPUT:
+
+        - ``allow_loops`` (boolean) -- whether to tolerate loops. Set to
+          ``False`` by default.
+
+        - ``allow_multiple_edges`` (boolean) -- whether to tolerate multiple
+          edges. Set to ``False`` by default.
+
+        .. SEEALSO::
+
+            * :meth:`allow_loops`
+            * :meth:`allow_multiple_edges`
+
+        EXAMPLES::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g._scream_if_not_simple()
+            sage: g.allow_loops(True)
+            sage: g.allow_multiple_edges(True)
+            sage: g._scream_if_not_simple()
+            Traceback (most recent call last):
+            ...
+            ValueError: This method is not known to work on graphs with multiedges/loops. Perhaps this method can be updated to handle them, but in the meantime if you want to use it please disallow multiedges/loops using allow_multiple_edges() and allow_loops().
+            sage: g.allow_multiple_edges(True)
+            sage: g._scream_if_not_simple()
+            Traceback (most recent call last):
+            ...
+            ValueError: This method is not known to work on graphs with multiedges/loops. Perhaps this method can be updated to handle them, but in the meantime if you want to use it please disallow multiedges/loops using allow_multiple_edges() and allow_loops().
+            sage: g._scream_if_not_simple(allow_loops=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: This method is not known to work on graphs with multiedges. Perhaps this method can be updated to handle them, but in the meantime if you want to use it please disallow multiedges using allow_multiple_edges().
+            sage: g._scream_if_not_simple(allow_multiple_edges=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: This method is not known to work on graphs with loops. Perhaps this method can be updated to handle them, but in the meantime if you want to use it please disallow loops using allow_loops().
+        """
+        if ((not allow_loops and self.allows_loops()) or
+            (not allow_multiple_edges and self.allows_multiple_edges())):
+            if allow_loops is False and allow_multiple_edges is False:
+                name = "multiedges/loops"
+                functions = "allow_multiple_edges() and allow_loops()"
+            elif allow_loops is False:
+                name = "loops"
+                functions = "allow_loops()"
+            else:
+                name = "multiedges"
+                functions = "allow_multiple_edges()"
+            msg = ("This method is not known to work on graphs with "+name+". "+
+                   "Perhaps this method can be updated to handle them, but in the "+
+                   "meantime if you want to use it please disallow "+name+" using "+
+                   functions+".")
+            raise ValueError(msg)
 
     def networkx_graph(self, copy=True):
         """
@@ -3498,7 +3569,6 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-
         -  ``set_embedding (boolean)`` - whether or not to
            store an embedding attribute of the computed (minimal) genus of the
            graph. (Default is True).
@@ -4372,6 +4442,7 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: The given vertices do not all belong to the same connected component. This problem has no solution !
         """
+        self._scream_if_not_simple(allow_loops=True)
 
         if self.is_directed():
             from sage.graphs.all import Graph
@@ -4779,7 +4850,7 @@ class GenericGraph(GenericGraph_pyx):
            sage: g.edge_cut(1, 2, value_only=True, method = "LP")
            3
         """
-
+        self._scream_if_not_simple(allow_loops=True)
         if vertices:
             value_only = False
 
@@ -5080,6 +5151,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: set(C) == set(g.edges())
             True
         """
+        self._scream_if_not_simple(allow_loops=True)
         from sage.numerical.mip import MixedIntegerLinearProgram
         from itertools import combinations, chain
 
@@ -5209,6 +5281,7 @@ class GenericGraph(GenericGraph_pyx):
            12
 
         """
+        self._scream_if_not_simple(allow_loops=True)
         g=self
 
         if vertices:
@@ -5231,7 +5304,6 @@ class GenericGraph(GenericGraph_pyx):
 
         in_set = p.new_variable(dim=2)
         in_cut = p.new_variable(dim=1)
-
 
         # A vertex has to be in some set
         for v in g:
@@ -5468,6 +5540,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.longest_path().edges()
             [(0, 1, None), (2, 0, None)]
         """
+        self._scream_if_not_simple()
+
         if use_edge_labels:
             algorithm = "MILP"
         if algorithm not in ("backtrack", "MILP"):
@@ -5672,7 +5746,6 @@ class GenericGraph(GenericGraph_pyx):
         else:
             return g
 
-
     def traveling_salesman_problem(self, use_edge_labels = False, solver = None, constraint_generation = None, verbose = 0, verbose_constraints = False):
         r"""
         Solves the traveling salesman problem (TSP)
@@ -5841,6 +5914,8 @@ class GenericGraph(GenericGraph_pyx):
             ...           break
 
         """
+        self._scream_if_not_simple()
+
         if constraint_generation is None:
             if self.density() > .7:
                 constraint_generation = False
@@ -5864,8 +5939,6 @@ class GenericGraph(GenericGraph_pyx):
             # Checks whether the graph is 2-connected
             if not self.strong_orientation().is_strongly_connected():
                 raise ValueError("The given graph is not hamiltonian")
-
-
 
         ############################
         # Deal with multiple edges #
@@ -6580,7 +6653,7 @@ class GenericGraph(GenericGraph_pyx):
            sage: abs(flow_ff-flow_lp) < 0.01
            True
         """
-
+        self._scream_if_not_simple(allow_loops=True)
         if vertex_bound and method == "FF":
             raise ValueError("This method does not support both vertex_bound=True and method=\"FF\".")
 
@@ -6903,7 +6976,7 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: The multiflow problem has no solution
         """
-
+        self._scream_if_not_simple(allow_loops=True)
         from sage.numerical.mip import MixedIntegerLinearProgram
         g=self
         p=MixedIntegerLinearProgram(maximization=True, solver = solver)
@@ -7449,6 +7522,7 @@ class GenericGraph(GenericGraph_pyx):
            sage: g.edge_connectivity()
            0.0
         """
+        self._scream_if_not_simple(allow_loops=True)
         g=self
 
         if vertices:
@@ -8454,7 +8528,6 @@ class GenericGraph(GenericGraph_pyx):
                 if u in vertices and u!=vertices[0]:
                     add_edges.append((vertices[0],v,l))
             self.add_edges(add_edges)
-
 
     ### Edge handlers
 
@@ -9747,8 +9820,6 @@ class GenericGraph(GenericGraph_pyx):
 
         return True
 
-
-
     ### Substructures
 
     def subgraph(self, vertices=None, edges=None, inplace=False,
@@ -10663,6 +10734,7 @@ class GenericGraph(GenericGraph_pyx):
            sage: g1.is_isomorphic(graphs.CycleGraph(g1.order()))
            True
         """
+        self._scream_if_not_simple()
 
         # If the graph is not connected, we are computing the result on each component
         if not self.is_connected():
@@ -10881,6 +10953,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: Graph([(0,0)]).is_circulant(certificate = True)
             (True, (1, [0]))
         """
+        self._scream_if_not_simple(allow_loops=True)
         # Stupid cases
         if self.order() <= 1:
             if certificate:
@@ -10976,7 +11049,7 @@ class GenericGraph(GenericGraph_pyx):
         possible embedding (we can actually compute all of them
         through the PQ-Tree structures)::
 
-            sage: g = Graph(':S__@_@A_@AB_@AC_@ACD_@ACDE_ACDEF_ACDEFG_ACDEGH_ACDEGHI_ACDEGHIJ_ACDEGIJK_ACDEGIJKL_ACDEGIJKLMaCEGIJKNaCEGIJKNaCGIJKNPaCIP')
+            sage: g = Graph(':S__@_@A_@AB_@AC_@ACD_@ACDE_ACDEF_ACDEFG_ACDEGH_ACDEGHI_ACDEGHIJ_ACDEGIJK_ACDEGIJKL_ACDEGIJKLMaCEGIJKNaCEGIJKNaCGIJKNPaCIP', loops=False, multiedges=False)
             sage: d = g.is_interval(certificate = True)
             sage: print d                                    # not tested
             {0: (0, 20), 1: (1, 9), 2: (2, 36), 3: (3, 5), 4: (4, 38), 5: (6, 21), 6: (7, 27), 7: (8, 12), 8: (10, 29), 9: (11, 16), 10: (13, 39), 11: (14, 31), 12: (15, 32), 13: (17, 23), 14: (18, 22), 15: (19, 33), 16: (24, 25), 17: (26, 35), 18: (28, 30), 19: (34, 37)}
@@ -10996,6 +11069,7 @@ class GenericGraph(GenericGraph_pyx):
           -- Implementation of PQ-Trees.
 
         """
+        self._scream_if_not_simple()
 
         # An interval graph first is a chordal graph. Without this,
         # there is no telling how we should find its maximal cliques,
@@ -11108,7 +11182,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.is_gallai_tree()
             True
         """
-
+        self._scream_if_not_simple()
         if not self.is_connected():
             return False
 
@@ -11196,7 +11270,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: graphs.CycleGraph(4).is_independent_set([1,2,3])
             False
         """
-        return self.subgraph(vertices).to_simple().size()==0
+        return self.subgraph(vertices).size()==0
 
     def is_subgraph(self, other, induced=True):
         """
@@ -11285,6 +11359,7 @@ class GenericGraph(GenericGraph_pyx):
         if induced:
             return other.subgraph(self.vertices()) == self
         else:
+            self._scream_if_not_simple(allow_loops=True)
             return all(other.has_edge(e) for e in self.edge_iterator())
 
     ### Cluster
@@ -13302,6 +13377,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         if self.has_multiple_edges():
             raise TypeError('complement not well defined for (di)graphs with multiple edges')
+        self._scream_if_not_simple()
         from copy import copy
         G = copy(self)
         G.delete_edges(G.edges())
@@ -13489,6 +13565,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: B.is_isomorphic( Q.subgraph(V) )
             True
         """
+        self._scream_if_not_simple(allow_loops=True)
         if self._directed and other._directed:
             from sage.graphs.all import DiGraph
             G = DiGraph( loops = (self.has_loops() or other.has_loops()) )
@@ -13570,6 +13647,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: T.is_isomorphic( digraphs.DeBruijn( 2*3, 3) )
             True
         """
+        self._scream_if_not_simple(allow_loops=True)
         if self._directed and other._directed:
             from sage.graphs.all import DiGraph
             G = DiGraph( loops = (self.has_loops() or other.has_loops()) )
@@ -13637,6 +13715,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: T.is_isomorphic( J.lexicographic_product(I) )
             False
         """
+        self._scream_if_not_simple(allow_loops=True)
         if self._directed and other._directed:
             from sage.graphs.all import DiGraph
             G = DiGraph( loops = (self.has_loops() or other.has_loops()) )
@@ -13715,6 +13794,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: if product_size != expected:
             ...       print "Something is really wrong here...", product_size, "!=", expected
         """
+        self._scream_if_not_simple(allow_loops=True)
         if self._directed and other._directed:
             from sage.graphs.all import DiGraph
             G = DiGraph( loops = (self.has_loops() or other.has_loops()) )
@@ -13783,6 +13863,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: T.is_isomorphic( J.disjunctive_product(I) )
             True
         """
+        self._scream_if_not_simple(allow_loops=True)
         if self._directed and other._directed:
             from sage.graphs.all import DiGraph
             G = DiGraph( loops = (self.has_loops() or other.has_loops()) )

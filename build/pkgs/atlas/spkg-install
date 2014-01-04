@@ -179,8 +179,7 @@ for fname in glob.glob(os.path.join(PATCH_DIR,'*.patch')):
     assert_success(rc, bad='Applying '+fname+' failed.', good='Applied '+fname+'.')
 
 # add extra architectural defaults
-# currently IA64Itan264 and x86SSE264SSE2
-cp('patches/ARCHS/*.tar.bz2', 'src/ATLAS/CONFIG/ARCHS')
+cp('src/ARCHS/*.tar.bz2', 'src/ATLAS/CONFIG/ARCHS/')
 
 # hardcoded gcc in SpewMakeInc.c
 edit_in_place('src/ATLAS/CONFIG/src/SpewMakeInc.c') \

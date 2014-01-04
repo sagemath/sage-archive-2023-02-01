@@ -24,8 +24,19 @@ Solaris, but should also work on OSX and Cygwin.
 
  * Python
 
-== Build Instructions/Notes ==
+== Special Update/Build Instructions ==
 
+ * src/lapack-x.y.z.tgz: The netlib lapack tarball. If you update this,
+   make sure you also update the LAPACK_TARBALL variable in spkg-install.
+ * src/ATLAS-lib: We are using a dummy autotools/libtools project
+   to repack the static ATLAS libraries into shared libraries.
+ * src/ARCHS: We ship some archdef tarballs to speed ATLAS build.
+ * spkg-install: If you update atlas to a new version make sure that the
+   ATLAS_OSTYPE, ATLAS_MACHTYPE, and ATLAS_ISAEXT variables in
+   spkg-install remain in sync with atlas' CONFIG/include/atlconf.h
+ * The package is never installed on OS X, unless you set SAGE_ATLAS_ARCH.
+
+=== Patches ===
  * patches/archinfo_linux.c.patch: Fix Itanium2 support on modern
    RHEL 5 and SLES 10 systems.
  * patches/probe_comp.c.patch: work around -m64 issue on Itanium2
@@ -39,19 +50,8 @@ Solaris, but should also work on OSX and Cygwin.
  * patches/do_not_force_mutex.patch: always use assembly over mutex
    since the mutex version fails to build a shared library. See #15045
    for details.
- * lapack-x.y.z.tgz: The netlib lapack tarball. If you update this,
-   make sure you also update the LAPACK_TARBALL variable in
-   spkg-install.
- * If you update atlas to a new version make sure that the
-   ATLAS_OSTYPE, ATLAS_MACHTYPE, and ATLAS_ISAEXT variables in
-   spkg-install remain in sync with atlas' CONFIG/include/atlconf.h
- * The package is never installed on Cygwin or OS X, unless you set
-   SAGE_ATLAS_ARCH.
 
-We are using a dummy autotools/libtools project (see
-src/ATLAS-lib) to repack the static ATLAS libraries into shared
-libraries.
-
+=== Configuration ===
 The package can be configured via three environment variables:
 
  * SAGE_ATLAS_LIB=path
@@ -94,6 +94,9 @@ The package can be configured via three environment variables:
    file is created and saved to the given path.
 
 == ChangeLog ==
+
+=== atlas-3.10.1.p8, lapack-3.4.2 (Jean-Pierre Flori, 4 January 2014) ===
+ * Trac #15615: Reintroduce archdef tarballs.
 
 === atlas-3.10.1.p7, lapack-3.4.2 (Jean-Pierre Flori, 25 November 2013) ===
  * Trac #14410: Let ATLAS build and install shared libraries on Cygwin.

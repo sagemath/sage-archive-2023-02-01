@@ -3,47 +3,44 @@ Rngs
 """
 #*****************************************************************************
 #  Copyright (C) 2008 Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
+#                2012 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.category import Category
-from sage.categories.category_singleton import Category_singleton
-from sage.misc.cachefunc import cached_method
-from commutative_additive_groups import CommutativeAdditiveGroups
-from semigroups import Semigroups
+from sage.categories.category_with_axiom import CategoryWithAxiom
+from sage.misc.lazy_import import LazyImport
+from sage.categories.distributive_magmas_and_additive_magmas import DistributiveMagmasAndAdditiveMagmas
 
-class Rngs(Category_singleton):
+class Rngs(CategoryWithAxiom):
     """
     The category of rngs
-    associative rings, not necessarily commutative, and not necessarily with  1
-    This is a combination of an abelian group (+) and a semigroup (*),
-    with * distributing over +
+
+    A rng `(S,+,*)` is similar to a ring but not necessarilly
+    unital. In other words, it is a combination of a commutative
+    additive group `(S,+)` and a multiplicative semigroup `(S,*)`,
+    where `*` distributes over `+`.
 
     EXAMPLES::
 
-      sage: Rngs()
+      sage: C = Rngs(); C
       Category of rngs
-      sage: Rngs().super_categories()
-      [Category of commutative additive groups, Category of semigroups]
+      sage: sorted(C.super_categories(), key=str)
+      [Category of additive commutative additive associative additive inverse additive unital distributive magmas and additive magmas,
+       Category of associative additive commutative additive associative additive unital distributive magmas and additive magmas]
+      sage: sorted(C.axioms())
+      ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative']
+      sage: C is DistributiveMagmasAndAdditiveMagmas().Associative().AdditiveAssociative().AdditiveCommutative().AdditiveUnital().AdditiveInverse()
+      True
+      sage: C.Unital()
+      Category of rings
 
     TESTS::
 
-        sage: TestSuite(Rngs()).run()
+        sage: TestSuite(C).run()
     """
 
-    def super_categories(self):
-        """
-        EXAMPLES::
+    _base_category_class_and_axiom = [DistributiveMagmasAndAdditiveMagmas.AdditiveAssociative.AdditiveCommutative.AdditiveUnital.AdditiveInverse, "Associative"]
 
-            sage: Rngs().super_categories()
-            [Category of commutative additive groups, Category of semigroups]
-        """
-        return [CommutativeAdditiveGroups(), Semigroups()]
-
-    class ParentMethods:
-        pass
-
-    class ElementMethods:
-        pass
+    Unital = LazyImport('sage.categories.rings', 'Rings', at_startup=True)

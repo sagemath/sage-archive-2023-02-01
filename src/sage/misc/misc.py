@@ -2215,6 +2215,21 @@ def attrcall(name, *args, **kwds):
     """
     return AttrCallObject(name, args, kwds)
 
+def call_method(obj, name, *args, **kwds):
+    """
+    Call the method ``name`` on ``obj``.
+
+    This has to exist somewhere in Python!!!
+
+    .. SEEALSO:: :func:`operator.methodcaller` :func:`attrcal`
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import call_method
+        sage: call_method(1, "__add__", 2)
+        3
+    """
+    return getattr(obj, name)(*args, **kwds)
 
 def is_in_string(line, pos):
     r"""

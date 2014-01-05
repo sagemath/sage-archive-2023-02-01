@@ -383,12 +383,11 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             sage: Sym = SymmetricFunctions(QQ)
             sage: bases = SymmetricFunctionsBases(Sym)
             sage: bases.super_categories()
-            [Category of graded hopf algebras with basis over Rational Field, Category of realizations of Symmetric Functions over Rational Field, Category of commutative rings]
+            [Category of commutative graded hopf algebras with basis over Rational Field, Category of realizations of Symmetric Functions over Rational Field]
         """
         from sage.categories.all import CommutativeRings, GradedHopfAlgebrasWithBasis
-        return [GradedHopfAlgebrasWithBasis(self.base().base_ring()),
-                Realizations(self.base()),
-                CommutativeRings()]
+        return [GradedHopfAlgebrasWithBasis(self.base().base_ring()).Commutative(),
+                Realizations(self.base())]
 
     class ParentMethods:
 

@@ -808,7 +808,7 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
         sage: L
         Finite lattice containing 7 elements
         sage: L.category()
-        Category of facade finite lattice posets
+        Join of Category of finite lattice posets and Category of finite enumerated sets and Category of facade sets
     """
     def __init__(self, n, use_monotone_triangles=True):
         r"""

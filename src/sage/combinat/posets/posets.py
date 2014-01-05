@@ -613,7 +613,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         [[0, 2], [0, 3], [2, 1], [3, 1], [4, 1], [5, 3], [5, 4]]
         sage: TestSuite(P).run()
         sage: P.category()
-        Category of finite posets
+        Join of Category of finite posets and Category of finite enumerated sets
         sage: P.__class__
         <class 'sage.combinat.posets.posets.FinitePoset_with_category'>
 
@@ -634,13 +634,15 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         sage: P = Poset(DiGraph({'a':['b'],'b':['c'],'c':['d']}), facade = False)
         sage: P.category()
-        Category of finite posets
+        Join of Category of finite posets and Category of finite enumerated sets
         sage: parent(P[0]) is P
         True
 
         sage: Q = Poset(DiGraph({'a':['b'],'b':['c'],'c':['d']}), facade = True)
         sage: Q.category()
-        Category of facade finite posets
+        Join of Category of finite posets
+            and Category of finite enumerated sets
+            and Category of facade sets
         sage: parent(Q[0]) is str
         True
         sage: TestSuite(Q).run(skip = ['_test_an_element']) # is_parent_of is not yet implemented
@@ -649,7 +651,9 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         sage: PQ = Poset(P, facade = True)
         sage: PQ.category()
-        Category of facade finite posets
+        Join of Category of finite posets
+            and Category of finite enumerated sets
+            and Category of facade sets
         sage: parent(PQ[0]) is str
         True
         sage: PQ is Q
@@ -659,7 +663,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         sage: QP = Poset(Q, facade = False)
         sage: QP.category()
-        Category of finite posets
+        Join of Category of finite posets
+            and Category of finite enumerated sets
         sage: parent(QP[0]) is QP
         True
 
@@ -728,16 +733,10 @@ class FinitePoset(UniqueRepresentation, Parent):
                 elements = hasse_diagram._elements
             if category is None:
                 category = hasse_diagram.category()
-                if facade is False and category.is_subcategory(Sets().Facades()):
-                    # We need to remove Sets().Facades() from the category
-                    # This is fragile ...
-                    from sage.categories.category import JoinCategory
-                    assert isinstance(category, JoinCategory)
-                    categories = list(category.super_categories())
-                    categories.remove(Sets().Facades())
-                    category = Category.join(categories)
+                if facade is False and category.is_subcategory(Sets().Facade()):
+                    category = category._without_axiom("Facade")
             if facade is None:
-                facade = hasse_diagram in Sets().Facades()
+                facade = hasse_diagram in Sets().Facade()
             hasse_diagram = hasse_diagram._hasse_diagram
         else:
             hasse_diagram = HasseDiagram(hasse_diagram)
@@ -2838,7 +2837,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.cover_relations()
             [[3, 2], [3, 1], [2, 0], [1, 0]]
             sage: Q.category()
-            Category of facade finite lattice posets
+            Join of Category of finite lattice posets
+                and Category of finite enumerated sets
+                and Category of facade sets
             sage: Q.__class__
             <class 'sage.combinat.posets.lattices.FiniteLatticePoset_with_category'>
 

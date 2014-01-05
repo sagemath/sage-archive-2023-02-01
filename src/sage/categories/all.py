@@ -31,8 +31,10 @@ from sets_with_partial_maps import SetsWithPartialMaps
 from sets_with_grading import SetsWithGrading
 
 from groupoid import Groupoid
+from permutation_groups import PermutationGroups
 
 # enumerated sets
+from finite_sets import FiniteSets
 from enumerated_sets import EnumeratedSets
 from finite_enumerated_sets import FiniteEnumeratedSets
 from infinite_enumerated_sets import InfiniteEnumeratedSets

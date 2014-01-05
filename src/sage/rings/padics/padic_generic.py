@@ -68,10 +68,17 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         EXAMPLES::
 
             sage: Zp(2).some_elements()
-            [0, 1 + O(2^20), 2 + O(2^21)]
-
+            [0, 1 + O(2^4), 2 + O(2^5), 1 + 2^2 + 2^3 + O(2^4), 2 + 2^2 + 2^3 + 2^4 + O(2^5)]
         """
-        return [self.zero(), self.one(), self(self.prime())]
+        p = self(self.prime())
+        a = self.gen()
+        one = self.one()
+        L = [self.zero(), one, p, (one+p+p).inverse_of_unit(), p-p**2]
+        if a != p:
+            L.extend([a, (one + a + p).inverse_of_unit()])
+        if self.is_field():
+            L.extend([~(p-p-a),p**(-20)])
+        return L
 
     def _modified_print_mode(self, print_mode):
         """

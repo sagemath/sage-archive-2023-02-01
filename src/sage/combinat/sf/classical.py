@@ -33,7 +33,6 @@ import llt
 import macdonald
 import jack
 import orthotriang
-import kschur
 
 ZZ = IntegerRing()
 QQ = RationalField()
@@ -273,17 +272,6 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
                 return self(mx)
             if isinstance(x, (jack.JackPolynomials_j.Element, jack.JackPolynomials_q.Element)):
                 return self( x.parent()._P(x) )
-            else:
-                raise TypeError
-
-        #####################
-        # k-Schur Functions #
-        #####################
-        if isinstance(x, kschur.kSchurFunctions_generic.Element):
-            if isinstance(x, kschur.kSchurFunctions_t.Element):
-                P = x.parent()
-                sx = P._s._from_cache(x, P._s_cache, P._self_to_s_cache, t=P.t)
-                return self(sx)
             else:
                 raise TypeError
 

@@ -187,12 +187,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
         OUTPUT:
 
         ``(lower, upper, list)`` where ``lower`` is a lower bound on
-        the rank, ``upper`` is an upper bound (the 2-Selmer rank) and
-        ``list`` is a list of independent points on the Weierstrass
-        model.  The length of ``list`` is equal to either ``lower``,
-        or ``lower-1``, since when ``lower`` is less than ``upper``
-        and of different parity, the value of ``lower`` is increased by
-        1.
+        the rank, ``upper`` is an upper bound (the dimension of the
+        2-Selmer group) and
+        ``list`` is a list of points of infinite order on the Weierstrass
+        model.
 
         .. note::
 
@@ -684,7 +682,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         return self.rst_transform(r, s, t)
 
-    def local_data(self, P=None, proof = None, algorithm="pari"):
+    def local_data(self, P=None, proof=None, algorithm="pari", globally=False):
         r"""
         Local data for this elliptic curve at the prime `P`.
 
@@ -703,6 +701,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
           `\QQ`. If "generic", use the general number field
           implementation.
 
+        - ``globally`` -- whether the local algorithm uses global generators
+          for the prime ideals. Default is False, which won't require any
+          information about the class group. If True, a generator for `P`
+          will be used if `P` is principal. Otherwise, or if ``globally``
+          is False, the minimal model returned will preserve integrality
+          at other primes, but not minimality.
+
         OUTPUT:
 
         If `P` is specified, returns the ``EllipticCurveLocalData``
@@ -713,12 +718,6 @@ class EllipticCurve_number_field(EllipticCurve_field):
         .. note::
 
            The model is not required to be integral on input.
-
-           For principal `P`, a generator is used as a uniformizer,
-           and integrality or minimality at other primes is not
-           affected.  For non-principal `P`, the minimal model
-           returned will preserve integrality at other primes, but not
-           minimality.
 
         EXAMPLES::
 
@@ -772,9 +771,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
         from sage.schemes.elliptic_curves.ell_local_data import check_prime
         P = check_prime(self.base_field(),P)
 
-        return self._get_local_data(P,proof,algorithm)
+        return self._get_local_data(P,proof,algorithm,globally)
 
-    def _get_local_data(self, P, proof, algorithm="pari"):
+    def _get_local_data(self, P, proof, algorithm="pari", globally=False):
         r"""
         Internal function to create data for this elliptic curve at the prime `P`.
 
@@ -796,6 +795,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
           ``ellglobalred`` implementation of Tate's algorithm over
           `\QQ`. If "generic", use the general number field
           implementation.
+
+        - ``globally`` -- whether the local algorithm uses global generators
+          for the prime ideals. Default is False, which won't require any
+          information about the class group. If True, a generator for `P`
+          will be used if `P` is principal. Otherwise, or if ``globally``
+          is False, the minimal model returned will preserve integrality
+          at other primes, but not minimality.
 
         EXAMPLES::
 
@@ -820,14 +826,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
             False
         """
         try:
-            return self._local_data[P, proof, algorithm]
+            return self._local_data[P, proof, algorithm, globally]
         except AttributeError:
             self._local_data = {}
         except KeyError:
             pass
         from sage.schemes.elliptic_curves.ell_local_data import EllipticCurveLocalData
-        self._local_data[P, proof, algorithm] = EllipticCurveLocalData(self, P, proof, algorithm)
-        return self._local_data[P, proof, algorithm]
+        self._local_data[P, proof, algorithm, globally] = EllipticCurveLocalData(self, P, proof, algorithm, globally)
+        return self._local_data[P, proof, algorithm, globally]
 
     def local_minimal_model(self, P, proof = None, algorithm="pari"):
         r"""
@@ -1377,7 +1383,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         E = self.global_integral_model()
         primes = E.base_ring()(E.discriminant()).support()
         for P in primes:
-            E = E.local_data(P,proof).minimal_model()
+            E = E.local_data(P,proof, globally=True).minimal_model()
         return E._reduce_model()
 
     def reduction(self,place):
@@ -1690,7 +1696,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         OUTPUT:
 
-        lower and upper bounds
+        lower and upper bounds for the rank of the Mordell-Weil group
 
 
         .. NOTE::
@@ -1707,13 +1713,22 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.rank_bounds()
             (2, 2)
 
-        Here is a curve with two-torsion, so here the algorithm gives
-        bounds on the rank::
+        Here is a curve with two-torsion, again the bounds coincide::
 
             sage: Qrt5.<rt5>=NumberField(x^2-5)
             sage: E=EllipticCurve([0,5-rt5,0,rt5,0])
             sage: E.rank_bounds()
-            (1, 2)
+            (1, 1)
+
+        Finally an example with non-trivial 2-torsion in Sha. So the
+        2-descent will not be able to determine the rank, but can only
+        give bounds::
+
+            sage: E = EllipticCurve("15a5")
+            sage: K.<t> = NumberField(x^2-6)
+            sage: EK = E.base_extend(K)
+            sage: EK.rank_bounds(lim1=1,lim3=1,limtriv=1)
+            (0, 2)
 
         IMPLEMENTATION:
 
@@ -1723,7 +1738,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
         """
 
         lower, upper, gens = self.simon_two_descent(verbose=verbose,lim1=lim1,lim3=lim3,limtriv=limtriv,maxprob=maxprob,limbigprime=limbigprime)
-        return lower,upper
+        # this was corrected in trac 13593. upper is the dimension
+        # of the 2-selmer group, so we can certainly remove the
+        # 2-torsion of the Mordell-Weil group.
+        upper -= self.two_torsion_rank()
+        return lower, upper
 
     def rank(self,verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
         r"""
@@ -1772,16 +1791,18 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.rank()
             2
 
-        Here is a curve with two-torsion, so here the bounds given by the
-        algorithm do not uniquely determine the rank::
+        Here is a curve with two-torsion in the Tate-Shafarevich group,
+        so here the bounds given by the algorithm do not uniquely
+        determine the rank::
 
-            sage: Qrt5.<rt5>=NumberField(x^2-5)
-            sage: E=EllipticCurve([0,5-rt5,0,rt5,0])
-            sage: E.rank()
+            sage: E = EllipticCurve("15a5")
+            sage: K.<t> = NumberField(x^2-6)
+            sage: EK = E.base_extend(K)
+            sage: EK.rank(lim1=1, lim3=1, limtriv=1)
             Traceback (most recent call last):
             ...
             ValueError: There is insufficient data to determine the rank -
-            2-descent gave lower bound 1 and upper bound 2
+            2-descent gave lower bound 0 and upper bound 2
 
         IMPLEMENTATION:
 
@@ -1798,7 +1819,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
     def gens(self,verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
         r"""
-        Returns some generators of this elliptic curve. Check :meth:`~rank` or
+        Returns some points of infinite order on this elliptic curve.
+        They are not necessarily linearly independent.
+
+        Check :meth:`~rank` or
         :meth:`~rank_bounds` to verify the number of generators.
 
         .. NOTE::
@@ -1825,7 +1849,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         OUTPUT:
 
-        The linearly independent elements given by the Simon two-descent.
+        A set of points of infinite order given by the Simon two-descent.
 
         .. NOTE::
 
@@ -1842,13 +1866,36 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [(-1 : 0 : 1), (1/2*a - 5/2 : -1/2*a - 13/2 : 1)]
 
 
-        Here is a curve with two-torsion, so here the algorithm does not
-        uniquely determine the rank::
+        Here is a curve of rank 2, yet the list contains many points::
 
-            sage: Qrt5.<rt5>=NumberField(x^2-5)
-            sage: E=EllipticCurve([0,5-rt5,0,rt5,0])
+            sage: K.<t> = NumberField(x^2-17)
+            sage: E = EllipticCurve(K,[-4,0])
             sage: E.gens()
-            [(3/2*rt5 + 5/2 : -9/2*rt5 - 15/2 : 1), (-1/2*rt5 + 3/2 : 3/2*rt5 - 9/2 : 1), (0 : 0 : 1)]
+            [(-1/2*t + 1/2 : -1/2*t + 1/2 : 1),
+            (-2*t + 8 : -8*t + 32 : 1),
+            (1/2*t + 3/2 : -1/2*t - 7/2 : 1),
+            (-1/8*t - 7/8 : -1/16*t - 23/16 : 1),
+            (1/8*t - 7/8 : -1/16*t + 23/16 : 1),
+            (t + 3 : -2*t - 10 : 1),
+            (2*t + 8 : -8*t - 32 : 1),
+            (1/2*t + 1/2 : -1/2*t - 1/2 : 1),
+            (-1/2*t + 3/2 : -1/2*t + 7/2 : 1),
+            (t + 7 : -4*t - 20 : 1),
+            (-t + 7 : -4*t + 20 : 1),
+            (-t + 3 : -2*t + 10 : 1)]
+            sage: E.rank()
+            2
+
+        Test that the points of finite order are not included :trac: `13593` ::
+
+            sage: E = EllipticCurve("17a3")
+            sage: K.<t> = NumberField(x^2+3)
+            sage: EK = E.base_extend(K)
+            sage: EK.rank()
+            0
+            sage: EK.gens()
+            []
+
 
         IMPLEMENTATION:
 
@@ -1857,7 +1904,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
         """
 
         lower,upper,gens = self.simon_two_descent(verbose=verbose,lim1=lim1,lim3=lim3,limtriv=limtriv,maxprob=maxprob,limbigprime=limbigprime)
-        return gens
+        res = [P for P in gens if P.has_infinite_order()]
+        return res
 
 
     def period_lattice(self, embedding):

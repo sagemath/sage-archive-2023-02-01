@@ -182,6 +182,15 @@ ext_modules = [
     Extension('sage.coding.binary_code',
               sources = ['sage/coding/binary_code.pyx']),
 
+    Extension('sage.coding.codecan.codecan',
+              sources = ['sage/coding/codecan/codecan.pyx'],
+              libraries = ['gmp', 'flint'],
+              include_dirs = [SAGE_INC + 'FLINT/']+['sage/groups/perm_gps/partn_ref2/'],
+              depends = flint_depends),
+
+    Extension('sage.coding.codecan.autgroup_can_label',
+          sources = ['sage/coding/codecan/autgroup_can_label.pyx']),
+
     ################################
     ##
     ## sage.combinat
@@ -565,6 +574,20 @@ ext_modules = [
               libraries = ['gmp', 'flint'],
               extra_compile_args = ['-std=c99'],
               depends = flint_depends),
+
+        ###################################
+        ##
+        ## sage.groups.perm_gps.partn_ref2
+        ##
+        ###################################
+
+    Extension('sage.groups.perm_gps.partn_ref2.refinement_generic',
+              sources = ['sage/groups/perm_gps/partn_ref2/refinement_generic.pyx'],
+              libraries = ["csage", "flint", "gmp", "gmpxx", "stdc++"],
+              include_dirs = [SAGE_INC + 'FLINT/'],
+              extra_compile_args=["-std=c99"],
+              depends = [SAGE_ROOT + "/local/include/FLINT/flint.h"]+
+              ['sage/groups/perm_gps/partn_ref2/refinement_generic.h']),
 
     ################################
     ##
@@ -1660,16 +1683,12 @@ ext_modules = [
         ##
         ################################
 
+    Extension('sage.rings.padics.common_conversion',
+              sources = ['sage/rings/padics/common_conversion.pyx'],
+              libraries=['gmp']),
+
     Extension('sage.rings.padics.local_generic_element',
               sources = ['sage/rings/padics/local_generic_element.pyx']),
-
-    Extension('sage.rings.padics.padic_base_coercion',
-              sources = ['sage/rings/padics/padic_base_coercion.pyx'],
-              libraries=['gmp']),
-
-    Extension('sage.rings.padics.padic_base_generic_element',
-              sources = ['sage/rings/padics/padic_base_generic_element.pyx'],
-              libraries=['gmp']),
 
     Extension('sage.rings.padics.padic_capped_absolute_element',
               sources = ['sage/rings/padics/padic_capped_absolute_element.pyx'],

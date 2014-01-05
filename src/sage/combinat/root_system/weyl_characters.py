@@ -1407,7 +1407,7 @@ def irreducible_character_freudenthal(hwv, debug=False):
 def branch_weyl_character(chi, R, S, rule="default"):
     r"""
     A branching rule describes the restriction of representations from
-    a Lie group or algebra `G` to a smaller one `H`. See for example, R. C.
+    a Lie group or algebra `G` to a subgroup `H`. See for example, R. C.
     King, Branching rules for classical Lie groups using tensor and
     spinor methods. J. Phys. A 8 (1975), 429-449, Howe, Tan and
     Willenbring, Stable branching rules for classical symmetric pairs,
@@ -1415,7 +1415,9 @@ def branch_weyl_character(chi, R, S, rule="default"):
     Patera, Tables of Dimensions, Indices and Branching Rules for
     Representations of Simple Lie Algebras (Marcel Dekker, 1981),
     and Fauser, Jarvis, King and Wybourne, New branching rules induced
-    by plethysm. J. Phys. A 39 (2006), no. 11, 2611--2655.
+    by plethysm. J. Phys. A 39 (2006), no. 11, 2611--2655. If `H\subset G`
+    we will write `G\Rightarrow H` to denote the branching rule, which
+    is a homomorphism of WeylCharacterRings.
 
     INPUT:
 
@@ -1486,9 +1488,9 @@ def branch_weyl_character(chi, R, S, rule="default"):
     .. MATH::
 
         \begin{aligned}
-        A_{2s} & \to B_s,
-        \\ A_{2s-1} & \to C_s,
-        \\ A_{2*s-1} & \to D_s.
+        A_{2s} & \Rightarrow B_s,
+        \\ A_{2s-1} & \Rightarrow C_s,
+        \\ A_{2*s-1} & \Rightarrow D_s.
         \end{aligned}
 
     The above default rules correspond to embedding the group
@@ -1499,8 +1501,8 @@ def branch_weyl_character(chi, R, S, rule="default"):
     .. MATH::
 
         \begin{aligned}
-        B_{s+1} & \to D_s,
-        \\ D_s & \to B_s.
+        B_{s+1} & \Rightarrow D_s,
+        \\ D_s & \Rightarrow B_s.
         \end{aligned}
 
     These correspond to the embedding of `O(n)` into `O(n+1)` where
@@ -1547,35 +1549,35 @@ def branch_weyl_character(chi, R, S, rule="default"):
     .. MATH::
 
         \begin{aligned}
-        A_r & \to A_{r-1}
-        \\ B_r & \to A_{r-1}
-        \\ B_r & \to B_{r-1}
-        \\ C_r & \to A_{r-1}
-        \\ C_r & \to C_{r-1}
-        \\ D_r & \to A_{r-1}
-        \\ D_r & \to D_{r-1}
-        \\ E_r & \to A_{r-1} \quad r = 7,8
-        \\ E_r & \to D_{r-1} \quad r = 6,7,8
-        \\ E_r & \to E_{r-1}
-        \\ F_4 & \to B_3
-        \\ F_4 & \to C_3
-        \\ G_2 & \to A_1 \text{(short root)}
+        A_r & \Rightarrow A_{r-1}
+        \\ B_r & \Rightarrow A_{r-1}
+        \\ B_r & \Rightarrow B_{r-1}
+        \\ C_r & \Rightarrow A_{r-1}
+        \\ C_r & \Rightarrow C_{r-1}
+        \\ D_r & \Rightarrow A_{r-1}
+        \\ D_r & \Rightarrow D_{r-1}
+        \\ E_r & \Rightarrow A_{r-1} \quad r = 7,8
+        \\ E_r & \Rightarrow D_{r-1} \quad r = 6,7,8
+        \\ E_r & \Rightarrow E_{r-1}
+        \\ F_4 & \Rightarrow B_3
+        \\ F_4 & \Rightarrow C_3
+        \\ G_2 & \Rightarrow A_1 \text{(short root)}
         \end{aligned}
 
     Not all Levi subgroups are maximal subgroups. If the Levi is not
     maximal there may or may not be a preprogrammed ``rule="levi"`` for
     it. If there is not, the branching rule may still be obtained by going
     through an intermediate subgroup that is maximal using rule="extended".
-    Thus the other Levi branching rule from `G_2 \to A_1` corresponding to the
-    long root is available by first branching `G_2 \to A_2` then `A_2 \to A_1`.
+    Thus the other Levi branching rule from `G_2 \Rightarrow A_1` corresponding to the
+    long root is available by first branching `G_2 \Rightarrow A_2` then `A_2 \Rightarrow A_1`.
     Similarly the branching rules to the Levi subgroup:
 
     .. MATH::
 
-        E_r \to A_{r-1} \quad r = 6,7,8
+        E_r \Rightarrow A_{r-1} \quad r = 6,7,8
 
-    may be obtained by first branching `E_6 \to A_5 \times A_1`, `E_7 \to A_7`
-    or `E_8 \to A_8`.
+    may be obtained by first branching `E_6 \Rightarrow A_5 \times A_1`, `E_7 \Rightarrow A_7`
+    or `E_8 \Rightarrow A_8`.
 
     EXAMPLES::
 
@@ -1694,9 +1696,9 @@ def branch_weyl_character(chi, R, S, rule="default"):
     .. MATH::
 
         \begin{aligned}
-        A_r & \to A_r
-        \\ D_r & \to D_r
-        \\ E_6 & \to E_6
+        A_r & \Rightarrow A_r
+        \\ D_r & \Rightarrow D_r
+        \\ E_6 & \Rightarrow E_6
         \end{aligned}
 
     EXAMPLES::
@@ -1722,16 +1724,16 @@ def branch_weyl_character(chi, R, S, rule="default"):
 
     .. MATH::
 
-        A_{2r} & \to B_r
-        \\ A_{2r-1} & \to C_r
-        \\ A_{2r-1} & \to D_r
-        \\ D_r & \to B_{r-1}
-        \\ E_6 & \to F_4
-        \\ E_6 & \to C_4
-        \\ D_4 & \to G_2
+        A_{2r} & \Rightarrow B_r
+        \\ A_{2r-1} & \Rightarrow C_r
+        \\ A_{2r-1} & \Rightarrow D_r
+        \\ D_r & \Rightarrow B_{r-1}
+        \\ E_6 & \Rightarrow F_4
+        \\ E_6 & \Rightarrow C_4
+        \\ D_4 & \Rightarrow G_2
 
-    The last branching rule, `D_4 \to G_2` is not to a maximal subgroup
-    since `D_4 \to B_3 \to G_2`, but it is included for convenience.
+    The last branching rule, `D_4 \Rightarrow G_2` is not to a maximal subgroup
+    since `D_4 \Rightarrow B_3 \Rightarrow G_2`, but it is included for convenience.
 
     In some cases, two outer automorphisms that differ by an
     inner automorphism may have different fixed subgroups.
@@ -1779,7 +1781,7 @@ def branch_weyl_character(chi, R, S, rule="default"):
     results in a Dynkin diagram, then there is a branching rule. Use
     ``rule="extended"`` for these. We will also use this classification
     for some rules that are not of this type, mainly involving type `B`,
-    such as `D_6 \to `B_3 \times B_3`.
+    such as `D_6 \Rightarrow B_3 \times B_3`.
 
     Here is the extended Dynkin diagram for `D_6`::
 
@@ -1790,10 +1792,10 @@ def branch_weyl_character(chi, R, S, rule="default"):
         O---O---O---O---O
         1   2   3   4   6
 
-    Removing the node 3 results in an embedding `D_3 \times D_3 \to D_6`.
-    This corresponds to the embedding `SO(6) \times SO(6) \to SO(12)`, and
+    Removing the node 3 results in an embedding `D_3 \times D_3 \Rightarrow D_6`.
+    This corresponds to the embedding `SO(6) \times SO(6) \Rightarrow SO(12)`, and
     is of extended type. On the other hand the embedding `SO(5) \times SO(7)
-    \to SO(12)` (e.g. `B_2 \times B_3 \to D_6`) cannot be explained this way
+    \Rightarrow SO(12)` (e.g. `B_2 \times B_3 \Rightarrow D_6`) cannot be explained this way
     but for uniformity is implemented under ``rule="extended"``.
 
     The following rules are implemented as special cases
@@ -1802,12 +1804,12 @@ def branch_weyl_character(chi, R, S, rule="default"):
     .. MATH::
 
         \begin{aligned}
-        E_6 & \to A_5 \times A_1, A_2 \times A_2 \times A_2
-        \\ E_7 & \to A_7, D_6 \times A_1, A_3 \times A_3 \times A_1
-        \\ E_8 & \to A_8, D_8, E_7 \times A_1, A_4 \times A_4,
+        E_6 & \Rightarrow A_5 \times A_1, A_2 \times A_2 \times A_2
+        \\ E_7 & \Rightarrow A_7, D_6 \times A_1, A_3 \times A_3 \times A_1
+        \\ E_8 & \Rightarrow A_8, D_8, E_7 \times A_1, A_4 \times A_4,
         D_5 \times A_3, E_6 \times A_2
-        \\ F_4 & \to B_4, C_3 \times A_1, A_2 \times A_2, A_3 \times A_1
-        \\ G_2 => A_1 \times A_1
+        \\ F_4 & \Rightarrow B_4, C_3 \times A_1, A_2 \times A_2, A_3 \times A_1
+        \\ G_2 & \Rightarrow A_1 \times A_1
         \end{aligned}
 
     Note that `E_8` has only a limited number of representations of
@@ -1882,14 +1884,14 @@ def branch_weyl_character(chi, R, S, rule="default"):
     .. MATH::
 
         \begin{aligned}
-        SO(n) & \to SO(a) \times SO(b) \times SO(c) \times \cdots,
-        \\ Sp(2n) & \to Sp(2a) \times Sp(2b) \times Sp(2c) x \times \cdots,
+        SO(n) & \Rightarrow SO(a) \times SO(b) \times SO(c) \times \cdots,
+        \\ Sp(2n) & \Rightarrow Sp(2a) \times Sp(2b) \times Sp(2c) x \times \cdots,
         \end{aligned}
 
     where `O(a)` is type `D_r` for `a = 2r` or `B_r` for `a = 2r+1`
     and `Sp(2r)` is type `C_r`. In some cases these are also of
-    extended type, as in the case `D_3 \times D_3 \to D_6` discussed above.
-    But in other cases, for example `B_3 \times B_3 \to D_7`, they are not
+    extended type, as in the case `D_3 \times D_3 \Rightarrow D_6` discussed above.
+    But in other cases, for example `B_3 \times B_3 \Rightarrow D_7`, they are not
     of extended type.
 
     .. RUBRIC:: Tensor
@@ -1899,17 +1901,17 @@ def branch_weyl_character(chi, R, S, rule="default"):
     .. MATH::
 
         \begin{aligned}
-        A_{rs-1} & \to A_{r-1} \times A_{s-1},
-        \\ B_{2rs+r+s} & \to B_r \times B_s,
-        \\ D_{2rs+s} & \to B_r \times D_s,
-        \\ D_{2rs} & \to D_r \times D_s,
-        \\ D_{2rs} & \to C_r \times C_s,
-        \\ C_{2rs+s} & \to B_r \times C_s,
-        \\ C_{2rs} & \to C_r \times D_s.
+        A_{rs-1} & \Rightarrow A_{r-1} \times A_{s-1},
+        \\ B_{2rs+r+s} & \Rightarrow B_r \times B_s,
+        \\ D_{2rs+s} & \Rightarrow B_r \times D_s,
+        \\ D_{2rs} & \Rightarrow D_r \times D_s,
+        \\ D_{2rs} & \Rightarrow C_r \times C_s,
+        \\ C_{2rs+s} & \Rightarrow B_r \times C_s,
+        \\ C_{2rs} & \Rightarrow C_r \times D_s.
         \end{aligned}
 
     corresponding to the tensor product homomorphism. For type
-    `A`, the homomorphism is `GL(r) \times GL(s) \to GL(rs)`. For the
+    `A`, the homomorphism is `GL(r) \times GL(s) \Rightarrow GL(rs)`. For the
     classical types, the relevant fact is that if `V, W` are
     orthogonal or symplectic spaces, that is, spaces endowed
     with symmetric or skew-symmetric bilinear forms, then `V \otimes W`
@@ -1954,19 +1956,19 @@ def branch_weyl_character(chi, R, S, rule="default"):
 
     .. MATH::
 
-        GL(n) \to GL\left(\binom{n+k-1}{k}\right)
+        GL(n) \Rightarrow GL\left(\binom{n+k-1}{k}\right)
         \times GL\left(\binom{n}{k}\right).
 
     The corresponding branching rules are not implemented but a special
-    case is. The `k`-th symmetric power homomorphism `SL(2) \to GL(k+1)`
+    case is. The `k`-th symmetric power homomorphism `SL(2) \Rightarrow GL(k+1)`
     has its image inside of `SO(2r+1)` if `k = 2r` and inside of `Sp(2r)` if
     `k = 2r - 1`. Hence there are branching rules:
 
     .. MATH::
 
         \begin{aligned}
-        B_r & \to A_1
-        \\ C_r & \to A_1
+        B_r & \Rightarrow A_1
+        \\ C_r & \Rightarrow A_1
         \end{aligned}
 
     and these may be obtained using the rule "symmetric_power".
@@ -1983,24 +1985,24 @@ def branch_weyl_character(chi, R, S, rule="default"):
 
     .. RUBRIC:: Miscellaneous
 
-    Use ``rule="miscellaneous"`` for the following rules embeddings of maximal subgroups,
+    Use ``rule="miscellaneous"`` for the following embeddings of maximal subgroups,
     all involving exceptional groups.
 
     .. MATH::
 
         \begin{aligned}
-        B_3 & \to G_2,
-        E_6 & \to G_2,
-        E_6 & \to A_2,
-        \\ F_4 & \to G_2 \times A_1,
-        \\ E_6 & \to G_2 \times A_2,
-        \\ E_7 & \to G_2 \times C_3,
-        \\ E_7 & \to F_4 \times A_1,
-        \\ E_7 & \to A_1 \times A_1,
-        \\ E_7 & \to G_2 \times A_1,
-        \\ E_8 & \to G_2 \times F_4.
-        \\ E_8 & \to A2 \times A_1.
-        \\ E_8 & \to B2.
+        B_3 & \Rightarrow G_2,
+        \\ E_6 & \Rightarrow G_2,
+        \\ E_6 & \Rightarrow A_2,
+        \\ F_4 & \Rightarrow G_2 \times A_1,
+        \\ E_6 & \Rightarrow G_2 \times A_2,
+        \\ E_7 & \Rightarrow G_2 \times C_3,
+        \\ E_7 & \Rightarrow F_4 \times A_1,
+        \\ E_7 & \Rightarrow A_1 \times A_1,
+        \\ E_7 & \Rightarrow G_2 \times A_1,
+        \\ E_8 & \Rightarrow G_2 \times F_4.
+        \\ E_8 & \Rightarrow A2 \times A_1.
+        \\ E_8 & \Rightarrow B2.
         \end{aligned}
 
     Except for those embeddings available by ``rule="extended"``, these
@@ -2012,7 +2014,7 @@ def branch_weyl_character(chi, R, S, rule="default"):
     `E_6`, the embeddings in question may be characterized by the condition that the
     27-dimensional representations of `E_6` restrict irreducibly to `A_2` or
     `G_2`. Since `G_2` has a subgroup isomorphic to `A_2`, it is worth
-    mentioning that the composite branching rules:
+    mentioning that the composite branching rules::
 
         branching_rule("E6","G2","miscellaneous")*branching_rule("G2","A2","extended")
         branching_rule("E6","A2","miscellaneous")
@@ -2113,7 +2115,7 @@ def branch_weyl_character(chi, R, S, rule="default"):
 
     .. RUBRIC:: Branching Rules From Plethysms
 
-    Nearly all branching rules `G \to H` where `G` is of type `A`, `B`, `C`
+    Nearly all branching rules `G \Rightarrow H` where `G` is of type `A`, `B`, `C`
     or `D` are covered by the preceding rules. The function
     :func:`branching_rule_from_plethysm` covers the remaining cases.
 
@@ -2124,7 +2126,7 @@ def branch_weyl_character(chi, R, S, rule="default"):
     to a maximal subgroup `H` such that
     `\mathrm{rank}(H) < \mathrm{rank}(G) - 1`.
 
-    We consider a homomorphism `H \to G` where `G` is one of
+    We consider a homomorphism `H \Rightarrow G` where `G` is one of
     `SL(r+1)`, `SO(2r+1)`, `Sp(2r)` or `SO(2r)`. The function
     :func:`branching_rule_from_plethysm` produces the corresponding
     branching rule. The main ingredient is the character
@@ -2147,8 +2149,8 @@ def branch_weyl_character(chi, R, S, rule="default"):
 
     This confirms that the character has degree 6 and
     is symplectic, so it corresponds to a homomorphism
-    `SL(2) \to Sp(6)`, and there is a corresponding
-    branching rule `C_3 \to A_1`.
+    `SL(2) \Rightarrow Sp(6)`, and there is a corresponding
+    branching rule `C_3 \Rightarrow A_1`.
 
     ::
 
@@ -2194,13 +2196,13 @@ def branch_weyl_character(chi, R, S, rule="default"):
     .. MATH::
 
         \begin{aligned}
-        B_2 & \to C_2
-        \\ C_2 & \to B_2
-        \\ A_3 & \to D_3
-        \\ D_3 & \to A_3
-        \\ D_2 & \to A_1 \to A_1
-        \\ B_1 & \to A_1
-        \\ C_1 & \to A_1
+        B_2 & \Rightarrow C_2
+        \\ C_2 & \Rightarrow B_2
+        \\ A_3 & \Rightarrow D_3
+        \\ D_3 & \Rightarrow A_3
+        \\ D_2 & \Rightarrow A_1 \Rightarrow A_1
+        \\ B_1 & \Rightarrow A_1
+        \\ C_1 & \Rightarrow A_1
         \end{aligned}
 
     EXAMPLES::
@@ -2224,10 +2226,10 @@ def branch_weyl_character(chi, R, S, rule="default"):
     `A_3(x+t,y+t,z+t,w+t)` is the same as `A_3(x,y,z,w)` tensored with
     `\mathrm{det}^t`. So as a representation of `SL(4)`,
     ``A3(1/4,1/4,1/4,-3/4)`` is the same as ``A3(1,1,1,0)``. The exterior
-    square representation `SL(4) \to GL(6)` admits an invariant symmetric
-    bilinear form, so is a representation `SL(4) \to SO(6)` that lifts to
-    an isomorphism `SL(4) \to \mathrm{Spin}(6)`. Conversely, there are two
-    isomorphisms `SO(6) \to SL(4)`, of which we've selected one.
+    square representation `SL(4) \Rightarrow GL(6)` admits an invariant symmetric
+    bilinear form, so is a representation `SL(4) \Rightarrow SO(6)` that lifts to
+    an isomorphism `SL(4) \Rightarrow \mathrm{Spin}(6)`. Conversely, there are two
+    isomorphisms `SO(6) \Rightarrow SL(4)`, of which we've selected one.
 
     In cases like this you might prefer ``style="coroots"``::
 
@@ -2322,23 +2324,23 @@ def branch_weyl_character(chi, R, S, rule="default"):
     Suppose you want to branch from a group `G` to a subgroup `H`.
     Arrange the embedding so that a Cartan subalgebra `U` of `H` is
     contained in a Cartan subalgebra `T` of `G`. There is thus
-    a mapping from the weight spaces `\mathrm{Lie}(T)^* \to \mathrm{Lie}(U)^*`.
+    a mapping from the weight spaces `\mathrm{Lie}(T)^* \Rightarrow \mathrm{Lie}(U)^*`.
     Two embeddings will produce identical branching rules if they
     differ by an element of the Weyl group of `H`.
 
     The *rule* is this map `\mathrm{Lie}(T)^*`, which is ``G.space()``, to
     `\mathrm{Lie}(U)^*`, which is ``H.space()``,
     which you may implement as a function. As an example, let
-    us consider how to implement the branching rule `A_3 \to C_2`.
+    us consider how to implement the branching rule `A_3 \Rightarrow C_2`.
     Here `H = C_2 = Sp(4)` embedded as a subgroup in `A_3 = GL(4)`. The
     Cartan subalgebra `U` consists of diagonal matrices with
     eigenvalues `u_1, u_2, -u_2, -u_1`. The ``C2.space()`` is the
     two dimensional vector spaces consisting of the linear
     functionals `u_1` and `u_2` on `U`. On the other hand `\mathrm{Lie}(T)` is
     `\RR^4`. A convenient way to see the restriction is to
-    think of it as the adjoint of the map `(u_1, u_2) \to
+    think of it as the adjoint of the map `(u_1, u_2) \mapsto
     (u_1,u_2, -u_2, -u_1)`,
-    that is, `(x_0, x_1, x_2, x_3) \to (x_0 - x_3, x_1 - x_2)`. Hence we may
+    that is, `(x_0, x_1, x_2, x_3) \Rightarrow (x_0 - x_3, x_1 - x_2)`. Hence we may
     encode the rule as follows::
 
        def rule(x):

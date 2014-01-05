@@ -44,12 +44,12 @@ def maximal_subgroups(ct, mode="print_rules"):
     The group of outer automorphisms modulo inner automorphisms is isomorphic
     to the group of symmetries of the Dynkin diagram, and these are available
 
-    For example, we verify that the maximal subgroup `A_1\times C_2` from
+    For example, we verify that the maximal subgroup `A_1\\times C_2` from
     the above list is not invariant under inner automorphisms, by checking
     that applying the triality automorphism changes it to another. We
     check this by observing that the first spin representation has different
     branching. There are (up to conjugacy) three maximal subgroups of
-    `D_4` of type `A_1\times C_2`::
+    `D_4` of type `A_1\\times C_2`::
 
         sage: b = maximal_subgroups("D4",mode="get_rule")["A1xC2"]; b
         composite branching rule D4 => (tensor) C1xC2 => ([isomorphic branching rule C1 => A1, 'identity']) A1xC2

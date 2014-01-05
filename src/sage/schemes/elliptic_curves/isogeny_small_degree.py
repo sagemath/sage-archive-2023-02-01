@@ -1937,7 +1937,7 @@ def isogenies_prime_degree_general(E, l):
     from sage.rings.arith import gcd
     from sage.misc.all import prod
     def mult(f):
-        return gcd(F(f(m([x,0])).numerator()),psi_l).monic()
+        return gcd(F(f(m(x)).numerator()),psi_l).monic()
     while len(factors) > 0:
         f = factors[0]
         factors.remove(f)

@@ -2084,7 +2084,7 @@ def branch_weyl_character(chi, R, S, rule="default"):
     `E_7` or `E_8` contains a maximal subgroup of type `A_1`.
     These are tabulated in Theorem 1 of Testerman,
     The construction of the maximal A1's in the exceptional algebraic groups,
-    Proc. Amer. Math. Soc. 116 (1992), no. 3, 635–644. The
+    Proc. Amer. Math. Soc. 116 (1992), no. 3, 635-644. The
     names of these branching rules are roman numerals referring
     to the seven cases of her Theorem 1. Use these branching
     rules as in the following examples.

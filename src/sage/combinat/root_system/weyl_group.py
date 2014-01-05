@@ -569,6 +569,24 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
             d[x] = [y for y in g if x.length() < y.length() and ref.has_key(x*y.inverse())]
         return DiGraph(d)
 
+# All of the absolute length code is written to work with arbitrary coxeter groups
+# however as far as I know there is no way to get the coxeter graph without relying
+# on specific implementations so for now I'm putting the code here.
+
+    def simple_reflection_canonical_matrix(self, i):
+        i = i - 1 # switch to zero-based indexing for compatibility with matrices
+        coxeter_matrix = self.cartan_type().coxeter_matrix()
+        n = len(self.simple_reflections())
+        M = Matrix.identity(RR, n)
+        for j in range(n):
+            angle = (pi / coxeter_matrix[i,j])
+            b = -cos(angle)
+            M[i, j] = M[i, j] - (2 * b)
+        return M
+
+    def canonical_matrix_from_reduced_word(self, word):
+        matrices = [self.simple_reflection_canonical_matrix(i) for i in word]
+        return reduce(lambda x,y: x * y, matrices)
 
 class ClassicalWeylSubgroup(WeylGroup_gens):
     """
@@ -939,5 +957,38 @@ class WeylGroupElement(MatrixGroupElement_gap):
 
         """
         return "".join(str(i) for i in self.to_permutation())
+
+# All of the absolute length code is written to work with arbitrary coxeter groups
+# however as far as I know there is no way to get the coxeter graph without relying
+# on specific implementations so for now I'm putting the code here.
+
+    def canonical_matrix(self): # This is used by absolute length
+        """
+        This is an n-dimension real faithful essential representation, where
+        n is the number of generators of the coxeter group.  Note that this
+        is not always the most natural matrix representation, for instance
+        in type A.
+        """
+        return self.parent().canonical_matrix_from_reduced_word(self.reduced_word())
+
+    def absolute_length(self):
+        """
+        The absolute length is the length of th shortest expression
+        of the element as a product of reflections
+        """
+        M = self.canonical_matrix()
+        image = (M - Matrix.identity(M.nrows())).image()
+        return image.dimension()
+
+    def absolute_le(self, other):
+        """
+        A general reflection is an element of the form w s w^(-1), where s
+        is a simple reflection. The absolute order is defined analogously to
+        the weak order but using general reflections rather than just simple
+        reflections.
+        """
+        if self == other: return True
+        if self.absolute_length() >= other.absolute_length(): return False
+        return self.absolute_length() + (self.inverse() * other).absolute_length() == other.absolute_length()
 
 WeylGroup_gens.Element = WeylGroupElement

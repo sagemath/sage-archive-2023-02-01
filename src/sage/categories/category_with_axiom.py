@@ -129,7 +129,6 @@ all_axioms = ("Flying", "Blue",
 # Magmas().Commutative().Unital() is printed as
 # ``Category of commutative unital magmas''
 
-
 @cached_function
 def axioms_rank(axiom):
     """
@@ -212,40 +211,47 @@ def base_category_class_and_axiom(cls):
         the class name; however we ca notdo it robustly until #9107 is
         fixed, we are stuck, and anyway we haven't needed it so far.
     """
-    if "." in cls.__name__:
-        # Case 1: class name of the form Sets.Infinite
-        #axiom = cls.__name__.split(".")[-1]
-        raise TypeError("Could not retrieve base category class for %s"%cls)
+    base_category_class_and_axiom.cache[(cls,),()] = (None,None)
+    try:
+        if "." in cls.__name__:
+            # Case 1: class name of the form Sets.Infinite
+            #axiom = cls.__name__.split(".")[-1]
+            raise TypeError("Could not retrieve base category class for %s"%cls)
 
-    # Case 2: class name of the form FiniteSets or AlgebrasWithBasis
-    # The following checks that the class is defined in the module
-    # with the corresponding name (e.g. sage.categories.finite_sets)
-    # Otherwise the category should specify explicitly _base_category_class_and_axiom
-    # TODO: document this!
-    name = cls.__name__
-    module = uncamelcase(name, "_")
-    assert cls.__module__ == "sage.categories."+module,\
-        "%s should be implemented in `sage.categories.%s`"%(cls, module)
-    for axiom in all_axioms:
-        if axiom == "WithBasis" and name.endswith(axiom):
-            base_name = name[:-len(axiom)]
-            base_module_name = module[:-len(uncamelcase(axiom))-1]
-        elif name.startswith(axiom):
-            base_name = name[len(axiom):]
-            base_module_name = module[len(uncamelcase(axiom))+1:]
-        else:
-            continue
-        if base_module_name == "sets": # Special case for Sets which is in sets_cat
-            base_module_name = "sets_cat"
+        # Case 2: class name of the form FiniteSets or AlgebrasWithBasis
+        # The following checks that the class is defined in the module
+        # with the corresponding name (e.g. sage.categories.finite_sets)
+        # Otherwise the category should specify explicitly _base_category_class_and_axiom
+        # TODO: document this!
+        name = cls.__name__
+        module = uncamelcase(name, "_")
+        assert cls.__module__ == "sage.categories."+module,\
+            "%s should be implemented in `sage.categories.%s`"%(cls, module)
+        for axiom in all_axioms:
+            if axiom == "WithBasis" and name.endswith(axiom):
+                base_name = name[:-len(axiom)]
+                base_module_name = module[:-len(uncamelcase(axiom))-1]
+            elif name.startswith(axiom):
+                base_name = name[len(axiom):]
+                base_module_name = module[len(uncamelcase(axiom))+1:]
+            else:
+                continue
+            if base_module_name == "sets": # Special case for Sets which is in sets_cat
+                base_module_name = "sets_cat"
+            try:
+                base_module = importlib.import_module("sage.categories."+base_module_name)
+                base_category_class = getattr(base_module, base_name)
+                assert getattr(base_category_class, axiom, None) is cls, \
+                    "Missing (lazy import) link for %s to %s for axiom %s?"%(base_category_class, cls, axiom)
+                return base_category_class, axiom
+            except (ImportError,AttributeError),msg:
+                pass
+        raise TypeError("Could not retrieve base category class for %s"%cls)
+    finally:
         try:
-            base_module = importlib.import_module("sage.categories."+base_module_name)
-            base_category_class = getattr(base_module, base_name)
-            assert getattr(base_category_class, axiom, None) is cls, \
-                "Missing (lazy import) link for %s to %s for axiom %s?"%(base_category_class, cls, axiom)
-            return base_category_class, axiom
-        except (ImportError,AttributeError):
-            pass
-    raise TypeError("Could not retrieve base category class for %s"%cls)
+            del base_category_class_and_axiom.cache[(cls,),()]
+        except KeyError:
+            print "this should not happen!",cls
 
 
 @cached_function
@@ -379,6 +385,10 @@ class CategoryWithAxiom(Category):
             ``Monoids._base_category_class``.
         """
         base_category_class, axiom = base_category_class_and_axiom(cls)
+        if base_category_class is None:
+            # This happens if there is a recursion.
+            # We break the recursion by raising a type error, that is caught.
+            raise TypeError("Could not retrieve base category class for %s"%cls)
         cls._base_category_class_and_axiom_was_guessed = True
         return (base_category_class, axiom)
 

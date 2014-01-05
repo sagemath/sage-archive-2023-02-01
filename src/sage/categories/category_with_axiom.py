@@ -179,7 +179,6 @@ def uncamelcase(s,separator=" "):
     """
     return re.sub("[a-z][A-Z]", lambda match: match.group()[0]+separator+match.group()[1], s).lower()
 
-@cached_function
 def base_category_class_and_axiom(cls):
     """
     Try to guess the axioms from the class name and, if the
@@ -211,48 +210,40 @@ def base_category_class_and_axiom(cls):
         the class name; however we ca notdo it robustly until #9107 is
         fixed, we are stuck, and anyway we haven't needed it so far.
     """
-    base_category_class_and_axiom.cache[(cls,),()] = (None,None)
-    try:
-        if "." in cls.__name__:
-            # Case 1: class name of the form Sets.Infinite
-            #axiom = cls.__name__.split(".")[-1]
-            raise TypeError("Could not retrieve base category class for %s"%cls)
-
-        # Case 2: class name of the form FiniteSets or AlgebrasWithBasis
-        # The following checks that the class is defined in the module
-        # with the corresponding name (e.g. sage.categories.finite_sets)
-        # Otherwise the category should specify explicitly _base_category_class_and_axiom
-        # TODO: document this!
-        name = cls.__name__
-        module = uncamelcase(name, "_")
-        assert cls.__module__ == "sage.categories."+module,\
-            "%s should be implemented in `sage.categories.%s`"%(cls, module)
-        for axiom in all_axioms:
-            if axiom == "WithBasis" and name.endswith(axiom):
-                base_name = name[:-len(axiom)]
-                base_module_name = module[:-len(uncamelcase(axiom))-1]
-            elif name.startswith(axiom):
-                base_name = name[len(axiom):]
-                base_module_name = module[len(uncamelcase(axiom))+1:]
-            else:
-                continue
-            if base_module_name == "sets": # Special case for Sets which is in sets_cat
-                base_module_name = "sets_cat"
-            try:
-                base_module = importlib.import_module("sage.categories."+base_module_name)
-                base_category_class = getattr(base_module, base_name)
-                assert getattr(base_category_class, axiom, None) is cls, \
-                    "Missing (lazy import) link for %s to %s for axiom %s?"%(base_category_class, cls, axiom)
-                return base_category_class, axiom
-            except (ImportError,AttributeError),msg:
-                pass
+    if "." in cls.__name__:
+        # Case 1: class name of the form Sets.Infinite
+        #axiom = cls.__name__.split(".")[-1]
         raise TypeError("Could not retrieve base category class for %s"%cls)
-    finally:
-        try:
-            del base_category_class_and_axiom.cache[(cls,),()]
-        except KeyError:
-            print "this should not happen!",cls
 
+    # Case 2: class name of the form FiniteSets or AlgebrasWithBasis
+    # The following checks that the class is defined in the module
+    # with the corresponding name (e.g. sage.categories.finite_sets)
+    # Otherwise the category should specify explicitly _base_category_class_and_axiom
+    # TODO: document this!
+    name = cls.__name__
+    module = uncamelcase(name, "_")
+    assert cls.__module__ == "sage.categories."+module,\
+        "%s should be implemented in `sage.categories.%s`"%(cls, module)
+    for axiom in all_axioms:
+        if axiom == "WithBasis" and name.endswith(axiom):
+            base_name = name[:-len(axiom)]
+            base_module_name = module[:-len(uncamelcase(axiom))-1]
+        elif name.startswith(axiom):
+            base_name = name[len(axiom):]
+            base_module_name = module[len(uncamelcase(axiom))+1:]
+        else:
+            continue
+        if base_module_name == "sets": # Special case for Sets which is in sets_cat
+            base_module_name = "sets_cat"
+        try:
+            base_module = importlib.import_module("sage.categories."+base_module_name)
+            base_category_class = getattr(base_module, base_name)
+            assert getattr(base_category_class, axiom, None) is cls, \
+                "Missing (lazy import) link for %s to %s for axiom %s?"%(base_category_class, cls, axiom)
+            return base_category_class, axiom
+        except (ImportError,AttributeError):
+            pass
+    raise TypeError("Could not retrieve base category class for %s"%cls)
 
 @cached_function
 def axiom_of_nested_class(cls, nested_cls):
@@ -284,9 +275,9 @@ def axiom_of_nested_class(cls, nested_cls):
         sage: axiom_of_nested_class(Magmas, Semigroups)
         'Associative'
     """
-    if hasattr(nested_cls, "_base_category_class_and_axiom"):
-        axiom = nested_cls._base_category_class_and_axiom[1]
-    else:
+    try:
+        axiom =nested_cls.__dict__["_base_category_class_and_axiom"][1]
+    except KeyError:
         assert not isinstance(cls, DynamicMetaclass)
         nested_cls_name = nested_cls.__name__.split(".")[-1]
         if nested_cls_name in all_axioms:
@@ -385,10 +376,6 @@ class CategoryWithAxiom(Category):
             ``Monoids._base_category_class``.
         """
         base_category_class, axiom = base_category_class_and_axiom(cls)
-        if base_category_class is None:
-            # This happens if there is a recursion.
-            # We break the recursion by raising a type error, that is caught.
-            raise TypeError("Could not retrieve base category class for %s"%cls)
         cls._base_category_class_and_axiom_was_guessed = True
         return (base_category_class, axiom)
 
@@ -515,7 +502,7 @@ class CategoryWithAxiom(Category):
             base_category_class = base_category_class.__base__
         if "_base_category_class_and_axiom" not in cls.__dict__:
             cls._base_category_class_and_axiom = (base_category_class, axiom_of_nested_class(base_category_class, cls))
-            cls._base_category_class_and_axiom_was_guessed = True
+            cls._base_category_class_and_axiom_was_guessed = False
         else:
             assert cls._base_category_class_and_axiom[0] is base_category_class, \
                 "base category class for %s mismatch; expected %s, got %s"%(cls, cls._base_category_class_and_axiom[0], base_category_class)

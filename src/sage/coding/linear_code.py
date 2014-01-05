@@ -20,11 +20,36 @@ called the dual space of `C`.
 If `F=\GF{2}` then `C` is called a binary code.  If `F = \GF{q}` then `C` is
 called a `q`-ary code.  The elements of a code `C` are called codewords.
 
-The symmetric group `S_n` acts on `F^n` by permuting coordinates.  If an
-element `p \in S_n` sends a code `C` of length `n` to itself (in other words,
-every codeword of `C` is sent to some other codeword of `C`) then `p` is
-called a permutation automorphism of `C`.  The (permutation) automorphism
-group is denoted `Aut(C)`.
+Let `C`, `D` be linear codes of length `n` and dimension `k`. There are
+several notions of equivalence for linear codes:
+
+`C` and `D` are
+
+    - permutational equivalent, if there is some permutation `\pi \in S_n`
+      such that `(c_{\pi(0)}, \ldots, c_{\pi(n-1)}) \in D` for all `c \in C`.
+
+    - linear equivalent, if there is some permutation `\pi \in S_n` and a
+      vector `\phi` of units of length `n` such that
+      `(c_{\pi(0)} \phi_0^{-1}, \ldots, c_{\pi(n-1)} \phi_{n-1}^{-1}) \in D`
+      for all `c \in C`.
+
+    - semilinear equivalent, if there is some permutation `\pi \in S_n`, a
+      vector `\phi` of units of length `n` and a field automorphism `\alpha`
+      such that
+      `(\alpha(c_{\pi(0)}) \phi_0^{-1}, \ldots, \alpha( c_{\pi(n-1)}) \phi_{n-1}^{-1} ) \in D`
+      for all `c \in C`.
+
+These are group actions. If one of these group elements sends
+the linear code `C` to itself, then we will call it an automorphism.
+Depending on the group action we will call those groups:
+
+    - permuation automorphism group
+
+    - monomial automorphism group (every linear Hamming isometry is a monomial
+      transformation of the ambient space, for `n\geq 3`)
+
+    - automorphism group (every semilinear Hamming isometry is a semimonomial
+      transformation of the ambient space, for `n\geq 3`)
 
 This file contains
 
@@ -165,6 +190,9 @@ AUTHORS:
 
 - Thomas Feulner (2012-11): :trac:`13723`: deprecation of ``hamming_weight()``
 
+- Thomas Feulner (2013-10): added methods to compute a canonical representative
+  and the automorphism group
+
 TESTS::
 
     sage: MS = MatrixSpace(GF(2),4,7)
@@ -206,6 +234,7 @@ from sage.rings.integer import Integer
 from sage.combinat.set_partition import SetPartitions
 from sage.misc.randstate import current_randstate
 from sage.misc.decorators import rename_keyword
+from sage.misc.cachefunc import cached_method
 
 ZZ = IntegerRing()
 VectorSpace = fm.VectorSpace
@@ -797,6 +826,50 @@ class LinearCode(module.Module_old):
         """
         return "Linear code of length %s, dimension %s over %s"%(self.length(), self.dimension(), self.base_ring())
 
+    def automorphism_group_gens(self, equivalence="semilinear"):
+        r"""
+        Return generators of the automorphism group of ``self``.
+
+        INPUT:
+
+        - ``equivalence`` (optional) -- which defines the acting group, either
+
+            * ``permutational``
+
+            * ``linear``
+
+            * ``semilinear``
+
+        OUTPUT:
+
+        - generators of the automorphism group of ``self``
+        - the order of the automorphism group of ``self``
+
+        EXAMPLES::
+
+            sage: C = codes.HammingCode(3,GF(4,"z"));
+            sage: C.automorphism_group_gens()
+            ([((1, 1, 1, z, z + 1, z + 1, z + 1, z, z, 1, 1, 1, z, z, z + 1, z, z, z + 1, z + 1, z + 1, 1); (1,6,12,17)(2,16,4,5,11,8,14,13)(3,21,19,10,20,18,15,9), Ring endomorphism of Finite Field in z of size 2^2
+                  Defn: z |--> z + 1), ((1, 1, 1, z, z + 1, 1, 1, z, z, z + 1, z, z, z + 1, z + 1, z + 1, 1, z + 1, z, z, 1, 1); (1,6,9,13,15,18)(2,21)(3,16,7)(4,5,11,10,12,14)(17,19), Ring endomorphism of Finite Field in z of size 2^2
+                  Defn: z |--> z), ((z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z); (), Ring endomorphism of Finite Field in z of size 2^2
+                  Defn: z |--> z)], 362880)
+            sage: C.automorphism_group_gens(equivalence="linear")
+            ([((z, z, 1, 1, z + 1, z, z + 1, z, z, z + 1, 1, 1, 1, z + 1, z, z, z + 1, z + 1, 1, 1, z); (1,5,10,9,4,14,11,16,18,20,6,19,12,15,3,8,2,17,7,13,21), Ring endomorphism of Finite Field in z of size 2^2
+                  Defn: z |--> z), ((z + 1, 1, z, 1, 1, z + 1, z + 1, z, 1, z, z + 1, z, z + 1, z + 1, z, 1, 1, z + 1, z + 1, z + 1, z); (1,17,10)(2,15,13)(4,11,21)(5,18,12)(6,14,19)(7,8,16), Ring endomorphism of Finite Field in z of size 2^2
+                  Defn: z |--> z), ((z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1); (), Ring endomorphism of Finite Field in z of size 2^2
+                  Defn: z |--> z)], 181440)
+            sage: C.automorphism_group_gens(equivalence="permutational")
+            ([((1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1); (1,11)(3,10)(4,9)(5,7)(12,21)(14,20)(15,19)(16,17), Ring endomorphism of Finite Field in z of size 2^2
+                  Defn: z |--> z), ((1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1); (2,18)(3,19)(4,10)(5,16)(8,13)(9,14)(11,21)(15,20), Ring endomorphism of Finite Field in z of size 2^2
+                  Defn: z |--> z), ((1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1); (1,19)(3,17)(4,21)(5,20)(7,14)(9,12)(10,16)(11,15), Ring endomorphism of Finite Field in z of size 2^2
+                  Defn: z |--> z), ((1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1); (2,13)(3,14)(4,20)(5,11)(8,18)(9,19)(10,15)(16,21), Ring endomorphism of Finite Field in z of size 2^2
+                  Defn: z |--> z)], 64)
+        """
+        aut_group_can_label = self._canonize(equivalence)
+        return aut_group_can_label.get_autom_gens(), \
+               aut_group_can_label.get_autom_order()
+
+
     def automorphism_group_binary_code(self):
         r"""
         This function is deprecated. Use permutation_automorphism_group instead.
@@ -1045,6 +1118,95 @@ class LinearCode(module.Module_old):
                 k_S = C_S.dimension()
                 b = b + (q**(k_S) -1)/(q-1)
         return b
+
+    @cached_method
+    def _canonize(self, equivalence):
+        r"""
+        Compute a canonical representative and the automorphism group
+        under the action of the semimonomial transformation group.
+
+        INPUT:
+
+        - ``equivalence`` -- which defines the acting group, either
+
+            * ``permutational``
+
+            * ``linear``
+
+            * ``semilinear``
+
+        EXAMPLES::
+
+            sage: C = codes.HammingCode(3,GF(4,"z"));
+            sage: aut_group_can_label = C._canonize("semilinear")
+            sage: C_iso = LinearCode(aut_group_can_label.get_transporter()*C.gen_mat())
+            sage: C_iso == aut_group_can_label.get_canonical_form()
+            True
+            sage: aut_group_can_label.get_autom_gens()
+            [((z, z + 1, 1, z + 1, z, z, z, z + 1, 1, z + 1, z + 1, z, z + 1, 1, z + 1, 1, z, z + 1, 1, z + 1, z + 1); (1,12,21,18,15,20)(2,19,16)(3,4,11,6,13,7)(5,8)(10,14,17), Ring endomorphism of Finite Field in z of size 2^2
+                  Defn: z |--> z + 1), ((z + 1, 1, z, 1, 1, z, 1, z + 1, z, z + 1, z, z + 1, z, 1, z, z + 1, z, z, z + 1, z + 1, 1); (1,20,2,9,13,21,11,17,10,16,3,5,18,8)(4,12,6,15,14,19,7), Ring endomorphism of Finite Field in z of size 2^2
+                  Defn: z |--> z + 1), ((z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z); (), Ring endomorphism of Finite Field in z of size 2^2
+                  Defn: z |--> z)]
+        """
+        from sage.coding.codecan.autgroup_can_label import LinearCodeAutGroupCanLabel
+        return LinearCodeAutGroupCanLabel(self, algorithm_type=equivalence)
+
+    def canonical_representative(self, equivalence="semilinear"):
+        r"""
+        Compute a canonical orbit representative under the action of the
+        semimonomial transformation group.
+
+        See :mod:`sage.coding.codecan.autgroup_can_label`
+        for more details, for example if you would like to compute
+        a canonical form under some more restrictive notion of equivalence,
+        i.e. if you would like to restrict the permutation group
+        to a Young subgroup.
+
+        INPUT:
+
+        - ``equivalence`` (optional) -- which defines the acting group, either
+
+            * ``permutational``
+
+            * ``linear``
+
+            * ``semilinear``
+
+        OUTPUT:
+
+        - a canonical representative of ``self``
+        - a semimonomial transformation mapping ``self`` onto its representative
+
+        EXAMPLES::
+
+            sage: F.<z> = GF(4)
+            sage: C = codes.HammingCode(3,F)
+            sage: CanRep, transp = C.canonical_representative()
+
+        Check that the transporter element is correct::
+
+            sage: LinearCode(transp*C.gen_mat()) == CanRep
+            True
+
+        Check if an equivalent code has the same canonical representative::
+
+            sage: f = F.hom([z**2])
+            sage: C_iso = LinearCode(C.gen_mat().apply_map(f))
+            sage: CanRep_iso, _ = C_iso.canonical_representative()
+            sage: CanRep_iso == CanRep
+            True
+
+        Since applying the Frobenius automorphism could be extended to an
+        automorphism of `C`, the following must also yield ``True``::
+
+            sage: CanRep1, _ = C.canonical_representative("linear")
+            sage: CanRep2, _ = C_iso.canonical_representative("linear")
+            sage: CanRep2 == CanRep1
+            True
+        """
+        aut_group_can_label = self._canonize(equivalence)
+        return aut_group_can_label.get_canonical_form(), \
+               aut_group_can_label.get_transporter()
 
     def __contains__(self,v):
         r"""
@@ -2104,7 +2266,9 @@ class LinearCode(module.Module_old):
         algorithm of Robert Miller.
 
         Note that if the base ring of `C` is `GF(2)` then this is the full
-        automorphism group.
+        automorphism group. Otherwise, you could use
+        :meth:`~sage.coding.linear_code.LinearCode.automorphism_group_gens`
+        to compute generators of the full automorphism group.
 
         INPUT:
 
@@ -2114,6 +2278,11 @@ class LinearCode(module.Module_old):
           ``"gap+verbose"`` then code-theoretic data is printed out at
           several stages of the computation. If ``"partition"`` then the
           (default) partition refinement algorithm of Robert Miller is used.
+          Finally, if ``"codecan"`` then the partition refinement algorithm
+          of Thomas Feulner is used, which also computes a canonical
+          representative of ``self`` (call
+          :meth:`~sage.coding.linear_code.LinearCode.canonical_representative`
+          to access it).
 
         OUTPUT:
 
@@ -2129,6 +2298,9 @@ class LinearCode(module.Module_old):
             sage: G = C.permutation_automorphism_group()
             sage: G.order()
             144
+            sage: GG = C.permutation_automorphism_group("codecan")
+            sage: GG == G
+            True
 
         A less easy example involves showing that the permutation
         automorphism group of the extended ternary Golay code is the
@@ -2142,6 +2314,9 @@ class LinearCode(module.Module_old):
             7920
             sage: G = C.permutation_automorphism_group()  # long time (6s on sage.math, 2011)
             sage: G.is_isomorphic(M11)                    # long time
+            True
+            sage: GG = C.permutation_automorphism_group("codecan") # long time
+            sage: GG == G # long time
             True
 
         Other examples::
@@ -2160,8 +2335,11 @@ class LinearCode(module.Module_old):
             Permutation Group with generators [(1,3,4)]
             sage: C = codes.HammingCode(2,GF(4,"z")); C
             Linear code of length 5, dimension 3 over Finite Field in z of size 2^2
-            sage: C.permutation_automorphism_group(algorithm="partition")
+            sage: G = C.permutation_automorphism_group(algorithm="partition"); G
             Permutation Group with generators [(1,3)(4,5), (1,4)(3,5)]
+            sage: GG = C.permutation_automorphism_group(algorithm="codecan") # long time
+            sage: GG == G # long time
+            True
             sage: C.permutation_automorphism_group(algorithm="gap")  # optional - gap_packages (Guava package)
             sage: C = codes.TernaryGolayCode()
             sage: C.permutation_automorphism_group(algorithm="gap")  # optional - gap_packages (Guava package)
@@ -2250,6 +2428,9 @@ class LinearCode(module.Module_old):
                 else:
                     return PermutationGroup([])
             return AutGp
+        if algorithm=="codecan":
+            gens, _ = self.automorphism_group_gens("permutational")
+            return PermutationGroup([x.get_perm() for x in gens])
         raise NotImplementedError("The only algorithms implemented currently are 'gap', 'gap+verbose', and 'partition'.")
 
     def permuted_code(self, p):

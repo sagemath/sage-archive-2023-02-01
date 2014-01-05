@@ -1822,6 +1822,8 @@ cdef extern from 'pari/pari.h':
     GEN     Pi2n(long n, long prec)
     GEN     PiI2(long prec)
     GEN     PiI2n(long n, long prec)
+    long    Zn_issquare(GEN x, GEN n)
+    GEN     Zn_sqrt(GEN x, GEN n)
     void    consteuler(long prec)
     void    constpi(long prec)
     GEN     exp_Ir(GEN x)

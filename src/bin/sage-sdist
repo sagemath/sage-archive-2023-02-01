@@ -63,3 +63,17 @@ echo "Moving final distribution file to $SAGE_ROOT/dist"
 
 mv "$TARGET" "$SAGE_ROOT"/dist/
 mv "$TARGET".* "$SAGE_ROOT"/dist/
+
+# Create configure tarball
+CONFTARGET="configure-$SAGE_VERSION"
+rm -rf "$SAGE_ROOT/dist/$CONFTARGET"
+mkdir "$SAGE_ROOT/dist/$CONFTARGET"
+mkdir "$SAGE_ROOT/dist/$CONFTARGET/config"
+mkdir "$SAGE_ROOT/dist/$CONFTARGET/build"
+cd "$SAGE_ROOT/dist/$TARGET"
+for f in config/* configure build/Makefile-auto.in; do
+    cp -p "$f" "$SAGE_ROOT/dist/$CONFTARGET/$f"
+done
+echo "Creating $CONFTARGET.tar.gz ..."
+cd "$SAGE_ROOT/dist/$CONFTARGET"
+tar zcf "../$CONFTARGET.tar.gz" *

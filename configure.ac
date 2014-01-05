@@ -18,7 +18,7 @@
 # so I am putting 'x.y.z'
 
 AC_INIT([Sage],[x.y.z], sage-devel@googlegroups.com)
-AC_PREREQ([2.63])
+AC_PREREQ([2.60])
 
 AC_COPYRIGHT([GPL version 2 or (at your option) any later version])
 AC_CONFIG_SRCDIR([configure.ac])

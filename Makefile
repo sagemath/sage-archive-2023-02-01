@@ -8,6 +8,8 @@
 # to run various types of test suites, and to remove parts of the build etc.
 
 PIPE = build/pipestatus
+MISSING = config/missing --run
+
 
 all: start doc  # indirectly depends on build
 
@@ -148,15 +150,16 @@ ptestoptional: ptestall # just an alias
 ptestoptionallong: ptestalllong # just an alias
 
 config/missing:
-	[ -d config ] || mkdir config
+	test -d config || mkdir config
 	aclocal -I m4
 	automake --add-missing --copy build/Makefile-auto
 
-configure: configure.ac \
+configure: configure.ac src/bin/sage-version.sh \
         m4/ax_c_check_flag.m4 m4/ax_gcc_option.m4 m4/ax_gcc_version.m4 m4/ax_gxx_option.m4 m4/ax_gxx_version.m4 m4/ax_prog_perl_version.m4
-	test -f config/missing || $(MAKE) config/missing
-	config/missing --run aclocal -I m4
-	config/missing --run autoconf
+	test -f config/missing || $(MAKE) config/missing || \
+		bash -c 'source src/bin/sage-env; source sage-version.sh; sage-download-file $$SAGE_UPSTREAM/configure-$$SAGE_VERSION.tar.gz | tar xf -'
+	$(MISSING) aclocal -I m4
+	$(MISSING) autoconf
 
 install:
 	echo "Experimental use only!"

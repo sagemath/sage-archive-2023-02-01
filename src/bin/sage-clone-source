@@ -7,6 +7,8 @@
 #
 # Create empty directory DST (delete it if it existed) and copy all
 # Sage source files from SRC to DST using git.
+#
+# Also generate auto-generated files like "configure" in DST.
 ########################################################################
 
 set -e
@@ -24,18 +26,13 @@ mkdir -p "$DST"
 
 git clone "$SRC" "$DST"
 
-# Copy autotools-generated files
-mkdir "$DST/config"
-cd "$SRC"
-for f in config/* configure build/Makefile-auto.in; do
-    # Don't use cp -p since we want timestamps to be updated
-    cp "$f" "$DST/$f"
-done
-
 cd "$DST"
 git remote set-url origin "$SAGE_REPO_ANONYMOUS"
 
-# save space
+# Save space
 git prune
+
+# Generate auto-generated files (without using "missing")
+make MISSING= configure
 
 echo "Finished cloning Sage sources"

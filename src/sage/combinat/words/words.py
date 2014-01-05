@@ -987,6 +987,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
 
             sage: W = Words(5)
             sage: W.random_element() # random
+            word: 5114325445423521544531411434451152142155...
         """
         from sage.misc.prandom import randint
         n = self.alphabet().cardinality()
@@ -1340,11 +1341,11 @@ class FiniteWords_over_OrderedAlphabet(Words_over_OrderedAlphabet):
 
             sage: W = Words([4,5], infinite=False)
             sage: for w in W:
-            ...     if len(w)>3:
-            ...         break
-            ...     else:
-            ...         w
-            ...
+            ....:   if len(w)>3:
+            ....:       break
+            ....:   else:
+            ....:       w
+            ....:
             word:
             word: 4
             word: 5
@@ -1362,11 +1363,11 @@ class FiniteWords_over_OrderedAlphabet(Words_over_OrderedAlphabet):
             word: 555
             sage: W = Words([5,4], infinite=False)
             sage: for w in W:
-            ...     if len(w)>3:
-            ...         break
-            ...     else:
-            ...         w
-            ...
+            ....:   if len(w)>3:
+            ....:       break
+            ....:   else:
+            ....:       w
+            ....:
             word:
             word: 5
             word: 4

@@ -130,7 +130,8 @@ class Expect(Interface):
                  script_subdirectory="", restart_on_ctrlc=False,
                  verbose_start=False, init_code=[], max_startup_time=None,
                  logfile = None, eval_using_file_cutoff=0,
-                 do_cleaner = True, remote_cleaner = False, path=None):
+                 do_cleaner=True, remote_cleaner=False, path=None,
+                 terminal_echo=True):
 
         Interface.__init__(self, name)
         self.__is_remote = False
@@ -184,6 +185,7 @@ class Expect(Interface):
 
         quit.expect_objects.append(weakref.ref(self))
         self._available_vars = []
+        self._terminal_echo = terminal_echo
 
     def _get(self, wait=0.1, alternate_prompt=None):
         if self._expect is None:
@@ -435,6 +437,8 @@ If this all works, you can then make calls like:
 
         os.chdir(current_path)
         self._expect.timeout = self.__max_startup_time
+        if not self._terminal_echo:
+            self._expect.setecho(0)
 
         #self._expect.setmaxread(self.__maxread)
         self._expect.maxread = self.__maxread
@@ -867,15 +871,26 @@ If this all works, you can then make calls like:
                         except (TypeError, RuntimeError):
                             pass
                     raise RuntimeError, "%s\n%s crashed executing %s"%(msg,self, line)
-                out = E.before
+                if self._terminal_echo:
+                    out = E.before
+                else:
+                    out = E.before.rstrip('\n\r')
+                    if out == '':   # match bug with echo
+                        out = line
             else:
-                out = '\n\r'
+                if self._terminal_echo:
+                    out = '\n\r'
+                else:
+                    out = ''
         except KeyboardInterrupt:
             self._keyboard_interrupt()
             raise KeyboardInterrupt, "Ctrl-c pressed while running %s"%self
-        i = out.find("\n")
-        j = out.rfind("\r")
-        return out[i+1:j].replace('\r\n','\n')
+        if self._terminal_echo:
+            i = out.find("\n")
+            j = out.rfind("\r")
+            return out[i+1:j].replace('\r\n','\n')
+        else:
+            return out.replace('\r\n','\n')
 
     def _keyboard_interrupt(self):
         print "Interrupting %s..."%self

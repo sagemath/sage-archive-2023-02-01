@@ -682,7 +682,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         return self.rst_transform(r, s, t)
 
-    def local_data(self, P=None, proof = None, algorithm="pari"):
+    def local_data(self, P=None, proof=None, algorithm="pari", globally=False):
         r"""
         Local data for this elliptic curve at the prime `P`.
 
@@ -701,6 +701,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
           `\QQ`. If "generic", use the general number field
           implementation.
 
+        - ``globally`` -- whether the local algorithm uses global generators
+          for the prime ideals. Default is False, which won't require any
+          information about the class group. If True, a generator for `P`
+          will be used if `P` is principal. Otherwise, or if ``globally``
+          is False, the minimal model returned will preserve integrality
+          at other primes, but not minimality.
+
         OUTPUT:
 
         If `P` is specified, returns the ``EllipticCurveLocalData``
@@ -711,12 +718,6 @@ class EllipticCurve_number_field(EllipticCurve_field):
         .. note::
 
            The model is not required to be integral on input.
-
-           For principal `P`, a generator is used as a uniformizer,
-           and integrality or minimality at other primes is not
-           affected.  For non-principal `P`, the minimal model
-           returned will preserve integrality at other primes, but not
-           minimality.
 
         EXAMPLES::
 
@@ -770,9 +771,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
         from sage.schemes.elliptic_curves.ell_local_data import check_prime
         P = check_prime(self.base_field(),P)
 
-        return self._get_local_data(P,proof,algorithm)
+        return self._get_local_data(P,proof,algorithm,globally)
 
-    def _get_local_data(self, P, proof, algorithm="pari"):
+    def _get_local_data(self, P, proof, algorithm="pari", globally=False):
         r"""
         Internal function to create data for this elliptic curve at the prime `P`.
 
@@ -794,6 +795,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
           ``ellglobalred`` implementation of Tate's algorithm over
           `\QQ`. If "generic", use the general number field
           implementation.
+
+        - ``globally`` -- whether the local algorithm uses global generators
+          for the prime ideals. Default is False, which won't require any
+          information about the class group. If True, a generator for `P`
+          will be used if `P` is principal. Otherwise, or if ``globally``
+          is False, the minimal model returned will preserve integrality
+          at other primes, but not minimality.
 
         EXAMPLES::
 
@@ -818,14 +826,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
             False
         """
         try:
-            return self._local_data[P, proof, algorithm]
+            return self._local_data[P, proof, algorithm, globally]
         except AttributeError:
             self._local_data = {}
         except KeyError:
             pass
         from sage.schemes.elliptic_curves.ell_local_data import EllipticCurveLocalData
-        self._local_data[P, proof, algorithm] = EllipticCurveLocalData(self, P, proof, algorithm)
-        return self._local_data[P, proof, algorithm]
+        self._local_data[P, proof, algorithm, globally] = EllipticCurveLocalData(self, P, proof, algorithm, globally)
+        return self._local_data[P, proof, algorithm, globally]
 
     def local_minimal_model(self, P, proof = None, algorithm="pari"):
         r"""
@@ -1375,7 +1383,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         E = self.global_integral_model()
         primes = E.base_ring()(E.discriminant()).support()
         for P in primes:
-            E = E.local_data(P,proof).minimal_model()
+            E = E.local_data(P,proof, globally=True).minimal_model()
         return E._reduce_model()
 
     def reduction(self,place):

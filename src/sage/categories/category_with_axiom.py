@@ -351,12 +351,32 @@ class CategoryWithAxiom(Category):
 
         .. SEEALSO:: :meth:`_axiom`
 
-        EXAMPLES::
+        .. NOTE::
+
+            Most of the time, this attribute is actually not computed
+            by this lazy class attribute, but is explicitly set while
+            the axiom is bound to the base category.
+
+        EXAMPLES:
+
+        Here is one of the few cases in which the lazy class attribute is
+        involved, which can be seen by the attribute
+        ``_base_category_class_and_axiom_was_guessed``::
+
+            sage: CommutativeRings()._base_category_class_and_axiom
+            (<class 'sage.categories.rings.Rings'>, 'Commutative')
+            sage: CommutativeRings()._base_category_class_and_axiom_was_guessed
+            True
+
+        In other cases, :meth:`CategoryWithAxiom.__classget__` assigns this
+        attribute directly::
 
             sage: FiniteSets()._base_category_class_and_axiom
             (<class 'sage.categories.sets_cat.Sets'>, 'Finite')
             sage: FiniteSets()._base_category_class_and_axiom_was_guessed
-            True
+            False
+
+        Last, here is an exceptional case::
 
             sage: Fields()._base_category_class_and_axiom
             (<class 'sage.categories.division_rings.DivisionRings'>, 'Commutative')

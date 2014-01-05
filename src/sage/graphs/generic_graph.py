@@ -13,6 +13,7 @@ can be applied on both. Here is what it can do:
 
     :meth:`~GenericGraph.networkx_graph` | Creates a new NetworkX graph from the Sage graph
     :meth:`~GenericGraph.to_dictionary` | Creates a dictionary encoding the graph.
+    :meth:`~GenericGraph.copy` | Return a copy of the graph.
     :meth:`~GenericGraph.adjacency_matrix` | Returns the adjacency matrix of the (di)graph.
     :meth:`~GenericGraph.incidence_matrix` | Returns an incidence matrix of the (di)graph
     :meth:`~GenericGraph.distance_matrix` | Returns the distance matrix of the (strongly) connected (di)graph
@@ -304,6 +305,7 @@ Methods
 """
 
 from sage.misc.decorators import options
+from sage.misc.cachefunc import cached_method
 from sage.misc.prandom import random
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
@@ -463,21 +465,36 @@ class GenericGraph(GenericGraph_pyx):
                         return False
             return True
 
+    @cached_method
     def __hash__(self):
         """
-        Since graphs are mutable, they should not be hashable, so we return
-        a type error.
+        Only immutable graphs are hashable.
 
-        EXAMPLES::
+        The hash value of an immutable graph relies on the tuple
+        of vertices and the tuple of edges. The resulting value
+        is cached.
 
-            sage: hash(Graph())
+        EXAMPLE::
+
+            sage: G = graphs.PetersenGraph()
+            sage: {G:1}[G]
             Traceback (most recent call last):
             ...
-            TypeError: graphs are mutable, and thus not hashable
+            TypeError: This graph is mutable, and thus not hashable. Create
+            an immutable copy by `g.copy(data_structure='static_sparse')`
+            sage: G_imm = Graph(G, data_structure="static_sparse")
+            sage: G_imm == G
+            True
+            sage: {G_imm:1}[G_imm]  # indirect doctest
+            1
+            sage: G_imm.__hash__() is G_imm.__hash__()
+            True
+
         """
         if getattr(self, "_immutable", False):
             return hash((tuple(self.vertices()), tuple(self.edges())))
-        raise TypeError("graphs are mutable, and thus not hashable")
+        raise TypeError("This graph is mutable, and thus not hashable. "
+                        "Create an immutable copy by `g.copy(data_structure='static_sparse')`")
 
     def __mul__(self, n):
         """
@@ -695,23 +712,44 @@ class GenericGraph(GenericGraph_pyx):
     ### Formats
 
     def __copy__(self, implementation='c_graph', data_structure=None,
-                 sparse=None):
+                 sparse=None, immutable=None):
         """
-        Creates a copy of the graph.
+        Return a copy of the graph.
 
         INPUT:
 
-         - ``implementation`` - string (default: 'networkx') the
-           implementation goes here.  Current options are only
-           'networkx' or 'c_graph'.
+         - ``implementation`` - string (default: 'c_graph') the implementation
+           goes here.  Current options are only 'networkx' or 'c_graph'.
 
          - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
            ``data_structure="sparse"``, and ``sparse=False`` is an alias for
-           ``data_structure="dense"``.
+           ``data_structure="dense"``. Only used when
+           ``implementation='c_graph'`` and ``data_structure=None``.
 
          - ``data_structure`` -- one of ``"sparse"``, ``"static_sparse"``, or
            ``"dense"``. See the documentation of :class:`Graph` or
-           :class:`DiGraph`.
+           :class:`DiGraph`. Only used when ``implementation='c_graph'``.
+
+         - ``immutable`` (boolean) -- whether to create a mutable/immutable
+           copy. Only used when ``implementation='c_graph'`` and
+           ``data_structure=None``.
+
+           * ``immutable=None`` (default) means that the graph and its copy will
+             behave the same way.
+
+           * ``immutable=True`` is a shortcut for
+             ``data_structure='static_sparse'`` and ``implementation='c_graph'``
+
+           * ``immutable=False`` sets ``implementation`` to ``'c_graph'``. When
+             ``immutable=False`` is used to copy an immutable graph, the data
+             structure used is ``"sparse"`` unless anything else is specified.
+
+        .. NOTE::
+
+            If the graph uses
+            :class:`~sage.graphs.base.static_sparse_backend.StaticSparseBackend`
+            and the ``_immutable`` flag, then ``self`` is returned rather than a
+            copy (unless one of the optional arguments is used).
 
         OUTPUT:
 
@@ -721,7 +759,7 @@ class GenericGraph(GenericGraph_pyx):
 
            Please use this method only if you need to copy but change the
            underlying implementation.  Otherwise simply do ``copy(g)``
-           instead of doing ``g.copy()``.
+           instead of ``g.copy()``.
 
         EXAMPLES::
 
@@ -762,9 +800,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: G2 is G
             False
 
-        TESTS: We make copies of the _pos and _boundary attributes.
+        TESTS:
 
-        ::
+        We make copies of the ``_pos`` and ``_boundary`` attributes::
 
             sage: g = graphs.PathGraph(3)
             sage: h = copy(g)
@@ -772,22 +810,127 @@ class GenericGraph(GenericGraph_pyx):
             False
             sage: h._boundary is g._boundary
             False
+
+        We make sure that one can make immutable copies by providing the
+        ``data_structure`` optional argument, and that copying an immutable graph
+        returns the graph::
+
+            sage: G = graphs.PetersenGraph()
+            sage: hash(G)
+            Traceback (most recent call last):
+            ...
+            TypeError: This graph is mutable, and thus not hashable. Create an
+            immutable copy by `g.copy(data_structure='static_sparse')`
+            sage: g = G.copy(data_structure='static_sparse')
+            sage: hash(g)    # random
+            1833517720
+            sage: g==G
+            True
+            sage: g is copy(g) is g.copy()
+            True
+            sage: g is g.copy(data_structure='static_sparse')
+            True
+
+        If a graph pretends to be immutable, but does not use the static sparse
+        backend, then the copy is not identic with the graph, even though it is
+        considered to be hashable::
+
+            sage: P = Poset(([1,2,3,4], [[1,3],[1,4],[2,3]]), linear_extension=True, facade = False)
+            sage: H = P.hasse_diagram()
+            sage: H._immutable = True
+            sage: hash(H)   # random
+            -1843552882
+            sage: copy(H) is H
+            False
+
+        TESTS:
+
+        Bad input::
+
+            sage: G.copy(data_structure="sparse", sparse=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: You cannot define 'immutable' or 'sparse' when 'data_structure' has a value.
+            sage: G.copy(data_structure="sparse", immutable=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: You cannot define 'immutable' or 'sparse' when 'data_structure' has a value.
+            sage: G.copy(immutable=True, sparse=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: There is no dense immutable backend at the moment.
+
+        Which backend ?::
+
+            sage: G.copy(data_structure="sparse")._backend
+            <class 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
+            sage: G.copy(data_structure="dense")._backend
+            <class 'sage.graphs.base.dense_graph.DenseGraphBackend'>
+            sage: G.copy(data_structure="static_sparse")._backend
+            <class 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+            sage: G.copy(immutable=True)._backend
+            <class 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+            sage: G.copy(immutable=True, sparse=True)._backend
+            <class 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+            sage: G.copy(immutable=False, sparse=True)._backend
+            <class 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
+            sage: G.copy(immutable=False, sparse=False)._backend
+            <class 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
+            sage: Graph(implementation="networkx").copy(implementation='c_graph')._backend
+            <class 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
+
+        Fake immutable graphs::
+
+            sage: G._immutable = True
+            sage: G.copy()._backend
+            <class 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
         """
-        if sparse != None:
-            if data_structure != None:
-                raise ValueError("The 'sparse' argument is an alias for "
-                                 "'data_structure'. Please do not define both.")
-            data_structure = "sparse" if sparse else "dense"
+        # Which data structure should be used ?
+        if implementation != 'c_graph':
+            # We do not care about the value of data_structure. But let's check
+            # the user did not define too much.
+            if data_structure != None or immutable != None or sparse != None:
+                raise ValueError("'data_structure' 'immutable' and 'sparse' can"
+                                 " only be defined when 'implementation'='c_graph'")
+        elif data_structure != None:
+            # data_structure is already defined so there is nothing left to do
+            # here ! Did the user try to define too much ?
+            if immutable != None or sparse != None:
+                raise ValueError("You cannot define 'immutable' or 'sparse' "
+                                 "when 'data_structure' has a value.")
+        # At this point :
+        # - implementation is 'c_graph'
+        # - data_structure is None.
+        elif immutable is True:
+            data_structure = 'static_sparse'
+            if sparse is False:
+                raise ValueError("There is no dense immutable backend at the moment.")
+        elif immutable is False:
+            # If the users requests a mutable graph and input is immutable, we
+            # chose the 'sparse' cgraph backend. Unless the user explicitly
+            # asked for something different.
+            if getattr(self, '_immutable', False):
+                data_structure = 'dense' if sparse is False else 'sparse'
+        elif sparse is True:
+            data_structure = "sparse"
+        elif sparse is False:
+            data_structure = "dense"
+
+        # Immutable copy of an immutable graph ? return self !
+        if getattr(self, '_immutable', False):
+            from sage.graphs.base.static_sparse_backend import StaticSparseBackend
+            if (isinstance(self._backend, StaticSparseBackend) and
+                implementation=='c_graph' and
+                (data_structure=='static_sparse' or data_structure is None)):
+                return self
 
         if data_structure is None:
             from sage.graphs.base.dense_graph import DenseGraphBackend
-            from sage.graphs.base.sparse_graph import SparseGraphBackend
             if isinstance(self._backend, DenseGraphBackend):
                 data_structure = "dense"
-            elif isinstance(self._backend, SparseGraphBackend):
-                data_structure = "sparse"
             else:
-                data_structure = "static_sparse"
+                data_structure = "sparse"
+
         from copy import copy
         G = self.__class__(self, name=self.name(), pos=copy(self._pos), boundary=copy(self._boundary), implementation=implementation, data_structure=data_structure)
 
@@ -896,7 +1039,7 @@ class GenericGraph(GenericGraph_pyx):
           neighbors.
 
         * If ``edge_labels == False`` and ``multiple_edges == True``, the output
-          is a dictionary the same as previously with one difference : the
+          is a dictionary the same as previously with one difference: the
           neighbors are listed with multiplicity.
 
         * If ``edge_labels == True`` and ``multiple_edges == False``, the output
@@ -2181,8 +2324,18 @@ class GenericGraph(GenericGraph_pyx):
         """
         Whether the (di)graph is to be considered as a weighted (di)graph.
 
-        Note that edge weightings can still exist for (di)graphs ``G`` where
-        ``G.weighted()`` is ``False``.
+        INPUT:
+
+        - ``new`` (optional bool): If it is provided, then the weightedness
+          flag is set accordingly. This is not allowed for immutable graphs.
+
+        .. NOTE::
+
+            Changing the weightedness flag changes the ``==``-class of
+            a graph and is thus not allowed for immutable graphs.
+
+            Edge weightings can still exist for (di)graphs ``G`` where
+            ``G.weighted()`` is ``False``.
 
         EXAMPLES:
 
@@ -2211,7 +2364,7 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        Ensure that ticket #10490 is fixed: allows a weighted graph to be
+        Ensure that :trac:`10490` is fixed: allows a weighted graph to be
         set as unweighted. ::
 
             sage: G = Graph({1:{2:3}})
@@ -2233,8 +2386,35 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.weighted(True)
             sage: G.weighted()
             True
+
+        Ensure that graphs using the static sparse backend can not be mutated
+        using this method, as fixed in :trac:`15278`::
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.weighted()
+            False
+            sage: H = copy(G)
+            sage: H == G
+            True
+            sage: H.weighted(True)
+            sage: H == G
+            False
+            sage: G_imm = Graph(G, data_structure="static_sparse")
+            sage: G_imm == G
+            True
+            sage: G_imm.weighted()
+            False
+            sage: G_imm.weighted(True)
+            Traceback (most recent call last):
+            ...
+            TypeError: This graph is immutable and can thus not be changed.
+            Create a mutable copy, e.g., by `g.copy(sparse=False)`
+
         """
         if new is not None:
+            if getattr(self, '_immutable', False):
+                raise TypeError("This graph is immutable and can thus not be changed. "
+                                "Create a mutable copy, e.g., by `g.copy(sparse=False)`")
             if new in [True, False]:
                 self._weighted = new
         else:
@@ -6154,7 +6334,7 @@ class GenericGraph(GenericGraph_pyx):
         NOTE:
 
         This function, as ``is_hamiltonian``, computes a Hamiltonian
-        cycle if it exists : the user should *NOT* test for
+        cycle if it exists: the user should *NOT* test for
         Hamiltonicity using ``is_hamiltonian`` before calling this
         function, as it would result in computing it twice.
 
@@ -6390,7 +6570,7 @@ class GenericGraph(GenericGraph_pyx):
                     break
 
                 if verbose:
-                    print "Adding a constraint on circuit : ",certificate
+                    print "Adding a constraint on circuit: ",certificate
 
                 # There is a circuit left. Let's add the corresponding
                 # constraint !
@@ -7174,7 +7354,7 @@ class GenericGraph(GenericGraph_pyx):
 
         .. NOTE::
 
-            This function is topological : it does not take the eventual
+            This function is topological: it does not take the eventual
             weights of the edges into account.
 
         EXAMPLE:
@@ -7884,13 +8064,12 @@ class GenericGraph(GenericGraph_pyx):
         if vertex not in self:
             raise RuntimeError("Vertex (%s) not in the graph."%str(vertex))
 
+        self._backend.del_vertex(vertex)
         attributes_to_update = ('_pos', '_assoc', '_embedding')
         for attr in attributes_to_update:
             if hasattr(self, attr) and getattr(self, attr) is not None:
                 getattr(self, attr).pop(vertex, None)
         self._boundary = [v for v in self._boundary if v != vertex]
-
-        self._backend.del_vertex(vertex)
 
     def delete_vertices(self, vertices):
         """
@@ -7914,6 +8093,8 @@ class GenericGraph(GenericGraph_pyx):
         for vertex in vertices:
             if vertex not in self:
                 raise RuntimeError("Vertex (%s) not in the graph."%str(vertex))
+
+        self._backend.del_vertices(vertices)
         attributes_to_update = ('_pos', '_assoc', '_embedding')
         for attr in attributes_to_update:
             if hasattr(self, attr) and getattr(self, attr) is not None:
@@ -7922,8 +8103,6 @@ class GenericGraph(GenericGraph_pyx):
                     attr_dict.pop(vertex, None)
 
         self._boundary = [v for v in self._boundary if v not in vertices]
-
-        self._backend.del_vertices(vertices)
 
     def has_vertex(self, vertex):
         """
@@ -16207,7 +16386,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.get_pos()
             {0: (0, 0), 1: (2, 0), 2: (3, 0), 3: (4, 0)}
 
-        Check that #12477 is fixed::
+        Check that :trac:`12477` is fixed::
 
             sage: g = Graph({1:[2,3]})
             sage: rel = {1:'a', 2:'b'}
@@ -16216,21 +16395,33 @@ class GenericGraph(GenericGraph_pyx):
             [3, 'a', 'b']
             sage: rel
             {1: 'a', 2: 'b'}
+
+        Immutable graphs cannot be relabeled::
+
+            sage: Graph(graphs.PetersenGraph(), immutable=True).relabel({})
+            Traceback (most recent call last):
+            ...
+            ValueError: To relabel an immutable graph use inplace=False
         """
         from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 
         if not inplace:
-            from copy import copy
-            G = copy(self)
+            G = self.copy(immutable=False)
             perm2 = G.relabel(perm,
                               return_map= return_map,
                               check_input = check_input,
                               complete_partial_function = complete_partial_function)
 
+            if getattr(self, "_immutable", False):
+                G = self.__class__(G, immutable = True)
+
             if return_map:
                 return G, perm2
             else:
                 return G
+
+        if getattr(self, "_immutable", False):
+            raise ValueError("To relabel an immutable graph use inplace=False")
 
         # If perm is not a dictionary, we build one !
 
@@ -16859,7 +17050,7 @@ class GenericGraph(GenericGraph_pyx):
 
         This function, as ``hamiltonian_cycle`` and
         ``traveling_salesman_problem``, computes a Hamiltonian
-        cycle if it exists : the user should *NOT* test for
+        cycle if it exists: the user should *NOT* test for
         Hamiltonicity using ``is_hamiltonian`` before calling
         ``hamiltonian_cycle`` or ``traveling_salesman_problem``
         as it would result in computing it twice.

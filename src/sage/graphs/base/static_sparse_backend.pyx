@@ -374,6 +374,24 @@ class StaticSparseBackend(CGraphBackend):
         self._vertex_to_labels = vertices
         self._vertex_to_int = {v:i for i,v in enumerate(vertices)}
 
+    def __reduce__(self):
+        """
+        Return a tuple used for pickling this graph.
+
+        TESTS::
+
+            sage: G = Graph(graphs.PetersenGraph(), immutable=True)
+            sage: _ = loads(dumps(G))
+        """
+        if self._directed:
+            from sage.graphs.digraph import DiGraph as constructor
+        else:
+            from sage.graphs.graph import Graph as constructor
+        G = constructor()
+        G.add_vertices(self.iterator_verts(None))
+        G.add_edges(list(self.iterator_out_edges(self.iterator_verts(None),1)))
+        return (StaticSparseBackend, (G, self._loops, self._multiedges))
+
     def has_vertex(self, v):
         r"""
         Tests if the vertex belongs to the graph
@@ -392,6 +410,22 @@ class StaticSparseBackend(CGraphBackend):
             False
         """
         return v in self._vertex_to_int
+
+    def relabel(self, perm, directed):
+        r"""
+        Relabel the graphs' vertices. No way.
+
+        TEST::
+
+            sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
+            sage: g = StaticSparseBackend(graphs.PetersenGraph())
+            sage: g.relabel([],True)
+            Traceback (most recent call last):
+            ...
+            ValueError: Thou shalt not relabel an immutable graph
+
+        """
+        raise ValueError("Thou shalt not relabel an immutable graph")
 
     def get_edge_label(self, object u, object v):
         """
@@ -741,6 +775,10 @@ class StaticSparseBackend(CGraphBackend):
             (3, 4), (3, 8), (4, 9), (5, 7), (5, 8), (6, 8), (6, 9), (7, 9)]
         """
         cdef FrozenBitset fb
+
+        if self._directed:
+            raise RuntimeError("This is not meant for directed graphs.")
+
         try:
             vertices = FrozenBitset([self._vertex_to_int[x] for x in vertices])
         except KeyError:

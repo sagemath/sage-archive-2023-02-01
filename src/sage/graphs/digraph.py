@@ -253,9 +253,15 @@ class DiGraph(GenericGraph):
 
        * ``"static_sparse"`` -- selects the
          :mod:`~sage.graphs.base.static_sparse_backend` (this backend is faster
-         than the sparse backend and smaller in memory, but it is immutable).
+         than the sparse backend and smaller in memory, and it is immutable, so
+         that the resulting graphs can be used as dictionary keys).
 
        *Only available when* ``implementation == 'c_graph'``
+
+    - ``immutable`` (boolean) -- whether to create a immutable digraph. Note
+      that ``immutable=True`` is actually a shortcut for
+      ``data_structure='static_sparse'``. Set to ``False`` by default, only
+      available when ``implementation='c_graph'``
 
     -  ``vertex_labels`` - only for implementation == 'c_graph'.
        Whether to allow any object as a vertex (slower), or
@@ -411,6 +417,26 @@ class DiGraph(GenericGraph):
         sage: D._boundary
         []
 
+    Demonstrate that digraphs using the static backend are equal to mutable
+    graphs but can be used as dictionary keys::
+
+        sage: import networkx
+        sage: g = networkx.DiGraph({0:[1,2,3], 2:[4]})
+        sage: G = DiGraph(g, implementation='networkx')
+        sage: G_imm = DiGraph(G, data_structure="static_sparse")
+        sage: H_imm = DiGraph(G, data_structure="static_sparse")
+        sage: H_imm is G_imm
+        False
+        sage: H_imm == G_imm == G
+        True
+        sage: {G_imm:1}[H_imm]
+        1
+        sage: {G_imm:1}[G]
+        Traceback (most recent call last):
+        ...
+        TypeError: This graph is mutable, and thus not hashable. Create an
+        immutable copy by `g.copy(data_structure='static_sparse')`
+
     """
     _directed = True
 
@@ -418,7 +444,7 @@ class DiGraph(GenericGraph):
                  boundary=None, weighted=None, implementation='c_graph',
                  data_structure="sparse", vertex_labels=True, name=None,
                  multiedges=None, convert_empty_dict_labels_to_None=None,
-                 sparse=True):
+                 sparse=True, immutable=False):
         """
         TESTS::
 
@@ -484,6 +510,13 @@ class DiGraph(GenericGraph):
             sage: grafo4 = DiGraph(matad,format = "adjacency_matrix", weighted=True)
             sage: grafo4.shortest_path(0,6,by_weight=True)
             [0, 1, 2, 5, 4, 6]
+
+        Building a DiGraph with ``immutable=False`` returns a mutable graph::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g = DiGraph(g.edges(),immutable=False)
+            sage: g.add_edge("Hey", "Heyyyyyyy")
+
         """
         msg = ''
         GenericGraph.__init__(self)
@@ -823,6 +856,9 @@ class DiGraph(GenericGraph):
                 if data_structure == "dense":
                     raise RuntimeError("Multiedge and weighted c_graphs must be sparse.")
 
+            if immutable:
+                data_structure = 'static_sparse'
+
             # If the data structure is static_sparse, we first build a graph
             # using the sparse data structure, then reencode the resulting graph
             # as a static sparse graph.
@@ -917,6 +953,7 @@ class DiGraph(GenericGraph):
             from sage.graphs.base.static_sparse_backend import StaticSparseBackend
             ib = StaticSparseBackend(self, loops = loops, multiedges = multiedges)
             self._backend = ib
+            self._immutable = True
 
     ### Formats
     def dig6_string(self):

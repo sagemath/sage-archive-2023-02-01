@@ -899,8 +899,8 @@ If this all works, you can then make calls like:
         success = False
         try:
             for i in range(tries):
-                E.sendline(self._quit_string())
                 E.sendline(chr(3))
+                E.sendline(self._quit_string())
                 try:
                     E.expect(self._prompt, timeout=timeout)
                     success= True
@@ -929,7 +929,7 @@ If this all works, you can then make calls like:
             sage: singular(2+3)
             5
             sage: singular._before()
-            'print(sage...);\r\n5\r'
+            '5\r\n'
         """
         return self._expect.before
 

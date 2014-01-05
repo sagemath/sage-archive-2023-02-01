@@ -376,7 +376,7 @@ class Singular(Expect):
             sage: singular == loads(dumps(singular))
             True
         """
-        prompt = '\n> '
+        prompt = '> '
         Expect.__init__(self,
                         name = 'singular',
                         prompt = prompt,
@@ -468,9 +468,7 @@ class Singular(Expect):
         EXAMPLES::
 
             sage: singular._read_in_file_command('test')
-            '< "test";'
-
-        ::
+            '< "...";'
 
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
@@ -482,6 +480,87 @@ class Singular(Expect):
         """
         return '< "%s";'%filename
 
+    def _eval_line(self, line, allow_use_file=True, 
+                   wait_for_prompt=True, restart_if_needed=True):
+        """
+        Override the base to make it work without terminal echo
+        """
+        if (allow_use_file and wait_for_prompt and 
+            self._eval_using_file_cutoff and len(line) > self._eval_using_file_cutoff):
+            return self._eval_line_using_file(line)
+        try:
+            if self._expect is None:
+                self._start()
+            E = self._expect
+            try:
+                if len(line) >= 4096:
+                    raise RuntimeError, "Sending more than 4096 characters with %s on a line may cause a hang and you're sending %s characters"%(self, len(line))
+                E.sendline(line)
+                if wait_for_prompt == False:
+                    return ''
+
+            except OSError, msg:
+                if restart_if_needed:
+                    # The subprocess most likely crashed.
+                    # If it's really still alive, we fall through
+                    # and raise RuntimeError.
+                    if sys.platform.startswith('sunos'):
+                        # On (Open)Solaris, we might need to wait a
+                        # while because the process might not die
+                        # immediately. See Trac #14371.
+                        for t in [0.5, 1.0, 2.0]:
+                            if E.isalive():
+                                time.sleep(t)
+                            else:
+                                break
+                    if not E.isalive():
+                        try:
+                            self._synchronize()
+                        except (TypeError, RuntimeError):
+                            pass
+                        return self._eval_line(line, allow_use_file=allow_use_file, 
+                                               wait_for_prompt=wait_for_prompt, 
+                                               restart_if_needed=False)
+                raise RuntimeError("%s\nError evaluating %s in %s"
+                                   %(msg, line, self), sys.exc_info()[2])
+            if len(line)>0:
+                import pexpect
+                try:
+                    if isinstance(wait_for_prompt, basestring):
+                        E.expect(wait_for_prompt)
+                    else:
+                        E.expect(self._prompt)
+                except pexpect.EOF, msg:
+                    try:
+                        if self.is_local():
+                            tmp_to_use = self._local_tmpfile()
+                        else:
+                            tmp_to_use = self._remote_tmpfile()
+                        if self._read_in_file_command(tmp_to_use) in line:
+                            raise pexpect.EOF, msg
+                    except NotImplementedError:
+                        pass
+                    if self._quit_string() in line:
+                        # we expect to get an EOF if we're quitting.
+                        return ''
+                    elif restart_if_needed==True: # the subprocess might have crashed
+                        try:
+                            self._synchronize()
+                            return self._eval_line(line, allow_use_file=allow_use_file, 
+                                                   wait_for_prompt=wait_for_prompt, 
+                                                   restart_if_needed=False)
+                        except (TypeError, RuntimeError):
+                            pass
+                    raise RuntimeError, "%s\n%s crashed executing %s"%(msg,self, line)
+                out = E.before.rstrip('\n\r')
+                if out == '':
+                    out = line
+            else:
+                out = ''
+        except KeyboardInterrupt:
+            self._keyboard_interrupt()
+            raise KeyboardInterrupt, "Ctrl-c pressed while running %s"%self
+        return out.replace('\r\n','\n')
 
     def eval(self, x, allow_semicolon=True, strip=True, **kwds):
         r"""
@@ -585,11 +664,7 @@ class Singular(Expect):
         if len(x) == 0 or x[len(x) - 1] != ';':
             x += ';'
 
-        # Make the output start with a newline (to fake the terminal echo)
-        s = Expect.eval(self, 'print("");' + x, **kwds)
-        # expect returns the terminal echo if there is no output (bug??)
-        if len(s) == 0:
-            s = x
+        s = Expect.eval(self, x, **kwds)
 
         if s.find("error") != -1 or s.find("Segment fault") != -1:
             raise SingularError('Singular error:\n%s'%s)

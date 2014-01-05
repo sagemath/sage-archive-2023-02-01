@@ -171,7 +171,7 @@ Maximal subgroups
 
 Sage has a database of maximal subgroups for every simple Cartan
 type of rank `\le 8`. You may access this with the command
-``maximal_subgroups`::
+``maximal_subgroups``::
 
     sage: maximal_subgroups("E7")
     A7:branching_rule("E7","A7","extended")
@@ -279,7 +279,7 @@ Let us redo this calculation in coroot notation. As we have explained,
 coroot notation does not distinguish between representations of
 `GL(4)` that have the same restriction to `SL(4)`, so in effect we are
 now working with the groups `SL(4)` and its Levi subgroups `SL(3)` and
-`SL(2) \times SL(2)`::
+`SL(2) \times SL(2)`, which is the derived group of its Levi subgroup::
 
     sage: A3 = WeylCharacterRing("A3", style="coroots")
     sage: reps = [A3(v) for v in A3.fundamental_weights()]; reps
@@ -378,9 +378,10 @@ are maximal and each contains a Levi subgroup. (Actually
 `A_1\times A_1` contains a conjugate of both.) Only
 the Levi subgroup containing the short root is implemented
 as an instance of ``rule="levi"``. To obtain the other,
-use the rule
+use the rule::
 
-     branching_rule("G2","A2","extended")*branching_rule("A2","A1","levi")
+    sage: branching_rule("G2","A2","extended")*branching_rule("A2","A1","levi")
+    composite branching rule G2 => (extended) A2 => (levi) A1
 
 which branches to the `A_1` Levi subgroup containing a long root.
 

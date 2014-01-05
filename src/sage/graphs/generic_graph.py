@@ -13,6 +13,7 @@ can be applied on both. Here is what it can do:
 
     :meth:`~GenericGraph.networkx_graph` | Creates a new NetworkX graph from the Sage graph
     :meth:`~GenericGraph.to_dictionary` | Creates a dictionary encoding the graph.
+    :meth:`~GenericGraph.copy` | Return a copy of the graph.
     :meth:`~GenericGraph.adjacency_matrix` | Returns the adjacency matrix of the (di)graph.
     :meth:`~GenericGraph.incidence_matrix` | Returns an incidence matrix of the (di)graph
     :meth:`~GenericGraph.distance_matrix` | Returns the distance matrix of the (strongly) connected (di)graph
@@ -480,7 +481,7 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             TypeError: This graph is mutable, and thus not hashable. Create
-            an immutable copy by `g.copy(data_structure='static_sparse')`
+            an immutable copy by `g.copy(immutable=True)`
             sage: G_imm = Graph(G, data_structure="static_sparse")
             sage: G_imm == G
             True
@@ -493,7 +494,7 @@ class GenericGraph(GenericGraph_pyx):
         if getattr(self, "_immutable", False):
             return hash((tuple(self.vertices()), tuple(self.edges())))
         raise TypeError("This graph is mutable, and thus not hashable. "
-                        "Create an immutable copy by `g.copy(data_structure='static_sparse')`")
+                        "Create an immutable copy by `g.copy(immutable=True)`")
 
     def __mul__(self, n):
         """
@@ -712,29 +713,44 @@ class GenericGraph(GenericGraph_pyx):
     ### Formats
 
     def __copy__(self, implementation='c_graph', data_structure=None,
-                 sparse=None):
+                 sparse=None, immutable=None):
         """
-        Creates a copy of the graph.
-
-        NOTE:
-
-        If the graph uses :class:`~sage.graphs.base.static_sparse_backend.StaticSparseBackend`
-        and uses the _immutable flag, then ``self`` is returned, rather
-        than a copy, unless one of the optional arguments is used.
+        Return a copy of the graph.
 
         INPUT:
 
-         - ``implementation`` - string (default: 'networkx') the
-           implementation goes here.  Current options are only
-           'networkx' or 'c_graph'.
+         - ``implementation`` - string (default: 'c_graph') the implementation
+           goes here.  Current options are only 'networkx' or 'c_graph'.
 
          - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
            ``data_structure="sparse"``, and ``sparse=False`` is an alias for
-           ``data_structure="dense"``.
+           ``data_structure="dense"``. Only used when
+           ``implementation='c_graph'`` and ``data_structure=None``.
 
          - ``data_structure`` -- one of ``"sparse"``, ``"static_sparse"``, or
            ``"dense"``. See the documentation of :class:`Graph` or
-           :class:`DiGraph`.
+           :class:`DiGraph`. Only used when ``implementation='c_graph'``.
+
+         - ``immutable`` (boolean) -- whether to create a mutable/immutable
+           copy. Only used when ``implementation='c_graph'`` and
+           ``data_structure=None``.
+
+           * ``immutable=None`` (default) means that the graph and its copy will
+             behave the same way.
+
+           * ``immutable=True`` is a shortcut for
+             ``data_structure='static_sparse'`` and ``implementation='c_graph'``
+
+           * ``immutable=False`` sets ``implementation`` to ``'c_graph'``. When
+             ``immutable=False`` is used to copy an immutable graph, the data
+             structure used is ``"sparse"`` unless anything else is specified.
+
+        .. NOTE::
+
+            If the graph uses
+            :class:`~sage.graphs.base.static_sparse_backend.StaticSparseBackend`
+            and the ``_immutable`` flag, then ``self`` is returned rather than a
+            copy (unless one of the optional arguments is used).
 
         OUTPUT:
 
@@ -744,7 +760,7 @@ class GenericGraph(GenericGraph_pyx):
 
            Please use this method only if you need to copy but change the
            underlying implementation.  Otherwise simply do ``copy(g)``
-           instead of doing ``g.copy()``.
+           instead of ``g.copy()``.
 
         EXAMPLES::
 
@@ -787,8 +803,7 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        We make copies of the _pos and _boundary attributes.
-        ::
+        We make copies of the ``_pos`` and ``_boundary`` attributes::
 
             sage: g = graphs.PathGraph(3)
             sage: h = copy(g)
@@ -806,15 +821,18 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             TypeError: This graph is mutable, and thus not hashable. Create an
-            immutable copy by `g.copy(data_structure='static_sparse')`
-            sage: g = G.copy(data_structure='static_sparse')
+            immutable copy by `g.copy(immutable=True)`
+            sage: g = G.copy(immutable=True)
             sage: hash(g)    # random
             1833517720
             sage: g==G
             True
             sage: g is copy(g) is g.copy()
             True
-            sage: g is g.copy(data_structure='static_sparse')
+
+        ``immutable=True`` is a short-cut for ``data_structure='static_sparse'``::
+
+            sage: g is g.copy(data_structure='static_sparse') is g.copy(immutable=True)
             True
 
         If a graph pretends to be immutable, but does not use the static sparse
@@ -829,27 +847,94 @@ class GenericGraph(GenericGraph_pyx):
             sage: copy(H) is H
             False
 
-        """
-        if sparse != None:
-            if data_structure != None:
-                raise ValueError("The 'sparse' argument is an alias for "
-                                 "'data_structure'. Please do not define both.")
-            data_structure = "sparse" if sparse else "dense"
+        TESTS:
 
+        Bad input::
+
+            sage: G.copy(data_structure="sparse", sparse=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: You cannot define 'immutable' or 'sparse' when 'data_structure' has a value.
+            sage: G.copy(data_structure="sparse", immutable=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: You cannot define 'immutable' or 'sparse' when 'data_structure' has a value.
+            sage: G.copy(immutable=True, sparse=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: There is no dense immutable backend at the moment.
+
+        Which backend ?::
+
+            sage: G.copy(data_structure="sparse")._backend
+            <class 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
+            sage: G.copy(data_structure="dense")._backend
+            <class 'sage.graphs.base.dense_graph.DenseGraphBackend'>
+            sage: G.copy(data_structure="static_sparse")._backend
+            <class 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+            sage: G.copy(immutable=True)._backend
+            <class 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+            sage: G.copy(immutable=True, sparse=True)._backend
+            <class 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+            sage: G.copy(immutable=False, sparse=True)._backend
+            <class 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
+            sage: G.copy(immutable=False, sparse=False)._backend
+            <class 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
+            sage: Graph(implementation="networkx").copy(implementation='c_graph')._backend
+            <class 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
+
+        Fake immutable graphs::
+
+            sage: G._immutable = True
+            sage: G.copy()._backend
+            <class 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
+        """
+        # Which data structure should be used ?
+        if implementation != 'c_graph':
+            # We do not care about the value of data_structure. But let's check
+            # the user did not define too much.
+            if data_structure != None or immutable != None or sparse != None:
+                raise ValueError("'data_structure' 'immutable' and 'sparse' can"
+                                 " only be defined when 'implementation'='c_graph'")
+        elif data_structure != None:
+            # data_structure is already defined so there is nothing left to do
+            # here ! Did the user try to define too much ?
+            if immutable != None or sparse != None:
+                raise ValueError("You cannot define 'immutable' or 'sparse' "
+                                 "when 'data_structure' has a value.")
+        # At this point :
+        # - implementation is 'c_graph'
+        # - data_structure is None.
+        elif immutable is True:
+            data_structure = 'static_sparse'
+            if sparse is False:
+                raise ValueError("There is no dense immutable backend at the moment.")
+        elif immutable is False:
+            # If the users requests a mutable graph and input is immutable, we
+            # chose the 'sparse' cgraph backend. Unless the user explicitly
+            # asked for something different.
+            if getattr(self, '_immutable', False):
+                data_structure = 'dense' if sparse is False else 'sparse'
+        elif sparse is True:
+            data_structure = "sparse"
+        elif sparse is False:
+            data_structure = "dense"
+
+        # Immutable copy of an immutable graph ? return self !
         if getattr(self, '_immutable', False):
             from sage.graphs.base.static_sparse_backend import StaticSparseBackend
-            if isinstance(self._backend, StaticSparseBackend) and implementation=='c_graph' and (data_structure=='static_sparse' or data_structure is None):
+            if (isinstance(self._backend, StaticSparseBackend) and
+                implementation=='c_graph' and
+                (data_structure=='static_sparse' or data_structure is None)):
                 return self
 
         if data_structure is None:
             from sage.graphs.base.dense_graph import DenseGraphBackend
-            from sage.graphs.base.sparse_graph import SparseGraphBackend
             if isinstance(self._backend, DenseGraphBackend):
                 data_structure = "dense"
-            elif isinstance(self._backend, SparseGraphBackend):
-                data_structure = "sparse"
             else:
-                data_structure = "static_sparse"
+                data_structure = "sparse"
+
         from copy import copy
         G = self.__class__(self, name=self.name(), pos=copy(self._pos), boundary=copy(self._boundary), implementation=implementation, data_structure=data_structure)
 
@@ -2414,13 +2499,21 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             TypeError: This graph is immutable and can thus not be changed.
-            Create a mutable copy, e.g., by `g.copy(sparse=False)`
+            Create a mutable copy, e.g., by `g.copy(immutable=False)`
+            sage: G_mut = G_imm.copy(immutable=False)
+            sage: G_mut == G_imm
+            True
+            sage: G_mut.weighted(True)
+            sage: G_mut == G_imm
+            False
+            sage: G_mut == H
+            True
 
         """
         if new is not None:
             if getattr(self, '_immutable', False):
                 raise TypeError("This graph is immutable and can thus not be changed. "
-                                "Create a mutable copy, e.g., by `g.copy(sparse=False)`")
+                                "Create a mutable copy, e.g., by `g.copy(immutable=False)`")
             if new in [True, False]:
                 self._weighted = new
         else:

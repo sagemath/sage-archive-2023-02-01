@@ -302,6 +302,7 @@ Methods
 """
 
 from sage.misc.decorators import options
+from sage.misc.cachefunc import cached_method
 from sage.misc.prandom import random
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
@@ -463,21 +464,36 @@ class GenericGraph(GenericGraph_pyx):
                         return False
             return True
 
+    @cached_method
     def __hash__(self):
         """
-        Since graphs are mutable, they should not be hashable, so we return
-        a type error.
+        Only immutable graphs are hashable.
 
-        EXAMPLES::
+        The hash value of an immutable graph relies on the tuple
+        of vertices and the tuple of edges. The resulting value
+        is cached.
 
-            sage: hash(Graph())
+        EXAMPLE::
+
+            sage: G = graphs.PetersenGraph()
+            sage: {G:1}[G]
             Traceback (most recent call last):
             ...
-            TypeError: graphs are mutable, and thus not hashable
+            TypeError: This graph is mutable, and thus not hashable. Create
+            an immutable copy by `g.copy(data_structure='static_sparse')`
+            sage: G_imm = Graph(G, data_structure="static_sparse")
+            sage: G_imm == G
+            True
+            sage: {G_imm:1}[G_imm]  # indirect doctest
+            1
+            sage: G_imm.__hash__() is G_imm.__hash__()
+            True
+
         """
         if getattr(self, "_immutable", False):
             return hash((tuple(self.vertices()), tuple(self.edges())))
-        raise TypeError("graphs are mutable, and thus not hashable")
+        raise TypeError("This graph is mutable, and thus not hashable. "
+                        "Create an immutable copy by `g.copy(data_structure='static_sparse')`")
 
     def __mul__(self, n):
         """
@@ -700,6 +716,12 @@ class GenericGraph(GenericGraph_pyx):
         """
         Creates a copy of the graph.
 
+        NOTE:
+
+        If the graph uses :class:`~sage.graphs.base.static_sparse_backend.StaticSparseBackend`
+        and uses the _immutable flag, then ``self`` is returned, rather
+        than a copy, unless one of the optional arguments is used.
+
         INPUT:
 
          - ``implementation`` - string (default: 'networkx') the
@@ -763,8 +785,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: G2 is G
             False
 
-        TESTS: We make copies of the _pos and _boundary attributes.
+        TESTS:
 
+        We make copies of the _pos and _boundary attributes.
         ::
 
             sage: g = graphs.PathGraph(3)
@@ -773,12 +796,50 @@ class GenericGraph(GenericGraph_pyx):
             False
             sage: h._boundary is g._boundary
             False
+
+        We make sure that one can make immutable copies by providing the
+        ``data_structure`` optional argument, and that copying an immutable graph
+        returns the graph::
+
+            sage: G = graphs.PetersenGraph()
+            sage: hash(G)
+            Traceback (most recent call last):
+            ...
+            TypeError: This graph is mutable, and thus not hashable. Create an
+            immutable copy by `g.copy(data_structure='static_sparse')`
+            sage: g = G.copy(data_structure='static_sparse')
+            sage: hash(g)    # random
+            1833517720
+            sage: g==G
+            True
+            sage: g is copy(g) is g.copy()
+            True
+            sage: g is g.copy(data_structure='static_sparse')
+            True
+
+        If a graph pretends to be immutable, but does not use the static sparse
+        backend, then the copy is not identic with the graph, even though it is
+        considered to be hashable::
+
+            sage: P = Poset(([1,2,3,4], [[1,3],[1,4],[2,3]]), linear_extension=True, facade = False)
+            sage: H = P.hasse_diagram()
+            sage: H._immutable = True
+            sage: hash(H)   # random
+            -1843552882
+            sage: copy(H) is H
+            False
+
         """
         if sparse != None:
             if data_structure != None:
                 raise ValueError("The 'sparse' argument is an alias for "
                                  "'data_structure'. Please do not define both.")
             data_structure = "sparse" if sparse else "dense"
+
+        if getattr(self, '_immutable', False):
+            from sage.graphs.base.static_sparse_backend import StaticSparseBackend
+            if isinstance(self._backend, StaticSparseBackend) and implementation=='c_graph' and (data_structure=='static_sparse' or data_structure is None):
+                return self
 
         if data_structure is None:
             from sage.graphs.base.dense_graph import DenseGraphBackend
@@ -965,7 +1026,7 @@ class GenericGraph(GenericGraph_pyx):
           neighbors.
 
         * If ``edge_labels == False`` and ``multiple_edges == True``, the output
-          is a dictionary the same as previously with one difference : the
+          is a dictionary the same as previously with one difference: the
           neighbors are listed with multiplicity.
 
         * If ``edge_labels == True`` and ``multiple_edges == False``, the output
@@ -2269,8 +2330,18 @@ class GenericGraph(GenericGraph_pyx):
         """
         Whether the (di)graph is to be considered as a weighted (di)graph.
 
-        Note that edge weightings can still exist for (di)graphs ``G`` where
-        ``G.weighted()`` is ``False``.
+        INPUT:
+
+        - ``new`` (optional bool): If it is provided, then the weightedness
+          flag is set accordingly. This is not allowed for immutable graphs.
+
+        .. NOTE::
+
+            Changing the weightedness flag changes the ``==``-class of
+            a graph and is thus not allowed for immutable graphs.
+
+            Edge weightings can still exist for (di)graphs ``G`` where
+            ``G.weighted()`` is ``False``.
 
         EXAMPLES:
 
@@ -2299,7 +2370,7 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        Ensure that ticket #10490 is fixed: allows a weighted graph to be
+        Ensure that :trac:`10490` is fixed: allows a weighted graph to be
         set as unweighted. ::
 
             sage: G = Graph({1:{2:3}})
@@ -2321,8 +2392,35 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.weighted(True)
             sage: G.weighted()
             True
+
+        Ensure that graphs using the static sparse backend can not be mutated
+        using this method, as fixed in :trac:`15278`::
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.weighted()
+            False
+            sage: H = copy(G)
+            sage: H == G
+            True
+            sage: H.weighted(True)
+            sage: H == G
+            False
+            sage: G_imm = Graph(G, data_structure="static_sparse")
+            sage: G_imm == G
+            True
+            sage: G_imm.weighted()
+            False
+            sage: G_imm.weighted(True)
+            Traceback (most recent call last):
+            ...
+            TypeError: This graph is immutable and can thus not be changed.
+            Create a mutable copy, e.g., by `g.copy(sparse=False)`
+
         """
         if new is not None:
+            if getattr(self, '_immutable', False):
+                raise TypeError("This graph is immutable and can thus not be changed. "
+                                "Create a mutable copy, e.g., by `g.copy(sparse=False)`")
             if new in [True, False]:
                 self._weighted = new
         else:
@@ -6291,7 +6389,7 @@ class GenericGraph(GenericGraph_pyx):
         NOTE:
 
         This function, as ``is_hamiltonian``, computes a Hamiltonian
-        cycle if it exists : the user should *NOT* test for
+        cycle if it exists: the user should *NOT* test for
         Hamiltonicity using ``is_hamiltonian`` before calling this
         function, as it would result in computing it twice.
 
@@ -6527,7 +6625,7 @@ class GenericGraph(GenericGraph_pyx):
                     break
 
                 if verbose:
-                    print "Adding a constraint on circuit : ",certificate
+                    print "Adding a constraint on circuit: ",certificate
 
                 # There is a circuit left. Let's add the corresponding
                 # constraint !
@@ -7311,7 +7409,7 @@ class GenericGraph(GenericGraph_pyx):
 
         .. NOTE::
 
-            This function is topological : it does not take the eventual
+            This function is topological: it does not take the eventual
             weights of the edges into account.
 
         EXAMPLE:
@@ -8022,13 +8120,12 @@ class GenericGraph(GenericGraph_pyx):
         if vertex not in self:
             raise RuntimeError("Vertex (%s) not in the graph."%str(vertex))
 
+        self._backend.del_vertex(vertex)
         attributes_to_update = ('_pos', '_assoc', '_embedding')
         for attr in attributes_to_update:
             if hasattr(self, attr) and getattr(self, attr) is not None:
                 getattr(self, attr).pop(vertex, None)
         self._boundary = [v for v in self._boundary if v != vertex]
-
-        self._backend.del_vertex(vertex)
 
     def delete_vertices(self, vertices):
         """
@@ -8052,6 +8149,8 @@ class GenericGraph(GenericGraph_pyx):
         for vertex in vertices:
             if vertex not in self:
                 raise RuntimeError("Vertex (%s) not in the graph."%str(vertex))
+
+        self._backend.del_vertices(vertices)
         attributes_to_update = ('_pos', '_assoc', '_embedding')
         for attr in attributes_to_update:
             if hasattr(self, attr) and getattr(self, attr) is not None:
@@ -8060,8 +8159,6 @@ class GenericGraph(GenericGraph_pyx):
                     attr_dict.pop(vertex, None)
 
         self._boundary = [v for v in self._boundary if v not in vertices]
-
-        self._backend.del_vertices(vertices)
 
     def has_vertex(self, vertex):
         """
@@ -17004,7 +17101,7 @@ class GenericGraph(GenericGraph_pyx):
 
         This function, as ``hamiltonian_cycle`` and
         ``traveling_salesman_problem``, computes a Hamiltonian
-        cycle if it exists : the user should *NOT* test for
+        cycle if it exists: the user should *NOT* test for
         Hamiltonicity using ``is_hamiltonian`` before calling
         ``hamiltonian_cycle`` or ``traveling_salesman_problem``
         as it would result in computing it twice.

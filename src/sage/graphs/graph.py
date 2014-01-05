@@ -493,6 +493,24 @@ the :mod:`sage.graphs.graph_latex` module. ::
     ...
     \end{tikzpicture}
 
+Mutability
+----------
+
+Graphs are mutable, and thus unusable as dictionary keys, unless
+``data_structure="static_sparse"`` is used::
+
+    sage: G = graphs.PetersenGraph()
+    sage: {G:1}[G]
+    Traceback (most recent call last):
+    ...
+    TypeError: This graph is mutable, and thus not hashable. Create an
+    immutable copy by `g.copy(data_structure='static_sparse')`
+    sage: G_immutable = Graph(G, data_structure="static_sparse")
+    sage: G_immutable == G
+    True
+    sage: {G_immutable:1}[G_immutable]
+    1
+
 Methods
 -------
 """
@@ -677,7 +695,8 @@ class Graph(GenericGraph):
 
        * ``"static_sparse"`` -- selects the
          :mod:`~sage.graphs.base.static_sparse_backend` (this backend is faster
-         than the sparse backend and smaller in memory, but it is immutable).
+         than the sparse backend and smaller in memory, and it is immutable, so
+         that the resulting graphs can be used as dictionary keys).
 
        *Only available when* ``implementation == 'c_graph'``
 
@@ -935,6 +954,29 @@ class Graph(GenericGraph):
           sage: H = Graph(g, implementation='networkx')
           sage: G._backend._nxg is H._backend._nxg
           False
+
+    All these graphs are mutable and can thus not be used as a dictionary
+    key::
+
+          sage: {G:1}[H]
+          Traceback (most recent call last):
+          ...
+          TypeError: This graph is mutable, and thus not hashable. Create
+          an immutable copy by `g.copy(data_structure='static_sparse')`
+
+    If the ``data_structure`` is equal to ``"static_sparse"``, then an
+    immutable graph results. Note that this does not use the NetworkX data
+    structure::
+
+          sage: G_imm = Graph(g, data_structure="static_sparse")
+          sage: H_imm = Graph(g, data_structure="static_sparse")
+          sage: G_imm == H_imm == G == H
+          True
+          sage: hasattr(G_imm._backend, "_nxg")
+          False
+          sage: {G_imm:1}[H_imm]
+          1
+
     """
     _directed = False
 
@@ -1587,6 +1629,7 @@ class Graph(GenericGraph):
             from sage.graphs.base.static_sparse_backend import StaticSparseBackend
             ib = StaticSparseBackend(self, loops = loops, multiedges = multiedges)
             self._backend = ib
+            self._immutable = True
 
     ### Formats
     def graph6_string(self):

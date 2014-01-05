@@ -253,7 +253,8 @@ class DiGraph(GenericGraph):
 
        * ``"static_sparse"`` -- selects the
          :mod:`~sage.graphs.base.static_sparse_backend` (this backend is faster
-         than the sparse backend and smaller in memory, but it is immutable).
+         than the sparse backend and smaller in memory, and it is immutable, so
+         that the resulting graphs can be used as dictionary keys).
 
        *Only available when* ``implementation == 'c_graph'``
 
@@ -410,6 +411,26 @@ class DiGraph(GenericGraph):
         sage: D = DiGraph(boundary=None)
         sage: D._boundary
         []
+
+    Demonstrate that digraphs using the static backend are equal to mutable
+    graphs but can be used as dictionary keys::
+
+        sage: import networkx
+        sage: g = networkx.DiGraph({0:[1,2,3], 2:[4]})
+        sage: G = DiGraph(g, implementation='networkx')
+        sage: G_imm = DiGraph(G, data_structure="static_sparse")
+        sage: H_imm = DiGraph(G, data_structure="static_sparse")
+        sage: H_imm is G_imm
+        False
+        sage: H_imm == G_imm == G
+        True
+        sage: {G_imm:1}[H_imm]
+        1
+        sage: {G_imm:1}[G]
+        Traceback (most recent call last):
+        ...
+        TypeError: This graph is mutable, and thus not hashable. Create an
+        immutable copy by `g.copy(data_structure='static_sparse')`
 
     """
     _directed = True
@@ -917,6 +938,7 @@ class DiGraph(GenericGraph):
             from sage.graphs.base.static_sparse_backend import StaticSparseBackend
             ib = StaticSparseBackend(self, loops = loops, multiedges = multiedges)
             self._backend = ib
+            self._immutable = True
 
     ### Formats
     def dig6_string(self):

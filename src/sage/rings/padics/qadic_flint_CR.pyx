@@ -5,7 +5,21 @@ include "sage/libs/linkages/padics/unram_shared.pxi"
 include "CR_template.pxi"
 
 cdef class PowComputer_(PowComputer_flint_unram):
+    """
+    A PowComputer for a capped-relative unramified ring or field.
+    """
     def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None):
+        """
+        Initialization.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqCR(125)
+            sage: type(R.prime_pow)
+            <type 'sage.rings.padics.qadic_flint_CR.PowComputer_'>
+            sage: R.prime_pow._prec_type
+            'capped-rel'
+        """
         self._prec_type = 'capped-rel'
         PowComputer_flint_unram.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly)
 

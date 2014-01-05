@@ -1276,7 +1276,7 @@ cdef class pAdicCoercion_CA_frac_field(RingHomomorphism_coercion):
         sage: K = R.fraction_field()
         sage: K.coerce_map_from(R)
         Ring Coercion morphism:
-          From: Unramified Extension of 3-adic Ring with capped absolute precision 20 in a defined by (1 + O(3^20))*x^3 + (2 + O(3^20))*x + (1 + O(3^20))
+          From: Unramified Extension of 3-adic Ring with capped absolute precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
           To:   Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
     """
     def __init__(self, R, K):
@@ -1390,7 +1390,7 @@ cdef class pAdicConvert_CA_frac_field(Morphism):
         sage: f = R.convert_map_from(K); f
         Generic morphism:
           From: Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
-          To:   Unramified Extension of 3-adic Ring with capped absolute precision 20 in a defined by (1 + O(3^20))*x^3 + (2 + O(3^20))*x + (1 + O(3^20))
+          To:   Unramified Extension of 3-adic Ring with capped absolute precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
     """
     def __init__(self, K, R):
         """

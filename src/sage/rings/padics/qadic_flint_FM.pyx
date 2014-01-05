@@ -5,7 +5,21 @@ include "sage/libs/linkages/padics/unram_shared.pxi"
 include "FM_template.pxi"
 
 cdef class PowComputer_(PowComputer_flint_unram):
+    """
+    A PowComputer for a fixed-modulus unramified ring.
+    """
     def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None):
+        """
+        Initialization.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqFM(125)
+            sage: type(R.prime_pow)
+            <type 'sage.rings.padics.qadic_flint_FM.PowComputer_'>
+            sage: R.prime_pow._prec_type
+            'fixed-mod'
+        """
         self._prec_type = 'fixed-mod'
         PowComputer_flint_unram.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly)
 

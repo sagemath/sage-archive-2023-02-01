@@ -898,29 +898,49 @@ class kSchur(CombinatorialFreeModule):
 
     Note that the product of `k`-Schurs is not guaranteed to be in the
     space spanned by the `k`-Schurs. In general, we only have that a
-    `k`-Schur times a `j`-Schur is a `(k+j)`-Schur. This fact is not
-    currently incorporated into the Sage design, so the multiplication
-    of `k`-Schur functions may return an error. This example shows how to
-    get around this 'manually'::
+    `k`-Schur times a `j`-Schur is a `(k+j)`-Schur. The multiplication of
+    two `k`-Schur functions thus generally returns a symmetric function
+    (in the Schur basis, not automatically cast into the `2k`-bounded
+    subspace) unless it happens to lie in the `k`-bounded subspace (in
+    which case it is cast into the `k`-Schur basis).
+
+    For technical reasons, the product of a `k`-Schur and a `j`-Schur
+    is not yet implemented for distinct `k` and `j`. Let us show
+    how to get around this 'manually'. The error::
 
         sage: ks2 = Sym.kBoundedSubspace(2).kschur()
-        sage: ks2([2,1])^2
+        sage: ks3 = Sym.kBoundedSubspace(3).kschur()
+        sage: ks2([2,1]) * ks3([3,1])
+        Traceback (most recent call last):
+        ...
+        TypeError: unsupported operand parent(s) for '*': '2-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the 2-Schur basis' and '3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the 3-Schur basis'
+
+    The workaround::
+
+        sage: f = s(ks2([2,1])) * s(ks3([3,1])); f # Convert to Schur functions first and multiply there.
+        s[3, 2, 1, 1] + s[3, 2, 2] + (t+1)*s[3, 3, 1] + s[4, 1, 1, 1]
+        + (2*t+2)*s[4, 2, 1] + (t^2+t+1)*s[4, 3] + (2*t+1)*s[5, 1, 1]
+        + (t^2+2*t+1)*s[5, 2] + (t^2+2*t)*s[6, 1] + t^2*s[7]
+        sage: ks5 = Sym.kBoundedSubspace(5).kschur()
+        sage: ks5(f) # The product of a 'ks2' with a 'ks3' is a 'ks5'.
+        ks5[3, 2, 1, 1] + ks5[3, 2, 2] + (t+1)*ks5[3, 3, 1] + ks5[4, 1, 1, 1]
+        + (t+2)*ks5[4, 2, 1] + (t^2+t+1)*ks5[4, 3] + (t+1)*ks5[5, 1, 1] + ks5[5, 2]
+
+    For other technical reasons, taking powers of `k`-Schur functions
+    is not implemented (even when the answer is still in the `k`-bounded
+    subspace)::
+
+        sage: ks2([1])^2
         Traceback (most recent call last):
         ...
         TypeError: unsupported operand type(s) for ** or pow(): 'kSchur_with_category.element_class' and 'int'
 
-    ::
+    .. TODO::
 
-        sage: f = s(ks2([2,1]))^2; f # Convert to Schur functions first and multiply there.
-        s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + (2*t+2)*s[3, 2, 1] + (t^2+1)*s[3,
-        3] + (2*t+1)*s[4, 1, 1] + (t^2+2*t+1)*s[4, 2] + (t^2+2*t)*s[5, 1] + t^2*s[6]
-        sage: ks4 = Sym.kBoundedSubspace(4).kschur()
-        sage: ks4(f) # The product of two 'ks2's is a 'ks4'.
-        ks4[2, 2, 1, 1] + ks4[2, 2, 2] + ks4[3, 1, 1, 1] + (t+2)*ks4[3, 2, 1]
-        + (t^2+1)*ks4[3, 3] + (t+1)*ks4[4, 1, 1] + ks4[4, 2]
+        Get rid of said technical "reasons".
 
     However, at `t=1`, the product of `k`-Schurs is in the span of the
-    `k`-Schurs. Below are some examples at `t=1` ::
+    `k`-Schurs always. Below are some examples at `t=1` ::
 
         sage: ks3 = Sym.kBoundedSubspace(3, t=1).kschur(); ks3
         3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field with t=1 in the 3-Schur basis also with t=1
@@ -929,7 +949,7 @@ class kSchur(CombinatorialFreeModule):
         ks3[3]
         sage: s(ks3([3,2,1]))
         s[3, 2, 1] + s[4, 1, 1] + s[4, 2] + s[5, 1]
-        sage: ks3([2,1])^2
+        sage: ks3([2,1])^2    # taking powers works for t=1
         ks3[2, 2, 1, 1] + ks3[2, 2, 2] + ks3[3, 1, 1, 1]
 
     TESTS:

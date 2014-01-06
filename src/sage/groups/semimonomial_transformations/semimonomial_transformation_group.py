@@ -1,28 +1,37 @@
 r"""
 Semimonomial transformation group
 
-A semimonomial transformation group over a ring `R` of length `n` is equal to
-the semidirect product of the monomial transformation group
-(also known as the complete monomial group) and the group of ring automorphisms.
+A semimonomial transformation group over a ring `R` of degree `n` is equal to
+the semidirect product of the monomial transformation group of degree `n`
+(also known as the complete monomial group over the group of units 
+`R^{\times}` of `R`) and the group of ring automorphisms.
+
 The multiplication of two elements `(\phi, \pi, \alpha)(\psi, \sigma, \beta)`
 with
 
-- `\phi, \psi \in  {R^*}^n`
+    - `\phi, \psi \in  {R^{\times}}^n`
 
-- `\pi, \sigma \in S_n` (with `(\pi * \sigma)(i) = \sigma(\pi(i))`)
+    - `\pi, \sigma \in S_n` (with the multiplication `\pi\sigma`
+      done from left to right (like in GAP) -- 
+      that is, `(\pi\sigma)(i) = \sigma(\pi(i))` for all `i`.)
 
-- `\alpha, \beta \in Aut(R)`
+    - `\alpha, \beta \in Aut(R)`
 
 is defined by
 
 .. math::
 
     (\phi, \pi, \alpha)(\psi, \sigma, \beta) =
-    (\phi * \psi^{\pi, \alpha}, \pi * \sigma, \alpha * \beta)
+    (\phi \cdot \psi^{\pi, \alpha}, \pi\sigma, \alpha \circ \beta)
 
 where
-`\psi^{\pi, \alpha} = (\alpha(\psi_{\pi(0)}), \ldots, \alpha(\psi_{\pi(n-1)}))`
-and an elementwisely defined multiplication of vectors.
+`\psi^{\pi, \alpha} = (\alpha(\psi_{\pi(1)-1}), \ldots, \alpha(\psi_{\pi(n)-1}))`
+and the multiplication of vectors is defined elementwisely.
+
+.. TODO::
+
+    Up to now, this group is only implemented for finite fields because of
+    the limited support of automorphisms for arbitrary rings.
 
 AUTHORS:
 
@@ -51,33 +60,33 @@ from sage.groups.semimonomial_transformations.semimonomial_transformation import
 
 class SemimonomialTransformationGroup(FiniteGroup, UniqueRepresentation):
     r"""
-    A semimonomial transformation group over a ring `R` of
-    degree `n`.
-
-    The semimonomial transformation group of degree `n` of `R`
-    is equal to the wreath
-    product of the monomial transformation group of `R` of degree `n`
-    (also known as the complete monomial group over the group of units of `R`)
-    and the group of ring automorphisms. The multiplication of two elements
-    `(\phi, \pi, \alpha)(\psi, \sigma, \beta)` with
-
-        - `\phi, \psi \in  {R^*}^n`
-
-        - `\pi, \sigma \in S_n`
-
+    A semimonomial transformation group over a ring `R` of degree `n` is equal to
+    the semidirect product of the monomial transformation group of degree `n`
+    (also known as the complete monomial group over the group of units 
+    `R^{\times}` of `R`) and the group of ring automorphisms.
+    
+    The multiplication of two elements `(\phi, \pi, \alpha)(\psi, \sigma, \beta)`
+    with
+    
+        - `\phi, \psi \in  {R^{\times}}^n`
+    
+        - `\pi, \sigma \in S_n` (with the multiplication `\pi\sigma`
+          done from left to right (like in GAP) -- 
+          that is, `(\pi\sigma)(i) = \sigma(\pi(i))` for all `i`.)
+    
         - `\alpha, \beta \in Aut(R)`
-
+    
     is defined by
-
+    
     .. math::
-
+    
         (\phi, \pi, \alpha)(\psi, \sigma, \beta) =
-        (\phi * \psi^{\pi, \alpha}, \pi * \sigma, \alpha * \beta)
-
+        (\phi \cdot \psi^{\pi, \alpha}, \pi\sigma, \alpha \circ \beta)
+    
     where
-    `\psi^{\pi, \alpha} = (\alpha(\psi_{\pi(0)}), \ldots, \alpha(\psi_{\pi(n-1)}))`
-    and an elementwisely defined multiplication of vectors.
-
+    `\psi^{\pi, \alpha} = (\alpha(\psi_{\pi(1)-1}), \ldots, \alpha(\psi_{\pi(n)-1}))`
+    and the multiplication of vectors is defined elementwisely.
+    
     .. TODO::
 
         Up to now, this group is only implemented for finite fields because of
@@ -360,10 +369,10 @@ class SemimonomialTransformationGroup(FiniteGroup, UniqueRepresentation):
 
             sage: F.<a> = GF(4)
             sage: SemimonomialTransformationGroup(F, 3) # indirect doctest
-            Semimonomial transformation group over Finite Field in a of size 2^2of degree 3
+            Semimonomial transformation group over Finite Field in a of size 2^2 of degree 3
         """
         return ('Semimonomial transformation group over %s'%self.base_ring() +
-                'of degree %s'%self.degree())
+                ' of degree %s'%self.degree())
 
     def _latex_(self):
         r"""
@@ -388,7 +397,7 @@ class SemimonomialActionVec(Action):
 
     The action is defined by:
     `(\phi, \pi, \alpha)*(v_0, \ldots, v_{n-1}) :=
-    (\alpha(v_{\pi(0)}) * \phi_0^{-1}, \ldots, \alpha(v_{\pi(n-1)}) * \phi_{n-1}^{-1})`
+    (\alpha(v_{\pi(1)-1}) \cdot \phi_0^{-1}, \ldots, \alpha(v_{\pi(n)-1}) \cdot \phi_{n-1}^{-1})`
     """
     def __init__(self, G, V, check=True):
         r"""
@@ -411,7 +420,7 @@ class SemimonomialActionVec(Action):
             if V.ambient_module() != V:
                 raise ValueError('%s is not equal to its ambient module' % V)
             if V.dimension() != G.degree():
-                raise ValueError('%s has a dimension different to the length of %s' % (V, G))
+                raise ValueError('%s has a dimension different to the degree of %s' % (V, G))
             if V.base_ring() != G.base_ring():
                 raise ValueError('%s and %s have different base rings' % (V, G))
 

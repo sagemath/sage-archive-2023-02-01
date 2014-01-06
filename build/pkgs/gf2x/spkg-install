@@ -22,7 +22,8 @@ done
 # Let the non-optimized x86_64 version build without SSE2.
 # As this only needs changing a symlink, no patch is used.
 cd already_tuned/x86_64
-ln -sf ../../src/mul2k.c gf2x_mul2.h
+rm -f gf2x_mul2.h
+ln -s ../../src/mul2k.c gf2x_mul2.h
 cd ../..
 
 if [ "$SAGE_DEBUG" = "yes" ]; then

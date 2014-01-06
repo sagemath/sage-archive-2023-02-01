@@ -290,7 +290,6 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
     # Initialize
     n_int = int(n)
-    T = tr_data(n_int,B,a)
     S = []
     lenS = 0
 
@@ -369,6 +368,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
     else:
         verb_int = 0
 
+    T = tr_data(n_int,B,a)
     if verb_int == 2:
         T.incr(f_out,verb_int,0,phc_flag)
     else:

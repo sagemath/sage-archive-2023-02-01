@@ -716,7 +716,6 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
     n = F.degree()*m
 
     # Initialize
-    T = tr_data_rel(F,m,B,a)
     S = []
     Srel = []
     dB_odlyzko = odlyzko_bound_totallyreal(n)
@@ -738,6 +737,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
             sys.stdout = fsock
         # Else, print to screen
     f_out = [0]*m + [1]
+    T = tr_data_rel(F,m,B,a)
     if verbose == 2:
         T.incr(f_out,verbose)
     else:

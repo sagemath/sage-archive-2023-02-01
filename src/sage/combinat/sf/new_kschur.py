@@ -20,7 +20,6 @@ from sage.rings.all import Integer
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.realizations import Realizations, Category_realization_of_parent
-#from sage.categories.algebras_with_basis import AlgebrasWithBasis #not currently used
 from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
 from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
 from sage.categories.graded_coalgebras import GradedCoalgebras
@@ -127,8 +126,7 @@ class KBoundedSubspace(UniqueRepresentation, Parent):
 
     def retract(self, sym):
         r"""
-        Return the retract of ``sym`` from the ring of symmetric functions
-        to ``self``.
+        Return the retract of ``sym`` from the ring of symmetric functions to ``self``.
 
         INPUT:
 
@@ -875,9 +873,8 @@ class kSchur(CombinatorialFreeModule):
         sage: ks3(s[2, 1, 1] + t*s[3, 1])
         ks3[2, 1, 1]
 
-    `k`-Schurs are indexed by partitions with first part `\le
-    k`. Constructing a `k`-Schur function for a larger partition raises
-    an error::
+    `k`-Schur functions are indexed by partitions with first part `\le k`. Constructing a `k`-Schur
+    function for a larger partition raises an error::
 
         sage: ks3([4,3,2,1]) #
         Traceback (most recent call last):
@@ -885,7 +882,7 @@ class kSchur(CombinatorialFreeModule):
         TypeError: do not know how to make x (= [4, 3, 2, 1]) an element of self (=3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the 3-Schur basis)
 
     Similarly, attempting to convert a function that is not in the
-    linear span of the `k`-Schur's raises an error::
+    linear span of the `k`-Schur functions raises an error::
 
         sage: ks3(s([4]))
         Traceback (most recent call last):
@@ -894,9 +891,9 @@ class kSchur(CombinatorialFreeModule):
           From: 3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the 3-Schur basis
           To:   Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the Schur basis
 
-    Note that the product of `k`-Schurs is not guaranteed to be in the
+    Note that the product of `k`-Schur functions is not guaranteed to be in the
     space spanned by the `k`-Schurs. In general, we only have that a
-    `k`-Schur times a `j`-Schur is in the `(k+j)`-bounded subspace. The multiplication
+    `k`-Schur times a `j`-Schur function is in the `(k+j)`-bounded subspace. The multiplication
     of two `k`-Schur functions thus generally returns the product of the lift of the
     functions.  If the result happens to lie in the `k`-bounded subspace, then
     the result is cast into the `k`-Schur basis::
@@ -909,7 +906,7 @@ class kSchur(CombinatorialFreeModule):
 
     Because the target space of the product of a `k`-Schur and a `j`-Schur has several
     possibilities, the product of a `k`-Schur and `j`-Schur function is not
-    implemented for distinct `k` and `j`. Let us show how to get around 
+    implemented for distinct `k` and `j`. Let us show how to get around
     this 'manually'::
 
         sage: ks3 = Sym.kBoundedSubspace(3).kschur()
@@ -946,8 +943,8 @@ class kSchur(CombinatorialFreeModule):
 
         Get rid of said technical "reasons".
 
-    However, at `t=1`, the product of `k`-Schurs is in the span of the
-    `k`-Schurs always. Below are some examples at `t=1` ::
+    However, at `t=1`, the product of `k`-Schur functions is in the span of the
+    `k`-Schur functions always. Below are some examples at `t=1` ::
 
         sage: ks3 = Sym.kBoundedSubspace(3, t=1).kschur(); ks3
         3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field with t=1 in the 3-Schur basis also with t=1

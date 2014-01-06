@@ -2207,7 +2207,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         res = 0
         degrees = uniq([ sum(m) for m in g.support() ])
         for d in degrees:
-            for mu in Partitions(d):
+            for mu in sage.combinat.partition.Partitions(d):
                 mu_k = mu.power(k)
                 if mu_k in g:
                     res += g.coefficient(mu_k)*mu_k.centralizer_size()/mu.centralizer_size()*p(mu)

@@ -183,6 +183,7 @@ def WeylGroup(x, prefix=None):
         sage: w = s[0]*s[2]
         sage: w.reduced_word()
         [2, 0]
+        sage: W = groups.misc.WeylGroup(['A',3,1])
     """
     if x in RootLatticeRealizations:
         return WeylGroup_gens(x, prefix=prefix)
@@ -425,7 +426,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
             sage: G.domain()
             Root space over the Rational Field of the Root system of type ['A', 3, 1]
 
-        This method used to be called ``lattice``:
+        This method used to be called ``lattice``::
 
             sage: G.lattice()
             doctest:...: DeprecationWarning: lattice is deprecated. Please use domain instead.
@@ -554,7 +555,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
         generalizations: classical methods (University Park, PA, 1991), 53--61,
         Proc. Sympos. Pure Math., 56, Part 1, Amer. Math. Soc., Providence, RI, 1994.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: W = WeylGroup("A3", prefix = "s")
             sage: [s1,s2,s3] = W.simple_reflections()

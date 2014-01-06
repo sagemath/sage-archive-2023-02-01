@@ -186,7 +186,9 @@ def hurwitz_zeta(s, x, prec=None, **kwargs):
     The Dirichlet L-functions may be expressed as a linear combination
     of Hurwitz zeta functions.
 
-    EXAMPLES::
+    EXAMPLES:
+
+    Symbolic evaluations::
 
         sage: hurwitz_zeta(x, 1)
         zeta(x)
@@ -194,6 +196,13 @@ def hurwitz_zeta(s, x, prec=None, **kwargs):
         1/90*pi^4 - 17/16
         sage: hurwitz_zeta(-4, x)
         -1/5*x^5 + 1/2*x^4 - 1/3*x^3 + 1/30*x
+        sage: hurwitz_zeta(7, -1/2)
+        127*zeta(7) - 128
+        sage: hurwitz_zeta(-3, 1)
+        1/120
+
+    Numerical evaluations::
+
         sage: hurwitz_zeta(3, 1/2).n()
         8.41439832211716
         sage: hurwitz_zeta(11/10, 1/2).n()
@@ -205,7 +214,7 @@ def hurwitz_zeta(s, x, prec=None, **kwargs):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Hurwitz_zeta_function
+    - :wikipedia:`Hurwitz_zeta_function`
     """
     if prec:
         deprecation(15095, 'the syntax hurwitz_zeta(s, x, prec) has been '

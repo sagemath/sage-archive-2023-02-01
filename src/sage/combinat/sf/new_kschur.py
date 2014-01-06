@@ -896,17 +896,22 @@ class kSchur(CombinatorialFreeModule):
 
     Note that the product of `k`-Schurs is not guaranteed to be in the
     space spanned by the `k`-Schurs. In general, we only have that a
-    `k`-Schur times a `j`-Schur is a `(k+j)`-Schur. The multiplication of
-    two `k`-Schur functions thus generally returns a symmetric function
-    (in the Schur basis, not automatically cast into the `2k`-bounded
-    subspace) unless it happens to lie in the `k`-bounded subspace (in
-    which case it is cast into the `k`-Schur basis).
-
-    For technical reasons, the product of a `k`-Schur and a `j`-Schur
-    is not yet implemented for distinct `k` and `j`. Let us show
-    how to get around this 'manually'. The error::
+    `k`-Schur times a `j`-Schur is in the `(k+j)`-bounded subspace. The multiplication
+    of two `k`-Schur functions thus generally returns the product of the lift of the
+    functions.  If the result happens to lie in the `k`-bounded subspace, then
+    the result is cast into the `k`-Schur basis::
 
         sage: ks2 = Sym.kBoundedSubspace(2).kschur()
+        sage: ks2[1] * ks2[1]
+        ks2[1, 1] + ks2[2]
+        sage: ks2[1] * ks2[2]
+        s[2, 1] + s[3]
+
+    Because the target space of the product of a `k`-Schur and a `j`-Schur has several
+    possibilities, the product of a `k`-Schur and `j`-Schur function is not
+    implemented for distinct `k` and `j`. Let us show how to get around 
+    this 'manually'::
+
         sage: ks3 = Sym.kBoundedSubspace(3).kschur()
         sage: ks2([2,1]) * ks3([3,1])
         Traceback (most recent call last):
@@ -919,14 +924,18 @@ class kSchur(CombinatorialFreeModule):
         s[3, 2, 1, 1] + s[3, 2, 2] + (t+1)*s[3, 3, 1] + s[4, 1, 1, 1]
         + (2*t+2)*s[4, 2, 1] + (t^2+t+1)*s[4, 3] + (2*t+1)*s[5, 1, 1]
         + (t^2+2*t+1)*s[5, 2] + (t^2+2*t)*s[6, 1] + t^2*s[7]
+
+    or::
+
+        sage: f = ks2[2,1].lift() * ks3[3,1].lift()
         sage: ks5 = Sym.kBoundedSubspace(5).kschur()
         sage: ks5(f) # The product of a 'ks2' with a 'ks3' is a 'ks5'.
         ks5[3, 2, 1, 1] + ks5[3, 2, 2] + (t+1)*ks5[3, 3, 1] + ks5[4, 1, 1, 1]
         + (t+2)*ks5[4, 2, 1] + (t^2+t+1)*ks5[4, 3] + (t+1)*ks5[5, 1, 1] + ks5[5, 2]
 
     For other technical reasons, taking powers of `k`-Schur functions
-    is not implemented (even when the answer is still in the `k`-bounded
-    subspace)::
+    is not implemented, even when the answer is still in the `k`-bounded
+    subspace::
 
         sage: ks2([1])^2
         Traceback (most recent call last):

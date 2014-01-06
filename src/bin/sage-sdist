@@ -65,7 +65,8 @@ mv "$TARGET" "$SAGE_ROOT"/dist/
 mv "$TARGET".* "$SAGE_ROOT"/dist/
 
 # Create configure tarball
-CONFTARGET="configure-$SAGE_VERSION"
+CONFVERSION=`cat "$SAGE_ROOT/dist/$TARGET/build/pkgs/configure/package-version.txt"`
+CONFTARGET="configure-$CONFVERSION"
 rm -rf "$SAGE_ROOT/dist/$CONFTARGET"
 mkdir "$SAGE_ROOT/dist/$CONFTARGET"
 mkdir "$SAGE_ROOT/dist/$CONFTARGET/config"

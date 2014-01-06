@@ -1,7 +1,7 @@
 r"""
 Elements of a semimonomial transformation group.
 
-A semimonomial transformation group over a ring `R` of degree `n` is equal to
+The semimonomial transformation group of degree `n` over a ring `R` is
 the semidirect product of the monomial transformation group of degree `n`
 (also known as the complete monomial group over the group of units 
 `R^{\times}` of `R`) and the group of ring automorphisms.
@@ -26,7 +26,8 @@ is defined by
 
 with
 `\psi^{\pi, \alpha} = (\alpha(\psi_{\pi(1)-1}), \ldots, \alpha(\psi_{\pi(n)-1}))`
-and an elementwisely defined multiplication of vectors.
+and an elementwisely defined multiplication of vectors. (The indexing
+of vectors is `0`-based here, so `\psi = (\psi_0, \psi_1, \ldots, \psi_{n-1})`.)
 
 
 
@@ -172,7 +173,7 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
         return hash(self.v) + hash(self.perm) + hash(self.get_autom())
 
     cpdef MonoidElement _mul_(left, MonoidElement _right):
-        """
+        r"""
         Multiplication of elements.
         
         The multiplication of two elements `(\phi, \pi, \alpha)` and 
@@ -193,9 +194,10 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
 
         with
         `\psi^{\pi, \alpha} = (\alpha(\psi_{\pi(1)-1}), \ldots, \alpha(\psi_{\pi(n)-1}))`
-        and an elementwisely defined multiplication of vectors. Furthermore,
-        the multiplication `\pi\sigma` is done from left to right (like in GAP) -- 
-        that is, `(\pi\sigma)(i) = \sigma(\pi(i))` for all `i`.
+        and an elementwisely defined multiplication of vectors. (The indexing
+        of vectors is `0`-based here, so `\psi = (\psi_0, \psi_1, \ldots, \psi_{n-1})`.)
+        Furthermore, the multiplication `\pi\sigma` is done from left to right
+        (like in GAP) -- that is, `(\pi\sigma)(i) = \sigma(\pi(i))` for all `i`.
         
         EXAMPLES::
 

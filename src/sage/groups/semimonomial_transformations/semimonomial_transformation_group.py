@@ -1,7 +1,7 @@
 r"""
 Semimonomial transformation group
 
-A semimonomial transformation group over a ring `R` of degree `n` is equal to
+The semimonomial transformation group of degree `n` over a ring `R` is
 the semidirect product of the monomial transformation group of degree `n`
 (also known as the complete monomial group over the group of units 
 `R^{\times}` of `R`) and the group of ring automorphisms.
@@ -26,7 +26,8 @@ is defined by
 
 where
 `\psi^{\pi, \alpha} = (\alpha(\psi_{\pi(1)-1}), \ldots, \alpha(\psi_{\pi(n)-1}))`
-and the multiplication of vectors is defined elementwisely.
+and the multiplication of vectors is defined elementwisely. (The indexing
+of vectors is `0`-based here, so `\psi = (\psi_0, \psi_1, \ldots, \psi_{n-1})`.)
 
 .. TODO::
 
@@ -60,7 +61,9 @@ from sage.groups.semimonomial_transformations.semimonomial_transformation import
 
 class SemimonomialTransformationGroup(FiniteGroup, UniqueRepresentation):
     r"""
-    A semimonomial transformation group over a ring `R` of degree `n` is equal to
+    A semimonomial transformation group over a ring.
+
+    The semimonomial transformation group of degree `n` over a ring `R` is
     the semidirect product of the monomial transformation group of degree `n`
     (also known as the complete monomial group over the group of units 
     `R^{\times}` of `R`) and the group of ring automorphisms.
@@ -85,7 +88,8 @@ class SemimonomialTransformationGroup(FiniteGroup, UniqueRepresentation):
     
     where
     `\psi^{\pi, \alpha} = (\alpha(\psi_{\pi(1)-1}), \ldots, \alpha(\psi_{\pi(n)-1}))`
-    and the multiplication of vectors is defined elementwisely.
+    and the multiplication of vectors is defined elementwisely. (The indexing
+    of vectors is `0`-based here, so `\psi = (\psi_0, \psi_1, \ldots, \psi_{n-1})`.)
     
     .. TODO::
 
@@ -327,7 +331,7 @@ class SemimonomialTransformationGroup(FiniteGroup, UniqueRepresentation):
 
     def _get_action_(self, X, op, self_on_left):
         r"""
-        If ``self`` is a semimonomial group of degree `n` over `R`, then
+        If ``self`` is the semimonomial group of degree `n` over `R`, then
         there is the natural action on `R^n` and on matrices `R^{m \times n}`
         for arbitrary integers `m` from the left. See also:
         :class:`~sage.groups.semimonomial_transformations.semimonomial_transformation_group.SemimonomialActionVec` and
@@ -397,7 +401,9 @@ class SemimonomialActionVec(Action):
 
     The action is defined by:
     `(\phi, \pi, \alpha)*(v_0, \ldots, v_{n-1}) :=
-    (\alpha(v_{\pi(1)-1}) \cdot \phi_0^{-1}, \ldots, \alpha(v_{\pi(n)-1}) \cdot \phi_{n-1}^{-1})`
+    (\alpha(v_{\pi(1)-1}) \cdot \phi_0^{-1}, \ldots, \alpha(v_{\pi(n)-1}) \cdot \phi_{n-1}^{-1})`.
+    (The indexing of vectors is `0`-based here, so
+    `\psi = (\psi_0, \psi_1, \ldots, \psi_{n-1})`.)
     """
     def __init__(self, G, V, check=True):
         r"""

@@ -321,7 +321,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         - ``names`` -- a variable name for the number field
 
         - ``map`` -- (default: ``False``) also return an embedding of
-          ``self.base_field()`` into the resulting field.
+          the :meth:`base_field` into the resulting field.
 
         - ``kwds`` -- additional keywords passed to 
           :func:`sage.rings.number_field.splitting_field.splitting_field`.
@@ -338,16 +338,56 @@ class EllipticCurve_number_field(EllipticCurve_field):
             field is large (e.g. when `p` is large or when the Galois
             representation is surjective).  The ``simplify`` flag also
             has a big influence on the running time: sometimes
-            ``simplify=False`` is faster, sometimes ``simplify=True`` is
-            faster.
+            ``simplify=False`` is faster, sometimes ``simplify=True``
+            (the default) is faster.
 
-        EXAMPLES::
+        EXAMPLES:
 
+        The 2-division field is the same as the splitting field of
+        the 2-division polynomial (therefore, it has degree 1, 2, 3 or 6)::
+
+            sage: E = EllipticCurve('15a1')
+            sage: K.<b> = E.division_field(2); K
+            Number Field in b with defining polynomial x
             sage: E = EllipticCurve('14a1')
             sage: K.<b> = E.division_field(2); K
             Number Field in b with defining polynomial x^2 + 5*x + 92
-            sage: K.<b> = E.division_field(3); K
-            Number Field in b with defining polynomial x^2 + 2*x + 13
+            sage: E = EllipticCurve('196b1')
+            sage: K.<b> = E.division_field(2); K
+            Number Field in b with defining polynomial x^3 + x^2 - 114*x - 127
+            sage: E = EllipticCurve('19a1')
+            sage: K.<b> = E.division_field(2); K
+            Number Field in b with defining polynomial x^6 + 10*x^5 + 24*x^4 - 212*x^3 + 1364*x^2 + 24072*x + 104292
+
+        For odd primes `p`, the division field is either the splitting
+        field of the `p`-division polynomial, or a quadratic extension
+        of it. ::
+
+            sage: E = EllipticCurve('50a1')
+            sage: F.<a> = E.division_polynomial(3).splitting_field(simplify_all=True); F
+            Number Field in a with defining polynomial x^6 - 3*x^5 + 4*x^4 - 3*x^3 - 2*x^2 + 3*x + 3
+            sage: K.<b> = E.division_field(3, simplify_all=True); K
+            Number Field in b with defining polynomial x^6 - 3*x^5 + 4*x^4 - 3*x^3 - 2*x^2 + 3*x + 3
+
+        If we take any quadratic twist, the splitting field of the
+        3-division polynomial remains the same, but the 3-division field
+        becomes a quadratic extension::
+
+            sage: E = E.quadratic_twist(5)  # 50b3
+            sage: F.<a> = E.division_polynomial(3).splitting_field(simplify_all=True); F
+            Number Field in a with defining polynomial x^6 - 3*x^5 + 4*x^4 - 3*x^3 - 2*x^2 + 3*x + 3
+            sage: K.<b> = E.division_field(3, simplify_all=True); K
+            Number Field in b with defining polynomial x^12 - 3*x^11 + 8*x^10 - 15*x^9 + 30*x^8 - 63*x^7 + 109*x^6 - 144*x^5 + 150*x^4 - 120*x^3 + 68*x^2 - 24*x + 4
+
+        Try another quadratic twist, this time over a subfield of `F`::
+
+            sage: G.<c>,_,_ = F.subfields(3)[0]
+            sage: E = E.base_extend(G).quadratic_twist(c); E
+            Elliptic Curve defined by y^2 = x^3 + 5*a0*x^2 + (-200*a0^2)*x + (-42000*a0^2+42000*a0+126000) over Number Field in a0 with defining polynomial x^3 - 3*x^2 + 3*x + 9
+            sage: K.<b> = E.division_field(3, simplify_all=True); K
+            Number Field in b with defining polynomial x^12 - 10*x^10 + 55*x^8 - 60*x^6 + 75*x^4 + 1350*x^2 + 2025
+
+        Some higher-degree examples::
 
             sage: E = EllipticCurve('11a1')
             sage: K.<b> = E.division_field(2); K
@@ -410,8 +450,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         if p == 2:
             # For p = 2, the division field is the splitting field of
             # the division polynomial.
-            deg_mult = F.degree()*6
-            return f.splitting_field(names, degree_multiple=deg_mult, map=map, **kwds)
+            return f.splitting_field(names, map=map, **kwds)
 
         # Compute splitting field of X-coordinates.
         # The Galois group of the division field is a subgroup of GL(2,p).
@@ -446,7 +485,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         # First factor f over F and then compute a root X of f over K.
         g = prime_divisors(f)[0]
-        X = g.change_ring(K).roots(multiplicities=False)[0]
+        X = g.map_coefficients(F_to_K).roots(multiplicities=False)[0]
 
         # Polynomial defining the corresponding Y-coordinate
         a1,a2,a3,a4,a6 = (F_to_K(ai) for ai in self.a_invariants())

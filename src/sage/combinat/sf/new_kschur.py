@@ -884,8 +884,6 @@ class kSchur(CombinatorialFreeModule):
         ...
         TypeError: do not know how to make x (= [4, 3, 2, 1]) an element of self (=3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the 3-Schur basis)
 
-    Note: Is it preferable to return `0` instead?
-
     Similarly, attempting to convert a function that is not in the
     linear span of the `k`-Schur's raises an error::
 

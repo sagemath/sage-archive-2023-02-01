@@ -324,7 +324,7 @@ cdef class Matrix(matrix1.Matrix):
         if not K.is_integral_domain():
             from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
             if is_IntegerModRing(K):
-                from sage.libs.pari.gen import pari
+                from sage.libs.pari.all import pari
                 A = pari(self.lift())
                 b = pari([c.lift() for c in B]).Col()
                 ret = A.matsolvemod(pari(K.cardinality()), b)
@@ -1697,7 +1697,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.charpoly(algorithm='hessenberg')
             Traceback (most recent call last):
             ...
-            ValueError: element has negative valuation.
+            ValueError: negative valuation
             sage: A.det()
             3 + O(5)
 

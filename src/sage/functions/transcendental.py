@@ -21,20 +21,14 @@ import sys
 import sage.libs.pari.all
 from sage.libs.pari.all import pari
 import sage.rings.complex_field as complex_field
-import sage.rings.real_double as real_double
-from sage.gsl.integration import numerical_integral
-from sage.structure.parent import Parent
 from sage.structure.coerce import parent
 from sage.structure.element import get_coercion_model
 from sage.symbolic.expression import Expression
-from sage.functions.log import exp
 from sage.functions.other import factorial, psi
 
-from sage.rings.all import (ComplexField,
-                            ZZ, RR, RDF, CDF, prime_range)
+from sage.rings.all import (ComplexField, ZZ, RR, RDF)
 from sage.rings.complex_number import is_ComplexNumber
 from sage.rings.real_mpfr import (RealField, is_RealNumber)
-from sage.rings.infinity import unsigned_infinity
 
 from sage.symbolic.function import GinacFunction, BuiltinFunction, is_inexact
 

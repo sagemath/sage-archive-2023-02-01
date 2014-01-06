@@ -26,8 +26,13 @@ Website: http://gf2x.gforge.inria.fr/
 
 === Patches ===
  * no-undefined.patch: pass -no-undefined flag to libtool.
+ * symlink already_tuned/x86_64/gf2x_mul2.h to ../../src/mul2k.c in spkg-install
+   so that we can build a fat binary on x86_64.
 
 == Changelog ==
+
+=== gf2x-1.1.p1 (Jean-Pierre Flori, 6 January 2014) ===
+  * Trac #15316: Use --libdir and make SAGE_FAT_BINARY work.
 
 === gf2x-1.1.p0 (Jean-Pierre Flori, 6 August 2013) ===
   * Trac #15014: Let gf2x build a shared library on Cygwin.

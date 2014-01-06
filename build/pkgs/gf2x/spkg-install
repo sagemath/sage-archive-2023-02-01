@@ -19,6 +19,11 @@ for patch in ../patches/*.patch; do
     fi
 done
 
+# Let the non-optimized x86_64 version build without SSE2.
+# As this only needs changing a symlink, no patch is used.
+cd already_tuned/x86_64
+ln -sf ../../src/mul2k.c gf2x_mul2.h
+cd ../..
 
 if [ "$SAGE_DEBUG" = "yes" ]; then
     echo "Building a debug version of gf2x."
@@ -33,9 +38,14 @@ if [ "$SAGE64" = "yes" ]; then
     CFLAGS="-m64 $CFLAGS"
 fi
 
+if [ "$SAGE_FAT_BINARY" = "yes" ]; then
+    echo "Disabling optimizations."
+    GF2X_CONFIGURE="--disable-sse2 --disable-pclmul $GF2X_CONFIGURE"
+fi
 
 echo "Configuring gf2x."
-./configure --prefix="$SAGE_LOCAL"
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL"/lib \
+    $GF2X_CONFIGURE
 if [ $? -ne 0 ]; then
     echo >&2 "Error: Failed to configure gf2x."
     exit 1

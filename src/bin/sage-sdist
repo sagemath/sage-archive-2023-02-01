@@ -52,7 +52,7 @@ SAGE_INSTALL_FETCH_ONLY=yes SAGE_SPKG_OPTS="-f -d" \
 
 # Create source .tar.gz
 cd "$TMP_DIR"
-echo "Creating $TARGET.tar.gz ..."
+echo "Creating dist/$TARGET.tar.gz ..."
 tar zcf "$TARGET".tar.gz "$TARGET"
 
 mkdir -p "$SAGE_ROOT"/dist
@@ -63,18 +63,3 @@ echo "Moving final distribution file to $SAGE_ROOT/dist"
 
 mv "$TARGET" "$SAGE_ROOT"/dist/
 mv "$TARGET".* "$SAGE_ROOT"/dist/
-
-# Create configure tarball
-CONFVERSION=`cat "$SAGE_ROOT/dist/$TARGET/build/pkgs/configure/package-version.txt"`
-CONFTARGET="configure-$CONFVERSION"
-rm -rf "$SAGE_ROOT/dist/$CONFTARGET"
-mkdir "$SAGE_ROOT/dist/$CONFTARGET"
-mkdir "$SAGE_ROOT/dist/$CONFTARGET/config"
-mkdir "$SAGE_ROOT/dist/$CONFTARGET/build"
-cd "$SAGE_ROOT/dist/$TARGET"
-for f in config/* configure build/Makefile-auto.in; do
-    cp -p "$f" "$SAGE_ROOT/dist/$CONFTARGET/$f"
-done
-echo "Creating $CONFTARGET.tar.gz ..."
-cd "$SAGE_ROOT/dist/$CONFTARGET"
-tar zcf "../$CONFTARGET.tar.gz" *

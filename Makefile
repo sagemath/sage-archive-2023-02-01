@@ -93,10 +93,14 @@ distclean: clean doc-clean lib-clean bdist-clean
 	@echo "Deleting all remaining output from build system ..."
 	rm -rf local
 
-# Remove absolutely everything which isn't part of the git repo
-maintainer-clean: distclean
-	rm -rf upstream
+# Delete all auto-generated files which are distributed as part of the
+# source tarball
+autogen-clean:
 	rm -rf config configure build/Makefile-auto.in
+
+# Remove absolutely everything which isn't part of the git repo
+maintainer-clean: distclean autogen-clean
+	rm -rf upstream
 
 micro_release: bdist-clean lib-clean
 	@echo "Stripping binaries ..."
@@ -157,7 +161,7 @@ config/missing:
 configure: configure.ac src/bin/sage-version.sh \
         m4/ax_c_check_flag.m4 m4/ax_gcc_option.m4 m4/ax_gcc_version.m4 m4/ax_gxx_option.m4 m4/ax_gxx_version.m4 m4/ax_prog_perl_version.m4
 	test -f config/missing || $(MAKE) config/missing || \
-		bash -c 'source src/bin/sage-env; source sage-version.sh; sage-download-file $$SAGE_UPSTREAM/configure-`cat build/pkgs/configure/package-version.txt`.tar.gz | tar zxf -'
+		bash -c 'source src/bin/sage-env; sage-download-file $$SAGE_UPSTREAM/configure-`cat build/pkgs/configure/package-version.txt`.tar.gz | tar zxf -'
 	$(MISSING) aclocal -I m4
 	$(MISSING) autoconf
 
@@ -180,8 +184,8 @@ install:
 	"$(DESTDIR)"/bin/sage -c # Run sage-location
 
 
-.PHONY: all build build-serial start install \
+.PHONY: all build build-serial start install micro_release\
 	doc doc-html doc-html-jsmath doc-html-mathjax doc-pdf \
-	doc-clean clean lib-clean bdist-clean distclean maintainer-clean micro_release \
+	doc-clean clean lib-clean bdist-clean distclean autogen-clean maintainer-clean \
 	test check testoptional testall testlong testoptionallong testallong \
 	ptest ptestoptional ptestall ptestlong ptestoptionallong ptestallong

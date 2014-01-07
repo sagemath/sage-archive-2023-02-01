@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+########################################################################
+# Regenerate auto-generated files (e.g. configure) and save them in
+# $SAGE_ROOT/upstream/configure-$CONFVERSION.tar.gz
+# where CONFVERSION is the version number stored in
+# build/pkgs/configure/package-version.txt
+#
+# If optional argument -i is given, then automatically increment that
+# version number.
+########################################################################
+
+set -e
+
+# Either run this script from SAGE_ROOT or make sure that SAGE_ROOT
+# is set
+test -z "$SAGE_ROOT" || cd "$SAGE_ROOT"
+
+PKG=build/pkgs/configure
+
+CONFVERSION=`cat $PKG/package-version.txt`
+
+if [ "$1" = "-i" ]; then
+    CONFVERSION=$(( CONFVERSION + 1 ))
+    shift
+fi
+if [ $# -ne 0 ]; then
+    echo >&2 "Usage: $0 [-i]"
+    exit 2
+fi
+
+MAKE="${MAKE:-make}"
+
+# Start cleanly
+$MAKE autogen-clean
+
+# Generate auto-generated files (without using "missing")
+$MAKE MISSING= configure
+
+# Create configure tarball
+CONFBALL="upstream/configure-$CONFVERSION.tar.gz"
+echo "Creating $CONFBALL..."
+mkdir -p upstream
+tar zcf "$CONFBALL" configure config/* build/Makefile-auto.in
+
+# Update version number
+echo "$CONFVERSION" >$PKG/package-version.txt
+
+# Compute checksum
+src/bin/sage-fix-pkg-checksums "$CONFBALL"
+
+# Commit everything
+git commit -m "Update configure to version $CONFVERSION" $PKG/*

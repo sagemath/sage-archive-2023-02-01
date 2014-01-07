@@ -788,10 +788,9 @@ class ProjectiveSpace_ring(AmbientSpace):
             sage: ProjectiveSpace(PolynomialRing(ZZ,'y'),3,'x').an_element()
             (y : 1 : 1 : 1)
         """
-        n=self.dimension_relative()
-        R=self.base_ring()
-        coords=[R.an_element()] + [R.one() for i in range(n)]
-        return (self(coords))
+        n = self.dimension_relative()
+        R = self.base_ring()
+        return self([R.an_element()] + [R.one()]*n)
 
 class ProjectiveSpace_field(ProjectiveSpace_ring):
     def _point_homset(self, *args, **kwds):

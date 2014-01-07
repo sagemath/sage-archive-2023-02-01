@@ -137,7 +137,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         f, h = self.hyperelliptic_polynomials()
         if h != 0:
             raise NotImplementedError()
-        return [self((0,1,0))] + [self((x, 0, 1)) for x in f.roots()]
+        return [self((0,1,0))] + [self((x, 0, 1)) for x in f.roots(multiplicities=False)]
 
     def is_in_weierstrass_disc(self,P):
         """

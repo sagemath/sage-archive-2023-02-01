@@ -1526,6 +1526,9 @@ def Zq(q, prec = DEFAULT_PREC, type = 'capped-abs', modulus = None, names=None,
 
     - ``check`` -- bool (default ``True``) whether to check inputs.
 
+    - ``implementation`` -- string (default ``FLINT``) which
+      implementation to use.  ``NTL`` is the other option.
+
     OUTPUT:
 
     - The corresponding unramified `p`-adic ring.
@@ -2280,6 +2283,9 @@ class pAdicExtension_class(UniqueFactory):
             Eisenstein Extension of 5-adic Ring with capped relative precision 3 in w defined by (1 + O(5^3))*x^4 + (2*5 + 4*5^2 + 4*5^3 + O(5^4))
         """
         polytype = key[0]
+        if version[0] < 6 or version[0] == 6 and version[1] < 1:
+            key = list(key)
+            key.append('NTL')
         if polytype == 'u' or polytype == 'e':
             polytype, base, premodulus, modulus, names, prec, halt, print_mode, print_pos, print_sep, print_alphabet, print_max_ram_terms, print_max_unram_terms, print_max_terse_terms, implementation = key
             return ext_table[polytype, type(base.ground_ring_of_tower()).__base__](premodulus, modulus, prec, halt, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet, 'max_ram_terms': print_max_ram_terms, 'max_unram_terms': print_max_unram_terms, 'max_terse_terms': print_max_terse_terms}, shift_seed, names, implementation)

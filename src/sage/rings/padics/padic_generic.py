@@ -67,7 +67,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         EXAMPLES::
 
-            sage: Zp(2).some_elements()
+            sage: Zp(2,4).some_elements()
             [0, 1 + O(2^4), 2 + O(2^5), 1 + 2^2 + 2^3 + O(2^4), 2 + 2^2 + 2^3 + 2^4 + O(2^5)]
         """
         p = self(self.prime())

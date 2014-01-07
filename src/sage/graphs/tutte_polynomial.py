@@ -589,8 +589,9 @@ def tutte_polynomial(G, edge_selector=None, forget_cache=True):
         sage: len(_tutte_polynomial_internal.cache) > 1
         False
     """
-    #R = ZZ['x, y']
-    #x, y = R.gens()
+    R = ZZ['x, y']
+    if G.num_edges() == 0:
+        return x.parent().one()
 
     G = G.relabel(inplace = False) # making sure the vertices are integers
     G.allow_loops(True)
@@ -598,13 +599,14 @@ def tutte_polynomial(G, edge_selector=None, forget_cache=True):
 
     if edge_selector is None:
         edge_selector = MinimizeSingleDegree()
-    ans = _tutte_polynomial_internal(G, edge_selector)
+    x, y = R.gens()
+    ans = _tutte_polynomial_internal(G, x, y, edge_selector)
     if forget_cache:
         _tutte_polynomial_internal.cache.clear()
     return ans
 
 @_cached
-def _tutte_polynomial_internal(G, edge_selector):
+def _tutte_polynomial_internal(G, x, y, edge_selector):
     """
     Does the recursive computation of the Tutte polynomial.
 
@@ -621,12 +623,8 @@ def _tutte_polynomial_internal(G, edge_selector):
         sage: P.tutte_polynomial() # indirect doctest
         x^4 + x^3 + x^2 + x + y
     """
-    R = ZZ['x, y']
-
     if G.num_edges() == 0:
-        return R.one()
-
-    x, y = R.gens()
+        return x.parent().one()
 
     def recursive_tp(graph=None):
         """
@@ -635,7 +633,7 @@ def _tutte_polynomial_internal(G, edge_selector):
         """
         if graph is None:
             graph = G
-        return _tutte_polynomial_internal(graph, edge_selector)
+        return _tutte_polynomial_internal(graph, x, y, edge_selector)
 
     #Remove loops
     with removed_loops(G) as loops:
@@ -700,28 +698,28 @@ def _tutte_polynomial_internal(G, edge_selector):
             #The graph is an ear (cycle) We should never be in this
             #case since we check for multi-cycles above
             return y + sum(x**i for i in range(1, ear.s))
+        else:
+            with ear.removed_from(G):
+                #result = sum(x^i for i in range(ear.s)) #single ear case
+                result = sum((prod(x + yy(1, em[e]-1) for e in ear.edges[i+1:])
+                              * prod(yy(0, em[e]-1) for e in ear.edges[:i]))
+                             for i in range(len(ear.edges)))
+                result *= recursive_tp()
 
-        with ear.removed_from(G):
-            #result = sum(x^i for i in range(ear.s)) #single ear case
-            result = sum((prod(x + yy(1, em[e]-1) for e in ear.edges[i+1:])
-                          * prod(yy(0, em[e]-1) for e in ear.edges[:i]))
-                         for i in range(len(ear.edges)))
-            result *= recursive_tp()
+                with contracted_edge(G, [ear.end_points[0],
+                                         ear.end_points[-1]]):
+                    result += prod(yy(0, em[e]-1)
+                                   for e in ear.edges)*recursive_tp()
 
-            with contracted_edge(G, [ear.end_points[0],
-                                     ear.end_points[-1]]):
-                result += prod(yy(0, em[e]-1)
-                               for e in ear.edges)*recursive_tp()
-
-        return result
+            return result
 
     #Theorem 2
     if len(em) == 1:  # the graph is just a multiedge
         return x + sum(y**i for i in range(1, em[edge]))
-
-    with removed_multiedge(G, edge, em[edge]):
-        result = recursive_tp()
-        with contracted_edge(G, edge):
-            result += sum(y**i for i in range(em[edge]))*recursive_tp()
-    return result
+    else:
+        with removed_multiedge(G, edge, em[edge]):
+            result = recursive_tp()
+            with contracted_edge(G, edge):
+                result += sum(y**i for i in range(em[edge]))*recursive_tp()
+        return result
 

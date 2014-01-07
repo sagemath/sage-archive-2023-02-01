@@ -1,6 +1,6 @@
 ctypedef unsigned short ushort
 
-include "sage/misc/bitset_pxd.pxi"
+from cpython cimport PyObject
 
 cdef extern from "stdlib.h":
     ctypedef void const_void "const void"

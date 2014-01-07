@@ -7730,9 +7730,7 @@ class NumberField_absolute(NumberField_generic):
         a = self(a)
         b = self(b)
         if P is None:
-            # We MUST convert a and b to pari before calling the function
-            # to work around Trac #11868 -- Jeroen Demeyer
-            return pari(self).nfhilbert(pari(a), pari(b))
+            return pari(self).nfhilbert(a, b)
 
         from sage.rings.morphism import is_RingHomomorphism
         if is_RingHomomorphism(P):
@@ -7759,9 +7757,7 @@ class NumberField_absolute(NumberField_generic):
             raise ValueError, "P (=%s) should be an ideal of self (=%s) in hilbert_symbol, not of %s" % (P, self, P.number_field())
         if not P.is_prime():
             raise ValueError, "Non-prime ideal P (=%s) in hilbert_symbol" % P
-        # We MUST convert a and b to pari before calling the function
-        # to work around Trac #11868 -- Jeroen Demeyer
-        return pari(self).nfhilbert(pari(a), pari(b), P.pari_prime())
+        return pari(self).nfhilbert(a, b, P.pari_prime())
 
     def hilbert_conductor(self,a,b):
         """

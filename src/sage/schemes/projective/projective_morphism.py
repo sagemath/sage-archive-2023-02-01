@@ -18,6 +18,8 @@ AUTHORS:
 - Ben Hutz (2013-03) iteration functionality and new directory structure
   for affine/projective, height functionality
 
+- Brian Stout, Ben Hutz (Nov 2013) - added minimal model functionality
+
 """
 
 # Historical note: in trac #11599, V.B. renamed
@@ -1787,6 +1789,174 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         from sage.graphs.digraph import DiGraph
         g=DiGraph(dict(zip(V,E)), loops=True)
         return(g)
+
+    def is_PGL_minimal(self, prime_list=None):
+        r"""
+        Checks if ``self`` is a minimal model in its conjugacy class.  See [Bruin-Molnar]
+        and [Molnar] for a description of the algorithm.
+
+        INPUT:
+
+        - ``prime_list`` -- list of primes to check minimality, if None, check all places
+
+        OUTPUT:
+
+        - Boolean - True if ``self`` is minimal, False otherwise.
+
+        EXAMPLES::
+
+            sage: PS.<X,Y> = ProjectiveSpace(QQ,1)
+            sage: H = End(PS)
+            sage: f = H([X^2+3*Y^2,X*Y])
+            sage: f.is_PGL_minimal()
+            True
+
+        ::
+
+            sage: PS.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(PS)
+            sage: f = H([6*x^2+12*x*y+7*y^2,12*x*y])
+            sage: f.is_PGL_minimal()
+            False
+
+        ::
+
+            sage: PS.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(PS)
+            sage: f = H([6*x^2+12*x*y+7*y^2,y^2])
+            sage: f.is_PGL_minimal()
+            Traceback (most recent call last):
+            ...
+            TypeError: Affine minimality is only considered for maps not of the form
+            f or 1/f for a polynomial f.
+        """
+        if self.base_ring()!=QQ and self.base_ring()!=ZZ:
+            raise NotImplementedError("Minimal models only implemented over ZZ or QQ")
+        if not self.is_morphism():
+            raise TypeError("The function is not a morphism")
+        if self.degree()==1:
+            raise NotImplementedError("Minimality is only for degree 2 or higher")
+
+        from endPN_minimal_model import affine_minimal
+        return(affine_minimal(self, False ,prime_list ,True))
+
+    def minimal_model(self, return_transformation = False,prime_list=None):
+        r"""
+        Given ``self`` a scheme morphism on the projective line over the rationals,
+        determine if ``self`` is minimal. In particular, determine
+        if ``self`` is affine minimal, which is enough to decide if it is minimal
+        or not. See Proposition 2.10 in [Bruin-Molnar].
+
+        REFERENCES:
+
+        .. [Bruin-Molnar] N. Bruin and A. Molnar, Minimal models for rational
+           functions in a dynamical setting
+           LMS Journal of Computation and Mathematics, Volume 15 (2012), pp 400-417.
+
+        .. [Molnar] A. Molnar, Fractional Linear Minimal Models of Rational Functions,
+           M.Sc. Thesis.
+
+        INPUT:
+
+        - ``self`` -- scheme morphism on the projective line defined over `QQ`.
+
+        - ``return_transformation`` -- a boolean value, default value True. This
+                                    signals a return of the ``PGL_2`` transformation
+                                    to conjugate ``self`` to the calculated minimal
+                                    model. default: False
+
+        - ``prime_list`` -- a list of primes, in case one only wants to determine minimality
+                   at those specific primes.
+
+        OUTPUT:
+
+        - a scheme morphism on the projective line which is a minimal model of ``self``.
+
+        - a `PGL(2,QQ)` element which conjugates ``self`` to a minimal model
+
+        EXAMPLES::
+
+            sage: PS.<X,Y> = ProjectiveSpace(QQ,1)
+            sage: H = End(PS)
+            sage: f = H([X^2+3*Y^2,X*Y])
+            sage: f.minimal_model(return_transformation=True)
+            (
+            Scheme endomorphism of Projective Space of dimension 1 over Rational
+            Field
+              Defn: Defined on coordinates by sending (X : Y) to
+                    (X^2 + 3*Y^2 : X*Y)
+            ,
+            [1 0]
+            [0 1]
+            )
+
+        ::
+
+            sage: PS.<X,Y> = ProjectiveSpace(QQ,1)
+            sage: H = End(PS)
+            sage: f = H([7365/2*X^4 + 6282*X^3*Y + 4023*X^2*Y^2 + 1146*X*Y^3 + 245/2*Y^4, -12329/2*X^4 - 10506*X^3*Y - 6723*X^2*Y^2 - 1914*X*Y^3 - 409/2*Y^4])
+            sage: f.minimal_model(return_transformation=True)
+            (
+            Scheme endomorphism of Projective Space of dimension 1 over Rational
+            Field
+              Defn: Defined on coordinates by sending (X : Y) to
+                    (22176*X^4 + 151956*X^3*Y + 390474*X^2*Y^2 + 445956*X*Y^3 +
+            190999*Y^4 : -12329*X^4 - 84480*X^3*Y - 217080*X^2*Y^2 - 247920*X*Y^3 -
+            106180*Y^4),
+            [2 3]
+            [0 1]
+            )
+
+        ::
+
+            sage: PS.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(PS)
+            sage: f = H([6*x^2+12*x*y+7*y^2,12*x*y])
+            sage: f.minimal_model()
+            Scheme endomorphism of Projective Space of dimension 1 over Rational
+            Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^2 + 12*x*y + 42*y^2 : 2*x*y)
+
+        ::
+
+            sage: PS.<x,y> = ProjectiveSpace(ZZ,1)
+            sage: H = End(PS)
+            sage: f = H([6*x^2+12*x*y+7*y^2,12*x*y + 42*y^2])
+            sage: g,M=f.minimal_model(return_transformation=True)
+            sage: f.conjugate(M)==g
+            True
+
+        ::
+
+            sage: PS.<X,Y> = ProjectiveSpace(QQ,1)
+            sage: H = End(PS)
+            sage: f = H([X+Y,X-3*Y])
+            sage: f.minimal_model()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Minimality is only for degree 2 or higher
+
+        ::
+
+            sage: PS.<X,Y> = ProjectiveSpace(QQ,1)
+            sage: H = End(PS)
+            sage: f = H([X^2-Y^2,X^2+X*Y])
+            sage: f.minimal_model()
+            Traceback (most recent call last):
+            ...
+            TypeError: The function is not a morphism
+
+        """
+        if self.base_ring()!=QQ and self.base_ring()!=ZZ:
+            raise NotImplementedError("Minimal models only implemented over ZZ or QQ")
+        if not self.is_morphism():
+            raise TypeError("The function is not a morphism")
+        if self.degree()==1:
+            raise NotImplementedError("Minimality is only for degree 2 or higher")
+
+        from endPN_minimal_model import affine_minimal
+        return(affine_minimal(self, return_transformation,prime_list,False))
 
 class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial_projective_space):
 

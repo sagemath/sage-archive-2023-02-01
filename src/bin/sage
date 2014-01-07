@@ -37,10 +37,10 @@ usage() {
     echo "                           --optional - controls which optional tests are run"
     echo "                           --sagenb - test all sagenb files"
     echo "                           --help - show all testing options"
-    echo "  -upgrade [url]      -- download, build and install standard packages from"
-    echo "                         given url.  If url not given, automatically selects a"
-    echo "                         suitable mirror.  If url='ask', it lets you select"
-    echo "                         the mirror (uses SAGE_SERVER as default)."
+    echo "  -upgrade [version]  -- download, build and install the given version. Here,"
+    echo "                         'version' is a git branch or tag name. Useful values"
+    echo "                         are 'master' (the currend development version, this"
+    echo "                         is the default) or a version number like '5.13'."
     echo "  -v, -version        -- print the Sage version"
     exit 0
 }
@@ -125,10 +125,10 @@ usage_advanced() {
     echo "  -standard           -- list all standard packages that can be installed"
    #echo "  -update             -- download latest non-optional Sage packages (do not build them)"
    #echo "  -update-build       -- build and install all downloaded non-optional Sage packages"
-    echo "  -upgrade [url]      -- download, build and install standard packages from"
-    echo "                         given url.  If url not given, automatically selects a"
-    echo "                         suitable mirror.  If url='ask', it lets you select"
-    echo "                         the mirror (uses SAGE_SERVER as default)."
+    echo "  -upgrade [version]  -- download, build and install the given version. Here,"
+    echo "                         'version' is a git branch or tag name. Useful values"
+    echo "                         are 'master' (the currend development version, this"
+    echo "                         is the default) or a version number like '5.13'."
 
     echo
     ####  1.......................26..................................................78
@@ -207,9 +207,7 @@ usage_advanced() {
     echo "  -crap sage-ver.tar  -- detect suspicious garbage in sage source tarball"
     echo "  -pkg <dir>          -- create Sage package dir.spkg from a given directory"
     echo "  -pkg_nc <dir>       -- as -pkg, but do not compress the package"
-    echo "  -rsyncdist VER      -- build an rsyncable source distribution of Sage (you"
-    echo "                         must first run sage -sdist VER for this to work)"
-    echo "  -sdist VER          -- build a source distribution of Sage"
+    echo "  -sdist              -- build a source distribution of Sage"
 
     echo
     ####  1.......................26..................................................78
@@ -249,10 +247,21 @@ if [ "$1" = '--nodotsage' ]; then
     exit $status
 fi
 
-# Make sure this doesn't produce output (in case we use this in scripts).
+# Check for '--upgrade' before sourcing sage-env: the top-level "make"
+# should be run outside of the Sage shell, see #15517.
+if [ "$1" = '-upgrade' -o "$1" = "--upgrade" ]; then
+    shift
+    cd "$SAGE_ROOT"
+    exec local/bin/sage-upgrade "$@"
+fi
+
+
+# Source sage-env ($0 is the name of this "sage" script, so we can just
+# append -env to that). We redirect stdout to stderr, which is safer
+# for scripts.
 . "$0-env" >&2
 if [ $? -ne 0 ]; then
-    echo >&2 "Error setting environment variables by sourcing '$SAGE_ROOT/spkg/bin/sage-env';"
+    echo >&2 "Error setting environment variables by sourcing '$0-env';"
     echo >&2 "possibly contact sage-devel (see http://groups.google.com/group/sage-devel)."
     exit 1
 fi
@@ -861,23 +870,6 @@ if [ "$1" = '-bdist' -o "$1" = "--bdist" ]; then
     maybe_sage_location
     shift
     exec sage-bdist "$@"
-fi
-
-#if [ "$1" = '-update' ]; then
-#    sage-update
-#    exit $?
-#fi
-
-#if [ "$1" = '-update-build' -o "$1" = "--update-build" ]; then
-#    sage-update-build
-#    sage-update-build
-#    exit $?
-#fi
-
-if [ "$1" = '-upgrade' -o "$1" = "--upgrade" ]; then
-    shift
-    sage-upgrade "$@"
-    exit $?
 fi
 
 if [ "$1" = "-docbuild" -o "$1" = "--docbuild" ]; then

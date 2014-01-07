@@ -520,6 +520,7 @@ def _cached(func):
 # Tutte Polynomial #
 ####################
 
+@_cached
 def tutte_polynomial(G, edge_selector=None, forget_cache=True):
     r"""
     Return the Tutte polynomial of the graph `G`.

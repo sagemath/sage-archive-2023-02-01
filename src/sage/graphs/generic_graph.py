@@ -16542,7 +16542,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.get_pos()
             {0: (0, 0), 1: (2, 0), 2: (3, 0), 3: (4, 0)}
 
-        Check that #12477 is fixed::
+        Check that :trac:`12477` is fixed::
 
             sage: g = Graph({1:[2,3]})
             sage: rel = {1:'a', 2:'b'}
@@ -16551,16 +16551,25 @@ class GenericGraph(GenericGraph_pyx):
             [3, 'a', 'b']
             sage: rel
             {1: 'a', 2: 'b'}
+
+        Immutable graphs cannot be relabeled::
+
+            sage: Graph(graphs.PetersenGraph(), immutable=True).relabel({})
+            Traceback (most recent call last):
+            ...
+            ValueError: Thou shalt not relabel an immutable graph
         """
         from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 
         if not inplace:
-            from copy import copy
-            G = copy(self)
+            G = self.copy(immutable=False)
             perm2 = G.relabel(perm,
                               return_map= return_map,
                               check_input = check_input,
                               complete_partial_function = complete_partial_function)
+
+            if getattr(self, "_immutable", False):
+                G = self.__class__(G, immutable = True)
 
             if return_map:
                 return G, perm2

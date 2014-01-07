@@ -39,7 +39,7 @@ Currently, this module gathers the following designs :
     :delim: |
 
     :meth:`~sage.combinat.designs.block_design.ProjectiveGeometryDesign`
-    :meth:`~sage.combinat.designs.block_design.DesarguesianProjectivePlaneDesign`
+    :meth:`~sage.combinat.designs.block_design.ProjectivePlaneDesign`
     :meth:`~sage.combinat.designs.block_design.AffineGeometryDesign`
     :meth:`~sage.combinat.designs.block_design.WittDesign`
     :meth:`~sage.combinat.designs.block_design.HadamardDesign`
@@ -60,7 +60,7 @@ REFERENCES:
   http://www.ccrwest.org/cover.html
 """
 from sage.combinat.designs.block_design import (ProjectiveGeometryDesign,
-                                                DesarguesianProjectivePlaneDesign,
+                                                ProjectivePlaneDesign,
                                                 AffineGeometryDesign,
                                                 WittDesign,
                                                 HadamardDesign,

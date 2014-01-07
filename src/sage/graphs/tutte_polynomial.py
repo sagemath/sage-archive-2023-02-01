@@ -41,7 +41,6 @@ Functions
 
 from contextlib import contextmanager
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.cachefunc import cached_function
 from sage.graphs.graph import Graph
 from sage.misc.misc_c import prod
 from sage.rings.integer_ring import ZZ
@@ -591,7 +590,7 @@ def tutte_polynomial(G, edge_selector=None, forget_cache=True):
     """
     R = ZZ['x, y']
     if G.num_edges() == 0:
-        return x.parent().one()
+        return R.one()
 
     G = G.relabel(inplace = False) # making sure the vertices are integers
     G.allow_loops(True)

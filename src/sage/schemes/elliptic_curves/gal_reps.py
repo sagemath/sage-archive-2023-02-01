@@ -164,115 +164,6 @@ def _ex_set(p):
             res.append(a[0])
     return res
 
-# these two function could be moved to a better place later, see #11905 and #15610
-
-def _splitting_field(f):
-    """
-    Given a polynomial over `\QQ`, this returns the splitting field
-    (as an absolute field over `\QQ`).
-
-    EXAMPLES::
-
-        sage: from sage.schemes.elliptic_curves.gal_reps import _splitting_field
-        sage: R.<X> = QQ[]
-        sage: f = X^2 + 1
-        sage: _splitting_field(f)
-        Number Field in b with defining polynomial X^2 + 1
-        sage: f = (X^6-1)*(X^4+1)
-        sage: _splitting_field(f)
-        Number Field in b with defining polynomial x^8 + 4*x^7 + 10*x^6 + 16*x^5 + 21*x^4 + 20*x^3 + 4*x^2 - 4*x + 1
-        sage: f = X^3 - 4*X^2 - 160*X - 1264
-        sage: _splitting_field(f)
-        Number Field in b with defining polynomial x^6 - 992*x^4 + 246016*x^2 + 41229056
-
-        sage: f3  = 4*X^3 - 4*X^2 - 40*X - 79
-        sage: _splitting_field(f3)
-        Number Field in b with defining polynomial x^6 - 992*x^4 + 246016*x^2 + 41229056
-
-        sage: f3  = 4*X^3 - 4*X^2 - 40*X - 79
-        sage: _splitting_field(f3/4)
-        Number Field in b with defining polynomial x^6 - 992*x^4 + 246016*x^2 + 41229056
-
-    """
-    from sage.rings.all import QQ
-    from sage.misc.flatten import flatten
-    # make an integral monic polynomial out of it
-    d = f.denominator()
-    f = d*f
-    R = PolynomialRing(QQ,'X')
-    f = R(f)
-    X = R.gens()[0]
-    an = f.leading_coefficient()
-    f = an**(f.degree() - 1) * f(X/an)
-    if an != 1:
-        misc.verbose("polynomial changed to %s"%f,3)
-
-    fs = [ff[0] for ff in f.factor() if ff[0].degree() > 1 ]
-    while fs != []:
-        K = fs[0].root_field('a')
-        R = PolynomialRing(K,'X')
-        fs = [R(f) for f in fs]
-        K = K.absolute_field('b')
-        inc = K.structure()[1]
-        misc.verbose("degree of the field is now %s"%K.degree(), 2)
-        R = PolynomialRing(K,'X')
-        fs = [R([inc(u) for u in g.coeffs()]) for g in fs]
-        fs = [[ff[0] for ff in g.factor() if ff[0].degree() > 1] for g in fs]
-        fs = flatten(fs)
-    return K
-
-def _division_field(E,p):
-    """
-    Given an elliptic curve and a prime `p`, this constructs the division
-    field `\QQ(E[p])` over which all `p`-torsion points are defined.
-
-    Note this takes a LONG time when p is large or when the representation is surjective.
-
-    EXAMPLES::
-
-        sage: from sage.schemes.elliptic_curves.gal_reps import _division_field
-        sage: E = EllipticCurve('14a1')
-        sage: _division_field(E,2)
-        Number Field in b with defining polynomial X^2 + 5*X + 92
-        sage: _division_field(E,3)
-        Number Field in b with defining polynomial X^2 + 6*X + 117
-
-        sage: E = EllipticCurve('11a1')
-        sage: K = _division_field(E,5); K
-        Number Field in b with defining polynomial x^4 + 5*x^3 + 275*x^2 + 5125*x + 63125
-        sage: E.base_extend(K).torsion_subgroup()
-        Torsion Subgroup isomorphic to Z/5 + Z/5 associated to the Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 + (-10)*x + (-20) over Number Field in b with defining polynomial x^4 + 5*x^3 + 275*x^2 + 5125*x + 63125
-
-        sage: E = EllipticCurve('27a1')
-        sage: _division_field(E,3)
-        Number Field in b with defining polynomial X^2 + 9*X + 81
-        sage: _division_field(E,2)
-        Number Field in b with defining polynomial x^6 + 5038848
-        sage: E = EllipticCurve('27a1')
-        sage: L = _division_field(E,5); L   # long time (4s on sage.math, 2011)
-        doctest:...: UserWarning: PARI only handles integral absolute polynomials. Computations in this field might trigger PARI errors
-        Number Field in b with defining polynomial x^48 + 24*x^47 - 2634*x^46 - 64906*x^45 + 2726775*x^44 + 70841232*x^43 + 224413842693*x^42 + 4701700599732*x^41 - 3592508072137596/5*x^40 - 15012293781179144*x^39 + 968283011174870355*x^38 + 20267256109653557724*x^37 + 12067484020318191883430*x^36 + 1074616923704149785005406/5*x^35 - 36733858365780941833244052*x^34 - 645743028366047451133249842*x^33 + 220969510763490262549458235143/5*x^32 + 3821508904338000023273602548048/5*x^31 - 116959091827892505647463476639056/5*x^30 - 410999736248972608356551138775366*x^29 - 14893829970063945547808915701339152/5*x^28 - 65364599206437988881942239704947194/5*x^27 + 67673426654602996794997806980859832818/5*x^26 + 881882930983056033772717698410508954006/5*x^25 - 222881687343119655077359346112642829420824/25*x^24 - 2895120823335191010101881263518064564214338/25*x^23 + 45001727573606034388747893503112487075055856/25*x^22 + 123791333776720160716501836669886842723129232/5*x^21 + 33784656476525285313173627304265791556761499182/25*x^20 + 315309937263412002519549766396743184287341740362/25*x^19 - 29809326189907478934703273836943134749630766073937/25*x^18 - 277139669604549129326940625213109992460300794466472/25*x^17 + 48267417458901196371693187503590931071511693353624403/125*x^16 + 417747951937480880271176634423393038757023573062901214/125*x^15 + 2007263826796309855277267487981686566625095650300775449/125*x^14 + 6629329384200142639862088631838847849519261327732912678/125*x^13 - 7890086815228540044028318696011082482007739165946890467526/125*x^12 - 47407282438244289856698339380010252170030182743016263979758/125*x^11 + 3298070588288796211686670268348031992948626610010905491413867/125*x^10 + 16925026780847521477088033404397720576309067225732939278573654/125*x^9 - 12606276975554600131707859641843171596158942063398834295739121081/3125*x^8 - 52976903401697668325123474606327892765221094244312074003749191524/3125*x^7 - 1938266538684772533113390852600216820719603074035866039130578333001/3125*x^6 - 5627590284654484129751875434157935192705922694236805197727447225544/3125*x^5 + 285380988605606088041604497638523394233117370690633546039125252974974/625*x^4 + 2863126544037648956156470697472798773649141080128520101958284622979502/3125*x^3 - 292971118345690446877843351574720458113286307337430973163488739432371577/3125*x^2 - 294403610592013769220290971977947932182340270515731034223504446414069348/3125*x + 128890191901531504726282929609520479109501654595823184011440588325811602871/15625
-        sage: L.absolute_degree()           # long time
-        48
-
-    Even  _division_field(E,7) works within a few minutes
-    """
-    misc.verbose("trying to build the extension by adjoining the %s-torsion points"%p,2)
-    f = E.division_polynomial(p)
-    K = _splitting_field(f)
-    EK = E.base_extend(K)
-    if len(EK._p_primary_torsion_basis(p,1)) < 2:
-        misc.verbose("the y-coordinate needs to be adjoined, too",2)
-        R = PolynomialRing(K,'Y')
-        Y = R.gens()[0]
-        for xxm in R(f).roots():
-            xx = xxm[0]
-            g = Y**2 + (EK.a1() * xx + EK.a3() ) * Y - xx**3 - EK.a2()*xx**2 - EK.a4()*xx - EK.a6()
-            if g.roots() == []:
-                K = g.root_field('a').absolute_field('b')
-                break
-    return K
-
 
 class GaloisRepresentation(SageObject):
     r"""
@@ -879,9 +770,9 @@ class GaloisRepresentation(SageObject):
             'The image is contained in the normalizer of a non-split Cartan group.'
             sage: EllipticCurve([0,0,1,-25650,1570826]).galois_representation().image_type(5)
             'The image is contained in the normalizer of a split Cartan group.'
-            sage: EllipticCurve([1,-1,1,-2680,-50053]).galois_representation().image_type(7)    # the dots (...) in the output fix #11937 (installed 'Kash' may give additional output); long time (26s on sage.math, 2012)
+            sage: EllipticCurve([1,-1,1,-2680,-50053]).galois_representation().image_type(7)    # the dots (...) in the output fix #11937 (installed 'Kash' may give additional output); long time (2s on sage.math, 2014)
             'The image is a... group of order 18.'
-            sage: EllipticCurve([1,-1,0,-107,-379]).galois_representation().image_type(7)       # the dots (...) in the output fix #11937 (installed 'Kash' may give additional output); long time (5s on sage.math, 2012)
+            sage: EllipticCurve([1,-1,0,-107,-379]).galois_representation().image_type(7)       # the dots (...) in the output fix #11937 (installed 'Kash' may give additional output); long time (1s on sage.math, 2014)
             'The image is a... group of order 36.'
             sage: EllipticCurve([0,0,1,2580,549326]).galois_representation().image_type(7)
             'The image is contained in the normalizer of a split Cartan group.'
@@ -1008,7 +899,7 @@ class GaloisRepresentation(SageObject):
                 raise RuntimeError("Bug in image_type for p = 3.")
             return self.__image_type[p]
 
-        #  we also eliminate cm curves
+        # we also eliminate cm curves
 
         if self._E.has_cm():
             if self._E.is_good(p) and self._E.is_ordinary(p):
@@ -1072,28 +963,25 @@ class GaloisRepresentation(SageObject):
             # That allows us to determine almost all cases.
 
             f = self._E.division_polynomial(5)
-            K = _splitting_field(f)
-            #EK = self._E.base_extend(K)
-            #d = K.degree()
-            #if len(EK._p_primary_torsion_basis(5,1)) < 2:
-            #    d *= 2
-            # d is the order of the image in GL_2
-
-            if K.degree() in [4,8,16]:
-                self.__image_type[p] = split_str
-                return self.__image_type[p]
-            if K.degree() == 24:
-                self.__image_type[p] = a4_str
-                return self.__image_type[p]
-            if K.degree() == 6:
-                self.__image_type[p] = non_split_str
-                return self.__image_type[p]
-
-            if K.degree() == 12:
-                # PGL - image could be a S_3 in the normalizer of the split or A4
-                self.__image_type[p] = "The image is of order %s. Probably contained in the normalizer of the split Cartan g."
-                return self.__image_type[p]
-
+            from sage.rings.number_field.splitting_field import SplittingFieldAbort
+            try:
+                K = f.splitting_field('x', degree_multiple=240, abort_degree=24)
+            except SplittingFieldAbort:
+                pass
+            else:
+                if K.degree() in (4,8,16):
+                    self.__image_type[p] = split_str
+                    return self.__image_type[p]
+                if K.degree() == 24:
+                    self.__image_type[p] = a4_str
+                    return self.__image_type[p]
+                if K.degree() == 6:
+                    self.__image_type[p] = non_split_str
+                    return self.__image_type[p]
+                if K.degree() == 12:
+                    # PGL - image could be a S_3 in the normalizer of the split or A4
+                    self.__image_type[p] = "The image is of order 6 or 12. Probably contained in the normalizer of the split Cartan g."
+                    return self.__image_type[p]
 
         ## now E has no cm, is not semi-stable,
         ## p > 5,
@@ -1102,7 +990,7 @@ class GaloisRepresentation(SageObject):
         # this uses Serre 2.6.iii and Prop 19
         # the existence of certain classes in the image rules out certain cases.
         # we run over the small prime until we are left with only one case
-        # for p = 5 this could never distinguish any from an exceptional S_4 ot A_4,
+        # for p = 5 this could never distinguish any from an exceptional S_4 or A_4,
         # that is why the case 5 is treated a part before
 
         else:
@@ -1185,10 +1073,9 @@ class GaloisRepresentation(SageObject):
                         self.__image_type[p] = "The image in PGL_2(F_%s) is an exceptional group A_4, S_4 or A_5, but we could not determine which one."%p
                         return self.__image_type[p]
 
-        # is all fails, we probably have a fairly small group and we can try to detect it using the galois_group
-
+        # If all fails, we probably have a fairly small group and we can try to detect it using the galois_group
         if p <= 13:
-            K = _division_field(self._E,p)
+            K = self._E.division_field(p, 'z')
             d = K.absolute_degree()
 
             misc.verbose("field of degree %s.  try to compute galois group"%(d),2)

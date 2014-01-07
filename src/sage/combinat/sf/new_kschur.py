@@ -873,8 +873,8 @@ class kSchur(CombinatorialFreeModule):
         sage: ks3(s[2, 1, 1] + t*s[3, 1])
         ks3[2, 1, 1]
 
-    `k`-Schur functions are indexed by partitions with first part `\le k`. Constructing a `k`-Schur
-    function for a larger partition raises an error::
+    `k`-Schur functions are indexed by partitions with first part `\le k`. Constructing a
+    `k`-Schur function for a larger partition raises an error::
 
         sage: ks3([4,3,2,1]) #
         Traceback (most recent call last):
@@ -893,10 +893,11 @@ class kSchur(CombinatorialFreeModule):
 
     Note that the product of `k`-Schur functions is not guaranteed to be in the
     space spanned by the `k`-Schurs. In general, we only have that a
-    `k`-Schur times a `j`-Schur function is in the `(k+j)`-bounded subspace. The multiplication
-    of two `k`-Schur functions thus generally returns the product of the lift of the
-    functions.  If the result happens to lie in the `k`-bounded subspace, then
-    the result is cast into the `k`-Schur basis::
+    `k`-Schur times a `j`-Schur function is in the `(k+j)`-bounded subspace. The
+    multiplication of two `k`-Schur functions thus generally returns the product of
+    the lift of the functions to the ambient symmetric function space.  If the result
+    happens to lie in the `k`-bounded subspace, then the result is cast into the
+    `k`-Schur basis::
 
         sage: ks2 = Sym.kBoundedSubspace(2).kschur()
         sage: ks2[1] * ks2[1]

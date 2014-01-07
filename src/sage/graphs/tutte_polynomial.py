@@ -527,9 +527,9 @@ def tutte_polynomial(G, edge_selector=None, forget_cache=True):
 
     INPUT:
 
-    - ``edge_selector`` (method) This (optional) argument allows the user
+    - ``edge_selector`` (optional; method) this argument allows the user
       to specify his own heuristic for selecting edges used in the deletion
-      contraction recurrence.
+      contraction recurrence
 
     - ``forget_cache`` -- (boolean; default ``True``) whether to forget the
       Tutte polynomials of all graphs that were created during the recursions
@@ -609,8 +609,20 @@ def tutte_polynomial(G, edge_selector=None, forget_cache=True):
 def _tutte_polynomial_internal(G, x, y, edge_selector):
     """
     Does the recursive computation of the Tutte polynomial.
-    """
 
+    INPUT:
+
+    - ``G`` -- the graph
+    - ``x,y`` -- the variables `x,y` respectively
+    - ``edge_selector`` -- the heuristic for selecting edges used in the
+      deletion contraction recurrence
+
+    TESTS::
+
+        sage: P = graphs.CycleGraph(5)
+        sage: P.tutte_polynomial() # indirect doctest
+        x^4 + x^3 + x^2 + x + y
+    """
     def recursive_tp(graph=None):
         """
         The recursive call -- used so that we do not have to specify

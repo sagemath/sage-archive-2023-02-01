@@ -506,11 +506,11 @@ def _cached(func):
     _cache = {}
 
     @sage_wraps(func)
-    def wrapper(G, **kwds):
+    def wrapper(G, *args, **kwds):
         key = _cache_key(G)
         if key in _cache:
             return _cache[key]
-        result = func(G, **kwds)
+        result = func(G, *args, **kwds)
         _cache[key] = result
         return result
     wrapper.cache = _cache
@@ -589,11 +589,8 @@ def tutte_polynomial(G, edge_selector=None, forget_cache=True):
         sage: len(_tutte_polynomial_internal.cache) > 1
         False
     """
-    R = ZZ['x, y']
-    x, y = R.gens()
-
-    if G.num_edges() == 0:
-        return R.one()
+    #R = ZZ['x, y']
+    #x, y = R.gens()
 
     G = G.relabel(inplace = False) # making sure the vertices are integers
     G.allow_loops(True)
@@ -601,13 +598,13 @@ def tutte_polynomial(G, edge_selector=None, forget_cache=True):
 
     if edge_selector is None:
         edge_selector = MinimizeSingleDegree()
-    ans = _tutte_polynomial_internal(G, x, y, edge_selector)
+    ans = _tutte_polynomial_internal(G, edge_selector)
     if forget_cache:
         _tutte_polynomial_internal.cache.clear()
     return ans
 
 @_cached
-def _tutte_polynomial_internal(G, x, y, edge_selector):
+def _tutte_polynomial_internal(G, edge_selector):
     """
     Does the recursive computation of the Tutte polynomial.
 
@@ -624,6 +621,13 @@ def _tutte_polynomial_internal(G, x, y, edge_selector):
         sage: P.tutte_polynomial() # indirect doctest
         x^4 + x^3 + x^2 + x + y
     """
+    R = ZZ['x, y']
+
+    if G.num_edges() == 0:
+        return R.one()
+
+    x, y = R.gens()
+
     def recursive_tp(graph=None):
         """
         The recursive call -- used so that we do not have to specify
@@ -631,7 +635,7 @@ def _tutte_polynomial_internal(G, x, y, edge_selector):
         """
         if graph is None:
             graph = G
-        return _tutte_polynomial_internal(graph, x, y, edge_selector)
+        return _tutte_polynomial_internal(graph, edge_selector)
 
     #Remove loops
     with removed_loops(G) as loops:

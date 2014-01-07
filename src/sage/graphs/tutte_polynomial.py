@@ -520,9 +520,8 @@ def _cached(func):
 # Tutte Polynomial #
 ####################
 
-
 @_cached
-def tutte_polynomial(G, initial_call=True, edge_selector=None):
+def tutte_polynomial(G, initial_call=True, edge_selector=None, forget_cache=True):
     r"""
     Returns the Tutte polynomial of the graph `G`.
 
@@ -531,6 +530,14 @@ def tutte_polynomial(G, initial_call=True, edge_selector=None):
     - ``edge_selector`` (method) This (optional) argument allows the user
       to specify his own heuristic for selecting edges used in the deletion
       contraction recurrence.
+
+    - ``forget_cache`` (boolean) -- whether to forget the Tutte polynomials of
+      all graphs that were created during the recursions when returning the
+      result. If you plan on computing the Tutte polynomials of many graphs you
+      probably want to set it to ``False`` to save time, though it may eat quite
+      some memory. See for yourself. Set to ``True`` by default.
+
+    - ``initial_call`` (boolean) -- internal use. Keep your fingers off.
 
     EXAMPLES:
 
@@ -566,6 +573,23 @@ def tutte_polynomial(G, initial_call=True, edge_selector=None):
         (x - 2) * (x - 1) * x * (x^3 - 9*x^2 + 29*x - 32)
         sage: G.chromatic_polynomial().factor()
         (x - 2) * (x - 1) * x * (x^3 - 9*x^2 + 29*x - 32)
+
+    TESTS:
+
+    Emptying the cache::
+
+        sage: from sage.graphs.tutte_polynomial import tutte_polynomial
+        sage: len(tutte_polynomial.cache) > 1
+        False
+        sage: _ = graphs.RandomGNP(7,.5).tutte_polynomial()
+        sage: len(tutte_polynomial.cache) > 1
+        False
+        sage: _ = graphs.RandomGNP(7,.5).tutte_polynomial(forget_cache=False)
+        sage: len(tutte_polynomial.cache) > 1
+        True
+        sage: _ = graphs.RandomGNP(7,.5).tutte_polynomial()
+        sage: len(tutte_polynomial.cache) > 1
+        False
     """
     R = ZZ['x, y']
     x, y = R.gens()
@@ -574,9 +598,13 @@ def tutte_polynomial(G, initial_call=True, edge_selector=None):
         return R.one()
 
     if initial_call is True:
-        G = G.copy()
+        G = G.relabel(inplace = False) # making sure the vertices are integers
         G.allow_loops(True)
         G.allow_multiple_edges(True)
+        ans = tutte_polynomial(G, initial_call=False, edge_selector=edge_selector)
+        if forget_cache:
+            tutte_polynomial.cache.clear()
+        return ans
 
     if edge_selector is None:
         edge_selector = MinimizeSingleDegree()

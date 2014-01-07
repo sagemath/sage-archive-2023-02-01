@@ -1666,13 +1666,30 @@ cdef class Polynomial(CommutativeAlgebraElement):
             3*x
             sage: f.parent()
             Univariate Polynomial Ring in x over Ring of integers modulo 5
+
+        TESTS:
+
+        Check that :trac:`12217` is fixed::
+
+            sage: P.<x> = GF(5)[]
+            sage: x/0
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Inverse does not exist.
+
+            sage: P.<x> = GF(25, 'a')[]
+            sage: x/5
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: division by zero in Finite Field in a of size 5^2
+
         """
         try:
             if not isinstance(right, Element) or right.parent() != self.parent():
                 R = self.parent().base_ring()
                 x = R._coerce_(right)
                 return self * ~x
-        except (TypeError, ValueError, ZeroDivisionError):
+        except (TypeError, ValueError):
             pass
         return RingElement.__div__(self, right)
 
@@ -3395,6 +3412,86 @@ cdef class Polynomial(CommutativeAlgebraElement):
             pari.set_real_precision(n)  # restore precision
         return Factorization(F, unit)
 
+    def splitting_field(self, names, map=False, **kwds):
+        """
+        Compute the absolute splitting field of a given polynomial.
+
+        INPUT:
+
+        - ``names`` -- a variable name for the splitting field.
+
+        - ``map`` -- (default: ``False``) also return an embedding of
+          ``self`` into the resulting field.
+
+        - ``kwds`` -- additional keywords depending on the type.
+          Currently, only number fields are implemented. See
+          :func:`sage.rings.number_field.splitting_field.splitting_field`
+          for the documentation of these keywords.
+
+        OUTPUT:
+
+        If ``map`` is ``False``, the splitting field as an absolute field.
+        If ``map`` is ``True``, a tuple ``(K, phi)`` where ``phi`` is an
+        embedding of the base field of ``self`` in ``K``.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: K.<a> = (x^3 + 2).splitting_field(); K
+            Number Field in a with defining polynomial x^6 + 3*x^5 + 6*x^4 + 11*x^3 + 12*x^2 - 3*x + 1
+            sage: K.<a> = (x^3 - 3*x + 1).splitting_field(); K
+            Number Field in a with defining polynomial x^3 - 3*x + 1
+
+        Relative situation::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: K.<a> = NumberField(x^3 + 2)
+            sage: S.<t> = PolynomialRing(K)
+            sage: L.<b> = (t^2 - a).splitting_field()
+            sage: L
+            Number Field in b with defining polynomial t^6 + 2
+
+        With ``map=True``, we also get the embedding of the base field
+        into the splitting field::
+
+            sage: L.<b>, phi = (t^2 - a).splitting_field(map=True)
+            sage: phi
+            Ring morphism:
+              From: Number Field in a with defining polynomial x^3 + 2
+              To:   Number Field in b with defining polynomial t^6 + 2
+              Defn: a |--> b^2
+
+        .. SEEALSO::
+        
+            :func:`sage.rings.number_field.splitting_field.splitting_field` for more examples
+
+        TESTS::
+
+            sage: K.<a,b> = x.splitting_field()
+            Traceback (most recent call last):
+            ...
+            IndexError: the number of names must equal the number of generators
+            sage: polygen(RR).splitting_field('x')
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: splitting_field() is only implemented over number fields
+        """
+        name = sage.structure.parent_gens.normalize_names(1, names)[0]
+
+        from sage.rings.number_field.all import is_NumberField
+
+        f = self.monic()            # Given polynomial, made monic
+        F = f.parent().base_ring()  # Base field
+        if not F.is_field():
+            F = F.fraction_field()
+            f = self.change_ring(F)
+
+        if is_NumberField(F):
+            from sage.rings.number_field.splitting_field import splitting_field
+            return splitting_field(f, name, map, **kwds)
+
+        raise NotImplementedError, "splitting_field() is only implemented over number fields"
+
     @coerce_binop
     def lcm(self, other):
         """
@@ -5112,7 +5209,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             doctest... UserWarning: NumPy does not support arbitrary precision arithmetic.  The roots found will likely have less precision than you expect.
             [(-1.77245385090551..., 1), (1.77245385090551..., 1)]
 
-        We can also find roots over number fields:
+        We can also find roots over number fields::
 
             sage: K.<z> = CyclotomicField(15)
             sage: R.<x> = PolynomialRing(K)
@@ -6086,7 +6183,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: radical(12 * x^5)
             6*x
 
-        If self has a factor of multiplicity divisible by the characteristic (see Trac 8736)::
+        If self has a factor of multiplicity divisible by the characteristic (see :trac:`8736`)::
 
             sage: P.<x> = GF(2)[]
             sage: (x^3 + x^2).radical()
@@ -6973,7 +7070,7 @@ cdef class ConstantPolynomialSection(Map):
     """
     This class is used for conversion from a polynomial ring to its base ring.
 
-    Since trac ticket #9944, it calls the constant_coefficient method,
+    Since :trac:`9944`, it calls the constant_coefficient method,
     which can be optimized for a particular polynomial type.
 
     EXAMPLES::

@@ -22,15 +22,15 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2007 David Roe <roed@math.harvard.edu>
-#                          William Stein <wstein@gmail.com>
+#       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
+#                               William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-
 
 import weakref
 from sage.rings.infinity import infinity
@@ -61,7 +61,7 @@ cdef class PowComputer_class(SageObject):
         """
         Initializes self.
 
-        INPUT::
+        INPUT:
 
             * prime -- the prime that is the base of the exponentials
               stored in this pow_computer.
@@ -346,7 +346,7 @@ cdef class PowComputer_class(SageObject):
     def _prec_cap(self):
         """
         Returns prec_cap, a single value that for which
-        self._prime()^prec_cap is stored
+        ``self._prime()^prec_cap`` is stored
 
         EXAMPLES::
 
@@ -361,7 +361,7 @@ cdef class PowComputer_class(SageObject):
 
     def _top_power(self):
         """
-        Returns self._prime()^self._prec_cap()
+        Returns ``self._prime()^self._prec_cap()``
 
         EXAMPLES::
 
@@ -376,7 +376,7 @@ cdef class PowComputer_class(SageObject):
 
     def __call__(self, n):
         """
-        Returns self.prime^n.
+        Returns ``self.prime^n``.
 
         EXAMPLES::
 
@@ -440,6 +440,10 @@ cdef class PowComputer_base(PowComputer_class):
             mpz_init(self.small_powers[i])
             mpz_mul(self.small_powers[i], self.small_powers[i - 1], prime.value)
         mpz_pow_ui(self.top_power, prime.value, prec_cap)
+        self.deg = 1
+        self.e = 1
+        self.f = 1
+        self.ram_prec_cap = prec_cap
         (<PowComputer_class>self)._initialized = 1
 
     def __dealloc__(self):
@@ -535,15 +539,15 @@ cdef PowComputer_base PowComputer_c(Integer m, Integer cache_limit, Integer prec
 
 def PowComputer(m, cache_limit, prec_cap, in_field = False):
     r"""
-    Returns a PowComputer that caches the values $1, m, m^2, \ldots, m^{C}$,
-    where $C$ is ``cache_limit``.
+    Returns a PowComputer that caches the values `1, m, m^2, \ldots, m^{C}`,
+    where `C` is ``cache_limit``.
 
     Once you create a PowComputer, merely call it to get values out.
 
     You can input any integer, even if it's outside of the precomputed
     range.
 
-    INPUT::
+    INPUT:
 
         * m -- An integer, the base that you want to exponentiate.
         * cache_limit -- A positive integer that you want to cache powers up to.

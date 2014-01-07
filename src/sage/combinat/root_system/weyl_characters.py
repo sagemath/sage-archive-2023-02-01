@@ -110,7 +110,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
     def __init__(self, ct, base_ring=ZZ, prefix=None, style="lattice"):
         """
-        EXAMPLES:
+        EXAMPLES::
 
             sage: A2 = WeylCharacterRing("A2")
             sage: TestSuite(A2).run()

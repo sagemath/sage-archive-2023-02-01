@@ -72,6 +72,7 @@ import sage.rings.number_field.number_field as number_field
 import sage.structure.parent_gens           as parent_gens
 
 from sage.rings.rational_field import is_RationalField
+from sage.rings.complex_field import is_ComplexField
 from sage.rings.ring import is_Ring
 
 from sage.misc.cachefunc                    import cached_method
@@ -848,10 +849,10 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         G = self.parent()
         K = G.base_ring()
-        if rings.is_ComplexField(K):
+        if is_ComplexField(K):
             return self.gauss_sum_numerical()
         if not (rings.is_CyclotomicField(K) or is_RationalField(K)):
-            raise NotImplementedError, "Gauss sums only currently implemented when the base ring is a cyclotomic field or QQ."
+            raise NotImplementedError("Gauss sums only currently implemented when the base ring is a cyclotomic field or QQ.")
         g = 0
         m = G.modulus()
         L = rings.CyclotomicField(arith.lcm(m,G.zeta_order()))
@@ -919,11 +920,11 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         G = self.parent()
         K = G.base_ring()
-        if not (rings.is_CyclotomicField(K) or rings.is_RationalField(K)
-                or rings.is_ComplexField(K)):
+        if not (rings.is_CyclotomicField(K) or is_RationalField(K)
+                or is_ComplexField(K)):
             raise NotImplementedError("Gauss sums only currently implemented when the base ring is a cyclotomic field, QQ, or a complex field.")
 
-        if rings.is_ComplexField(K):
+        if is_ComplexField(K):
             phi = lambda t : t
             CC = K
         else:
@@ -1083,7 +1084,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         G = self.parent()
         K = G.base_ring()
         if not (rings.is_CyclotomicField(K) or is_RationalField(K)):
-            raise NotImplementedError, "Kloosterman sums only currently implemented when the base ring is a cyclotomic field or QQ."
+            raise NotImplementedError("Kloosterman sums only currently implemented when the base ring is a cyclotomic field or QQ.")
         g = 0
         m = G.modulus()
         L = rings.CyclotomicField(arith.lcm(m,G.zeta_order()))
@@ -1183,7 +1184,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: e.is_odd()
             True
         """
-        if rings.is_ComplexField(self.base_ring()):
+        if is_ComplexField(self.base_ring()):
             return abs(self(-1) - self.base_ring()(1)) < 1.0/self.parent().zeta_order()
         return (self(-1) == self.base_ring()(1))
 
@@ -1222,7 +1223,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: e.is_odd()
             True
         """
-        if rings.is_ComplexField(self.base_ring()):
+        if is_ComplexField(self.base_ring()):
             return abs(self(-1) - self.base_ring()(-1)) < 1.0/self.parent().zeta_order()
         return (self(-1) == self.base_ring()(-1))
 
@@ -1626,7 +1627,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             P = self.parent()
             M = P._module
             C = P.base_ring()
-            if rings.is_ComplexField(C):
+            if is_ComplexField(C):
                 R = C._real_field()
                 zeta = P._zeta
                 zeta_argument = zeta.argument()
@@ -1867,7 +1868,7 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
         a = zeta.parent()(1)
         v = {a:0}
         w = [a]
-        if rings.is_ComplexField(zeta.parent()):
+        if is_ComplexField(zeta.parent()):
             for i in range(1, self._zeta_order):
                 a = a * zeta
                 a._set_multiplicative_order(zeta_order/arith.GCD(zeta_order, i))

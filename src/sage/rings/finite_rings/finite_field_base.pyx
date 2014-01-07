@@ -876,6 +876,19 @@ cdef class FiniteField(Field):
             sage: k.extension(3, conway=True, prefix='z')
             Finite Field in z12 of size 3^12
 
+        An example using the ``map`` argument::
+
+            sage: F = GF(5)
+            sage: E, f = F.extension(2, 'b', map=True)
+            sage: E
+            Finite Field in b of size 5^2
+            sage: f
+            Conversion map:
+              From: Finite Field of size 5
+              To:   Finite Field in b of size 5^2
+            sage: f.parent()
+            Set of field embeddings from Finite Field of size 5 to Finite Field in b of size 5^2
+
         Extensions of non-prime finite fields by polynomials are not yet
         supported: we fall back to generic code::
 

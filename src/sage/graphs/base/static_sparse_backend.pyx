@@ -430,7 +430,7 @@ class StaticSparseBackend(CGraphBackend):
             sage: loads(dumps(gi)) == gi
             True
         """
-        if self._directed:
+        if self.directed:
             from sage.graphs.digraph import DiGraph
             G = DiGraph(loops=self._loops, multiedges=self._multiedges)
             G.add_edges(list(self.iterator_out_edges(self.iterator_verts(None),True)))

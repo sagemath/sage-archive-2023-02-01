@@ -533,8 +533,8 @@ class ModularForm_abstract(ModuleElement):
         - `M` an element of `\Gamma_0(N)`
         - `numterms` (default 50) number of terms used in the q-expansion
 
-        This uses a formula taken from Cremona's Book "Algorithms for
-        Modular Elliptic Curves" chapter 2.10 Proposition 2.10.3.
+        This uses a formula taken from Cremona's Book 'Algorithms for
+        Modular Elliptic Curves' chapter 2.10 Proposition 2.10.3.
 
         EXAMPLES::
 
@@ -552,6 +552,7 @@ class ModularForm_abstract(ModuleElement):
 
             sage: C.pair(g)
             Traceback (most recent call last):
+            ...
             ValueError: M is not in the correct group
         """
         if not M in self.group():
@@ -567,8 +568,9 @@ class ModularForm_abstract(ModuleElement):
 
         N = self.level()
 
+        # coefficients of the matrix M
         b = M.b()
-        c = M.c()/N
+        c = M.c() / N
         d = M.d()
 
         if d == 0:
@@ -580,11 +582,12 @@ class ModularForm_abstract(ModuleElement):
             d = -d
 
         eps = self.atkin_lehner_eigenvalue()
-        mu_N = exp(RDF(-2*pi/sqrt(N)))
-        mu_dN = exp(RDF(-2*pi/d/sqrt(N)))
-        mu_d = exp(RDF(2*pi/d)*I)
-        return sum((coeff[n-1]/n)*((eps-1)*mu_N**n
-                                   +mu_dN**n*(mu_d**(n*b)-eps*mu_d**(n*c)))
+        mu_N = exp(RDF(-2 * pi / sqrt(N)))
+        mu_dN = exp(RDF(-2 * pi / d / sqrt(N)))
+        mu_d = exp(RDF(2 * pi / d) * I)
+        return sum((coeff[n - 1] / n)
+                   *((eps - 1) * mu_N ** n
+                     + mu_dN ** n * (mu_d ** (n * b) - eps * mu_d ** (n * c)))
                    for n in range(1, numterms))
 
     # this function lives here so it is inherited by Newform (which does *not* derive from ModularFormElement)

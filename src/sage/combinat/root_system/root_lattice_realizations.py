@@ -702,19 +702,51 @@ class RootLatticeRealizations(Category_over_base_ring):
                         rels.append((root,root_cover))
             return Poset((pos_roots,rels),cover_relations=True,facade=facade)
 
-        def nonnesting_partition_lattice(self,facade=False):
+        def nonnesting_partition_lattice(self, facade=False):
             r"""
             Return the lattice of nonnesting partitions
 
+            This is the lattice of order ideals of the root poset.
+
+            .. SEEALSO::
+
+                :meth:`generalized_nonnesting_partition_lattice`, :meth:`root_poset`
+
             EXAMPLES::
+
+                sage: R = RootSystem(['A', 3])
+                sage: RS = R.root_lattice()
+                sage: P = RS.nonnesting_partition_lattice(); P
+                Finite lattice containing 14 elements
+                sage: P.coxeter_transformation()**10 == 1
+                True
+
+            REFERENCES:
             """
             return self.root_poset(facade=facade).order_ideals_lattice(facade=facade)
 
-        def generalized_nonnesting_partition_lattice(self,m,facade=False):
+        def generalized_nonnesting_partition_lattice(self, m, facade=False):
             r"""
             Return the lattice of m-nonnesting partitions
             
+            INPUT:
+
+            - `m` -- integer
+
+            .. SEEALSO::
+
+                :meth:`nonnesting_partition_lattice`
+
             EXAMPLES::
+
+                sage: R = RootSystem(['A', 2])
+                sage: RS = R.root_lattice()
+                sage: P = RS.generalized_nonnesting_partition_lattice(2); P
+                Finite lattice containing 12 elements
+                sage: P.coxeter_transformation()**20 == 1
+                True
+
+            REFERENCES:
             """
             from sage.combinat.multichoose_nk import MultichooseNK
             Phi_plus = self.positive_roots()
@@ -740,7 +772,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                         for alpha in cochain[i - 1]:
                             for beta in cochain[j - 1]:
                                 gamma = alpha + beta
-                                if gamma in Phi_plus and gamma not in cochain[min(m-1,i+j-1)]:
+                                if gamma in Phi_plus and gamma not in cochain[min(m - 1, i + j - 1)]:
                                     return False
                 return True
 

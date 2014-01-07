@@ -792,7 +792,7 @@ class MiniCremonaDatabase(SQLDatabase):
             sage: c.elliptic_curve_from_ainvs([1, 0, 0, -101, 382])  # optional - database_cremona_ellcurve
             Elliptic Curve defined by y^2 + x*y = x^3 - 101*x + 382 over Rational Field
 
-        Old (pre-2006) Cremona labels are not allowed::
+        Old (pre-2006) Cremona labels are also allowed::
 
             sage: c.elliptic_curve('9450KKKK1')
             Elliptic Curve defined by y^2 + x*y + y = x^3 - x^2 - 5*x + 7 over Rational Field

@@ -41,6 +41,7 @@ Functions
 
 from contextlib import contextmanager
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.cachefunc import cached_function
 from sage.graphs.graph import Graph
 from sage.misc.misc_c import prod
 from sage.rings.integer_ring import ZZ
@@ -520,7 +521,6 @@ def _cached(func):
 # Tutte Polynomial #
 ####################
 
-@_cached
 def tutte_polynomial(G, edge_selector=None, forget_cache=True):
     r"""
     Return the Tutte polynomial of the graph `G`.
@@ -577,16 +577,16 @@ def tutte_polynomial(G, edge_selector=None, forget_cache=True):
     Emptying the cache::
 
         sage: from sage.graphs.tutte_polynomial import tutte_polynomial
-        sage: len(tutte_polynomial.cache) > 1
+        sage: len(_tutte_polynomial_internal.cache) > 1
         False
         sage: _ = graphs.RandomGNP(7,.5).tutte_polynomial()
-        sage: len(tutte_polynomial.cache) > 1
+        sage: len(_tutte_polynomial_internal.cache) > 1
         False
         sage: _ = graphs.RandomGNP(7,.5).tutte_polynomial(forget_cache=False)
-        sage: len(tutte_polynomial.cache) > 1
+        sage: len(_tutte_polynomial_internal.cache) > 1
         True
         sage: _ = graphs.RandomGNP(7,.5).tutte_polynomial()
-        sage: len(tutte_polynomial.cache) > 1
+        sage: len(_tutte_polynomial_internal.cache) > 1
         False
     """
     R = ZZ['x, y']
@@ -603,9 +603,10 @@ def tutte_polynomial(G, edge_selector=None, forget_cache=True):
         edge_selector = MinimizeSingleDegree()
     ans = _tutte_polynomial_internal(G, x, y, edge_selector)
     if forget_cache:
-        tutte_polynomial.cache.clear()
+        _tutte_polynomial_internal.cache.clear()
     return ans
 
+@_cached
 def _tutte_polynomial_internal(G, x, y, edge_selector):
     """
     Does the recursive computation of the Tutte polynomial.

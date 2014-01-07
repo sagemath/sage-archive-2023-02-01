@@ -42,7 +42,8 @@ An animated :class:`sage.plot.graphics.GraphicsArray` of rotating ellipses::
 A simple animation of a circle shooting up to the right::
 
     sage: c = animate([circle((i,i), 1-1/(i+1), hue=i/10) for i in srange(0,2,0.2)],
-    ...:               xmin=0,ymin=0,xmax=2,ymax=2,figsize=[2,2])
+    ....:               xmin=0,ymin=0,xmax=2,ymax=2,figsize=[2,2])
+    ....:
     sage: c.show() # optional -- ImageMagick
 
 
@@ -52,7 +53,7 @@ Animations of 3d objects::
     (s, t)
     sage: def sphere_and_plane(x):
     ....:     return sphere((0,0,0),1,color='red',opacity=.5)+parametric_plot3d([t,x,s],(s,-1,1),(t,-1,1),color='green',opacity=.7)
-    ...:
+    ....:
     sage: sp = animate([sphere_and_plane(x) for x in sxrange(-1,1,.3)])
     sage: sp[0]      # first frame
     sage: sp[-1]     # last frame
@@ -140,6 +141,7 @@ class Animation(SageObject):
 
         sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.3)],
         ....:                xmin=0, xmax=2*pi, figsize=[2,1])
+        ....:
         sage: a
         Animation with 21 frames
         sage: a[:5]
@@ -163,6 +165,7 @@ class Animation(SageObject):
         sage: for i in srange(0,1,step):
         ....:       L += line([(i,i^2),(i+step,(i+step)^2)], rgbcolor=(1,0,0), thickness=2)
         ....:       v.append(L)
+        ....:
         sage: a = animate(v, xmin=0, ymin=0)
         sage: a.show() # optional -- ImageMagick
         sage: show(L)
@@ -179,6 +182,7 @@ class Animation(SageObject):
 
         sage: a = animate([plot(sin(x + float(k)), (0, 2*pi), ymin=-5, ymax=5)
         ....:            for k in srange(0,2*pi,0.3)])
+        ....:
         sage: a.show() # optional -- ImageMagick
 
     Do not convert input iterator to a list::
@@ -199,6 +203,7 @@ class Animation(SageObject):
 
             sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.3)],
             ....:                xmin=0, xmax=2*pi, figsize=[2,1]) # indirect doctest
+            ....:
             sage: a
             Animation with 21 frames
         """
@@ -249,6 +254,7 @@ class Animation(SageObject):
 
             sage: a = animate([circle((i,-i), 1-1/(i+1), hue=i/10) for i in srange(0,2,0.2)],
             ....:               xmin=0,ymin=-2,xmax=2,ymax=0,figsize=[2,2])
+            ....:
             sage: a
             Animation with 10 frames
             sage: frame2 = a[2]  # indirect doctest
@@ -271,6 +277,7 @@ class Animation(SageObject):
 
             sage: a = animate([circle((i,-i), 1-1/(i+1), hue=i/10) for i in srange(0,2,0.2)],
             ....:               xmin=0,ymin=-2,xmax=2,ymax=0,figsize=[2,2])
+            ....:
             sage: a
             Animation with 10 frames
             sage: a._repr_()
@@ -291,9 +298,11 @@ class Animation(SageObject):
 
             sage: a = animate([circle((i,0),1) for i in srange(0,2,0.4)],
             ....:                xmin=0, ymin=-1, xmax=3, ymax=1, figsize=[2,1])
+            ....:
             sage: a.show()        # optional -- ImageMagick
             sage: b = animate([circle((0,i),1,hue=0) for i in srange(0,2,0.4)],
             ....:                xmin=0, ymin=-1, xmax=1, ymax=3, figsize=[1,2])
+            ....:
             sage: b.show()        # optional -- ImageMagick
             sage: s = a+b         # indirect doctest
             sage: len(a), len(b)
@@ -323,9 +332,11 @@ class Animation(SageObject):
 
             sage: a = animate([circle((i,0),1,thickness=20*i) for i in srange(0,2,0.4)],
             ....:                xmin=0, ymin=-1, xmax=3, ymax=1, figsize=[2,1], axes=False)
+            ....:
             sage: a.show()             # optional -- ImageMagick
             sage: b = animate([circle((0,i),1,hue=0,thickness=20*i) for i in srange(0,2,0.4)],
             ....:                xmin=0, ymin=-1, xmax=1, ymax=3, figsize=[1,2], axes=False)
+            ....:
             sage: b.show()             # optional -- ImageMagick
             sage: p = a*b              # indirect doctest
             sage: len(a), len(b)
@@ -348,6 +359,7 @@ class Animation(SageObject):
         EXAMPLES::
             sage: a = animate([circle((i,0),1,thickness=20*i) for i in srange(0,2,0.4)], 
             ....:                xmin=0, ymin=-1, xmax=3, ymax=1, figsize=[2,1], axes=False)
+            ....:
             sage: len(a)
             5
         """
@@ -367,6 +379,7 @@ class Animation(SageObject):
             ....:    def make_image(self, frame, filename, **kwds):
             ....:        P = parametric_plot(frame[0], frame[1], **frame[2])
             ....:        P.save_image(filename,**kwds)
+            ....:
             
             sage: t = var('t')
             sage: x = lambda t: cos(t)
@@ -383,6 +396,7 @@ class Animation(SageObject):
             ....:        G = frame.plot()
             ....:        G.set_axes_range(floor(G.xmin()),ceil(G.xmax()),floor(G.ymin()),ceil(G.ymax()))
             ....:        G.save_image(filename, **kwds)
+            ....:
 
             sage: B = MyAnimation([graphs.CompleteGraph(n) for n in range(7,11)], figsize=5) 
             sage: d = B.png()
@@ -520,6 +534,7 @@ class Animation(SageObject):
 
             sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
             ....:                xmin=0, xmax=2*pi, figsize=[2,1])
+            ....:
             sage: dir = tmp_dir()
             sage: a.gif()              # not tested
             sage: a.gif(savefile=dir + 'my_animation.gif', delay=35, iterations=3)  # optional -- ImageMagick
@@ -611,6 +626,7 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
             sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
             ....:                xmin=0, xmax=2*pi, figsize=[2,1])
+            ....:
             sage: a.show()       # optional -- ImageMagick
 
         The preceding will loop the animation forever. If you want to show
@@ -710,6 +726,7 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
             sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
             ....:                xmin=0, xmax=2*pi, figsize=[2,1])
+            ....:
             sage: dir = tmp_dir()
             sage: a.ffmpeg(savefile=dir + 'new.mpg')       # optional -- ffmpeg
             sage: a.ffmpeg(savefile=dir + 'new.avi')       # optional -- ffmpeg
@@ -808,6 +825,7 @@ please install it and try again."""
 
             sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
             ....:                xmin=0, xmax=2*pi, figsize=[2,1])
+            ....:
             sage: dir = tmp_dir()
             sage: a.save()         # not tested
             sage: a.save(dir + 'wave.gif')   # optional -- ImageMagick

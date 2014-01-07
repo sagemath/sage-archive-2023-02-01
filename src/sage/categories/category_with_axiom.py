@@ -361,48 +361,50 @@ class CategoryWithAxiom(Category):
         The class of the base category and the axiom for this class.
 
         By default, this attribute is guessed from the name of this
-        category (see :func:`base_category_class_and_axiom`). It
-        should be overriden whenever it cannot be guessed properly.
+        class (see :func:`base_category_class_and_axiom`). For a
+        nested class, when the category is first created from its base
+        category, as in e.g. ``Sets().Infinite()``, this attribute is
+        instead set explicitly by :meth:``__classget__``.
 
-        When this attribute has been guessed, the attribute
-        ``_base_category_class_and_axiom_was_guessed`` is set to
-        ``True``.
+        When this is not sufficient, that is when ``cls`` is not
+        implemented as a nested class and the base category and the
+        axiom cannot be guessed from the name of ``cls``, this
+        attribute should be set explicitly by ``cls``.
+
+        The origin of the attribute is stored in the attribute
+        ``_base_category_class_and_axiom_origin``.
 
         .. SEEALSO:: :meth:`_axiom`
 
-        .. NOTE::
-
-            Most of the time, this attribute is actually not computed
-            by this lazy class attribute, but is explicitly set while
-            the axiom is bound to the base category.
-
         EXAMPLES:
 
-        Here is one of the few cases in which the lazy class attribute is
-        involved, which can be seen by the attribute
-        ``_base_category_class_and_axiom_was_guessed``::
+        ``CommutativeRings`` is not a nested class, but the name of
+        the base category and the axiom can be guessed::
 
             sage: CommutativeRings()._base_category_class_and_axiom
             (<class 'sage.categories.rings.Rings'>, 'Commutative')
-            sage: CommutativeRings()._base_category_class_and_axiom_was_guessed
-            True
+            sage: CommutativeRings()._base_category_class_and_axiom_origin
+            'guessed by base_category_class_and_axiom'
 
-        In other cases, :meth:`CategoryWithAxiom.__classget__` assigns this
-        attribute directly::
+        ``Sets.Infinite`` is a nested class, so the attribute is set
+        by :meth:`CategoryWithAxiom.__classget__` the first time
+        ``Sets().Infinite()`` is called::
 
-            sage: FiniteSets()._base_category_class_and_axiom
-            (<class 'sage.categories.sets_cat.Sets'>, 'Finite')
-            sage: FiniteSets()._base_category_class_and_axiom_was_guessed
-            False
+            sage: Sets().Infinite()
+            Category of infinite sets
+            sage: Sets.Infinite._base_category_class_and_axiom
+            (<class 'sage.categories.sets_cat.Sets'>, 'Infinite')
+            sage: Sets.Infinite._base_category_class_and_axiom_origin
+            'set by __classget__'
 
-        Last, here is an exceptional case::
+        ``Fields`` is not a nested class, and the name of the base
+        category and axioms cannot be guessed; so this attributes
+        needs to be set explicitly in the ``Fields`` class::
 
             sage: Fields()._base_category_class_and_axiom
             (<class 'sage.categories.division_rings.DivisionRings'>, 'Commutative')
-            sage: Fields()._base_category_class_and_axiom_was_guessed
-            Traceback (most recent call last):
-            ...
-            AttributeError: 'Fields_with_category' object has no attribute '_base_category_class_and_axiom_was_guessed'
+            sage: Fields()._base_category_class_and_axiom_origin
+            'hardcoded'
 
         .. NOTE::
 
@@ -415,8 +417,10 @@ class CategoryWithAxiom(Category):
             ``Monoids._base_category_class``.
         """
         base_category_class, axiom = base_category_class_and_axiom(cls)
-        cls._base_category_class_and_axiom_was_guessed = True
+        cls._base_category_class_and_axiom_origin = "guessed by base_category_class_and_axiom"
         return (base_category_class, axiom)
+
+    _base_category_class_and_axiom_origin = "hardcoded"
 
     @lazy_class_attribute
     def _axiom(cls):
@@ -541,7 +545,7 @@ class CategoryWithAxiom(Category):
             base_category_class = base_category_class.__base__
         if "_base_category_class_and_axiom" not in cls.__dict__:
             cls._base_category_class_and_axiom = (base_category_class, axiom_of_nested_class(base_category_class, cls))
-            cls._base_category_class_and_axiom_was_guessed = False
+            cls._base_category_class_and_axiom_origin = "set by __classget__"
         else:
             assert cls._base_category_class_and_axiom[0] is base_category_class, \
                 "base category class for %s mismatch; expected %s, got %s"%(cls, cls._base_category_class_and_axiom[0], base_category_class)
@@ -841,11 +845,9 @@ class CategoryWithAxiom(Category):
             sage: Monoids().Finite()._without_axioms(named=True)
             Category of monoids
 
-        Technically we tests this by checking if the class has a
-        predefined attribute ``_base_category_class_and_axiom`` (if
-        instead this attribute is computed, then this computation
-        should set the attribute
-        ``_base_category_class_and_axiom_was_guessed``.
+        Technically we tests this by checking if the class specifies
+        explicitly the attribute ``_base_category_class_and_axiom``
+        by looking up ``_base_category_class_and_axiom_origin``.
 
         Some more examples::
 
@@ -857,7 +859,7 @@ class CategoryWithAxiom(Category):
         if named:
             base_category = self
             axioms = []
-            while isinstance(base_category, CategoryWithAxiom) and hasattr(base_category.__class__, "_base_category_class_and_axiom_was_guessed"): # and "." in Sets().Infinite().__class__.__name__:
+            while isinstance(base_category, CategoryWithAxiom) and base_category._base_category_class_and_axiom_origin != "hardcoded":
                 axioms.append(base_category._axiom)
                 base_category = base_category._base_category
             return base_category

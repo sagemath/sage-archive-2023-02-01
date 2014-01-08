@@ -248,7 +248,7 @@ def greedy_is_comparability(g, no_certificate = False, equivalence_class = False
       sage: is_comparability(g)
       False
       sage: is_comparability(g, no_certificate = True)
-      (False, [9, 4, 3, 2, 7, 9])
+      (False, [9, 6, 1, 0, 4, 9])
 
     But the Bull graph is::
 
@@ -348,7 +348,7 @@ def greedy_is_comparability_with_certificate(g, certificate = False):
       sage: is_comparability(g)
       False
       sage: is_comparability(g, certificate = True)
-      (False, [9, 4, 3, 2, 7, 9])
+      (False, [9, 6, 1, 0, 4, 9])
 
     But the Bull graph is::
 
@@ -528,6 +528,7 @@ def is_comparability(g, algorithm = "greedy", certificate = False, check = True)
         sage: [len([g for g in graphs(i) if is_comparability(g, certificate = True)[0]]) for i in range(7)]
         [1, 1, 2, 4, 11, 33, 144]
     """
+    g._scream_if_not_simple()
     if g.size() == 0:
         if certificate:
             from sage.graphs.digraph import DiGraph

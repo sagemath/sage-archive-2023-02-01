@@ -61,7 +61,7 @@ Or how the minimal equation changes::
     sage: EK = E.base_extend(K)
     sage: da = EK.local_data(1+i)
     sage: da.minimal_model()
-    Elliptic Curve defined by y^2 = x^3 + i over Number Field in i with defining polynomial x^2 + 1
+    Elliptic Curve defined by y^2 = x^3 + (-i) over Number Field in i with defining polynomial x^2 + 1
 
 REFERENCES:
 
@@ -100,7 +100,11 @@ AUTHORS:
 from sage.structure.sage_object import SageObject
 from sage.misc.misc import verbose
 
-from sage.rings.all import PolynomialRing, QQ, ZZ, Integer, is_Ideal, is_NumberFieldElement, is_NumberFieldFractionalIdeal, is_NumberField
+from sage.rings.all import PolynomialRing, QQ, ZZ, Integer, is_NumberFieldElement, is_NumberFieldFractionalIdeal
+
+from sage.rings.number_field.number_field import is_NumberField
+from sage.rings.ideal import is_Ideal
+
 from constructor import EllipticCurve
 from kodaira_symbol import KodairaSymbol
 
@@ -150,8 +154,8 @@ class EllipticCurveLocalData(SageObject):
         Tamagawa Number: 2
 
     """
-
-    def __init__(self, E, P, proof=None, algorithm="pari"):
+    
+    def __init__(self, E, P, proof=None, algorithm="pari", globally=False):
         r"""
         Initializes the reduction data for the elliptic curve `E` at the prime `P`.
 
@@ -172,6 +176,10 @@ class EllipticCurveLocalData(SageObject):
           ``ellglobalred`` implementation of Tate's algorithm over
           `\QQ`. If "generic", use the general number field
           implementation.
+          
+        - ``globally`` (bool, default: False) -- If True, the algorithm
+          uses the generators of principal ideals rather than an arbitrary
+          uniformizer.
 
         .. note::
 
@@ -267,7 +275,7 @@ class EllipticCurveLocalData(SageObject):
             if self._fp>0:
                 self._reduction_type = Eint.ap(p) # = 0,-1 or +1
         else:
-            self._Emin, ch, self._val_disc, self._fp, self._KS, self._cp, self._split = self._tate(proof)
+            self._Emin, ch, self._val_disc, self._fp, self._KS, self._cp, self._split = self._tate(proof, globally)
             if self._fp>0:
                 if self._Emin.c4().valuation(p)>0:
                     self._reduction_type = 0
@@ -302,10 +310,10 @@ class EllipticCurveLocalData(SageObject):
 
         INPUT:
 
-        - ``reduce`` -- (default: True) if set to True the EC returned
-          by Tate's algorithm will be
-          "reduced" as specified in _reduce_model() for curves over
-          number fields.
+        - ``reduce`` -- (default: True) if set to True and if the initial
+          elliptic curve had globally integral coefficients, then the
+          elliptic curve returned by Tate's algorithm will be "reduced" as
+          specified in _reduce_model() for curves over number fields.
 
         EXAMPLES::
 
@@ -338,14 +346,28 @@ class EllipticCurveLocalData(SageObject):
             Elliptic Curve defined by y^2 = x^3 - x^2 - 3*x + 2 over Rational Field
             sage: E.local_data(ZZ.ideal(2), algorithm="pari").minimal_model()
             Elliptic Curve defined by y^2 = x^3 - x^2 - 3*x + 2 over Rational Field
+
+        :trac:`14476`::
+
+            sage: t = QQ['t'].0
+            sage: K.<g> = NumberField(t^4 - t^3-3*t^2 - t +1)
+            sage: E = EllipticCurve([-2*g^3 + 10/3*g^2 + 3*g - 2/3, -11/9*g^3 + 34/9*g^2 - 7/3*g + 4/9, -11/9*g^3 + 34/9*g^2 - 7/3*g + 4/9, 0, 0])
+            sage: vv = K.fractional_ideal(g^2 - g - 2)
+            sage: E.local_data(vv).minimal_model()
+            Elliptic Curve defined by y^2 + (-2*g^3+10/3*g^2+3*g-2/3)*x*y + (-11/9*g^3+34/9*g^2-7/3*g+4/9)*y = x^3 + (-11/9*g^3+34/9*g^2-7/3*g+4/9)*x^2 over Number Field in g with defining polynomial t^4 - t^3 - 3*t^2 - t + 1
+
         """
         if reduce:
             try:
                 return self._Emin_reduced
             except AttributeError:
                 pass
-            self._Emin_reduced = self._Emin._reduce_model()
-            return self._Emin_reduced
+            # trac 14476 we only reduce if the coefficients are globally integral
+            if all(a.is_integral() for a in self._Emin.a_invariants()):
+                self._Emin_reduced = self._Emin._reduce_model()
+                return self._Emin_reduced
+            else:
+                return self._Emin
         else:
             try:
                 return self._Emin
@@ -603,8 +625,8 @@ class EllipticCurveLocalData(SageObject):
             (Fractional ideal (2*a + 1), True)]
         """
         return self._reduction_type == 0
-
-    def _tate(self, proof = None):
+       
+    def _tate(self, proof = None, globally = False):
         r"""
         Tate's algorithm for an elliptic curve over a number field.
 
@@ -617,7 +639,9 @@ class EllipticCurveLocalData(SageObject):
         principal, the minimal model returned will preserve
         integrality at other primes, but not minimality.
 
-        .. note::
+        The optional argument globally, when set to True, tells the algorithm to use the generator of the prime ideal if it is principal. Otherwise just any uniformizer will be used.
+
+        .. note:: 
 
            Called only by ``EllipticCurveLocalData.__init__()``.
 
@@ -633,7 +657,7 @@ class EllipticCurveLocalData(SageObject):
         - ``cp`` (int) is the Tamagawa number
 
 
-        EXAMPLES (this raised a type error in sage prior to 4.4.4, see ticket #7930) ::
+        EXAMPLES (this raised a type error in sage prior to 4.4.4, see :trac:`7930`) ::
 
             sage: E = EllipticCurve('99d1')
 
@@ -650,19 +674,27 @@ class EllipticCurveLocalData(SageObject):
 
         EXAMPLES:
 
-        The following example shows that the bug at #9324 is fixed::
+        The following example shows that the bug at :trac:`9324` is fixed::
 
             sage: K.<a> = NumberField(x^2-x+6)
             sage: E = EllipticCurve([0,0,0,-53160*a-43995,-5067640*a+19402006])
             sage: E.conductor() # indirect doctest
             Fractional ideal (18, 6*a)
 
-        The following example shows that the bug at #9417 is fixed::
+        The following example shows that the bug at :trac:`9417` is fixed::
 
             sage: K.<a> = NumberField(x^2+18*x+1)
             sage: E = EllipticCurve(K, [0, -36, 0, 320, 0])
             sage: E.tamagawa_number(K.ideal(2))
             4
+
+        This is to show that the bug :trac: `11630` is fixed. (The computation of the class group would produce a warning)::
+        
+            sage: K.<t> = NumberField(x^7-2*x+177)
+            sage: E = EllipticCurve([0,1,0,t,t])
+            sage: P = K.ideal(2,t^3 + t + 1)
+            sage: E.local_data(P).kodaira_symbol()
+            II
 
         """
         E = self._curve
@@ -682,14 +714,18 @@ class EllipticCurveLocalData(SageObject):
         # uniformiser pi which has non-positive valuation at all other
         # primes, so that we can divide by it without losing
         # integrality at other primes.
-
-        principal_flag = P.is_principal()
-        if principal_flag:
+           
+        if globally:
+            principal_flag = P.is_principal()
+        else: 
+            principal_flag = False
+            
+        if (K is QQ) or principal_flag :
             pi = P.gens_reduced()[0]
             verbose("P is principal, generator pi = %s"%pi, t, 1)
         else:
             pi = K.uniformizer(P, 'positive')
-            verbose("P is not principal, uniformizer pi = %s"%pi, t, 1)
+            verbose("uniformizer pi = %s"%pi, t, 1)
         pi2 = pi*pi; pi3 = pi*pi2; pi4 = pi*pi3
         pi_neg = None
         prime = pi if K is QQ else P

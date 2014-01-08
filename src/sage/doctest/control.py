@@ -23,6 +23,7 @@ import random, os, sys, time, json, re, types
 import sage.misc.flatten
 from sage.structure.sage_object import SageObject
 from sage.env import DOT_SAGE, SAGE_LIB, SAGE_SRC
+from sage.ext.c_lib import AlarmInterrupt, _init_csage
 
 from sources import FileDocTestSource, DictAsObject
 from forker import DocTestDispatcher
@@ -142,7 +143,7 @@ def skipdir(dirname):
         sage: from sage.doctest.control import skipdir
         sage: skipdir(sage.env.SAGE_SRC)
         False
-        sage: skipdir(os.path.join(SAGE_ROOT, "devel", "sagenb", "sagenb", "data"))
+        sage: skipdir(os.path.join(sage.env.SAGE_SRC, "sage", "doctest", "tests"))
         True
     """
     if os.path.exists(os.path.join(dirname, "nodoctest.py")):
@@ -347,14 +348,29 @@ class DocTestController(SageObject):
             sage: DC.log("hello world")
             hello world
             sage: DC.logfile.close()
-            sage: with open(DD.logfile) as logger: print logger.read()
+            sage: print open(DD.logfile).read()
+            hello world
+
+        Check that no duplicate logs appear, even when forking (:trac:`15244`)::
+
+            sage: DD = DocTestDefaults(logfile=tmp_filename())
+            sage: DC = DocTestController(DD, [])
+            sage: DC.log("hello world")
+            hello world
+            sage: if os.fork() == 0:
+            ....:     DC.logfile.close()
+            ....:     os._exit(0)
+            sage: DC.logfile.close()
+            sage: print open(DD.logfile).read()
             hello world
 
         """
         s += end
         if self.logfile is not None:
             self.logfile.write(s)
+            self.logfile.flush()
         sys.stdout.write(s)
+        sys.stdout.flush()
 
     def test_safe_directory(self, dir=None):
         """
@@ -429,7 +445,7 @@ class DocTestController(SageObject):
             sage: DD = DocTestDefaults(new = True)
             sage: DC = DocTestController(DD, [])
             sage: DC.add_files()
-            Doctesting files ...
+            Doctesting ...
 
         ::
 
@@ -441,37 +457,36 @@ class DocTestController(SageObject):
             'sagenb'
         """
         opj = os.path.join
-        from sage.env import SAGE_SRC
-        if self.options.all:
-            self.log("Doctesting entire Sage library.")
+        from sage.env import SAGE_SRC, SAGE_ROOT
+        def all_files():
             from glob import glob
             self.files.append(opj(SAGE_SRC, 'sage'))
             self.files.append(opj(SAGE_SRC, 'doc', 'common'))
             self.files.extend(glob(opj(SAGE_SRC, 'doc', '[a-z][a-z]')))
             self.options.sagenb = True
-        elif self.options.new:
-            # Get all files changed in the working repo, as well as all
-            # files in the top Mercurial queue patch.
-            from sage.misc.hg import hg_sage
-            out, err = hg_sage('status --rev qtip^', interactive=False, debug=False)
-            if not err:
-                qtop = hg_sage('qtop', interactive=False, debug=False)[0].strip()
-                self.log("Doctesting files in mq patch " + repr(qtop))
-            else:  # Probably mq isn't used
-                out, err = hg_sage('status', interactive=False, debug=False)
-                if not err:
-                    self.log("Doctesting files changed since last hg commit")
-                else:
-                    raise RuntimeError("failed to run hg status:\n" + err)
-
-            for X in out.split('\n'):
-                tup = X.split()
-                if len(tup) != 2: continue
-                c, filename = tup
-                if c in ['M','A']:
-                    filename = opj(SAGE_SRC, filename)
-                    if not skipfile(filename):
-                        self.files.append(filename)
+        DOT_GIT= opj(SAGE_ROOT, '.git')
+        have_git = os.path.exists(DOT_GIT)
+        if self.options.all or (self.options.new and not have_git):
+            self.log("Doctesting entire Sage library.")
+            all_files()
+        elif self.options.new and have_git:
+            # Get all files changed in the working repo.
+            self.log("Doctesting files changed since last git commit")
+            import subprocess
+            change = subprocess.check_output(["git",
+                                              "--git-dir=" + DOT_GIT,
+                                              "--work-tree=" + SAGE_ROOT,
+                                              "status",
+                                              "--porcelain"])
+            for line in change.split("\n"):
+                if not line:
+                    continue
+                data = line.strip().split(' ')
+                status, filename = data[0], data[-1]
+                if (set(status).issubset("MARCU")
+                    and filename.startswith("src/sage")
+                    and (filename.endswith(".py") or filename.endswith(".pyx"))):
+                    self.files.append(filename)
         if self.options.sagenb:
             if not self.options.all:
                 self.log("Doctesting the Sage notebook.")
@@ -826,23 +841,23 @@ class DocTestController(SageObject):
         if testing:
             return
 
+        # Setup Sage signal handler
+        _init_csage()
+
         import signal, subprocess
-        def handle_alrm(sig, frame):
-            raise RuntimeError
-        signal.signal(signal.SIGALRM, handle_alrm)
         p = subprocess.Popen(cmd, shell=True)
         if opt.timeout > 0:
             signal.alarm(opt.timeout)
         try:
             return p.wait()
-        except RuntimeError:
-            self.log("    Time out")
+        except AlarmInterrupt:
+            self.log("    Timed out")
             return 4
         except KeyboardInterrupt:
             self.log("    Interrupted")
             return 128
         finally:
-            signal.signal(signal.SIGALRM, signal.SIG_IGN)
+            signal.alarm(0)
             if p.returncode is None:
                 p.terminate()
 

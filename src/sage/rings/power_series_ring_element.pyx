@@ -112,7 +112,6 @@ import rational_field, integer_ring
 from integer import Integer
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.libs.pari.all import pari
-from sage.libs.all import PariError
 from sage.misc.functional import sqrt, log
 from sage.rings.arith import integer_ceil as ceil
 
@@ -1650,7 +1649,9 @@ cdef class PowerSeries(AlgebraElement):
 
         This is equal to the valuation of the underlying polynomial.
 
-        EXAMPLES: Sparse examples::
+        EXAMPLES:
+
+        Sparse examples::
 
             sage: R.<t> = PowerSeriesRing(QQ, sparse=True)
             sage: f = t^100000 + O(t^10000000)

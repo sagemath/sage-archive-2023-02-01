@@ -617,3 +617,40 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
         else:
             return "{%s}^%s"%(result, self.global_options('dual_latex'))
 
+    def _default_folded_cartan_type(self):
+        """
+        Return the default folded Cartan type.
+
+        EXAMPLES::
+
+            sage: CartanType(['A', 6, 2]).dual()._default_folded_cartan_type()
+            ['BC', 3, 2]^* as a folding of ['A', 5, 1]
+            sage: CartanType(['A', 5, 2])._default_folded_cartan_type()
+            ['B', 3, 1]^* as a folding of ['D', 4, 1]
+            sage: CartanType(['D', 4, 2])._default_folded_cartan_type()
+            ['C', 3, 1]^* as a folding of ['A', 5, 1]
+            sage: CartanType(['E', 6, 2])._default_folded_cartan_type()
+            ['F', 4, 1]^* as a folding of ['E', 6, 1]
+            sage: CartanType(['G', 2, 1]).dual()._default_folded_cartan_type()
+            ['G', 2, 1]^* as a folding of ['D', 4, 1]
+        """
+        from sage.combinat.root_system.type_folded import CartanTypeFolded
+        letter = self._dual.type()
+        if letter == 'BC': # A_{2n}^{(2)\dagger}
+            n = self._dual.classical().rank()
+            return CartanTypeFolded(self, ['A', 2*n - 1, 1],
+                [[0]] + [[i, 2*n-i] for i in range(1, n)] + [[n]])
+        if letter == 'B': # A_{2n-1}^{(2)}
+            n = self._dual.classical().rank()
+            return CartanTypeFolded(self, ['D', n + 1, 1],
+                [[i] for i in range(n)] + [[n, n+1]])
+        if letter == 'C': # D_{n+1}^{(2)}
+            n = self._dual.classical().rank()
+            return CartanTypeFolded(self, ['A', 2*n-1, 1],
+                [[0]] + [[i, 2*n-i] for i in range(1, n)] + [[n]])
+        if letter == 'F': # E_6^{(2)}
+            return CartanTypeFolded(self, ['E', 6, 1], [[0], [2], [4], [3, 5], [1, 6]])
+        if letter == 'G': # D_4^{(3)}
+            return CartanTypeFolded(self, ['D', 4, 1], [[0], [1, 3, 4], [2]])
+        return super(CartanType, self)._default_folded_cartan_type()
+

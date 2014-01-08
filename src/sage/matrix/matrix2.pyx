@@ -324,7 +324,7 @@ cdef class Matrix(matrix1.Matrix):
         if not K.is_integral_domain():
             from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
             if is_IntegerModRing(K):
-                from sage.libs.pari.gen import pari
+                from sage.libs.pari.all import pari
                 A = pari(self.lift())
                 b = pari([c.lift() for c in B]).Col()
                 ret = A.matsolvemod(pari(K.cardinality()), b)
@@ -681,40 +681,42 @@ cdef class Matrix(matrix1.Matrix):
 
     def permanent(self):
         r"""
-        Calculate and return the permanent of this `m \times n`
-        matrix using Ryser's algorithm.
+        Calculate and return the permanent of the `m \times n`
+        matrix ``self`` using Ryser's algorithm.
 
         Let `A = (a_{i,j})` be an `m \times n` matrix over
         any commutative ring, with `m \le n`. The permanent of
         `A` is
 
-        .. math::
+        .. MATH::
 
-           \text{per}(A) = \sum_\pi a_{1,\pi(1)}a_{2,\pi(2)} \cdots a_{m,\pi(m)}
-
+           \mathrm{per}(A)
+           = \sum_\pi a_{1,\pi(1)} a_{2,\pi(2)} \cdots a_{m,\pi(m)}
 
         where the summation extends over all one-to-one functions
         `\pi` from `\{1, \ldots, m\}` to
         `\{1, \ldots, n\}`.
 
         The product
-        `a_{1,\pi(1)}a_{2,\pi(2)} \cdots a_{m,\pi(m)}` is
+        `a_{1,\pi(1)} a_{2,\pi(2)} \cdots a_{m,\pi(m)}` is
         called diagonal product. So the permanent of an
         `m \times n` matrix `A` is the sum of all the
         diagonal products of `A`.
+
+        INPUT:
+
+        - ``A`` -- matrix of size `m \times n` with `m \leq n`
+
+        OUTPUT:
+
+        permanent of the matrix `A`
+
+        ALGORITHM:
 
         Modification of theorem 7.1.1. from Brualdi and Ryser:
         Combinatorial Matrix Theory. Instead of deleting columns from
         `A`, we choose columns from `A` and calculate the
         product of the row sums of the selected submatrix.
-
-        INPUT:
-
-
-        -  ``A`` - matrix of size m x n with m = n
-
-
-        OUTPUT: permanent of matrix A
 
         EXAMPLES::
 
@@ -742,9 +744,10 @@ cdef class Matrix(matrix1.Matrix):
 
         ::
 
-            sage: print sloane_sequence(79908)                # optional (internet connection)
-            Searching Sloane's online database...
-            [79908, 'Solution to the Dancing School Problem with 3 girls and n+3 boys: f(3,n).', [1, 4, 14, 36, 76, 140, 234, 364, 536, 756, 1030, 1364, 1764, 2236, 2786, 3420, 4144, 4964, 5886, 6916, 8060, 9324, 10714, 12236, 13896, 15700, 17654, 19764, 22036, 24476, 27090, 29884, 32864, 36036, 39406, 42980, 46764, 50764, 54986, 59436]]
+            sage: oeis(79908)                           # optional -- internet
+            A079908: Solution to the Dancing School Problem with 3 girls and n+3 boys: f(3,n).
+            sage: _(3)                                  # optional -- internet
+            36
 
         ::
 
@@ -808,8 +811,7 @@ cdef class Matrix(matrix1.Matrix):
 
     def permanental_minor(self, Py_ssize_t k):
         r"""
-        Calculates the permanental `k`-minor of a
-        `m \times n` matrix.
+        Return the permanental `k`-minor of an `m \times n` matrix.
 
         This is the sum of the permanents of all possible `k` by
         `k` submatrices of `A`.
@@ -819,19 +821,20 @@ cdef class Matrix(matrix1.Matrix):
         see Theorem 7.2.1 and Theorem 7.2.4.
 
         Note that the permanental `m`-minor equals
-        `per(A)`.
+        `\mathrm{per}(A)` if `m = n`.
 
         For a (0,1)-matrix `A` the permanental `k`-minor
         counts the number of different selections of `k` 1's of
-        `A` with no two of the 1's on the same line.
+        `A` with no two of the 1's on the same row and no two of the
+        1's on the same column.
 
         INPUT:
 
+        - ``self`` -- matrix of size `m \times n` with `m \leq n`
 
-        -  ``self`` - matrix of size m x n with m = n
+        OUTPUT:
 
-
-        OUTPUT: permanental k-minor of matrix A
+        The permanental `k`-minor of the matrix ``self``.
 
         EXAMPLES::
 
@@ -853,9 +856,8 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.permanental_minor(3)
             36
 
-        Note that if k == m the permanental k-minor equals per(A)
-
-        ::
+        Note that if `k = m = n`, the permanental `k`-minor equals
+        `\mathrm{per}(A)`::
 
             sage: A.permanent()
             36
@@ -865,7 +867,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.permanental_minor(5)
             0
 
-        For C the "complement" of A::
+        For `C` the "complement" of `A`::
 
             sage: M = MatrixSpace(ZZ,3,6)
             sage: C = M([0,0,0,0,1,1,1,0,0,0,0,1,1,1,0,0,0,0])
@@ -873,7 +875,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: sum([(-1)^k * C.permanental_minor(k)*factorial(n-k)/factorial(n-m) for k in range(m+1)])
             36
 
-        See Theorem 7.2.1 of Brualdi: and Ryser: Combinatorial Matrix
+        See Theorem 7.2.1 of Brualdi and Ryser: Combinatorial Matrix
         Theory: per(A)
 
         AUTHORS:
@@ -883,13 +885,13 @@ cdef class Matrix(matrix1.Matrix):
         m = self._nrows
         n = self._ncols
         if not m <= n:
-            raise ValueError, "must have m <= n, but m (=%s) and n (=%s)"%(m,n)
+            raise ValueError("must have m <= n, but m (=%s) and n (=%s)"%(m,n))
 
         R = self._base_ring
         if k == 0:
-            return R(1)
+            return R.one()
         if k > m:
-            return R(0)
+            return R.zero()
 
         pm = 0
         for cols in _choose(n,k):
@@ -900,17 +902,16 @@ cdef class Matrix(matrix1.Matrix):
 
     def rook_vector(self, check = False):
         r"""
-        Returns rook vector of this matrix.
+        Return the rook vector of the matrix ``self``.
 
-        Let `A` be a general `m` by `n`
-        (0,1)-matrix with `m \le n`. We identify `A` with a
-        chessboard where rooks can be placed on the fields corresponding
-        with `a_{ij} = 1`. The number
-        `r_k =  p_k(A)` (the permanental
-        `k`-minor) counts the number of ways to place `k`
-        rooks on this board so that no two rooks can attack another.
+        Let `A` be an `m` by `n` (0,1)-matrix with `m \le n`. We identify
+        `A` with a chessboard where rooks can be placed on the fields
+        `(i, j)` with `a_{i,j} = 1`. The number
+        `r_k = p_k(A)` (the permanental `k`-minor) counts the number of
+        ways to place `k` rooks on this board so that no rook can attack
+        another.
 
-        The rook vector is the list consisting of
+        The rook vector of the matrix `A` is the list consisting of
         `r_0, r_1, \ldots, r_m`.
 
         The rook polynomial is defined by
@@ -918,13 +919,14 @@ cdef class Matrix(matrix1.Matrix):
 
         INPUT:
 
+        - ``self`` -- an `m` by `n` (0,1)-matrix with `m \le n`
 
-        -  ``self`` - m by n matrix with m = n
+        - ``check`` -- Boolean (default: ``False``) determining whether
+          to check that ``self`` is a (0,1)-matrix.
 
-        -  ``check`` - True or False (default), optional
+        OUTPUT:
 
-
-        OUTPUT: rook vector
+        The rook vector of the matrix ``self``.
 
         EXAMPLES::
 
@@ -964,32 +966,40 @@ cdef class Matrix(matrix1.Matrix):
         return tmp
 
     def minors(self,k):
-        """
-        Return the list of all k-minors of self.
+        r"""
+        Return the list of all `k \times k` minors of self.
 
-        Let A be an m x n matrix and k an integer with 0 < k, k <= m, and
-        k <= n. A k x k minor of A is the determinant of a k x k matrix
-        obtained from A by deleting m - k rows and n - k columns.
+        Let `A` be an `m \times n` matrix and `k` an integer with
+        `0 \leq k`, `k \leq m` and `k \leq n`.
+        A `k \times k` minor of `A` is the determinant of a
+        `k \times k` matrix obtained from `A` by deleting `m - k`
+        rows and `n - k` columns.
+        There are no `k \times k` minors of `A` if `k` is larger
+        than either `m` or `n`.
 
         The returned list is sorted in lexicographical row major ordering,
-        e.g., if A is a 3 x 3 matrix then the minors returned are with for
-        these rows/columns: [ [0, 1]x[0, 1], [0, 1]x[0, 2], [0, 1]x[1, 2],
+        e.g., if A is a `3 \times 3` matrix then the minors returned are
+        with these rows/columns: [ [0, 1]x[0, 1], [0, 1]x[0, 2], [0, 1]x[1, 2],
         [0, 2]x[0, 1], [0, 2]x[0, 2], [0, 2]x[1, 2], [1, 2]x[0, 1], [1,
         2]x[0, 2], [1, 2]x[1, 2] ].
 
         INPUT:
 
+        - ``k`` -- integer
 
-        -  ``k`` - integer
-
-
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = Matrix(ZZ,2,3,[1,2,3,4,5,6]); A
             [1 2 3]
             [4 5 6]
             sage: A.minors(2)
             [-3, -6, -3]
+            sage: A.minors(1)
+            [1, 2, 3, 4, 5, 6]
+            sage: A.minors(0)
+            [1]
+            sage: A.minors(5)
+            []
 
         ::
 
@@ -1242,6 +1252,197 @@ cdef class Matrix(matrix1.Matrix):
                 self.swap_rows(level, i)
             return d
 
+    def pfaffian(self, algorithm=None, check=True):
+        r"""
+        Return the Pfaffian of ``self``, assuming that ``self`` is an
+        alternating matrix.
+
+        INPUT:
+
+        - ``algorithm`` -- string, the algorithm to use; currently the
+          following algorithms have been implemented:
+
+          * ``'definition'`` - using the definition given by perfect
+            matchings
+
+        - ``check`` (default: ``True``) -- Boolean determining whether to
+          check ``self`` for alternatingness and squareness. This has to
+          be set to ``False`` if ``self`` is defined over a non-discrete
+          ring.
+
+        The Pfaffian of an alternating matrix is defined as follows:
+
+        Let `A` be an alternating `k \times k` matrix over a commutative
+        ring. (Here, "alternating" means that `A^T = -A` and that the
+        diagonal entries of `A` are zero.)
+        If `k` is odd, then the Pfaffian of the matrix `A` is
+        defined to be `0`. Let us now define it when `k` is even. In this
+        case, set `n = k/2` (this is an integer). For every `i` and `j`,
+        we denote the `(i, j)`-th entry of `A` by `a_{i, j}`. Let `M`
+        denote the set of all perfect matchings of the set
+        `\{ 1, 2, \ldots, 2n \}` (see
+        :class:`sage.combinat.perfect_matching.PerfectMatchings` ).
+        For every matching `m \in M`, define the sign `\mathrm{sign}(m)`
+        of `m` by writing `m` as `\{ \{ i_1, j_1 \}, \{ i_2, j_2 \},
+        \ldots, \{ i_n, j_n \} \}` with `i_k < j_k` for all `k`, and
+        setting `\mathrm{sign}(m)` to be the sign of the permutation
+        `( i_1, j_1, i_2, j_2, \ldots, i_n, j_n )` (written here in
+        one-line notation). For every matching `m \in M`, define the
+        weight `w(m)` of `m` by writing `m` as
+        `\{ \{ i_1, j_1 \}, \{ i_2, j_2 \}, \ldots, \{ i_n, j_n \} \}`
+        with `i_k < j_k` for all `k`, and setting
+        `w(m) = a_{i_1, j_1} a_{i_2, j_2} \cdots a_{i_n, j_n}`. Now, the
+        Pfaffian of the matrix `A` is defined to be the sum
+
+        .. MATH::
+
+            \sum_{m \in M} \mathrm{sign}(m) w(m).
+
+        The Pfaffian of `A` is commonly denoted by `\mathrm{Pf}(A)`. It
+        is well-known that `(\mathrm{Pf}(A))^2 = \det A` for every
+        alternating matrix `A`, and that
+        `\mathrm{Pf} (U^T A U) = \det U \cdot \mathrm{Pf}(A)` for any
+        `n \times n` matrix `U` and any alternating `n \times n`
+        matrix `A`.
+
+        See [Kn95]_, [DW95]_ and [Rote2001]_, just to name three
+        sources, for further properties of Pfaffians.
+
+        ALGORITHM:
+
+        The current implementation uses the definition given above.
+        It checks alternatingness of the matrix ``self`` only if
+        ``check`` is ``True`` (this is important because even if ``self``
+        is alternating, a non-discrete base ring might prevent Sage
+        from being able to check this).
+
+        REFERENCES:
+
+        .. [Kn95] Donald E. Knuth, *Overlapping Pfaffians*,
+           :arxiv:`math/9503234v1`.
+
+        .. [Rote2001] Gunter Rote,
+           *Division-Free Algorithms for the Determinant and the
+           Pfaffian: Algebraic and Combinatorial Approaches*,
+           H. Alt (Ed.): Computational Discrete Mathematics, LNCS
+           2122, pp. 119–135, 2001.
+           http://page.mi.fu-berlin.de/rote/Papers/pdf/Division-free+algorithms.pdf
+
+        .. [DW95] Andreas W.M. Dress, Walter Wenzel,
+           *A Simple Proof of an Identity Concerning Pfaffians of
+           Skew Symmetric Matrices*,
+           Advances in Mathematics, volume 112, Issue 1, April
+           1995, pp. 120-134.
+           http://www.sciencedirect.com/science/article/pii/S0001870885710298
+
+        .. TODO::
+
+            Implement faster algorithms, including a division-free one.
+            Does [Rote2001]_, section 3.3 give one?
+
+            Check the implementation of the matchings used here for
+            performance?
+
+        EXAMPLES:
+
+        A `3 \times 3` alternating matrix has Pfaffian 0 independently
+        of its entries::
+
+            sage: MSp = MatrixSpace(Integers(27), 3)
+            sage: A = MSp([0, 2, -3,  -2, 0, 8,  3, -8, 0])
+            sage: A.pfaffian()
+            0
+            sage: parent(A.pfaffian())
+            Ring of integers modulo 27
+
+        The Pfaffian of a `2 \times 2` alternating matrix is just its
+        northeast entry::
+
+            sage: MSp = MatrixSpace(QQ, 2)
+            sage: A = MSp([0, 4,  -4, 0])
+            sage: A.pfaffian()
+            4
+            sage: parent(A.pfaffian())
+            Rational Field
+
+        The Pfaffian of a `0 \times 0` alternating matrix is `1`::
+
+            sage: MSp = MatrixSpace(ZZ, 0)
+            sage: A = MSp([])
+            sage: A.pfaffian()
+            1
+            sage: parent(A.pfaffian())
+            Integer Ring
+
+        Let us compute the Pfaffian of a generic `4 \times 4`
+        alternating matrix::
+
+            sage: R = PolynomialRing(QQ, 'x12,x13,x14,x23,x24,x34')
+            sage: x12, x13, x14, x23, x24, x34 = R.gens()
+            sage: A = matrix(R, [[   0,  x12,  x13,  x14],
+            ....:                [-x12,    0,  x23,  x24],
+            ....:                [-x13, -x23,    0,  x34],
+            ....:                [-x14, -x24, -x34,    0]])
+            sage: A.pfaffian()
+            x14*x23 - x13*x24 + x12*x34
+            sage: parent(A.pfaffian())
+            Multivariate Polynomial Ring in x12, x13, x14, x23, x24, x34 over Rational Field
+
+        The Pfaffian of an alternating matrix squares to its
+        determinant::
+
+            sage: A = [[0] * 6 for i in range(6)]
+            sage: for i in range(6):
+            ....:     for j in range(i):
+            ....:         u = floor(random() * 10)
+            ....:         A[i][j] = u
+            ....:         A[j][i] = -u
+            ....:     A[i][i] = 0
+            sage: AA = Matrix(ZZ, A)
+            sage: AA.pfaffian() ** 2 == AA.det()
+            True
+
+        AUTHORS:
+
+        - Darij Grinberg (1 Oct 2013): first (slow)
+          implementation.
+        """
+        k = self._nrows
+
+        if check:
+            if k != self._ncols:
+                raise ValueError("self must be a square matrix")
+            if not self.is_alternating():
+                raise ValueError("self must be alternating, which includes the diagonal entries being 0")
+
+        R = self.base_ring()
+
+        if k % 2 == 1:
+            return R.zero()
+
+        if k == 0:
+            return R.one()
+
+        n = k // 2
+
+        res = R.zero()
+
+        from sage.combinat.perfect_matching import PerfectMatchings
+        from sage.misc.flatten import flatten
+        from sage.misc.misc_c import prod
+        from sage.combinat.permutation import Permutation
+        for m in PerfectMatchings(k):
+            # We only need each edge of the matching to be sorted,
+            # not the totality of edges.
+            edges = [sorted(edge) for edge in list(m)]
+            sgn = Permutation(flatten(edges)).sign()
+            # Subtract 1 from everything for indexing purposes:
+            edges2 = [[i-1 for i in edge] for edge in edges]
+            # Product without base case since k == 0 case has
+            # already been dealt with:
+            res += sgn * prod([self.get_unsafe(edge[0], edge[1]) for edge in edges2])
+
+        return res
 
     # shortcuts
     def det(self, *args, **kwds):
@@ -1322,7 +1523,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: factor(A.minpoly('y'))
             (y + 1) * (y + 2)^2
 
-        We can take the minimal polynomail of symbolic matrices::
+        We can take the minimal polynomial of symbolic matrices::
 
             sage: t = var('t')
             sage: m = matrix(2,[1,2,4,t])
@@ -1496,7 +1697,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.charpoly(algorithm='hessenberg')
             Traceback (most recent call last):
             ...
-            ValueError: element has negative valuation.
+            ValueError: negative valuation
             sage: A.det()
             3 + O(5)
 
@@ -8500,10 +8701,10 @@ cdef class Matrix(matrix1.Matrix):
             else:
                 Q, R = self.transpose()._gram_schmidt_noscale()
         else:
-            raise NotImplementedError("Gram-Scmidt orthogonalization not implemented for matrices over inexact rings, except for RDF and CDF")
+            raise NotImplementedError("Gram-Schmidt orthogonalization not implemented for matrices over inexact rings, except for RDF and CDF")
         return Q.transpose(), R.transpose()
 
-    def jordan_form(self, base_ring=None, sparse=False, subdivide=True, transformation=False):
+    def jordan_form(self, base_ring=None, sparse=False, subdivide=True, transformation=False, eigenvalues=None, check_input=True):
         r"""
         Compute the Jordan normal form of this square matrix `A`, if it exists.
 
@@ -8524,6 +8725,20 @@ cdef class Matrix(matrix1.Matrix):
 
         - ``transformation`` - (default ``False``) If ``transformation=True``,
           computes also the transformation matrix.
+
+        - ``eigenvalues`` - (default ``None``) A complete set of roots, with
+          multiplicity, of the characteristic polynomial of `A`, encoded as
+          a list of pairs, each having the form `(r, m)` with `r` a root and
+          `m` its multiplicity. If this is ``None``, then Sage computes this
+          list itself, but this is only possible over base rings in whose
+          quotient fields polynomial factorization is implemented. Over all
+          other rings, providing this list manually is the only way to
+          compute Jordan normal forms.
+
+        - ``check_input`` - (default ``True``) A Boolean specifying whether
+          the list ``eigenvalues`` (if provided) has to be checked for
+          correctness. Set this to ``False`` for a speedup if the eigenvalues
+          are known to be correct.
 
         NOTES:
 
@@ -8785,6 +9000,29 @@ cdef class Matrix(matrix1.Matrix):
             sage: M.jordan_form(transformation=True) == (M/1).jordan_form(transformation=True)
             True
 
+        By providing eigenvalues ourselves, we can compute the Jordan form even
+        lacking a polynomial factorization algorithm.  ::
+
+            sage: Qx = PolynomialRing(QQ, 'x11, x12, x13, x21, x22, x23, x31, x32, x33')
+            sage: x11, x12, x13, x21, x22, x23, x31, x32, x33 = Qx.gens()
+            sage: M = matrix(Qx, [[0, 0, x31], [0, 0, x21], [0, 0, 0]])    # This is a nilpotent matrix.
+            sage: M.jordan_form(eigenvalues=[(0, 3)])
+            [0 1|0]
+            [0 0|0]
+            [---+-]
+            [0 0|0]
+            sage: M.jordan_form(eigenvalues=[(0, 2)])
+            Traceback (most recent call last):
+            ...
+            ValueError: The provided list of eigenvalues is not correct.
+            sage: M.jordan_form(transformation=True, eigenvalues=[(0, 3)])
+            (
+            [0 1|0]
+            [0 0|0]  [x31   0   1]
+            [---+-]  [x21   0   0]
+            [0 0|0], [  0   1   0]
+            )
+
         TESTS:
 
         The base ring for the matrix needs to have a fraction field
@@ -8836,7 +9074,19 @@ cdef class Matrix(matrix1.Matrix):
         # Compute the eigenvalues of the matrix, with multiplicities.  Here,
         # ``evals`` is a list of pairs, each first entry a root and each
         # second entry the corresponding multiplicity.
-        evals = A.charpoly().roots()
+        if eigenvalues is not None:
+            if check_input:    # Checking input for sanity.
+                C1 = A.charpoly()
+                Polyring = C1.parent()
+                C2 = Polyring.one()
+                x = Polyring.gens()[0]
+                for z, i in eigenvalues:
+                    C2 *= (x - z) ** i
+                if C1 != C2:
+                    raise ValueError("The provided list of eigenvalues is not correct.")
+            evals = eigenvalues
+        else:
+            evals = A.charpoly().roots()
         if sum([mult for (_,mult) in evals]) < n:
             raise RuntimeError("Some eigenvalue does not exist in %s."  %(A.base_ring()))
 
@@ -8949,7 +9199,7 @@ cdef class Matrix(matrix1.Matrix):
         The diagonal entries of the matrix `D` are the eigenvalues
         of `A`.  It may be necessary to "increase" the base field to
         contain all of the eigenvalues.  Over the rationals, the field
-        of algebraic integers, :mod:`sage.rings.qqbar` is a good choice.
+        of algebraic numbers, :mod:`sage.rings.qqbar` is a good choice.
 
         To obtain the matrices `S` and `D` use the :meth:`jordan_form`
         method with the ``transformation=True`` keyword.
@@ -11190,9 +11440,9 @@ cdef class Matrix(matrix1.Matrix):
             sage: B == L*D*L.conjugate_transpose()
             True
 
-        If a leading principal submatrix is zero this algorithm
-        will fail.  This will never happen with a positive definite
-        matrix.  ::
+        If a leading principal submatrix has zero determinant, this
+        algorithm will fail.  This will never happen with a positive
+        definite matrix.  ::
 
             sage: A = matrix(QQ, [[21, 15, 12, -2],
             ...                   [15, 12,  9,  6],
@@ -11513,7 +11763,7 @@ cdef class Matrix(matrix1.Matrix):
 
         OUTPUT: If ``indices`` is not specified, return a
         matrix with 1 where `f` is satisfied and 0 where it is not.
-        If ``indices`` is specified, return a dictionary with
+        If ``indices`` is specified, return a dictionary
         containing the elements of this matrix satisfying `f`.
 
         EXAMPLES::
@@ -12914,7 +13164,7 @@ cdef class Matrix(matrix1.Matrix):
           be returned, where each list contains coefficients of a
           polynomial associated with a companion matrix.
 
-        - `subdivide` - default: 'True' - if 'True' and a matrix is
+        - ``subdivide`` - default: 'True' - if 'True' and a matrix is
           returned, then it contains subdivisions delineating the
           companion matrices along the diagonal.
 

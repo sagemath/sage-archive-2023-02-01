@@ -6,8 +6,8 @@ scripts for sage.
 
 AUTHORS:
 
-- David Roe, Frej Drejhammar, Julian Rueth, Martin Raum, Nicolas M. Thiery, R.
-  Andrew Ohana, Robert Bradshaw, Timo Kluck: initial version
+- David Roe, Frej Drejhammar, Julian Rueth, Martin Raum, Nicolas M. Thiery,
+  R. Andrew Ohana, Robert Bradshaw, Timo Kluck: initial version
 
 """
 #*****************************************************************************
@@ -19,6 +19,7 @@ AUTHORS:
 #                          R. Andrew Ohana <andrew.ohana@gmail.com>
 #                          Robert Bradshaw <robertwb@gmail.com>
 #                          Timo Kluck <tkluck@infty.nl>
+#                          Volker Braun <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -26,51 +27,40 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import os
+import urllib, urlparse
+import re
+
 from user_interface_error import OperationCancelledError
 from trac_error import TracConnectionError, TracInternalError, TracError
 from git_error import GitError
+from patch import MercurialPatchMixin
 
-from sage.env import SAGE_VERSION
-
-import re
-# regular expressions to parse mercurial patches
-HG_HEADER_REGEX = re.compile(r"^# HG changeset patch$")
-HG_USER_REGEX = re.compile(r"^# User (.*)$")
-HG_DATE_REGEX = re.compile(r"^# Date (\d+) (-?\d+)$")
-HG_NODE_REGEX = re.compile(r"^# Node ID ([0-9a-f]+)$")
-HG_PARENT_REGEX = re.compile(r"^# Parent +([0-9a-f]+)$")
-HG_DIFF_REGEX = re.compile(r"^diff (?:-r [0-9a-f]+ ){1,2}(.*)$")
-PM_DIFF_REGEX = re.compile(r"^(?:(?:\+\+\+)|(?:---)) [ab]/([^ ]*)(?: .*)?$")
-MV_DIFF_REGEX = re.compile(r"^rename (?:(?:to)|(?:from)) (.*)$")
-
-# regular expressions to parse git patches -- at least those created by us
-GIT_FROM_REGEX = re.compile(r"^From: (.*)$")
-GIT_SUBJECT_REGEX = re.compile(r"^Subject: (.*)$")
-GIT_DATE_REGEX = re.compile(r"^Date: (.*)$")
-GIT_DIFF_REGEX = re.compile(r"^diff --git a/(.*) b/(.*)$") # this regex should work for our patches since we do not have spaces in file names
-
-# regular expressions to determine whether a path was written for the new git
-# repository of for the old hg repository
-HG_PATH_REGEX = re.compile(r"^(?=sage/)|(?=doc/)|(?=module_list\.py)|(?=setup\.py)|(?=c_lib/)")
-GIT_PATH_REGEX = re.compile(r"^(?=src/)")
+from sage.env import TRAC_SERVER_URI
 
 # regular expression to check validity of git options
-GIT_BRANCH_REGEX = re.compile(r'^(?!.*/\.)(?!.*\.\.)(?!/)(?!.*//)(?!.*@\{)(?!.*\\)[^\040\177 ~^:?*[]+(?<!\.lock)(?<!/)(?<!\.)$') # http://stackoverflow.com/questions/12093748/how-do-i-check-for-valid-git-branch-names
+# http://stackoverflow.com/questions/12093748/how-do-i-check-for-valid-git-branch-names
+GIT_BRANCH_REGEX = re.compile(
+    r'^(?!.*/\.)(?!.*\.\.)(?!/)(?!.*//)(?!.*@\{)(?!.*\\)'
+    r'[^\040\177 ~^:?*[]+(?<!\.lock)(?<!/)(?<!\.)$')
 
-# the name of the branch which holds the vanilla clone of sage - in the long
-# run this should be "master", currently, "public/sage-git/master" contains some changes
-# over "master" which have not been reviewed yet but which are needed to work
-# using git
+# the name of the branch which holds the vanilla clone of sage
 MASTER_BRANCH = "master"
+USER_BRANCH = re.compile(r"^u/([^/]+)/")
 
 COMMIT_GUIDE=r"""
+
+
 # Please type your commit message above.
-# Lines starting with '#' are ignored.
+#
+# The first line should contain a short summary of your changes, the
+# following lines should contain a more detailed description. Lines
+# starting with '#' are ignored.
 #
 # An empty file aborts the commit.
 """
 
-class SageDev(object):
+class SageDev(MercurialPatchMixin):
     r"""
     The developer interface for sage.
 
@@ -78,11 +68,11 @@ class SageDev(object):
 
     INPUT:
 
-    - ``config`` -- a :class:`config.Config` or ``None`` (default: ``None``),
-      the configuration of this object; the defaults uses the configuration
-      stored in ``DOT_GIT/devrc``.
+    - ``config`` -- a :class:`~sage.dev.config.Config` or ``None``
+      (default: ``None``), the configuration of this object; the
+      defaults uses the configuration stored in ``DOT_SAGE/devrc``.
 
-    - ``UI`` -- a :class:`user_interface.UserInterface` or ``None`` (default:
+    - ``UI`` -- a :class:`~sage.dev.user_interface.UserInterface` or ``None`` (default:
       ``None``), the default creates a
       :class:`cmd_line_interface.CmdLineInterface` from ``config['UI']``.
 
@@ -98,7 +88,6 @@ class SageDev(object):
 
         sage: dev._sagedev
         SageDev()
-
     """
     def __init__(self, config=None, UI=None, trac=None, git=None):
         r"""
@@ -107,8 +96,7 @@ class SageDev(object):
         TESTS::
 
             sage: type(dev._sagedev)
-            <class 'sage.dev.sagedev.SageDev'>
-
+            <class 'sage.dev.test.sagedev.DoctestSageDev'>
         """
         self.config = config
         if self.config is None:
@@ -133,15 +121,46 @@ class SageDev(object):
         self.git = git
         if self.git is None:
             from git_interface import GitInterface
-            self.git = GitInterface(self.config['git'], self._UI, self.upload_ssh_key)
+            self.git = GitInterface(self.config['git'], self._UI)
 
         # create some SavingDicts to store the relations between branches and tickets
         from sage.env import DOT_SAGE
         import os
-        ticket_file = self.config['sagedev'].get('ticketfile', os.path.join(DOT_SAGE, 'branch_to_ticket'))
-        branch_file = self.config['sagedev'].get('branchfile', os.path.join(DOT_SAGE, 'ticket_to_branch'))
-        dependencies_file = self.config['sagedev'].get('dependenciesfile', os.path.join(DOT_SAGE, 'dependencies'))
-        remote_branches_file = self.config['sagedev'].get('remotebranchesfile', os.path.join(DOT_SAGE, 'remote_branches'))
+        def move_legacy_saving_dict(key, old_file, new_file):
+            '''
+            We used to have these files in DOT_SAGE - this is not a good idea
+            because a user might have multiple copies of sage which should each
+            have their own set of files.
+
+            This method moves an existing file mentioned in the config to its
+            new position to support repositories created earlier.
+            '''
+            import sage.doctest
+            if sage.doctest.DOCTEST_MODE:
+                return
+            import shutil
+            if not os.path.exists(new_file) and os.path.exists(old_file):
+                shutil.move(old_file, new_file)
+                self._UI.show('The developer scripts used to store some of their data in "{0}".'
+                              ' This file has now moved to "{1}". I moved "{0}" to "{1}". This might'
+                              ' cause trouble if this is a fresh clone of the repository in which'
+                              ' you never used the developer scripts before. In that case you'
+                              ' should manually delete "{1}" now.', old_file, new_file)
+            if key in self.config['sagedev']:
+                del self.config['sagedev'][key]
+
+        ticket_file = os.path.join(self.git._dot_git, 'branch_to_ticket')
+        move_legacy_saving_dict('ticketfile', self.config['sagedev'].get(
+            'ticketfile', os.path.join(DOT_SAGE, 'branch_to_ticket')), ticket_file)
+        branch_file = os.path.join(self.git._dot_git, 'ticket_to_branch')
+        move_legacy_saving_dict('branchfile', self.config['sagedev'].get(
+            'branchfile', os.path.join(DOT_SAGE, 'ticket_to_branch')), branch_file)
+        dependencies_file = os.path.join(self.git._dot_git, 'dependencies')
+        move_legacy_saving_dict('dependenciesfile', self.config['sagedev'].get(
+            'dependenciesfile', os.path.join(DOT_SAGE, 'dependencies')), dependencies_file)
+        remote_branches_file = os.path.join(self.git._dot_git, 'remote_branches')
+        move_legacy_saving_dict('remotebranchesfile', self.config['sagedev'].get(
+            'remotebranchesfile', os.path.join(DOT_SAGE, 'remote_branches')), remote_branches_file)
 
         # some people dislike double underscore fields; here you can very
         # seriously screw up your setup if you put something invalid into
@@ -164,13 +183,12 @@ class SageDev(object):
             sage: import os
             sage: os.path.isdir(dev._sagedev.tmp_dir)
             True
-
         """
         try:
             return self._tmp_dir
         except AttributeError:
-            import tempfile
-            self._tmp_dir = tempfile.mkdtemp()
+            from sage.dev.misc import tmp_dir
+            self._tmp_dir = tmp_dir()
             import atexit, shutil
             atexit.register(shutil.rmtree, self._tmp_dir)
             return self._tmp_dir
@@ -183,30 +201,12 @@ class SageDev(object):
 
             sage: dev # indirect doctest
             SageDev()
-
         """
         return "SageDev()"
 
-    def create_ticket(self, branch=None, base=MASTER_BRANCH, remote_branch=None):
+    def create_ticket(self):
         r"""
-        Create a new ticket on trac and switch to a new local branch to work on
-        said ticket.
-
-        INPUT:
-
-        - ``branch`` -- a string or ``None`` (default: ``None``), the name of
-          the local branch that will be used for the new ticket; if ``None``,
-          the branch will be called ``'ticket/ticket_number'``.
-
-        - ``base`` -- a string or ``None``, a branch on which to base the
-          ticket (default: the master branch ``'master'``), or a ticket; if
-          ``base`` is set to ``None``, then the current ticket is used. If
-          ``base`` is a ticket, then the corresponding dependency will be
-          added.
-
-        - ``remote_branch`` -- a string or ``None`` (default: ``None``), the
-          branch to pull from and push to on trac's git server; if ``None``,
-          then the default branch ``'u/username/ticket_number'`` will be used.
+        Create a new ticket on trac.
 
         OUTPUT:
 
@@ -214,7 +214,7 @@ class SageDev(object):
 
         .. SEEALSO::
 
-            :meth:`switch_ticket`, :meth:`download`, :meth:`edit_ticket`
+            :meth:`checkout`, :meth:`pull`, :meth:`edit_ticket`
 
         TESTS:
 
@@ -228,336 +228,77 @@ class SageDev(object):
 
             sage: UI.append("Summary: ticket1\ndescription")
             sage: dev.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
+
             sage: UI.append("Summary: ticket2\ndescription")
             sage: dev.create_ticket()
+            Created ticket #2 at https://trac.sagemath.org/2.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=2" to create a new local branch)
             2
-            sage: dev.git.silent.commit(allow_empty=True, message="second commit")
-            sage: dev.git.commit_for_branch('ticket/2') != dev.git.commit_for_branch('ticket/1')
-            True
 
-        Check that ``base`` works::
-
-            sage: UI.append("Summary: ticket3\ndescription")
-            sage: dev.create_ticket(base=2)
-            3
-            sage: dev.git.commit_for_branch('ticket/3') == dev.git.commit_for_branch('ticket/2')
-            True
-            sage: dev._dependencies_for_ticket(3)
-            (2,)
-            sage: UI.append("Summary: ticket4\ndescription")
-            sage: dev.create_ticket(base='ticket/2')
-            4
-            sage: dev.git.commit_for_branch('ticket/4') == dev.git.commit_for_branch('ticket/2')
-            True
-            sage: dev._dependencies_for_ticket(4)
-            ()
-            sage: UI.append("Summary: ticket5\ndescription")
-
-        In this example ``base`` does not exist::
-
-            sage: dev.create_ticket(base=1000)
-            ValueError: `1000` is not a valid ticket name or ticket does not exist on trac.
-
-        In this example ``base`` does not exist locally::
-
-            sage: dev.trac.create_ticket("summary5","description",{})
-            5
-            sage: dev.create_ticket(base=5)
-            ValueError: Branch field is not set for ticket #5 on trac.
-
-        This also fails if the internet connection is broken::
+        This fails if the internet connection is broken::
 
             sage: dev.trac._connected = False
-            sage: dev.create_ticket(base=4)
+            sage: UI.append("Summary: ticket7\ndescription")
+            sage: dev.create_ticket()
             A network error ocurred, ticket creation aborted.
             Your command failed because no connection to trac could be established.
             sage: dev.trac._connected = True
-
-        Creating a ticket when in detached HEAD state::
-
-            sage: dev.git.super_silent.checkout('HEAD', detach=True)
-            sage: UI.append("Summary: ticket detached\ndescription")
-            sage: dev.create_ticket()
-            6
-            sage: dev.git.current_branch()
-            'ticket/6'
-
-        Creating a ticket when in the middle of a merge::
-
-            sage: dev.git.super_silent.checkout('-b','merge_branch')
-            sage: with open('merge', 'w') as f: f.write("version 0")
-            sage: dev.git.silent.add('merge')
-            sage: dev.git.silent.commit('-m','some change')
-            sage: dev.git.super_silent.checkout('ticket/6')
-            sage: with open('merge', 'w') as f: f.write("version 1")
-            sage: dev.git.silent.add('merge')
-            sage: dev.git.silent.commit('-m','conflicting change')
-            sage: from sage.dev.git_error import GitError
-            sage: try:
-            ....:     dev.git.silent.merge('merge_branch')
-            ....: except GitError: pass
-            sage: UI.append("n")
-            sage: UI.append("Summary: ticket merge\ndescription")
-            sage: dev.create_ticket()
-            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.) [yes/No] n
-            Could not switch to branch `ticket/7` because your working directory is not clean.
-            sage: dev.git.reset_to_clean_state()
-
-        Creating a ticket with uncommitted changes::
-
-            sage: open('tracked', 'w').close()
-            sage: dev.git.silent.add('tracked')
-            sage: UI.append("keep")
-            sage: UI.append("Summary: ticket merge\ndescription")
-            sage: dev.create_ticket()
-            The following files in your working directory contain uncommitted changes:
-             tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] keep
-            Could not switch to branch `ticket/8` because your working directory is not clean.
-
         """
-        dependencies = []
-
-        if branch is not None:
-            self._check_local_branch_name(branch, exists=False)
-
-        if base is None:
-            base = self._current_ticket()
-        if base is None:
-            raise SageDevValueError("currently on no ticket, `base` must not be None")
-        if self._is_ticket_name(base):
-            base = self._ticket_from_ticket_name(base)
-            dependencies.append(base)
-            base = self._local_branch_for_ticket(base, download_if_not_found=True)
-        self._check_local_branch_name(base, exists=True)
-
-        if remote_branch is not None:
-            self._check_remote_branch_name(remote_branch, exists=any)
-
-        # now that we have checked that the parameters are valid, let the user
-        # interactively create a ticket
         try:
             ticket = self.trac.create_ticket_interactive()
         except OperationCancelledError:
-            self._UI.info("Ticket creation aborted.")
+            self._UI.debug("Ticket creation aborted.")
             raise
         except TracConnectionError as e:
             self._UI.error("A network error ocurred, ticket creation aborted.")
             raise
-
-        # note that the dependencies are not recorded on the newly created
-        # ticket but only stored locally - a first push to trac will set the
-        # dependencies
-
-        if branch is None:
-            branch = self._new_local_branch_for_ticket(ticket)
-        if remote_branch is None:
-            remote_branch = self._remote_branch_for_ticket(ticket)
-
-        # create a new branch for the ticket
-        self.git.silent.branch(branch, base)
-        self._UI.info("Branch `{0}` created from branch `{1}`.".format(branch, base))
-        try:
-            self._set_local_branch_for_ticket(ticket, branch)
-            if dependencies:
-                self._set_dependencies_for_ticket(ticket, dependencies)
-                self._UI.info("Dependencies `{0}` recorded locally for ticket #{1}.".format(", ".join(['#'+str(dep) for dep in dependencies]), ticket))
-            self._set_remote_branch_for_branch(branch, remote_branch)
-            self._UI.info("Branch `{0}` will pull from/push to remote branch `{1}`. Use `{2}` to set a different remote branch.".format(branch, remote_branch, self._format_command("set_remote", {"branch":branch, "remote":"remote_branch"})))
-        except:
-            self._UI.info("An error ocurred. Deleting branch `{0}`.".format(branch))
-
-            self.git.silent.branch(branch, delete=True)
-            self._set_dependencies_for_ticket(ticket, None)
-            self._set_remote_branch_for_branch(branch, None)
-            self._set_local_branch_for_ticket(ticket, None)
-
-            raise
-
-        # switch to the new branch
-        self._UI.info("Now switching to your new branch `{0}`.".format(branch))
-        try:
-            self.switch_ticket(ticket)
-        except:
-            self._UI.info("Your ticket has been created on trac. However, an error ocurred while switching to your new branch `{0}`. Use `{1}` to manually switch to `{0}`.".format(branch,self._format_command("switch_ticket",str(ticket))))
-            raise
-
+        ticket_url = urlparse.urljoin(self.trac._config.get('server', TRAC_SERVER_URI), str(ticket))
+        self._UI.show("Created ticket #{0} at {1}.".format(ticket, ticket_url))
+        self._UI.info(['',
+                       '(use "{0}" to create a new local branch)'
+                       .format(self._format_command("checkout", ticket=ticket))])
         return ticket
 
-    def switch_ticket(self, ticket, branch=None):
+    def checkout(self, ticket=None, branch=None, base=''):
         r"""
-        Switch to a branch associated to ``ticket``.
+        Checkout another branch.
 
-        If ``branch`` is an existing local branch, then ``ticket`` will be
-        associated to it, and the working directory will be switched to
-        ``branch``.
-
+        If ``ticket`` is specified, and ``branch`` is an existing local branch,
+        then ``ticket`` will be associated to it, and ``branch`` will be
+        checked out into the working directory.
         Otherwise, if there is no local branch for ``ticket``, the branch
-        specified on trac will be downloaded to ``branch``. If the trac ticket
-        does not specify a branch yet, then a new one will be created from
-        "master".
+        specified on trac will be pulled to ``branch`` unless ``base`` is
+        set to something other than the empty string ``''``. If the trac ticket
+        does not specify a branch yet or if ``base`` is not the empty string,
+        then a new one will be created from ``base`` (per default, the master
+        branch).
+
+        If ``ticket`` is not specified, then checkout the local branch
+        ``branch`` into the working directory.
 
         INPUT:
 
-        - ``ticket`` -- a string or an integer identifying a ticket
+        - ``ticket`` -- a string or an integer identifying a ticket or ``None``
+          (default: ``None``)
 
-        - ``branch`` -- a string, the name of the local branch that stores
-          changes for ``ticket`` (default: ticket/``ticket``)
+        - ``branch`` -- a string, the name of a local branch; if ``ticket`` is
+          specified, then this defaults to ticket/``ticket``.
+
+        - ``base`` -- a string or ``None``, a branch on which to base a new
+          branch if one is going to be created (default: the empty string
+          ``''`` to create the new branch from the master branch), or a ticket;
+          if ``base`` is set to ``None``, then the current ticket is used. If
+          ``base`` is a ticket, then the corresponding dependency will be
+          added. Must be ``''`` if ``ticket`` is not specified.
 
         .. SEEALSO::
 
-            :meth:`download`, :meth:`create_ticket`, :meth:`vanilla`
-
-        TESTS:
-
-        Create a doctest setup with two users::
-
-            sage: from sage.dev.test.sagedev import two_user_setup
-            sage: alice, config_alice, bob, config_bob, server = two_user_setup()
-
-        Alice tries to switch to ticket #1 which does not exist yet::
-
-            sage: alice._chdir()
-            sage: alice.switch_ticket(1)
-            ValueError: `1` is not a valid ticket name or ticket does not exist on trac.
-
-        Bob creates that ticket::
-
-            sage: bob._chdir()
-            sage: bob._UI.append("Summary: summary1\ndescription")
-            sage: bob.create_ticket()
-            1
-
-        Now alice can switch to it, even though there is no branch on the
-        ticket description::
-
-            sage: alice._chdir()
-            sage: alice.switch_ticket(1)
-
-        If Bob commits something to the ticket, a ``switch_ticket`` by Alice
-        does not take his changes into account::
-
-            sage: bob._chdir()
-            sage: bob.git.super_silent.commit(allow_empty=True,message="empty commit")
-            sage: bob._UI.append("y")
-            sage: bob.upload()
-            The branch `u/bob/ticket/1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
-
-            sage: alice._chdir()
-            sage: alice.switch_ticket(1)
-            sage: alice.git.echo.log('--pretty=%s')
-            initial commit
-
-        If Alice had not switched to that ticket before, she would of course
-        see Bob's changes (this also checks that we can handle a corrupt ticket
-        database and a detached HEAD)::
-
-            sage: alice.git.super_silent.checkout('HEAD', detach=True)
-            sage: alice.git.super_silent.branch('-d','ticket/1')
-            sage: alice.switch_ticket(1) # ticket #1 refers to the non-existant branch 'ticket/1'
-            Ticket #1 refers to the non-existant local branch `ticket/1`. If you have not manually interacted with git, then this is a bug in sagedev. Removing the association from ticket #1 to branch `ticket/1`.
-            sage: alice.git.current_branch()
-            'ticket/1'
-            sage: alice.git.echo.log('--pretty=%s')
-            empty commit
-            initial commit
-
-        Switching to a ticket with untracked files::
-
-            sage: alice._UI.append("Summary: summary2\ndescription")
-            sage: alice.create_ticket()
-            2
-            sage: alice.git.echo.log('--pretty=%s')
-            initial commit
-            sage: open("untracked","w").close()
-            sage: alice.switch_ticket(1)
-            sage: alice.git.echo.log('--pretty=%s')
-            empty commit
-            initial commit
-
-        Switching to a ticket with untracked files which make a switch
-        impossible::
-
-            sage: alice.git.super_silent.add("untracked")
-            sage: alice.git.super_silent.commit(message="added untracked")
-            sage: alice.switch_ticket(2)
-            sage: open("untracked","w").close()
-            sage: alice.switch_ticket(1)
-            GitError: git exited with a non-zero exit code (1).
-            This happened while executing `git checkout ticket/1`.
-            git printed nothing to STDOUT.
-            git printed the following to STDERR:
-            error: The following untracked working tree files would be overwritten by checkout:
-                untracked
-            Please move or remove them before you can switch branches.
-            Aborting
-
-        Switching to a ticket with uncommited changes::
-
-            sage: open("tracked","w").close()
-            sage: alice.git.super_silent.add("tracked")
-            sage: alice._UI.append('d')
-            sage: alice.switch_ticket(2)
-            The following files in your working directory contain uncommitted changes:
-             tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] d
-
-        """
-        self._check_ticket_name(ticket, exists=True)
-
-        ticket = self._ticket_from_ticket_name(ticket)
-
-        if branch is None:
-            if self._has_local_branch_for_ticket(ticket):
-                branch = self._local_branch_for_ticket(ticket)
-                self._UI.info("Switching to branch `{0}`.".format(branch))
-                self.switch_branch(branch)
-                return
-            else:
-                branch = self._new_local_branch_for_ticket(ticket)
-                self._check_local_branch_name(branch, exists=False)
-
-        self._check_local_branch_name(branch)
-
-        if self._is_local_branch_name(branch, exists=True):
-            # reset ticket to point to branch and checkout
-            self._set_local_branch_for_ticket(ticket, branch)
-            self._UI.info("Set local branch for ticket #{0} to `{1}`.".format(ticket, branch))
-            self.switch_ticket(ticket, branch=None)
-            return
-
-        remote_branch = self.trac._branch_for_ticket(ticket)
-        dependencies = self.trac.dependencies(ticket)
-        if remote_branch is None: # branch field is not set on ticket
-            self._UI.info("The branch field on ticket #{0} is not set. Creating a new branch `{1}` off the master branch `{2}`.".format(ticket, branch, MASTER_BRANCH))
-            self.git.silent.branch(branch, MASTER_BRANCH)
-        else:
-            try:
-                self.download(remote_branch, branch)
-            except:
-                self._UI.error("Could not switch to ticket #{0} because the remote branch `{1}` for that ticket could not be downloaded.".format(ticket, remote_branch))
-                raise
-
-        try:
-            self._set_local_branch_for_ticket(ticket, branch)
-            self._set_dependencies_for_ticket(ticket, dependencies)
-        except:
-            self._UI.info("An error ocurred. Deleting branch `{0}`.".format(branch))
-            self._set_local_branch_for_ticket(ticket, None)
-            self.git.silent.branch("-d",branch)
-            raise
-
-        self._UI.info("Switching to newly created branch `{0}`.".format(branch))
-        self.switch_branch(branch)
-
-    def switch_branch(self, branch):
-        r"""
-        Switch to the local branch ``branch``.
-
-        INPUT:
-
-        - ``branch`` - a string, the name of a local branch
+            :meth:`pull`, :meth:`create_ticket`, :meth:`vanilla`
 
         TESTS:
 
@@ -571,60 +312,617 @@ class SageDev(object):
             sage: dev.git.silent.branch("branch1")
             sage: dev.git.silent.branch("branch2")
 
-        Switch to a branch::
+        Checking out a branch::
 
-            sage: dev.switch_branch("branch1")
+            sage: dev.checkout(branch="branch1")
+            On local branch "branch1" without associated ticket.
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: dev.git.current_branch()
+            'branch1'
+
+        Create a ticket and checkout a branch for it::
+
+            sage: UI.append("Summary: summary\ndescription")
+            sage: dev.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
+            1
+            sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: dev.git.current_branch()
+            'ticket/1'
+        """
+        if ticket is not None:
+            self.checkout_ticket(ticket=ticket, branch=branch, base=base)
+        elif branch is not None:
+            if base != '':
+                raise SageDevValueError("base must not be specified if no ticket is specified.")
+            self.checkout_branch(branch=branch)
+        else:
+            raise SageDevValueError("at least one of ticket or branch must be specified.")
+
+        ticket = self._current_ticket()
+        branch = self.git.current_branch()
+        if ticket:
+            self._UI.show(['On ticket #{0} with associated local branch "{1}".'], ticket, branch)
+        else:
+            self._UI.show(['On local branch "{0}" without associated ticket.'], branch)
+        self._UI.info(['',
+                       'Use "{0}" to include another ticket/branch.',
+                       'Use "{1}" to save changes into a new commit.'],
+                      self._format_command("merge"),
+                      self._format_command("commit"))
+
+
+    def checkout_ticket(self, ticket, branch=None, base=''):
+        r"""
+        Checkout the branch associated to ``ticket``.
+
+        If ``branch`` is an existing local branch, then ``ticket`` will be
+        associated to it, and ``branch`` will be checked out into the working directory.
+
+        Otherwise, if there is no local branch for ``ticket``, the branch
+        specified on trac will be pulled to ``branch`` unless ``base`` is
+        set to something other than the empty string ``''``. If the trac ticket
+        does not specify a branch yet or if ``base`` is not the empty string,
+        then a new one will be created from ``base`` (per default, the master
+        branch).
+
+        INPUT:
+
+        - ``ticket`` -- a string or an integer identifying a ticket
+
+        - ``branch`` -- a string, the name of the local branch that stores
+          changes for ``ticket`` (default: ticket/``ticket``)
+
+        - ``base`` -- a string or ``None``, a branch on which to base a new
+          branch if one is going to be created (default: the empty string
+          ``''`` to create the new branch from the master branch), or a ticket;
+          if ``base`` is set to ``None``, then the current ticket is used. If
+          ``base`` is a ticket, then the corresponding dependency will be
+          added.
+
+        .. SEEALSO::
+
+            :meth:`pull`, :meth:`create_ticket`, :meth:`vanilla`
+
+        TESTS:
+
+        Create a doctest setup with two users::
+
+            sage: from sage.dev.test.sagedev import two_user_setup
+            sage: alice, config_alice, bob, config_bob, server = two_user_setup()
+
+        Alice tries to checkout ticket #1 which does not exist yet::
+
+            sage: alice._chdir()
+            sage: alice.checkout(ticket=1)
+            Ticket name "1" is not valid or ticket does not exist on trac.
+
+        Bob creates that ticket::
+
+            sage: bob._chdir()
+            sage: bob._UI.append("Summary: summary1\ndescription")
+            sage: bob.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
+            1
+            sage: bob.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+
+        Now alice can check it out, even though there is no branch on the
+        ticket description::
+
+            sage: alice._chdir()
+            sage: alice.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+
+        If Bob commits something to the ticket, a ``checkout`` by Alice
+        does not take his changes into account::
+
+            sage: bob._chdir()
+            sage: bob.git.super_silent.commit(allow_empty=True,message="empty commit")
+            sage: bob._UI.append("y")
+            sage: bob.push()
+            The branch "u/bob/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
+
+            sage: alice._chdir()
+            sage: alice.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: alice.git.echo.log('--pretty=%s')
+            initial commit
+
+        If Alice had not checked that ticket out before, she would of course
+        see Bob's changes (this also checks that we can handle a corrupt ticket
+        database and a detached HEAD)::
+
+            sage: alice.git.super_silent.checkout('HEAD', detach=True)
+            sage: alice.git.super_silent.branch('-d','ticket/1')
+            sage: alice.checkout(ticket=1) # ticket #1 refers to the non-existant branch 'ticket/1'
+            Ticket #1 refers to the non-existant local branch "ticket/1". If you have not
+            manually interacted with git, then this is a bug in sagedev. Removing the
+            association from ticket #1 to branch "ticket/1".
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: alice.git.current_branch()
+            'ticket/1'
+            sage: alice.git.echo.log('--pretty=%s')
+            empty commit
+            initial commit
+
+        Checking out a ticket with untracked files::
+
+            sage: alice._UI.append("Summary: summary2\ndescription")
+            sage: alice.create_ticket()
+            Created ticket #2 at https://trac.sagemath.org/2.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=2" to create a new local branch)
+            2
+            sage: alice.checkout(ticket=2)
+            On ticket #2 with associated local branch "ticket/2".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: alice.git.echo.log('--pretty=%s')
+            initial commit
+            sage: open("untracked","w").close()
+            sage: alice.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: alice.git.echo.log('--pretty=%s')
+            empty commit
+            initial commit
+
+        Checking out a ticket with untracked files which make a checkout
+        impossible::
+
+            sage: alice.git.super_silent.add("untracked")
+            sage: alice.git.super_silent.commit(message="added untracked")
+            sage: alice.checkout(ticket=2)
+            On ticket #2 with associated local branch "ticket/2".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: open("untracked","w").close()
+            sage: alice.checkout(ticket=1)
+            GitError: git exited with a non-zero exit code (1).
+            This happened while executing "git -c user.email=doc@test.test -c
+            user.name=alice checkout ticket/1".
+            git printed nothing to STDOUT.
+            git printed the following to STDERR:
+            error: The following untracked working tree files would be overwritten by checkout:
+                untracked
+            Please move or remove them before you can switch branches.
+            Aborting
+
+        Checking out a ticket with uncommited changes::
+
+            sage: open("tracked", "w").close()
+            sage: alice.git.super_silent.add("tracked")
+            sage: alice._UI.append('d')
+            sage: alice.checkout(ticket=2)
+            The following files in your working directory contain uncommitted changes:
+            <BLANKLINE>
+                 tracked
+            <BLANKLINE>
+            Discard changes? [discard/Keep/stash] d
+            On ticket #2 with associated local branch "ticket/2".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+
+        Now follow some single user tests to check that the parameters are interpreted correctly::
+
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+            sage: dev._wrap("_dependencies_for_ticket")
+
+        First, create some tickets::
+
+            sage: UI.append("Summary: ticket1\ndescription")
+            sage: dev.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
+            1
+            sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: UI.append("Summary: ticket2\ndescription")
+            sage: dev.create_ticket()
+            Created ticket #2 at https://trac.sagemath.org/2.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=2" to create a new local branch)
+            2
+            sage: dev.checkout(ticket=2)
+            On ticket #2 with associated local branch "ticket/2".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: dev.git.silent.commit(allow_empty=True, message="second commit")
+            sage: dev.git.commit_for_branch('ticket/2') != dev.git.commit_for_branch('ticket/1')
+            True
+
+        Check that ``base`` works::
+
+            sage: UI.append("Summary: ticket3\ndescription")
+            sage: dev.create_ticket()
+            Created ticket #3 at https://trac.sagemath.org/3.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=3" to create a new local branch)
+            3
+            sage: dev.checkout(ticket=3, base=2)
+            On ticket #3 with associated local branch "ticket/3".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: dev.git.commit_for_branch('ticket/3') == dev.git.commit_for_branch('ticket/2')
+            True
+            sage: dev._dependencies_for_ticket(3)
+            (2,)
+            sage: UI.append("Summary: ticket4\ndescription")
+            sage: dev.create_ticket()
+            Created ticket #4 at https://trac.sagemath.org/4.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=4" to create a new local branch)
+            4
+            sage: dev.checkout(ticket=4, base='ticket/2')
+            On ticket #4 with associated local branch "ticket/4".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: dev.git.commit_for_branch('ticket/4') == dev.git.commit_for_branch('ticket/2')
+            True
+            sage: dev._dependencies_for_ticket(4)
+            ()
+
+        In this example ``base`` does not exist::
+
+            sage: UI.append("Summary: ticket5\ndescription")
+            sage: dev.create_ticket()
+            Created ticket #5 at https://trac.sagemath.org/5.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=5" to create a new local branch)
+            5
+            sage: dev.checkout(ticket=5, base=1000)
+            Ticket name "1000" is not valid or ticket does not exist on trac.
+
+        In this example ``base`` does not exist locally::
+
+            sage: UI.append("Summary: ticket6\ndescription")
+            sage: dev.create_ticket()
+            Created ticket #6 at https://trac.sagemath.org/6.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=6" to create a new local branch)
+            6
+            sage: dev.checkout(ticket=6, base=5)
+            Branch field is not set for ticket #5 on trac.
+
+        Creating a ticket when in detached HEAD state::
+
+            sage: dev.git.super_silent.checkout('HEAD', detach=True)
+            sage: UI.append("Summary: ticket detached\ndescription")
+            sage: dev.create_ticket()
+            Created ticket #7 at https://trac.sagemath.org/7.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=7" to create a new local branch)
+            7
+            sage: dev.checkout(ticket=7)
+            On ticket #7 with associated local branch "ticket/7".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: dev.git.current_branch()
+            'ticket/7'
+
+        Creating a ticket when in the middle of a merge::
+
+            sage: dev.git.super_silent.checkout('-b','merge_branch')
+            sage: with open('merge', 'w') as f: f.write("version 0")
+            sage: dev.git.silent.add('merge')
+            sage: dev.git.silent.commit('-m','some change')
+            sage: dev.git.super_silent.checkout('ticket/7')
+            sage: with open('merge', 'w') as f: f.write("version 1")
+            sage: dev.git.silent.add('merge')
+            sage: dev.git.silent.commit('-m','conflicting change')
+            sage: from sage.dev.git_error import GitError
+            sage: try:
+            ....:     dev.git.silent.merge('merge_branch')
+            ....: except GitError: pass
+            sage: UI.append("Summary: ticket merge\ndescription")
+            sage: dev.create_ticket()
+            Created ticket #8 at https://trac.sagemath.org/8.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=8" to create a new local branch)
+            8
+            sage: UI.append("cancel")
+            sage: dev.checkout(ticket=8)
+            Repository is in an unclean state (merge). Resetting the state will discard any
+            uncommited changes.
+            Reset repository? [reset/Cancel] cancel
+            Aborting checkout of branch "ticket/8".
+            <BLANKLINE>
+            #  (use "sage --dev commit" to save changes in a new commit)
+            sage: dev.git.reset_to_clean_state()
+
+        Creating a ticket with uncommitted changes::
+
+            sage: open('tracked', 'w').close()
+            sage: dev.git.silent.add('tracked')
+            sage: UI.append("Summary: ticket merge\ndescription")
+            sage: dev.create_ticket()
+            Created ticket #9 at https://trac.sagemath.org/9.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=9" to create a new local branch)
+            9
+
+        The new branch is based on master which is not the same commit
+        as the current branch ``ticket/7``, so it is not a valid
+        option to ``'keep'`` changes::
+
+            sage: UI.append("cancel")
+            sage: dev.checkout(ticket=9)
+            The following files in your working directory contain uncommitted changes:
+            <BLANKLINE>
+                 tracked
+            <BLANKLINE>
+            Discard changes? [discard/Cancel/stash] cancel
+            Aborting checkout of branch "ticket/9".
+            <BLANKLINE>
+            #  (use "sage --dev commit" to save changes in a new commit)
+
+        Finally, in this case we can keep changes because the base is
+        the same commit as the current branch::
+
+            sage: UI.append("Summary: ticket merge\ndescription")
+            sage: dev.create_ticket()
+            Created ticket #10 at https://trac.sagemath.org/10.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=10" to create a new local branch)
+            10
+            sage: UI.append("keep")
+            sage: dev.checkout(ticket=10, base='ticket/7')
+            The following files in your working directory contain uncommitted changes:
+            <BLANKLINE>
+                 tracked
+            <BLANKLINE>
+            Discard changes? [discard/Keep/stash] keep
+            On ticket #10 with associated local branch "ticket/10".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+        """
+        self._check_ticket_name(ticket, exists=True)
+        ticket = self._ticket_from_ticket_name(ticket)
+
+        # if branch points to an existing branch make it the ticket's branch and check it out
+        if branch is not None and self._is_local_branch_name(branch, exists=True):
+            if base != MASTER_BRANCH:
+                raise SageDevValueError("base must not be specified if branch is an existing branch")
+            if branch == MASTER_BRANCH:
+                raise SageDevValueError("branch must not be the master branch")
+
+            self._set_local_branch_for_ticket(ticket, branch)
+            self._UI.debug('The branch for ticket #{0} is now "{1}".', ticket, branch)
+            self._UI.debug('Now checking out branch "{0}".', branch)
+            self.checkout_branch(branch)
+            return
+
+        # if there is a branch for ticket locally, check it out
+        if branch is None:
+            if self._has_local_branch_for_ticket(ticket):
+                branch = self._local_branch_for_ticket(ticket)
+                self._UI.debug('Checking out branch "{0}".', branch)
+                self.checkout_branch(branch)
+                return
+            else:
+                branch = self._new_local_branch_for_ticket(ticket)
+
+        # branch does not exist, so we have to create a new branch for ticket
+        # depending on the value of base, this will either be base or a copy of
+        # the branch mentioned on trac if any
+        dependencies = self.trac.dependencies(ticket)
+        if base is None:
+            base = self._current_ticket()
+        if base is None:
+            raise SageDevValueError('currently on no ticket, "base" must not be None')
+        if self._is_ticket_name(base):
+            base = self._ticket_from_ticket_name(base)
+            dependencies = [base] # we create a new branch for this ticket - ignore the dependencies which are on trac
+            base = self._local_branch_for_ticket(base, pull_if_not_found=True)
+
+        remote_branch = self.trac._branch_for_ticket(ticket)
+        try:
+            if base == '':
+                base = MASTER_BRANCH
+                if remote_branch is None: # branch field is not set on ticket
+                    # create a new branch off master
+                    self._UI.debug('The branch field on ticket #{0} is not set. Creating a new branch'
+                                   ' "{1}" off the master branch "{2}".', ticket, branch, MASTER_BRANCH)
+                    self.git.silent.branch(branch, MASTER_BRANCH)
+                else:
+                    # pull the branch mentioned on trac
+                    if not self._is_remote_branch_name(remote_branch, exists=True):
+                        self._UI.error('The branch field on ticket #{0} is set to the non-existent "{1}".'
+                                       ' Please set the field on trac to a field value.',
+                                       ticket, remote_branch)
+                        self._UI.info(['', '(use "{0}" to edit the ticket description)'],
+                                       self._format_command("edit-ticket", ticket=ticket))
+                        raise OperationCancelledError("remote branch does not exist")
+
+                    self.git.super_silent.fetch(self.git._repository_anonymous, remote_branch)
+                    self.git.super_silent.branch(branch, 'FETCH_HEAD')
+            else:
+                self._check_local_branch_name(base, exists=True)
+                if remote_branch is not None:
+                    self._UI.show('About to create a new branch for #{0} based on "{1}". However, the trac'
+                                  ' ticket for #{0} already refers to the branch "{2}". The new branch will'
+                                  ' not contain any work that has already been done on "{2}".',
+                                  ticket, base, remote_branch)
+                    if not self._UI.confirm('Create fresh branch?', default=False):
+                        command = ""
+                        if self._has_local_branch_for_ticket(ticket):
+                            command += self._format_command("abandon", self._local_branch_for_ticket(ticket)) + "; "
+                        command += self._format_command("checkout", ticket=ticket)
+                        self._UI.info(['', 'Use "{1}" to work on a local copy of the existing remote branch "{0}".'],
+                                      remote_branch, command)
+                        raise OperationCancelledError("user requested")
+
+                self._UI.debug('Creating a new branch for #{0} based on "{1}".', ticket, base)
+                self.git.silent.branch(branch, base)
+        except:
+            if self._is_local_branch_name(branch, exists=True):
+                self._UI.debug('Deleting local branch "{0}".', branch)
+                self.git.super_silent.branch(branch, D=True)
+            raise
+
+        self._set_local_branch_for_ticket(ticket, branch)
+        if dependencies:
+            self._UI.debug("Locally recording dependency on {0} for #{1}.",
+                           ", ".join(["#"+str(dep) for dep in dependencies]), ticket)
+            self._set_dependencies_for_ticket(ticket, dependencies)
+        self._set_remote_branch_for_branch(branch, self._remote_branch_for_ticket(ticket))
+        self._UI.debug('Checking out to newly created branch "{0}".'.format(branch))
+        self.checkout_branch(branch)
+
+    def checkout_branch(self, branch, helpful=True):
+        r"""
+        Checkout to the local branch ``branch``.
+
+        INPUT:
+
+        - ``branch`` -- a string, the name of a local branch
+
+        TESTS:
+
+        Set up a single user for doctesting::
+
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+
+        Create a few branches::
+
+            sage: dev.git.silent.branch("branch1")
+            sage: dev.git.silent.branch("branch2")
+
+        Checking out a branch::
+
+            sage: dev.checkout(branch="branch1")
+            On local branch "branch1" without associated ticket.
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev.git.current_branch()
             'branch1'
 
         The branch must exist::
 
-            sage: dev.switch_branch("branch3")
-            ValueError: Branch `branch3` does not exist locally.
+            sage: dev.checkout(branch="branch3")
+            Branch "branch3" does not exist locally.
+            <BLANKLINE>
+            #  (use "sage --dev tickets" to list local branches)
 
-        Switching branches with untracked files::
+        Checking out branches with untracked files::
 
-            sage: open("untracked","w").close()
-            sage: dev.switch_branch("branch2")
+            sage: open("untracked", "w").close()
+            sage: dev.checkout(branch="branch2")
+            On local branch "branch2" without associated ticket.
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
-        Switching branches with uncommitted changes::
+        Checking out a branch with uncommitted changes::
 
-            sage: open("tracked","w").close()
+            sage: open("tracked", "w").close()
             sage: dev.git.silent.add("tracked")
             sage: dev.git.silent.commit(message="added tracked")
             sage: with open("tracked", "w") as f: f.write("foo")
-            sage: UI.append("keep")
-            sage: dev.switch_branch("branch1")
+            sage: UI.append("cancel")
+            sage: dev.checkout(branch="branch1")
             The following files in your working directory contain uncommitted changes:
-             tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] keep
-            Could not switch to branch `branch1` because your working directory is not clean.
+            <BLANKLINE>
+                 tracked
+            <BLANKLINE>
+            Discard changes? [discard/Cancel/stash] cancel
+            Aborting checkout of branch "branch1".
+            <BLANKLINE>
+            #  (use "sage --dev commit" to save changes in a new commit)
 
         We can stash uncommitted changes::
 
             sage: UI.append("s")
-            sage: dev.switch_branch("branch1")
+            sage: dev.checkout(branch="branch1")
             The following files in your working directory contain uncommitted changes:
-             tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] s
-            Your changes have been recorded on a new branch `stash/1`.
+            <BLANKLINE>
+                 tracked
+            <BLANKLINE>
+            Discard changes? [discard/Cancel/stash] s
+            Your changes have been moved to the git stash stack. To re-apply your changes
+            later use "git stash apply".
+            On local branch "branch1" without associated ticket.
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
-        And unstash the changes later::
+        And retrieve the stashed changes later::
 
-            sage: dev.switch_branch('branch2')
-            sage: dev.unstash()
-            stash/1
-            sage: dev.unstash('stash/1')
+            sage: dev.checkout(branch='branch2')
+            On local branch "branch2" without associated ticket.
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: dev.git.echo.stash('apply')
+            # On branch branch2
+            # Changes not staged for commit:
+            #   (use "git add <file>..." to update what will be committed)
+            #   (use "git checkout -- <file>..." to discard changes in working directory)
+            #
+            #   modified:   tracked
+            #
+            # Untracked files:
+            #   (use "git add <file>..." to include in what will be committed)
+            #
+            #   untracked
+            no changes added to commit (use "git add" and/or "git commit -a")
 
         Or we can just discard the changes::
 
-            sage: UI.append("d")
-            sage: dev.switch_branch("branch1")
+            sage: UI.append("discard")
+            sage: dev.checkout(branch="branch1")
             The following files in your working directory contain uncommitted changes:
-             tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] d
+            <BLANKLINE>
+                 tracked
+            <BLANKLINE>
+            Discard changes? [discard/Cancel/stash] discard
+            On local branch "branch1" without associated ticket.
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
-        Switching branches when in the middle of a merge::
+        Checking out a branch when in the middle of a merge::
 
             sage: dev.git.super_silent.checkout('-b','merge_branch')
             sage: with open('merge', 'w') as f: f.write("version 0")
@@ -638,70 +936,96 @@ class SageDev(object):
             sage: try:
             ....:     dev.git.silent.merge('merge_branch')
             ....: except GitError: pass
-            sage: UI.append('n')
-            sage: dev.switch_branch('merge_branch')
-            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.) [yes/No] n
-            Could not switch to branch `merge_branch` because your working directory is not clean.
-            sage: dev.git.reset_to_clean_state()
+            sage: UI.append('r')
+            sage: dev.checkout(branch='merge_branch')
+            Repository is in an unclean state (merge). Resetting the state will discard any
+            uncommited changes.
+            Reset repository? [reset/Cancel] r
+            On local branch "merge_branch" without associated ticket.
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
-        Switching branches when in a detached HEAD::
+        Checking out a branch when in a detached HEAD::
 
             sage: dev.git.super_silent.checkout('branch2', detach=True)
-            sage: dev.switch_branch('branch1')
+            sage: dev.checkout(branch='branch1')
+            On local branch "branch1" without associated ticket.
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
         With uncommitted changes::
 
             sage: dev.git.super_silent.checkout('branch2', detach=True)
             sage: with open('tracked', 'w') as f: f.write("boo")
             sage: UI.append("discard")
-            sage: dev.switch_branch('branch1')
+            sage: dev.checkout(branch='branch1')
             The following files in your working directory contain uncommitted changes:
-             tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] discard
+            <BLANKLINE>
+                 tracked
+            <BLANKLINE>
+            Discard changes? [discard/Cancel/stash] discard
+            On local branch "branch1" without associated ticket.
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
-        Switching branches with untracked files that would be overwritten by
-        the switch::
+        Checking out a branch with untracked files that would be overwritten by
+        the checkout::
 
             sage: with open('tracked', 'w') as f: f.write("boo")
-            sage: dev.switch_branch('branch2')
+            sage: dev.checkout(branch='branch2')
             GitError: git exited with a non-zero exit code (1).
-            This happened while executing `git checkout branch2`.
+            This happened while executing "git -c user.email=doc@test.test -c
+            user.name=doctest checkout branch2".
             git printed nothing to STDOUT.
             git printed the following to STDERR:
-            error: The following untracked working tree files would be overwritten by checkout:
+            error: The following untracked working tree files would be overwritten
+            by checkout:
                 tracked
             Please move or remove them before you can switch branches.
             Aborting
-
         """
         self._check_local_branch_name(branch, exists=True)
 
         try:
-            self.reset_to_clean_state()
-            self.reset_to_clean_working_directory()
+            self.reset_to_clean_state(helpful=False)
         except OperationCancelledError:
-            self._UI.error("Could not switch to branch `{0}` because your working directory is not clean.".format(branch))
+            if helpful:
+                self._UI.show('Aborting checkout of branch "{0}".', branch)
+                self._UI.info(['', '(use "{0}" to save changes in a new commit)'],
+                              self._format_command("commit"))
+            raise
+
+        current_commit = self.git.commit_for_ref('HEAD')
+        target_commit = self.git.commit_for_ref(branch)
+        try:
+            self.clean(error_unless_clean=(current_commit != target_commit))
+        except OperationCancelledError:
+            if helpful:
+                self._UI.show('Aborting checkout of branch "{0}".', branch)
+                self._UI.info(['', '(use "{0}" to save changes in a new commit)'],
+                              self._format_command("commit"))
             raise
 
         try:
+            # this leaves locally modified files intact (we only allow this to happen
+            # if current_commit == target_commit
             self.git.super_silent.checkout(branch)
         except GitError as e:
             # the error message should be self explanatory
             raise
 
-    def download(self, ticket_or_remote_branch=None, branch=None):
+    def pull(self, ticket_or_remote_branch=None):
         r"""
-        Download ``ticket_or_remote_branch`` to ``branch``.
+        Pull ``ticket_or_remote_branch`` to ``branch``.
 
         INPUT:
 
         - ``ticket_or_remote_branch`` -- a string or an integer or ``None`` (default:
           ``None``), a ticket or a remote branch name; setting this to ``None``
           has the same effect as setting it to the :meth:`current_ticket`.
-
-        - ``branch`` -- a string or ``None`` (default: ``None``), the branch to
-          create or merge the changes into. If ``None``, then a new branch will
-          be created unless there is already a branch for this ticket.
 
         TESTS:
 
@@ -714,31 +1038,49 @@ class SageDev(object):
 
             sage: alice._chdir()
             sage: alice._UI.append("Summary: summary1\ndescription")
-            sage: ticket = alice.create_ticket()
+            sage: alice.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
+            1
+            sage: alice.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
-        Bob attempts to download the ticket but fails because there is no
+        Bob attempts to pull for the ticket but fails because there is no
         branch for the ticket yet::
 
             sage: bob._chdir()
-            sage: bob.download(ticket)
-            ValueError: Branch field is not set for ticket #1 on trac.
+            sage: bob.pull(1)
+            Branch field is not set for ticket #1 on trac.
 
         So, Bob starts to work on the ticket on a new branch::
 
-            sage: bob.switch_ticket(ticket)
+            sage: bob.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
         Alice pushes a commit::
 
             sage: alice._chdir()
             sage: alice.git.super_silent.commit(allow_empty=True, message="alice: empty commit")
             sage: alice._UI.append("y")
-            sage: alice.upload()
-            The branch `u/alice/ticket/1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            sage: alice.push()
+            The branch "u/alice/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
 
-        Bob downloads the changes for ticket 1::
+        Bob pulls the changes for ticket 1::
 
             sage: bob._chdir()
-            sage: bob.download()
+            sage: bob.pull()
+            Merging the remote branch "u/alice/ticket/1" into the local branch "ticket/1".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
             sage: bob.git.echo.log('--pretty=%s')
             alice: empty commit
             initial commit
@@ -750,9 +1092,12 @@ class SageDev(object):
             sage: bob.git.super_silent.commit(message="bob: added bobs_file")
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
-            sage: bob.upload()
-            The branch `u/bob/ticket/1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
-            I will now change the branch field of ticket #1 from its current value `u/alice/ticket/1` to `u/bob/ticket/1`. Is this what you want? [Yes/no] y
+            sage: bob.push()
+            The branch "u/bob/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
+            The branch field of ticket #1 needs to be updated from its current value
+            "u/alice/ticket/1" to "u/bob/ticket/1"
+            Change the "Branch:" field? [Yes/no] y
 
         Alice commits non-conflicting changes::
 
@@ -761,12 +1106,16 @@ class SageDev(object):
             sage: alice.git.silent.add("alices_file")
             sage: alice.git.super_silent.commit(message="alice: added alices_file")
 
-        Alice can now download the changes by Bob without the need to merge
+        Alice can now pull the changes by Bob without the need to merge
         manually::
 
-            sage: alice.download()
+            sage: alice.pull()
+            Merging the remote branch "u/bob/ticket/1" into the local branch "ticket/1".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
             sage: alice.git.echo.log('--pretty=%s')
-            Merge branch 'u/bob/ticket/1' of /dev/shm/... into ticket/1
+            Merge branch 'u/bob/ticket/1' of ... into ticket/1
             alice: added alices_file
             bob: added bobs_file
             alice: empty commit
@@ -779,22 +1128,36 @@ class SageDev(object):
             sage: bob.git.silent.add("alices_file")
             sage: bob.git.super_silent.commit(message="bob: added alices_file")
             sage: bob._UI.append('y')
-            sage: bob.upload()
-            I will now upload the following new commits to the remote branch `u/bob/ticket/1`:
-            ...: bob: added alices_file
-            Is this what you want? [Yes/no] y
+            sage: bob.push()
+            Local commits that are not on the remote branch "u/bob/ticket/1":
+            <BLANKLINE>
+                ...: bob: added alices_file
+            <BLANKLINE>
+            Push to remote branch? [Yes/no] y
 
-        Now, the download fails; one would have to use :meth:`merge`::
+        Now, the pull fails; one would have to use :meth:`merge`::
 
             sage: alice._chdir()
-            sage: alice.download()
-            GitError: git exited with a non-zero exit code (1).
-            Pulling `u/bob/ticket/1` into `ticket/1` failed. Most probably this happened because this did not resolve as a fast-forward, i.e., there were conflicting changes. Maybe there are untracked files in your working directory which made the pull impossible.
+            sage: alice._UI.append("abort")
+            sage: alice.pull()
+            Merging the remote branch "u/bob/ticket/1" into the local branch "ticket/1".
+            Automatic merge failed, there are conflicting commits.
+            <BLANKLINE>
+            Auto-merging alices_file
+            CONFLICT (add/add): Merge conflict in alices_file
+            <BLANKLINE>
+            Please edit the affected files to resolve the conflicts. When you are finished,
+            your resolution will be commited.
+            Finished? [ok/Abort] abort
 
-        Undo the latest commit by alice, so we can download again::
+        Undo the latest commit by alice, so we can pull again::
 
             sage: alice.git.super_silent.reset('HEAD~~', hard=True)
-            sage: alice.download()
+            sage: alice.pull()
+            Merging the remote branch "u/bob/ticket/1" into the local branch "ticket/1".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
             sage: alice.git.echo.log('--pretty=%s')
             bob: added alices_file
             bob: added bobs_file
@@ -812,25 +1175,30 @@ class SageDev(object):
             sage: bob.git.super_silent.add("bobs_other_file")
             sage: bob.git.super_silent.commit(message="bob: added bobs_other_file")
             sage: bob._UI.append('y')
-            sage: bob.upload()
-            I will now upload the following new commits to the remote branch `u/bob/ticket/1`:
-            ...: bob: added bobs_other_file
-            Is this what you want? [Yes/no] y
+            sage: bob.push()
+            Local commits that are not on the remote branch "u/bob/ticket/1":
+            <BLANKLINE>
+                ...: bob: added bobs_other_file
+            <BLANKLINE>
+            Push to remote branch? [Yes/no] y
 
             sage: alice._chdir()
-            sage: alice.download()
-            GitError: git exited with a non-zero exit code (1).
-            Pulling `u/bob/ticket/1` into `ticket/1` failed. Most probably this happened because this did not resolve as a fast-forward, i.e., there were conflicting changes. Maybe there are untracked files in your working directory which made the pull impossible.
-
+            sage: alice._UI.append("abort")
+            sage: alice.pull()
+            Merging the remote branch "u/bob/ticket/1" into the local branch "ticket/1".
+            Automatic merge failed, there are conflicting commits.
+            <BLANKLINE>
+            Updating ...
+            error: The following untracked working tree files would be overwritten by merge:
+                    bobs_other_file
+            Please move or remove them before you can merge.
+            <BLANKLINE>
+            Please edit the affected files to resolve the conflicts. When you are finished,
+            your resolution will be commited.
+            Finished? [ok/Abort] abort
         """
         if ticket_or_remote_branch is None:
             ticket_or_remote_branch = self._current_ticket()
-            if branch is not None and branch != self.git.current_branch():
-                raise SageDevValueError("local_branch must be None")
-            branch = self.git.current_branch()
-
-        if ticket_or_remote_branch is None:
-            raise SageDevValueError("No `ticket_or_remote_branch` specified to download.")
 
         if self._is_ticket_name(ticket_or_remote_branch):
             ticket = self._ticket_from_ticket_name(ticket_or_remote_branch)
@@ -839,65 +1207,17 @@ class SageDev(object):
             remote_branch = self.trac._branch_for_ticket(ticket)
             if remote_branch is None:
                 raise SageDevValueError("Branch field is not set for ticket #{0} on trac.".format(ticket))
-            if branch is None:
-                branch = self._new_local_branch_for_ticket(ticket)
-            self._check_local_branch_name(branch)
-
         else:
             remote_branch = ticket_or_remote_branch
-            self._check_remote_branch_name(remote_branch)
 
-            if branch is None:
-                branch = remote_branch
-            self._check_local_branch_name(branch)
-
-        self._check_remote_branch_name(remote_branch, exists=True)
-
-        self._UI.info("Fetching remote branch `{0}` into `{1}`.".format(remote_branch, branch))
-        from git_error import DetachedHeadError
-        try:
-            current_branch = self.git.current_branch()
-        except DetachedHeadError:
-            current_branch = None
-
-        if current_branch == branch:
-            # we cannot fetch onto the current branch - we have to pull
-            self.reset_to_clean_state()
-            self.reset_to_clean_working_directory()
-
-            try:
-                self.git.super_silent.pull(self.git._repository, remote_branch)
-            except GitError as e:
-                # this might fail because the pull did not resolve as a
-                # fast-forward or because there were untracked files around
-                # that made a pull impossible
-                # is there a way to find out?
-                e.explain = "Pulling `{0}` into `{1}` failed. Most probably this happened because this did not resolve as a fast-forward, i.e., there were conflicting changes. Maybe there are untracked files in your working directory which made the pull impossible.".format(remote_branch, branch)
-                e.advice =  "You can try to use `{0}` to resolve any conflicts manually.".format(self._format_command("merge",{"remote_branch":remote_branch}))
-                raise
-        else:
-            try:
-                self.git.super_silent.fetch(self.git._repository, "{0}:{1}".format(remote_branch, branch))
-            except GitError as e:
-                # there is not many scenarios in which this can fail - the most
-                # likely being that branch already exists and this does not
-                # resolve as a fast-forward; in any case, if the fetch fails,
-                # then just nothing happened and we can abort the download
-                # safely without a need to cleanup
-                e.explain = "Fetching `{0}` into `{1}` failed.".format(remote_branch, branch)
-                if self._is_local_branch_name(branch, exists=True):
-                    e.explain += " Most probably this happened because the fetch did not resolve as a fast-forward, i.e., there were conflicting changes."
-                    e.advice = "You can try to use `{2}` to switch to `{1}` and then use `{3}` to resolve these conflicts manually.".format(remote_branch, branch, self._format_command("switch-branch",branch), self._format_command("merge",{"remote_branch":remote_branch}))
-                else:
-                    # is there any advice one could give to the user?
-                    pass
-                raise
+        self.merge(remote_branch, pull=True)
 
     def commit(self, message=None, interactive=False):
         r"""
         Create a commit from the pending changes on the current branch.
 
-        This is most akin to mercurial's commit command, not git's.
+        This is most akin to mercurial's commit command, not git's,
+        since we do not require users to add files.
 
         INPUT:
 
@@ -909,10 +1229,10 @@ class SageDev(object):
 
         .. SEEALSO::
 
-        - :meth:`upload` -- Upload changes to the remote server.  This
-          is the next step once you've committed some changes.
+            - :meth:`push` -- Push changes to the remote server.  This
+              is the next step once you've committed some changes.
 
-        - :meth:`diff` -- Show changes that will be committed.
+            - :meth:`diff` -- Show changes that will be committed.
 
         TESTS:
 
@@ -923,72 +1243,85 @@ class SageDev(object):
 
         Commit an untracked file::
 
-            sage: dev.git.super_silent.checkout('-b','branch1')
+            sage: dev.git.super_silent.checkout('-b', 'branch1')
             sage: open("tracked","w").close()
-            sage: dev._UI.extend(["added tracked","y","y","y"])
+            sage: dev._UI.extend(["y", "added tracked", "y", "y"])
             sage: dev.commit()
             The following files in your working directory are not tracked by git:
-             tracked
-            Do you want to add any of these files in this commit? [yes/No] y
-            Do you want to add `tracked`? [yes/No] y
-            Do you want to commit your changes to branch `branch1`? I will prompt you for a commit message if you do. [Yes/no] y
+            <BLANKLINE>
+                tracked
+            <BLANKLINE>
+            Start tracking any of these files? [yes/No] y
+            Start tracking "tracked"? [yes/No] y
+            Commit your changes to branch "branch1"? [Yes/no] y
+            <BLANKLINE>
+            #  Use "sage --dev push" to push your commits to the trac server once you are done.
 
         Commit a tracked file::
 
-            sage: with open("tracked","w") as F: F.write("foo")
-            sage: dev._UI.extend(["modified tracked","y"])
-            sage: dev.commit()
-            Do you want to commit your changes to branch `branch1`? I will prompt you for a commit message if you do. [Yes/no] y
-
+            sage: with open("tracked", "w") as F: F.write("foo")
+            sage: dev._UI.append('y')
+            sage: dev.commit(message='modified tracked')
+            Commit your changes to branch "branch1"? [Yes/no] y
+            <BLANKLINE>
+            #  Use "sage --dev push" to push your commits to the trac server once you are done.
         """
         from git_error import DetachedHeadError
         try:
             branch = self.git.current_branch()
         except DetachedHeadError:
             self._UI.error("Cannot commit changes when not on any branch.")
-            self._UI.info("Use `{0}` or `{1}` to switch to a branch.".format(self._format_command("switch_branch"), self._format_command("switch_ticket")))
+            self._UI.info(['',
+                           '(use "{0}" to checkout a branch)'
+                           .format(self._format_command("checkout"))])
             raise OperationCancelledError("cannot proceed in detached HEAD mode")
 
         # make sure the index is clean
         self.git.super_silent.reset()
 
         try:
-            self._UI.info("Committing pending changes to branch `{0}`.".format(branch))
+            self._UI.debug('Committing pending changes to branch "{0}".'.format(branch))
 
             try:
                 untracked_files = self.git.untracked_files()
                 if untracked_files:
-                    if self._UI.confirm("The following files in your working directory are not tracked by git:\n{0}\nDo you want to add any of these files in this commit?".format("\n".join([" "+fname for fname in untracked_files])), default=False):
+                    self._UI.show(['The following files in your working directory are not tracked by git:', ''] +
+                                  ['    ' + f for f in untracked_files ] +
+                                  [''])
+                    if self._UI.confirm('Start tracking any of these files?', default=False):
                         for file in untracked_files:
-                            if self._UI.confirm("Do you want to add `{0}`?".format(file), default=False):
+                            if self._UI.confirm('Start tracking "{0}"?'.format(file), default=False):
                                 self.git.add(file)
 
                 if interactive:
                     self.git.echo.add(patch=True)
                 else:
-                    self.git.echo.add(update=True)
+                    self.git.echo.add(self.git._src, update=True)
 
-                if not self._UI.confirm("Do you want to commit your changes to branch `{0}`? I will prompt you for a commit message if you do.".format(branch), default=True):
-                    self._UI.info("If you want to commit to a different branch/ticket, run `{0}` or `{1}` first.".format(self._format_command("switch_branch"), self._format_command("switch_ticket")))
-                    raise OperationCancelledError("user does not want to create a commit")
-
-                from tempfile import NamedTemporaryFile
-                commit_message = NamedTemporaryFile()
-                if message: commit_message.write(message)
-                commit_message.write(COMMIT_GUIDE)
-                commit_message.close()
-
-                self._UI.edit(commit_message.name)
-
-                message = "\n".join([line for line in open(commit_message.name).read().splitlines() if not line.startswith("#")]).strip()
-
+                if message is None:
+                    from sage.dev.misc import tmp_filename
+                    commit_message = tmp_filename()
+                    with open(commit_message, 'w') as f:
+                        f.write(COMMIT_GUIDE)
+                    self._UI.edit(commit_message)
+                    message = "\n".join([line for line in open(commit_message).read().splitlines()
+                                         if not line.startswith("#")]).strip()
                 if not message:
                     raise OperationCancelledError("empty commit message")
 
+                if not self._UI.confirm('Commit your changes to branch "{0}"?'.format(branch), default=True):
+                    self._UI.info(['', 'Run "{0}" first if you want to commit to a different branch or ticket.'],
+                                  self._format_command("checkout"))
+                    raise OperationCancelledError("user does not want to create a commit")
                 self.git.commit(message=message)
-
+                self._UI.debug("A commit has been created.")
+                self._UI.info(['', 'Use "{0}" to push your commits to the trac server once you are done.'],
+                              self._format_command("push"))
             except OperationCancelledError:
-                self._UI.info("Not creating a commit.")
+                self._UI.debug("Not creating a commit.")
+                raise
+            except:
+                self._UI.error("No commit has been created.")
                 raise
 
         finally:
@@ -1011,7 +1344,8 @@ class SageDev(object):
 
         .. SEEALSO::
 
-        - :meth:`upload` -- To upload changes after setting the remote branch
+            - :meth:`push` -- To push changes after setting the remote
+              branch
 
         TESTS:
 
@@ -1025,7 +1359,15 @@ class SageDev(object):
 
             sage: UI.append("Summary: ticket1\ndescription")
             sage: dev.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
+            sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
         Modify the remote branch for this ticket's branch::
 
@@ -1035,26 +1377,26 @@ class SageDev(object):
             sage: dev._remote_branch_for_ticket(1)
             'u/doctest/foo'
             sage: dev.set_remote('ticket/1', 'foo')
-            The remote branch `foo` is not in your user scope. You might not have permission to push to that branch. Did you mean to set the remote branch to `u/doctest/foo`?
             sage: dev._remote_branch_for_ticket(1)
             'foo'
             sage: dev.set_remote('#1', 'u/doctest/foo')
             sage: dev._remote_branch_for_ticket(1)
             'u/doctest/foo'
-
         """
         if branch_or_ticket is None:
             from git_error import DetachedHeadError
             try:
                 branch = self.git.current_branch()
             except DetachedHeadError:
-                self._UI.error("`branch` must not be None because you are in detached HEAD state.")
-                self._UI.info("Switch to a branch with `{0}` or specify branch explicitly.".format(self._format_command('switch_branch')))
+                self._UI.error('You must specify "branch" in detached HEAD state.')
+                self._UI.info(['', 'Use "{0}" to checkout a branch'],
+                              self._format_command('checkout'))
                 raise OperationCancelledError("detached head state")
         elif self._is_ticket_name(branch_or_ticket):
             ticket = self._ticket_from_ticket_name(branch_or_ticket)
             if not self._has_local_branch_for_ticket(ticket):
-                self._UI.error("no local branch for ticket #{0} found. Cannot set remote branch for that ticket.".format(ticket))
+                self._UI.error('no local branch for ticket #{0} found. Cannot set remote branch'
+                               ' for that ticket.', ticket)
                 raise OperationCancelledError("no such ticket")
             branch = self._local_branch_for_ticket(ticket)
         else:
@@ -1063,76 +1405,102 @@ class SageDev(object):
         self._check_local_branch_name(branch, exists=True)
         self._check_remote_branch_name(remote_branch)
 
-        if not remote_branch.startswith('u/{0}/'.format(self.trac._username)):
-            self._UI.warning("The remote branch `{0}` is not in your user scope. You might not have permission to push to that branch. Did you mean to set the remote branch to `u/{1}/{0}`?".format(remote_branch, self.trac._username))
+        # If we add restrictions on which branches users may push to, we should append them here.
+        m = USER_BRANCH.match(remote_branch)
+        if remote_branch == 'master' or m and m.groups()[0] != self.trac._username:
+            self._UI.warning('The remote branch "{0}" is not in your user scope. You probably'
+                             ' do not have permission to push to that branch.', remote_branch)
+            self._UI.info(['', 'You can always use "u/{1}/{0}" as the remote branch name.'],
+                          remote_branch, self.trac._username)
 
         self._set_remote_branch_for_branch(branch, remote_branch)
 
-    def upload(self, ticket=None, remote_branch=None, force=False):
+    def push(self, ticket=None, remote_branch=None, force=False):
         r"""
-        Upload the current branch to the Sage repository.
+        Push the current branch to the Sage repository.
 
         INPUT:
 
         - ``ticket`` -- an integer or string identifying a ticket or ``None``
           (default: ``None``), if ``None`` and currently working on a ticket or
           if ``ticket`` specifies a ticket, then the branch on that ticket is
-          set to ``remote_branch`` after the current branch has been uploaded there.
+          set to ``remote_branch`` after the current branch has been pushed there.
 
         - ``remote_branch`` -- a string or ``None`` (default: ``None``), the remote
-          branch to upload to; if ``None``, then a default is chosen
+          branch to push to; if ``None``, then a default is chosen
 
-        - ``force`` -- a boolean (default: ``False``), whether to upload if
+        - ``force`` -- a boolean (default: ``False``), whether to push if
           this is not a fast-forward.
 
         .. SEEALSO::
 
-        - :meth:`commit` -- Save changes to the local repository.
+            - :meth:`commit` -- Save changes to the local repository.
 
-        - :meth:`download` -- Update a ticket with changes from the remote
-          repository.
+            - :meth:`pull` -- Update a ticket with changes from the remote
+              repository.
 
-        TESTS::
+        TESTS:
 
         Create a doctest setup with two users::
 
             sage: from sage.dev.test.sagedev import two_user_setup
             sage: alice, config_alice, bob, config_bob, server = two_user_setup()
 
-        Alice tries to upload to ticket 1 which does not exist yet::
+        Alice tries to push to ticket 1 which does not exist yet::
 
             sage: alice._chdir()
-            sage: alice.upload(ticket=1)
-            ValueError: `1` is not a valid ticket name or ticket does not exist on trac.
+            sage: alice.push(ticket=1)
+            Ticket name "1" is not valid or ticket does not exist on trac.
 
-        Alice creates ticket 1 and uploads some changes to it::
+        Alice creates ticket 1 and pushes some changes to it::
 
             sage: alice._UI.append("Summary: summary1\ndescription")
-            sage: ticket = alice.create_ticket()
+            sage: alice.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
+            1
+            sage: alice.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: open("tracked", "w").close()
             sage: alice.git.super_silent.add("tracked")
             sage: alice.git.super_silent.commit(message="alice: added tracked")
             sage: alice._UI.append("y")
-            sage: alice.upload()
-            The branch `u/alice/ticket/1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            sage: alice.push()
+            The branch "u/alice/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
 
-        Now Bob can switch to that ticket and upload changes himself::
+        Now Bob can check that ticket out and push changes himself::
 
             sage: bob._chdir()
-            sage: bob.switch_ticket(1)
+            sage: bob.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: with open("tracked", "w") as f: f.write("bob")
             sage: bob.git.super_silent.add("tracked")
             sage: bob.git.super_silent.commit(message="bob: modified tracked")
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
-            sage: bob.upload()
-            The branch `u/bob/ticket/1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
-            I will now change the branch field of ticket #1 from its current value `u/alice/ticket/1` to `u/bob/ticket/1`. Is this what you want? [Yes/no] y
+            sage: bob.push()
+            The branch "u/bob/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
+            The branch field of ticket #1 needs to be updated from its current value
+            "u/alice/ticket/1" to "u/bob/ticket/1"
+            Change the "Branch:" field? [Yes/no] y
 
-        Now Alice can download these changes::
+        Now Alice can pull these changes::
 
             sage: alice._chdir()
-            sage: alice.download()
+            sage: alice.pull()
+            Merging the remote branch "u/bob/ticket/1" into the local branch "ticket/1".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
 
         Alice and Bob make non-conflicting changes simultaneously::
 
@@ -1145,63 +1513,172 @@ class SageDev(object):
             sage: bob.git.super_silent.add("tracked2")
             sage: bob.git.super_silent.commit(message="bob: added tracked2")
 
-        After Alice uploaded her changes, Bob can not set the branch field anymore::
+        After Alice pushed her changes, Bob can not set the branch field anymore::
 
             sage: alice._chdir()
             sage: alice._UI.append("y")
             sage: alice._UI.append("y")
-            sage: alice.upload()
-            I will now upload the following new commits to the remote branch `u/alice/ticket/1`:
-            ...: alice: modified tracked
-            ...: bob: modified tracked
-            Is this what you want? [Yes/no] y
-            I will now change the branch field of ticket #1 from its current value `u/bob/ticket/1` to `u/alice/ticket/1`. Is this what you want? [Yes/no] y
+            sage: alice.push()
+            Local commits that are not on the remote branch "u/alice/ticket/1":
+            <BLANKLINE>
+                ...: alice: modified tracked
+                ...: bob: modified tracked
+            <BLANKLINE>
+            Push to remote branch? [Yes/no] y
+            The branch field of ticket #1 needs to be updated from its current value
+            "u/bob/ticket/1" to "u/alice/ticket/1"
+            Change the "Branch:" field? [Yes/no] y
 
             sage: bob._chdir()
             sage: bob._UI.append("y")
-            sage: bob.upload()
-            I will now upload the following new commits to the remote branch `u/bob/ticket/1`:
-            ...: bob: added tracked2
-            Is this what you want? [Yes/no] y
-            Not setting the branch field for ticket #1 to `u/bob/ticket/1` because `u/bob/ticket/1` and the current value of the branch field `u/alice/ticket/1` have diverged.
+            sage: bob.push()
+            Local commits that are not on the remote branch "u/bob/ticket/1":
+            <BLANKLINE>
+                ....: bob: added tracked2
+            <BLANKLINE>
+            Push to remote branch? [Yes/no] y
+            Not setting the branch field for ticket #1 to "u/bob/ticket/1" because
+            "u/bob/ticket/1" and the current value of the branch field "u/alice/ticket/1"
+            have diverged.
+            <BLANKLINE>
+            #  Use "sage --dev pull --ticket=1" to merge the changes introduced by the remote "u/alice/ticket/1" into your local branch.
 
         After merging the changes, this works again::
 
-            sage: bob.download()
+            sage: bob.pull()
+            Merging the remote branch "u/alice/ticket/1" into the local branch "ticket/1".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
-            sage: bob.upload()
-            I will now upload the following new commits to the remote branch `u/bob/ticket/1`:
-            ...: Merge branch 'u/alice/ticket/1' of ... into ticket/1
-            ...: alice: modified tracked
-            Is this what you want? [Yes/no] y
-            I will now change the branch field of ticket #1 from its current value `u/alice/ticket/1` to `u/bob/ticket/1`. Is this what you want? [Yes/no] y
+            sage: bob.push()
+            Local commits that are not on the remote branch "u/bob/ticket/1":
+            <BLANKLINE>
+                ...: Merge branch 'u/alice/ticket/1' of ... into ticket/1
+                ...: alice: modified tracked
+            <BLANKLINE>
+            Push to remote branch? [Yes/no] y
+            The branch field of ticket #1 needs to be updated from its current value
+            "u/alice/ticket/1" to "u/bob/ticket/1"
+            Change the "Branch:" field? [Yes/no] y
 
         Check that ``ticket`` works::
 
-            sage: bob.upload(2)
-            ValueError: `2` is not a valid ticket name or ticket does not exist on trac.
+            sage: bob.push(2)
+            Ticket name "2" is not valid or ticket does not exist on trac.
 
         After creating the ticket, this works with a warning::
 
             sage: bob._UI.append("Summary: summary2\ndescription")
             sage: bob.create_ticket()
+            Created ticket #2 at https://trac.sagemath.org/2.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=2" to create a new local branch)
             2
-            sage: bob.switch_ticket(1)
+            sage: bob.checkout(ticket=2)
+            On ticket #2 with associated local branch "ticket/2".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: bob.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
-            sage: bob.upload(2)
-            You are trying to push the branch `ticket/1` to `u/bob/ticket/2` for ticket #2. However, your local branch for ticket #2 seems to be `ticket/2`. Do you really want to proceed? [yes/No] y
-            The branch `u/bob/ticket/2` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            sage: bob.push(2)
+            About to push the branch "ticket/1" to "u/bob/ticket/2" for ticket #2. However,
+            your local branch for ticket #2 seems to be "ticket/2".
+             Do you really want to proceed? [yes/No] y
+            <BLANKLINE>
+            #  Use "sage --dev checkout --ticket=2 --branch=ticket/1" to permanently set "ticket/1" as the branch associated to ticket #2.
+            The branch "u/bob/ticket/2" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
 
         Check that ``remote_branch`` works::
 
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
-            sage: bob.upload(remote_branch="u/bob/branch1")
-            The branch `u/bob/branch1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
-            I will now change the branch field of ticket #1 from its current value `u/bob/ticket/1` to `u/bob/branch1`. Is this what you want? [Yes/no] y
+            sage: bob.push(remote_branch="u/bob/branch1")
+            The branch "u/bob/branch1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
+            The branch field of ticket #1 needs to be updated from its current value
+            "u/bob/ticket/1" to "u/bob/branch1"
+            Change the "Branch:" field? [Yes/no] y
 
+        Check that dependencies are pushed correctly::
+
+            sage: bob.merge(2)
+            Merging the remote branch "u/bob/ticket/2" into the local branch "ticket/1".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
+            <BLANKLINE>
+            Added dependency on #2 to #1.
+            sage: with open("another_file", "w") as f: f.write("bob after merge(2)")
+            sage: bob._UI.append('n')
+            sage: bob.push()
+            The branch field of ticket #1 needs to be updated from its current value
+            "u/bob/branch1" to "u/bob/ticket/1"
+            Change the "Branch:" field? [Yes/no] n
+            sage: bob._UI.extend(['y', 'y', 'y'])
+            sage: bob.commit(message="Bob's merge")  # oops
+            The following files in your working directory are not tracked by git:
+            <BLANKLINE>
+                another_file
+            <BLANKLINE>
+            Start tracking any of these files? [yes/No] y
+            Start tracking "another_file"? [yes/No] y
+            Commit your changes to branch "ticket/1"? [Yes/no] y
+            <BLANKLINE>
+            #  Use "sage --dev push" to push your commits to the trac server once you are done.
+            sage: bob._UI.extend(['y', 'y'])
+            sage: bob.push()
+            Local commits that are not on the remote branch "u/bob/ticket/1":
+            <BLANKLINE>
+                ...: Bob's merge
+            <BLANKLINE>
+            Push to remote branch? [Yes/no] y
+            The branch field of ticket #1 needs to be updated from its current value
+            "u/bob/branch1" to "u/bob/ticket/1"
+            Change the "Branch:" field? [Yes/no] y
+            Uploading your dependencies for ticket #1: "" => "#2"
+            sage: bob._sagedev._set_dependencies_for_ticket(1,())
+            sage: with open("another_file", "w") as f: f.write("bob after push")
+            sage: bob._UI.extend(['y', 'y', 'y'])
+            sage: bob.commit(message='another commit')
+            Commit your changes to branch "ticket/1"? [Yes/no] y
+            <BLANKLINE>
+            #  Use "sage --dev push" to push your commits to the trac server once you are done.
+            sage: bob._UI.extend(['y', "keep", 'y'])
+            sage: bob.push()
+            Local commits that are not on the remote branch "u/bob/ticket/1":
+            <BLANKLINE>
+                ...: another commit
+            <BLANKLINE>
+            Push to remote branch? [Yes/no] y
+            Trac ticket #1 depends on #2 while your local branch depends on no tickets.
+            Updating dependencies is recommended but optional.
+            Action for dependencies? [upload/download/keep] keep
+            sage: with open("another_file", "w") as f: f.write("bob after 2nd push")
+            sage: bob._UI.append('y')
+            sage: bob.commit(message='final commit')
+            Commit your changes to branch "ticket/1"? [Yes/no] y
+            <BLANKLINE>
+            #  Use "sage --dev push" to push your commits to the trac server once you are done.
+
+            sage: bob._UI.extend(['y', 'download', 'y'])
+            sage: bob.push()
+            Local commits that are not on the remote branch "u/bob/ticket/1":
+            <BLANKLINE>
+                ...: final commit
+            <BLANKLINE>
+            Push to remote branch? [Yes/no] y
+            Trac ticket #1 depends on #2 while your local branch depends on no tickets.
+            Updating dependencies is recommended but optional.
+            Action for dependencies? [upload/download/keep] download
         """
         if ticket is None:
             ticket = self._current_ticket()
@@ -1213,118 +1690,180 @@ class SageDev(object):
         try:
             branch = self.git.current_branch()
         except DetachedHeadError:
-            self._UI.error("Cannot upload while in detached HEAD state.")
-            raise OperationCancelledError("cannot upload while in detached HEAD state")
+            self._UI.error("Cannot push while in detached HEAD state.")
+            raise OperationCancelledError("cannot push while in detached HEAD state")
 
         if remote_branch is None:
             if ticket:
                 remote_branch = self._remote_branch_for_ticket(ticket)
                 if remote_branch is None:
-                    raise SageDevValueError("remote_branch must be specified since #{0} has no remote branch set.".format(ticket))
+                    raise SageDevValueError("remote_branch must be specified since #{0}"
+                                            " has no remote branch set.".format(ticket))
             else:
                 remote_branch = self._remote_branch_for_branch(branch)
                 if remote_branch is None:
-                    raise SageDevValueError("remote_branch must be specified since the current branch has no remote branch set.")
-
+                    raise SageDevValueError("remote_branch must be specified since the"
+                                            " current branch has no remote branch set.")
         self._check_remote_branch_name(remote_branch)
 
         # whether the user already confirmed that he really wants to push and set the branch field
-        user_confirmation = force
+        user_confirmation = False
 
         if ticket is not None:
             if self._has_local_branch_for_ticket(ticket) and self._local_branch_for_ticket(ticket) == branch:
                 pass
             elif self._has_local_branch_for_ticket(ticket) and self._local_branch_for_ticket(ticket) != branch:
-                if user_confirmation or self._UI.confirm("You are trying to push the branch `{0}` to `{1}` for ticket #{2}. However, your local branch for ticket #{2} seems to be `{3}`. Do you really want to proceed?".format(branch, remote_branch, ticket, self._local_branch_for_ticket(ticket)), default=False):
-                    self._UI.info("To permanently set the branch associated to ticket #{0} to `{1}`, use `{2}`.".format(ticket, branch, self._format_command("switch_ticket",ticket=ticket,branch=branch)))
-                    user_confirmation = True
+                self._UI.show('About to push the branch "{0}" to "{1}" for ticket #{2}.'
+                              ' However, your local branch for ticket #{2} seems to be "{3}".',
+                              branch, remote_branch, ticket, self._local_branch_for_ticket(ticket))
+                user_confirmation = self._UI.confirm(' Do you really want to proceed?', default=False)
+                if user_confirmation:
+                    self._UI.info(['',
+                                   'Use "{2}" to permanently set "{1}" as the branch'
+                                   ' associated to ticket #{0}.'],
+                                  ticket, branch, self._format_command("checkout",ticket=ticket,branch=branch))
                 else:
                     raise OperationCancelledError("user requsted")
             elif self._has_ticket_for_local_branch(branch) and self._ticket_for_local_branch(branch) != ticket:
-                if user_confirmation or self._UI.confirm("You are trying to push the branch `{0}` to `{1}` for ticket #{2}. However, that branch is associated to ticket #{3}. Do you really want to proceed?".format(branch, remote_branch, ticket, self._ticket_for_local_branch(branch))):
-                    self._UI.info("To permanently set the branch associated to ticket #{0} to `{1}`, use `{2}`. To create a new branch from `{1}` for #{0}, use `{3}` and `{4}`.".format(ticket, branch, self._format_command("switch_ticket",ticket=ticket,branch=branch), self._format_command("switch_ticket",ticket=ticket), self._format_command("merge", branch=branch)))
-                    user_confirmation = True
+                self._UI.show('About to push the local branch "{0}" to remote branch "{1}" for'
+                              ' ticket #{2}. However, that branch is already associated to ticket #{3}.',
+                              branch, remote_branch, ticket, self._ticket_for_local_branch(branch))
+                user_confirmation = self._UI.confirm(' Do you really want to proceed?', default=False)
+                if user_confirmation:
+                    self._UI.info(['', 'Use "{2}" to permanently set the branch associated to'
+                                   ' ticket #{0} to "{1}". To create a new branch from "{1}" for'
+                                   ' #{0}, use "{3}" and "{4}".'],
+                                  ticket, branch,
+                                  self._format_command("checkout",ticket=ticket,branch=branch),
+                                  self._format_command("checkout",ticket=ticket),
+                                  self._format_command("merge", branch=branch))
 
-        self._UI.info("Uploading your changes in `{0}` to `{1}`.".format(branch, remote_branch))
+        self._UI.debug('Pushing your changes in "{0}" to "{1}".'.format(branch, remote_branch))
         try:
             remote_branch_exists = self._is_remote_branch_name(remote_branch, exists=True)
             if not remote_branch_exists:
-                if not self._UI.confirm("The branch `{0}` does not exist on the remote server yet. Do you want to create the branch?".format(remote_branch), default=True):
+                self._UI.show('The branch "{0}" does not exist on the remote server.', remote_branch)
+                if not self._UI.confirm('Create new remote branch?', default=True):
                     raise OperationCancelledError("User did not want to create remote branch.")
             else:
-                self.git.super_silent.fetch(self.git._repository, remote_branch)
+                self.git.super_silent.fetch(self.git._repository_anonymous, remote_branch)
 
             # check whether force is necessary
             if remote_branch_exists and not self.git.is_child_of(branch, 'FETCH_HEAD'):
                 if not force:
-                    self._UI.error("Not uploading your changes because they would discard some of the commits on the remote branch `{0}`.".format(remote_branch))
-                    self._UI.info("If this is really what you want, use `{0}` to upload your changes.".format(remote_branch, self._format_command("upload",ticket=ticket,remote_branch=remote_branch,force=True)))
+                    self._UI.error('Not pushing your changes because they would discard some of'
+                                   ' the commits on the remote branch "{0}".', remote_branch)
                     raise OperationCancelledError("not a fast-forward")
 
             # check whether this is a nop
-            if remote_branch_exists and not force and self.git.commit_for_branch(branch) == self.git.commit_for_ref('FETCH_HEAD'):
-                self._UI.info("Not uploading your changes because the remote branch `{0}` is idential to your local branch `{1}`. Did you forget to commit your changes with `{2}`?".format(remote_branch, branch, self._format_command("commit")))
+            if remote_branch_exists and not force and \
+               self.git.commit_for_branch(branch) == self.git.commit_for_ref('FETCH_HEAD'):
+                self._UI.debug('Remote branch "{0}" is idential to your local branch "{1}',
+                              remote_branch, branch)
+                self._UI.debug(['', '(use "{0}" to commit changes before pushing)'],
+                               self._format_command("commit"))
             else:
                 try:
                     if not force:
                         if remote_branch_exists:
                             commits = self.git.log("{0}..{1}".format('FETCH_HEAD', branch), '--pretty=%h: %s')
-                            if not self._UI.confirm("I will now upload the following new commits to the remote branch `{0}`:\n{1}Is this what you want?".format(remote_branch, commits), default=True):
+                            self._UI.show(['Local commits that are not on the remote branch "{0}":', ''] +
+                                          ['    ' + c for c in commits.splitlines()] +
+                                          [''], remote_branch)
+                            if not self._UI.confirm('Push to remote branch?', default=True):
                                 raise OperationCancelledError("user requested")
 
-                    self.git.super_silent.push(self.git._repository, "{0}:{1}".format(branch, remote_branch), force=force)
+                    self._upload_ssh_key() # make sure that we have access to the repository
+                    self.git.super_silent.push(self.git._repository,
+                                               "{0}:{1}".format(branch, remote_branch),
+                                               force=force)
                 except GitError as e:
                     # can we give any advice if this fails?
                     raise
-
-            self._UI.info("Your changes in `{0}` have been uploaded to `{1}`.".format(branch, remote_branch))
-
+                self._UI.debug('Changes in "{0}" have been pushed to "{1}".'.format(branch, remote_branch))
         except OperationCancelledError:
-            self._UI.info("Did not upload any changes.")
+            self._UI.debug("Did not push any changes.")
             raise
-
 
         if ticket:
             current_remote_branch = self.trac._branch_for_ticket(ticket)
             if current_remote_branch == remote_branch:
-                self._UI.info("Not setting the branch field for ticket #{0} because it already points to your branch `{1}`.".format(ticket, remote_branch))
+                self._UI.debug('Not setting the branch field for ticket #{0} because it already'
+                               ' points to your branch "{1}".'.format(ticket, remote_branch))
             else:
-                self._UI.info("Setting the branch field of ticket #{0} to `{1}`.".format(ticket, remote_branch))
-
+                self._UI.debug('Setting the branch field of ticket #{0} to "{1}".'.format(ticket, remote_branch))
                 if current_remote_branch is not None:
-                    self.git.super_silent.fetch(self.git._repository, current_remote_branch)
+                    self.git.super_silent.fetch(self.git._repository_anonymous, current_remote_branch)
                     if force or self.git.is_ancestor_of('FETCH_HEAD', branch):
                         pass
                     else:
-                        self._UI.error("Not setting the branch field for ticket #{0} to `{1}` because `{1}` and the current value of the branch field `{2}` have diverged.".format(ticket, remote_branch, current_remote_branch))
-                        self._UI.info("If you really want to overwrite the branch field use `{0}`. Otherwise, you need to merge in the changes introduced by `{0}` by using `{1}`.".format(self._format_command("upload",ticket=ticket,remote_branch=remote_branch,force=True), self._format_command("download", ticket=ticket)))
+                        self._UI.error('Not setting the branch field for ticket #{0} to "{1}" because'
+                                       ' "{1}" and the current value of the branch field "{2}" have diverged.'
+                                       .format(ticket, remote_branch, current_remote_branch))
+                        self._UI.info(['',
+                                       'Use "{0}" to merge the changes introduced by'
+                                       ' the remote "{1}" into your local branch.'],
+                                      self._format_command("pull", ticket=ticket),
+                                      current_remote_branch)
                         raise OperationCancelledError("not a fast-forward")
 
                 if current_remote_branch is not None and not force and not user_confirmation:
-                    if not self._UI.confirm("I will now change the branch field of ticket #{0} from its current value `{1}` to `{2}`. Is this what you want?".format(ticket, current_remote_branch, remote_branch), default=True):
+                    self._UI.show('The branch field of ticket #{0} needs to be'
+                                  ' updated from its current value "{1}" to "{2}"'
+                                  ,ticket, current_remote_branch, remote_branch)
+                    if not self._UI.confirm('Change the "Branch:" field?', default=True):
                         raise OperationCancelledError("user requested")
 
                 attributes = self.trac._get_attributes(ticket)
                 attributes['branch'] = remote_branch
                 self.trac._authenticated_server_proxy.ticket.update(ticket, "", attributes)
 
-        if ticket:
-            old_dependencies = self.trac.dependencies(ticket)
-            old_dependencies = ", ".join(["#"+str(dep) for dep in old_dependencies])
-            new_dependencies = self._dependencies_for_ticket(ticket)
-            new_dependencies = ", ".join(["#"+str(dep) for dep in new_dependencies])
-            if old_dependencies != new_dependencies:
-                self._UI.info("Uploading your dependencies for ticket #{0}: `{1}` => `{2}`".format(ticket, old_dependencies, new_dependencies))
+        if ticket and self._has_ticket_for_local_branch(branch):
+            old_dependencies_ = self.trac.dependencies(ticket)
+            old_dependencies = ", ".join(["#"+str(dep) for dep in old_dependencies_])
+            new_dependencies_ = self._dependencies_for_ticket(self._ticket_for_local_branch(branch))
+            new_dependencies = ", ".join(["#"+str(dep) for dep in new_dependencies_])
 
+            upload = True
+            if old_dependencies != new_dependencies:
+                if old_dependencies:
+                    self._UI.show('Trac ticket #{0} depends on {1} while your local branch depends'
+                                  ' on {2}. Updating dependencies is recommended but optional.',
+                                  ticket, old_dependencies, new_dependencies or "no tickets"),
+                    sel = self._UI.select('Action for dependencies?', options=("upload", "download", "keep"))
+                    if sel == "keep":
+                        upload = False
+                    elif sel == "download":
+                        self._set_dependencies_for_ticket(ticket, old_dependencies_)
+                        self._UI.debug("Setting dependencies for #{0} to {1}.", ticket, old_dependencies)
+                        upload = False
+                    elif sel == "upload":
+                        pass
+                    else:
+                        raise NotImplementedError
+            else:
+                self._UI.debug("Not uploading your dependencies for ticket #{0} because the"
+                               " dependencies on trac are already up-to-date.", ticket)
+                upload = False
+
+            if upload:
+                self._UI.show('Uploading your dependencies for ticket #{0}: "{1}" => "{2}"',
+                              ticket, old_dependencies, new_dependencies)
                 attributes = self.trac._get_attributes(ticket)
                 attributes['dependencies'] = new_dependencies
+                # Don't send an e-mail notification
                 self.trac._authenticated_server_proxy.ticket.update(ticket, "", attributes)
-            elif new_dependencies:
-                self._UI.info("Not uploading your dependencies for ticket #{0} because the dependencies on trac are already up-to-date.".format(ticket))
 
-    def reset_to_clean_state(self):
+    def reset_to_clean_state(self, error_unless_clean=True, helpful=True):
         r"""
         Reset the current working directory to a clean state.
+
+        INPUT:
+
+        - ``error_unless_clean`` -- a boolean (default: ``True``),
+          whether to raise an
+          :class:`user_interface_error.OperationCancelledError` if the
+          directory remains in an unclean state; used internally.
 
         TESTS:
 
@@ -1332,6 +1871,7 @@ class SageDev(object):
 
             sage: from sage.dev.test.sagedev import single_user_setup
             sage: dev, config, UI, server = single_user_setup()
+            sage: dev._wrap("reset_to_clean_state")
 
         Nothing happens if the directory is already clean::
 
@@ -1353,31 +1893,55 @@ class SageDev(object):
             sage: try:
             ....:     dev.git.silent.merge("branch1")
             ....: except GitError: pass
-            sage: UI.append("n")
+            sage: UI.append("cancel")
             sage: dev.reset_to_clean_state()
-            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.) [yes/No] n
-            sage: UI.append("y")
+            Repository is in an unclean state (merge). Resetting the state will discard any
+            uncommited changes.
+            Reset repository? [reset/Cancel] cancel
+            <BLANKLINE>
+            #  (use "sage --dev commit" to save changes in a new commit)
+            sage: UI.append("reset")
             sage: dev.reset_to_clean_state()
-            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.) [yes/No] y
+            Repository is in an unclean state (merge). Resetting the state will discard any
+            uncommited changes.
+            Reset repository? [reset/Cancel] reset
             sage: dev.reset_to_clean_state()
 
         A detached HEAD does not count as a non-clean state::
 
             sage: dev.git.super_silent.checkout('HEAD', detach=True)
             sage: dev.reset_to_clean_state()
-
         """
         states = self.git.get_state()
         if not states:
             return
-        if not self._UI.confirm("Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.)", default=False):
+        self._UI.show('Repository is in an unclean state ({0}).'
+                      ' Resetting the state will discard any uncommited changes.',
+                      ', '.join(states))
+        sel = self._UI.select('Reset repository?',
+                              options=('reset', 'cancel'), default=1)
+        if sel == 'cancel':
+            if not error_unless_clean:
+                return
+            if helpful:
+                self._UI.info(['', '(use "{0}" to save changes in a new commit)'],
+                              self._format_command("commit"))
             raise OperationCancelledError("User requested not to clean the current state.")
+        elif sel == 'reset':
+            self.git.reset_to_clean_state()
+        else:
+            assert False
 
-        self.git.reset_to_clean_state()
-
-    def reset_to_clean_working_directory(self):
+    def clean(self, error_unless_clean=True):
         r"""
-        Drop any uncommitted changes in the working directory.
+        Restore the working directory to the most recent commit.
+
+        INPUT:
+
+        - ``error_unless_clean`` -- a boolean (default: ``True``),
+          whether to raise an
+          :class:`user_interface_error.OperationCancelledError` if the
+          directory remains in an unclean state; used internally.
 
         TESTS:
 
@@ -1388,12 +1952,12 @@ class SageDev(object):
 
         Check that nothing happens if there no changes::
 
-            sage: dev.reset_to_clean_working_directory()
+            sage: dev.clean()
 
         Check that nothing happens if there are only untracked files::
 
             sage: open("untracked","w").close()
-            sage: dev.reset_to_clean_working_directory()
+            sage: dev.clean()
 
         Uncommitted changes can simply be dropped::
 
@@ -1402,34 +1966,40 @@ class SageDev(object):
             sage: dev.git.silent.commit(message="added tracked")
             sage: with open("tracked", "w") as f: f.write("foo")
             sage: UI.append("discard")
-            sage: dev.reset_to_clean_working_directory()
+            sage: dev.clean()
             The following files in your working directory contain uncommitted changes:
-             tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] discard
-            sage: dev.reset_to_clean_working_directory()
+            <BLANKLINE>
+                 tracked
+            <BLANKLINE>
+            Discard changes? [discard/Cancel/stash] discard
+            sage: dev.clean()
 
         Uncommitted changes can be kept::
 
             sage: with open("tracked", "w") as f: f.write("foo")
-            sage: UI.append("keep")
-            sage: dev.reset_to_clean_working_directory()
+            sage: UI.append("cancel")
+            sage: dev.clean()
             The following files in your working directory contain uncommitted changes:
-             tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] keep
+            <BLANKLINE>
+                 tracked
+            <BLANKLINE>
+            Discard changes? [discard/Cancel/stash] cancel
 
         Or stashed::
 
             sage: UI.append("stash")
-            sage: dev.reset_to_clean_working_directory()
+            sage: dev.clean()
             The following files in your working directory contain uncommitted changes:
-             tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] stash
-            Your changes have been recorded on a new branch `stash/1`.
-            sage: dev.reset_to_clean_working_directory()
-
+            <BLANKLINE>
+                 tracked
+            <BLANKLINE>
+            Discard changes? [discard/Cancel/stash] stash
+            Your changes have been moved to the git stash stack. To re-apply your changes
+            later use "git stash apply".
+            sage: dev.clean()
         """
         try:
-            self.reset_to_clean_state()
+            self.reset_to_clean_state(error_unless_clean)
         except OperationCancelledError:
             self._UI.error("Can not clean the working directory unless in a clean state.")
             raise
@@ -1437,122 +2007,28 @@ class SageDev(object):
         if not self.git.has_uncommitted_changes():
             return
 
-        files = "\n".join([line[2:] for line in self.git.status(porcelain=True).splitlines() if not line.startswith('?')])
-        sel = self._UI.select("The following files in your working directory contain uncommitted changes:\n{0}\nDo you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later?".format(files), options=('discard','keep','stash'), default=1)
+        files = [line[2:] for line in self.git.status(porcelain=True).splitlines()
+                 if not line.startswith('?')]
+
+        self._UI.show(
+            ['The following files in your working directory contain uncommitted changes:'] +
+            [''] +
+            ['    ' + f for f in files ] +
+            [''])
+        cancel = 'cancel' if error_unless_clean else 'keep'
+        sel = self._UI.select('Discard changes?',
+                              options=('discard', cancel, 'stash'), default=1)
         if sel == 'discard':
-            self.git.reset_to_clean_working_directory()
-        elif sel == 'keep':
-            raise OperationCancelledError("User requested not to clean the working directory.")
+            self.git.clean_wrapper()
+        elif sel == cancel:
+            if error_unless_clean:
+                raise OperationCancelledError("User requested not to clean the working directory.")
         elif sel == 'stash':
-            from git_error import DetachedHeadError
-            try:
-                current_branch = self.git.current_branch()
-            except DetachedHeadError:
-                current_branch = None
-                current_commit = self.git.current_commit()
-
-            branch = self._new_local_branch_for_stash()
-            try:
-                try:
-                    self.git.super_silent.stash()
-                    try:
-                        self._UI.info("Creating a new branch `{0}` which contains your stashed changes.".format(branch))
-                        self.git.super_silent.stash('branch',branch,'stash@{0}')
-                        self._UI.info("Committing your changes to `{0}`.".format(branch))
-                        self.git.super_silent.commit('-a',message="Changes stashed by reset_to_clean_working_directory()")
-                    except:
-                        self.git.super_silent.stash('drop')
-                        raise
-                except:
-                    if self._is_local_branch_name(branch, exists=True):
-                        self.git.super_silent.branch("-D",branch)
-                    raise
-            finally:
-                self.git.super_silent.checkout(current_branch or current_commit)
-
-            self._UI.show("Your changes have been recorded on a new branch `{0}`.".format(branch))
-            self._UI.info("To recover your changes later use `{1}`.".format(branch, self._format_command("unstash",branch=branch)))
+            self.git.super_silent.stash()
+            self._UI.show('Your changes have been moved to the git stash stack. '
+                          'To re-apply your changes later use "git stash apply".')
         else:
             assert False
-
-    def unstash(self, branch=None):
-        r"""
-        Unstash the changes recorded in ``branch``.
-
-        INPUT:
-
-        - ``branch`` -- the name of a local branch or ``None`` (default:
-          ``None``), if ``None`` list all stashes.
-
-        TESTS:
-
-        Set up a single user for doctesting::
-
-            sage: from sage.dev.test.sagedev import single_user_setup
-            sage: dev, config, UI, server = single_user_setup()
-
-        Create some stashes::
-
-            sage: dev.unstash()
-            (no stashes)
-            sage: with open("tracked", "w") as f: f.write("foo")
-            sage: dev.git.silent.add("tracked")
-            sage: UI.append("s")
-            sage: dev.reset_to_clean_working_directory()
-            The following files in your working directory contain uncommitted changes:
-             tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] s
-            Your changes have been recorded on a new branch `stash/1`.
-            sage: with open("tracked", "w") as f: f.write("boo")
-            sage: dev.git.silent.add("tracked")
-            sage: UI.append("s")
-            sage: dev.reset_to_clean_working_directory()
-            The following files in your working directory contain uncommitted changes:
-             tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] s
-            Your changes have been recorded on a new branch `stash/2`.
-            sage: dev.unstash()
-            stash/1
-            stash/2
-
-        Unstash a change::
-
-            sage: dev.unstash("stash/1")
-
-        Unstash something that is not a stash::
-
-            sage: dev.unstash("HEAD")
-            ValueError: `HEAD` is not a valid name for a stash.
-
-        Unstash a conflicting change::
-
-            sage: dev.unstash("stash/2")
-            The changes recorded in `stash/2` do not apply cleanly to your working directory.
-
-        """
-        if branch is None:
-            stashes = [stash for stash in self.git.local_branches() if self._is_stash_name(stash)]
-            stashes.sort()
-            stashes = "\n".join(stashes)
-            stashes = stashes or "(no stashes)"
-            self._UI.info("Use `{0}` to apply the changes recorded in the stash to your working directory where `name` is one of the following:\n{1}".format(self._format_command("unstash",branch="name"), stashes))
-            self._UI.show(stashes)
-            return
-
-        self._check_stash_name(branch, exists=True)
-
-        self.reset_to_clean_state()
-
-        try:
-            self.git.super_silent.cherry_pick(branch, no_commit=True)
-        except GitError as e:
-            self._UI.error("The changes recorded in `{0}` do not apply cleanly to your working directory.".format(branch))
-            self._UI.info("You can try to resolve the conflicts manually with `{0}`.".format(self._format_command("merge", branch_or_ticket=branch)))
-            raise OperationCancelledError("unstash failed")
-
-        self.git.super_silent.reset()
-
-        self._UI.info("The changes recorded in `{0}` have been restored in your working directory. If you do not need the stash anymore, you can drop it with `{1}`.".format(branch, self._format_command("abandon",branch=branch)))
 
     def edit_ticket(self, ticket=None):
         r"""
@@ -1566,7 +2042,9 @@ class SageDev(object):
 
         .. SEEALSO::
 
-            :meth:`create_ticket`, :meth:`add_comment`
+            :meth:`create_ticket`, :meth:`comment`,
+            :meth:`set_needs_review`, :meth:`set_needs_work`,
+            :meth:`set_positive_review`, :meth:`set_needs_info`
 
         TESTS:
 
@@ -1579,12 +2057,19 @@ class SageDev(object):
 
             sage: UI.append("Summary: summary1\ndescription")
             sage: dev.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
+            sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: UI.append("Summary: summary1\ndescription...")
             sage: dev.edit_ticket()
             sage: dev.trac._get_attributes(1)
             {'description': 'description...', 'summary': 'summary1'}
-
         """
         if ticket is None:
             ticket = self._current_ticket()
@@ -1596,7 +2081,272 @@ class SageDev(object):
         ticket = self._ticket_from_ticket_name(ticket)
         self.trac.edit_ticket_interactive(ticket)
 
-    def add_comment(self, ticket=None):
+    def needs_review(self, ticket=None, comment=''):
+        r"""
+        Set a ticket on trac to ``needs_review``.
+
+        INPUT:
+
+        - ``ticket`` -- an integer or string identifying a ticket or
+          ``None`` (default: ``None``), the number of the ticket to
+          edit.  If ``None``, edit the :meth:`_current_ticket`.
+
+        - ``comment`` -- a comment to go with the status change.
+
+        .. SEEALSO::
+
+            :meth:`edit_ticket`, :meth:`set_needs_work`,
+            :meth:`set_positive_review`, :meth:`comment`,
+            :meth:`set_needs_info`
+
+        TESTS:
+
+        Set up a single user for doctesting::
+
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+
+        Create a ticket and set it to needs_review::
+
+            sage: UI.append("Summary: summary1\ndescription")
+            sage: dev.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
+            1
+            sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: open("tracked", "w").close()
+            sage: dev.git.super_silent.add("tracked")
+            sage: dev.git.super_silent.commit(message="alice: added tracked")
+            sage: dev._UI.append("y")
+            sage: dev.push()
+            The branch "u/doctest/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
+            sage: dev.needs_review(comment='Review my ticket!')
+            sage: dev.trac._get_attributes(1)['status']
+            'needs_review'
+        """
+        if ticket is None:
+            ticket = self._current_ticket()
+        if ticket is None:
+            raise SageDevValueError("ticket must be specified if not currently on a ticket.")
+        self._check_ticket_name(ticket, exists=True)
+        self.trac.set_attributes(ticket, comment, notify=True, status='needs_review')
+        self._UI.debug("Ticket #%s marked as needing review"%ticket)
+
+    def needs_work(self, ticket=None, comment=''):
+        r"""
+        Set a ticket on trac to ``needs_work``.
+
+        INPUT:
+
+        - ``ticket`` -- an integer or string identifying a ticket or
+          ``None`` (default: ``None``), the number of the ticket to
+          edit.  If ``None``, edit the :meth:`_current_ticket`.
+
+        - ``comment`` -- a comment to go with the status change.
+
+        .. SEEALSO::
+
+            :meth:`edit_ticket`, :meth:`set_needs_review`,
+            :meth:`set_positive_review`, :meth:`comment`,
+            :meth:`set_needs_info`
+
+        TESTS:
+
+        Create a doctest setup with two users::
+
+            sage: from sage.dev.test.sagedev import two_user_setup
+            sage: alice, config_alice, bob, config_bob, server = two_user_setup()
+
+        Alice creates a ticket and set it to needs_review::
+
+            sage: alice._chdir()
+            sage: alice._UI.append("Summary: summary1\ndescription")
+            sage: alice.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
+            1
+            sage: alice.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: open("tracked", "w").close()
+            sage: alice.git.super_silent.add("tracked")
+            sage: alice.git.super_silent.commit(message="alice: added tracked")
+            sage: alice._UI.append("y")
+            sage: alice.push()
+            The branch "u/alice/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
+            sage: alice.needs_review(comment='Review my ticket!')
+
+        Bob reviews the ticket and finds it lacking::
+
+            sage: bob._chdir()
+            sage: bob.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: bob.needs_work(comment='Need to add an untracked file!')
+            sage: bob.trac._get_attributes(1)['status']
+            'needs_work'
+        """
+        if ticket is None:
+            ticket = self._current_ticket()
+        if ticket is None:
+            raise SageDevValueError("ticket must be specified if not currently on a ticket.")
+        self._check_ticket_name(ticket, exists=True)
+        if not comment:
+            comment = self._UI.get_input("Please add a comment for the author:")
+        self.trac.set_attributes(ticket, comment, notify=True, status='needs_work')
+        self._UI.debug("Ticket #%s marked as needing work"%ticket)
+
+    def needs_info(self, ticket=None, comment=''):
+        r"""
+        Set a ticket on trac to ``needs_info``.
+
+        INPUT:
+
+        - ``ticket`` -- an integer or string identifying a ticket or
+          ``None`` (default: ``None``), the number of the ticket to
+          edit.  If ``None``, edit the :meth:`_current_ticket`.
+
+        - ``comment`` -- a comment to go with the status change.
+
+        .. SEEALSO::
+
+            :meth:`edit_ticket`, :meth:`needs_review`,
+            :meth:`positive_review`, :meth:`comment`,
+            :meth:`needs_work`
+
+        TESTS:
+
+        Create a doctest setup with two users::
+
+            sage: from sage.dev.test.sagedev import two_user_setup
+            sage: alice, config_alice, bob, config_bob, server = two_user_setup()
+
+        Alice creates a ticket and set it to needs_review::
+
+            sage: alice._chdir()
+            sage: alice._UI.append("Summary: summary1\ndescription")
+            sage: alice.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
+            1
+            sage: alice.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: open("tracked", "w").close()
+            sage: alice.git.super_silent.add("tracked")
+            sage: alice.git.super_silent.commit(message="alice: added tracked")
+            sage: alice._UI.append("y")
+            sage: alice.push()
+            The branch "u/alice/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
+            sage: alice.needs_review(comment='Review my ticket!')
+
+        Bob reviews the ticket and finds it lacking::
+
+            sage: bob._chdir()
+            sage: bob.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: bob.needs_info(comment='Why is a tracked file enough?')
+            sage: bob.trac._get_attributes(1)['status']
+            'needs_info'
+        """
+        if ticket is None:
+            ticket = self._current_ticket()
+        if ticket is None:
+            raise SageDevValueError("ticket must be specified if not currently on a ticket.")
+        self._check_ticket_name(ticket, exists=True)
+        if not comment:
+            comment = self._UI.get_input("Please specify what information is required from the author:")
+        self.trac.set_attributes(ticket, comment, notify=True, status='needs_info')
+        self._UI.debug("Ticket #%s marked as needing info"%ticket)
+
+    def positive_review(self, ticket=None, comment=''):
+        r"""
+        Set a ticket on trac to ``positive_review``.
+
+        INPUT:
+
+        - ``ticket`` -- an integer or string identifying a ticket or
+          ``None`` (default: ``None``), the number of the ticket to
+          edit.  If ``None``, edit the :meth:`_current_ticket`.
+
+        - ``comment`` -- a comment to go with the status change.
+
+        .. SEEALSO::
+
+            :meth:`edit_ticket`, :meth:`needs_review`,
+            :meth:`needs_info`, :meth:`comment`,
+            :meth:`needs_work`
+
+        TESTS:
+
+        Create a doctest setup with two users::
+
+            sage: from sage.dev.test.sagedev import two_user_setup
+            sage: alice, config_alice, bob, config_bob, server = two_user_setup()
+
+        Alice creates a ticket and set it to needs_review::
+
+            sage: alice._chdir()
+            sage: alice._UI.append("Summary: summary1\ndescription")
+            sage: alice.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
+            1
+            sage: alice.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: open("tracked", "w").close()
+            sage: alice.git.super_silent.add("tracked")
+            sage: alice.git.super_silent.commit(message="alice: added tracked")
+            sage: alice._UI.append("y")
+            sage: alice.push()
+            The branch "u/alice/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
+            sage: alice.needs_review(comment='Review my ticket!')
+
+        Bob reviews the ticket and finds it good::
+
+            sage: bob._chdir()
+            sage: bob.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: bob.positive_review()
+            sage: bob.trac._get_attributes(1)['status']
+            'positive_review'
+        """
+        if ticket is None:
+            ticket = self._current_ticket()
+        if ticket is None:
+            raise SageDevValueError("ticket must be specified if not currently on a ticket.")
+        self._check_ticket_name(ticket, exists=True)
+        self.trac.set_attributes(ticket, comment, notify=True, status='positive_review')
+        self._UI.debug("Ticket #%s reviewed!"%ticket)
+
+    def comment(self, ticket=None):
         r"""
         Add a comment to ``ticket`` on trac.
 
@@ -1621,12 +2371,19 @@ class SageDev(object):
 
             sage: UI.append("Summary: summary1\ndescription")
             sage: dev.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
+            sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: UI.append("comment")
-            sage: dev.add_comment()
+            sage: dev.comment()
             sage: server.tickets[1].comments
             ['comment']
-
         """
         if ticket is None:
             ticket = self._current_ticket()
@@ -1650,12 +2407,13 @@ class SageDev(object):
 
         .. SEEALSO::
 
-            :meth:`edit_ticket`, :meth:`add_comment`
+            :meth:`edit_ticket`, :meth:`comment`,
+            :meth:`sage.dev.trac_interface.TracInterface.show_ticket`,
+            :meth:`sage.dev.trac_interface.TracInterface.show_comments`
 
         EXAMPLES::
 
             sage: dev.browse_ticket(10000) # not tested
-
         """
         if ticket is None:
             ticket = self._current_ticket()
@@ -1692,30 +2450,39 @@ class SageDev(object):
         It is an error to call this without parameters if not on a ticket::
 
             sage: dev.remote_status()
-            ValueError: ticket must be specified if not currently on a ticket.
+            ticket must be specified if not currently on a ticket.
 
         Create a ticket and show its remote status::
 
             sage: UI.append("Summary: ticket1\ndescription")
             sage: dev.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
+            sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev.remote_status()
             Ticket #1 (https://trac.sagemath.org/ticket/1)
             ==============================================
-            Your branch `ticket/1` has 0 commits.
+            Your branch "ticket/1" has 0 commits.
             No branch has been set on the trac ticket yet.
             You have not created a remote branch yet.
 
-        After uploading the local branch::
+        After pushing the local branch::
 
             sage: UI.append("y")
-            sage: dev.upload()
-            The branch `u/doctest/ticket/1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            sage: dev.push()
+            The branch "u/doctest/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
             sage: dev.remote_status()
             Ticket #1 (https://trac.sagemath.org/ticket/1)
             ==============================================
-            Your branch `ticket/1` has 0 commits.
-            The trac ticket points to the branch `u/doctest/ticket/1` which has 0 commits. It does not differ from `ticket/1`.
+            Your branch "ticket/1" has 0 commits.
+            The trac ticket points to the branch "u/doctest/ticket/1" which has 0 commits. It does not differ from "ticket/1".
 
         Making local changes::
 
@@ -1725,22 +2492,24 @@ class SageDev(object):
             sage: dev.remote_status()
             Ticket #1 (https://trac.sagemath.org/ticket/1)
             ==============================================
-            Your branch `ticket/1` has 1 commits.
-            The trac ticket points to the branch `u/doctest/ticket/1` which has 0 commits. `ticket/1` is ahead of `u/doctest/ticket/1` by 1 commits:
+            Your branch "ticket/1" has 1 commits.
+            The trac ticket points to the branch "u/doctest/ticket/1" which has 0 commits. "ticket/1" is ahead of "u/doctest/ticket/1" by 1 commits:
             ...: added tracked
 
-        Uploading them::
+        Pushing them::
 
             sage: UI.append("y")
-            sage: dev.upload()
-            I will now upload the following new commits to the remote branch `u/doctest/ticket/1`:
-            ...: added tracked
-            Is this what you want? [Yes/no] y
+            sage: dev.push()
+            Local commits that are not on the remote branch "u/doctest/ticket/1":
+            <BLANKLINE>
+                ...: added tracked
+            <BLANKLINE>
+            Push to remote branch? [Yes/no] y
             sage: dev.remote_status()
             Ticket #1 (https://trac.sagemath.org/ticket/1)
             ==============================================
-            Your branch `ticket/1` has 1 commits.
-            The trac ticket points to the branch `u/doctest/ticket/1` which has 1 commits. It does not differ from `ticket/1`.
+            Your branch "ticket/1" has 1 commits.
+            The trac ticket points to the branch "u/doctest/ticket/1" which has 1 commits. It does not differ from "ticket/1".
 
         The branch on the ticket is ahead of the local branch::
 
@@ -1748,8 +2517,8 @@ class SageDev(object):
             sage: dev.remote_status()
             Ticket #1 (https://trac.sagemath.org/ticket/1)
             ==============================================
-            Your branch `ticket/1` has 0 commits.
-            The trac ticket points to the branch `u/doctest/ticket/1` which has 1 commits. `u/doctest/ticket/1` is ahead of `ticket/1` by 1 commits:
+            Your branch "ticket/1" has 0 commits.
+            The trac ticket points to the branch "u/doctest/ticket/1" which has 1 commits. "u/doctest/ticket/1" is ahead of "ticket/1" by 1 commits:
             ...: added tracked
 
         A mixed case::
@@ -1764,22 +2533,22 @@ class SageDev(object):
             sage: dev.git.silent.add("tracked4")
             sage: dev.git.silent.commit(message="added tracked4")
             sage: dev._UI.append("y")
-            sage: dev.upload(remote_branch="u/doctest/branch1", force=True)
-            The branch `u/doctest/branch1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            sage: dev.push(remote_branch="u/doctest/branch1", force=True)
+            The branch "u/doctest/branch1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
             sage: dev.git.silent.reset('HEAD~', hard=True)
             sage: dev.remote_status()
             Ticket #1 (https://trac.sagemath.org/ticket/1)
             ==============================================
-            Your branch `ticket/1` has 2 commits.
-            The trac ticket points to the branch `u/doctest/branch1` which has 3 commits. `u/doctest/branch1` is ahead of `ticket/1` by 1 commits:
+            Your branch "ticket/1" has 2 commits.
+            The trac ticket points to the branch "u/doctest/branch1" which has 3 commits. "u/doctest/branch1" is ahead of "ticket/1" by 1 commits:
             ...: added tracked4
-            Your remote branch `u/doctest/ticket/1` has 1 commits. The branches `u/doctest/ticket/1` and `ticket/1` have diverged.
-            `u/doctest/ticket/1` is ahead of `ticket/1` by 1 commits:
+            Your remote branch "u/doctest/ticket/1" has 1 commits. The branches "u/doctest/ticket/1" and "ticket/1" have diverged.
+            "u/doctest/ticket/1" is ahead of "ticket/1" by 1 commits:
             ...: added tracked
-            `ticket/1` is ahead of `u/doctest/ticket/1` by 2 commits:
+            "ticket/1" is ahead of "u/doctest/ticket/1" by 2 commits:
             ...: added tracked2
             ...: added tracked3
-
         """
         if ticket is None:
             ticket = self._current_ticket()
@@ -1790,30 +2559,35 @@ class SageDev(object):
         self._check_ticket_name(ticket, exists=True)
         ticket = self._ticket_from_ticket_name(ticket)
 
+        self._is_master_uptodate(action_if_not="warning")
+
         from sage.env import TRAC_SERVER_URI
         header = "Ticket #{0} ({1})".format(ticket, TRAC_SERVER_URI + '/ticket/' + str(ticket))
         underline = "="*len(header)
 
-        commits = lambda a, b: list(reversed(self.git.log("{0}..{1}".format(a,b), "--pretty=%an <%ae>: %s").splitlines()))
+        commits = lambda a, b: list(reversed(
+            self.git.log("{0}..{1}".format(a,b), "--pretty=%an <%ae>: %s").splitlines()))
 
         def detail(a, b, a_to_b, b_to_a):
             if not a_to_b and not b_to_a:
-                return "It does not differ from `{0}`.".format(b)
+                return 'It does not differ from "{0}".'.format(b)
             elif not a_to_b:
-                return "`{0}` is ahead of `{1}` by {2} commits:\n{3}".format(a,b,len(b_to_a),"\n".join(b_to_a))
+                return '"{0}" is ahead of "{1}" by {2} commits:\n{3}'.format(a,b,len(b_to_a), "\n".join(b_to_a))
             elif not b_to_a:
-                return "`{0}` is ahead of `{1}` by {2} commits:\n{3}".format(b,a,len(a_to_b),"\n".join(a_to_b))
+                return '"{0}" is ahead of "{1}" by {2} commits:\n{3}'.format(b,a,len(a_to_b),"\n".join(a_to_b))
             else:
-                return "The branches `{0}` and `{1}` have diverged.\n`{0}` is ahead of `{1}` by {2} commits:\n{3}\n`{1}` is ahead of `{0}` by {4} commits:\n{5}".format(a,b,len(b_to_a),"\n".join(b_to_a),len(a_to_b),"\n".join(a_to_b))
+                return ('The branches "{0}" and "{1}" have diverged.\n"{0}" is ahead of'
+                        ' "{1}" by {2} commits:\n{3}\n"{1}" is ahead of "{0}" by {4}'
+                        ' commits:\n{5}'.format(a, b, len(b_to_a), "\n".join(b_to_a),
+                                                len(a_to_b), "\n".join(a_to_b)))
 
         branch = None
+        merge_base_local = None
         if self._has_local_branch_for_ticket(ticket):
             branch = self._local_branch_for_ticket(ticket)
-            if not self.git.is_ancestor_of(MASTER_BRANCH, branch):
-                local_summary = "Your branch is `{0}`.".format(branch)
-            else:
-                master_to_branch = commits(MASTER_BRANCH, branch)
-                local_summary = "Your branch `{0}` has {1} commits.".format(branch, len(master_to_branch))
+            merge_base_local = self.git.merge_base(MASTER_BRANCH, branch).splitlines()[0]
+            master_to_branch = commits(merge_base_local, branch)
+            local_summary = 'Your branch "{0}" has {1} commits.'.format(branch, len(master_to_branch))
         else:
             local_summary = "You have no local branch for this ticket"
 
@@ -1822,15 +2596,19 @@ class SageDev(object):
             ticket_to_local = None
             local_to_ticket = None
             if not self._is_remote_branch_name(ticket_branch, exists=True):
-                ticket_summary = "The trac ticket points to the branch `{0}` which does not exist."
+                ticket_summary = 'The trac ticket points to the branch "{0}" which does not exist.'
             else:
-                self.git.super_silent.fetch(self.git._repository, ticket_branch)
-                if not self.git.is_ancestor_of(MASTER_BRANCH, 'FETCH_HEAD'):
-                    ticket_summary = "The trac ticket points to the branch `{0}`.".format(ticket_branch)
-                else:
-                    master_to_ticket = commits(MASTER_BRANCH, 'FETCH_HEAD')
-                    ticket_summary = "The trac ticket points to the branch `{0}` which has {1} commits.".format(ticket_branch, len(master_to_ticket))
-                    if self.git.is_ancestor_of(MASTER_BRANCH, branch):
+                self.git.super_silent.fetch(self.git._repository_anonymous, ticket_branch)
+                merge_base_ticket = self.git.merge_base(MASTER_BRANCH, 'FETCH_HEAD').splitlines()[0]
+                master_to_ticket = commits(merge_base_ticket, 'FETCH_HEAD')
+                ticket_summary = 'The trac ticket points to the' \
+                    ' branch "{0}" which has {1} commits.'.format(ticket_branch, len(master_to_ticket))
+                if branch is not None:
+                    if merge_base_local != merge_base_ticket:
+                        ticket_summary += ' The branch can not be compared to your local' \
+                            ' branch "{0}" because the branches are based on different versions' \
+                            ' of sage (i.e. the "master" branch).'
+                    else:
                         ticket_to_local = commits('FETCH_HEAD', branch)
                         local_to_ticket = commits(branch, 'FETCH_HEAD')
                         ticket_summary += " "+detail(ticket_branch, branch, ticket_to_local, local_to_ticket)
@@ -1841,13 +2619,17 @@ class SageDev(object):
         if self._is_remote_branch_name(remote_branch, exists=True):
             remote_to_local = None
             local_to_remote = None
-            self.git.super_silent.fetch(self.git._repository, remote_branch)
-            if not self.git.is_ancestor_of(MASTER_BRANCH, 'FETCH_HEAD'):
-                remote_summary = "Your remote branch is `{0}`.".format(remote_branch)
-            else:
-                master_to_remote = commits(MASTER_BRANCH, 'FETCH_HEAD')
-                remote_summary = "Your remote branch `{0}` has {1} commits.".format(remote_branch, len(master_to_remote))
-                if self.git.is_ancestor_of(MASTER_BRANCH, branch):
+            self.git.super_silent.fetch(self.git._repository_anonymous, remote_branch)
+            merge_base_remote = self.git.merge_base(MASTER_BRANCH, 'FETCH_HEAD').splitlines()[0]
+            master_to_remote = commits(merge_base_remote, 'FETCH_HEAD')
+            remote_summary = 'Your remote branch "{0}" has {1} commits.'.format(
+                remote_branch, len(master_to_remote))
+            if branch is not None:
+                if merge_base_remote != merge_base_local:
+                    remote_summary += ' The branch can not be compared to your local' \
+                        ' branch "{0}" because the branches are based on different version' \
+                        ' of sage (i.e. the "master" branch).'
+                else:
                     remote_to_local = commits('FETCH_HEAD', branch)
                     local_to_remote = commits(branch, 'FETCH_HEAD')
                     remote_summary += " "+detail(remote_branch, branch, remote_to_local, local_to_remote)
@@ -1857,318 +2639,9 @@ class SageDev(object):
         show = [header, underline, local_summary, ticket_summary]
         if not self._is_remote_branch_name(remote_branch, exists=True) or remote_branch != ticket_branch:
             show.append(remote_summary)
-
         self._UI.show("\n".join(show))
 
-    def import_patch(self, patchname=None, url=None, local_file=None, diff_format=None, header_format=None, path_format=None):
-        r"""
-        Import a patch into the current branch.
-
-        If ``local_file`` is specified, apply the file it points to.
-
-        Otherwise, download the patch using :meth:`download_patch` and apply
-        it.
-
-        INPUT:
-
-        - ``patchname`` -- a string or ``None`` (default: ``None``), passed on
-          to :meth:`download_patch`
-
-        - ``url`` -- a string or ``None`` (default: ``None``), passed on to
-          :meth:`download_patch`
-
-        - ``local_file`` -- a string or ``None`` (default: ``None``), if
-          specified, ``url`` and ``patchname`` must be ``None``; instead of
-          downloading the patch, apply this patch file.
-
-        - ``diff_format`` -- a string or ``None`` (default: ``None``), per
-          default the format of the patch file is autodetected; it can be
-          specified explicitly with this parameter
-
-        - ``header_format`` -- a string or ``None`` (default: ``None``), per
-          default the format of the patch header is autodetected; it can be
-          specified explicitly with this parameter
-
-        - ``path_format`` -- a string or ``None`` (default: ``None``), per
-          default the format of the paths is autodetected; it can be specified
-          explicitly with this parameter
-
-        .. NOTE::
-
-            This method calls :meth:`_rewrite_patch` if necessary to rewrite
-            patches which were created for sage before the move to git
-            happened. In other words, this is not just a simple wrapper for
-            ``git am``.
-
-        .. SEEALSO::
-
-        - :meth:`download_patch` -- download a patch to a local file.
-
-        - :meth:`download` -- merges in changes from a git branch rather than a
-          patch.
-
-        TESTS:
-
-        Set up a single user for doctesting::
-
-            sage: from sage.dev.test.sagedev import single_user_setup
-            sage: dev, config, UI, server = single_user_setup()
-
-        Create a patch::
-
-            sage: open("tracked", "w").close()
-            sage: open("tracked2", "w").close()
-            sage: import os
-            sage: patchfile = os.path.join(dev._sagedev.tmp_dir,"tracked.patch")
-            sage: dev.git.silent.add("tracked", "tracked2")
-            sage: with open(patchfile, "w") as f: f.write(dev.git.diff(cached=True))
-            sage: dev.git.silent.reset()
-
-        Applying this patch fails::
-
-            sage: dev.import_patch(local_file=patchfile, path_format="new") # the autodetection of the path format fails since we are not in a sage repository
-            There are untracked files in your working directory:
-            tracked
-            tracked2
-            The patch cannot be imported unless these files are removed.
-
-        After moving away ``tracked`` and ``tracked2``, this works::
-
-            sage: os.unlink("tracked")
-            sage: os.unlink("tracked2")
-            sage: dev.import_patch(local_file=patchfile, path_format="new")
-            Applying: No Subject. Modified: tracked, tracked2
-
-         We create a patch which does not apply::
-
-            sage: with open("tracked", "w") as f: f.write("foo")
-            sage: dev.git.silent.add("tracked")
-            sage: with open("tracked", "w") as f: f.write("boo")
-            sage: with open("tracked2", "w") as f: f.write("boo")
-            sage: with open(patchfile, "w") as f: f.write(dev.git.diff())
-            sage: dev.git.reset_to_clean_working_directory()
-            sage: open("tracked").read()
-            ''
-
-         The import fails::
-
-            sage: UI.append("abort")
-            sage: UI.append("y")
-            sage: dev.import_patch(local_file=patchfile, path_format="new")
-            Applying: No Subject. Modified: tracked, tracked2
-            error: patch failed: tracked:1
-            error: tracked: patch does not apply
-            Patch failed at 0001 No Subject. Modified: tracked, tracked2
-            The copy of the patch that failed is found in:
-               .../rebase-apply/patch
-            <BLANKLINE>
-            The patch does not apply cleanly. Would you like to apply it anyway and create reject files for the parts that do not apply? [yes/No] y
-            Checking patch tracked...
-            error: while searching for:
-            foo
-            error: patch failed: tracked:1
-            Checking patch tracked2...
-            Applying patch tracked with 1 reject...
-            Rejected hunk #1.
-            Applied patch tracked2 cleanly.
-            The patch did not apply cleanly. Please integrate the `.rej` files that were created and resolve conflicts. After you do, type `resolved`. If you want to abort this process, type `abort`. [resolved/abort] abort
-            Removing tracked.rej
-            sage: open("tracked").read()
-            ''
-
-            sage: UI.append("resolved")
-            sage: UI.append("y")
-            sage: dev.import_patch(local_file=patchfile, path_format="new")
-            Applying: No Subject. Modified: tracked, tracked2
-            error: patch failed: tracked:1
-            error: tracked: patch does not apply
-            Patch failed at 0001 No Subject. Modified: tracked, tracked2
-            The copy of the patch that failed is found in:
-               .../rebase-apply/patch
-            <BLANKLINE>
-            The patch does not apply cleanly. Would you like to apply it anyway and create reject files for the parts that do not apply? [yes/No] y
-            Checking patch tracked...
-            error: while searching for:
-            foo
-            error: patch failed: tracked:1
-            Checking patch tracked2...
-            Applying patch tracked with 1 reject...
-            Rejected hunk #1.
-            Applied patch tracked2 cleanly.
-            The patch did not apply cleanly. Please integrate the `.rej` files that were created and resolve conflicts. After you do, type `resolved`. If you want to abort this process, type `abort`. [resolved/abort] resolved
-            Removing tracked.rej
-            sage: open("tracked").read() # we did not actually incorporate the .rej files in this doctest, so nothing has changed
-            ''
-            sage: open("tracked2").read()
-            'boo'
-
-        """
-        try:
-            self.reset_to_clean_state()
-            self.reset_to_clean_working_directory()
-        except OperationCancelledError:
-            self._UI.error("Cannot import patch. Your working directory is not in a clean state.")
-            raise
-
-        untracked = self.git.untracked_files()
-        # do not exclude .patch files here: they would be deleted by reset_to_clean_working_directory() later
-        if untracked:
-            self._UI.error("There are untracked files in your working directory:\n{0}\nThe patch cannot be imported unless these files are removed.".format("\n".join(untracked)))
-            raise OperationCancelledError("untracked files make import impossible")
-
-        if not local_file:
-            local_file = self.download_patch(patchname=patchname, url=url)
-            try:
-                return self.import_patch(
-                        local_file=local_file,
-                        diff_format=diff_format, header_format=header_format, path_format=path_format)
-            finally:
-                import os
-                os.unlink(local_file)
-        elif patchname or url:
-            raise SageDevValueError("if local_file is specified, patchname and url must not be specified")
-        else:
-            lines = open(local_file).read().splitlines()
-            lines = self._rewrite_patch(lines, to_header_format="git",
-                    to_path_format="new", from_diff_format=diff_format,
-                    from_header_format=header_format,
-                    from_path_format=path_format)
-
-            import tempfile, os
-            fd, outfile = tempfile.mkstemp(dir=self.tmp_dir)
-            os.fdopen(fd, 'w').writelines("\n".join(lines)+"\n")
-
-            self._UI.info("Trying to apply reformatted patch `%s`"%outfile)
-            try:
-                self.git.echo.am(outfile, "--resolvemsg= ", ignore_whitespace=True)
-            except GitError:
-                if not self._UI.confirm("The patch does not apply cleanly. Would you like to apply it anyway and create reject files for the parts that do not apply?", default=False):
-                    self._UI.info("Not applying patch.")
-                    self.git.reset_to_clean_state()
-                    self.git.reset_to_clean_working_directory(remove_untracked_files=True)
-                    raise OperationCancelledError("User requested to cancel the apply.")
-
-                try:
-                    try:
-                        self.git.silent.apply(outfile, ignore_whitespace=True, reject=True)
-                    except GitError:
-                        if self._UI.select("The patch did not apply cleanly. Please integrate the `.rej` files that were created and resolve conflicts. After you do, type `resolved`. If you want to abort this process, type `abort`.", ("resolved","abort")) == "abort":
-                            self.git.reset_to_clean_state()
-                            self.git.reset_to_clean_working_directory(remove_untracked_files=True)
-                            raise OperationCancelledError("User requested to cancel the apply.")
-                    else:
-                        self._UI.show("It seemed that the patch would not apply, but in fact it did.")
-                        return
-
-                    self.git.super_silent.add(update=True)
-                    untracked = [fname for fname in self.git.untracked_files() if not fname.endswith(".rej")]
-                    if untracked:
-                        self._UI.confirm("The patch will introduce the following new files to the repository:\n{0}\nIs this correct?".format("\n".join(untracked)), default=True)
-                        self.git.super_silent.add(*untracked)
-                    self.git.am('--resolvemsg= ', resolved=True)
-                    self._UI.info("A commit on the current branch has been created from the patch.")
-                finally:
-                    self.git.reset_to_clean_working_directory(remove_untracked_files=True)
-
-    def download_patch(self, ticket=None, patchname=None, url=None):
-        r"""
-        Download a patch to a temporary directory.
-
-        If only ``ticket`` is specified and the ticket has only one
-        attachment, download the patch attached to ``ticket``.
-
-        If ``ticket`` and ``patchname`` are specified, download the
-        patch ``patchname`` attached to ``ticket``.
-
-        If ``url`` is specified, download ``url``.
-
-        If nothing is specified, and if the ''current'' ticket has only
-        one attachment, download it.
-
-        Raise an error on any other combination of parameters.
-
-        INPUT:
-
-        - ``ticket`` -- an integer or string identifying a ticket or ``None``
-          (default: ``None``)
-
-        - ``patchname`` -- a string or ``None`` (default: ``None``)
-
-        - ``url`` -- a string or ``None`` (default: ``None``)
-
-        OUTPUT:
-
-        Returns the absolute file name of the returned file.
-
-        .. SEEALSO::
-
-        - :meth:`import_patch` -- also creates a commit on the current branch
-          from the patch.
-
-        EXAMPLES::
-
-            sage: dev.download_patch(ticket=14882) # optional: internet
-            ValueError: Ticket #14882 has more than one attachment but parameter `patchname` is not present, please set it to one of: trac_14882-backtrack_longtime-dg.patch, trac_14882-backtrack_longtime-dg-v2.patch, trac_14882-spelling_in_backtrack-dg.patch
-            sage: dev.download_patch(ticket=14882, patchname='trac_14882-backtrack_longtime-dg.patch') # optional: internet
-            ...
-
-        TESTS:
-
-        Set up a single user for doctesting::
-
-            sage: from sage.dev.test.sagedev import single_user_setup
-            sage: dev, config, UI, server = single_user_setup()
-
-        Create a new ticket::
-
-            sage: UI.append("Summary: summary1\ndescription")
-            sage: dev.create_ticket()
-            1
-
-        There are no attachment to download yet::
-
-            sage: dev.download_patch(ticket=1)
-            ValueError: Ticket #1 has no attachments.
-
-        After adding one attachment, this works::
-
-            sage: server.tickets[1].attachments['first.patch'] = ''
-            sage: dev.download_patch(ticket=1) # not tested, download_patch tries to talk to the live server
-
-        After adding another attachment, this does not work anymore, one needs
-        to specify which attachment should be downloaded::
-
-            sage: server.tickets[1].attachments['second.patch'] = ''
-            sage: dev.download_patch(ticket=1)
-            ValueError: Ticket #1 has more than one attachment but parameter `patchname` is not present, please set it to one of: first.patch, second.patch
-            sage: dev.download_patch(ticket=1, patchname = 'second.patch') # not tested, download_patch tries to talk to the live server
-
-        """
-        if url:
-            if ticket or patchname:
-                raise ValueError("If `url` is specifed, `ticket` and `patchname` must not be specified.")
-            import urllib
-            return urllib.urlretrieve(url)[0]
-        elif ticket:
-            ticket = self._ticket_from_ticket_name(ticket)
-
-            if patchname:
-                from sage.env import TRAC_SERVER_URI
-                return self.download_patch(url = TRAC_SERVER_URI+"/raw-attachment/ticket/%s/%s"%(ticket,patchname))
-            else:
-                attachments = self.trac.attachment_names(ticket)
-                if len(attachments) == 0:
-                    raise SageDevValueError("Ticket #%s has no attachments."%ticket)
-                if len(attachments) == 1:
-                    return self.download_patch(ticket = ticket, patchname = attachments[0])
-                else:
-                    raise SageDevValueError("Ticket #%s has more than one attachment but parameter `patchname` is not present, please set it to one of: %s"%(ticket,", ".join(sorted(attachments))))
-        elif not patchname:
-            return self.download_patch(ticket=self._current_ticket())
-        else:
-            raise SageDevValueError("If `url` is not specified, `ticket` must be specified")
-
-    def prune_closed_tickets(self):
+    def prune_tickets(self):
         r"""
         Remove branches for tickets that are already merged into master.
 
@@ -2187,20 +2660,28 @@ class SageDev(object):
 
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
-            sage: dev.local_tickets()
-              : master
-            #1: ticket/1
+            sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: dev.tickets()
+                : master
+            * #1: ticket/1 summary
 
         With a commit on it, the branch is not abandoned::
 
             sage: open("tracked","w").close()
             sage: dev.git.silent.add("tracked")
             sage: dev.git.super_silent.commit(message="added tracked")
-            sage: dev.prune_closed_tickets()
-            sage: dev.local_tickets()
-              : master
-            #1: ticket/1
+            sage: dev.prune_tickets()
+            sage: dev.tickets()
+                : master
+            * #1: ticket/1 summary
 
         After merging it to the master branch, it is abandoned. This does not
         work, because we cannot move the current branch::
@@ -2209,29 +2690,30 @@ class SageDev(object):
             sage: dev.git.super_silent.merge("ticket/1")
 
             sage: dev.git.super_silent.checkout("ticket/1")
-            sage: dev.prune_closed_tickets()
+            sage: dev.prune_tickets()
             Abandoning #1.
-            Can not delete `ticket/1` because you are currently on that branch.
+            Cannot delete "ticket/1": is the current branch.
+            <BLANKLINE>
+            #  (use "sage --dev vanilla" to switch to the master branch)
 
         Now, the branch is abandoned::
 
             sage: dev.vanilla()
-            sage: dev.prune_closed_tickets()
+            sage: dev.prune_tickets()
             Abandoning #1.
-            Moved your branch `ticket/1` to `trash/ticket/1`.
-            sage: dev.local_tickets()
+            Moved your branch "ticket/1" to "trash/ticket/1".
+            sage: dev.tickets()
             : master
-            sage: dev.prune_closed_tickets()
-
+            sage: dev.prune_tickets()
         """
         for branch in self.git.local_branches():
             if self._has_ticket_for_local_branch(branch):
                 ticket = self._ticket_for_local_branch(branch)
                 if self.git.is_ancestor_of(branch, MASTER_BRANCH):
                     self._UI.show("Abandoning #{0}.".format(ticket))
-                    self.abandon(ticket)
+                    self.abandon(ticket, helpful=False)
 
-    def abandon(self, ticket_or_branch=None):
+    def abandon(self, ticket_or_branch=None, helpful=True):
         r"""
         Abandon a ticket or branch.
 
@@ -2243,12 +2725,15 @@ class SageDev(object):
           ``ticket_or_branch`` (or the current branch if ``None``). Also
           removes the users remote tracking branch.
 
+        - ``helpful`` -- boolean (default: ``True``). Whether to print
+          informational messages to guide new users.
+
         .. SEEALSO::
 
-        - :meth:`prune_closed_tickets` -- abandon tickets that have
-          been closed.
+            - :meth:`prune_tickets` -- abandon tickets that have
+              been closed.
 
-        - :meth:`local_tickets` -- list local non-abandoned tickets.
+            - :meth:`tickets` -- list local non-abandoned tickets.
 
         TESTS:
 
@@ -2261,51 +2746,97 @@ class SageDev(object):
 
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
+            sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: UI.append("y")
+            sage: dev.push()
+            The branch "u/doctest/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
             sage: dev.abandon(1)
-            Can not delete `ticket/1` because you are currently on that branch.
+            Cannot delete "ticket/1": is the current branch.
+            <BLANKLINE>
+            #  (use "sage --dev vanilla" to switch to the master branch)
             sage: dev.vanilla()
             sage: dev.abandon(1)
-            Moved your branch `ticket/1` to `trash/ticket/1`.
+            Moved your branch "ticket/1" to "trash/ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev checkout --ticket=1 --base=master" to restart working on #1 with a clean copy of the master branch.
 
+        Start to work on a new branch for this ticket::
+
+            sage: from sage.dev.sagedev import MASTER_BRANCH
+            sage: UI.append("y")
+            sage: dev.checkout(ticket=1, base=MASTER_BRANCH)
+            About to create a new branch for #1 based on "master". However, the trac ticket
+            for #1 already refers to the branch "u/doctest/ticket/1". The new branch will
+            not contain any work that has already been done on "u/doctest/ticket/1".
+            Create fresh branch? [yes/No] y
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
         """
+        ticket = None
+
         if self._is_ticket_name(ticket_or_branch):
             ticket = self._ticket_from_ticket_name(ticket_or_branch)
 
             if not self._has_local_branch_for_ticket(ticket):
-                raise SageDevValueError("Can not abandon #{0}. You have no local branch for this ticket.".format(ticket))
+                raise SageDevValueError("Cannot abandon #{0}: no local branch for this ticket.", ticket)
             ticket_or_branch = self._local_branch_for_ticket(ticket)
+
+        if self._has_ticket_for_local_branch(ticket_or_branch):
+            ticket = self._ticket_for_local_branch(ticket_or_branch)
 
         if self._is_local_branch_name(ticket_or_branch):
             branch = ticket_or_branch
             self._check_local_branch_name(branch, exists=True)
 
             if branch == MASTER_BRANCH:
-                self._UI.error("I will not delete the master branch.")
+                self._UI.error("Cannot delete the master branch.")
                 raise OperationCancelledError("protecting the user")
 
-            if not self.git.is_ancestor_of(branch, MASTER_BRANCH):
-                if not self._UI.confirm("I will delete your local branch `{0}`. Is this what you want?".format(branch), default=False):
-                    raise OperationCancelledError("user requested")
             from git_error import DetachedHeadError
             try:
                 if self.git.current_branch() == branch:
-                    self._UI.error("Can not delete `{0}` because you are currently on that branch.".format(branch))
-                    self._UI.info("Use `{0}` to move to a different branch.".format(self._format_command("vanilla")))
+                    self._UI.error('Cannot delete "{0}": is the current branch.', branch)
+                    self._UI.info(['', '(use "{0}" to switch to the master branch)'],
+                                  self._format_command("vanilla"))
                     raise OperationCancelledError("can not delete current branch")
             except DetachedHeadError:
                 pass
 
             new_branch = self._new_local_branch_for_trash(branch)
             self.git.super_silent.branch("-m", branch, new_branch)
-            self._UI.show("Moved your branch `{0}` to `{1}`.".format(branch, new_branch))
+            self._UI.show('Moved your branch "{0}" to "{1}".', branch, new_branch)
         else:
             raise SageDevValueError("ticket_or_branch must be the name of a ticket or a local branch")
+
+        if ticket:
+            self._set_local_branch_for_ticket(ticket, None)
+            self._set_dependencies_for_ticket(ticket, None)
+            if helpful:
+                self._UI.info(['',
+                               'Use "{0}" to restart working on #{1} with a clean copy of the master branch.'],
+                               self._format_command("checkout", ticket=ticket, base=MASTER_BRANCH), ticket)
 
     def gather(self, branch, *tickets_or_branches):
         r"""
         Create a new branch ``branch`` with ``tickets_or_remote_branches``
         applied.
+
+        This method is not wrapped in the commandline dev scripts. It
+        does nothing that cannot be done with ``checkout`` and
+        ``merge``, it just steepens the learning curve by introducing
+        yet another command. Unless a clear use case emerges, it
+        should be removed.
 
         INPUT:
 
@@ -2318,8 +2849,8 @@ class SageDev(object):
 
         .. SEEALSO::
 
-        - :meth:`merge` -- merge into the current branch rather than creating a
-          new one
+            - :meth:`merge` -- merge into the current branch rather
+              than creating a new one
 
         TESTS:
 
@@ -2332,23 +2863,31 @@ class SageDev(object):
 
             sage: dev._UI.append("Summary: summary1\ndescription")
             sage: dev.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
+            sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: open("tracked","w").close()
             sage: dev.git.silent.add("tracked")
             sage: dev.git.super_silent.commit(message="added tracked")
             sage: dev._UI.append("y")
             sage: dev._UI.append("y")
-            sage: dev.upload()
-            The branch `u/doctest/ticket/1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            sage: dev.push()
+            The branch "u/doctest/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
 
         Gather all these branches::
 
-            sage: dev.gather("gather_branch", "#1", "ticket/1", "u/doctest/ticket/1")
-
+            sage: dev._sagedev.gather("gather_branch", "#1", "ticket/1", "u/doctest/ticket/1")
         """
         try:
             self.reset_to_clean_state()
-            self.reset_to_clean_working_directory()
+            self.clean()
         except OperationCancelledError:
             self._UI.error("Cannot gather branches because working directory is not in a clean state.")
             raise OperationCancelledError("working directory not clean")
@@ -2376,80 +2915,88 @@ class SageDev(object):
                 self._check_remote_branch_name(remote_branch, exists=True)
                 branches.append(("remote",remote_branch))
 
-        self._UI.info("Creating a new branch `{0}`.".format(branch))
+        self._UI.debug('Creating a new branch "{0}".'.format(branch))
         self.git.super_silent.branch(branch, MASTER_BRANCH)
         self.git.super_silent.checkout(branch)
 
         try:
             for local_remote,branch_name in branches:
-                self._UI.info("Merging {2} branch `{0}` into `{1}`.".format(branch_name, branch, local_remote))
-                self.merge(branch, download=local_remote=="remote")
+                self._UI.debug('Merging {2} branch "{0}" into "{1}".'
+                              .format(branch_name, branch, local_remote))
+                self.merge(branch, pull=local_remote=="remote")
         except:
             self.git.reset_to_clean_state()
-            self.git.reset_to_clean_working_directory()
+            self.git.clean_wrapper()
             self.vanilla()
             self.git.super_silent.branch("-D", branch)
-            self._UI.info("Deleted branch `{0}`.".format(branch))
+            self._UI.debug('Deleted branch "{0}".'.format(branch))
 
-    def merge(self, ticket_or_branch=MASTER_BRANCH, download=None, create_dependency=None):
+    def merge(self, ticket_or_branch=MASTER_BRANCH, pull=None, create_dependency=None):
         r"""
         Merge changes from ``ticket_or_branch`` into the current branch.
+
+        Incorporate commits from other tickets/branches into the
+        current branch.
+
+        Optionally, you can add the merged ticket to the trac
+        "Dependency:" field. Note that the merged commits become part
+        of the current branch, regardless of whether they are noted on
+        trac. Adding a dependency implies the following:
+
+        - the other ticket must be positively reviewed and merged
+          before this ticket may be merged into the official release
+          of sage.  The commits included from a dependency don't need
+          to be reviewed in this ticket, whereas commits reviewed in
+          this ticket from a non-dependency may make reviewing the
+          other ticket easier.
+
+        - you can more easily merge in future changes to dependencies.
+          So if you need a feature from another ticket it may be
+          appropriate to create a dependency to that you may more
+          easily benefit from others' work on that ticket.
+
+        - if you depend on another ticket then you need to worry about
+          the progress on that ticket.  If that ticket is still being
+          actively developed then you may need to make further merges
+          in the future if conflicts arise.
 
         INPUT:
 
         - ``ticket_or_branch`` -- an integer or strings (default:
           ``'master'``); for an integer or string identifying a ticket, the
           branch on the trac ticket gets merged (or the local branch for the
-          ticket, if ``download`` is ``False``), for the name of a local or
+          ticket, if ``pull`` is ``False``), for the name of a local or
           remote branch, that branch gets merged. If ``'dependencies'``, the
-          dependencies are merged in one by one, starting with one listed first
-          in the dependencies field on trac.
+          dependencies are merged in one by one.
 
-        - ``download`` -- a boolean or ``None`` (default: ``None``); if
-          ``ticket_or_branch`` identifies a ticket, whether to download the
+        - ``pull`` -- a boolean or ``None`` (default: ``None``); if
+          ``ticket_or_branch`` identifies a ticket, whether to pull the
           latest branch on the trac ticket (the default); if
-          ``ticket_or_branch`` is a remote branch, whether to download that
-          remote branch (the default); if ``ticket_or_branch`` is a local
-          branch, whether to download its remote branch (not the default)
+          ``ticket_or_branch`` is a branch name, then ``pull`` controls
+          whether it should be interpreted as a remote branch (``True``) or as
+          a local branch (``False``). If it is set to ``None``, then it will
+          take ``ticket_or_branch`` as a remote branch if it exists, and as a
+          local branch otherwise.
 
         - ``create_dependency`` -- a boolean or ``None`` (default: ``None``),
-          wether to create a dependency to ``ticket_or_branch``. If ``None``,
+          whether to create a dependency to ``ticket_or_branch``. If ``None``,
           then a dependency is created if ``ticket_or_branch`` identifies a
           ticket and if the current branch is associated to a ticket.
 
         .. NOTE::
 
             Dependencies are stored locally and only updated with respect to
-            the remote server during :meth:`upload` and :meth:`download`.
-
-            Adding a dependency has some consequences:
-
-            - the other ticket must be positively reviewed and merged before
-              this ticket may be merged into the official release of sage.  The
-              commits included from a dependency don't need to be reviewed in
-              this ticket, whereas commits reviewed in this ticket from a
-              non-dependency may make reviewing the other ticket easier.
-
-            - you can more easily merge in future changes to dependencies.  So
-              if you need a feature from another ticket it may be appropriate
-              to create a dependency to that you may more easily benefit
-              from others' work on that ticket.
-
-            - if you depend on another ticket then you need to worry about the
-              progress on that ticket.  If that ticket is still being actively
-              developed then you may need to make many merges to keep up.
+            the remote server during :meth:`push` and :meth:`pull`.
 
         .. SEEALSO::
 
-        - :meth:`show_dependencies` -- see the current dependencies.
+            - :meth:`show_dependencies` -- see the current
+              dependencies.
 
-        - :meth:`GitInterface.merge` -- git's merge command has more options
-          and can merge multiple branches at once.
+            - :meth:`GitInterface.merge` -- git's merge command has
+              more options and can merge multiple branches at once.
 
-        - :meth:`gather` -- creates a new branch to merge into rather than
-          merging into the current branch.
-
-        TESTS::
+        TESTS:
 
         Create a doctest setup with two users::
 
@@ -2461,18 +3008,32 @@ class SageDev(object):
             sage: alice._chdir()
             sage: alice._UI.append("Summary: summary1\ndescription")
             sage: alice.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: alice._UI.append("Summary: summary2\ndescription")
             sage: alice.create_ticket()
+            Created ticket #2 at https://trac.sagemath.org/2.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=2" to create a new local branch)
             2
 
         Alice creates two branches and merges them::
 
-            sage: alice.switch_ticket(1)
+            sage: alice.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: open("alice1","w").close()
             sage: alice.git.silent.add("alice1")
             sage: alice.git.super_silent.commit(message="added alice1")
-            sage: alice.switch_ticket(2)
+            sage: alice.checkout(ticket=2)
+            On ticket #2 with associated local branch "ticket/2".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: with open("alice2","w") as f: f.write("alice")
             sage: alice.git.silent.add("alice2")
             sage: alice.git.super_silent.commit(message="added alice2")
@@ -2480,73 +3041,139 @@ class SageDev(object):
         When merging for a ticket, the branch on the trac ticket matters::
 
             sage: alice.merge("#1")
-            Can not merge remote branch for #1. No branch has been set on the trac ticket.
-            sage: alice.switch_ticket(1)
+            Cannot merge remote branch for #1 because no branch has been set on the trac
+            ticket.
+            sage: alice.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: alice._UI.append("y")
-            sage: alice.upload()
-            The branch `u/alice/ticket/1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
-            sage: alice.switch_ticket(2)
-            sage: alice.merge("#1", download=False)
-            Merging the local branch `ticket/1` into the local branch `ticket/2`.
+            sage: alice.push()
+            The branch "u/alice/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
+            sage: alice.checkout(ticket=2)
+            On ticket #2 with associated local branch "ticket/2".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: alice.merge("#1", pull=False)
+            Merging the local branch "ticket/1" into the local branch "ticket/2".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
+            <BLANKLINE>
             Added dependency on #1 to #2.
+
+        Check that merging dependencies works::
+
+            sage: alice.merge("dependencies")
+            Merging the remote branch "u/alice/ticket/1" into the local branch "ticket/2".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
 
         Merging local branches::
 
             sage: alice.merge("ticket/1")
-            Merging the local branch `ticket/1` into the local branch `ticket/2`.
+            Merging the local branch "ticket/1" into the local branch "ticket/2".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
 
-        A remote branch for a local branch is only merged in if ``download`` is set::
+        A remote branch for a local branch is only merged in if ``pull`` is set::
 
             sage: alice._sagedev._set_remote_branch_for_branch("ticket/1", "nonexistant")
             sage: alice.merge("ticket/1")
-            Merging the local branch `ticket/1` into the local branch `ticket/2`.
-            sage: alice.merge("ticket/1", download=True)
-            Can not merge remote branch `nonexistant`. It does not exist.
+            Merging the local branch "ticket/1" into the local branch "ticket/2".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
+            sage: alice.merge("ticket/1", pull=True)
+            Branch "ticket/1" does not exist on the remote system.
 
         Bob creates a conflicting commit::
 
             sage: bob._chdir()
-            sage: bob.switch_ticket(1)
+            sage: bob.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: with open("alice2","w") as f: f.write("bob")
             sage: bob.git.silent.add("alice2")
             sage: bob.git.super_silent.commit(message="added alice2")
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
-            sage: bob.upload()
-            The branch `u/bob/ticket/1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
-            I will now change the branch field of ticket #1 from its current value `u/alice/ticket/1` to `u/bob/ticket/1`. Is this what you want? [Yes/no] y
+            sage: bob.push()
+            The branch "u/bob/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
+            The branch field of ticket #1 needs to be updated from its current value
+            "u/alice/ticket/1" to "u/bob/ticket/1"
+            Change the "Branch:" field? [Yes/no] y
 
         The merge now requires manual conflict resolution::
 
             sage: alice._chdir()
             sage: alice._UI.append("abort")
             sage: alice.merge("#1")
-            Merging the remote branch `u/bob/ticket/1` into the local branch `ticket/2`.
-            There was an error during the merge. Most probably there were conflicts when merging. The following should make it clear which files are affected:
+            Merging the remote branch "u/bob/ticket/1" into the local branch "ticket/2".
+            Automatic merge failed, there are conflicting commits.
+            <BLANKLINE>
             Auto-merging alice2
             CONFLICT (add/add): Merge conflict in alice2
-            Please fix conflicts in the affected files (in a different terminal) and type 'resolved'. Or type 'abort' to abort the merge. [resolved/abort] abort
-            sage: alice._UI.append("resolved")
+            <BLANKLINE>
+            Please edit the affected files to resolve the conflicts. When you are finished,
+            your resolution will be commited.
+            Finished? [ok/Abort] abort
+            sage: alice._UI.append("ok")
             sage: alice.merge("#1")
-            Merging the remote branch `u/bob/ticket/1` into the local branch `ticket/2`.
-            There was an error during the merge. Most probably there were conflicts when merging. The following should make it clear which files are affected:
+            Merging the remote branch "u/bob/ticket/1" into the local branch "ticket/2".
+            Automatic merge failed, there are conflicting commits.
+            <BLANKLINE>
             Auto-merging alice2
             CONFLICT (add/add): Merge conflict in alice2
-            Please fix conflicts in the affected files (in a different terminal) and type 'resolved'. Or type 'abort' to abort the merge. [resolved/abort] resolved
+            <BLANKLINE>
+            Please edit the affected files to resolve the conflicts. When you are finished,
+            your resolution will be commited.
+            Finished? [ok/Abort] ok
+            Created a commit from your conflict resolution.
 
+        We cannot merge a ticket into itself::
+
+            sage: alice.merge(2)
+            cannot merge a ticket into itself
+
+        We also cannot merge if the working directory has uncommited changes::
+
+            sage: alice._UI.append("cancel")
+            sage: with open("alice2","w") as f: f.write("uncommited change")
+            sage: alice.merge(1)
+            The following files in your working directory contain uncommitted changes:
+            <BLANKLINE>
+                 alice2
+            <BLANKLINE>
+            Discard changes? [discard/Cancel/stash] cancel
+            Cannot merge because working directory is not in a clean state.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your changes)
         """
         try:
             self.reset_to_clean_state()
-            self.reset_to_clean_working_directory()
+            self.clean()
         except OperationCancelledError:
             self._UI.error("Cannot merge because working directory is not in a clean state.")
+            self._UI.info(['', '(use "{0}" to commit your changes)'],
+                          self._format_command('commit'))
             raise OperationCancelledError("working directory not clean")
 
         from git_error import DetachedHeadError
         try:
             current_branch = self.git.current_branch()
         except DetachedHeadError:
-            self._UI.error("You are currently not on any branch. Use `{0}` or `{1}` to switch to a branch.".format(self._format_command("switch_branch"), self._format_command("switch_ticket")))
+            self._UI.error('Not on any branch.')
+            self._UI.info(['', '(use "{0}" to checkout a branch)'],
+                           self._format_command("checkout"))
             raise OperationCancelledError("detached head")
 
         current_ticket = self._current_ticket()
@@ -2555,87 +3182,115 @@ class SageDev(object):
         branch = None
         remote_branch = None
 
-        if self._is_ticket_name(ticket_or_branch):
+        if ticket_or_branch == 'dependencies':
+            if current_ticket == None:
+                raise SageDevValueError("dependencies can only be merged if currently on a ticket.")
+            if pull == False:
+                raise SageDevValueError('"pull" must not be "False" when merging dependencies.')
+            if create_dependency != None:
+                raise SageDevValueError('"create_dependency" must not be set when merging dependencies.')
+            for dependency in self._dependencies_for_ticket(current_ticket):
+                self._UI.debug("Merging dependency #{0}.".format(dependency))
+                self.merge(ticket_or_branch=dependency, pull=True)
+            return
+        elif self._is_ticket_name(ticket_or_branch):
             ticket = self._ticket_from_ticket_name(ticket_or_branch)
+            if ticket == current_ticket:
+                raise SageDevValueError("cannot merge a ticket into itself")
             self._check_ticket_name(ticket, exists=True)
-            if download is None:
-                download = True
+            if pull is None:
+                pull = True
             if create_dependency is None:
                 create_dependency = True
             if self._has_local_branch_for_ticket(ticket):
                 branch = self._local_branch_for_ticket(ticket)
-            if download:
+            if pull:
                 remote_branch = self.trac._branch_for_ticket(ticket)
                 if remote_branch is None:
-                    self._UI.error("Can not merge remote branch for #{0}. No branch has been set on the trac ticket.".format(ticket))
+                    self._UI.error("Cannot merge remote branch for #{0} because no branch has"
+                                   " been set on the trac ticket.", ticket)
                     raise OperationCancelledError("remote branch not set on trac")
-        elif self._is_local_branch_name(ticket_or_branch, exists=True):
+        elif pull == False or (pull is None and not
+                               self._is_remote_branch_name(ticket_or_branch, exists=True)):
+            # ticket_or_branch should be interpreted as a local branch name
             branch = ticket_or_branch
-            if download is None:
-                download = False
-            if self._has_ticket_for_local_branch(branch):
-                ticket = self._ticket_for_local_branch(branch)
-                if create_dependency is None:
-                    create_dependency = False
-            else:
-                if create_dependency:
-                    raise SageDevValueError("Can not create a dependency to `{0}` because it is not associated to a ticket.".format(branch))
-                create_dependency = False
-            remote_branch = self._remote_branch_for_branch(branch)
-        else:
-            remote_branch = ticket_or_branch
-            if download is None:
-                download = True
-            if download == False:
-                raise SageDevValueError("download must be `True` for a remote branch")
-            if create_dependency is None:
-                create_dependency = False
+            self._check_local_branch_name(branch, exists=True)
+            pull = False
             if create_dependency == True:
-                raise SageDevValueError("Can not create a dependency to the remote branch `{0}`.".format(remote_branch))
+                if self._has_ticket_for_local_branch(branch):
+                    ticket = self._ticket_for_local_branch(branch)
+                else:
+                    raise SageDevValueError('"create_dependency" must not be "True" if'
+                                            ' "ticket_or_branch" is a local branch which'
+                                            ' is not associated to a ticket.')
+            else:
+                create_dependency = False
+        else:
+            # ticket_or_branch should be interpreted as a remote branch name
+            remote_branch = ticket_or_branch
+            self._check_remote_branch_name(remote_branch, exists=True)
+            pull = True
+            if create_dependency == True:
+                raise SageDevValueError('"create_dependency" must not be "True" if'
+                                        ' "ticket_or_branch" is a local branch.')
+            create_dependency = False
 
-        local_merge_branch = branch
-
-        if download:
+        if pull:
             assert remote_branch
             if not self._is_remote_branch_name(remote_branch, exists=True):
-                self._UI.error("Can not merge remote branch `{0}`. It does not exist.".format(remote_branch))
+                self._UI.error('Can not merge remote branch "{0}". It does not exist.',
+                               remote_branch)
                 raise OperationCancelledError("no such branch")
-            self._UI.show("Merging the remote branch `{0}` into the local branch `{1}`.".format(remote_branch, current_branch))
-            self.git.super_silent.fetch(self.git._repository, remote_branch)
+            self._UI.show('Merging the remote branch "{0}" into the local branch "{1}".',
+                          remote_branch, current_branch)
+            self.git.super_silent.fetch(self.git._repository_anonymous, remote_branch)
             local_merge_branch = 'FETCH_HEAD'
         else:
             assert branch
-            self._UI.show("Merging the local branch `{0}` into the local branch `{1}`.".format(branch, current_branch))
+            self._UI.show('Merging the local branch "{0}" into the local branch "{1}".',
+                          branch, current_branch)
+            local_merge_branch = branch
 
         from git_error import GitError
         try:
             self.git.super_silent.merge(local_merge_branch)
+            self._UI.show('Automatic merge successful.')
+            self._UI.info(['', '(use "{0}" to commit your merge)'],
+                          self._format_command('commit'))
         except GitError as e:
             try:
+                self._UI.show('Automatic merge failed, there are conflicting commits.')
+                excluded = ['Aborting',
+                    "Automatic merge failed; fix conflicts and then commit the result."]
                 lines = e.stdout.splitlines() + e.stderr.splitlines()
-                lines = [line for line in lines if line != "Automatic merge failed; fix conflicts and then commit the result."]
-                lines.insert(0, "There was an error during the merge. Most probably there were conflicts when merging. The following should make it clear which files are affected:")
-                lines.append("Please fix conflicts in the affected files (in a different terminal) and type 'resolved'. Or type 'abort' to abort the merge.")
-                if self._UI.select("\n".join(lines),['resolved','abort']) == 'resolved':
+                lines = [line for line in lines if line not in excluded]
+                self._UI.show([''] + lines + [''])
+                self._UI.show('Please edit the affected files to resolve the conflicts.'
+                              ' When you are finished, your resolution will be commited.')
+                sel = self._UI.select("Finished?", ['ok', 'abort'], default=1)
+                if sel == 'ok':
                     self.git.silent.commit(a=True, no_edit=True)
-                    self._UI.info("Created a commit from your conflict resolution.")
-                else:
+                    self._UI.show("Created a commit from your conflict resolution.")
+                elif sel == 'abort':
                     raise OperationCancelledError("user requested")
+                else:
+                    assert False
             except Exception as e:
                 self.git.reset_to_clean_state()
-                self.git.reset_to_clean_working_directory()
+                self.git.clean_wrapper()
                 raise
 
         if create_dependency:
             assert ticket and current_ticket
             dependencies = list(self._dependencies_for_ticket(current_ticket))
             if ticket in dependencies:
-                self._UI.info("Not recording dependency on #{0} because #{1} already depends on #{0}.".format(ticket, current_ticket))
+                self._UI.debug("Not recording dependency on #{0} because #{1} already depends on #{0}.",
+                               ticket, current_ticket)
             else:
-                self._UI.show("Added dependency on #{0} to #{1}.".format(ticket, current_ticket))
+                self._UI.show(['', "Added dependency on #{0} to #{1}."], ticket, current_ticket)
                 self._set_dependencies_for_ticket(current_ticket, dependencies+[ticket])
 
-    def local_tickets(self, include_abandoned=False):
+    def tickets(self, include_abandoned=False, cached=True):
         r"""
         Print the tickets currently being worked on in your local
         repository.
@@ -2649,14 +3304,19 @@ class SageDev(object):
         - ``include_abandoned`` -- boolean (default: ``False``), whether to
           include abandoned branches.
 
+        - ``cached`` -- boolean (default: ``True``), whether to try to pull the
+          summaries from the ticket cache; if ``True``, then the summaries
+          might not be accurate if they changed since they were last updated.
+          To update the summaries, set this to ``False``.
+
         .. SEEALSO::
 
-        - :meth:`abandon_ticket` -- hide tickets from this method.
+            - :meth:`abandon_ticket` -- hide tickets from this method.
 
-        - :meth:`remote_status` -- also show status compared to the
-          trac server.
+            - :meth:`remote_status` -- also show status compared to
+              the trac server.
 
-        - :meth:`current_ticket` -- get the current ticket.
+            - :meth:`current_ticket` -- get the current ticket.
 
         TESTS:
 
@@ -2667,41 +3327,79 @@ class SageDev(object):
 
         Create some tickets::
 
-            sage: dev.local_tickets()
-            : master
+            sage: dev.tickets()
+            * : master
 
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
+            sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
+            Created ticket #2 at https://trac.sagemath.org/2.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=2" to create a new local branch)
             2
-            sage: dev.local_tickets()
-              : master
-            #1: ticket/1
-            #2: ticket/2
-
+            sage: dev.checkout(ticket=2)
+            On ticket #2 with associated local branch "ticket/2".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: dev.tickets()
+                : master
+              #1: ticket/1 summary
+            * #2: ticket/2 summary
         """
         branches = self.git.local_branches()
+        from git_error import DetachedHeadError
+        try:
+            current_branch = self.git.current_branch()
+        except DetachedHeadError:
+            current_branch = None
         branches = [ branch for branch in branches if include_abandoned or not self._is_trash_name(branch) ]
         if not branches:
             return
-        branches = [ "{0:>7}: {1}".format("#"+str(self._ticket_for_local_branch(branch)) if self._has_ticket_for_local_branch(branch) else "", branch) for branch in branches ]
-        while all([branch.startswith(' ') for branch in branches]):
-            branches = [branch[1:] for branch in branches]
-        branches = sorted(branches)
-        self._UI.show("\n".join(branches))
+        ret = []
+        for branch in branches:
+            ticket = None
+            ticket_summary = ""
+            extra = " "
+            if self._has_ticket_for_local_branch(branch):
+                ticket = self._ticket_for_local_branch(branch)
+                try:
+                    try:
+                        ticket_summary = self.trac._get_attributes(ticket, cached=cached)['summary']
+                    except KeyError:
+                        ticket_summary = self.trac._get_attributes(ticket, cached=False)['summary']
+                except TracConnectionError:
+                    ticket_summary = ""
+            if current_branch == branch:
+                extra = "*"
+            ticket_str = "#"+str(ticket) if ticket else ""
+            ret.append(("{0:>7}: {1} {2}".format(ticket_str, branch, ticket_summary), extra))
+        while all([info.startswith(' ') for (info, extra) in ret]):
+            ret = [(info[1:],extra) for (info, extra) in ret]
+        ret = sorted(ret)
+        ret = ["{0} {1}".format(extra,info) for (info,extra) in ret]
+        self._UI.show("\n".join(ret))
 
-    def vanilla(self, release=SAGE_VERSION):
+    def vanilla(self, release=MASTER_BRANCH):
         r"""
-        Returns to an official release of Sage.
+        Return to a clean version of Sage.
 
         INPUT:
 
-        - ``release`` -- a string or decimal giving the release name.
-          In fact, any tag, commit or branch will work.  If the tag
-          does not exist locally an attempt to fetch it from the
-          server will be made.
+        - ``release`` -- a string or decimal giving the release name (default:
+          ``'master'``).  In fact, any tag, commit or branch will work.  If the
+          tag does not exist locally an attempt to fetch it from the server
+          will be made.
 
         Git equivalent::
 
@@ -2709,11 +3407,11 @@ class SageDev(object):
 
         .. SEEALSO::
 
-        - :meth:`switch_ticket` -- switch to another branch, ready to
-          develop on it.
+            - :meth:`checkout` -- checkout another branch, ready to
+              develop on it.
 
-        - :meth:`download` -- download a branch from the server and
-          merge it.
+            - :meth:`pull` -- pull a branch from the server and merge
+              it.
 
         TESTS:
 
@@ -2731,16 +3429,16 @@ class SageDev(object):
             Traceback (most recent call last):
             ...
             DetachedHeadError: unexpectedly, git is in a detached HEAD state
-
         """
         if hasattr(release, 'literal'):
             release = release.literal
+        release = str(release)
 
         try:
             self.reset_to_clean_state()
-            self.reset_to_clean_working_directory()
+            self.clean()
         except OperationCancelledError:
-            self._UI.error("Cannot switch to a release while your working directory is not clean.")
+            self._UI.error("Cannot checkout a release while your working directory is not clean.")
             raise OperationCancelledError("working directory not clean")
 
         # we do not do any checking on the argument here, trying to be liberal
@@ -2749,11 +3447,10 @@ class SageDev(object):
             self.git.super_silent.checkout(release, detach=True)
         except GitError as e:
             try:
-                self.git.super_silent.fetch(self.git._repository, release)
+                self.git.super_silent.fetch(self.git._repository_anonymous, release)
             except GitError as e:
-                self._UI.error("`{0}` does not exist locally or on the remote server.".format(release))
+                self._UI.error('"{0}" does not exist locally or on the remote server.'.format(release))
                 raise OperationCancelledError("no such tag/branch/...")
-
             self.git.super_silent.checkout('FETCH_HEAD', detach=True)
 
     def diff(self, base='commit'):
@@ -2769,10 +3466,11 @@ class SageDev(object):
 
         .. SEEALSO::
 
-        - :meth:`commit` -- record changes into the repository.
+            - :meth:`commit` -- record changes into the repository.
 
-        - :meth:`local_tickets` -- list local tickets (you may want to commit
-          your changes to a branch other than the current one).
+            - :meth:`tickets` -- list local tickets (you may
+              want to commit your changes to a branch other than the
+              current one).
 
         TESTS:
 
@@ -2785,55 +3483,107 @@ class SageDev(object):
 
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
+            sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: UI.append("y")
-            sage: dev.upload()
-            The branch `u/doctest/ticket/1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            sage: dev.push()
+            The branch "u/doctest/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
+            Created ticket #2 at https://trac.sagemath.org/2.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=2" to create a new local branch)
             2
+            sage: dev.checkout(ticket=2)
+            On ticket #2 with associated local branch "ticket/2".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: UI.append("y")
-            sage: dev.upload()
-            The branch `u/doctest/ticket/2` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            sage: dev.push()
+            The branch "u/doctest/ticket/2" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
+            Created ticket #3 at https://trac.sagemath.org/3.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=3" to create a new local branch)
             3
+            sage: dev.checkout(ticket=3)
+            On ticket #3 with associated local branch "ticket/3".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: UI.append("y")
-            sage: dev.upload()
-            The branch `u/doctest/ticket/3` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            sage: dev.push()
+            The branch "u/doctest/ticket/3" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
             sage: dev.merge("#1")
-            Merging the remote branch `u/doctest/ticket/1` into the local branch `ticket/3`.
+            Merging the remote branch "u/doctest/ticket/1" into the local branch "ticket/3".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
+            <BLANKLINE>
             Added dependency on #1 to #3.
             sage: dev.merge("#2")
-            Merging the remote branch `u/doctest/ticket/2` into the local branch `ticket/3`.
+            Merging the remote branch "u/doctest/ticket/2" into the local branch "ticket/3".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
+            <BLANKLINE>
             Added dependency on #2 to #3.
 
         Make some non-conflicting changes on the tickets::
 
-            sage: dev.switch_ticket("#1")
+            sage: dev.checkout(ticket="#1")
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: with open("ticket1","w") as f: f.write("ticket1")
             sage: dev.git.silent.add("ticket1")
             sage: dev.git.super_silent.commit(message="added ticket1")
 
-            sage: dev.switch_ticket("#2")
+            sage: dev.checkout(ticket="#2")
+            On ticket #2 with associated local branch "ticket/2".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: with open("ticket2","w") as f: f.write("ticket2")
             sage: dev.git.silent.add("ticket2")
             sage: dev.git.super_silent.commit(message="added ticket2")
             sage: UI.append("y")
-            sage: dev.upload()
-            I will now upload the following new commits to the remote branch `u/doctest/ticket/2`:
-            ...: added ticket2
-            Is this what you want? [Yes/no] y
+            sage: dev.push()
+            Local commits that are not on the remote branch "u/doctest/ticket/2":
+            <BLANKLINE>
+                ...: added ticket2
+            <BLANKLINE>
+            Push to remote branch? [Yes/no] y
 
-            sage: dev.switch_ticket("#3")
+            sage: dev.checkout(ticket="#3")
+            On ticket #3 with associated local branch "ticket/3".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: open("ticket3","w").close()
             sage: dev.git.silent.add("ticket3")
             sage: dev.git.super_silent.commit(message="added ticket3")
             sage: UI.append("y")
-            sage: dev.upload()
-            I will now upload the following new commits to the remote branch `u/doctest/ticket/3`:
-            ...: added ticket3
-            Is this what you want? [Yes/no] y
+            sage: dev.push()
+            Local commits that are not on the remote branch "u/doctest/ticket/3":
+            <BLANKLINE>
+                ...: added ticket3
+            <BLANKLINE>
+            Push to remote branch? [Yes/no] y
+            Uploading your dependencies for ticket #3: "" => "#1, #2"
 
         A diff against the previous commit::
 
@@ -2852,13 +3602,23 @@ class SageDev(object):
             diff --git a/ticket3 b/ticket3
             new file mode ...
             index ...
-            sage: dev.switch_ticket("#1")
+            sage: dev.checkout(ticket="#1")
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: UI.append("y")
-            sage: dev.upload()
-            I will now upload the following new commits to the remote branch `u/doctest/ticket/1`:
-            ...: added ticket1
-            Is this what you want? [Yes/no] y
-            sage: dev.switch_ticket("#3")
+            sage: dev.push()
+            Local commits that are not on the remote branch "u/doctest/ticket/1":
+            <BLANKLINE>
+                ...: added ticket1
+            <BLANKLINE>
+            Push to remote branch? [Yes/no] y
+            sage: dev.checkout(ticket="#3")
+            On ticket #3 with associated local branch "ticket/3".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev.diff("#1")
             diff --git a/ticket1 b/ticket1
             deleted file mode ...
@@ -2870,8 +3630,14 @@ class SageDev(object):
         A diff against the dependencies::
 
             sage: dev.diff("dependencies")
-            Dependency #1 has not been merged into `ticket/3` (at least not its latest version). Use `...` to merge it.
-            Dependency #2 has not been merged into `ticket/3` (at least not its latest version). Use `...` to merge it.
+            Dependency #1 has not been merged into "ticket/3" (at least not its latest
+            version).
+            #  (use "sage --dev merge --ticket=1" to merge it)
+            <BLANKLINE>
+            Dependency #2 has not been merged into "ticket/3" (at least not its latest
+            version).
+            #  (use "sage --dev merge --ticket=2" to merge it)
+            <BLANKLINE>
             diff --git a/ticket1 b/ticket1
             deleted file mode ...
             index ...
@@ -2882,9 +3648,15 @@ class SageDev(object):
             new file mode ...
             index ...
             sage: dev.merge("#1")
-            Merging the remote branch `u/doctest/ticket/1` into the local branch `ticket/3`.
+            Merging the remote branch "u/doctest/ticket/1" into the local branch "ticket/3".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
             sage: dev.merge("#2")
-            Merging the remote branch `u/doctest/ticket/2` into the local branch `ticket/3`.
+            Merging the remote branch "u/doctest/ticket/2" into the local branch "ticket/3".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
             sage: dev.diff("dependencies")
             diff --git a/ticket3 b/ticket3
             new file mode ...
@@ -2892,65 +3664,93 @@ class SageDev(object):
 
         This does not work if the dependencies do not merge::
 
-            sage: dev.switch_ticket("#1")
+            sage: dev.checkout(ticket="#1")
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: with open("ticket2","w") as f: f.write("foo")
             sage: dev.git.silent.add("ticket2")
             sage: dev.git.super_silent.commit(message="added ticket2")
             sage: UI.append("y")
-            sage: dev.upload()
-            I will now upload the following new commits to the remote branch `u/doctest/ticket/1`:
-            ...: added ticket2
-            Is this what you want? [Yes/no] y
+            sage: dev.push()
+            Local commits that are not on the remote branch "u/doctest/ticket/1":
+            <BLANKLINE>
+                ...: added ticket2
+            <BLANKLINE>
+            Push to remote branch? [Yes/no] y
 
-            sage: dev.switch_ticket("#3")
+            sage: dev.checkout(ticket="#3")
+            On ticket #3 with associated local branch "ticket/3".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev.diff("dependencies")
-            Dependency #1 has not been merged into `ticket/3` (at least not its latest version). Use `sage --dev merge --ticket=1` to merge it.
-            #2 does not merge cleanly with the other dependencies. Your diff could not be computed.
-
+            Dependency #1 has not been merged into "ticket/3" (at least not its latest
+            version).
+            #  (use "sage --dev merge --ticket=1" to merge it)
+            <BLANKLINE>
+            Dependency #2 does not merge cleanly with the other dependencies. Your diff
+            could not be computed.
         """
         if base == "dependencies":
             current_ticket = self._current_ticket()
             if current_ticket is None:
                 raise SageDevValueError("'dependencies' are only supported if currently on a ticket.")
-
             try:
                 self.reset_to_clean_state()
-                self.reset_to_clean_working_directory()
+                self.clean()
             except OperationCancelledError:
                 self._UI.error("Cannot create merge of dependencies because working directory is not clean.")
                 raise
 
+            self._is_master_uptodate(action_if_not="warning")
+
             branch = self.git.current_branch()
+            merge_base = self.git.merge_base(branch, MASTER_BRANCH).splitlines()[0]
             temporary_branch = self._new_local_branch_for_trash("diff")
-            self.git.super_silent.branch(temporary_branch, MASTER_BRANCH)
+            self.git.super_silent.branch(temporary_branch, merge_base)
             try:
                 self.git.super_silent.checkout(temporary_branch)
                 try:
-                    self._UI.info("Merging dependencies of #{0}.".format(current_ticket))
+                    self._UI.debug("Merging dependencies of #{0}.".format(current_ticket))
                     for dependency in self._dependencies_for_ticket(current_ticket):
                         self._check_ticket_name(dependency, exists=True)
                         remote_branch = self.trac._branch_for_ticket(dependency)
                         if remote_branch is None:
-                            raise SageDevValueError("Dependency #{0} has no branch field set.".format(dependency))
+                            self._UI.warning("Dependency #{0} has no branch field set.".format(dependency))
                         self._check_remote_branch_name(remote_branch, exists=True)
-                        self.git.super_silent.fetch(self.git._repository, remote_branch)
-                        if self.git.is_child_of(MASTER_BRANCH, 'FETCH_HEAD'):
-                            self._UI.info("Dependency #{0} has already been merged into the master branch.".format(dependency))
+                        self.git.super_silent.fetch(self.git._repository_anonymous, remote_branch)
+                        merge_base_dependency = self.git.merge_base(MASTER_BRANCH, 'FETCH_HEAD').splitlines()[0]
+                        if merge_base_dependency != merge_base and \
+                           self.git.is_child_of(merge_base_dependency, merge_base):
+                            self._UI.warning('The remote branch "{0}" is based on a later version of sage'
+                                             ' compared to the local branch "{1}". The diff might therefore'
+                                             ' contain unrelated changes.')
+                            self._UI.info(['Use "{2}" to merge latest version of Sage into your branch.', ''],
+                                          remote_branch, branch, self._format_command("merge"))
+                        if self.git.is_child_of(merge_base, 'FETCH_HEAD'):
+                            self._UI.debug('Dependency #{0} has already been merged into the master'
+                                           ' branch of your version of sage.', dependency)
                         else:
                             if not self.git.is_child_of(branch, 'FETCH_HEAD'):
-                                self._UI.warning("Dependency #{0} has not been merged into `{1}` (at least not its latest version). Use `{2}` to merge it.".format(dependency, branch, self._format_command("merge",ticket_or_branch="{0}".format(dependency))))
+                                self._UI.warning('Dependency #{0} has not been merged into "{1}" (at'
+                                                 ' least not its latest version).', dependency, branch)
+                                self._UI.info(['(use "{0}" to merge it)', ''],
+                                              self._format_command("merge", ticket_or_branch=str(dependency)))
                             from git_error import GitError
                             try:
                                 self.git.super_silent.merge('FETCH_HEAD')
                             except GitError as e:
-                                self._UI.error("#{0} does not merge cleanly with the other dependencies. Your diff could not be computed.".format(dependency))
+                                self._UI.error("Dependency #{0} does not merge cleanly with the other"
+                                               " dependencies. Your diff could not be computed.", dependency)
                                 raise OperationCancelledError("merge failed")
 
                     self.git.echo.diff("{0}..{1}".format(temporary_branch, branch))
                     return
                 finally:
                     self.git.reset_to_clean_state()
-                    self.git.reset_to_clean_working_directory()
+                    self.git.clean_wrapper()
                     self.git.super_silent.checkout(branch)
             finally:
                 self.git.super_silent.branch("-D", temporary_branch)
@@ -2969,7 +3769,8 @@ class SageDev(object):
                 pass
             else:
                 self._check_remote_branch_name(base, exists=True)
-                self.git.super_silent.fetch(self.git._repository, base)
+                self._is_master_uptodate(action_if_not="warning")
+                self.git.super_silent.fetch(self.git._repository_anonymous, base)
                 base = 'FETCH_HEAD'
 
         self.git.echo.diff(base)
@@ -2992,23 +3793,23 @@ class SageDev(object):
         .. NOTE::
 
             Ticket dependencies are stored locally and only updated with
-            respect to the remote server during :meth:`upload` and
-            :meth:`download`.
+            respect to the remote server during :meth:`push` and
+            :meth:`pull`.
 
         .. SEEALSO::
 
-        - :meth:`TracInterface.dependencies` -- Query Trac to find
-          dependencies.
+            - :meth:`TracInterface.dependencies` -- Query Trac to find
+              dependencies.
 
-        - :meth:`remote_status` -- will show the status of tickets
-          with respect to the remote server.
+            - :meth:`remote_status` -- will show the status of tickets
+              with respect to the remote server.
 
-        - :meth:`merge` -- Merge in changes from a dependency.
+            - :meth:`merge` -- Merge in changes from a dependency.
 
-        - :meth:`diff` -- Show the changes in this branch over the
-          dependencies.
+            - :meth:`diff` -- Show the changes in this branch over the
+              dependencies.
 
-        TESTS::
+        TESTS:
 
         Create a doctest setup with a single user::
 
@@ -3019,35 +3820,95 @@ class SageDev(object):
 
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
+            sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
+            Created ticket #2 at https://trac.sagemath.org/2.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=2" to create a new local branch)
             2
+            sage: dev.checkout(ticket=2)
+            On ticket #2 with associated local branch "ticket/2".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
+            Created ticket #3 at https://trac.sagemath.org/3.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=3" to create a new local branch)
             3
+            sage: dev.checkout(ticket=3)
+            On ticket #3 with associated local branch "ticket/3".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
+            Created ticket #4 at https://trac.sagemath.org/4.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=4" to create a new local branch)
             4
+            sage: dev.checkout(ticket=4)
+            On ticket #4 with associated local branch "ticket/4".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
             sage: dev.merge('ticket/2',create_dependency=True)
-            Merging the local branch `ticket/2` into the local branch `ticket/4`.
+            Merging the local branch "ticket/2" into the local branch "ticket/4".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
+            <BLANKLINE>
             Added dependency on #2 to #4.
             sage: dev.merge('ticket/3',create_dependency=True)
-            Merging the local branch `ticket/3` into the local branch `ticket/4`.
+            Merging the local branch "ticket/3" into the local branch "ticket/4".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
+            <BLANKLINE>
             Added dependency on #3 to #4.
-            sage: dev.switch_ticket('#2')
+            sage: dev.checkout(ticket='#2')
+            On ticket #2 with associated local branch "ticket/2".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev.merge('ticket/1', create_dependency=True)
-            Merging the local branch `ticket/1` into the local branch `ticket/2`.
+            Merging the local branch "ticket/1" into the local branch "ticket/2".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
+            <BLANKLINE>
             Added dependency on #1 to #2.
-            sage: dev.switch_ticket('#3')
+            sage: dev.checkout(ticket='#3')
+            On ticket #3 with associated local branch "ticket/3".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev.merge('ticket/1', create_dependency=True)
-            Merging the local branch `ticket/1` into the local branch `ticket/3`.
+            Merging the local branch "ticket/1" into the local branch "ticket/3".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
+            <BLANKLINE>
             Added dependency on #1 to #3.
 
         Check that the dependencies show correctly::
 
-            sage: dev.switch_ticket('#4')
+            sage: dev.checkout(ticket='#4')
+            On ticket #4 with associated local branch "ticket/4".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev.show_dependencies()
             Ticket #4 depends on #2, #3.
             sage: dev.show_dependencies('#4')
@@ -3060,7 +3921,6 @@ class SageDev(object):
             Ticket #1 has no dependencies.
             sage: dev.show_dependencies('#4', all=True)
             Ticket #4 depends on #3, #1, #2.
-
         """
         if ticket is None:
             ticket = self._current_ticket()
@@ -3072,7 +3932,7 @@ class SageDev(object):
         ticket = self._ticket_from_ticket_name(ticket)
 
         if not self._has_local_branch_for_ticket(ticket):
-            raise SageDevValueError("ticket must be a ticket with a local branch. Use `{0}` to download the ticket first.".format(self._format_command("switch_ticket",ticket=ticket)))
+            raise SageDevValueError('ticket must be a ticket with a local branch. Use "{0}" to checkout the ticket first.'.format(self._format_command("checkout",ticket=ticket)))
 
         branch = self._local_branch_for_ticket(ticket)
         if all:
@@ -3098,587 +3958,6 @@ class SageDev(object):
         else:
             self._UI.show("Ticket #{0} has no dependencies.".format(ticket))
 
-    def _detect_patch_diff_format(self, lines):
-        r"""
-        Determine the format of the ``diff`` lines in ``lines``.
-
-        INPUT:
-
-        - ``lines`` -- a list of strings
-
-        OUTPUT:
-
-        Either ``git`` (for ``diff --git`` lines) or ``hg`` (for ``diff -r`` lines).
-
-        .. NOTE::
-
-            Most Sage developpers have configured mercurial to export
-            patches in git format.
-
-        TESTS::
-
-            sage: dev = dev._sagedev
-            sage: dev._detect_patch_diff_format(
-            ....:     ["diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py"])
-            'hg'
-            sage: dev._detect_patch_diff_format(
-            ....:     ["diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi"])
-            'git'
-
-            sage: import os.path
-            sage: from sage.env import SAGE_SRC
-            sage: dev._detect_patch_diff_format(
-            ....:     open(os.path.join(
-            ....:             SAGE_SRC,"sage","dev","test","data","trac_8703-trees-fh.patch"
-            ....:         )).read().splitlines())
-            'git'
-            sage: dev._detect_patch_diff_format(
-            ....:     open(os.path.join(
-            ....:             SAGE_SRC,"sage","dev","test","data","diff.patch"
-            ....:         )).read().splitlines())
-            'hg'
-
-            sage: dev._detect_patch_diff_format(["# HG changeset patch"])
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Failed to detect diff format.
-            sage: dev._detect_patch_diff_format(
-            ... ["diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py",
-            ...  "diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi"])
-            Traceback (most recent call last):
-            ...
-            SageDevValueError: File appears to have mixed diff formats.
-
-        """
-        format = None
-        regexs = { "hg" : HG_DIFF_REGEX, "git" : GIT_DIFF_REGEX }
-
-        for line in lines:
-            for name,regex in regexs.items():
-                if regex.match(line):
-                    if format is None:
-                        format = name
-                    if format != name:
-                        raise SageDevValueError("File appears to have mixed diff formats.")
-
-        if format is None:
-            raise NotImplementedError("Failed to detect diff format.")
-        else:
-            return format
-
-    def _detect_patch_path_format(self, lines, diff_format = None):
-        r"""
-        Determine the format of the paths in the patch given in ``lines``.
-
-        INPUT:
-
-        - ``lines`` -- a list (or iterable) of strings
-
-        - ``diff_format`` -- ``'hg'``,``'git'``, or ``None`` (default:
-          ``None``), the format of the ``diff`` lines in the patch. If
-          ``None``, the format will be determined by
-          :meth:`_detect_patch_diff_format`.
-
-        OUTPUT:
-
-        A string, ``'new'`` (new repository layout) or ``'old'`` (old
-        repository layout).
-
-        EXAMPLES::
-
-            sage: dev._wrap("_detect_patch_path_format")
-            sage: dev._detect_patch_path_format(
-            ....:     ["diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py"])
-            'old'
-            sage: dev._detect_patch_path_format(
-            ....:     ["diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py"],
-            ....:     diff_format="git")
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Failed to detect path format.
-            sage: dev._detect_patch_path_format(
-            ....:     ["diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi"])
-            'old'
-            sage: dev._detect_patch_path_format(
-            ....:     ["diff --git a/src/sage/rings/padics/FM_template.pxi b/src/sage/rings/padics/FM_template.pxi"])
-            'new'
-            sage: dev._detect_patch_path_format(
-            ....:     ["rename to sage/rings/number_field/totallyreal.pyx"], diff_format='hg')
-            'old'
-            sage: dev._detect_patch_path_format(
-            ....:     ["rename from src/sage/rings/number_field/totalyreal.pyx"], diff_format='git')
-            'new'
-
-            sage: import os.path
-            sage: from sage.env import SAGE_SRC
-            sage: dev._detect_patch_path_format(
-            ....:     open(os.path.join(
-            ....:             SAGE_SRC,"sage","dev","test","data","trac_8703-trees-fh.patch"
-            ....:         )).read().splitlines())
-            'old'
-
-        """
-        lines = list(lines)
-        if diff_format is None:
-            diff_format = self._detect_patch_diff_format(lines)
-
-        path_format = None
-
-        if diff_format == "git":
-            diff_regexs = (GIT_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX)
-        elif diff_format == "hg":
-            diff_regexs = (HG_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX)
-        else:
-            raise NotImplementedError(diff_format)
-
-        regexs = { "old" : HG_PATH_REGEX, "new" : GIT_PATH_REGEX }
-
-        for line in lines:
-            for regex in diff_regexs:
-                match = regex.match(line)
-                if match:
-                    for group in match.groups():
-                        for name, regex in regexs.items():
-                            if regex.match(group):
-                                if path_format is None:
-                                    path_format = name
-                                if path_format != name:
-                                    raise SageDevValueError("File appears to have mixed path formats.")
-
-        if path_format is None:
-            raise NotImplementedError("Failed to detect path format.")
-        else:
-           return path_format
-
-    def _rewrite_patch_diff_paths(self, lines, to_format, from_format=None, diff_format=None):
-        r"""
-        Rewrite the ``diff`` lines in ``lines`` to use ``to_format``.
-
-        INPUT:
-
-        - ``lines`` -- a list or iterable of strings
-
-        - ``to_format`` -- ``'old'`` or ``'new'``
-
-        - ``from_format`` -- ``'old'``, ``'new'``, or ``None`` (default:
-          ``None``), the current formatting of the paths; detected
-          automatically if ``None``
-
-        - ``diff_format`` -- ``'git'``, ``'hg'``, or ``None`` (default:
-          ``None``), the format of the ``diff`` lines; detected automatically
-          if ``None``
-
-        OUTPUT:
-
-        A list of string, ``lines`` rewritten to conform to ``lines``.
-
-        EXAMPLES:
-
-        Paths in the old format::
-
-            sage: dev._wrap("_rewrite_patch_diff_paths")
-            sage: dev._rewrite_patch_diff_paths(
-            ....:     ['diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py'],
-            ....:     to_format="old")
-            ['diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py']
-            sage: dev._rewrite_patch_diff_paths(
-            ....:     ['diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi'],
-            ....:     to_format="old")
-            ['diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi']
-            sage: dev._rewrite_patch_diff_paths(
-            ....:     ['--- a/sage/rings/padics/pow_computer_ext.pxd',
-            ....:      '+++ b/sage/rings/padics/pow_computer_ext.pxd'],
-            ....:     to_format="old", diff_format="git")
-            ['--- a/sage/rings/padics/pow_computer_ext.pxd',
-             '+++ b/sage/rings/padics/pow_computer_ext.pxd']
-            sage: dev._rewrite_patch_diff_paths(
-            ....:     ['diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py'],
-            ....:     to_format="new")
-            ['diff -r 1492e39aff50 -r 5803166c5b11 src/sage/schemes/elliptic_curves/ell_rational_field.py']
-            sage: dev._rewrite_patch_diff_paths(
-            ....:     ['diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi'],
-            ....:     to_format="new")
-            ['diff --git a/src/sage/rings/padics/FM_template.pxi b/src/sage/rings/padics/FM_template.pxi']
-            sage: dev._rewrite_patch_diff_paths(
-            ....:     ['--- a/sage/rings/padics/pow_computer_ext.pxd',
-            ....:      '+++ b/sage/rings/padics/pow_computer_ext.pxd'],
-            ....:     to_format="new", diff_format="git")
-            ['--- a/src/sage/rings/padics/pow_computer_ext.pxd',
-             '+++ b/src/sage/rings/padics/pow_computer_ext.pxd']
-
-        Paths in the new format::
-
-            sage: dev._rewrite_patch_diff_paths(
-            ....:     ['diff -r 1492e39aff50 -r 5803166c5b11 src/sage/schemes/elliptic_curves/ell_rational_field.py'],
-            ....:     to_format="old")
-            ['diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py']
-            sage: dev._rewrite_patch_diff_paths(
-            ....:     ['diff --git a/src/sage/rings/padics/FM_template.pxi b/src/sage/rings/padics/FM_template.pxi'],
-            ....:     to_format="old")
-            ['diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi']
-            sage: dev._rewrite_patch_diff_paths(
-            ....:     ['--- a/src/sage/rings/padics/pow_computer_ext.pxd',
-            ....:      '+++ b/src/sage/rings/padics/pow_computer_ext.pxd'],
-            ....:     to_format="old", diff_format="git")
-            ['--- a/sage/rings/padics/pow_computer_ext.pxd',
-             '+++ b/sage/rings/padics/pow_computer_ext.pxd']
-            sage: dev._rewrite_patch_diff_paths(
-            ....:     ['diff -r 1492e39aff50 -r 5803166c5b11 src/sage/schemes/elliptic_curves/ell_rational_field.py'],
-            ....:     to_format="new")
-            ['diff -r 1492e39aff50 -r 5803166c5b11 src/sage/schemes/elliptic_curves/ell_rational_field.py']
-            sage: dev._rewrite_patch_diff_paths(
-            ....:     ['diff --git a/src/sage/rings/padics/FM_template.pxi b/src/sage/rings/padics/FM_template.pxi'],
-            ....:     to_format="new")
-            ['diff --git a/src/sage/rings/padics/FM_template.pxi b/src/sage/rings/padics/FM_template.pxi']
-            sage: dev._rewrite_patch_diff_paths(
-            ....:     ['--- a/src/sage/rings/padics/pow_computer_ext.pxd',
-            ....:      '+++ b/src/sage/rings/padics/pow_computer_ext.pxd'],
-            ....:     to_format="new", diff_format="git")
-            ['--- a/src/sage/rings/padics/pow_computer_ext.pxd',
-             '+++ b/src/sage/rings/padics/pow_computer_ext.pxd']
-
-            sage: dev._rewrite_patch_diff_paths(
-            ....:     ['rename from sage/combinat/crystals/letters.py',
-            ....:      'rename to sage/combinat/crystals/letters.pyx'],
-            ....:     to_format="new", diff_format="hg")
-            ['rename from src/sage/combinat/crystals/letters.py',
-             'rename to src/sage/combinat/crystals/letters.pyx']
-            sage: dev._rewrite_patch_diff_paths(
-            ....:     ['rename from src/sage/combinat/crystals/letters.py',
-            ....:      'rename to src/sage/combinat/crystals/letters.pyx'],
-            ....:     to_format="old", diff_format="git")
-            ['rename from sage/combinat/crystals/letters.py',
-             'rename to sage/combinat/crystals/letters.pyx']
-
-            sage: import os.path
-            sage: from sage.env import SAGE_SRC
-            sage: result = dev._rewrite_patch_diff_paths(
-            ....:     open(os.path.join(
-            ....:             SAGE_SRC,"sage","dev","test","data","trac_8703-trees-fh.patch"
-            ....:         )).read().splitlines(),
-            ....:     to_format="new", diff_format="git")
-            sage: len(result)
-            2980
-            sage: result[0]
-            '#8703: Enumerated sets and data structure for ordered and binary trees'
-            sage: result[12]
-            'diff --git a/src/doc/en/reference/combinat/index.rst b/src/doc/en/reference/combinat/index.rst'
-
-        """
-        lines = list(lines)
-        if diff_format is None:
-            diff_format = self._detect_patch_diff_format(lines)
-
-        if from_format is None:
-            from_format = self._detect_patch_path_format(lines, diff_format=diff_format)
-
-        if to_format == from_format:
-            return lines
-
-        def hg_path_to_git_path(path):
-            if any([path.startswith(p) for p in "module_list.py","setup.py","c_lib/","sage/","doc/"]):
-                return "src/%s"%path
-            else:
-                raise NotImplementedError("mapping hg path `%s`"%path)
-
-        def git_path_to_hg_path(path):
-            if any([path.startswith(p) for p in "src/module_list.py","src/setup.py","src/c_lib/","src/sage/","src/doc/"]):
-                return path[4:]
-            else:
-                raise NotImplementedError("mapping git path `%s`"%path)
-
-        def apply_replacements(lines, diff_regexs, replacement):
-            ret = []
-            for line in lines:
-                for diff_regex in diff_regexs:
-                    m = diff_regex.match(line)
-                    if m:
-                        line = line[:m.start(1)] + ("".join([ line[m.end(i-1):m.start(i)]+replacement(m.group(i)) for i in range(1,m.lastindex+1) ])) + line[m.end(m.lastindex):]
-                ret.append(line)
-            return ret
-
-        diff_regex = None
-        if diff_format == "hg":
-            diff_regex = (HG_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX)
-        elif diff_format == "git":
-            diff_regex = (GIT_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX)
-        else:
-            raise NotImplementedError(diff_format)
-
-        if from_format == "old":
-            return self._rewrite_patch_diff_paths(apply_replacements(lines, diff_regex, hg_path_to_git_path), from_format="new", to_format=to_format, diff_format=diff_format)
-        elif from_format == "new":
-            if to_format == "old":
-                return apply_replacements(lines, diff_regex, git_path_to_hg_path)
-            else:
-                raise NotImplementedError(to_format)
-        else:
-            raise NotImplementedError(from_format)
-
-    def _detect_patch_header_format(self, lines):
-        r"""
-        Detect the format of the patch header in ``lines``.
-
-        INPUT:
-
-        - ``lines`` -- a list (or iterable) of strings
-
-        OUTPUT:
-
-        A string, ``'hg-export'`` (mercurial export header), ``'hg'``
-        (mercurial header), ``'git'`` (git mailbox header), ``'diff'`` (no
-        header)
-
-        EXAMPLES::
-
-            sage: dev._wrap("_detect_patch_header_format")
-            sage: dev._detect_patch_header_format(
-            ... ['# HG changeset patch','# Parent 05fca316b08fe56c8eec85151d9a6dde6f435d46'])
-            'hg'
-            sage: dev._detect_patch_header_format(
-            ... ['# HG changeset patch','# User foo@bar.com'])
-            'hg-export'
-            sage: dev._detect_patch_header_format(
-            ... ['From: foo@bar'])
-            'git'
-
-            sage: import os.path
-            sage: from sage.env import SAGE_SRC
-            sage: dev._detect_patch_header_format(
-            ....:     open(os.path.join(
-            ....:             SAGE_SRC,"sage","dev","test","data","trac_8703-trees-fh.patch"
-            ....:         )).read().splitlines())
-            'diff'
-            sage: dev._detect_patch_header_format(
-            ....:     open(os.path.join(
-            ....:             SAGE_SRC,"sage","dev","test","data","diff.patch"
-            ....:         )).read().splitlines())
-            'diff'
-        """
-        lines = list(lines)
-        if not lines:
-            raise SageDevValueError("patch is empty")
-
-        if HG_HEADER_REGEX.match(lines[0]):
-            if HG_USER_REGEX.match(lines[1]):
-                return "hg-export"
-            elif HG_PARENT_REGEX.match(lines[1]):
-                return "hg"
-        elif GIT_FROM_REGEX.match(lines[0]):
-            return "git"
-
-        return "diff"
-
-    def _detect_patch_modified_files(self, lines, diff_format = None):
-        r"""
-        Return a list of files which are modified by the patch in ``lines``.
-
-        TESTS::
-
-            sage: dev._wrap("_detect_patch_modified_files")
-            sage: import os.path
-            sage: from sage.env import SAGE_SRC
-            sage: dev._detect_patch_modified_files(
-            ....:     open(os.path.join(
-            ....:             SAGE_SRC,"sage","dev","test","data","trac_8703-trees-fh.patch"
-            ....:         )).read().splitlines())
-            ['ordered_tree.py', 'binary_tree.pyx', 'list_clone.pyx', 'permutation.py', 'index.rst', 'abstract_tree.py', 'all.py', 'binary_tree.py']
-
-        """
-        if diff_format is None:
-            diff_format = self._detect_patch_diff_format(lines)
-
-        if diff_format == "hg":
-            regex = HG_DIFF_REGEX
-        elif diff_format == "git":
-            regex = GIT_DIFF_REGEX
-        else:
-            raise NotImplementedError(diff_format)
-
-        ret = set()
-        for line in lines:
-            m = regex.match(line)
-            if m:
-                for group in m.groups():
-                    split = group.split('/')
-                    if split:
-                        ret.add(split[-1])
-        return list(ret)
-
-    def _rewrite_patch_header(self, lines, to_format, from_format = None, diff_format = None):
-        r"""
-        Rewrite ``lines`` to match ``to_format``.
-
-        INPUT:
-
-        - ``lines`` -- a list of strings, the lines of the patch file
-
-        - ``to_format`` -- one of ``'hg'``, ``'hg-export'``, ``'diff'``,
-          ``'git'``, the format of the resulting patch file.
-
-        - ``from_format`` -- one of ``None``, ``'hg'``, ``'hg-export'``, ``'diff'``, ``'git'``
-          (default: ``None``), the format of the patch file.  The format is
-          determined automatically if ``format`` is ``None``.
-
-        OUTPUT:
-
-        A list of lines, in the format specified by ``to_format``.
-
-        Some sample patch files are in data/, in hg and git
-        format. Since the translation is not perfect, the resulting
-        file is also put there for comparison.
-
-        EXAMPLES::
-
-            sage: import os.path
-            sage: from sage.env import SAGE_SRC
-            sage: hg_lines = open(
-            ....:     os.path.join(SAGE_SRC, "sage", "dev", "test", "data", "hg.patch")
-            ....:     ).read().splitlines()
-            sage: hg_output_lines = open(
-            ....:     os.path.join(SAGE_SRC, "sage", "dev", "test", "data", "hg-output.patch")
-            ....:     ).read().splitlines()
-            sage: git_lines = open(
-            ....:     os.path.join(SAGE_SRC, "sage", "dev", "test", "data", "git.patch")
-            ....:     ).read().splitlines()
-            sage: git_output_lines = open(
-            ....:     os.path.join(SAGE_SRC, "sage", "dev", "test", "data", "git-output.patch")
-            ....:     ).read().splitlines()
-
-            sage: dev._wrap("_rewrite_patch_header")
-            sage: dev._rewrite_patch_header(git_lines, 'git') == git_lines
-            True
-            sage: dev._rewrite_patch_header(hg_lines, 'hg-export') == hg_lines
-            True
-
-            sage: dev._rewrite_patch_header(git_lines, 'hg-export') == hg_output_lines
-            True
-            sage: dev._rewrite_patch_header(hg_lines, 'git') == git_output_lines
-            True
-
-            sage: dev._rewrite_patch_header(
-            ....:     open(os.path.join(
-            ....:             SAGE_SRC,"sage","dev","test","data","trac_8703-trees-fh.patch"
-            ....:         )).read().splitlines(), 'git')[:5]
-            ['From: "Unknown User" <unknown@sagemath.org>',
-            'Subject: #8703: Enumerated sets and data structure for ordered and binary trees',
-            'Date: ...',
-            '',
-            '- The Class Abstract[Labelled]Tree allows for inheritance from different']
-        """
-        import email.utils, time
-
-        lines = list(lines)
-        if not lines:
-            raise SageDevValueError("empty patch file")
-
-        if from_format is None:
-            from_format = self._detect_patch_header_format(lines)
-
-        if from_format == to_format:
-            return lines
-
-        def parse_header(lines, regexs, mandatory=False):
-            header = {}
-            i = 0
-            for (key, regex) in regexs:
-                if i > len(lines):
-                    if mandatory:
-                        raise SageDevValueError("Malformed patch. Missing line for regular expression `%s`."%(regex.pattern))
-                    else:
-                        return
-                match = regex.match(lines[i])
-                if match is not None:
-                    if len(match.groups()) > 0:
-                        header[key] = match.groups()[0]
-                    i += 1
-                elif mandatory:
-                    raise SageDevValueError("Malformed patch. Line `%s` does not match regular expression `%s`."%(lines[i],regex.pattern))
-
-            message = []
-            for i in range(i,len(lines)):
-                if lines[i].startswith("diff -"):
-                    break
-                else:
-                    message.append(lines[i])
-
-            header["message"] = message
-            return header, lines[i:]
-
-        if from_format == "git":
-            header, diff = parse_header(lines, (("user", GIT_FROM_REGEX), ("subject", GIT_SUBJECT_REGEX), ("date", GIT_DATE_REGEX)),
-                                        mandatory=True)
-
-            if to_format == "hg-export":
-                ret = []
-                ret.append('# HG changeset patch')
-                ret.append('# User %s'%(header["user"]))
-                import os
-                old_TZ = os.environ.get('TZ')
-                try:
-                    os.environ['TZ'] = 'UTC'
-                    time.tzset()
-                    ret.append('# Date %s 00000'%int(time.mktime(email.utils.parsedate(header["date"])))) # this is not portable
-                finally:
-                    if old_TZ:
-                        os.environ['TZ'] = old_TZ
-                    else:
-                        del os.environ['TZ']
-                    time.tzset()
-                ret.append('# Node ID 0000000000000000000000000000000000000000')
-                ret.append('# Parent  0000000000000000000000000000000000000000')
-                ret.append(header["subject"])
-                ret.extend(header["message"])
-                ret.extend(diff)
-                return ret
-            else:
-                raise NotImplementedError(to_format)
-        elif from_format in ["hg", "diff", "hg-export"]:
-            header, diff = parse_header(lines,
-                                        (("hg_header", HG_HEADER_REGEX),
-                                         ("user", HG_USER_REGEX),
-                                         ("date", HG_DATE_REGEX),
-                                         ("node", HG_NODE_REGEX),
-                                         ("parent", HG_PARENT_REGEX)))
-            user    = header.get("user", '"Unknown User" <unknown@sagemath.org>')
-            date    = email.utils.formatdate(int(header.get("date", time.time())))
-            message = header.get("message", [])
-            if message:
-                subject = message[0]
-                message = message[1:]
-            else:
-                subject = 'No Subject. Modified: %s'%(", ".join(sorted(self._detect_patch_modified_files(lines))))
-            ret = []
-            ret.append('From: %s'%user)
-            ret.append('Subject: %s'%subject)
-            ret.append('Date: %s'%date)
-            ret.append('')
-            if message and message != ['']: # avoid a double empty line
-                ret.extend(message)
-            ret.extend(diff)
-            return self._rewrite_patch_header(ret, to_format=to_format, from_format="git", diff_format=diff_format)
-        else:
-            raise NotImplementedError(from_format)
-
-    def _rewrite_patch(self, lines, to_path_format, to_header_format, from_diff_format=None, from_path_format=None, from_header_format=None):
-        r"""
-        Rewrite the patch in ``lines`` to the path format given in
-        ``to_path_format`` and the header format given in ``to_header_format``.
-
-        TESTS::
-
-            sage: dev._wrap("_rewrite_patch")
-            sage: import os.path
-            sage: from sage.env import SAGE_SRC
-            sage: git_lines = open(
-            ....:     os.path.join(SAGE_SRC, "sage", "dev", "test", "data", "git.patch")
-            ....:     ).read().splitlines()
-            sage: dev._rewrite_patch(git_lines, "old", "git") == git_lines
-            True
-
-        """
-        return self._rewrite_patch_diff_paths(self._rewrite_patch_header(lines, to_format=to_header_format, from_format=from_header_format, diff_format=from_diff_format), to_format=to_path_format, diff_format=from_diff_format, from_format=from_path_format)
-
     def upload_ssh_key(self, public_key=None):
         r"""
         Upload ``public_key`` to gitolite through the trac interface.
@@ -3699,24 +3978,30 @@ class SageDev(object):
         Create and upload a key file::
 
             sage: import os
-            sage: public_key = os.path.join(dev._sagedev.tmp_dir,"id_rsa.pub")
+            sage: public_key = os.path.join(dev._sagedev.tmp_dir, "id_rsa.pub")
             sage: UI.append("no")
             sage: UI.append("yes")
             sage: dev.upload_ssh_key(public_key=public_key)
-            I will now upload your ssh key at `...` to trac. This will enable access to the git repository there. Is this what you want? [Yes/no] yes
-            I could not find a public key at `{0}`. Do you want me to create one for you? [Yes/no] no
+            The trac git server requires your SSH public key to be able to identify you.
+            Upload ".../id_rsa.pub" to trac? [Yes/no] yes
+            File not found: ".../id_rsa.pub"
+            Create new ssh key pair? [Yes/no] no
+            <BLANKLINE>
+            #  Use "sage --dev upload-ssh-key" to upload a public key. Or set your key manually at https://trac.sagemath.org/prefs/sshkeys.
             sage: UI.append("yes")
             sage: UI.append("yes")
             sage: dev.upload_ssh_key(public_key=public_key)
-            I will now upload your ssh key at `...` to trac. This will enable access to the git repository there. Is this what you want? [Yes/no] yes
-            I could not find a public key at `{0}`. Do you want me to create one for you? [Yes/no] yes
+            The trac git server requires your SSH public key to be able to identify you.
+            Upload ".../id_rsa.pub" to trac? [Yes/no] yes
+            File not found: ".../id_rsa.pub"
+            Create new ssh key pair? [Yes/no] yes
             Generating ssh key.
             Your key has been uploaded.
             sage: UI.append("yes")
             sage: dev.upload_ssh_key(public_key=public_key)
-            I will now upload your ssh key at `...` to trac. This will enable access to the git repository there. Is this what you want? [Yes/no] yes
+            The trac git server requires your SSH public key to be able to identify you.
+            Upload ".../id_rsa.pub" to trac? [Yes/no] yes
             Your key has been uploaded.
-
         """
         try:
             import os
@@ -3724,26 +4009,29 @@ class SageDev(object):
                 public_key = os.path.expanduser("~/.ssh/id_dsa.pub")
                 if not os.path.exists(public_key):
                     public_key = os.path.expanduser("~/.ssh/id_rsa.pub")
+            if not public_key.endswith(".pub"):
+                raise SageDevValueError('public key must end with ".pub".')
 
-            if not self._UI.confirm("I will now upload your ssh key at `{0}` to trac. This will enable access to the git repository there. Is this what you want?".format(public_key), default=True):
+            self._UI.show('The trac git server requires your SSH public key'
+                          ' to be able to identify you.')
+            if not self._UI.confirm('Upload "{0}" to trac?'
+                                    .format(public_key), default=True):
                 raise OperationCancelledError("do not upload key")
 
             if not os.path.exists(public_key):
-                if not public_key.endswith(".pub"):
-                    raise SageDevValueError("public key must end with `.pub`.")
-
-                if not self._UI.confirm("I could not find a public key at `{0}`. Do you want me to create one for you?", default=True):
+                self._UI.warning('File not found: "{0}"'.format(public_key))
+                if not self._UI.confirm('Create new ssh key pair?', default=True):
                     raise OperationCancelledError("no keyfile found")
-
                 private_key = public_key[:-4]
                 self._UI.show("Generating ssh key.")
                 from subprocess import call
-                success = call(["ssh-keygen", "-q", "-f", private_key, "-P", ""])
+                success = call(['sage-native-execute', 'ssh-keygen', '-q',
+                                '-f', private_key, '-P', '', '-t', 'rsa'])
                 if success == 0:
-                    self._UI.info("Key generated.")
+                    self._UI.debug("Key generated.")
                 else:
-                    self._UI.error("Key generation failed.")
-                    self._UI.info("Please create a key in `{0}` and retry.".format(public_key))
+                    self._UI.error(["Key generation failed.",
+                                    'Please create a key in "{0}" and retry.'.format(public_key)])
                     raise OperationCancelledError("ssh-keygen failed")
 
             with open(public_key, 'r') as F:
@@ -3751,15 +4039,143 @@ class SageDev(object):
 
             self.trac._authenticated_server_proxy.sshkeys.addkey(public_key)
             self._UI.show("Your key has been uploaded.")
-            self._UI.info("Use `{0}` to upload another key.".format(self._format_command("upload_ssh_key",public_key="keyfile.pub")))
         except OperationCancelledError:
-            from sage.env import TRAC_SERVER_URI
             server = self.config.get('server', TRAC_SERVER_URI)
 
-            import os, urllib, urllib, urlparse
             url = urlparse.urljoin(server, urllib.pathname2url(os.path.join('prefs', 'sshkeys')))
-            self._UI.info("Use `{0}` to upload a public key. Or set your key manually at {1}.".format(self._format_command("upload_ssh_key"), url))
+            self._UI.info(['',
+                           'Use "{0}" to upload a public key. Or set your key manually at {1}.'
+                           .format(self._format_command("upload_ssh_key"), url)])
             raise
+
+    def _upload_ssh_key(self):
+        r"""
+        Make sure that the public ssh key has been uploaded to the trac server.
+
+        .. NOTE::
+
+            This is a wrapper for :meth:`upload_ssh_key` which is only called
+            one the user's first attempt to push to the repository, i.e., on
+            the first attempt to acces ``SAGE_REPO_AUTHENTICATED``.
+
+        TESTS:
+
+        Create a doctest setup with a single user::
+
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+            sage: del dev._sagedev.config['git']['ssh_key_set']
+
+        We need to patch :meth:`upload_ssh_key` to get testable results since
+        it depends on whether the user has an ssh key in ``.ssh/id_rsa.pub``::
+
+            sage: from sage.dev.user_interface_error import OperationCancelledError
+            sage: def upload_ssh_key():
+            ....:     print "Uploading ssh key."
+            ....:     raise OperationCancelledError("")
+            sage: dev._sagedev.upload_ssh_key = upload_ssh_key
+
+        The ssh key is only uploaded once::
+
+            sage: dev._sagedev._upload_ssh_key()
+            Uploading ssh key.
+            sage: dev._sagedev._upload_ssh_key()
+        """
+        if self.config['git'].get('ssh_key_set', False):
+            return
+
+        from user_interface_error import OperationCancelledError
+        try:
+            self.upload_ssh_key()
+        except OperationCancelledError:
+            pass # do not bother the user again, probably the key has been uploaded manually already
+        self.config['git']['ssh_key_set'] = "True"
+
+    def _is_master_uptodate(self, action_if_not=None):
+        r"""
+        Check whether the master branch is up to date with respect to the
+        remote master branch.
+
+        INPUT:
+
+        - ``action_if_not`` -- one of ``'error'``, ``'warning'``, or ``None``
+          (default: ``None``), the action to perform if master is not up to
+          date. If ``'error'``, then this raises a ``SageDevValueError``,
+          otherwise return a boolean and print a warning if ``'warning'``.
+
+        .. NOTE::
+
+            In the transitional period from hg to git, this is a nop. This will
+            change as soon as ``master`` is our actual master branch.
+
+        TESTS:
+
+        Create a doctest setup with a single user::
+
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+            sage: dev._wrap("_is_master_uptodate")
+
+        Initially ``master`` is up to date::
+
+            sage: dev._is_master_uptodate()
+            True
+
+        When the remote ``master`` branches changes, this is not the case
+        anymore::
+
+            sage: server.git.super_silent.commit(allow_empty=True, message="a commit")
+            sage: dev._is_master_uptodate()
+            False
+            sage: dev._is_master_uptodate(action_if_not="warning")
+            Your version of sage, i.e., your "master" branch, is out of date. Your command might fail or produce unexpected results.
+            False
+            sage: dev._is_master_uptodate(action_if_not="error")
+            Your version of sage, i.e., your "master" branch, is out of date.
+
+        We upgrade the local master::
+
+            sage: dev.pull(ticket_or_remote_branch="master")
+            Merging the remote branch "master" into the local branch "master".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
+            sage: dev._is_master_uptodate()
+            True
+            sage: dev._is_master_uptodate(action_if_not="warning")
+            True
+            sage: dev._is_master_uptodate(action_if_not="error")
+            True
+        """
+        remote_master = self._remote_branch_for_branch(MASTER_BRANCH)
+        if remote_master is not None:
+            self.git.fetch(self.git._repository_anonymous, remote_master)
+            # In the transition from hg to git we are using
+            # public/sage-git/master instead of master on the remote end.
+            # This check makes sure that we are not printing any confusing
+            # messages unless master is actually the latest (development)
+            # version of sage.
+            if self.git.is_child_of('FETCH_HEAD', MASTER_BRANCH):
+                if self.git.commit_for_ref('FETCH_HEAD') != self.git.commit_for_branch(MASTER_BRANCH):
+                    msg = ('To upgrade your "{0}" branch to the latest version, use "{1}".',
+                           MASTER_BRANCH, self._format_command("pull", ticket_or_branch=remote_master,
+                                                               branch=MASTER_BRANCH))
+                    if action_if_not is None:
+                        pass
+                    elif action_if_not == "error":
+                        self._UI.debug(*msg)
+                        raise SageDevValueError('Your version of sage, i.e., your "{0}" branch, is out'
+                                                ' of date.', MASTER_BRANCH)
+                    elif action_if_not == "warning":
+                        self._UI.warning('Your version of sage, i.e., your "{0}" branch, is out of date.'
+                                         ' Your command might fail or produce unexpected results.',
+                                         MASTER_BRANCH)
+                        self._UI.debug(*msg)
+                    else:
+                        raise ValueError
+                    return False
+
+        return True
 
     def _is_ticket_name(self, name, exists=False):
         r"""
@@ -3791,17 +4207,14 @@ class SageDev(object):
             False
             sage: dev._is_ticket_name('')
             False
-
         """
         if name is None:
             return False
-
         if not isinstance(name, int):
             try:
                 name = self._ticket_from_ticket_name(name)
             except SageDevValueError:
                 return False
-
         if exists:
             try:
                 self.trac._anonymous_server_proxy.ticket.get(name)
@@ -3814,7 +4227,6 @@ class SageDev(object):
                 # exists; this makes more of the dev scripts usable in offline
                 # scenarios
                 pass
-
         return True
 
     def _check_ticket_name(self, name, exists=False):
@@ -3836,24 +4248,24 @@ class SageDev(object):
             sage: dev._check_ticket_name("1 000")
             Traceback (most recent call last):
             ...
-            SageDevValueError: `1 000` is not a valid ticket name.
+            SageDevValueError: Invalid ticket name "1 000".
             sage: dev._check_ticket_name("#1000")
             sage: dev._check_ticket_name("master")
             Traceback (most recent call last):
             ...
-            SageDevValueError: `master` is not a valid ticket name.
+            SageDevValueError: Invalid ticket name "master".
             sage: dev._check_ticket_name(1000, exists=True) # optional: internet
             sage: dev._check_ticket_name(2^30, exists=True) # optional: internet
             Traceback (most recent call last):
             ...
-            SageDevValueError: `1073741824` is not a valid ticket name or ticket does not exist on trac.
-
+            SageDevValueError: Ticket name "1073741824" is not valid or ticket does not exist on trac.
         """
         if not self._is_ticket_name(name, exists=exists):
             if exists:
-                raise SageDevValueError("`{0}` is not a valid ticket name or ticket does not exist on trac.".format(name))
+                raise SageDevValueError('Ticket name "{0}" is not valid or ticket'
+                                        ' does not exist on trac.', name)
             else:
-                raise SageDevValueError("`{0}` is not a valid ticket name.".format(name))
+                raise SageDevValueError('Invalid ticket name "{0}".', name)
 
     def _ticket_from_ticket_name(self, name):
         r"""
@@ -3876,8 +4288,7 @@ class SageDev(object):
             sage: dev._ticket_from_ticket_name("1 000")
             Traceback (most recent call last):
             ...
-            SageDevValueError: `1 000` is not a valid ticket name.
-
+            SageDevValueError: "1 000" is not a valid ticket name.
         """
         ticket = name
         if not isinstance(ticket, int):
@@ -3886,10 +4297,10 @@ class SageDev(object):
             try:
                 ticket = int(ticket)
             except ValueError:
-                raise SageDevValueError("`{0}` is not a valid ticket name.".format(name))
+                raise SageDevValueError('"{0}" is not a valid ticket name.'.format(name))
 
         if ticket < 0:
-            raise SageDevValueError("`{0}` is not a valid ticket name.".format(name))
+            raise SageDevValueError('"{0}" is not a valid ticket name.'.format(name))
 
         return ticket
 
@@ -3925,7 +4336,6 @@ class SageDev(object):
             True
             sage: dev._is_local_branch_name('ticket/1', exists=False)
             False
-
         """
         if not isinstance(name, str):
             raise ValueError("name must be a string")
@@ -3934,6 +4344,8 @@ class SageDev(object):
             return False
         # branches which could be tickets are calling for trouble - cowardly refuse to accept them
         if self._is_ticket_name(name):
+            return False
+        if name in ["None", "True", "False", "dependencies"]:
             return False
 
         if exists == True:
@@ -3953,7 +4365,7 @@ class SageDev(object):
 
         - ``name`` -- a string
 
-        - ``exists`` - a boolean or ``any`` (default: ``any``), if ``True``,
+        - ``exists`` -- a boolean or ``any`` (default: ``any``), if ``True``,
           check whether ``name`` is the name of an existing branch; if
           ``False``, check whether ``name`` is the name of a branch that does
           not exist yet.
@@ -3974,88 +4386,12 @@ class SageDev(object):
             True
             sage: dev._is_trash_name("trash/1", exists=True)
             False
-
         """
         if not isinstance(name, str):
             raise ValueError("name must be a string")
-
         if not name.startswith("trash/"):
             return False
-
         return self._is_local_branch_name(name, exists)
-
-    def _is_stash_name(self, name, exists=any):
-        r"""
-        Return whether ``name`` is a valid name for a stash.
-
-        INPUT:
-
-        - ``name`` -- a string
-
-        - ``exists`` - a boolean or ``any`` (default: ``any``), if ``True``,
-          check whether ``name`` is the name of an existing stash; if
-          ``False``, check whether ``name`` is the name of a stash that does
-          not exist yet.
-
-        TESTS::
-
-            sage: from sage.dev.test.sagedev import single_user_setup
-            sage: dev, config, UI, server = single_user_setup()
-            sage: dev = dev._sagedev
-
-            sage: dev._is_stash_name("branch1")
-            False
-            sage: dev._is_stash_name("stash")
-            False
-            sage: dev._is_stash_name("stash/")
-            False
-            sage: dev._is_stash_name("stash/1")
-            True
-            sage: dev._is_stash_name("stash/1", exists=True)
-            False
-
-        """
-        if not isinstance(name, str):
-            raise ValueError("name must be a string")
-
-        if not name.startswith("stash/"):
-            return False
-
-        return self._is_local_branch_name(name, exists)
-
-    def _check_stash_name(self, name, exists=any):
-        r"""
-        Check whether ``name`` is a valid name for a stash.
-
-        INPUT:
-
-        - ``name`` -- a string
-
-        - ``exists`` - a boolean or ``any`` (default: ``any``), if ``True``,
-          check whether ``name`` is the name of an existing stash; if
-          ``False``, check whether ``name`` is the name of a stash that does
-          not exist yet.
-
-        TESTS::
-
-            sage: from sage.dev.test.sagedev import single_user_setup
-            sage: dev, config, UI, server = single_user_setup()
-            sage: dev = dev._sagedev
-
-            sage: dev._check_stash_name("stash/1")
-            sage: dev._check_stash_name("stash/1", exists=True)
-            Traceback (most recent call last):
-            ...
-            SageDevValueError: `stash/1` does not exist.
-            sage: dev._check_stash_name("stash/1", exists=False)
-
-        """
-        if not self._is_stash_name(name):
-            raise SageDevValueError("`{0}` is not a valid name for a stash.".format(name))
-        if exists == True and not self._is_stash_name(name, exists):
-            raise SageDevValueError("`{0}` does not exist.".format(name))
-        elif exists == False and not self._is_stash_name(name, exists):
-            raise SageDevValueError("`{0}` already exists, please choose a different name for the stash.")
 
     def _is_remote_branch_name(self, name, exists=any):
         r"""
@@ -4090,7 +4426,6 @@ class SageDev(object):
             False
             sage: dev._is_remote_branch_name('ticket/1', exists=False)
             True
-
         """
         if not isinstance(name, str):
             raise ValueError("name must be a string")
@@ -4106,7 +4441,7 @@ class SageDev(object):
 
         from git_error import GitError
         try:
-            self.git.super_silent.ls_remote(self.git._repository, name, exit_code=True)
+            self.git.super_silent.ls_remote(self.git._repository_anonymous, "refs/heads/"+name, exit_code=True)
             remote_exists = True
         except GitError as e:
             if e.exit_code == 2:
@@ -4137,35 +4472,35 @@ class SageDev(object):
             sage: dev._check_local_branch_name('')
             Traceback (most recent call last):
             ...
-            SageDevValueError: `` is not a valid name for a local branch.
+            SageDevValueError: Invalid branch name "".
             sage: dev._check_local_branch_name('ticket/1')
             sage: dev._check_local_branch_name('ticket/1', exists=True)
             Traceback (most recent call last):
             ...
-            SageDevValueError: Branch `ticket/1` does not exist locally.
+            SageDevValueError: Branch "ticket/1" does not exist locally.
             sage: dev._check_local_branch_name('ticket/1', exists=False)
             sage: dev.git.silent.branch('ticket/1')
             sage: dev._check_local_branch_name('ticket/1', exists=True)
             sage: dev._check_local_branch_name('ticket/1', exists=False)
             Traceback (most recent call last):
             ...
-            SageDevValueError: Branch `ticket/1` already exists, please choose a different name.
-
+            SageDevValueError: Branch "ticket/1" already exists, use a different name.
         """
         try:
             if not self._is_local_branch_name(name, exists=any):
                 raise SageDevValueError("caught below")
         except SageDevValueError:
-            raise SageDevValueError("`{0}` is not a valid name for a local branch.".format(name))
+            raise SageDevValueError('Invalid branch name "{0}".'.format(name))
 
         if exists == any:
             return
         elif exists == True:
             if not self._is_local_branch_name(name, exists=exists):
-                raise SageDevValueError("Branch `{0}` does not exist locally.".format(name))
+                raise SageDevValueError('Branch "{0}" does not exist locally.', name).info(
+                    ['', '(use "{0}" to list local branches)'], self._format_command('tickets'))
         elif exists == False:
             if not self._is_local_branch_name(name, exists=exists):
-                raise SageDevValueError("Branch `{0}` already exists, please choose a different name.".format(name))
+                raise SageDevValueError('Branch "{0}" already exists, use a different name.'.format(name))
         else:
             assert False
 
@@ -4187,30 +4522,29 @@ class SageDev(object):
             sage: dev._check_remote_branch_name('')
             Traceback (most recent call last):
             ...
-            SageDevValueError: `` is not a valid name for a remote branch.
+            SageDevValueError: Invalid name "" for a remote branch.
             sage: dev._check_remote_branch_name('ticket/1')
 
             sage: dev._check_remote_branch_name('ticket/1', exists=True)
             Traceback (most recent call last):
             ...
-            SageDevValueError: Branch `ticket/1` does not exist on the remote system.
+            SageDevValueError: Branch "ticket/1" does not exist on the remote system.
             sage: dev._check_remote_branch_name('ticket/1', exists=False)
-
         """
         try:
             if not self._is_remote_branch_name(name, exists=any):
                 raise SageDevValueError("caught below")
         except SageDevValueError:
-            raise SageDevValueError("`{0}` is not a valid name for a remote branch.".format(name))
+            raise SageDevValueError('Invalid name "{0}" for a remote branch.'.format(name))
 
         if exists == any:
             return
         elif exists == True:
             if not self._is_remote_branch_name(name, exists=exists):
-                raise SageDevValueError("Branch `{0}` does not exist on the remote system.".format(name))
+                raise SageDevValueError('Branch "{0}" does not exist on the remote system.'.format(name))
         elif exists == False:
             if not self._is_remote_branch_name(name, exists=exists):
-                raise SageDevValueError("Branch `{0}` already exists, please choose a different name.".format(name))
+                raise SageDevValueError('Branch "{0}" already exists, use a different name.'.format(name))
         else:
             assert False
 
@@ -4242,10 +4576,19 @@ class SageDev(object):
             sage: dev._remote_branch_for_ticket("master")
             Traceback (most recent call last):
             ...
-            SageDevValueError: `master` is not a valid ticket name.
+            SageDevValueError: "master" is not a valid ticket name.
 
             sage: UI.append("Summary: summary1\ndescription")
-            sage: ticket = dev.create_ticket()
+            sage: dev.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
+            1
+            sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
             sage: dev._set_remote_branch_for_branch("ticket/1", "public/1")
             sage: dev._remote_branch_for_ticket(1)
@@ -4253,7 +4596,6 @@ class SageDev(object):
             sage: dev._set_remote_branch_for_branch("ticket/1", None)
             sage: dev._remote_branch_for_ticket(1)
             'u/doctest/ticket/1'
-
         """
         ticket = self._ticket_from_ticket_name(ticket)
 
@@ -4283,16 +4625,21 @@ class SageDev(object):
             sage: dev, config, UI, server = single_user_setup()
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
+            sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev._sagedev._ticket_for_local_branch("ticket/1")
             1
-
         """
         self._check_local_branch_name(branch, exists=True)
-
         if not self._has_ticket_for_local_branch(branch):
             raise SageDevValueError("branch must be associated to a ticket")
-
         return self.__branch_to_ticket[branch]
 
     def _has_ticket_for_local_branch(self, branch):
@@ -4309,10 +4656,17 @@ class SageDev(object):
             sage: dev, config, UI, server = single_user_setup()
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
+            sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev._sagedev._has_ticket_for_local_branch("ticket/1")
             True
-
         """
         self._check_local_branch_name(branch, exists=True)
 
@@ -4332,22 +4686,22 @@ class SageDev(object):
             sage: dev, config, UI, server = single_user_setup()
             sage: dev._sagedev._has_local_branch_for_ticket(1)
             False
-
         """
         ticket = self._ticket_from_ticket_name(ticket)
-
         if ticket not in self.__ticket_to_branch:
             return False
 
         branch = self.__ticket_to_branch[ticket]
         if not self._is_local_branch_name(branch, exists=True):
-            self._UI.warning("Ticket #{0} refers to the non-existant local branch `{1}`. If you have not manually interacted with git, then this is a bug in sagedev. Removing the association from ticket #{0} to branch `{1}`.".format(ticket, branch))
+            self._UI.warning('Ticket #{0} refers to the non-existant local branch "{1}".'
+                             ' If you have not manually interacted with git, then this is'
+                             ' a bug in sagedev. Removing the association from ticket #{0}'
+                             ' to branch "{1}".', ticket, branch)
             del self.__ticket_to_branch[ticket]
             return False
-
         return True
 
-    def _local_branch_for_ticket(self, ticket, download_if_not_found=False):
+    def _local_branch_for_ticket(self, ticket, pull_if_not_found=False):
         r"""
         Return the name of the local branch for ``ticket``.
 
@@ -4355,8 +4709,8 @@ class SageDev(object):
 
         - ``ticket`` -- an int or a string identifying a ticket
 
-        - ``download_if_not_found`` -- a boolean (default: ``False``), whether
-          to attempt to download a branch for ``ticket`` from trac if it does
+        - ``pull_if_not_found`` -- a boolean (default: ``False``), whether
+          to attempt to pull a branch for ``ticket`` from trac if it does
           not exist locally
 
         TESTS:
@@ -4370,52 +4724,73 @@ class SageDev(object):
 
             sage: alice._chdir()
             sage: alice._UI.append("Summary: ticket1\ndescription")
-            sage: ticket = alice.create_ticket()
-            sage: alice._sagedev._local_branch_for_ticket(ticket)
+            sage: alice.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
+            1
+            sage: alice.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: alice._sagedev._local_branch_for_ticket(1)
             'ticket/1'
 
-        If no local branch exists, the behaviour depends on ``download_if_not_found``::
+        If no local branch exists, the behaviour depends on ``pull_if_not_found``::
 
             sage: bob._chdir()
-            sage: bob._sagedev._local_branch_for_ticket(ticket)
+            sage: bob._sagedev._local_branch_for_ticket(1)
             Traceback (most recent call last):
             ...
             KeyError: 'No branch for ticket #1 in your repository.'
-            sage: bob._sagedev._local_branch_for_ticket(ticket, download_if_not_found=True)
+            sage: bob._sagedev._local_branch_for_ticket(1, pull_if_not_found=True)
             Traceback (most recent call last):
             ...
             SageDevValueError: Branch field is not set for ticket #1 on trac.
-            sage: attributes = alice.trac._get_attributes(ticket)
+            sage: attributes = alice.trac._get_attributes(1)
             sage: attributes['branch'] = 'public/ticket/1'
-            sage: alice.trac._authenticated_server_proxy.ticket.update(ticket, "", attributes)
+            sage: alice.trac._authenticated_server_proxy.ticket.update(1, "", attributes)
             'https://trac.sagemath.org/ticket/1#comment:1'
-            sage: bob._sagedev._local_branch_for_ticket(ticket, download_if_not_found=True)
+            sage: bob._sagedev._local_branch_for_ticket(1, pull_if_not_found=True)
             Traceback (most recent call last):
             ...
-            SageDevValueError: Branch `public/ticket/1` does not exist on the remote system.
+            SageDevValueError: Branch "public/ticket/1" does not exist on the remote server.
 
             sage: import os
             sage: os.chdir(server.git._config['src'])
             sage: server.git.silent.branch('public/ticket/1')
             sage: bob._chdir()
-            sage: bob._sagedev._local_branch_for_ticket(ticket, download_if_not_found=True)
+            sage: bob._sagedev._local_branch_for_ticket(1, pull_if_not_found=True)
             'ticket/1'
-            sage: bob._sagedev._local_branch_for_ticket(ticket)
+            sage: bob._sagedev._local_branch_for_ticket(1)
             'ticket/1'
-
         """
         ticket = self._ticket_from_ticket_name(ticket)
 
         if self._has_local_branch_for_ticket(ticket):
             return self.__ticket_to_branch[ticket]
 
-        if not download_if_not_found:
+        if not pull_if_not_found:
             raise KeyError("No branch for ticket #{0} in your repository.".format(ticket))
 
         branch = self._new_local_branch_for_ticket(ticket)
-        self.download(ticket, branch)
+        self._check_ticket_name(ticket, exists=True)
+
+        remote_branch = self.trac._branch_for_ticket(ticket)
+        if remote_branch is None:
+            raise SageDevValueError("Branch field is not set for ticket #{0} on trac.".format(ticket))
+
+        try:
+            self.git.super_silent.fetch(self.git._repository_anonymous, remote_branch)
+        except GitError as e:
+            raise SageDevValueError('Branch "%s" does not exist on the remote server.'%remote_branch)
+
+        self.git.super_silent.branch(branch, 'FETCH_HEAD')
+
         self._set_local_branch_for_ticket(ticket, branch)
-        return self._local_branch_for_ticket(ticket, download_if_not_found=False)
+
+        return self._local_branch_for_ticket(ticket, pull_if_not_found=False)
 
     def _new_local_branch_for_trash(self, branch):
         r"""
@@ -4432,37 +4807,12 @@ class SageDev(object):
             sage: dev.git.silent.branch('trash/branch')
             sage: dev._new_local_branch_for_trash('branch')
             'trash/branch_'
-
         """
         while True:
             trash_branch = 'trash/{0}'.format(branch)
             if self._is_trash_name(trash_branch, exists=False):
                 return trash_branch
             branch = branch + "_"
-
-    def _new_local_branch_for_stash(self):
-        r"""
-        Return a new local branch name for a stash.
-
-        TESTS::
-
-            sage: from sage.dev.test.sagedev import single_user_setup
-            sage: dev, config, UI, server = single_user_setup()
-            sage: dev = dev._sagedev
-
-            sage: dev._new_local_branch_for_stash()
-            'stash/1'
-            sage: dev.git.silent.branch('stash/1')
-            sage: dev._new_local_branch_for_stash()
-            'stash/2'
-
-        """
-        i = 0
-        while True:
-            i+=1
-            branch = 'stash/{0}'.format(i)
-            if self._is_stash_name(branch, exists=False):
-                return branch
 
     def _new_local_branch_for_ticket(self, ticket):
         r"""
@@ -4483,17 +4833,13 @@ class SageDev(object):
             sage: dev.git.silent.branch('ticket/1')
             sage: dev._new_local_branch_for_ticket(1)
             'ticket/1_'
-
         """
         ticket = self._ticket_from_ticket_name(ticket)
-
         branch = 'ticket/{0}'.format(ticket)
 
         while self._is_local_branch_name(branch, exists=True):
             branch = branch + "_"
-
         assert self._is_local_branch_name(branch, exists=False)
-
         return branch
 
     def _set_dependencies_for_ticket(self, ticket, dependencies):
@@ -4514,22 +4860,27 @@ class SageDev(object):
             sage: dev = dev._sagedev
 
             sage: UI.append("Summary: ticket1\ndescription")
-            sage: ticket = dev.create_ticket()
-            sage: dev._set_dependencies_for_ticket(ticket, [2, 3])
-            sage: dev._dependencies_for_ticket(ticket)
+            sage: dev.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
+            1
+            sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
+            sage: dev._set_dependencies_for_ticket(1, [2, 3])
+            sage: dev._dependencies_for_ticket(1)
             (2, 3)
-            sage: dev._set_dependencies_for_ticket(ticket, None)
-            sage: dev._dependencies_for_ticket(ticket)
+            sage: dev._set_dependencies_for_ticket(1, None)
+            sage: dev._dependencies_for_ticket(1)
             ()
-
         """
         ticket = self._ticket_from_ticket_name(ticket)
-
         if dependencies is None:
             dependencies = []
-
         dependencies = [self._ticket_from_ticket_name(dep) for dep in dependencies]
-
         if not(dependencies):
             if ticket in self.__ticket_dependencies:
                 del self.__ticket_dependencies[ticket]
@@ -4537,7 +4888,6 @@ class SageDev(object):
 
         if not self._has_local_branch_for_ticket(ticket):
             raise KeyError("no local branch for ticket #{0} found.".format(ticket))
-
         self.__ticket_dependencies[ticket] = tuple(sorted(dependencies))
 
     def _dependencies_for_ticket(self, ticket, download_if_not_found=False):
@@ -4559,20 +4909,28 @@ class SageDev(object):
             sage: dev = dev._sagedev
 
             sage: UI.append("Summary: ticket1\ndescription")
-            sage: ticket = dev.create_ticket()
+            sage: dev.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
+            1
+            sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
-            sage: dev._set_dependencies_for_ticket(ticket, [2, 3])
-            sage: dev._dependencies_for_ticket(ticket)
+            sage: dev._set_dependencies_for_ticket(1, [2, 3])
+            sage: dev._dependencies_for_ticket(1)
             (2, 3)
-            sage: dev._set_dependencies_for_ticket(ticket, None)
-            sage: dev._dependencies_for_ticket(ticket)
+            sage: dev._set_dependencies_for_ticket(1, None)
+            sage: dev._dependencies_for_ticket(1)
             ()
 
             sage: dev._dependencies_for_ticket(2, download_if_not_found=True)
             Traceback (most recent call last):
             ...
             NotImplementedError
-
         """
         ticket = self._ticket_from_ticket_name(ticket)
 
@@ -4616,7 +4974,6 @@ class SageDev(object):
             sage: dev._set_remote_branch_for_branch("ticket/1", None)
             sage: dev._remote_branch_for_ticket(1)
             'u/doctest/ticket/1'
-
         """
         self._check_local_branch_name(branch, exists=any)
 
@@ -4654,7 +5011,6 @@ class SageDev(object):
             sage: dev._set_remote_branch_for_branch("ticket/1", None)
             sage: dev._remote_branch_for_branch('ticket/1') is None
             True
-
         """
         self._check_local_branch_name(branch, exists=True)
 
@@ -4690,22 +5046,19 @@ class SageDev(object):
             sage: dev._set_local_branch_for_ticket(1, 'ticket/1')
             Traceback (most recent call last):
             ...
-            SageDevValueError: Branch `ticket/1` does not exist locally.
+            SageDevValueError: Branch "ticket/1" does not exist locally.
             sage: dev.git.silent.branch('ticket/1')
             sage: dev._set_local_branch_for_ticket(1, 'ticket/1')
             sage: dev._local_branch_for_ticket(1)
             'ticket/1'
-
         """
         ticket = self._ticket_from_ticket_name(ticket)
-
         if branch is None:
             if ticket in self.__ticket_to_branch:
                 del self.__ticket_to_branch[ticket]
             return
 
         self._check_local_branch_name(branch, exists=True)
-
         self.__ticket_to_branch[ticket] = branch
 
     def _format_command(self, command, *args, **kwargs):
@@ -4717,20 +5070,20 @@ class SageDev(object):
         A command which the user can run from the command line/sage interactive
         shell to execute ``command`` with ``args`` and ``kwargs``.
 
-        EXAMPLES::
+        TESTS::
 
-            sage: dev._format_command('switch-ticket') # not tested (output depends on whether this test is run from within sage or not)
-            'dev.switch_ticket()'
-            sage: dev._format_command('switch-ticket',int(1)) # not tested
-            'dev.switch_ticket(1)'
+            sage: dev._sagedev._format_command('checkout')
+            'sage --dev checkout'
 
+            sage: dev._sagedev._format_command('checkout', ticket=int(1))
+            'sage --dev checkout --ticket=1'
         """
         try:
             __IPYTHON__
         except NameError:
             args = [str(arg) for arg in args]
-            kwargs = [ "--{0}={1}".format(str(key.split("_or_")[0]).replace("_","-"),kwargs[key]) for key in kwargs ]
-            return "sage --dev {0} {1}".format(command.replace("_","-"), " ".join(args+kwargs))
+            kwargs = [ "--{0}{1}".format(str(key.split("_or_")[0]).replace("_","-"),"="+str(kwargs[key]) if kwargs[key] is not True else "") for key in kwargs ]
+            return "sage --dev {0} {1}".format(command.replace("_","-"), " ".join(args+kwargs)).rstrip()
         else:
             args = [str(arg) for arg in args]
             kwargs = [ "{0}={1}".format(str(key).replace("-","_"),kwargs[key]) for key in kwargs ]
@@ -4751,10 +5104,19 @@ class SageDev(object):
             True
 
             sage: UI.append("Summary: ticket1\ndescription")
-            sage: ticket = dev.create_ticket()
+            sage: dev.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
+            1
+            sage: dev._current_ticket()
+            sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev._current_ticket()
             1
-
         """
         from git_error import DetachedHeadError
         try:
@@ -4764,8 +5126,8 @@ class SageDev(object):
 
         if branch in self.__branch_to_ticket:
             return self.__branch_to_ticket[branch]
-
         return None
+
 
 class SageDevValueError(ValueError):
     r"""
@@ -4776,11 +5138,10 @@ class SageDevValueError(ValueError):
         sage: from sage.dev.test.sagedev import single_user_setup
         sage: dev, config, UI, server = single_user_setup()
 
-        sage: dev.switch_ticket(-1)
-        ValueError: `-1` is not a valid ticket name or ticket does not exist on trac.
-
+        sage: dev.checkout(ticket=-1)
+        Ticket name "-1" is not valid or ticket does not exist on trac.
     """
-    def __init__(self, message):
+    def __init__(self, message, *args):
         r"""
         Initialization.
 
@@ -4789,6 +5150,70 @@ class SageDevValueError(ValueError):
             sage: from sage.dev.sagedev import SageDevValueError
             sage: type(SageDevValueError("message"))
             <class 'sage.dev.sagedev.SageDevValueError'>
-
         """
-        ValueError.__init__(self, message)
+        ValueError.__init__(self, message.format(*args))
+        self._error = (message,) + args
+        self._info = None
+
+    def show_error(self, user_interface):
+        """
+        Display helpful message if available.
+
+        INPUT:
+
+        - ``user_interface`` -- an instance of
+          :class:`~sage.dev.user_interface.UserInterface`.
+
+        TESTS::
+
+            sage: from sage.dev.sagedev import SageDevValueError
+            sage: e = SageDevValueError("message >{0}<", 123).info('1{0}3', 2)
+            sage: e.show_error(dev._sagedev._UI)
+            message >123<
+        """
+        user_interface.error(*self._error)
+
+    def info(self, *args):
+        """
+        Store helpful message to be displayed if the exception is not
+        caught.
+
+        INPUT:
+
+        - ``*args`` -- arguments to be passed to
+          :meth:`~sage.dev.user_interface.UserInterface.info`.
+
+        OUTPUT:
+
+        Returns the exception.
+
+        TESTS::
+
+            sage: from sage.dev.sagedev import SageDevValueError
+            sage: e = SageDevValueError("message").info('1{0}3', 2)
+            sage: e.show_info(dev._sagedev._UI)
+            #  123
+        """
+        self._info = args
+        return self
+
+    def show_info(self, user_interface):
+        """
+        Display helpful message if available.
+
+        INPUT:
+
+        - ``user_interface`` -- an instance of
+          :class:`~sage.dev.user_interface.UserInterface`.
+
+        TESTS::
+
+            sage: from sage.dev.sagedev import SageDevValueError
+            sage: e = SageDevValueError("message").info('1{0}3', 2)
+            sage: e.show_info(dev._sagedev._UI)
+            #  123
+        """
+        if self._info:
+            user_interface.info(*self._info)
+
+

@@ -26,6 +26,7 @@ from sage.rings.real_mpfr import RealNumber
 
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx, new_Expression_from_pyobject, is_Expression
 
+from sage.libs.pari.pari_instance cimport PariInstance
 from sage.misc.latex import latex_variable_name
 from sage.structure.element cimport RingElement, Element
 from sage.structure.parent_base import ParentWithBase
@@ -154,14 +155,18 @@ cdef class SymbolicRing(CommutativeRing):
         else:
             from sage.rings.real_mpfr import mpfr_prec_min
 
-            from sage.rings.all import ( ComplexField,
-               is_PolynomialRing, is_MPolynomialRing,
-               is_FractionField, RLF, CLF, AA, QQbar, InfinityRing,
-               is_RealIntervalField, is_ComplexIntervalField,
-               is_IntegerModRing, is_FiniteField)
+            from sage.rings.fraction_field import is_FractionField
+            from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
+            from sage.rings.real_mpfi import is_RealIntervalField
+            from sage.rings.complex_interval_field import is_ComplexIntervalField
+            from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+            from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+
+            from sage.rings.all import (ComplexField,
+                                        RLF, CLF, AA, QQbar, InfinityRing,
+                                        is_FiniteField)
 
             from sage.interfaces.maxima import Maxima
-            from sage.libs.pari.gen import PariInstance
 
             if ComplexField(mpfr_prec_min()).has_coerce_map_from(R):
                 # Anything with a coercion into any precision of CC

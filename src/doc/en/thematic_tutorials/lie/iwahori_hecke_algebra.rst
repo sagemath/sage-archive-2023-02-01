@@ -51,12 +51,12 @@ groups, and in Jones's original paper on the Jones polynomial.
 Here is how to create an Iwahori Hecke algebra::
 
     sage: R.<q> = PolynomialRing(ZZ)
-    sage: H = IwahoriHeckeAlgebraT("B3",q); H
-    The Iwahori Hecke Algebra of Type B3 in q,-1 over Univariate
-        Polynomial Ring in q over Integer Ring and prefix T
+    sage: H = IwahoriHeckeAlgebra("B3",q).T(); H
+    Iwahori-Hecke algebra of type B3 in q,-1 over Univariate Polynomial Ring
+     in q over Integer Ring in the T-basis
     sage: T1,T2,T3 = H.algebra_generators()
     sage: T1*T1
-    (q-1)*T1 + q
+    (q-1)*T[1] + q
 
 If the Cartan type is affine, the generators will be numbered starting
 with ``T0`` instead of ``T1``.
@@ -66,7 +66,7 @@ You may coerce a Weyl group element into the Iwahori Hecke algebra::
     sage: W = WeylGroup("G2",prefix="s")
     sage: [s1,s2] = W.simple_reflections()
     sage: P.<q> = LaurentPolynomialRing(QQ)
-    sage: H = IwahoriHeckeAlgebraT(W,q)
+    sage: H = IwahoriHeckeAlgebra(W,q).T()
     sage: H(s1*s2)
-    T1*T2
+    T[1,2]
 

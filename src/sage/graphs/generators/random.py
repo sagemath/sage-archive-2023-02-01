@@ -2,8 +2,7 @@
 r"""
 Random Graphs
 
-The methods defined here appear in sage.graphs.grah_generators.
-
+The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """
 ###########################################################################
 #
@@ -17,13 +16,7 @@ The methods defined here appear in sage.graphs.grah_generators.
 
 # import from Sage library
 from sage.graphs.graph import Graph
-from sage.graphs import graph
-from math import sin, cos, pi
 from sage.misc.randstate import current_randstate
-
-################################################################################
-#   Random Graphs
-################################################################################
 
 def RandomGNP(n, p, seed=None, fast=True, method='Sage'):
     r"""
@@ -32,7 +25,7 @@ def RandomGNP(n, p, seed=None, fast=True, method='Sage'):
 
     INPUTS:
 
-    - ``n`` -- number of nodes of the digraph
+    - ``n`` -- number of nodes of the graph
 
     - ``p`` -- probability of an edge
 
@@ -72,8 +65,7 @@ def RandomGNP(n, p, seed=None, fast=True, method='Sage'):
         sage: graphs.RandomGNP(6, .4).edges(labels=False)
         [(0, 1), (0, 5), (1, 2), (2, 4), (3, 4), (3, 5), (4, 5)]
 
-    We plot a random graph on 12 nodes with probability
-    `p = .71`::
+    We plot a random graph on 12 nodes with probability `p = .71`::
 
         sage: gnp = graphs.RandomGNP(12,.71)
         sage: gnp.show() # long time
@@ -83,15 +75,13 @@ def RandomGNP(n, p, seed=None, fast=True, method='Sage'):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    k = graphs.RandomGNP(i+3,.43)
-        ...    g.append(k)
-        ...
+        ....:     k = graphs.RandomGNP(i+3,.43)
+        ....:     g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
         sage: graphs.RandomGNP(4,1)
@@ -126,7 +116,7 @@ def RandomGNP(n, p, seed=None, fast=True, method='Sage'):
             G = networkx.fast_gnp_random_graph(n, p, seed=seed)
         else:
             G = networkx.gnp_random_graph(n, p, seed=seed)
-        return graph.Graph(G)
+        return Graph(G)
     elif method in ['Sage', 'sage']:
         # We use the Sage generator
         from sage.graphs.graph_generators_pyx import RandomGNP as sageGNP
@@ -172,15 +162,13 @@ def RandomBarabasiAlbert(n, m, seed=None):
         sage: g = []
         sage: j = []
         sage: for i in range(1,10):
-        ...    k = graphs.RandomBarabasiAlbert(i+3, 3)
-        ...    g.append(k)
-        ...
+        ....:     k = graphs.RandomBarabasiAlbert(i+3, 3)
+        ....:     g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show()  # long time
 
@@ -188,7 +176,7 @@ def RandomBarabasiAlbert(n, m, seed=None):
     if seed is None:
         seed = current_randstate().long_seed()
     import networkx
-    return graph.Graph(networkx.barabasi_albert_graph(n,m,seed=seed))
+    return Graph(networkx.barabasi_albert_graph(n,m,seed=seed))
 
 def RandomBipartite(n1,n2, p):
     r"""
@@ -230,7 +218,6 @@ def RandomBipartite(n1,n2, p):
         raise ValueError, "n1 and n2 should be integers strictly greater than 0"
 
     from numpy.random import uniform
-    from sage.graphs.all import Graph
 
     g=Graph(name="Random bipartite graph of size "+str(n1) +"+"+str(n2)+" with edge probability "+str(p))
 
@@ -254,13 +241,53 @@ def RandomBipartite(n1,n2, p):
 
     return g
 
+def RandomBoundedToleranceGraph(n):
+    r"""
+    Returns a random bounded tolerance graph.
+
+    The random tolerance graph is built from a random bounded
+    tolerance representation by using the function
+    `ToleranceGraph`. This representation is a list
+    `((l_0,r_0,t_0), (l_1,r_1,t_1), ..., (l_k,r_k,t_k))` where
+    `k = n-1` and `I_i = (l_i,r_i)` denotes a random interval and
+    `t_i` a random positive value less then or equal to the length
+    of the interval `I_i`. The width of the representation is
+    limited to n**2 * 2**n.
+
+    .. NOTE::
+
+        The tolerance representation used to create the graph can
+        be recovered using ``get_vertex()`` or ``get_vertices()``.
+
+    INPUT:
+
+    - ``n`` -- number of vertices of the random graph.
+
+    EXAMPLE:
+
+    Every (bounded) tolerance graph is perfect. Hence, the
+    chromatic number is equal to the clique number ::
+
+        sage: g = graphs.RandomBoundedToleranceGraph(8)
+        sage: g.clique_number() == g.chromatic_number()
+        True
+    """
+    from sage.misc.prandom import randint
+    from sage.graphs.generators.intersection import ToleranceGraph
+
+    W = n**2 * 2**n
+
+    tolrep = map(lambda (l,r): (l,r,randint(0,r-l)),
+        [sorted((randint(0,W), randint(0,W))) for i in range(n)])
+
+    return ToleranceGraph(tolrep)
+
 def RandomGNM(n, m, dense=False, seed=None):
     """
     Returns a graph randomly picked out of all graphs on n vertices
     with m edges.
 
     INPUT:
-
 
     -  ``n`` - number of vertices.
 
@@ -290,15 +317,13 @@ def RandomGNM(n, m, dense=False, seed=None):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    k = graphs.RandomGNM(i+3, i^2-i)
-        ...    g.append(k)
-        ...
+        ....:     k = graphs.RandomGNM(i+3, i^2-i)
+        ....:     g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show()  # long time
     """
@@ -306,9 +331,9 @@ def RandomGNM(n, m, dense=False, seed=None):
         seed = current_randstate().long_seed()
     import networkx
     if dense:
-        return graph.Graph(networkx.dense_gnm_random_graph(n, m, seed=seed))
+        return Graph(networkx.dense_gnm_random_graph(n, m, seed=seed))
     else:
-        return graph.Graph(networkx.gnm_random_graph(n, m, seed=seed))
+        return Graph(networkx.gnm_random_graph(n, m, seed=seed))
 
 def RandomNewmanWattsStrogatz(n, k, p, seed=None):
     """
@@ -324,7 +349,6 @@ def RandomNewmanWattsStrogatz(n, k, p, seed=None):
     watts_strogatz_graph(), no edges are removed.
 
     INPUT:
-
 
     -  ``n`` - number of vertices.
 
@@ -350,14 +374,14 @@ def RandomNewmanWattsStrogatz(n, k, p, seed=None):
 
     REFERENCE:
 
-    - [1] Newman, M.E.J., Watts, D.J. and Strogatz, S.H.  Random
+    .. [NWS99] Newman, M.E.J., Watts, D.J. and Strogatz, S.H.  Random
       graph models of social networks. Proc. Nat. Acad. Sci. USA
       99, 2566-2572.
     """
     if seed is None:
         seed = current_randstate().long_seed()
     import networkx
-    return graph.Graph(networkx.newman_watts_strogatz_graph(n, k, p, seed=seed))
+    return Graph(networkx.newman_watts_strogatz_graph(n, k, p, seed=seed))
 
 def RandomHolmeKim(n, m, p, seed=None):
     """
@@ -366,7 +390,6 @@ def RandomHolmeKim(n, m, p, seed=None):
     clustering.
 
     INPUT:
-
 
     -  ``n`` - number of vertices.
 
@@ -409,16 +432,29 @@ def RandomHolmeKim(n, m, p, seed=None):
 
     REFERENCE:
 
-    - [1] Holme, P. and Kim, B.J. Growing scale-free networks with
-      tunable clustering, Phys. Rev. E (2002). vol 65, no 2,
-      026107.
+    .. [HolmeKim2002] Holme, P. and Kim, B.J. Growing scale-free networks
+      with tunable clustering, Phys. Rev. E (2002). vol 65, no 2, 026107.
     """
     if seed is None:
         seed = current_randstate().long_seed()
     import networkx
-    return graph.Graph(networkx.powerlaw_cluster_graph(n, m, p, seed=seed))
+    return Graph(networkx.powerlaw_cluster_graph(n, m, p, seed=seed))
 
 def RandomInterval(n):
+    """
+    :meth:`RandomInterval` is deprecated.  Use :meth:`RandomIntervalGraph` instead.
+
+    TEST::
+
+        sage: g = graphs.RandomInterval(8)
+        doctest:...: DeprecationWarning: RandomInterval() is deprecated. Use RandomIntervalGraph() instead.
+        See http://trac.sagemath.org/13283 for details.
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(13283, "RandomInterval() is deprecated.  Use RandomIntervalGraph() instead.")
+    return RandomIntervalGraph(n)
+
+def RandomIntervalGraph(n):
     """
     Returns a random interval graph.
 
@@ -450,7 +486,7 @@ def RandomInterval(n):
     As for any interval graph, the chromatic number is equal to
     the clique number ::
 
-        sage: g = graphs.RandomInterval(8)
+        sage: g = graphs.RandomIntervalGraph(8)
         sage: g.clique_number() == g.chromatic_number()
         True
 
@@ -464,11 +500,10 @@ def RandomInterval(n):
     """
 
     from sage.misc.prandom import random
+    from sage.graphs.generators.intersection import IntervalGraph
 
     intervals = [tuple(sorted((random(), random()))) for i in range(n)]
-
-    from sage.graphs.generators.families import IntervalGraph
-    return IntervalGraph(intervals)
+    return IntervalGraph(intervals,True)
 
 def RandomLobster(n, p, q, seed=None):
     """
@@ -479,7 +514,6 @@ def RandomLobster(n, p, q, seed=None):
     pruning all leaf vertices (q=0).
 
     INPUT:
-
 
     -  ``n`` - expected number of vertices in the backbone
 
@@ -506,7 +540,7 @@ def RandomLobster(n, p, q, seed=None):
     if seed is None:
         seed = current_randstate().long_seed()
     import networkx
-    return graph.Graph(networkx.random_lobster(n, p, q, seed=seed))
+    return Graph(networkx.random_lobster(n, p, q, seed=seed))
 
 def RandomTree(n):
     """
@@ -539,12 +573,12 @@ def RandomTree(n):
     Ensuring that we encounter no unexpected surprise ::
 
         sage: all( graphs.RandomTree(10).is_tree()
-        ...        for i in range(100) )
+        ....:      for i in range(100) )
         True
 
     """
     from sage.misc.prandom import randint
-    g = graph.Graph()
+    g = Graph()
 
     # create random Prufer code
     code = [ randint(0,n-1) for i in xrange(n-2) ]
@@ -587,7 +621,6 @@ def RandomTreePowerlaw(n, gamma=3, tries=100, seed=None):
 
     INPUT:
 
-
     -  ``n`` - number of vertices
 
     -  ``gamma`` - exponent of power law
@@ -610,13 +643,13 @@ def RandomTreePowerlaw(n, gamma=3, tries=100, seed=None):
 
         sage: G = graphs.RandomTreePowerlaw(15, 2)
         sage: if G:
-        ...    G.show()  # random output, long time
+        ....:     G.show()  # random output, long time
     """
     if seed is None:
         seed = current_randstate().long_seed()
     import networkx
     try:
-        return graph.Graph(networkx.random_powerlaw_tree(n, gamma, seed=seed, tries=tries))
+        return Graph(networkx.random_powerlaw_tree(n, gamma, seed=seed, tries=tries))
     except networkx.NetworkXError:
         return False
 
@@ -628,7 +661,6 @@ def RandomRegular(d, n, seed=None):
     Since every edge is incident to two vertices, n\*d must be even.
 
     INPUT:
-
 
     -  ``n`` - number of vertices
 
@@ -649,17 +681,17 @@ def RandomRegular(d, n, seed=None):
 
         sage: G = graphs.RandomRegular(3, 20)
         sage: if G:
-        ...    G.show()  # random output, long time
+        ....:     G.show()  # random output, long time
 
     REFERENCES:
 
-    - [1] Kim, Jeong Han and Vu, Van H. Generating random regular
+    .. [KimVu2003] Kim, Jeong Han and Vu, Van H. Generating random regular
       graphs. Proc. 35th ACM Symp. on Thy. of Comp. 2003, pp
       213-222. ACM Press, San Diego, CA, USA.
       http://doi.acm.org/10.1145/780542.780576
 
-    - [2] Steger, A. and Wormald, N. Generating random regular
-      graphs quickly. Prob. and Comp. 8 (1999), pp 377-396.
+    .. [StegerWormald1999] Steger, A. and Wormald, N. Generating random
+      regular graphs quickly. Prob. and Comp. 8 (1999), pp 377-396.
     """
     if seed is None:
         seed = current_randstate().long_seed()
@@ -667,7 +699,7 @@ def RandomRegular(d, n, seed=None):
     try:
         N = networkx.random_regular_graph(d, n, seed=seed)
         if N is False: return False
-        return graph.Graph(N, sparse=True)
+        return Graph(N, sparse=True)
     except StandardError:
         return False
 
@@ -676,7 +708,6 @@ def RandomShell(constructor, seed=None):
     Returns a random shell graph for the constructor given.
 
     INPUT:
-
 
     -  ``constructor`` - a list of 3-tuples (n,m,d), each
        representing a shell
@@ -701,5 +732,53 @@ def RandomShell(constructor, seed=None):
     if seed is None:
         seed = current_randstate().long_seed()
     import networkx
-    return graph.Graph(networkx.random_shell_graph(constructor, seed=seed))
+    return Graph(networkx.random_shell_graph(constructor, seed=seed))
+
+def RandomToleranceGraph(n):
+    r"""
+    Returns a random tolerance graph.
+
+    The random tolerance graph is built from a random tolerance representation
+    by using the function `ToleranceGraph`. This representation is a list
+    `((l_0,r_0,t_0), (l_1,r_1,t_1), ..., (l_k,r_k,t_k))` where `k = n-1` and
+    `I_i = (l_i,r_i)` denotes a random interval and `t_i` a random positive
+    value. The width of the representation is limited to n**2 * 2**n.
+
+    .. NOTE::
+
+        The vertices are named 0, 1, ..., n-1. The tolerance representation used
+        to create the graph is saved with the graph and can be recovered using
+        ``get_vertex()`` or ``get_vertices()``.
+
+    INPUT:
+
+    - ``n`` -- number of vertices of the random graph.
+
+    EXAMPLE:
+
+    Every tolerance graph is perfect. Hence, the chromatic number is equal to
+    the clique number ::
+
+        sage: g = graphs.RandomToleranceGraph(8)
+        sage: g.clique_number() == g.chromatic_number()
+        True
+
+    TEST:
+
+        sage: g = graphs.RandomToleranceGraph(-2)
+        Traceback (most recent call last):
+        ...
+        ValueError: The number `n` of vertices must be >= 0.
+    """
+    from sage.misc.prandom import randint
+    from sage.graphs.generators.intersection import ToleranceGraph
+
+    if n<0:
+        raise ValueError('The number `n` of vertices must be >= 0.')
+
+    W = n**2 * 2**n
+
+    tolrep = [tuple(sorted((randint(0,W), randint(0,W)))) + (randint(0,W),) for i in range(n)]
+
+    return ToleranceGraph(tolrep)
 

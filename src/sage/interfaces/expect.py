@@ -1017,7 +1017,7 @@ If this all works, you can then make calls like:
             sage: print sage0.eval("dummy=gp.eval('0'); alarm(1); gp._expect_expr('1')")  # long time
             Control-C pressed.  Interrupting PARI/GP interpreter. Please wait a few seconds...
             ...
-            KeyboardInterrupt: computation timed out because alarm was set for 1 seconds
+            AlarmInterrupt:
         """
         if expr is None:
             # the following works around gap._prompt_wait not being defined

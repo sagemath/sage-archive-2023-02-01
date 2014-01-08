@@ -55,22 +55,21 @@ REFERENCES:
 
 .. [Go09] Alexey G. Gorinov, "Combinatorics of double cosets and fundamental
    domains for the subgroups of the modular group", preprint
-   http://arxiv.org/abs/0901.1340
+   :arxiv:`0901.1340`
 
 .. [KSV11] Ian Kiming, Matthias Schuett and Helena Verrill, "Lifts of
    projective congruence groups", J. London Math. Soc. (2011) 83 (1): 96-120,
    http://dx.doi.org/10.1112/jlms/jdq062. Arxiv version:
-   http://arxiv.org/abs/0905.4798.
+   :arxiv:`0905.4798`.
 
 .. [Kul91] Ravi Kulkarni "An arithmetic geometric method in the study of the
    subgroups of the modular group", American Journal of Mathematics 113 (1991),
    no 6, 1053-1133
 
-.. [Kur08] Chris Kurth, "K Farey package for Sage",
-   http://www.public.iastate.edu/~kurthc/research/index.html
+.. [Kur08] Chris Kurth, "K Farey package for Sage"
 
 .. [KuLo] Chris Kurth and Ling Long, "Computations with finite index subgroups
-   of `{\rm PSL}_2(\ZZ)` using Farey symbols"
+   of `{\rm PSL}_2(\ZZ)` using Farey symbols", :arxiv:`0710.1835`
 
 .. [Ve] Helena Verrill, "Fundamental domain drawer", Java program,
    http://www.math.lsu.edu/~verrill/

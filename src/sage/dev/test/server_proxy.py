@@ -204,7 +204,7 @@ class DoctestSshkeysProxy(object):
             import xmlrpclib
             raise TracInternalError(xmlrpclib.Fault(1, "'cannot set ssh keys for anonymous users' while executing 'sshkeys.addkey()'"))
 
-        pass # not implemented
+        pass # we don't implement the full interface
 
         return 0
 
@@ -240,7 +240,7 @@ class DoctestTicketProxy(object):
         """
         self._server_proxy = server_proxy
 
-    def create(self, summary, description, attributes):
+    def create(self, summary, description, attributes, notify=False):
         r"""
         Create a new ticket and return its ticket number.
 
@@ -265,7 +265,7 @@ class DoctestTicketProxy(object):
         self._server_proxy._server.tickets[ticket] = Ticket(ticket, summary, description, attributes)
         return ticket
 
-    def update(self, ticket, comment, attributes):
+    def update(self, ticket, comment, attributes, notify=False):
         r"""
         Add a ``comment`` and update ``attributes`` of ``ticket``.
 

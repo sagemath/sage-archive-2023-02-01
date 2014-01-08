@@ -1,6 +1,5 @@
 r"""
-Module designed for the creation and printing of truth tables that are
-associated with a logical statement.
+Module that creates truth tables of boolean formulas.
 
 A logic table is essentially a 2-D array that is created by the statement class
 and stored in the private global variable table, along with a list containing
@@ -35,7 +34,18 @@ Given that a table can be created corresponding to any range of acceptable
 values for a given statement, it is easy to find the value of a statement
 for arbitrary values of its variables.
 
+AUTHORS:
+
+- William Stein (2006): initial version
+
+- Chris Gorecki (2006): initial version
+
+- Paul Scurek (2013-08-03): updated docstring formatting
+
 EXAMPLES:
+
+Create a truth table of a boolean formula::
+
     sage: import sage.logic.propcalc as propcalc
     sage: s = propcalc.formula("a&b|~(c|a)")
     sage: s.truthtable()
@@ -49,10 +59,13 @@ EXAMPLES:
     True   True   False  True
     True   True   True   True
 
+Get the letex code for a truth table::
+
     sage: latex(s.truthtable(5,11))
     \\\begin{tabular}{llll}c & b & a & value \\\hline True & False & True & False \\True & True & False & True \\True & True & True & True\end{tabular}
 
-It is not an error to use nonsensical numeric inputs.
+It is not an error to use nonsensical numeric inputs::
+
     sage: s = propcalc.formula("a&b|~(c|a)")
     sage: s.truthtable(5, 9)
     a      b      c      value
@@ -63,7 +76,8 @@ It is not an error to use nonsensical numeric inputs.
     sage: s.truthtable(9, 5)
     a      b      c      value
 
-If one argument is provided, truthtable defaults to the end.
+If one argument is provided, truthtable defaults to the end::
+
     sage: s.truthtable(-1)
     a      b      c      value
     False  False  False  True
@@ -75,7 +89,8 @@ If one argument is provided, truthtable defaults to the end.
     True   True   False  True
     True   True   True   True
 
-If the second argument is negative, truthtable defaults to the end.
+If the second argument is negative, truthtable defaults to the end::
+
     sage: s.truthtable(4, -2)
     a      b      c      value
     True   False  False  False
@@ -83,19 +98,23 @@ If the second argument is negative, truthtable defaults to the end.
     True   True   False  True
     True   True   True   True
 
-NOTES:
+.. NOTE::
+
     For statements that contain a variable list that when printed is longer than
     the \latex page, the columns of the table will run off the screen.
 """
-#*************************************************************************************
-# Copyright (C) 2006 William Stein <wstein@gmail.com>
-# Copyright (C) 2006 Chris Gorecki <chris.k.gorecki@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2006 Chris Gorecki <chris.k.gorecki@gmail.com>
+#       Copyright (C) 2013 Paul Scurek <scurek86@gmail.com>
 #
-# Distributed under the terms of the GNU General Public License (GPL)
-# http://www.gnu.org/licenses/
-#*************************************************************************************
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
-#Global variables
+# Global variables
 __table = []
 __vars_order = []
 
@@ -103,20 +122,27 @@ class Truthtable:
 
     def __init__(self, t, vo):
         r"""
-        This function initializes the data fields and is called when a
-        new table is created.
+        Initialize the data fields
 
         INPUT:
-            self -- the calling object.
-            t -- a 2-D array containing the table values
-            vo -- a list of the variables in the expression in order,
-                  with each variable occurring only once.
+
+        - ``self'' -- calling object
+
+        - ``t`` -- a 2-D array containing the table values
+
+        - ``vo`` -- a list of the variables in the expression in order,
+          with each variable occurring only once
 
         OUTPUT:
-            Effectively returns an instance of this class.
+
+        None
 
         EXAMPLES:
-        This example illustrates the creation of a table.
+
+        This example illustrates the creation of a table
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: s = propcalc.formula("a&b|~(c|a)")
             sage: s.truthtable()
@@ -129,29 +155,37 @@ class Truthtable:
             True   False  True   False
             True   True   False  True
             True   True   True   True
-
-        There should be no errors.
         """
         self.__table = t
         self.__vars_order = vo
 
     def _latex_(self):
         r"""
-        Returns a string representation of the calling table object.
+        Return a latex representation of the calling table object.
 
         INPUT:
-            self -- the calling object.
+
+        - ``self`` -- calling object
 
         OUTPUT:
-            Returns the \latex representation of this table.
+
+        The latex representation of the table
 
         EXAMPLES:
+
+        This example illustrates how to get the latex represenation of the table
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: s = propcalc.formula("man->monkey&human")
             sage: latex(s.truthtable())
             \\\begin{tabular}{llll}human & monkey & man & value \\\hline False & False & False & True \\False & False & True & True \\False & True & False & True \\False & True & True & True \\True & False & False & False \\True & False & True & False \\True & True & False & False \\True & True & True & True\end{tabular}
 
-        Strange parameters can lead to a table header with no body.
+        Now, we show that strange parameters can lead to a table header with no body.
+
+        ::
+
             sage: latex(s.truthtable(2, 1))
             \\\begin{tabular}{llll}human & monkey & man & value \\\hli\end{tabular}
         """
@@ -174,15 +208,22 @@ class Truthtable:
 
     def __repr__(self):
         r"""
-        This function returns a string representation of the calling table object.
+        Return a string representation of the calling table object.
 
         INPUT:
-            self -- the calling object: not used.
+
+        - ``self`` -- the calling object
 
         OUTPUT:
-            Returns a string representation of this table.
+
+        The talbe as a 2-D array
 
         EXAMPLES:
+
+        This example illustrates how to display the truth table of a boolean formula.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: s = propcalc.formula("man->monkey&human")
             sage: s.truthtable()
@@ -196,11 +237,12 @@ class Truthtable:
             True   True    False  False
             True   True    True   True
 
-        Strange parameters can lead to the table header with no body.
+        We now show that strange parameters can lead to the table header with no body.
+
+        ::
+
             sage: s.truthtable(2, 1)
             man    monkey  human  value
-
-        There should be no errors.
         """
         vars_len = []
         line = rt = s = ""
@@ -232,15 +274,22 @@ class Truthtable:
 
     def get_table_list(self):
         r"""
-        This function returns a string representation of the calling table object.
+        Return a list representation of the calling table object.
 
         INPUT:
-            self -- the calling object: not used.
+
+        - ``self`` -- calling object
 
         OUTPUT:
-            Returns the list representation of this table.
+
+        A list representation of the table
 
         EXAMPLES:
+
+        This example illustrates how to show the table as a list.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: s = propcalc.formula("man->monkey&human")
             sage: s.truthtable().get_table_list()

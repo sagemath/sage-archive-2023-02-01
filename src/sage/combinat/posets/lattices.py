@@ -529,7 +529,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         A lattice is modular if it is both upper semimodular and lower
         semimodular.
 
-        See :wikipedia:`Modular lattice`
+        See :wikipedia:`Modular_lattice`
 
         See also :meth:`is_upper_semimodular` and :meth:`is_lower_semimodular`
 

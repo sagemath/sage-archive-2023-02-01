@@ -5,15 +5,6 @@
 #define SAGE_LIBS_PARI_MISC_H
 
 #include <pari/pari.h>
-#include "interrupt.h"
-
-
-/*****************************************
-   Interrupts and PARI exception handling
- *****************************************/
-#define _pari_sig_on() sig_on(); _pari_catch;
-#define _pari_sig_str(s) sig_str(s); _pari_catch;
-#define _pari_sig_off() _pari_endcatch; sig_off();
 
 
 inline int strcmp_to_cmp(int f) {

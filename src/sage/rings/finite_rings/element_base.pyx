@@ -32,7 +32,8 @@ def is_FiniteFieldElement(x):
 cdef class FiniteRingElement(CommutativeRingElement):
     def _nth_root_common(self, n, all, algorithm, cunningham):
         """
-        This function exists to reduce code duplication between finite field nth roots and integer_mod nth roots.
+        This function exists to reduce code duplication between finite field
+        nth roots and integer_mod nth roots.
 
         The inputs are described there.
 
@@ -553,13 +554,13 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         OUTPUT:
 
         If self has an `n`\th root, returns one (if ``all`` is ``False``) or a
-        list of all of them (if ``all`` is ``True``).  Otherwise, raises a
-        ValueError (if ``extend`` is ``False``) or a ``NotImplementedError`` (if
-        ``extend`` is ``True``).
+        list of all of them (if ``all`` is ``True``).
+        Otherwise, raises a ``ValueError`` (if ``extend`` is ``False``)
+        or a ``NotImplementedError`` (if ``extend`` is ``True``).
 
         .. warning::
 
-           The 'extend' option is not implemented (yet).
+           The ``extend`` option is not implemented (yet).
 
         EXAMPLES::
 

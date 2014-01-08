@@ -364,10 +364,9 @@ class BinaryStringMonoid(StringMonoid_class):
             sage: S.encoding(' ',padic=True)
             00000100
         """
-        from Crypto.Util.number import bytes_to_long
         bit_string = []
         for i in range(len(S)):
-            n = int(bytes_to_long(S[i]))
+            n = ord(S[i])
             bits = []
             for i in range(8):
                 bits.append(n%2)
@@ -543,10 +542,9 @@ class HexadecimalStringMonoid(StringMonoid_class):
             sage: S.encoding(' ',padic=True)
             02
         """
-        from Crypto.Util.number import bytes_to_long
         hex_string = []
         for i in range(len(S)):
-            n = int(bytes_to_long(S[i]))
+            n = ord(S[i])
             n0 = n % 16
             n1 = n // 16
             if not padic:

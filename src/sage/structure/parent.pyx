@@ -503,6 +503,67 @@ cdef class Parent(category_object.CategoryObject):
             print 'hash of {0} changed in Parent._refine_category_ during refinement' \
                 .format(str(self.__class__))
 
+    def _unset_category(self):
+        """
+        Remove the information on ``self``'s category.
+
+        NOTE:
+
+        This may change ``self``'s class!
+
+        EXAMPLES:
+
+        Let us create a parent in the category of rings::
+
+            sage: class MyParent(Parent):
+            ....:     def __init__(self):
+            ....:         Parent.__init__(self, category=Rings())
+            ....:
+            sage: P = MyParent()
+            sage: P.category()
+            Category of rings
+
+        Of course, its category is initialised::
+
+            sage: P._is_category_initialized()
+            True
+
+        We may now refine the category to the category of fields.
+        Note that this changes the class::
+
+            sage: C = type(P)
+            sage: C == MyParent
+            False
+            sage: P._refine_category_(Fields())
+            sage: P.category()
+            Category of fields
+            sage: C == type(P)
+            False
+
+        Now we may have noticed that the category refinement was a
+        mistake. We do not need to worry, because we can undo category
+        initialisation totally::
+
+            sage: P._unset_category()
+            sage: P._is_category_initialized()
+            False
+            sage: type(P) == MyParent
+            True
+
+        Hence, we can now initialise the parent again in the original
+        category, i.e., the category of rings. We find that not only
+        the category, but also theclass of the parent is brought back
+        to what it was after the original category initialisation::
+
+            sage: P._init_category_(Rings())
+            sage: type(P) == C
+            True
+
+        """
+        self._category = None
+        if not is_extension_type(self.__class__):
+            while issubclass(self.__class__, Sets_parent_class):
+                self.__class__ = self.__class__.__base__
 
     # This probably should go into Sets().Parent
     @lazy_attribute
@@ -925,9 +986,8 @@ cdef class Parent(category_object.CategoryObject):
         The old way to signal atomic string reps.
 
         True if the elements have atomic string representations, in the
-        sense that they print if they print at s, then -s means the
-        negative of s. For example, integers are atomic but polynomials are
-        not.
+        sense that if they print at s, then -s means the negative of s. For
+        example, integers are atomic but polynomials are not.
 
         EXAMPLES::
 
@@ -1306,16 +1366,13 @@ cdef class Parent(category_object.CategoryObject):
             ...
             NotImplementedError
 
-        Asking for ``list(MyIntegers)`` below  will never finish without
+        Asking for ``list(MyIntegers)`` below will never finish without
         pressing Ctrl-C.  We let it run for 1 second and then interrupt::
 
-            sage: try:
-            ....:   alarm(1)
-            ....:   list(MyIntegers)
-            ....: except KeyboardInterrupt:
-            ....:   print "Caught KeyboardInterrupt"
-            ....:
-            Caught KeyboardInterrupt
+            sage: alarm(1.0); list(MyIntegers)
+            Traceback (most recent call last):
+            ...
+            AlarmInterrupt
 
         """
         try:

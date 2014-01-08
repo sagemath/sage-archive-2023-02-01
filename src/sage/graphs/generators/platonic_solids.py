@@ -2,7 +2,7 @@
 r"""
 Platonic solids
 
-The methods defined here appear in sage.graphs.grah_generators.
+The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 
 """
 ###########################################################################
@@ -17,13 +17,7 @@ The methods defined here appear in sage.graphs.grah_generators.
 
 # import from Sage library
 from sage.graphs.graph import Graph
-from sage.graphs import graph
 from math import sin, cos, pi
-from sage.graphs.graph_plot import _circle_embedding, _line_embedding
-
-################################################################################
-#   Platonic Solids
-################################################################################
 
 def TetrahedralGraph():
     """
@@ -63,16 +57,16 @@ def TetrahedralGraph():
         sage: g = [tetra_pos, tetra_spring, wheel, complete]
         sage: j = []
         sage: for i in range(2):
-        ...    n = []
-        ...    for m in range(2):
-        ...        n.append(g[i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
+        ....:     n = []
+        ....:     for m in range(2):
+        ....:         n.append(g[i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
     """
     import networkx
     G = networkx.tetrahedral_graph()
-    return graph.Graph(G, name="Tetrahedron", pos =
+    return Graph(G, name="Tetrahedron", pos =
                        { 0 : (0, 0),
                          1 : (0, 1),
                          2 : (cos(3.5*pi/3), sin(3.5*pi/3)),
@@ -110,20 +104,17 @@ def HexahedralGraph():
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    k = graphs.HexahedralGraph()
-        ...    g.append(k)
-        ...
+        ....:     k = graphs.HexahedralGraph()
+        ....:     g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
     """
-    return graph.Graph({0:[1,3,4], 1:[2,5], 2:[3,6], 3:[7], 4:[5,7],\
-                        5:[6], 6:[7]},
+    return Graph({0:[1,3,4], 1:[2,5], 2:[3,6], 3:[7], 4:[5,7], 5:[6], 6:[7]},
                        name="Hexahedron",
                        pos = {
                           0 : (0,0),
@@ -168,15 +159,13 @@ def OctahedralGraph():
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    k = graphs.OctahedralGraph()
-        ...    g.append(k)
-        ...
+        ....:     k = graphs.OctahedralGraph()
+        ....:     g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
     """
@@ -194,8 +183,7 @@ def OctahedralGraph():
         i = i + .25
         pos[v] = (r2*cos(i*2*pi/3),r2*sin(i*2*pi/3))
 
-
-    return graph.Graph(G, name="Octahedron", pos=pos)
+    return Graph(G, name="Octahedron", pos=pos)
 
 def IcosahedralGraph():
     """
@@ -230,15 +218,13 @@ def IcosahedralGraph():
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    k = graphs.IcosahedralGraph()
-        ...    g.append(k)
-        ...
+        ....:     k = graphs.IcosahedralGraph()
+        ....:     g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
     """
@@ -256,7 +242,7 @@ def IcosahedralGraph():
         i = i + .5
         pos[v] = (r2*cos(i*pi/3),r2*sin(i*pi/3))
 
-    return graph.Graph(G, name="Icosahedron", pos = pos)
+    return Graph(G, name="Icosahedron", pos = pos)
 
 def DodecahedralGraph():
     """
@@ -289,15 +275,13 @@ def DodecahedralGraph():
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    k = graphs.DodecahedralGraph()
-        ...    g.append(k)
-        ...
+        ....:     k = graphs.DodecahedralGraph()
+        ....:     g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
     """
@@ -326,5 +310,5 @@ def DodecahedralGraph():
         i = i + .75
         pos[v] = (r4*cos(i*2*pi/5),r4*sin(i*2*pi/5))
 
-    return graph.Graph(G, name="Dodecahedron", pos=pos)
+    return Graph(G, name="Dodecahedron", pos=pos)
 

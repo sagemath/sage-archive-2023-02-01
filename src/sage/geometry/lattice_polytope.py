@@ -25,10 +25,10 @@ integer coordinates.
 This Sage module uses Package for Analyzing Lattice Polytopes
 (PALP), which is a program written in C by Maximilian Kreuzer and
 Harald Skarke, which is freely available under the GNU license
-terms at http://tph16.tuwien.ac.at/~kreuzer/CY/. Moreover, PALP is
+terms at http://hep.itp.tuwien.ac.at/~kreuzer/CY/. Moreover, PALP is
 included standard with Sage.
 
-PALP is described in the paper math.SC/0204356. Its distribution
+PALP is described in the paper :arxiv:`math.SC/0204356`. Its distribution
 also contains the application nef.x, which was created by Erwin
 Riegler and computes nef-partitions and Hodge data for toric
 complete intersections.
@@ -102,7 +102,8 @@ AUTHORS:
 
 from sage.graphs.graph import Graph
 from sage.interfaces.all import maxima
-from sage.matrix.all import matrix, is_Matrix
+from sage.matrix.all import matrix
+from sage.matrix.matrix import is_Matrix
 from sage.misc.all import tmp_filename
 from sage.misc.misc import SAGE_SHARE
 from sage.modules.all import vector

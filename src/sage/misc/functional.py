@@ -1379,8 +1379,8 @@ def numerical_approx(x, prec=None, digits=None):
         sage: all(check_str_length(k) and check_precision(k) for k in ks)
         True
 
-    Testing we have sufficient precision for the golden ratio (trac #12163), note
-    that the decimal point adds 1 to the string length:
+    Testing we have sufficient precision for the golden ratio (:trac:`12163`), note
+    that the decimal point adds 1 to the string length::
 
         sage: len(str(n(golden_ratio, digits=5000)))
         5001

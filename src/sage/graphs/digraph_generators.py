@@ -323,7 +323,7 @@ class DiGraphGenerators():
 
         In this tournament there is an edge from `i` to `j` if `i<j`.
 
-        See :wikipedia:`Tournament (graph theory)`
+        See :wikipedia:`Tournament_(graph_theory)`
 
         INPUT:
 
@@ -367,7 +367,7 @@ class DiGraphGenerators():
         `i` to `j` with probability `1/2`, otherwise it has an edge
         from `j` to `i`.
 
-        See :wikipedia:`Tournament (graph theory)`
+        See :wikipedia:`Tournament_(graph_theory)`
 
         INPUT:
 

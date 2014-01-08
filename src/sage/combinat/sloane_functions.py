@@ -49,12 +49,24 @@ TESTS::
 
     We agree with the online database::
 
-    sage: for t in sloane.trait_names(): # long time; optional - internet
-    ...       online_list = sloane_sequence(ZZ(t[1:].lstrip('0')), verbose = False)[2]
-    ...       L = max(2, len(online_list) // 2)
-    ...       sage_list = sloane.__getattribute__(t).list(L)
-    ...       if online_list[:L] != sage_list:
-    ...           print t, 'seems wrong'
+    sage: for t in sloane.trait_names():    # long time; optional -- internet
+    ....:     online_list = list(oeis(t).first_terms())
+    ....:     L = max(2, len(online_list) // 2)
+    ....:     sage_list = sloane.__getattribute__(t).list(L)
+    ....:     if online_list[:L] != sage_list:
+    ....:         print t, 'seems wrong'
+
+
+
+.. SEEALSO::
+
+    - If you want to get more informations relative to a sequence (references,
+      links, examples, programs, ...), you can use the On-Line Encyclopedia of
+      Integer Sequences provided by the :mod:`OEIS <sage.databases.oeis>`
+      module.
+    - If you plan to do a lot of automatic searches for subsequences, you
+      should consider installing :mod:`SloaneEncyclopedia
+      <sage.databases.sloane>`, a local partial copy of the OEIS.
 
 
 AUTHORS:
@@ -94,12 +106,10 @@ AUTHORS:
 #    try out your new sequence.  Click the text button to get a version
 #    of your session that you then include as a docstring.
 #    You can check your results with the entries of the OEIS:
-#       sage: seq = sloane_sequence(45)
-#       Searching Sloane's online database...
-#       sage: print seq[1]
-#       Fibonacci numbers: F(n) = F(n-1) + F(n-2), F(0) = 0, F(1) = 1, F(2) = 1, ...
-#       sage: seq[2][:12]
-#       [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89]
+#       sage: seq = oeis(45) ; seq
+#       A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
+#       sage: seq.first_terms()[:12]
+#       (0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89)
 #
 # 4. Send a patch using
 #      sage: hg_sage.ci()
@@ -295,7 +305,6 @@ class SloaneSequence(SageObject):
 import sage.rings.arith as arith
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.rational_field import QQ
-from sage.libs.pari.gen import pari
 from sage.combinat import combinat
 from sage.misc.misc import prod
 import sage.interfaces.gap as gap
@@ -7402,6 +7411,7 @@ class A001694(SloaneSequence):
         if n < 4:
             n = 4
         # Use PARI directly -- much faster.
+        from sage.libs.pari.all import pari
         L = pari('v=listcreate(); for(i=%s,%s,if(vecmin(factor(i)[,2])>1,listput(v,i))); v'%(n,m))
         return [ZZ(x) for x in L]  # not very many, so not much overhead
 

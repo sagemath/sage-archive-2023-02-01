@@ -1381,8 +1381,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
         r"""
         Computes a lower bound for the rank of the Mordell-Weil group `E(Q)`,
-        the rank of the 2-Selmer group, and a list of independent points on
-        `E(Q)/2E(Q)`.
+        the rank of the 2-Selmer group, and a list of points of infinite order on
+        `E(Q)`.
 
         INPUT:
 
@@ -1411,10 +1411,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         -  ``integer`` - lower bound on the rank of self
 
-        -  ``integer`` - the 2-rank of the Selmer group
+        -  ``integer`` - the dimension of the 2-Selmer group.
+           This is an upper bound to the rank, but it is not sharp in general.
 
-        -  ``list`` - list of independent points on the
-           quotient `E(Q)/2E(Q)`.
+        -  ``list`` - list of points of infinite order in `E(Q)`.
+
+        To obtain a list of generators, use E.gens().
 
 
         IMPLEMENTATION: Uses Denis Simon's PARI/GP scripts from
@@ -1482,25 +1484,34 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: r, s, G = E.simon_two_descent(); r,s
             (8, 8)
 
-        Example from trac 10832::
+        Example from :trac: `10832`::
 
             sage: E = EllipticCurve([1,0,0,-6664,86543])
             sage: E.simon_two_descent()
-            (2, 3, [(173 : 1943 : 1), (-73 : -394 : 1), (323/4 : 1891/8 : 1)])
+            (2, 3, [(-73 : -394 : 1), (323/4 : 1891/8 : 1)])
             sage: E.rank()
             2
             sage: E.gens()
             [(-73 : -394 : 1), (323/4 : 1891/8 : 1)]
 
-        Example from Trac #11372::
+        Example where the lower bound is known to be 1
+        despite that the algorithm has not found any
+        points of infinite order ::
 
             sage: E = EllipticCurve([1, 1, 0, -23611790086, 1396491910863060])
             sage: E.simon_two_descent()
-            (1, 2, [(88716 : -44358 : 1)])
+            (1, 2, [])
             sage: E.rank()
             1
-            sage: E.gens()
+            sage: E.gens()     # uses mwrank
             [(4311692542083/48594841 : -13035144436525227/338754636611 : 1)]
+
+        Example for :trac: `5153`::
+
+            sage: E = EllipticCurve([3,0])
+            sage: E.simon_two_descent()
+            (1, 2, [(3 : 6 : 1)])
+
         """
         verbose = int(verbose)
         t = simon_two_descent(self, verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,
@@ -1511,17 +1522,18 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             print "simon_two_descent returns", t
         rank_low_bd = rings.Integer(t[0])
         two_selmer_rank = rings.Integer(t[1])
-        gens_mod_two = [self(P) for P in t[2]]
+        pts = [self(P) for P in t[2]]
+        pts = [P for P in pts if P.has_infinite_order()]
         if rank_low_bd == two_selmer_rank - self.two_torsion_rank():
             if verbose>0:
                 print "Rank determined successfully, saturating..."
-            gens = [P for P in gens_mod_two if P.has_infinite_order()]
-            gens = self.saturation(gens)[0]
+            gens = self.saturation(pts)[0]
             if len(gens) == rank_low_bd:
                 self.__gens[True] = gens
                 self.__gens[True].sort()
             self.__rank[True] = rank_low_bd
-        return rank_low_bd, two_selmer_rank, gens_mod_two
+
+        return rank_low_bd, two_selmer_rank, pts
 
     two_descent_simon = simon_two_descent
 
@@ -4194,12 +4206,18 @@ use_tuple=True (currently default) is deprecated.""")
             ValueError: 4 is not prime.
 
         """
-        from ell_curve_isogeny import isogenies_prime_degree_genus_0, isogenies_sporadic_Q
+        from isogeny_small_degree import isogenies_prime_degree_genus_0, isogenies_sporadic_Q
 
         if l in [2, 3, 5, 7, 13]:
             return isogenies_prime_degree_genus_0(self, l)
         elif l != None and type(l) != list:
-            return isogenies_sporadic_Q(self, l)
+            try:
+                if l.is_prime(proof=False):
+                    return isogenies_sporadic_Q(self, l)
+                else:
+                    raise ValueError("%s is not prime."%l)
+            except AttributeError:
+                raise ValueError("%s is not prime."%l)
         if l == None:
             isogs = isogenies_prime_degree_genus_0(self)
             if isogs != []:
@@ -5226,86 +5244,6 @@ use_tuple=True (currently default) is deprecated.""")
             h_gs = max(1, log_g2)
         return max(R(1),h_j, h_gs)
 
-    def lll_reduce(self, points, height_matrix=None):
-        """
-        Returns an LLL-reduced basis from a given basis, with transform
-        matrix.
-
-        INPUT:
-
-
-        -  ``points`` - a list of points on this elliptic
-           curve, which should be independent.
-
-        -  ``height_matrix`` - the height-pairing matrix of
-           the points, or None. If None, it will be computed.
-
-
-        OUTPUT: A tuple (newpoints,U) where U is a unimodular integer
-        matrix, new_points is the transform of points by U, such that
-        new_points has LLL-reduced height pairing matrix
-
-        .. note::
-
-           If the input points are not independent, the output depends
-           on the undocumented behaviour of PARI's ``qflllgram()``
-           function when applied to a gram matrix which is not
-           positive definite.
-
-        EXAMPLE::
-
-            sage: E = EllipticCurve([0, 1, 1, -2, 42])
-            sage: Pi = E.gens(); Pi
-            [(-4 : 1 : 1), (-3 : 5 : 1), (-11/4 : 43/8 : 1), (-2 : 6 : 1)]
-            sage: Qi, U = E.lll_reduce(Pi)
-            sage: sorted(Qi)
-            [(-4 : 1 : 1), (-3 : 5 : 1), (-2 : 6 : 1), (0 : 6 : 1)]
-            sage: U.det()
-            1
-            sage: E.regulator_of_points(Pi)
-            4.59088036960573
-            sage: E.regulator_of_points(Qi)
-            4.59088036960574
-
-        ::
-
-            sage: E = EllipticCurve([1,0,1,-120039822036992245303534619191166796374,504224992484910670010801799168082726759443756222911415116])
-            sage: xi = [2005024558054813068,\
-            -4690836759490453344,\
-            4700156326649806635,\
-            6785546256295273860,\
-            6823803569166584943,\
-            7788809602110240789,\
-            27385442304350994620556,\
-            54284682060285253719/4,\
-            -94200235260395075139/25,\
-            -3463661055331841724647/576,\
-            -6684065934033506970637/676,\
-            -956077386192640344198/2209,\
-            -27067471797013364392578/2809,\
-            -25538866857137199063309/3721,\
-            -1026325011760259051894331/108241,\
-            9351361230729481250627334/1366561,\
-            10100878635879432897339615/1423249,\
-            11499655868211022625340735/17522596,\
-            110352253665081002517811734/21353641,\
-            414280096426033094143668538257/285204544,\
-            36101712290699828042930087436/4098432361,\
-            45442463408503524215460183165/5424617104,\
-            983886013344700707678587482584/141566320009,\
-            1124614335716851053281176544216033/152487126016]
-            sage: points = [E.lift_x(x) for x in xi]
-            sage: newpoints, U = E.lll_reduce(points)  # long time (36s on sage.math, 2011)
-            sage: [P[0] for P in newpoints]            # long time
-            [6823803569166584943, 5949539878899294213, 2005024558054813068, 5864879778877955778, 23955263915878682727/4, 5922188321411938518, 5286988283823825378, 175620639884534615751/25, -11451575907286171572, 3502708072571012181, 1500143935183238709184/225, 27180522378120223419/4, -5811874164190604461581/625, 26807786527159569093, 7404442636649562303, 475656155255883588, 265757454726766017891/49, 7272142121019825303, 50628679173833693415/4, 6951643522366348968, 6842515151518070703, 111593750389650846885/16, 2607467890531740394315/9, -1829928525835506297]
-        """
-        r = len(points)
-        if height_matrix is None:
-            height_matrix = self.height_pairing_matrix(points)
-        U = pari(height_matrix).lllgram().python()
-        new_points = [sum([U[j,i]*points[j] for j in range(r)]) for i in range(r)]
-        return new_points, U
-
     def antilogarithm(self, z, max_denominator=None):
         r"""
         Returns the rational point (if any) associated to this complex
@@ -5384,20 +5322,13 @@ use_tuple=True (currently default) is deprecated.""")
             sage: xset = E.integral_x_coords_in_interval(-100,100)
             sage: xlist = list(xset); xlist.sort(); xlist
             [-3, -2, -1, 0, 1, 2, 3, 4, 8, 11, 14, 21, 37, 52, 93]
-
-        TODO: re-implement this using the much faster point searching
-        implemented in Stoll's ``ratpoints`` program.
-
         """
+        from sage.libs.ratpoints import ratpoints
         xmin=Integer(xmin)
         xmax=Integer(xmax)
-        ans = set([])
-        x = xmin
-        while x<=xmax:
-            if self.is_x_coord(x):
-                ans.add(x)
-            x+=1
-        return ans
+        coeffs = self.division_polynomial(2).coeffs()
+        H = max(xmin.abs(), xmax.abs())
+        return set([x for x,y,z in ratpoints(coeffs, H, max_x_denom=1, intervals=[[xmin,xmax]]) if z])
 
     prove_BSD = BSD.prove_BSD
 

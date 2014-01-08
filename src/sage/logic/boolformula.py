@@ -1,128 +1,139 @@
 r"""
-    Module associated with booleval, logictable, and logicparser, to do
-    boolean evaluation of boolean formulas.
-    Formulas consist of the operators &, |, ~, ^, ->, <->, corresponding
-    to and, or, not, xor, if...then, if and only if.  Operators can
-    be applied to variables that consist of a leading letter and trailing
-    underscores and alphanumerics.  Parentheses may be used to
-    explicitly show order of operation.
+Module that creates boolean formulas as instances of the BooleanFormula class.
 
-    AUTHORS:
-        -- Chris Gorecki
+Formulas consist of the operators ``&``, ``|``, ``~``, ``^``, ``->``, ``<->``,
+corresponding to ``and``, ``or``, ``not``, ``xor``, ``if...then``, ``if and
+only if``.  Operators can be applied to variables that consist of a leading
+letter and trailing underscores and alphanumerics.  Parentheses may be used
+to explicitly show order of operation.
 
-    EXAMPLES:
-        sage: import sage.logic.propcalc as propcalc
-        sage: f = propcalc.formula("a&((b|c)^a->c)<->b")
-        sage: g = propcalc.formula("boolean<->algebra")
-        sage: (f&~g).ifthen(f)
-        ((a&((b|c)^a->c)<->b)&(~(boolean<->algebra)))->(a&((b|c)^a->c)<->b)
+EXAMPLES:
 
-     EXAMPLES:
-        sage: import sage.logic.propcalc as propcalc
-        sage: f = propcalc.formula("a&((b|c)^a->c)<->b")
-        sage: g = propcalc.formula("boolean<->algebra")
-        sage: (f&~g).ifthen(f)
-        ((a&((b|c)^a->c)<->b)&(~(boolean<->algebra)))->(a&((b|c)^a->c)<->b)
+Create boolean formulas and combine them with ifthen() method::
 
-    We can create a truth table from a formula.
-        sage: f.truthtable()
-        a      b      c      value
-        False  False  False  True
-        False  False  True   True
-        False  True   False  False
-        False  True   True   False
-        True   False  False  True
-        True   False  True   False
-        True   True   False  True
-        True   True   True   True
-        sage: f.truthtable(end=3)
-        a      b      c      value
-        False  False  False  True
-        False  False  True   True
-        False  True   False  False
-        sage: f.truthtable(start=4)
-        a      b      c      value
-        True   False  False  True
-        True   False  True   False
-        True   True   False  True
-        True   True   True   True
-        sage: propcalc.formula("a").truthtable()
-        a      value
-        False  False
-        True   True
+    sage: import sage.logic.propcalc as propcalc
+    sage: f = propcalc.formula("a&((b|c)^a->c)<->b")
+    sage: g = propcalc.formula("boolean<->algebra")
+    sage: (f&~g).ifthen(f)
+    ((a&((b|c)^a->c)<->b)&(~(boolean<->algebra)))->(a&((b|c)^a->c)<->b)
 
-    Now we can evaluate the formula for a given set of inputs.
-        sage: f.evaluate({'a':True, 'b':False, 'c':True})
-        False
-        sage: f.evaluate({'a':False, 'b':False, 'c':True})
-        True
+We can create a truth table from a formula::
 
-    And we can convert a boolean formula to conjunctive normal form.
-        sage: f.convert_cnf_table()
-        sage: f
-        (a|~b|c)&(a|~b|~c)&(~a|b|~c)
-        sage: f.convert_cnf_recur()
-        sage: f
-        (a|~b|c)&(a|~b|~c)&(~a|b|~c)
+    sage: f.truthtable()
+    a      b      c      value
+    False  False  False  True
+    False  False  True   True
+    False  True   False  False
+    False  True   True   False
+    True   False  False  True
+    True   False  True   False
+    True   True   False  True
+    True   True   True   True
+    sage: f.truthtable(end=3)
+    a      b      c      value
+    False  False  False  True
+    False  False  True   True
+    False  True   False  False
+    sage: f.truthtable(start=4)
+    a      b      c      value
+    True   False  False  True
+    True   False  True   False
+    True   True   False  True
+    True   True   True   True
+    sage: propcalc.formula("a").truthtable()
+    a      value
+    False  False
+    True   True
 
-    Or determine if an expression is satisfiable, a contradiction, or a tautology.
-        sage: f = propcalc.formula("a|b")
-        sage: f.is_satisfiable()
-        True
-        sage: f = f & ~f
-        sage: f.is_satisfiable()
-        False
-        sage: f.is_contradiction()
-        True
-        sage: f = f | ~f
-        sage: f.is_tautology()
-        True
+Now we can evaluate the formula for a given set of inputs::
 
-    The equality operator compares semantic equivalence.
-        sage: f = propcalc.formula("(a|b)&c")
-        sage: g = propcalc.formula("c&(b|a)")
-        sage: f == g
-        True
-        sage: g = propcalc.formula("a|b&c")
-        sage: f == g
-        False
+    sage: f.evaluate({'a':True, 'b':False, 'c':True})
+    False
+    sage: f.evaluate({'a':False, 'b':False, 'c':True})
+    True
 
-    It is an error to create a formula with bad syntax.
-        sage: propcalc.formula("")
-        Traceback (most recent call last):
-        ...
-        SyntaxError: malformed statement
-        sage: propcalc.formula("a&b~(c|(d)")
-        Traceback (most recent call last):
-        ...
-        SyntaxError: malformed statement
-        sage: propcalc.formula("a&&b")
-        Traceback (most recent call last):
-        ...
-        SyntaxError: malformed statement
-        sage: propcalc.formula("a&b a")
-        Traceback (most recent call last):
-        ...
-        SyntaxError: malformed statement
+And we can convert a boolean formula to conjunctive normal form::
 
-        It is also an error to not abide by the naming conventions.
-        sage: propcalc.formula("~a&9b")
-        Traceback (most recent call last):
-        ...
-        NameError: invalid variable name 9b: identifiers must begin with a letter and contain only alphanumerics and underscores
+    sage: f.convert_cnf_table()
+    sage: f
+    (a|~b|c)&(a|~b|~c)&(~a|b|~c)
+    sage: f.convert_cnf_recur()
+    sage: f
+    (a|~b|c)&(a|~b|~c)&(~a|b|~c)
 
+Or determine if an expression is satisfiable, a contradiction, or a tautology::
+
+    sage: f = propcalc.formula("a|b")
+    sage: f.is_satisfiable()
+    True
+    sage: f = f & ~f
+    sage: f.is_satisfiable()
+    False
+    sage: f.is_contradiction()
+    True
+    sage: f = f | ~f
+    sage: f.is_tautology()
+    True
+
+The equality operator compares semantic equivalence::
+
+    sage: f = propcalc.formula("(a|b)&c")
+    sage: g = propcalc.formula("c&(b|a)")
+    sage: f == g
+    True
+    sage: g = propcalc.formula("a|b&c")
+    sage: f == g
+    False
+
+It is an error to create a formula with bad syntax::
+
+    sage: propcalc.formula("")
+    Traceback (most recent call last):
+    ...
+    SyntaxError: malformed statement
+    sage: propcalc.formula("a&b~(c|(d)")
+    Traceback (most recent call last):
+    ...
+    SyntaxError: malformed statement
+    sage: propcalc.formula("a&&b")
+    Traceback (most recent call last):
+    ...
+    SyntaxError: malformed statement
+    sage: propcalc.formula("a&b a")
+    Traceback (most recent call last):
+    ...
+    SyntaxError: malformed statement
+
+It is also an error to not abide by the naming conventions::
+
+    sage: propcalc.formula("~a&9b")
+    Traceback (most recent call last):
+    ...
+    NameError: invalid variable name 9b: identifiers must begin with a letter and contain only alphanumerics and underscores
+
+AUTHORS:
+
+- Chris Gorecki (2006): initial version
+
+- Paul Scurek (2013-08-03): added polish_notation, full_tree,
+  updated docstring formatting
 """
-#*******************************************************************************************
-# copyright (C) 2006 William Stein <wstein@gmail.com>
-# copyright (C) 2006 Chris Gorecki <chris.k.gorecki@gmail.com>
-# Distributed under the terms of the GNU General Public License (GPL)
-# http://www.gnu.org/licenses/
-#*******************************************************************************************
+#*****************************************************************************
+#       Copyright (C) 2006 William Stein <wstein.gmail.com>
+#       Copyright (C) 2006 Chris Gorecki <chris.k.gorecki@gmail.com>
+#       Copyright (C) 2013 Paul Scurek <scurek86@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 import booleval
 import logictable
 import logicparser
 # import boolopt
-from types import *
+from types import TupleType, ListType
 from sage.misc.flatten import flatten
 
 latex_operators = [('&', '\\wedge '),
@@ -132,6 +143,7 @@ latex_operators = [('&', '\\wedge '),
                    ('<->', '\\leftrightarrow '),
                    ('->', '\\rightarrow ')]
 
+
 class BooleanFormula:
     __expression = ""
     __tree = []
@@ -139,21 +151,30 @@ class BooleanFormula:
 
     def __init__(self, exp, tree, vo):
         r"""
-        This function initializes the data fields and is called when a
-        new statement is created.
+        Initialize the data fields
 
         INPUT:
-            self -- the calling object.
-            exp -- a string containing the logic expression to be manipulated.
-            tree -- a list containing the parse tree of the expression.
-            vo -- a list of the variables in the expression in order,
-                  with each variable occurring only once.
+
+        - ``self`` -- calling object
+
+        - ``exp`` -- a string. This contains the boolean expression
+          to be manipulated
+
+        - ``tree`` -- a list. This contains the parse tree of the expression.
+
+        - ``vo`` -- a list. This contains the variables in the expression, in the
+          order that they appear.  Each variable only occurs once in the list.
 
         OUTPUT:
-            Effectively returns an instance of this class.
+
+        None
 
         EXAMPLES:
+
         This example illustrates the creation of a statement.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: s = propcalc.formula("a&b|~(c|a)")
             sage: s
@@ -165,15 +186,22 @@ class BooleanFormula:
 
     def __repr__(self):
         r"""
-        Returns a string representation of this statement.
+        Return a string representation of this statement.
 
         INPUT:
-            self -- the calling object.
+
+        - ``self`` -- calling object
 
         OUTPUT:
-            Returns the string representation of this statement.
+
+        A string representation of calling statement
 
         EXAMPLES:
+
+        This example illustrates how a statement is represented with __repr__.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: propcalc.formula("man->monkey&human")
             man->monkey&human
@@ -182,19 +210,28 @@ class BooleanFormula:
 
     def _latex_(self):
         r"""
-        Returns a LaTeX  representation of this statement.
+        Return a LaTeX representation of this statement.
 
         INPUT:
-            self -- the calling object.
+
+        - ``self`` -- calling object
 
         OUTPUT:
-            Returns the latex representation of this statement.
+
+        A string containing the latex code for the statement
 
         EXAMPLES:
+
+        This example shows how to get the latex code for a boolean formula.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: s = propcalc.formula("man->monkey&human")
             sage: latex(s)
             man\rightarrow monkey\wedge human
+
+        ::
 
             sage: f = propcalc.formula("a & ((~b | c) ^ a -> c) <-> ~b")
             sage: latex(f)
@@ -207,88 +244,147 @@ class BooleanFormula:
 
     def polish_notation(self):
         r"""
-        This function returns the calling formula in polish notation in
-        the form of a string.
+        Convert the calling boolean formula into polish notation
 
         INPUT:
-            self -- the calling object, which is a boolean formula
+
+        - ``self`` -- calling object
 
         OUTPUT:
-            Returns the caling formula in polish notation as a string
+
+        A string representation of the formula in polish notation.
 
         EXAMPLES:
+
+        This example illustrates converting a formula to polish notation.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: f = propcalc.formula("~~a|(c->b)")
             sage: f.polish_notation()
             '|~~a->cb'
+
+        ::
+
             sage: g = propcalc.formula("(a|~b)->c")
             sage: g.polish_notation()
             '->|a~bc'
+
+        AUTHORS:
+
+        - Paul Scurek (2013-08-03)
         """
         return ''.join(flatten(logicparser.polish_parse(repr(self))))
 
     def tree(self):
         r"""
-        Returns a list containing the parse tree of this boolean expression.
+        Return the parse tree of this boolean expression.
 
         INPUT:
-            self -- the calling object.
+
+        - ``self`` -- calling object
 
         OUTPUT:
-            A list containing the parse tree of self.
+
+        The parse tree as a nested list
 
         EXAMPLES:
+
+        This example illustrates how to find the parse tree of a boolean formula.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: s = propcalc.formula("man -> monkey & human")
             sage: s.tree()
             ['->', 'man', ['&', 'monkey', 'human']]
+
+        ::
+
             sage: f = propcalc.formula("a & ((~b | c) ^ a -> c) <-> ~b")
             sage: f.tree()
-            <BLANKLINE>
             ['<->',
              ['&', 'a', ['->', ['^', ['|', ['~', 'b', None], 'c'], 'a'], 'c']],
              ['~', 'b', None]]
+
+        .. NOTE::
+
+            This function is used by other functions in the logic module
+            that perform semantic operations on a boolean formula.
         """
         return self.__tree
 
     def full_tree(self):
         r"""
-        This function returns a full syntax parse tree of the
-        calling boolean formula.
+        Return a full syntax parse tree of the calling formula.
 
         INPUT:
-            self -- the calling object, which is a boolean formula
+
+        - ``self`` -- calling object.  This is a boolean formula.
 
         OUTPUT:
-            Returns a list containing the full syntax parse tree of self, with
-            the symbols arranged from left to right as in polish notation.
+
+        The full syntax parse tree as a nested list
 
         EXAMPLES:
+
+        This example shows how to find the full syntax parse tree of a formula.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: s = propcalc.formula("a->(b&c)")
             sage: s.full_tree()
             ['->', 'a', ['&', 'b', 'c']]
+
+        ::
+
             sage: t = propcalc.formula("a & ((~b | c) ^ a -> c) <-> ~b")
             sage: t.full_tree()
             ['<->', ['&', 'a', ['->', ['^', ['|', ['~', 'b'], 'c'], 'a'], 'c']], ['~', 'b']]
+
+        ::
+
             sage: f = propcalc.formula("~~(a&~b)")
             sage: f.full_tree()
             ['~', ['~', ['&', 'a', ['~', 'b']]]]
+
+        .. NOTE::
+
+            This function is used by other functions in the logic module
+            that perform syntactic operations on a boolean formula.
+
+        AUTHORS:
+
+        - Paul Scurek (2013-08-03)
         """
         return logicparser.polish_parse(repr(self))
 
     def __or__(self, other):
         r"""
-        Overloads the | operator to 'or' two statements together.
+        Overload the | operator to 'or' two statements together.
 
         INPUT:
-            self -- the right hand side statement.
-            other -- the left hand side statement.
+
+        - ``self`` -- calling object. This is the statement on
+          the left side of the operator.
+
+        - ``other`` -- a boolean formula. This is the statement
+          on the right side of the operator.
 
         OUTPUT:
-            Returns a new statement that is the first statement logically
-                or'ed together.
+
+        A boolean formula of the following form:
+
+        ``self`` | ``other``
+
         EXAMPLES:
+
+        This example illustrates combining two formulas with '|'.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: s = propcalc.formula("a&b")
             sage: f = propcalc.formula("c^d")
@@ -299,17 +395,28 @@ class BooleanFormula:
 
     def __and__(self, other):
         r"""
-        Overloads the & operator to 'and' two statements together.
+        Overload the & operator to 'and' two statements together.
 
         INPUT:
-            self -- the right hand side statement.
-            other -- the left hand side statement.
+
+        - ``self`` -- calling object. This is the formula on the
+          left side of the operator.
+
+        - ``other`` -- a boolean formula. This is the formula on
+          the right side of the operator.
 
         OUTPUT:
-            Returns a new statement that is the first statement logically
-            and'ed together.
+
+        A boolean formula of the following form:
+
+        ``self`` & ``other``
 
         EXAMPLES:
+
+        This example shows how to combine two formulas with '&'.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: s = propcalc.formula("a&b")
             sage: f = propcalc.formula("c^d")
@@ -320,17 +427,28 @@ class BooleanFormula:
 
     def __xor__(self, other):
         r"""
-        Overloads the ^ operator to xor two statements together.
+        Overload the ^ operator to xor two statements together.
 
         INPUT:
-            self -- the right hand side statement.
-            other -- the left hand side statement.
+
+        - ``self`` -- calling object. This is the formula on the
+          left side of the operator.
+
+        - ``other`` -- a boolean formula. This is the formula on
+          the right side of the operator.
 
         OUTPUT:
-            Returns a new statement that is the first statement logically
-            xor'ed together.
+
+        A boolean formula of the following form:
+
+        ``self`` ^ ``other``
 
         EXAMPLES:
+
+        This example illustrates how to combine two formulas with '^'.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: s = propcalc.formula("a&b")
             sage: f = propcalc.formula("c^d")
@@ -341,38 +459,64 @@ class BooleanFormula:
 
     def __pow__(self, other):
         r"""
-        Overloads the ^ operator to xor two statements together.
+        Overload the ^ operator to xor two statements together.
 
         INPUT:
-            self -- the right hand side statement.
-            other -- the left hand side statement.
+
+        - ``self`` -- calling object. This is the formula on the
+          left side of the operator.
+
+        - ``other`` -- a boolean formula.  This is the formula on
+          the right side of the operator.
 
         OUTPUT:
-            Returns a new statement that is the first statement logically
-            xor'ed together.
+
+        A boolean formula of the following form:
+
+        ``self`` ^ ``other``
 
         EXAMPLES:
+
+        This example shows how to combine two formulas with '^'.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: s = propcalc.formula("a&b")
             sage: f = propcalc.formula("c^d")
             sage: s ^ f
             (a&b)^(c^d)
+
+        .. TODO::
+
+            This function seems to be identical to __xor__.
+            Thus, this function should be replaced with __xor__ everywhere
+            that it appears in the logic module.  Then it can be deleted
+            altogether.
         """
         return self.add_statement(other, '^')
 
     def __invert__(self):
         r"""
-        Overloads the ~ operator to not a statement.
+        Overload the ~ operator to not a statement.
 
         INPUT:
-            self -- the right hand side statement.
-            other -- the left hand side statement.
+
+        - ``self`` -- calling object. This is the formula on the
+          right side of the operator.
 
         OUTPUT:
-            Returns a new statement that is the first statement logically
-            not'ed.
+
+        A boolean formula of the following form:
+
+        ~``self``
 
         EXAMPLES:
+
+        This example shows how to negate a boolean formula.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: s = propcalc.formula("a&b")
             sage: ~s
@@ -384,17 +528,28 @@ class BooleanFormula:
 
     def ifthen(self, other):
         r"""
-        Returns two statements attached by the -> operator.
+        Combine two formulas with the -> operator.
 
         INPUT:
-            self -- the right hand side statement.
-            other -- the left hand side statement.
+
+        - ``self`` -- calling object. This is the formula on
+          the left side of the operator.
+
+        - ``other`` -- a boolean formula. This is the formula
+          on the right side of the operator.
 
         OUTPUT:
-            Returns a new statement that is the first statement logically
-            ifthen'ed together.
+
+        A boolean formula of the following form:
+
+        ``self`` -> ``other``
 
        EXAMPLES:
+
+       This example illustrates how to combine two formulas with '->'.
+
+       ::
+
            sage: import sage.logic.propcalc as propcalc
            sage: s = propcalc.formula("a&b")
            sage: f = propcalc.formula("c^d")
@@ -405,17 +560,28 @@ class BooleanFormula:
 
     def iff(self, other):
         r"""
-        Returns two statements attached by the <-> operator.
+        Combine two formulas with the <-> operator.
 
         INPUT:
-            self -- the right hand side statement.
-            other -- the left hand side statement.
+
+        - ``self`` -- calling object. This is the formula
+          on the left side of the operator.
+
+        - ``other`` -- a boolean formula. This is the formula
+          on the right side of the operator.
 
         OUTPUT:
-            Returns a new statement that is the first statement logically
-            ifandonlyif'ed together.
+
+        A boolean formula of the following form:
+
+        ``self`` <-> ``other``
 
         EXAMPLES:
+
+        This example illustrates how to combine two formulas with '<->'.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: s = propcalc.formula("a&b")
             sage: f = propcalc.formula("c^d")
@@ -426,55 +592,68 @@ class BooleanFormula:
 
     def __eq__(self, other):
         r"""
-        Overloads the == operator to determine if two expressions
-        are logically equivalent.
+        Overload the == operator to deterine logical equivalence.
 
         INPUT:
-            self -- the right hand side statement.
-            other -- the left hand side statement.
+
+        - ``self`` -- calling object. This is the formula on
+          the left side of the comparator.
+
+        - ``other`` -- a boolean formula. This is the formula
+          on the right side of the comparator.
 
         OUTPUT:
-            Returns true if the left hand side is equivalent to the
-            right hand side, and false otherwise.
+
+        A boolean value to be determined as follows:
+
+        True - if ``self`` and ``other`` are logically equivalent
+
+        False - if ``self`` and ``other`` are not logically equivalent
 
         EXAMPLES:
+
+        This example shows how to determine logical equivalence.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: f = propcalc.formula("(a|b)&c")
             sage: g = propcalc.formula("c&(b|a)")
             sage: f == g
             True
+
+        ::
+
             sage: g = propcalc.formula("a|b&c")
             sage: f == g
             False
         """
         return self.equivalent(other)
 
-    def truthtable(self, start = 0, end = -1):
+    def truthtable(self, start=0, end=-1):
         r"""
-        This function returns a truthtable object corresponding to the given
-        statement.  Each row of the table corresponds to a binary number, with
-        each variable associated to a column of the number, and taking on
-        a true value if that column has a value of 1.  Please see the
-        logictable module for details.  The function returns a table that
-        start inclusive and end exclusive so truthtable(0, 2) will include
-        row 0, but not row 2.
+        Return a truth table for the calling formula.
 
         INPUT:
-            self -- the calling object.
-            start -- an integer representing the row of the truth
-                     table from which to start initialized to 0, which
-                     is the first row when all the variables are
-                     false.
-            end -- an integer representing the last row of the truthtable
-                   to be created.  It is initialized to the last row of the
-                   full table.
+
+        - ``self`` -- calling object
+
+        - ``start`` -- (default: 0) an integer. This is the first
+          row of the truth table to be created.
+
+        - ``end`` -- (default: -1) an integer. This is the laste
+          row of the truth table to be created.
 
         OUTPUT:
-            Returns the truthtable (a 2-D array with the creating statement
-            tacked on the front) corresponding to the statement.
+
+        The truth table as a 2-D array
 
         EXAMPLES:
-        This example illustrates the creation of a statement.
+
+        This example illustrates the creation of a truth table.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: s = propcalc.formula("a&b|~(c|a)")
             sage: s.truthtable()
@@ -488,7 +667,10 @@ class BooleanFormula:
             True   True   False  True
             True   True   True   True
 
-        We can now create truthtable of rows 1 to 4, inclusive
+        We can now create a truthtable of rows 1 to 4, inclusive.
+
+        ::
+
             sage: s.truthtable(1, 5)
             a      b      c      value
             False  False  True   False
@@ -496,9 +678,15 @@ class BooleanFormula:
             False  True   True   False
             True   False  False  False
 
-        There should be no errors.
+        .. NOTE::
 
-        NOTES:
+            Each row of the table corresponds to a binary number, with
+            each variable associated to a column of the number, and taking on
+            a true value if that column has a value of 1.  Please see the
+            logictable module for details.  The function returns a table that
+            start inclusive and end exclusive so truthtable(0, 2) will include
+            row 0, but not row 2.
+
             When sent with no start or end parameters, this is an
             exponential time function requiring O(2**n) time, where
             n is the number of variables in the expression.
@@ -534,23 +722,32 @@ class BooleanFormula:
 
     def evaluate(self, var_values):
         r"""
-        Evaluates a formula for the given input values.
+        Evaluate a formula for the given input values.
 
         INPUT:
-            self -- the calling object.
-            var_values -- a dictionary containing pairs of
-                              variables and their boolean values.
-                              All variable must be present.
+
+        - ``self`` -- calling object
+
+        - ``var_values`` -- a dictionary. This contains the
+          pairs of variables and their boolean values.
 
         OUTPUT:
-            Return the evaluation of the formula with the given
-            inputs, either True or False.
+
+        The result of the evaluation as a boolean.
 
         EXAMPLES:
+
+        This example illustrates the evaluation of a boolean formula.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: f = propcalc.formula("a&b|c")
             sage: f.evaluate({'a':False, 'b':False, 'c':True})
             True
+
+        ::
+
             sage: f.evaluate({'a':True, 'b':False, 'c':False})
             False
         """
@@ -558,49 +755,78 @@ class BooleanFormula:
 
     def is_satisfiable(self):
         r"""
-        Is_satisfiable determines if there is some assignment of
-        variables for which the formula will be true.
+        Determine if the formula is True for some assignment of values.
 
         INPUT:
-            self -- the calling object.
+
+        - ``self`` -- calling object
 
         OUTPUT:
-            True if the formula can be satisfied, False otherwise.
+
+        A boolean value to be determined as follows:
+
+        True - if there is an assignment of values that makes the formula True
+
+        False - if the formula cannot be made True by any assignment of values
 
         EXAMPLES:
+
+        This example illustrates how to check a formula for satisfiability.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: f = propcalc.formula("a|b")
             sage: f.is_satisfiable()
             True
+
+        ::
+
             sage: g = f & (~f)
             sage: g.is_satisfiable()
             False
         """
         table = self.truthtable().get_table_list()
         for row in table[1:]:
-            if row[-1] == True:
+            if row[-1] is True:
                 return True
         return False
 
     def is_tautology(self):
         r"""
-        Is_tautology determines if the formula is always
-        true.
+        Determine if the formula is always True.
 
         INPUT:
-            self -- the calling object.
+
+        - ``self`` -- calling object
 
         OUTPUT:
-            True if the formula is a tautology, False otherwise.
+
+        A boolean value to be determined as follows:
+
+        True - if the formula is a tautology
+
+        False - if the formula is not a tautology
 
         EXAMPLES:
+
+        This example illustrates how to check if a formula is a tautology.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: f = propcalc.formula("a|~a")
             sage: f.is_tautology()
             True
+
+        ::
+
             sage: f = propcalc.formula("a&~a")
             sage: f.is_tautology()
             False
+
+        ::
+
             sage: f = propcalc.formula("a&b")
             sage: f.is_tautology()
             False
@@ -610,23 +836,39 @@ class BooleanFormula:
 
     def is_contradiction(self):
         r"""
-        Is_contradiction determines if the formula is always
-        false.
+        Determine if the formula is always False.
 
         INPUT:
-            self -- the calling object.
+
+        - ``self`` -- calling object
 
         OUTPUT:
-            True if the formula is a contradiction, False otherwise.
+
+        A boolean value to be determined as follows:
+
+        True - if the formula is a contradiction
+
+        False - if the formula is not a contradiction
 
         EXAMPLES:
+
+        This example illustrates how to check if a formula is a contradiction.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: f = propcalc.formula("a&~a")
             sage: f.is_contradiction()
             True
+
+        ::
+
             sage: f = propcalc.formula("a|~a")
             sage: f.is_contradiction()
             False
+
+        ::
+
             sage: f = propcalc.formula("a|b")
             sage: f.is_contradiction()
             False
@@ -635,23 +877,36 @@ class BooleanFormula:
 
     def equivalent(self, other):
         r"""
-        This function determines if two formulas are semantically
-        equivalent.
+        Determine if two formulas are semantically equivalent.
 
         INPUT:
-            self -- the calling object.
-            other -- a boolformula instance.
+
+        - ``self`` -- calling object
+
+        - ``other`` -- instance of BooleanFormula class.
 
         OUTPUT:
-            True if the two formulas are logically equivalent, False
-            otherwise.
+
+        A boolean value to be determined as follows:
+
+        True - if the two formulas are logically equivalent
+
+        False - if the two formulas are not logically equivalent
 
         EXAMPLES:
+
+        This example shows how to check for logical equivalence.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: f = propcalc.formula("(a|b)&c")
             sage: g = propcalc.formula("c&(a|b)")
             sage: f.equivalent(g)
             True
+
+        ::
+
             sage: g = propcalc.formula("a|b&c")
             sage: f.equivalent(g)
             False
@@ -660,20 +915,21 @@ class BooleanFormula:
 
     def convert_cnf_table(self):
         r"""
-        This function converts an instance of boolformula to conjunctive
-        normal form. It does this by examining the truthtable of the formula,
-        and thus takes `O(2^n)` time, where `n` is the number of variables.
+        Convert boolean formula to conjunctive normal form.
 
         INPUT:
 
-        - ``self`` -- the calling object.
+        - ``self`` -- calling object
 
         OUTPUT:
 
-            An instance of :class:`BooleanFormula` with an identical truth
-            table that is in conjunctive normal form.
+        An instance of :class:`BooleanFormula` in conjunctive normal form
 
-        EXAMPLES::
+        EXAMPLES:
+
+        This example illustrates how to convert a formula to cnf.
+
+        ::
 
             sage: import sage.logic.propcalc as propcalc
             sage: s = propcalc.formula("a ^ b <-> c")
@@ -681,7 +937,9 @@ class BooleanFormula:
             sage: s
             (a|b|~c)&(a|~b|c)&(~a|b|c)&(~a|~b|~c)
 
-        The methods :meth:`convert_cnf` and :meth:`convert_cnf_table` are aliases. ::
+        We now show that :meth:`convert_cnf` and :meth:`convert_cnf_table` are aliases.
+
+        ::
 
             sage: t = propcalc.formula("a ^ b <-> c")
             sage: t.convert_cnf_table(); t
@@ -700,10 +958,10 @@ class BooleanFormula:
         table = t.get_table_list()
         vars = table[0]
         for row in table[1:]:
-            if row[-1] == False:
+            if row[-1] is False:
                 str += '('
                 for i in range(len(row) - 1):
-                    if row[i] == True:
+                    if row[i] is True:
                         str += '~'
                     str += vars[i]
                     str += '|'
@@ -718,27 +976,35 @@ class BooleanFormula:
 
     def convert_cnf_recur(self):
         r"""
-        This function converts an instance of boolformula to conjunctive
-        normal form. It does this by applying a set of rules that are
-        guaranteed to convert the formula.  Worst case the converted
-        expression has an O(2^n) increase in size (and time as well), but if
-        the formula is already in CNF (or close to) it is only O(n).
+        Convert boolean formula to conjunctive normal form.
 
         INPUT:
-            self -- the calling object.
+
+        - ``self`` -- calling object
 
         OUTPUT:
-            An instance of boolformula with an identical truth table that is in
-            conjunctive normal form.
+
+        An instance of :class:`BooleanFormula` in conjunctive normal form
 
         EXAMPLES:
+
+        This example hows how to convert a formula to conjunctive normal form.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: s = propcalc.formula("a^b<->c")
             sage: s.convert_cnf_recur()
             sage: s
             (~a|a|c)&(~b|a|c)&(~a|b|c)&(~b|b|c)&(~c|a|b)&(~c|~a|~b)
 
-        NOTES:
+        .. NOTE::
+
+            This function works by applying a set of rules that are
+            guaranteed to convert the formula.  Worst case the converted
+            expression has an O(2^n) increase in size (and time as well), but if
+            the formula is already in CNF (or close to) it is only O(n).
+
             This function can require an exponential blow up in space from the
             original expression.  This in turn can require large amounts of time.
             Unless a formula is already in (or close to) being in cnf convert_cnf()
@@ -751,17 +1017,22 @@ class BooleanFormula:
 
     def satformat(self):
         r"""
-        This function returns the satformat representation of a boolean formula.
-        See www.cs.ubc.ca/~hoos/SATLIB/Benchmarks/SAT/satformat.ps for a
-        description of satformat.
+        Return the satformat representation of a boolean formula.
 
         INPUT:
-             self -- the calling object.
+
+        - ``self`` -- calling object
 
         OUTPUT:
-            A string representing the satformat representation of this object.
+
+        The satformat of the formula as a string
 
         EXAMPLES:
+
+        This example illustrates how to find the satformat of a formula.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: f = propcalc.formula("a&((b|c)^a->c)<->b")
             sage: f.convert_cnf()
@@ -770,7 +1041,11 @@ class BooleanFormula:
             sage: f.satformat()
             'p cnf 3 0\n1 -2 3 0 1 -2 -3 \n0 -1 2 -3'
 
-        NOTES:
+        .. NOTE::
+
+            See www.cs.ubc.ca/~hoos/SATLIB/Benchmarks/SAT/satformat.ps for a
+            description of satformat.
+
             If the instance of boolean formula has not been converted to
             CNF form by a call to convert_cnf() or convert_cnf_recur()
             satformat() will call convert_cnf().  Please see the notes for
@@ -879,29 +1154,44 @@ class BooleanFormula:
 
     def convert_opt(self, tree):
         r"""
-        This function can be applied to a parse tree to convert to the tuple
-        form used by bool opt.  The expression must only contain '&', '|', and
-        '~' operators.
+        Convert a parse tree to the tuple form used by bool_opt.
 
         INPUT:
-            self -- the calling object.
-            tree -- a list of three elements corresponding to a branch of a
-                    parse tree.
+
+        - ``self`` -- calling object
+
+        - ``tree`` -- a list. This is a branch of a
+          parse tree and can only contain the '&', '|'
+          and '~' operators along with variables.
+
         OUTPUT:
-            A tree branch that does not contain ^, ->, or <-> operators.
+
+        A 3-tuple
 
         EXAMPLES:
+
+        This example illustrates the conversion of a formula into its
+        corresponding tuple.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc, sage.logic.logicparser as logicparser
             sage: s = propcalc.formula("a&(b|~c)")
             sage: tree = ['&', 'a', ['|', 'b', ['~', 'c', None]]]
             sage: logicparser.apply_func(tree, s.convert_opt)
             ('and', ('prop', 'a'), ('or', ('prop', 'b'), ('not', ('prop', 'c'))))
+
+        .. NOTE::
+
+            This function only works on one branch of the parse tree. To
+            apply the function to every branch of a parse tree, pass the
+            function as an argument in :func:`apply_func` in logicparser.py.
         """
-        if type(tree[1]) is not TupleType and tree[1] != None:
+        if type(tree[1]) is not TupleType and not (tree[1] is None):
             lval = ('prop', tree[1])
         else:
             lval = tree[1]
-        if type(tree[2]) is not TupleType and tree[2] != None:
+        if type(tree[2]) is not TupleType and not(tree[2] is None):
             rval = ('prop', tree[2])
         else:
             rval = tree[2]
@@ -915,24 +1205,37 @@ class BooleanFormula:
 
     def add_statement(self, other, op):
         r"""
-        This function takes two statements and combines them
-        together with the given operator.
+        Combine two formulas with the given operator.
 
         INPUT:
-            self -- the left hand side statement object.
-            other -- the right hand side statement object.
-            op -- the character of the operation to be performed.
+
+        - ``self`` -- calling object. This is the formula on
+          the left side of the operator.
+
+        - ``other`` -- instance of BooleanFormula class. This
+          is the formula on the right of the operator.
+
+        - ``op`` -- a string. This is the operator used to
+          combine the two formulas.
 
         OUTPUT:
-            Returns a new statement that is the first statement attached to
-            the second statement by the operator op.
+
+        The result as an instance of :class:`BooleanFormula`
 
         EXAMPLES:
+
+        This example shows how to create a new formula from two others.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: s = propcalc.formula("a&b")
             sage: f = propcalc.formula("c^d")
             sage: s.add_statement(f, '|')
             (a&b)|(c^d)
+
+        ::
+
             sage: s.add_statement(f, '->')
             (a&b)->(c^d)
         """
@@ -942,21 +1245,32 @@ class BooleanFormula:
 
     def get_bit(self, x, c):
         r"""
-        This function returns bit c of the number x.  The 0 bit is the
-        low order bit.  Errors should be handled gracefully by a return
-        of false, and negative numbers x always return false while a
-        negative c will index from the high order bit.
+        Determine if bit c of the number x is 1.
 
         INPUT:
-            self -- the calling object.
-            x -- an integer, the number from which to take the bit.
-            c -- an integer, the bit number to be taken, where 0 is
-                 the low order bit.
+
+        - ``self`` -- calling object
+
+        - ``x`` -- an integer. This is the number from
+          which to take the bit.
+
+        - ``c`` -- an integer. This is the but number to
+          be taken, where 0 is the low order bit.
 
         OUTPUT:
-            returns True if bit c of number x is 1, False otherwise.
+
+        A boolean to be determined as follows:
+
+        True - if bit c of x is 1
+
+        False - if bit c of x is not 1
 
         EXAMPLES:
+
+        This example illustrates the use of :meth:`get_bit`.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: s = propcalc.formula("a&b")
             sage: s.get_bit(2, 1)
@@ -965,16 +1279,29 @@ class BooleanFormula:
             False
 
         It is not an error to have a bit out of range.
+
+        ::
+
             sage: s.get_bit(64, 7)
             False
 
         Nor is it an error to use a negative number.
+
+        ::
+
             sage: s.get_bit(-1, 3)
             False
             sage: s.get_bit(64, -1)
             True
             sage: s.get_bit(64, -2)
             False
+
+        .. NOTE::
+
+            The 0 bit is the low order bit.  Errors should be handled
+            gracefully by a return of false, and negative numbers x
+            always return false while a negative c will index from the
+            high order bit.
         """
         bits = []
         while x > 0:
@@ -991,30 +1318,45 @@ class BooleanFormula:
 
     def reduce_op(self, tree):
         r"""
-        This function can be applied to a parse tree to convert if-and-only-if,
-        if-then, and xor operations to operations only involving and/or operations.
+        Convert if-and-only-if, if-then, and xor operations to operations
+        only involving and/or operations.
 
         INPUT:
-            self -- the calling object.
-            tree -- a list of three elements corresponding to a branch of a
-                    parse tree.
+
+        - ``self`` -- calling object
+
+        - ``tree`` -- a list. This represents a branch
+          of a parse tree.
+
         OUTPUT:
-            A tree branch that does not contain ^, ->, or <-> operators.
+
+        A new list with no ^, ->, or <-> as first element of list.
 
         EXAMPLES:
+
+        This example illustrates the use of :meth:`reduce_op` with :func:`apply_func`.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc, sage.logic.logicparser as logicparser
             sage: s = propcalc.formula("a->b^c")
             sage: tree = ['->', 'a', ['^', 'b', 'c']]
             sage: logicparser.apply_func(tree, s.reduce_op)
             ['|', ['~', 'a', None], ['&', ['|', 'b', 'c'], ['~', ['&', 'b', 'c'], None]]]
+
+        .. NOTE::
+
+            This function only operates on a single branch of a parse tree.
+            To apply the function to an entire parse tree, pass the function
+            as an argument to :func:`apply_func` in logicparser.py.
         """
         if tree[0] == '<->':
             # parse tree for (~tree[1]|tree[2])&(~tree[2]|tree[1])
-            new_tree = ['&', ['|', ['~', tree[1], None], tree[2]], \
+            new_tree = ['&', ['|', ['~', tree[1], None], tree[2]],
                        ['|', ['~', tree[2], None], tree[1]]]
         elif tree[0] == '^':
             # parse tree for (tree[1]|tree[2])&~(tree[1]&tree[2])
-            new_tree = ['&', ['|', tree[1], tree[2]], \
+            new_tree = ['&', ['|', tree[1], tree[2]],
                        ['~', ['&', tree[1], tree[2]], None]]
         elif tree[0] == '->':
             # parse tree for ~tree[1]|tree[2]
@@ -1025,22 +1367,36 @@ class BooleanFormula:
 
     def dist_not(self, tree):
         r"""
-        This function can be applied to a parse tree to distribute not operators
-        over other operators.
+        Distribute ~ operators over & and | operators.
 
         INPUT:
-            self -- the calling object.
-            tree -- a list of three elements corresponding to a branch of a
-                    parse tree.
+
+        - ``self`` calling object
+
+        - ``tree`` a list. This represents a branch
+          of a parse tree.
+
         OUTPUT:
-            A tree branch that does not contain un-distributed nots.
+
+        A new list
 
         EXAMPLES:
+
+        This example illustrates the distribution of '~' over '&'.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc, sage.logic.logicparser as logicparser
             sage: s = propcalc.formula("~(a&b)")
             sage: tree = ['~', ['&', 'a', 'b'], None]
             sage: logicparser.apply_func(tree, s.dist_not) #long time
             ['|', ['~', 'a', None], ['~', 'b', None]]
+
+        .. NOTE::
+
+            This function only operates on a single branch of a parse tree.
+            To apply the function to an entire parse tree, pass the function
+            as an argument to :func:`apply_func` in logicparser.py.
         """
         if tree[0] == '~' and type(tree[1]) is ListType:
             op = tree[1][0]
@@ -1059,50 +1415,79 @@ class BooleanFormula:
 
     def dist_ors(self, tree):
         r"""
-        This function can be applied to a parse tree to distribute or over and.
+        Distribute | over &.
 
         INPUT:
-            self -- the calling object.
-            tree -- a list of three elements corresponding to a branch of a
-                    parse tree.
+
+        - ``self`` -- calling object
+
+        - ``tree`` -- a list. This represents a branch of
+          a parse tree.
+
         OUTPUT:
-            A tree branch that does not contain un-distributed ors.
+
+        A new list
 
         EXAMPLES:
+
+        This example illustrates the distribution of '|' over '&'.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc, sage.logic.logicparser as logicparser
             sage: s = propcalc.formula("(a&b)|(a&c)")
             sage: tree = ['|', ['&', 'a', 'b'], ['&', 'a', 'c']]
             sage: logicparser.apply_func(tree, s.dist_ors) #long time
             ['&', ['&', ['|', 'a', 'a'], ['|', 'b', 'a']], ['&', ['|', 'a', 'c'], ['|', 'b', 'c']]]
 
+        .. NOTE::
+
+            This function only operates on a single branch of a parse tree.
+            To apply the function to an entire parse tree, pass the function
+            as an argument to :func:`apply_func` in logicparser.py.
         """
         if tree[0] == '|' and type(tree[2]) is ListType and tree[2][0] == '&':
-            new_tree = ['&', ['|', tree[1], tree[2][1]], ['|', tree[1], tree[2][2]]]
+            new_tree = ['&', ['|', tree[1], tree[2][1]],
+                        ['|', tree[1], tree[2][2]]]
             return logicparser.apply_func(new_tree, self.dist_ors)
         if tree[0] == '|' and type(tree[1]) is ListType and tree[1][0] == '&':
-           new_tree = ['&', ['|', tree[1][1], tree[2]], ['|', tree[1][2], tree[2]]]
-           return logicparser.apply_func(new_tree, self.dist_ors)
+            new_tree = ['&', ['|', tree[1][1], tree[2]],
+                        ['|', tree[1][2], tree[2]]]
+            return logicparser.apply_func(new_tree, self.dist_ors)
         return tree
 
     def to_infix(self, tree):
         r"""
-        This function can be applied to a parse tree to convert it from prefix to
-        infix.
+        Convert a parse tree from prefix to infix form.
 
         INPUT:
-            self -- the calling object.
-            tree -- a list of three elements corresponding to a branch of a
-                    parse tree.
+
+        - ``self`` -- calling object
+
+        - ``tree`` -- a list. This represents a branch
+          of a parse tree.
 
         OUTPUT:
-            A tree branch in infix form.
+
+        A new list
 
         EXAMPLES:
+
+        This example shows how to convert a parse tree from prefix to infix form.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc, sage.logic.logicparser as logicparser
             sage: s = propcalc.formula("(a&b)|(a&c)")
             sage: tree = ['|', ['&', 'a', 'b'], ['&', 'a', 'c']]
             sage: logicparser.apply_func(tree, s.to_infix)
             [['a', '&', 'b'], '|', ['a', '&', 'c']]
+
+        .. NOTE::
+
+            This function only operates on a single branch of a parse tree.
+            To apply the function to an entire parse tree, pass the function
+            as an argument to :func:`apply_func` in logicparser.py.
         """
         if tree[0] != '~':
             return [tree[1], tree[0], tree[2]]
@@ -1110,29 +1495,32 @@ class BooleanFormula:
 
     def convert_expression(self):
         r"""
-        This function converts the string expression associated with an instance
-        of boolformula to match with its tree representation after being converted
-        to conjunctive normal form.
+        Convert the string representation of a formula to conjunctive normal form.
 
         INPUT:
-            self -- the calling object.
+
+        - ``self`` -- calling object
 
         OUTPUT:
-            None.
+
+        None
 
         EXAMPLES:
+
+        We show how the converted formula is printed in conjunctive normal form.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: s = propcalc.formula("a^b<->c")
             sage: s.convert_cnf_recur(); s  #long time
             (~a|a|c)&(~b|a|c)&(~a|b|c)&(~b|b|c)&(~c|a|b)&(~c|~a|~b)
-
         """
         ttree = self.__tree[:]
         ttree = logicparser.apply_func(ttree, self.to_infix)
         self.__expression = ''
         str_tree = str(ttree)
         open_flag = False
-        put_flag = False
         i = 0
         for c in str_tree:
             if i < len(str_tree) - 1:
@@ -1148,25 +1536,39 @@ class BooleanFormula:
             if i < len(str_tree) and str_tree[i] not in ' \',[]':
                 self.__expression += str_tree[i]
             i += 1
-        if open_flag == True:
+        if open_flag is True:
             self.__expression += ')'
 
     def get_next_op(self, str):
         r"""
-        This function returns the next operator in a string.
+        Return the next operator in a string.
 
         INPUT:
-            self -- the calling object.
-            tree -- a string containing a logical expression.
+
+        - ``self`` -- calling object
+
+        - ``str`` -- a string. This contains a logical
+          expression.
 
         OUTPUT:
-            The next operator in the string.
+
+        The next operator as a string
 
         EXAMPLES:
+
+        This example illustrates how to find the next operator in a formula.
+
+        ::
+
             sage: import sage.logic.propcalc as propcalc
             sage: s = propcalc.formula("f&p")
             sage: s.get_next_op("abra|cadabra")
             '|'
+
+        .. NOTE::
+
+            The parameter ``str`` is not necessarily the string
+            representation of the calling object.
         """
         i = 0
         while i < len(str) - 1 and str[i] != '&' and str[i] != '|':

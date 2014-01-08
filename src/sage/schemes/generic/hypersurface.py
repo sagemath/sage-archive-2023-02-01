@@ -18,7 +18,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import is_MPolynomial
+from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
 from algebraic_scheme import AlgebraicScheme_subscheme_projective, AlgebraicScheme_subscheme_affine
 
 def is_Hypersurface(self):

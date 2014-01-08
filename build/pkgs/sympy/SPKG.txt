@@ -20,13 +20,17 @@ New BSD: http://www.opensource.org/licenses/bsd-license.php
 sympy mailinglist: http://groups.google.com/group/sympy
 
 == Dependencies ==
- * Python 2.4 or later
+ * Python 2.5 or later
 
 == Special Update/Build Instructions ==
 
  * A simple script can be used to ease the updating of the SPKG. See the README.
 
 == Changelog ==
+
+=== sympy-0.7.3 (Eviatar Bach, 17 August 2013) ==
+ * Trac #14694: new upstream release
+ * updating SymPy download URL
 
 === sympy-0.7.1.p0 (Francois Bissey, 22 February 2012) ===
  * Trac #12563: add -S option to python to prevent sympy's installer

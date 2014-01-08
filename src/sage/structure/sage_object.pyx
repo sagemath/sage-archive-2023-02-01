@@ -1381,7 +1381,7 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
 
         Create a custom-made ``SourPickle`` for the last example.
 
-    If you want to find *lots* of little issues in Sage then try the following:
+    If you want to find *lots* of little issues in Sage then try the following::
 
         sage: print "x"; sage.structure.sage_object.unpickle_all(run_test_suite = True) # todo: not tested
 

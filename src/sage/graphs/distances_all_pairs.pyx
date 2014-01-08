@@ -66,30 +66,30 @@ Breadth First Search per vertex of the (di)graph.
       is necessary for the algorithm, so this value can **not** be set to
       ``NULL``.
 
-    - ``unsigned short * eccentricity`` -- a pointer toward an array of size
-      `n\cdot\text{sizeof(unsigned short)}`. Set to ``NULL`` if you do not want
-      to compute the eccentricity.
+    - ``int * eccentricity`` -- a pointer toward an array of size
+      `n\cdot\text{sizeof(int)}`. Set to ``NULL`` if you do not want to compute
+      the eccentricity.
 
 **Technical details**
-
 
     - The vertices are encoded as `1, ..., n` as they appear in the ordering of
       ``G.vertices()``.
 
     - Because this function works on matrices whose size is quadratic compared
-      to the number of vertices, it uses short variables to store the vertices'
-      names instead of long ones to divide by 2 the size in memory. This means
-      that the current implementation does not run on a graph of more than 65536
-      nodes (this can be easily changed if necessary, but would require much
-      more memory. It may be worth writing two versions). For information, the
-      current version of the algorithm on a graph with `65536=2^{16}` nodes
-      creates in memory `2` tables on `2^{32}` short elements (2bytes each), for
-      a total of `2^{34}` bytes or `16` gigabytes.
+      to the number of vertices when computing all distances or predecessors, it
+      uses short variables to store the vertices' names instead of long ones to
+      divide by 2 the size in memory. This means that only the
+      diameter/eccentricities can be computed on a graph of more than 65536
+      nodes. For information, the current version of the algorithm on a graph
+      with `65536=2^{16}` nodes creates in memory `2` tables on `2^{32}` short
+      elements (2bytes each), for a total of `2^{33}` bytes or `8` gigabytes. In
+      order to support larger sizes, we would have to replace shorts by 32-bits
+      int or 64-bits int, which would then require respectively 16GB or 32GB.
 
-    - In the C version of these functions, a value of ``<unsigned short> -1 =
-      65535`` for a distance or a predecessor means respectively ``+Infinity``
-      and ``None``. These case happens when the input is a disconnected graph,
-      or a non-strongly-connected digraph.
+    - In the C version of these functions, infinite distances are represented
+      with ``<unsigned short> -1 = 65535`` for ``unsigned short`` variables, and
+      by ``INT32_MAX`` otherwise. These case happens when the input is a
+      disconnected graph, or a non-strongly-connected digraph.
 
     - A memory error is raised when data structures allocation failed. This
       could happen with large graphs on computers with low memory space.
@@ -127,9 +127,8 @@ Functions
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-include "sage/misc/bitset_pxd.pxi"
 include "sage/misc/bitset.pxi"
-from libc.stdint cimport uint64_t
+from libc.stdint cimport uint64_t, uint32_t, INT32_MAX
 from sage.graphs.base.c_graph cimport CGraph
 from sage.graphs.base.c_graph cimport vertex_label
 from sage.graphs.base.c_graph cimport get_vertex
@@ -140,7 +139,7 @@ from sage.graphs.base.static_sparse_graph cimport short_digraph, init_short_digr
 cdef inline all_pairs_shortest_path_BFS(gg,
                                         unsigned short * predecessors,
                                         unsigned short * distances,
-                                        unsigned short * eccentricity):
+                                        int            * eccentricity):
     """
     See the module's documentation.
     """
@@ -154,49 +153,37 @@ cdef inline all_pairs_shortest_path_BFS(gg,
 
     cdef int n = len(int_to_vertex)
 
-    if n > <unsigned short> -1:
-        raise ValueError("The graph backend contains more than "+str(<unsigned short> -1)+" nodes")
+    # Computing the predecessors/distances can only be done if we have less than
+    # MAX_UNSIGNED_SHORT vertices. No problem with the eccentricities though as
+    # we store them on an integer vector.
+    if (predecessors != NULL or distances != NULL) and n > <unsigned short> -1:
+        raise ValueError("The graph backend contains more than "+
+                         str(<unsigned short> -1)+" nodes and we cannot "+
+                         "compute the matrix of distances/predecessors on "+
+                         "something like that !")
 
     # The vertices which have already been visited
     cdef bitset_t seen
     bitset_init(seen, n)
 
     # The list of waiting vertices, the beginning and the end of the list
-
-    cdef unsigned short * waiting_list = <unsigned short *> sage_malloc(n*sizeof(unsigned short))
-    if waiting_list==NULL:
+    cdef int * waiting_list = <int *> sage_malloc(n*sizeof(int))
+    if waiting_list == NULL:
         raise MemoryError()
-    cdef unsigned short waiting_beginning = 0
-    cdef unsigned short waiting_end = 0
+    cdef int waiting_beginning = 0
+    cdef int waiting_end = 0
 
-    cdef int * degree = <int *> sage_malloc(n*sizeof(int))
-    if degree==NULL:
-        sage_free(waiting_list)
-        raise MemoryError()
-
-    cdef unsigned short source
-    cdef unsigned short v, u
-    cdef unsigned short * p_tmp
-    cdef unsigned short * end
+    cdef int source
+    cdef int v, u
+    cdef uint32_t * p_tmp
+    cdef uint32_t * end
 
     cdef unsigned short * c_predecessors = predecessors
-    cdef unsigned short * c_eccentricity = eccentricity
-    cdef unsigned short * c_distances
-
-    # If the user does not want to compute the distances, the distances variable
-    # is set to NULL. We *need* to compute the distances, though, if we want to
-    # compute anything with this function. In this case we allocate a vector of
-    # size n (and not a vector of size n^2, that is the size of the distance
-    # variable when it is not null)
-
-    if distances != NULL:
-        c_distances = distances
-    else:
-        c_distances = <unsigned short *> sage_malloc( n * sizeof(unsigned short))
-        if c_distances==NULL:
-            sage_free(waiting_list)
-            sage_free(degree)
-            raise MemoryError()
+    cdef int * c_eccentricity = eccentricity
+    cdef int * c_distances = <int *> sage_malloc( n * sizeof(int))
+    if c_distances == NULL:
+        sage_free(waiting_list)
+        raise MemoryError()
 
     # Copying the whole graph to obtain the list of neighbors quicker than by
     # calling out_neighbors
@@ -215,9 +202,9 @@ cdef inline all_pairs_shortest_path_BFS(gg,
 
     cdef short_digraph sd
     init_short_digraph(sd, gg)
-    cdef unsigned short ** p_vertices = sd.neighbors
-    cdef unsigned short * p_edges = sd.edges
-    cdef unsigned short * p_next = p_edges
+    cdef uint32_t ** p_vertices = sd.neighbors
+    cdef uint32_t * p_edges = sd.edges
+    cdef uint32_t * p_next = p_edges
 
     # We run n different BFS taking each vertex as a source
     for source in range(n):
@@ -267,7 +254,7 @@ cdef inline all_pairs_shortest_path_BFS(gg,
         # If not all the vertices have been met
         for v in range(n):
             if not bitset_in(seen, v):
-                c_distances[v] = -1
+                c_distances[v] = INT32_MAX
                 if predecessors != NULL:
                     c_predecessors[v] = -1
 
@@ -275,22 +262,19 @@ cdef inline all_pairs_shortest_path_BFS(gg,
             c_predecessors += n
 
         if eccentricity != NULL:
-            c_eccentricity[0] = 0
+            c_eccentricity[source] = 0
             for i in range(n):
-                c_eccentricity[0] = c_eccentricity[0] if c_eccentricity[0] >= c_distances[i] else c_distances[i]
-
-            c_eccentricity += 1
+                c_eccentricity[source] = c_eccentricity[source] if c_eccentricity[source] >= c_distances[i] else c_distances[i]
 
         if distances != NULL:
-            c_distances += n
+            for i in range(n):
+                distances[i] = <unsigned short> c_distances[i]
+            distances += n
 
     bitset_free(seen)
     sage_free(waiting_list)
-    sage_free(degree)
     free_short_digraph(sd)
-    if distances == NULL:
-        sage_free(c_distances)
-
+    sage_free(c_distances)
 
 ################
 # Predecessors #
@@ -309,10 +293,10 @@ cdef unsigned short * c_shortest_path_all_pairs(G) except NULL:
 
     cdef unsigned int n = G.order()
     cdef unsigned short * distances = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
-    if distances==NULL:
+    if distances == NULL:
         raise MemoryError()
     cdef unsigned short * predecessors = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
-    if predecessors==NULL:
+    if predecessors == NULL:
         sage_free(distances)
         raise MemoryError()
     all_pairs_shortest_path_BFS(G, predecessors, distances, NULL)
@@ -401,7 +385,7 @@ cdef unsigned short * c_distances_all_pairs(G):
 
     cdef unsigned int n = G.order()
     cdef unsigned short * distances = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
-    if distances==NULL:
+    if distances == NULL:
         raise MemoryError()
     all_pairs_shortest_path_BFS(G, NULL, distances, NULL)
 
@@ -455,13 +439,112 @@ def distances_all_pairs(G):
             else:
                 d_tmp[int_to_vertex[i]] = c_distances[i]
 
-
         d[int_to_vertex[j]] = d_tmp
-
         c_distances += n
 
     sage_free(distances)
     return d
+
+def is_distance_regular(G, parameters = False):
+    r"""
+    Tests if the graph is distance-regular
+
+    A graph `G` is distance-regular if there exist integers `d_1,...,d_n` such
+    that for every vertex `v\in G` we have `d_i=\#\{u:d_G(u,v) =i\}`. Thus a
+    strongly-regular graph is also distance-regular, and a distance-regular
+    graph is necessarily regular too.
+
+    For more information on distance-regular graphs, see its associated
+    :wikipedia:`wikipedia page <Distance-regular_graph>`.
+
+    INPUT:
+
+    - ``parameters`` (boolean) -- whether to replace ``True`` answers with a
+      dictionary associating `d_i` to an integer `i>0` if `d_i>0` (one can then
+      obtain `d_i` by doing ``dictionary.get(i,0)``). Set to ``False`` by
+      default.
+
+    .. SEEALSO::
+
+        * :meth:`~sage.graphs.generic_graph.GenericGraph.is_regular`
+        * :meth:`~Graph.is_strongly_regular`
+
+    EXAMPLES::
+
+        sage: g = graphs.PetersenGraph()
+        sage: g.is_distance_regular()
+        True
+        sage: g.is_distance_regular(parameters = True)
+        {1: 3, 2: 6}
+
+    Cube graphs, which are not strongly regular, are a bit more interesting::
+
+        sage: graphs.CubeGraph(4).is_distance_regular(parameters = True)
+        {1: 4, 2: 6, 3: 4, 4: 1}
+
+    TESTS::
+
+        sage: graphs.PathGraph(2).is_distance_regular(parameters = True)
+        {1: 1}
+
+    """
+    cdef int i,l
+    cdef int n = G.order()
+
+    if n <= 1:
+        return {} if parameters else True
+
+    if not G.is_regular():
+        return False
+
+    cdef unsigned short * distance_matrix = c_distances_all_pairs(G)
+
+    # - d_array is the vector of d_i corresponding to the first vertex
+    #
+    # - d_tmp is a vector that we use to check that d_array is the same for
+    #   every vertex v
+    cdef unsigned short * d_array = <unsigned short *> sage_calloc(2*n, sizeof(unsigned short))
+    cdef unsigned short * d_tmp   = d_array + n
+
+    if d_array == NULL:
+        sage_free(distance_matrix)
+        raise MemoryError()
+
+    # Filling d_array
+    cdef unsigned short * pointer = distance_matrix
+    for i in range(n):
+        if pointer[i] < n:
+            d_array[pointer[i]] += 1
+    pointer += n
+
+    # For each of the n-1 other vertices
+    for l in range(1,n):
+
+        # We set d_tmp and fill it with the data from the l^th row
+        memset(d_tmp, 0, n*sizeof(unsigned short))
+        for i in range(n):
+            if pointer[i] < n:
+                d_tmp[pointer[i]] += 1
+
+        # If d_tmp != d_array, we are done
+        if memcmp(d_array, d_tmp, n*sizeof(unsigned short)) != 0:
+            sage_free(distance_matrix)
+            sage_free(d_array)
+            return False
+
+        pointer += n
+
+    cdef dict dict_parameters
+    if parameters:
+        dict_parameters = {i:d_array[i] for i in range(n) if i and d_array[i] > 0}
+
+    sage_free(distance_matrix)
+    sage_free(d_array)
+
+    if parameters:
+        return dict_parameters
+    else:
+        return True
 
 ###################################
 # Both distances and predecessors #
@@ -520,11 +603,11 @@ def distances_and_predecessors_all_pairs(G):
         return {}, {}
 
     cdef unsigned short * distances = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
-    if distances==NULL:
+    if distances == NULL:
         raise MemoryError()
     cdef unsigned short * c_distances = distances
     cdef unsigned short * predecessor = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
-    if predecessor==NULL:
+    if predecessor == NULL:
         sage_free(distances)
         raise MemoryError()
     cdef unsigned short * c_predecessor = predecessor
@@ -570,7 +653,7 @@ def distances_and_predecessors_all_pairs(G):
 # Eccentricity #
 ################
 
-cdef unsigned short * c_eccentricity(G) except NULL:
+cdef int * c_eccentricity(G) except NULL:
     r"""
     Returns the vector of eccentricities in G.
 
@@ -579,15 +662,10 @@ cdef unsigned short * c_eccentricity(G) except NULL:
     """
     cdef unsigned int n = G.order()
 
-    cdef unsigned short * ecc = <unsigned short *> sage_malloc(n*sizeof(unsigned short))
-    if ecc==NULL:
+    cdef int * ecc = <int *> sage_malloc(n*sizeof(int))
+    if ecc == NULL:
         raise MemoryError()
-    cdef unsigned short * distances = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
-    if distances==NULL:
-        sage_free(ecc)
-        raise MemoryError()
-    all_pairs_shortest_path_BFS(G, NULL, distances, ecc)
-    sage_free(distances)
+    all_pairs_shortest_path_BFS(G, NULL, NULL, ecc)
 
     return ecc
 
@@ -611,12 +689,12 @@ def eccentricity(G):
     if n == 0:
         return []
 
-    cdef unsigned short * ecc = c_eccentricity(G)
+    cdef int * ecc = c_eccentricity(G)
 
     cdef list l_ecc = []
     cdef int i
     for i in range(n):
-        if ecc[i] == <unsigned short> -1:
+        if ecc[i] == INT32_MAX:
             l_ecc.append(Infinity)
         else:
             l_ecc.append(ecc[i])
@@ -775,11 +853,9 @@ def distances_distribution(G):
 
     return distr
 
-
 ##################
 # Floyd-Warshall #
 ##################
-
 
 def floyd_warshall(gg, paths = True, distances = False):
     r"""
@@ -905,10 +981,10 @@ def floyd_warshall(gg, paths = True, distances = False):
 
     # init dist
     t_dist = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
-    if t_dist==NULL:
+    if t_dist == NULL:
         raise MemoryError()
     dist = <unsigned short **> sage_malloc(n*sizeof(unsigned short *))
-    if dist==NULL:
+    if dist == NULL:
         sage_free(t_dist)
         raise MemoryError()
     dist[0] = t_dist
@@ -924,12 +1000,12 @@ def floyd_warshall(gg, paths = True, distances = False):
     if paths:
         # init prec
         t_prec = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
-        if t_prec==NULL:
+        if t_prec == NULL:
             sage_free(t_dist)
             sage_free(dist)
             raise MemoryError()
         prec = <unsigned short **> sage_malloc(n*sizeof(unsigned short *))
-        if prec==NULL:
+        if prec == NULL:
             sage_free(t_dist)
             sage_free(dist)
             sage_free(t_prec)

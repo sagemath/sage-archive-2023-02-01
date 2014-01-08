@@ -8,16 +8,22 @@ Variable names must start with a letter and contain only
 alpha-numerics and the underscore character.
 
 AUTHORS:
-    -- Chris Gorecki (2007): initial version
-    -- William Stein (2007-08-31): integration into Sage 2.8.4
-"""
 
+- Chris Gorecki (2007): initial version
+
+- William Stein (2007-08-31): integration into Sage 2.8.4
+
+- Paul Scurek (2013-08-03): updated docstring formatting
+"""
 #*****************************************************************************
-# Copyright (C) 2006 William Stein <wstein@gmail.com>
-# Copyright (C) 2007 Chris Gorecki <chris.k.gorecki@gmail.com>
+#       Copyright (C) 2007 Chris Gorecki <chris.k.gorecki@gmail.com>
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>
+#       Copyright (C) 2013 Paul Scurek <scurek86@gmail.com>
 #
-# Distributed under the terms of the GNU General Public License (GPL)
-# http://www.gnu.org/licenses/
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 import string
@@ -32,8 +38,12 @@ vars_order = []
 
 class SymbolicLogic:
     """
-
     EXAMPLES:
+
+    This example illustrates how to create a boolean formula and print its table.
+
+    ::
+
         sage: log = SymbolicLogic()
         sage: s = log.statement("a&b|!(c|a)")
         sage: t = log.truthtable(s)
@@ -51,35 +61,53 @@ class SymbolicLogic:
     """
     def statement(self, s):
         r"""
-        This function returns a token list to be further manipulated
-        by other functions in the class.
+        Return a token list to be used by other functions in the class
 
         INPUT:
-            self -- the calling object
-            s -- a string containing the logic expression to be manipulated
-            global vars -- a dictionary with the variable names and
-                          their current boolean value
-            global vars_order -- a list of the variable names in
-                                the order they were found
+
+        - ``self`` -- calling object
+
+        - ``s`` -- a string containing the logic expression to be manipulated
+
+        - ``global vars`` -- a dictionary with variable names as keys and the
+          variables' current boolean values as dictionary values
+
+        - ``global vars_order`` -- a list of the variables in the order that they
+          are found
+
         OUTPUT:
-            returns a list containing a list of tokens, a dictionary of
-            variable/value pairs (where the value is 'True' or 'False')
-            and a list of the variable names in the order they were found
+
+        A list of length three containing the following in this order:
+
+        1. a list of tokens
+        2. a dictionary of variable/value pairs
+        3. a list of the variables in the order they were found
 
         EXAMPLES:
+
         This example illustrates the creation of a statement.
+
+        ::
+
             sage: log = SymbolicLogic()
             sage: s = log.statement("a&b|!(c|a)")
 
-        We can now create another statement.
+        ::
+
             sage: s2 = log.statement("!((!(a&b)))")
 
         It is an error to use invalid variable names.
+
+        ::
+
             sage: s = log.statement("3fe & @q")
             Invalid variable name:  3fe
             Invalid variable name:  @q
 
         It is also an error to use invalid syntax.
+
+        ::
+
             sage: s = log.statement("a&&b")
             Malformed Statement
             sage: s = log.statement("a&((b)")
@@ -99,44 +127,44 @@ class SymbolicLogic:
 
     def truthtable(self, statement, start=0, end=-1):
         r"""
-        This function returns a truthtable corresponding to
-        the given statement.
+        Return a truth table.
 
         INPUT:
-            self -- the calling object: not used
-            statement -- a list of 3 items, the tokens and two global
-                         variables vars and vars_order
-            start -- an integer representing the row of the truth
-                     table from which to start initialized to 0 which
-                     is the first row when all the variables are
-                      false
-            end -- an integer representing the last row of the truthtable
-                   to be created initialized to -1 which if left is converted
-                   to the last row of the full table
-           global vars -- a dictionary with the variable names and
-                          their current boolean value
-           global vars_order -- a list of the variable names in
-                                the order they were found
+
+        - ``self`` -- calling object
+
+        - ``statement`` -- a list. It contains the tokens and the two global
+          variables vars and vars_order
+
+        - ``start`` -- (default : 0) an integer. This represents the row of the
+          truth table from which to start.
+
+        - ``end`` -- (default : -1) an integer. This represents the last row of the
+          truth table to be created
 
         OUTPUT:
-            returns the truthtable (a 2-d array with the creating statement
-            tacked on the front) corresponding to the statement
+
+        The truth table as a 2d array with the creating formula tacked to the front
 
         EXAMPLES:
+
         This example illustrates the creation of a statement.
+
+        ::
+
             sage: log = SymbolicLogic()
             sage: s = log.statement("a&b|!(c|a)")
             sage: t = log.truthtable(s) #creates the whole truth table
 
         We can now create truthtable of rows 1 to 5
+
+        ::
+
             sage: s2 = log.truthtable(s, 1, 5); s2
             [[['OPAREN', 'a', 'AND', 'b', 'OR', 'NOT', 'OPAREN', 'c', 'OR', 'a', 'CPAREN', 'CPAREN'], {'a': 'False', 'c': 'True', 'b': 'False'}, ['a', 'b', 'c']], ['False', 'False', 'True', 'False'], ['False', 'True', 'False', 'True'], ['False', 'True', 'True', 'True'], ['True', 'False', 'False', 'False']]
 
+        .. NOTE::
 
-        There should be no errors if the statement did not return
-        any errors.
-
-        NOTES:
             When sent with no start or end parameters this is an
             exponential time function requiring O(2**n) time, where
             n is the number of variables in the logic expression
@@ -162,23 +190,25 @@ class SymbolicLogic:
 
     def print_table(self, table):
         r"""
-        This function returns a truthtable corresponding to
-        the given statement.
+        Return a truthtable corresponding to the given statement.
 
         INPUT:
-            self -- the calling object: not used
-            table -- an object created by the truthtable method
-                     that contains variable values and the
-                     corresponding evaluation of the statement
-            global vars_order -- a list of the variable names in
-                                 the order they were found
+
+        - ``self`` -- calling object
+
+        - ``table`` -- object created by truthtable() method.  It contains
+          the variable values and the evaluation of the statement
 
         OUTPUT:
-            prints to the terminal window a formatted version of
-            the truthtable (which is basically a 2-d array).
+
+        A formatted version of the truth table
 
         EXAMPLES:
-        This example illustrates the creation of a statement.
+
+        This example illustrates the creation of a statement and its truth table.
+
+        ::
+
             sage: log = SymbolicLogic()
             sage: s = log.statement("a&b|!(c|a)")
             sage: t = log.truthtable(s) #creates the whole truth table
@@ -195,6 +225,9 @@ class SymbolicLogic:
             True  | True  | True  | True  |
 
         We can also print a shortened table.
+
+        ::
+
             sage: t = log.truthtable(s, 1, 5)
             sage: log.print_table(t)
             a     | b     | c     | value | value |
@@ -203,9 +236,6 @@ class SymbolicLogic:
             False | False | True  | False | False |
             False | False | True  | True  | False |
             False | True  | False | False | True  |
-
-        There should be no errors if the statement did not return
-        any errors.
 
         """
         statement = table[0]
@@ -261,16 +291,25 @@ class SymbolicLogic:
 
 def get_bit(x, c):
     r"""
-        This function is for internal use by the class SymbolicLogic.
-        It returns bit c of the number x.
+    Determine if bit c of the number x is 1.
 
-        INPUT:
-            x -- An integer, the number from which to take the bit
-            c -- An integer, the bit number to be taken, where 0 is
-                 the low order bit
+    INPUT:
 
-        OUTPUT:
-            returns 'True' if bit c of number x is 1 'False' otherwise
+    - ``x`` -- an integer. This is the number from which to take the bit.
+
+    - ``c`` -- an integer. This is the bit number to be taken.
+
+    OUTPUT:
+
+    A boolean value to be determined as follows:
+
+    True - if bit c of x is 1
+
+    False - if bit c of x is not 1
+
+    .. NOTE::
+
+        This function is for internal use by the SymbolicLogic class.
     """
     bits = []
     while x > 0:
@@ -287,17 +326,25 @@ def get_bit(x, c):
 
 def eval(toks):
     r"""
-        This function is for internal use by the class SymbolicLogic.
-        It returns 'True' if the expression contained in toks would
-        evaluate to 'True' and 'False' otherwise.  It relies on setting
-        the values of the variables in the global dictionary vars.
+    Evaluate the expression contained in toks.
 
-        INPUT:
-           toks -- a token list representing a logic expression
+    INPUT:
 
-        OUTPUT:
-            returns 'True' if evaluates to true with variables in vars and
-            'False' otherwise
+    - ``toks`` -- a list of tokens.  This represents a boolean expression.
+
+    OUTPUT:
+
+    A boolean value to be determined as follows:
+
+    True - if expression evaluates to True
+
+    False - if expression evaluates to False
+
+    .. NOTE::
+
+        This function is for internal use by the SymbolicLogic class. The
+        evaluations rely on setting the values of the variables in the global
+        dictionary vars.
     """
     stack = []
     for tok in toks:
@@ -314,18 +361,26 @@ def eval(toks):
 
 def eval_ltor_toks(lrtoks):
     r"""
-        This function is for internal use by the class SymbolicLogic.
-        It returns 'True' if the expression contained in lrtoks would
-        evaluate to 'True' and 'False' otherwise.  It relies on setting
-        the values of the variables in the global dictionary vars.
+    Evaluates the expression contained in lrtoks.
 
-        INPUT:
-           lrtoks -- a token list representing part of a logical
-                     expression that contains no inner parenthesis
+    INPUT:
 
-        OUTPUT:
-            returns 'True' if evaluates to true with variables in vars and
-            'False' otherwise
+    - ``lrtoks`` -- a list of tokens.  This represents a part of a boolean
+      formula that contains no inner parentheses.
+
+    OUTPUT:
+
+    A boolean value to be determined as follows:
+
+    True - if expression evaluates to True
+
+    False - if expression evaluates to False
+
+    .. NOTE::
+
+        This function is for internal use by the SymbolicLogic class. The
+        evaluations rely on setting the values of the variables in the global
+        dictionary vars.
     """
     reduce_monos(lrtoks)        # monotonic ! operators go first
     reduce_bins(lrtoks)         # then the binary operators
@@ -335,18 +390,20 @@ def eval_ltor_toks(lrtoks):
 
 def reduce_bins(lrtoks):
     r"""
-        This function is for internal use by the class SymbolicLogic.
-        It takes a series of tokens with no parentheses or monotonic
-        operators and evaluates it to a single boolean value.
+    Evaluate lrtoks to a single boolean value.
 
-        INPUT:
-           lrtoks -- a token list representing part of a logical
-                     expression that contains no inner parenthesis
-                     or monotonic operators
+    INPUT:
 
-        OUTPUT:
-            The pointer to lrtoks is now a list containing 'True' or
-            'False'
+    - ``lrtoks`` -- a list of tokens.  This represents a part of a boolean
+      formula that contains no inner parentheses or monotonic operators.
+
+    OUTPUT:
+
+    None. The pointer to lrtoks is now a list containing True or False
+
+    .. NOTE::
+
+        This function is for internal use by the SymbolicLogic class.
     """
     i = 0
     while i < len(lrtoks):
@@ -360,17 +417,19 @@ def reduce_bins(lrtoks):
 
 def reduce_monos(lrtoks):
     r"""
-        This function is for internal use by the class SymbolicLogic.
-        It takes a series of tokens with no parentheses and replaces
-        the monotonic operator/variable pairs with a boolean value.
+    Replace monotonic operator/variable pairs with a boolean value.
 
-        INPUT:
-           lrtoks -- a token list representing part of a logical
-                     expression that contains no inner parenthesis
+    INPUT:
 
-        OUTPUT:
-            The pointer to lrtoks is now a list containing no monotonic
-            operators.
+    - ``lrtoks`` -- a list of tokens.  This represents a part of a boolean
+      expression that contains now inner parentheses.
+
+    OUTPUT:
+
+    None.  The pointer to lrtoks is now a list containing monotonic operators.
+
+    .. NOTE::
+        This function is for internal use by the SymbolicLogic class.
     """
     i = 0
     while i < len(lrtoks):
@@ -382,19 +441,24 @@ def reduce_monos(lrtoks):
 
 def eval_mon_op(args):
     r"""
-        This function is for internal use by the class SymbolicLogic.
-        It returns a boolean value based on the truthtable of
-        the operator sent to it.
+    Return a boolean value based on the truth table of the operator in args.
 
-        INPUT:
-           args -- a list of length 2 containing the token 'NOT' and
-                   then a variable name
-           global vars -- a dictionary with the variable names and
-                          their current boolean value
+    INPUT:
 
-        OUTPUT:
-            returns the inverse of the boolean value represented by the
-            variable
+    - ``args`` -- a list of length 2.  This contains the token 'NOT' and
+      then a variable name.
+
+    OUTPUT:
+
+    A boolean value to be determined as follows:
+
+    True - if the variable in args is False
+
+    False - if the variable in args is True
+
+    .. NOTE::
+
+        This function is for internal use by the SymbolicLogic class.
     """
     if args[1] != 'True' and args[1] != 'False':
         val = vars[args[1]]
@@ -408,20 +472,21 @@ def eval_mon_op(args):
 
 def eval_bin_op(args):
     r"""
-        This function is for internal use by the class SymbolicLogic.
-        It returns a boolean value based on the truthtable of
-        the operator sent to it.
+    Return a boolean value based on the truth table of the operator in args.
 
-        INPUT:
-           args -- a list of length 3 to containing a variable name
-                   then a token representing a binary logical operator
-                   then another variable name
-           global vars -- a dictionary with the variable names and
-                          their current boolean value
+    INPUT:
 
-        OUTPUT:
-            returns the boolean evaluation of the operator based on
-            the values of the variables
+    - ``args`` -- a list of length 3.  This contains a variable name,
+      then a binary operator, and then a variable name, in that order.
+
+    OUTPUT:
+
+    A boolean value.  This is the evaluation of the operator based on the
+    truth values of the variables.
+
+    .. NOTE::
+
+        This function is for internal use by the SymbolicLogic class.
     """
     if args[0] == 'False':
         lval = 'False'
@@ -448,17 +513,24 @@ def eval_bin_op(args):
 
 def eval_and_op(lval, rval):
     r"""
-        This function is for internal use by the class SymbolicLogic.
-        It returns the logical 'and' operator applied to lval and rval.
+    Apply the 'and' operator to lval and rval.
 
-        INPUT:
-           lval -- the variable name appearing to the left of the and
-                   operator
-           rval -- the variable name appearing to the right of the and
-                   operator
+    INPUT:
 
-        OUTPUT:
-            returns the logical 'and' operator applied to lval and rval.
+    - ``lval`` -- a string. This represents the value of the variable
+      appearing to the left of the 'and' operator.
+
+    - ``rval`` -- a string. This represents the value of the variable
+      appearing to the right of the 'and' operator.
+
+
+    OUTPUT:
+
+    The result of applying 'and' to lval and rval as a string.
+
+    .. NOTE::
+
+        This function is for internal use by the SymbolicLogic class.
     """
     if lval == 'False' and rval == 'False':
         return 'False'
@@ -471,17 +543,23 @@ def eval_and_op(lval, rval):
 
 def eval_or_op(lval, rval):
     r"""
-        This function is for internal use by the class SymbolicLogic.
-        It returns the logical 'or' operator applied to lval and rval.
+    Apply the 'or' operator to lval and rval
 
-        INPUT:
-           lval -- the variable name appearing to the left of the or
-                   operator
-           rval -- the variable name appearing to the right of the or
-                   operator
+    INPUT:
 
-        OUTPUT:
-            returns the logical 'or' operator applied to lval and rval.
+    - ``lval`` -- a string. This represents the value of the variable
+      appearing to the left of the 'or' operator.
+
+    - ``rval`` -- a string. This represents the value of the variable
+      appearing to the right of the 'or' operator.
+
+    OUTPUT:
+
+    A string representing the result of applying 'or' to lval and rval
+
+    .. NOTE::
+
+        This function is for internal use by the SymbolicLogic class.
     """
     if lval == 'False' and rval == 'False':
         return 'False'
@@ -494,17 +572,23 @@ def eval_or_op(lval, rval):
 
 def eval_ifthen_op(lval, rval):
     r"""
-        This function is for internal use by the class SymbolicLogic.
-        It returns the logical 'if then' operator applied to lval and rval.
+    Apply the 'if then' operator to lval and rval
 
-        INPUT:
-           lval -- the variable name appearing to the left of the if then
-                   operator
-           rval -- the variable name appearing to the right of the if then
-                   operator
+    INPUT:
 
-        OUTPUT:
-            returns the logical 'if then' operator applied to lval and rval.
+    - ``lval`` -- a string. This represents the value of the variable
+      appearing to the left of the 'if then' operator.
+
+    - ``rval`` -- a string. This represents the value of the variable
+      appearing to the right of the 'if then' operator.
+
+    OUTPUT:
+
+    A string representing the result of applying 'if then' to lval and rval.
+
+    .. NOTE::
+
+        This function is for internal use by the SymbolicLogic class.
     """
     if lval == 'False' and rval == 'False':
         return 'True'
@@ -517,21 +601,23 @@ def eval_ifthen_op(lval, rval):
 
 def eval_iff_op(lval, rval):
     r"""
-        This function is for internal use by the class SymbolicLogic.
-        It returns the logical 'if and only if' operator applied to lval and
-rval.
+    Apply the 'if and only if' operator to lval and rval.
 
-        INPUT:
-           lval -- the variable name appearing to the left of the if and
-only if
-                   operator
-           rval -- the variable name appearing to the right of the if and
-only if
-                   operator
+    INPUT:
 
-        OUTPUT:
-            returns the logical 'if and only if' operator applied to lval
-and rval.
+    - ``lval`` -- a string. This represents the value of the variable
+      appearing to the left of the 'if and only if' operator.
+
+    - ``rval`` -- a string. This represents the value of the variable
+      appearing to the right of the 'if and only if' operator.
+
+    OUTPUT:
+
+    A string representing the result of applying 'if and only if' to lval and rval
+
+    .. NOTE::
+
+        This function is for internal use by the SymbolicLogic class.
     """
     if lval == 'False' and rval == 'False':
         return 'True'
@@ -544,19 +630,22 @@ and rval.
 
 def tokenize(s, toks):
     r"""
-        This function is for internal use by the class SymbolicLogic.
-        It tokenizes the string s and places the tokens in toks
+    Tokenize s and place the tokens of s in toks.
 
-        INPUT:
-           s -- a string that contains a logical expression
-           toks -- a list to contain the tokens of s
-           global vars -- a dictionary with the variable names and
-                          their current boolean value
-           global vars_order -- a list of the variable names in
-                                the order they were found
+    INPUT:
 
-        OUTPUT:
-            the tokens are placed in toks
+    - ``s`` -- a string. This contains a boolean expression.
+
+    - ``toks`` -- a list.  This will be populated with the tokens
+      of s.
+
+    OUTPUT:
+
+    None.  The tokens of s are placed in toks.
+
+    .. NOTE::
+
+        This function is for internal use by the SymbolicLogic class.
     """
     i = 0
     while i < len(s):

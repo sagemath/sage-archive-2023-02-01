@@ -100,6 +100,7 @@ import sage.databases.cremona
 import ell_torsion
 from ell_generic import is_EllipticCurve
 
+from sage.libs.pari.all import pari, PariError
 from gp_simon import simon_two_descent
 from constructor import EllipticCurve
 from sage.rings.all import PolynomialRing, ZZ, RealField
@@ -186,12 +187,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
         OUTPUT:
 
         ``(lower, upper, list)`` where ``lower`` is a lower bound on
-        the rank, ``upper`` is an upper bound (the 2-Selmer rank) and
-        ``list`` is a list of independent points on the Weierstrass
-        model.  The length of ``list`` is equal to either ``lower``,
-        or ``lower-1``, since when ``lower`` is less than ``upper``
-        and of different parity, the value of ``lower`` is increased by
-        1.
+        the rank, ``upper`` is an upper bound (the dimension of the
+        2-Selmer group) and
+        ``list`` is a list of points of infinite order on the Weierstrass
+        model.
 
         .. note::
 
@@ -267,16 +266,16 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         A curve with 2-torsion::
 
-            sage: K.<a> = NumberField(x^2 + 7, 'a')
+            sage: K.<a> = NumberField(x^2 + 7)
             sage: E = EllipticCurve(K, '15a')
-            sage: v = E.simon_two_descent(); v  # long time (about 10 seconds), points can vary
+            sage: E.simon_two_descent()  # long time (3s on sage.math, 2013), points can vary
             (1, 3, [...])
 
         A failure in the PARI/GP script ell.gp (VERSION 25/03/2009) is reported::
 
             sage: K = CyclotomicField(43).subfields(3)[0][0]
             sage: E = EllipticCurve(K, '37')
-            sage: E.simon_two_descent()
+            sage: E.simon_two_descent()  # long time (4s on sage.math, 2013)
             Traceback (most recent call last):
             ...
             RuntimeError:
@@ -575,14 +574,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.global_integral_model()
             Elliptic Curve defined by y^2 + (-i)*x*y + (-25*i)*y = x^3 + 5*i*x^2 + 125*i*x + 3125*i over Number Field in i with defining polynomial x^2 + 1
 
-        trac #7935::
+        :trac:`7935`::
 
             sage: K.<a> = NumberField(x^2-38)
             sage: E = EllipticCurve([a,1/2])
             sage: E.global_integral_model()
             Elliptic Curve defined by y^2 = x^3 + 1444*a*x + 27436 over Number Field in a with defining polynomial x^2 - 38
 
-        trac #9266::
+        :trac:`9266`::
 
             sage: K.<s> = NumberField(x^2-5)
             sage: w = (1+s)/2
@@ -590,21 +589,33 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.global_integral_model()
             Elliptic Curve defined by y^2 = x^3 + 2*x + (1/2*s+1/2) over Number Field in s with defining polynomial x^2 - 5
 
-        trac #12151::
+        :trac:`12151`::
 
             sage: K.<v> = NumberField(x^2 + 161*x - 150)
             sage: E = EllipticCurve([25105/216*v - 3839/36, 634768555/7776*v - 98002625/1296, 634768555/7776*v - 98002625/1296, 0, 0])
             sage: E.global_integral_model()
-            Elliptic Curve defined by y^2 + (33872485050625*v-31078224284250)*x*y + (2020602604156076340058146664245468750000*v-1871778534673615560803175189398437500000)*y = x^3 + (6933305282258321342920781250*v-6422644400723486559914062500)*x^2 over Number Field in v with defining polynomial x^2 + 161*x - 150
+            Elliptic Curve defined by y^2 + (-502639783*v+465618899)*x*y + (-6603604211463489399460860*v+6117229527723443603191500)*y = x^3 + (1526887622075335620*v-1414427901517840500)*x^2 over Number Field in v with defining polynomial x^2 + 161*x - 150
+
+        :trac:`14476`::
+
+            sage: R.<t> = QQ[]
+            sage: K.<g> = NumberField(t^4 - t^3 - 3*t^2 - t + 1)
+            sage: E = EllipticCurve([ -43/625*g^3 + 14/625*g^2 - 4/625*g + 706/625, -4862/78125*g^3 - 4074/78125*g^2 - 711/78125*g + 10304/78125,  -4862/78125*g^3 - 4074/78125*g^2 - 711/78125*g + 10304/78125, 0,0])
+            sage: E.global_integral_model()
+            Elliptic Curve defined by y^2 + (15*g^3-48*g-42)*x*y + (-111510*g^3-162162*g^2-44145*g+37638)*y = x^3 + (-954*g^3-1134*g^2+81*g+576)*x^2 over Number Field in g with defining polynomial t^4 - t^3 - 3*t^2 - t + 1
+
         """
         K = self.base_field()
         ai = self.a_invariants()
-        for a in ai:
-            if not a.is_integral():
-               for P, _ in a.denominator_ideal().factor():
-                   pi = K.uniformizer(P,'positive')
-                   e  = min([(ai[i].valuation(P)/[1,2,3,4,6][i]) for i in range(5)]).floor()
-                   ai = [ai[i]/pi**(e*[1,2,3,4,6][i]) for i in range(5)]
+        Ps = [[ ff[0] for ff in a.denominator_ideal().factor() ] for a in ai if not a.is_integral() ]
+        Ps = sage.misc.misc.union(sage.misc.flatten.flatten(Ps))
+        for P in Ps:
+            pi = K.uniformizer(P,'positive')
+            e  = min([(ai[i].valuation(P)/[1,2,3,4,6][i]) for i in range(5)]).floor()
+            if e < 0 :
+                ai = [ai[i]/pi**(e*[1,2,3,4,6][i]) for i in range(5)]
+            if all(a.is_integral() for a in ai):
+                break
         for z in ai:
             assert z.is_integral(), "bug in global_integral_model: %s" % list(ai)
         return EllipticCurve(list(ai))
@@ -671,15 +682,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         return self.rst_transform(r, s, t)
 
-    def local_information(self, P=None, proof=None):
-        r"""
-        \code{local_information} has been renamed \code{local_data}
-        and is being deprecated.
-        """
-        raise DeprecationWarning, "local_information is deprecated; use local_data instead"
-        return self.local_data(P,proof)
-
-    def local_data(self, P=None, proof = None, algorithm="pari"):
+    def local_data(self, P=None, proof=None, algorithm="pari", globally=False):
         r"""
         Local data for this elliptic curve at the prime `P`.
 
@@ -698,6 +701,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
           `\QQ`. If "generic", use the general number field
           implementation.
 
+        - ``globally`` -- whether the local algorithm uses global generators
+          for the prime ideals. Default is False, which won't require any
+          information about the class group. If True, a generator for `P`
+          will be used if `P` is principal. Otherwise, or if ``globally``
+          is False, the minimal model returned will preserve integrality
+          at other primes, but not minimality.
+
         OUTPUT:
 
         If `P` is specified, returns the ``EllipticCurveLocalData``
@@ -708,12 +718,6 @@ class EllipticCurve_number_field(EllipticCurve_field):
         .. note::
 
            The model is not required to be integral on input.
-
-           For principal `P`, a generator is used as a uniformizer,
-           and integrality or minimality at other primes is not
-           affected.  For non-principal `P`, the minimal model
-           returned will preserve integrality at other primes, but not
-           minimality.
 
         EXAMPLES::
 
@@ -743,7 +747,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             Kodaira Symbol: I0
             Tamagawa Number: 1
 
-        An example raised in \#3897::
+        An example raised in :trac:`3897`::
 
             sage: E = EllipticCurve([1,1])
             sage: E.local_data(3)
@@ -767,9 +771,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
         from sage.schemes.elliptic_curves.ell_local_data import check_prime
         P = check_prime(self.base_field(),P)
 
-        return self._get_local_data(P,proof,algorithm)
+        return self._get_local_data(P,proof,algorithm,globally)
 
-    def _get_local_data(self, P, proof, algorithm="pari"):
+    def _get_local_data(self, P, proof, algorithm="pari", globally=False):
         r"""
         Internal function to create data for this elliptic curve at the prime `P`.
 
@@ -791,6 +795,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
           ``ellglobalred`` implementation of Tate's algorithm over
           `\QQ`. If "generic", use the general number field
           implementation.
+
+        - ``globally`` -- whether the local algorithm uses global generators
+          for the prime ideals. Default is False, which won't require any
+          information about the class group. If True, a generator for `P`
+          will be used if `P` is principal. Otherwise, or if ``globally``
+          is False, the minimal model returned will preserve integrality
+          at other primes, but not minimality.
 
         EXAMPLES::
 
@@ -815,14 +826,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
             False
         """
         try:
-            return self._local_data[P, proof, algorithm]
+            return self._local_data[P, proof, algorithm, globally]
         except AttributeError:
             self._local_data = {}
         except KeyError:
             pass
         from sage.schemes.elliptic_curves.ell_local_data import EllipticCurveLocalData
-        self._local_data[P, proof, algorithm] = EllipticCurveLocalData(self, P, proof, algorithm)
-        return self._local_data[P, proof, algorithm]
+        self._local_data[P, proof, algorithm, globally] = EllipticCurveLocalData(self, P, proof, algorithm, globally)
+        return self._local_data[P, proof, algorithm, globally]
 
     def local_minimal_model(self, P, proof = None, algorithm="pari"):
         r"""
@@ -1186,7 +1197,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: [dav.tamagawa_number() for dav in da]
             [1, 1]
 
-        An example over `\mathbb{Q}` (trac #9413)::
+        An example over `\mathbb{Q}` (:trac:`9413`)::
 
             sage: E = EllipticCurve('30a')
             sage: E.tamagawa_product_bsd()
@@ -1282,14 +1293,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.conductor()
             Fractional ideal (1)
 
-        An example which used to fail (see trac #5307)::
+        An example which used to fail (see :trac:`5307`)::
 
             sage: K.<w>=NumberField(x^2+x+6)
             sage: E=EllipticCurve([w,-1,0,-w-6,0])
             sage: E.conductor()
             Fractional ideal (86304, w + 5898)
 
-        An example raised in \#11346::
+        An example raised in :trac:`11346`::
 
             sage: K.<g> = NumberField(x^2 - x - 1)
             sage: E1 = EllipticCurve(K,[0,0,0,-1/48,-161/864])
@@ -1372,7 +1383,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         E = self.global_integral_model()
         primes = E.base_ring()(E.discriminant()).support()
         for P in primes:
-            E = E.local_data(P,proof).minimal_model()
+            E = E.local_data(P,proof, globally=True).minimal_model()
         return E._reduce_model()
 
     def reduction(self,place):
@@ -1500,11 +1511,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: E = EllipticCurve('11a1')
             sage: K.<t>=NumberField(x^4 + x^3 + 11*x^2 + 41*x + 101)
-            sage: EK=E.base_extend(K)
-            sage: tor = EK.torsion_subgroup()
-            sage: tor
+            sage: EK = E.base_extend(K)
+            sage: tor = EK.torsion_subgroup()  # long time (3s on sage.math, 2013)
+            sage: tor  # long time
             Torsion Subgroup isomorphic to Z/5 + Z/5 associated to the Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 + (-10)*x + (-20) over Number Field in t with defining polynomial x^4 + x^3 + 11*x^2 + 41*x + 101
-            sage: tor.gens()
+            sage: tor.gens()  # long time
             ((16 : 60 : 1), (t : 1/11*t^3 + 6/11*t^2 + 19/11*t + 48/11 : 1))
 
         ::
@@ -1596,7 +1607,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [(0 : 1 : 0), (5 : -6 : 1), (5 : 5 : 1), (16 : -61 : 1), (16 : 60 : 1)]
             sage: K.<t> = NumberField(x^4 + x^3 + 11*x^2 + 41*x + 101)
             sage: EK = E.base_extend(K)
-            sage: EK.torsion_points()
+            sage: EK.torsion_points()  # long time (3s on sage.math, 2013)
             [(16 : 60 : 1),
              (5 : 5 : 1),
              (5 : -6 : 1),
@@ -1685,7 +1696,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         OUTPUT:
 
-        lower and upper bounds
+        lower and upper bounds for the rank of the Mordell-Weil group
 
 
         .. NOTE::
@@ -1702,13 +1713,22 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.rank_bounds()
             (2, 2)
 
-        Here is a curve with two-torsion, so here the algorithm gives
-        bounds on the rank::
+        Here is a curve with two-torsion, again the bounds coincide::
 
             sage: Qrt5.<rt5>=NumberField(x^2-5)
             sage: E=EllipticCurve([0,5-rt5,0,rt5,0])
             sage: E.rank_bounds()
-            (1, 2)
+            (1, 1)
+
+        Finally an example with non-trivial 2-torsion in Sha. So the
+        2-descent will not be able to determine the rank, but can only
+        give bounds::
+
+            sage: E = EllipticCurve("15a5")
+            sage: K.<t> = NumberField(x^2-6)
+            sage: EK = E.base_extend(K)
+            sage: EK.rank_bounds(lim1=1,lim3=1,limtriv=1)
+            (0, 2)
 
         IMPLEMENTATION:
 
@@ -1718,7 +1738,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
         """
 
         lower, upper, gens = self.simon_two_descent(verbose=verbose,lim1=lim1,lim3=lim3,limtriv=limtriv,maxprob=maxprob,limbigprime=limbigprime)
-        return lower,upper
+        # this was corrected in trac 13593. upper is the dimension
+        # of the 2-selmer group, so we can certainly remove the
+        # 2-torsion of the Mordell-Weil group.
+        upper -= self.two_torsion_rank()
+        return lower, upper
 
     def rank(self,verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
         r"""
@@ -1767,16 +1791,18 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.rank()
             2
 
-        Here is a curve with two-torsion, so here the bounds given by the
-        algorithm do not uniquely determine the rank::
+        Here is a curve with two-torsion in the Tate-Shafarevich group,
+        so here the bounds given by the algorithm do not uniquely
+        determine the rank::
 
-            sage: Qrt5.<rt5>=NumberField(x^2-5)
-            sage: E=EllipticCurve([0,5-rt5,0,rt5,0])
-            sage: E.rank()
+            sage: E = EllipticCurve("15a5")
+            sage: K.<t> = NumberField(x^2-6)
+            sage: EK = E.base_extend(K)
+            sage: EK.rank(lim1=1, lim3=1, limtriv=1)
             Traceback (most recent call last):
             ...
             ValueError: There is insufficient data to determine the rank -
-            2-descent gave lower bound 1 and upper bound 2
+            2-descent gave lower bound 0 and upper bound 2
 
         IMPLEMENTATION:
 
@@ -1793,7 +1819,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
     def gens(self,verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
         r"""
-        Returns some generators of this elliptic curve. Check :meth:`~rank` or
+        Returns some points of infinite order on this elliptic curve.
+        They are not necessarily linearly independent.
+
+        Check :meth:`~rank` or
         :meth:`~rank_bounds` to verify the number of generators.
 
         .. NOTE::
@@ -1820,7 +1849,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         OUTPUT:
 
-        The linearly independent elements given by the Simon two-descent.
+        A set of points of infinite order given by the Simon two-descent.
 
         .. NOTE::
 
@@ -1837,13 +1866,36 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [(-1 : 0 : 1), (1/2*a - 5/2 : -1/2*a - 13/2 : 1)]
 
 
-        Here is a curve with two-torsion, so here the algorithm does not
-        uniquely determine the rank::
+        Here is a curve of rank 2, yet the list contains many points::
 
-            sage: Qrt5.<rt5>=NumberField(x^2-5)
-            sage: E=EllipticCurve([0,5-rt5,0,rt5,0])
+            sage: K.<t> = NumberField(x^2-17)
+            sage: E = EllipticCurve(K,[-4,0])
             sage: E.gens()
-            [(3/2*rt5 + 5/2 : -9/2*rt5 - 15/2 : 1), (-1/2*rt5 + 3/2 : 3/2*rt5 - 9/2 : 1), (0 : 0 : 1)]
+            [(-1/2*t + 1/2 : -1/2*t + 1/2 : 1),
+            (-2*t + 8 : -8*t + 32 : 1),
+            (1/2*t + 3/2 : -1/2*t - 7/2 : 1),
+            (-1/8*t - 7/8 : -1/16*t - 23/16 : 1),
+            (1/8*t - 7/8 : -1/16*t + 23/16 : 1),
+            (t + 3 : -2*t - 10 : 1),
+            (2*t + 8 : -8*t - 32 : 1),
+            (1/2*t + 1/2 : -1/2*t - 1/2 : 1),
+            (-1/2*t + 3/2 : -1/2*t + 7/2 : 1),
+            (t + 7 : -4*t - 20 : 1),
+            (-t + 7 : -4*t + 20 : 1),
+            (-t + 3 : -2*t + 10 : 1)]
+            sage: E.rank()
+            2
+
+        Test that the points of finite order are not included :trac: `13593` ::
+
+            sage: E = EllipticCurve("17a3")
+            sage: K.<t> = NumberField(x^2+3)
+            sage: EK = E.base_extend(K)
+            sage: EK.rank()
+            0
+            sage: EK.gens()
+            []
+
 
         IMPLEMENTATION:
 
@@ -1852,7 +1904,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
         """
 
         lower,upper,gens = self.simon_two_descent(verbose=verbose,lim1=lim1,lim3=lim3,limtriv=limtriv,maxprob=maxprob,limbigprime=limbigprime)
-        return gens
+        res = [P for P in gens if P.has_infinite_order()]
+        return res
 
 
     def period_lattice(self, embedding):
@@ -2142,8 +2195,129 @@ class EllipticCurve_number_field(EllipticCurve_field):
             degrees.extend(newdegs)
             k = k+1
 
-        raise NotImplementedError, "Not all isogenies implemented over general number fields."
+        raise NotImplementedError("Not all isogenies implemented over general number fields.")
 
+    def lll_reduce(self, points, height_matrix=None, precision=None):
+        """
+        Returns an LLL-reduced basis from a given basis, with transform
+        matrix.
+
+        INPUT:
+
+        - ``points`` - a list of points on this elliptic
+          curve, which should be independent.
+
+        - ``height_matrix`` - the height-pairing matrix of
+          the points, or ``None``. If ``None``, it will be computed.
+
+        - ``precision`` - number of bits of precision of intermediate
+          computations (default: ``None``, for default RealField
+          precision; ignored if ``height_matrix`` is supplied)
+
+        OUTPUT: A tuple (newpoints, U) where U is a unimodular integer
+        matrix, new_points is the transform of points by U, such that
+        new_points has LLL-reduced height pairing matrix
+
+        .. note::
+
+            If the input points are not independent, the output
+            depends on the undocumented behaviour of PARI's
+            ``qflllgram()`` function when applied to a gram matrix which
+            is not positive definite.
+
+        EXAMPLES:
+
+        Some examples over `\QQ`::
+
+            sage: E = EllipticCurve([0, 1, 1, -2, 42])
+            sage: Pi = E.gens(); Pi
+            [(-4 : 1 : 1), (-3 : 5 : 1), (-11/4 : 43/8 : 1), (-2 : 6 : 1)]
+            sage: Qi, U = E.lll_reduce(Pi)
+            sage: all(sum(U[i,j]*Pi[i] for i in range(4)) == Qi[j] for j in range(4))
+            True
+            sage: sorted(Qi)
+            [(-4 : 1 : 1), (-3 : 5 : 1), (-2 : 6 : 1), (0 : 6 : 1)]
+            sage: U.det()
+            1
+            sage: E.regulator_of_points(Pi)
+            4.59088036960573
+            sage: E.regulator_of_points(Qi)
+            4.59088036960574
+
+        ::
+
+            sage: E = EllipticCurve([1,0,1,-120039822036992245303534619191166796374,504224992484910670010801799168082726759443756222911415116])
+            sage: xi = [2005024558054813068,\
+            -4690836759490453344,\
+            4700156326649806635,\
+            6785546256295273860,\
+            6823803569166584943,\
+            7788809602110240789,\
+            27385442304350994620556,\
+            54284682060285253719/4,\
+            -94200235260395075139/25,\
+            -3463661055331841724647/576,\
+            -6684065934033506970637/676,\
+            -956077386192640344198/2209,\
+            -27067471797013364392578/2809,\
+            -25538866857137199063309/3721,\
+            -1026325011760259051894331/108241,\
+            9351361230729481250627334/1366561,\
+            10100878635879432897339615/1423249,\
+            11499655868211022625340735/17522596,\
+            110352253665081002517811734/21353641,\
+            414280096426033094143668538257/285204544,\
+            36101712290699828042930087436/4098432361,\
+            45442463408503524215460183165/5424617104,\
+            983886013344700707678587482584/141566320009,\
+            1124614335716851053281176544216033/152487126016]
+            sage: points = [E.lift_x(x) for x in xi]
+            sage: newpoints, U = E.lll_reduce(points)  # long time (35s on sage.math, 2011)
+            sage: [P[0] for P in newpoints]            # long time
+            [6823803569166584943, 5949539878899294213, 2005024558054813068, 5864879778877955778, 23955263915878682727/4, 5922188321411938518, 5286988283823825378, 175620639884534615751/25, -11451575907286171572, 3502708072571012181, 1500143935183238709184/225, 27180522378120223419/4, -5811874164190604461581/625, 26807786527159569093, 7404442636649562303, 475656155255883588, 265757454726766017891/49, 7272142121019825303, 50628679173833693415/4, 6951643522366348968, 6842515151518070703, 111593750389650846885/16, 2607467890531740394315/9, -1829928525835506297]
+
+        An example to show the explicit use of the height pairing matrix::
+
+            sage: E = EllipticCurve([0, 1, 1, -2, 42])
+            sage: Pi = E.gens()
+            sage: H = E.height_pairing_matrix(Pi,3)
+            sage: E.lll_reduce(Pi,height_matrix=H)
+            (
+                                                                      [1 0 0 1]
+                                                                      [0 1 0 1]
+                                                                      [0 0 0 1]
+            [(-4 : 1 : 1), (-3 : 5 : 1), (-2 : 6 : 1), (1 : -7 : 1)], [0 0 1 1]
+            )
+
+        Some examples over number fields (see :trac:`9411`)::
+
+            sage: K.<a> = QuadraticField(-23, 'a')
+            sage: E = EllipticCurve(K, '37')
+            sage: E.lll_reduce(E.gens())
+            (
+                                                    [1 1]
+            [(-1 : 0 : 1), (-2 : 1/2*a - 1/2 : 1)], [0 1]
+            )
+
+        ::
+
+            sage: K.<a> = QuadraticField(-5)
+            sage: E = EllipticCurve(K,[0,a])
+            sage: points = [E.point([-211/841*a - 6044/841,-209584/24389*a + 53634/24389]),E.point([-17/18*a - 1/9, -109/108*a - 277/108]) ]
+            sage: E.lll_reduce(points)
+            (
+            [(-a + 4 : -3*a + 7 : 1), (-17/18*a - 1/9 : 109/108*a + 277/108 : 1)],
+            [ 1  0]
+            [ 1 -1]
+            )
+        """
+        r = len(points)
+        if height_matrix is None:
+            height_matrix = self.height_pairing_matrix(points, precision)
+        U = pari(height_matrix).lllgram().python()
+        new_points = [sum([U[j, i]*points[j] for j in range(r)])
+                      for i in range(r)]
+        return new_points, U
 
     def galois_representation(self):
         r"""
@@ -2168,10 +2342,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
             Compatible family of Galois representations associated to the Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 + (-10)*x + (-20) over Number Field in a with defining polynomial x^2 + 1
             sage: rho.is_surjective(3)
             True
-            sage: rho.is_surjective(5)
+            sage: rho.is_surjective(5)  # long time (9s on sage.math, 2013)
             False
             sage: rho.non_surjective()
             [5]
         """
         return gal_reps_number_field.GaloisRepresentation(self)
-

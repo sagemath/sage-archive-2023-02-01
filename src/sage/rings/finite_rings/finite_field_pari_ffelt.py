@@ -500,53 +500,6 @@ class FiniteField_pari_ffelt(FiniteField):
         else:
             return self.element_class(self, x)
 
-    def _coerce_map_from_(self, R):
-        """
-        Canonical coercion to ``self``.
-
-        EXAMPLES::
-
-            sage: FiniteField(2^2, 'a', impl='pari_ffelt')._coerce_(GF(2)(1)) # indirect doctest
-            1
-            sage: k = FiniteField(2^2, 'a', impl='pari_ffelt')
-            sage: k._coerce_(k.0)
-            a
-            sage: FiniteField(2^2, 'a', impl='pari_ffelt')._coerce_(3)
-            1
-            sage: FiniteField(2^2, 'a', impl='pari_ffelt')._coerce_(2/3)
-            Traceback (most recent call last):
-            ...
-            TypeError: no canonical coercion from Rational Field to Finite Field in a of size 2^2
-            sage: FiniteField(2^3, 'a', impl='pari_ffelt')._coerce_(FiniteField(2^2, 'a', impl='pari_ffelt').0)
-            Traceback (most recent call last):
-            ...
-            TypeError: no canonical coercion from Finite Field in a of size 2^2 to Finite Field in a of size 2^3
-            sage: FiniteField(2^4, 'a', impl='pari_ffelt')._coerce_(FiniteField(2^2, 'a', impl='pari_ffelt').0)
-            Traceback (most recent call last):
-            ...
-            TypeError: no canonical coercion from Finite Field in a of size 2^2 to Finite Field in a of size 2^4
-            sage: k = FiniteField(2^3, 'a', impl='pari_ffelt')
-            sage: k._coerce_(FiniteField(7, 'a')(2))
-            Traceback (most recent call last):
-            ...
-            TypeError: no canonical coercion from Finite Field of size 7 to Finite Field in a of size 2^3
-        """
-        from integer_mod_ring import is_IntegerModRing
-        from sage.rings.integer_ring import ZZ
-        if R is int or R is long or R is ZZ:
-            return True
-        if isinstance(R, FiniteField_pari_ffelt):
-            if R is self:
-                return True
-            if R.characteristic() == self.characteristic():
-                if R.degree() == 1:
-                    return True
-                elif R.degree().divides(self.degree()):
-                    # TODO: This is where we *would* do coercion from one nontrivial finite field to another...
-                    return False
-        if is_IntegerModRing(R) and self.characteristic().divides(R.characteristic()):
-            return True
-
     def order(self):
         """
         The number of elements of the finite field.

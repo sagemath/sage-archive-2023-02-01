@@ -47,11 +47,11 @@ import number_field
 
 from sage.rings.integer_ring cimport IntegerRing_class
 from sage.rings.rational cimport Rational
+from sage.categories.fields import Fields
 
 from sage.modules.free_module_element import vector
 
-from sage.libs.all import pari_gen, pari
-from sage.libs.pari.gen import PariError
+from sage.libs.pari.all import pari_gen
 from sage.structure.element cimport Element, generic_power_c
 from sage.structure.element import canonical_coercion, parent
 
@@ -622,14 +622,14 @@ cdef class NumberFieldElement(FieldElement):
             sage: theta._pari_('theta')
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: theta already exists with incompatible valence
             sage: theta._pari_()
             Mod(y, y^2 + 1)
             sage: k.<I> = QuadraticField(-1)
             sage: I._pari_('I')
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: I already exists with incompatible valence
 
         Instead, request the variable be named different for the coercion::
 
@@ -709,7 +709,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: b._pari_init_('theta')
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: theta already exists with incompatible valence
 
         Fortunately pari_init returns everything in terms of y by
         default::
@@ -2207,11 +2207,11 @@ cdef class NumberFieldElement(FieldElement):
             [a]
             sage: K.<a> = NumberField(x^3 - 2)
             sage: c = a.galois_conjugates(K.galois_closure('a1')); c
-            [1/84*a1^4 + 13/42*a1, -1/252*a1^4 - 55/126*a1, -1/126*a1^4 + 8/63*a1]
+            [1/18*a1^4, -1/36*a1^4 + 1/2*a1, -1/36*a1^4 - 1/2*a1]
             sage: c[0]^3
             2
             sage: parent(c[0])
-            Number Field in a1 with defining polynomial x^6 + 40*x^3 + 1372
+            Number Field in a1 with defining polynomial x^6 + 108
             sage: parent(c[0]).is_galois()
             True
 
@@ -2344,7 +2344,7 @@ cdef class NumberFieldElement(FieldElement):
         - a list whose length corresponding to the degree of this
           element written in terms of a generator.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: K.<b> = NumberField(x^3 - 2)
             sage: (b^2 + 1)._coefficients()
@@ -2595,6 +2595,16 @@ cdef class NumberFieldElement(FieldElement):
             sage: R(a).norm().parent()
             Integer Ring
 
+        When the base field is given by an embedding::
+
+            sage: K.<a> = NumberField(x^4 + 1)
+            sage: L.<a2> = NumberField(x^2 + 1)
+            sage: v = L.embeddings(K)
+            sage: a.norm(v[1])
+            a2
+            sage: a.norm(v[0])
+            -a2
+
         TESTS::
 
             sage: F.<z> = CyclotomicField(5)
@@ -2602,9 +2612,9 @@ cdef class NumberFieldElement(FieldElement):
             sage: t.norm(F)
             3*z^3 + 4*z^2 + 2
         """
-        if K is None:
+        if K is None or (K in Fields and K.absolute_degree() == 1):
             norm = self._pari_('x').norm()
-            return QQ(norm) if self._parent.is_field() else ZZ(norm)
+            return QQ(norm) if self._parent in Fields else ZZ(norm)
         return self.matrix(K).determinant()
 
     def absolute_norm(self):

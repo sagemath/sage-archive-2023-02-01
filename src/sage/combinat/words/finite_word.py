@@ -4874,7 +4874,7 @@ exponent %s: the length of the word (%s) times the exponent \
 
         [3] A. Lascoux, B. Leclerc, and J.Y. Thibon.  *The Plactic Monoid*.
         Survey article available at
-        [http://www.combinatorics.net/lascoux/articles/plactic.ps]
+        [http://www-igm.univ-mlv.fr/~jyt/ARTICLES/plactic.ps]
 
         TESTS::
 
@@ -5671,6 +5671,43 @@ exponent %s: the length of the word (%s) times the exponent \
         return [ev_dict.get(a,0) for a in alphabet]
 
     evaluation = parikh_vector
+
+    def robinson_schensted(self):
+        """
+        Return the semistandard tableau and standard tableau pair
+        obtained by running the Robinson-Schensted algorithm on ``self``.
+
+        This can also be done by running
+        :func:`~sage.combinat.rsk.RSK` on ``self``.
+
+        EXAMPLES::
+
+            sage: Word([1,1,3,1,2,3,1]).robinson_schensted()
+            [[[1, 1, 1, 1, 3], [2], [3]], [[1, 2, 3, 5, 6], [4], [7]]]
+        """
+        from sage.combinat.rsk import RSK
+        return RSK(self)
+
+    def _rsk_iter(self):
+        r"""
+        An iterator for :func:`~sage.combinat.rsk.RSK`.
+
+        Yields pairs `(i, w_i)` for a word `w = w_1 w_2 \cdots w_k`.
+
+        EXAMPLES::
+
+            sage: for x in Word([1,1,3,1,2,3,1])._rsk_iter(): x
+            ...
+            (1, 1)
+            (2, 1)
+            (3, 3)
+            (4, 1)
+            (5, 2)
+            (6, 3)
+            (7, 1)
+        """
+        from itertools import izip
+        return izip(xrange(1, len(self)+1), self)
 
     def shuffle(self, other, overlap=0):
         r"""
@@ -6491,6 +6528,36 @@ exponent %s: the length of the word (%s) times the exponent \
                 if self[start:end].is_cube():
                     return False
         return True
+
+    def to_monoid_element(self):
+        """
+        Return ``self`` as an element the free monoid with the same alphabet
+        as ``self``.
+
+        EXAMPLES::
+
+            sage: w = Word('aabb')
+            sage: w.to_monoid_element()
+            a^2*b^2
+            sage: W = Words('abc')
+            sage: w = W(w)
+            sage: w.to_monoid_element()
+            a^2*b^2
+
+        TESTS:
+
+        Check that ``w == w.to_monoid_element().to_word()``::
+
+            sage: all(w.to_monoid_element().to_word() == w for i in range(6) for w in Words('abc', i))
+            True
+        """
+        from sage.monoids.free_monoid import FreeMonoid
+        try:
+            l = list(self.parent().alphabet())
+        except AttributeError:
+            l = list(set(self))
+        M = FreeMonoid(len(l), l)
+        return M(self)
 
 #######################################################################
 

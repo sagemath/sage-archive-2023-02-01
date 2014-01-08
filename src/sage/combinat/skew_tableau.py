@@ -246,8 +246,12 @@ class SkewTableau(CombinatorialObject, Element):
 
             sage: SkewTableau([[None,1,2],[None,3],[4]]).inner_shape()
             [1, 1]
+            sage: SkewTableau([[1,2],[3,4],[7]]).inner_shape()
+            []
+            sage: SkewTableau([[None,None,None,2,3],[None,1],[None],[2]]).inner_shape()
+            [3, 1, 1]
         """
-        return Partition(filter(lambda x: x != 0, [len(filter(lambda x: x is None, row)) for row in self]))
+        return Partition(filter(lambda x: x != 0, [row.count(None) for row in self]))
 
     def shape(self):
         r"""
@@ -321,6 +325,9 @@ class SkewTableau(CombinatorialObject, Element):
     def to_word_by_row(self):
         """
         Return a word obtained from a row reading of ``self``.
+        Specifically, this is the word obtained by concatenating the
+        rows from the bottommost one (in English notation) to the
+        topmost one.
 
         EXAMPLES::
 
@@ -355,6 +362,9 @@ class SkewTableau(CombinatorialObject, Element):
         """
         Return the word obtained from a column reading of the skew
         tableau.
+        Specifically, this is the word obtained by concatenating the
+        columns from the rightmost one (in English notation) to the
+        leftmost one.
 
         EXAMPLES::
 
@@ -396,21 +406,66 @@ class SkewTableau(CombinatorialObject, Element):
         from sage.combinat.permutation import Permutation
         return Permutation(self.to_word())
 
-    def evaluation(self):
+    def weight(self):
         """
-        Return the evaluation of the word of ``self``.
+        Return the weight (aka evaluation) of the tableau ``self``.
+        Trailing zeroes are omitted when returning the weight.
+
+        The weight of a skew tableau `T` is the sequence
+        `(a_1, a_2, a_3, \ldots )`, where `a_k` is the number of
+        entries of `T` equal to `k`. This sequence contains only
+        finitely many nonzero entries.
+
+        The weight of a skew tableau `T` is the same as the weight
+        of the reading word of `T`, for any reading order.
+
+        :meth:`evaluation` is a synonym for this method.
 
         EXAMPLES::
 
-            sage: SkewTableau([[1,2],[3,4]]).evaluation()
+            sage: SkewTableau([[1,2],[3,4]]).weight()
             [1, 1, 1, 1]
-        """
-        ed = self.to_word().evaluation_dict()
-        entries = ed.keys()
-        m = max(entries) + 1 if entries else -1
-        return [ed.get(k,0) for k in range(1,m)]
 
-    weight = evaluation
+            sage: SkewTableau([[None,2],[None,4],[None,5],[None]]).weight()
+            [0, 1, 0, 1, 1]
+
+            sage: SkewTableau([]).weight()
+            []
+
+            sage: SkewTableau([[None,None,None],[None]]).weight()
+            []
+
+            sage: SkewTableau([[None,3,4],[None,6,7],[4,8],[5,13],[6],[7]]).weight()
+            [0, 0, 1, 2, 1, 2, 2, 1, 0, 0, 0, 0, 1]
+
+        TESTS:
+
+        We check that this agrees with going to the word::
+
+            sage: t = SkewTableau([[None,None,4,7,15],[6,2,16],[2,3,19],[4,5],[7]])
+            sage: def by_word(T):
+            ....:     ed = T.to_word().evaluation_dict()
+            ....:     m = max(ed.keys()) + 1
+            ....:     return [ed.get(k,0) for k in range(1,m)]
+            sage: by_word(t) == t.weight()
+            True
+            sage: SST = SemistandardTableaux(shape=[3,1,1])
+            sage: all(by_word(t) == SkewTableau(t).weight() for t in SST)
+            True
+        """
+        if len(self) == 0:
+            return []
+        m = max(max(row) for row in self)
+        if m is None:
+            return []
+        res = [0] * m
+        for row in self:
+            for i in row:
+                if not (i is None):
+                    res[i - 1] += 1
+        return res
+
+    evaluation = weight
 
     def is_standard(self):
         """
@@ -488,8 +543,15 @@ class SkewTableau(CombinatorialObject, Element):
 
     def restrict(self, n):
         """
-        Returns the restriction of the (semi)standard skew tableau to all
+        Return the restriction of the (semi)standard skew tableau to all
         the numbers less than or equal to ``n``.
+
+        .. NOTE::
+
+            If only the outer shape of the restriction, rather than
+            the whole restriction, is needed, then the faster method
+            :meth:`restriction_outer_shape` is preferred. Similarly if
+            only the skew shape is needed, use :meth:`restriction_shape`.
 
         EXAMPLES::
 
@@ -503,10 +565,82 @@ class SkewTableau(CombinatorialObject, Element):
         t = self[:]
         return SkewTableau( filter(lambda z: z != [], map(lambda x: filter(lambda y: y is None or y <= n, x), t)) )
 
-    def to_chain(self):
+    def restriction_outer_shape(self, n):
         """
-        Returns the chain of partitions corresponding to the (semi)standard
-        skew tableau.
+        Return the outer shape of the restriction of the semistandard skew
+        tableau ``self`` to `n`.
+
+        If `T` is a semistandard skew tableau and `n` is a nonnegative
+        integer, then the restriction of `T` to `n` is defined as the
+        (semistandard) skew tableau obtained by removing all cells filled
+        with entries greater than `n` from `T`.
+
+        This method computes merely the outer shape of the restriction.
+        For the restriction itself, use :meth:`restrict`.
+
+        EXAMPLES::
+
+            sage: SkewTableau([[None,None],[2,3],[3,4]]).restriction_outer_shape(3)
+            [2, 2, 1]
+            sage: SkewTableau([[None,2],[None],[4],[5]]).restriction_outer_shape(2)
+            [2, 1]
+            sage: T = SkewTableau([[None,None,3,5],[None,4,4],[17]])
+            sage: T.restriction_outer_shape(0)
+            [2, 1]
+            sage: T.restriction_outer_shape(2)
+            [2, 1]
+            sage: T.restriction_outer_shape(3)
+            [3, 1]
+            sage: T.restriction_outer_shape(4)
+            [3, 3]
+            sage: T.restriction_outer_shape(19)
+            [4, 3, 1]
+        """
+        from sage.combinat.partition import Partition
+        res = [len([y for y in row if y is None or y <= n]) for row in self]
+        return Partition(res)
+
+    def restriction_shape(self, n):
+        """
+        Return the skew shape of the restriction of the semistandard
+        skew tableau ``self`` to ``n``.
+
+        If `T` is a semistandard skew tableau and `n` is a nonnegative
+        integer, then the restriction of `T` to `n` is defined as the
+        (semistandard) skew tableau obtained by removing all cells filled
+        with entries greater than `n` from `T`.
+
+        This method computes merely the skew shape of the restriction.
+        For the restriction itself, use :meth:`restrict`.
+
+        EXAMPLES::
+
+            sage: SkewTableau([[None,None],[2,3],[3,4]]).restriction_shape(3)
+            [2, 2, 1] / [2]
+            sage: SkewTableau([[None,2],[None],[4],[5]]).restriction_shape(2)
+            [2, 1] / [1, 1]
+            sage: T = SkewTableau([[None,None,3,5],[None,4,4],[17]])
+            sage: T.restriction_shape(0)
+            [2, 1] / [2, 1]
+            sage: T.restriction_shape(2)
+            [2, 1] / [2, 1]
+            sage: T.restriction_shape(3)
+            [3, 1] / [2, 1]
+            sage: T.restriction_shape(4)
+            [3, 3] / [2, 1]
+        """
+        return SkewPartition([self.restriction_outer_shape(n), self.inner_shape()])
+
+    def to_chain(self, max_entry=None):
+        """
+        Return the chain of partitions corresponding to the (semi)standard
+        skew tableau ``self``.
+
+        The optional keyword parameter ``max_entry`` can be used to
+        customize the length of the chain. Specifically, if this parameter
+        is set to a nonnegative integer ``n``, then the chain is
+        constructed from the positions of the letters `1, 2, \ldots, n`
+        in the tableau.
 
         EXAMPLES::
 
@@ -514,6 +648,18 @@ class SkewTableau(CombinatorialObject, Element):
             [[1], [2], [2, 1], [2, 1, 1]]
             sage: SkewTableau([[None,1],[1],[2]]).to_chain()
             [[1], [2, 1], [2, 1, 1]]
+            sage: SkewTableau([[None,1],[1],[2]]).to_chain(max_entry=2)
+            [[1], [2, 1], [2, 1, 1]]
+            sage: SkewTableau([[None,1],[1],[2]]).to_chain(max_entry=3)
+            [[1], [2, 1], [2, 1, 1], [2, 1, 1]]
+            sage: SkewTableau([[None,1],[1],[2]]).to_chain(max_entry=1)
+            [[1], [2, 1]]
+            sage: SkewTableau([[None,None,2],[None,3],[None,5]]).to_chain(max_entry=6)
+            [[2, 1, 1], [2, 1, 1], [3, 1, 1], [3, 2, 1], [3, 2, 1], [3, 2, 2], [3, 2, 2]]
+            sage: SkewTableau([]).to_chain()
+            [[]]
+            sage: SkewTableau([]).to_chain(max_entry=1)
+            [[], []]
 
         TESTS:
 
@@ -527,10 +673,14 @@ class SkewTableau(CombinatorialObject, Element):
             sage: T.to_chain()
             [[1]]
         """
-        w = self.to_word()
-        if len(w) == 0:
-            return [self.shape()[0]]
-        return [self.restrict(x).shape()[0] for x in range(max(w)+1)]
+        if max_entry is None:
+            if len(self) == 0:
+                max_entry = 0
+            else:
+                max_entry = max(max(row) for row in self)
+            if max_entry is None:
+                max_entry = 0
+        return [self.restriction_outer_shape(x) for x in range(max_entry+1)]
 
     def slide(self, corner=None):
         """
@@ -613,11 +763,13 @@ class SkewTableau(CombinatorialObject, Element):
     def rectify(self):
         """
         Return a :class:`Tableau` formed by applying the jeu de taquin
-        process to ``self``. See page 15 of [FW]_
+        process to ``self``. See page 15 of [FW]_.
 
         REFERENCES:
 
-        .. [FW] Fulton, William. 'Young Tableaux'.
+        .. [FW] William Fulton,
+           *Young Tableaux*,
+           Cambridge University Press 1997.
 
         EXAMPLES::
 
@@ -1001,6 +1153,64 @@ class SkewTableau(CombinatorialObject, Element):
                     res.append( (i,j) )
         return res
 
+    def cells_containing(self, i):
+        r"""
+        Return the list of cells in which the letter ``i`` appears in the
+        tableau ``self``. The list is ordered with cells appearing from
+        left to right.
+
+        Cells are given as pairs of coordinates `(a, b)`, where both
+        rows and columns are counted from `0` (so `a = 0` means the cell
+        lies in the leftmost column of the tableau, etc.).
+
+        EXAMPLES::
+
+            sage: t = SkewTableau([[None,None,3],[None,3,5],[4,5]])
+            sage: t.cells_containing(5)
+            [(2, 1), (1, 2)]
+            sage: t.cells_containing(4)
+            [(2, 0)]
+            sage: t.cells_containing(2)
+            []
+
+            sage: t = SkewTableau([[None,None,None,None],[None,4,5],[None,5,6],[None,9],[None]])
+            sage: t.cells_containing(2)
+            []
+            sage: t.cells_containing(4)
+            [(1, 1)]
+            sage: t.cells_containing(5)
+            [(2, 1), (1, 2)]
+
+            sage: SkewTableau([]).cells_containing(3)
+            []
+
+            sage: SkewTableau([[None,None],[None]]).cells_containing(3)
+            []
+        """
+        cell_list = []
+        for r in range(len(self)-1, -1, -1):
+            rth_row = self[r]
+            for c,val in enumerate(rth_row):
+                if val == i:
+                    cell_list.append((r,c))
+        return cell_list
+
+    def is_k_tableau(self, k):
+        r"""
+        Checks whether ``self`` is a valid skew weak `k`-tableau.
+
+        EXAMPLES::
+
+            sage: t = SkewTableau([[None,2,3],[2,3],[3]])
+            sage: t.is_k_tableau(3)
+            True
+            sage: t = SkewTableau([[None,1,3],[2,2],[3]])
+            sage: t.is_k_tableau(3)
+            False
+        """
+        shapes = self.to_chain()
+        kshapes = [ la.k_conjugate(k) for la in shapes ]
+        return all( kshapes[i+1].contains(kshapes[i]) for i in range(len(shapes)-1) )
 
 
 def _label_skew(list, sk):

@@ -22,7 +22,7 @@ elif os.path.exists('%s/lib/libatlas.so'%os.environ['SAGE_LOCAL']):
 elif os.path.exists('/usr/lib/libcblas.dylib') or \
      os.path.exists('/usr/lib/libcblas.so'):
     BLAS='cblas'
-    BLAS2='atlas'
+    BLAS2='cblas'
 elif os.path.exists('/usr/lib/libblas.dll.a'):
     BLAS='gslcblas'
     BLAS2='gslcblas'
@@ -43,7 +43,6 @@ numpy_depends = [SAGE_LOCAL + '/lib/python/site-packages/numpy/core/include/nump
 
 flint_depends = [SAGE_INC + '/flint/flint.h']
 singular_depends = [SAGE_INC + '/libsingular.h', SAGE_INC + '/givaro/givconfig.h']
-ginac_depends = [SAGE_INC + '/pynac/ginac.h']
 
 #########################################################
 ### M4RI flags
@@ -182,6 +181,15 @@ ext_modules = [
 
     Extension('sage.coding.binary_code',
               sources = ['sage/coding/binary_code.pyx']),
+
+    Extension('sage.coding.codecan.codecan',
+              sources = ['sage/coding/codecan/codecan.pyx'],
+              libraries = ['gmp', 'flint'],
+              include_dirs = [SAGE_INC + 'FLINT/']+['sage/groups/perm_gps/partn_ref2/'],
+              depends = flint_depends),
+
+    Extension('sage.coding.codecan.autgroup_can_label',
+          sources = ['sage/coding/codecan/autgroup_can_label.pyx']),
 
     ################################
     ##
@@ -504,6 +512,9 @@ ext_modules = [
     Extension('sage.groups.perm_gps.permgroup_element',
               sources = ['sage/groups/perm_gps/permgroup_element.pyx']),
 
+    Extension('sage.groups.semimonomial_transformations.semimonomial_transformation',
+              sources = ['sage/groups/semimonomial_transformations/semimonomial_transformation.pyx']),
+
         ###################################
         ##
         ## sage.groups.perm_gps.partn_ref
@@ -563,6 +574,20 @@ ext_modules = [
               libraries = ['gmp', 'flint'],
               extra_compile_args = ['-std=c99'],
               depends = flint_depends),
+
+        ###################################
+        ##
+        ## sage.groups.perm_gps.partn_ref2
+        ##
+        ###################################
+
+    Extension('sage.groups.perm_gps.partn_ref2.refinement_generic',
+              sources = ['sage/groups/perm_gps/partn_ref2/refinement_generic.pyx'],
+              libraries = ["csage", "flint", "gmp", "gmpxx", "stdc++"],
+              include_dirs = [SAGE_INC + 'FLINT/'],
+              extra_compile_args=["-std=c99"],
+              depends = [SAGE_ROOT + "/local/include/FLINT/flint.h"]+
+              ['sage/groups/perm_gps/partn_ref2/refinement_generic.h']),
 
     ################################
     ##
@@ -699,6 +724,14 @@ ext_modules = [
 
     Extension('sage.libs.pari.gen',
               sources = ["sage/libs/pari/gen.pyx"],
+              libraries = ['pari', 'gmp']),
+
+    Extension('sage.libs.pari.handle_error',
+              sources = ["sage/libs/pari/handle_error.pyx"],
+              libraries = ['pari', 'gmp']),
+
+    Extension('sage.libs.pari.pari_instance',
+              sources = ["sage/libs/pari/pari_instance.pyx"],
               libraries = ['pari', 'gmp']),
 
     Extension('sage.libs.ppl',
@@ -994,17 +1027,8 @@ ext_modules = [
               language = "c++",
               libraries=['ntl', 'gmp']),
 
-    #Extension('sage.matrix.matrix_cyclo_sparse',
-    #          sources = ['sage/matrix/matrix_cyclo_sparse.pyx']),
-
     Extension('sage.matrix.matrix_dense',
               sources = ['sage/matrix/matrix_dense.pyx']),
-
-    #Extension('sage.matrix.matrix_domain_dense',
-    #          sources = ['sage/matrix/matrix_domain_dense.pyx']),
-
-    #Extension('sage.matrix.matrix_domain_sparse',
-    #          sources = ['sage/matrix/matrix_domain_sparse.pyx']),
 
     Extension('sage.matrix.matrix_double_dense',
               sources = ['sage/matrix/matrix_double_dense.pyx'],
@@ -1076,12 +1100,6 @@ ext_modules = [
               depends = singular_depends,
               extra_compile_args = givaro_extra_compile_args),
 
-    #Extension('sage.matrix.matrix_pid_dense',
-    #          sources = ['sage/matrix/matrix_pid_dense.pyx']),
-
-    #Extension('sage.matrix.matrix_pid_sparse',
-    #          sources = ['sage/matrix/matrix_pid_sparse.pyx']),
-
     Extension('sage.matrix.matrix_rational_dense',
               sources = ['sage/matrix/matrix_rational_dense.pyx'],
               libraries = ['pari', 'gmp']),
@@ -1114,9 +1132,6 @@ ext_modules = [
 
     Extension('sage.matrix.strassen',
               sources = ['sage/matrix/strassen.pyx']),
-
-    #Extension('sage.matrix.padics.matrix_padic_capped_relative_dense',
-    #          sources = ['sage/matrix/padics/matrix_padic_capped_relative_dense.pyx']),
 
     ################################
     ##
@@ -1257,6 +1272,9 @@ ext_modules = [
 
     Extension('sage.misc.stopgap',
               sources = ['sage/misc/stopgap.pyx']),
+
+    Extension('sage.misc.weak_dict',
+              sources = ['sage/misc/weak_dict.pyx']),
 
     ################################
     ##
@@ -1562,11 +1580,6 @@ ext_modules = [
               libraries = ['mpfr', 'pari', 'gmp'],
               depends = numpy_depends),
 
-    #Extension('sage.rings.real_rqdf',
-    #          sources = ["sage/rings/real_rqdf.pyx"],
-    #          libraries = ['qd', 'm', 'stdc++','gmp','mpfr' ],
-    #          language='c++'),
-
     Extension('sage.rings.residue_field',
               sources = ['sage/rings/residue_field.pyx']),
 
@@ -1610,6 +1623,19 @@ ext_modules = [
     Extension('sage.rings.finite_rings.element_pari_ffelt',
               sources = ['sage/rings/finite_rings/element_pari_ffelt.pyx'],
               libraries = ['pari', 'gmp']),
+
+    Extension('sage.rings.finite_rings.hom_finite_field',
+              sources = ["sage/rings/finite_rings/hom_finite_field.pyx"]),
+
+    Extension('sage.rings.finite_rings.hom_prime_finite_field',
+              sources = ["sage/rings/finite_rings/hom_prime_finite_field.pyx"]),
+
+    Extension('sage.rings.finite_rings.hom_finite_field_givaro',
+              sources = ["sage/rings/finite_rings/hom_finite_field_givaro.pyx"],
+              # this order is needed to compile under windows.
+              libraries = ['givaro', 'ntl', 'gmpxx', 'gmp', 'm', 'stdc++', ],
+              language='c++',
+              extra_compile_args = givaro_extra_compile_args),
 
         ################################
         ##
@@ -1657,16 +1683,12 @@ ext_modules = [
         ##
         ################################
 
+    Extension('sage.rings.padics.common_conversion',
+              sources = ['sage/rings/padics/common_conversion.pyx'],
+              libraries=['gmp']),
+
     Extension('sage.rings.padics.local_generic_element',
               sources = ['sage/rings/padics/local_generic_element.pyx']),
-
-    Extension('sage.rings.padics.padic_base_coercion',
-              sources = ['sage/rings/padics/padic_base_coercion.pyx'],
-              libraries=['gmp']),
-
-    Extension('sage.rings.padics.padic_base_generic_element',
-              sources = ['sage/rings/padics/padic_base_generic_element.pyx'],
-              libraries=['gmp']),
 
     Extension('sage.rings.padics.padic_capped_absolute_element',
               sources = ['sage/rings/padics/padic_capped_absolute_element.pyx'],
@@ -1986,41 +2008,18 @@ ext_modules = [
     ## sage.symbolic
     ##
     ################################
-    Extension('sage.symbolic.constants_c',
-              sources = ['sage/symbolic/constants_c.pyx'],
-              language = 'c++',
-              depends = ginac_depends,
-              libraries = ["pynac", "gmp"]),
 
-    Extension('sage.symbolic.expression',
-              sources = ['sage/symbolic/expression.pyx'],
-              language = 'c++',
-              depends = ginac_depends,
-              libraries = ["pynac", "gmp"]),
-
-    Extension('sage.symbolic.getitem',
-              sources = ['sage/symbolic/getitem.pyx'],
-              language = 'c++',
-              depends = [SAGE_INC + "/pynac/ginac.h"],
-              libraries = ["pynac", "gmp"]),
+    # TODO: Verify numpy depends are also found automatically.
 
     Extension('sage.symbolic.function',
               sources = ['sage/symbolic/function.pyx'],
-              language = 'c++',
-              depends = ginac_depends + numpy_depends,
-              libraries = ["pynac", "gmp"]),
-
-    Extension('sage.symbolic.pynac',
-              sources = ['sage/symbolic/pynac.pyx'],
-              language = 'c++',
-              depends = ginac_depends,
-              libraries = ["pynac", "gmp", "gsl"]),
+              depends = numpy_depends),
 
     Extension('sage.symbolic.ring',
               sources = ['sage/symbolic/ring.pyx'],
-              language = 'c++',
-              depends = ginac_depends + numpy_depends,
-              libraries = ["pynac", "gmp"]),
+              depends = numpy_depends),
+
+    Extension('*', ['sage/symbolic/*.pyx']),
 
     ################################
     ##
@@ -2029,6 +2028,11 @@ ext_modules = [
     ################################
     Extension('sage.tests.interrupt',
               sources = ['sage/tests/interrupt.pyx', 'sage/tests/c_lib.c']),
+
+    Extension('sage.tests.parallel',
+              sources = ['sage/tests/parallel.pyx'],
+              extra_compile_args=["-fopenmp"],
+              extra_link_args=["-fopenmp"]),
 
     Extension('sage.tests.stl_vector',
               sources = ['sage/tests/stl_vector.pyx'],
@@ -2101,7 +2105,7 @@ if is_package_installed('cbc'):
                   ["sage/numerical/backends/coin_backend.pyx"],
                   include_dirs = [SAGE_INC, "sage/c_lib/include/"],
                   language = 'c++',
-                  libraries = ["csage", "stdc++", "Cbc", "CbcSolver", "Cgl", "Clp", "CoinUtils", "OsiCbc", "OsiClp", "Osi"])
+                  libraries = ["csage", "stdc++", "Cbc", "CbcSolver", "Cgl", "Clp", "CoinUtils", "OsiCbc", "OsiClp", "Osi", "lapack"])
         )
 
 

@@ -4,7 +4,8 @@ Shuffle algebras
 
 AUTHORS:
 
-- Frédéric Chapoton (2013-03)
+- Frédéric Chapoton (2013-03): Initial version
+- Matthieu Deneufchatel (2013-07): Implemented dual PBW basis
 """
 
 #*****************************************************************************
@@ -17,10 +18,16 @@ AUTHORS:
 from sage.categories.rings import Rings
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.categories.commutative_algebras import CommutativeAlgebras
+from sage.categories.coalgebras_with_basis import CoalgebrasWithBasis
+from sage.categories.tensor import TensorProductsCategory, tensor
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.words.alphabet import Alphabet
 from sage.combinat.words.words import Words
+from sage.combinat.words.word import Word
+from sage.combinat.words.finite_word import FiniteWord_class
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.misc_c import prod
 from sage.sets.family import Family
 
 class ShuffleAlgebra(CombinatorialFreeModule):
@@ -45,7 +52,7 @@ class ShuffleAlgebra(CombinatorialFreeModule):
 
     -  ``R`` -- ring
 
-    -  ``names`` -- generator names (string)
+    -  ``names`` -- generator names (string or an alphabet)
 
     EXAMPLES::
 
@@ -100,6 +107,21 @@ class ShuffleAlgebra(CombinatorialFreeModule):
         sage: 1 - B[Word('bb')] * B[Word('ca')] / 2
         B[word: ] - 1/2*B[word: bbca] - 1/2*B[word: bcab] - 1/2*B[word: bcba] - 1/2*B[word: cabb] - 1/2*B[word: cbab] - 1/2*B[word: cbba]
     """
+    @staticmethod
+    def __classcall_private__(cls, R, names):
+        """
+        Normalize input to ensure a unique representation.
+
+        EXAMPLES::
+
+            sage: F1 = ShuffleAlgebra(QQ, 'xyz')
+            sage: F2 = ShuffleAlgebra(QQ, ['x','y','z'])
+            sage: F3 = ShuffleAlgebra(QQ, Alphabet('xyz'))
+            sage: F1 is F2 and F1 is F3
+            True
+        """
+        return super(ShuffleAlgebra, cls).__classcall__(cls, R, Alphabet(names))
+
     def __init__(self, R, names):
         r"""
         Initialize ``self``.
@@ -119,11 +141,11 @@ class ShuffleAlgebra(CombinatorialFreeModule):
         """
         if R not in Rings():
             raise TypeError("argument R must be a ring")
-        self._alphabet = Alphabet(names)
+        self._alphabet = names
         self.__ngens = self._alphabet.cardinality()
         CombinatorialFreeModule.__init__(self, R, Words(names),
-            latex_prefix = "",
-            category = (AlgebrasWithBasis(R), CommutativeAlgebras(R)))
+            latex_prefix="",
+            category=(AlgebrasWithBasis(R), CommutativeAlgebras(R), CoalgebrasWithBasis(R)))
 
     def variable_names(self):
         r"""
@@ -234,6 +256,75 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             raise IndexError("argument i (= %s) must be between 0 and %s"%(i, n-1))
         return self.algebra_generators()[i]
 
+    def coproduct_on_basis(self, w):
+        """
+        Return the coproduct of the element of the basis indexed by
+        the word ``w``.
+
+        INPUT:
+
+        - ``w`` -- a word
+
+        EXAMPLES::
+
+            sage: F = ShuffleAlgebra(QQ,'ab')
+            sage: F.coproduct_on_basis(Word('a'))
+            B[word: ] # B[word: a] + B[word: a] # B[word: ]
+            sage: F.coproduct_on_basis(Word('aba'))
+            B[word: ] # B[word: aba] + B[word: a] # B[word: ab] + B[word: a] # B[word: ba]
+             + B[word: aa] # B[word: b] + B[word: ab] # B[word: a] + B[word: aba] # B[word: ]
+             + B[word: b] # B[word: aa] + B[word: ba] # B[word: a]
+            sage: F.coproduct_on_basis(Word())
+            B[word: ] # B[word: ]
+        """
+        if len(w) == 0:
+            return self.tensor_square().monomial((self.one_basis(), self.one_basis()))
+        if len(w) == 1:
+            return self.tensor_square().sum_of_terms([
+                        ((w, self.one_basis()), 1),
+                        ((self.one_basis(), w), 1) ], distinct=True)
+
+        B = self.basis()
+        result = self.coproduct_on_basis(Word([w[0]]))
+        for i in w[1:]:
+            result = self.tensor_square().sum_of_terms([
+                    ((Word(v1)*Word(u1), Word(v2)*Word(u2)), coeff1 * coeff2)
+                    for ((u1,u2),coeff1) in self.coproduct_on_basis(Word([i]))
+                    for ((v1,v2),coeff2) in result ])
+        return result
+
+    def coproduct(self, S):
+        """
+        Return the coproduct of the series ``S``.
+
+        EXAMPLES::
+
+            sage: F = ShuffleAlgebra(QQ,'ab')
+            sage: S = F.an_element(); S
+            B[word: ] + 2*B[word: a] + 3*B[word: b]
+            sage: F.coproduct(S)
+            B[word: ] # B[word: ] + 2*B[word: ] # B[word: a] + 3*B[word: ] # B[word: b]
+             + 2*B[word: a] # B[word: ] + 3*B[word: b] # B[word: ]
+            sage: F.coproduct(F.one())
+            B[word: ] # B[word: ]
+        """
+        return sum([c * self.coproduct_on_basis(i)
+                    for i,c in S.monomial_coefficients().items()])
+
+    def counit(self,S):
+        """
+        Return the counit of ``S``.
+
+        EXAMPLES::
+
+            sage: F = ShuffleAlgebra(QQ,'ab')
+            sage: S = F.an_element(); S
+            B[word: ] + 2*B[word: a] + 3*B[word: b]
+            sage: F.counit(S)
+            1
+        """
+        return S.monomial_coefficients().get(Word(), 0)
+
     @cached_method
     def algebra_generators(self):
         r"""
@@ -262,17 +353,27 @@ class ShuffleAlgebra(CombinatorialFreeModule):
 
             sage: R = ShuffleAlgebra(QQ,'xy')
             sage: x, y = R.gens()
-            sage: R(3) # indirect doctest
+            sage: R(3)
             3*B[word: ]
             sage: R(x)
             B[word: x]
+            sage: R('xyy')
+            B[word: xyy]
+            sage: R(Word('xyx'))
+            B[word: xyx]
         """
+        if isinstance(x, (str, FiniteWord_class)):
+            W = self.basis().keys()
+            return self.monomial(W(x))
+
         P = x.parent()
         if isinstance(P, ShuffleAlgebra):
             if P is self:
                 return x
             if not (P is self.base_ring()):
                 return self.element_class(self, x.monomial_coefficients())
+        if isinstance(P, DualPBWBasis):
+            return self(P.expansion(x))
         # ok, not a shuffle algebra element (or should not be viewed as one).
         if isinstance(x, basestring):
             from sage.misc.sage_eval import sage_eval
@@ -359,6 +460,9 @@ class ShuffleAlgebra(CombinatorialFreeModule):
                     else:
                         raise TypeError("no natural map between bases of shuffle algebras")
 
+            if isinstance(R, DualPBWBasis):
+                return self(R.expansion(x))
+
         except AttributeError:
             pass
 
@@ -394,6 +498,8 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             True
             sage: F.has_coerce_map_from(PolynomialRing(ZZ, 3, 'x,y,z'))
             False
+            sage: F._coerce_map_from_(F.dual_pbw_basis())
+            True
         """
         # shuffle algebras in the same variable over any base that coerces in:
         if isinstance(R, ShuffleAlgebra):
@@ -403,5 +509,375 @@ class ShuffleAlgebra(CombinatorialFreeModule):
                 else:
                     return False
 
+        if isinstance(R, DualPBWBasis):
+            return self.has_coerce_map_from(R._alg)
+
         return self.base_ring().has_coerce_map_from(R)
+
+    def dual_pbw_basis(self):
+        """
+        Return the dual PBW of ``self``.
+
+        EXAMPLES::
+
+            sage: A = ShuffleAlgebra(QQ, 'ab')
+            sage: A.dual_pbw_basis()
+            The dual Poincare-Birkhoff-Witt basis of Shuffle Algebra on 2 generators ['a', 'b'] over Rational Field
+        """
+        return DualPBWBasis(self.base_ring(), self._alphabet)
+
+    def to_dual_pbw_element(self, w):
+        """
+        Return the element `w` of ``self`` expressed in the dual PBW basis.
+
+        INPUT:
+
+        - ``w`` -- an element of the shuffle algebra
+
+        EXAMPLES::
+
+            sage: A = ShuffleAlgebra(QQ, 'ab')
+            sage: f = 2 * A(Word()) + A(Word('ab')); f
+            2*B[word: ] + B[word: ab]
+            sage: A.to_dual_pbw_element(f)
+            2*S[word: ] + S[word: ab]
+            sage: A.to_dual_pbw_element(A.one())
+            S[word: ]
+            sage: S = A.dual_pbw_basis()
+            sage: elt = S.expansion_on_basis(Word('abba')); elt
+            2*B[word: aabb] + B[word: abab] + B[word: abba]
+            sage: A.to_dual_pbw_element(elt)
+            S[word: abba]
+            sage: A.to_dual_pbw_element(2*A(Word('aabb')) + A(Word('abab')))
+            S[word: abab]
+            sage: S.expansion(S('abab'))
+            2*B[word: aabb] + B[word: abab]
+        """
+        D = self.dual_pbw_basis()
+        l = {}
+        W = self.basis().keys()
+        while w != self.zero():
+            support = [W(i[0]) for i in list(w)]
+            min_elt = W(support[0])
+            if len(support) > 1:
+                for word in support[1:len(support)-1]:
+                    if min_elt.lex_less(word):
+                        min_elt = W(word)
+            coeff = list(w)[support.index(min_elt)][1]
+            l[min_elt] = l.get(min_elt, 0) + coeff
+            w = w - coeff * D.expansion_on_basis(W(min_elt))
+
+        return D.sum_of_terms([(m, c) for m,c in l.items() if c != 0])
+
+class DualPBWBasis(CombinatorialFreeModule):
+    r"""
+    The basis dual to the Poincare-Birkhoff-Witt basis of the free algebra.
+
+    We recursively define the dual PBW basis as the basis of the
+    shuffle algebra given by
+
+    .. MATH::
+
+        S_w = \begin{cases}
+        w & |w| = 1, \\
+        x S_u & w = xu \text{ and } w \in \mathrm{Lyn}(X), \\
+        \displaystyle \frac{S_{\ell_{i_1}}^{\ast \alpha_1} \ast \cdots
+        \ast S_{\ell_{i_k}}^{\ast \alpha_k}}{\alpha_1! \cdots \alpha_k!} &
+        w = \ell_{i_1}^{\alpha_1} \cdots \ell_{i_k}^{\alpha_k} \text{ with }
+        \ell_1 > \cdots > \ell_k \in \mathrm{Lyn}(X).
+        \end{cases}
+
+    where `S \ast T` denotes the shuffle product of `S` and `T` and
+    `\mathrm{Lyn}(X)` is the set of Lyndon words in the alphabet `X`.
+
+    The definition may be found in Theorem 5.3 of [Reuten1993]_.
+
+    INPUT:
+
+    - ``R`` -- ring
+
+    - ``names`` -- names of the generators (string or an alphabet)
+
+    REFERENCES:
+
+    .. [Reuten1993] C. Reutenauer. *Free Lie Algebras*. Number 7 in
+       London Math. Soc. Monogr. (N.S.). Oxford University Press. (1993).
+
+    EXAMPLES::
+
+        sage: S = ShuffleAlgebra(QQ, 'ab').dual_pbw_basis()
+        sage: S
+        The dual Poincare-Birkhoff-Witt basis of Shuffle Algebra on 2 generators ['a', 'b'] over Rational Field
+        sage: S.one()
+        S[word: ]
+        sage: S.one_basis()
+        word:
+        sage: T = ShuffleAlgebra(QQ, 'abcd').dual_pbw_basis(); T
+        The dual Poincare-Birkhoff-Witt basis of Shuffle Algebra on 4 generators ['a', 'b', 'c', 'd'] over Rational Field
+        sage: T.algebra_generators()
+        (S[word: a], S[word: b], S[word: c], S[word: d])
+
+    TESTS:
+
+    We check conversion between the bases::
+
+        sage: A = ShuffleAlgebra(QQ, 'ab')
+        sage: S = A.dual_pbw_basis()
+        sage: W = Words('ab', 5)
+        sage: all(S(A(S(w))) == S(w) for w in W)
+        True
+        sage: all(A(S(A(w))) == A(w) for w in W)
+        True
+    """
+    @staticmethod
+    def __classcall_private__(cls, R, names):
+        """
+        Normalize input to ensure a unique representation.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.shuffle_algebra import DualPBWBasis
+            sage: D1 = DualPBWBasis(QQ, 'ab')
+            sage: D2 = DualPBWBasis(QQ, Alphabet('ab'))
+            sage: D1 is D2
+            True
+        """
+        return super(DualPBWBasis, cls).__classcall__(cls, R, Alphabet(names))
+
+    def __init__(self, R, names):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: D = ShuffleAlgebra(QQ, 'ab').dual_pbw_basis()
+            sage: TestSuite(D).run()
+        """
+        self._alphabet = names
+        self._alg = ShuffleAlgebra(R, names)
+        CombinatorialFreeModule.__init__(self, R, Words(names), prefix='S',
+            category=(AlgebrasWithBasis(R), CommutativeAlgebras(R), CoalgebrasWithBasis(R)))
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: ShuffleAlgebra(QQ, 'ab').dual_pbw_basis()
+            The dual Poincare-Birkhoff-Witt basis of Shuffle Algebra on 2 generators ['a', 'b'] over Rational Field
+        """
+        return "The dual Poincare-Birkhoff-Witt basis of {}".format(self._alg)
+
+    def _element_constructor_(self, x):
+        """
+        Construct an element of ``self`` from ``x``.
+
+        EXAMPLES::
+
+            sage: A = ShuffleAlgebra(QQ, 'ab')
+            sage: S = A.dual_pbw_basis()
+            sage: S('abaab')
+            S[word: abaab]
+            sage: S(Word('aba'))
+            S[word: aba]
+            sage: S(A('ab'))
+            S[word: ab]
+        """
+        if isinstance(x, (str, FiniteWord_class)):
+            W = self.basis().keys()
+            x = W(x)
+        elif isinstance(x.parent(), ShuffleAlgebra):
+            return self._alg.to_dual_pbw_element(self._alg(x))
+        return super(DualPBWBasis, self)._element_constructor_(x)
+
+    def _coerce_map_from_(self, R):
+        """
+        Return ``True`` if there is a coercion from ``R`` into ``self`` and
+        ``False`` otherwise. The things that coerce into ``self`` are:
+
+        - Anything that coerces into the associated shuffle algebra of ``self``
+
+        TESTS::
+
+            sage: F = ShuffleAlgebra(ZZ, 'xyz').dual_pbw_basis()
+            sage: G = ShuffleAlgebra(QQ, 'xyz').dual_pbw_basis()
+            sage: H = ShuffleAlgebra(ZZ, 'y').dual_pbw_basis()
+            sage: F._coerce_map_from_(G)
+            False
+            sage: G._coerce_map_from_(F)
+            True
+            sage: F._coerce_map_from_(H)
+            False
+            sage: F._coerce_map_from_(QQ)
+            False
+            sage: G._coerce_map_from_(QQ)
+            True
+            sage: F.has_coerce_map_from(PolynomialRing(ZZ, 3, 'x,y,z'))
+            False
+            sage: F._coerce_map_from_(F._alg)
+            True
+        """
+        return self._alg.has_coerce_map_from(R)
+
+    def one_basis(self):
+        """
+        Return the indexing element of the basis element `1`.
+
+        EXAMPLES::
+
+            sage: S = ShuffleAlgebra(QQ, 'ab').dual_pbw_basis()
+            sage: S.one_basis()
+            word:
+        """
+        W = self.basis().keys()
+        return W([])
+
+    def algebra_generators(self):
+        """
+        Return the algebra generators of ``self``.
+
+        EXAMPLES::
+
+            sage: S = ShuffleAlgebra(QQ, 'ab').dual_pbw_basis()
+            sage: S.algebra_generators()
+            (S[word: a], S[word: b])
+        """
+        W = self.basis().keys()
+        return tuple(self.monomial(W(a)) for a in self._alphabet)
+
+    gens = algebra_generators
+
+    def gen(self, i):
+        """
+        Return the ``i``-th generator of ``self``.
+
+        EXAMPLES::
+
+            sage: S = ShuffleAlgebra(QQ, 'ab').dual_pbw_basis()
+            sage: S.gen(0)
+            S[word: a]
+            sage: S.gen(1)
+            S[word: b]
+        """
+        return self.algebra_generators()[i]
+
+    def shuffle_algebra(self):
+        """
+        Return the associated shuffle algebra of ``self``.
+
+        EXAMPLES::
+
+            sage: S = ShuffleAlgebra(QQ, 'ab').dual_pbw_basis()
+            sage: S.shuffle_algebra()
+            Shuffle Algebra on 2 generators ['a', 'b'] over Rational Field
+        """
+        return self._alg
+
+    def product(self, u, v):
+        """
+        Return the product of two elements ``u`` and ``v``.
+
+        EXAMPLES::
+
+            sage: S = ShuffleAlgebra(QQ, 'ab').dual_pbw_basis()
+            sage: a,b = S.gens()
+            sage: S.product(a, b)
+            S[word: ba]
+            sage: S.product(b, a)
+            S[word: ba]
+            sage: S.product(b^2*a, a*b*a)
+            36*S[word: bbbaaa]
+
+        TESTS:
+
+        Check that multiplication agrees with the multiplication in the
+        shuffle algebra::
+
+            sage: A = ShuffleAlgebra(QQ, 'ab')
+            sage: S = A.dual_pbw_basis()
+            sage: a,b = S.gens()
+            sage: A(a*b)
+            B[word: ab] + B[word: ba]
+            sage: A(a*b*a)
+            2*B[word: aab] + 2*B[word: aba] + 2*B[word: baa]
+            sage: S(A(a)*A(b)*A(a)) == a*b*a
+            True
+        """
+        return self(self.expansion(u) * self.expansion(v))
+
+    @lazy_attribute
+    def expansion(self):
+        """
+        Return the morphism corresponding to the expansion into words of
+        the shuffle algebra.
+
+        EXAMPLES::
+
+            sage: S = ShuffleAlgebra(QQ, 'ab').dual_pbw_basis()
+            sage: f = S('ab') + S('aba')
+            sage: S.expansion(f)
+            2*B[word: aab] + B[word: ab] + B[word: aba]
+        """
+        return self.module_morphism(self.expansion_on_basis, codomain=self._alg)
+
+    @cached_method
+    def expansion_on_basis(self, w):
+        r"""
+        Return the expansion of `S_w` in words of the shuffle algebra.
+
+        INPUT:
+
+        - ``w`` -- a word
+
+        EXAMPLES::
+
+            sage: S = ShuffleAlgebra(QQ, 'ab').dual_pbw_basis()
+            sage: S.expansion_on_basis(Word())
+            B[word: ]
+            sage: S.expansion_on_basis(Word()).parent()
+            Shuffle Algebra on 2 generators ['a', 'b'] over Rational Field
+            sage: S.expansion_on_basis(Word('abba'))
+            2*B[word: aabb] + B[word: abab] + B[word: abba]
+            sage: S.expansion_on_basis(Word())
+            B[word: ]
+            sage: S.expansion_on_basis(Word('abab'))
+            2*B[word: aabb] + B[word: abab]
+        """
+        from sage.functions.other import factorial
+        if len(w) == 0:
+            return self._alg.one()
+        if len(w) == 1:
+           return self._alg.monomial(w)
+
+        if w.is_lyndon():
+            W = self.basis().keys()
+            letter = W(w[0])
+            expansion = self.expansion_on_basis(W(w[1:]))
+            return self._alg.sum_of_terms([(letter * i, c) for i,c in expansion])
+
+        lf = w.lyndon_factorization()
+        powers = {}
+        for i in lf:
+            powers[i] = powers.get(i, 0) + 1
+        denom = prod(factorial(p) for p in powers.values())
+        result = self._alg.prod(self.expansion_on_basis(i) for i in lf)
+        return self._alg(result / denom)
+
+    class Element(CombinatorialFreeModule.Element):
+        """
+        An element in the dual PBW basis.
+        """
+        def expand(self):
+            """
+            Expand ``self`` in words of the shuffle algebra.
+
+            EXAMPLES::
+
+                sage: S = ShuffleAlgebra(QQ, 'ab').dual_pbw_basis()
+                sage: f = S('ab') + S('bab')
+                sage: f.expand()
+                B[word: ab] + 2*B[word: abb] + B[word: bab]
+            """
+            return self.parent().expansion(self)
 

@@ -164,6 +164,12 @@ cdef class Graphics3d(SageObject):
         """
         Sets or gets the preferred aspect ratio of self.
 
+        INPUT:
+
+        - ``v`` -- (default: None) must be a list or tuple of length three,
+          or the integer ``1``. If no arguments are provided then the
+          default aspect ratio is returned.
+
         EXAMPLES::
 
             sage: D = dodecahedron()
@@ -180,8 +186,9 @@ cdef class Graphics3d(SageObject):
             if v == 1:
                 v = (1,1,1)
             if not isinstance(v, (tuple, list)):
-                raise TypeError, "aspect_ratio must be a list or tuple of length 3 or the integer 1"
-            self._aspect_ratio = [float(a) for a in v]
+                raise TypeError("aspect_ratio must be a list or tuple of "
+                                "length 3 or the integer 1")
+            self._aspect_ratio = map(float, v)
         else:
             if self._aspect_ratio is None:
                 self._aspect_ratio = [1.0,1.0,1.0]
@@ -190,6 +197,12 @@ cdef class Graphics3d(SageObject):
     def frame_aspect_ratio(self, v=None):
         """
         Sets or gets the preferred frame aspect ratio of self.
+
+        INPUT:
+
+        - ``v`` -- (default: None) must be a list or tuple of length three,
+          or the integer ``1``. If no arguments are provided then the
+          default frame aspect ratio is returned.
 
         EXAMPLES::
 
@@ -207,8 +220,9 @@ cdef class Graphics3d(SageObject):
             if v == 1:
                 v = (1,1,1)
             if not isinstance(v, (tuple, list)):
-                raise TypeError, "frame_aspect_ratio must be a list or tuple of length 3 or the integer 1"
-            self._frame_aspect_ratio = [float(a) for a in v]
+                raise TypeError("frame_aspect_ratio must be a list or tuple of "
+                                "length 3 or the integer 1")
+            self._frame_aspect_ratio = map(float, v)
         else:
             if self._frame_aspect_ratio is None:
                 self._frame_aspect_ratio = [1.0,1.0,1.0]
@@ -864,7 +878,7 @@ end_scene""" % (render_params.antialiasing,
         # box defined by box_min, box_max, it has the right aspect ratio
         a_min, a_max = self._safe_bounding_box()
 
-        if aspect_ratio == "automatic":
+        if aspect_ratio == "automatic" or aspect_ratio == [1.0]*3:
             return a_min, a_max
 
         longest_side = 0; longest_length = a_max[0] - a_min[0]
@@ -963,23 +977,40 @@ end_scene""" % (render_params.antialiasing,
         for key_to_remove in SHOW_DEFAULTS.keys():
             kwds.pop(key_to_remove, None)
 
-        if opts['aspect_ratio'] == 1:
-            opts['aspect_ratio'] = (1, 1, 1)
-        if not isinstance(opts['aspect_ratio'], (str, list, tuple)):
-            raise TypeError, 'aspect ratio must be a string, list, tuple, or 1'
         # deal with any aspect_ratio instances passed from the default options to plot
         if opts['aspect_ratio'] == 'auto':
             opts['aspect_ratio'] = 'automatic'
+        if opts['aspect_ratio'] != 'automatic':
+            # We need this round about way to make sure that we do not
+            # store the aspect ratio that was passed on to show() by the
+            # user. We let the .aspect_ratio() method take care of the
+            # validity of the arguments that was passed on to show()
+            original_aspect_ratio = self.aspect_ratio()
+            self.aspect_ratio(opts['aspect_ratio'])
+            opts['aspect_ratio'] = self.aspect_ratio()
+            self.aspect_ratio(original_aspect_ratio)
 
         if opts['frame_aspect_ratio'] == 'automatic':
             if opts['aspect_ratio'] != 'automatic':
-                # Set the aspect_ratio of the frame to be the same as that of
-                # the object we are rendering given the aspect_ratio we'll use
-                # for it.
+                # Set the aspect_ratio of the frame to be the same as that
+                # of the object we are rendering given the aspect_ratio
+                # we'll use for it.
                 opts['frame_aspect_ratio'] = \
                     self._determine_frame_aspect_ratio(opts['aspect_ratio'])
             else:
                 opts['frame_aspect_ratio'] = self.frame_aspect_ratio()
+        else:
+            # We need this round about way to make sure that we do not
+            # store the frame aspect ratio that was passed on to show() by
+            # the user. We let the .frame_aspect_ratio() method take care
+            # of the validity of the arguments that was passed on to show()
+            original_aspect_ratio = self.frame_aspect_ratio()
+            self.frame_aspect_ratio(opts['frame_aspect_ratio'])
+            opts['frame_aspect_ratio'] = self.frame_aspect_ratio()
+            self.frame_aspect_ratio(original_aspect_ratio)
+
+        if opts['aspect_ratio'] == 'automatic':
+            opts['aspect_ratio'] = self.aspect_ratio()
 
         if not isinstance(opts['figsize'], (list,tuple)):
             opts['figsize'] = [opts['figsize'], opts['figsize']]
@@ -1028,7 +1059,6 @@ end_scene""" % (render_params.antialiasing,
 
         -  ``axes`` - (default: False) if True, draw coordinate
            axes
-
 
         -  ``**kwds`` - other options, which make sense for particular
            rendering engines
@@ -1082,17 +1112,16 @@ end_scene""" % (render_params.antialiasing,
         viewer = opts['viewer']
         verbosity = opts['verbosity']
         figsize = opts['figsize']
-        aspect_ratio = opts['aspect_ratio']
+        aspect_ratio = opts['aspect_ratio'] # this necessarily has a value now
         frame_aspect_ratio = opts['frame_aspect_ratio']
         zoom = opts['zoom']
         frame = opts['frame']
         axes = opts['axes']
 
         import sage.misc.misc
-        if 'filename' in kwds:
-            filename = kwds['filename']
-            del kwds['filename']
-        else:
+        try:
+            filename = kwds.pop('filename')
+        except KeyError:
             filename = tmp_filename()
 
         from sage.plot.plot import EMBEDDED_MODE
@@ -1132,62 +1161,53 @@ end_scene""" % (render_params.antialiasing,
             # (This will be removed once we have dynamic resizing of applets in the browser.)
             base, ext = os.path.splitext(filename)
             fg = figsize[0]
-            #if fg >= 2:
-            #    fg = 2
             filename = '%s-size%s%s'%(base, fg*100, ext)
+
             if EMBEDDED_MODE:
                 ext = "jmol"
-            else:
-                ext = "spt"
-            archive_name = "%s.%s.zip" % (filename, ext)
-            if EMBEDDED_MODE:
                 # jmol doesn't seem to correctly parse the ?params part of a URL
                 archive_name = "%s-%s.%s.zip" % (filename, randint(0, 1 << 30), ext)
+            else:
+                ext = "spt"
+                archive_name = "%s.%s.zip" % (filename, ext)
+                with open(filename + '.' + ext, 'w') as f:
+                    f.write('set defaultdirectory "{0}"\n'.format(archive_name))
+                    f.write('script SCRIPT\n')
 
             T = self._prepare_for_jmol(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
             T.export_jmol(archive_name, force_reload=EMBEDDED_MODE, zoom=zoom*100, **kwds)
-            viewer_app = os.path.join(sage.misc.misc.SAGE_LOCAL, "bin/jmol")
-
-            # We need a script to load the file
-            f = open(filename + '.'+ext, 'w')
-            import sagenb
-            if EMBEDDED_MODE:
-                path = "cells/%s/%s" %(sagenb.notebook.interact.SAGE_CELL_ID, archive_name)
-            else:
-                path = archive_name
-            f.write('set defaultdirectory "%s"\n' %path)
-            f.write('script SCRIPT\n')
-            f.close()
+            viewer_app = os.path.join(sage.misc.misc.SAGE_LOCAL, "bin", "jmol")
 
             # If the server has a Java installation we can make better static images with Jmol
             # Test for Java then make image with Jmol or Tachyon if no JavaVM
             if EMBEDDED_MODE:
-                #name image file
-                head,tail = os.path.split(archive_name)
-                png_path = os.path.join(head,'.jmol_images')
-                if  not os.path.exists(png_path):
-                    os.mkdir(png_path)
-                png_name = os.path.join(png_path,filename)
-                #test for JavaVM
+                # We need a script for the Notebook.
+                # When the notebook sees this file, it will know to
+                # display the static file and the "Make Interactive"
+                # button.
+                import sagenb
+                path = "cells/%s/%s" %(sagenb.notebook.interact.SAGE_CELL_ID, archive_name)
+                with open(filename + '.' + ext, 'w') as f:
+                    f.write('set defaultdirectory "%s"\n' % path)
+                    f.write('script SCRIPT\n')
+
+                # Filename for the static image
+                png_path = '.jmol_images'
+                sage.misc.misc.sage_makedirs(png_path)
+                png_name = os.path.join(png_path, filename + ".jmol.png")
+
                 from sage.interfaces.jmoldata import JmolData
                 jdata = JmolData()
-                if (jdata.is_jvm_available()):
-                    # make the image with Jmol
-                    # hack...need absolute paths since jvm running outside of sage environment
-                    cellhead, celltail =os.path.split(os.path.realpath(os.path.join(os.path.curdir,"data")))
-                    celldir = os.path.join(cellhead,"cells",str(sagenb.notebook.interact.SAGE_CELL_ID))
-                    png_name = png_name+".jmol.png"
-                    png_fullpath = os.path.join(celldir,png_name)
-                    archive_fullpath = os.path.join(celldir,archive_name)
-                    #print png_fullpath
-                    script = 'set defaultdirectory \"'+archive_fullpath+'\"\n script SCRIPT\n'
-                    #print script
-                    jdata.export_image(targetfile = png_fullpath,datafile=script,image_type="PNG", figsize = fg)
+                if jdata.is_jvm_available():
+                    # Java needs absolute paths
+                    archive_name = os.path.abspath(archive_name)
+                    png_name = os.path.abspath(png_name)
+                    script = '''set defaultdirectory "%s"\nscript SCRIPT\n''' % archive_name
+                    jdata.export_image(targetfile=png_name, datafile=script, image_type="PNG", figsize=fg)
                 else:
-                    #make the image with tachyon
+                    # Render the image with tachyon
                     T = self._prepare_for_tachyon(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
-                    tachyon_rt(T.tachyon(), png_name+".jmol.png", verbosity, True, opts)
-
+                    tachyon_rt(T.tachyon(), png_name, verbosity, True, opts)
 
         if viewer == 'canvas3d':
             T = self._prepare_for_tachyon(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
@@ -1265,7 +1285,7 @@ end_scene""" % (render_params.antialiasing,
             tachyon_rt(T.tachyon(), out_filename, opts['verbosity'], True,
                 '-res %s %s' % (opts['figsize'][0]*100, opts['figsize'][1]*100))
             if ext != 'png':
-                import Image
+                import PIL.Image as Image
                 Image.open(out_filename).save(filename)
         else:
             raise ValueError, 'filetype not supported by save()'

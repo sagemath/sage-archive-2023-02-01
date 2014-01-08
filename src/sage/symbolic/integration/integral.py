@@ -468,14 +468,19 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
 
     We can also use Sympy::
 
-        sage: _ = var('x, y, z')
-        sage: (x^y-z).integrate(y)
+        sage: integrate(x*sin(log(x)), x)
+        -1/5*x^2*(cos(log(x)) - 2*sin(log(x)))
+        sage: integrate(x*sin(log(x)), x, algorithm='sympy')
+        -1/5*x^2*cos(log(x)) + 2/5*x^2*sin(log(x))
+        sage: _ = var('y, z')
+        sage: (x^y - z).integrate(y)
         -y*z + x^y/log(x)
-        sage: (x^y-z).integrate(y,algorithm="sympy")
-        -y*z + x^y/log(x)
+        sage: (x^y - z).integrate(y, algorithm="sympy")  # see Trac #14694
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'Piecewise' object has no attribute '_sage_'
 
-
-    We integrate the above function in maple now::
+    We integrate the above function in Maple now::
 
         sage: g = maple(f); g                             # optional - maple
         sin(x^2)+y^z

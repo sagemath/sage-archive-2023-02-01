@@ -1,4 +1,4 @@
-#include "sage/graphs/cl.h"
+#include "cl.h"
 #include "cliquer/cliquer.h"
 
 static int maximal;

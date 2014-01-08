@@ -368,7 +368,7 @@ ext_modules = [
               libraries = ['gmp']),
 
     Extension('sage.graphs.cliquer',
-              sources = ['sage/graphs/cliquer.pyx', 'sage/graphs/cl.c'],
+              sources = ['sage/graphs/cliquer.pyx', 'sage/graphs/cliquer/cl.c'],
               libraries = ['cliquer']),
 
     Extension('sage.graphs.graph_decompositions.vertex_separation',

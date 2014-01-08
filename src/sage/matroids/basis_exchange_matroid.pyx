@@ -173,7 +173,7 @@ cdef class BasisExchangeMatroid(Matroid):
         bitset_init(self._temp, self._bitset_size)
 
         self._groundset = frozenset(groundset)
-        self._E = [e for e in groundset]
+        self._E = tuple([e for e in groundset])
         self._idx = {}
         cdef long i
         for i in xrange(self._groundset_size):
@@ -215,7 +215,7 @@ cdef class BasisExchangeMatroid(Matroid):
                 E.append(l[self._E[i]])
             else:
                 E.append(self._E[i])
-        self._E = E
+        self._E = tuple(E)
         self._groundset = frozenset(E)
 
         self._idx = {}
@@ -503,7 +503,7 @@ cdef class BasisExchangeMatroid(Matroid):
             sage: sorted(M.groundset_list())
             ['a', 'b', 'c', 'd', 'e', 'f', 'g']
         """
-        return self._E
+        return list(self._E)
 
     def __len__(self):
         """

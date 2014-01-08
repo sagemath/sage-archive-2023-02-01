@@ -106,6 +106,7 @@ import importlib
 import re
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.lazy_attribute import lazy_class_attribute
+from sage.misc.lazy_import import LazyImport
 from sage.misc.misc import call_method
 from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
@@ -456,7 +457,6 @@ class CategoryWithAxiom(Category):
 
         EXAMPLES::
 
-
             sage: FiniteGroups()
             Category of finite groups
             sage: ModulesWithBasis(ZZ)
@@ -549,10 +549,17 @@ class CategoryWithAxiom(Category):
         else:
             assert cls._base_category_class_and_axiom[0] is base_category_class, \
                 "base category class for %s mismatch; expected %s, got %s"%(cls, cls._base_category_class_and_axiom[0], base_category_class)
+
+        # Workaround #15648: if Rings.Finite is a LazyImport object,
+        # this forces the substitution of the object back into Rings
+        # to avoid resolving the lazy import over and over
+        if isinstance(base_category_class.__dict__[cls._axiom], LazyImport):
+            setattr(base_category_class, cls._axiom, cls)
+
         if base_category is None:
              return cls
-        # For Rings().Finite(), this returns the method
-        # Category.Finite, with its first argument bound to Rings()
+        # For Rings().Finite, this returns the method
+        # Sets.SubcategoryMethods.Finite, with its first argument bound to Rings()
         return getattr(super(base_category.__class__.__base__, base_category), cls._axiom)
 
     def __init__(self, base_category):

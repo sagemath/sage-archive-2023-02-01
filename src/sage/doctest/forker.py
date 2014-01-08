@@ -2080,7 +2080,13 @@ class DocTestTask(object):
             N = options.file_iterations
             results = DictAsObject(dict(walltime=[],cputime=[],err=None))
             for it in range(N):
-                sage_namespace = RecordingDict(dict(sage.all_cmdline.__dict__))
+                # Make the right set of globals available to doctests
+                if options.sagenb:
+                    import sage.all_notebook
+                    sage_all = sage.all_notebook
+                else:
+                    sage_all = sage.all_cmdline
+                sage_namespace = RecordingDict(sage_all.__dict__)
                 sage_namespace['__name__'] = '__main__'
                 sage_namespace['__package__'] = None
                 doctests, extras = self.source.create_doctests(sage_namespace)

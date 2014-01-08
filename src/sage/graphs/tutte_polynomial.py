@@ -502,17 +502,15 @@ def _cached(func):
         sage: tutte_polynomial(G)(1,1)  #indirect doctest
         2000
     """
-    _cache = {}
-
     @sage_wraps(func)
     def wrapper(G, *args, **kwds):
+        cache = kwds.setdefault('cache', {})
         key = _cache_key(G)
-        if key in _cache:
-            return _cache[key]
+        if key in cache:
+            return cache[key]
         result = func(G, *args, **kwds)
-        _cache[key] = result
+        cache[key] = result
         return result
-    wrapper.cache = _cache
     wrapper.original_func = func
     return wrapper
 
@@ -521,7 +519,7 @@ def _cached(func):
 ####################
 
 @_cached
-def tutte_polynomial(G, edge_selector=None, forget_cache=True):
+def tutte_polynomial(G, edge_selector=None, cache=None):
     r"""
     Return the Tutte polynomial of the graph `G`.
 
@@ -531,11 +529,9 @@ def tutte_polynomial(G, edge_selector=None, forget_cache=True):
       to specify his own heuristic for selecting edges used in the deletion
       contraction recurrence
 
-    - ``forget_cache`` -- (boolean; default ``True``) whether to forget the
-      Tutte polynomials of all graphs that were created during the recursions
-      when returning the result. If you plan on computing the Tutte polynomials
-      of many graphs you probably want to set it to ``False`` to save time,
-      though it may eat quite some memory. See for yourself.
+    - ``cache`` -- (optional; dict) a dictionary to cache the Tutte
+      polynomials generated in the recursive process.  One will be
+      created automatically if not provided.
 
     EXAMPLES:
 
@@ -574,39 +570,28 @@ def tutte_polynomial(G, edge_selector=None, forget_cache=True):
 
     TESTS:
 
-    Emptying the cache::
+    Providing an external cache::
 
-        sage: from sage.graphs.tutte_polynomial import tutte_polynomial
-        sage: len(_tutte_polynomial_internal.cache) > 1
-        False
-        sage: _ = graphs.RandomGNP(7,.5).tutte_polynomial()
-        sage: len(_tutte_polynomial_internal.cache) > 1
-        False
-        sage: _ = graphs.RandomGNP(7,.5).tutte_polynomial(forget_cache=False)
-        sage: len(_tutte_polynomial_internal.cache) > 1
+        sage: cache = {}
+        sage: _ = graphs.RandomGNP(7,.5).tutte_polynomial(cache=cache)
+        sage: len(cache) > 0
         True
-        sage: _ = graphs.RandomGNP(7,.5).tutte_polynomial()
-        sage: len(_tutte_polynomial_internal.cache) > 1
-        False
     """
     R = ZZ['x, y']
     if G.num_edges() == 0:
         return R.one()
-
-    G = G.relabel(inplace = False) # making sure the vertices are integers
+    
+    G = G.relabel(inplace=False) # making sure the vertices are integers
     G.allow_loops(True)
     G.allow_multiple_edges(True)
 
     if edge_selector is None:
         edge_selector = MinimizeSingleDegree()
     x, y = R.gens()
-    ans = _tutte_polynomial_internal(G, x, y, edge_selector)
-    if forget_cache:
-        _tutte_polynomial_internal.cache.clear()
-    return ans
+    return _tutte_polynomial_internal(G, x, y, edge_selector, cache=cache)
 
 @_cached
-def _tutte_polynomial_internal(G, x, y, edge_selector):
+def _tutte_polynomial_internal(G, x, y, edge_selector, cache=None):
     """
     Does the recursive computation of the Tutte polynomial.
 
@@ -633,7 +618,7 @@ def _tutte_polynomial_internal(G, x, y, edge_selector):
         """
         if graph is None:
             graph = G
-        return _tutte_polynomial_internal(graph, x, y, edge_selector)
+        return _tutte_polynomial_internal(graph, x, y, edge_selector, cache=cache)
 
     #Remove loops
     with removed_loops(G) as loops:

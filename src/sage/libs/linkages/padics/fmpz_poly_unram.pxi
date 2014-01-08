@@ -331,22 +331,24 @@ cdef inline int cinvert(celement out, celement a, long prec, PowComputer_ prime_
     - ``prec`` -- a long, the precision.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    sig_on()
-    fmpz_poly_set(prime_pow.poly_cinv, prime_pow.get_modulus(prec)[0])
-    fmpz_poly_primitive_part(prime_pow.poly_cinv, prime_pow.poly_cinv)
+    try:
+        sig_on()
+        fmpz_poly_set(prime_pow.poly_cinv, prime_pow.get_modulus(prec)[0])
+        fmpz_poly_primitive_part(prime_pow.poly_cinv, prime_pow.poly_cinv)
 
-    fmpz_poly_content(prime_pow.fmpz_cinv, a)
-    fmpz_poly_scalar_divexact_fmpz(out, a, prime_pow.fmpz_cinv)
+        fmpz_poly_content(prime_pow.fmpz_cinv, a)
+        fmpz_poly_scalar_divexact_fmpz(out, a, prime_pow.fmpz_cinv)
 
-    fmpz_poly_xgcd(prime_pow.fmpz_cinv2, out, prime_pow.poly_cinv2, out, prime_pow.poly_cinv)
-    if fmpz_is_zero(prime_pow.tfmpz): raise ValueError("polynomials are not coprime")
+        fmpz_poly_xgcd(prime_pow.fmpz_cinv2, out, prime_pow.poly_cinv2, out, prime_pow.poly_cinv)
+        if fmpz_is_zero(prime_pow.cinv2): raise ValueError("polynomials are not coprime")
 
-    fmpz_mul(prime_pow.fmpz_cinv2, prime_pow.fmpz_cinv, prime_pow.fmpz_cinv2)
-    if not fmpz_invmod(prime_pow.fmpz_cinv2, prime_pow.fmpz_cinv2, prime_pow.pow_fmpz_t_tmp(prec)[0]): raise ValueError("content or xgcd is not a unit")
-    fmpz_poly_scalar_mul_fmpz(out, out, prime_pow.fmpz_cinv2)
+        fmpz_mul(prime_pow.fmpz_cinv2, prime_pow.fmpz_cinv, prime_pow.fmpz_cinv2)
+        if not fmpz_invmod(prime_pow.fmpz_cinv2, prime_pow.fmpz_cinv2, prime_pow.pow_fmpz_t_tmp(prec)[0]): raise ValueError("content or xgcd is not a unit")
+        fmpz_poly_scalar_mul_fmpz(out, out, prime_pow.fmpz_cinv2)
 
-    creduce(out, out, prec, prime_pow)
-    sig_off()
+        creduce(out, out, prec, prime_pow)
+    finally:
+        sig_off()
 
 cdef inline int cmul(celement out, celement a, celement b, long prec, PowComputer_ prime_pow) except -1:
     """

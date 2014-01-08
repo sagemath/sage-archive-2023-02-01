@@ -37,14 +37,16 @@ cdef class PowComputer_flint(PowComputer_class):
         fmpz_fdiv_q_2exp(self.half_prime, self.fprime, 1)
         fmpz_init(self.tfmpz)
 
-        sig_on()
-        mpz_init(self.top_power)
         try:
-           padic_ctx_init(self.ctx, self.fprime, prec_cap, PADIC_SERIES)
-        except:
-            mpz_clear(self.top_power)
-            raise
-        sig_off()
+            sig_on()
+            mpz_init(self.top_power)
+            try:
+                padic_ctx_init(self.ctx, self.fprime, prec_cap, PADIC_SERIES)
+            except:
+                mpz_clear(self.top_power)
+                raise
+        finally:
+            sig_off()
 
         self.__allocated = 4
 
@@ -202,29 +204,31 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         # fmpz_init does not allocate memory
         fmpz_init(self.q)
 
-        sig_on()
-        self._moduli = <fmpz_poly_t*>sage_malloc(sizeof(fmpz_poly_t) * (cache_limit + 2))
-        if self._moduli == NULL:
-            raise MemoryError
         try:
-            fmpz_poly_init2(self.modulus, length)
+            sig_on()
+            self._moduli = <fmpz_poly_t*>sage_malloc(sizeof(fmpz_poly_t) * (cache_limit + 2))
+            if self._moduli == NULL:
+                raise MemoryError
             try:
-                for i from 1 <= i <= cache_limit + 1:
-                    try:
-                        fmpz_poly_init2(self._moduli[i], length)
-                    except:
-                        i-=1
-                        while i:
-                            fmpz_poly_clear(self._moduli[i])
+                fmpz_poly_init2(self.modulus, length)
+                try:
+                    for i from 1 <= i <= cache_limit + 1:
+                        try:
+                            fmpz_poly_init2(self._moduli[i], length)
+                        except BaseException:
                             i-=1
-                        raise
-            except:
-                fmpz_poly_clear(self.modulus)
+                            while i:
+                                fmpz_poly_clear(self._moduli[i])
+                                i-=1
+                            raise
+                except BaseException:
+                    fmpz_poly_clear(self.modulus)
+                    raise
+            except BaseException:
+                sage_free(self._moduli)
                 raise
-        except:
-           sage_free(self._moduli)
-           raise
-        sig_off()
+        finally:
+            sig_off()
 
         self.__allocated = 8
 
@@ -426,63 +430,65 @@ cdef class PowComputer_flint_unram(PowComputer_flint_1step):
         fmpz_init(self.fmpz_ctm)
         fmpz_init(self.fmpz_cconv)
 
-        sig_on()
-        fmpz_poly_init(self.poly_cconv)
         try:
-            fmpz_poly_init(self.poly_ctm)
+            sig_on()
+            fmpz_poly_init(self.poly_cconv)
             try:
-                fmpz_poly_init(self.poly_ccmp)
+                fmpz_poly_init(self.poly_ctm)
                 try:
-                    fmpz_poly_init(self.poly_cinv)
+                    fmpz_poly_init(self.poly_ccmp)
                     try:
-                        fmpz_poly_init(self.poly_cisunit)
+                        fmpz_poly_init(self.poly_cinv)
                         try:
-                            fmpz_poly_init(self.poly_cinv2)
+                            fmpz_poly_init(self.poly_cisunit)
                             try:
-                                fmpz_poly_init(self.poly_flint_rep)
+                                fmpz_poly_init(self.poly_cinv2)
                                 try:
-                                    fmpz_poly_init(self.poly_matmod)
+                                    fmpz_poly_init(self.poly_flint_rep)
                                     try:
-                                        mpz_init(self.mpz_cpow)
+                                        fmpz_poly_init(self.poly_matmod)
                                         try:
-                                            mpz_init(self.mpz_ctm)
+                                            mpz_init(self.mpz_cpow)
                                             try:
-                                                mpz_init(self.mpz_cconv)
+                                                mpz_init(self.mpz_ctm)
                                                 try:
-                                                    mpz_init(self.mpz_matmod)
-                                                except:
-                                                    mpz_clear(self.mpz_cconv)
+                                                    mpz_init(self.mpz_cconv)
+                                                    try:
+                                                        mpz_init(self.mpz_matmod)
+                                                    except BaseException:
+                                                        mpz_clear(self.mpz_cconv)
+                                                        raise
+                                                except BaseException:
+                                                    mpz_clear(self.mpz_ctm)
                                                     raise
-                                            except:
-                                                mpz_clear(self.mpz_ctm)
+                                            except BaseException:
+                                                mpz_clear(self.mpz_cpow)
                                                 raise
-                                        except:
-                                            mpz_clear(self.mpz_cpow)
-                                            raise
-                                    except:
-                                        fmpz_poly_clear(self.poly_matmod)
-                                except:
-                                    fmpz_poly_clear(self.poly_flint_rep)
+                                        except BaseException:
+                                            fmpz_poly_clear(self.poly_matmod)
+                                    except BaseException:
+                                        fmpz_poly_clear(self.poly_flint_rep)
+                                        raise
+                                except BaseException:
+                                    fmpz_poly_clear(self.poly_cinv2)
                                     raise
-                            except:
-                                fmpz_poly_clear(self.poly_cinv2)
+                            except BaseException:
+                                fmpz_poly_clear(self.poly_cisunit)
                                 raise
-                        except:
-                            fmpz_poly_clear(self.poly_cisunit)
+                        except BaseException:
+                            fmpz_poly_clear(self.poly_cinv)
                             raise
-                    except:
-                        fmpz_poly_clear(self.poly_cinv)
+                    except BaseException:
+                        fmpz_poly_clear(self.poly_ccmp)
                         raise
-                except:
-                    fmpz_poly_clear(self.poly_ccmp)
+                except BaseException:
+                    fmpz_poly_clear(self.poly_ctm)
                     raise
-            except:
-                fmpz_poly_clear(self.poly_ctm)
+            except BaseException:
+                fmpz_poly_clear(self.poly_cconv)
                 raise
-        except:
-            fmpz_poly_clear(self.poly_cconv)
-            raise
-        sig_off()
+        finally:
+            sig_off()
 
         self.__allocated = 16
 

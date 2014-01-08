@@ -427,28 +427,30 @@ cdef class PowComputer_base(PowComputer_class):
         """
         cdef Py_ssize_t i
 
-        sig_on()
-        self.small_powers = <mpz_t *>sage_malloc(sizeof(mpz_t) * (cache_limit + 1))
-        if self.small_powers == NULL:
-            raise MemoryError, "out of memory allocating power storing"
         try:
-            mpz_init(self.top_power)
+            sig_on()
+            self.small_powers = <mpz_t *>sage_malloc(sizeof(mpz_t) * (cache_limit + 1))
+            if self.small_powers == NULL:
+                raise MemoryError, "out of memory allocating power storing"
             try:
-                for i from 0 <= i <= cache_limit:
-                    try:
-                        mpz_init(self.small_powers[i])
-                    except:
-                        while i:
-                            i-=1
-                            mpz_clear(self.small_powers[i])
-                        raise
-            except:
-                mpz_clear(self.top_power)
+                mpz_init(self.top_power)
+                try:
+                    for i from 0 <= i <= cache_limit:
+                        try:
+                            mpz_init(self.small_powers[i])
+                        except BaseException:
+                            while i:
+                                i-=1
+                                mpz_clear(self.small_powers[i])
+                            raise
+                except BaseException:
+                    mpz_clear(self.top_power)
+                    raise
+            except BaseException:
+                sage_free(self.small_powers)
                 raise
-        except:
-            sage_free(self.small_powers)
-            raise
-        sig_off()
+        finally:
+            sig_off()
 
         self.__allocated = 2
 

@@ -35,7 +35,10 @@ class DescentAlgebra(Parent, UniqueRepresentation):
     Solomon's descent algebra.
 
     The descent algebra `\Sigma_n` over a ring `R` is a subalgebra of the
-    symmetric group algebra `R S_n`.
+    symmetric group algebra `R S_n`. (The product in the latter algebra
+    is defined by `(pq)(i) = q(p(i))` for any two permutations `p` and
+    `q` in `S_n` and every `i \in \{ 1, 2, \ldots, n \}`. This product
+    is inherited to `\Sigma_n`.)
 
     There are three bases currently implemented for `\Sigma_n`:
 
@@ -46,8 +49,10 @@ class DescentAlgebra(Parent, UniqueRepresentation):
       which is used to construct the mutually orthogonal idempotents
       of the symmetric group algebra.
 
-    We follow the notations and conventions in [GR1989]_. In order to use
-    the idempotent basis, we require `R` to be a `\QQ`-algebra.
+    We follow the notations and conventions in [GR1989]_, apart from the
+    order of multiplication being different from the one used in that
+    article. In order to use the idempotent basis, we require `R` to be
+    a `\QQ`-algebra.
 
     INPUT:
 
@@ -370,11 +375,12 @@ class DescentAlgebra(Parent, UniqueRepresentation):
         which is what Sage uses to index the basis.
 
         By using compositions of `n`, the product `B_p B_q` becomes a
-        sum over the non-negative-integer matrices `M` with column sum `p`
-        and row sum `q`. The summand corresponding to `M` is `B_c`, where `c`
-        is the composition obtained by reading `M` row-by-row from
-        left-to-right and top-to-bottom and removing all zeroes. This
-        multiplication rule is commonly called "Solomon's Mackey formula".
+        sum over the non-negative-integer matrices `M` with row sum `p`
+        and column sum `q`. The summand corresponding to `M` is `B_c`,
+        where `c` is the composition obtained by reading `M` row-by-row
+        from left-to-right and top-to-bottom and removing all zeroes.
+        This multiplication rule is commonly called "Solomon's Mackey
+        formula".
 
         EXAMPLES::
 
@@ -570,7 +576,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
 
         .. MATH::
 
-            I_p I_q = s(\lambda) I_q
+            I_p I_q = s(\lambda) I_p
 
         where `\lambda` denotes `\lambda(p) = \lambda(q)`, and where
         `s(\lambda)` is the stabilizer of `\lambda` in `S_n`.
@@ -636,7 +642,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
             """
             # These do not act as orthogonal idempotents, so we have to lift
             #   to the B basis to do the multiplication
-            # TODO: if the partitions of p and q match, return s*I_q where
+            # TODO: if the partitions of p and q match, return s*I_p where
             #   s is the size of the stabilizer of the partition of p
             return self(self.to_B_basis(p)*self.to_B_basis(q))
 

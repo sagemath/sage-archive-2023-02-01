@@ -173,7 +173,10 @@ cdef class BasisExchangeMatroid(Matroid):
         bitset_init(self._temp, self._bitset_size)
 
         self._groundset = frozenset(groundset)
-        self._E = tuple([e for e in groundset])
+        if not isinstance(groundset, tuple):
+            self._E = tuple(groundset)
+        else:
+            self._E = groundset
         self._idx = {}
         cdef long i
         for i in xrange(self._groundset_size):
@@ -500,6 +503,11 @@ cdef class BasisExchangeMatroid(Matroid):
             <type 'frozenset'>
             sage: type(M.groundset_list())
             <type 'list'>
+            sage: sorted(M.groundset_list())
+            ['a', 'b', 'c', 'd', 'e', 'f', 'g']
+
+            sage: E = M.groundset_list()
+            sage: E.remove('a')
             sage: sorted(M.groundset_list())
             ['a', 'b', 'c', 'd', 'e', 'f', 'g']
         """
@@ -1096,9 +1104,9 @@ cdef class BasisExchangeMatroid(Matroid):
         """
         cdef bitset_t *flats, *todo
         if r < 0 or r > self.full_rank():
-            return SetSystem(self.groundset_list())
+            return SetSystem(self._E)
         if r == self.full_rank():
-            return SetSystem(self.groundset_list(), subsets=[self.groundset()])
+            return SetSystem(self._E, subsets=[self.groundset()])
         flats = <bitset_t*>sage_malloc((r + 1) * sizeof(bitset_t))
         todo = <bitset_t*>sage_malloc((r + 1) * sizeof(bitset_t))
 
@@ -1170,9 +1178,9 @@ cdef class BasisExchangeMatroid(Matroid):
         """
         cdef bitset_t *coflats, *todo
         if r < 0 or r > self.full_corank():
-            return SetSystem(self.groundset_list())
+            return SetSystem(self._E)
         if r == self.full_corank():
-            return SetSystem(self.groundset_list(), subsets=[self.groundset()])
+            return SetSystem(self._E, subsets=[self.groundset()])
         coflats = <bitset_t*>sage_malloc((r + 1) * sizeof(bitset_t))
         todo = <bitset_t*>sage_malloc((r + 1) * sizeof(bitset_t))
 

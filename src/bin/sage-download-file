@@ -1,4 +1,230 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python
+
+#*****************************************************************************
+#  Copyright (C) 2013  Volker Braun <vbraun.name@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+import os
+import sys
+import urllib
+import urlparse
+
+
+def http_error_default(url, fp, errcode, errmsg, headers):
+    """
+    Callback for the URLopener to raise an exception on HTTP errors
+    """
+    fp.close()
+    raise IOError(errcode, errmsg, url)
+
+
+class ProgressBar(object):
+    """
+    Progress bar as urllib reporthook
+    """
+
+    def __init__(self, length=60):
+        self.length = length
+        self.progress = 0
+        self.stream = sys.stderr
+
+    def start(self):
+        sys.stdout.flush()    # make sure to not interleave stdout/stderr
+        self.stream.write('[')
+        self.stream.flush()
+
+    def __call__(self, chunks_so_far, chunk_size, total_size):
+        if total_size == -1:  # we do not know size
+            n = 0 if chunks_so_far == 0 else self.length / 2
+        else:
+            n = chunks_so_far * chunk_size * self.length / total_size
+        if n > self.length: 
+            # If there is a Content-Length, this will be sent as the last progress
+            return
+        # n ranges from 0 to length*total (exclude), so we'll print at most length dots
+        if n >= self.progress:
+            self.stream.write('.' * (n-self.progress))
+            self.stream.flush()
+        self.progress = n
+        
+    def stop(self):
+        missing = '.' * (self.length - self.progress)
+        self.stream.write(missing + ']\n')
+        self.stream.flush()
+        
+
+def http_download(url, destination=None, progress=True):
+    """
+    Download via HTTP
+
+    INPUT:
+
+    - ``url`` -- string. The URL to download.
+
+    - ``destination`` -- string or ``None`` (default). The destination
+      file name to save to. If not specified, the file is written to
+      stdout.
+
+    - ``progress`` -- boolean (default: ``True``). Whether to print a
+      progress bar to stderr.
+    """
+    if destination is None:
+        destination = '/dev/stdout'
+    opener = urllib.FancyURLopener()
+    opener.http_error_default = http_error_default
+    if progress:
+        progress_bar = ProgressBar()
+        progress_bar.start()
+        filename, info = opener.retrieve(url, destination, progress_bar)
+        progress_bar.stop()
+    else:
+        filename, info = opener.retrieve(url, destination)
+
+
+class MirrorList(object):
+    
+    URL = 'http://www.sagemath.org/mirror_list'
+
+    MAXAGE = 24*60*60   # seconds
+
+    def __init__(self):
+        self.tmp_directory = self._find_tmp_directory()
+        self.filename = os.path.join(self.tmp_directory, 'mirror_list')
+        if self.must_refresh():
+            print('Downloading the Sage mirror list')
+            http_download(self.URL, self.filename)
+            self.mirrors = self._load()
+            self._rank_mirrors()
+            self._save()
+        else:
+            self.mirrors = self._load()
+
+    def _load(self):
+        """
+        Load and return the current mirror list as a list of strings
+        """
+        with open(self.filename, 'rt') as f:
+            mirror_list = f.read()
+        import ast
+        return ast.literal_eval(mirror_list)
+
+    def _save(self):
+        """
+        Save the mirror list for (short-term) future  use.
+        """
+        with open(self.filename, 'wt') as f:
+            f.write(repr(self.mirrors))
+
+    def _port_of_mirror(self, mirror):
+        if mirror.startswith('http://'):
+            return 80
+        if mirror.startswith('https://'):
+            return 443
+        if mirror.startswith('ftp://'):
+            return 21
+
+    def _rank_mirrors(self):
+        """
+        Sort the mirrors by speed, fastest being first
+
+        This method is used by the YUM fastestmirror plugin 
+        """
+        timed_mirrors = []
+        import time, socket
+        print('Searching fastest mirror')
+        for mirror in self.mirrors:
+            port = self._port_of_mirror(mirror)
+            mirror_hostname = urlparse.urlsplit(mirror).netloc
+            time_before = time.time()
+            try:
+                sock = socket.socket()
+                sock.connect((mirror_hostname, port))
+            except socket.error:
+                continue
+                print(str('ERROR').rjust(5) + '    ' + mirror)
+            finally:
+                sock.close()
+            result = time.time() - time_before
+            result_ms = int(1000 * result)
+            print(str(result_ms).rjust(5) + 'ms: ' + mirror)
+            timed_mirrors.append((result, mirror))
+        timed_mirrors.sort()
+        self.mirrors = [m[1] for m in timed_mirrors]
+        print('Fastest mirror: ' + self.mirrors[0])
+
+    @property
+    def fastest(self):
+        return self.mirrors[0]
+
+    def age(self):
+        """
+        Return the age of the cached mirror list in seconds
+        """
+        import time
+        mtime = os.path.getmtime(self.filename)
+        now = time.mktime(time.localtime())
+        return now - mtime
+
+    def must_refresh(self):
+        """
+        Return whether we must download the mirror list.
+
+        If and only if this method returns ``False`` is it admissible
+        to use the cached mirror list.
+        """
+        if not os.path.exists(self.filename):
+            return True
+        return self.age() > self.MAXAGE
+
+    def _find_tmp_directory(self):
+        tmp_dir = os.path.join(os.environ['SAGE_ROOT'], 'tmp')
+        if not os.path.isdir(tmp_dir):
+            raise ValueError('SAGE_ROOT/tmp is supposed to exists')
+        return tmp_dir
+
+
+usage = \
+"""
+USAGE:
+
+    sage-download-file [--quiet] url-or-tarball [destination]
+
+The single mandatory argument can be a http:// or ftp:// url or a
+tarball filename. In the latter case, the tarball is downloaded from
+the mirror network and its checksum is verified.  """
+
+
+if __name__ == '__main__':
+    progress = True
+    url = None
+    destination = None
+    for arg in sys.argv[1:]:
+        if arg.startswith('--quiet'):
+            progress = False
+            continue
+        if url is None:
+            url = arg
+            continue
+        if destination is None:
+            destination = arg
+            continue
+        raise ValueError('too many arguments')
+    if url is None:
+        print(usage)
+        sys.exit(1)
+    if url.startswith('http://') or url.startswith('ftp://'):
+        http_download(url, destination, progress=progress)
+    else:
+        # url is a tarball name
+        mirror_list = MirrorList()
+
+        
+    
+    
 
 # Usage: sage-download-file URL
 # Download URL to standard output, using either wget, curl, Python's
@@ -17,78 +243,78 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-if [ $# -ne 1 ]; then
-cat >&2 <<EOF
-Usage: $0 URL
+# if [ $# -ne 1 ]; then
+# cat >&2 <<EOF
+# Usage: $0 URL
 
-Download URL to standard output, using either wget, curl, Python's
-urllib or a custom program $URL_GRABBER.
-EOF
-exit 2
-fi
+# Download URL to standard output, using either wget, curl, Python's
+# urllib or a custom program $URL_GRABBER.
+# EOF
+# exit 2
+# fi
 
-if [ -z "$URL_GRABBER" ]; then
-    # Prefer Sage's Python because that's the same on all systems.
-    # It should always work.
-    if [ -n "$SAGE_LOCAL" ] && [ -x "$SAGE_LOCAL/bin/python" ]; then
-        URL_GRABBER="$SAGE_LOCAL/bin/python"
-    elif command -v curl &>/dev/null; then
-        URL_GRABBER="curl --fail"
-    elif command -v wget &>/dev/null; then
-        URL_GRABBER="wget -nv -O-"
-    # Pick Python last because we don't know which version it is,
-    # so it's a bit risky.
-    elif command -v python &>/dev/null; then
-        URL_GRABBER="python"
-    else
-        echo >&2 "Error: $0: No program to fetch files from the web found."
-        echo >&2 "       Either install Wget, curl or Python, or set the environment"
-        echo >&2 "       variable URL_GRABBER to use some alternate, installed program."
-        echo >&2 "       In the latter case, add options to download the contents of the"
-        echo >&2 "       specified URL to the standard output. URL_GRABBER can also be"
-        echo >&2 "       a Python interpreter."
-        exit 3
-    fi
-fi
-
-
-# Is $URL_GRABBER a Python interpreter?
-if ! ( $URL_GRABBER --version </dev/null 2>&1 | grep '^Python ' ) &>/dev/null ; then
-    # Not Python, simply execute it
-    exec $URL_GRABBER "$1"
-fi
+# if [ -z "$URL_GRABBER" ]; then
+#     # Prefer Sage's Python because that's the same on all systems.
+#     # It should always work.
+#     if [ -n "$SAGE_LOCAL" ] && [ -x "$SAGE_LOCAL/bin/python" ]; then
+#         URL_GRABBER="$SAGE_LOCAL/bin/python"
+#     elif command -v curl &>/dev/null; then
+#         URL_GRABBER="curl --fail"
+#     elif command -v wget &>/dev/null; then
+#         URL_GRABBER="wget -nv -O-"
+#     # Pick Python last because we don't know which version it is,
+#     # so it's a bit risky.
+#     elif command -v python &>/dev/null; then
+#         URL_GRABBER="python"
+#     else
+#         echo >&2 "Error: $0: No program to fetch files from the web found."
+#         echo >&2 "       Either install Wget, curl or Python, or set the environment"
+#         echo >&2 "       variable URL_GRABBER to use some alternate, installed program."
+#         echo >&2 "       In the latter case, add options to download the contents of the"
+#         echo >&2 "       specified URL to the standard output. URL_GRABBER can also be"
+#         echo >&2 "       a Python interpreter."
+#         exit 3
+#     fi
+# fi
 
 
-# Use Python
-exec $URL_GRABBER <<EOF
+# # Is $URL_GRABBER a Python interpreter?
+# if ! ( $URL_GRABBER --version </dev/null 2>&1 | grep '^Python ' ) &>/dev/null ; then
+#     # Not Python, simply execute it
+#     exec $URL_GRABBER "$1"
+# fi
 
-##############################################
-# Python script to download a file to stdout #
-##############################################
 
-import sys, urllib
+# # Use Python
+# exec $URL_GRABBER <<EOF
 
-# Change the URLopener to raise an exception on HTTP errors
-def http_error_default(url, fp, errcode, errmsg, headers):
-    fp.close()
-    raise IOError(errcode, errmsg, url)
+# ##############################################
+# # Python script to download a file to stdout #
+# ##############################################
 
-opener = urllib.FancyURLopener()
-opener.http_error_default = http_error_default
+# import sys, urllib
 
-# This reporthook is used below to print ...'s as the file downloads.
-global cur
-cur = 0
-def reporthook(block, size, total):
-    global cur
-    n = 60*block*size
-    # n ranges from 0 to 60*total, so we'll print at most 60 dots
-    if n >= cur + total:
-        sys.stderr.write('.')
-        sys.stderr.flush()
-        cur += total
-sys.stderr.write('[')
-sys.stderr.flush()
-filename, info = opener.retrieve('''$1''', '/dev/stdout', reporthook)
-sys.stderr.write(']\n')
-EOF
+# # Change the URLopener to raise an exception on HTTP errors
+# def http_error_default(url, fp, errcode, errmsg, headers):
+#     fp.close()
+#     raise IOError(errcode, errmsg, url)
+
+# opener = urllib.FancyURLopener()
+# opener.http_error_default = http_error_default
+
+# # This reporthook is used below to print ...'s as the file downloads.
+# global cur
+# cur = 0
+# def reporthook(block, size, total):
+#     global cur
+#     n = 60*block*size
+#     # n ranges from 0 to 60*total, so we'll print at most 60 dots
+#     if n >= cur + total:
+#         sys.stderr.write('.')
+#         sys.stderr.flush()
+#         cur += total
+# sys.stderr.write('[')
+# sys.stderr.flush()
+# filename, info = opener.retrieve('''$1''', '/dev/stdout', reporthook)
+# sys.stderr.write(']\n')
+# EOF

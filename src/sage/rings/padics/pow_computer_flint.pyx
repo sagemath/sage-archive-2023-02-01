@@ -37,8 +37,8 @@ cdef class PowComputer_flint(PowComputer_class):
         fmpz_fdiv_q_2exp(self.half_prime, self.fprime, 1)
         fmpz_init(self.tfmpz)
 
+        sig_on()
         try:
-            sig_on()
             mpz_init(self.top_power)
             try:
                 padic_ctx_init(self.ctx, self.fprime, prec_cap, PADIC_SERIES)
@@ -204,15 +204,15 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         # fmpz_init does not allocate memory
         fmpz_init(self.q)
 
+        sig_on()
         try:
-            sig_on()
             self._moduli = <fmpz_poly_t*>sage_malloc(sizeof(fmpz_poly_t) * (cache_limit + 2))
             if self._moduli == NULL:
                 raise MemoryError
             try:
                 fmpz_poly_init2(self.modulus, length)
                 try:
-                    for i from 1 <= i <= cache_limit + 1:
+                    for i in range(1,cache_limit+2):
                         try:
                             fmpz_poly_init2(self._moduli[i], length)
                         except BaseException:
@@ -255,7 +255,7 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         cdef Py_ssize_t i
         cdef fmpz* coeffs = (<fmpz_poly_struct*>self.modulus)[0].coeffs
         fmpz_one(self.tfmpz)
-        for i from 1 <= i <= cache_limit:
+        for i in range(1,cache_limit+1):
             fmpz_mul(self.tfmpz, self.tfmpz, self.fprime)
             _fmpz_vec_scalar_mod_fmpz((<fmpz_poly_struct*>self._moduli[i])[0].coeffs, coeffs, length, self.tfmpz)
             _fmpz_poly_set_length(self._moduli[i], length)
@@ -278,7 +278,7 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         if self.__allocated >= 8:
             fmpz_clear(self.q)
             fmpz_poly_clear(self.modulus)
-            for i from 1 <= i <= self.cache_limit + 1:
+            for i in range(1, self.cache_limit + 1):
                 fmpz_poly_clear(self._moduli[i])
             sage_free(self._moduli)
 
@@ -430,8 +430,8 @@ cdef class PowComputer_flint_unram(PowComputer_flint_1step):
         fmpz_init(self.fmpz_ctm)
         fmpz_init(self.fmpz_cconv)
 
+        sig_on()
         try:
-            sig_on()
             fmpz_poly_init(self.poly_cconv)
             try:
                 fmpz_poly_init(self.poly_ctm)

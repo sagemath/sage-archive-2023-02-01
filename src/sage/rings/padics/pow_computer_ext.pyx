@@ -209,7 +209,7 @@ cdef int ZZ_pX_Eis_init(PowComputer_ZZ_pX prime_pow, ntl_ZZ_pX shift_seed) excep
     ##printer.x = (low_shifter[0]).val()
     ##print printer
     ZZ_pX_InvMod_newton_ram(shift_seed_inv, shift_seed.x, prime_pow.get_top_modulus()[0], prime_pow.get_top_context().x)
-    for i from 0 <= i < low_length:
+    for i in range(low_length):
         # Currently tmp = p / x^(2^(i-1)).  Squaring yields p^2 / x^(2^i)
         #ZZ_pX_SqrMod(tmp, tmp, modup)
         # Now we divide by p.
@@ -259,7 +259,7 @@ cdef int ZZ_pX_Eis_init(PowComputer_ZZ_pX prime_pow, ntl_ZZ_pX shift_seed) excep
         ZZ_pX_construct(high_shifter_p)
         high_shifter_p[0] = into_multiplier
     # Now we cache powers of p/x^e.  This is a unit, so we don't have to worry about precision issues (yay!)
-    for i from 1 <= i < high_length:
+    for i in range(1, high_length):
         ZZ_pX_SqrMod_pre(into_multiplier, into_multiplier, prime_pow.get_top_modulus()[0])
         if multiplier:
             ZZ_pX_Multiplier_construct(&(high_shifter_m[i]))
@@ -514,7 +514,7 @@ cdef class PowComputer_ext(PowComputer_class):
             mpz_to_ZZ(&(self.small_powers[1]), &prime.value)
 
         sig_on()
-        for i from 2 <= i <= cache_limit:
+        for i in range(2, cache_limit + 1):
             ZZ_construct(&(self.small_powers[i]))
             ZZ_mul(self.small_powers[i], self.small_powers[i-1], self.small_powers[1])
         mpz_to_ZZ(&self.top_power, &prime.value)
@@ -581,7 +581,7 @@ cdef class PowComputer_ext(PowComputer_class):
             sage: del PC # indirect doctest
         """
         cdef Py_ssize_t i
-        for i from 0 <= i <= self.cache_limit:
+        for i in range(self.cache_limit + 1):
             ZZ_destruct(&(self.small_powers[i]))
         sage_free(self.small_powers)
         ZZ_destruct(&self.top_power)
@@ -912,7 +912,7 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
         end = mpz_get_ui((<Integer>Integer(runs)).value)
         _n = mpz_get_ui((<Integer>Integer(n)).value)
         t = cputime()
-        for i from 0 <= i < end:
+        for i in range(end):
             # Put the function you want speed tested here.
             self.get_modulus(_n)
         return cputime(t)
@@ -1522,10 +1522,10 @@ cdef class PowComputer_ZZ_pX_FM_Eis(PowComputer_ZZ_pX_FM):
             sage: del A # indirect doctest
         """
         cdef int i # yes, an int is good enough
-        for i from 0 <= i < self.low_length:
+        for i in range(self.low_length):
             ZZ_pX_Multiplier_destruct(&(self.low_shifter[i]))
         sage_free(self.low_shifter)
-        for i from 0 <= i < self.high_length:
+        for i in range(self.high_length):
             ZZ_pX_Multiplier_destruct(&(self.high_shifter[i]))
         sage_free(self.high_shifter)
 
@@ -1691,7 +1691,7 @@ cdef class PowComputer_ZZ_pX_small(PowComputer_ZZ_pX):
         if PY_TYPE_CHECK(poly, ntl_ZZ_pX):
             pol = (<ntl_ZZ_pX>poly).x
             self.c.append(None)
-            for i from 1 <= i <= cache_limit:
+            for i in range(1, cache_limit + 1):
                 self.c.append(PowComputer_ZZ_pX.get_context(self,i))
 
             # create a temporary polynomial with the highest modulus to
@@ -1699,7 +1699,7 @@ cdef class PowComputer_ZZ_pX_small(PowComputer_ZZ_pX):
             (<ntl_ZZ_pContext_class>self.c[cache_limit]).restore_c()
             tmp = (<ntl_ZZ_pX>poly).x
 
-            for i from 1 <= i <= cache_limit:
+            for i in range(1, cache_limit + 1):
                 (<ntl_ZZ_pContext_class>self.c[i]).restore_c()
                 ZZ_pX_Modulus_construct(&(self.mod[i]))
                 ZZ_pX_conv_modulus(tmp, pol, (<ntl_ZZ_pContext_class>self.c[i]).x)
@@ -1737,7 +1737,7 @@ cdef class PowComputer_ZZ_pX_small(PowComputer_ZZ_pX):
             sage: del A # indirect doctest
         """
         cdef Py_ssize_t i
-        for i from 1 <= i <= self.cache_limit + 1:
+        for i in range(1, self.cache_limit + 1):
             ZZ_pX_Modulus_destruct(&(self.mod[i]))
         sage_free(self.mod)
 
@@ -1982,10 +1982,10 @@ cdef class PowComputer_ZZ_pX_small_Eis(PowComputer_ZZ_pX_small):
             sage: del A # indirect doctest
         """
         cdef int i # yes, an int is good enough
-        for i from 0 <= i < self.low_length:
+        for i in range(self.low_length):
             ZZ_pX_destruct(&(self.low_shifter[i]))
         sage_free(self.low_shifter)
-        for i from 0 <= i < self.high_length:
+        for i in range(self.high_length):
             ZZ_pX_destruct(&(self.high_shifter[i]))
         sage_free(self.high_shifter)
 
@@ -2059,7 +2059,7 @@ cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
         if PY_TYPE_CHECK(poly, ntl_ZZ_pX):
             pol = (<ntl_ZZ_pX>poly).x
             self.context_list.append(None)
-            for i from 1 <= i <= cache_limit:
+            for i in range(1, cache_limit + 1):
                 self.context_list.append(PowComputer_ZZ_pX.get_context(self,i))
 
             # create a temporary polynomial with the highest modulus to
@@ -2068,7 +2068,7 @@ cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
             (<ntl_ZZ_pContext_class>self.top_context).restore_c()
             tmp = (<ntl_ZZ_pX>poly).x
 
-            for i from 1 <= i <= cache_limit:
+            for i in range(1, cache_limit + 1):
                 (<ntl_ZZ_pContext_class>self.context_list[i]).restore_c()
                 ZZ_pX_Modulus_construct(&(self.modulus_list[i]))
                 ZZ_pX_conv_modulus(tmp, pol, (<ntl_ZZ_pContext_class>self.context_list[i]).x)
@@ -2113,7 +2113,7 @@ cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
         #pass
         ## These cause a segfault.  I don't know why.
         cdef Py_ssize_t i
-        for i from 1 <= i <= self.cache_limit:
+        for i in range(1, self.cache_limit + 1):
             ZZ_pX_Modulus_destruct(&(self.modulus_list[i]))
         sage_free(self.modulus_list)
         ZZ_pX_Modulus_destruct(&self.top_mod)
@@ -2423,10 +2423,10 @@ cdef class PowComputer_ZZ_pX_big_Eis(PowComputer_ZZ_pX_big):
             sage: del A # indirect doctest
         """
         cdef int i # yes, an int is good enough
-        for i from 0 <= i < self.low_length:
+        for i in range(self.low_length):
             ZZ_pX_destruct(&(self.low_shifter[i]))
         sage_free(self.low_shifter)
-        for i from 0 <= i < self.high_length:
+        for i in range(self.high_length):
             ZZ_pX_destruct(&(self.high_shifter[i]))
         sage_free(self.high_shifter)
 

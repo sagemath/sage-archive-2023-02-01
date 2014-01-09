@@ -93,7 +93,7 @@ cdef inline int ccmp(celement a, celement b, long prec, bint reduce_a, bint redu
 
     cdef long cmp
     cdef long i
-    for i from 0 <= i <= da:
+    for i in range(da+1):
         fmpz_poly_get_coeff_fmpz(prime_pow.fmpz_ccmp, prime_pow.poly_ccmp, i)
         cmp = fmpz_cmp_si(prime_pow.fmpz_ccmp, 0)
         if cmp < 0: return -1
@@ -227,7 +227,7 @@ cdef inline long cvaluation(celement a, long prec, PowComputer_ prime_pow) excep
     cdef long ret = maxordp
     cdef long val
     cdef long i
-    for i from 0 <= i <= fmpz_poly_degree(a):
+    for i in range(fmpz_poly_length(a)):
         fmpz_poly_get_coeff_fmpz(prime_pow.fmpz_cval, a, i)
         if fmpz_is_zero(prime_pow.fmpz_cval):
             continue
@@ -331,8 +331,8 @@ cdef inline int cinvert(celement out, celement a, long prec, PowComputer_ prime_
     - ``prec`` -- a long, the precision.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
+    sig_on()
     try:
-        sig_on()
         fmpz_poly_set(prime_pow.poly_cinv, prime_pow.get_modulus(prec)[0])
         fmpz_poly_primitive_part(prime_pow.poly_cinv, prime_pow.poly_cinv)
 
@@ -546,7 +546,7 @@ cdef clist(celement a, long prec, bint pos, PowComputer_ prime_pow):
     ret = []
     cdef Integer digit, zero = Integer(0)
     cdef long i,j
-    for i from 0 <= i <= fmpz_poly_degree(a):
+    for i in range(fmpz_poly_length(a)):
         fmpz_poly_get_coeff_fmpz(prime_pow.fmpz_clist, a, i)
         j = 0
         while j < prec:
@@ -634,7 +634,7 @@ cdef int cconv(celement out, x, long prec, long valshift, PowComputer_ prime_pow
     cdef long degree
 
     if PyList_Check(x):
-        for i from 0 <= i < len(x):
+        for i in range(len(x)):
             cconv(prime_pow.poly_cconv, x[i], prec, valshift, prime_pow)
             degree = fmpz_poly_degree(prime_pow.poly_cconv)
             if degree == -1: continue

@@ -435,7 +435,7 @@ cdef class PowComputer_base(PowComputer_class):
             try:
                 mpz_init(self.top_power)
                 try:
-                    for i from 0 <= i <= cache_limit:
+                    for i in range(cache_limit + 1):
                         try:
                             mpz_init(self.small_powers[i])
                         except BaseException:
@@ -473,7 +473,7 @@ cdef class PowComputer_base(PowComputer_class):
         mpz_set_ui(self.small_powers[0], 1)
         if cache_limit > 0:
             mpz_set(self.small_powers[1], prime.value)
-        for i from 2 <= i <= cache_limit:
+        for i in range(2, cache_limit + 1):
             mpz_mul(self.small_powers[i], self.small_powers[i - 1], prime.value)
         mpz_pow_ui(self.top_power, prime.value, prec_cap)
         self.deg = 1
@@ -495,7 +495,7 @@ cdef class PowComputer_base(PowComputer_class):
         cdef Py_ssize_t i
 
         if self.__allocated >= 2:
-            for i from 0 <= i <= self.cache_limit:
+            for i in range(self.cache_limit + 1):
                 mpz_clear(self.small_powers[i])
             mpz_clear(self.top_power)
             mpz_clear(self.temp_m)

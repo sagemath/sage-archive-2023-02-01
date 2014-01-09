@@ -796,9 +796,116 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
 
 
-    def seminormal_basis(self):
-        """
+    def seminormal_basis(self, mult='l2r'):
+        r"""
         Return a list of the seminormal basis elements of ``self``.
+
+        The seminormal basis of a symmetric group algebra is defined as
+        follows:
+
+        Let `n` be a nonnegative integer. Let `R` be a `\QQ`-algebra.
+        In the following, we will use the "left action" convention for
+        multiplying permutations. This means that we set for all
+        permutations `p` and `q` in `S_n`, the product `pq` is defined
+        in such a way that `(pq)(i) = p(q(i))` for each
+        `i \in \{ 1, 2, \ldots, n \}` (this is the same
+        convention as in :meth:`left_action_product`, but not the
+        default semantics of the `*` operator on permutations in Sage).
+        Thus, for instance, `s_2 s_1` is the permutation obtained by
+        first transposing `1` with `2` and then transposing `2` with `3`.
+
+        For every partition `\lambda` of `n`, let `\kappa_\lambda`
+        denote `n!` divided by the number of standard Young tableaux
+        of shape `\lambda`. Note that `\kappa_\lambda` is an integer,
+        namely the product of all hook lengths of `\lambda` (by the
+        hook length formula). In Sage, this integer can be computed by
+        using :function:`kappa`.
+
+        Let `T` be a standard tableau.
+
+        Let `a(T)` denote the formal sum (in `R S_n`) of all
+        permutations in `S_n` which stabilize the rows of `T` (as
+        sets), i. e., which map each entry `i` of `T` to an entry in
+        the same row as `i`. (See :function:`a` for an implementation
+        of this.)
+
+        Let `b(T)` denote the signed formal sum (in `R S_n`) of all
+        permutations in `S_n` which stabilize the columns of `T` (as
+        sets). Here, "signed" means that each permutation is
+        multiplied with its sign. (This is implemented in
+        :function:`b`.)
+
+        Define an element `e(T)` of `R S_n` to be `a(T) b(T)`. (This
+        is implemented in :function:`e` for `R = \QQ`.)
+
+        Let `\mathrm{sh}()T` denote the shape of `T`.
+        (See :meth:`~sage.combinat.tableau.Tableau.shape`.)
+
+        Let `\overline{T}` denote the standard tableau of size `n-1`
+        obtained by removing the letter `n` (along with its cell) from
+        `T`.
+
+        Now, we define an element `\epsilon(T)` of `R S_n`. We define
+        it by induction on the size `n` of `T`, so we set
+        `\epsilon(\emptyset) = 1` and only need to define `\epsilon(T)`
+        for `n \geq 1`, assuming that `\epsilon(\overline{T})` is
+        already defined. We do this by setting
+
+        .. MATH::
+
+            \epsilon(T) = \frac{1}{\kappa_{\mathrm{sh}(T)}}
+                          \epsilon(\overline{T})
+                          e(T) \epsilon(\overline{T}).
+
+        This element `\epsilon(T)` is implemented as
+        :function:`epsilon` for `R = \QQ`, but it is also a particular
+        case of the elements `\epsilon(T, S)` defined below.
+
+        Now let `S` be a further tableau of the same shape of `T`
+        (possibly equal to `T`). Let `\pi_{T, S}` denote the
+        permutation in `S_n` such that applying this permutation to
+        the entries of `T` yields the tableau `S`. Define an element
+        `\epsilon(T, S)` of `R S_n` by
+
+        .. MATH::
+
+            \epsilon(T, S) = \frac{1}{\kappa_{\mathrm{sh}(T)}}
+                             \epsilon(\overline S) \pi_{T, S}
+                             e(T) \epsilon(\overline T)
+                           = \frac{1}{\kappa_{\mathrm{sh}(T)}}
+                             \epsilon(\overline S) a(T) \pi_{T, S}
+                             b(T) \epsilon(\overline T).
+
+        This element `\epsilon(T, S)` is called *Young's seminormal
+        unit corresponding to the bitableau `(T, S)`*, and is the
+        return value of :meth:`epsilon_ik` applied to ``T`` and
+        ``S``. Note that `\epsilon(T, T) = \epsilon(T)`.
+
+        If we let `\lambda` run through all partitions of `n`, and
+        `(T, S)` run through all pairs of tableaux of shape
+        `\lambda`, then the elements `\epsilon(T, S)` form a basis
+        of `R S_n`. This basis is called *Young's seminormal basis*
+        and has the properties that
+
+        .. MATH::
+
+            \epsilon(T, S) \epsilon(U, V) = 0 \ \mbox{ if } T \neq V;
+            \qquad
+            \epsilon(T, S) \epsilon(U, V) = \epsilon(U, S) \ \mbox{ if } T = V.
+
+        In other words, it consists of the matrix units in a
+        (particular) Artin-Wedderburn decomposition of `R S_n` into
+        a direct product of matrix algebras over `\QQ`.
+
+        The output of ``seminormal_basis`` is a list of all
+        elements of the seminormal basis of ``self``.
+
+        INPUT:
+
+        - ``mult`` -- string (default: `l2r`). If set to `r2l`,
+          this causes the method to return the list of the
+          antipodes (:meth:`antipode`) of all `\epsilon(T, S)`
+          instead of the `\epsilon(T, S)` themselves.
 
         EXAMPLES::
 
@@ -816,13 +923,20 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             stp = StandardTableaux_shape(part)
             for t1 in stp:
                 for t2 in stp:
-                    basis.append(self.epsilon_ik(t1,t2))
+                    basis.append(self.epsilon_ik(t1, t2, mult=mult))
         return basis
 
 
-    def dft(self, form="seminormal"):
+    def dft(self, form="seminormal", mult='l2r'):
         """
         Return the discrete Fourier transform for ``self``.
+
+        INPUT:
+
+        - ``mult`` -- string (default: `l2r`). If set to `r2l`,
+          this causes the method to use the antipodes
+          (:meth:`antipode`) of the seminormal basis instead of
+          the seminormal basis.
 
         EXAMPLES::
 
@@ -836,13 +950,20 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             [   1   -1   -1    1    1   -1]
         """
         if form == "seminormal":
-            return self._dft_seminormal()
+            return self._dft_seminormal(mult=mult)
         else:
             raise ValueError("invalid form (= %s)"%form)
 
-    def _dft_seminormal(self):
+    def _dft_seminormal(self, mult='l2r'):
         """
         Return the seminormal form of the discrete Fourier for ``self``.
+
+        INPUT:
+
+        - ``mult`` -- string (default: `l2r`). If set to `r2l`,
+          this causes the method to use the antipodes
+          (:meth:`antipode`) of the seminormal basis instead of
+          the seminormal basis.
 
         EXAMPLES::
 
@@ -854,25 +975,37 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             [   0    1    0   -1    1   -1]
             [   1 -1/2    1 -1/2 -1/2 -1/2]
             [   1   -1   -1    1    1   -1]
+
+        .. SEEALSO::
+
+            :meth:`seminormal_basis`
         """
-        snb = self.seminormal_basis()
+        snb = self.seminormal_basis(mult=mult)
         return matrix( [vector(b) for b in snb] ).inverse().transpose()
 
-
-
-
-
-
-    def epsilon_ik(self, itab, ktab, star=0):
+    def epsilon_ik(self, itab, ktab, star=0, mult='l2r'):
         """
         Return the seminormal basis element of ``self`` corresponding to the
-        pair of tableaux ``itab`` and ``ktab``.
+        pair of tableaux ``itab`` and ``ktab`` (or restrictions of these
+        tableaux, if the optional variable ``star`` is set).
 
-        .. WARNING::
+        INPUT:
 
-            This currently depends on the state of the ``mult`` global
-            option of the :class:`~sage.combinat.permutation.Permutations`
-            class.
+        - ``itab``, ``ktab`` -- two standard tableaux of size `n`.
+
+        - ``star`` -- integer (default: `0`).
+
+        - ``mult`` -- string (default: `l2r`). If set to `r2l`,
+          this causes the method to return the antipode
+          (:meth:`antipode`) of `\epsilon(I, K)` instead of
+          `\epsilon(I, K)` itself.
+
+        OUTPUT:
+
+        The element `\epsilon(I, K)`, where `I` and `K` are the tableaux
+        obtained by removing all entries higher than `n - \mathrm{star}`
+        from ``itab`` and ``ktab``, respectively. Here, we are using the
+        notations from :meth:`~seminormal_basis`.
 
         EXAMPLES::
 
@@ -907,7 +1040,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             z_elts[m] = BR(c)
         z = self._from_dict(z_elts)
 
-        if permutation_options['mult'] == 'l2r':
+        if mult == 'l2r':
             return z
         else:
             return z.map_support(lambda x: x.inverse())
@@ -916,6 +1049,26 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 epsilon_ik_cache = {}
 def epsilon_ik(itab, ktab, star=0):
     """
+    Return the seminormal basis element of the symmetric group
+    algebra `\QQ S_n` corresponding to the pair of tableaux
+    ``itab`` and ``ktab`` (or restrictions of these tableaux,
+    if the optional variable ``star`` is set).
+
+    INPUT:
+
+    - ``itab``, ``ktab`` -- two standard tableaux of same size.
+
+    - ``star`` -- integer (default: `0`).
+
+    OUTPUT:
+
+    The element `\epsilon(I, K) \in \QQ S_n`, where `I` and `K`
+    are the tableaux obtained by removing all entries higher
+    than `n - \mathrm{star}` from ``itab`` and ``ktab``,
+    respectively (where `n` is the size of ``itab`` and
+    ``ktab``). Here, we are using the notations from
+    :meth:`~sage.combinat.symmetric_group_algebra.SymmetricGroupAlgebra_n.seminormal_basis`.
+
     EXAMPLES::
 
         sage: from sage.combinat.symmetric_group_algebra import epsilon_ik
@@ -935,23 +1088,33 @@ def epsilon_ik(itab, ktab, star=0):
     if it.shape() != kt.shape():
         raise ValueError("the two tableaux must be of the same shape")
 
-    mult = permutation_options['mult']
-    permutation_options['mult'] = 'l2r'
     if kt == it:
         res = epsilon(itab)
     elif (it, kt) in epsilon_ik_cache:
         res =  epsilon_ik_cache[(it,kt)]
     else:
-        epsilon_ik_cache[(it,kt)] = epsilon(it, star+1)*e_ik(it,kt,star)*epsilon(kt, star+1) * (1/kappa(it.shape()))
+        eik = e_ik(it, kt, star)
+        QSn = eik.parent()
+        mul = QSn.right_action_product
+        epsilon_ik_cache[(it,kt)] = mul(mul(epsilon(it, star+1), eik),
+                                        epsilon(kt, star+1)) * (1/kappa(it.shape()))
         res =  epsilon_ik_cache[(it,kt)]
 
-    permutation_options['mult'] = mult
     return res
 
 
 epsilon_cache = {}
 def epsilon(tab, star=0):
-    """
+    r"""
+    The `(t, t)`-th entry of the seminormal basis of the group
+    algebra `\QQ[S_n]`, where `t` is the tableau ``tab`` (with its
+    ``star`` highest entries removed if the optional variable
+    ``star`` is set).
+
+    See the docstring of
+    :meth:`~sage.combinat.symmetric_group_algebra.SymmetricGroupAlgebra_n.seminormal_basis`
+    for the notation used herein.
+
     EXAMPLES::
 
         sage: from sage.combinat.symmetric_group_algebra import epsilon
@@ -965,23 +1128,22 @@ def epsilon(tab, star=0):
     if star:
         t = t.restrict(t.size() - star)
 
-    mult = permutation_options['mult']
-    permutation_options['mult'] = 'l2r'
-
     if t in epsilon_cache:
         res = epsilon_cache[t]
     else:
         if t.size() == 2:
-            epsilon_cache[t] = e(t)*(1/kappa(t.shape()))
+            epsilon_cache[t] = e(t)*(1 / kappa(t.shape()))
             res =  epsilon_cache[t]
         elif t == Tableau([[1]]):
             epsilon_cache[t] = e(t)
             res =  epsilon_cache[t]
         else:
-            epsilon_cache[t] =  epsilon(t, 1)*e(t)*epsilon(t,1)*( 1 / kappa(t.shape()))
+            et = e(t)
+            QSn = et.parent()
+            mul = QSn.right_action_product
+            epsilon_cache[t] = mul(mul(epsilon(t, 1), e(t)), epsilon(t, 1)) * (1 / kappa(t.shape()))
             res = epsilon_cache[t]
 
-    permutation_options['mult'] = mult
     return res
 
 
@@ -1019,6 +1181,16 @@ def kappa(alpha):
     Return `\kappa_\alpha`, which is `n!` divided by the number
     of standard tableaux of shape `\alpha` (where `alpha` is a
     partition of `n`).
+
+    INPUT:
+
+    - ``alpha`` -- integer partition (can be encoded as a list).
+
+    OUTPUT:
+
+    The factorial of the size of ``alpha``, divided by the number of
+    standard tableaux of shape ``alpha``. Equivalently, the product
+    of all hook lengths of ``alpha``.
 
     EXAMPLES::
 
@@ -1188,7 +1360,7 @@ def b(tableau, star=0, base_ring=QQ):
 
 e_cache = {}
 def e(tableau, star=0):
-    """
+    r"""
     The unnormalized Young projection operator corresponding to
     the Young tableau ``tableau`` (which is supposed to contain
     every integer from `1` to its size precisely once, but may
@@ -1196,7 +1368,7 @@ def e(tableau, star=0):
 
     If `n` is a nonnegative integer, and `T` is a Young tableau
     containing every integer from `1` to `n` exactly once, then
-    the unnormalized Young projector `e(T)` is defined by
+    the unnormalized Young projection operator `e(T)` is defined by
 
     .. MATH::
 
@@ -1229,6 +1401,17 @@ def e(tableau, star=0):
 
         sage: e([[1,2],[3]])
         [1, 2, 3] + [2, 1, 3] - [3, 1, 2] - [3, 2, 1]
+
+    To obtain the product `b(T) a(T)`, one has to take the antipode
+    of this::
+
+        sage: QS3 = parent(e([[1,2],[3]]))
+        sage: QS3.antipode(e([[1,2],[3]]))
+        [1, 2, 3] + [2, 1, 3] - [2, 3, 1] - [3, 2, 1]
+
+    .. SEEALSO::
+
+        :function:`e_hat`
     """
     # TODO:
     # The current method only computes the e's over QQ. There should be
@@ -1272,11 +1455,34 @@ def e(tableau, star=0):
 
 ehat_cache = {}
 def e_hat(tab, star=0):
-    """
+    r"""
     The Young projection operator corresponding to the Young tableau
     ``tab`` (which is supposed to contain every integer from `1` to
     its size precisely once, but may and may not be standard). This
     is an idempotent in the rational group algebra.
+
+    If `n` is a nonnegative integer, and `T` is a Young tableau
+    containing every integer from `1` to `n` exactly once, then
+    the Young projection operator `\widehat{e}(T)` is defined by
+
+    .. MATH::
+
+        \widehat{e}(T) = \frac{1}{\kappa_\lambda} a(T) b(T) \in \QQ S_n,
+
+    where `\lambda` is the shape of `T`, where `\kappa_\lambda` is
+    `n!` divided by the number of standard tableaux of shape
+    `\lambda`, where `a(T) \in \QQ S_n` is the sum of all
+    permutations in `S_n` which fix the rows of `T` (as sets), and
+    where `b(T) \in \QQ S_n` is the signed sum of all permutations
+    in `S_n` which fix the columns of `T` (as sets). Here, "signed"
+    means that each permutation is multiplied with its sign; and
+    the product on the group `S_n` is defined in such a way that
+    `(pq)(i) = p(q(i))` for any permutations `p` and `q` and any
+    `1 \leq i \leq n`.
+
+    Note that the definition of `\widehat{e}(T)` is not uniform
+    across literature. Others define it as
+    `\frac{1}{\kappa_\lambda} b(T) a(T)` instead.
 
     EXAMPLES::
 
@@ -1291,6 +1497,10 @@ def e_hat(tab, star=0):
 
         sage: e_hat([[1,2],[3]])
         1/3*[1, 2, 3] + 1/3*[2, 1, 3] - 1/3*[3, 1, 2] - 1/3*[3, 2, 1]
+
+    .. SEEALSO::
+
+        :function:`e`
     """
     t = Tableau(tab)
     if star:
@@ -1336,8 +1546,8 @@ def seminormal_test(n):
     """
     Run a variety of tests to verify that the construction of the
     seminormal basis works as desired. The numbers appearing are
-    Theorems in James and Kerber's 'Representation Theory of the
-    Symmetric Group'.
+    results in James and Kerber's 'Representation Theory of the
+    Symmetric Group' [JamesKerber]_.
 
     EXAMPLES::
 
@@ -1347,22 +1557,22 @@ def seminormal_test(n):
     """
     for part in partition.Partitions_n(n):
         for tab in StandardTableaux(part):
-            #3.1.10
+            #Theorem 3.1.10
             if not e(tab)*(1/kappa(part)) - e_hat(tab) == 0:
                 raise ValueError("3.1.10 - %s"%tab)
 
-            #3.2.12.2
+            #Lemma 3.2.12 (ii)
             value = e(tab)*epsilon(tab,1)*e(tab) - e(tab)*(kappa(part))
             if value != 0:
                 print value
                 raise ValueError("3.2.12.2 - %s"%tab)
 
             for tab2 in StandardTableaux(part):
-                #3.2.8 1
+                #3.2.8 (i)
                 if e_ik(tab, tab2) - e(tab)*pi_ik(tab, tab2)*e(tab2)*(1/kappa(part)) != 0:
                     raise ValueError("3.2.8.1 - %s, %s"%(tab, tab2))
 
-                #3.2.8.1
+                #3.2.8 (ii)
                 if e(tab)*e_ik(tab, tab2) - e_ik(tab, tab2)*(kappa(part)) != 0:
                     raise ValueError("3.2.8.2 - %s, %s"%(tab, tab2))
 
@@ -1370,7 +1580,7 @@ def seminormal_test(n):
                     continue
 
                 if tab.last_letter_lequal(tab2):
-                    #3.1.20
+                    #Lemma 3.1.20
                     if e(tab2)*e(tab) != 0:
                         raise ValueError("3.1.20 - %s, %s"%(tab, tab2))
                     if e_hat(tab2)*e_hat(tab) != 0:

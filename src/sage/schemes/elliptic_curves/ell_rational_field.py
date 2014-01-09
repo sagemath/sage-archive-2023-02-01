@@ -3483,8 +3483,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         The default database only contains conductors up to 10000, so any
         curve with conductor greater than that will cause an error to be
-        raised. The optional package 'database_cremona_ellcurve-20120606'
-        contains more curves, with conductors up to 240000.
+        raised. The optional package ``database_cremona_ellcurve``
+        contains many more curves.
 
         ::
 

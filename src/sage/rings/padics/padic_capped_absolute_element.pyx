@@ -107,15 +107,25 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5, 10); a = R(17); pari(a) #indirect doctest
+            sage: R = ZpCA(5, 10); a = R(17); pari(a) #indirect doctest
             2 + 3*5 + O(5^10)
-            sage: pari(R(0))
-            0
             sage: pari(R(0,5))
             O(5^5)
+            sage: pari(R(0,5)).debug()
+            [&=...] PADIC(lg=5):... (precp=0,valp=5):... ... ... ...
+                p : [&=...] INT(lg=3):... (+,lgefint=3):... ... 
+              p^l : [&=...] INT(lg=3):... (+,lgefint=3):... ... 
+                I : [&=...] INT(lg=2):... (0,lgefint=2):... 
         """
-        # holder is defined in the linkage file
-        cdef long val = mpz_remove(holder.value, self.value, self.prime_pow.prime.value)
+        cdef long val
+        # Let val be the valuation of self, holder (defined in the
+        # linkage file) be the unit part.
+        if mpz_sgn(self.value) == 0:
+            # Special case for zero: maximal valuation and 0 unit part
+            val = self.absprec
+            mpz_set_ui(holder.value, 0)
+        else:
+            val = mpz_remove(holder.value, self.value, self.prime_pow.prime.value)
         return P.new_gen_from_padic(val, self.absprec - val,
                                     self.prime_pow.prime.value,
                                     self.prime_pow.pow_mpz_t_tmp(self.absprec - val)[0],

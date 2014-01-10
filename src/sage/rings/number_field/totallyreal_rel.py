@@ -665,8 +665,8 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
     - ``verbose`` -- boolean or nonnegative integer or string (default: 0)
       give a verbose description of the computations being performed. If
       ``verbose`` is set to ``2`` or more then it outputs some extra
-      information. If ``verbose'' is a string then it outputs to a file
-      specified by ``verbose''
+      information. If ``verbose`` is a string then it outputs to a file
+      specified by ``verbose``
     - ``return_seqs`` -- (boolean, default False) If ``True``, then return
       the polynomials as sequences (for easier exporting to a file). This
       also returns a list of four numbers, as explained in the OUTPUT
@@ -918,8 +918,8 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
     - ``verbose`` -- boolean or nonnegative integer or string (default: 0)
       give a verbose description of the computations being performed. If
       ``verbose`` is set to ``2`` or more then it outputs some extra
-      information. If ``verbose'' is a string then it outputs to a file
-      specified by ``verbose''
+      information. If ``verbose`` is a string then it outputs to a file
+      specified by ``verbose``
     - ``return_seqs`` -- (boolean, default False) If ``True``, then return
       the polynomials as sequences (for easier exporting to a file). This
       also returns a list of four numbers, as explained in the OUTPUT

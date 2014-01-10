@@ -131,6 +131,7 @@ graphs.
     :meth:`~Graph.modular_decomposition` | Returns the modular decomposition of the current graph.
     :meth:`~Graph.maximum_average_degree` | Returns the Maximum Average Degree (MAD) of the current graph.
     :meth:`~Graph.two_factor_petersen` | Returns a decomposition of the graph into 2-factors.
+    :meth:`~Graph.zeta_function_inverse` | Returns the inverse of the zeta function of the graph.
 
 
 AUTHORS:
@@ -6290,6 +6291,60 @@ class Graph(GenericGraph):
             classes_b.append([(u,v) for ((uu,u),(vv,v)) in c])
 
         return classes_b
+
+
+    def zeta_function_inverse(self):
+        """
+        Compute the inverse of the zeta function of the graph
+
+        This is a polynomial in one variable with integer coefficients.
+
+        See :wikipedia:`Ihara zeta function`
+
+        EXAMPLES::
+
+            sage: G = graphs.CompleteGraph(4)
+            sage: factor(G.zeta_function_inverse())
+            (2*t - 1) * (t + 1)^2 * (t - 1)^3 * (2*t^2 + t + 1)^3
+
+            sage: G = graphs.CompleteGraph(5)
+            sage: factor(G.zeta_function_inverse())
+            (-1) * (3*t - 1) * (t + 1)^5 * (t - 1)^6 * (3*t^2 + t + 1)^4
+
+            sage: G = graphs.PetersenGraph()
+            sage: factor(G.zeta_function_inverse())
+            (-1) * (2*t - 1) * (t + 1)^5 * (t - 1)^6 * (2*t^2 + 2*t + 1)^4
+            * (2*t^2 - t + 1)^5
+
+            sage: G = graphs.RandomTree(10)
+            sage: G.zeta_function_inverse()
+            1
+
+        REFERENCES:
+
+        .. [HST] Matthew D. Horton, H. M. Stark, and Audrey A. Terras,
+            What are zeta functions of graphs and what are they good for?
+
+        .. [Terras] Audrey Terras, Zeta functions of graphs: a stroll through
+           the garden, Cambridge Studies in Advanced Mathematics, Vol. 128
+        """
+        from sage.matrix.constructor import matrix
+        from sage.rings.integer_ring import ZZ
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+        ring = PolynomialRing(ZZ, 't')
+        t = ring.gen()
+
+        edges = self.edges()
+        N = len(edges)
+        edges += [(e[1], e[0]) for e in edges]
+
+        M = matrix(ring, 2*N, 2*N, ring.one())
+        for i, e in enumerate(edges):
+            for j, f in enumerate(edges):
+                if e[1] == f[0] and abs(i - j) != N:
+                    M[i, j] += -t
+        return M.determinant()
 
 
 # Aliases to functions defined in Cython modules

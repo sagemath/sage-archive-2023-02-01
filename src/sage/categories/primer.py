@@ -1021,6 +1021,8 @@ by introspection into the properties of `A` and `B`; furthermore, the
 number of possible combinations (e.g. finite dimensional differential
 algebra) grows exponnentially with the number of properties.
 
+.. _category-primer-axioms:
+
 Axioms
 ------
 

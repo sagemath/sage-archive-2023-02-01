@@ -136,8 +136,8 @@ def integral_elements_in_box(K, C):
         sage: C = [[0-eps,5+eps]]*3
         sage: v = sage.rings.number_field.totallyreal_rel.integral_elements_in_box(K, C)
 
-    Note that the output is platform dependent (sometimes a 5 is listed below, and
-    sometimes it isn't)::
+    Note that the output is platform dependent (sometimes a 5 is listed
+    below, and sometimes it isn't)::
 
         sage: sorted(v)
         [-1/2*a + 2, 1/4*a^2 + 1/2*a, 0, 1, 2, 3, 4,...-1/4*a^2 - 1/2*a + 5, 1/2*a + 3, -1/4*a^2 + 5]
@@ -362,7 +362,9 @@ class tr_data_rel:
 
         - ``f_out`` -- an integer sequence, to be written with the
           coefficients of the next polynomial
-        - ``verbose`` -- boolean to print verbosely computational details
+        - ``verbose`` -- boolean or nonnegative integer (default: False)
+          print verbosely computational details. It prints extra
+          information if ``verbose`` is set to ``2`` or more
         - ``haltk`` -- integer, the level at which to halt the inductive
           coefficient bounds
 
@@ -648,14 +650,11 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
         a[d]*x^n + ... + a[0]*x^(n-d)
 
     if ``length(a) = d+1``, so in particular always ``a[d] = 1``.
-    If verbose == 1 (or 2), then print to the screen (really) verbosely; if
-    verbose is a string, then print verbosely to the file specified by verbose.
-    If return_seqs, then return the polynomials as sequences (for easier
-    exporting to a file).
 
-    NOTE:
-    This is guaranteed to give all primitive such fields, and
-    seems in practice to give many imprimitive ones.
+    .. note::
+
+        This is guaranteed to give all primitive such fields, and
+        seems in practice to give many imprimitive ones.
 
     INPUT:
 
@@ -663,19 +662,35 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
     - ``m`` -- integer, the degree
     - ``B`` -- integer, the discriminant bound
     - ``a`` -- list (default: []), the coefficient list to begin with
-    - ``verbose`` -- boolean or string (default: 0)
+    - ``verbose`` -- boolean or nonnegative integer or string (default: 0)
+      give a verbose description of the computations being performed. If
+      ``verbose`` is set to ``2`` or more then it outputs some extra
+      information. If ``verbose'' is a string then it outputs to a file
+      specified by ``verbose''
     - ``return_seqs`` -- (boolean, default False) If ``True``, then return
-      the polynomials as sequences (for easier exporting to a file).
+      the polynomials as sequences (for easier exporting to a file). This
+      also returns a list of four numbers, as explained in the OUTPUT
+      section below.
     - ``return_pari_objects`` -- (boolean, default: True) if
       ``return_seqs`` is ``False`` then it returns the elements as Sage
       objects; otherwise it returns pari objects.
 
     OUTPUT:
 
-    the list of fields with entries ``[d,fabs,f]``, where
+    - the list of fields with entries ``[d,fabs,f]``, where
     ``d`` is the discriminant, ``fabs`` is an absolute defining polynomial,
     and ``f`` is a defining polynomial relative to ``F``,
     sorted by discriminant.
+
+    - if ``return_seqs`` is ``True``, then the first field of the list is
+      a list containing the count of four items as explained below
+
+      - the first entry gives the number of polynomials tested
+      - the second entry gives the number of polynomials with its
+        discriminant having a large enough square divisor
+      - the third entry is the number of irreducible polynomials
+      - the fourth entry is the number of irreducible polynomials with
+        discriminant at most ``B``
 
     EXAMPLES::
 
@@ -683,6 +698,8 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
         sage: F.<t> = NumberField(x^2-2)
         sage: enumerate_totallyreal_fields_rel(F, 2, 2000)
         [[1600, x^4 - 6*x^2 + 4, xF^2 + xF - 1]]
+        sage: enumerate_totallyreal_fields_rel(F, 2, 2000, return_seqs=True)
+        [[18, 6, 5, 0], [[1600, [4, 0, -6, 0, 1], [-1, 1, 1]]]]
 
     TESTS:
 
@@ -732,7 +749,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
 
     if verbose:
         saveout = sys.stdout
-        if type(verbose) == str:
+        if isinstance(verbose, str):
             fsock = open(verbose, 'w')
             sys.stdout = fsock
         # Else, print to screen
@@ -859,12 +876,14 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
     # Output.
     if verbose:
         print "="*80
-        print "Polynomials tested:", counts[0]
-        print "Irreducible polynomials:", counts[1]
-        print "Polynomials with nfdisc <= B:", counts[2]
+        print "Polynomials tested: {}".format(counts[0])
+        print ( "Polynomials with discriminant with large enough square"
+                " divisor: {}".format(counts[1]))
+        print "Irreducible polynomials: {}".format(counts[2])
+        print "Polynomials with nfdisc <= B: {}".format(counts[3])
         for i in range(len(S)):
             print S[i]
-        if type(verbose) == str:
+        if isinstance(verbose, str):
             fsock.close()
         sys.stdout = saveout
 
@@ -883,16 +902,22 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
 def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
                                      return_pari_objects=True):
     r"""
-    Enumerates *all* totally real fields of degree `n` with discriminant `\le B`,
-    primitive or otherwise.
+    Enumerates *all* totally real fields of degree ``n`` with discriminant
+    at most ``B``, primitive or otherwise.
 
     INPUT:
 
     - ``n`` -- integer, the degree
     - ``B`` -- integer, the discriminant bound
-    - ``verbose`` -- boolean or string (default: 0)
+    - ``verbose`` -- boolean or nonnegative integer or string (default: 0)
+      give a verbose description of the computations being performed. If
+      ``verbose`` is set to ``2`` or more then it outputs some extra
+      information. If ``verbose'' is a string then it outputs to a file
+      specified by ``verbose''
     - ``return_seqs`` -- (boolean, default False) If ``True``, then return
-      the polynomials as sequences (for easier exporting to a file).
+      the polynomials as sequences (for easier exporting to a file). This
+      also returns a list of four numbers, as explained in the OUTPUT
+      section below.
     - ``return_pari_objects`` -- (boolean, default: True) if
       ``return_seqs`` is ``False`` then it returns the elements as Sage
       objects; otherwise it returns pari objects.
@@ -919,9 +944,13 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
         Univariate Polynomial Ring in x over Rational Field
 
 
-    In practice most of these will be found by :func:`~sage.rings.number_field.totallyreal.enumerate_totallyreal_fields_prim`, which is guaranteed to return all primitive fields but often returns many non-primitive ones as well. For instance, only one of the five fields in the example above is primitive, but :func:`~sage.rings.number_field.totallyreal.enumerate_totallyreal_fields_prim` finds four out of the five (the exception being `x^4 - 6x^2 + 4`).
-
-    TESTS:
+    In practice most of these will be found by
+    :func:`~sage.rings.number_field.totallyreal.enumerate_totallyreal_fields_prim`,
+    which is guaranteed to return all primitive fields but often returns
+    many non-primitive ones as well. For instance, only one of the five
+    fields in the example above is primitive, but
+    :func:`~sage.rings.number_field.totallyreal.enumerate_totallyreal_fields_prim`
+    finds four out of the five (the exception being `x^4 - 6x^2 + 4`).
 
     The following was fixed in :trac:`13101`::
 
@@ -930,7 +959,7 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
     """
 
     S = []
-    counts = [0,0,0]
+    counts = [0,0,0,0]
     if len(divisors(n)) > 4:
         raise ValueError, "Only implemented for n = p*q with p,q prime"
     for d in divisors(n):
@@ -943,7 +972,7 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
                 F = NumberField(ZZx(Sds[i][1]), 't')
                 T = enumerate_totallyreal_fields_rel(F, n/d, B, verbose=verbose, return_seqs=return_seqs)
                 if return_seqs:
-                    for i in range(3):
+                    for i in range(4):
                         counts[i] += T[0][i]
                     S += [[t[0],pari(t[1]).Polrev()] for t in T[1]]
                 else:
@@ -960,17 +989,19 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
     # Output.
     if verbose:
         saveout = sys.stdout
-        if type(verbose) == str:
+        if isinstance(verbose, str):
             fsock = open(verbose, 'w')
             sys.stdout = fsock
         # Else, print to screen
         print "="*80
-        print "Polynomials tested:", counts[0]
-        print "Irreducible polynomials:", counts[1]
-        print "Polynomials with nfdisc <= B:", counts[2]
+        print "Polynomials tested: {}".format(counts[0])
+        print ( "Polynomials with discriminant with large enough square"
+                " divisor: {}".format(counts[1]))
+        print "Irreducible polynomials: {}".format(counts[2])
+        print "Polynomials with nfdisc <= B: {}".format(counts[3])
         for i in range(len(S)):
             print S[i]
-        if type(verbose) == str:
+        if isinstance(verbose, str):
             fsock.close()
         sys.stdout = saveout
 

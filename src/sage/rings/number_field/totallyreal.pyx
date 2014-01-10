@@ -144,8 +144,9 @@ cpdef double odlyzko_bound_totallyreal(int n):
     This function returns the unconditional Odlyzko bound for the root
     discriminant of a totally real number field of degree n.
 
-    NOTE:
-    The bounds for n > 50 are not necessarily optimal.
+    .. note::
+
+        The bounds for n > 50 are not necessarily optimal.
 
     INPUT:
 

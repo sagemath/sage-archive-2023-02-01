@@ -81,9 +81,9 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
             True
         """
         if not isinstance(G, Graph):
-            G = Graph(G)
-        G = G.copy()
-        G._immutable = True
+            G = Graph(G, immutable=True)
+        else:
+            G = G.copy(immutable=True)
         return super(RightAngledArtinGroup, cls).__classcall__(cls, G)
 
     def __init__(self, G):
@@ -201,9 +201,9 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
             sage: Gamma = graphs.CycleGraph(5)
             sage: G = RightAngledArtinGroup(Gamma)
             sage: G.graph()
-            Cycle graph: Graph on 5 vertices
+            Graph on 5 vertices
         """
-        return self._graph.copy()
+        return self._graph
 
     @cached_method
     def one(self):
@@ -269,6 +269,7 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
         """
         pos = 0
         G = self._graph
+        v = G.vertices()
         w = map(list, word) # Make a (2 level) deep copy
         while pos < len(w):
             comm_set = [w[pos][0]] # The current set of totally commuting elements
@@ -279,7 +280,7 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
                 # Check if this could fit in the commuting set
                 if letter in comm_set:
                     # Try to move it in
-                    if any(G.has_edge(w[j][0], letter) for j in range(pos + len(comm_set), i)):
+                    if any(G.has_edge(v[w[j][0]], v[letter]) for j in range(pos + len(comm_set), i)):
                         # We can't, so go onto the next letter
                         i += 1
                         continue
@@ -295,7 +296,7 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
                         if len(comm_set) == 0:
                             pos = 0 # Start again since cancellation can be pronounced effects
                             break
-                elif all( not G.has_edge(w[j][0], letter) for j in range(pos, i)):
+                elif all( not G.has_edge(v[w[j][0]], v[letter]) for j in range(pos, i)):
                     j = 0
                     for x in comm_set:
                         if x > letter:
@@ -344,7 +345,7 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
                 sage: G = RightAngledArtinGroup(Gamma)
                 sage: x,y,z = G.gens()
                 sage: z * y^-2 * x^3
-                vx^3*vy^-2*vzeta
+                vzeta*vy^-2*vx^3
             """
             if len(self) == 0:
                 return '1'

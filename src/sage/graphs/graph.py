@@ -114,6 +114,7 @@ graphs.
     :meth:`~Graph.has_homomorphism_to` | Checks whether there is a morphism between two graphs.
     :meth:`~Graph.chromatic_number` | Returns the minimal number of colors needed to color the vertices of the graph.
     :meth:`~Graph.chromatic_polynomial` | Returns the chromatic polynomial of the graph.
+    :meth:`~Graph.tutte_polynomial` | Returns the Tutte polynomial of the graph.
     :meth:`~Graph.is_perfect` | Tests whether the graph is perfect.
 
 
@@ -6469,6 +6470,10 @@ Graph.is_distance_regular = types.MethodType(sage.graphs.distances_all_pairs.is_
 # From Python modules
 import sage.graphs.line_graph
 Graph.is_line_graph = sage.graphs.line_graph.is_line_graph
+
+from sage.graphs.tutte_polynomial import tutte_polynomial
+Graph.tutte_polynomial = tutte_polynomial
+
 
 def compare_edges(x, y):
     """

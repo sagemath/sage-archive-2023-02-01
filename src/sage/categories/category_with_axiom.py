@@ -307,13 +307,147 @@ class CategoryWithAxiom(Category):
     r"""
     An abstract class for categories obtained by adding an axiom to a base category.
 
-    
+    This documentation covers how to implement axioms and proceeds
+    with an overview of the implementation of the axiom
+    infrastructure. It assumes that the reader is familiar with the
+    :mod:`category primer <sage.categories.primer>`, and in particular
+    its :ref:`section about axioms <category-primer-axioms>`.
+
+    Implementing axioms
+    -------------------
+
+    To start with, assume one wants to provide code for the objects of
+    some existing category ``Cs()`` that satisfy some existing axiom
+    ``A``. All one needs to do is define in `Cs` a nested class
+    inheriting from :class:`CategoryWithAxiom`::
+
+        sage: from sage.categories.category_with_axiom import CategoryWithAxiom
+        sage: class Cs(Category):
+        ....:     def super_categories(self):
+        ....:         return [Sets()]
+        ....:     class Finite(CategoryWithAxiom):
+        ....:         class ParentMethods:
+        ....:             def foo(self):
+        ....:                 print "I am a method on finite C's"
+
+    ::
+
+        sage: Cs().Finite()
+        Category of finite cs
+        sage: Cs().Finite().super_categories()
+        [Category of finite sets, Category of cs]
+        sage: Cs().Finite().all_super_categories()
+        [Category of finite cs, Category of finite sets,
+         Category of cs, Category of sets, ...]
+        sage: Cs().Finite().axioms()
+        frozenset(['Finite'])
+
+    Now a parent declared in the category ``Cs().Finite()`` inherits
+    from all the methods of finite sets and of finite C's::
+
+        sage: P = Parent(category=Cs().Finite())
+        sage: P.is_finite()
+        True
+        sage: P.foo()
+        I am a method on finite C's
+
+    Note that this is following the same idiom as for
+    :mod:`covariant functorial constructions
+    <sage.categories.covariant_functorial_construction>`.
+    The category ``Cs().Finite()`` is aware that it has been
+    constructed from the category ``Cs()`` and adding the axiom
+    ``Finite``::
+
+        sage: Cs().Finite().base_category()
+        Category of cs
+        sage: Cs().Finite()._axiom
+        'Finite'
+
+    Over time, the code of the nested class ``Cs.Finite`` may become
+    large and too cumbersome to keep as a nested class of `C`. Or the
+    category with axiom may have a name of its own in the litterature,
+    like *semigroups* rather than *associative magmas*, or *fields*
+    rather than *commutative division rings*. In this case, the
+    category with axiom can be put in a separate file, with just a
+    link from ``Cs``::
+
+        sage: class Cs(Category):
+        ....:     def super_categories(self):
+        ....:         return [Sets()]
+        ....:     Finite = LazyImport('sage.categories.finite_cs', 'FiniteCs')
+
+    For a working example look up the code of the class
+    :class:`FiniteSets` and the link to it in :class:`Sets`.
+
+    In this scenario, the category with axiom can equivalently be
+    created directly or through its base category::
+
+        sage: FiniteSets()
+        Category of finite sets
+        sage: Sets().Finite()
+        Category of finite sets
+        sage: Sets().Finite() is FiniteSets()
+        True
+
+    For the former idiom to work, and with the current implementation
+    of axioms, the class :class:`FiniteSets` needs to be aware of the
+    class of its base category (here, :class:`Sets`) and of the axiom
+    (here, ``Finite``)::
+
+        sage: FiniteSets._base_category_class_and_axiom
+        (sage.categories.sets_cat.Sets, 'Finite')
+        sage: Semigroups._base_category_class_and_axiom
+        [sage.categories.magmas.Magmas, 'Associative']
+        sage: Fields._base_category_class_and_axiom
+        (sage.categories.division_rings.DivisionRings, 'Commutative')
+        sage: FiniteDimensionalAlgebrasWithBasis._base_category_class_and_axiom
+        (sage.categories.algebras_with_basis.AlgebrasWithBasis, 'FiniteDimensional')
+
+    As a syntactic sugar, Sage tries some obvious heuristics to guess
+    those from the name of the category with axiom (see
+    :func:`base_category_class_and_axiom` for the details). When this
+    fails, typically because the category has a name of its own like
+    :class:`Fields`, the attribute ``_base_category_class_and_axiom``
+    should be set explicitly. See for example the code of the classes
+    :class:`Semigroups` or :class:`Fields`.
 
     .. TODO::
 
-        Explanations on how they work + link to the tutorial above
+       - Checking if the appropriate category does not exist
+       - Handling of multiple axioms, tree structure of the code
+       - Implementing a new axiom
+       - Deduction rules
+       - Specifications
+       - Algorithm for adding axioms and computing intersections
+       - Flesh out the design goals
 
-    Design goals:
+    Specifications
+    ^^^^^^^^^^^^^^
+
+    *** The base category of an AdjectiveCategory is not a JoinCategory
+    *** If A is a category with a given axiom (e.g. from one of its super categories)
+        then that axiom does not appear in A (and recursively in any nested subcategory)
+    *** The set of categories for which an axiom is defined is a lower set
+        The same name can't be used for two axioms with different meanings.
+    *** DONE The super categories of a category are not join categories
+        - State "DONE"       from ""           [2013-06-05 mer. 08:44]
+    *** DONE self.is_subcategory( Category.join(self.super_categories()) )
+        - State "DONE"       from ""           [2013-06-05 mer. 08:44]
+    *** DONE self._cmp_key() > other._cmp_key() for other in self.super_categories()
+    *** DONE Any super category of a CategoryWithParameters should either be a CategoryWithParameters or a CategorySingleton
+    *** DONE axiom categories of singleton categories should be singletons
+    *** DONE axiom categories of CategoryOverBaseRing should be categories over base ring.
+    *** DEFERRED should join categories of CategoryOverBaseRing be categories over base ring?
+        In the mean time, a base_ring method has been added to most of those; see Modules.SubcategoryMethods
+    *** DEFERRED Functorial construction categories (Graded, CartesianProducts, ...) of singleton categories should be singleton categories
+        Nothing difficult, but this will need to rework the current "no
+        subclass of a concrete class" assertion test of Category_singleton.__classcall__
+    *** DEFERRED covariant functorial construction categories over a category over base ring should be a category over base ring
+
+
+
+    Design goals
+    ^^^^^^^^^^^^
 
      - Flexibility in the code layout: the category of, say, finite
        sets can be implemented either within the Sets category (in a
@@ -346,25 +480,19 @@ class CategoryWithAxiom(Category):
         The later two are implemented using respectively
         :meth:`__classcall__` and :meth:`__classget__` which see.
 
-
-
     .. TODO:
-
-        - primer
 
         - Implement compatibility axiom / functorial constructions
 
           E.g. join(A.CartesianProducts(), B.CartesianProducts()) = join(A,B).CartesianProducts()
 
-        - Should an axiom category of a singleton category be
-          systematically a singleton category? Same thing for category
-          with base ring?
+        - An axiom category of a singleton category is automatically a
+          singleton category. Should this also be implemented for
+          categories with base ring?
 
         - Once full subcategories are implemented (see :trac:`10668`),
           make category with axioms be such. Should all full subcategories
           be implemented in term of axioms?
-
-
     """
 
     @lazy_class_attribute

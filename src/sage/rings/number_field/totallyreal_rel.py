@@ -702,7 +702,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
         sage: enumerate_totallyreal_fields_rel(F, 2, 2000)
         [[1600, x^4 - 6*x^2 + 4, xF^2 + xF - 1]]
         sage: enumerate_totallyreal_fields_rel(F, 2, 2000, return_seqs=True)
-        [[18, 6, 5, 0], [[1600, [4, 0, -6, 0, 1], [-1, 1, 1]]]]
+        [[9, 6, 5, 0], [[1600, [4, 0, -6, 0, 1], [-1, 1, 1]]]]
 
     TESTS:
 

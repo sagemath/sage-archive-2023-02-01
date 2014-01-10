@@ -1,10 +1,29 @@
 """
-Categories with axiom
+Axioms
 
-EXAMPLES::
+See :mod:`sage.categories.primer` for an introduction to axioms, and
+:class:`CategoryWithAxiom` for how to implement axioms and the
+documentation of the axiom infrastructure.
 
+TESTS:
+
+.. NOTE::
+
+    Quite a few categories with axioms are constructed early on during
+    Sage's startup. Therefore, when playing around with the
+    implementation of the axiom infrastructure, it is easy to break
+    Sage. The following sequence of tests is designed to test the
+    infrastructure from the ground up even in a partially broken
+    Sage. Don't remove the imports!
+
+::
+
+    sage: from sage.categories.magmas import Magmas
     sage: Magmas()
     Category of magmas
+    sage: Magmas().Finite()
+    Category of finite magmas
+
     sage: Magmas().Unital()
     Category of unital magmas
     sage: Magmas().Commutative().Unital()
@@ -13,34 +32,8 @@ EXAMPLES::
     Category of semigroups
     sage: Magmas().Associative() & Magmas().Unital().Inverse() & Sets().Finite()
     Category of finite groups
-
     sage: _ is Groups().Finite()
     True
-
-    sage: AdditiveMagmas().AdditiveAssociative().AdditiveCommutative()
-    Category of commutative additive semigroups
-
-    sage: from sage.categories.distributive_magmas_and_additive_magmas import DistributiveMagmasAndAdditiveMagmas
-    sage: C = CommutativeAdditiveMonoids() & Monoids() & DistributiveMagmasAndAdditiveMagmas(); C
-    Category of semirings
-    sage: C.AdditiveInverse()
-    Category of rings
-    sage: Rings().axioms()
-    frozenset([...])
-    sage: sorted(Rings().axioms())
-    ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'Unital']
-
-
-TESTS::
-
-    sage: from sage.categories.objects import Objects
-    sage: Objects()
-    Category of objects
-    sage: from sage.categories.magmas import Magmas
-    sage: Magmas()
-    Category of magmas
-    sage: Magmas().Finite()
-    Category of finite magmas
 
     sage: from sage.categories.semigroups import Semigroups
     sage: Semigroups()
@@ -65,35 +58,29 @@ TESTS::
     sage: Semigroups().Commutative().Unital().super_categories()
     [Category of monoids, Category of commutative magmas]
 
+    sage: AdditiveMagmas().AdditiveAssociative().AdditiveCommutative()
+    Category of commutative additive semigroups
+
+    sage: from sage.categories.distributive_magmas_and_additive_magmas import DistributiveMagmasAndAdditiveMagmas
+    sage: C = CommutativeAdditiveMonoids() & Monoids() & DistributiveMagmasAndAdditiveMagmas(); C
+    Category of semirings
+    sage: C.AdditiveInverse()
+    Category of rings
+    sage: Rings().axioms()
+    frozenset([...])
+    sage: sorted(Rings().axioms())
+    ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'Unital']
+
     sage: Domains().Commutative()
     Category of integral domains
 
-Wedderburn's theorem::
-
-    sage: DivisionRings().Finite()
+    sage: DivisionRings().Finite() # Wedderburn's theorem
     Category of finite fields
 
     sage: FiniteMonoids().Algebras(QQ)
     Join of Category of finite dimensional algebras with basis over Rational Field and Category of monoid algebras over Rational Field and Category of finite set algebras over Rational Field
     sage: FiniteGroups().Algebras(QQ)
     Join of Category of finite dimensional hopf algebras with basis over Rational Field and Category of group algebras over Rational Field and Category of finite set algebras over Rational Field
-
-
-.. TODO:
-
-    - primer
-
-    - Implement compatibility axiom / functorial constructions
-
-      E.g. join(A.CartesianProducts(), B.CartesianProducts()) = join(A,B).CartesianProducts()
-
-    - Should an axiom category of a singleton category be
-      systematically a singleton category? Same thing for category
-      with base ring?
-
-    - Once full subcategories are implemented (see :trac:`10668`),
-      make category with axioms be such. Should all full subcategories
-      be implemented in term of axioms?
 """
 #*****************************************************************************
 #  Copyright (C) 2011-2013 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -320,15 +307,19 @@ class CategoryWithAxiom(Category):
     r"""
     An abstract class for categories obtained by adding an axiom to a base category.
 
+    
+
     .. TODO::
 
         Explanations on how they work + link to the tutorial above
 
     Design goals:
 
-     - Freedom to implement the category of finite sets either in a
-       separate file (in a class FiniteSets), or within the Sets
-       category (in a nested class Sets.Finite).
+     - Flexibility in the code layout: the category of, say, finite
+       sets can be implemented either within the Sets category (in a
+       nested class Sets.Finite), or in a separate file (typically in
+       a class FiniteSets in a lazily imported module
+       sage.categories.finite_sets).
 
     .. NOTE::
 
@@ -354,6 +345,26 @@ class CategoryWithAxiom(Category):
 
         The later two are implemented using respectively
         :meth:`__classcall__` and :meth:`__classget__` which see.
+
+
+
+    .. TODO:
+
+        - primer
+
+        - Implement compatibility axiom / functorial constructions
+
+          E.g. join(A.CartesianProducts(), B.CartesianProducts()) = join(A,B).CartesianProducts()
+
+        - Should an axiom category of a singleton category be
+          systematically a singleton category? Same thing for category
+          with base ring?
+
+        - Once full subcategories are implemented (see :trac:`10668`),
+          make category with axioms be such. Should all full subcategories
+          be implemented in term of axioms?
+
+
     """
 
     @lazy_class_attribute

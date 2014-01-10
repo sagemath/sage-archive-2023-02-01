@@ -182,7 +182,7 @@ In case ``dot2tex`` is not available, you can use instead::
 
     sage: g.show(vertex_shape=None, figsize=20)
 
-And here is an overview of all categories in Sage::
+Here is an overview of all categories in Sage::
 
     sage: g = sage.categories.category.category_graph()
     sage: g.set_latex_options(format="dot2tex")
@@ -1024,9 +1024,12 @@ algebra) grows exponnentially with the number of properties.
 Axioms
 ------
 
+First examples
+^^^^^^^^^^^^^^
+
 We have seen that several categories can be defined by specifying the
 axioms that are satisfied by the operations of its super
-categories. For example, starting from the category of magmas we can
+categories. For example, starting from the category of magmas, we can
 build all the following categories just by specifying the axioms
 satisfied by the multiplication::
 
@@ -1057,10 +1060,59 @@ satisfied by the multiplication::
     sage: Magmas().Associative().Unital().Commutative()
     Category of commutative monoids
 
-Note by the way that intersecting categories plays nicely::
+Axioms and categories with axioms
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    sage: Magmas().Associative() & Magmas().Unital().Inverse() & Sets().Finite()
+Here, ``Associative``, ``Unital``, ``Commutative`` are axioms. In
+general, any category `Cs` in Sage can declare a new axiom `A`. Then,
+the *category with axiom* `Cs.A()` models the subcategory of the
+objects of `Cs` satisfying the axiom `A`. It's in fact a *full
+subcategory* (see :wikipedia:`Subcategory`). Moreover, for every
+subcategory `Ds` of `Cs`, `Ds.A()` models the full subcategory of the
+objects of `Ds` satisfying the axiom `A`.
+
+For example, the category of modules defines the ``FiniteDimensional``
+axiom, and this axiom is available in the subcategory of algebras::
+
+    sage: Modules(QQ).FiniteDimensional()
+    Category of finite dimensional vector spaces over Rational Field
+    sage: Algebras(QQ).FiniteDimensional()
+    Category of finite dimensional algebras over Rational Field
+
+The purpose of categories with axioms is no different from other
+categories: to provide bookshelves of code, documentation,
+mathematical knowledge, tests, for their objects. The extra feature is
+that, when intersecting categories, axioms are automatically combined
+together::
+
+    sage: C = Magmas().Associative() & Magmas().Unital().Inverse() & Sets().Finite(); C
     Category of finite groups
+    sage: sorted(C.axioms())
+    ['Associative', 'Finite', 'Inverse', 'Unital']
+
+For a more advanced example, Sage knows that a set `C` endowed with a
+multiplication which distributes over addition, such that `(C,+)` is
+an additive group and `(C,*)` is a monoid is a ring::
+
+    sage: from sage.categories.additive_groups import AdditiveGroups
+    sage: C = DistributiveMagmasAndAdditiveMagmas() & AdditiveGroups() & Monoids(); C
+    Category of rings
+
+    sage: sorted(C.axioms())
+    ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'Unital']
+
+Note by the way that the axiom "Associative" is about the property of
+the multiplication `*` whereas the axiom "AdditiveAssociative" is
+about the properties of the addition `+`.
+
+The infrastructure allows for specifying further deduction rules, in
+order to encode mathematical facts like Wedderburn's theorem::
+
+    sage: DivisionRings() & Sets().Finite()
+    Category of finite fields
+
+On the potential combinatorial explosion of categories with axioms
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Even for a very simple category like ``Magmas``, there are about `2^5`
 potential combinations of the axioms! Think about what this becomes
@@ -1084,7 +1136,7 @@ for a category with two operations ``+`` and ``*``::
     sage: Rings().Division().Commutative()
     Category of fields
 
-    sage: Rings().Division() & Sets().Finite()    # Wedderburn theorem!
+    sage: Rings().Division().Finite()
     Category of finite fields
 
 or for more advanced categories::
@@ -1093,7 +1145,112 @@ or for more advanced categories::
     sage: g.set_latex_options(format="dot2tex")
     sage: view(g, tightpage=True)                 # not tested
 
-For more about axioms, see :mod:`sage.categories.category_with_axiom`.
+Difference between axioms and regressive covariant functorial constructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Our running examples here will be the axiom ``FiniteDimensional`` and
+the regressive covariant functorial construction ``Graded``. Let
+``Cs`` be a subcategory of ``Modules``, say:
+
+    sage: Cs = Modules(QQ)
+
+Then, ``Cs.FiniteDimensional()`` (respectively ``Cs.Graded()``) is the
+subcategory of the objects ``O`` of ``Cs`` which are finite
+dimensional (respectively graded).
+
+Let also ``Ds`` be a subcategory of ``Cs``, say:
+
+    sage: Ds = Algebras(QQ)
+
+A finite dimensional algebra is also a finite dimensional module::
+
+    sage: Algebras(QQ).FiniteDimensional().is_subcategory( Modules(QQ).FiniteDimensional())
+    True
+
+Similarly a graded algebra is also a graded module::
+
+    sage: Algebras(QQ).Graded().is_subcategory( Modules(QQ).Graded())
+    True
+
+This is the *covariance* property: for ``A`` an axiom or a covariant
+functorial construction, if ``Ds`` is a subcategory of ``Cs``, then
+``Ds.A()`` is a subcategory of ``Cs.A()``.
+
+What happens if we consider reciprocally an object of ``Cs.A()`` which
+is also in ``Ds``? A finite dimensional module which is also an
+algebra is a finite dimensional algebra::
+
+    sage: Modules(QQ).FiniteDimensional() & Algebras(QQ)
+    Category of finite dimensional algebras over Rational Field
+
+On the other hand, a graded module `O` which is also an algebra is not
+necessarily a graded algebra! Indeed, the grading on `O` may not be
+compatible with the product on `O`::
+
+    sage: Modules(QQ).Graded() & Algebras(QQ)
+    Join of Category of algebras over Rational Field and Category of graded modules over Rational Field
+
+The relevant difference between ``FiniteDimensional`` and ``Graded``
+is that ``FiniteDimensional`` is a statement about the properties of
+``O`` seen as a module (and thus does not depend on the given
+category), whereas ``Graded`` is a statement about the properties of
+``O`` and all its operations in the given category.
+
+In general, if a category satisfies a given axiom, any subcategory
+also satisfies that axiom. Another formulation is that, for an axiom
+``A`` defined in a super category ``Cs`` of ``Ds``, ``Ds.A()`` is the
+intersection of the categories ``Ds`` and ``Cs.A()``::
+
+    sage: As = Algebras(QQ).FiniteDimensional(); As
+    Category of finite dimensional algebras over Rational Field
+    sage: Bs = Algebras(QQ) & Modules(QQ).FiniteDimensional(); As
+    Category of finite dimensional algebras over Rational Field
+    sage: As is Bs
+    True
+
+An immediate consequence is that, as we have already noticed, axioms
+commute::
+
+    sage: As = Algebras(QQ).FiniteDimensional().WithBasis(); As
+    Category of finite dimensional algebras with basis over Rational Field
+    sage: Bs = Algebras(QQ).WithBasis().FiniteDimensional(); Bs
+    Category of finite dimensional algebras with basis over Rational Field
+    sage: As is Bs
+    True
+
+On the other hand, axioms do not necessarily commute with functorial
+constructions, even if the current printout may missuggest so::
+
+    sage: As = Algebras(QQ).Graded().WithBasis(); As
+    Category of graded algebras with basis over Rational Field
+    sage: Bs = Algebras(QQ).WithBasis().Graded(); Bs
+    Category of graded algebras with basis over Rational Field
+    sage: As is Bs
+    False
+
+This is because ``Bs`` is the category of algebras endowed with basis,
+which are further graded; in particular the basis must respect the
+grading (i.e. be made of homogeneous elements). On the other hand,
+``As`` is the category of graded algebras, which are further endowed
+with some basis; that basis need not respect the grading. In fact
+``As`` is really a join category::
+
+    sage: type(As)
+    <class 'sage.categories.category.JoinCategory_with_category'>
+    sage: As._repr_(as_join=True)
+    'Join of Category of algebras with basis over Rational Field and Category of graded algebras over Rational Field'
+
+.. TODO::
+
+    Improve the printing of functorial constructions and joins to
+    raise this potentially dangerous ambiguity.
+
+
+Further reading on axioms
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+We refer to :mod:`sage.categories.category_with_axiom` for how to
+implement axioms.
 
 Wrap-up
 -------
@@ -1122,7 +1279,7 @@ combinations, an unpredictable large subset of which being potentially
 of interest; at the same time, only a small -- but moving -- subset
 has code naturally attached to it.
 
-This has led to the current design where one focuses on writing the
+This has led to the current design, where one focuses on writing the
 relatively few classes for which there is actual code or mathematical
 information, and let Sage *compose dynamically and lazily* those
 building blocks to construct the minimal hierarchy of classes needed

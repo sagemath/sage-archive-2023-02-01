@@ -225,8 +225,9 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
       whose filename is given by ``just_print``. In this case, we don't
       return anything.
     - ``return_pari_objects`` -- (boolean, default: True) if
-      ``return_seqs`` is ``False`` then it returns the elements as Sage
-      objects; otherwise it returns pari objects.
+      both ``return_seqs`` and ``return_pari_objects`` are ``False`` then
+      it returns the elements as Sage objects; otherwise it returns pari
+      objects.
 
     OUTPUT:
 
@@ -356,8 +357,11 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         sage_free(f_out)
         if return_seqs:
             return [[0,0,0,0],[[1,[-1,1]]]]
-        else:
+        elif return_pari_objects:
             return [[1,pari('x-1')]]
+        else:
+            Px = PolynomialRing(QQ, 'x')
+            return [[ZZ(1), Px.gen()-1]]
 
     if verbose:
         verb_int = 1

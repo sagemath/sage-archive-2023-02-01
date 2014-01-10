@@ -672,8 +672,9 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
       also returns a list of four numbers, as explained in the OUTPUT
       section below.
     - ``return_pari_objects`` -- (boolean, default: True) if
-      ``return_seqs`` is ``False`` then it returns the elements as Sage
-      objects; otherwise it returns pari objects.
+      both ``return_seqs`` and ``return_pari_objects`` are ``False`` then
+      it returns the elements as Sage objects; otherwise it returns pari
+      objects.
 
     OUTPUT:
 
@@ -696,6 +697,8 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
 
         sage: ZZx = ZZ['x']
         sage: F.<t> = NumberField(x^2-2)
+        sage: enumerate_totallyreal_fields_rel(F, 1, 2000)
+        [[1, x - 1, [-2, 0, 1]]]
         sage: enumerate_totallyreal_fields_rel(F, 2, 2000)
         [[1600, x^4 - 6*x^2 + 4, xF^2 + xF - 1]]
         sage: enumerate_totallyreal_fields_rel(F, 2, 2000, return_seqs=True)
@@ -744,8 +747,11 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
         g = pari(F.defining_polynomial()).reverse().Vec()
         if return_seqs:
             return [[0,0,0,0],[1,g,[-1,1]]]
-        else:
+        elif return_pari_objects:
             return [[1,pari('x-1'),g]]
+        else:
+            Px = PolynomialRing(QQ, 'x')
+            return [[ZZ(1), Px.gen()-1, map(QQ, g)]]
 
     if verbose:
         saveout = sys.stdout
@@ -918,9 +924,10 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
       the polynomials as sequences (for easier exporting to a file). This
       also returns a list of four numbers, as explained in the OUTPUT
       section below.
-    - ``return_pari_objects`` -- (boolean, default: True) if
-      ``return_seqs`` is ``False`` then it returns the elements as Sage
-      objects; otherwise it returns pari objects.
+    - ``return_pari_objects`` -- (boolean, default: True) if both
+      ``return_seqs`` and ``return_pari_objects`` are ``False`` then it
+      returns the elements as Sage objects; otherwise it returns pari
+      objects.
 
     EXAMPLES::
 
@@ -930,6 +937,8 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
         [1600, x^4 - 6*x^2 + 4],
         [1957, x^4 - 4*x^2 - x + 1],
         [2000, x^4 - 5*x^2 + 5]]
+        sage: enumerate_totallyreal_fields_all(1, 10)
+        [[1, x - 1]]
 
     TESTS:
 

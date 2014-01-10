@@ -45,7 +45,7 @@ from sage.plot.colors import to_mpl_color
 from sage.plot.misc import options, rename_keyword
 from sage.plot.all import hyperbolic_arc, hyperbolic_triangle, text
 
-from sage.misc.latex import mathjax_avoid_list
+from sage.misc.latex import latex
 
 cdef class Farey:
     r"""
@@ -83,7 +83,7 @@ cdef class Farey:
 
     Pickling the FareySymbol and recovering it::
 
-         sage: F == loads(dumps(F))
+         sage: f == loads(dumps(f))
          True
 
     Calculate the index of `\Gamma_H(33, [2, 5])` in
@@ -270,35 +270,25 @@ cdef class Farey:
         else:
             return "FareySymbol(?)"
 
-    def _latex_(self):
+    def _latex_(self, forced_format = None):
         r"""
         Return the LaTeX representation of self.
 
         EXAMPLES::
 
-            sage: if 'xymatrix' in sage.misc.latex.mathjax_avoid_list():
-            ...       assert FareySymbol(Gamma0(11))._latex_() == \
-            ...           '\\begin{xy}\\xymatrix{& -\\infty \\ar@{-}@/_1pc/[r]_{1}& 0 \\ar@{-}@/_1pc/[r]_{2}& \\frac{1}{3} \\ar@{-}@/_1pc/[r]_{3}& \\frac{1}{2} \\ar@{-}@/_1pc/[r]_{2}& \\frac{2}{3} \\ar@{-}@/_1pc/[r]_{3}& 1 \\ar@{-}@/_1pc/[r]_{1}&\\infty}\\end{xy}'
-            ...   else:
-            ...       assert FareySymbol(Gamma0(3))._latex_() == \
-            ...           '\\left( -\\infty\\underbrace{\\quad}_{1} 0\\underbrace{\\quad}_{\\bullet} 1\\underbrace{\\quad}_{1} \\infty\\right)'
+            sage: FareySymbol(Gamma0(11))._latex_(forced_format = 'plain')
+            '\\left( -\\infty\\underbrace{\\quad}_{1} 0\\underbrace{\\quad}_{2} \\frac{1}{3}\\underbrace{\\quad}_{3} \\frac{1}{2}\\underbrace{\\quad}_{2} \\frac{2}{3}\\underbrace{\\quad}_{3} 1\\underbrace{\\quad}_{1} \\infty\\right)'
+            sage: FareySymbol(Gamma0(11))._latex_(forced_format = 'xymatrix')
+            '\\begin{xy}\\xymatrix{& -\\infty \\ar@{-}@/_1pc/[r]_{1}& 0 \\ar@{-}@/_1pc/[r]_{2}& \\frac{1}{3} \\ar@{-}@/_1pc/[r]_{3}& \\frac{1}{2} \\ar@{-}@/_1pc/[r]_{2}& \\frac{2}{3} \\ar@{-}@/_1pc/[r]_{3}& 1 \\ar@{-}@/_1pc/[r]_{1}& \\infty }\\end{xy}'
+
+            sage: if '\\xymatrix' in sage.misc.latex.latex.mathjax_avoid_list():
+            ...        'xymatrix' not in FareySymbol(Gamma0(11))._latex_()
+            ... else:
+            ...       'xymatrix' in FareySymbol(Gamma0(11))._latex_()
+            True
         """
-        if '\\xymatrix' in mathjax_avoid_list():
-            # output using xymatrix
-            s = r'\begin{xy}\xymatrix{-\infty'
-            f = [x._latex_() for x in self.fractions()]+[r'+\infty']
-            f.reverse()
-            for p in self.pairings():
-                if p >= 0:
-                    s += r'\ar@{-}@/_1pc/[r]_{%s}' % p
-                elif p == -2:
-                    s += r'\ar@{-}@/_1pc/[r]_{\circ}'
-                elif p == -3:
-                    s += r'\ar@{-}@/_1pc/[r]_{\bullet}'
-                    s += r'& %s ' % f.pop()
-                    s += r'}\end{xy}'
-                    return s
-        else:
+        if forced_format == 'plain' or \
+           (forced_format is None and '\\xymatrix' in latex.mathjax_avoid_list()):
             # output not using xymatrix
             s = r'\left( -\infty'
             a = [x._latex_() for x in self.fractions()] + ['\infty']
@@ -307,8 +297,23 @@ cdef class Farey:
                 u = b[i]
                 if u == -3: u = r'\bullet'
                 elif u == -2: u = r'\circ'
-            s += r'\underbrace{\quad}_{%s} %s' % (u,a[i])
+                s += r'\underbrace{\quad}_{%s} %s' % (u,a[i])
             return s + r'\right)'
+        else:
+            # output using xymatrix
+            s = r'\begin{xy}\xymatrix{& -\infty '
+            f = [x._latex_() for x in self.fractions()]+[r'\infty']
+            f.reverse()
+            for p in self.pairings():
+                if p >= 0:
+                    s += r'\ar@{-}@/_1pc/[r]_{%s}' % p
+                elif p == -2:
+                    s += r'\ar@{-}@/_1pc/[r]_{\circ}'
+                elif p == -3:
+                    s += r'\ar@{-}@/_1pc/[r]_{\bullet}'
+                s += r'& %s ' % f.pop()
+            s += r'}\end{xy}'
+            return s
 
     def index(self):
         r"""

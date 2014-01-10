@@ -64,7 +64,7 @@ cdef class Farey:
 
     INPUTS:
 
-    - `g` - an arithmetic subgroup of `{\rm PSL}_2(\ZZ)`
+    - `G` - an arithmetic subgroup of `{\rm PSL}_2(\ZZ)`
 
     EXAMPLES:
 
@@ -127,11 +127,11 @@ cdef class Farey:
 
     Calculate cusps of arithmetic subgroup defined via permutation group::
 
-        sage: l = SymmetricGroup(4)('(1, 2, 3)')
+        sage: L = SymmetricGroup(4)('(1, 2, 3)')
 
-        sage: r = SymmetricGroup(4)('(1, 2, 4)')
+        sage: R = SymmetricGroup(4)('(1, 2, 4)')
 
-        sage: FareySymbol(ArithmeticSubgroup_Permutation(l, r)).cusps()
+        sage: FareySymbol(ArithmeticSubgroup_Permutation(L, R)).cusps()
         [-1, Infinity]
 
     Calculate the left coset representation of `\Gamma_H(8, [3])`::

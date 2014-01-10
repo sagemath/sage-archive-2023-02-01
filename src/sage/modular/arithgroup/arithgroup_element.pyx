@@ -137,6 +137,17 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         """
         return "%s"%self.__x
 
+    def _latex_(self):
+        """
+        Return latex representation of self.
+
+        EXAMPLES::
+
+            sage: Gamma1(5)([6,1,5,1])._latex_()
+            '\\left(\\begin{array}{rr}\n6 & 1 \\\\\n5 & 1\n\\end{array}\\right)'
+        """
+        return '%s' % self.__x._latex_()
+        
     def __richcmp__(left, right, int op):
         r"""
         Rich comparison.
@@ -333,9 +344,32 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
             sage: C.<i> = ComplexField()
             sage: g.acton(i)
             0.0649241146711636 + 0.000843170320404721*I
-        """
-        return (self.__x[0,0]*z + self.__x[0,1])/(self.__x[1,0]*z + self.__x[1,1])
 
+        An example with the cusp infinity::
+
+            sage: g.acton(infinity)
+            1/15
+
+        An example which maps a finite cusp to infinity::
+
+            sage: g.acton(-31/15)
+            +Infinity
+        """
+        from sage.rings.infinity import is_Infinite, infinity
+        if is_Infinite(z):
+            if self.__x[1,0] != 0:
+                return self.__x[0,0]/self.__x[1,0]
+            else:
+                return infinity
+        if hasattr(z, 'denominator') and hasattr(z, 'numerator'):
+            p, q = z.numerator(), z.denominator()
+            P = self.__x[0,0]*p+self.__x[0,1]*q
+            Q = self.__x[1,0]*p+self.__x[1,1]*q
+            if Q == 0 and P != 0: 
+                return infinity
+            else:
+                return P/Q
+        return (self.__x[0,0]*z + self.__x[0,1])/(self.__x[1,0]*z + self.__x[1,1])
 
     def __getitem__(self, q):
         r"""

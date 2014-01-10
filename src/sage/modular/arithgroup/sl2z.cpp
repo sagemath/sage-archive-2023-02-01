@@ -12,6 +12,9 @@
 //
 //                  http://www.gnu.org/licenses/
 //****************************************************************************
+#include <vector>
+#include <algorithm>
+
 #include "sl2z.hpp"
 
 const SL2Z SL2Z::S(0, -1, 1, 0);
@@ -19,3 +22,8 @@ const SL2Z SL2Z::U(0,  1,-1, 0);
 const SL2Z SL2Z::R(1, -1, 0, 1);
 const SL2Z SL2Z::T(1,  1, 0, 1);
 const SL2Z SL2Z::E(1,  0, 0, 1);
+const SL2Z SL2Z::I(-1, 0, 0, -1);
+
+
+    
+  

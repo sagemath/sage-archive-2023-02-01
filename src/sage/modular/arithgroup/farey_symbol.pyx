@@ -62,18 +62,18 @@ cdef class Farey:
 
     INPUTS:
 
-    - `G` - an arithmetic subgroup of `{\rm PSL}_2(\ZZ)`
+    - `g` - an arithmetic subgroup of `{\rm PSL}_2(\ZZ)`
 
     EXAMPLES:
 
     Create a Farey symbol for the group `\Gamma_0(11)`::
 
-        sage: F = FareySymbol(Gamma0(11)); F
+        sage: f = FareySymbol(Gamma0(11)); f
         FareySymbol(Congruence Subgroup Gamma0(11))
 
     Calculate the generators::
 
-         sage: F.generators()
+         sage: f.generators()
          [
          [1 1]  [ 7 -2]  [ 8 -3]  [-1  0]
          [0 1], [11 -3], [11 -4], [ 0 -1]
@@ -125,12 +125,12 @@ cdef class Farey:
 
     Calculate cusps of arithmetic subgroup defined via permutation group::
 
-        sage: L = SymmetricGroup(4)('(1, 2, 3)')
+        sage: l = SymmetricGroup(4)('(1, 2, 3)')
 
-        sage: R = SymmetricGroup(4)('(1, 2, 4)')
+        sage: r = SymmetricGroup(4)('(1, 2, 4)')
 
-        sage: FareySymbol(ArithmeticSubgroup_Permutation(L, R)).cusps()
-        [2, Infinity]
+        sage: FareySymbol(ArithmeticSubgroup_Permutation(l, r)).cusps()
+        [-1, Infinity]
 
     Calculate the left coset representation of `\Gamma_H(8, [3])`::
 
@@ -200,6 +200,25 @@ cdef class Farey:
 
         """
         del self.this_ptr
+
+    def __contains__(self, M):
+        r"""
+        Tests if element is in the arithmetic group of the Farey symbol
+        via LLT algorithm.
+
+        EXAMPLES::
+
+            sage: SL2Z([0, -1, 1, 0]) in FareySymbol(Gamma0(6))
+            False
+
+            sage: SL2Z([1, 1, 0, 1]) in FareySymbol(Gamma0(6))
+            True
+        """
+        cdef Integer a = M.a()
+        cdef Integer b = M.b()
+        cdef Integer c = M.c()
+        cdef Integer d = M.d()
+        return self.this_ptr.is_element(a.value, b.value, c.value, d.value)
 
     def __cmp__(self, other):
         r"""
@@ -368,8 +387,8 @@ cdef class Farey:
 
             sage: FareySymbol(ArithmeticSubgroup_Permutation(S2="(1,2)", S3="()")).generators()
             [
-            [ 0 -1]  [-1  1]
-            [ 1  1], [-1  0]
+            [ 0  1]  [-1  1]
+            [-1 -1], [-1  0]
             ]
             sage: FareySymbol(ArithmeticSubgroup_Permutation(S2="(1,2, 3, 4)", S3="(1,3)(2,4)")).generators()
             [
@@ -462,10 +481,68 @@ cdef class Farey:
         """
         return self.this_ptr.get_cusps()+[Cusp(infinity)]
 
+    def cusp_widths(self):
+        r"""
+        Cusps widths of the FareySymbol.
+
+        EXAMPLES::
+        
+            sage: FareySymbol(Gamma0(6)).cusp_widths()
+            [6, 2, 3, 1]
+        """
+        return self.this_ptr.get_cusp_widths()
+
+    def cusp_class(self, c):
+        r"""
+        Cusp class of a cusp in the FareySymbol.
+
+        EXAMPLES::
+
+            sage: FareySymbol(Gamma0(12)).cusp_class(Cusp(1, 12))
+            5
+        """
+        cusp = Cusp(c)
+        cdef Integer p = cusp.numerator()
+        cdef Integer q = cusp.denominator()
+        return self.this_ptr.get_cusp_class(p.value, q.value)
+
+    def reduce_to_cusp(self, r):
+        r"""
+        Transformation of a rational number to cusp representative.
+
+        EXAMPLES::
+
+            sage: FareySymbol(Gamma0(12)).reduce_to_cusp(5/8)
+            [ 5  -3]
+            [12  -7]
+
+        Reduce 11/17 to a cusp of for HsuExample10()::
+
+            sage: from sage.modular.arithgroup.arithgroup_perm import HsuExample10
+            sage: f = FareySymbol(HsuExample10())
+            sage: f.reduce_to_cusp(11/17)
+            [14 -9]
+            [-3  2]
+            sage: _.acton(11/17)
+            1
+            sage: f.cusp_class(11/17)
+            1
+            sage: f.cusps()[1]
+            1
+        """
+        cdef Integer p = r.numerator()
+        cdef Integer q = r.denominator()
+        sig_on()
+        result = self.this_ptr.get_transformation_to_cusp(p.value, q.value)
+        sig_off()
+        return result
+
     @rename_keyword(color='rgbcolor')
-    @options(alpha=1, fill=True, thickness=1, rgbcolor="lightgray", \
+    @options(alpha=1, fill=True, thickness=1, rgbcolor='lightgray', \
+             color_odd='lightgray', color_even='white', \
              zorder=2, linestyle='solid', show_pairing=True, \
-             show_tesselation=False)
+             tesselation='Dedekind', ymax=1
+        )
     def fundamental_domain(self, **options):
         r"""
         Plot a fundamental domain of an arithmetic subgroup of
@@ -483,10 +560,16 @@ cdef class Farey:
 
         - ``show_pairing`` - boolean (default: True) flag for pairing
 
-        - ``show_tesselation`` - boolean (default: False) flag for the
-          hyperbolic tesselation
+        - ``tesselation`` (default: 'Dedekind') The type of hyperbolic tesselation
+          which is one of 'coset', 'Dedekind' or None respectively
+
+        - ``color_odd`` fill color for Dedekind tesselation (default 'lightgray')
+  
+        - ``color_even`` fill color for Dedekind tesselation (default 'white')
 
         - ``thickness`` - float (default: 1) the thickness of the line
+
+        - ``ymax`` - float (default: 1) maximal height
 
         EXAMPLES:
 
@@ -506,35 +589,56 @@ cdef class Farey:
         Plot the fundamental domain of `\Gamma_0(23)` showing the left
         coset representatives::
 
-            sage: FareySymbol(Gamma0(23)).fundamental_domain(show_tesselation=True)
+            sage: FareySymbol(Gamma0(23)).fundamental_domain(tesselation='coset')
 
         The same as above but with a custom linestyle::
 
-            sage: FareySymbol(Gamma0(23)).fundamental_domain(show_tesselation=True, linestyle=':', thickness='2')
+            sage: FareySymbol(Gamma0(23)).fundamental_domain(tesselation='coset', linestyle=':', thickness='2')
 
         """
         from sage.plot.colors import rainbow
+        I = CC(0, 1)
+        w = RR(3).sqrt()
         L = 1000
         g = Graphics()
         ## show coset
         for x in self.coset_reps():
-            if self.index() != 2:
-                a, b, c, d = x[1, 1], -x[0, 1], -x[1, 0], x[0, 0]
-                A, B = CC(0, L), CC(0, L)
-                if d!=0: A = b/d
-                if c!=0: B = a/c
-                C = (a*c+b*d+(a*d+b*c)/2+CC(0, 1)*RR(3).sqrt()/2)\
-                    /(c*c+c*d+d*d)
+            a, b, c, d = x[1, 1], -x[0, 1], -x[1, 0], x[0, 0]
+            A, B = CC(0, L), CC(0, L)
+            if d!=0: A = b/d
+            if c!=0: B = a/c
+            C = (a*c+b*d+(a*d+b*c)/2+I*w/2)/(c*c+c*d+d*d)
+            D = (a*c+b*d + CC(0, 1))/(c*c+d*d)
+            if options['tesselation'] == 'Dedekind':
+                g += hyperbolic_triangle(A, D, C,
+                                         alpha=options['alpha'],
+                                         color=options['color_odd'],
+                                         fill=options['fill'],
+                                         linestyle=options['linestyle'],
+                                         thickness=options['thickness'])
+                g += hyperbolic_triangle(D, C, B,
+                                         alpha=options['alpha'],
+                                         color=options['color_even'],
+                                         fill=options['fill'],
+                                         linestyle=options['linestyle'],
+                                         thickness=options['thickness'])
+                g += hyperbolic_triangle(A, D, C, color='gray')
+                g += hyperbolic_triangle(D, C, B, color='gray')
+            elif options['tesselation'] == 'coset':
+                g += hyperbolic_triangle(A, B, C,
+                                         alpha=options['alpha'],
+                                         color=options['rgbcolor'],
+                                         fill=options['fill'],
+                                         linestyle=options['linestyle'],
+                                         thickness=options['thickness'])
+                g += hyperbolic_triangle(A, B, C, color='gray',
+                                         linestyle=options['linestyle'],
+                                         thickness=options['thickness'])
             else:
-                A, B, C = [x.acton(z) for z in [CC(0, 0), CC(1, 0), CC(0, L)]]
-            g += hyperbolic_triangle(A, B, C,
-                                     alpha=options['alpha'],
-                                     color=options['rgbcolor'],
-                                     fill=options['fill'],
-                                     linestyle=options['linestyle'],
-                                     thickness=options['thickness'])
-            if options['show_tesselation']:
-                g += hyperbolic_triangle(A, B, C, color="gray",
+                g += hyperbolic_triangle(A, B, C,
+                                         alpha=options['alpha'],
+                                         color=options['rgbcolor'],
+                                         fill=options['fill'],
                                          linestyle=options['linestyle'],
                                          thickness=options['thickness'])
         ## show pairings
@@ -556,7 +660,7 @@ cdef class Farey:
                                         linestyle=options['linestyle'],
                                         thickness=options['thickness'])
         d = g.get_minmax_data()
-        g.set_axes_range(d['xmin'], d['xmax'], 0, 1)
+        g.set_axes_range(d['xmin'], d['xmax'], 0, options['ymax'])
         return g
 
 

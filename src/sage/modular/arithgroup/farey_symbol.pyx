@@ -45,6 +45,8 @@ from sage.plot.colors import to_mpl_color
 from sage.plot.misc import options, rename_keyword
 from sage.plot.all import hyperbolic_arc, hyperbolic_triangle, text
 
+from sage.misc.latex import mathjax_avoid_list
+
 cdef class Farey:
     r"""
     A class for calculating Farey symbols of arithmetics subgroups of
@@ -274,18 +276,39 @@ cdef class Farey:
 
         EXAMPLES::
 
-            sage: FareySymbol(Gamma0(3))._latex_()
-            '\\left( -\\infty\\underbrace{\\quad}_{1} 0\\underbrace{\\quad}_{\\bullet} 1\\underbrace{\\quad}_{1} \\infty\\right)'
+            sage: if 'xymatrix' in sage.misc.latex.mathjax_avoid_list():
+            ...       assert FareySymbol(Gamma0(11))._latex_() == \
+            ...           '\\begin{xy}\\xymatrix{& -\\infty \\ar@{-}@/_1pc/[r]_{1}& 0 \\ar@{-}@/_1pc/[r]_{2}& \\frac{1}{3} \\ar@{-}@/_1pc/[r]_{3}& \\frac{1}{2} \\ar@{-}@/_1pc/[r]_{2}& \\frac{2}{3} \\ar@{-}@/_1pc/[r]_{3}& 1 \\ar@{-}@/_1pc/[r]_{1}&\\infty}\\end{xy}'
+            ...   else:
+            ...       assert FareySymbol(Gamma0(3))._latex_() == \
+            ...           '\\left( -\\infty\\underbrace{\\quad}_{1} 0\\underbrace{\\quad}_{\\bullet} 1\\underbrace{\\quad}_{1} \\infty\\right)'
         """
-        s = r'\left( -\infty'
-        a = [x._latex_() for x in self.fractions()] + ['\infty']
-        b = self.pairings()
-        for i in xrange(len(a)):
-            u = b[i]
-            if u == -3: u = r'\bullet'
-            elif u == -2: u = r'\circ'
+        if '\\xymatrix' in mathjax_avoid_list():
+            # output using xymatrix
+            s = r'\begin{xy}\xymatrix{-\infty'
+            f = [x._latex_() for x in self.fractions()]+[r'+\infty']
+            f.reverse()
+            for p in self.pairings():
+                if p >= 0:
+                    s += r'\ar@{-}@/_1pc/[r]_{%s}' % p
+                elif p == -2:
+                    s += r'\ar@{-}@/_1pc/[r]_{\circ}'
+                elif p == -3:
+                    s += r'\ar@{-}@/_1pc/[r]_{\bullet}'
+                    s += r'& %s ' % f.pop()
+                    s += r'}\end{xy}'
+                    return s
+        else:
+            # output not using xymatrix
+            s = r'\left( -\infty'
+            a = [x._latex_() for x in self.fractions()] + ['\infty']
+            b = self.pairings()
+            for i in xrange(len(a)):
+                u = b[i]
+                if u == -3: u = r'\bullet'
+                elif u == -2: u = r'\circ'
             s += r'\underbrace{\quad}_{%s} %s' % (u,a[i])
-        return s + r'\right)'
+            return s + r'\right)'
 
     def index(self):
         r"""

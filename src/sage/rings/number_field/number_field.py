@@ -2341,77 +2341,6 @@ class NumberField_generic(number_field_base.NumberField):
         else:
             return embedding(self.gen())
 
-    def elements_of_bdd_height(self, height_bound, precision=100, GRH=False):
-        from bdd_height import bdd_height
-        return bdd_height(self, height_bound, precision, GRH)
-        r"""
-        Return the elements of self whose relative multiplicative is at most height_bound.
-        
-        The algorithm requires floating point arithmetic, so the user is allowed to specify the precision used for such calculations. Also, certain number field calculations may be done faster assuming the Generalized Riemann Hypothesis, and the user is allowed to decide whether to assume GRH (True) or not (False).
-        
-        For details: John R. Doyle and David Krumm, Computing algebraic numbers of bounded height, http://arxiv.org/abs/1111.4963 (2013)
-        
-        INPUT:
-        
-        - ``height_bound`` - a real number
-        - ``precision`` - (default: 100) a positive integer
-        - ``GRH`` - (default: False) a boolean value
-        
-        OUTPUT:
-        
-        - a list of elements of self
-        
-        EXAMPLES:
-
-        There are no elements in a number field with multiplicative height less than 1::
-        
-        sage: K.<g> = NumberField(x^5 - x + 19)
-        sage: K.elements_of_bdd_height(0.4)
-        []
-        
-        The only elements in a number field of height 1 are 0 and the roots of unity::
-
-        sage: K.<a> = NumberField(x^2 + x + 1)
-        sage: K.elements_of_bdd_height(1)
-        [-a, -a - 1, -1, a, a + 1, 1, 0]
-        
-        ::
-        
-        sage: K.<a> = NumberField(x^2 + 17)
-        sage: L = K.elements_of_bdd_height(1000) # long time (30 s)
-        sage: len(L)
-        626367
-
-        ::
-
-        sage: K.<a> = NumberField(x^2 - 71)
-        sage: L = K.elements_of_bdd_height(100)
-        sage: len(L)
-        3283
-        
-        ::
-        
-        sage: K.<g> = NumberField(x^4 - 5)
-        sage: L = K.elements_of_bdd_height(100)
-        sage: len(L)
-        7939  
-        
-        ::
-        
-        sage: K.<a> = NumberField(x^6 + 2)
-        sage: L = K.elements_of_bdd_height(100)
-        sage: len(L)
-        5123
-        
-        ::
-        
-        sage: K.<a> = CyclotomicField(13)
-        sage: L = K.elements_of_bdd_height(10)
-        sage: len(L)
-        27
-        
-        """
-
     def algebraic_closure(self):
         """
         Return the algebraic closure of self (which is QQbar).
@@ -7840,6 +7769,129 @@ class NumberField_absolute(NumberField_generic):
             if self.hilbert_symbol(a,b,p) == -1:
                 d *= p
         return d
+        
+    def elements_of_bounded_height(self, B, precision=53, GRH=False):
+        r"""
+        Return an iterator over the elements of self with relative
+        multiplicative height at most B.
+        
+        The algorithm requires floating point arithmetic, so the user is
+        allowed to specify the precision for such calculations.
+        
+        Certain computations may be faster assuming GRH, so the user is allowed
+        to decide whether to assume GRH (True) or not (False).
+        
+        For details: John R. Doyle and David Krumm, Computing algebraic numbers
+        of bounded height, :arxiv:`1111.4963` (2013)
+        
+        INPUT:
+        
+        - ``B`` - a real number
+        - ``precision`` - (default: 53) a positive integer
+        - ``GRH`` - (default: False) a boolean value
+        
+        OUTPUT:
+        
+        - an iterator
+        
+        .. TODO::
+        
+        Current output cannot be guaranteed correct due to floating point
+        computations. Should implement version of algorithm that guarantees
+        correct output.
+        
+        EXAMPLES:
+
+        There are no elements in a number field with multiplicative height less
+        than 1::
+        
+            sage: K.<g> = NumberField(x^5 - x + 19)
+            sage: list(K.elements_of_bounded_height(0.9))
+            []
+
+        
+        The only elements in a number field of height 1 are 0 and the roots of
+        unity::
+
+            sage: K.<a> = NumberField(x^2 + x + 1)
+            sage: list(K.elements_of_bounded_height(1))
+            [0, -a, -a - 1, -1, a, a + 1, 1]
+
+        ::
+
+            sage: K.<a> = CyclotomicField(20)
+            sage: len(list(K.elements_of_bounded_height(1)))
+            21
+            
+        The elements in the output iterator all have relative multiplicative
+        height at most the input bound::
+        
+            sage: K.<a> = NumberField(x^6 + 2)
+            sage: L = K.elements_of_bounded_height(5)
+            sage: for t in L:
+            ....:     exp(6*t.global_height())
+            ....:     
+            1.00000000000000
+            1.00000000000000
+            1.00000000000000
+            2.00000000000000
+            2.00000000000000
+            2.00000000000000
+            2.00000000000000
+            4.00000000000000
+            4.00000000000000
+            4.00000000000000
+            4.00000000000000
+
+        ::
+
+            sage: K.<a> = NumberField(x^2 - 71)
+            sage: L = K.elements_of_bounded_height(20)
+            sage: all(exp(2*t.global_height()) <= 20 for t in L) # long time (5 s)
+            True
+
+        ::
+        
+            sage: K.<a> = NumberField(x^2 + 17)
+            sage: L = K.elements_of_bounded_height(1000)
+            sage: len(list(L)) # long time (30 s)
+            626367
+        
+        ::
+        
+            sage: K.<a> = NumberField(x^4 - 5)
+            sage: L = K.elements_of_bounded_height(100)
+            sage: len(list(L)) # long time (7 s)
+            7939
+        
+        ::
+        
+            sage: K.<a> = NumberField(x^6 + 2)
+            sage: L = K.elements_of_bounded_height(100)
+            sage: len(list(L)) # long time (9 s)
+            5171
+        
+        ::
+        
+            sage: K.<a> = CyclotomicField(13)
+            sage: L = K.elements_of_bounded_height(10)
+            sage: len(list(L)) # long time (6 s)
+            27
+        
+        AUTHORS:
+        
+        - John Doyle (2013)
+        
+        - David Krumm (2013)
+        
+        """
+        from sage.rings.number_field.bdd_height import bdd_height, bdd_height_iq
+        r1, r2 = self.signature()
+        r = r1 + r2 - 1
+        if self.degree() == 2 and r == 0:
+            return bdd_height_iq(self, B, GRH)
+        else:
+            return bdd_height(self, B, precision, GRH)     
 
 
 class NumberField_cyclotomic(NumberField_absolute):

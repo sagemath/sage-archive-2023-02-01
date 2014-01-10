@@ -10,9 +10,43 @@ axioms <category-primer-axioms>`.
 Implementing axioms
 -------------------
 
-To start with, assume one wants to provide code for the objects of
-some existing category ``Cs()`` that satisfy some existing axiom
-``A``. All one needs to do is define in ``Cs`` a nested class
+Situations involving a single axiom
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To start with, assume one wants to provide code (and documentation,
+tests, ...)  for the objects of some existing category ``Cs()`` that
+satisfy some existing axiom ``A``.
+
+The first step is to open the hood and check whether there already
+exist a class implementing the category ``Cs().A()``. For example,
+taking ``Cs=Semigroups`` and the ``Finite`` axiom, there already
+exists a class for the category of finite semigroups::
+
+    sage: Semigroups().Finite()
+    Category of finite semigroups
+    sage: type(Semigroups().Finite())
+    <class 'sage.categories.finite_semigroups.FiniteSemigroups_with_category'>
+
+Therefore, code about finite semigroups should go in the class
+:class:`FiniteSemigroups` (or, as usual, in its nested classes
+ParentMethods, ElementsMethods and so on).
+
+On the other hand, there is no class for the category of infinite
+semigroups::
+
+    sage: Semigroups().Infinite()
+    Category of infinite semigroups
+    sage: type(Semigroups().Infinite())
+    <class 'sage.categories.category.JoinCategory_with_category'>
+
+This category is indeed just constructed as the intersection of the
+categories of semigroups and of finite sets respectively::
+
+    sage: Semigroups().Infinite().super_categories()
+    [Category of semigroups, Category of infinite sets]
+
+In this later case, one needs to create a new class for this
+category. This boils down to adding in the class ``Cs`` a nested class
 inheriting from :class:`CategoryWithAxiom`::
 
     sage: from sage.categories.category_with_axiom import CategoryWithAxiom
@@ -37,7 +71,7 @@ inheriting from :class:`CategoryWithAxiom`::
     frozenset(['Finite'])
 
 Now a parent declared in the category ``Cs().Finite()`` inherits from
-all the methods of finite sets and of finite C's::
+all the methods of finite sets and of finite `C`'s, as desired::
 
     sage: P = Parent(category=Cs().Finite())
     sage: P.is_finite()
@@ -45,23 +79,27 @@ all the methods of finite sets and of finite C's::
     sage: P.foo()
     I am a method on finite C's
 
-Note that this is following the same idiom as for
-:mod:`covariant functorial constructions
-<sage.categories.covariant_functorial_construction>`.
-The category ``Cs().Finite()`` is aware that it has been constructed
-from the category ``Cs()`` and adding the axiom ``Finite``::
+.. NOTES::
 
-    sage: Cs().Finite().base_category()
-    Category of cs
-    sage: Cs().Finite()._axiom
-    'Finite'
+    - This follows the same idiom as for
+      :mod:`covariant functorial constructions
+      <sage.categories.covariant_functorial_construction>`.
 
-Over time, the code of the nested class ``Cs.Finite`` may become large
-and too cumbersome to keep as a nested class of ``Cs``. Or the
-category with axiom may have a name of its own in the litterature,
-like *semigroups* rather than *associative magmas*, or *fields* rather
-than *commutative division rings*. In this case, the category with
-axiom can be put in a separate file, with just a link from ``Cs``::
+    - The category ``Cs().Finite()`` is aware that it has been
+      constructed from the category ``Cs()`` and adding the axiom
+      ``Finite``::
+
+        sage: Cs().Finite().base_category()
+        Category of cs
+        sage: Cs().Finite()._axiom
+        'Finite'
+
+Over time, the nested class ``Cs.Finite`` may become large and too
+cumbersome to keep as a nested class of ``Cs``. Or the category with
+axiom may have a name of its own in the litterature, like *semigroups*
+rather than *associative magmas*, or *fields* rather than *commutative
+division rings*. In this case, the category with axiom can be put in a
+separate file, with just a link from ``Cs``::
 
     sage: class Cs(Category):
     ....:     def super_categories(self):
@@ -103,10 +141,19 @@ fails, typically because the category has a name of its own like
 should be set explicitly. See for example the code of the classes
 :class:`Semigroups` or :class:`Fields`.
 
+
+Handling multiple axioms, tree structure of the code
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+As we have seen in the :ref:`Primer <category-primer-axioms-explosion>`,
+the objects of a category can usually satisfy, or not, many different
+axioms. Out of all potential combinations of the axioms, only a small
+number of which are relevant in practice.
+
+...
+
 .. TODO::
 
-   - Checking if the appropriate category does not exist
-   - Handling of multiple axioms, tree structure of the code
    - Implementing a new axiom
    - Deduction rules
    - Specifications

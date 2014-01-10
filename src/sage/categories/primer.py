@@ -1113,6 +1113,8 @@ order to encode mathematical facts like Wedderburn's theorem::
     sage: DivisionRings() & Sets().Finite()
     Category of finite fields
 
+.. _category-primer-axioms-explosion:
+
 On the potential combinatorial explosion of categories with axioms
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

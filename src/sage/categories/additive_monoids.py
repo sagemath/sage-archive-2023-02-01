@@ -36,7 +36,7 @@ class AdditiveMonoids(CategoryWithAxiom_singleton):
         True
         sage: TestSuite(C).run()
     """
-    _base_category_class_and_axiom = [AdditiveSemigroups, "AdditiveUnital"]
+    _base_category_class_and_axiom = (AdditiveSemigroups, "AdditiveUnital")
 
     AdditiveCommutative = LazyImport('sage.categories.commutative_additive_monoids', 'CommutativeAdditiveMonoids', at_startup=True)
     AdditiveInverse = LazyImport('sage.categories.additive_groups', 'AdditiveGroups', at_startup=True)

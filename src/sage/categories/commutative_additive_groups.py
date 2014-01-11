@@ -41,7 +41,7 @@ class CommutativeAdditiveGroups(CategoryWithAxiom, AbelianCategory):
 
         sage: TestSuite(CommutativeAdditiveGroups()).run()
     """
-    _base_category_class_and_axiom = [AdditiveGroups, "AdditiveCommutative"]
+    _base_category_class_and_axiom = (AdditiveGroups, "AdditiveCommutative")
 
     class Algebras(AlgebrasCategory):
         pass

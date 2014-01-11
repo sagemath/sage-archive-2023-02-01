@@ -41,7 +41,7 @@ class AdditiveGroups(CategoryWithAxiom_singleton):
         sage: C = AdditiveGroups()
         sage: TestSuite(C).run()
     """
-    _base_category_class_and_axiom = [AdditiveMonoids, "AdditiveInverse"]
+    _base_category_class_and_axiom = (AdditiveMonoids, "AdditiveInverse")
 
     AdditiveCommutative = LazyImport('sage.categories.commutative_additive_groups', 'CommutativeAdditiveGroups', at_startup=True)
 

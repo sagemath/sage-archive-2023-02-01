@@ -32,7 +32,7 @@ class Groups(CategoryWithAxiom):
 
         sage: TestSuite(Groups()).run()
     """
-    _base_category_class_and_axiom = [Monoids, "Inverse"]
+    _base_category_class_and_axiom = (Monoids, "Inverse")
 
     def example(self):
         """

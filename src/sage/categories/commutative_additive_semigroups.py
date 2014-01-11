@@ -40,4 +40,4 @@ class CommutativeAdditiveSemigroups(CategoryWithAxiom):
 
         sage: TestSuite(C).run()
     """
-    _base_category_class_and_axiom = [AdditiveSemigroups, "AdditiveCommutative"]
+    _base_category_class_and_axiom = (AdditiveSemigroups, "AdditiveCommutative")

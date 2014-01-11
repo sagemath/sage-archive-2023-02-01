@@ -46,7 +46,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
         True
         sage: TestSuite(C).run()
     """
-    _base_category_class_and_axiom = [MagmaticAlgebras, "Unital"]
+    _base_category_class_and_axiom = (MagmaticAlgebras, "Unital")
 
     class ParentMethods:
         def from_base_ring(self, r):

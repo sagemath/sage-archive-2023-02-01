@@ -54,7 +54,7 @@ class Algebras(CategoryWithAxiom_over_base_ring):
 
         sage: TestSuite(Algebras(ZZ)).run()
     """
-    _base_category_class_and_axiom = [AssociativeAlgebras, 'Unital']
+    _base_category_class_and_axiom = (AssociativeAlgebras, 'Unital')
 
     # For backward compatibility?
     def __contains__(self, x):

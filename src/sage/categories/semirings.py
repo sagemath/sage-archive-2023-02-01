@@ -44,5 +44,5 @@ class Semirings(CategoryWithAxiom):
 
         sage: TestSuite(Semirings()).run()
     """
-    _base_category_class_and_axiom = [DistributiveMagmasAndAdditiveMagmas.AdditiveAssociative.AdditiveCommutative.AdditiveUnital.Associative, "Unital"]
+    _base_category_class_and_axiom = (DistributiveMagmasAndAdditiveMagmas.AdditiveAssociative.AdditiveCommutative.AdditiveUnital.Associative, "Unital")
 

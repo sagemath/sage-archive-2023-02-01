@@ -7,18 +7,27 @@ that the reader is familiar with the :mod:`category primer
 <sage.categories.primer>`, and in particular its :ref:`section about
 axioms <category-primer-axioms>`.
 
+.. TODO::
+
+   Finalization of the documentation for :trac:`10963`:
+
+   - Deduction rules
+   - Describe the algorithm for adding axioms and computing intersections
+   - Flesh out the design goals
+   - Cleanup the specifications section
+
 Implementing axioms
--------------------
+===================
 
-Situations involving a single axiom
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Simple case involving a single axiom
+------------------------------------
 
-To start with, assume one wants to provide code (and documentation,
-tests, ...)  for the objects of some existing category ``Cs()`` that
-satisfy some existing axiom ``A``.
+Suppose that one wants to provide code (and documentation, tests, ...)
+for the objects of some existing category ``Cs()`` that satisfy some
+predefined axiom ``A``.
 
 The first step is to open the hood and check whether there already
-exist a class implementing the category ``Cs().A()``. For example,
+exists a class implementing the category ``Cs().A()``. For example,
 taking ``Cs=Semigroups`` and the ``Finite`` axiom, there already
 exists a class for the category of finite semigroups::
 
@@ -98,19 +107,24 @@ Over time, the nested class ``Cs.Finite`` may become large and too
 cumbersome to keep as a nested class of ``Cs``. Or the category with
 axiom may have a name of its own in the litterature, like *semigroups*
 rather than *associative magmas*, or *fields* rather than *commutative
-division rings*. In this case, the category with axiom can be put in a
-separate file, with just a link from ``Cs``::
+division rings*. In this case, the category with axiom can be put
+elsewhere, typically in a separate file, with just links to and from
+``Cs``::
 
     sage: class Cs(Category):
     ....:     def super_categories(self):
     ....:         return [Sets()]
-    ....:     Finite = LazyImport('sage.categories.finite_cs', 'FiniteCs')
+    sage: class FiniteCs(CategoryWithAxiom):
+    ....:     _base_category_class_and_axiom = (Cs, 'Finite')
+    ....:     class ParentMethods:
+    ....:         def foo(self):
+    ....:             print "I am a method on finite C's"
+    sage: Cs.Finite = FiniteCs
 
-For a working example look up the code of the class
-:class:`FiniteSets` and the link to it in :class:`Sets`.
-
-In this scenario, the category with axiom can equivalently be created
-directly or through its base category::
+For a real example, look up the code of the class :class:`FiniteSets`
+and the link to it in :class:`Sets` using a lazy import. The category
+with axiom can be created either directly or through its base
+category::
 
     sage: FiniteSets()
     Category of finite sets
@@ -120,45 +134,241 @@ directly or through its base category::
     True
 
 For the former idiom to work, and with the current implementation of
-axioms, the class :class:`FiniteSets` needs to be aware of the class
-of its base category (here, :class:`Sets`) and of the axiom (here,
+axioms, the class :class:`FiniteSets` needs to be aware of the base
+category class (here, :class:`Sets`) and of the axiom (here,
 ``Finite``)::
 
     sage: FiniteSets._base_category_class_and_axiom
-    (sage.categories.sets_cat.Sets, 'Finite')
+    (<class 'sage.categories.sets_cat.Sets'>, 'Finite')
     sage: Semigroups._base_category_class_and_axiom
-    [sage.categories.magmas.Magmas, 'Associative']
+    (<class 'sage.categories.magmas.Magmas'>, 'Associative')
     sage: Fields._base_category_class_and_axiom
-    (sage.categories.division_rings.DivisionRings, 'Commutative')
+    (<class 'sage.categories.division_rings.DivisionRings'>, 'Commutative')
     sage: FiniteDimensionalAlgebrasWithBasis._base_category_class_and_axiom
-    (sage.categories.algebras_with_basis.AlgebrasWithBasis, 'FiniteDimensional')
+    (<class 'sage.categories.algebras_with_basis.AlgebrasWithBasis'>, 'FiniteDimensional')
 
 As a syntactic sugar, Sage tries some obvious heuristics to guess
 those from the name of the category with axiom (see
 :func:`base_category_class_and_axiom` for the details). When this
 fails, typically because the category has a name of its own like
 :class:`Fields`, the attribute ``_base_category_class_and_axiom``
-should be set explicitly. See for example the code of the classes
-:class:`Semigroups` or :class:`Fields`.
+should be set explicitly. For more examples, see the code of the
+classes :class:`Semigroups` or :class:`Fields`.
+
+In our example ``FiniteCs``, Sage failed to guess automatically the
+base category class and axiom because the class ``Cs`` is not in the
+standard location ``sage.categories.cs``.
+
+Implementing a new axiom
+------------------------
+
+We describe now how to define a new axiom. The first step is to figure
+out the largest category where the axiom makes sense. For example
+``Sets`` for ``Finite``, ``Magmas`` for ``Associative``, or
+``Modules`` for ``FiniteDimensional``. Here we define the axiom
+``Green`` for the category ``Cs`` and its subcategories::
+
+    sage: from sage.categories.category_with_axiom import CategoryWithAxiom
+    sage: class Cs(Category):
+    ....:     def super_categories(self):
+    ....:         return [Sets()]
+    ....:     class SubcategoryMethods:
+    ....:         def Green(self):
+    ....:             '<documentation of the axiom Green>'
+    ....:             return self._with_axiom("Green")
+    ....:     class Green(CategoryWithAxiom):
+    ....:         class ParentMethods:
+    ....:             def foo(self):
+    ....:                 print "I am a method on green C's"
+
+With the current implementation, the name of the axiom must also be
+added to a global tuple::
+
+    sage: sage.categories.category_with_axiom.all_axioms += ("Green",)
+
+The order of the axioms in this tuple controls the order in which the
+axioms are printed.
+
+We can now use the axiom as usual::
+
+    sage: Cs().Green()
+    Category of green cs
+
+    sage: P = Parent(category=Cs().Green())
+    sage: P.foo()
+    I am a method on green C's
+
+Compared with our first example, the only newcomer is the method
+``.Green()`` that can be used by any subcategory ``Ds()`` of ``Cs()``
+to add the axiom ``Green``. Due to some magic, ``Ds().Green`` always
+gives this method, regardless of whether ``Ds`` has a nested class
+``Green`` or not (an implementation detail)::
+
+    sage: Cs().Green
+    <bound method Cs_with_category.Green of Category of cs>
+
+Thanks to this feature, the user is systematically referred to the
+documentation of this method when doing introspection on
+``Ds().Green``::
+
+    sage: Cs().Green?             # not tested
+    sage: Cs().Green.__doc__
+    '<documentation of the axiom Green>'
+
+It is therefore the natural spot for the documentation of the axiom.
+
+.. NOTE::
+
+    The presence of the nested class ``Green`` in ``Cs`` is mandatory
+    even if it is empty.
 
 
 Handling multiple axioms, tree structure of the code
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------------------------------
+
+Prelude
+^^^^^^^
+
+Let us consider the category of magmas, together with two of its
+axioms, namely ``Associative`` and ``Unital``. An associative magma is
+a semigroup and a unital semigroup is a monoid; we have also seen that
+axioms commute::
+
+    sage: Magmas().Unital()
+    Category of unital magmas
+    sage: Magmas().Associative()
+    Category of semigroups
+    sage: Magmas().Associative().Unital()
+    Category of monoids
+    sage: Magmas().Unital().Associative()
+    Category of monoids
+
+At the level of the classes implementing those categories, the
+following comes as a general naturalization of the previous section::
+
+    sage: Magmas.Unital
+    <class 'sage.categories.magmas.Magmas.Unital'>
+    sage: Magmas.Associative
+    <class 'sage.categories.semigroups.Semigroups'>
+    sage: Magmas.Associative.Unital
+    <class 'sage.categories.monoids.Monoids'>
+
+However, the following may look suspicous at first::
+
+    sage: Magmas.Unital.Associative
+    Traceback (most recent call last):
+    ...
+    AttributeError: type object 'Magmas.Unital' has no attribute 'Associative'
+
+The purpose of this section is to explain the design of the code
+layout and the rationale for this mismatch.
+
+Abstract model
+^^^^^^^^^^^^^^
 
 As we have seen in the :ref:`Primer <category-primer-axioms-explosion>`,
-the objects of a category can usually satisfy, or not, many different
-axioms. Out of all potential combinations of the axioms, only a small
-number of which are relevant in practice.
+the objects of a category ``Cs()`` can usually satisfy, or not, many
+different axioms. Out of all combinations of axioms, only a small
+number are relevant in practice, in the sense that we actuant want to
+provide features for the objects satisfying those axioms.
 
-...
+Therefore, in the context of the category class `Cs`, we want to
+provide the system with a collection `(D_S)_{S\in \mathcal S}` were
+`S` is a subset of the axioms and `D_S` is a class for the subcategory
+of the object of ``Cs()`` satisfying the axioms in `S`. For example,
+if ``Cs()`` is the category of magmas, the pairs would include::
 
-.. TODO::
+    {Associative}                 : Semigroups
+    {Associative, Unital}         : Monoids
+    {Associative, Unital, Inverse}: Groups
+    {Associative, Commutative}    : Commutative Semigroups
+    {Unital,      Inverse}        : Loops
 
-   - Implementing a new axiom
-   - Deduction rules
-   - Specifications
-   - Algorithm for adding axioms and computing intersections
-   - Flesh out the design goals
+Then, given a subset `T` of axioms, we want the system to be able to
+select automatically the relevant classes
+`(D_S)_{S\in \mathcal S, S\subset T}`,
+and build from them a category for the objects of ``Cs`` satisfying
+the axioms in `T`, together with its hierarchy of super categories. If
+`T` is in \mathcal S`, then the class of the resulting category is
+directly `D_T`::
+
+    sage: C = Magmas().Unital().Inverse().Associative(); C
+    Category of groups
+    sage: type(C)
+    <class 'sage.categories.groups.Groups_with_category'>
+
+Otherwise, we get a join category::
+
+    sage: C = Magmas().Infinite().Unital().Associative(); C
+    Category of infinite monoids
+    sage: type(C)
+    <class 'sage.categories.category.JoinCategory_with_category'>
+    sage: C.super_categories()
+    [Category of monoids, Category of infinite sets]
+
+Concrete model as a tree of nested classes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+We further want the construction to be efficient and amenable to
+lazyness. This led us to the following design decision: the collection
+`(D_S)_{S\in \mathcal S}` of classes should be structured as a rooted
+tree. The root is ``Cs``, corresponding to `S=\emptyset`. Any other
+class `D_S` should be the child of a single class `D_{S'}` where `S'`
+is obtained from `S` by removing exactly one axiom `A`. Of course,
+`D_S'` and `A` are respectively the base category class and axiom of
+the category with axiom `D_S` that we have met in the first section.
+
+At this point, we urge the reader to explore the code of
+:class:`Magmas` and :class:`DistributiveMagmasAndAdditiveMagmas` and
+see how the tree structure on the categories with axioms is reflected
+by the nesting of category classes.
+
+Discussion of the design
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Placeholder classes
+~~~~~~~~~~~~~~~~~~~
+
+Given that we can only remove one axiom at a time when going up the
+tree, we need to create some category classes that are just
+placeholders. See for example the chain of nested classes
+:class:`DistributiveMagmasAndAdditiveMagmas.AdditiveAssociative.AdditiveCommutative.AdditiveUnital`.
+
+Asymmetry
+~~~~~~~~~
+
+As we have seen at the beginning of this section this design
+introduces an asymmetry. It's not so bad in practice since, more often
+than not, one of the link is more natural than the other: a monoid is
+usually defined as a unital monoid rather than as a unital magma which
+is associative.
+
+Mismatch between the tree of nested classes and the hierarchy of categories
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This may sound suspicious at first! However, as mentionned in the
+primer, this is actually a big selling point of the axioms
+infrastructure: by calculating automatically the hierarchy relation
+between categories with axioms one avoids the nightmare of maintaining
+it by hand.  Instead, only a rather minimal number of links needs to
+be maintainted in the code (one per category with axiom).
+
+Besides, with the flexibility introduced by runtime deduction rules
+(see below) the hierarchy of categories may depend on the parameters
+of the categories and not just their class. So it's best to make it
+clear from the onset that the two relations do not match.
+
+Flexibility
+~~~~~~~~~~~
+
+
+This design also brings in quite some flexibility, with the
+possibility to support features such as::
+
+- Defining new axioms within a category with axiom. See for example
+  :class:`Magmas.Unital.Inverse`.
+
+- ...
 
 Specifications
 ^^^^^^^^^^^^^^
@@ -327,11 +537,10 @@ from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.category_types import Category_over_base_ring
 from sage.structure.dynamic_class import DynamicMetaclass
-# modifier / modified
-# specifier / specified
-#             variant
-# qualifier / qualified category
-# axiom / constraint
+
+# The order of the axioms in this lists implies that
+# Magmas().Commutative().Unital() is printed as
+# ``Category of commutative unital magmas''
 
 all_axioms = ("Flying", "Blue",
               "Facade", "Finite", "Infinite",
@@ -340,10 +549,6 @@ all_axioms = ("Flying", "Blue",
               "Commutative", "Associative", "Inverse", "Unital", "Division", "NoZeroDivisors",
               "AdditiveCommutative", "AdditiveAssociative", "AdditiveInverse", "AdditiveUnital",
               )
-
-# The order of the axioms implies that
-# Magmas().Commutative().Unital() is printed as
-# ``Category of commutative unital magmas''
 
 @cached_function
 def axioms_rank(axiom):
@@ -506,7 +711,7 @@ def axiom_of_nested_class(cls, nested_cls):
     ``_base_category_class_and_axiom``::
 
         sage: Semigroups._base_category_class_and_axiom
-        [<class 'sage.categories.magmas.Magmas'>, 'Associative']
+        (<class 'sage.categories.magmas.Magmas'>, 'Associative')
         sage: axiom_of_nested_class(Magmas, Semigroups)
         'Associative'
     """

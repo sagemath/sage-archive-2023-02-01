@@ -14,6 +14,7 @@ import urllib
 import urlparse
 
 
+
 def http_error_default(url, fp, errcode, errmsg, headers):
     """
     Callback for the URLopener to raise an exception on HTTP errors
@@ -55,6 +56,11 @@ class ProgressBar(object):
         missing = '.' * (self.length - self.progress)
         self.stream.write(missing + ']\n')
         self.stream.flush()
+
+    def error_stop(self):
+        missing = 'x' * (self.length - self.progress)
+        self.stream.write(missing + ']\n')
+        self.stream.flush()
         
 
 def http_download(url, destination=None, progress=True):
@@ -79,10 +85,25 @@ def http_download(url, destination=None, progress=True):
     if progress:
         progress_bar = ProgressBar()
         progress_bar.start()
-        filename, info = opener.retrieve(url, destination, progress_bar)
-        progress_bar.stop()
+        try:
+            filename, info = opener.retrieve(url, destination, progress_bar)
+        except IOError:
+            progress_bar.error_stop()
+            raise
+        else:
+            progress_bar.stop()
     else:
         filename, info = opener.retrieve(url, destination)
+
+
+
+def upstream_directory():
+    upstream = os.path.join(os.environ['SAGE_ROOT'], 'upstream')
+    try:
+        os.mkdir(upstream)
+    except OSError:
+        pass
+    return upstream
 
 
 class MirrorList(object):
@@ -92,8 +113,7 @@ class MirrorList(object):
     MAXAGE = 24*60*60   # seconds
 
     def __init__(self):
-        self.tmp_directory = self._find_tmp_directory()
-        self.filename = os.path.join(self.tmp_directory, 'mirror_list')
+        self.filename = os.path.join(upstream_directory(), 'mirror_list')
         if self.must_refresh():
             print('Downloading the Sage mirror list')
             http_download(self.URL, self.filename)
@@ -136,18 +156,17 @@ class MirrorList(object):
         timed_mirrors = []
         import time, socket
         print('Searching fastest mirror')
+        timeout = 1
         for mirror in self.mirrors:
             port = self._port_of_mirror(mirror)
             mirror_hostname = urlparse.urlsplit(mirror).netloc
             time_before = time.time()
             try:
-                sock = socket.socket()
-                sock.connect((mirror_hostname, port))
-            except socket.error:
+                sock = socket.create_connection((mirror_hostname, port), timeout)
+                sock.close()
+            except (IOError, socket.error, socket.timeout):
                 continue
                 print(str('ERROR').rjust(5) + '    ' + mirror)
-            finally:
-                sock.close()
             result = time.time() - time_before
             result_ms = int(1000 * result)
             print(str(result_ms).rjust(5) + 'ms: ' + mirror)
@@ -180,11 +199,133 @@ class MirrorList(object):
             return True
         return self.age() > self.MAXAGE
 
-    def _find_tmp_directory(self):
-        tmp_dir = os.path.join(os.environ['SAGE_ROOT'], 'tmp')
-        if not os.path.isdir(tmp_dir):
-            raise ValueError('SAGE_ROOT/tmp is supposed to exists')
-        return tmp_dir
+    def __iter__(self):
+        for mirror in self.mirrors:
+            yield mirror
+        
+
+
+class ChecksumError(Exception):
+    pass
+
+class FileNotMirroredError(Exception):
+    pass
+
+
+class Tarball(object):
+    
+    def __init__(self, tarball_name):
+        """
+        A (third-party downloadable) tarball
+
+        INPUT:
+
+        - ``name`` - string. The full filename (``foo-1.3.tar.bz2``)
+          of a tarball on the Sage mirror network.
+        """
+        self.filename = tarball_name
+        self.base, self.verson, self.ext = self._parse_name(tarball_name)
+        self._init_checksum()
+
+    @property
+    def package(self):
+        """
+        Return the package name (the subdirectory of ``build/pkgs/``)
+        """
+        return self.base.lower()
+
+    @property
+    def upstream_fqn(self):
+        """
+        The fully-qualified (including directory) file name in the upstream directory.
+        """
+        return os.path.join(upstream_directory(), self.filename)
+
+    def _parse_name(self, name):
+        """
+        Parse the tarball name into base, version, and extension
+        """
+        import re
+        regex = re.compile('(?P<base>[a-zA-Z_]*)-(?P<version>.*)\.(?P<ext>tar.*)')
+        return regex.match(name).groups()
+
+    def _init_checksum(self):
+        """
+        Load the checksums from the appropriate ``checksums.ini`` file
+        """
+        import re
+        SAGE_ROOT = os.environ['SAGE_ROOT']
+        pkg_dir = os.path.join(SAGE_ROOT, 'build', 'pkgs', self.package)
+        checksums_ini = os.path.join(pkg_dir, 'checksums.ini')
+        assignment = re.compile('(?P<var>[a-zA-Z0-9]*)=(?P<value>.*)')
+        result = dict()
+        with open(checksums_ini, 'rt') as f:
+            for line in f.readlines():
+                match = assignment.match(line)
+                if match is None:
+                    continue
+                var, value = match.groups()
+                result[var] = value
+        self.md5 = result['md5']
+        self.sha1 = result['sha1']
+        self.cksum = result['cksum']
+        self.sha1 = result['sha1']
+        
+    def _compute_hash(self, algorithm):
+        with open(self.upstream_fqn, 'rb') as f:
+            while True:
+                buf = f.read(0x100000)
+                if not buf:
+                    break
+                algorithm.update(buf)
+        return algorithm.hexdigest()
+
+    def _compute_sha1(self):
+        import hashlib
+        return self._compute_hash(hashlib.sha1())
+
+    def _compute_md5(self):
+        import hashlib
+        return self._compute_md5(hashlib.md5())
+    
+    def checksum_verifies(self):
+        """
+        Test whether the checksum of the downloaded file is correct.
+        """
+        sha1 = self._compute_sha1()
+        return sha1 == self.sha1
+
+    def download(self, mirror_list):
+        """
+        Download the tarball to the upstream directory.
+        """
+        destination = os.path.join(upstream_directory(), self.filename)
+        if os.path.isfile(destination):
+            if self.checksum_verifies():
+                print('Using cached file $SAGE_ROOT/upstream/'+self.filename)
+                return
+            else:
+                # Garbage in the upstream directory? Delete and re-download
+                print('Invalid checksum for cached file $SAGE_ROOT/upstream/'+self.filename)
+                os.remove(destination)
+        successful_download = False
+        for mirror in mirror_list:
+            url = mirror + '/'.join(['spkg', 'upstream', self.package, self.filename])
+            print(url)
+            try:
+                http_download(url, self.upstream_fqn)
+                successful_download = True
+                break
+            except IOError:
+                pass  # mirror doesn't have file for whatever reason...
+        if not successful_download:
+            raise FileNotMirroredError('tarball does not exist on mirror')
+        if not self.checksum_verifies():
+            raise ChecksumError('checksum does not match')
+
+    def save_as(self, destination):
+        import shutil
+        shutil.copy(self.upstream_fqn, destination)
 
 
 usage = \
@@ -195,7 +336,12 @@ USAGE:
 
 The single mandatory argument can be a http:// or ftp:// url or a
 tarball filename. In the latter case, the tarball is downloaded from
-the mirror network and its checksum is verified.  """
+the mirror network and its checksum is verified.
+
+If the destination is not specified:
+* a url will be downloaded and the content written to stdout
+* a tarball will be saved under $SAGE_ROOT/upstream
+"""
 
 
 if __name__ == '__main__':
@@ -216,12 +362,15 @@ if __name__ == '__main__':
     if url is None:
         print(usage)
         sys.exit(1)
-    if url.startswith('http://') or url.startswith('ftp://'):
+    if url.startswith('http://') or url.startswith('https://') or url.startswith('ftp://'):
         http_download(url, destination, progress=progress)
     else:
         # url is a tarball name
         mirror_list = MirrorList()
-
+        tarball = Tarball(url)
+        tarball.download(mirror_list)
+        if destination is not None:
+            tarball.save_as(destination)
         
     
     

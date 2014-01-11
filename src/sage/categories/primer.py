@@ -1094,10 +1094,9 @@ together::
 
 For a more advanced example, Sage knows that a set `C` endowed with a
 multiplication which distributes over addition, such that `(C,+)` is
-an additive group and `(C,*)` is a monoid is a ring::
+a commutative additive group and `(C,*)` is a monoid is a ring::
 
-    sage: from sage.categories.additive_groups import AdditiveGroups
-    sage: C = DistributiveMagmasAndAdditiveMagmas() & AdditiveGroups() & Monoids(); C
+    sage: C = DistributiveMagmasAndAdditiveMagmas() & CommutativeAdditiveGroups() & Monoids(); C
     Category of rings
 
     sage: sorted(C.axioms())

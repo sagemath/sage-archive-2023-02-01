@@ -34,12 +34,12 @@ from sage.rings.integer cimport Integer
 
 from sage.rings.complex_number cimport ComplexNumber
 from sage.rings.complex_field import ComplexField
-CCC=ComplexField()
+CCC = ComplexField()
 
 from sage.rings.real_mpfr cimport RealNumber
 from sage.rings.real_mpfr import RealField
-RRR= RealField ()
-pi=RRR.pi()
+RRR = RealField()
+pi = RRR.pi()
 
 initialize_globals()
 
@@ -49,7 +49,8 @@ initialize_globals()
 
 cdef class Lfunction:
     # virtual class
-    def __init__(self, name, what_type_L, dirichlet_coefficient,  period, Q, OMEGA, gamma,lambd, pole,residue):
+    def __init__(self, name, what_type_L, dirichlet_coefficient,
+                 period, Q, OMEGA, gamma, lambd, pole, residue):
         """
         Initialization of L-function objects.
         See derived class for details, this class is not supposed to be
@@ -66,14 +67,14 @@ cdef class Lfunction:
         cdef RealNumber tmpr    #for accessing real values
         cdef ComplexNumber tmpc #for accessing complexe values
 
-        cdef char *NAME=name
+        cdef char *NAME = name
         cdef int what_type = what_type_L
 
-        tmpi=Integer(period)
+        tmpi = Integer(period)
         cdef int Period = mpz_get_si(tmpi.value)
         tmpr = RRR(Q)
         cdef double q=mpfr_get_d(tmpr.value,GMP_RNDN)
-        tmpc=CCC(OMEGA)
+        tmpc = CCC(OMEGA)
         cdef c_Complex w=new_Complex(mpfr_get_d(tmpc.__re,GMP_RNDN), mpfr_get_d(tmpc.__im, GMP_RNDN))
 
         cdef int A=len(gamma)
@@ -122,16 +123,17 @@ cdef class Lfunction:
         """
         return self._repr
 
-    def value(self,s,derivative=0):
+    def value(self, s, derivative=0):
         """
         Computes the value of the L-function at ``s``
 
         INPUT:
-         - ``s`` -  a complex number
-         - ``derivative`` - integer (default: 0)  the derivative to be evaluated
-         - ``rotate`` - (default: False) If True, this returns the value of the
-           Hardy Z-function (sometimes called the Riemann-Siegel Z-function or
-           the Siegel Z-function).
+
+        - ``s`` -  a complex number
+        - ``derivative`` - integer (default: 0)  the derivative to be evaluated
+        - ``rotate`` - (default: False) If True, this returns the value of the
+          Hardy Z-function (sometimes called the Riemann-Siegel Z-function or
+          the Siegel Z-function).
 
         EXAMPLES::
 
@@ -167,13 +169,13 @@ cdef class Lfunction:
         cdef c_Complex result = self.__value(z, derivative)
         return CCC(result.real(),result.imag())
 
-    def hardy_z_function(self,s):
+    def hardy_z_function(self, s):
         """
         Computes the Hardy Z-function of the L-function at s
         
         INPUT:
 
-         - ``s`` - a complex number with imaginary part between -0.5 and 0.5
+        - ``s`` - a complex number with imaginary part between -0.5 and 0.5
 
         EXAMPLES::
 
@@ -255,9 +257,10 @@ cdef class Lfunction:
         Use find_zeros_via_N for slower but more rigorous computation.
 
         INPUT:
-         - ``T1`` -- a real number giving the lower bound
-         - ``T2`` -- a real number giving the upper bound
-         - ``stepsize`` -- step size to be used for the zero search
+        
+        - ``T1`` -- a real number giving the lower bound
+        - ``T2`` -- a real number giving the upper bound
+        - ``stepsize`` -- step size to be used for the zero search
 
         OUTPUT:
 
@@ -301,7 +304,8 @@ cdef class Lfunction:
         return returnvalue
 
     #The default values are from L.h. See L.h
-    def find_zeros_via_N(self, count=0, do_negative=False, max_refine=1025, rank=-1, test_explicit_formula=0):
+    def find_zeros_via_N(self, count=0, do_negative=False, max_refine=1025,
+                         rank=-1, test_explicit_formula=0):
         """
         Finds ``count`` number of zeros with positive imaginary part
         starting at real axis. This function also verifies that all
@@ -349,7 +353,6 @@ cdef class Lfunction:
             sage: L=Lfunction_Zeta()
             sage: L.find_zeros_via_N(3)
             [14.1347251417..., 21.0220396387..., 25.0108575801...]
-
         """
         cdef Integer count_I = Integer(count)
         cdef Integer do_negative_I = Integer(do_negative)
@@ -378,8 +381,7 @@ cdef class Lfunction:
     
     cdef int __compute_rank(self):
         raise NotImplementedError
-    
-    
+
     cdef double __typedN(self,double T):
         raise NotImplementedError
 
@@ -443,7 +445,8 @@ cdef class Lfunction_I(Lfunction):
         by replacing `s` by `s+(k-1)/2`, one can get it in the form we need.
     """
 
-    def __init__(self, name, what_type_L, dirichlet_coefficient,  period, Q, OMEGA, gamma,lambd, pole,residue):
+    def __init__(self, name, what_type_L, dirichlet_coefficient,
+                 period, Q, OMEGA, gamma, lambd, pole, residue):
         r"""
         Initialize an L-function with integer coefficients
 
@@ -477,7 +480,6 @@ cdef class Lfunction_I(Lfunction):
 
     cdef int __compute_rank(self):
         return (<c_Lfunction_I *>(self.thisptr)).compute_rank()
-
 
     cdef void __find_zeros_v(self, double T1, double T2, double stepsize, doublevec *result):
         (<c_Lfunction_I *>self.thisptr).find_zeros_v(T1,T2,stepsize,result[0])
@@ -578,11 +580,13 @@ cdef class Lfunction_D(Lfunction):
         If an L-function satisfies `\Lambda(s) = \omega Q^s \Lambda(k-s)`,
         by replacing `s` by `s+(k-1)/2`, one can get it in the form we need.
     """
-    def __init__(self, name, what_type_L, dirichlet_coefficient,  period, Q, OMEGA, gamma,lambd, pole,residue):
+    def __init__(self, name, what_type_L, dirichlet_coefficient,
+                 period, Q, OMEGA, gamma, lambd, pole, residue):
         r"""
         Initialize an L-function with real coefficients
 
         EXAMPLES::
+
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
             sage: chi=DirichletGroup(5)[2] #This is a quadratic character
             sage: L=Lfunction_from_character(chi, type="double")
@@ -715,17 +719,18 @@ cdef class Lfunction_C:
         by replacing `s` by `s+(k-1)/2`, one can get it in the form we need.
     """
 
-    def __init__(self, name, what_type_L, dirichlet_coefficient,  period, Q, OMEGA, gamma,lambd, pole,residue):
+    def __init__(self, name, what_type_L, dirichlet_coefficient,
+                 period, Q, OMEGA, gamma, lambd, pole, residue):
         r"""
         Initialize an L-function with complex coefficients
 
         EXAMPLES::
+
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
             sage: chi=DirichletGroup(5)[1]
             sage: L=Lfunction_from_character(chi, type="complex")
             sage: type(L)
             <type 'sage.libs.lcalc.lcalc_Lfunction.Lfunction_C'>
-
         """
         Lfunction.__init__(self, name, what_type_L, dirichlet_coefficient,  period, Q, OMEGA, gamma,lambd, pole,residue)
         self._repr += " with complex Dirichlet coefficients"
@@ -823,12 +828,11 @@ cdef class Lfunction_Zeta(Lfunction):
         Initialize the Riemann zeta function.
 
         EXAMPLES::
+
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
             sage: sage.libs.lcalc.lcalc_Lfunction.Lfunction_Zeta()
             The Riemann zeta function
-
         """
-
         self.thisptr = new_c_Lfunction_Zeta()
         self._repr = "The Riemann zeta function"
 
@@ -875,7 +879,7 @@ def Lfunction_from_character(chi, type="complex"):
 
     OUTPUT:
 
-        L-function object for `chi`.
+    L-function object for `chi`.
 
     EXAMPLES::
 
@@ -907,17 +911,17 @@ def Lfunction_from_character(chi, type="complex"):
     period=modulus
     OMEGA=1.0/ ( CCC(0,1)**a * (CCC(modulus)).sqrt()/chi.gauss_sum() )
 
-    if type=="complex":
+    if type == "complex":
         dir_coeffs=[CCC(chi(n)) for n in xrange(1,modulus+1)]
         return Lfunction_C("", 1,dir_coeffs, period,Q,OMEGA,[.5],[a/2.],poles,residues)
     if not type in ["double","int"]:
         raise ValueError("unknown type")
     if chi.order() != 2:
         raise ValueError("For non quadratic characters you must use type=\"complex\"")
-    if type=="double":
+    if type == "double":
         dir_coeffs=[RRR(chi(n)) for n in xrange(1,modulus+1)]
         return Lfunction_D("", 1,dir_coeffs, period,Q,OMEGA,[.5],[a/2.],poles,residues)
-    if type=="int":
+    if type == "int":
         dir_coeffs=[Integer(chi(n)) for n in xrange(1,modulus+1)]
         return Lfunction_I("", 1,dir_coeffs, period,Q,OMEGA,[.5],[a/2.],poles,residues)
 
@@ -928,15 +932,16 @@ def Lfunction_from_elliptic_curve(E, number_of_coeffs=10000):
     the function `L(s, E)`.
 
     INPUT:
-      - ``E`` - An elliptic curve
-      - ``number_of_coeffs`` - integer (default: 10000) The number of
-        coefficients to be used when constructing the L-function object. Right
-        now this is fixed at object creation time, and is not automatically
-        set intelligently.
+
+    - ``E`` - An elliptic curve
+    - ``number_of_coeffs`` - integer (default: 10000) The number of
+      coefficients to be used when constructing the L-function object. Right
+      now this is fixed at object creation time, and is not automatically
+      set intelligently.
 
     OUTPUT:
 
-        L-function object for ``L(s, E)``.
+    L-function object for ``L(s, E)``.
 
     EXAMPLES::
 

@@ -36,7 +36,7 @@ SAGE_VERSION=`echo "$1" | sed 's/^sage-//'`
 SAGE_RELEASE_DATE=`date -u +'%Y-%m-%d'`
 
 # Regenerate auto-generated files tarball
-"$SAGE_ROOT/bootstrap" -i
+"$SAGE_ROOT/bootstrap" -i -s
 
 # Update Sage version file for Python in SAGE_SRC/sage
 cat <<EOF > "$SAGE_SRC/sage/version.py"

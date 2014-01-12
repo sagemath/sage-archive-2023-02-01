@@ -73,6 +73,8 @@ git commit -m "Updated Sage version to $SAGE_VERSION" -- \
     "$SAGE_SRC/sage/version.py" \
     "$SAGE_SRC/bin/sage-version.sh" \
     "$SAGE_SRC/bin/sage-banner" \
+    "$SAGE_ROOT/build/pkgs/configure/checksums.ini" \
+    "$SAGE_ROOT/build/pkgs/configure/package-version.txt" \
     || die "Error committing to the repository."
 
 git tag -a "$SAGE_VERSION" -m "Sage version $SAGE_VERSION" \

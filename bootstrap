@@ -48,6 +48,3 @@ echo "$CONFVERSION" >$PKG/package-version.txt
 
 # Compute checksum
 src/bin/sage-fix-pkg-checksums "$CONFBALL"
-
-# Commit everything
-git commit -m "Update configure to version $CONFVERSION" $PKG/*

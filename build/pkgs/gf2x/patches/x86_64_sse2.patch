@@ -1,0 +1,15 @@
+diff -druN gf2x-1.1.orig/configure gf2x-1.1/configure
+--- gf2x-1.1.orig/configure	2014-01-13 07:44:35.262223405 -0800
++++ gf2x-1.1/configure	2014-01-13 07:44:21.892222068 -0800
+@@ -16870,6 +16870,11 @@
+ else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: Using supplied hwdir value $hwdir" >&5
+ $as_echo "$as_me: Using supplied hwdir value $hwdir" >&6;}
++ if test "$enable_hardware_specific_code" != "yes" ;then
++  if test "$hwdir" = "x86_64" ;then
++$as_echo "#define HAVE_SSE2_SUPPORT 1" >>confdefs.h
++  fi
++ fi
+ fi
+ 
+ { $as_echo "$as_me:${as_lineno-$LINENO}: using ABI=\"$ABI\"" >&5

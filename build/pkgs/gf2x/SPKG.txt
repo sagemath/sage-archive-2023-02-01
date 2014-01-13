@@ -26,8 +26,9 @@ Website: http://gf2x.gforge.inria.fr/
 
 === Patches ===
  * no-undefined.patch: pass -no-undefined flag to libtool.
- * hardware_specific_code: backport upstream commits 162 and 167 to disable
+ * hardware_specific_code.patch: backport upstream commits 162 and 167 to disable
    cpu-dependent optimizations.
+ * x86_64_sse2.patch: always support SSE2 on x86_64.
 
 == Changelog ==
 

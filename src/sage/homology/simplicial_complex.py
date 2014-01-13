@@ -3237,6 +3237,34 @@ class SimplicialComplex(GenericCellComplex):
 
         return permgroup
 
+    def fixed_complex(self, G):
+        r"""
+        Return the fixed simplicial complex `Fix(G)` for a subgroup `G`
+
+        INPUT:
+
+        - `G` -- a subgroup of the automorphism group of the simplicial complex
+
+        OUTPUT:
+
+        - a simplicial complex
+
+        EXAMPLES::
+
+            sage: RP2 = simplicial_complexes.ProjectivePlane()
+            sage: CP2 = simplicial_complexes.ComplexProjectivePlane()
+            sage: G = CP2.automorphism_group()
+            sage: H = G.subgroup([G([(2,3),(5,6),(8,9)])])
+            sage: CP2.fixed_complex(H).is_isomorphic(RP2)
+            True
+        """
+        invariant_f = [u for u in self.face_iterator()
+                       if all(sorted([sigma(j) for j in u]) == sorted(list(u))
+                              for sigma in G.gens())]
+        new_verts = [min(o) for o in G.orbits()]
+        return SimplicialComplex([[s for s in f if s in new_verts]
+                                  for f in invariant_f])
+
     def _Hom_(self, other, category=None):
         """
         Return the set of simplicial maps between simplicial complexes

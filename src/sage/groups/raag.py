@@ -166,6 +166,22 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
         """
         return "Right-angled Artin group of {}".format(self._graph)
 
+    def gap(self):
+        """
+        Return a Gap representation of ``self`` (as a finitely
+        presented group).
+
+        EXAMPLES::
+
+            sage: Gamma = graphs.PathGraph(5).complement()
+            sage: G = RightAngledArtinGroup(Gamma)
+            sage: G.gap()
+            <fp group of size infinity on the generators [ v0, v1, v2, v3, v4 ]>
+        """
+        return self.as_finitely_presented_group().gap()
+
+    _gap_ = gap
+
     def gen(self, i):
         """
         Return the ``i``-th generator of ``self``.
@@ -244,6 +260,26 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
             ValueError: the group is infinite
         """
         raise ValueError("the group is infinite")
+
+    def as_finitely_presented_group(self):
+        """
+        Return ``self`` as a
+        :class:`~sage.groups.finitely_presented.FinitelyPresentedGroup`.
+
+        EXAMPLES::
+
+            sage: Gamma = graphs.PathGraph(5).complement()
+            sage: G = RightAngledArtinGroup(Gamma)
+            sage: G.as_finitely_presented_group()
+            Finitely presented group < v0, v1, v2, v3, v4 |
+             v0*v1*v0^-1*v1^-1, v1*v2*v1^-1*v2^-1,
+             v2*v3*v2^-1*v3^-1, v3*v4*v3^-1*v4^-1 >
+        """
+        from sage.groups.free_group import FreeGroup
+        F = FreeGroup(names=['v{}'.format(v) for v in self._graph.vertices()])
+        CG = Graph(self._graph).complement() # Make sure it's mutable
+        CG.relabel()
+        return F / [F([i+1, j+1, -i-1, -j-1]) for i,j in CG.edges(False)] #+/- 1 for indexing
 
     def graph(self):
         """
@@ -403,7 +439,7 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
             if len(self) == 0:
                 return '1'
             v = self.parent()._graph.vertices()
-            to_str = lambda i,p: "v{}".format(i) if p == 1 else "v{}^{}".format(i, p)
+            to_str = lambda name,p: "v{}".format(name) if p == 1 else "v{}^{}".format(name, p)
             return '*'.join(to_str(v[i], p) for i,p in self)
 
         def _latex_(self):

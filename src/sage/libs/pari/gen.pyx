@@ -700,7 +700,7 @@ cdef class gen(sage.structure.element.RingElement):
 
             ind = (i,j)
 
-            if self.refers_to is not None and PyDict_Contains(self.refers_to, ind):
+            if self.refers_to is not None and ind in self.refers_to:
                 return self.refers_to[ind]
             else:
                 ## In this case, we're being asked to return
@@ -756,7 +756,7 @@ cdef class gen(sage.structure.element.RingElement):
         elif pari_type == t_VEC or pari_type == t_MAT:
             #t_VEC    : row vector        [ code ] [  x_1  ] ... [  x_k  ]
             #t_MAT    : matrix            [ code ] [ col_1 ] ... [ col_k ]
-            if self.refers_to is not None and PyDict_Contains(self.refers_to, n):
+            if self.refers_to is not None and n in self.refers_to:
                 return self.refers_to[n]
             else:
                 ## In this case, we're being asked to return
@@ -5054,17 +5054,31 @@ cdef class gen(sage.structure.element.RingElement):
         pari_catch_sig_on()
         return P.new_gen(fibo(long(x)))
 
+    def gcd(gen x, y=None):
+        """
+        Return the greatest common divisor of `x` and `y`.
 
-    def gcd(gen x, y, long flag=0):
+        If `y` is ``None``, then `x` must be a list or tuple, and the
+        greatest common divisor of its components is returned.
+
+        EXAMPLES::
+
+            sage: pari(10).gcd(15)
+            5
+            sage: pari([5, 'y']).gcd()
+            1
+            sage: pari(['x', x^2]).gcd()      
+            x
+
         """
-        gcd(x,y,flag=0): greatest common divisor of x and y. flag is
-        optional, and can be 0: default, 1: use the modular gcd algorithm
-        (x and y must be polynomials), 2 use the subresultant algorithm (x
-        and y must be polynomials)
-        """
-        cdef gen t0 = objtogen(y)
-        pari_catch_sig_on()
-        return P.new_gen(ggcd0(x.g, t0.g))
+        cdef gen t0
+        if y is None:
+            pari_catch_sig_on()
+            return P.new_gen(ggcd0(x.g, NULL))
+        else:
+            t0 = objtogen(y)
+            pari_catch_sig_on()
+            return P.new_gen(ggcd0(x.g, t0.g))
 
     def issquare(gen x, find_root=False):
         """
@@ -5101,16 +5115,31 @@ cdef class gen(sage.structure.element.RingElement):
         pari_catch_sig_off()
         return t != 0
 
-    def lcm(gen x, y):
+    def lcm(gen x, y=None):
         """
-        Return the least common multiple of x and y. EXAMPLES::
+        Return the least common multiple of `x` and `y`.
+
+        If `y` is ``None``, then `x` must be a list or tuple, and the
+        least common multiple of its components is returned.
+
+        EXAMPLES::
 
             sage: pari(10).lcm(15)
             30
+            sage: pari([5, 'y']).lcm()
+            5*y
+            sage: pari([10, 'x', x^2]).lcm()
+            10*x^2
+
         """
-        cdef gen t0 = objtogen(y)
-        pari_catch_sig_on()
-        return P.new_gen(glcm(x.g, t0.g))
+        cdef gen t0
+        if y is None:
+            pari_catch_sig_on()
+            return P.new_gen(glcm0(x.g, NULL))
+        else:
+            t0 = objtogen(y)
+            pari_catch_sig_on()
+            return P.new_gen(glcm0(x.g, t0.g))
 
     def numdiv(gen n):
         """
@@ -5197,6 +5226,61 @@ cdef class gen(sage.structure.element.RingElement):
             (5, -1, 1)
         """
         return x.bezout(y)
+
+    def Zn_issquare(gen self, n):
+        """
+        Return ``True`` if ``self`` is a square modulo `n`, ``False``
+        if not.
+
+        INPUT:
+
+        - ``self`` -- integer
+
+        - ``n`` -- integer or factorisation matrix
+
+        EXAMPLES::
+
+            sage: pari(3).Zn_issquare(4)
+            False
+            sage: pari(4).Zn_issquare(30.factor())
+            True
+
+        """
+        cdef gen t0 = objtogen(n)
+        pari_catch_sig_on()
+        cdef long t = Zn_issquare(self.g, t0.g)
+        pari_catch_sig_off()
+        return t != 0
+
+    def Zn_sqrt(gen self, n):
+        """
+        Return a square root of ``self`` modulo `n`, if such a square
+        root exists; otherwise, raise a ``ValueError``.
+
+        INPUT:
+
+        - ``self`` -- integer
+
+        - ``n`` -- integer or factorisation matrix
+
+        EXAMPLES::
+
+            sage: pari(3).Zn_sqrt(4)
+            Traceback (most recent call last):
+            ...
+            ValueError: 3 is not a square modulo 4
+            sage: pari(4).Zn_sqrt(30.factor())
+            22
+
+        """
+        cdef gen t0 = objtogen(n)
+        cdef GEN s
+        pari_catch_sig_on()
+        s = Zn_sqrt(self.g, t0.g)
+        if s == NULL:
+            pari_catch_sig_off()
+            raise ValueError("%s is not a square modulo %s" % (self, n))
+        return P.new_gen(s)
 
 
     ##################################################

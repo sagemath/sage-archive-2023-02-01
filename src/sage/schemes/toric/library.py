@@ -1478,7 +1478,7 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.toric.variety.normalize_names`m
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         - ``base_ring`` -- a ring (default: `\QQ`). The base ring for

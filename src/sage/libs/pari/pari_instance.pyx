@@ -155,7 +155,6 @@ Sage (ticket #9636)::
 
 include 'pari_err.pxi'
 include 'sage/ext/stdsage.pxi'
-include 'sage/ext/python.pxi'
 include 'sage/ext/interrupt.pxi'
 
 import sys
@@ -644,7 +643,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         y.g = self.deepcopy_to_python_heap(x, &address)
         y.b = address
         y._parent = self
-        # y.refers_to is initialised as needed
+        # y.refers_to (a dict which is None now) is initialised as needed
         return y
 
     cdef gen new_gen_from_mpz_t(self, mpz_t value):
@@ -857,7 +856,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         cdef gen p = PY_NEW(gen)
         p.g = g
-        # p.b is set to 0 by Cython
+        p.b = 0
         p._parent = self
         p.refers_to = {-1: parent}
         return p

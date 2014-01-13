@@ -13635,7 +13635,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.PathGraph(5).copy(immutable=True)
             sage: G.complement()
-            complement(Path Graph): Graph on 5 vertices
+            complement(): Graph on 5 vertices
         """
         if self.has_multiple_edges():
             raise TypeError('complement not well defined for (di)graphs with multiple edges')

@@ -103,7 +103,10 @@ def http_download(url, destination=None, progress=True):
 
 
 def upstream_directory():
-    upstream = os.path.join(os.environ['SAGE_ROOT'], 'upstream')
+    try:
+        upstream = os.path.join('SAGE_DISTFILES')
+    except KeyError:
+        upstream = os.path.join(os.environ['SAGE_ROOT'], 'upstream')
     try:
         os.mkdir(upstream)
     except OSError:

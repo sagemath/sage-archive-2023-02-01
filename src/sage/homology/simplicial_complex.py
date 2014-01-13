@@ -3244,6 +3244,7 @@ class SimplicialComplex(GenericCellComplex):
         INPUT:
 
         - `G` -- a subgroup of the automorphism group of the simplicial complex
+                 or a list of elements of the automorphism group
 
         OUTPUT:
 
@@ -3257,7 +3258,19 @@ class SimplicialComplex(GenericCellComplex):
             sage: H = G.subgroup([G([(2,3),(5,6),(8,9)])])
             sage: CP2.fixed_complex(H).is_isomorphic(RP2)
             True
+
+        One can also input a list of automorphisms::
+
+            sage: CP2.fixed_complex([G([(2,3),(5,6),(8,9)])]).is_isomorphic(RP2)
+            True
         """
+        from sage.categories.groups import Groups
+        if G in Groups():
+            gens = G.gens()
+        else:
+            gens = G
+            G = self.automorphism_group().subgroup(gens)
+
         invariant_f = [u for u in self.face_iterator()
                        if all(sorted([sigma(j) for j in u]) == sorted(list(u))
                               for sigma in G.gens())]

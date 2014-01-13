@@ -1381,8 +1381,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
         r"""
         Computes a lower bound for the rank of the Mordell-Weil group `E(Q)`,
-        the rank of the 2-Selmer group, and a list of independent points on
-        `E(Q)/2E(Q)`.
+        the rank of the 2-Selmer group, and a list of points of infinite order on
+        `E(Q)`.
 
         INPUT:
 
@@ -1411,10 +1411,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         -  ``integer`` - lower bound on the rank of self
 
-        -  ``integer`` - the 2-rank of the Selmer group
+        -  ``integer`` - the dimension of the 2-Selmer group.
+           This is an upper bound to the rank, but it is not sharp in general.
 
-        -  ``list`` - list of independent points on the
-           quotient `E(Q)/2E(Q)`.
+        -  ``list`` - list of points of infinite order in `E(Q)`.
+
+        To obtain a list of generators, use E.gens().
 
 
         IMPLEMENTATION: Uses Denis Simon's PARI/GP scripts from
@@ -1482,25 +1484,34 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: r, s, G = E.simon_two_descent(); r,s
             (8, 8)
 
-        Example from trac 10832::
+        Example from :trac: `10832`::
 
             sage: E = EllipticCurve([1,0,0,-6664,86543])
             sage: E.simon_two_descent()
-            (2, 3, [(173 : 1943 : 1), (-73 : -394 : 1), (323/4 : 1891/8 : 1)])
+            (2, 3, [(-73 : -394 : 1), (323/4 : 1891/8 : 1)])
             sage: E.rank()
             2
             sage: E.gens()
             [(-73 : -394 : 1), (323/4 : 1891/8 : 1)]
 
-        Example from Trac #11372::
+        Example where the lower bound is known to be 1
+        despite that the algorithm has not found any
+        points of infinite order ::
 
             sage: E = EllipticCurve([1, 1, 0, -23611790086, 1396491910863060])
             sage: E.simon_two_descent()
-            (1, 2, [(88716 : -44358 : 1)])
+            (1, 2, [])
             sage: E.rank()
             1
-            sage: E.gens()
+            sage: E.gens()     # uses mwrank
             [(4311692542083/48594841 : -13035144436525227/338754636611 : 1)]
+
+        Example for :trac: `5153`::
+
+            sage: E = EllipticCurve([3,0])
+            sage: E.simon_two_descent()
+            (1, 2, [(3 : 6 : 1)])
+
         """
         verbose = int(verbose)
         t = simon_two_descent(self, verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,
@@ -1511,17 +1522,18 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             print "simon_two_descent returns", t
         rank_low_bd = rings.Integer(t[0])
         two_selmer_rank = rings.Integer(t[1])
-        gens_mod_two = [self(P) for P in t[2]]
+        pts = [self(P) for P in t[2]]
+        pts = [P for P in pts if P.has_infinite_order()]
         if rank_low_bd == two_selmer_rank - self.two_torsion_rank():
             if verbose>0:
                 print "Rank determined successfully, saturating..."
-            gens = [P for P in gens_mod_two if P.has_infinite_order()]
-            gens = self.saturation(gens)[0]
+            gens = self.saturation(pts)[0]
             if len(gens) == rank_low_bd:
                 self.__gens[True] = gens
                 self.__gens[True].sort()
             self.__rank[True] = rank_low_bd
-        return rank_low_bd, two_selmer_rank, gens_mod_two
+
+        return rank_low_bd, two_selmer_rank, pts
 
     two_descent_simon = simon_two_descent
 
@@ -5310,20 +5322,13 @@ use_tuple=True (currently default) is deprecated.""")
             sage: xset = E.integral_x_coords_in_interval(-100,100)
             sage: xlist = list(xset); xlist.sort(); xlist
             [-3, -2, -1, 0, 1, 2, 3, 4, 8, 11, 14, 21, 37, 52, 93]
-
-        TODO: re-implement this using the much faster point searching
-        implemented in Stoll's ``ratpoints`` program.
-
         """
+        from sage.libs.ratpoints import ratpoints
         xmin=Integer(xmin)
         xmax=Integer(xmax)
-        ans = set([])
-        x = xmin
-        while x<=xmax:
-            if self.is_x_coord(x):
-                ans.add(x)
-            x+=1
-        return ans
+        coeffs = self.division_polynomial(2).coeffs()
+        H = max(xmin.abs(), xmax.abs())
+        return set([x for x,y,z in ratpoints(coeffs, H, max_x_denom=1, intervals=[[xmin,xmax]]) if z])
 
     prove_BSD = BSD.prove_BSD
 

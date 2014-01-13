@@ -1881,11 +1881,6 @@ cdef class RingElement(ModuleElement):
             raise ArithmeticError, "self (=%s) must be a unit to have a multiplicative order."
         raise NotImplementedError
 
-    def is_unit(self):
-        if self == 1 or self == -1:
-            return True
-        raise NotImplementedError
-
     def is_nilpotent(self):
         """
         Return True if self is nilpotent, i.e., some power of self
@@ -3205,11 +3200,22 @@ cdef class NamedBinopMethod:
 
             sage: from sage.structure.element import NamedBinopMethod
             sage: test_func = NamedBinopMethod(lambda x, y, **kwds: (x, y, kwds), '_add_')
+            sage: class test_class(Rational):
+            ....:     def __init__(self,value):
+            ....:         self.v = value
+            ....:     @NamedBinopMethod
+            ....:     def test_add(self, other, keyword='z'):
+            ....:         return (self.v, other, keyword)
 
         Calls func directly if the two arguments have the same parent::
 
             sage: test_func(1, 2)
             (1, 2, {})
+            sage: x = test_class(1)
+            sage: x.test_add(1/2)
+            (1, 1/2, 'z')
+            sage: x.test_add(1/2, keyword=3)
+            (1, 1/2, 3)
 
         Passes through coercion and does a method lookup if the
         left operand is not the same::
@@ -3220,6 +3226,30 @@ cdef class NamedBinopMethod:
             (1, 2, {'algorithm': 'fast'})
             sage: test_func(1, 1/2)
             3/2
+            sage: x.test_add(2)
+            (1, 2, 'z')
+            sage: x.test_add(2, keyword=3)
+            (1, 2, 3)
+
+        A real example::
+
+            sage: R1=QQ['x,y']
+            sage: R2=QQ['x,y,z']
+            sage: f=R1(1)
+            sage: g=R1(2)
+            sage: h=R2(1)
+            sage: f.gcd(g)
+            1
+            sage: f.gcd(g,algorithm='modular')
+            1
+            sage: f.gcd(h)
+            1
+            sage: f.gcd(h,algorithm='modular')
+            1
+            sage: h.gcd(f)
+            1
+            sage: h.gcd(f,algorithm='modular')
+            1
         """
         if y is None:
             if self._self is None:
@@ -3230,7 +3260,7 @@ cdef class NamedBinopMethod:
             old_x = x
             x,y = coercion_model.canonical_coercion(x, y)
             if old_x is x:
-                return self._func(x,y, *kwds)
+                return self._func(x,y, **kwds)
             else:
                 return getattr(x, self._name)(y, **kwds)
         else:

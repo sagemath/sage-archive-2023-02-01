@@ -8,6 +8,8 @@
 # to run various types of test suites, and to remove parts of the build etc.
 
 PIPE = build/pipestatus
+MISSING = config/missing --run
+
 
 all: start doc  # indirectly depends on build
 
@@ -91,10 +93,14 @@ distclean: clean doc-clean lib-clean bdist-clean
 	@echo "Deleting all remaining output from build system ..."
 	rm -rf local
 
-# Remove absolutely everything which isn't part of the git repo
-maintainer-clean: distclean
-	rm -rf upstream
+# Delete all auto-generated files which are distributed as part of the
+# source tarball
+autogen-clean:
 	rm -rf config configure build/Makefile-auto.in
+
+# Remove absolutely everything which isn't part of the git repo
+maintainer-clean: distclean autogen-clean
+	rm -rf upstream
 
 micro_release: bdist-clean lib-clean
 	@echo "Stripping binaries ..."
@@ -148,15 +154,16 @@ ptestoptional: ptestall # just an alias
 ptestoptionallong: ptestalllong # just an alias
 
 config/missing:
-	[ -d config ] || mkdir config
+	test -d config || mkdir config
 	aclocal -I m4
 	automake --add-missing --copy build/Makefile-auto
 
-configure: configure.ac \
+configure: configure.ac src/bin/sage-version.sh \
         m4/ax_c_check_flag.m4 m4/ax_gcc_option.m4 m4/ax_gcc_version.m4 m4/ax_gxx_option.m4 m4/ax_gxx_version.m4 m4/ax_prog_perl_version.m4
-	test -f config/missing || $(MAKE) config/missing
-	config/missing --run aclocal -I m4
-	config/missing --run autoconf
+	test -f config/missing || $(MAKE) config/missing || \
+		bash -c 'source src/bin/sage-env; sage-download-file $$SAGE_UPSTREAM/configure-`cat build/pkgs/configure/package-version.txt`.tar.gz | tar zxf -'
+	$(MISSING) aclocal -I m4
+	$(MISSING) autoconf
 
 install:
 	echo "Experimental use only!"
@@ -177,8 +184,8 @@ install:
 	"$(DESTDIR)"/bin/sage -c # Run sage-location
 
 
-.PHONY: all build build-serial start install \
+.PHONY: all build build-serial start install micro_release\
 	doc doc-html doc-html-jsmath doc-html-mathjax doc-pdf \
-	doc-clean clean lib-clean bdist-clean distclean maintainer-clean micro_release \
+	doc-clean clean lib-clean bdist-clean distclean autogen-clean maintainer-clean \
 	test check testoptional testall testlong testoptionallong testallong \
 	ptest ptestoptional ptestall ptestlong ptestoptionallong ptestallong

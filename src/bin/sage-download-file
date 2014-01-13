@@ -10,9 +10,14 @@
 
 import os
 import sys
-import urllib
-import urlparse
 
+try:
+    # Python 3
+    import urllib.request as urllib
+    import urllib.parse as urlparse
+except ImportError:
+    import urllib
+    import urlparse
 
 
 def http_error_default(url, fp, errcode, errmsg, headers):
@@ -200,8 +205,17 @@ class MirrorList(object):
         return self.age() > self.MAXAGE
 
     def __iter__(self):
+        """
+        Iterate through the list of mirrors.
+
+        This is the main entry point into the mirror list. Every
+        script should just use this function to try mirrors in order
+        of preference. This will not just yield the official mirrors,
+        but also urls for packages that are currently being tested.
+        """
         for mirror in self.mirrors:
             yield mirror
+        yield 'http://boxen.math.washington.edu/home/release/upstream-testing'
         
 
 

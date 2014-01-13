@@ -26,8 +26,6 @@ Website: http://gf2x.gforge.inria.fr/
 
 === Patches ===
  * no-undefined.patch: pass -no-undefined flag to libtool.
- * symlink already_tuned/x86_64/gf2x_mul2.h to ../../src/mul2k.c in spkg-install
-   so that we can build a fat binary on x86_64.
 
 == Changelog ==
 

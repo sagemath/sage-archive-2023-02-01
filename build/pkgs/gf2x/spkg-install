@@ -19,13 +19,6 @@ for patch in ../patches/*.patch; do
     fi
 done
 
-# Let the non-optimized x86_64 version build without SSE2.
-# As this only needs changing a symlink, no patch is used.
-cd already_tuned/x86_64
-rm -f gf2x_mul2.h
-ln -s ../../src/mul2k.c gf2x_mul2.h
-cd ../..
-
 if [ "$SAGE_DEBUG" = "yes" ]; then
     echo "Building a debug version of gf2x."
     export CFLAGS="-O0 -g $CFLAGS"
@@ -40,8 +33,32 @@ if [ "$SAGE64" = "yes" ]; then
 fi
 
 if [ "$SAGE_FAT_BINARY" = "yes" ]; then
-    echo "Disabling optimizations."
-    GF2X_CONFIGURE="--disable-sse2 --disable-pclmul $GF2X_CONFIGURE"
+    echo "Building a generic gf2x library."
+    case `uname -m`  in
+      x86_64)
+        GF2X_HWDIR="x86_64"
+        ;;
+      i?86)
+        GF2X_HWDIR="x86"
+        ;;
+      ppc64)
+        if [ "$UNAME" = "Darwin" -a ! "$SAGE64" = "yes" ]; then
+            GF2X_HWDIR="generic32"
+        else
+            GF2X_HWDIR="generic64"
+        fi
+        ;;
+      *)
+        # All other platforms currently supported should build 32 bit by default
+        # This includes Solaris and Linux on sparc, ARM, other Darwin versions.
+        if [ "$SAGE64" = "yes" ]; then
+            GF2X_HWDIR="generic64"
+        else
+            GF2X_HWDIR="generic32"
+        fi
+        ;;
+    esac
+    GF2X_CONFIGURE="hwdir=$GF2X_HWDIR $GF2X_CONFIGURE"
 fi
 
 echo "Configuring gf2x."

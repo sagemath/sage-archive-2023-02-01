@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Mutually Orthogonal Latin Squares (MOLS)
 
@@ -25,7 +26,7 @@ REFERENCES:
 
 .. [ColDin01] Charles Colbourn, Jeffrey Dinitz,
   Mutually orthogonal latin squares: a brief survey of constructions,
-  Volume 95, Issues 1-2, Pages 9–48,
+  Volume 95, Issues 1-2, Pages 9-48,
   Journal of Statistical Planning and Inference,
   Springer, 1 May 2001.
 

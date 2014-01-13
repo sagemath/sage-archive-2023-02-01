@@ -41,21 +41,7 @@ if [ "$SAGE_FAT_BINARY" = "yes" ]; then
       i?86)
         GF2X_HWDIR="x86_nosse2"
         ;;
-      ppc64)
-        if [ "$UNAME" = "Darwin" -a ! "$SAGE64" = "yes" ]; then
-            GF2X_HWDIR="generic32"
-        else
-            GF2X_HWDIR="generic64"
-        fi
-        ;;
       *)
-        # All other platforms currently supported should build 32 bit by default
-        # This includes Solaris and Linux on sparc, ARM, other Darwin versions.
-        if [ "$SAGE64" = "yes" ]; then
-            GF2X_HWDIR="generic64"
-        else
-            GF2X_HWDIR="generic32"
-        fi
         ;;
     esac
     GF2X_CONFIGURE="hwdir=$GF2X_HWDIR --disable-hardware-specific-code $GF2X_CONFIGURE"

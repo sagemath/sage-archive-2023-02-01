@@ -43,6 +43,9 @@ version = '$SAGE_VERSION'
 date = '$SAGE_RELEASE_DATE'
 EOF
 
+# Rebuild the Sage library for the change in version.py to take effect
+"$SAGE_ROOT/sage" -b
+
 # Update Sage version file
 echo "Sage version $SAGE_VERSION, released $SAGE_RELEASE_DATE" \
     > "$SAGE_ROOT/VERSION.txt"
@@ -55,13 +58,8 @@ SAGE_VERSION='$SAGE_VERSION'
 SAGE_RELEASE_DATE='$SAGE_RELEASE_DATE'
 EOF
 
-# Re-create configure and rebuild version.py for the changes to take effect
-cd "$SAGE_ROOT"
-autoconf
-./sage -b
-
 # Update the Sage banner
-./sage --python -c \
+"$SAGE_ROOT/sage" --python -c \
     "import sage.misc.banner; sage.misc.banner.banner()" \
     > "$SAGE_SRC/bin/sage-banner"
 

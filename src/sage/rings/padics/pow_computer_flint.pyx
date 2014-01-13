@@ -435,6 +435,7 @@ cdef class PowComputer_flint_unram(PowComputer_flint_1step):
         # init methods raises a MemoryError, the only leak-free
         # solution we could devise used 11-nested try blocks.  We
         # choose readable code in this case.
+        sig_on()
         fmpz_poly_init(self.poly_cconv)
         fmpz_poly_init(self.poly_ctm)
         fmpz_poly_init(self.poly_ccmp)
@@ -447,6 +448,7 @@ cdef class PowComputer_flint_unram(PowComputer_flint_1step):
         mpz_init(self.mpz_ctm)
         mpz_init(self.mpz_cconv)
         mpz_init(self.mpz_matmod)
+        sig_off()
 
         self.__allocated = 16
 

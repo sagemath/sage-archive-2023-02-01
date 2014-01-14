@@ -18,6 +18,7 @@ from sage.structure.element cimport MultiplicativeGroupElement, MonoidElement, E
 from sage.rings.all import ZZ
 import sage.matrix.all as matrix
 from sage.matrix.matrix_integer_2x2 import Matrix_integer_2x2 as mi2x2
+from sage.modular.cusps import Cusp
 
 M2Z = matrix.MatrixSpace(ZZ,2)
 
@@ -354,6 +355,21 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
 
             sage: g.acton(-31/15)
             +Infinity
+
+        Note that when acting on instances of cusps the return value
+        is still a rational number or infinity (Note the presence of
+        '+', which does not show up for cusp instances)::
+
+            sage: g.action(Cusp(-31/15))
+            +Infinity
+
+        TESTS::
+
+        We cover the remaining case, i.e., infinity mapped to infinity::
+
+            sage: G([1, 4, 0, 1]).acton(infinity)
+            +Infinity
+
         """
         from sage.rings.infinity import is_Infinite, infinity
         if is_Infinite(z):

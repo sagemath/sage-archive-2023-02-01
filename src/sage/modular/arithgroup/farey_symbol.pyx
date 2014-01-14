@@ -220,7 +220,10 @@ cdef class Farey:
         cdef Integer b = M.b()
         cdef Integer c = M.c()
         cdef Integer d = M.d()
-        return self.this_ptr.is_element(a.value, b.value, c.value, d.value)
+        sig_on()
+        result = self.this_ptr.is_element(a.value, b.value, c.value, d.value)
+        sig_off()
+        return result
 
     def __cmp__(self, other):
         r"""
@@ -273,6 +276,11 @@ cdef class Farey:
     def _latex_(self, forced_format = None):
         r"""
         Return the LaTeX representation of self.
+
+        INPUT:
+
+        - ``forced_format`` -- A format sting ('plain' or 'xymatrix')
+                               or ``None``.
 
         EXAMPLES::
 
@@ -532,7 +540,10 @@ cdef class Farey:
         cusp = Cusp(c)
         cdef Integer p = cusp.numerator()
         cdef Integer q = cusp.denominator()
-        return self.this_ptr.get_cusp_class(p.value, q.value)
+        sig_on()
+        result = self.this_ptr.get_cusp_class(p.value, q.value)
+        sig_off()
+        return result
 
     def reduce_to_cusp(self, r):
         r"""
@@ -553,9 +564,7 @@ cdef class Farey:
             [-3  2]
             sage: _.acton(11/17)
             1
-            sage: f.cusp_class(11/17)
-            1
-            sage: f.cusps()[1]
+            sage: f.cusps()[f.cusp_class(11/17)]
             1
         """
         cdef Integer p = r.numerator()
@@ -578,7 +587,7 @@ cdef class Farey:
 
         OPTIONS:
 
-        - ``fill`` - boolean (default True) fill the fundamental domain
+        - ``fill`` - boolean (default ``True``) fill the fundamental domain
 
         - ``linestyle`` - string (default: 'solid') The style of the line,
           which is one of 'dashed', 'dotted', 'solid', 'dashdot', or '--',
@@ -586,7 +595,7 @@ cdef class Farey:
 
         - ``rgbcolor`` - (default: 'lightgray') fill color
 
-        - ``show_pairing`` - boolean (default: True) flag for pairing
+        - ``show_pairing`` - boolean (default: ``True``) flag for pairing
 
         - ``tesselation`` (default: 'Dedekind') The type of hyperbolic tesselation
           which is one of 'coset', 'Dedekind' or None respectively
@@ -595,13 +604,13 @@ cdef class Farey:
   
         - ``color_even`` fill color for Dedekind tesselation (default 'white')
 
-        - ``thickness`` - float (default: 1) the thickness of the line
+        - ``thickness`` - float (default: `1`) the thickness of the line
 
-        - ``ymax`` - float (default: 1) maximal height
+        - ``ymax`` - float (default: `1`) maximal height
 
         EXAMPLES:
 
-        For example to plot the fundamental domain of `\Gamma_0(11)`
+        For example, to plot the fundamental domain of `\Gamma_0(11)`
         with pairings use the following command::
 
             sage: FareySymbol(Gamma0(11)).fundamental_domain()

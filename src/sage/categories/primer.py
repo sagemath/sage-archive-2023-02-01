@@ -1144,7 +1144,7 @@ for a category with two operations ``+`` and ``*``::
 
 or for more advanced categories::
 
-    sage: g = GradedHopfAlgebrasWithBasis(QQ).category_graph()
+    sage: g = HopfAlgebras(QQ).WithBasis().Graded().Connected().category_graph()
     sage: g.set_latex_options(format="dot2tex")
     sage: view(g, tightpage=True)                 # not tested
 
@@ -1153,7 +1153,8 @@ Difference between axioms and regressive covariant functorial constructions
 
 Our running examples here will be the axiom ``FiniteDimensional`` and
 the regressive covariant functorial construction ``Graded``. Let
-``Cs`` be a subcategory of ``Modules``, say:
+``Cs`` be some subcategory of ``Modules``, say the category of modules
+itself::
 
     sage: Cs = Modules(QQ)
 
@@ -1161,18 +1162,18 @@ Then, ``Cs.FiniteDimensional()`` (respectively ``Cs.Graded()``) is the
 subcategory of the objects ``O`` of ``Cs`` which are finite
 dimensional (respectively graded).
 
-Let also ``Ds`` be a subcategory of ``Cs``, say:
+Let also ``Ds`` be a subcategory of ``Cs``, say::
 
     sage: Ds = Algebras(QQ)
 
 A finite dimensional algebra is also a finite dimensional module::
 
-    sage: Algebras(QQ).FiniteDimensional().is_subcategory( Modules(QQ).FiniteDimensional())
+    sage: Algebras(QQ).FiniteDimensional().is_subcategory( Modules(QQ).FiniteDimensional() )
     True
 
 Similarly a graded algebra is also a graded module::
 
-    sage: Algebras(QQ).Graded().is_subcategory( Modules(QQ).Graded())
+    sage: Algebras(QQ).Graded().is_subcategory( Modules(QQ).Graded() )
     True
 
 This is the *covariance* property: for ``A`` an axiom or a covariant

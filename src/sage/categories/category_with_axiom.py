@@ -48,7 +48,7 @@ semigroups::
     <class 'sage.categories.category.JoinCategory_with_category'>
 
 This category is indeed just constructed as the intersection of the
-categories of semigroups and of finite sets respectively::
+categories of semigroups and of infinite sets respectively::
 
     sage: Semigroups().Infinite().super_categories()
     [Category of semigroups, Category of infinite sets]
@@ -298,7 +298,7 @@ select automatically the relevant classes
 `(D_S)_{S\in \mathcal S, S\subset T}`,
 and build from them a category for the objects of ``Cs`` satisfying
 the axioms in `T`, together with its hierarchy of super categories. If
-`T` is in \mathcal S`, then the class of the resulting category is
+`T` is in `\mathcal S`, then the class of the resulting category is
 directly `D_T`::
 
     sage: C = Magmas().Unital().Inverse().Associative(); C
@@ -324,7 +324,7 @@ lazyness. This led us to the following design decision: the collection
 tree. The root is ``Cs``, corresponding to `S=\emptyset`. Any other
 class `D_S` should be the child of a single class `D_{S'}` where `S'`
 is obtained from `S` by removing exactly one axiom `A`. Of course,
-`D_S'` and `A` are respectively the base category class and axiom of
+`D_{S'}` and `A` are respectively the base category class and axiom of
 the category with axiom `D_S` that we have met in the first section.
 
 At this point, we urge the reader to explore the code of
@@ -590,10 +590,10 @@ Design goals
     base category. Hence, they should in principle be constructed
     as::
 
-        sage: FiniteSets(Sets())    # todo: not tested
+        sage: FiniteSets(Sets())
         Category of finite sets
 
-        sage: Sets.Finite(Sets())   # todo: not tested
+        sage: Sets.Finite(Sets())
         Category of finite sets
 
     None of those syntaxes are really practical for the user. So instead,
@@ -667,11 +667,11 @@ TESTS:
 
     sage: Semigroups().Unital()
     Category of monoids
-    sage: Semigroups().Unital().Commutative() # CHECK
+    sage: Semigroups().Unital().Commutative()
     Category of commutative monoids
     sage: Semigroups().Commutative()
     Category of commutative semigroups
-    sage: Semigroups().Commutative().Unital() # oops!
+    sage: Semigroups().Commutative().Unital()
     Category of commutative monoids
     sage: Semigroups().Commutative().Unital().super_categories()
     [Category of monoids, Category of commutative magmas]

@@ -682,14 +682,15 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         EXAMPLES::
 
             sage: AffineSpace(ZZ,2,'x').an_element()
-            (1, 1)
+            (5, 4)
 
             sage: AffineSpace(Qp(5),2,'x').an_element()
-            (5 + O(5^21), 5 + O(5^21))
+            (5^2 + O(5^22), 4*5 + O(5^21))
         """
         n = self.dimension_relative()
         R = self.base_ring()
-        return self([R.an_element() for i in range(n)])
+        return self([(5 - i) * R.an_element() for i in range(n)])
+
 
 class AffineSpace_field(AffineSpace_generic):
     def _point(self, *args, **kwds):

@@ -40,10 +40,15 @@ class DivisionRings(CategoryWithAxiom):
 
     def extra_super_categories(self):
         r"""
-        Return the ``Domains`` category.
+        Return the :class:`Domains` category.
 
         This method specifies that a division ring has no zero
         divisors, i.e. is a domain.
+
+        .. SEEALSO::
+
+            The :ref:`axioms-deduction-rules` section in the
+            documentation of axioms
 
         EXAMPLES:
 
@@ -52,16 +57,13 @@ class DivisionRings(CategoryWithAxiom):
             sage: "NoZeroDivisors" in DivisionRings().axioms()
             True
         """
-        from sage.categories.domains import Domains
-        return (Domains(),)
+        return (Rings().NoZeroDivisors(),)
 
     Commutative = LazyImport('sage.categories.fields', 'Fields', at_startup=True)
 
     def Finite_extra_super_categories(self):
         r"""
         Return extraneous super categories for ``DivisionRings().Finite()``.
-
-        .. SEEALSO:: :class:`.category_with_axiom.CategoryWithAxiom`
 
         EXAMPLES:
 
@@ -75,12 +77,18 @@ class DivisionRings(CategoryWithAxiom):
         commutative and thus a field::
 
             sage: DivisionRings().Finite_extra_super_categories()
-            (Category of fields,)
-
-        So that::
-
+            (Category of commutative magmas,)
             sage: DivisionRings().Finite()
             Category of finite fields
+
+        .. WARNING::
+
+            This is not implemented in
+            ``DivisionRings.Finite.extra_super_categories`` because
+            the categories of finite division rings and of finite
+            fields coincide. See the section
+            :ref:`axioms-deduction-rules` in the documentation of
+            axioms.
 
         TESTS::
 
@@ -94,8 +102,8 @@ class DivisionRings(CategoryWithAxiom):
             sage: Foo().Finite().is_subcategory(Fields())
             True
         """
-        from sage.categories.fields import Fields
-        return (Fields(),)
+        from sage.categories.magmas import Magmas
+        return (Magmas().Commutative(),)
 
     class ParentMethods:
         pass

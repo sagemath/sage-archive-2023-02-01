@@ -11,7 +11,6 @@ axioms <category-primer-axioms>`.
 
    Finalization of the documentation for :trac:`10963`:
 
-   - Deduction rules
    - Describe the algorithm for adding axioms and computing intersections
    - Flesh out the design goals
    - Cleanup the specifications section
@@ -88,7 +87,7 @@ all the methods of finite sets and of finite `C`'s, as desired::
     sage: P.foo()
     I am a method on finite C's
 
-.. NOTES::
+.. NOTE::
 
     - This follows the same idiom as for
       :mod:`covariant functorial constructions
@@ -186,8 +185,18 @@ added to a global tuple::
 
     sage: sage.categories.category_with_axiom.all_axioms += ("Green",)
 
-The order of the axioms in this tuple controls the order in which the
-axioms are printed.
+.. NOTE::
+
+    ``all_axioms`` is used for sanity checks and when trying to guess
+    the base category class. The order of the axioms in this tuple
+    also controls the order in which they appear when printing
+    categories with axioms (see
+    :meth:`CategoryWithAxiom._repr_object_names_static`).
+
+    During a Sage session, new axioms should only be added at the end
+    of ``all_axioms`` as above, so as to not break the cache of
+    :func:`axioms_rank`. Otherwise, they can be inserted statically
+    anywhere.
 
 We can now use the axiom as usual::
 
@@ -269,7 +278,7 @@ Abstract model
 As we have seen in the :ref:`Primer <category-primer-axioms-explosion>`,
 the objects of a category ``Cs()`` can usually satisfy, or not, many
 different axioms. Out of all combinations of axioms, only a small
-number are relevant in practice, in the sense that we actuant want to
+number are relevant in practice; in the sense that we actually want to
 provide features for the objects satisfying those axioms.
 
 Therefore, in the context of the category class `Cs`, we want to
@@ -369,6 +378,177 @@ possibility to support features such as::
   :class:`Magmas.Unital.Inverse`.
 
 - ...
+
+Axioms defined upon other axioms
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Sometimes an axiom can only be defined when some other axiom
+holds. For example, the axiom "NoZeroDivisors" only makes sense if
+there is a zero, that is if the axiom "AdditiveUnital" holds. Hence,
+for the category :class:`DistributiveMagmasAndAdditiveMagmas`, we
+consider in the abstract model only those subsets of axioms where the
+presence of "NoZeroDivisors" implies that of "AdditiveUnital".  We
+also want the axiom to be only available if meaningful::
+
+    sage: Rings().NoZeroDivisors()
+    Category of domains
+    sage: Rings().Commutative().NoZeroDivisors()
+    Category of integral domains
+    sage: DistributiveMagmasAndAdditiveMagmas().NoZeroDivisors()
+    Traceback (most recent call last):
+    ...
+    AttributeError: 'DistributiveMagmasAndAdditiveMagmas_with_category' object has no attribute 'NoZeroDivisors'
+
+Concretely, this is to be implemented by defining the new axiom in the
+(``SubcategoryMethods`` nested class of the) appropriate category with
+axiom. For example "NoZeroDivisors" would be naturally implemented in
+:class:`DistributiveMagmasAndAdditiveMagmas.AdditiveUnital`.
+
+.. NOTE::
+
+    It's in fact currently implemented in :class:`Rings` by simple
+    lack of need for the feature; it should be lifted up as soon as
+    relevant, that is when some code will be available for parents
+    with no zero divisors that are not necessarily rings.
+
+.. _axioms-deduction-rules:
+
+Deduction rules
+^^^^^^^^^^^^^^^
+
+A similar situation is when an axiom ``A`` of a category ``Cs``
+implies some other axiom B, with the same consequence as above on the
+subsets of axioms appearing in the abstract model. For example, a
+division ring necessarily has no zero divisors::
+
+    sage: 'NoZeroDivisors' in Rings().Division().axioms()
+    True
+    sage: 'NoZeroDivisors' in Rings().axioms()
+    False
+
+This deduction rule is implemented by the method
+:meth:`Rings.Division.extra_super_categories`::
+
+    sage: Rings().Division().extra_super_categories()
+    (Category of domains,)
+
+In general, this is to be implemented by a method
+``Cs.A.extra_super_categories`` returning a tuple ``(Cs().B(),)``, or
+preferably ``(Ds().B(),)`` where ``Ds`` is the category defining the
+axiom ``B``.
+
+This follows the same idiom as for deduction rules about functorial
+constructions (see :meth:`.covariant_functorial_constructions.CovariantConstructionCategory.extra_super_categories`).
+For example, the fact that a cartesian product of associative magmas
+(i.e. of semigroups) is associative is implemented in
+:meth:`Semigroups.Algebras.extra_super_categories`::
+
+    sage: Magmas().Associative()
+    Category of semigroups
+    sage: Magmas().Associative().CartesianProducts().extra_super_categories()
+    [Category of semigroups]
+
+Similarly, the fact that the algebra of a commutative magma is
+commutative is implemented in
+:meth:`Magmas.Commutative.Algebras.extra_super_categories`::
+
+    sage: Magmas().Commutative().Algebras(QQ).extra_super_categories()
+    [Category of commutative magmas]
+
+.. WARNING::
+
+    In some situations this idiom is inapplicable as it would lead to
+    an infinite recursion. This is the purpose of the next section.
+
+Special case
+~~~~~~~~~~~~
+
+In the previous examples, the deduction rule only had an influence on
+the super categories of the category being constructed. For example,
+when constructing ``Rings().Division()``, the rule
+:meth:`Rings.Division.extra_super_categories` simply adds
+``Rings().NoZeroDivisors()`` as super category thereof.
+
+In some situations this idiom is inapplicable. Take for example
+Wedderburn's theorem: any finite division ring is commutative, i.e. is
+a finite field. The new feature of this situation is that this is not
+just about the super categories of the category of finite division
+rings. Instead it's stating that the category of finite division rings
+*coincides* with that of finite fields::
+
+        sage: DivisionRings().Finite()
+        Category of finite fields
+
+Therefore, we can't have two separate classes ``DivisionRings.Finite``
+(with an ``extra_super_categories`` method as above) and
+``Fields.Finite`` for this object.
+
+A natural idiom would be to have ``DivisionRings.Finite`` be a
+link to ``Fields.Finite`` (locally introducing a cycle in the tree
+of nested classes). It would be a bit tricky to implement though,
+since one would need to detect, upon constructing
+``DivisionRings().Finite()``, that ``DivisionRings.Finite`` is
+actually ``Fields.Finite``, in order to construct appropriately
+``Fields().Finite()``; and reciprocally, upon computing the super
+categories of ``Fields().Finite()``, to not try to add
+``DivisionRings().Finite()`` as super category.
+
+Instead the current idiom is to have a method
+``DivisionRings.Finite_extra_super_categories`` which mimicks the
+behavior of the would be
+``DivisionRings.Finite.extra_super_categories``::
+
+    sage: DivisionRings().Finite_extra_super_categories()
+    (Category of commutative magmas,)
+
+This is admittedly rudimentary, but relatively consistent.
+
+In general, if several categories ``C1s(), C2s(), ... are mapped to
+the same category when applying some axiom ``A`` (that is ``C1s().A()
+== C2s().A() == ...``), then that category with axiom should be
+implemented in ``Cs.A`` where ``Cs`` is the smallest of them, and the
+other categories should implement a method
+``A_extra_super_categories`` returning ``(Cs(),)``.
+
+.. NOTE::
+
+    An open question is whether there will always be a natural
+    smallest category ``Cs``.
+
+    Let's put a bit of formalism to explore the question. Let `A` be
+    an axiom, and consider the application `\phi_A` which maps a
+    category to its category of objects satisfying `A`. Equivalently,
+    `\phi_A` is computing the intersection with the defining category
+    with axiom of `A`. It follows immediately from the latter that
+    `\phi_A` is a regressive endomorphism of the lattice of
+    categories.
+
+    The set `L` of categories that can be *constructed* in Sage is
+    also a lattice (with joins = intersections that coincides with
+    that of categories, but not meets). The application `\phi_A`
+    restricts to a regressive endomorphism ``Cs() -> Cs().A()``.
+
+    Consider ``C1s(), C2s(), ... `` as above. They form the
+    intersection `S` of some fiber of `\phi_A` with the upper set
+    `I_A` of categories that do not satisfy ``A``. The fiber itself is
+    a sublattice. However `I_A` is not guaranteed to be stable under
+    intersection (though exceptions should be rare). Therefore, there
+    is a priori no guarantee to `S` would be stable under
+    intersection. Also it's presumably finite, in fact small, but this
+    is not guaranteed either.
+
+    Altogether I (Nicolas) believe that this is not an issue in
+    practice, but I would need to see a whole array of use cases to
+    check that this is indeed not an issue in practice and, if at all
+    possible, to specify a bit more the framework to guarantee the
+    existence of ``Cs``.
+
+Supporting such deduction rules will be an important feature in the
+future, with quite a few occurences already implemented in upcoming
+tickets. For the time being though there is a single occurence of this
+idiom outside of the tests. So this would be an easy thing to
+refactor after #10963 if a better idiom is found.
+
 
 Specifications
 ^^^^^^^^^^^^^^
@@ -608,7 +788,7 @@ def base_category_class_and_axiom(cls):
     of the name of a category and the name of an axiom, and looking up
     that category in the standard location (i.e. in
     :mod:`sage.categories.hopf_algebras` for :class:`HopfAlgebras`,
-    and in :mod:`sets_cat` as a special case for :class:`Sets`).
+    and in :mod:`sage.categories.sets_cat` as a special case for :class:`Sets`).
 
     EXAMPLES::
 
@@ -1089,7 +1269,9 @@ class CategoryWithAxiom(Category):
 
         .. SEEALSO:: :meth:`_repr_object_names`
 
-        .. NOTE:: The logic here is shared between :meth:`_repr_object_names`
+        .. NOTE::
+
+            The logic here is shared between :meth:`_repr_object_names`
             and :meth:`.category.JoinCategory._repr_object_names`
         """
         axioms = canonicalize_axioms(axioms)

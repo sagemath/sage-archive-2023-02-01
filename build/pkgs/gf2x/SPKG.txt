@@ -23,6 +23,9 @@ Website: http://gf2x.gforge.inria.fr/
  * None
 
 == Special Update/Build Instructions ==
+ * As sse2_tr_fixes.patch touches config/acinclude.m4, we have to touch
+   aclocal.m4, configure, Makefile.in and gf2x/gf2x-config.h.in to prevent
+   autotools to try to regenerate these files.
 
 === Patches ===
  * no-undefined.patch: pass -no-undefined flag to libtool.

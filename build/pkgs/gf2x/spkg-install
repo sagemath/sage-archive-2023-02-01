@@ -19,6 +19,10 @@ for patch in ../patches/*.patch; do
     fi
 done
 
+# As config/acinclude.m4 is patched, we need to touch some files to prevent
+# autotools to invoke black magic.
+touch aclocal.m4 configure Makefile.in gf2x/gf2x-config.h.in
+
 if [ "$SAGE_DEBUG" = "yes" ]; then
     echo "Building a debug version of gf2x."
     export CFLAGS="-O0 -g $CFLAGS"

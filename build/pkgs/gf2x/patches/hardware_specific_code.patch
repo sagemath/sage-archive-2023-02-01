@@ -261,4 +261,3 @@ diff -druN gf2x-1.1.orig/configure gf2x-1.1/configure
  else
   { $as_echo "$as_me:${as_lineno-$LINENO}: Using supplied hwdir value $hwdir" >&5
  $as_echo "$as_me: Using supplied hwdir value $hwdir" >&6;}
-

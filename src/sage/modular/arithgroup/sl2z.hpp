@@ -51,7 +51,7 @@ public:
 
 inline
 SL2Z::SL2Z(const SL2Z::ElementType& a_, const SL2Z::ElementType& b_,
-	   const SL2Z::ElementType& c_, const SL2Z::ElementType& d_) {
+           const SL2Z::ElementType& c_, const SL2Z::ElementType& d_) {
   M[0][0] = a_;
   M[0][1] = b_;
   M[1][0] = c_;
@@ -166,15 +166,15 @@ std::istream& operator>>(std::istream& is, SL2Z& x) {
     if( c == ',' ) {
       is >> x.M[0][1] >> c;
       if( c == ';' ) {
-	is >> x.M[1][0] >> c;
-	if( c == ',' ) {
-	  is >> x.M[1][1] >> c;
-	  if( c != ']' ) is.clear(std::ios_base::badbit);
-	} else {
-	  is.clear(std::ios_base::badbit);
-	}
+        is >> x.M[1][0] >> c;
+        if( c == ',' ) {
+          is >> x.M[1][1] >> c;
+          if( c != ']' ) is.clear(std::ios_base::badbit);
+        } else {
+          is.clear(std::ios_base::badbit);
+        }
       } else {
-	is.clear(std::ios_base::badbit);
+        is.clear(std::ios_base::badbit);
       }
     } else {
       is.clear(std::ios_base::badbit);

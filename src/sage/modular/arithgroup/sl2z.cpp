@@ -12,8 +12,6 @@
 //
 //                  http://www.gnu.org/licenses/
 //****************************************************************************
-#include <vector>
-#include <algorithm>
 
 #include "sl2z.hpp"
 

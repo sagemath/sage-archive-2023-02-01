@@ -341,7 +341,8 @@ def configure_fast():
     if conf['Intel?'] and conf['64bit?']:
         print('Fast configuration on Intel x86_64 compatible CPUs.')
         arch = 'P4E'
-        isa_ext = ('SSE3', 'SSE2', 'SSE1')
+        if not conf['CYGWIN?']: # cannot use assembly on Cygwin64
+            isa_ext = ('SSE3', 'SSE2', 'SSE1')
     elif conf['Intel?'] and conf['32bit?']:
         print('Fast configuration on Intel i386 compatible CPUs.')
         arch = 'x86SSE2'
@@ -367,7 +368,8 @@ def configure_base():
     if conf['Intel?'] and conf['64bit?']:
         print('Generic configuration on Intel x86_64 compatible CPUs.')
         arch = 'x86SSE2'
-        isa_ext = ('SSE2', 'SSE1')
+        if not conf['CYGWIN?']: # cannot use assembly on Cygwin64
+            isa_ext = ('SSE2', 'SSE1')
     elif conf['Intel?'] and conf['32bit?']:
         print('Generic configuration on Intel i386 compatible CPUs.')
         arch = 'x86x87'

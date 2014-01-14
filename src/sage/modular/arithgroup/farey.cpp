@@ -935,7 +935,7 @@ bool FareySymbol::is_element(const SL2Z& M) const {
 	    return true;
 	  } else {
 	    beta = pairing_matrix_in_group(k)*beta;
-	    std::cout << beta;
+
 	    if ( beta == SL2Z::E ) return true;
 	    else return false;
 	  }
@@ -1097,7 +1097,7 @@ PyObject* FareySymbol::get_paired_sides() const {
   vector<int> p;
   for(size_t i=0; i<pairing.size(); i++) {
     if( pairing[i] > NO and
-	p.end() == find(p.begin(), p.end(), pairing[i]) ) {
+        p.end() == find(p.begin(), p.end(), pairing[i]) ) {
       p.push_back(pairing[i]);
     }
   }

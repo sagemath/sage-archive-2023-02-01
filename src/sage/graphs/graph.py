@@ -131,8 +131,7 @@ graphs.
     :meth:`~Graph.modular_decomposition` | Returns the modular decomposition of the current graph.
     :meth:`~Graph.maximum_average_degree` | Returns the Maximum Average Degree (MAD) of the current graph.
     :meth:`~Graph.two_factor_petersen` | Returns a decomposition of the graph into 2-factors.
-    :meth:`~Graph.zeta_function_inverse` | Returns the inverse of the zeta function of the graph.
-
+    :meth:`~Graph.ihara_zeta_function` | Returns the inverse of the zeta function of the graph.
 
 AUTHORS:
 
@@ -6352,10 +6351,10 @@ class Graph(GenericGraph):
         M = matrix(ring, 2 * N, 2 * N, ring.one())
         for u, v, i in labeled_g.edges():
             for vv, ww, j in labeled_g.outgoing_edges(v):
-                if abs(i - j) != N:
-                    M[i, j] += -t
-        return M.determinant()
+                M[i, j] += -t
+            M[i, (i+N)%(2*N)] += t # fixing the 2-cycles
 
+        return M.determinant()
 
 # Aliases to functions defined in Cython modules
 import types

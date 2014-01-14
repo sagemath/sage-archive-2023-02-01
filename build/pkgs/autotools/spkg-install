@@ -15,6 +15,10 @@ if ! git --version &>/dev/null; then
     exit 3
 fi
 
+# Create an empty git repo here, otherwise the autotools installers
+# get confused (they try to take version info from git if possible)
+git init
+
 
 SRC=`pwd`/src
 BUILD=`pwd`/build

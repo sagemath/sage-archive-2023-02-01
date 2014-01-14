@@ -126,7 +126,7 @@ mpq_class
 operator*(const SL2Z& M, const mpq_class& z) {
   mpz_class p = z.get_num(), q = z.get_den();
   if( M.c()*p+M.d()*q == 0 ) {
-    cerr << __PRETTY_FUNCTION__ << ": division by zero." << endl
+    cerr << __FUNCTION__ << ": division by zero." << endl
 	 << tab << M << endl
 	 << tab << z << endl
 	 << endl;
@@ -173,7 +173,7 @@ mpz_class lcm(const vector<mpz_class>& v) {
 }
 
 inline
-mpz_class gcd(mpz_class& a, mpz_class& b) {
+mpz_class gcd(const mpz_class& a, const mpz_class& b) {
   mpz_class result;
   mpz_gcd( result.get_mpz_t(), a.get_mpz_t(), b.get_mpz_t());
   return result;
@@ -181,8 +181,7 @@ mpz_class gcd(mpz_class& a, mpz_class& b) {
 
 inline
 void 
-gcd_ext(mpz_class& g, mpz_class& r, mpz_class& s, mpz_class& a, mpz_class& b) {
-  mpz_class result;
+gcd_ext(mpz_class& g, mpz_class& r, mpz_class& s, const mpz_class& a, const mpz_class& b) {
   mpz_gcdext(g.get_mpz_t(), 
 	     r.get_mpz_t(), s.get_mpz_t(),
 	     a.get_mpz_t(), b.get_mpz_t());
@@ -218,11 +217,11 @@ is_element_GammaH::is_element_GammaH(int p_, PyObject* gen_list) : p(p_) {
     vector<long> m;
     for(const_iterator i=gen.begin(); i!=gen.end(); i++) {
       for(const_iterator j=H.begin(); j!=H.end(); j++) {
-	long q = ((*i)*(*j))%p;
-	if( find(H.begin(), H.end(), q) == H.end() and
-	    find(m.begin(), m.end(), q) == m.end() ) {
-	  m.push_back(q);
-	}
+        long q = ((*i)*(*j))%p;
+        if( find(H.begin(), H.end(), q) == H.end() and
+            find(m.begin(), m.end(), q) == m.end() ) {
+          m.push_back(q);
+        }
       }
     }
     if( m.size() == 0 ) break;
@@ -325,7 +324,7 @@ FareySymbol::FareySymbol(PyObject* o) {
     is_element_general *group = new is_element_general(o);
     // check for user defined SL2Z
     if( group->is_member(SL2Z::S) and
-	group->is_member(SL2Z::T) ) {
+        group->is_member(SL2Z::T) ) {
       pairing = vector<int>(2);
       pairing[0] = EVEN;
       pairing[1] = ODD;
@@ -345,7 +344,7 @@ FareySymbol::FareySymbol(PyObject* o) {
     }
     // check for index two subgroup
     else if( group->is_member(SL2Z( 0,  1, -1, -1)) and
-	     group->is_member(SL2Z(-1,  1, -1,  0)) ) {
+             group->is_member(SL2Z(-1,  1, -1,  0)) ) {
       pairing = vector<int>(2);
       pairing[0] = ODD;
       pairing[1] = ODD;
@@ -449,22 +448,22 @@ void FareySymbol::init_pairing(const is_element_group* group) {
     mpq_class largest_diameter(0);
     for(size_t i=0; i<pairing.size(); i++) {
       if( pairing[i] == NO ) {
-	if( i+1 != pairing.size() ) {
-	  if( i != 0 ) {
-	    mpq_class d = a[i]/b[i] - a[i-1]/b[i-1];
-	    if( d > largest_diameter ) {
-	      largest_diameter = d;
-	      missing_pair = (int)(i);
-	    }
-	  } else {
-	    largest_diameter = infinity;
-	    missing_pair = 0;
-	  }
-	} else {
-	  largest_diameter = infinity;
-	  missing_pair = (int)(pairing.size()-1);
-	  break;
-	}
+        if( i+1 != pairing.size() ) {
+          if( i != 0 ) {
+            mpq_class d = a[i]/b[i] - a[i-1]/b[i-1];
+            if( d > largest_diameter ) {
+              largest_diameter = d;
+              missing_pair = (int)(i);
+            }
+          } else {
+            largest_diameter = infinity;
+            missing_pair = 0;
+          }
+        } else {
+          largest_diameter = infinity;
+          missing_pair = (int)(pairing.size()-1);
+          break;
+        }
       }
     }
     if( missing_pair == -1 ) {
@@ -472,16 +471,16 @@ void FareySymbol::init_pairing(const is_element_group* group) {
     } else {
       mpz_class A, B;
       if( missing_pair+1 == pairing.size() ) {
-	A = a[missing_pair-1] + 1;
-	B = b[missing_pair-1] + 0;
+        A = a[missing_pair-1] + 1;
+        B = b[missing_pair-1] + 0;
       } else {
-	if( missing_pair == 0 ) {
-	  A = a[0] - 1;
-	  B = b[0] + 0;
-	} else {
-	  A = a[missing_pair-1]+a[missing_pair];
-	  B = b[missing_pair-1]+b[missing_pair];
-	}
+        if( missing_pair == 0 ) {
+          A = a[0] - 1;
+          B = b[0] + 0;
+        } else {
+          A = a[missing_pair-1]+a[missing_pair];
+          B = b[missing_pair-1]+b[missing_pair];
+        }
       }
       add_term(missing_pair, A/B);
     }
@@ -514,16 +513,16 @@ void FareySymbol::check_pair(const is_element_group* group, const int i) {
   if( pairing[i] == NO ) {
     for(size_t j=0; j<pairing.size(); j++) {
       if( pairing[j] == NO and i != j ) {
-	vector<int> p(pairing);
-	p[i] = pairing_max+1;
-	p[j] = pairing_max+1;
-	SL2Z C = pairing_matrix(p, i);
-	if( group->is_member(C) or group->is_member(-C) ) {
-	  pairing_max++;
-	  pairing[i] = pairing_max;
-	  pairing[j] = pairing_max;
-	  return;
-	}
+        vector<int> p(pairing);
+        p[i] = pairing_max+1;
+        p[j] = pairing_max+1;
+        SL2Z C = pairing_matrix(p, i);
+        if( group->is_member(C) or group->is_member(-C) ) {
+          pairing_max++;
+          pairing[i] = pairing_max;
+          pairing[j] = pairing_max;
+          return;
+        }
       }
     }
   }
@@ -542,10 +541,10 @@ SL2Z FareySymbol::pairing_matrix(const vector<int>& p, const size_t i) const {
     throw(string(__FUNCTION__)+string(": error"));
   } else if( p[i] == EVEN ) {
     return SL2Z(ai1*bi1+ai*bi, -ai*ai-ai1*ai1,
-		bi*bi+bi1*bi1, -ai1*bi1-ai*bi);
+                bi*bi+bi1*bi1, -ai1*bi1-ai*bi);
   } else if( p[i] == ODD ) {
     return SL2Z(ai1*bi1+ai*bi1+ai*bi, -ai*ai-ai*ai1-ai1*ai1,
-		bi*bi+bi*bi1+bi1*bi1, -ai1*bi1-ai1*bi-ai*bi);
+                bi*bi+bi*bi1+bi1*bi1, -ai1*bi1-ai1*bi-ai*bi);
   } else if( p[i] > NO ) {
     const size_t j = paired_side(p, i);
     if( j == 0 ) {
@@ -556,20 +555,21 @@ SL2Z FareySymbol::pairing_matrix(const vector<int>& p, const size_t i) const {
       aj = a[j-1]; bj = b[j-1]; aj1 = a[j]; bj1 = b[j];
     }
     return SL2Z(aj1*bi1+aj*bi, -aj*ai-aj1*ai1,
-		bj*bi+bj1*bi1, -ai1*bj1-ai*bj);
+                bj*bi+bj1*bi1, -ai1*bj1-ai*bj);
   }
   return SL2Z::E;
 }
 
+inline
 SL2Z FareySymbol::pairing_matrix(const size_t i) const {
   return pairing_matrix(pairing, i);
 }
 
 SL2Z FareySymbol::pairing_matrix_in_group(const size_t i) const {
   if (pairing_in_group[i]) 
-    return pairing_matrix(pairing, i);
+    return pairing_matrix(i);
   else
-    return SL2Z::I*pairing_matrix(pairing, i);
+    return SL2Z::I*pairing_matrix(i);
 }
 
 size_t FareySymbol::paired_side(const vector<int>& p, const size_t n) const {
@@ -602,13 +602,6 @@ vector<SL2Z> FareySymbol::init_generators(const is_element_group *group) const {
     }
   }
   if( nu2() == 0 and nu3() == 0 and group->is_member(I) ) gen.push_back(I);
-  //// Are the pairing matrices in the group? -> save this!
-  /*  for (size_t i=0; i<pairing.size(); i++) 
-    if (group->is_member(pairing_matrix(i)) )
-      this->pairing_in_group.push_back(true);
-    else
-    this->pairing_in_group.push_back(false);*/
-  /// End of this check!
   return gen;
 }
 
@@ -675,42 +668,42 @@ vector<int> FareySymbol::init_cusp_classes() const {
     size_t i(m), I, J;
     for(;;) {
       if( pairing[i] == NO ) {
-	I = i;
-	J = (i==0? pairing.size()-1 : (i-1)%c.size());
+        I = i;
+        J = (i==0? pairing.size()-1 : (i-1)%c.size());
       } else {
-	I = (i+1)%c.size();
-	J = I;
+        I = (i+1)%c.size();
+        J = I;
       }
       if( pairing[I] == ODD or pairing[I] == EVEN ) {
-	if( c[I] == cusp_number ) {
-	  cusp_number++;
-	  break;
-	}
-	c[J] = cusp_number;
-	i = J;
-	continue;
+        if( c[I] == cusp_number ) {
+          cusp_number++;
+          break;
+        }
+        c[J] = cusp_number;
+        i = J;
+        continue;
       } else if( pairing[I] > NO ) {
-	size_t j;
-	for(size_t k=0; k<c.size(); k++) {
-	  if( pairing[k] == pairing[I] and k != I ) j = k;
-	}
-	if( I != i ) {
-	  if( c[j] == cusp_number ) {
-	    cusp_number++;
-	    break;
-	  }
-	  c[j] = cusp_number;
-	  i = j;
-	  continue;
-	} else {
-	  if( c[j-1] == cusp_number ) {
-	    cusp_number++;
-	    break;
-	  }
-	  c[j-1] = cusp_number;
-	  i = j-1;
-	  continue;
-	}
+        size_t j;
+        for(size_t k=0; k<c.size(); k++) {
+          if( pairing[k] == pairing[I] and k != I ) j = k;
+        }
+        if( I != i ) {
+          if( c[j] == cusp_number ) {
+            cusp_number++;
+            break;
+          }
+          c[j] = cusp_number;
+          i = j;
+          continue;
+        } else {
+          if( c[j-1] == cusp_number ) {
+            cusp_number++;
+            break;
+          }
+          c[j-1] = cusp_number;
+          i = j-1;
+          continue;
+        }
       }
     }
   }
@@ -724,18 +717,12 @@ vector<mpq_class> FareySymbol::init_cusps() const {
   for(int i=0; i<number_of_cusps(); i++) {
     for(size_t j=0; j<cusp_classes.size(); j++) {
       if( cusp_classes[j] == i and cusp_classes[j] != cusp_classes.back() ) {
-	c.push_back(x[j]);
-	break;
+        c.push_back(x[j]);
+        break;
       }
     }
   }
-  // // width of cusp at infinity
-  // mpq_class W(0);
-  // for(size_t i=0; i<cusp_classes.size(); i++) {
-  //   if( cusp_classes[i] == cusp_classes.back() ) W += cusp_widths[i];
-  // }
-  // // shift negative cusps to positve
-  // for(size_t i=0; i<c.size(); i++) while(c[i]<0) c[i] += W;
+  // in earlier version: shift negative cusps to positve ones
   sort(c.begin(), c.end());
   return c;
 }
@@ -748,16 +735,11 @@ vector<SL2Z> FareySymbol::init_reductions() const {
     mpq_class q = x[j];
     for(;;) {
       SL2Z p = pairing_matrix(k);
-      if( p.c()*q + p.d() == 0 ) {
-	// cusp ~ infinity
-	reduction[j] = p*reduction[j];
-	break;
-      } else {
-	q = p*q;
-	reduction[j] = pairing_matrix(k)*reduction[j];
-	if( binary_search(cusps.begin(), cusps.end(), q) ) break;
-	k = lower_bound(x.begin(), x.end(), q) - x.begin();
-      }
+      reduction[j] = p*reduction[j];
+      if( p.c()*q + p.d() != 0 ) break; // cusp ~ infinity
+      q = p*q;
+      if( binary_search(cusps.begin(), cusps.end(), q) ) break;
+      k = lower_bound(x.begin(), x.end(), q) - x.begin();
     }
   }
   return reduction;
@@ -774,7 +756,7 @@ size_t FareySymbol::nu3() const {
 size_t FareySymbol::rank_pi() const {
   if( index() == 2 ) return 1;
   return count_if(pairing.begin(), pairing.end(),
-		  bind2nd(greater<int>(), 0))/2;
+                  bind2nd(greater<int>(), 0))/2;
 }
 
 size_t FareySymbol::number_of_cusps() const {
@@ -807,8 +789,8 @@ size_t FareySymbol::level() const {
 long FareySymbol::side_index(const mpz_class& a0, const mpz_class& b0,
 			     const mpz_class& a1, const mpz_class& b1) const {
   if( b0 == 0) {
-    if( ( a1 == a[0]  and b1 == b[0]) or 
-	(-a1 == a[0] and -b1 == b[0])) return 0;
+    if( ( a1 == a[0] and b1 == b[0]) or 
+        (-a1 == a[0] and -b1 == b[0])) return 0;
   } else if( b1 == 0 ) {
 	if( ( a0 == a.back() and  b0 == b.back()) or 
 	    (-a0 == a.back() and -b0 == b.back())) return a.size();
@@ -821,7 +803,6 @@ long FareySymbol::side_index(const mpz_class& a0, const mpz_class& b0,
   return -1;
 }
 
-
 void 
 FareySymbol::LLT_algorithm(const SL2Z& M, vector<int>& p, SL2Z& beta) const {
   // Based on: Kurth/Long - Computations with finite index subgroups
@@ -830,15 +811,7 @@ FareySymbol::LLT_algorithm(const SL2Z& M, vector<int>& p, SL2Z& beta) const {
   p.clear();  
   bool found = false;
   mpq_class m;
-  //  int counter =0;
   for(;;) {
-    //    counter++;
-    //if (counter > 100000) {
-    //std::cerr << "More than 100000 interationes in "
-    //		<< __PRETTY_FUNCTION__ <<". Stopping now." 
-    //		<< std::endl;
-    //  return;
-    //}
     size_t k;
     found = false;
     mpz_class A=beta.a(), B=beta.b(), C=beta.c(), D=beta.d();
@@ -911,7 +884,7 @@ FareySymbol::LLT_algorithm(const SL2Z& M, vector<int>& p, SL2Z& beta) const {
 	//Based on Lemma 4 of the article by Kurth/Long, 
 	//this case can not occure.
 	std::cerr << "Mathematical compilcations in " 
-		  << __PRETTY_FUNCTION__ << std::endl;
+		  << __FUNCTION__ << std::endl;
 	return;
       }
     } else { // case of EVEN or FREE pairing
@@ -1079,7 +1052,7 @@ PyObject* FareySymbol::get_cusp_widths() const {
     mpq_class cusp_width(0);
     for(size_t j=0; j<cusp_widths.size(); j++) {
       if( cusp_classes[j] == i ) {
-	cusp_width += cusp_widths[j];
+        cusp_width += cusp_widths[j];
       }
     }
     width.push_back(cusp_width.get_num());

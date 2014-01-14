@@ -53,8 +53,8 @@ public:
   }
   bool is_member(const SL2Z& V) const {
     return ((V.a()-1) % p == 0 &&
-	    V.c() % p == 0 &&
-	    (V.d()-1) % p == 0);
+            V.c() % p == 0 &&
+            (V.d()-1) % p == 0);
   }
 };
 
@@ -105,7 +105,7 @@ protected:
   std::vector<SL2Z> reductions;
   bool even;
   std::vector<bool> pairing_in_group; // For membership test:
-  //Is the i-te pairing matrix in the group?
+  //Is the i-th pairing matrix in the group?
   size_t rank_pi() const;
   long side_index(const mpz_class& a0, const mpz_class& b0,
 		  const mpz_class& a1, const mpz_class& b1) const;

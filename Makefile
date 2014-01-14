@@ -8,7 +8,7 @@
 # to run various types of test suites, and to remove parts of the build etc.
 
 PIPE = build/pipestatus
-MISSING = config/missing --run
+MISSING = bash config/missing --run
 
 
 all: start doc  # indirectly depends on build

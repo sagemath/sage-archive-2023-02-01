@@ -1,0 +1,175 @@
+diff -druN gf2x-1.1.orig/config/acinclude.m4 gf2x-1.1/config/acinclude.m4
+--- gf2x-1.1.orig/config/acinclude.m4	2012-05-31 13:53:47.000000000 -0700
++++ gf2x-1.1/config/acinclude.m4	2014-01-14 03:11:42.359226030 -0800
+@@ -46,7 +46,9 @@
+     AC_CACHE_CHECK([the number of bits in an unsigned long],
+         [gf2x_cv_ulongbits],[
+         AC_RUN_IFELSE([WORDSIZE_CODE()],[
+-            detected=`cat conftest.out | tr -d -c 0-9`
++            # see bug #15631 and autoconf manual about tr.
++            # detected=`cat conftest.out | tr -d -c 0-9`
++            detected=`cat conftest.out`
+             if test x$detected = x ; then
+                 AC_MSG_ERROR([test program failed])
+             else
+@@ -72,10 +74,26 @@
+     esac
+ ])
+ 
++# pepper this check with more sse-2 only statements, or we might be
++# fooled by some early athlon64 cpus supporting extended 3dnow, which
++# includes a subset of sse-2, but do not support the full sse-2 insn set.
+ AC_DEFUN([SSE2_EXAMPLE],[AC_LANG_SOURCE([
+ #include <emmintrin.h>
+-__v2di x;
+-int main() {}
++__v2di x;       /* Our code currently uses these, but it should not */
++int main(int argc, char * argv[]) {
++     __m128i foo = _mm_setr_epi32(argc, argc + 1, argc + 2, argc + 3);
++     __m128i bar = _mm_setr_epi32(argc + 3, argc + 2, argc + 1, argc);
++    foo = _mm_mullo_epi16(foo, bar);
++    foo = _mm_slli_epi64(foo, 1);
++    foo = _mm_xor_si128(bar, _mm_unpacklo_epi32 (foo, bar));
++    foo = _mm_srli_epi64(foo, 1);
++    foo = _mm_mullo_epi16(foo, bar);
++    foo = _mm_shuffle_epi32(foo, 78);
++    foo = _mm_xor_si128(bar, _mm_unpacklo_epi32 (foo, bar));
++    foo = _mm_srli_si128(foo, 1);
++
++    return _mm_extract_epi16(foo, 0) & (argc - 1);
++}
+ ])])
+ 
+ # Check whether we need some flag such as -msse2 in order to enable sse-2
+diff -druN gf2x-1.1.orig/configure gf2x-1.1/configure
+--- gf2x-1.1.orig/configure	2012-05-31 13:54:00.000000000 -0700
++++ gf2x-1.1/configure	2014-01-14 03:12:18.949229689 -0800
+@@ -16359,8 +16359,21 @@
+ /* end confdefs.h.  */
+ 
+ #include <emmintrin.h>
+-__v2di x;
+-int main() {}
++__v2di x;       /* Our code currently uses these, but it should not */
++int main(int argc, char * argv) {
++     __m128i foo = _mm_setr_epi32(argc, argc + 1, argc + 2, argc + 3);
++     __m128i bar = _mm_setr_epi32(argc + 3, argc + 2, argc + 1, argc);
++    foo = _mm_mullo_epi16(foo, bar);
++    foo = _mm_slli_epi64(foo, 1);
++    foo = _mm_xor_si128(bar, _mm_unpacklo_epi32 (foo, bar));
++    foo = _mm_srli_epi64(foo, 1);
++    foo = _mm_mullo_epi16(foo, bar);
++    foo = _mm_shuffle_epi32(foo, 78);
++    foo = _mm_xor_si128(bar, _mm_unpacklo_epi32 (foo, bar));
++    foo = _mm_srli_si128(foo, 1);
++
++    return _mm_extract_epi16(foo, 0) & (argc - 1);
++}
+ 
+ _ACEOF
+ if ac_fn_c_try_run "$LINENO"; then :
+@@ -16380,8 +16393,21 @@
+ /* end confdefs.h.  */
+ 
+ #include <emmintrin.h>
+-__v2di x;
+-int main() {}
++__v2di x;       /* Our code currently uses these, but it should not */
++int main(int argc, char * argv) {
++     __m128i foo = _mm_setr_epi32(argc, argc + 1, argc + 2, argc + 3);
++     __m128i bar = _mm_setr_epi32(argc + 3, argc + 2, argc + 1, argc);
++    foo = _mm_mullo_epi16(foo, bar);
++    foo = _mm_slli_epi64(foo, 1);
++    foo = _mm_xor_si128(bar, _mm_unpacklo_epi32 (foo, bar));
++    foo = _mm_srli_epi64(foo, 1);
++    foo = _mm_mullo_epi16(foo, bar);
++    foo = _mm_shuffle_epi32(foo, 78);
++    foo = _mm_xor_si128(bar, _mm_unpacklo_epi32 (foo, bar));
++    foo = _mm_srli_si128(foo, 1);
++
++    return _mm_extract_epi16(foo, 0) & (argc - 1);
++}
+ 
+ _ACEOF
+ if ac_fn_c_try_run "$LINENO"; then :
+@@ -16421,8 +16447,21 @@
+ /* end confdefs.h.  */
+ 
+ #include <emmintrin.h>
+-__v2di x;
+-int main() {}
++__v2di x;       /* Our code currently uses these, but it should not */
++int main(int argc, char * argv) {
++     __m128i foo = _mm_setr_epi32(argc, argc + 1, argc + 2, argc + 3);
++     __m128i bar = _mm_setr_epi32(argc + 3, argc + 2, argc + 1, argc);
++    foo = _mm_mullo_epi16(foo, bar);
++    foo = _mm_slli_epi64(foo, 1);
++    foo = _mm_xor_si128(bar, _mm_unpacklo_epi32 (foo, bar));
++    foo = _mm_srli_epi64(foo, 1);
++    foo = _mm_mullo_epi16(foo, bar);
++    foo = _mm_shuffle_epi32(foo, 78);
++    foo = _mm_xor_si128(bar, _mm_unpacklo_epi32 (foo, bar));
++    foo = _mm_srli_si128(foo, 1);
++
++    return _mm_extract_epi16(foo, 0) & (argc - 1);
++}
+ 
+ _ACEOF
+ if ac_fn_c_try_cpp "$LINENO"; then :
+@@ -16436,8 +16475,21 @@
+ /* end confdefs.h.  */
+ 
+ #include <emmintrin.h>
+-__v2di x;
+-int main() {}
++__v2di x;       /* Our code currently uses these, but it should not */
++int main(int argc, char * argv) {
++     __m128i foo = _mm_setr_epi32(argc, argc + 1, argc + 2, argc + 3);
++     __m128i bar = _mm_setr_epi32(argc + 3, argc + 2, argc + 1, argc);
++    foo = _mm_mullo_epi16(foo, bar);
++    foo = _mm_slli_epi64(foo, 1);
++    foo = _mm_xor_si128(bar, _mm_unpacklo_epi32 (foo, bar));
++    foo = _mm_srli_epi64(foo, 1);
++    foo = _mm_mullo_epi16(foo, bar);
++    foo = _mm_shuffle_epi32(foo, 78);
++    foo = _mm_xor_si128(bar, _mm_unpacklo_epi32 (foo, bar));
++    foo = _mm_srli_si128(foo, 1);
++
++    return _mm_extract_epi16(foo, 0) & (argc - 1);
++}
+ 
+ _ACEOF
+ if ac_fn_c_try_cpp "$LINENO"; then :
+@@ -16691,7 +16743,9 @@
+ _ACEOF
+ if ac_fn_c_try_run "$LINENO"; then :
+ 
+-            detected=`cat conftest.out | tr -d -c 0-9`
++            # see bug #15631 and autoconf manual about tr.
++            # detected=`cat conftest.out | tr -d -c 0-9`
++            detected=`cat conftest.out`
+             if test x$detected = x ; then
+                 as_fn_error $? "test program failed" "$LINENO" 5
+             else
+@@ -16800,7 +16854,9 @@
+ _ACEOF
+ if ac_fn_c_try_run "$LINENO"; then :
+ 
+-            detected=`cat conftest.out | tr -d -c 0-9`
++            # see bug #15631 and autoconf manual about tr.
++            # detected=`cat conftest.out | tr -d -c 0-9`
++            detected=`cat conftest.out`
+             if test x$detected = x ; then
+                 as_fn_error $? "test program failed" "$LINENO" 5
+             else
+@@ -16919,7 +16975,9 @@
+ _ACEOF
+ if ac_fn_c_try_run "$LINENO"; then :
+ 
+-            detected=`cat conftest.out | tr -d -c 0-9`
++            # see bug #15631 and autoconf manual about tr.
++            # detected=`cat conftest.out | tr -d -c 0-9`
++            detected=`cat conftest.out`
+             if test x$detected = x ; then
+                 as_fn_error $? "test program failed" "$LINENO" 5
+             else

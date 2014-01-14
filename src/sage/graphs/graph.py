@@ -6292,38 +6292,44 @@ class Graph(GenericGraph):
 
         return classes_b
 
-
-    def zeta_function_inverse(self):
+    def ihara_zeta_function(self):
         """
-        Compute the inverse of the zeta function of the graph
+        Compute the inverse of the Ihara zeta function of the graph
 
         This is a polynomial in one variable with integer coefficients.
 
         See :wikipedia:`Ihara zeta function`
 
+        ALGORITHM:
+
+        This is computed here using the determinant of a square matrix
+        of size twice the number of edges.
+
         EXAMPLES::
 
             sage: G = graphs.CompleteGraph(4)
-            sage: factor(G.zeta_function_inverse())
+            sage: factor(G.ihara_zeta_function())
             (2*t - 1) * (t + 1)^2 * (t - 1)^3 * (2*t^2 + t + 1)^3
 
             sage: G = graphs.CompleteGraph(5)
-            sage: factor(G.zeta_function_inverse())
+            sage: factor(G.ihara_zeta_function())
             (-1) * (3*t - 1) * (t + 1)^5 * (t - 1)^6 * (3*t^2 + t + 1)^4
 
             sage: G = graphs.PetersenGraph()
-            sage: factor(G.zeta_function_inverse())
+            sage: factor(G.ihara_zeta_function())
             (-1) * (2*t - 1) * (t + 1)^5 * (t - 1)^6 * (2*t^2 + 2*t + 1)^4
             * (2*t^2 - t + 1)^5
 
             sage: G = graphs.RandomTree(10)
-            sage: G.zeta_function_inverse()
+            sage: G.ihara_zeta_function()
             1
 
         REFERENCES:
 
         .. [HST] Matthew D. Horton, H. M. Stark, and Audrey A. Terras,
             What are zeta functions of graphs and what are they good for?
+            in Quantum graphs and their applications, 173-189,
+            Contemp. Math., Vol. 415
 
         .. [Terras] Audrey Terras, Zeta functions of graphs: a stroll through
            the garden, Cambridge Studies in Advanced Mathematics, Vol. 128
@@ -6335,14 +6341,18 @@ class Graph(GenericGraph):
         ring = PolynomialRing(ZZ, 't')
         t = ring.gen()
 
-        edges = self.edges()
-        N = len(edges)
-        edges += [(e[1], e[0]) for e in edges]
+        N = self.size()
 
-        M = matrix(ring, 2*N, 2*N, ring.one())
-        for i, e in enumerate(edges):
-            for j, f in enumerate(edges):
-                if e[1] == f[0] and abs(i - j) != N:
+        labeled_g = DiGraph()
+        labeled_g.add_edges([(u, v, i) for i, (u, v) in
+                             enumerate(self.edges(labels=False))])
+        labeled_g.add_edges([(v, u, i + N) for i, (u, v) in
+                             enumerate(self.edges(labels=False))])
+
+        M = matrix(ring, 2 * N, 2 * N, ring.one())
+        for u, v, i in labeled_g.edges():
+            for vv, ww, j in labeled_g.outgoing_edges(v):
+                if abs(i - j) != N:
                     M[i, j] += -t
         return M.determinant()
 

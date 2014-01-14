@@ -1,0 +1,957 @@
+#!/usr/bin/env bash
+
+usage() {
+    echo "----------------------------------------------------------------------"
+    grep -i version "$SAGE_LOCAL/bin/sage-banner"
+    echo "----------------------------------------------------------------------"
+    echo
+    ####  1.......................26..................................................78
+    ####  |.....................--.|...................................................|
+    echo "Optional arguments:"
+    echo "  file.<sage|py|spyx> -- run given .sage, .py or .spyx files"
+    echo "  -advanced           -- list all command line options"
+    echo "  -c <cmd>            -- Evaluates cmd as sage code"
+    echo "  -experimental       -- list all experimental packages that can be installed"
+    echo "  -gap [...]          -- run Sage's Gap with given arguments"
+    echo "  -gp [...]           -- run Sage's PARI/GP calculator with given arguments"
+    echo "  -h, -?              -- print this help message"
+    echo "  -i [packages]       -- install the given Sage packages"
+    echo "  -inotebook [...]    -- start the *insecure* Sage notebook"
+    echo "  -maxima [...]       -- run Sage's Maxima with given arguments"
+    echo "  -mwrank [...]       -- run Sage's mwrank with given arguments"
+    echo "  -n, -notebook [...] -- start the Sage notebook (options are the same"
+    echo "                         as for the notebook command in Sage)"
+    echo "  -optional           -- list all optional packages that can be installed"
+    echo "  -python [...]       -- run the Python interpreter"
+    echo "  -R [...]            -- run Sage's R with given arguments"
+    echo "  -singular [...]     -- run Sage's singular with given arguments"
+    echo "  -sqlite3 [...]      -- run Sage's sqlite3 with given arguments"
+    echo "  -root               -- print the Sage root directory"
+    echo "  --nodotsage         -- run Sage without using the user's .sage directory:"
+    echo "                         create and use a temporary .sage directory instead"
+    echo "  -t [options] <--all|files|dir>"
+    echo "                      -- test examples in .py, .pyx, .sage, .tex or .rst files"
+    echo "                         selected options:"
+    echo "                           --long - include lines with the phrase 'long time'"
+    echo "                           --verbose - print debugging output during the test"
+    echo "                           --optional - controls which optional tests are run"
+    echo "                           --sagenb - test all sagenb files"
+    echo "                           --help - show all testing options"
+    echo "  -upgrade [version]  -- download, build and install the given version. Here,"
+    echo "                         'version' is a git branch or tag name. Useful values"
+    echo "                         are 'master' (the currend development version, this"
+    echo "                         is the default) or a version number like '5.13'."
+    echo "  -v, -version        -- print the Sage version"
+    exit 0
+}
+
+usage_advanced() {
+    echo "----------------------------------------------------------------------"
+    grep -i version "$SAGE_LOCAL/bin/sage-banner"
+    echo "----------------------------------------------------------------------"
+    echo
+    ####  1.......................26..................................................78
+    ####  |.....................--.|...................................................|
+    echo "Running Sage:"
+    echo "  file.[sage|py|spyx] -- run given .sage, .py or .spyx files"
+    echo "  -advanced           -- print this advanced help message"
+    echo "  -c <cmd>            -- Evaluates cmd as sage code"
+    echo "  -h, -?              -- print short help message"
+    echo "  -min [...]          -- do not populate global namespace (must be first"
+    echo "                         option)"
+    echo "  -preparse <file.sage> -- preparse file.sage and produce corresponding file.sage.py"
+    echo "  -q                  -- quiet; start with no banner"
+    echo "  -root               -- print the Sage root directory"
+    echo "  -gthread, -qthread, -q4thread, -wthread, -pylab"
+    echo "                      -- pass the option through to ipython"
+    echo "  -v, -version        -- print the Sage version"
+
+    echo
+    ####  1.......................26..................................................78
+    ####  |.....................--.|...................................................|
+    echo "Running the notebook:"
+    echo "  -bn, -build-and-notebook [...] -- build the Sage library then start"
+    echo "                         the Sage notebook"
+    echo "  -inotebook [...]    -- start the *insecure* Sage notebook"
+    echo "  -n, -notebook [...] -- start the Sage notebook (options are the same"
+    echo "                         as for the notebook command in Sage)"
+
+    echo
+    ####  1.......................26..................................................78
+    ####  |.....................--.|...................................................|
+    echo "Running external programs:"
+    echo "  -cleaner            -- run the Sage cleaner"
+    echo "  -cython [...]       -- run Cython with given arguments"
+    echo "  -ecl [...]          -- run Common Lisp"
+    echo "  -gap [...]          -- run Sage's Gap with given arguments"
+    echo "  -gdb                -- run Sage under the control of gdb"
+    echo "  -gp [...]           -- run Sage's PARI/GP calculator with given arguments"
+    echo "  -ipython [...]      -- run Sage's IPython using the default environment (not"
+    echo "                         Sage), passing additional options to IPython"
+    echo "  -kash [...]         -- run Sage's Kash with given arguments"
+    command -v kash &>/dev/null || \
+    echo "                         (not installed currently, run sage -i kash)"
+    echo "  -lisp [...]         -- run Lisp interpreter included with Sage"
+    echo "  -M2 [...]           -- run Sage's Macaulay2 with given arguments"
+    command -v M2 &>/dev/null || \
+    echo "                         (not installed currently, run sage -i macaulay2)"
+    echo "  -maxima [...]       -- run Sage's Maxima with given arguments"
+    echo "  -mwrank [...]       -- run Sage's mwrank with given arguments"
+    echo "  -python [...]       -- run the Python interpreter"
+    echo "  -R [...]            -- run Sage's R with given arguments"
+    echo "  -scons [...]        -- run Sage's scons"
+    echo "  -sh [...]           -- run \$SHELL ($SHELL) with Sage environment variables"
+    echo "  -singular [...]     -- run Sage's singular with given arguments"
+    echo "  -sqlite3 [...]      -- run Sage's sqlite3 with given arguments"
+    echo "  -twistd [...]       -- run Twisted server"
+
+    echo
+    ####  1.......................26..................................................78
+    ####  |.....................--.|...................................................|
+    echo "Installing packages and upgrading:"
+    echo "  -experimental       -- list all experimental packages that can be installed"
+    echo "  -f [opts] [packages]-- shortcut for -i -f: force build of the given Sage"
+    echo "                         packages"
+    echo "  -i [opts] [packages]-- install the given Sage packages (unless they are"
+    echo "                         already installed); if no packages are given, print"
+    echo "                         a list of all installed packages.  Options:"
+    echo "                           -c -- run the packages' test suites"
+    echo "                           -f -- force build: install the packages even"
+    echo "                                 if they are already installed"
+    echo "                           -s -- do not delete the spkg/build directories"
+    echo "                                 after a successful build"
+    echo "  -info [packages]    -- print the SPKG.txt of the given packages"
+    echo "  -optional           -- list all optional packages that can be installed"
+    echo "  -standard           -- list all standard packages that can be installed"
+   #echo "  -update             -- download latest non-optional Sage packages (do not build them)"
+   #echo "  -update-build       -- build and install all downloaded non-optional Sage packages"
+    echo "  -upgrade [version]  -- download, build and install the given version. Here,"
+    echo "                         'version' is a git branch or tag name. Useful values"
+    echo "                         are 'master' (the currend development version, this"
+    echo "                         is the default) or a version number like '5.13'."
+
+    echo
+    ####  1.......................26..................................................78
+    ####  |.....................--.|...................................................|
+    echo "Building and testing the Sage library:"
+    echo "  -b [branch]         -- build Sage library.  If branch is given, switch to"
+    echo "                         branch in devel/sage-branch and build that branch"
+    echo "  -sync-build         -- delete old code and other files in the Sage library"
+    echo "                         that have already been deleted from devel/sage but"
+    echo "                         remain in the build directory.  This is sometimes"
+    echo "                         necessary because \`sage -b\` merely copies new or"
+    echo "                         modified files to the target directory."
+    echo "  -ba [branch]        -- same as -b and rebuild all Cython code"
+    echo "  -ba-force [branch]  -- same as -ba, but don't query before rebuilding"
+    echo "  -br [branch]        -- switch to, build, and run Sage given branch"
+    echo "  -bt [...]           -- build and test, options like -t below"
+    echo "  -btp <N> [...]      -- build and test parallel, options like -tp below"
+    echo "  -btnew [...]        -- build and test modified files, options like -tnew"
+    echo "  -fixdoctests <file.py> [output_file] [--long]"
+    echo "                      -- writes a new version of file.py to output_file"
+    echo "                         (defaults: to file.py.out) that will pass the doctests."
+    echo "                         With the optional --long argument the long time tests"
+    echo "                         are also checked."
+    echo "                         A patch for the new file is printed to stdout."
+    echo "  -startuptime [module] -- display how long each component of Sage takes to"
+    echo "                         start up; optionally specify a module to get more"
+    echo "                         details about that particular module"
+    echo "  -t [options] <--all|files|dir>"
+    echo "                      -- test examples in .py, .pyx, .sage, .tex or .rst files"
+    echo "                         selected options:"
+    echo "                           --long - include lines with the phrase 'long time'"
+    echo "                           --verbose - print debugging output during the test"
+    echo "                           --optional - controls which optional tests are run"
+    echo "                           --randorder[=seed] - randomize order of tests"
+    echo "                           --new - only test files modified since last commit"
+    echo "                           --initial - only show the first failure per block"
+    echo "                           --debug - drop into PDB after an unexpected error"
+    echo "                           --failed - only test files that failed last test"
+    echo "                           --sagenb - test all sagenb files"
+    echo "                           --help - show all testing options"
+    echo "  -tp <N> [...]       -- like -t above, but tests in parallel using N threads"
+    echo "                         with 0 interpreted as a sensible default"
+    echo "  -testall [options]  -- test all source files, docs, and examples.  options"
+    echo "                         like -t"
+
+    echo
+    ####  1.......................26..................................................78
+    ####  |.....................--.|...................................................|
+    echo "Documentation:"
+    echo "  -coverage <files>   -- give info about doctest coverage of files"
+    echo "  -coverageall        -- give summary info about doctest coverage of all"
+    echo "                         files in the Sage library"
+    echo "  -docbuild [lang/]<document> <html|pdf|...> -- Build the Sage documentation"
+    echo "  -search_src <string> -- search through all the Sage library code for string"
+    echo "  -search_doc <string> -- search through the Sage documentation for string"
+    echo "  -grep <string>      -- same as -search_src"
+    echo "  -grepdoc <string>   -- same as -search_doc"
+
+    echo
+    ####  1.......................26..................................................78
+    ####  |.....................--.|...................................................|
+    echo "File conversion:"
+    echo "  -rst2txt [...]      -- Generates Sage worksheet text file from standalone"
+    echo "                         reStructuredText source."
+    echo "  -rst2sws [...]      -- Generates Sage worksheet (.sws) from standalone"
+    echo "                         reStructuredText source."
+    echo "  -sws2rst <sws doc>  -- Generates a reStructuredText source file from"
+    echo "                         a Sage worksheet (.sws) document."
+
+    echo
+    ####  1.......................26..................................................78
+    ####  |.....................--.|...................................................|
+    echo "Making Sage packages or distributions:"
+    echo "  -bdist VER          -- build a binary distribution of Sage"
+    echo "  -combinat [...]     -- run sage-combinat patch management script"
+    echo "  -crap sage-ver.tar  -- detect suspicious garbage in sage source tarball"
+    echo "  -pkg <dir>          -- create Sage package dir.spkg from a given directory"
+    echo "  -pkg_nc <dir>       -- as -pkg, but do not compress the package"
+    echo "  -sdist              -- build a source distribution of Sage"
+
+    echo
+    ####  1.......................26..................................................78
+    ####  |.....................--.|...................................................|
+    echo "Valgrind memory debugging:"
+    echo "  -cachegrind         -- run Sage using Valgrind's cachegrind tool.  The log"
+    echo "                         files are named sage-cachegrind.PID can be found in"
+    echo "                         $DOT_SAGE"
+    echo "  -callgrind          -- run Sage using Valgrind's callgrind tool.  The log"
+    echo "                         files are named sage-callgrind.PID can be found in"
+    echo "                         $DOT_SAGE"
+    echo "  -massif             -- run Sage using Valgrind's massif tool.  The log"
+    echo "                         files are named sage-massif.PID can be found in"
+    echo "                         $DOT_SAGE"
+    echo "  -memcheck           -- run Sage using Valgrind's memcheck tool.  The log"
+    echo "                         files are named sage-memcheck.PID can be found in"
+    echo "                         $DOT_SAGE"
+    echo "  -omega              -- run Sage using Valgrind's omega tool.  The log"
+    echo "                         files are named sage-omega.PID can be found in"
+    echo "                         $DOT_SAGE"
+    echo "  -valgrind           -- this is an alias for -memcheck"
+    echo
+    echo "You can also use -- before a long option, e.g., 'sage --optional'."
+    echo
+    exit 0
+}
+
+# Check for '--nodotsage' before sourcing sage-env; otherwise sage-env
+# will already have set some environment variables with the old
+# setting for DOT_SAGE.
+if [ "$1" = '--nodotsage' ]; then
+    export DOT_SAGE=`mktemp -d ${TMPDIR:-/tmp}/dotsageXXXXXX`
+    shift
+    command "$0" "$@"
+    status=$?
+    rm -rf "$DOT_SAGE"
+    exit $status
+fi
+
+# Check for '--upgrade' before sourcing sage-env: the top-level "make"
+# should be run outside of the Sage shell, see #15517.
+if [ "$1" = '-upgrade' -o "$1" = "--upgrade" ]; then
+    shift
+    cd "$SAGE_ROOT"
+    exec local/bin/sage-upgrade "$@"
+fi
+
+
+# Source sage-env ($0 is the name of this "sage" script, so we can just
+# append -env to that). We redirect stdout to stderr, which is safer
+# for scripts.
+. "$0-env" >&2
+if [ $? -ne 0 ]; then
+    echo >&2 "Error setting environment variables by sourcing '$0-env';"
+    echo >&2 "possibly contact sage-devel (see http://groups.google.com/group/sage-devel)."
+    exit 1
+fi
+
+
+if [ $# -gt 0 ]; then
+  if [ "$1" = '-h' -o "$1" = '-?' -o "$1" = '-help' -o "$1" = '--help' ]; then
+     usage
+  fi
+  if [ "$1" = "-advanced" -o "$1" = "--advanced" ]; then
+     usage_advanced
+  fi
+fi
+
+
+# Prepare for running Sage, either interactively or non-interactively.
+sage_setup() {
+    # Check that we're not in a source tarball which hasn't been built yet (#13561).
+    if [ ! -d "$SAGE_LOCAL/lib/python/site-packages/sage" ]; then
+        echo >&2 '************************************************************************'
+        echo >&2 'It seems that you are attempting to run Sage from an unpacked source'
+        echo >&2 'tarball, but you have not compiled it yet (or maybe the build has not'
+        echo >&2 'finished). You should run `make` in the Sage root directory first.'
+        echo >&2 'If you did not intend to build Sage from source, you should download'
+        echo >&2 'a binary tarball instead. Read README.txt for more information.'
+        echo >&2 '************************************************************************'
+        exit 1
+    fi
+
+    # Display the startup banner
+    if [ "$SAGE_BANNER" != "no" ]; then
+        cat "$SAGE_LOCAL/bin/sage-banner"
+    fi
+
+    maybe_sage_location
+
+    if [ ! -d "$IPYTHONDIR" ]; then
+        # make sure that $DOT_SAGE exists so that ipython will happily
+        # create its config directories there.  If DOT_SAGE doesn't
+        # exist, ipython complains.
+        mkdir -p "$DOT_SAGE"
+    fi
+    sage-cleaner &>/dev/null &
+}
+
+
+# Check to see if the whole Sage install tree has moved.  If so,
+# change various hardcoded paths.  Skip this if we don't have write
+# access to $SAGE_LOCAL (e.g. when running as a different user) or
+# if Python and sage-location haven't been installed yet.
+maybe_sage_location()
+{
+    if [ -w "$SAGE_LOCAL" ]; then
+        if [ -x "$SAGE_LOCAL/bin/python" ] && [ -x "$SAGE_LOCAL/bin/sage-location" ]; then
+            sage-location || exit $?
+        fi
+    fi
+}
+
+
+# Start an interactive Sage session, this function never returns.
+interactive_sage() {
+    sage_setup
+    exec sage-ipython "$@" -i
+}
+
+if [ "$1" = '-min' -o "$1" = '--min' ]; then
+    shift
+    export SAGE_IMPORTALL=no
+fi
+
+if [ "$1" = '-q' ]; then
+    shift
+    export SAGE_BANNER="no"
+fi
+
+if [ $# -eq 0 ]; then
+    interactive_sage
+fi
+
+if [ "$1" = '-cleaner' -o "$1" = '--cleaner' ]; then
+    exec sage-cleaner
+fi
+
+#####################################################################
+# Report information about the Sage environment
+#####################################################################
+
+if [ "$1" = '-v' -o "$1" = '-version' -o "$1" = '--version' ]; then
+    # Workaround for OSX, see http://trac.sagemath.org/15072
+    export LC_ALL=C
+    exec sed -n -e 's/.*\(Sage Version.*Date: [0-9-]*\).*/\1/p' \
+        "$SAGE_LOCAL"/bin/sage-banner
+fi
+
+if [ "$1" = '-root'  -o "$1" = '--root' ]; then
+    echo "$SAGE_ROOT"
+    exit 0
+fi
+
+#####################################################################
+# Run Sage's versions of the standard Algebra/Geometry etc. software
+#####################################################################
+
+if [ "$1" = '-axiom' -o "$1" = '--axiom' ]; then
+    shift
+    exec axiom "$@"
+fi
+
+if [ "$1" = '-combinat' -o "$1" = '--combinat' ]; then
+    shift
+    exec sage-combinat "$@"
+fi
+
+if [ "$1" = '-gap' -o "$1" = '--gap' ]; then
+    shift
+    exec gap "$@"
+fi
+
+if [ "$1" = '-gp' -o "$1" = '--gp' ]; then
+    shift
+    exec gp "$@"
+fi
+
+if [ "$1" = '-singular' -o "$1" = '--singular' ]; then
+    shift
+    exec singular "$@"
+fi
+
+if [ "$1" = '-sqlite3' -o "$1" = '--sqlite3' ]; then
+    shift
+    exec sqlite3 "$@"
+fi
+
+if [ "$1" = '-sws2rst' -o "$1" = '--sws2rst' ]; then
+    shift
+    exec sage-sws2rst "$@"
+fi
+
+if [ "$1" = '-twistd' -o "$1" = '--twistd' ]; then
+    shift
+    exec twistd "$@"
+fi
+
+if [ "$1" = '-ecl' -o "$1" = '--ecl' ]; then
+    shift
+    exec ecl "$@"
+fi
+
+if [ "$1" = '-lisp' -o "$1" = '--lisp' ]; then
+    shift
+    exec ecl "$@"
+fi
+
+if [ "$1" = '-kash' -o "$1" = '--kash' ]; then
+    shift
+    exec kash "$@"
+fi
+
+if [ "$1" = '-fixdoctests' -o "$1" = '--fixdoctests' ]; then
+    shift
+    exec sage-fixdoctests "$@"
+fi
+
+if [ "$1" = '-maxima' -o "$1" = '--maxima' ]; then
+    shift
+    exec maxima "$@"
+fi
+
+if [ "$1" = '-mwrank' -o "$1" = '--mwrank' ]; then
+    shift
+    exec mwrank "$@"
+fi
+
+if [ "$1" = '-M2' -o "$1" = '--M2' ]; then
+    shift
+    exec M2 "$@"
+fi
+
+if [ "$1" = '-scons' -o "$1" = '--scons' ]; then
+    shift
+    exec scons "$@"
+fi
+
+if [ "$1" = '-python' -o "$1" = '--python' ]; then
+    shift
+    exec python "$@"
+fi
+
+if [ "$1" = '-R' -o "$1" = '--R' ]; then
+    shift
+    exec R "$@"
+fi
+
+if [ "$1" = '-ipython' -o "$1" = '--ipython' ]; then
+    shift
+    exec ipython "$@"
+fi
+
+if [ "$1" = '-git' -o "$1" = '--git' ]; then
+    shift
+    exec git "$@"
+fi
+
+if [ "$1" = '-sh' -o "$1" = '--sh' ]; then
+    # AUTHORS:
+    # - Carl Witty and William Stein: initial version
+    # - Craig Citro: add options for not loading profile
+    # - Martin Albrecht: fix zshell prompt (#11866)
+    # - John Palmieri: shorten the prompts, and don't print messages if
+    #   there are more arguments to 'sage -sh' (#11790)
+    shift
+    # If $SHELL is unset, default to bash
+    if [ -z "$SHELL" ]; then
+        export SHELL=bash
+    fi
+    # We must start a new shell with no .profile or .bashrc files
+    # processed, so that we know our path is correct
+    SHELL_NAME=`basename "$SHELL"`
+    # Check for SAGE_SHPROMPT.  If defined, use for the prompt.  If
+    # not, check for already-defined $PS1, and if defined use that.
+    # $PS1 should only be available if it is defined in
+    # $DOT_SAGE/sagerc.
+    if [ -n "$SAGE_SHPROMPT" ]; then
+        oldPS1=$SAGE_SHPROMPT
+    elif [ -n "$PS1" ]; then
+        oldPS1=$PS1
+    fi
+    # Set the default prompt.  If available, use reverse video to
+    # highlight the string "(sage-sh)".
+    if tput rev &>/dev/null; then
+        color_prompt=yes
+    fi
+    case "$SHELL_NAME" in
+        bash)
+            SHELL_OPTS="--norc"
+            if [ "$color_prompt" = yes ]; then
+                PS1="\[$(tput rev)\](sage-sh)\[$(tput sgr0)\] \u@\h:\W\$ "
+            else
+                PS1="(sage-sh) \u@\h:\w\$ "
+            fi
+            export PS1
+            ;;
+        csh)
+            # csh doesn't seem to allow the specification of a different
+            # .cshrc file, and the prompt can only be set in this file, so
+            # don't bother changing the prompt.
+            SHELL_OPTS="-f"
+            ;;
+        ksh)
+            SHELL_OPTS="-p"
+            if [ "$color_prompt" = yes ] ; then
+                PS1="$(tput rev)(sage-sh)$(tput sgr0) $USER@`hostname -s`:\${PWD##*/}$ "
+            else
+                PS1="(sage-sh) $USER@`hostname -s`:\${PWD##*/}$ "
+            fi
+            export PS1
+            ;;
+        sh)
+            # We don't really know which shell "sh" is (it could be
+            # bash, but this is not guaranteed), so we don't set
+            # SHELL_OPTS.
+            if [ "$color_prompt" = yes ] ; then
+                PS1="$(tput rev)(sage-sh)$(tput sgr0) $USER@`hostname -s`:\${PWD##*/}$ "
+            else
+                PS1="(sage-sh) $USER@`hostname -s`:\${PWD}$ "
+            fi
+            export PS1
+            ;;
+        tcsh)
+            # tcsh doesn't seem to allow the specification of a different
+            # .tcshrc file, and the prompt can only be set in this file, so
+            # don't bother changing the prompt.
+            SHELL_OPTS="-f"
+            ;;
+        zsh)
+            PS1="%S(sage-sh)%s %n@%m:%~$ "
+            # In zsh, the system /etc/zshenv is *always* run,
+            # and this may change the path (like on OSX), so we'll
+            # create a temporary .zshenv to reset the path
+            ZDOTDIR=$DOT_SAGE && export ZDOTDIR
+            cat >"$ZDOTDIR/.zshenv" <<EOF
+PATH="$PATH" && export PATH
+EOF
+            SHELL_OPTS=" -d"
+            export PS1
+            ;;
+        *)
+            export PS1='(sage-sh) $ '
+            ;;
+    esac
+    if [ -n "$oldPS1" ]; then
+        PS1="$oldPS1"
+        export PS1
+    fi
+    if [ $# -eq 0 ]; then
+        # No arguments, so print informative message...
+        echo >&2
+        echo >&2 "Starting subshell with Sage environment variables set.  Don't forget"
+        echo >&2 "to exit when you are done.  Beware:"
+        echo >&2 " * Do not do anything with other copies of Sage on your system."
+        echo >&2 " * Do not use this for installing Sage packages using \"sage -i\" or for"
+        echo >&2 "   running \"make\" at Sage's root directory.  These should be done"
+        echo >&2 "   outside the Sage shell."
+        echo >&2
+        if [ -n "$SHELL_OPTS" ]; then
+            echo >&2 "Bypassing shell configuration files..."
+            echo >&2
+        fi
+        echo >&2 "Note: SAGE_ROOT=$SAGE_ROOT"
+        "$SHELL" $SHELL_OPTS "$@"
+        status=$?
+        echo "Exited Sage subshell." 1>&2
+    else
+        exec "$SHELL" $SHELL_OPTS "$@"
+        # If 'exec' returns, an error occurred:
+        status=$?
+        echo >&2 "Fatal error: 'exec \"$SHELL\" \"$@\"' failed!"
+    fi
+    exit $status
+fi
+
+#####################################################################
+# Test coverage of a module?
+#####################################################################
+
+if [ "$1" = "-coverage" -o "$1" = "--coverage" ]; then
+    shift
+    exec sage-coverage "$@"
+fi
+
+if [ "$1" = "-coverageall" -o "$1" = "--coverageall" ]; then
+    shift
+    exec sage-coverageall "$@"
+fi
+
+#####################################################################
+# File conversion
+#####################################################################
+
+if [ "$1" = '-rst2txt' -o "$1" = '--rst2txt' ]; then
+    shift
+    exec sage-rst2txt "$@"
+fi
+
+if [ "$1" = '-rst2sws' -o "$1" = '--rst2sws' ]; then
+    shift
+    exec sage-rst2sws "$@"
+fi
+
+#####################################################################
+# Crap
+#####################################################################
+
+if [ "$1" = "-crap" -o "$1" = "--crap" ]; then
+    shift
+    exec sage-crap $@
+fi
+
+#####################################################################
+# Run Sage's versions of the standard Algebra/Geometry etc. software
+#####################################################################
+
+build_sage() {
+    maybe_sage_location
+    sage-build "$@" || exit $?
+}
+
+if [ "$1" = "-notebook" -o "$1" = '--notebook' -o "$1" = '-n' ]; then
+    shift
+    sage-cleaner &>/dev/null &
+    exec sage-notebook "$@"
+fi
+
+if [ "$1" = "-bn" -o "$1" = "--build-and-notebook" ]; then
+    shift
+    build_sage
+    sage-cleaner &>/dev/null &
+    exec sage-notebook "$@"
+fi
+
+if [ "$1" = "-inotebook" -o "$1" = '--inotebook' ]; then
+    shift
+    sage-cleaner &>/dev/null &
+    exec sage-notebook-insecure "$@"
+fi
+
+if [ "$1" = '-grep' -o "$1" = "--grep" -o "$1" = "-search_src" -o "$1" = "--search_src" ]; then
+   shift
+   sage-grep "$@"
+   exit 0
+fi
+
+if [ "$1" = '-grepdoc' -o "$1" = "--grepdoc" -o "$1" = "-search_doc" -o "$1" = "--search_doc" ]; then
+   shift
+   sage-grepdoc "$@"
+   exit 0
+fi
+
+if [ "$1" = '-b' ]; then
+    shift
+    time build_sage "$@"
+    exit $?
+fi
+
+if [ "$1" = '-br' -o "$1" = "--br" ]; then
+    shift
+    build_sage "$@"
+    interactive_sage
+fi
+
+if [ "$1" = '-r' ]; then
+   shift
+   interactive_sage
+fi
+
+if [ "$1" = '-ba' ]; then
+    shift
+    echo " *** WARNING ***"
+    echo " You are about to rebuild the entire Sage library."
+    echo " This will take a significant amount of time."
+    echo " (Use --ba-force instead of -ba to skip this prompt.)"
+    echo -n " Do you want to proceed? [y/n] "
+    read CHOICE
+    while [ "$CHOICE" != "y" -a "$CHOICE" != "n" ]; do
+        echo -n " Choose one of y, n: "
+        read CHOICE
+    done
+    if [ $CHOICE = 'n' ]; then
+        exit 0
+    fi
+    build_sage -b "$@"
+    exit $?
+fi
+
+if [ "$1" = '-ba-force' -o "$1" = '--ba-force' ]; then
+    shift
+    build_sage -b "$@"
+    exit $?
+fi
+
+if [ "$1" = '-sync-build' -o "$1" = '--sync-build' ]; then
+    shift
+    cd "$SAGE_ROOT"
+    exec sage-sync-build.py "$@"
+fi
+
+if [ "$1" = '-t' -o "$1" = '-bt' -o "$1" = '-tp' -o "$1" = '-btp' ]; then
+    if [ "$1" = '-bt' -o "$1" = '-btp' ]; then
+        build_sage
+    fi
+    if [ ! -f  "$DOT_SAGE"/init.sage ]; then
+        echo >&2 "init.sage does not exist ... creating"
+        touch "$DOT_SAGE"/init.sage
+    fi
+    SAGE_BANNER="no"
+    sage_setup
+    if [ "$1" = '-tp' -o "$1" = '-btp' ]; then
+        shift
+        exec sage-runtests -p "$@"
+    else
+        shift
+        exec sage-runtests "$@"
+    fi
+fi
+
+if [ "$1" = '-tnew' -o "$1" = '-btnew' ]; then
+    if [ "$1" = '-btnew' ]; then
+        build_sage
+    fi
+    shift
+    SAGE_BANNER="no"
+    sage_setup
+    exec sage-runtests --new "$@"
+fi
+
+if [ "$1" = '-testall' -o "$1" = "--testall" ]; then
+    shift
+    SAGE_BANNER="no"
+    sage_setup
+    exec sage-runtests -a "$@"
+fi
+
+if [ "$1" = '-patchbot' -o "$1" = "--patchbot" ]; then
+    shift
+    cd "$SAGE_ROOT"
+    exec "$SAGE_LOCAL/bin/patchbot/patchbot.py" "$@"
+fi
+
+if [ "$1" = '-c' ]; then
+    shift
+    SAGE_BANNER="no"
+    sage_setup
+    unset TERM  # See Trac #12263
+    exec sage-eval "$@"
+fi
+
+install() {
+    maybe_sage_location
+
+    mkdir -p "$SAGE_LOGS"
+    for PKG in "$@"
+    do
+        # Check for options
+        case "$PKG" in
+            -f) OPTF="-f"
+                continue;;
+            -m) OPTS="-s"
+                echo >&2 "Warning: the -m option is deprecated since Sage 5.0.  Use -s instead."
+                continue;;
+            -s) OPTS="-s"
+                continue;;
+            -c) OPTC="-c"
+                continue;;
+            --check) OPTC="-c"
+                continue;;
+            -info) OPTINFO="--info"
+                continue;;
+            --info) OPTINFO="--info"
+                continue;;
+            -*) echo >&2 "Error: unknown option '$PKG'"
+                exit 2;;
+        esac
+
+        PKG_NAME=`echo "$PKG" | sed -e "s/\.spkg$//"`
+        PKG_NAME=`basename "$PKG_NAME"`
+
+        "$SAGE_ROOT"/build/pipestatus \
+            "sage-spkg $OPTINFO $OPTF $OPTS $OPTC '$PKG' 2>&1" \
+            "(trap '' SIGINT; tee -a '$SAGE_ROOT/logs/install.log' '$SAGE_LOGS/$PKG_NAME.log')"
+        # Do not try to install further packages if one failed
+        if [ $? -ne 0 ]; then
+            exit 1
+        fi
+    done
+    exit 0
+}
+
+if [ "$1" = '-optional' -o "$1" = "--optional" ]; then
+    exec sage-list-optional
+fi
+
+if [ "$1" = '-experimental' -o "$1" = "--experimental" ]; then
+    exec sage-list-experimental
+fi
+
+if [ "$1" = '-standard' -o "$1" = "--standard" ]; then
+    exec sage-list-standard
+fi
+
+if [ "$1" = '-i' ]; then
+    shift
+    # If there are no further arguments, simply list all installed
+    # packages.
+    if [ $# -eq 0 ]; then
+        exec sage-spkg
+    fi
+    install "$@"
+fi
+
+if [ "$1" = '-f' ]; then
+    shift
+    # If there are no further arguments, simply list all installed
+    # packages.
+    if [ $# -eq 0 ]; then
+        exec sage-spkg
+    fi
+    install -f "$@"
+fi
+
+if [ "$1" = '-info' -o "$1" = '--info' ]; then
+    shift
+    for PKG in "$@"
+    do
+        sage-spkg --info "$PKG" || exit $?
+    done
+    exit 0
+fi
+
+if [ "$1" = '-pkg' -o "$1" = '-spkg' -o "$1" = "--pkg" -o "$1" = "--spkg" ]; then
+    shift
+    exec sage-pkg "$@"
+fi
+
+if [ "$1" = '-pkg_nc' -o "$1" = "--pkg_nc" ]; then
+    shift
+    exec sage-pkg -n "$@"
+fi
+
+if [ "$1" = '-sdist' -o "$1" = "--sdist" ]; then
+    maybe_sage_location
+    shift
+    exec sage-sdist "$@"
+fi
+
+if [ "$1" = '-rsyncdist' -o "$1" = "--rsyncdist" ]; then
+    if [ $# -ne 2 ]; then
+        echo >&2 "** MISSING VERSION NUMBER! **"
+        exit 2
+    fi
+    maybe_sage_location
+    exec sage-rsyncdist $2
+fi
+
+if [ "$1" = '-bdist' -o "$1" = "--bdist" ]; then
+    maybe_sage_location
+    shift
+    exec sage-bdist "$@"
+fi
+
+if [ "$1" = "-docbuild" -o "$1" = "--docbuild" ]; then
+    shift
+    exec python "$SAGE_DOC/common/builder.py" "$@"
+fi
+
+if [ "$1" = '-gdb' -o "$1" = "--gdb" ]; then
+    shift
+    sage_setup
+    if [ "$SAGE_DEBUG" = "no" ]; then
+        gdb -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
+            -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
+    else
+        cygdb "$SAGE_SRC/build" "$SAGE_SRC/sage" \
+            -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
+            -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
+    fi
+    exit $?
+fi
+
+if [ "$1" = '-preparse' -o "$1" = "--preparse" ]; then
+    shift
+    exec sage-preparse "$@"
+fi
+
+if [ "$1" = "-cython" -o "$1" = '--cython' -o "$1" = '-pyrex' -o "$1" = "--pyrex" ]; then
+    shift
+    exec sage-cython "$@"
+fi
+
+if [ "$1" = '-valgrind' -o "$1" = "--valgrind" -o "$1" = '-memcheck' -o "$1" = "--memcheck" ]; then
+    shift
+    sage_setup
+    exec sage-valgrind "$@"
+fi
+
+if [ "$1" = '-massif' -o "$1" = "--massif" ]; then
+    shift
+    sage_setup
+    exec sage-massif "$@"
+fi
+
+if [ "$1" = '-cachegrind' -o "$1" = "--cachegrind" ]; then
+    shift
+    sage_setup
+    exec sage-cachegrind "$@"
+fi
+
+if [ "$1" = '-callgrind' -o "$1" = "--callgrind" ]; then
+    shift
+    sage_setup
+    exec sage-callgrind "$@"
+fi
+
+if [ "$1" = '-omega' -o "$1" = "--omega" ]; then
+    shift
+    sage_setup
+    exec sage-omega "$@"
+fi
+
+if [ "$1" = '-startuptime' -o "$1" = '--startuptime' ]; then
+    exec sage-startuptime.py "$@"
+fi
+
+if [ "$1" = '-gthread' -o "$1" = '-qthread' -o "$1" = '-q4thread' -o "$1" = '-wthread' -o "$1" = '-pylab' ]; then
+    # Intentionally no "shift" here
+    interactive_sage "$@"
+fi
+
+if [ "$1" = '-dev' -o "$1" = "--dev" ]; then
+    shift
+    exec sage-dev "$@"
+fi
+
+if [ $# -ge 1 ]; then
+    T=`echo "$1" | sed -e "s/.*\.//"`
+    if [ "$T" = "spkg" ]; then
+        install "$@"
+    fi
+    SAGE_BANNER="no"
+    sage_setup
+    unset TERM  # See Trac #12263
+    exec sage-run "$@"
+fi

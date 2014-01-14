@@ -1,0 +1,165 @@
+#!/usr/bin/env python
+
+#*****************************************************************************
+# This is the sage monitor *daemon*, which cleans up after Sage.
+# Some things that it cleans up:
+#   * $DOT_SAGE/temp/HOSTNAME/pid directories
+#   * Processes that Sage spawns.  If a copy of Sage isn't
+#     running, then any process it spawned should have its
+#     process group killed
+#*****************************************************************************
+#       Copyright (C) 2005, 2006, 2007 William Stein <wstein@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
+from __future__ import print_function
+
+import os, shutil, sys, time, socket
+import signal
+
+HOSTNAME = os.environ.get('HOSTNAME', socket.gethostname())
+
+DOT_SAGE = os.environ['DOT_SAGE']
+SAGE_TMP_ROOT = os.path.join(DOT_SAGE, 'temp', HOSTNAME)
+
+
+def is_running(pid):
+    """
+    Return True if and only if there is a process with id pid running.
+    """
+    try:
+        os.kill(pid,0)
+        return True
+    except OSError:
+        return False
+
+def cleanup():
+    tmp_dirs = os.listdir(SAGE_TMP_ROOT)
+    # Convert strings to integers
+    pid_list = []
+    for dir in tmp_dirs:
+        try:
+            pid_list.append(int(dir))
+        except ValueError:
+            pass
+
+    print("Checking PIDs", pid_list)
+    for parent_pid in pid_list:
+        if not is_running(parent_pid):
+            print("Process %s is no longer running, so we clean up"%parent_pid)
+            d = os.path.join(SAGE_TMP_ROOT, str(parent_pid))
+            spawned_processes = os.path.join(d, 'spawned_processes')
+            e = os.path.isdir(spawned_processes)
+            if not e or (e and kill_spawned_jobs(spawned_processes, parent_pid)):
+                print("Deleting %s"%d)
+                try:
+                    shutil.rmtree(d)
+                except OSError:
+                    pass
+
+    return len(tmp_dirs)
+
+def kill_spawned_jobs(file, parent_pid):
+    print("Killing %s's spawned jobs"%parent_pid)
+    killed_them_all = True
+    for L in open(file).readlines():
+        i = L.find(' ')
+        pid = L[:i].strip()
+        cmd = L[i+1:].strip()
+        try:
+            print("Killing %s with parent %s"%(pid, parent_pid) )
+            os.killpg(int(pid), signal.SIGKILL)
+        except OSError, msg:
+            try:
+                os.kill(int(pid), signal.SIGKILL)
+            except OSError, msg:
+                pass
+        if is_running(pid):
+            print("Failed to kill %s!"%pid)
+            # try again later
+            killed_them_all = False
+    return killed_them_all
+
+
+pidfile = os.path.join(DOT_SAGE, 'temp', 'cleaner-%s.pid'%HOSTNAME)
+def setup_daemon():
+    print("SAGE_TMP_ROOT =", SAGE_TMP_ROOT)
+    if not os.path.isdir(SAGE_TMP_ROOT):
+        print("No directory %s, exiting"%SAGE_TMP_ROOT)
+        sys.exit(0)
+
+    try:
+        pid = int(open(pidfile).read())
+    except (IOError, ValueError):
+        pass
+    else:
+        if is_running(pid):
+            print("sage-cleaner is already running with PID %s, exiting"%pid)
+            sys.exit(0)
+    open(pidfile,'w').write(str(os.getpid()))
+
+
+
+def fix_old_mistakes():
+    """
+    Experience is simply the name we give our mistakes.
+    """
+    # inconsistently escaped hyphens with underscores (http://trac.sagemath.org/14055)
+    wrong_hostname = HOSTNAME.replace('-','_').replace('/','_').replace('\\','_')
+    wrong_sage_tmp_root = os.path.join(DOT_SAGE, 'temp', wrong_hostname)
+    if wrong_sage_tmp_root != SAGE_TMP_ROOT and os.path.exists(wrong_sage_tmp_root):
+        print('deleting invalid temp dir {0}'.format(wrong_sage_tmp_root))
+        shutil.rmtree(wrong_sage_tmp_root, ignore_errors=True)
+
+    # SAGE_TMP in DOT_SAGE/tmp instead of DOT_SAGE/temp
+    import glob
+    old_root =  glob.glob(os.path.join(DOT_SAGE, 'tmp', HOSTNAME+'-*'))
+    if wrong_hostname != HOSTNAME:
+        old_root += glob.glob(os.path.join(DOT_SAGE, 'tmp', wrong_hostname+'-*'))
+    for old_tmp in old_root:
+        print('deleting invalid temp dir {0}'.format(old_tmp))
+        shutil.rmtree(old_tmp, ignore_errors=True)
+
+
+if __name__ == '__main__':
+    setup_daemon()
+    fix_old_mistakes()
+
+    try:
+        print("Starting sage-cleaner")
+
+        if len(sys.argv) > 1:
+            wait = int(sys.argv[1])
+        else:
+            wait = 10
+
+        # Initial cleanup, ignore time
+        running_sages = cleanup()
+        cleanup_time = 0.0
+        count = 1
+
+        # In the first 10 iterations, continue anyway (even if there are
+        # no Sage processes running) because it can happen that Sage is
+        # not yet started.
+        while count < 10 or running_sages > 0:
+            # Time to wait = "wait" plus 20 times the time of last cleanup().
+            # This ensures that sage-cleaner causes a load of at most 5%.
+            time.sleep(wait + 20*cleanup_time)
+            count += 1
+            t0 = time.time()
+            running_sages = cleanup()
+            cleanup_time = time.time() - t0
+            print("cleanup() #{:d} took {:.2f}s".format(count, cleanup_time))
+
+        print("sage-cleaner is finished")
+
+    finally:
+        try:
+            os.unlink(pidfile)
+        except OSError:
+            pass

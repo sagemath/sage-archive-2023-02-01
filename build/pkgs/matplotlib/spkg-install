@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+if [ "x$SAGE64" = xyes ]; then
+   echo "Building a 64-bit version of matplotlib"
+   CFLAGS="-O2 -g -m64 "; export CFLAGS
+   LDFLAGS="-m64 "; export LDFLAGS
+fi
+
+# Write a configuration file to src/setup.cfg
+python make-setup-config.py
+
+cd src
+
+# Apply patches.  See SPKG.txt for information about what each patch
+# does.
+for patch in ../patches/*.patch; do
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
+
+# Now build
+python setup.py build
+
+if [ $? -ne 0 ]; then
+   echo "Error building matplotlib package."
+   exit 1
+fi
+
+rm -rf "$SAGE_LOCAL"/lib/python/site-packages/matplotlib
+
+# Finally install
+python setup.py install
+
+# Print value of MPLCONFIGDIR
+MPLINITFILE="$SAGE_LOCAL/lib/python/site-packages/matplotlib/__init__.py"
+if [ -f "$MPLINITFILE" ]; then
+    MPLVERSION=`sed -n "/^__version__[ ]*=/s/[^']*'\([^']*\)'.*$/\1/p" "$MPLINITFILE"`
+    echo
+    echo "When Sage runs, MPLCONFIGDIR will be set to '\$DOT_SAGE/matplotlib-$MPLVERSION'."
+    echo
+else
+    echo "$MPLINITFILE not found.  What happened?"
+    exit 1
+fi

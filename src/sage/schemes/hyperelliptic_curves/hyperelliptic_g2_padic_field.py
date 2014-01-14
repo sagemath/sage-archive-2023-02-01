@@ -1,0 +1,16 @@
+"""
+Hyperelliptic curves over the rationals
+"""
+
+#*****************************************************************************
+#  Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
+#  Distributed under the terms of the GNU General Public License (GPL)
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+import hyperelliptic_g2_generic, hyperelliptic_padic_field
+
+class HyperellipticCurve_g2_padic_field(
+    hyperelliptic_g2_generic.HyperellipticCurve_g2_generic,
+    hyperelliptic_padic_field.HyperellipticCurve_padic_field):
+    pass

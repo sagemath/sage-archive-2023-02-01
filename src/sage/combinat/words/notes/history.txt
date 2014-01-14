@@ -1,0 +1,77 @@
+﻿====================================================
+A history of the Words Library
+====================================================
+
+[English history to be done. To be translated from below.]
+
+
+====================================================
+Historique de la librairie sur les mots
+====================================================
+
+Depuis 1990, Srečko Brlek détient une subvention du CRSNG, pour des
+recherches théoriques dont le coeur est la combinatoire des mots et un de
+ses volets concerne le développement d'un outil de calcul formel pour la
+combinatoire des mots.
+
+Le paquetage disponible ici doit beaucoup au travail de plusieurs
+personnes. À l'origine Patricia Lamas a construit pendant ses études de
+maîtrise (1995) sous la direction de Srečko Brlek, un ensemble de
+fonctions en langage Scheme pour la manipulation de mots.
+
+En 1996, lors d'un workshop organisé à Montréal par Srečko Brlek (Valérie
+Berthé, Julien Cassaigne, Sébastien Ferenczi, Michel Koskas, Dominique
+Bernardi, Jean Paul Allouche, etc) une discussion portant sur le
+développement a mené à la volonté de poursuivre le projet nommé CABAC.
+Cela n'a pas abouti... complètement comme nous allons le voir.
+
+En 1997, Annie Ladouceur, pendant un stage à Paris de janvier à juin, a
+complètement réécrit en C une librairie de fonctions pour la combinatoire
+des mots. Elle a su bénéficier, dans le cadre de ce stage, du support de
+Dominique Bernardi, Michel Koskas et Jean-Paul Allouche. Ce travail
+constituait une grande partie de son mémoire de maîtrise (1999) effectué
+sous la direction de Srečko Brlek et lui a permis en outre de découvrir le
+canard à la ficelle. De plus, la possibilité d'effectuer des calculs sur
+des mots très longs (plusieurs dizaines de millions de caractères), a
+donné lieu à quelques découvertes et entraîné la publication de 2 articles
+portant sur le mot de Kolakoski. La maintenance de cet outil étant ardue,
+Xavier Provençal, doctorant sous la direction toujours de l'hidalgo de
+Novosibirsk, a repris le travail d'Annie en 2003.
+
+En 2006, une version complète en Ruby, fut produite par Arnaud Bergeron,
+boursier CRSNG, pendant son stage d'initiation à la recherche effectué au
+LaCIM pendant l'été 2006, sous la direction de Srečko Brlek. Thierry
+Monteil (Lirmm) a aussi manifesté de l'intérêt pour son développement.
+
+Elle a permis de corriger plusieurs bugs. Ce paquetage comportait des
+lacunes, principalement en ce qui a trait à l'interface. Le manque de
+convivialité était aussi un blocage à son utilisation.
+
+En mai 2008, Franco Saliola nous a introduit à Sage lors d'un séminaire.
+À la suite de ce séminaire il fut décidé (Srečko Brlek, Franco Saliola,
+Arnaud Bergeron, Sébastien Labbé) qu'il serait opportun de porter le
+travail d'Arnaud Bergeron sur la plateforme Sage. Arnaud n'était pas
+convaincu au début de la chose, principalement à cause du langage de
+développement Python. L'influence de Franco et de Sébastien sur Arnaud fut
+prépondérante parce qu'il n'écoute pas son parrain.
+
+Sébastien a pu lui montrer les beautés de Python, car il a développé en
+langage Python indépendemment dans le cadre de sa maîtrise un ensemble de
+fonctions usuelles pour la combinatoire des mots utiles pour son mémoire.
+
+Un cours sur Sage fut donné au LaCIM par Franco Saliola pendant deux
+semaines, à la suite duquel Arnaud a traduit en Python le paquetage Ruby,
+porté le résultat dans l'environnement Sage, aidé en cela par Sébastien
+Labbé et Franco Saliola qui en est le maître d'oeuvre. D'autres
+contributions furent ajoutées par Amy Glen, postdoctorante au LaCIM.
+
+Depuis 2008, plusieurs améliorations ont été apportées par Franco Saliola,
+Sébastien Labbé, Alexandre Blondin Massé, Vincent Delecroix et Thierry
+Monteil.
+
+
+REFERENCES:
+
+- Laboratoire de Combinatoire Informatique Mathématiques (LaCIM) de
+  l'Université du Québec à Montréal (UQAM), http://lacim.uqam.ca.
+

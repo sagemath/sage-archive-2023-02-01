@@ -1,0 +1,20 @@
+General Rings, Ideals, and Morphisms
+====================================
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/rings/ring
+   sage/rings/ideal
+   sage/rings/ideal_monoid
+   sage/rings/noncommutative_ideals
+   sage/rings/morphism
+   sage/rings/homset
+   sage/rings/infinity
+   sage/rings/fraction_field
+   sage/rings/fraction_field_element
+   sage/rings/quotient_ring
+   sage/rings/quotient_ring_element
+   sage/rings/invariant_theory
+
+.. include:: ../footer.txt

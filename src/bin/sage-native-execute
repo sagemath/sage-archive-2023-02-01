@@ -1,0 +1,9 @@
+#!/bin/sh
+
+LD_LIBRARY_PATH=$SAGE_ORIG_LD_LIBRARY_PATH; export LD_LIBRARY_PATH
+if [ `uname` = 'Darwin' ]; then
+  DYLD_LIBRARY_PATH=$SAGE_ORIG_DYLD_LIBRARY_PATH
+fi
+
+"$@"
+

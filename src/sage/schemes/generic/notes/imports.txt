@@ -1,0 +1,31 @@
+In order to avoid circular imports, the schemes should only import
+from other modules higher in the following hierarchy:
+
+1. scheme, point
+
+2. spec, ambient_space, morphism
+
+3. toric_morphism, glue
+
+4. homset
+
+5. affine_scheme, projective_scheme, toric_variety
+
+6. algebraic_scheme, fano_toric_variety
+
+7. hypersurface
+
+8. divisor
+
+9. divisor_group
+
+10. toric_divisor
+
+If you nevertheless need something from a module lower in the
+hierarchy, you should defer the import. That is, put the import at the
+class/method level and not in the module scope. For example, scheme.py
+needs spec.py for the default base scheme but contains no "import
+spec" at the module level.
+
+
+

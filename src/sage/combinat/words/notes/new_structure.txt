@@ -1,0 +1,33 @@
+IDEA: A word will inherit from exactly one class from each of the two lists
+below.
+
+(A) CLASSES THAT CONTAIN METHODS ONLY. These classes will contain generic
+    implementations of many of the algorithms.
+
+    Word_class
+    FiniteWord_class
+    InfiniteWord_class
+    Word_over_Alphabet_class
+    Word_over_OrderedAlphabet_class
+
+We will write the generic methods for any iterable object.
+
+(B) CLASSES FOR SPECIFIC IMPLEMENTATIONS. These will possibly override some
+    of the above methods.
+
+    Word_list
+    Word_string
+    Word_tuple
+    Word_iterator
+    Word_function
+    Word_iterator_cached
+    Word_function_cached
+
+At the very least, these need to define an iterator. But it would be better
+to implement the following:
+
+    __iter__, an iterator iterating through the letters
+    __getitem__, handle indexes and slices
+    __contains__, answer whether a letter is in the word
+    __len__, return the length of the word
+    [TODO: ADD TO THIS LIST]

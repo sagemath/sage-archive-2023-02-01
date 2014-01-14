@@ -1,0 +1,41 @@
+\begin{tikzpicture}[>=latex,xscale=-.8,yscale =.8]
+  %%
+  \node (d2tnn1) at (183bp,279bp) [draw,draw=none] {$\left(\right)$};
+  \node (4+1) at (275bp,171bp) [draw,draw=none] {$\left(4, 1\right)$};
+  \node (1+1+1+1+1) at (28bp,9bp) [draw,draw=none] {$\left(1, 1, 1, 1, 1\right)$};
+  \node (3+1+1) at (229bp,117bp) [draw,draw=none] {$\left(3, 1, 1\right)$};
+  \node (2+1+1) at (91bp,117bp) [draw,draw=none] {$\left(2, 1, 1\right)$};
+  \node (2+1+1+1) at (94bp,63bp) [draw,draw=none] {$\left(2, 1, 1, 1\right)$};
+  \node (2+1) at (91bp,171bp) [draw,draw=none] {$\left(2, 1\right)$};
+  \node (1+1+1) at (30bp,117bp) [draw,draw=none] {$\left(1, 1, 1\right)$};
+  \node (3+1) at (229bp,171bp) [draw,draw=none] {$\left(3, 1\right)$};
+  \node (3+2) at (183bp,171bp) [draw,draw=none] {$\left(3, 2\right)$};
+  \node (1+1) at (35bp,171bp) [draw,draw=none] {$\left(1, 1\right)$};
+  \node (5+) at (255bp,225bp) [draw,draw=none] {$\left(5\right)$};
+  \node (4+) at (219bp,225bp) [draw,draw=none] {$\left(4\right)$};
+  \node (1+1+1+1) at (28bp,63bp) [draw,draw=none] {$\left(1, 1, 1, 1\right)$};
+  \node (3+) at (183bp,225bp) [draw,draw=none] {$\left(3\right)$};
+  \node (2+) at (137bp,225bp) [draw,draw=none] {$\left(2\right)$};
+  \node (2+2+1) at (147bp,117bp) [draw,draw=none] {$\left(2, 2, 1\right)$};
+  \node (1+) at (68bp,225bp) [draw,draw=none] {$\left(1\right)$};
+  \node (2+2) at (137bp,171bp) [draw,draw=none] {$\left(2, 2\right)$};
+  \draw [->] (1+1+1+1) ..controls (28bp,47bp) and (28bp,37bp)  .. (1+1+1+1+1);
+  \draw [->] (d2tnn1) ..controls (201bp,266bp) and (222bp,250bp)  .. (5+);
+  \draw [->] (3+) ..controls (198bp,208bp) and (207bp,197bp)  .. (3+1);
+  \draw [->] (2+) ..controls (122bp,208bp) and (113bp,197bp)  .. (2+1);
+  \draw [->] (1+1) ..controls (33bp,155bp) and (33bp,145bp)  .. (1+1+1);
+  \draw [->] (d2tnn1) ..controls (158bp,267bp) and (112bp,246bp)  .. (1+);
+  \draw [->] (1+1+1) ..controls (29bp,101bp) and (29bp,91bp)  .. (1+1+1+1);
+  \draw [->] (4+) ..controls (237bp,208bp) and (248bp,196bp)  .. (4+1);
+  \draw [->] (d2tnn1) ..controls (194bp,263bp) and (201bp,252bp)  .. (4+);
+  \draw [->] (2+2) ..controls (140bp,155bp) and (141bp,145bp)  .. (2+2+1);
+  \draw [->] (3+1) ..controls (229bp,155bp) and (229bp,145bp)  .. (3+1+1);
+  \draw [->] (3+) ..controls (183bp,209bp) and (183bp,199bp)  .. (3+2);
+  \draw [->] (d2tnn1) ..controls (183bp,263bp) and (183bp,253bp)  .. (3+);
+  \draw [->] (d2tnn1) ..controls (169bp,263bp) and (159bp,252bp)  .. (2+);
+  \draw [->] (2+1) ..controls (91bp,155bp) and (91bp,145bp)  .. (2+1+1);
+  \draw [->] (1+) ..controls (58bp,209bp) and (51bp,198bp)  .. (1+1);
+  \draw [->] (2+1+1) ..controls (92bp,101bp) and (92bp,91bp)  .. (2+1+1+1);
+  \draw [->] (2+) ..controls (137bp,209bp) and (137bp,199bp)  .. (2+2);
+  %
+\end{tikzpicture}

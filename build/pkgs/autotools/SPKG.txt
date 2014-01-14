@@ -46,19 +46,19 @@ GNU General Public License version 3 or later.
 
 == Dependencies ==
 
-To install the spkg:
+To install the package:
 * Perl
 * Git
 
-To update the spkg:
-* Sage with autotools spkg installed
-* Git
+To update the package:
+* Sage with autotools package installed
 * Internet access
 
 == Special Update/Build Instructions ==
 
-The file spkg-src can be used to automatically create or update the git
-repositories. This obviously requires internet access.
+The file spkg-src can be used to automatically create the upstream
+tarball from the git repositories. This obviously requires internet
+access.
 
 The file version-list defines the list of versions installed by this
 spkg. If you edit this, you must update Makefile.build using the
@@ -67,19 +67,3 @@ using spkg-src, you need to run
   ./spkg-write-makefile >Makefile.build
 This must be run in a Sage shell, with the the autotools spkg
 installed.
-
-Patches:
- * m4-no-gets.patch: needed when libc doesn't declare gets():
-   http://lists.gnu.org/archive/html/bug-m4/2012-08/msg00006.html
-
-== Changelog ==
-
-=== autotools-20121217 (Jeroen Demeyer, 17 December 2012) ===
- * Add proper dependency checking instead of bruce-force building.
- * Add texinfo package
- * Make the package portable
- * Add patch m4-no-gets.patch for m4
-
-=== autotools-20120810 (Jeroen Demeyer, 10 August 2012) ===
- * Trac #13357: Initial release, contains m4-1.4.16, help2man-1.40.11
-   and git sources for autoconf, automake and libtool.

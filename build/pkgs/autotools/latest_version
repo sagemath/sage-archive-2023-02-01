@@ -54,9 +54,15 @@ def tuple_to_version(t):
 import sys
 L = sys.stdin.read().split()
 
+debug = ' '.join(L)
+
 L = [version_to_tuple(s) for s in L if len(s) > 0 and s[0].isdigit()]
 if len(L) == 0:
     sys.exit(0)
 
 L = sorted(L, reverse=True)
-print(tuple_to_version(L[0]))
+ver = tuple_to_version(L[0])
+debug = debug + ' => '  + ver
+
+print(ver)
+print(debug, file=sys.stderr)

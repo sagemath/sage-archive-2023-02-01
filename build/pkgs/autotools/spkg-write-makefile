@@ -8,15 +8,12 @@
 # ./spkg-write-makefile >Makefile.build
 #
 
-
 set -e
 
-SRC=`cd src && pwd`
-
-# Sanity check directories
-if [ ! -f "$SRC/../spkg-install" ]; then
-    echo >&2 "Cannot find spkg-install"
-    exit 3
+if [ -z "$SAGE_ROOT" ]; then
+    echo >&2 "SAGE_ROOT undefined ... exiting"
+    echo >&2 "Maybe run 'sage --sh'?"
+    exit 1
 fi
 
 # Sanity check that AUTOCONF_VERSION and AUTOMAKE_VERSION works
@@ -33,14 +30,19 @@ if ! env "AUTOMAKE_VERSION=1.9.6" aclocal --version | grep >/dev/null '1[.]9[.]6
     exit 3
 fi
 
+export PATH="$SAGE_ROOT/build/pkgs/autotools:$PATH"
+
 
 # Read versions
 source version-list
 
-# Create a temporary directory to extract stuff
-rm -rf tmp
-mkdir tmp
-cd tmp
+# Extract upstream autotools tarball
+cd "$SAGE_ROOT"
+PKG=autotools-`cat build/pkgs/autotools/package-version.txt`
+mkdir -p local/var/tmp/sage
+cd "$SAGE_ROOT/local/var/tmp/sage"
+tar xjf "$SAGE_ROOT/upstream/$PKG.tar.bz2"
+cd $PKG
 
 cat <<EOF
 ########################################################################
@@ -62,10 +64,10 @@ echo '$(SAGE_LOCAL)/bin/makeinfo: $(SRC)/texinfo-4.13'
 echo -e '\tif [ "$$UNAME" = CYGWIN ] ; then cp -p "$(SRC)/../install-info.exe.manifest" "$(SAGE_LOCAL)/bin" ; fi'
 echo -e '\tcd $< && ./configure --prefix="$(SAGE_LOCAL)" && $(MAKE) && $(MAKE) install'
 echo
-echo '$(SAGE_LOCAL)/bin/m4: $(SRC)/m4-1.4.16 $(SAGE_LOCAL)/bin/makeinfo'
+echo '$(SAGE_LOCAL)/bin/m4: $(SRC)/m4-1.4.17 $(SAGE_LOCAL)/bin/makeinfo'
 echo -e '\tcd $< && ./configure --prefix="$(SAGE_LOCAL)" && $(MAKE) && $(MAKE) install'
 echo
-echo '$(SAGE_LOCAL)/bin/help2man: $(SRC)/help2man-1.40.11 $(SAGE_LOCAL)/bin/makeinfo'
+echo '$(SAGE_LOCAL)/bin/help2man: $(SRC)/help2man-1.43.3 $(SAGE_LOCAL)/bin/makeinfo'
 echo -e '\tcd $< && ./configure --prefix="$(SAGE_LOCAL)" && $(MAKE) && $(MAKE) install'
 echo
 echo '########################################################################'
@@ -83,17 +85,18 @@ write_make_rules() {
     for v in $*
     do
         echo >&2 "Processing $p-$v"
+        cd $p
 
         # Find out the correct tag for version $v
-        tag=`cd "$SRC/$p" && git tag -l | grep -i -x -e "v$v" -e "release-$v" -e "$p-$v" | head -1`
+        tag=`git tag -l | grep -i -x -e "v$v" -e "release-$v" -e "$p-$v" | head -1`
         if [ -z "$tag" ]; then
             echo >&2 "Cannot find tag for $p-$v"
             exit 3
         fi
 
-        # Extract the tag
-        ( cd "$SRC/$p" && git archive --format=tar --prefix=$p-$v/ $tag ) | tar xf -
-        cd $p-$v
+        # Checkout the version given by the tag (and remove all garbage)
+        git checkout -f $tag
+        git clean -f -d -x -q
 
         deps="\$(SAGE_LOCAL)/bin/m4 \$(SAGE_LOCAL)/bin/makeinfo"
         ac_ver=
@@ -107,7 +110,7 @@ write_make_rules() {
                 # Run aclocal, such that AM_INIT_AUTOMAKE is available.
                 aclocal
                 # Require at least version 1.9.6, a reasonable default.
-                am_ver=`( echo 1.9.6; autoconf --trace='AM_INIT_AUTOMAKE:$1' configure.ac ) | "$SRC/../latest_version"`
+                am_ver=`( echo 1.9.6; autoconf --trace='AM_INIT_AUTOMAKE:$1' configure.ac ) | latest_version`
                 # Run the *correct* version of aclocal, such that we do
                 # not introduce unneeded AC_PREREQ() definitions.
                 env "AUTOMAKE_VERSION=$am_ver" aclocal
@@ -117,7 +120,7 @@ write_make_rules() {
             # AC_PREREQ for Automake, even if "configure" exists.
             if [ ! -f configure ] || [ $p = automake ]; then
                 # Require at least version 2.59, a reasonable default.
-                ac_ver=`( echo 2.59; autoconf --trace='AC_PREREQ:$1' configure.ac ) | "$SRC/../latest_version"`
+                ac_ver=`( echo 2.59; autoconf --trace='AC_PREREQ:$1' configure.ac ) | latest_version`
             fi
         fi
         if [ -n "$ac_ver" ]; then
@@ -151,15 +154,13 @@ write_make_rules() {
         echo
 
         echo "\$(SAGE_LOCAL)/$p-$v: $p-$v/.tarball-version $deps"
-        # When recursing, build only one job at a time
-        # (to fix some broken packages).
-        echo -e "\tAM_MAKEFLAGS=-j1 ; export AM_MAKEFLAGS ; \\\\"
-        [ -z "$ac_ver" ] || echo -e "\tAUTOCONF_VERSION=$ac_ver ; export AUTOCONF_VERSION ; \\\\"
-        [ -z "$am_ver" ] || echo -e "\tAUTOMAKE_VERSION=$am_ver ; export AUTOMAKE_VERSION ; \\\\"
+        echo -e "\texport MAKE='\$(MAKE) -j1' ; \\\\"
+        [ -z "$ac_ver" ] || echo -e "\texport AUTOCONF_VERSION=$ac_ver ; \\\\"
+        [ -z "$am_ver" ] || echo -e "\texport AUTOMAKE_VERSION=$am_ver ; \\\\"
 sed 's/^/\t/;' <<EOF
 cd $p-$v && ${bootstrap}\\
     ./configure --prefix="\$(SAGE_LOCAL)/$p-$v" && \\
-    \$(MAKE) && \$(MAKE) install
+    \$\$MAKE && \$\$MAKE install
 # Remove all files except for the .* files
 [ "\$\$SAGE_KEEP_BUILT_SPKGS" = yes ] || rm -rf $p-$v/*
 EOF
@@ -168,7 +169,7 @@ EOF
         prevextract="$p-$v/.tarball-version"
         all="$all \$(SAGE_LOCAL)/$p-$v"
 
-        cd ..  # back to tmp
+        cd ..  # Back to upstream source directory
     done
     echo "$all"
     echo
@@ -180,4 +181,5 @@ write_make_rules autoconf $autoconf_versions
 write_make_rules automake $automake_versions
 write_make_rules libtool $libtool_versions
 
-cd "$SRC/.." && rm -rf tmp
+cd "$SAGE_ROOT/local/var/tmp/sage"
+rm -rf $PKG

@@ -29,11 +29,11 @@ Website: http://gf2x.gforge.inria.fr/
 
 === Patches ===
  * no-undefined.patch: pass -no-undefined flag to libtool.
- * hardware_specific_code.patch: backport upstream commits 162 and 167 to disable
-   cpu-dependent optimizations.
  * sse2_tr_fixes.patch: backport upstream fixes for non-portable use of tr and for
    sse2 checks.
- * x86_64_sse2.patch: always support SSE2 on x86_64.
+ * x_hardware_specific_code.patch: disable cpu-dependent optimizations
+   (x_ prefix in filename such that the patch applies after
+   sse2_tr_fixes.patch)
 
 == Changelog ==
 

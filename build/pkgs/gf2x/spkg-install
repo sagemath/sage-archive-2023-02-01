@@ -38,17 +38,7 @@ fi
 
 if [ "$SAGE_FAT_BINARY" = "yes" ]; then
     echo "Building a generic gf2x library."
-    case `uname -m`  in
-      x86_64)
-        GF2X_HWDIR="x86_64"
-        ;;
-      i?86)
-        GF2X_HWDIR="x86_nosse2"
-        ;;
-      *)
-        ;;
-    esac
-    GF2X_CONFIGURE="hwdir=$GF2X_HWDIR --disable-hardware-specific-code $GF2X_CONFIGURE"
+    GF2X_CONFIGURE="--disable-hardware-specific-code $GF2X_CONFIGURE"
 fi
 
 echo "Configuring gf2x."

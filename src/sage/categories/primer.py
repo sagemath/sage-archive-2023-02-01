@@ -1309,11 +1309,20 @@ Each category *should* come with a good example, in
 Inserting the new category into the category graph
 --------------------------------------------------
 
-``C.super_categories()`` must return a list of categories, namely the
-*immediate* super categories of `C`.  Of course, if you know that your
-new category `C` is an immediate super category of some existing
-category `D`, then you should also update `D`'s ``super_categories``
-to include `C`.
+``C.super_categories()`` *must* return a list of categories, namely
+the *immediate* super categories of `C`.  Of course, if you know that
+your new category `C` is an immediate super category of some existing
+category `D`, then you should also update the method
+``D.super_categories`` to include `C`.
+
+The immediate super categories of `C` *should not* be :class:`join
+categories <JoinCategory>`. Furthermore, one always should have::
+
+      Cs().is_subcategory( Category.join(Cs().super_categories()) )
+
+      Cs()._cmp_key()  >  other._cmp_key()  for other in Cs().super_categories()
+
+This is checked by :meth:`Category._test_category`.
 
 In several cases, the category `C` is directly provided with a generic
 implementation of ``super_categories``; a typical example is when `C`

@@ -7,19 +7,11 @@ that the reader is familiar with the :mod:`category primer
 <sage.categories.primer>`, and in particular its :ref:`section about
 axioms <category-primer-axioms>`.
 
-.. TODO::
-
-   Finalization of the documentation for :trac:`10963`:
-
-   - Describe the algorithm for adding axioms and computing intersections
-   - Flesh out the design goals
-   - Cleanup the specifications section
-
 Implementing axioms
 ===================
 
-Simple case involving a single axiom
-------------------------------------
+Simple case involving a single predefined axiom
+-----------------------------------------------
 
 Suppose that one wants to provide code (and documentation, tests, ...)
 for the objects of some existing category ``Cs()`` that satisfy some
@@ -35,8 +27,9 @@ exists a class for the category of finite semigroups::
     sage: type(Semigroups().Finite())
     <class 'sage.categories.finite_semigroups.FiniteSemigroups_with_category'>
 
-Therefore, code about finite semigroups should go in the class
-:class:`FiniteSemigroups` (or, as usual, in its nested classes
+In this case, we say that the category of semigroups *implements* the
+axiom ``Finite``, and code about finite semigroups should go in the
+class :class:`FiniteSemigroups` (or, as usual, in its nested classes
 ParentMethods, ElementsMethods and so on).
 
 On the other hand, there is no class for the category of infinite
@@ -53,9 +46,12 @@ categories of semigroups and of infinite sets respectively::
     sage: Semigroups().Infinite().super_categories()
     [Category of semigroups, Category of infinite sets]
 
-In this later case, one needs to create a new class for this
-category. This boils down to adding in the class ``Cs`` a nested class
-inheriting from :class:`CategoryWithAxiom`::
+In this later case, one needs to create a new class to implement the
+axiom for this category. This boils down to adding a nested class
+inheriting from :class:`CategoryWithAxiom`. Here we implement a
+category ``Cs``, with a subcategory for the objects satisfying the
+``Finite`` axiom defined in the super category ``Sets`` (we will see
+later on how to *define* new axioms)::
 
     sage: from sage.categories.category_with_axiom import CategoryWithAxiom
     sage: class Cs(Category):
@@ -82,9 +78,9 @@ Now a parent declared in the category ``Cs().Finite()`` inherits from
 all the methods of finite sets and of finite `C`'s, as desired::
 
     sage: P = Parent(category=Cs().Finite())
-    sage: P.is_finite()
+    sage: P.is_finite()             # Provided by Sets.Finite.ParentMethods
     True
-    sage: P.foo()
+    sage: P.foo()                   # Provided by Cs.Finite.ParentMethods
     I am a method on finite C's
 
 .. NOTE::
@@ -93,9 +89,17 @@ all the methods of finite sets and of finite `C`'s, as desired::
       :mod:`covariant functorial constructions
       <sage.categories.covariant_functorial_construction>`.
 
-    - The category ``Cs().Finite()`` is aware that it has been
-      constructed from the category ``Cs()`` and adding the axiom
-      ``Finite``::
+      From an object oriented point of view, any subcategory ``Cs`` of
+      Sets inherits from a ``Finite`` method, and it can complement
+      this method with extra data (here a mixin class) in the form of
+      a class attribute ``Cs.Finite``. The fact that ``Cs.Finite``
+      *complements* the ``Finite`` method rather than *overriding* is
+      not unnatural: that's what sequences of ``super`` calls are
+      usually about.
+
+    - Under the hood, the category ``Cs().Finite()`` is aware that it
+      has been constructed from the category ``Cs()`` and adding the
+      axiom ``Finite``::
 
         sage: Cs().Finite().base_category()
         Category of cs
@@ -158,8 +162,8 @@ In our example ``FiniteCs``, Sage failed to guess automatically the
 base category class and axiom because the class ``Cs`` is not in the
 standard location ``sage.categories.cs``.
 
-Implementing a new axiom
-------------------------
+Defining a new axiom
+--------------------
 
 We describe now how to define a new axiom. The first step is to figure
 out the largest category where the axiom makes sense. For example
@@ -185,18 +189,43 @@ added to a global tuple::
 
     sage: sage.categories.category_with_axiom.all_axioms += ("Green",)
 
+.. TODO::
+
+    Specify whether or not one should systematically use
+    @cached_method in the definition of the axiom. And make sure all
+    the definition of axioms in Sage are consistent for this aspect!
+
 .. NOTE::
 
-    ``all_axioms`` is used for sanity checks and when trying to guess
-    the base category class. The order of the axioms in this tuple
-    also controls the order in which they appear when printing
-    categories with axioms (see
+    ``all_axioms`` is only used marginally, for sanity checks and when
+    trying to guess the base category class. The order of the axioms
+    in this tuple also controls the order in which they appear when
+    printing categories with axioms (see
     :meth:`CategoryWithAxiom._repr_object_names_static`).
 
     During a Sage session, new axioms should only be added at the end
     of ``all_axioms`` as above, so as to not break the cache of
     :func:`axioms_rank`. Otherwise, they can be inserted statically
-    anywhere.
+    anywhere in the tuple. For axioms defined within the Sage library,
+    the name is inserted by editing directly the definition of
+    ``all_axioms`` in :mod:`category_with_axiom`.
+
+.. NOTE::
+
+    Let us state again that, unlike what the existence of
+    ``all_axioms`` might suggests, the definition of an axiom is local
+    to a category and its subcategories. In particular, two
+    independent categories ``Cs()`` and ``Ds()`` can very well define
+    axioms with the same name and different semantic. As long as the
+    two hierarchies of subcategories don't intersect, this is not a
+    problem. And if they do intersect naturally (that is if one is
+    likely to create a parent belonging to both categories), this
+    probably means that ``Cs`` and ``Ds`` are about related enough
+    areas of mathematics that one should clear the ambiguity by having
+    either the same semantic or different names.
+
+    This caveat is no different from that of name clash issues in
+    hierarchy of classes involving multiple inheritance.
 
 We can now use the axiom as usual::
 
@@ -220,7 +249,8 @@ Thanks to this feature, the user is systematically referred to the
 documentation of this method when doing introspection on
 ``Ds().Green``::
 
-    sage: Cs().Green?             # not tested
+    sage: C = Cs()
+    sage: C.Green?             # not tested
     sage: Cs().Green.__doc__
     '<documentation of the axiom Green>'
 
@@ -467,7 +497,7 @@ In the previous examples, the deduction rule only had an influence on
 the super categories of the category being constructed. For example,
 when constructing ``Rings().Division()``, the rule
 :meth:`Rings.Division.extra_super_categories` simply adds
-``Rings().NoZeroDivisors()`` as super category thereof.
+``Rings().NoZeroDivisors()`` as a super category thereof.
 
 In some situations this idiom is inapplicable. Take for example
 Wedderburn's theorem: any finite division ring is commutative, i.e. is
@@ -551,38 +581,126 @@ refactor after #10963 if a better idiom is found.
 
 
 Specifications
-^^^^^^^^^^^^^^
+==============
 
-*** The base category of an AdjectiveCategory is not a JoinCategory
-*** If A is a category with a given axiom (e.g. from one of its super categories)
-    then that axiom does not appear in A (and recursively in any nested subcategory)
-*** The set of categories for which an axiom is defined is a lower set
-    The same name can't be used for two axioms with different meanings.
-*** DONE The super categories of a category are not join categories
-    - State "DONE"       from ""           [2013-06-05 mer. 08:44]
-*** DONE self.is_subcategory( Category.join(self.super_categories()) )
-    - State "DONE"       from ""           [2013-06-05 mer. 08:44]
-*** DONE self._cmp_key() > other._cmp_key() for other in self.super_categories()
-*** DONE Any super category of a CategoryWithParameters should either be a CategoryWithParameters or a CategorySingleton
-*** DONE axiom categories of singleton categories should be singletons
-*** DONE axiom categories of CategoryOverBaseRing should be categories over base ring.
-*** DEFERRED should join categories of CategoryOverBaseRing be categories over base ring?
-    In the mean time, a base_ring method has been added to most of those; see Modules.SubcategoryMethods
-*** DEFERRED Functorial construction categories (Graded, CartesianProducts, ...) of singleton categories should be singleton categories
-    Nothing difficult, but this will need to rework the current "no
-    subclass of a concrete class" assertion test of Category_singleton.__classcall__
-*** DEFERRED covariant functorial construction categories over a category over base ring should be a category over base ring
+We sumarize here some specifications about categories and axioms.
 
+First some vocabulary. We say that an axiom ``A`` is *defined by* a
+category ``Cs()`` if ``Cs`` defines an appropriate method
+``Cs.SubcategoryMethods.A``, with the semantic of the axiom specified
+in the documentation, so that for all subcategory ``Ds()``,
+``Ds().A()`` models the subcategory of the objects of ``Ds()``
+satisfying ``A``. In this case, we say that the axiom ``A`` is
+*defined for* the category ``Ds()``. Furthermore, ``Ds`` *implements
+the axiom* ``A`` if ``Ds`` has a category with axiom as nested class
+``Ds.A``. The category ``Ds()`` *satisfies* the axiom if ``Ds()`` is a
+subcategory of ``Cs().A()`` (meaning that all the objects of ``Ds()``
+are known to satisfy the axiom ``A``).
+
+- The base category of a :class:`CategoryWithAxiom` should not be a
+  :class:`JoinCategory`. This is checked by
+  :meth:`CategoryWithAxiom._test_category_with_axiom`.
+
+- Tree structure: Let ``Cs()`` be a category, and `S` be some set of
+  axioms defined in some super categories of ``Cs()`` but not
+  satisfied by ``Cs()``. Suppose we want to provide a category with
+  axiom for the elements of ``Cs()`` satisfying the axioms in
+  `S`. Then, there should be a single enumeration ``A1, A2, ..., Ak``
+  without repetition of the axioms in `S` such that
+  ``Cs.A1.A2....Ak=Ds``. Furthermore, every intermediate step, like
+  ``Cs.A1.A2....Ai`` with `i\leq k` should be a category with axiom
+  having ``Ai`` as axiom and ``Cs.A1.A2.. Ai-1`` as base category
+  class.
+
+- If ``Cs()`` is a category that satisfies some axiom ``A`` (e.g. from
+  one of its super categories), then it should not implement that
+  axiom. In particular, a category class ``Cs`` can never have a
+  nested class ``Cs.A.A``. Similarly, applying the specification
+  recursively a category satisfying ``A`` cannot have a nested class
+  ``Cs.A1.A2.A3.A`` where ``A1``, ``A2``, ``A3`` are axioms.
+
+- A category can only implement an axiom if this axiom is defined by
+  some super category. The code has not been systematically checked to
+  work if two super categories define the same axiom. You are welcome
+  to try, at your own risk :-)
+
+- When a category defines an axiom or functorial construction ``A``,
+  this fixes the semantic of ``A`` for all the subcategories. In
+  particular, if two categories define ``A``, then those categories
+  should be independent, and either the semantic of ``A`` should be
+  the same, or there should be no natural intersection between the two
+  hierarchies of subcategories.
+
+- Any super category of a :class:`CategoryWithParameters` should
+  either be a :class:`CategoryWithParameters` or a
+  :class:`CategorySingleton`.
+
+- A :class:`CategoryWithAxiom` having a :class:`Category_singleton` as
+  base category should be a :class:`CategoryWithAxiom_singleton`. This
+  is handled automatically by :meth:`CategoryWithAxiom.__init__` and
+  checked in :meth:`CategoryWithAxiom._test_category_with_axiom`.
+
+- A :class:`CategoryWithAxiom` having a
+  :class:`Category_over_base_ring` as base category should be a
+  :class:`Category_over_base_ring`. This currently has to be handled
+  by hand, using :class:`CategoryWithAxiom_over_base_ring`. This is
+  checked in :meth:`CategoryWithAxiom._test_category_with_axiom`.
+
+.. TODO::
+
+    The following specifications would be desirable but are not yet
+    implemented:
+
+    - A functorial construction category (Graded, CartesianProducts,
+      ...) having a :class:`Category_singleton` as base category
+      should be a :class:`CategoryWithAxiom_singleton`.
+
+      Nothing difficult to implement, but this will need to rework the
+      current "no subclass of a concrete class" assertion test of
+      :meth:`Category_singleton.__classcall__`.
+
+    - Similarly, a covariant functorial construction category having a
+      :class:`Category_over_base_ring` as base category should be a
+      :class:`Category_over_base_ring`.
+
+    The following specification might be desirable, or not:
+
+    - A join category involving a :class:`Category_over_base_ring`
+      should a be a :class:`Category_over_base_ring`. In the mean
+      time, a ``base_ring`` method is automatically provided for most
+      of those by :meth:`Modules.SubcategoryMethods.base_ring`.
 
 
 Design goals
-^^^^^^^^^^^^
+============
+
+As pointed out in the primer, the main design goal of the axioms
+infrastructure is to subdue the potential combinatorial explosion of
+the category hierarchy by letting the developper focus on implementing
+a few bookshelves for which there is actual code or mathematical
+information, and let Sage *compose dynamically and lazily* those
+building blocks to construct the minimal hierarchy of classes needed
+for the computation at hand. This to allows for the infrastructure to
+scale smoothly as bookshelves are added, extended, or reorganized.
+
+
 
  - Flexibility in the code layout: the category of, say, finite
    sets can be implemented either within the Sets category (in a
    nested class Sets.Finite), or in a separate file (typically in
    a class FiniteSets in a lazily imported module
    sage.categories.finite_sets).
+
+ - Single point of truth
+
+ - Single entry point
+
+ - Concise idioms for the users
+
+ - Concise idioms and well highlighted hierarchy of bookshelves for
+   the developper (especially with code folding)
+
+ - Introspection friendly (listing the axioms, recovering the mixins)
 
 .. NOTE::
 
@@ -609,19 +727,30 @@ Design goals
     The later two are implemented using respectively
     :meth:`__classcall__` and :meth:`__classget__` which see.
 
+Upcoming features
+=================
+
 .. TODO:
 
-    - Implement compatibility axiom / functorial constructions
+    - Implement compatibility axiom / functorial constructions. For
+      example, one would want to have::
 
-      E.g. join(A.CartesianProducts(), B.CartesianProducts()) = join(A,B).CartesianProducts()
-
-    - An axiom category of a singleton category is automatically a
-      singleton category. Should this also be implemented for
-      categories with base ring?
+          A.CartesianProducts() & B.CartesianProducts()) = (A&B).CartesianProducts()
 
     - Once full subcategories are implemented (see :trac:`10668`),
       make category with axioms be such. Should all full subcategories
       be implemented in term of axioms?
+
+Description of the algorithms
+=============================
+
+.. TODO::
+
+   - Describe the algorithm for adding axioms and computing intersections
+
+Tests
+=====
+
 
 TESTS:
 

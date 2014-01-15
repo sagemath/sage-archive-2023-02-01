@@ -486,7 +486,7 @@ class Simplex(SageObject):
         if n >= 0 and n <= self.dimension():
             return Simplex(self.__tuple[:n] + self.__tuple[n+1:])
         else:
-            raise IndexError, "%s does not have an nth face for n=%s." % (self, n)
+            raise IndexError("%s does not have an nth face for n=%s." % (self, n))
 
     def faces(self):
         """
@@ -1587,7 +1587,7 @@ class SimplicialComplex(GenericCellComplex):
             (0, 1, 2, 3, 4, 5, 6, 7)
         """
         if n<0:
-            raise ValueError, "n must be non-negative."
+            raise ValueError("n must be non-negative.")
         if n==0:
             return self
         if n==1:
@@ -1941,7 +1941,6 @@ class SimplicialComplex(GenericCellComplex):
             sage: T._homology_(subcomplex=U)
             {0: 0, 1: 0, 2: Z}
         """
-        from sage.modules.all import VectorSpace
         from sage.homology.homology_group import HomologyGroup
 
         base_ring = kwds.get('base_ring', ZZ)
@@ -2232,7 +2231,7 @@ class SimplicialComplex(GenericCellComplex):
         """
         if not (self.is_pure() and other.is_pure() and
                 self.dimension() == other.dimension()):
-            raise ValueError, "Complexes are not pure of the same dimension."
+            raise ValueError("Complexes are not pure of the same dimension.")
         # first find a top-dimensional simplex to remove from each surface
         keep_left = self._facets[0]
         keep_right = other._facets[0]
@@ -2384,7 +2383,7 @@ class SimplicialComplex(GenericCellComplex):
 
         """
         if not self.vertices().set().issuperset(sub_vertex_set):
-            raise ValueError, "input must be a subset of the vertex set."
+            raise ValueError("input must be a subset of the vertex set.")
         faces = []
         for i in range(self.dimension()+1):
             for j in self.faces()[i]:
@@ -3239,7 +3238,7 @@ class SimplicialComplex(GenericCellComplex):
 
     def fixed_complex(self, G):
         r"""
-        Return the fixed simplicial complex `Fix(G)` for a subgroup `G`
+        Return the fixed simplicial complex `Fix(G)` for a subgroup `G`.
 
         INPUT:
 
@@ -3250,7 +3249,15 @@ class SimplicialComplex(GenericCellComplex):
 
         - a simplicial complex
 
-        EXAMPLES::
+        A basic example::
+
+            sage: S4 = simplicial_complexes.Sphere(4)
+            sage: S3 = simplicial_complexes.Sphere(3)
+            sage: fix = S4.fixed_complex([S4.automorphism_group()([(0,1)])])
+            sage: fix.is_isomorphic(S3)
+            True
+
+        A more sophisticated example::
 
             sage: RP2 = simplicial_complexes.ProjectivePlane()
             sage: CP2 = simplicial_complexes.ComplexProjectivePlane()
@@ -3259,10 +3266,7 @@ class SimplicialComplex(GenericCellComplex):
             sage: CP2.fixed_complex(H).is_isomorphic(RP2)
             True
 
-        One can also input a list of automorphisms::
-
-            sage: CP2.fixed_complex([G([(2,3),(5,6),(8,9)])]).is_isomorphic(RP2)
-            True
+        REFERENCES:
         """
         from sage.categories.groups import Groups
         if G in Groups():
@@ -3273,7 +3277,7 @@ class SimplicialComplex(GenericCellComplex):
 
         invariant_f = [u for u in self.face_iterator()
                        if all(sorted([sigma(j) for j in u]) == sorted(list(u))
-                              for sigma in G.gens())]
+                              for sigma in gens)]
         new_verts = [min(o) for o in G.orbits()]
         return SimplicialComplex([[s for s in f if s in new_verts]
                                   for f in invariant_f])

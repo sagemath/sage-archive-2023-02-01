@@ -126,11 +126,7 @@ mpq_class
 operator*(const SL2Z& M, const mpq_class& z) {
   mpz_class p = z.get_num(), q = z.get_den();
   if( M.c()*p+M.d()*q == 0 ) {
-    cerr << __FUNCTION__ << ": division by zero." << endl
-	 << tab << M << endl
-	 << tab << z << endl
-	 << endl;
-    exit(1);
+    throw string(__FUNCTION__) + ": division by zero.";
   }
   mpq_class result(M.a()*p+M.b()*q, M.c()*p+M.d()*q);
   result.canonicalize();
@@ -188,6 +184,8 @@ gcd_ext(mpz_class& g, mpz_class& r, mpz_class& s, const mpz_class& a, const mpz_
 }
 
 inline
+/* cf. Rademacher, The Fourier Coefficients of the Modular Invariant
+   J(\tau), p. 502 */
 SL2Z rademacher_matrix(const mpq_class& q) {
   mpz_class h = q.get_num(), k = q.get_den(), j;
   mpz_class g, r, s;
@@ -297,19 +295,7 @@ FareySymbol::FareySymbol() {
 }
 
 FareySymbol::FareySymbol(istream& is) {
-  is >> pairing_max
-     >> pairing
-     >> cusp_classes
-     >> a
-     >> b
-     >> x
-     >> coset
-     >> generators
-     >> cusps
-     >> cusp_widths
-     >> reductions
-     >> even
-     >> pairing_in_group;
+  is >> (*this);
 }
 
 // User defined group and restoring from pickle
@@ -339,8 +325,8 @@ FareySymbol::FareySymbol(PyObject* o) {
       even = true;
       pairing_in_group.push_back(true);
       pairing_in_group.push_back(true);
-      for(size_t i=0; i<a.size(); i++) x.push_back(a[i]/b[i]);
-      for(size_t i=0; i<x.size(); i++) reductions.push_back(SL2Z::E);
+      x.push_back(a[0]/b[0]);
+      reductions.push_back(SL2Z::E);
     }
     // check for index two subgroup
     else if( group->is_member(SL2Z( 0,  1, -1, -1)) and
@@ -351,23 +337,23 @@ FareySymbol::FareySymbol(PyObject* o) {
       pairing_max = NO;
       a.push_back(0);
       b.push_back(1);
-      for(size_t i=0; i<a.size(); i++) x.push_back(a[i]/b[i]);
+      x.push_back(a[0]/b[0]);
       coset.push_back(SL2Z::E);
       if ( group->is_member(SL2Z(0, -1, 1, 1)) ) {
         // index 2 even subgroup
         generators.push_back(SL2Z( 0, 1, -1, -1));
-	generators.push_back(SL2Z(-1, 1, -1, 0));
-	coset.push_back(SL2Z(0, 1, -1, 0));
+        generators.push_back(SL2Z(-1, 1, -1, 0));
+        coset.push_back(SL2Z(0, 1, -1, 0));
       } else {
         // index 4 odd subgroup
         generators.push_back(SL2Z(0, 1, -1, -1));
-	coset.push_back(SL2Z(0, -1,  1,  0));
-	coset.push_back(SL2Z(1, -1,  1,  0));
-	coset.push_back(SL2Z(1,  0, -1,  1));
-	generators.push_back(SL2Z(-1, 1, -1, 0));
+        coset.push_back(SL2Z(0, -1,  1,  0));
+        coset.push_back(SL2Z(1, -1,  1,  0));
+        coset.push_back(SL2Z(1,  0, -1,  1));
+        generators.push_back(SL2Z(-1, 1, -1, 0));
       }
       cusp_classes.push_back(0);
-      for(size_t i=0; i<x.size(); i++) reductions.push_back(SL2Z::E);
+      reductions.push_back(SL2Z::E);
       if (group->is_member(SL2Z::I)) even = true;
       else even = false;
       pairing_in_group = init_sl2z_lift(group);
@@ -538,7 +524,7 @@ SL2Z FareySymbol::pairing_matrix(const vector<int>& p, const size_t i) const {
     ai = a[i-1]; bi = b[i-1]; ai1 = a[i]; bi1 = b[i];
   }
   if( p[i] == NO ) {
-    throw(string(__FUNCTION__)+string(": error"));
+    throw string(__FUNCTION__)+string(": error");
   } else if( p[i] == EVEN ) {
     return SL2Z(ai1*bi1+ai*bi, -ai*ai-ai1*ai1,
                 bi*bi+bi1*bi1, -ai1*bi1-ai*bi);
@@ -584,7 +570,7 @@ size_t FareySymbol::paired_side(const vector<int>& p, const size_t n) const {
       return j-p.begin();
     }
   }
-  throw(string(__FUNCTION__)+string(": error"));
+  throw string(__FUNCTION__)+string(": error");
   return 0;
 }
 
@@ -736,7 +722,7 @@ vector<SL2Z> FareySymbol::init_reductions() const {
     for(;;) {
       SL2Z p = pairing_matrix(k);
       reduction[j] = p*reduction[j];
-      if( p.c()*q + p.d() != 0 ) break; // cusp ~ infinity
+      if( p.c()*q + p.d() == 0 ) break; // cusp ~ infinity
       q = p*q;
       if( binary_search(cusps.begin(), cusps.end(), q) ) break;
       k = lower_bound(x.begin(), x.end(), q) - x.begin();
@@ -778,7 +764,7 @@ size_t FareySymbol::level() const {
     mpq_class cusp_width(0);
     for(size_t j=0; j<cusp_widths.size(); j++) {
       if( cusp_classes[j] == i ) {
-	cusp_width += cusp_widths[j];
+        cusp_width += cusp_widths[j];
       }
     }
     width.push_back(cusp_width.get_num());
@@ -787,13 +773,13 @@ size_t FareySymbol::level() const {
 }
 
 long FareySymbol::side_index(const mpz_class& a0, const mpz_class& b0,
-			     const mpz_class& a1, const mpz_class& b1) const {
+                             const mpz_class& a1, const mpz_class& b1) const {
   if( b0 == 0) {
     if( ( a1 == a[0] and b1 == b[0]) or 
         (-a1 == a[0] and -b1 == b[0])) return 0;
   } else if( b1 == 0 ) {
-	if( ( a0 == a.back() and  b0 == b.back()) or 
-	    (-a0 == a.back() and -b0 == b.back())) return a.size();
+        if( ( a0 == a.back() and  b0 == b.back()) or 
+            (-a0 == a.back() and -b0 == b.back())) return a.size();
   } else {
     mpq_class p = a1/b1, q = a0/b0;
     for(size_t j=1; j<a.size(); j++) {
@@ -817,19 +803,19 @@ FareySymbol::LLT_algorithm(const SL2Z& M, vector<int>& p, SL2Z& beta) const {
     mpz_class A=beta.a(), B=beta.b(), C=beta.c(), D=beta.d();
     if( D == 0 ) {
       if( A/C < x[0] ) {
-	found = true;
-	k = 0;
+        found = true;
+        k = 0;
       } else if( x.back() < A/C ) {
-	found = true;
-	k = pairing.size()-1;
+        found = true;
+        k = pairing.size()-1;
       }
     } else if( C == 0 ) {
       if( x.back() < B/D ) {
-	found = true;
-	k = pairing.size()-1;
+        found = true;
+        k = pairing.size()-1;
       } else if( B/D < x[0] ) {
-	found = true;
-	k = 0;
+        found = true;
+        k = 0;
       }
     } else if( A/C <= x[0] and B/D <= x[0] ) {
       found = true;
@@ -839,14 +825,14 @@ FareySymbol::LLT_algorithm(const SL2Z& M, vector<int>& p, SL2Z& beta) const {
       k = pairing.size()-1;
     } else {
       for(size_t i=0; i+1<x.size(); i++) {
-	if( (x[i] <  B/D and B/D < A/C and A/C <= x[i+1]) or
-	    (x[i] <= B/D and B/D < A/C and A/C <  x[i+1]) or
-	    (x[i] <  A/C and A/C < B/D and B/D <= x[i+1]) or
-	    (x[i] <= A/C and A/C < B/D and B/D <  x[i+1]) ) {
-	  found = true;
-	  k = i+1;
-	  break;
-	}
+        if( (x[i] <  B/D and B/D < A/C and A/C <= x[i+1]) or
+            (x[i] <= B/D and B/D < A/C and A/C <  x[i+1]) or
+            (x[i] <  A/C and A/C < B/D and B/D <= x[i+1]) or
+            (x[i] <= A/C and A/C < B/D and B/D <  x[i+1]) ) {
+          found = true;
+          k = i+1;
+          break;
+        }
       }
     }
     if( not found ) break;
@@ -856,35 +842,35 @@ FareySymbol::LLT_algorithm(const SL2Z& M, vector<int>& p, SL2Z& beta) const {
     // Note, that this choice differs from the article.
     if( pairing[k] == ODD ) {
       if( k == 0 ) {
-	m = mpq_class(a[0]-1, b[0]);
+        m = mpq_class(a[0]-1, b[0]);
       } else if ( k == pairing.size()-1 ) {
-	m = mpq_class(a[0]+1, b[0]);
+        m = mpq_class(a[0]+1, b[0]);
       } else {
-	m = mpq_class(a[k-1]+a[k],b[k-1]+b[k]);
+        m = mpq_class(a[k-1]+a[k],b[k-1]+b[k]);
       }
       if ( C == 0 and B/D <=m) {
-	beta = pairing_matrix_in_group(k).inverse()*beta;
-	p.push_back(-(int)k);
+        beta = pairing_matrix_in_group(k).inverse()*beta;
+        p.push_back(-(int)k);
       } else if( C == 0 and B/D >= m) {
-	beta = pairing_matrix_in_group(k)*beta;
-	p.push_back((int)k);
+        beta = pairing_matrix_in_group(k)*beta;
+        p.push_back((int)k);
       } else if( D == 0 and A/C <= m) {
-	beta = pairing_matrix_in_group(k).inverse()*beta;
-	p.push_back(-(int)k);
+        beta = pairing_matrix_in_group(k).inverse()*beta;
+        p.push_back(-(int)k);
       } else if( D == 0 and A/C >=m) {
-	beta = pairing_matrix_in_group(k)*beta;
-	p.push_back((int)k);
+        beta = pairing_matrix_in_group(k)*beta;
+        p.push_back((int)k);
       } else if(A/C <= m and B/D <= m) {
-	beta = pairing_matrix_in_group(k).inverse()*beta;
-	p.push_back(-(int)k);
+        beta = pairing_matrix_in_group(k).inverse()*beta;
+        p.push_back(-(int)k);
       } else if(A/C >= m and B/D >= m) {
-	beta = pairing_matrix_in_group(k)*beta;
-	p.push_back((int)k);
+        beta = pairing_matrix_in_group(k)*beta;
+        p.push_back((int)k);
       } else {
-	//Based on Lemma 4 of the article by Kurth/Long, 
-	//this case can not occure.
-	std::cerr << "Mathematical compilcations in " 
-		  << __FUNCTION__ << std::endl;
+        //Based on Lemma 4 of the article by Kurth/Long, 
+        //this case can not occure.
+        throw string("Mathematical compilcations in ") + 
+              __FUNCTION__;
 	return;
       }
     } else { // case of EVEN or FREE pairing

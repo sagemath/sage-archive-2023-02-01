@@ -157,7 +157,9 @@ cdef class Farey:
         self.group = group
         # if data is present we want to restore
         if data is not None:
+            sig_on()
             self.this_ptr = new cpp_farey(data)
+            sig_off()
             return
         ## to accelerate the calculation of the FareySymbol
         ## we implement the tests for the standard congruence groups
@@ -279,7 +281,7 @@ cdef class Farey:
 
         INPUT:
 
-        - ``forced_format`` -- A format sting ('plain' or 'xymatrix')
+        - ``forced_format`` -- A format string ('plain' or 'xymatrix')
                                or ``None``.
 
         EXAMPLES::
@@ -574,9 +576,9 @@ cdef class Farey:
         sig_off()
         return result
 
-    @rename_keyword(color='rgbcolor')
-    @options(alpha=1, fill=True, thickness=1, rgbcolor='lightgray', \
-             color_odd='lightgray', color_even='white', \
+    @rename_keyword(rgbcolor='color')
+    @options(alpha=1, fill=True, thickness=1, color='lightgray', \
+             color_even='white', \
              zorder=2, linestyle='solid', show_pairing=True, \
              tesselation='Dedekind', ymax=1
         )
@@ -587,26 +589,28 @@ cdef class Farey:
 
         OPTIONS:
 
-        - ``fill`` - boolean (default ``True``) fill the fundamental domain
+        - ``fill`` -- boolean (default ``True``) fill the fundamental domain
 
-        - ``linestyle`` - string (default: 'solid') The style of the line,
+        - ``linestyle`` -- string (default: 'solid') The style of the line,
           which is one of 'dashed', 'dotted', 'solid', 'dashdot', or '--',
           ':', '-', '-.', respectively
 
-        - ``rgbcolor`` - (default: 'lightgray') fill color
+        - ``color`` -- (default: 'lightgray') fill color; fill
+                       color for odd part of Dedekind tesselation.
 
-        - ``show_pairing`` - boolean (default: ``True``) flag for pairing
+        - ``show_pairing`` -- boolean (default: ``True``) flag for pairing
 
-        - ``tesselation`` (default: 'Dedekind') The type of hyperbolic tesselation
-          which is one of 'coset', 'Dedekind' or None respectively
+        - ``tesselation`` -- (default: 'Dedekind') The type of
+                             hyperbolic tesselation which is one of
+                             'coset', 'Dedekind' or None respectively
 
-        - ``color_odd`` fill color for Dedekind tesselation (default 'lightgray')
+        - ``color_even`` -- fill color for even parts of Dedekind
+                            tesselation (default 'white'); ignored for
+                            other tesselations
   
-        - ``color_even`` fill color for Dedekind tesselation (default 'white')
+        - ``thickness`` -- float (default: `1`) the thickness of the line
 
-        - ``thickness`` - float (default: `1`) the thickness of the line
-
-        - ``ymax`` - float (default: `1`) maximal height
+        - ``ymax`` -- float (default: `1`) maximal height
 
         EXAMPLES:
 
@@ -649,7 +653,7 @@ cdef class Farey:
             if options['tesselation'] == 'Dedekind':
                 g += hyperbolic_triangle(A, D, C,
                                          alpha=options['alpha'],
-                                         color=options['color_odd'],
+                                         color=options['color'],
                                          fill=options['fill'],
                                          linestyle=options['linestyle'],
                                          thickness=options['thickness'])
@@ -664,7 +668,7 @@ cdef class Farey:
             elif options['tesselation'] == 'coset':
                 g += hyperbolic_triangle(A, B, C,
                                          alpha=options['alpha'],
-                                         color=options['rgbcolor'],
+                                         color=options['color'],
                                          fill=options['fill'],
                                          linestyle=options['linestyle'],
                                          thickness=options['thickness'])
@@ -674,7 +678,7 @@ cdef class Farey:
             else:
                 g += hyperbolic_triangle(A, B, C,
                                          alpha=options['alpha'],
-                                         color=options['rgbcolor'],
+                                         color=options['color'],
                                          fill=options['fill'],
                                          linestyle=options['linestyle'],
                                          thickness=options['thickness'])

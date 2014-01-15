@@ -360,7 +360,7 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         is still a rational number or infinity (Note the presence of
         '+', which does not show up for cusp instances)::
 
-            sage: g.action(Cusp(-31/15))
+            sage: g.acton(Cusp(-31/15))
             +Infinity
 
         TESTS::

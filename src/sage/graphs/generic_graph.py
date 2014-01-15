@@ -13641,7 +13641,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.PathGraph(5).copy(immutable=True)
             sage: G.complement()
-            complement(): Graph on 5 vertices
+            complement(Path Graph): Graph on 5 vertices
         """
         if self.has_multiple_edges():
             raise TypeError('complement not well defined for (di)graphs with multiple edges')
@@ -13653,6 +13653,8 @@ class GenericGraph(GenericGraph_pyx):
             for v in self:
                 if not self.has_edge(u,v):
                     G.add_edge(u,v)
+        if hasattr(self, '_immutable', False):
+            return G.copy(immutable=True)
         return G
 
     def to_simple(self):

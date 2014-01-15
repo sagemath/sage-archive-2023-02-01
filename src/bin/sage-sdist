@@ -61,6 +61,7 @@ git prune
 cd "$TMP_DIR"
 
 echo "Creating $TARGET.tar.gz ..."
+chmod --recursive go-w "$TARGET"
 tar zcf "$TARGET".tar.gz "$TARGET"
 
 mkdir -p "$SAGE_ROOT"/dist

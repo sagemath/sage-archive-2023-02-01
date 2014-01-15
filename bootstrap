@@ -24,10 +24,10 @@ CONFVERSION=`cat $PKG/package-version.txt`
 
 bootstrap () {
     # Start cleanly
-    $MAKE autogen-clean
+    $MAKE bootstrap-clean
 
-    # Generate auto-generated files (without using "missing")
-    $MAKE MISSING= configure
+    # Generate auto-generated files
+    $MAKE configure
 }
 
 

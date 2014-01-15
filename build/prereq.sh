@@ -174,7 +174,7 @@ if [ "x$SAGE_PORT" = x ]; then
 fi
 
 # Make sure the configure script exists
-$MAKE configure || exit $?
+$MAKE bootstrap || exit $?
 
 # A reasonably sophisticated test is performed in a configure
 # script, which checks compilers exist, their version numbers,

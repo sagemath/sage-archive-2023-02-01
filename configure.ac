@@ -27,7 +27,34 @@ dnl We don't really use automake, but configure needs aclocal and the
 dnl automake library files (like config.guess).
 AM_INIT_AUTOMAKE([1.9.6 foreign])
 
+# Allow "configure --disable-maintainer-mode" to disable timestamp checking
+AM_MAINTAINER_MODE([enable])
 
+#---------------------------------------------------------
+# We need to run this configure script with bash
+if test -z "$BASH_VERSION$CONFIG_SHELL"
+then
+    CONFIG_SHELL=bash
+    export CONFIG_SHELL
+    if $CONFIG_SHELL -c "exit 0"
+    then
+        exec $CONFIG_SHELL $0 "$@"
+    else
+        AC_MSG_NOTICE([The 'bash' shell is needed to build AC_PACKAGE_NAME])
+        AC_MSG_NOTICE([All modern systems will have the 'bash' shell installed somewhere])
+        if test -d /opt/OpenSource/bin
+        then
+           AC_MSG_NOTICE([On HP-UX you may try adding /opt/OpenSource/bin to your path])
+        fi
+        if test -d /opt/pware/bin
+        then
+           AC_MSG_NOTICE([On AIX you may try adding /opt/pware/bin to your path])
+        fi
+        AC_MSG_ERROR(['bash' not found])
+    fi
+fi
+
+#---------------------------------------------------------
 # Check whether we are on a supported platform
 AC_CANONICAL_BUILD()
 AC_CANONICAL_HOST()
@@ -132,54 +159,12 @@ AC_ARG_ENABLE([compiler-checks], [Check versions and presence of C, C++ and Fort
     [enable_compiler_checks=$enableval], [enable_compiler_checks=yes])
 
 # Import environment variables.
-AC_ARG_VAR([SAGE_LOCAL],[Prefix to search for libraries and include files])
-AC_ARG_VAR([SAGE64],[If building 64-bit])
-
-CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
-LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib"
-
-# Check if SAGE_FORTRAN is set, and if so set 'FC' to it, as
-# 'FC' is just the Fortran equivalent of CC and CXX.
-# see http://www.gnu.org/software/hello/manual/autoconf/Fortran-Compiler.html
-if test x$SAGE_FORTRAN != 'x'
-then
-   FC="$SAGE_FORTRAN"
-fi
+source src/bin/sage-env || AC_MSG_ERROR([failed to source sage-env])
 
 #---------------------------------------------------------
-#       C/C++/Fortran compilers
-
-
-# First check for programs we need.
-AC_LANG(C)
-AC_PROG_CC()
-if test "x$CC" = x
-then
-    AC_MSG_ERROR([Exiting, since a C compiler was not found.])
-fi
-AC_PROG_CPP()
-AC_PROG_CXX()
-AC_PROG_FC()
-if test $enable_compiler_checks = yes
-then
-    if test "x$CXX" = x
-    then
-        AC_MSG_ERROR([Exiting, since a C++ compiler was not found.])
-    fi
-    if test "x$FC" = x
-    then
-        AC_MSG_ERROR([Exiting, since a Fortran compiler was not found.])
-    fi
-fi
-
-# As suggested in the autoconf manual, the characteristics of the compilers
-# are checked later.
-
-
 # Check some programs needed actually exist.
-# ar, m4, ld and ranlib.
-AC_CHECK_PROG(found_ar, ar,[yes],[no],[])
-if test x$found_ar  != xyes
+AC_CHECK_PROG(found_ar, ar, yes, no)
+if test x$found_ar != xyes
 then
     AC_MSG_NOTICE([Sorry, the 'ar' command must be in the path to build AC_PACKAGE_NAME])
     AC_MSG_NOTICE([On some systems it can be found in /usr/ccs/bin ])
@@ -187,8 +172,8 @@ then
     AC_MSG_ERROR([Exiting, as the archiver 'ar' can not be found.])
 fi
 
-AC_CHECK_PROG(found_m4, m4,[yes],[no],[])
-if test x$found_m4  != xyes
+AC_CHECK_PROG(found_m4, m4, yes, no)
+if test x$found_m4 != xyes
 then
     AC_MSG_NOTICE([Sorry, the 'm4' command must be in the path to build AC_PACKAGE_NAME])
     AC_MSG_NOTICE([On some systems it can be found in /usr/ccs/bin])
@@ -196,8 +181,8 @@ then
     AC_MSG_ERROR([Exiting, as the macro processor 'm4' can not be found.])
 fi 
 
-AC_CHECK_PROG(found_ranlib, ranlib,[yes],[no],[])
-if test x$found_ranlib  != xyes
+AC_CHECK_PROG(found_ranlib, ranlib, yes, no)
+if test x$found_ranlib != xyes
 then
     AC_MSG_NOTICE([Sorry, the 'ranlib' command must be in the path to build AC_PACKAGE_NAME])
     AC_MSG_NOTICE([On some systems it can be found in /usr/ccs/bin ])
@@ -205,40 +190,14 @@ then
     AC_MSG_ERROR([Exiting, as 'ranlib' can not be found.])
 fi
 
-AC_CHECK_PROG(found_ld, ld,[yes],[no],[])
-if test x$found_ld  != xyes
-then
-    AC_MSG_NOTICE([Sorry, the 'ld' command must be in the path to build AC_PACKAGE_NAME])
-    AC_MSG_NOTICE([On some systems it can be found in /usr/ccs/bin ])
-    AC_MSG_NOTICE(['ld' is also part of the GNU 'binutils' package.])
-    AC_MSG_ERROR([Exiting, as the linker 'ld' can not be found.])
-fi
-
-AC_CHECK_PROG(found_strip, strip,[yes],[no],[])
-if test x$found_strip  != xyes
+AC_CHECK_PROG(found_strip, strip, yes, no)
+if test x$found_strip != xyes
 then
     AC_MSG_NOTICE([Sorry, the 'strip' command must be in the path to build AC_PACKAGE_NAME])
     AC_MSG_NOTICE([On some systems 'strip' can be found in /usr/ccs/bin ])
     AC_MSG_NOTICE(['strip' is also part of the GNU 'binutils' package.])
     AC_MSG_ERROR([Exiting, as 'strip' can not be found.])
 fi
-
-AC_CHECK_PROG(found_bash,bash,[yes],[no],[])
-if test x$found_bash  != xyes
-then
-    AC_MSG_NOTICE([Sorry, the 'bash' shell is needed to build AC_PACKAGE_NAME])
-    AC_MSG_NOTICE([All modern systems will have the 'bash' shell installed somewhere])
-    if test "x`uname`" = 'xHP-UX'
-    then
-       AC_MSG_NOTICE([On HP-UX you may try adding /opt/OpenSource/bin/ to your path])
-    fi
-    if test "x`uname`" = 'xAIX'
-    then
-       AC_MSG_NOTICE([On AIX you may try adding /opt/pware/bin to your path])
-    fi
-    AC_MSG_ERROR([Exiting, as 'bash' was not found])
-fi
-
 
 # Check tar
 AC_CACHE_CHECK([for GNU or BSD tar], [ac_cv_path_TAR], [
@@ -290,8 +249,8 @@ fi
 # Check for Latex, the use of which is less important in Sage than
 # it used to be, as it was at one time required to build any documentation
 # but this is no longer so.
-AC_CHECK_PROG(found_latex,latex,[yes],[no],[])
-if test x$found_latex  != xyes
+AC_CHECK_PROG(found_latex, latex, yes, no)
+if test x$found_latex != xyes
 then
     AC_MSG_WARN([You do not have 'latex', which is recommended, but not])
     AC_MSG_WARN([required. Latex is only really used for building pdf])
@@ -311,8 +270,8 @@ AX_PROG_PERL_VERSION([5.8.0],[],[
 # dpkg-architecture. Since we need dpkg-architecture to determine
 # whether we're on a multi-arch system and require dpkg-architecture,
 # we simply require it always on Debian-based systems.
-AC_CHECK_PROG(found_dpkg, dpkg,[yes],[no],[])
-AC_CHECK_PROG(found_dpkg_arch, dpkg-architecture,[yes],[no],[])
+AC_CHECK_PROG(found_dpkg, dpkg, yes, no)
+AC_CHECK_PROG(found_dpkg_arch, dpkg-architecture, yes, no)
 if test x$found_dpkg = xyes && test x$found_dpkg_arch = xno
 then
     AC_MSG_NOTICE([You do not have 'dpkg-architecture', which is required to build])
@@ -321,6 +280,35 @@ then
     AC_MSG_NOTICE([  sudo apt-get install dpkg-dev])
     AC_MSG_ERROR([Exiting, since AC_PACKAGE_NAME requires dpkg-architecture on Debian])
 fi
+
+#---------------------------------------------------------
+#       C/C++/Fortran compilers
+
+# First check for programs we need.
+AC_LANG(C)
+AC_PROG_CC()
+if test "x$CC" = x
+then
+    AC_MSG_ERROR([Exiting, since a C compiler was not found.])
+fi
+AC_PROG_CPP()
+AC_PROG_CXX()
+AC_PROG_FC()
+if test $enable_compiler_checks = yes
+then
+    if test "x$CXX" = x
+    then
+        AC_MSG_ERROR([Exiting, since a C++ compiler was not found.])
+    fi
+    if test "x$FC" = x
+    then
+        AC_MSG_ERROR([Exiting, since a Fortran compiler was not found.])
+    fi
+fi
+
+# As suggested in the autoconf manual, the characteristics of the compilers
+# are checked later.
+
 
 # Next one should check for header files.
 # complex.h is one that might not exist on older systems.

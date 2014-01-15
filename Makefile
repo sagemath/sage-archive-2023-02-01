@@ -8,7 +8,6 @@
 # to run various types of test suites, and to remove parts of the build etc.
 
 PIPE = build/pipestatus
-MISSING = config/missing --run
 
 
 all: start doc  # indirectly depends on build
@@ -16,7 +15,7 @@ all: start doc  # indirectly depends on build
 logs:
 	mkdir -p $@
 
-build: logs configure
+build: logs bootstrap
 	cd build && \
 	"../$(PIPE)" \
 		"env SAGE_PARALLEL_SPKG_BUILD='$(SAGE_PARALLEL_SPKG_BUILD)' ./install all 2>&1" \
@@ -95,11 +94,11 @@ distclean: clean doc-clean lib-clean bdist-clean
 
 # Delete all auto-generated files which are distributed as part of the
 # source tarball
-autogen-clean:
+bootstrap-clean:
 	rm -rf config configure build/Makefile-auto.in
 
 # Remove absolutely everything which isn't part of the git repo
-maintainer-clean: distclean autogen-clean
+maintainer-clean: distclean bootstrap-clean
 	rm -rf upstream
 
 micro_release: bdist-clean lib-clean
@@ -153,17 +152,16 @@ ptestoptional: ptestall # just an alias
 
 ptestoptionallong: ptestalllong # just an alias
 
-config/missing:
-	test -d config || mkdir config
-	aclocal -I m4
-	automake --add-missing --copy build/Makefile-auto
+bootstrap:
+	$(MAKE) configure || \
+		bash -c 'source src/bin/sage-env; sage-download-file $$SAGE_UPSTREAM/configure/configure-`cat build/pkgs/configure/package-version.txt`.tar.gz | tar zxmf -'
 
 configure: configure.ac src/bin/sage-version.sh \
         m4/ax_c_check_flag.m4 m4/ax_gcc_option.m4 m4/ax_gcc_version.m4 m4/ax_gxx_option.m4 m4/ax_gxx_version.m4 m4/ax_prog_perl_version.m4
-	test -f config/missing || $(MAKE) config/missing || \
-		bash -c 'source src/bin/sage-env; sage-download-file $$SAGE_UPSTREAM/configure-`cat build/pkgs/configure/package-version.txt`.tar.gz | tar zxf -'
-	$(MISSING) aclocal -I m4
-	$(MISSING) autoconf
+	test -d config || mkdir config
+	aclocal -I m4
+	automake --add-missing --copy build/Makefile-auto
+	autoconf
 
 install:
 	echo "Experimental use only!"
@@ -184,8 +182,8 @@ install:
 	"$(DESTDIR)"/bin/sage -c # Run sage-location
 
 
-.PHONY: all build build-serial start install micro_release\
+.PHONY: all build build-serial start install micro_release bootstrap \
 	doc doc-html doc-html-jsmath doc-html-mathjax doc-pdf \
-	doc-clean clean lib-clean bdist-clean distclean autogen-clean maintainer-clean \
+	doc-clean clean lib-clean bdist-clean distclean bootstrap-clean maintainer-clean \
 	test check testoptional testall testlong testoptionallong testallong \
 	ptest ptestoptional ptestall ptestlong ptestoptionallong ptestallong

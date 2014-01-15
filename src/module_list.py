@@ -1682,6 +1682,9 @@ ext_modules = [
         ##
         ################################
 
+    Extension('sage.rings.padics.morphism',
+              sources = ['sage/rings/padics/morphism.pyx']),
+
     Extension('sage.rings.padics.common_conversion',
               sources = ['sage/rings/padics/common_conversion.pyx'],
               libraries=['gmp']),

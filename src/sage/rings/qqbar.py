@@ -53,10 +53,10 @@ An algebraic number can be coerced into ``ComplexIntervalField`` (or
 ``RealIntervalField``, for algebraic reals); every algebraic number has a
 cached interval of the highest precision yet calculated.
 
-Everything is done with intervals except for comparisons. By default,
-comparisons compute the two algebraic numbers with 128-bit precision
-intervals; if this does not suffice to prove that the numbers are different,
-then we fall back on exact computation.
+In most cases, computations that need to compare two algebraic numbers
+compute them with 128-bit precision intervals; if this does not suffice to
+prove that the numbers are different, then we fall back on exact
+computation.
 
 Note that division involves an implicit comparison of the divisor against
 zero, and may thus trigger exact computation.
@@ -4541,7 +4541,7 @@ class AlgebraicReal(AlgebraicNumber_base):
                 return candidate
             self._more_precision()
             # field elements are irrational by construction
-            if i == 3 and not self._descr.is_field_element():
+            if i == 2 and not self._descr.is_field_element():
                 try: return method(self._rational_())
                 except ValueError, TypeError:
                     pass

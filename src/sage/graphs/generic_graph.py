@@ -2305,7 +2305,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.name()
             ''
         """
-        return self._backend.name(new)
+        if new is None:
+            return getattr(self, '_name', "")
+
+        if getattr(self, '_immutable', False):
+            raise NotImplementedError("An immutable graph does not change name")
+
+        self._name = str(new)
 
     def get_pos(self, dim = 2):
         """

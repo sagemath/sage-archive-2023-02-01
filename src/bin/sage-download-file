@@ -263,7 +263,7 @@ class Tarball(object):
         Parse the tarball name into base, version, and extension
         """
         import re
-        regex = re.compile('(?P<base>[a-zA-Z_]*)-(?P<version>.*)\.(?P<ext>tar.*)')
+        regex = re.compile('(?P<base>(?:[^-]|-(?!\d))*)-(?P<version>.*)\.(?P<ext>tar.*|zip|tgz)')
         return regex.match(name).groups()
 
     def _init_checksum(self):

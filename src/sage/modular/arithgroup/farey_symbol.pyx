@@ -255,13 +255,18 @@ cdef class Farey:
 
         EXAMPLES::
 
-            sage: FareySymbol(Gamma0(23))._latex_()
-            '\\mathcal{F}(\\Gamma_0(23))'
+            sage: FareySymbol(Gamma0(3))._latex_()
+            '\\left( -\\infty\\underbrace{\\quad}_{1} 0\\underbrace{\\quad}_{\\bullet} 1\\underbrace{\\quad}_{1} \\infty\\right)'
         """
-        if hasattr(self.group, "_latex_"):
-            return "\mathcal{F}(%s)" % self.group._latex_()
-        else:
-            return "\mathcal{F}(%s)" % "unknonwn"
+        s = r'\left( -\infty'
+        a = [x._latex_() for x in self.fractions()] + ['\infty']
+        b = self.pairings()
+        for i in xrange(len(a)):
+            u = b[i]
+            if u == -3: u = r'\bullet'
+            elif u == -2: u = r'\circ'
+            s += r'\underbrace{\quad}_{%s} %s' % (u,a[i])
+        return s + r'\right)'
 
     def index(self):
         r"""

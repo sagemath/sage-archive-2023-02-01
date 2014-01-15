@@ -179,7 +179,7 @@ $MAKE configure || exit $?
 # A reasonably sophisticated test is performed in a configure
 # script, which checks compilers exist, their version numbers,
 # the fact GNU and non-GNU compilers are not mixed etc.
-./configure $PREREQ_OPTIONS
+./configure --disable-maintainer-mode $PREREQ_OPTIONS
 if [ $? -ne 0 ]; then
     echo >&2 "You do not have all of the prerequisites needed to build Sage"
     echo >&2 "from source. See the errors above."

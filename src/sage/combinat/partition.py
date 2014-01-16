@@ -2114,7 +2114,7 @@ class Partition(CombinatorialObject, Element):
         .. MATH::
 
             S_{\lambda_1} \times S_{\lambda_2} \times \cdots \times
-            S_{\lambda_{\ell}}`
+            S_{\lambda_{\ell}}
 
         embedded into `S_n` in the standard way (i.e.,
         the `S_{\lambda_i}` factor acts on the numbers from

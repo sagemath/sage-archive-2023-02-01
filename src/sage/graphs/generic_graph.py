@@ -2304,6 +2304,17 @@ class GenericGraph(GenericGraph_pyx):
             Graph on 10 vertices
             sage: G.name()
             ''
+
+        Name of an immutable graph :trac:`15681` ::
+
+            sage: g = graphs.PetersenGraph()
+            sage: gi = g.copy(immutable=True)
+            sage: gi.name()
+            'Petersen graph'
+            sage: gi.name("Hey")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: An immutable graph does not change name
         """
         if new is None:
             return getattr(self, '_name', "")
@@ -13733,7 +13744,7 @@ class GenericGraph(GenericGraph_pyx):
             for v in self:
                 if not self.has_edge(u,v):
                     G.add_edge(u,v)
-        if hasattr(self, '_immutable', False):
+        if getattr(self, '_immutable', False):
             return G.copy(immutable=True)
         return G
 

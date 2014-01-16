@@ -43,7 +43,10 @@ from gcd_domains import GcdDomains
 from principal_ideal_domains import PrincipalIdealDomains
 from euclidean_domains import EuclideanDomains
 from unique_factorization_domains import UniqueFactorizationDomains
+from complete_discrete_valuation import CompleteDiscreteValuationRings
 
 from fields import Fields
 from quotient_fields import QuotientFields
 from finite_fields import FiniteFields
+from discrete_valuation import DiscreteValuationRings, DiscreteValuationFields
+from complete_discrete_valuation import CompleteDiscreteValuationRings, CompleteDiscreteValuationFields

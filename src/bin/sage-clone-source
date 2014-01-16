@@ -26,7 +26,7 @@ CONFVERSION=`cat build/pkgs/configure/package-version.txt`
 CONFBALL="$SRC/upstream/configure-$CONFVERSION.tar.gz"
 if [ ! -f "$CONFBALL" ]; then
     echo >&2 "Error: configure tarball '$CONFBALL' does not exist."
-    echo >&2 "Run sage-autogen and try again."
+    echo >&2 "Run ./bootstrap -s and try again."
     exit 1
 fi
 

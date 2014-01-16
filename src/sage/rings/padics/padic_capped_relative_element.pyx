@@ -190,12 +190,17 @@ cdef class pAdicCappedRelativeElement(CRElement):
 
         EXAMPLES::
 
-           sage: R = Zp(5, 10); a = R(17); pari(a) #indirect doctest
-           2 + 3*5 + O(5^10)
-           sage: pari(R(0))
-           0
-           sage: pari(R(0,5))
-           O(5^5)
+            sage: R = Zp(5, 10); a = R(17); pari(a) #indirect doctest
+            2 + 3*5 + O(5^10)
+            sage: pari(R(0))
+            0
+            sage: pari(R(0,5))
+            O(5^5)
+            sage: pari(R(0,5)).debug()
+            [&=...] PADIC(lg=5):... (precp=0,valp=5):... ... ... ...
+                p : [&=...] INT(lg=3):... (+,lgefint=3):... ... 
+              p^l : [&=...] INT(lg=3):... (+,lgefint=3):... ... 
+                I : [&=...] INT(lg=2):... (0,lgefint=2):... 
         """
         if exactzero(self.ordp):
             return P.new_gen_from_int(0)

@@ -447,6 +447,22 @@ class StaticSparseBackend(CGraphBackend):
         """
         return v in self._vertex_to_int
 
+    def relabel(self, perm, directed):
+        r"""
+        Relabel the graphs' vertices. No way.
+
+        TEST::
+
+            sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
+            sage: g = StaticSparseBackend(graphs.PetersenGraph())
+            sage: g.relabel([],True)
+            Traceback (most recent call last):
+            ...
+            ValueError: Thou shalt not relabel an immutable graph
+
+        """
+        raise ValueError("Thou shalt not relabel an immutable graph")
+
     def get_edge_label(self, object u, object v):
         """
         Returns the edge label for ``(u,v)``.

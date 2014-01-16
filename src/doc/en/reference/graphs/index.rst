@@ -79,5 +79,6 @@ Libraries of algorithms
    sage/graphs/graph_latex
    sage/graphs/graph_list
    sage/graphs/hyperbolicity
+   sage/graphs/tutte_polynomial
 
 .. include:: ../footer.txt

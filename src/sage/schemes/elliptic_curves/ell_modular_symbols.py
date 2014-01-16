@@ -544,6 +544,10 @@ class ModularSymbolECLIB(ModularSymbol):
 
         """
         # this computes {0,oo} - {0,r} = {r,oo}
+        from sage.rings.rational import Rational
+        if r != oo:
+            r = Rational(r)
+            r = r.numer() % r.denom() / r.denom()
         return (self._atzero - self._modsym(r))*self._scaling
 
 

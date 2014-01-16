@@ -143,12 +143,13 @@ SAGERUNTIME = $(SCRIPTS) $(INST)/sage $(INST)/$(SAGENB) $(INST)/$(IPYTHON)
 # an update of these packages will not trigger a rebuild of every other
 # package during an upgrade, see #13415.
 ###############################################################################
-base: $(INST)/$(PREREQ) $(INST)/$(BZIP2) $(INST)/$(PATCH)
+base: $(INST)/prereq $(INST)/$(BZIP2) $(INST)/$(PATCH)
 
-$(INST)/$(PREREQ):
-	$(PIPE) "base/$(PREREQ)-install 2>&1" "tee -a $(SAGE_LOGS)/$(PREREQ).log"
+$(INST)/prereq: prereq.sh
+	$(PIPE) "./prereq.sh 2>&1" "tee -a $(SAGE_LOGS)/prereq.log"
+	touch $@
 
-$(INST)/$(BZIP2): $(INST)/$(PREREQ)
+$(INST)/$(BZIP2): $(INST)/prereq
 	+$(PIPE) "$(SAGE_SPKG) $(BZIP2) 2>&1" "tee -a $(SAGE_LOGS)/$(BZIP2).log"
 
 $(INST)/$(PATCH): $(INST)/$(BZIP2)

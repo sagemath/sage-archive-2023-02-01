@@ -2108,10 +2108,15 @@ class Partition(CombinatorialObject, Element):
         group.
 
         The Young subgroup of a partition
-        `\lambda = (\lambda_1, \lambda_2, \ldots, \lambda_l\right)` of
-        `n` is the group
-        `S_{\lambda_1} \times S_{\lambda_2} \times \cdots \times
-        S_{\lambda_l}`, embedded into `S_n` in the standard way (i. e.,
+        `\lambda = (\lambda_1, \lambda_2, \ldots, \lambda_{\ell})` of `n` is
+        the group:
+
+        .. MATH::
+
+            S_{\lambda_1} \times S_{\lambda_2} \times \cdots \times
+            S_{\lambda_{\ell}}`
+
+        embedded into `S_n` in the standard way (i.e.,
         the `S_{\lambda_i}` factor acts on the numbers from
         `\lambda_1 + \lambda_2 + \cdots + \lambda_{i-1} + 1` to
         `\lambda_1 + \lambda_2 + \cdots + \lambda_i`).
@@ -2131,8 +2136,9 @@ class Partition(CombinatorialObject, Element):
 
     def young_subgroup_generators(self):
         """
-        Return an indexing set for the adjacent transpositions which
-        generate the Young subgroup corresponding to ``self``.
+        Return an indexing set for the generators of the corresponding Young
+        subgroup. Here the generators correspond to the simple adjacent
+        transpositions `s_i = (i \; i+1)`.
 
         EXAMPLES::
 

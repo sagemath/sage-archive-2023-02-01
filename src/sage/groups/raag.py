@@ -83,7 +83,7 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
         sage: Gamma = graphs.CycleGraph(5)
         sage: G = RightAngledArtinGroup(Gamma)
         sage: G
-        Right-angled Artin group of Graph on 5 vertices
+        Right-angled Artin group of Cycle graph
         sage: a,b,c,d,e = G.gens()
         sage: e^-1*c*b*e*b^-1*c^-4
         v2^-3
@@ -162,7 +162,7 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
         TESTS::
 
             sage: RightAngledArtinGroup(graphs.CycleGraph(5))
-            Right-angled Artin group of Graph on 5 vertices
+            Right-angled Artin group of Cycle graph
         """
         return "Right-angled Artin group of {}".format(self._graph)
 
@@ -290,7 +290,7 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
             sage: Gamma = graphs.CycleGraph(5)
             sage: G = RightAngledArtinGroup(Gamma)
             sage: G.graph()
-            Graph on 5 vertices
+            Cycle graph: Graph on 5 vertices
         """
         return self._graph
 

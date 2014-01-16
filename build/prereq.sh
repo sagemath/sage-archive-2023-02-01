@@ -3,21 +3,11 @@
 ## Check for prerequisite programs
 ###########################################
 
-
-TARGET=prereq-1.2
-if [ "x$SAGE_BUILD_DIR" = x ]; then
-    SAGE_BUILD_DIR="$SAGE_LOCAL/var/tmp/sage/build"
-fi
-mkdir -p "$SAGE_BUILD_DIR"
-if [ $? -ne 0 ]; then
-    echo >&2 "Error creating directory $SAGE_BUILD_DIR."
-    exit 1
-fi
-
 UNAME=`uname`
 RELEASE=`uname -r`
 
-cd "$SAGE_BUILD_DIR"
+# Run this from SAGE_ROOT
+cd ..
 
 echo "Starting prerequisite check."
 echo "Machine: `uname -a`"
@@ -183,40 +173,23 @@ if [ "x$SAGE_PORT" = x ]; then
     fi
 fi
 
+# Make sure the configure script exists
+$MAKE bootstrap || exit $?
 
-# Only run configure if the tarfile exists.  Unfortunately, sage-update
-# does not update the base packages and we cannot retro-actively change
-# that in earlier versions.  So the only thing to do is to skip this
-# test.
-prereq_tarball="$SAGE_ROOT/upstream/$TARGET.tar.gz"
-if [ -f "$prereq_tarball" ]; then
-    gzip -cd "$prereq_tarball" | tar xf -
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error: failed to extract '$prereq_tarball'"
+# A reasonably sophisticated test is performed in a configure
+# script, which checks compilers exist, their version numbers,
+# the fact GNU and non-GNU compilers are not mixed etc.
+./configure --disable-maintainer-mode $PREREQ_OPTIONS
+if [ $? -ne 0 ]; then
+    echo >&2 "You do not have all of the prerequisites needed to build Sage"
+    echo >&2 "from source. See the errors above."
+    if [ "x$SAGE_PORT" = x ]; then
+        echo >&2 "If you would like to try the build anyway (to help porting)"
+        echo >&2 "export the variable 'SAGE_PORT' to something non-empty."
         exit 1
+    else
+        echo >&2 "However, since 'SAGE_PORT' is set, we will try to build anyway."
     fi
-
-    # A reasonably sophisticated test is performed in a configure
-    # script, which checks compilers exist, their version numbers,
-    # the fact GNU and non-GNU compilers are not mixed etc.
-    cd "$TARGET" && ./configure $PREREQ_OPTIONS
-
-    if [ $? -ne 0 ]; then
-        echo >&2 "You do not have all of the prerequisites needed to build Sage"
-        echo >&2 "from source. See the errors above."
-        if [ "x$SAGE_PORT" = x ]; then
-            echo >&2 "If you would like to try the build anyway (to help porting)"
-            echo >&2 "export the variable 'SAGE_PORT' to something non-empty."
-            exit 1
-        else
-            echo >&2 "However, since 'SAGE_PORT' is set, we will try to build anyway."
-        fi
-    fi
-else
-    echo >&2 "The file '$prereq_tarball' does not exist."
-    echo >&2 "Most likely, this is because you upgraded from an old version of Sage."
-    echo >&2 "Since this package only does some checks, it should be okay to continue"
-    echo >&2 "without it.  Skipping prerequisite checks..."
 fi
 
 if pwd | grep >/dev/null " "; then
@@ -319,14 +292,3 @@ if [ "$UNAME" = "Darwin" ]; then
         fi
     fi
 fi
-
-if [ -z "$SAGE_KEEP_BUILT_SPKGS" ]; then
-    echo "Now cleaning up tmp files."
-    cd "$SAGE_BUILD_DIR"
-    rm -rf "$SAGE_BUILD_DIR/$TARGET"
-else
-    echo "You can safely delete the temporary build directory"
-    echo "$SAGE_BUILD_DIR/$TARGET"
-fi
-
-touch "$SAGE_SPKG_INST/$TARGET"

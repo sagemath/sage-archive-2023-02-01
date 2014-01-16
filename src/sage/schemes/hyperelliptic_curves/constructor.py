@@ -26,7 +26,7 @@ from sage.rings.finite_rings.constructor import is_FiniteField
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 
 
-def HyperellipticCurve(f, h=None, names=None, PP=None, check_squarefree=True):
+def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True):
     r"""
     Returns the hyperelliptic curve `y^2 + h y = f`, for
     univariate polynomials `h` and `f`. If `h`
@@ -161,18 +161,24 @@ def HyperellipticCurve(f, h=None, names=None, PP=None, check_squarefree=True):
         sage: P.<x> = ZZ[]
         sage: HyperellipticCurve(3*x^7+6*x+6)
         Hyperelliptic Curve over Integer Ring defined by y^2 = 3*x^7 + 6*x + 6
+
+    TESTS:
+
+    Check that `f` can be a constant (see :trac:`15516`)::
+
+        sage: R.<u> = PolynomialRing(Rationals())
+        sage: HyperellipticCurve(-12, u^4 + 7)
+        Hyperelliptic Curve over Rational Field defined by y^2 + (x^4 + 7)*y = -12
+
     """
-    if (not is_Polynomial(f)) or f == 0:
-        raise TypeError, "Arguments f (=%s) and h (= %s) must be polynomials " \
-                         "and f must be non-zero" % (f,h)
-    P = f.parent()
-    if h is None:
-        h = P(0)
-    try:
-        h = P(h)
-    except TypeError:
-        raise TypeError, \
-              "Arguments f (=%s) and h (= %s) must be polynomials in the same ring"%(f,h)
+    # F is the discriminant; use this for the type check
+    # rather than f and h, one of which might be constant.
+    F = h**2 + 4*f
+    if not is_Polynomial(F):
+        raise TypeError("Arguments f (= %s) and h (= %s) must be polynomials" % (f, h))
+    P = F.parent()
+    f = P(f)
+    h = P(h)
     df = f.degree()
     dh_2 = 2*h.degree()
     if dh_2 < df:
@@ -194,7 +200,6 @@ def HyperellipticCurve(f, h=None, names=None, PP=None, check_squarefree=True):
             should_be_coprime = [h, f*h.derivative()**2+f.derivative()**2]
         else:
             # characteristic not 2
-            F = f + h**2/4
             if not F.degree() in [2*g+1, 2*g+2]:
                 raise ValueError, "Not a hyperelliptic curve: " \
                                   "highly singular at infinity."

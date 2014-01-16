@@ -185,7 +185,7 @@ ext_modules = [
     Extension('sage.coding.codecan.codecan',
               sources = ['sage/coding/codecan/codecan.pyx'],
               libraries = ['gmp', 'flint'],
-              include_dirs = [SAGE_INC + 'FLINT/']+['sage/groups/perm_gps/partn_ref2/'],
+              include_dirs = ['sage/groups/perm_gps/partn_ref2/'],
               depends = flint_depends),
 
     Extension('sage.coding.codecan.autgroup_can_label',
@@ -584,10 +584,9 @@ ext_modules = [
     Extension('sage.groups.perm_gps.partn_ref2.refinement_generic',
               sources = ['sage/groups/perm_gps/partn_ref2/refinement_generic.pyx'],
               libraries = ["csage", "flint", "gmp", "gmpxx", "stdc++"],
-              include_dirs = [SAGE_INC + 'FLINT/'],
               extra_compile_args=["-std=c99"],
-              depends = [SAGE_ROOT + "/local/include/FLINT/flint.h"]+
-              ['sage/groups/perm_gps/partn_ref2/refinement_generic.h']),
+              depends = flint_depends +
+                  ['sage/groups/perm_gps/partn_ref2/refinement_generic.h']),
 
     ################################
     ##
@@ -1682,6 +1681,9 @@ ext_modules = [
         ## sage.rings.padics
         ##
         ################################
+
+    Extension('sage.rings.padics.morphism',
+              sources = ['sage/rings/padics/morphism.pyx']),
 
     Extension('sage.rings.padics.common_conversion',
               sources = ['sage/rings/padics/common_conversion.pyx'],

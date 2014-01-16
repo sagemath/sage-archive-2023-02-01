@@ -311,9 +311,21 @@ cdef class FMElement(pAdicTemplateElement):
             True
             sage: R(3)^1000 #indirect doctest
             1 + 4*11^2 + 3*11^3 + 7*11^4 + O(11^5)
+
+        TESTS:
+
+        We check that :trac:`15640` is resolved::
+
+            sage: R(11)^-1
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot invert non-unit
         """
         cdef FMElement ans = self._new_c()
         cdef Integer right = Integer(_right)
+        if right < 0:
+            self = ~self
+            mpz_neg(right.value, right.value)
         cpow(ans.value, self.value, right.value, self.prime_pow.prec_cap, self.prime_pow)
         return ans
 

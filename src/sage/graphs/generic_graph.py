@@ -13733,7 +13733,7 @@ class GenericGraph(GenericGraph_pyx):
             for v in self:
                 if not self.has_edge(u,v):
                     G.add_edge(u,v)
-        if hasattr(self, '_immutable', False):
+        if hasattr(self, '_immutable') and self._immutable:
             return G.copy(immutable=True)
         return G
 

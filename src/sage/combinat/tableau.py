@@ -3067,7 +3067,14 @@ class Tableau(CombinatorialObject, Element):
 
         EXAMPLES::
 
-            sage:
+            sage: t = Tableau([[1,1,2,3,5],[2,3,5,5],[3,4]])
+            sage: t._segments()
+            {(0, 2): 2, (0, 3): 3, (0, 5): 4, (1, 3): 1, (1, 5): 2, (2, 4): 1}
+
+            sage: B = CrystalOfTableaux("A4",shape=[4,3,2,1])
+            sage: t = B[31].to_tableau()
+            sage: t._segments()
+            {(0, 5): 3, (1, 4): 2, (2, 4): 1}
         """
         segments = {}
         for r in range(len(self)):
@@ -3082,7 +3089,7 @@ class Tableau(CombinatorialObject, Element):
         r"""
         Returns the total number of segments in ``self``, as in [S14]_.
 
-        Let `T` be a tableaux.  We define a `k`-segment of 'T' (in the `i`th row) to
+        Let `T` be a tableaux.  We define a `k`-segment of `T` (in the `i`th row) to
         be a maximal consecutive sequence of `k`-boxes in the `i`th row for any
         `i+1 \le k \le r+1`.  Denote the total number of `k`-segments in `T` by
         `\operatorname{seg}(T)`.
@@ -3095,7 +3102,14 @@ class Tableau(CombinatorialObject, Element):
 
         EXAMPLES::
 
-            sage:
+            sage: t = Tableau([[1,1,2,3,5],[2,3,5,5],[3,4]])
+            sage: t.seg()
+            6
+
+            sage: B = CrystalOfTableaux("A4",shape=[4,3,2,1])
+            sage: t = B[31].to_tableau()
+            sage: t.seg()
+            3
         """
         return len(self._segments())
 
@@ -3115,7 +3129,14 @@ class Tableau(CombinatorialObject, Element):
 
         EXAMPLES::
 
-            sage:
+            sage: t = Tableau([[1,1,2,3,5],[2,3,5,5],[3,4]])
+            sage: t.flush()
+            3
+
+            sage: B = CrystalOfTableaux("A4",shape=[4,3,2,1])
+            sage: t = B[32].to_tableau()
+            sage: t.flush()
+            4
         """
         for i in range(len(self)-1):
             if len(self[i]) <= len(self[i+1]):

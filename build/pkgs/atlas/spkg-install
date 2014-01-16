@@ -136,16 +136,16 @@ if 'SAGE_ATLAS_LIB' in os.environ:
         sym_gfortran = 'gfortran' in symbol_table
         sym_g95 = 'g95' in symbol_table
         if sym_gfortran and conf['fortran'] != 'gfortran':
-            print("Symbols in lib77blas indicate it was build with gfortran \n")
-            print("However SAGE is using a different fortran compiler \n")
-            print("If you wish to use this blas library, make sure SAGE_FORTRAN points \n")
-            print("to a fortran compiler compatible with this library. \n")
+            print("Symbols in lib77blas indicate it was built with gfortran.\n")
+            print("However, Sage is using a different fortran compiler.\n")
+            print("If you wish to use this blas library, make sure FC points\n")
+            print("to a fortran compiler compatible with this library.\n")
             sys.exit(2)
         if sym_g95 and conf['fortran'] != 'g95':
-            print("Symbols in lib77blas indicate it was build with g95 \n")
-            print("However SAGE is using a different fortran compiler \n")
-            print("If you wish to use this blas library, make sure SAGE_FORTRAN points \n")
-            print("to a fortran compiler compatible with this library. \n")
+            print("Symbols in lib77blas indicate it was built with g95 \n")
+            print("However, Sage is using a different fortran compiler.\n")
+            print("If you wish to use this blas library, make sure FC points\n")
+            print("to a fortran compiler compatible with this library.\n")
             sys.exit(2)
 
     SAGE_LOCAL_LIB = os.path.join(conf['SAGE_LOCAL'], 'lib')

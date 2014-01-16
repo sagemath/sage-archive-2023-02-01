@@ -24,10 +24,11 @@ import integral_domain
 import field
 
 from sage.structure.parent_gens import ParentWithGens
-from sage.libs.all import pari_gen
+from sage.libs.pari.all import pari_gen
 
+from sage.structure.category_object import check_default_category
 from sage.categories.fields import Fields
-_Fields = Fields()
+from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields
 
 laurent_series = {}
 def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=20, sparse=False):
@@ -123,9 +124,19 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         sage: F = Frac(P)
         sage: TestSuite(F).run()
 
+    When the base ring `k` is a field, the ring `k((x))` is a CDVF, that is
+    a field equipped with a discrete valuation for which it is complete.
+    The appropriate (sub)category is automatically set in this case::
+
+        sage: k = GF(11)
+        sage: R.<x> = k[[]]
+        sage: F = Frac(R)
+        sage: F.category()
+        Category of complete discrete valuation fields
+        sage: TestSuite(F).run()
     """
 
-    def __init__(self, base_ring, name=None, default_prec=20, sparse=False):
+    def __init__(self, base_ring, name=None, default_prec=20, sparse=False, category=None):
         """
         Initialization
 
@@ -136,7 +147,8 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
             sage: 1 / (q-q^2)
             q^-1 + 1 + q + q^2 + O(q^3)
         """
-        commutative_ring.CommutativeRing.__init__(self, base_ring, names=name, category=_Fields)
+        commutative_ring.CommutativeRing.__init__(self, base_ring, names=name, 
+                                                  category=getattr(self, '_default_category', Fields()))
         self._polynomial_ring = polynomial.polynomial_ring_constructor.PolynomialRing(self.base_ring(),
                                                                                       self.variable_name(),
                                                                                       sparse=sparse)
@@ -446,6 +458,30 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         """
         return self.base_ring().characteristic()
 
+    def residue_field(self):
+        """
+        Return the residue field of this Laurent series field
+        if it is a complete discrete valuation field (i.e. if
+        the base ring is a field, in which base it is also the
+        residue field).
+
+        EXAMPLES::
+
+            sage: R.<x> = LaurentSeriesRing(GF(17))
+            sage: R.residue_field()
+            Finite Field of size 17
+
+            sage: R.<x> = LaurentSeriesRing(ZZ)
+            sage: R.residue_field()
+            Traceback (most recent call last):
+            ...
+            TypeError: The base ring is not a field
+        """
+        if self.base_ring().is_field():
+            return self.base_ring()
+        else:
+            raise TypeError("The base ring is not a field")
+
     def set_default_prec(self, n):
         """
         Sets the default precision.
@@ -502,6 +538,29 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         except AttributeError:
             self.__generator = laurent_series_ring_element.LaurentSeries(self, [0,1])
             return self.__generator
+
+    def uniformizer(self):
+        """
+        Return a uniformizer of this Laurent series field if it is
+        a discrete valuation field (i.e. if the base ring is actually
+        a field). Otherwise, an error is raised.
+        
+        EXAMPLES::
+        
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: R.uniformizer()
+            t
+                 
+            sage: R.<t> = LaurentSeriesRing(ZZ)
+            sage: R.uniformizer()
+            Traceback (most recent call last):
+            ...
+            TypeError: The base ring is not a field
+        """
+        if self.base_ring().is_field():
+            return self.gen()
+        else:
+            raise TypeError("The base ring is not a field")
 
     def ngens(self):
         """
@@ -571,6 +630,8 @@ class LaurentSeriesRing_domain(LaurentSeriesRing_generic, integral_domain.Integr
         LaurentSeriesRing_generic.__init__(self, base_ring, name, default_prec, sparse)
 
 class LaurentSeriesRing_field(LaurentSeriesRing_generic, field.Field):
+    _default_category = CompleteDiscreteValuationFields()
+
     def __init__(self, base_ring, name=None, default_prec=20, sparse=False):
         """
         Initialization

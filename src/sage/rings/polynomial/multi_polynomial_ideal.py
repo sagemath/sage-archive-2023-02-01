@@ -3078,7 +3078,7 @@ class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
             True
 
         Here, we see that the relation that we just found in the quotient
-        is actually a consequence of the given relations:
+        is actually a consequence of the given relations::
 
             sage: I.std()
             Twosided Ideal (z^2 - 1, y*z - y, x*z + x, y^2, 2*x*y - z - 1, x^2)

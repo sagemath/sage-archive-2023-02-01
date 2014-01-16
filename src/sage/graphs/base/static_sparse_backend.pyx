@@ -39,6 +39,7 @@ from sage.graphs.base.static_sparse_graph cimport (init_short_digraph,
                                                    edge_label)
 from c_graph import CGraphBackend
 from sage.misc.bitset cimport FrozenBitset
+from libc.stdint cimport uint32_t
 
 cdef class StaticSparseCGraph(CGraph):
     """
@@ -212,7 +213,7 @@ cdef class StaticSparseCGraph(CGraph):
             raise LookupError("The vertex does not belong to the graph")
 
         cdef int i
-        return [self.g.neighbors[u][i] for i in range(out_degree(self.g,u))]
+        return [<int> self.g.neighbors[u][i] for i in range(out_degree(self.g,u))]
 
     cpdef list in_neighbors(self, int u):
         r"""
@@ -236,7 +237,7 @@ cdef class StaticSparseCGraph(CGraph):
             raise LookupError("The vertex does not belong to the graph")
 
         cdef int i
-        return [self.g_rev.neighbors[u][i] for i in range(out_degree(self.g_rev,u))]
+        return [<int> self.g_rev.neighbors[u][i] for i in range(out_degree(self.g_rev,u))]
 
     cpdef int out_degree(self, int u):
         r"""
@@ -373,6 +374,60 @@ class StaticSparseBackend(CGraphBackend):
         self._vertex_to_labels = vertices
         self._vertex_to_int = {v:i for i,v in enumerate(vertices)}
 
+    def __reduce__(self):
+        """
+        Return a tuple used for pickling this graph.
+
+        TESTS:
+
+        Pickling of the static graph backend makes pickling of immutable
+        graphs and digraphs work::
+
+            sage: G = Graph(graphs.PetersenGraph(), immutable=True)
+            sage: G == loads(dumps(G))
+            True
+            sage: uc = [[2,3], [], [1], [1], [1], [3,4]]
+            sage: D = DiGraph(dict([[i,uc[i]] for i in range(len(uc))]), immutable=True)
+            sage: loads(dumps(D)) == D
+            True
+
+        No problems with loops and multiple edges, with Labels::
+
+            sage: g = Graph(multiedges = True, loops = True)
+            sage: g.add_edges(2*graphs.PetersenGraph().edges())
+            sage: g.add_edge(0,0)
+            sage: g.add_edge(1,1, "a label")
+            sage: g.add_edge([(0,1,"labellll"), (0,1,"labellll"), (0,1,"LABELLLL")])
+            sage: g.add_vertex("isolated vertex")
+            sage: gi = g.copy(immutable=True)
+            sage: loads(dumps(gi)) == gi
+            True
+
+        Similar, with a directed graph::
+
+            sage: g = DiGraph(multiedges = True, loops = True)
+            sage: H = 2*(digraphs.Circuit(15)+DiGraph(graphs.PetersenGraph()))
+            sage: g.add_edges(H.edges())
+            sage: g.add_edge(0,0)
+            sage: g.add_edge(1,1, "a label")
+            sage: g.add_edge([(0,1,"labellll"), (0,1,"labellll"), (0,1,"LABELLLL")])
+            sage: g.add_vertex("isolated vertex")
+            sage: gi = g.copy(immutable=True)
+            sage: loads(dumps(gi)) == gi
+            True
+        """
+        if self._directed:
+            from sage.graphs.digraph import DiGraph
+            G = DiGraph(loops=self._loops, multiedges=self._multiedges)
+            G.add_edges(list(self.iterator_out_edges(self.iterator_verts(None),True)))
+        else:
+            from sage.graphs.graph import Graph
+            G = Graph(loops=self._loops, multiedges=self._multiedges)
+            G.add_edges(list(self.iterator_edges(self.iterator_verts(None),True)))
+
+        G.add_vertices(self.iterator_verts(None))
+        return (StaticSparseBackend, (G, self._loops, self._multiedges))
+
     def has_vertex(self, v):
         r"""
         Tests if the vertex belongs to the graph
@@ -391,6 +446,22 @@ class StaticSparseBackend(CGraphBackend):
             False
         """
         return v in self._vertex_to_int
+
+    def relabel(self, perm, directed):
+        r"""
+        Relabel the graphs' vertices. No way.
+
+        TEST::
+
+            sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
+            sage: g = StaticSparseBackend(graphs.PetersenGraph())
+            sage: g.relabel([],True)
+            Traceback (most recent call last):
+            ...
+            ValueError: Thou shalt not relabel an immutable graph
+
+        """
+        raise ValueError("Thou shalt not relabel an immutable graph")
 
     def get_edge_label(self, object u, object v):
         """
@@ -433,7 +504,7 @@ class StaticSparseBackend(CGraphBackend):
         cdef StaticSparseCGraph cg = self._cg
         cdef list l
 
-        cdef ushort * edge = has_edge(cg.g,u,v)
+        cdef uint32_t * edge = has_edge(cg.g,u,v)
         if edge == NULL:
             raise LookupError("The edge does not exist")
 
@@ -475,8 +546,7 @@ class StaticSparseBackend(CGraphBackend):
             sage: g.has_edge(0,4,None)
             True
         """
-        cdef ushort * edge = NULL
-        cdef ushort * tmp = NULL
+        cdef uint32_t * edge = NULL
         cdef StaticSparseCGraph cg = <StaticSparseCGraph> (self._cg)
         try:
             u = self._vertex_to_int[u]
@@ -741,6 +811,10 @@ class StaticSparseBackend(CGraphBackend):
             (3, 4), (3, 8), (4, 9), (5, 7), (5, 8), (6, 8), (6, 9), (7, 9)]
         """
         cdef FrozenBitset fb
+
+        if self._directed:
+            raise RuntimeError("This is not meant for directed graphs.")
+
         try:
             vertices = FrozenBitset([self._vertex_to_int[x] for x in vertices])
         except KeyError:

@@ -424,11 +424,29 @@ class HasseDiagram(DiGraph):
             sage: V = Poset({0:[1,2]})
             sage: V.is_chain()
             False
+
+        TESTS:
+
+        Check :trac:`15330`::
+
+            sage: p = Poset(DiGraph({0:[1],2:[1]}))
+            sage: p.is_chain()
+            False
         """
-        outdegs = self.out_degree()
-        outdegs.remove(0)
-        if len(set(outdegs))==1: return True
-        return False
+        # There is one minimum and all other vertices have out-degree 1
+        seen_0 = False
+        for d in self.out_degree():
+            if d == 1:
+                pass
+            elif d == 0:
+                if seen_0:
+                    return False
+                seen_0 = True
+            else:
+                return False
+
+        # Maximum in-degree is 1
+        return all(d<=1 for d in self.in_degree())
 
     def dual(self):
         """
@@ -450,22 +468,21 @@ class HasseDiagram(DiGraph):
             sage: H.is_isomorphic( H.dual() )
             False
         """
-        H = HasseDiagram(self.reverse())
+        H = self.reverse()
         H.relabel(perm=range(H.num_verts()-1,-1,-1), inplace=True)
-        return H
+        return HasseDiagram(H)
 
     def interval(self, x, y):
         """
-        Returns a list of the elements z such that x <= z <= y. The order is
-        that induced by the ordering in self.linear_extension.
+        Return a list of the elements `z` of ``self`` such that
+        `x \leq z \leq y`. The order is that induced by the
+        ordering in ``self.linear_extension``.
 
         INPUT:
 
+        -  ``x`` -- any element of the poset
 
-        -  ``x`` - any element of the poset
-
-        -  ``y`` - any element of the poset
-
+        -  ``y`` -- any element of the poset
 
         EXAMPLES::
 
@@ -480,26 +497,12 @@ class HasseDiagram(DiGraph):
         return [z for z in range(self.order())[x:y+1] if
                 self.is_lequal(x,z) and self.is_lequal(z,y)]
 
-    def closed_interval(self, x, y):
-        """
-        Returns a list of the elements z such that x = z = y. The order is
-        that induced by the ordering in self.linear_extension.
-
-        EXAMPLES::
-
-            sage: uc = [[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]]
-            sage: dag = DiGraph(dict(zip(range(len(uc)),uc)))
-            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
-            sage: H = HasseDiagram(dag)
-            sage: set([2,5,6,4,7]) == set(H.closed_interval(2,7))
-            True
-        """
-        return self.interval(x,y)
+    closed_interval = interval
 
     def open_interval(self, x, y):
         """
-        Returns a list of the elements `z` such that `x < z < y`. The
-        order is that induced by the ordering in
+        Return a list of the elements `z` of ``self`` such that
+        `x < z < y`. The order is that induced by the ordering in
         ``self.linear_extension``.
 
         EXAMPLES::
@@ -585,7 +588,7 @@ class HasseDiagram(DiGraph):
     def _rank_dict(self):
         r"""
         Builds the rank dictionnary of the poset, if it exists, i.e.
-        a dictionary ``d`` where ``d[object] = self.rank_function()(object)
+        a dictionary ``d`` where ``d[object] = self.rank_function()(object)``
 
         A *rank function* of a poset `P` is a function `r`
         that maps elements of `P` to integers and satisfies:
@@ -1401,8 +1404,8 @@ class HasseDiagram(DiGraph):
 
     def complements(self):
         r"""
-        Returns a list ``l`` such that ``l[i]`` is a complement of
-        ``i`` in ``self``.
+        Return a list ``l`` such that ``l[i]`` is a complement of
+        ``i`` in ``self``, or ``None`` if no such complement exists.
 
         A complement of ``x`` is an element ``y`` such that the meet
         of ``x`` and ``y`` is the bottom element of ``self`` and the

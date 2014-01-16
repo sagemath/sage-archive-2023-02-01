@@ -105,7 +105,7 @@ def _draw_tree(tree_node, node_label=True, style_point=None, style_node='fill=wh
 
         sage: from sage.combinat.rigged_configurations.kleber_tree import KleberTree
         sage: KT = KleberTree(['A',3,1], [[3,2],[1,1]])
-        sage: latex(KT)
+        sage: latex(KT) # indirect doctest
         \begin{tikzpicture}
         \node[fill=white] (T0) at (0.000, 0.000){$V_{\omega_{1}+2\omega_{3}}$};
         \node (T00) at (0.000, -2.500){$V_{\omega_{3}}$};

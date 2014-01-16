@@ -61,7 +61,7 @@ def Words(alphabet=None, length=None, finite=True, infinite=True):
         sage: Words(5, 3)
         Words of length 3 over {1, 2, 3, 4, 5}
         sage: Words(5, infinite=False)
-        Words over {1, 2, 3, 4, 5}
+        Finite Words over {1, 2, 3, 4, 5}
         sage: Words(5, finite=False)
         Infinite Words over {1, 2, 3, 4, 5}
         sage: Words('ab')
@@ -69,7 +69,7 @@ def Words(alphabet=None, length=None, finite=True, infinite=True):
         sage: Words('ab', 2)
         Words of length 2 over {'a', 'b'}
         sage: Words('ab', infinite=False)
-        Words over {'a', 'b'}
+        Finite Words over {'a', 'b'}
         sage: Words('ab', finite=False)
         Infinite Words over {'a', 'b'}
         sage: Words('positive integers', finite=False)
@@ -1314,8 +1314,8 @@ class InfiniteWords_over_OrderedAlphabet(Words_over_OrderedAlphabet):
 
         EXAMPLES::
 
-            sage: Words('ab', infinite=False)._repr_()
-            "Words over {'a', 'b'}"
+            sage: Words('ab', finite=False)._repr_()
+            "Infinite Words over {'a', 'b'}"
         """
         return "Infinite Words over %s" % self.alphabet()
 
@@ -1340,9 +1340,9 @@ class FiniteWords_over_OrderedAlphabet(Words_over_OrderedAlphabet):
         EXAMPLES::
 
             sage: Words('ab', infinite=False)._repr_()
-            "Words over {'a', 'b'}"
+            "Finite Words over {'a', 'b'}"
         """
-        return "Words over %s" % self.alphabet()
+        return "Finite Words over %s" % self.alphabet()
 
 class FiniteWords_length_k_over_OrderedAlphabet(FiniteWords_over_OrderedAlphabet):
     def __init__(self, alphabet, length):

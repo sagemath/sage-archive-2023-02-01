@@ -31,8 +31,8 @@ if [ -z "$SAGE_SRC" ]; then
     die "must be run from within a Sage enviroment, or with SAGE_SRC provided"
 fi
 
-if [ "$#" -gt 1 ]; then
-    TMP_DIR="$2"
+if [ "$#" -gt 0 ]; then
+    TMP_DIR="$1"
 else
     TMP_DIR="$SAGE_ROOT/tmp"
 fi
@@ -41,26 +41,18 @@ source "$SAGE_SRC/bin/sage-version.sh"
 echo "Sage version $SAGE_VERSION, release date $SAGE_RELEASE_DATE"
 
 TARGET="sage-$SAGE_VERSION"
-
-rm -rf "$TMP_DIR/$TARGET"
-mkdir -p "$TMP_DIR/$TARGET"
-
-git clone "$SAGE_ROOT" "$TMP_DIR/$TARGET"
-cd "$TMP_DIR/$TARGET"
-git remote set-url origin "$SAGE_REPO_ANONYMOUS"
+sage-clone-source "$SAGE_ROOT" "$TMP_DIR/$TARGET"
 
 # Download and copy all upstream tarballs (the -B option to make forces
 # all targets to be built unconditionally)
 cd "$SAGE_ROOT/build"
-SAGE_INSTALL_GCC=yes SAGE_SPKG_OPTS="-f -d" SAGE_SPKG_COPY_UPSTREAM="$TMP_DIR/$TARGET/upstream" ./install -B all
+SAGE_INSTALL_GCC=yes SAGE_SPKG_COPY_UPSTREAM="$TMP_DIR/$TARGET/upstream" \
+SAGE_INSTALL_FETCH_ONLY=yes SAGE_SPKG_OPTS="-f -d" \
+./install -B all
 
-# save space
-cd "$TMP_DIR/$TARGET"
-git prune
-
+# Create source .tar.gz
 cd "$TMP_DIR"
-
-echo "Creating $TARGET.tar.gz ..."
+echo "Creating dist/$TARGET.tar.gz ..."
 tar zcf "$TARGET".tar.gz "$TARGET"
 
 mkdir -p "$SAGE_ROOT"/dist

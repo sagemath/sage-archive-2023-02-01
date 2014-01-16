@@ -93,7 +93,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         f, h = self._hyperelliptic_polynomials
         y = self._printing_ring.variable_name()
         x = self._printing_ring.base_ring().variable_name()
-        return HyperellipticCurve(f.change_ring(R), h, "%s,%s"%(x,y))
+        return HyperellipticCurve(f.change_ring(R), h.change_ring(R), "%s,%s"%(x,y))
 
     base_extend = change_ring
 

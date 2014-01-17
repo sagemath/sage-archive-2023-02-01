@@ -618,12 +618,12 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
             """
             tab = self.to_tableau()
             count = 0
-            for i in range(len(tab)):
-                for j in range(len(tab[i])):
-                    ct = ['B','D','G']
-                    if self.parent().cartan_type().type() in ct and tab[i][j] == -i-1:
+            ct = self.parent().cartan_type().type()
+            for i,row in enumerate(tab):
+                for j,entry in enumerate(row):
+                    if entry == -i-1 and ct in ('B','D','G'):
                         count += 2
-                    elif tab[i][j] != i+1:
+                    elif entry != i+1:
                         count += 1
             return count
 

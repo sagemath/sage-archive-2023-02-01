@@ -3061,9 +3061,9 @@ class Tableau(CombinatorialObject, Element):
 
         OUTPUT:
 
-        - A dictionary with items of the form ``{(r,k):c}``, where ``r`` is the row
-          the ``k``-segment appears and ``c`` is the column the left-most box of the
-          ``k``-segment appears.
+        - A dictionary with items of the form ``{(r,k):c}``, where ``r`` is the
+          row the ``k``-segment appears and ``c`` is the column the left-most
+          box of the ``k``-segment appears.
 
         EXAMPLES::
 
@@ -3089,10 +3089,10 @@ class Tableau(CombinatorialObject, Element):
         r"""
         Returns the total number of segments in ``self``, as in [S14]_.
 
-        Let `T` be a tableaux.  We define a `k`-segment of `T` (in the `i`th row) to
-        be a maximal consecutive sequence of `k`-boxes in the `i`th row for any
-        `i+1 \le k \le r+1`.  Denote the total number of `k`-segments in `T` by
-        `\operatorname{seg}(T)`.
+        Let `T` be a tableaux.  We define a `k`-*segment* of `T` (in the `i`-th
+        row) to be a maximal consecutive sequence of `k`-boxes in the `i`-th row
+        for any `i+1 \le k \le r+1`.  Denote the total number of `k`-segments in
+        `T` by `\operatorname{seg}(T)`.
 
         REFERENCES:
 
@@ -3117,15 +3117,16 @@ class Tableau(CombinatorialObject, Element):
         r"""
         Returns the number of flush segments in ``self``, as in [S14]_.
 
-        Let `1 \le i < k \le r+1` and suppose `\ell` is the smallest integer greater
-        than `k` such that there exists an `\ell`-segment in the `(i+1)`st row of `T`.
-        A `k`-segment in the `i`th row of `T` is called flush if the leftmost box in
-        the `k`-segment and the leftmost box of the `\ell`-segment are in the same
-        column of `T`.  If, however, no such `\ell` exists, then this `k`-segment is
-        said to be flush if the number of boxes in the `k`-segment is equal to `\theta_i`,
-        where `\theta_i = \lambda_i-\lambda_{i+1}` and the shape of `T` is
-        `\lambda = (\lambda_1 > \lambda_2 > \cdots > \lambda_r)`.  Denote the number of
-        flush `k`-segments in `T` by `\operatorname{flush}(T)`.
+        Let `1 \le i < k \le r+1` and suppose `\ell` is the smallest integer
+        greater than `k` such that there exists an `\ell`-segment in the
+        `(i+1)`-st row of `T`.  A `k`-segment in the `i`-th row of `T` is called
+        *flush* if the leftmost box in the `k`-segment and the leftmost box of
+        the `\ell`-segment are in the same column of `T`.  If, however, no such
+        `\ell` exists, then this `k`-segment is said to be *flush* if the number
+        of boxes in the `k`-segment is equal to `\theta_i`, where `\theta_i =
+        \lambda_i-\lambda_{i+1}` and the shape of `T` is `\lambda = (\lambda_1 >
+        \lambda_2 > \cdots > \lambda_r)`.  Denote the number of flush
+        `k`-segments in `T` by `\operatorname{flush}(T)`.
 
         EXAMPLES::
 

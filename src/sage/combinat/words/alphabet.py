@@ -211,8 +211,15 @@ def build_alphabet(data=None, names=None, name=None):
                    raise TypeError("name is not recognized")
            return TotallyOrderedFiniteSet(data)
         raise TypeError("name is not recognized")
-    elif isinstance(data, (tuple,list,str)):
+
+    if isinstance(data, (tuple,list,str)):
+        if names is not None:
+            if not isinstance(names, str):
+                raise ValueError("only one name can be specified")
+            return Family(data, lambda i: names + str(i), name=names)
         return TotallyOrderedFiniteSet(data)
+
+    raise ValueError("unable to construct an alphabet from the given parameters")
 
 # TODO: should it be deprecated as it is no more a class ?
 Alphabet = build_alphabet

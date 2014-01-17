@@ -620,7 +620,7 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
             count = 0
             ct = self.parent().cartan_type().type()
             for i,row in enumerate(tab):
-                for j,entry in enumerate(row):
+                for entry in row:
                     if entry == -i-1 and ct in ('B','D','G'):
                         count += 2
                     elif entry != i+1:

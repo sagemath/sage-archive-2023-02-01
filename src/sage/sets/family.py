@@ -64,7 +64,8 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
     - ``lazy`` -- boolean (default: ``False``); whether the family is lazily
       created or not; if the indices are infinite, then this is automatically
       made ``True``
-    - ``name`` -- (optional) the name of the function
+    - ``name`` -- (optional) the name of the function; only used when the
+      family is lazily created via a function
 
     EXAMPLES:
 
@@ -203,7 +204,7 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
        ValueError: Cannot pickle code objects from closures
 
     Finally, it can occasionally be useful to add some hidden elements
-    in a family, which are accessible as f[i], but do not appear in the
+    in a family, which are accessible as ``f[i]``, but do not appear in the
     keys or the container operations::
 
         sage: f = Family([3,4,7], lambda i: 2*i, hidden_keys=[2])

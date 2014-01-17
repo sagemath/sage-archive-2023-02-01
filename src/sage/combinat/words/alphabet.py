@@ -60,7 +60,13 @@ set_of_letters = {
 
 def build_alphabet(data=None, names=None, name=None):
     r"""
-    Returns an object representing an ordered alphabet.
+    Return an object representing an ordered alphabet.
+
+    INPUT:
+
+    - ``data`` -- the data to build the alphabet
+    - ``names`` -- the letters, names, or prefix
+    - ``name`` -- the name of a specific named alphabet
 
     EXAMPLES:
 
@@ -81,6 +87,18 @@ def build_alphabet(data=None, names=None, name=None):
         {'a', 'b', 'c'}
         sage: print type(F).__name__
         TotallyOrderedFiniteSet_with_category
+
+    If an integer and a set is given, then it constructs a
+    :class:`~sage.sets.totally_ordered_finite_set.TotallyOrderedFiniteSet`::
+
+        sage: build_alphabet(3, ['a','b','c'])
+        {'a', 'b', 'c'}
+
+    If an integer and a string is given, then it considers that string as a
+    prefix::
+
+        sage: build_alphabet(3, 'x')
+        {'x0', 'x1', 'x2'}
 
     If no data is provided, ``name`` may be a string which describe an alphabet.
     The available names decompose into two families. The first one are 'positive
@@ -146,18 +164,22 @@ def build_alphabet(data=None, names=None, name=None):
         sage: build_alphabet(Primes(), 'y')
         Lazy family (y(i))_{i in Set of all prime numbers: 2, 3, 5, 7, ...}
     """
+    if isinstance(names, (int,long,Integer)) or names == Infinity: # Swap arguments...
+        data,names = names,data 
+
     if data in Sets():
         if names is not None:
             if not isinstance(names, str):
                 raise ValueError("only one name can be specified")
             return Family(data, lambda i: names + str(i), name=names)
         return data
+
     if isinstance(data, (int,long,Integer)):
         if names is None:
             from sage.sets.integer_range import IntegerRange
             return IntegerRange(Integer(data))
         elif len(names) == data:
-            return TotallyOrderedFiniteSet(data)
+            return TotallyOrderedFiniteSet(names)
         elif isinstance(names, str):
             return TotallyOrderedFiniteSet(
                     [names + '%d'%i for i in xrange(data)])
@@ -168,9 +190,11 @@ def build_alphabet(data=None, names=None, name=None):
         if not isinstance(names, str):
             raise ValueError("only one name can be specified")
         return Family(NonNegativeIntegers(), lambda i: names + str(i), name=names)
+
     if data is None and name is None:
         from sage.structure.parent import Set_PythonType
         return Set_PythonType(object)
+
     if data is None:
         if name == "positive integers" or name == "PP":
             from sage.sets.positive_integers import PositiveIntegers

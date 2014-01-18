@@ -70,7 +70,7 @@ def build_alphabet(data=None, names=None, name=None):
       * an integer `n` to represent `\{1, \ldots, n\}`, or infinity to
         represent `\NN`
 
-    - ``names`` -- (optional)a list for the letters (i.e. variable names) or
+    - ``names`` -- (optional) a list for the letters (i.e. variable names) or
       a string for prefix for all letters; if given a list, it must have the
       same cardinality as the set represented by ``data``
 

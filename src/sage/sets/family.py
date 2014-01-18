@@ -56,7 +56,7 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
     INPUT:
 
     - ``indices`` -- the indices for the family
-    - ``function`` -- (optional) the function `f` applied to all visable
+    - ``function`` -- (optional) the function `f` applied to all visible
       indices; the default is the identity function
     - ``hidden_keys`` -- (optional) a list of hidden indices that can be
       accessed through ``my_family[i]``

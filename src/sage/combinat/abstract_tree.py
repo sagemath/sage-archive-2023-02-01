@@ -1273,8 +1273,8 @@ class AbstractTree(object):
                     ;}\newcommand{\nodeg}{\node[draw,circle] (g) {$7$}
                     ;}\begin{tikzpicture}[auto]
                     \matrix[column sep=.3cm, row sep=.3cm,ampersand replacement=\&]{
-                             \&         \&         \& \nodea  \&         \&         \&         \\ 
-                             \& \nodeb  \&         \&         \&         \& \nodee  \&         \\ 
+                             \&         \&         \& \nodea  \&         \&         \&         \\
+                             \& \nodeb  \&         \&         \&         \& \nodee  \&         \\
                      \nodec  \&         \& \noded  \&         \& \nodef  \&         \& \nodeg  \\
                     };
                     <BLANKLINE>

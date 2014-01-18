@@ -51,8 +51,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
     """
     Binary trees.
 
-    Binary trees here mean ordered (a.k.a. plane) finite binary 
-    trees, where "ordered" means that the children of each node are 
+    Binary trees here mean ordered (a.k.a. plane) finite binary
+    trees, where "ordered" means that the children of each node are
     ordered.
 
     Binary trees contain nodes and leaves, where each node has two
@@ -499,7 +499,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             # In this case, rec(self, 0) would give a false result.
             if not self:
                 return DiGraph([[0], lambda i,j: False])
-    
+
             res = DiGraph()
             # The edge set of res will be built up step by step using the
             # following function:
@@ -544,7 +544,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         r"""
         Return a labelled version of ``self``.
 
-        The canonical labelling of a binary tree is a certain labelling of the 
+        The canonical labelling of a binary tree is a certain labelling of the
         nodes (not the leaves) of the tree.
         The actual canonical labelling is currently unspecified. However, it
         is guaranteed to have labels in `1...n` where `n` is the number of
@@ -890,7 +890,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         Return a 312-avoiding permutation corresponding to the binary tree.
 
         The linear extensions of a binary tree form an interval of the weak
-        order called the sylvester class of the tree. This permutation is 
+        order called the sylvester class of the tree. This permutation is
         the minimal element of this sylvester class.
 
         EXAMPLES::
@@ -953,7 +953,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
     def to_undirected_graph(self, with_leaves=False):
         r"""
         Return the undirected graph obtained from the tree nodes and edges.
-        Leaves are ignored by default, but one can set ``with_leaves`` to 
+        Leaves are ignored by default, but one can set ``with_leaves`` to
         ``True`` to obtain the graph of the complete tree.
 
         INPUT:
@@ -1004,13 +1004,13 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
     @combinatorial_map(name="To poset")
     def to_poset(self, with_leaves=False, root_to_leaf=False):
         r"""
-        Return the poset obtained by interpreting the tree as a Hasse 
+        Return the poset obtained by interpreting the tree as a Hasse
         diagram.
 
         The default orientation is from leaves to root but you can
         pass ``root_to_leaf=True`` to obtain the inverse orientation.
 
-        Leaves are ignored by default, but one can set ``with_leaves`` to 
+        Leaves are ignored by default, but one can set ``with_leaves`` to
         ``True`` to obtain the poset of the complete tree.
 
         INPUT:
@@ -1065,7 +1065,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         Return a 132-avoiding permutation corresponding to the binary tree.
 
         The linear extensions of a binary tree form an interval of the weak
-        order called the sylvester class of the tree. This permutation is 
+        order called the sylvester class of the tree. This permutation is
         the maximal element of this sylvester class.
 
         EXAMPLES::
@@ -1304,7 +1304,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
     def in_order_traversal(self, node_action=None, leaf_action=None):
         r"""
-        Explore the binary tree ``self`` using the depth-first infix-order 
+        Explore the binary tree ``self`` using the depth-first infix-order
         traversal algorithm, executing the ``node_action`` function
         whenever traversing a node and executing the ``leaf_action``
         function whenever traversing a leaf.
@@ -1651,7 +1651,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         where the product ranges over all nodes `t` of `T`, where `T_t`
         denotes the subtree of `T` consisting of `t` and its all
-        descendants, and where for every tree `S`, we denote by 
+        descendants, and where for every tree `S`, we denote by
         `\lvert S \rvert` the number of nodes of `S`. While this
         definition only shows that `h_{q} (T)` is a rational function
         in `T`, it is in fact easy to show that `h_{q} (T)` is
@@ -1666,7 +1666,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             = \binom{ \lvert T \rvert - 1 }{ \lvert T_1 \rvert }_q
             h_{q} (T_1) h_{q} (T_2),
 
-        where `T` is any nonempty binary tree, and `T_1` and `T_2` are 
+        where `T` is any nonempty binary tree, and `T_1` and `T_2` are
         the two child trees of the root of `T`, and where
         `\binom{a}{b}_q` denotes a `q`-binomial coefficient.
 
@@ -1729,7 +1729,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
            Transactions of the American Mathematical Society,
            vol. 308, no. 1, July 1988.
            http://www.ams.org/journals/tran/1988-308-01/S0002-9947-1988-0946427-X/S0002-9947-1988-0946427-X.pdf
-        
+
         EXAMPLES:
 
         Let us start with a simple example. Actually, let us start

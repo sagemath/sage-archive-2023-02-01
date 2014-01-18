@@ -15,7 +15,7 @@ AUTHORS:
 
 TESTS:
 
-Check for workaround #12482 (shall be run in a fresh session)::
+Check for workaround :trac:`12482` (shall be run in a fresh session)::
 
     sage: P = Partitions(3)
     sage: Family(P, lambda x: x).category() # used to return ``enumerated sets``
@@ -56,11 +56,13 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
     INPUT:
 
     - ``indices`` -- the indices for the family
-    - ``function`` -- (optional) the function `f`; the default is the identity
-      function
-    - ``hidden_keys`` -- (optional) a list of hidden indices (i.e.
-      dictionary keys)
-    - ``hidden_functon`` -- (optional) a function on the hidden keys
+    - ``function`` -- (optional) the function `f` applied to all indices; the
+      default is the identity function.
+    - ``hidden_keys`` -- (optional) a list of indices which will not be
+      displayed as part of the family but can be accessed through
+      ``my_family[i]``.
+    - ``hidden_function`` -- (optional) a specific function for the hidden
+      indices. The function ``function`` is *NOT* applied on the hidden indices.
     - ``lazy`` -- boolean (default: ``False``); whether the family is lazily
       created or not; if the indices are infinite, then this is automatically
       made ``True``
@@ -70,8 +72,8 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
     EXAMPLES:
 
     In its simplest form, a list `l` or a tuple by itself is considered as the
-    family `(l[i]_{i \in I})` where `I` is the range `0, \ldots, \ell` where
-    `\ell` is ``len(l)``. So ``Family(l)`` returns the corresponding family::
+    family `(l[i]_{i \in I})` where `I` is the range ``0, ...,len(l)-1``. So
+    ``Family(l)`` returns the corresponding family::
 
         sage: f = Family([1,2,3])
         sage: f
@@ -89,7 +91,7 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
     A family can also be constructed from a dictionary t. The resulting
     family is very close to t, except that the elements of the family
     are the values of t. Here, we define the family `(f_i)_{i \in \{3,4,7\}}`
-    with f_3='a', f_4='b', and f_7='d'::
+    with `f_3=a`, `f_4=b`, and `f_7=d`::
 
         sage: f = Family({3: 'a', 4: 'b', 7: 'd'})
         sage: f
@@ -193,7 +195,7 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
        sage: f == loads(dumps(f))
        True
 
-    But this one don't::
+    But this one does not::
 
        sage: def plus_n(n): return lambda x: x+n
        sage: f = Family([1,2,3], plus_n(3), lazy=True); f
@@ -354,6 +356,16 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
         sage: f = Family(["c", "a", "b"], lambda x: x+x)
         sage: list(f)
         ['cc', 'aa', 'bb']
+
+    TESTS:
+
+    Only the hidden function is applied to the hidden keys::
+
+        sage: f = lambda x : 2*x
+        sage: h_f = lambda x:x%2
+        sage: F = Family([1,2,3,4],function = f, hidden_keys=[5],hidden_function=h_f)
+        sage: F[5]
+        1
     """
     assert(type(hidden_keys) == list)
     assert(isinstance(lazy, bool))
@@ -396,7 +408,7 @@ class AbstractFamily(Parent):
     """
     The abstract class for family
 
-    Any family belongs to a class which inherits from ``AbstractFamily``.
+    Any family belongs to a class which inherits from :class:`AbstractFamily`.
     """
     def hidden_keys(self):
         """
@@ -458,7 +470,7 @@ class AbstractFamily(Parent):
 
         This default implementation is not lazy and therefore will
         only work with not too big finite families. It is also cached
-        for the same reason.
+        for the same reason::
 
             sage: Family({3: 'a', 4: 'b', 7: 'd'}).inverse_family()
             Finite family {'a': 3, 'b': 4, 'd': 7}
@@ -471,13 +483,13 @@ class AbstractFamily(Parent):
 
 class FiniteFamily(AbstractFamily):
     r"""
-    A FiniteFamily is an associative container which models a finite
-    family `(f_i)_{i \in I}`. Its elements `f_i` are therefore
-    its values. Instances should be created via the Family factory,
-    which see for further examples and tests.
+    A :class:`FiniteFamily` is an associative container which models a finite
+    family `(f_i)_{i \in I}`. Its elements `f_i` are therefore its
+    values. Instances should be created via the :func:`Family` factory. See its
+    documentation for examples and tests.
 
-    EXAMPLES: We define the family `(f_i)_{i \in \{3,4,7\}}` with f_3=a,
-    f_4=b, and f_7=d::
+    EXAMPLES: We define the family `(f_i)_{i \in \{3,4,7\}}` with `f_3=a`,
+    `f_4=b`, and `f_7=d`::
 
         sage: from sage.sets.family import FiniteFamily
         sage: f = FiniteFamily({3: 'a', 4: 'b', 7: 'd'})
@@ -702,10 +714,10 @@ class FiniteFamily(AbstractFamily):
 
 class FiniteFamilyWithHiddenKeys(FiniteFamily):
     r"""
-    A close variant of FiniteFamily where the family contains some
-    hidden keys whose corresponding values are computed lazily (and
-    remembered). Instances should be created via the Family factory,
-    which see for examples and tests.
+    A close variant of FiniteFamily where the family contains some hidden keys
+    whose corresponding values are computed lazily (and remembered). Instances
+    should be created via the :func:`Family` factory. See its documentation for
+    examples and tests.
 
     Caveat: Only instances of this class whose functions are compatible
     with sage.misc.fpickle can be pickled.
@@ -805,8 +817,8 @@ class LazyFamily(AbstractFamily):
     A LazyFamily(I, f) is an associative container which models the
     (possibly infinite) family `(f(i))_{i \in I}`.
 
-    Instances should be created via the Family factory, which see for
-    examples and tests.
+    Instances should be created via the :func:`Family` factory. See its
+    documentation for examples and tests.
     """
     def __init__(self, set, function, name=None):
         """
@@ -1028,12 +1040,11 @@ class LazyFamily(AbstractFamily):
 
 class TrivialFamily(AbstractFamily):
     r"""
-    ``TrivialFamily(c)`` turn the container c into a family indexed by
-    the set `{0, \dots, len(c)}`. The container `c` can be either a list or a
-    tuple.
+    :class:`TrivialFamily` turns a list/tuple `c` into a family indexed by the
+    set `\{0, \dots, |c|-1\}`.
 
-    Instances should be created via the Family factory, which see for
-    examples and tests.
+    Instances should be created via the :func:`Family` factory. See its
+    documentation for examples and tests.
     """
     def __init__(self, enumeration):
         """
@@ -1162,11 +1173,11 @@ from sage.rings.infinity import Infinity
 
 class EnumeratedFamily(LazyFamily):
     r"""
-    ``EnumeratedFamily(c)`` turn the enumerated set c into a family indexed by
-    the set `{0,\dots, c.cardinality()}`.
+    :class:`EnumeratedFamily` turns an enumerated set ``c`` into a family
+    indexed by the set `\{0,\dots, |c|-1\}`.
 
-    Instances should be created via the Family factory, which see for
-    examples and tests.
+    Instances should be created via the :func:`Family` factory. See its
+    documentation for examples and tests.
     """
     def __init__(self, enumset):
         """

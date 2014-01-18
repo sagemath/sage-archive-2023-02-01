@@ -64,9 +64,27 @@ def build_alphabet(data=None, names=None, name=None):
 
     INPUT:
 
-    - ``data`` -- the data to build the alphabet
-    - ``names`` -- the letters, names, or prefix
-    - ``name`` -- the name of a specific named alphabet
+    - ``data`` -- the letters of the alphabet. It can be:
+
+        * A list/tuple/iterable of letters. The iterable may be infinite.
+        * An integer `n` to represent `\{1,...,n\}`, or ``oo`` to represent `\mathbb Z`.
+
+    - ``names`` -- a prefix for all letters. It can be a string, or a list of
+      strings the same cardinality as the set represented by ``data``.
+
+    - ``name`` -- when ``name`` is set, the method returns a pre-defined
+      alphabet. It can be equal to : ``'lower', 'upper', 'space',
+      'underscore', 'punctuation', 'printable', 'binary', 'octal', 'decimal',
+      'hexadecimal', 'radix64'``
+
+      You can use many of them at once, separated by spaces : ``'lower
+      punctuation'`` represents the union of the two alphabets ``'lower'`` and
+      ``'punctuation'``.
+
+      Alternatively, ``name`` can be set to ``"positive integers"`` (or
+      ``"PP"``) or ``"natural numbers"`` (or ``"NN"``).
+
+      ``name`` cannot be combined with ``data``.
 
     EXAMPLES:
 
@@ -163,17 +181,41 @@ def build_alphabet(data=None, names=None, name=None):
         Lazy family (x(i))_{i in Non negative integers}
         sage: build_alphabet(Primes(), 'y')
         Lazy family (y(i))_{i in Set of all prime numbers: 2, 3, 5, 7, ...}
+
+    TESTS::
+
+        sage: Alphabet(3, name="punctuation")
+        Traceback (most recent call last):
+        ...
+        ValueError: `data` and `name` cannot be defined simultaneously.
+        sage: Alphabet(8, ['e']*10)
+        Traceback (most recent call last):
+        ...
+        ValueError: the value of 'names' is unexpected
+        sage: Alphabet(8, x)
+        Traceback (most recent call last):
+        ...
+        ValueError: the value of 'names' is unexpected
+        sage: Alphabet(name=x, names="punctuation")
+        Traceback (most recent call last):
+        ...
+        TypeError: 'names' was expected to be a string
+        sage: Alphabet(x)
+        Traceback (most recent call last):
+        ...
+        ValueError: unable to construct an alphabet from the given parameters
     """
-    if isinstance(names, (int,long,Integer)) or names == Infinity: # Swap arguments...
-        data,names = names,data 
+    # If both 'names' and 'data' are defined
+    if (not name is None) and (not data is None):
+        raise ValueError("`data` and `name` cannot be defined simultaneously.")
 
-    if data in Sets():
-        if names is not None:
-            if not isinstance(names, str):
-                raise ValueError("only one name can be specified")
-            return Family(data, lambda i: names + str(i), name=names)
-        return data
+    #if isinstance(names, (int,long,Integer)) or names == Infinity: # Swap arguments...
+    #    data,names = names,data
 
+    if data == Infinity:
+        data = NonNegativeIntegers()
+
+    # data is an integer
     if isinstance(data, (int,long,Integer)):
         if names is None:
             from sage.sets.integer_range import IntegerRange
@@ -183,41 +225,41 @@ def build_alphabet(data=None, names=None, name=None):
         elif isinstance(names, str):
             return TotallyOrderedFiniteSet(
                     [names + '%d'%i for i in xrange(data)])
-        raise ValueError("not possible")
-    elif data == Infinity:
-        if names is None:
-            return NonNegativeIntegers()
-        if not isinstance(names, str):
-            raise ValueError("only one name can be specified")
-        return Family(NonNegativeIntegers(), lambda i: names + str(i), name=names)
+        raise ValueError("the value of 'names' is unexpected")
 
-    if data is None and name is None:
+    # data is an iterable
+    if (isinstance(data, (tuple,list,str)) or data in Sets()):
+        if names is not None:
+            if not isinstance(names, str):
+                raise ValueError("'names' was expected to be a string")
+            return Family(data, lambda i: names + str(i), name=names)
+        elif data in Sets():
+            return data
+        else:
+            return TotallyOrderedFiniteSet(data)
+
+    # Alphabet(**nothing**)
+    if name is None and data is None:
         from sage.structure.parent import Set_PythonType
         return Set_PythonType(object)
 
-    if data is None:
+    # Alphabet defined from a name
+    if not name is None:
+        if not isinstance(name,str):
+            raise TypeError("'names' was expected to be a string")
         if name == "positive integers" or name == "PP":
             from sage.sets.positive_integers import PositiveIntegers
             return PositiveIntegers()
         elif name == "natural numbers" or name == "NN":
            return NonNegativeIntegers()
         else:
-           names = name.split(' ')
            data = []
-           for name in names:
-               if name in set_of_letters:
-                   data.extend(list(set_of_letters[name]))
-               else:
+           for alpha_name in name.split(' '):
+               try:
+                   data.extend(list(set_of_letters[alpha_name]))
+               except KeyError:
                    raise TypeError("name is not recognized")
            return TotallyOrderedFiniteSet(data)
-        raise TypeError("name is not recognized")
-
-    if isinstance(data, (tuple,list,str)):
-        if names is not None:
-            if not isinstance(names, str):
-                raise ValueError("only one name can be specified")
-            return Family(data, lambda i: names + str(i), name=names)
-        return TotallyOrderedFiniteSet(data)
 
     raise ValueError("unable to construct an alphabet from the given parameters")
 
@@ -225,7 +267,7 @@ def build_alphabet(data=None, names=None, name=None):
 Alphabet = build_alphabet
 
 # NOTE: all of the classes below are here for backward compatibility (pickling).
-# More precisely, the ticket #8290 suppress several classes. The following code
+# More precisely, the ticket #8920 suppress several classes. The following code
 # just allows to unpickle old style alphabet saved from previous version of
 # Sage.
 

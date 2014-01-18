@@ -64,18 +64,20 @@ def build_alphabet(data=None, names=None, name=None):
 
     INPUT:
 
-    - ``data`` -- the letters of the alphabet. It can be:
+    - ``data`` -- the letters of the alphabet; it can be:
 
-        * A list/tuple/iterable of letters. The iterable may be infinite.
-        * An integer `n` to represent `\{1,...,n\}`, or ``oo`` to represent `\mathbb Z`.
+      * a list/tuple/iterable of letters; the iterable may be infinite
+      * an integer `n` to represent `\{1, \ldots, n\}`, or infinity to
+        represent `\NN`
 
-    - ``names`` -- a prefix for all letters. It can be a string, or a list of
-      strings the same cardinality as the set represented by ``data``.
+    - ``names`` -- (optional)a list for the letters (i.e. variable names) or
+      a string for prefix for all letters; if given a list, it must have the
+      same cardinality as the set represented by ``data``
 
-    - ``name`` -- when ``name`` is set, the method returns a pre-defined
-      alphabet. It can be equal to : ``'lower', 'upper', 'space',
+    - ``name`` -- (optional) if given, then return a named set and can be
+      equal to : ``'lower', 'upper', 'space',
       'underscore', 'punctuation', 'printable', 'binary', 'octal', 'decimal',
-      'hexadecimal', 'radix64'``
+      'hexadecimal', 'radix64'``.
 
       You can use many of them at once, separated by spaces : ``'lower
       punctuation'`` represents the union of the two alphabets ``'lower'`` and
@@ -187,79 +189,79 @@ def build_alphabet(data=None, names=None, name=None):
         sage: Alphabet(3, name="punctuation")
         Traceback (most recent call last):
         ...
-        ValueError: `data` and `name` cannot be defined simultaneously.
+        ValueError: name cannot be specified with any other argument
         sage: Alphabet(8, ['e']*10)
         Traceback (most recent call last):
         ...
-        ValueError: the value of 'names' is unexpected
+        ValueError: invalid value for names
         sage: Alphabet(8, x)
         Traceback (most recent call last):
         ...
-        ValueError: the value of 'names' is unexpected
+        ValueError: invalid value for names
         sage: Alphabet(name=x, names="punctuation")
         Traceback (most recent call last):
         ...
-        TypeError: 'names' was expected to be a string
+        TypeError: name cannot be specified with any other argument
         sage: Alphabet(x)
         Traceback (most recent call last):
         ...
         ValueError: unable to construct an alphabet from the given parameters
     """
     # If both 'names' and 'data' are defined
-    if (not name is None) and (not data is None):
-        raise ValueError("`data` and `name` cannot be defined simultaneously.")
+    if name is not None and (data is not None or names is not None):
+        raise ValueError("name cannot be specified with any other argument")
 
-    #if isinstance(names, (int,long,Integer)) or names == Infinity: # Swap arguments...
-    #    data,names = names,data
-
-    if data == Infinity:
-        data = NonNegativeIntegers()
+    # Swap arguments if we need to to try and make sure we have "good" user input
+    if isinstance(names, (int,long,Integer)) or names == Infinity \
+            or (data is None and names is not None):
+        data,names = names,data
 
     # data is an integer
     if isinstance(data, (int,long,Integer)):
         if names is None:
             from sage.sets.integer_range import IntegerRange
             return IntegerRange(Integer(data))
-        elif len(names) == data:
+        if isinstance(names, str):
+            return TotallyOrderedFiniteSet([names + '%d'%i for i in xrange(data)])
+        if len(names) == data:
             return TotallyOrderedFiniteSet(names)
-        elif isinstance(names, str):
-            return TotallyOrderedFiniteSet(
-                    [names + '%d'%i for i in xrange(data)])
-        raise ValueError("the value of 'names' is unexpected")
+        raise ValueError("invalid value for names")
+
+    if data == Infinity:
+        data = NonNegativeIntegers()
 
     # data is an iterable
-    if (isinstance(data, (tuple,list,str)) or data in Sets()):
+    if isinstance(data, (tuple,list,str)) or data in Sets():
         if names is not None:
             if not isinstance(names, str):
-                raise ValueError("'names' was expected to be a string")
+                raise ValueError("names must be a string when data is a set")
             return Family(data, lambda i: names + str(i), name=names)
-        elif data in Sets():
+        if data in Sets():
             return data
-        else:
-            return TotallyOrderedFiniteSet(data)
-
-    # Alphabet(**nothing**)
-    if name is None and data is None:
-        from sage.structure.parent import Set_PythonType
-        return Set_PythonType(object)
+        return TotallyOrderedFiniteSet(data)
 
     # Alphabet defined from a name
-    if not name is None:
-        if not isinstance(name,str):
-            raise TypeError("'names' was expected to be a string")
+    if name is not None:
+        if not isinstance(name, str):
+            raise TypeError("name must be a string")
         if name == "positive integers" or name == "PP":
             from sage.sets.positive_integers import PositiveIntegers
             return PositiveIntegers()
-        elif name == "natural numbers" or name == "NN":
-           return NonNegativeIntegers()
-        else:
-           data = []
-           for alpha_name in name.split(' '):
-               try:
-                   data.extend(list(set_of_letters[alpha_name]))
-               except KeyError:
-                   raise TypeError("name is not recognized")
-           return TotallyOrderedFiniteSet(data)
+        if name == "natural numbers" or name == "NN":
+            return NonNegativeIntegers()
+
+        data = []
+        for alpha_name in name.split(' '):
+            try:
+                data.extend(list(set_of_letters[alpha_name]))
+            except KeyError:
+                raise TypeError("name is not recognized")
+        return TotallyOrderedFiniteSet(data)
+
+    # Alphabet(**nothing**)
+    if data is None: # name is also None
+        from sage.structure.parent import Set_PythonType
+        return Set_PythonType(object)
 
     raise ValueError("unable to construct an alphabet from the given parameters")
 

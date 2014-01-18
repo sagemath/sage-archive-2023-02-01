@@ -56,13 +56,12 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
     INPUT:
 
     - ``indices`` -- the indices for the family
-    - ``function`` -- (optional) the function `f` applied to all indices; the
-      default is the identity function.
-    - ``hidden_keys`` -- (optional) a list of indices which will not be
-      displayed as part of the family but can be accessed through
-      ``my_family[i]``.
+    - ``function`` -- (optional) the function `f` applied to all visable
+      indices; the default is the identity function
+    - ``hidden_keys`` -- (optional) a list of hidden indices that can be
+      accessed through ``my_family[i]``
     - ``hidden_function`` -- (optional) a specific function for the hidden
-      indices. The function ``function`` is *NOT* applied on the hidden indices.
+      indices
     - ``lazy`` -- boolean (default: ``False``); whether the family is lazily
       created or not; if the indices are infinite, then this is automatically
       made ``True``
@@ -71,9 +70,10 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
 
     EXAMPLES:
 
-    In its simplest form, a list `l` or a tuple by itself is considered as the
-    family `(l[i]_{i \in I})` where `I` is the range ``0, ...,len(l)-1``. So
-    ``Family(l)`` returns the corresponding family::
+    In its simplest form, a list `l = [l_0, l_1, \ldots, l_{\ell}]` or a
+    tuple by itself is considered as the family `(l_i)_{i \in I}` where
+    `I` is the set `\{0, \ldots, \ell\}` where `\ell` is ``len(l) - 1``.
+    So ``Family(l)`` returns the corresponding family::
 
         sage: f = Family([1,2,3])
         sage: f
@@ -88,10 +88,10 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
         sage: f
         Family (3, 5, 7)
 
-    A family can also be constructed from a dictionary t. The resulting
-    family is very close to t, except that the elements of the family
-    are the values of t. Here, we define the family `(f_i)_{i \in \{3,4,7\}}`
-    with `f_3=a`, `f_4=b`, and `f_7=d`::
+    A family can also be constructed from a dictionary ``t``. The resulting
+    family is very close to ``t``, except that the elements of the family
+    are the values of ``t``. Here, we define the family
+    `(f_i)_{i \in \{3,4,7\}}` with `f_3 = a`, `f_4 = b`, and `f_7 = d`::
 
         sage: f = Family({3: 'a', 4: 'b', 7: 'd'})
         sage: f
@@ -488,7 +488,9 @@ class FiniteFamily(AbstractFamily):
     values. Instances should be created via the :func:`Family` factory. See its
     documentation for examples and tests.
 
-    EXAMPLES: We define the family `(f_i)_{i \in \{3,4,7\}}` with `f_3=a`,
+    EXAMPLES:
+
+    We define the family `(f_i)_{i \in \{3,4,7\}}` with `f_3=a`,
     `f_4=b`, and `f_7=d`::
 
         sage: from sage.sets.family import FiniteFamily
@@ -714,13 +716,13 @@ class FiniteFamily(AbstractFamily):
 
 class FiniteFamilyWithHiddenKeys(FiniteFamily):
     r"""
-    A close variant of FiniteFamily where the family contains some hidden keys
-    whose corresponding values are computed lazily (and remembered). Instances
-    should be created via the :func:`Family` factory. See its documentation for
-    examples and tests.
+    A close variant of :class:`FiniteFamily` where the family contains some
+    hidden keys whose corresponding values are computed lazily (and
+    remembered). Instances should be created via the :func:`Family` factory.
+    See its documentation for examples and tests.
 
     Caveat: Only instances of this class whose functions are compatible
-    with sage.misc.fpickle can be pickled.
+    with :mod:`sage.misc.fpickle` can be pickled.
     """
     def __init__(self, dictionary, hidden_keys, hidden_function):
         """

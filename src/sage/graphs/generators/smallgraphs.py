@@ -377,7 +377,46 @@ def WellsGraph():
     _circle_embedding(g, p[3], radius = .7)
 
     return g
+def Cell600(embedding=False):
+    r"""
+    Returns the 600-Cell graph
 
+    EXAMPLES::
+
+        sage: g=graphs.Cell600()
+        sage: g.size()
+        720
+    """
+    from sage.rings.number_field.number_field import NumberField
+    from sage.combinat.cartesian_product import CartesianProduct
+    from sage.modules.free_module import VectorSpace
+    from sage.calculus.var import var
+    from sage.matrix.constructor import block_matrix
+    from sage.matrix.constructor import Matrix
+    from sage.calculus.var import var
+    x = var('x')
+    K = NumberField(x**2-x-1, 'f')
+    f = K.gens()[0]
+    RR4 = VectorSpace(K,4)
+    CP3 = CartesianProduct([-1,1],[-1,1],[-1,1],[0])
+    CP4 = CartesianProduct([-1,1],[-1,1],[-1,1],[-1,1])
+    xx= ([RR4([1/2,f/2,(f-1)/2,0]).pairwise_product(RR4(sign_v)) for sign_v in CP3]
+         +[RR4([(f-1)/2,1/2,f/2,0]).pairwise_product(RR4(sign_v)) for sign_v in CP3]
+         +[RR4([f/2,(f-1)/2,1/2,0]).pairwise_product(RR4(sign_v)) for sign_v in CP3])
+    mm = Matrix(xx)
+    mma = mm.matrix_from_columns([1,0,3,2])
+    mmb = mm.matrix_from_columns([2,3,0,1])
+    mmc = mm.matrix_from_columns([3,2,1,0])
+    MM = block_matrix([mm,mma,mmb,mmc], nrows=4)
+    xxd = [RR4([1/2,1/2,1/2,1/2]).pairwise_product(RR4(sign_v)) for sign_v in CP4]\
+        +[RR4([1,0,0,0]),RR4([-1,0,0,0]),RR4([0,1,0,0]),RR4([0,-1,0,0]),RR4([0,0,1,0]),\
+              RR4([0,0,-1,0]),RR4([0,0,0,1]),RR4([0,0,0,-1])]
+    U = MM.stack(Matrix(xxd))
+
+    if embedding:
+        return U, Graph([range(1,121), lambda i,j: U[i-1].inner_product(U[j-1]) == 1/2*f])
+    else:
+        return Graph([range(1,121), lambda i,j: U[i-1].inner_product(U[j-1]) == 1/2*f])
 
 def HallJankoGraph(from_string=True):
     r"""

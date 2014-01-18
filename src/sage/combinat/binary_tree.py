@@ -953,6 +953,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
     def to_undirected_graph(self, with_leaves=False):
         r"""
         Return the undirected graph obtained from the tree nodes and edges.
+
         Leaves are ignored by default, but one can set ``with_leaves`` to
         ``True`` to obtain the graph of the complete tree.
 

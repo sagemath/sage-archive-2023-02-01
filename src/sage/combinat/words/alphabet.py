@@ -201,7 +201,7 @@ def build_alphabet(data=None, names=None, name=None):
         sage: Alphabet(name=x, names="punctuation")
         Traceback (most recent call last):
         ...
-        TypeError: name cannot be specified with any other argument
+        ValueError: name cannot be specified with any other argument
         sage: Alphabet(x)
         Traceback (most recent call last):
         ...
@@ -234,7 +234,7 @@ def build_alphabet(data=None, names=None, name=None):
     if isinstance(data, (tuple,list,str)) or data in Sets():
         if names is not None:
             if not isinstance(names, str):
-                raise ValueError("names must be a string when data is a set")
+                raise TypeError("names must be a string when data is a set")
             return Family(data, lambda i: names + str(i), name=names)
         if data in Sets():
             return data

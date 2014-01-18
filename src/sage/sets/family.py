@@ -60,8 +60,7 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
       indices; the default is the identity function
     - ``hidden_keys`` -- (optional) a list of hidden indices that can be
       accessed through ``my_family[i]``
-    - ``hidden_function`` -- (optional) a specific function for the hidden
-      indices
+    - ``hidden_function`` -- (optional) a function for the hidden indices
     - ``lazy`` -- boolean (default: ``False``); whether the family is lazily
       created or not; if the indices are infinite, then this is automatically
       made ``True``

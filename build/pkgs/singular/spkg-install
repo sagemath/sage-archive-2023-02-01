@@ -87,11 +87,6 @@ choose_patches()
 {
     cd "$PATCHES" || return $?
 
-    # Move some patches which are conditionally applied
-    if [ "$UNAME" = "CYGWIN" ]; then
-        mv conditional/cygwin.patch . || return $?
-    fi
-
     if [ "x$SAGE_DEBUG" = "xyes" ]; then
         mv conditional/sage_debug.patch . || return $?
         # Remove old omalloc files, except for configure

@@ -768,6 +768,45 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             p = 4
         return self(p)._exp(self.precision_cap())
 
+    def frobenius_endomorphism(self, n=1):
+        """
+        INPUT:
+                     
+        -  ``n`` -- an integer (default: 1)
+
+        OUTPUT:
+
+        The `n`-th power of the absolute arithmetic Frobenius
+        endomorphism on this field.
+
+        EXAMPLES::
+
+            sage: K.<a> = Qq(3^5)
+            sage: Frob = K.frobenius_endomorphism(); Frob
+            Frobenius endomorphism on Unramified Extension of 3-adic Field ... lifting a |--> a^3 on the residue field
+            sage: Frob(a) == a.frobenius()
+            True
+
+        We can specify a power:: 
+
+            sage: K.frobenius_endomorphism(2)
+            Frobenius endomorphism on Unramified Extension of 3-adic Field ... lifting a |--> a^(3^2) on the residue field
+
+        The result is simplified if possible::
+
+            sage: K.frobenius_endomorphism(6)
+            Frobenius endomorphism on Unramified Extension of 3-adic Field ... lifting a |--> a^3 on the residue field
+            sage: K.frobenius_endomorphism(5)
+            Identity endomorphism of Unramified Extension of 3-adic Field ...
+
+        Comparisons work::
+
+            sage: K.frobenius_endomorphism(6) == Frob
+            True
+        """
+        from morphism import FrobeniusEndomorphism_padics
+        return FrobeniusEndomorphism_padics(self, n)
+
     def _test_elements_eq_transitive(self, **options):
         """
         The operator ``==`` is not transitive for `p`-adic numbers. We disable

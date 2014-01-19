@@ -4,6 +4,8 @@ Splitting fields of polynomials over number fields
 AUTHORS:
 
 - Jeroen Demeyer (2014-01-02): initial version for :trac:`2217`
+
+- Jeroen Demeyer (2014-01-03): add ``abort_degree`` argument, :trac:`15626`
 """
 
 #*****************************************************************************
@@ -24,6 +26,31 @@ from sage.rings.rational_field import RationalField, is_RationalField
 from sage.libs.pari.all import pari, PariError
 
 
+class SplittingFieldAbort(Exception):
+    """
+    Special exception class to indicate an early abort of :func:`splitting_field`.
+
+    EXAMPLES::
+
+        sage: from sage.rings.number_field.splitting_field import SplittingFieldAbort
+        sage: raise SplittingFieldAbort(20, 60)
+        Traceback (most recent call last):
+        ...
+        SplittingFieldAbort: degree of splitting field is a multiple of 20
+        sage: raise SplittingFieldAbort(12, 12)
+        Traceback (most recent call last):
+        ...
+        SplittingFieldAbort: degree of splitting field equals 12
+    """
+    def __init__(self, div, mult):
+        self.degree_divisor = div
+        self.degree_multiple = mult
+        if div == mult:
+            msg = "degree of splitting field equals %s"%div
+        else:
+            msg = "degree of splitting field is a multiple of %s"%div
+        super(SplittingFieldAbort, self).__init__(msg)
+
 class SplittingData:
     """
     A class to store data for internal use in :func:`splitting_field`.
@@ -32,9 +59,9 @@ class SplittingData:
     ``dm`` a Sage :class:`Integer`.
 
     ``dm`` is a multiple of the degree of the splitting field of
-    ``pol`` over `E`, where `E` is the field containing the current
-    field `K` and all roots of other polynomials inside ``SplittingData``
-    with ``dm`` less then ``dm``.
+    ``pol`` over some field `E`. In :func:`splitting_field`, `E` is the
+    field containing the current field `K` and all roots of other
+    polynomials inside the list `L` with ``dm`` less than this ``dm``.
     """
     def __init__(self, _pol, _dm):
         self.pol = _pol
@@ -94,7 +121,7 @@ class SplittingData:
         return (self.poldegree(), self.dm)
 
 
-def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, simplify_all=False):
+def splitting_field(poly, name, map=False, degree_multiple=None, abort_degree=None, simplify=True, simplify_all=False):
     """
     Compute the splitting field of a given polynomial, defined over a
     number field.
@@ -112,6 +139,10 @@ def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, 
     - ``degree_multiple`` -- a multiple of the absolute degree of
       the splitting field.  If ``degree_multiple`` equals the actual
       degree, this can enormously speed up the computation.
+
+    - ``abort_degree`` -- abort by raising a :class:`SplittingFieldAbort`
+      if it can be determined that the absolute degree of the splitting
+      field is strictly larger than ``abort_degree``.
 
     - ``simplify`` -- (default: ``True``) during the algorithm, try
       to find a simpler defining polynomial for the intermediate
@@ -183,21 +214,21 @@ def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, 
 
         sage: set_verbose(2)
         sage: K.<a> = (x^3 - x + 1).splitting_field()
-        verbose 1 (97: splitting_field.py, splitting_field) Starting field: y
-        verbose 1 (97: splitting_field.py, splitting_field) SplittingData to factor: [(3, 0)]
-        verbose 2 (97: splitting_field.py, splitting_field) Done factoring (time = ...)
-        verbose 1 (97: splitting_field.py, splitting_field) SplittingData to handle: [(2, 2), (3, 3)]
-        verbose 1 (97: splitting_field.py, splitting_field) Total degree multiple: 6
-        verbose 2 (97: splitting_field.py, splitting_field) Handling polynomial x^2 + 23
-        verbose 1 (97: splitting_field.py, splitting_field) New field before simplifying: x^2 + 23 (time = ...)
-        verbose 1 (97: splitting_field.py, splitting_field) New field: y^2 - y + 6 (time = ...)
-        verbose 2 (97: splitting_field.py, splitting_field) Converted polynomials to new field (time = ...)
-        verbose 1 (97: splitting_field.py, splitting_field) SplittingData to factor: []
-        verbose 2 (97: splitting_field.py, splitting_field) Done factoring (time = ...)
-        verbose 1 (97: splitting_field.py, splitting_field) SplittingData to handle: [(3, 3)]
-        verbose 1 (97: splitting_field.py, splitting_field) Total degree multiple: 6
-        verbose 2 (97: splitting_field.py, splitting_field) Handling polynomial x^3 - x + 1
-        verbose 1 (97: splitting_field.py, splitting_field) New field: y^6 + 3*y^5 + 19*y^4 + 35*y^3 + 127*y^2 + 73*y + 271 (time = ...)
+        verbose 1 (...: splitting_field.py, splitting_field) Starting field: y
+        verbose 1 (...: splitting_field.py, splitting_field) SplittingData to factor: [(3, 0)]
+        verbose 2 (...: splitting_field.py, splitting_field) Done factoring (time = ...)
+        verbose 1 (...: splitting_field.py, splitting_field) SplittingData to handle: [(2, 2), (3, 3)]
+        verbose 1 (...: splitting_field.py, splitting_field) Bounds for absolute degree: [6, 6]
+        verbose 2 (...: splitting_field.py, splitting_field) Handling polynomial x^2 + 23
+        verbose 1 (...: splitting_field.py, splitting_field) New field before simplifying: x^2 + 23 (time = ...)
+        verbose 1 (...: splitting_field.py, splitting_field) New field: y^2 - y + 6 (time = ...)
+        verbose 2 (...: splitting_field.py, splitting_field) Converted polynomials to new field (time = ...)
+        verbose 1 (...: splitting_field.py, splitting_field) SplittingData to factor: []
+        verbose 2 (...: splitting_field.py, splitting_field) Done factoring (time = ...)
+        verbose 1 (...: splitting_field.py, splitting_field) SplittingData to handle: [(3, 3)]
+        verbose 1 (...: splitting_field.py, splitting_field) Bounds for absolute degree: [6, 6]
+        verbose 2 (...: splitting_field.py, splitting_field) Handling polynomial x^3 - x + 1
+        verbose 1 (...: splitting_field.py, splitting_field) New field: y^6 + 3*y^5 + 19*y^4 + 35*y^3 + 127*y^2 + 73*y + 271 (time = ...)
         sage: set_verbose(0)
 
     Try all Galois groups in degree 4. We use a quadratic base field
@@ -229,9 +260,6 @@ def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, 
         sage: pol48 = x^6 - 4*x^4 + 12*x^2 - 12
         sage: pol48.splitting_field('a')
         Number Field in a with defining polynomial x^48 ...
-        sage: pol60 = x^5 - x^4 + 2*x^2 - 2*x + 2
-        sage: pol60.splitting_field('a', simplify=True)
-        Number Field in a with defining polynomial x^60 ...
 
     If you somehow know the degree of the field in advance, you
     should add a ``degree_multiple`` argument.  This can speed up the
@@ -259,6 +287,48 @@ def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, 
         sage: L
         Number Field in b with defining polynomial x^48 ...
 
+    Try all Galois groups over `\QQ` in degree 5 except for `S_5`
+    (the latter is infeasible with the current implementation)::
+
+        sage: C5pol = x^5 + x^4 - 4*x^3 - 3*x^2 + 3*x + 1
+        sage: C5pol.splitting_field('x')
+        Number Field in x with defining polynomial x^5 + x^4 - 4*x^3 - 3*x^2 + 3*x + 1
+        sage: D10pol = x^5 - x^4 - 5*x^3 + 4*x^2 + 3*x - 1
+        sage: D10pol.splitting_field('x')
+        Number Field in x with defining polynomial x^10 - 28*x^8 + 216*x^6 - 681*x^4 + 902*x^2 - 401
+        sage: AGL_1_5pol = x^5 - 2
+        sage: AGL_1_5pol.splitting_field('x')
+        Number Field in x with defining polynomial x^20 + 10*x^19 + 55*x^18 + 210*x^17 + 595*x^16 + 1300*x^15 + 2250*x^14 + 3130*x^13 + 3585*x^12 + 3500*x^11 + 2965*x^10 + 2250*x^9 + 1625*x^8 + 1150*x^7 + 750*x^6 + 400*x^5 + 275*x^4 + 100*x^3 + 75*x^2 + 25
+        sage: A5pol = x^5 - x^4 + 2*x^2 - 2*x + 2
+        sage: A5pol.splitting_field('x')
+        Number Field in x with defining polynomial x^60 ...
+
+    We can use the ``abort_degree`` option if we don't want to compute
+    fields of too large degree (this can be used to check whether the
+    splitting field has small degree)::
+
+        sage: (x^5+x+3).splitting_field('b', abort_degree=119)
+        Traceback (most recent call last):
+        ...
+        SplittingFieldAbort: degree of splitting field equals 120
+        sage: (x^10+x+3).splitting_field('b', abort_degree=60)  # long time (10s on sage.math, 2014)
+        Traceback (most recent call last):
+        ...
+        SplittingFieldAbort: degree of splitting field is a multiple of 180
+
+    Use the ``degree_divisor`` attribute to recover the divisor of the
+    degree of the splitting field or ``degree_multiple`` to recover a
+    multiple::
+
+        sage: from sage.rings.number_field.splitting_field import SplittingFieldAbort
+        sage: try:  # long time (4s on sage.math, 2014)
+        ....:     (x^8+x+1).splitting_field('b', abort_degree=60, simplify=False)
+        ....: except SplittingFieldAbort as e:
+        ....:     print e.degree_divisor
+        ....:     print e.degree_multiple
+        120
+        1440
+
     TESTS::
 
         sage: from sage.rings.number_field.splitting_field import splitting_field
@@ -271,6 +341,7 @@ def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, 
     from sage.misc.all import verbose, cputime
 
     degree_multiple = Integer(degree_multiple or 0)
+    abort_degree = Integer(abort_degree or 0)
 
     # Kpol = PARI polynomial in y defining the extension found so far
     F = poly.base_ring()
@@ -292,10 +363,21 @@ def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, 
 
     # Main loop, handle polynomials one by one
     while True:
-        # First, factor polynomials in Lred
-        verbose("SplittingData to factor: %s"%[s._repr_tuple() for s in Lred])
+        # Absolute degree of current field K
+        absolute_degree = Integer(Kpol.poldegree())
+
+        # Compute minimum relative degree of splitting field
+        rel_degree_divisor = Integer(1)
+        for splitting in L:
+            rel_degree_divisor = rel_degree_divisor.lcm(splitting.poldegree())
+
+        # Check for early aborts
+        abort_rel_degree = abort_degree//absolute_degree
+        if abort_rel_degree and rel_degree_divisor > abort_rel_degree:
+            raise SplittingFieldAbort(absolute_degree * rel_degree_divisor, degree_multiple)
         
-        # Factor elements of Lred and store in L
+        # First, factor polynomials in Lred and store the result in L
+        verbose("SplittingData to factor: %s"%[s._repr_tuple() for s in Lred])
         t = cputime()
         for splitting in Lred:
             m = splitting.dm.gcd(degree_multiple).gcd(factorial(splitting.poldegree()))
@@ -320,7 +402,7 @@ def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, 
 
                 # If we are over Q, then use PARI's polgalois() to compute
                 # these degrees exactly.
-                if Kpol.poldegree() == 1:
+                if absolute_degree == 1:
                     try:
                         G = q.polgalois()
                     except PariError:
@@ -342,6 +424,7 @@ def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, 
                         # the degree of the extension defined by q
                         # is a factor 3 smaller.
                         L.append(SplittingData(cubicpol, 3))
+                        rel_degree_divisor = rel_degree_divisor.lcm(3)
                         mq = mq//3  # 4 or 8
                         mq_alt = 4
                     elif len(cubicfactors) == 2:  # C4 or D8
@@ -361,31 +444,50 @@ def splitting_field(poly, name, map=False, degree_multiple=None, simplify=True, 
                     if len(discfactors) == 1:
                         # Discriminant is not a square
                         L.append(SplittingData(discpol, 2))
+                        rel_degree_divisor = rel_degree_divisor.lcm(2)
                     mq = mq_alt
 
                 L.append(SplittingData(q, mq))
+                rel_degree_divisor = rel_degree_divisor.lcm(q.poldegree())
+                if abort_rel_degree and rel_degree_divisor > abort_rel_degree:
+                    raise SplittingFieldAbort(absolute_degree * rel_degree_divisor, degree_multiple)
         verbose("Done factoring", t, level=2)
 
         if len(L) == 0:  # Nothing left to do
             break
 
         # Recompute absolute degree multiple
-        new_degree_multiple = Integer(Kpol.poldegree())
+        new_degree_multiple = absolute_degree
         for splitting in L:
             new_degree_multiple *= splitting.dm
         degree_multiple = new_degree_multiple.gcd(degree_multiple)
 
+        # Absolute degree divisor
+        degree_divisor = rel_degree_divisor * absolute_degree
+
         # Sort according to degree to handle low degrees first
         L.sort()
         verbose("SplittingData to handle: %s"%[s._repr_tuple() for s in L])
-        verbose("Total degree multiple: %s"%degree_multiple)
+        verbose("Bounds for absolute degree: [%s, %s]"%(degree_divisor,degree_multiple))
+
+        # Check consistency
+        if degree_multiple % degree_divisor != 0:
+            raise ValueError("inconsistent degree_multiple in splitting_field()")
+        for splitting in L:
+            # The degree of the splitting field must be a multiple of
+            # the degree of the polynomial. Only do this check for
+            # SplittingData with minimal dm, because the higher dm are
+            # defined as relative degree over the splitting field of
+            # the polynomials with lesser dm.
+            if splitting.dm > L[0].dm:
+                break
+            if splitting.dm % splitting.poldegree() != 0:
+                raise ValueError("inconsistent degree_multiple in splitting_field()")
 
         # Add a root of f = L[0] to construct the field N = K[x]/f(x)
         splitting = L[0]
         f = splitting.pol
         verbose("Handling polynomial %s"%(f.lift()), level=2)
-        if splitting.dm % f.poldegree() != 0:
-            raise ValueError("inconsistent degree_multiple in splitting_field()")
         t = cputime()
         Npol, KtoN, k = Kpol.rnfequation(f, flag=1)
 

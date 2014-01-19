@@ -20,6 +20,8 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.rings.ring import CommutativeRing
+from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationRings, CompleteDiscreteValuationFields
+from sage.structure.category_object import check_default_category
 from sage.structure.parent import Parent
 from sage.rings.integer import Integer
 
@@ -48,7 +50,14 @@ class LocalGeneric(CommutativeRing):
         """
         self._prec = prec
         self.Element = element_class
-        Parent.__init__(self, base, names=(names,), normalize=False, category=getattr(self,'_default_category',None), element_constructor=element_class)
+        default_category = getattr(self, '_default_category', None)
+        if self.is_field():
+            category = CompleteDiscreteValuationFields()
+        else:
+            category = CompleteDiscreteValuationRings()
+        if default_category is not None:
+            category = check_default_category(default_category, category)
+        Parent.__init__(self, base, names=(names,), normalize=False, category=category, element_constructor=element_class)
 
     def is_capped_relative(self):
         """

@@ -3180,7 +3180,7 @@ class GenericGraph(GenericGraph_pyx):
             M[index,index]+=1
             return abs(M.determinant())
 
-    def cycle_basis(self):
+    def cycle_basis(self, output='vertex'):
         r"""
         Returns a list of cycles which form a basis of the cycle space
         of ``self``.
@@ -3190,14 +3190,22 @@ class GenericGraph(GenericGraph_pyx):
         cycle in the graph can be written as a `Z/2Z` sum of the
         cycles in the basis.
 
+        INPUT:
+
+        - ``output`` (``'vertex'`` (default) or ``'edge'``) -- whether
+          every cycle is given as a list of vertices or a list of
+          edges.
+
         OUTPUT:
 
-        A list of lists, each of them representing the vertices of a
-        cycle in a basis.
+        A list of lists, each of them representing the vertices (or
+        the edges) of a cycle in a basis.
 
         ALGORITHM:
 
-        Uses the NetworkX library.
+        Uses the NetworkX library for graphs without multiple edges.
+
+        Otherwise, by the standard algorithm using a spanning tree.
 
         EXAMPLE:
 
@@ -3206,6 +3214,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = graphs.PetersenGraph()
             sage: g.cycle_basis()
             [[1, 2, 7, 5, 0], [8, 3, 2, 7, 5], [4, 3, 2, 7, 5, 0], [4, 9, 7, 5, 0], [8, 6, 9, 7, 5], [1, 6, 9, 7, 5, 0]]
+
+        One can also get the result as a list of lists of edges::
+
+            sage: g.cycle_basis(output='edge')
+            [[(1, 2, None), (2, 7, None), (7, 5, None), (5, 0, None),
+            (0, 1, None)], [(8, 3, None), (3, 2, None), (2, 7, None),
+            (7, 5, None), (5, 8, None)], [(4, 3, None), (3, 2, None),
+            (2, 7, None), (7, 5, None), (5, 0, None), (0, 4, None)],
+            [(4, 9, None), (9, 7, None), (7, 5, None), (5, 0, None),
+            (0, 4, None)], [(8, 6, None), (6, 9, None), (9, 7, None),
+            (7, 5, None), (5, 8, None)], [(1, 6, None), (6, 9, None),
+            (9, 7, None), (7, 5, None), (5, 0, None), (0, 1, None)]]
 
         Checking the given cycles are algebraically free::
 
@@ -3233,10 +3253,70 @@ class GenericGraph(GenericGraph_pyx):
             sage: basis_as_vectors = map( cycle_to_vector, basis )
             sage: edge_space.span(basis_as_vectors).rank() == len(basis)
             True
-        """
 
+        For undirected graphs with multiple edges::
+
+            sage: G = Graph([(0,2,'a'),(0,2,'b'),(0,1,'c'),(1,2,'d')])
+            sage: G.cycle_basis()
+            [[0, 2], [2, 1, 0]]
+            sage: G.cycle_basis(output='edge')
+            [[(0, 2, 'a'), (2, 0, 'b')], [(2, 1, 'd'), (1, 0, 'c'),
+            (0, 2, 'a')]]
+
+        Disconnected graph::
+
+            sage: G.add_cycle(["Hey", "Wuuhuu", "Really ?"])
+            sage: G.cycle_basis()
+            [[0, 2], [2, 1, 0], ['Really ?', 'Hey', 'Wuuhuu']]
+            sage: G.cycle_basis(output='edge')
+            [[(0, 2, 'a'), (2, 0, 'b')], [(2, 1, 'd'), (1, 0, 'c'), (0, 2, 'a')],
+            [('Really ?', 'Hey', None), ('Hey', 'Wuuhuu', None), ('Wuuhuu', 'Really ?', None)]]
+
+        Graph that allows multiple edges but does not contain any::
+
+            sage: G = graphs.CycleGraph(3)
+            sage: G.allow_multiple_edges(True)
+            sage: G.cycle_basis()
+            [[2, 1, 0]]
+
+        Not yet implemented for directed graphs with multiple edges::
+
+            sage: G = DiGraph([(0,2,'a'),(0,2,'b'),(0,1,'c'),(1,2,'d')])
+            sage: G.cycle_basis()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: not implemented for directed graphs
+            with multiple edges
+        """
+        if not output in ['vertex', 'edge']:
+            raise ValueError('output must be either vertex or edge')
+
+        if self.allows_multiple_edges():
+            if self.is_directed():
+                raise NotImplementedError('not implemented for directed '
+                                          'graphs with multiple edges')
+
+            if not self.is_connected():
+                return sum([g.cycle_basis(output=output)
+                            for g in self.connected_components_subgraphs()],
+                           [])
+
+            T = self.min_spanning_tree()
+            return [self.subgraph(edges=T + [e]).is_forest(certificate=True,
+                                                           output=output)[1]
+                    for e in self.edges() if not e in T]
+
+        # second case: there are no multiple edges
         import networkx
-        return networkx.cycle_basis(self.networkx_graph(copy=False))
+        cycle_basis_v = networkx.cycle_basis(self.networkx_graph(copy=False))
+        if output == 'vertex':
+            return cycle_basis_v
+
+        def vertices_to_edges(x):
+            return [(u[0], u[1], self.edge_label(u[0], u[1]))
+                    for u in zip(x, x[1:] + [x[0]])]
+        return map(vertices_to_edges, cycle_basis_v)
+
 
     ### Planarity
 
@@ -16542,7 +16622,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.get_pos()
             {0: (0, 0), 1: (2, 0), 2: (3, 0), 3: (4, 0)}
 
-        Check that #12477 is fixed::
+        Check that :trac:`12477` is fixed::
 
             sage: g = Graph({1:[2,3]})
             sage: rel = {1:'a', 2:'b'}
@@ -16551,21 +16631,43 @@ class GenericGraph(GenericGraph_pyx):
             [3, 'a', 'b']
             sage: rel
             {1: 'a', 2: 'b'}
+
+        Immutable graphs cannot be relabeled::
+
+            sage: Graph(graphs.PetersenGraph(), immutable=True).relabel({})
+            Traceback (most recent call last):
+            ...
+            ValueError: To relabel an immutable graph use inplace=False
+
+        A couple of lines to remove when hasse diagrams will not have a
+        ``._immutable`` attribute by default::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: if getattr(HasseDiagram,'_immutable', "YES") == "YES":
+            ....:     print "two lines must be removed from this function"
+
         """
         from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 
         if not inplace:
-            from copy import copy
-            G = copy(self)
+            G = self.copy(immutable=False)
+            if getattr(G, "_immutable", False): # can be removed when posets
+                G._immutable = False            # have immutable backends
             perm2 = G.relabel(perm,
                               return_map= return_map,
                               check_input = check_input,
                               complete_partial_function = complete_partial_function)
 
+            if getattr(self, "_immutable", False):
+                G = self.__class__(G, immutable = True)
+
             if return_map:
                 return G, perm2
             else:
                 return G
+
+        if getattr(self, "_immutable", False):
+            raise ValueError("To relabel an immutable graph use inplace=False")
 
         # If perm is not a dictionary, we build one !
 

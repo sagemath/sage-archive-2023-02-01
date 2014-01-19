@@ -252,11 +252,32 @@ cdef class gen(sage.structure.element.RingElement):
         pari_catch_sig_on()
         return P.new_gen(ginv(self.g))
 
-    ###########################################
-    # ACCESS
-    ###########################################
-    def getattr(self, attr):
-        return objtogen(str(self) + '.' + str(attr))
+    def getattr(gen self, attr):
+        """
+        Return the PARI attribute with the given name.
+
+        EXAMPLES::
+
+            sage: K = pari("nfinit(x^2 - x - 1)")
+            sage: K.getattr("pol")
+            x^2 - x - 1
+            sage: K.getattr("disc")
+            5
+
+            sage: K.getattr("reg")
+            Traceback (most recent call last):
+            ...
+            PariError: _.reg: incorrect type in reg
+            sage: K.getattr("zzz")
+            Traceback (most recent call last):
+            ...
+            PariError: no function named "_.zzz"
+
+        """
+        cdef str s = "_." + attr
+        cdef char *t = PyString_AsString(s)
+        pari_catch_sig_on()
+        return P.new_gen(closure_callgen1(strtofunction(t), self.g))
 
     def mod(self):
         """

@@ -484,6 +484,50 @@ class RewritingSystem(object):
             ret += "\n    {}    --->    {}".format(i[0], i[1])
         return ret
 
+    def free_group(self):
+        """
+        The free group after which the rewriting system is defined
+
+        EXAMPLES::
+
+            sage: F = FreeGroup(3)
+            sage: G = F / [ [1,2,3], [-1,-2,-3] ]
+            sage: k = G.rewriting_system()
+            sage: k.free_group()
+            Free Group on generators {x0, x1, x2}
+        """
+        return self._free_group
+
+    def finitely_presented_group(self):
+        """
+        The finitely presented group where the rewriting system is defined.
+
+        EXAMPLES::
+
+            sage: F = FreeGroup(3)
+            sage: G = F / [ [1,2,3], [-1,-2,-3], [1,1], [2,2] ]
+            sage: k = G.rewriting_system()
+            sage: k.make_confluent()
+            sage: k
+            Rewriting system of Finitely presented group < x0, x1, x2 | x0*x1*x2, x0^-1*x1^-1*x2^-1, x0^2, x1^2 >
+            with rules:
+                x0^-1    --->    x0
+                x1^-1    --->    x1
+                x2^-1    --->    x2
+                x0^2    --->    1
+                x0*x1    --->    x2
+                x0*x2    --->    x1
+                x1*x0    --->    x2
+                x1^2    --->    1
+                x1*x2    --->    x0
+                x2*x0    --->    x1
+                x2*x1    --->    x0
+                x2^2    --->    1
+            sage: k.finitely_presented_group()
+            Finitely presented group < x0, x1, x2 | x0*x1*x2, x0^-1*x1^-1*x2^-1, x0^2, x1^2 >
+        """
+        return self._fp_group
+
     def reduce(self, element):
         """
         Applies the rules in the rewriting system to the element, to obtain

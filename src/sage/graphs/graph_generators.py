@@ -94,6 +94,7 @@ __append_to_doc(
      "BuckyBall",
      "CameronGraph",
      "Cell600",
+     "Cell120",
      "ChvatalGraph",
      "ClebschGraph",
      "CoxeterGraph",
@@ -1270,6 +1271,7 @@ class GraphGenerators():
     BuckyBall                = staticmethod(sage.graphs.generators.smallgraphs.BuckyBall)
     CameronGraph             = staticmethod(sage.graphs.generators.smallgraphs.CameronGraph)
     Cell600                  = staticmethod(sage.graphs.generators.smallgraphs.Cell600)
+    Cell120                  = staticmethod(sage.graphs.generators.smallgraphs.Cell120)
     ChvatalGraph             = staticmethod(sage.graphs.generators.smallgraphs.ChvatalGraph)
     ClebschGraph             = staticmethod(sage.graphs.generators.smallgraphs.ClebschGraph)
     CoxeterGraph             = staticmethod(sage.graphs.generators.smallgraphs.CoxeterGraph)

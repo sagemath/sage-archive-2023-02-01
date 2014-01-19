@@ -378,14 +378,16 @@ def WellsGraph():
 
     return g
 
-def Cell600(embedding=False):
+def Cell600(embedding=1):
     r"""
     Returns the 600-Cell graph
 
-    This is the adjacency graph of the 600-cell. It has 120 vertices and
-    720 edges.
+    This is the adjacency graph of the 600-cell. It has 120 vertices and 720
+    edges. For more information, see the :wikipedia:`600-cell`.
 
-    See :wikipedia:`600-cell`
+    INPUT:
+
+    - ``embedding`` (1 or 2) -- two different embedding for a plot.
 
     EXAMPLES::
 
@@ -393,6 +395,8 @@ def Cell600(embedding=False):
         sage: g.size()
         720
         sage: g.is_regular(12)
+        True
+        sage: g.is_vertex_transitive()
         True
     """
     from sage.rings.rational_field import QQ
@@ -426,7 +430,32 @@ def Cell600(embedding=False):
     # all vertices together
     U = vert96 + vert16 + vert8
 
-    return Graph([range(120), lambda i, j: U[i].inner_product(U[j]) == f / 2])
+    g = Graph([range(120), lambda i, j: U[i].inner_product(U[j]) == f / 2])
+
+    # Embedding
+    from sage.graphs.graph_plot import _circle_embedding
+    if embedding == 1:
+        pos = [0, 1, 3, 13, 78, 90, 93, 110, 29, 104, 11, 48, 107, 83, 92, 55,
+               32, 16, 117, 24, 26, 56, 52, 47, 75, 72, 66, 112, 27, 115, 21,
+               33, 118, 79, 91, 37, 2, 5, 96, 31, 82, 88, 94, 74, 50, 28, 20,
+               105, 45, 99, 70, 25, 101, 54, 46, 51, 17, 35, 98, 41, 84, 85,
+               87, 73, 18, 6, 9, 97, 65, 103, 95, 36, 100, 23, 8, 43, 68, 76,
+               116, 60, 62, 44, 40, 59, 15, 12, 30, 113, 63, 114, 81, 69, 119,
+               19, 7, 49, 86, 89, 111, 67, 22, 4, 10, 14, 38, 64, 80, 102, 57,
+               108, 34, 61, 106, 42, 58, 39, 77, 71, 109, 53]
+    else:
+        pos = [0, 1, 2, 3, 4, 6, 7, 8, 10, 13, 14, 21, 37, 103, 36, 65, 113,
+               25, 80, 26, 12, 78, 24, 83, 54, 66, 114, 46, 63, 101, 109, 93,
+               79, 75, 51, 44, 31, 119, 43, 5, 57, 100, 11, 108, 34, 41, 69,
+               96, 82, 116, 68, 64, 47, 102, 52, 35, 17, 76, 110, 38, 84, 85,
+               86, 87, 88, 90, 91, 92, 94, 73, 74, 81, 49, 104, 48, 29, 112,
+               61, 20, 62, 72, 18, 60, 23, 42, 30, 115, 58, 27, 106, 98, 9, 19,
+               15, 39, 56, 67, 118, 55, 89, 45, 107, 95, 99, 70, 53, 33, 111,
+               22, 117, 32, 28, 59, 105, 40, 71, 77, 16, 97, 50]
+
+    _circle_embedding(g, pos)
+
+    return g
 
 def HallJankoGraph(from_string=True):
     r"""

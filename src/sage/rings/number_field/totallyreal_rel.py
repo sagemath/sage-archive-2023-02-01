@@ -698,7 +698,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
         sage: ZZx = ZZ['x']
         sage: F.<t> = NumberField(x^2-2)
         sage: enumerate_totallyreal_fields_rel(F, 1, 2000)
-        [[1, x - 1, [-2, 0, 1]]]
+        [[1, [-2, 0, 1], xF - 1]]
         sage: enumerate_totallyreal_fields_rel(F, 2, 2000)
         [[1600, x^4 - 6*x^2 + 4, xF^2 + xF - 1]]
         sage: enumerate_totallyreal_fields_rel(F, 2, 2000, return_seqs=True)
@@ -746,12 +746,12 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
     if m == 1:
         g = pari(F.defining_polynomial()).reverse().Vec()
         if return_seqs:
-            return [[0,0,0,0],[1,g,[-1,1]]]
+            return [[0,0,0,0], [1, [-1, 1], g]]
         elif return_pari_objects:
-            return [[1,pari('x-1'),g]]
+            return [[1, g, pari('xF-1')]]
         else:
-            Px = PolynomialRing(QQ, 'x')
-            return [[ZZ(1), Px.gen()-1, map(QQ, g)]]
+            Px = PolynomialRing(QQ, 'xF')
+            return [[ZZ(1), map(QQ, g), Px.gen()-1]]
 
     if verbose:
         saveout = sys.stdout

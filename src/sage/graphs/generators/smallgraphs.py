@@ -377,46 +377,56 @@ def WellsGraph():
     _circle_embedding(g, p[3], radius = .7)
 
     return g
+
 def Cell600(embedding=False):
     r"""
     Returns the 600-Cell graph
 
+    This is the adjacency graph of the 600-cell. It has 120 vertices and
+    720 edges.
+
+    See :wikipedia:`600-cell`
+
     EXAMPLES::
 
-        sage: g=graphs.Cell600()
+        sage: g = graphs.Cell600()
         sage: g.size()
         720
+        sage: g.is_regular(12)
+        True
     """
+    from sage.rings.rational_field import QQ
+    from sage.rings.polynomial.polynomial_ring import polygen
     from sage.rings.number_field.number_field import NumberField
-    from sage.combinat.cartesian_product import CartesianProduct
     from sage.modules.free_module import VectorSpace
-    from sage.calculus.var import var
-    from sage.matrix.constructor import block_matrix
-    from sage.matrix.constructor import Matrix
-    from sage.calculus.var import var
-    x = var('x')
-    K = NumberField(x**2-x-1, 'f')
-    f = K.gens()[0]
-    RR4 = VectorSpace(K,4)
-    CP3 = CartesianProduct([-1,1],[-1,1],[-1,1],[0])
-    CP4 = CartesianProduct([-1,1],[-1,1],[-1,1],[-1,1])
-    xx= ([RR4([1/2,f/2,(f-1)/2,0]).pairwise_product(RR4(sign_v)) for sign_v in CP3]
-         +[RR4([(f-1)/2,1/2,f/2,0]).pairwise_product(RR4(sign_v)) for sign_v in CP3]
-         +[RR4([f/2,(f-1)/2,1/2,0]).pairwise_product(RR4(sign_v)) for sign_v in CP3])
-    mm = Matrix(xx)
-    mma = mm.matrix_from_columns([1,0,3,2])
-    mmb = mm.matrix_from_columns([2,3,0,1])
-    mmc = mm.matrix_from_columns([3,2,1,0])
-    MM = block_matrix([mm,mma,mmb,mmc], nrows=4)
-    xxd = [RR4([1/2,1/2,1/2,1/2]).pairwise_product(RR4(sign_v)) for sign_v in CP4]\
-        +[RR4([1,0,0,0]),RR4([-1,0,0,0]),RR4([0,1,0,0]),RR4([0,-1,0,0]),RR4([0,0,1,0]),\
-              RR4([0,0,-1,0]),RR4([0,0,0,1]),RR4([0,0,0,-1])]
-    U = MM.stack(Matrix(xxd))
+    from sage.groups.perm_gps.permgroup_named import AlternatingGroup
 
-    if embedding:
-        return U, Graph([range(1,121), lambda i,j: U[i-1].inner_product(U[j-1]) == 1/2*f])
-    else:
-        return Graph([range(1,121), lambda i,j: U[i-1].inner_product(U[j-1]) == 1/2*f])
+    x = polygen(QQ, 'x')
+    K = NumberField(x ** 2 - x - 1, 'f')
+    f = K.gen()
+    K4 = VectorSpace(K, 4)
+
+    # first 96 vertices
+    step = [[a * f / 2, b * K(1) / 2, c * (f - 1) / 2, 0]
+            for a in [-1, 1] for b in [-1, 1] for c in [-1, 1]]
+    vert96 = [K4([v[s(1) - 1], v[s(2) - 1], v[s(3) - 1], v[s(4) - 1]])
+              for v in step for s in AlternatingGroup(4)]
+
+    # 16 more vertices
+    vert16 = [K4([K(a) / 2, K(b) / 2, K(c) / 2, K(d) / 2])
+              for a in [-1, 1] for b in [-1, 1]
+              for c in [-1, 1] for d in [-1, 1]]
+
+    # 8 last vertices
+    vert8 = [K4([1, 0, 0, 0]), K4([-1, 0, 0, 0]),
+             K4([0, 1, 0, 0]), K4([0, -1, 0, 0]),
+             K4([0, 0, 1, 0]), K4([0, 0, -1, 0]),
+             K4([0, 0, 0, 1]), K4([0, 0, 0, -1])]
+
+    # all vertices together
+    U = vert96 + vert16 + vert8
+
+    return Graph([range(120), lambda i, j: U[i].inner_product(U[j]) == f / 2])
 
 def HallJankoGraph(from_string=True):
     r"""

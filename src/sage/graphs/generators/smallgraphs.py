@@ -387,7 +387,7 @@ def Cell600(embedding=1):
 
     INPUT:
 
-    - ``embedding`` (1 or 2) -- two different embedding for a plot.
+    - ``embedding`` (1 (default) or 2) -- two different embeddings for a plot.
 
     EXAMPLES::
 

@@ -189,44 +189,6 @@ added to a global tuple::
 
     sage: sage.categories.category_with_axiom.all_axioms += ("Green",)
 
-.. TODO::
-
-    Specify whether or not one should systematically use
-    @cached_method in the definition of the axiom. And make sure all
-    the definition of axioms in Sage are consistent for this aspect!
-
-.. NOTE::
-
-    ``all_axioms`` is only used marginally, for sanity checks and when
-    trying to guess the base category class. The order of the axioms
-    in this tuple also controls the order in which they appear when
-    printing categories with axioms (see
-    :meth:`CategoryWithAxiom._repr_object_names_static`).
-
-    During a Sage session, new axioms should only be added at the end
-    of ``all_axioms`` as above, so as to not break the cache of
-    :func:`axioms_rank`. Otherwise, they can be inserted statically
-    anywhere in the tuple. For axioms defined within the Sage library,
-    the name is inserted by editing directly the definition of
-    ``all_axioms`` in :mod:`category_with_axiom`.
-
-.. NOTE::
-
-    Let us state again that, unlike what the existence of
-    ``all_axioms`` might suggests, the definition of an axiom is local
-    to a category and its subcategories. In particular, two
-    independent categories ``Cs()`` and ``Ds()`` can very well define
-    axioms with the same name and different semantic. As long as the
-    two hierarchies of subcategories don't intersect, this is not a
-    problem. And if they do intersect naturally (that is if one is
-    likely to create a parent belonging to both categories), this
-    probably means that ``Cs`` and ``Ds`` are about related enough
-    areas of mathematics that one should clear the ambiguity by having
-    either the same semantic or different names.
-
-    This caveat is no different from that of name clash issues in
-    hierarchy of classes involving multiple inheritance.
-
 We can now use the axiom as usual::
 
     sage: Cs().Green()
@@ -260,6 +222,57 @@ It is therefore the natural spot for the documentation of the axiom.
 
     The presence of the nested class ``Green`` in ``Cs`` is mandatory
     even if it is empty.
+
+.. TODO::
+
+    Specify whether or not one should systematically use
+    @cached_method in the definition of the axiom. And make sure all
+    the definition of axioms in Sage are consistent in this respect!
+
+.. TODO::
+
+    We could possibly define an @axiom decorator? This could hide two
+    little implementation details: whether or not to make the method a
+    cached method, and the call to _with_axiom(...) under the hood. It
+    could do possibly do some more magic. The gain is not obvious though.
+
+.. NOTE::
+
+    ``all_axioms`` is only used marginally, for sanity checks and when
+    trying to guess the base category class. The order of the axioms
+    in this tuple also controls the order in which they appear when
+    printing categories with axioms (see
+    :meth:`CategoryWithAxiom._repr_object_names_static`).
+
+    During a Sage session, new axioms should only be added at the end
+    of ``all_axioms`` as above, so as to not break the cache of
+    :func:`axioms_rank`. Otherwise, they can be inserted statically
+    anywhere in the tuple. For axioms defined within the Sage library,
+    the name is best inserted by editing directly the definition of
+    ``all_axioms`` in :mod:`category_with_axiom`.
+
+.. NOTE::
+
+    Let us state again that, unlike what the existence of
+    ``all_axioms`` might suggests, the definition of an axiom is local
+    to a category and its subcategories. In particular, two
+    independent categories ``Cs()`` and ``Ds()`` can very well define
+    axioms with the same name and different semantic. As long as the
+    two hierarchies of subcategories don't intersect, this is not a
+    problem. And if they do intersect naturally (that is if one is
+    likely to create a parent belonging to both categories), this
+    probably means that ``Cs`` and ``Ds`` are about related enough
+    areas of mathematics that one should clear the ambiguity by having
+    either the same semantic or different names.
+
+    This caveat is no different from that of name clash issues in
+    hierarchy of classes involving multiple inheritance.
+
+.. TODO::
+
+    Explore ways to get rid of this global ``all_axioms`` tuple,
+    and/or have automatic registration there, and/or having a
+    register_axiom(...) method.
 
 
 Handling multiple axioms, tree structure of the code
@@ -741,12 +754,28 @@ Upcoming features
       make category with axioms be such. Should all full subcategories
       be implemented in term of axioms?
 
-Description of the algorithms
-=============================
+Description of the algorithmic
+==============================
 
-.. TODO::
+The workhorse of the axiom infrastructure is the algorithm for
+computing the join of a set `C_1,\dots,C_k` of categories (see
+:meth:`Category.join`). Roughly speaking, the algorithm proceeds by
+computing a *closure* in the lattice of constructible categories: it
+gathers the set `S` of all the axioms satisfied by the categories
+`C_i`, and repeteadly adds those axioms to those categories that do
+not yet satisfy it using :meth:`Category._with_axiom`. Due to
+deduction rules or subcategories, new categories or new axioms may
+appear in the process; reciprocally some categories may vanish, as
+only the smallest categories are kept. The process stops when each
+remaining categories has been combined with each axiom.
 
-   - Describe the algorithm for adding axioms and computing intersections
+.. TODO:: Describe the algorithm for adding axioms
+
+This is a highly recursive process. In particular, some appropriate
+steps need to be taken to not run in a loop, in particular in case of
+deduction rule.
+
+.. TODO:: Example where things will go wrong if we are not careful
 
 Tests
 =====
@@ -1746,6 +1775,10 @@ class Blahs(Category):
             """
             This illustrates a way to have an axiom imply another one.
 
+            Here, we want ``Flying`` to imply ``Unital``, and to put
+            the class for the category of unital flying blahs in
+            ``Blahs.Flying`` rather than ``Blahs.Unital.Flying``.
+
             TESTS::
 
                 sage: from sage.categories.category_with_axiom import Blahs, TestObjects, Bars
@@ -1759,9 +1792,23 @@ class Blahs(Category):
         """
         Tries to illustrate another way to have an axiom imply another one.
 
-        This currently fails because there is no base axiom category
-        Blahs.Blue, and thus somewhere during the join calculation the
-        axiom is lost.
+        Here, we would want ``Blue`` to imply ``Unital``, and to put
+        the class for the category of unital blue blahs in
+        ``Blahs.Unital.Blue`` rather than ``Blahs.Blue``.
+
+        This currently fails because ``Blahs`` is the category where
+        the axiom ``Blue`` is defined, and the specifications
+        currently impose that a category defining an axiom should also
+        implement it (here in an axiom category Blahs.Blue). In
+        practice, due to this violation of the specification, the
+        axiom is lost during the join calculation.
+
+        .. TODO::
+
+            Decide whether we care about this feature. In such a
+            situation, we are not really defining a new axiom, but
+            just defining an axiom as an alias for a couple others,
+            which might not be that useful.
 
         TESTS::
 

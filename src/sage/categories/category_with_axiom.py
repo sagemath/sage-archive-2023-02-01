@@ -1702,14 +1702,6 @@ CategoryWithAxiom_over_base_ring::
 ##############################################################################
 # Utilities and tests tools
 
-class SmallTestObjects(Category):
-    class Finite(CategoryWithAxiom):
-        pass
-    # Those should be ignored
-    Connected = 1
-    class Commutative:
-        pass
-
 def axiom(axiom):
     """
     Return a function/method ``self -> self._with_axiom(axiom)``.
@@ -1740,7 +1732,7 @@ def axiom(axiom):
     with_axiom.__name__ = axiom
     return with_axiom
 
-class Blahs(Category):
+class Blahs(Category_singleton):
 
     def super_categories(self):
         """
@@ -1749,6 +1741,7 @@ class Blahs(Category):
              sage: from sage.categories.category_with_axiom import Blahs
              sage: Blahs().super_categories()
              [Category of sets]
+            sage: TestSuite(Blahs()).run()
         """
         from sage.categories.sets_cat import Sets
         return [Sets()]
@@ -1790,7 +1783,7 @@ class Blahs(Category):
             return [Blahs().Unital()]
     def Blue_extra_super_categories(self):
         """
-        Tries to illustrate another way to have an axiom imply another one.
+        Illustrates a current limitation in the way to have an axiom imply another one.
 
         Here, we would want ``Blue`` to imply ``Unital``, and to put
         the class for the category of unital blue blahs in
@@ -1799,9 +1792,9 @@ class Blahs(Category):
         This currently fails because ``Blahs`` is the category where
         the axiom ``Blue`` is defined, and the specifications
         currently impose that a category defining an axiom should also
-        implement it (here in an axiom category Blahs.Blue). In
-        practice, due to this violation of the specification, the
-        axiom is lost during the join calculation.
+        implement it (here in an category with axiom
+        ``Blahs.Blue``). In practice, due to this violation of the
+        specifications, the axiom is lost during the join calculation.
 
         .. TODO::
 
@@ -1809,6 +1802,15 @@ class Blahs(Category):
             situation, we are not really defining a new axiom, but
             just defining an axiom as an alias for a couple others,
             which might not be that useful.
+
+        .. TODO::
+
+            Improve the infrastructure to detect and report this
+            violation of the specifications, if this is
+            easy. Otherwise, it's not so bad: when defining an axiom A
+            in a category ``Cs`` the first thing one is supposed to
+            doctest is that ``Cs().A()`` works. So the problem should
+            not go unnoticed.
 
         TESTS::
 
@@ -1820,7 +1822,7 @@ class Blahs(Category):
         """
         return [Blahs().Unital()]
 
-class Bars(Category):
+class Bars(Category_singleton):
     def super_categories(self):
         """
         TESTS::
@@ -1828,6 +1830,7 @@ class Bars(Category):
             sage: from sage.categories.category_with_axiom import Bars
             sage: Bars().super_categories()
             [Category of blahs]
+            sage: TestSuite(Bars()).run()
         """
         return [Blahs()]
 
@@ -1858,7 +1861,7 @@ class Bars(Category):
         """
         return [TestObjects()]
 
-class TestObjects(Category):
+class TestObjects(Category_singleton):
 
     def super_categories(self):
         """
@@ -1867,6 +1870,7 @@ class TestObjects(Category):
             sage: from sage.categories.category_with_axiom import TestObjects
             sage: TestObjects().super_categories()
             [Category of bars]
+            sage: TestSuite(TestObjects()).run()
         """
         return [Bars()]
 
@@ -1896,25 +1900,30 @@ class TestObjectsOverBaseRing(Category_over_base_ring):
             sage: from sage.categories.category_with_axiom import TestObjectsOverBaseRing
             sage: TestObjectsOverBaseRing(QQ).super_categories()
             [Category of test objects]
+            sage: TestObjectsOverBaseRing.Unital.an_instance()
+            Category of unital test objects over base ring over Rational Field
+            sage: TestObjectsOverBaseRing.FiniteDimensional.Unital.an_instance()
+            Category of finite dimensional unital test objects over base ring over Rational Field
+            sage: TestSuite(TestObjectsOverBaseRing(QQ).FiniteDimensional().Unital().Commutative()).run()
         """
         return [TestObjects()]
 
-    class FiniteDimensional(CategoryWithAxiom):
-         class Finite(CategoryWithAxiom):
+    class FiniteDimensional(CategoryWithAxiom_over_base_ring):
+         class Finite(CategoryWithAxiom_over_base_ring):
               pass
-         class Unital(CategoryWithAxiom):
-              class Commutative(CategoryWithAxiom):
+         class Unital(CategoryWithAxiom_over_base_ring):
+              class Commutative(CategoryWithAxiom_over_base_ring):
                    pass
 
-    class Commutative(CategoryWithAxiom):
-         class Facade(CategoryWithAxiom):
+    class Commutative(CategoryWithAxiom_over_base_ring):
+         class Facade(CategoryWithAxiom_over_base_ring):
              pass
-         class FiniteDimensional(CategoryWithAxiom):
+         class FiniteDimensional(CategoryWithAxiom_over_base_ring):
              pass
-         class Finite(CategoryWithAxiom):
+         class Finite(CategoryWithAxiom_over_base_ring):
              pass
 
-    class Unital(CategoryWithAxiom):
+    class Unital(CategoryWithAxiom_over_base_ring):
         pass
 
 class BrokenTestObjects(Category):

@@ -1594,7 +1594,7 @@ class Category(UniqueRepresentation, SageObject):
 
         INPUT:
 
-        - ``axiom`` -- an axiom (``Finite`` in the example above)
+        - ``axiom`` -- a string, the name of an axiom
 
         OUTPUT: a tuple
 
@@ -1636,6 +1636,12 @@ class Category(UniqueRepresentation, SageObject):
     @cached_method
     def _with_axiom(self, axiom):
         """
+        Return the subcategory of the objects of ``self`` satisfying the given ``axiom``.
+
+        INPUT:
+
+        - ``axiom`` -- a string, the name of an axiom
+
         EXAMPLES::
 
             sage: Sets()._with_axiom("Finite")
@@ -1648,6 +1654,12 @@ class Category(UniqueRepresentation, SageObject):
             sage: Algebras(QQ).WithBasis().Commutative() is Algebras(QQ).Commutative().WithBasis()
             True
 
+        When ``axiom`` is not defined for ``self``, ``self`` is returned::
+
+            sage: Sets()._with_axiom("Associative")
+            Category of sets
+
+        .. WARNING:: This may be changed in the future to raising an error.
         """
         if axiom in self.axioms():
             return self
@@ -1655,7 +1667,11 @@ class Category(UniqueRepresentation, SageObject):
 
     def _with_axioms(self, axioms):
         """
-        Return the category obtained by adding an axiom to ``self``.
+        Return the subcategory of the objects of ``self`` satisfying the given ``axioms``.
+
+        INPUT:
+
+        - ``axioms`` -- a list of strings, the names of the axioms
 
         EXAMPLES::
 
@@ -1666,11 +1682,12 @@ class Category(UniqueRepresentation, SageObject):
             sage: FiniteSets()._with_axioms(["Finite"])
             Category of finite sets
 
-        When the category does not define the axiom, the category
-        itself is returned::
+        Axioms that are not defined for the ``self`` are ignored::
 
             sage: Sets()._with_axioms(["FooBar"])
             Category of sets
+            sage: Magmas()._with_axioms(["FooBar", "Unital"])
+            Category of unital magmas
 
         Note that adding several axioms at once can do more than
         adding them one by one. This is because the availability of an

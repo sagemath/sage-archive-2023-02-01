@@ -1607,7 +1607,9 @@ class CategoryWithAxiom(Category):
     @cached_method
     def axioms(self):
         r"""
-        Return the axioms of ``self``.
+        Return the axioms known to be satisfied by all the objects of ``self``.
+
+        .. SEEALSO:: :meth:`Category.axioms`
 
         EXAMPLES::
 

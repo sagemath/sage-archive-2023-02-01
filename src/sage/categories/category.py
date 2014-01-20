@@ -1578,9 +1578,20 @@ class Category(UniqueRepresentation, SageObject):
     @cached_method
     def axioms(self):
         """
+        Return the axioms known to be satisfied by all the objects of ``self``.
+
+        Technically, this the set of all the axioms ``A`` such that,
+        if ``Cs`` is the category defining ``A``, then ``self`` is a
+        subcategory of ``Cs().A()``. Any additional axiom ``A`` would
+        yield a strict subcategory of ``self``, at the very least
+        ``self & Cs().A()`` where ``Cs`` is the category defining
+        ``A``.
+
         EXAMPLES::
 
-            sage: Category.join([EnumeratedSets().Infinite(), Sets().Facade()]).axioms()
+            sage: Monoids().axioms()
+            frozenset(['Associative', 'Unital'])
+            sage: (EnumeratedSets().Infinite() & Sets().Facade()).axioms()
             frozenset(['Infinite', 'Facade'])
         """
         return frozenset(axiom
@@ -1671,7 +1682,7 @@ class Category(UniqueRepresentation, SageObject):
 
         INPUT:
 
-        - ``axioms`` -- a list of strings, the names of the axioms
+        - ``axioms`` -- a list of strings, the names of the axiomso
 
         EXAMPLES::
 

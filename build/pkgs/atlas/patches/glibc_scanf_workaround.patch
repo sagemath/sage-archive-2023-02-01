@@ -1,0 +1,20 @@
+Bug in glibc-2.18: https://sourceware.org/bugzilla/show_bug.cgi?id=15917
+Patch taken from openSUSE 13.1
+
+
+--- a/tune/sysinfo/masrch.c
++++ b/tune/sysinfo/masrch.c
+@@ -113,7 +113,12 @@ double matime
+    j = 0;
+    for (i=0; i != NTIM; i++)
+    {
+-      assert( fscanf(fp, "%lf", &mflop[i]) );
++      if(fscanf(fp, "%lf", &mflop[i])==0) {
++         if (i>0)
++            mflop[i]=mflop[i-1];
++         else
++            assert(0);
++      }
+    }
+    fclose(fp);
+ /*

@@ -133,7 +133,7 @@ graphs.
     :meth:`~Graph.modular_decomposition` | Returns the modular decomposition of the current graph.
     :meth:`~Graph.maximum_average_degree` | Returns the Maximum Average Degree (MAD) of the current graph.
     :meth:`~Graph.two_factor_petersen` | Returns a decomposition of the graph into 2-factors.
-
+    :meth:`~Graph.ihara_zeta_function_inverse` | Returns the inverse of the zeta function of the graph.
 
 AUTHORS:
 
@@ -6440,6 +6440,77 @@ class Graph(GenericGraph):
 
         D = matrix.diagonal(PolynomialRing(ZZ, name, self.size()).gens())
         return (circuit_mtrx.transpose() * D * circuit_mtrx).determinant()
+
+    def ihara_zeta_function_inverse(self):
+        """
+        Compute the inverse of the Ihara zeta function of the graph
+
+        This is a polynomial in one variable with integer coefficients. The
+        Ihara zeta function itself is the inverse of this polynomial.
+
+        See :wikipedia:`Ihara zeta function`
+
+        ALGORITHM:
+
+        This is computed here using the determinant of a square matrix
+        of size twice the number of edges, related to the adjacency
+        matrix of the line graph, see for example Proposition 9
+        in [ScottStorm]_.
+
+        EXAMPLES::
+
+            sage: G = graphs.CompleteGraph(4)
+            sage: factor(G.ihara_zeta_function_inverse())
+            (2*t - 1) * (t + 1)^2 * (t - 1)^3 * (2*t^2 + t + 1)^3
+
+            sage: G = graphs.CompleteGraph(5)
+            sage: factor(G.ihara_zeta_function_inverse())
+            (-1) * (3*t - 1) * (t + 1)^5 * (t - 1)^6 * (3*t^2 + t + 1)^4
+
+            sage: G = graphs.PetersenGraph()
+            sage: factor(G.ihara_zeta_function_inverse())
+            (-1) * (2*t - 1) * (t + 1)^5 * (t - 1)^6 * (2*t^2 + 2*t + 1)^4
+            * (2*t^2 - t + 1)^5
+
+            sage: G = graphs.RandomTree(10)
+            sage: G.ihara_zeta_function_inverse()
+            1
+
+        REFERENCES:
+
+        .. [HST] Matthew D. Horton, H. M. Stark, and Audrey A. Terras,
+           What are zeta functions of graphs and what are they good for?
+           in Quantum graphs and their applications, 173-189,
+           Contemp. Math., Vol. 415
+
+        .. [Terras] Audrey Terras, Zeta functions of graphs: a stroll through
+           the garden, Cambridge Studies in Advanced Mathematics, Vol. 128
+
+        .. [ScottStorm] Geoffrey Scott and Christopher Storm, The coefficients
+           of the Ihara zeta function, Involve (http://msp.org/involve/2008/1-2/involve-v1-n2-p08-p.pdf)
+        """
+        from sage.matrix.constructor import matrix
+        from sage.rings.integer_ring import ZZ
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+        ring = PolynomialRing(ZZ, 't')
+        t = ring.gen()
+
+        N = self.size()
+
+        labeled_g = DiGraph()
+        labeled_g.add_edges([(u, v, i) for i, (u, v) in
+                             enumerate(self.edges(labels=False))])
+        labeled_g.add_edges([(v, u, i + N) for i, (u, v) in
+                             enumerate(self.edges(labels=False))])
+
+        M = matrix(ring, 2 * N, 2 * N, ring.one())
+        for u, v, i in labeled_g.edges():
+            for vv, ww, j in labeled_g.outgoing_edges(v):
+                M[i, j] += -t
+            M[i, (i + N) % (2 * N)] += t  # fixing the 2-cycles
+
+        return M.determinant()
 
 # Aliases to functions defined in Cython modules
 import types

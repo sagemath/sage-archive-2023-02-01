@@ -59,6 +59,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.arith import binomial, integer_floor
 from sage.combinat.designs.incidence_structures import IncidenceStructure, IncidenceStructureFromMatrix
 from sage.misc.decorators import rename_keyword
+from sage.rings.finite_rings.constructor import FiniteField
 
 ###  utility functions  -------------------------------------------------------
 
@@ -194,7 +195,6 @@ def ProjectivePlaneDesign(n, type="Desarguesian"):
         ...
         ValueError: The value of 'type' must be 'Desarguesian'.
     """
-    from sage.rings.finite_rings.constructor import FiniteField
     from sage.rings.arith import two_squares
 
     if type != "Desarguesian":
@@ -219,14 +219,18 @@ def ProjectivePlaneDesign(n, type="Desarguesian"):
 
 def AffineGeometryDesign(n, d, F):
     r"""
+    Returns an Affine Geometry Design.
+
     INPUT:
 
-    - ``n`` is the Euclidean dimension, so the number of points is
+    - `n` (integer) -- the Euclidean dimension. The number of points is
+      `v=|F^n|`.
 
-    - ``v`` is the number of points `v = |F^n|` (`F = GF(q)`, some `q`)
+    - `d` (integer) -- the dimension of the (affine) subspaces of `P = GF(q)^n`
+      which make up the blocks.
 
-    - `d` is the dimension of the (affine) subspaces of `P = GF(q)^n` which make
-      up the blocks.
+    - `F` -- a Finite Field (i.e. ``FiniteField(17)``), or a prime power
+      (i.e. an integer)
 
     `AG_{n,d} (F)`, as it is sometimes denoted, is a `2` - `(v, k, \lambda)`
     design of points and `d`- flats (cosets of dimension `n`) in the affine
@@ -237,23 +241,33 @@ def AffineGeometryDesign(n, d, F):
              v = q^n,\  k = q^d ,
              \lambda =\frac{(q^{n-1}-1) \cdots (q^{n+1-d}-1)}{(q^{n-1}-1) \cdots (q-1)}.
 
-    Wraps some functions used in GAP Design's PGPointFlatBlockDesign.
-    Does *not* require GAP's Design.
+    Wraps some functions used in GAP Design's ``PGPointFlatBlockDesign``.  Does
+    *not* require GAP's Design package.
 
     EXAMPLES::
 
         sage: BD = designs.AffineGeometryDesign(3, 1, GF(2))
         sage: BD.parameters()
-        (2, 8, 2, 2)
+        (2, 8, 2, 1)
         sage: BD.is_block_design()
-        (True, [2, 8, 2, 2])
+        (True, [2, 8, 2, 1])
         sage: BD = designs.AffineGeometryDesign(3, 2, GF(2))
         sage: BD.parameters()
-        (2, 8, 4, 12)
+        (2, 8, 4, 3)
         sage: BD.is_block_design()
-        (True, [3, 8, 4, 4])
+        (True, [3, 8, 4, 1])
+
+    With an integer instead of a Finite Field::
+
+        sage: BD = designs.AffineGeometryDesign(3, 2, 4)
+        sage: BD.parameters()
+        (2, 64, 16, 5)
     """
-    q = F.order()
+    try:
+        q = int(F)
+    except TypeError:
+        q = F.order()
+
     from sage.interfaces.gap import gap, GapElement
     from sage.sets.set import Set
     gap.eval("V:=GaloisField(%s)^%s"%(q,n))
@@ -261,7 +275,7 @@ def AffineGeometryDesign(n, d, F):
     gap.eval("Subs:=AsSet(Subspaces(V,%s));"%d)
     gap.eval("CP:=Cartesian(points,Subs)")
     flats = gap.eval("flats:=List(CP,x->Sum(x))") # affine spaces
-    gblcks = eval(gap.eval("AsSortedList(List(flats,f->Filtered([1..Length(points)],i->points[i] in f)));"))
+    gblcks = eval(gap.eval("Set(List(flats,f->Filtered([1..Length(points)],i->points[i] in f)));"))
     v = q**n
     gB = []
     for b in gblcks:

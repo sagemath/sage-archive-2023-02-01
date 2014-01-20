@@ -117,7 +117,7 @@ class DeprecatedFunctionAlias(object):
         self.trac_number  = trac_number
         self.instance = None # for use with methods
         self.__module__ = module
-        if type(func) == type(deprecation):
+        if isinstance(func, type(deprecation)):
             sphinxrole = "func"
         else:
             sphinxrole = "meth"
@@ -175,7 +175,7 @@ class DeprecatedFunctionAlias(object):
                 for key, val in ref_copy.iteritems():
                     if val is self:
                         return key
-        raise AttributeError, "The name of this deprecated function can not be determined"
+        raise AttributeError("The name of this deprecated function can not be determined")
 
     def __call__(self, *args, **kwds):
         """

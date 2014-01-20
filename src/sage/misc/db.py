@@ -100,8 +100,8 @@ def load_db(x):
     """
     fn = PATH + x.filename()
     if os.path.exists(fn + ".bz2"):
-        print "Loading %s from %s."%(x,x.filename())
-        os.system("bunzip2 -f -k %s"%(fn + ".bz2"))
+        print("Loading {0} from {1}.".format(x,x.filename()))
+        os.system("bunzip2 -f -k {0}".format(fn + ".bz2"))
         o=open(fn,"r")
         x = cPickle.load(o)
         os.remove(fn)

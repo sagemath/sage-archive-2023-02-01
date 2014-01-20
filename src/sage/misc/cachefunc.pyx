@@ -1716,9 +1716,9 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
         if hasattr(inst, cachename):
             # This is for data that are pickled in an old format
             CACHE = getattr(inst, cachename)
-            if len(CACHE)>1:
-                raise TypeError, "Apparently you are opening a pickle in which '%s' was a method accepting arguments"%name
-            if len(CACHE)==1:
+            if len(CACHE) > 1:
+                raise TypeError("Apparently you are opening a pickle in which '{0}' was a method accepting arguments".format(name))
+            if len(CACHE) == 1:
                 self.cache = CACHE.values()[0]
             else:
                 self.cache = cache
@@ -2519,7 +2519,7 @@ cdef class CachedInParentMethod(CachedMethod):
         except AttributeError:
             pass
         if not hasattr(P,'__cached_methods'):
-            raise TypeError, "The parent of this element does not allow attribute assignment\n    and does not descend from the Parent base class.\n    Can not use CachedInParentMethod."
+            raise TypeError("The parent of this element does not allow attribute assignment\n    and does not descend from the Parent base class.\n    Can not use CachedInParentMethod.")
         if P.__cached_methods is None:
             P.__cached_methods = {}
         return (<dict>P.__cached_methods).setdefault(self._cache_name, {})
@@ -2835,7 +2835,7 @@ class FileCache:
        """
         f = self._filename(key)
         cache = self._cache
-        if cache is not None and cache.has_key(key):
+        if cache is not None and key in cache:
             del self._cache[key]
         if os.path.exists(f + '.sobj'):
             os.remove(f + '.sobj')
@@ -3078,7 +3078,7 @@ class ClearCacheOnPickle(object):
         def clear_dict(T):
             D = {}
             for key,value in T.iteritems():
-                if not ((type(key) == str and key[0:8] == '_cache__') or
+                if not ((isinstance(key,str) and key[0:8] == '_cache__') or
                             isinstance(value,CachedFunction)):
                     if isinstance(value,list):
                         D[key] = clear_list(value)

@@ -146,7 +146,7 @@ class SageMagics(Magics):
         try:
             F = open(name)
         except IOError:
-            raise ImportError, 'could not open file "%s"'%name
+            raise ImportError('could not open file "{0}"'.format(name))
 
 
         shell = self.shell
@@ -158,7 +158,7 @@ class SageMagics(Magics):
         #is updated only after the magic command is run.
         shell.execution_count += 1
 
-        print 'Interactively loading "%s"'%name
+        print('Interactively loading "{0}"'.format(name))
 
         # The following code is base on IPython's
         # InteractiveShell.interact,
@@ -248,7 +248,7 @@ class SageMagics(Magics):
         try:
             displayhook.SPTextFormatter.set_display(self._magic_display_status)
         except StandardError:
-            print mode, args_split
+            print(mode, args_split)
             raise AttributeError("First argument must be `simple` or `ascii_art` or the method must be call without argument")
 
 # SageInputSplitter:
@@ -457,12 +457,12 @@ from sage.misc.interpreter import sage_prompt
             self.shell.run_cell('from sage.all import Integer, RealNumber')
         except Exception:
             import traceback
-            print "Error importing the Sage library"
+            print("Error importing the Sage library")
             traceback.print_exc()
-            print
-            print "To debug this, you can run:"
-            print 'sage -ipython -i -c "import sage.all"'
-            print 'and then type "%debug" to enter the interactive debugger'
+            print()
+            print("To debug this, you can run:")
+            print('sage -ipython -i -c "import sage.all"')
+            print('and then type "%debug" to enter the interactive debugger')
             sys.exit(1)
         self.shell.run_cell(self.startup_code)
         self.run_init()

@@ -14,6 +14,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from __future__ import print_function
+
 def module_names_cmp(x,y):
     r"""
     A comparison function for module names.
@@ -101,9 +103,9 @@ def print_import_statement(module, name, lazy):
         lazy_import('sage.misc.dev_tools', 'print_import_statement')
     """
     if lazy:
-        print "lazy_import('%s', '%s')"%(module, name)
+        print("lazy_import('{0}', '{1}')".format(module, name))
     else:
-        print "from %s import %s"%(module, name)
+        print("from {0} import {1}".format(module, name))
 
 def import_statements(*objects, **options):
     """
@@ -214,7 +216,7 @@ def import_statements(*objects, **options):
     lazy = options.get("lazy", False)
     verbose = options.get("verbose", True)
     if lazy:
-        print "from sage.misc.lazy_import import lazy_import"
+        print("from sage.misc.lazy_import import lazy_import")
 
     for obj in objects:
         # if obj is a string use it has a name and look for an object
@@ -238,9 +240,9 @@ def import_statements(*objects, **options):
         # Case 1: the object is a module
         if inspect.ismodule(obj):
             if lazy:
-                print "lazy_import('%s')"%obj.__name__
+                print("lazy_import('{0}')".format(obj.__name__))
             else:
-                print "import %s"%obj.__name__
+                print("import {0}".format(obj.__name__))
             continue
 
         # Case 2: the object is defined in its module
@@ -258,7 +260,7 @@ def import_statements(*objects, **options):
                 names = [name]
             if names:
                 if verbose and len(names) > 1:
-                    print "  ** Warning **: several names for that object: %s"%', '.join(names)
+                    print("  ** Warning **: several names for that object: {0}".format(', '.join(names)))
                 print_import_statement(module, names[0], lazy)
                 continue
 
@@ -281,17 +283,17 @@ def import_statements(*objects, **options):
         if len(all_names) == 0:
             raise ValueError("no import statement for %s"%obj)
         elif verbose and len(all_names) > 1:
-            print "  ** Warning **: several names for that object:",
-            print ", ".join(sorted(all_names))
+            print("  ** Warning **: several names for that object:", end=' ')
+            print(", ".join(sorted(all_names)))
 
         modules = sorted(flatten(names),cmp=module_names_cmp)
         if verbose and len(modules) > 1:
-            print "  ** Warning **: several modules for that object:",
-            print ", ".join(modules[:4]),
+            print("  ** Warning **: several modules for that object:", end=' ')
+            print(", ".join(modules[:4]), end=' ')
             if len(modules) > 4:
-                print "..."
+                print("...")
             else:
-                print
+                print()
 
         # Case 4: if the object is a class instance, we look for a
         # module where it is instanciated

@@ -445,7 +445,7 @@ class DisplayHook(DisplayHookBase):
             return
         s = self.try_format_obj(obj)
         if s is not None:
-            print s
+            print(s)
             __builtin__._ = obj
         else:
             self.oldhook(obj)

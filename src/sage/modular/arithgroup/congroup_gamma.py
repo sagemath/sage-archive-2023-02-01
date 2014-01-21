@@ -73,6 +73,19 @@ class Gamma_class(CongruenceSubgroup):
         """
         return "Congruence Subgroup Gamma(%s)"%self.level()
 
+    def _latex_(self):
+        r"""
+        Return the \LaTeX representation of self.
+        
+        EXAMPLES::
+
+            sage: Gamma(20)._latex_()
+            '\\Gamma(20)'
+            sage: latex(Gamma(20))
+            \Gamma(20)
+        """
+        return "\\Gamma(%s)"%self.level()
+
     def __reduce__(self):
         """
         Used for pickling self.

@@ -1170,6 +1170,9 @@ end_scene""" % (render_params.antialiasing,
             else:
                 ext = "spt"
                 archive_name = "%s.%s.zip" % (filename, ext)
+                with open(filename + '.' + ext, 'w') as f:
+                    f.write('set defaultdirectory "{0}"\n'.format(archive_name))
+                    f.write('script SCRIPT\n')
 
             T = self._prepare_for_jmol(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
             T.export_jmol(archive_name, force_reload=EMBEDDED_MODE, zoom=zoom*100, **kwds)

@@ -345,7 +345,7 @@ $(INST)/$(ZLIB):
 $(INST)/$(JMOL): $(INST)/$(SAGENB)
 	+$(PIPE) "$(SAGE_SPKG) $(JMOL) 2>&1" "tee -a $(SAGE_LOGS)/$(JMOL).log"
 
-$(INST)/$(FREETYPE):
+$(INST)/$(FREETYPE): $(INST)/$(LIBPNG)
 	+$(PIPE) "$(SAGE_SPKG) $(FREETYPE) 2>&1" "tee -a $(SAGE_LOGS)/$(FREETYPE).log"
 
 $(INST)/$(LIBPNG): $(INST)/$(ZLIB)

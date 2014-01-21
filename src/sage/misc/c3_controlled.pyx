@@ -458,7 +458,7 @@ cdef class CmpKey:
         sage: Posets()._cmp_key
         (32, ...)
         sage: LatticePosets()._cmp_key
-        (96, 133)
+        (96, ...)
         sage: Crystals()._cmp_key
         (136, ...)
         sage: AdditiveMagmas()._cmp_key

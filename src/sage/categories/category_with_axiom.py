@@ -124,25 +124,46 @@ elsewhere, typically in a separate file, with just links to and from
     ....:             print "I am a method on finite C's"
     sage: Cs.Finite = FiniteCs
 
-For a real example, look up the code of the class :class:`FiniteSets`
-and the link to it in :class:`Sets` using a lazy import. The category
-with axiom can be created either directly or through its base
-category::
+For a real example, look up the code of the class
+:class:`FiniteGroups` and the link to it in :class:`Groups`. Note that
+the link is implemented using :class:`LazyImport`; this is highly
+recommended: it makes sure that :class:`FiniteGroups` is imported
+after :class:`Groups` it depends upon, and makes it explicit that the
+class :class:`Groups` can be imported and is fully functional without
+importing :class:`FiniteGroups`.
 
-    sage: FiniteSets()
-    Category of finite sets
-    sage: Sets().Finite()
-    Category of finite sets
-    sage: Sets().Finite() is FiniteSets()
+.. NOTE::
+
+    Some categories with axioms are created upon Sage's startup. In
+    such a case, one needs to pass the ``at_startup=True`` option to
+    :class:`LazyImport`, in order to quiet the warning about that lazy
+    import being resolved upon startup. See for example ``Sets.Finite``.
+
+    This is undoubtly a code smell. Nethertheless it should be kept as
+    is, first to resolve the import order properly, and more
+    importantly as a reminder that the category would be best not
+    constructed upon Sage's startup. This to entice developpers to
+    reduce the number of parents (and therefore categories) that are
+    constructed upon startup. Each "at_startup=True" that will be
+    removed will be a measure of progress in this direction.
+
+Note that the category with axiom can be created either directly or
+through its base category::
+
+    sage: FiniteGroups()
+    Category of finite groups
+    sage: Groups().Finite()
+    Category of finite groups
+    sage: Groups().Finite() is FiniteGroups()
     True
 
 For the former idiom to work, and with the current implementation of
-axioms, the class :class:`FiniteSets` needs to be aware of the base
-category class (here, :class:`Sets`) and of the axiom (here,
+axioms, the class :class:`FiniteGrphs` needs to be aware of the base
+category class (here, :class:`Groups`) and of the axiom (here,
 ``Finite``)::
 
-    sage: FiniteSets._base_category_class_and_axiom
-    (<class 'sage.categories.sets_cat.Sets'>, 'Finite')
+    sage: FiniteGroups._base_category_class_and_axiom
+    (<class 'sage.categories.groups.Groups'>, 'Finite')
     sage: Semigroups._base_category_class_and_axiom
     (<class 'sage.categories.magmas.Magmas'>, 'Associative')
     sage: Fields._base_category_class_and_axiom
@@ -201,8 +222,8 @@ We can now use the axiom as usual::
 Compared with our first example, the only newcomer is the method
 ``.Green()`` that can be used by any subcategory ``Ds()`` of ``Cs()``
 to add the axiom ``Green``. Due to some magic, ``Ds().Green`` always
-gives this method, regardless of whether ``Ds`` has a nested class
-``Green`` or not (an implementation detail)::
+gives back this method, regardless of whether ``Ds`` has a nested
+class ``Ds.Green`` or not (an implementation detail)::
 
     sage: Cs().Green
     <bound method Cs_with_category.Green of Category of cs>
@@ -426,11 +447,11 @@ Axioms defined upon other axioms
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Sometimes an axiom can only be defined when some other axiom
-holds. For example, the axiom "NoZeroDivisors" only makes sense if
-there is a zero, that is if the axiom "AdditiveUnital" holds. Hence,
+holds. For example, the axiom ``NoZeroDivisors`` only makes sense if
+there is a zero, that is if the axiom ``AdditiveUnital`` holds. Hence,
 for the category :class:`DistributiveMagmasAndAdditiveMagmas`, we
 consider in the abstract model only those subsets of axioms where the
-presence of "NoZeroDivisors" implies that of "AdditiveUnital".  We
+presence of ``NoZeroDivisors`` implies that of ``AdditiveUnital``.  We
 also want the axiom to be only available if meaningful::
 
     sage: Rings().NoZeroDivisors()
@@ -444,15 +465,16 @@ also want the axiom to be only available if meaningful::
 
 Concretely, this is to be implemented by defining the new axiom in the
 (``SubcategoryMethods`` nested class of the) appropriate category with
-axiom. For example "NoZeroDivisors" would be naturally implemented in
-:class:`DistributiveMagmasAndAdditiveMagmas.AdditiveUnital`.
+axiom. For example the axiom ``NoZeroDivisors`` would be naturally
+defined in :class:`DistributiveMagmasAndAdditiveMagmas.AdditiveUnital`.
 
 .. NOTE::
 
-    It's in fact currently implemented in :class:`Rings` by simple
-    lack of need for the feature; it should be lifted up as soon as
-    relevant, that is when some code will be available for parents
-    with no zero divisors that are not necessarily rings.
+    The axiom ``NoZeroDivisors`` is currently defined in
+    :class:`Rings`, by simple lack of need for the feature; it should
+    be lifted up as soon as relevant, that is when some code will be
+    available for parents with no zero divisors that are not
+    necessarily rings.
 
 .. _axioms-deduction-rules:
 
@@ -512,6 +534,13 @@ when constructing ``Rings().Division()``, the rule
 :meth:`Rings.Division.extra_super_categories` simply adds
 ``Rings().NoZeroDivisors()`` as a super category thereof.
 
+.. TODO::
+
+    rephrase that as: sometimes we do not want to create a class for
+    the category with axiom just to specify some properties of this
+    class. This is typically because a class for this category already
+    exists elsewhere.
+
 In some situations this idiom is inapplicable. Take for example
 Wedderburn's theorem: any finite division ring is commutative, i.e. is
 a finite field. The new feature of this situation is that this is not
@@ -544,7 +573,11 @@ behavior of the would be
     sage: DivisionRings().Finite_extra_super_categories()
     (Category of commutative magmas,)
 
-This is admittedly rudimentary, but relatively consistent.
+This idiom is admittedly rudimentary, but consistent with how
+mathematical facts specifying non trivial inclusion relations between
+categories are implemented elsewhere in the various
+``extra_super_categories`` methods of axiom categories and covariant
+functorial constructions.
 
 In general, if several categories ``C1s(), C2s(), ... are mapped to
 the same category when applying some axiom ``A`` (that is ``C1s().A()
@@ -596,23 +629,65 @@ refactor after #10963 if a better idiom is found.
 Specifications
 ==============
 
-We sumarize here some specifications about categories and axioms.
+After fixing some vocabulary, we sumarize here some specifications
+about categories and axioms.
 
-First some vocabulary. We say that an axiom ``A`` is *defined by* a
-category ``Cs()`` if ``Cs`` defines an appropriate method
-``Cs.SubcategoryMethods.A``, with the semantic of the axiom specified
-in the documentation, so that for all subcategory ``Ds()``,
-``Ds().A()`` models the subcategory of the objects of ``Ds()``
-satisfying ``A``. In this case, we say that the axiom ``A`` is
-*defined for* the category ``Ds()``. Furthermore, ``Ds`` *implements
-the axiom* ``A`` if ``Ds`` has a category with axiom as nested class
-``Ds.A``. The category ``Ds()`` *satisfies* the axiom if ``Ds()`` is a
-subcategory of ``Cs().A()`` (meaning that all the objects of ``Ds()``
-are known to satisfy the axiom ``A``).
+The lattice of constructible categories
+---------------------------------------
 
-- The base category of a :class:`CategoryWithAxiom` should not be a
-  :class:`JoinCategory`. This is checked by
-  :meth:`CategoryWithAxiom._test_category_with_axiom`.
+A mathematical category `C` is *implemented* if there is a class in
+Sage modelling it; it is *constructible* if it is either implemented,
+or is the intersection of *implemented* categories; in the later it is
+modelled by a :class:`JoinCategory`. The comparison of two
+constructible categories with the :meth:`Category.is_super_category`
+method is supposed to model the comparison of the corresponding
+mathematical categories for inclusion of the objects. For example::
+
+    sage: Fields().is_subcategory(Rings())
+
+However this modelling may be incomplete. It can happen that a
+mathematical fact implying that a category `A` is a subcategory of a
+category `B` is not implemented. Still, the comparison should endow
+the set of constructible categories with a poset structure and in fact
+a lattice structure.
+
+In this lattice, the join of two categories (:meth:`Category.join`) is
+supposed to model their intersection. Given that we compare categories
+for inclusion, it would be more natural to call this operation the
+*meet*; blames go to Nicolas who was originally comparing categories
+by *amount of structure* rather than by *inclusion*. In practice, the
+join of two categories may be a strict super category of their
+intersection; first because this intersection might not be
+constructible; second because Sage might miss some mathematical
+information to recover the smallest constructible super category of
+the intersection.
+
+Axioms
+------
+
+We say that an axiom ``A`` is *defined by* a category ``Cs()`` if
+``Cs`` defines an appropriate method ``Cs.SubcategoryMethods.A``, with
+the semantic of the axiom specified in the documentation; for all
+subcategory ``Ds()``, ``Ds().A()`` models the subcategory of the
+objects of ``Ds()`` satisfying ``A``. In this case, we say that the
+axiom ``A`` is *defined for* the category ``Ds()``. Furthermore,
+``Ds`` *implements the axiom* ``A`` if ``Ds`` has a category with
+axiom as nested class ``Ds.A``. The category ``Ds()`` *satisfies* the
+axiom if ``Ds()`` is a subcategory of ``Cs().A()`` (meaning that all
+the objects of ``Ds()`` are known to satisfy the axiom ``A``).
+
+Specifications
+--------------
+
+- Any constructible category ``C`` should admit a finite number of
+  larger constructible categories.
+
+- The base category of a :class:`CategoryWithAxiom` should be an
+  implemented category (i.e. not a :class:`JoinCategory`). This is
+  checked by :meth:`CategoryWithAxiom._test_category_with_axiom`.
+
+  ??? The base category of a :class:`CategoryWithAxiom` should be a
+  direct super category of it.
 
 - Tree structure: Let ``Cs()`` be a category, and `S` be some set of
   axioms defined in some super categories of ``Cs()`` but not
@@ -696,19 +771,31 @@ building blocks to construct the minimal hierarchy of classes needed
 for the computation at hand. This to allows for the infrastructure to
 scale smoothly as bookshelves are added, extended, or reorganized.
 
+Other design goals include:
 
-
- - Flexibility in the code layout: the category of, say, finite
-   sets can be implemented either within the Sets category (in a
-   nested class Sets.Finite), or in a separate file (typically in
-   a class FiniteSets in a lazily imported module
+ - Flexibility in the code layout: the category of, say, finite sets
+   can be implemented either within the Sets category (in a nested
+   class ``Sets.Finite``), or in a separate file (typically in a class
+   ``FiniteSets`` in a lazily imported module
    sage.categories.finite_sets).
 
- - Single point of truth
+ - Single point of truth: a theorem, like Wedderburn's, should be
+   implemented in a single spot.
 
- - Single entry point
+ - Single entry point: for example, from the entry :class:`Rings`, one
+   can explore a whole range of related categories just by applying
+   axioms and constructions::
 
- - Concise idioms for the users
+       sage: Rings().Commutative().Finite().NoZeroDivisors()
+       Category of finite integral domains
+       sage: Rings().Finite().Division()
+       Category of finite fields
+
+   This will allow for progressively getting rid of all the
+   :class:`GradedHopfAlgebrasWithBasis` which are polluting the global
+   name space
+
+ - Concise idioms for the users (adding axioms, ...)
 
  - Concise idioms and well highlighted hierarchy of bookshelves for
    the developper (especially with code folding)
@@ -758,22 +845,47 @@ Description of the algorithmic
 ==============================
 
 The workhorse of the axiom infrastructure is the algorithm for
-computing the join of a set `C_1,\dots,C_k` of categories (see
-:meth:`Category.join`). Roughly speaking, the algorithm proceeds by
-computing a *closure* in the lattice of constructible categories: it
-gathers the set `S` of all the axioms satisfied by the categories
-`C_i`, and repeteadly adds those axioms to those categories that do
-not yet satisfy it using :meth:`Category._with_axiom`. Due to
-deduction rules or subcategories, new categories or new axioms may
-appear in the process; reciprocally some categories may vanish, as
-only the smallest categories are kept. The process stops when each
-remaining categories has been combined with each axiom.
+computing the join `J` of a set `C_1,\dots,C_k` of categories (see
+:meth:`Category.join`). Formally, `J` is defined as the largest
+constructible category such that `J\subset C_i` for all `i`, and
+`J\subset C.A()` for every constructible category `C\supset J` and any
+axiom `A` satisfied by `J`.
+
+The join `J` is naturally computed as a closure in the lattice of
+constructible categories: it starts with the `C_i`'s, gathers the set
+`S` of all the axioms satisfied by theim, and repeteadly adds each
+axiom `A` to those categories that do not yet satisfy `A` using
+:meth:`Category._with_axiom`. Due to deduction rules or (extra) super
+categories, new categories or new axioms may appear in the
+process. The process stops when each remaining categories has been
+combined with each axiom. In practice, only the smallest categories
+are kept along the way; this is correct because adding an axiom is
+covariant: ``C.A()`` is a subcategory of ``D.A()`` whenever ``D`` is a
+subcategory of ``C``.
+
+As usual in such closure computations, the result does not depend on
+the order of execution. Futhermore, assuming that there is a finite
+number of axioms defined in the code, and given that adding an axiom
+is an idempotent and regressive operation, the process is guaranteed
+to stop in a finite number of steps.
+
+.. TODO::
+
+    Detail this a bit. What could typically go wrong is a situation
+    where, for some category ``C1`, ``C1.A()`` specifies a category
+    ``C2`` as super category such that ``C2.A()`` specifies ``C3`` as
+    super category such that ...; this would clearly cause an infinite
+    execution. Note that this situation violates the specifications
+    since C1.A() is supposed to be a subcategory of C2.A(), ... so we
+    would have an infinite increasing chain of constructible
+    categories. There remains to argue that any infinite execution of
+    the algorithm would give rise to such an infinite sequence.
 
 .. TODO:: Describe the algorithm for adding axioms
 
 This is a highly recursive process. In particular, some appropriate
-steps need to be taken to not run in a loop, in particular in case of
-deduction rule.
+steps need to be taken to not run in an infinite recursion, in
+particular in case of deduction rule.
 
 .. TODO:: Example where things will go wrong if we are not careful
 
@@ -1386,12 +1498,11 @@ class CategoryWithAxiom(Category):
         """
         base_category = self._base_category
         axiom = self._axiom
-        extra = self.extra_super_categories()
-        return Category.join((self._base_category,) +
-                             tuple(base_category.super_categories()) +
-                             tuple(extra),
-                             axioms = (axiom,),
-                             uniq=False,
+        return Category.join((base_category,) +
+                             tuple(cat
+                                   for category in base_category._super_categories
+                                   for cat in category._with_axiom_as_tuple(axiom)) +
+                             tuple(self.extra_super_categories()),
                              ignore_axioms = ((base_category, axiom),),
                              as_list = True)
 
@@ -1643,7 +1754,7 @@ class CategoryWithAxiom(Category):
         # However one currently can't use super to call a cached
         # method in a super class. So we dup the code from there ...
         return frozenset(axiom
-                         for category in self.super_categories()
+                         for category in self._super_categories
                          for axiom in category.axioms()) | {self._axiom}
 
 class CategoryWithAxiom_over_base_ring(CategoryWithAxiom, Category_over_base_ring):

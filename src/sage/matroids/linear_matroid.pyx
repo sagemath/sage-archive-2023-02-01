@@ -908,7 +908,11 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             False
             sage: M1.is_field_equivalent(M3)
             True
+            sage: M1.is_field_equivalent(M1)
+            True
         """
+        if self is other:
+            return True
         if self.base_ring() != other.base_ring():
             return False
         if self.groundset() != other.groundset():

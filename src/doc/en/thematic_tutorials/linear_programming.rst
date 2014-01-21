@@ -179,7 +179,7 @@ And because any immutable object can be used as a key, doubly indexed variables
 
 ::
 
-    sage: p.add_constraint(y[3,2] + x[5] == 6)
+    sage: p.add_constraint(x[3,2] + x[5] == 6)
 
 Typed variables and bounds
 """"""""""""""""""""""""""

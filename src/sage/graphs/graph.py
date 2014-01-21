@@ -4701,7 +4701,7 @@ class Graph(GenericGraph):
         G = self
 
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
-        p = MixedIntegerLinearProgram()
+        p = MixedIntegerLinearProgram(solver=solver)
 
         # This is an existence problem
         p.set_objective(None)
@@ -4812,7 +4812,7 @@ class Graph(GenericGraph):
         # Now we can solve the problem itself !
 
         try:
-            p.solve(solver = solver, log = verbose)
+            p.solve(log = verbose)
 
         except MIPSolverException:
             return False

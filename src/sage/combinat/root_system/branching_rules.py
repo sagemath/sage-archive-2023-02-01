@@ -1230,14 +1230,14 @@ class BranchingRule(SageObject):
 
     def branch(self, chi, style=None):
         """
-
         INPUT:
 
         - ``chi`` -- A character of the WeylCharacterRing with Cartan type self.Rtype().
 
         Returns the branched character.
 
-        EXAMPLE::
+        EXAMPLES::
+
             sage: G2=WeylCharacterRing("G2",style="coroots")
             sage: chi=G2(1,1); chi.degree()
             64

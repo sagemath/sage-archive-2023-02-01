@@ -8,6 +8,7 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import contextlib
 import os
 import sys
 
@@ -124,19 +125,22 @@ class MirrorList(object):
         self.filename = os.path.join(SAGE_DISTFILES, 'mirror_list')
         if self.must_refresh():
             print('Downloading the Sage mirror list')
-            http_download(self.URL, self.filename)
-            self.mirrors = self._load()
+            with contextlib.closing(urllib.urlopen(self.URL)) as f:
+                mirror_list = f.read()
+            self.mirrors = self._load(mirror_list)
             self._rank_mirrors()
             self._save()
         else:
             self.mirrors = self._load()
 
-    def _load(self):
+    def _load(self, mirror_list = None):
         """
-        Load and return the current mirror list as a list of strings
+        Load and return `mirror_list` (defaults to the one on disk) as
+        a list of strings
         """
-        with open(self.filename, 'rt') as f:
-            mirror_list = f.read()
+        if mirror_list is None:
+            with open(self.filename, 'rt') as f:
+                mirror_list = f.read()
         import ast
         return ast.literal_eval(mirror_list)
 

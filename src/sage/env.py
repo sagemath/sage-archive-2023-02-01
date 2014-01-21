@@ -101,6 +101,7 @@ _add_variable_or_fallback('SAGE_SPKG_INST',  opj('$SAGE_LOCAL', 'var', 'lib', 's
 _add_variable_or_fallback('SAGE_DOC',        opj('$SAGE_SRC', 'doc'))
 _add_variable_or_fallback('DOT_SAGE',        opj(os.environ.get('HOME','$SAGE_ROOT'), '.sage'))
 _add_variable_or_fallback('SAGE_DOT_GIT',    opj('$SAGE_ROOT', '.git'))
+_add_variable_or_fallback('SAGE_DISTFILES',  opj('$SAGE_ROOT', 'upstream'))
 
 # misc
 _add_variable_or_fallback('SAGE_URL',                'http://sage.math.washington.edu/sage/')

@@ -19,6 +19,20 @@ except ImportError:
     import urllib
     import urlparse
 
+try:
+    from sage.env import SAGE_ROOT, SAGE_DISTFILES
+except ImportError:
+    # Sage is not yet installed
+    SAGE_ROOT = os.environ['SAGE_ROOT']
+    SAGE_DISTFILES = os.environ.get('SAGE_DISTFILES',
+            os.path.join(SAGE_ROOT, 'upstream'))
+
+try:
+    # we want to assume that SAGE_DISTFILES is an actual
+    # directory for the remainder of this script
+    os.mkdir(SAGE_DISTFILES)
+except OSError:
+    pass
 
 def http_error_default(url, fp, errcode, errmsg, headers):
     """
@@ -100,20 +114,6 @@ def http_download(url, destination=None, progress=True):
     else:
         filename, info = opener.retrieve(url, destination)
 
-
-
-def upstream_directory():
-    try:
-        upstream = os.path.join('SAGE_DISTFILES')
-    except KeyError:
-        upstream = os.path.join(os.environ['SAGE_ROOT'], 'upstream')
-    try:
-        os.mkdir(upstream)
-    except OSError:
-        pass
-    return upstream
-
-
 class MirrorList(object):
     
     URL = 'http://www.sagemath.org/mirror_list'
@@ -121,7 +121,7 @@ class MirrorList(object):
     MAXAGE = 24*60*60   # seconds
 
     def __init__(self):
-        self.filename = os.path.join(upstream_directory(), 'mirror_list')
+        self.filename = os.path.join(SAGE_DISTFILES, 'mirror_list')
         if self.must_refresh():
             print('Downloading the Sage mirror list')
             http_download(self.URL, self.filename)
@@ -256,7 +256,7 @@ class Tarball(object):
         """
         The fully-qualified (including directory) file name in the upstream directory.
         """
-        return os.path.join(upstream_directory(), self.filename)
+        return os.path.join(SAGE_DISTFILES, self.filename)
 
     def _parse_name(self, name):
         """
@@ -271,7 +271,6 @@ class Tarball(object):
         Load the checksums from the appropriate ``checksums.ini`` file
         """
         import re
-        SAGE_ROOT = os.environ['SAGE_ROOT']
         pkg_dir = os.path.join(SAGE_ROOT, 'build', 'pkgs', self.package)
         checksums_ini = os.path.join(pkg_dir, 'checksums.ini')
         assignment = re.compile('(?P<var>[a-zA-Z0-9]*)=(?P<value>.*)')
@@ -316,14 +315,14 @@ class Tarball(object):
         """
         Download the tarball to the upstream directory.
         """
-        destination = os.path.join(upstream_directory(), self.filename)
+        destination = os.path.join(SAGE_DISTFILES, self.filename)
         if os.path.isfile(destination):
             if self.checksum_verifies():
-                print('Using cached file $SAGE_ROOT/upstream/'+self.filename)
+                print('Using cached file {destination}'.format(destination=destination))
                 return
             else:
                 # Garbage in the upstream directory? Delete and re-download
-                print('Invalid checksum for cached file $SAGE_ROOT/upstream/'+self.filename)
+                print('Invalid checksum for cached file {destination}'.format(destination=destination))
                 os.remove(destination)
         successful_download = False
         for mirror in mirror_list:
@@ -357,8 +356,8 @@ the mirror network and its checksum is verified.
 
 If the destination is not specified:
 * a url will be downloaded and the content written to stdout
-* a tarball will be saved under $SAGE_ROOT/upstream
-"""
+* a tarball will be saved under {SAGE_DISTFILES}
+""".format(SAGE_DISTFILES=SAGE_DISTFILES)
 
 
 if __name__ == '__main__':

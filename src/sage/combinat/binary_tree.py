@@ -3071,7 +3071,7 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
           in `t`, where `l` denotes the left child of `t`.
 
         This algorithm is similar to the Robinson-Schensted-Knuth
-        algorithm for semistandard Young tableaux.
+        insertion algorithm for semistandard Young tableaux.
 
         AUTHORS:
 

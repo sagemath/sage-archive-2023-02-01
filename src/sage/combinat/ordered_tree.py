@@ -249,7 +249,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         """
         Return if ``self`` is the empty tree.
 
-        For ordered trees, returns always ``False``.
+        For ordered trees, this always returns ``False``.
 
         .. NOTE:: this is different from ``bool(t)`` which returns whether
                   ``t`` has some child or not.
@@ -267,7 +267,8 @@ class OrderedTree(AbstractClonableTree, ClonableList):
     def _to_binary_tree_rec(self, bijection="left"):
         r"""
         Internal recursive method to obtain a binary tree from an ordered
-        tree.
+        tree. See :meth:`to_binary_tree_left_branch` and
+        :meth:`to_binary_tree_right_branch` for what it does.
 
         EXAMPLES::
 
@@ -284,10 +285,10 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         """
         from sage.combinat.binary_tree import BinaryTree
         root = BinaryTree()
-        if(bijection=="left"):
+        if (bijection == "left"):
             for child in self:
                 root = BinaryTree([root,child._to_binary_tree_rec(bijection)])
-        elif(bijection=="right"):
+        elif (bijection == "right"):
             children = list(self)
             children.reverse()
             for child in children:
@@ -299,12 +300,15 @@ class OrderedTree(AbstractClonableTree, ClonableList):
     @combinatorial_map(name="To binary tree, left brother = left child")
     def to_binary_tree_left_branch(self):
         r"""
-        Return a binary tree of size `n-1` by the following recursive rule:
+        Return a binary tree of size `n-1` (where `n` is the size of `t`,
+        and where `t` is ``self``) obtained from `t` by the following
+        recursive rule:
 
-        - if `x` is the left brother of `y`, `x` becomes the left child
-          of `y`
-        - if `x` is the last child of `y`, `x` becomes the right child
-          of `y`
+        - if `x` is the left brother of `y` in `t`, then `x` becomes the
+          left child of `y`;
+        - if `x` is the last child of `y` in `t`, then `x` becomes the
+          right child of `y`;
+        - the root of `t` is removed.
 
         EXAMPLES::
 
@@ -329,12 +333,15 @@ class OrderedTree(AbstractClonableTree, ClonableList):
     @combinatorial_map(name="To binary tree, right brother = right child")
     def to_binary_tree_right_branch(self):
         r"""
-        Return a binary tree of size n-1 by the following recursive rule:
+        Return a binary tree of size `n-1` (where `n` is the size of `t`,
+        and where `t` is ``self``) obtained from `t` by the following
+        recursive rule:
 
-        - if `x` is the right brother of `y`, `x` becomes the right child
-          of `y`
-        - if `x` is the first child of `y`, `x` becomes the left child
-          of `y`
+        - if `x` is the right brother of `y` in `t`, then`x` becomes the
+          right child of `y`;
+        - if `x` is the first child of `y` in `t`, then `x` becomes the
+          left child of `y`;
+        - the root of `t` is removed.
 
         EXAMPLES::
 
@@ -359,7 +366,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
     @combinatorial_map(name="To Dyck path")
     def to_dyck_word(self):
         r"""
-        Return the dyck path corresponding to ``self`` where the maximal
+        Return the Dyck path corresponding to ``self`` where the maximal
         height of the Dyck path is the depth of ``self`` .
 
         EXAMPLES::
@@ -581,7 +588,7 @@ class OrderedTrees(UniqueRepresentation, Parent):
 
 class OrderedTrees_all(DisjointUnionEnumeratedSets, OrderedTrees):
     """
-    The set of all ordered trees
+    The set of all ordered trees.
 
     EXAMPLES::
 
@@ -946,7 +953,7 @@ class LabelledOrderedTrees(UniqueRepresentation, Parent):
 
     def _an_element_(self):
         """
-        Return a labelled tree
+        Return a labelled ordered tree.
 
         EXAMPLE::
 
@@ -971,7 +978,10 @@ class LabelledOrderedTrees(UniqueRepresentation, Parent):
 
     def unlabelled_trees(self):
         """
-        Return the set of unlabelled trees associated to ``self``
+        Return the set of unlabelled trees associated to ``self``.
+
+        This is the set of ordered trees, since ``self`` is the set of
+        labelled ordered trees.
 
         EXAMPLES::
 
@@ -982,7 +992,10 @@ class LabelledOrderedTrees(UniqueRepresentation, Parent):
 
     def labelled_trees(self):
         """
-        Return the set of labelled trees associated to ``self``
+        Return the set of labelled trees associated to ``self``.
+
+        This is precisely ``self``, because ``self`` already is the set
+        of labelled ordered trees.
 
         EXAMPLES::
 

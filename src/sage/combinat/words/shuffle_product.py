@@ -130,8 +130,11 @@ class ShuffleProduct_w1w2(CombinatorialClass):
         Return the number of words in the shuffle product
         of ``w1`` and ``w2``.
 
-        It is given by `\binom{l_1+l_2}{l_1}`, where `l_1` is the length of
-        ``w1`` and where `l_2` is the length of ``w2``.
+        This is understood as a multiset cardinality, not as a
+        set cardinality; it doesn't count the distinct words only.
+
+        It is given by `\binom{l_1+l_2}{l_1}`, where `l_1` is the
+        length of ``w1`` and where `l_2` is the length of ``w2``.
 
         EXAMPLES::
 
@@ -140,7 +143,12 @@ class ShuffleProduct_w1w2(CombinatorialClass):
             sage: S = ShuffleProduct_w1w2(w,u)
             sage: S.cardinality()
             6
-         """
+
+            sage: w, u = map(Words("ab"), ["ab", "ab"])
+            sage: S = ShuffleProduct_w1w2(w,u)
+            sage: S.cardinality()
+            6
+        """
         return binomial(self._w1.length()+self._w2.length(), self._w1.length())
 
     def _proc(self, vect):
@@ -369,14 +377,17 @@ class ShuffleProduct_overlapping(CombinatorialClass):
         Let `a` and `b` be the lengths of `u` and `v`, respectively.
         Let `A` be the set `\{(0, 1), (0, 2), \cdots, (0, a)\}`, and
         let `B` be the set `\{(1, 1), (1, 2), \cdots, (1, b)\}`.
-        Notice that the sets `A` and `B` are disjoint. Let `p` be the
-        map from `A \cup B` to the set of all letters which sends
-        every `(0, i)` to the `i`-th letter of `u`, and every `(1, j)`
-        to the `j`-th letter of `v`. For every nonnegative integer `c`
-        and every surjective map
+        Notice that the sets `A` and `B` are disjoint. We can make
+        `A` and `B` into posets by setting `(k, i) \leq (k, j)` for
+        all `k \in \{0, 1\}` and `i \leq j`. Then, `A \cup B` becomes
+        a poset by disjoint union (we don't set `(0, i) \leq (1, i)`).
+        Let `p` be the map from `A \cup B` to the set of all letters
+        which sends every `(0, i)` to the `i`-th letter of `u`, and
+        every `(1, j)` to the `j`-th letter of `v`. For every
+        nonnegative integer `c` and every surjective map
         `f : A \cup B \to \{ 1, 2, \cdots, c \}` for which both
-        restrictions `f \mid_A` and `f \mid_B` are injective, let
-        `w(f)` be the length-`c` word such that for every
+        restrictions `f \mid_A` and `f \mid_B` are strictly increasing,
+        let `w(f)` be the length-`c` word such that for every
         `1 \leq k \leq c`, the `k`-th letter of `w(f)` equals
         `\sum_{j \in f^{-1}(k)} p(j)` (this sum always has either
         one or two addends). The overlapping shuffle product of `u`

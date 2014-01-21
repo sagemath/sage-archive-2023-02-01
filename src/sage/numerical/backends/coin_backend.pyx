@@ -359,7 +359,6 @@ cdef class CoinBackend(GenericBackend):
             sage: p.set_verbosity(2)                                # optional - Coin
 
         """
-
         self.model.setLogLevel(level)
 
     cpdef remove_constraint(self, int i):

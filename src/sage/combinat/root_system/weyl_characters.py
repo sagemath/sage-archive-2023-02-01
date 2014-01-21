@@ -949,6 +949,91 @@ class WeylCharacterRing(CombinatorialFreeModule):
         """
         return self(self.highest_root())
 
+    def maximal_subgroups(self):
+        """
+        This method is only available if the Cartan type of
+        self is irreducible and of rank no greater than 8.
+        This method produces a list of the maximal subgroups
+        of self, up to (possibly outer) automorphisms. Each line
+        in the output gives the Cartan type of a maximal subgroup
+        followed by a command that creates the branching rule.
+
+        EXAMPLES::
+           sage: WeylCharacterRing("E6").maximal_subgroups()
+           D5:branching_rule("E6","D5","levi")
+           C4:branching_rule("E6","C4","symmetric")
+           F4:branching_rule("E6","F4","symmetric")
+           A2:branching_rule("E6","A2","miscellaneous")
+           G2:branching_rule("E6","G2","miscellaneous")
+           A2xG2:branching_rule("E6","A2xG2","miscellaneous")
+           A1xA5:branching_rule("E6","A1xA5","extended")
+           A2xA2xA2:branching_rule("E6","A2xA2xA2","extended")
+
+        Note that there are other embeddings of (for example
+        `A_2` into `E_6` as nonmaximal subgroups. These
+        embeddings may be constructed by composing branching
+        rules through various subgroups.
+
+        Once you know which maximal subgroup you are interested
+        in, to create the branching rule, you may either
+        paste the command to the right of the colon from the
+        above output onto the command line, or alternatively 
+        invoke the related method :meth:`maximal_subgroup`::
+
+            sage: branching_rule("E6","G2","miscellaneous")
+            miscellaneous branching rule E6 => G2
+            sage: WeylCharacterRing("E6").maximal_subgroup("G2")
+            miscellaneous branching rule E6 => G2
+
+        It is believed that the list of maximal subgroups is complete, except that some
+        subgroups may be not be invariant under outer automorphisms. It is reasonable
+        to want a list of maximal subgroups that is complete up to conjugation,
+        but to obtain such a list you may have to apply outer automorphisms.
+        The group of outer automorphisms modulo inner automorphisms is isomorphic
+        to the group of symmetries of the Dynkin diagram, and these are available
+        as branching rules. The following example shows that while
+        a branching rule from `D_4` to `A_1\times C_2` is supplied,
+        another different one may be obtained by composing it with the
+        triality automorphism of `D_4`::
+
+            sage: [D4,A1xC2]=[WeylCharacterRing(x,style="coroots") for x in ["D4","A1xC2"]]
+            sage: fw = D4.fundamental_weights()
+            sage: b = D4.maximal_subgroup("A1xC2")
+            sage: [D4(fw).branch(A1xC2,rule=b) for fw in D4.fundamental_weights()]
+            [A1xC2(1,1,0),
+            A1xC2(2,0,0) + A1xC2(2,0,1) + A1xC2(0,2,0),
+            A1xC2(1,1,0),
+            A1xC2(2,0,0) + A1xC2(0,0,1)]
+            sage: b1 = branching_rule("D4","D4","triality")*b
+            sage: [D4(fw).branch(A1xC2,rule=b1) for fw in D4.fundamental_weights()]
+            [A1xC2(1,1,0),
+            A1xC2(2,0,0) + A1xC2(2,0,1) + A1xC2(0,2,0),
+            A1xC2(2,0,0) + A1xC2(0,0,1),
+            A1xC2(1,1,0)]
+        """
+        return sage.combinat.root_system.branching_rules.maximal_subgroups(self.cartan_type())
+
+    def maximal_subgroup(self, ct):
+        """
+        INPUT:
+
+        - ``ct`` -- the Cartan type of a maximal subgroup of self.
+
+        Returns a branching rule. In rare cases where there is
+        more than one maximal subgroup (up to outer automorphisms)
+        with the given Cartan type, the function returns a list of
+        branching rules.
+
+        EXAMPLES::
+            sage: WeylCharacterRing("E7").maximal_subgroup("A2")
+            miscellaneous branching rule E7 => A2
+            sage: WeylCharacterRing("E7").maximal_subgroup("A1")
+            [iii branching rule E7 => A1, iv branching rule E7 => A1]
+
+        For more information, see the related method :meth:`maximal_subgroups`.
+        """
+        return sage.combinat.root_system.branching_rules.maximal_subgroups(self.cartan_type(), mode="get_rule")[ct]
+
     class Element(CombinatorialFreeModule.Element):
         """
         A class for Weyl characters.

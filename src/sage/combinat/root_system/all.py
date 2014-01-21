@@ -9,4 +9,4 @@ from root_system import RootSystem, WeylDim
 from weyl_group import WeylGroup, WeylGroupElement
 from coxeter_group import CoxeterGroup
 from weyl_characters import WeylCharacterRing, WeightRing
-from branching_rules import BranchingRule, branch_weyl_character, branching_rule_from_plethysm, branching_rule, maximal_subgroups
+from branching_rules import BranchingRule, branching_rule_from_plethysm, branching_rule

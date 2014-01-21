@@ -42,8 +42,8 @@ def branch_weyl_character(chi, R, S, rule="default"):
 
     - ``S`` -- the Weyl Character Ring of `H`
 
-    - ``rule`` -- a set of `r` dominant weights in `H` where `r` is the rank
-      of `G` or one of the following:
+    - ``rule`` -- an element of the ``BranchingRule`` class
+      or one (most usually) a keyword such as:
 
       * ``"levi"``
       * ``"automorphic"``
@@ -54,9 +54,12 @@ def branch_weyl_character(chi, R, S, rule="default"):
       * ``"triality"``
       * ``"miscellaneous"``
 
-    The use of the various input to ``rule`` will be explained next.
-    After the examples we will explain how to write your own branching
-    rules for cases that we have omitted.
+    The ``BranchingRule`` class is a wrapper for functions
+    from the weight lattice of `G` to the weight lattice of `H`.
+    An instance of this class encodes an embedding of `H` into
+    `G`. The usual way to specify an embedding is to supply a
+    keyword, which tells Sage to use one of the built-in rules.
+    We will discuss these first.
 
     To explain the predefined rules, we survey the most important
     branching rules. These may be classified into several cases, and
@@ -964,15 +967,15 @@ def branch_weyl_character(chi, R, S, rule="default"):
 
         rule = lambda x : [x[0]-x[3],x[1]-x[2]]
 
+    We may now make and use the branching rule as follows.
+
     EXAMPLES::
 
-        sage: A3 = WeylCharacterRing(['A',3])
-        sage: C2 = WeylCharacterRing(['C',2])
-        sage: rule = lambda x : [x[0]-x[3],x[1]-x[2]]
-        sage: branch_weyl_character(A3([1,1,0,0]),A3,C2,rule)
-        C2(0,0) + C2(1,1)
-        sage: A3(1,1,0,0).branch(C2, rule) == C2(0,0) + C2(1,1)
-        True
+        sage: br = BranchingRule("A3", "C2", lambda x : [x[0]-x[3],x[1]-x[2]], "homemade"); br
+        homemade branching rule A3 => C2
+        sage: [A3,C2]=[WeylCharacterRing(x,style="coroots") for x in ["A3","C2"]]
+        sage: A3(0,1,0).branch(C2,rule=br)
+        C2(0,0) + C2(0,1)
     """
     if type(rule) is str or type(rule) is list:
         rule = branching_rule(R._cartan_type, S._cartan_type, rule)
@@ -1007,7 +1010,7 @@ class BranchingRule(SageObject):
         """
         INPUT:
 
-        - ''R, S'' -- CartanTypes
+        - ``R, S`` -- CartanTypes
         -  ``f`` -- a function from the weight lattice of R to the weight lattice of S.
         """
         self._R = CartanType(R)
@@ -1224,7 +1227,34 @@ class BranchingRule(SageObject):
                     print "%d => %s"%(j, tuple([resfw.inner_product(a) for a in Sspace.simple_coroots()]))
             if not no_r and not verbose:
                 print "\nFor more detailed information use verbose=True"
-            
+
+    def branch(self, chi, style=None):
+        """
+
+        INPUT:
+
+        - ``chi`` -- A character of the WeylCharacterRing with Cartan type self.Rtype().
+
+        Returns the branched character.
+
+        EXAMPLE::
+            sage: G2=WeylCharacterRing("G2",style="coroots")
+            sage: chi=G2(1,1); chi.degree()
+            64
+            sage: b=G2.maximal_subgroup("A2"); b
+            extended branching rule G2 => A2
+            sage: b.branch(chi)
+            A2(0,1) + A2(1,0) + A2(0,2) + 2*A2(1,1) + A2(2,0) + A2(1,2) + A2(2,1)
+            sage: A2=WeylCharacterRing("A2",style="coroots"); A2
+            The Weyl Character Ring of Type A2 with Integer Ring coefficients
+            sage: chi.branch(A2,rule=b)
+            A2(0,1) + A2(1,0) + A2(0,2) + 2*A2(1,1) + A2(2,0) + A2(1,2) + A2(2,1)
+
+        """
+        if style == None:
+            style = chi.parent()._style
+        S = sage.combinat.root_system.weyl_characters.WeylCharacterRing(self.Stype(), style=style)
+        return chi.branch(S, rule=self)
 
 def branching_rule(Rtype, Stype, rule="default"):
     """
@@ -1934,43 +1964,19 @@ def maximal_subgroups(ct, mode="print_rules"):
 
     - ``ct`` -- a classical irreducible Cartan type
 
+    Returns a list of maximal subgroups of ct.
+
     EXAMPLES::
 
+        sage: from sage.combinat.root_system.branching_rules import maximal_subgroups
         sage: maximal_subgroups("D4")
         B3:branching_rule("D4","B3","symmetric")
         A2:branching_rule("D4","A2(1,1)","plethysm")
         A1xC2:branching_rule("D4","C1xC2","tensor")*branching_rule("C1xC2","A1xC2",[branching_rule("C1","A1","isomorphic"),"identity"])
         A1xA1xA1xA1:branching_rule("D4","D2xD2","orthogonal_sum")*branching_rule("D2xD2","A1xA1xA1xA1",[branching_rule("D2","A1xA1","isomorphic"),branching_rule("D2","A1xA1","isomorphic")])
 
-    You may use the optional argument ``mode="get_rule"`` to extract one branching rule
-    from this list. This gives the same result as typing the given string
-    at the command line::
+    .. seealso: :meth:`~sage.combinat.root_sytem.weyl_characters.WeylCharacterRing.ParentMethods.maximal_subgroups`
 
-        sage: maximal_subgroups("D4",mode="get_rule")["A2"]
-        plethysm (along A2(1,1)) branching rule D4 => A2
-
-    It is believed that the list of maximal subgroups is complete, except that some
-    subgroups may be not be invariant under outer automorphisms. It is reasonable
-    to want a list of maximal subgroups that is complete up to conjugation,
-    but to obtain such a list you may have to apply outer automorphisms.
-    The group of outer automorphisms modulo inner automorphisms is isomorphic
-    to the group of symmetries of the Dynkin diagram, and these are available
-
-    For example, we verify that the maximal subgroup `A_1\\times C_2` from
-    the above list is not invariant under inner automorphisms, by checking
-    that applying the triality automorphism changes it to another. We
-    check this by observing that the first spin representation has different
-    branching. There are (up to conjugacy) three maximal subgroups of
-    `D_4` of type `A_1\\times C_2`::
-
-        sage: b = maximal_subgroups("D4",mode="get_rule")["A1xC2"]; b
-        composite branching rule D4 => (tensor) C1xC2 => ([isomorphic branching rule C1 => A1, 'identity']) A1xC2
-        sage: b1 = branching_rule("D4","D4","triality")*b
-        sage: [D4,A1xC2]=[WeylCharacterRing(x,style="coroots") for x in ["D4","A1xC2"]]
-        sage: D4(0,0,1,0).branch(A1xC2,rule=b)
-        A1xC2(1,1,0)
-        sage: D4(0,0,1,0).branch(A1xC2,rule=b1)
-        A1xC2(2,0,0) + A1xC2(0,0,1)
     """
 
     if CartanType(ct) == CartanType("A2"):

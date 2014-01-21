@@ -395,7 +395,7 @@ class ShuffleProduct_overlapping(CombinatorialClass):
         over all nonnegative integers and `f` ranging
         over the surjective maps
         `f : A \cup B \to \{ 1, 2, \cdots, c \}` for which both
-        restrictions `f \mid_A` and `f \mid_B` are injective.
+        restrictions `f \mid_A` and `f \mid_B` are strictly increasing.
 
         If one restricts `c` to a particular fixed nonnegative
         integer, then the multiset is instead called the *overlapping

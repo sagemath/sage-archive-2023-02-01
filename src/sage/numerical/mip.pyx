@@ -216,8 +216,14 @@ cdef class MixedIntegerLinearProgram(SageObject):
       - When set to ``False``, the ``MixedIntegerLinearProgram`` is
         defined as a minimization.
 
-    - ``constraint_generation`` -- whether to require the returned solver to
-      support constraint generation (excludes Coin). ``False by default``.
+    - ``constraint_generation``
+
+      - When set to ``True``, after solving the ``MixedIntegerLinearProgram``,
+        it is possible to add or modify a constraint, and then solve it again.
+        The effect is that solvers that do not support this feature will not be
+        used when ``solver=None``,
+
+      - When set to ``False`` (default), this is not possible.
 
     .. SEEALSO::
 
@@ -273,8 +279,15 @@ cdef class MixedIntegerLinearProgram(SageObject):
           - When set to ``False``, the ``MixedIntegerLinearProgram`` is
             defined as a minimization.
 
-        - ``constraint_generation`` -- whether to require the returned solver to
-          support constraint generation (excludes Coin). ``False by default``.
+        - ``constraint_generation``
+
+          - When set to ``True``, after solving the
+            ``MixedIntegerLinearProgram``, it is possible to add or modify a
+            constraint, and then solve it again. The effect is that solvers
+            that do not support this feature will not be used when
+            ``solver=None``,
+
+          - When set to ``False`` (default), this is not possible.
 
         - ``check_redundant`` -- whether to check that constraints added to the
           program are redundant with constraints already in the program.

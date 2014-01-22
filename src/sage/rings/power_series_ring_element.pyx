@@ -1718,9 +1718,10 @@ cdef class PowerSeries(AlgebraElement):
         """
         return self._parent.laurent_series_ring()(self)
 
-    def ogf(self):
+    def egf_to_ogf(self):
         r"""
-        Returns the ordinary generating function associated to self.
+        Returns the ordinary generating function power series,
+        assuming self is an exponential generating function power series.
 
         This function is known as ``serlaplace`` in PARI/GP.
 
@@ -1733,9 +1734,10 @@ cdef class PowerSeries(AlgebraElement):
         """
         return self.parent()([self[i] * arith.factorial(i) for i in range(self.degree()+1)])
 
-    def egf(self):
+    def ogf_to_egf(self):
         r"""
-        Returns the exponential generating function associated to self.
+        Returns the exponential generating function power series,
+        assuming self is an ordinary generating function power series.
 
         This can also be computed as ``serconvol(f,exp(t))`` in PARI/GP.
 

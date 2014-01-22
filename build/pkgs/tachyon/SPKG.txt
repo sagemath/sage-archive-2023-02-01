@@ -73,6 +73,9 @@ This spkg depends on:
 
 == Changelog ==
 
+=== tachyon-0.98.9.p6 (Wilfried Luebbe, January 22, 2014) ===
+ * #15682: Add armv6l (Raspberry Pi) to `spkg-install` (parallel to armv7l)
+
 === tachyon-0.98.9.p5 (William Stein and Leif Leonhardy, August 19th 2011) ===
  * #11706: Make package build on 64-bit PPC Linux, too (by using the `linux-ppc`
    `make` target, which works for ppc64 as well).

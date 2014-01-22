@@ -158,7 +158,7 @@ through its base category::
     True
 
 For the former idiom to work, and with the current implementation of
-axioms, the class :class:`FiniteGrphs` needs to be aware of the base
+axioms, the class :class:`FiniteGroups` needs to be aware of the base
 category class (here, :class:`Groups`) and of the axiom (here,
 ``Finite``)::
 
@@ -399,22 +399,47 @@ by the nesting of category classes.
 Discussion of the design
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Placeholder classes
-~~~~~~~~~~~~~~~~~~~
-
-Given that we can only remove one axiom at a time when going up the
-tree, we need to create some category classes that are just
-placeholders. See for example the chain of nested classes
-:class:`DistributiveMagmasAndAdditiveMagmas.AdditiveAssociative.AdditiveCommutative.AdditiveUnital`.
-
 Asymmetry
 ~~~~~~~~~
 
 As we have seen at the beginning of this section this design
-introduces an asymmetry. It's not so bad in practice since, more often
-than not, one of the link is more natural than the other: a monoid is
-usually defined as a unital monoid rather than as a unital magma which
-is associative.
+introduces an asymmetry. It's not so bad in practice as in most
+practical cases, we want to work incrementally. It's for example more
+natural to describe :class:`FiniteFields` as :class:`Fields` with the
+axiom ``Finite`` rather than :class:`Magmas` and
+:class:`AdditiveMagmas` with all (or at least sufficiently many) of
+the following axioms (not counting ``Distributive`` which is not yet
+implemented)::
+
+    sage: Fields().axioms()
+    frozenset(['Division', 'AdditiveUnital', 'NoZeroDivisors', 'Commutative',
+               'AdditiveInverse', 'AdditiveAssociative', 'Unital',
+	       'AdditiveCommutative', 'Associative'])
+
+The main limitation is that the infrastructure currently imposes to be
+incremental by steps of one axiom.
+
+In practice, among the roughly 60 categories with axioms that are
+currently implemented in Sage, most admitted a (rather) natural choice
+of a base category and single axiom to add. For example, one usually
+thinks more naturally of a monoid as a semigroup which is unital
+rather than as a unital magma which is associative. Only in a few
+cases is a choice made that feels mathematically arbitrary. This is
+essentially in the chain of nested classes
+:class:`DistributiveMagmasAndAdditiveMagmas.AdditiveAssociative.AdditiveCommutative.AdditiveUnital`.
+
+Placeholder classes
+~~~~~~~~~~~~~~~~~~~
+
+Given that we can only add a single axiom at a time when implementing
+a :class:`CategoryWithAxiom`, we need to create a few category classes
+that are just placeholders. See for example the chain of nested
+classes
+:class:`DistributiveMagmasAndAdditiveMagmas.AdditiveAssociative.AdditiveCommutative.AdditiveUnital`.
+
+Yet, this is well within the scope of the axiom infrastructure which
+is to go from a potentially exponential number of placeholder
+categories to just a couple.
 
 Mismatch between the tree of nested classes and the hierarchy of categories
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -434,14 +459,43 @@ clear from the onset that the two relations do not match.
 Flexibility
 ~~~~~~~~~~~
 
-
 This design also brings in quite some flexibility, with the
-possibility to support features such as::
+possibility to support features such as defining new axioms depending
+on other axioms. See below.
 
-- Defining new axioms within a category with axiom. See for example
-  :class:`Magmas.Unital.Inverse`.
+Limitations
+~~~~~~~~~~~
 
-- ...
+As a small variant of what we have seen above, defining the
+``Distributive`` axiom within this infrastructure would require to
+implement a placeholder category ``MagmasAndAdditiveMagmas``. What is
+more annoying is that Sage can't currently be taught that
+``MagmasAndAdditiveMagmas`` is the join of :class:`Magmas` and
+:class:`AdditiveMagmas`, which is why ``MagmasAndAdditiveMagmas``
+together with its ``Distributive`` axiom are not yet implemented.
+
+.. TODO::
+
+   Make :meth:`Category.join` more powerful, to handle such
+   joins. Another typical use case is::
+
+       sage: C = Algebras(QQ) & Coalgebras(QQ); C   # todo: not implemented
+       Category of bialgebras
+
+       sage: C.Hopf()                               # todo: not implemented
+       Category of hopf algebras
+
+    One could also have the category :class:`Bimodules` be the join of
+    :class:`LeftModules` and :class:`RightModules` with an axiom
+    stating the compatibility between the left and right action.
+
+    This will require some thought on appropriate idioms and
+    algorithms. Potential directions include refactoring the whole
+    implementation with a database mapping sets of axioms to
+    categories together with other deduction rules, or just adding
+    some hook or registration process to specify what the join of two
+    categories is.
+
 
 Axioms defined upon other axioms
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -522,8 +576,9 @@ commutative is implemented in
 
 .. WARNING::
 
-    In some situations this idiom is inapplicable as it would lead to
-    an infinite recursion. This is the purpose of the next section.
+    In some situations this idiom is inapplicable as it would require
+    to implement two classes for the same category. This is the
+    purpose of the next section.
 
 Special case
 ~~~~~~~~~~~~
@@ -577,7 +632,9 @@ This idiom is admittedly rudimentary, but consistent with how
 mathematical facts specifying non trivial inclusion relations between
 categories are implemented elsewhere in the various
 ``extra_super_categories`` methods of axiom categories and covariant
-functorial constructions.
+functorial constructions. Besides, it gives a natural spot to document
+and test the modeling of the mathematical fact.
+
 
 In general, if several categories ``C1s(), C2s(), ... are mapped to
 the same category when applying some axiom ``A`` (that is ``C1s().A()
@@ -709,8 +766,9 @@ Specifications
 
 - A category can only implement an axiom if this axiom is defined by
   some super category. The code has not been systematically checked to
-  work if two super categories define the same axiom. You are welcome
-  to try, at your own risk :-)
+  support having two super categories defining the same axiom (which
+  should of course have the same semantic). You are welcome to try, at
+  your own risk :-)
 
 - When a category defines an axiom or functorial construction ``A``,
   this fixes the semantic of ``A`` for all the subcategories. In
@@ -844,6 +902,9 @@ Upcoming features
 Description of the algorithmic
 ==============================
 
+Computing joins
+---------------
+
 The workhorse of the axiom infrastructure is the algorithm for
 computing the join `J` of a set `C_1,\dots,C_k` of categories (see
 :meth:`Category.join`). Formally, `J` is defined as the largest
@@ -864,10 +925,10 @@ covariant: ``C.A()`` is a subcategory of ``D.A()`` whenever ``D`` is a
 subcategory of ``C``.
 
 As usual in such closure computations, the result does not depend on
-the order of execution. Futhermore, assuming that there is a finite
-number of axioms defined in the code, and given that adding an axiom
-is an idempotent and regressive operation, the process is guaranteed
-to stop in a finite number of steps.
+the order of execution. Futhermore, given that adding an axiom is an
+idempotent and regressive operation, the process is guaranteed to stop
+in a number of steps which is bounded by the number of super
+categories of `J`. In particular, it is a finite process.
 
 .. TODO::
 
@@ -878,16 +939,73 @@ to stop in a finite number of steps.
     execution. Note that this situation violates the specifications
     since C1.A() is supposed to be a subcategory of C2.A(), ... so we
     would have an infinite increasing chain of constructible
-    categories. There remains to argue that any infinite execution of
-    the algorithm would give rise to such an infinite sequence.
+    categories.
 
-.. TODO:: Describe the algorithm for adding axioms
+    It's reasonnable to assume that there is a finite number of axioms
+    defined in the code. There remains to use this assumptiono to
+    argue that any infinite execution of the algorithm would give rise
+    to such an infinite sequence.
 
-This is a highly recursive process. In particular, some appropriate
-steps need to be taken to not run in an infinite recursion, in
-particular in case of deduction rule.
+Adding an axiom
+---------------
 
-.. TODO:: Example where things will go wrong if we are not careful
+Let ``Cs`` be a category and ``A`` an axiom defined for this
+category. To compute ``Cs().A()``, there are two cases.
+
+Adding an axiom ``A`` to a category ``Cs()`` not implementing it
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In this case, ``Cs().A()`` returns the join of:
+
+- ``Cs()``
+- ``Bs().A()`` for every super category ``Bs()`` of ``Cs()``
+- the categories appearing in ``Cs().A_extra_super_categories()``
+
+This is a highly recursive process. In fact, as such, it would run
+right away into an infinite loop! Indeed, the join of ``Cs()`` with
+``Bs().A()`` would trigger the construction of ``Cs().A()`` and
+reciprocally. To avoid this, the :meth:`Category.join` method itself
+does not use :meth:`Category._with_axiom` to add axioms, but its
+sister :meth:`Category._with_axiom_as_tuple`; the latter builds a
+tuple of categories that should be joined together but leaves the
+computation of the join to its caller the master join calculation.
+
+Adding an axiom ``A`` to a category ``Cs()`` implementing it
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In this case ``Cs().A()`` simply constructs an instance `D` of
+``Cs.A`` which models the desired category. The non trivial part is
+the construction of the the super categories of `D`. Very much like
+above, this includes:
+
+- ``Cs()``
+- ``Bs().A()`` for every super category ``Bs()`` of ``Cs()``
+- the categories appearing in ``D.extra_super_categories()``
+
+This by itself may not be sufficient, due in particular to deduction
+rules. On may for example discover a new axiom ``A1`` satisfied by
+`D`, imposing to add ``A1`` to all of the above categories. Therefore
+the super categories are computed as the join of the above categories.
+Up to one twist: as is, the computation of this join would trigger
+recursively a recalculation of ``Cs().A()``! To avoid this,
+:meth:`Category.join` is given an optional argument to specify that
+the axiom ``A`` should *not* be applied to ``Cs()``.
+
+Examples where things go wrong if we are not careful
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+As we have seen, this is a highly recursive process. In particular,
+some appropriate steps need to be taken to not run in an infinite
+recursion, in particular in case of deduction rule.
+
+.. TODO:: Examples
+
+Conclusion
+==========
+
+This is the end of the axioms documentation. Congratulations on
+having read that far!
+
 
 Tests
 =====

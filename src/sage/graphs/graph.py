@@ -1235,7 +1235,6 @@ class Graph(GenericGraph):
                 else:
                     raise ValueError("Edges input must all follow the same format.")
 
-
         if format is None:
             import networkx
             data = networkx.MultiGraph(data)
@@ -1478,6 +1477,8 @@ class Graph(GenericGraph):
                 verts = [curve.cremona_label() for curve in data]
 
         # weighted, multiedges, loops, verts and num_verts should now be set
+        #
+        # From now on, we actually build the graph
 
         if implementation == 'networkx':
             import networkx
@@ -1545,12 +1546,11 @@ class Graph(GenericGraph):
             for i in xrange(n):
                 for j in xrange(i):
                     if m[k] == '1':
-                        self.add_edge(i, j)
+                        self._backend.add_edge(i, j, None, False)
                     k += 1
 
         elif format == 'sparse6':
-            for i,j in edges:
-                self.add_edge(i,j)
+            self.add_edges(edges)
 
         elif format == 'adjacency_matrix':
             e = []
@@ -1580,7 +1580,7 @@ class Graph(GenericGraph):
                 for v in xrange(u+1):
                     uu,vv = verts[u], verts[v]
                     if f(uu,vv):
-                        self.add_edge(uu,vv)
+                        self._backend.add_edge(uu,vv,None,False)
 
         elif format == 'dict_of_dicts':
             if convert_empty_dict_labels_to_None:
@@ -1588,24 +1588,26 @@ class Graph(GenericGraph):
                     for v in data[u]:
                         if hash(u) <= hash(v) or v not in data or u not in data[v]:
                             if multiedges:
-                                self.add_edges([(u,v,l) for l in data[u][v]])
+                                for l in data[u][v]:
+                                    self._backend.add_edge(u,v,l,False)
                             else:
-                                self.add_edge((u,v,data[u][v] if data[u][v] != {} else None))
+                                self._backend.add_edge(u,v,data[u][v] if data[u][v] != {} else None,False)
             else:
                 for u in data:
                     for v in data[u]:
                         if hash(u) <= hash(v) or v not in data or u not in data[v]:
                             if multiedges:
-                                self.add_edges([(u,v,l) for l in data[u][v]])
+                                for l in data[u][v]:
+                                    self._backend.add_edge(u,v,l,False)
                             else:
-                                self.add_edge((u,v,data[u][v]))
+                                self._backend.add_edge(u,v,data[u][v],False)
 
         elif format == 'dict_of_lists':
             for u in data:
                 for v in data[u]:
-                    if multiedges or hash(u) <= hash(v) or \
-                       v not in data or u not in data[v]:
-                        self.add_edge(u,v)
+                    if (multiedges or hash(u) <= hash(v) or
+                        v not in data or u not in data[v]):
+                        self._backend.add_edge(u,v,None,False)
 
         elif format == 'elliptic_curve_congruence':
             from sage.rings.arith import lcm, prime_divisors
@@ -1630,7 +1632,7 @@ class Graph(GenericGraph):
                             P = prime_divisors(n)
                             p_edges = [p for p in p_edges if p in P]
                     if len(p_edges) > 0:
-                        self.add_edge(E.cremona_label(), F.cremona_label(), str(p_edges)[1:-1])
+                        self._backend.add_edge(E.cremona_label(), F.cremona_label(), str(p_edges)[1:-1], False)
         else:
             assert format == 'int'
 

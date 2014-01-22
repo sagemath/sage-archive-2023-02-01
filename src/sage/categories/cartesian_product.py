@@ -23,8 +23,8 @@ class CartesianProductFunctor(CovariantFunctorialConstruction):
         sage: cartesian_product
         The cartesian_product functorial construction
 
-    ``cartesian_product`` takes a collection of sets, and constructs
-    the Cartesian product of those sets::
+    ``cartesian_product`` takes a finite collection of sets, and
+    constructs the Cartesian product of those sets::
 
         sage: A = FiniteEnumeratedSet(['a','b','c'])
         sage: B = FiniteEnumeratedSet([1,2])
@@ -136,7 +136,7 @@ class CartesianProductsCategory(CovariantConstructionCategory):
 
     def CartesianProducts(self):
         """
-        Returns the category of Cartesian products of objects of ``self``
+        Returns the category of (finite) Cartesian products of objects of ``self``
 
         By associativity of Cartesian products, this is ``self`` (a Cartesian
         product of Cartesian products of `A`'s is a Cartesian product of

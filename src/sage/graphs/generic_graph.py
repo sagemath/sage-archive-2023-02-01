@@ -8955,6 +8955,11 @@ class GenericGraph(GenericGraph_pyx):
             sage: H.add_edges( G.edge_iterator() ); H
             Digraph on 20 vertices
             sage: H.add_edges(iter([]))
+
+            sage: H = Graph()
+            sage: H.add_edges([(0,1),(0,2)])
+            sage: H.edges()
+            [(0, 1, None), (0, 2, None)]
         """
         it = iter(edges)
 

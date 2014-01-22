@@ -159,9 +159,11 @@ def branch_weyl_character(chi, R, S, rule="default"):
 
     These can be read off from the Dynkin diagram. If
     removing a node from the Dynkin diagram produces another Dynkin
-    diagram, there is a branching rule. Currently we require that the
-    smaller diagram be connected. For these rules use the option
-    ``rule="levi"``:
+    diagram, there is a branching rule. A Levi subgroup may
+    or may not be maximal. If it is maximal, there may or may not
+    be a built-in branching rule for but you may obtain the
+    Levi branching rule by first branching to a suitable
+    maximal subgroup. For these rules use the option ``rule="levi"``:
 
     .. MATH::
 

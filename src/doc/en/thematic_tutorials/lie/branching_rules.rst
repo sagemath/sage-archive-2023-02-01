@@ -67,10 +67,21 @@ into irreducibles when they are restricted to `Sp(4)`::
     sage: chi.branch(C2,rule=b)
     C2(0,1) + C2(2,0)
 
-Since this is a built-in branching rule we could have
-gotten the same result with just ``chi.branch(C2,rule="symmetric")``.
-However, not all branching rules correspond to built-in
-embeddings, and we may compose branching rules to build
+Alternatively, we may pass ``chi`` to ``b`` as an
+argument of its branch method, which gives the same
+result::
+
+    sage: b.branch(chi)
+    C2(0,1) + C2(2,0)
+
+It is believed that the built-in branching rules of
+Sage are sufficient to handle all maximal subgroups
+and this is certainly the case when the rank if
+less than or equal to 8.
+
+However, if you want to branch to a subgroup that
+is not maximal you may not find a built-in 
+branching rule. We may compose branching rules to build
 up embeddings. For example, here are two different
 embeddings of `Sp(4)` with Cartan type ``C2`` in
 `Sp(8)`, with Cartan type ``C4``. One embedding
@@ -170,10 +181,11 @@ Maximal subgroups
 -----------------
 
 Sage has a database of maximal subgroups for every simple Cartan
-type of rank `\le 8`. You may access this with the command
-``maximal_subgroups``::
+type of rank `\le 8`. You may access this with the
+``maximal_subgroups`` method of the WeylCharacter Ring::
 
-    sage: maximal_subgroups("E7")
+    sage: E7=WeylCharacterRing("E7",style="coroots")
+    sage: E7.maximal_subgroups()
     A7:branching_rule("E7","A7","extended")
     E6:branching_rule("E7","E6","levi")
     A2:branching_rule("E7","A2","miscellaneous")
@@ -195,34 +207,34 @@ You may obtain the branching rule as follows, and use it to determine
 the decomposition of irreducible representations of `E_7`
 as follows::
 
-    sage: b = maximal_subgroups("E7",mode="get_rule")["A2"]; b
+    sage: b = E7.maximal_subgroup("A2"); b
     miscellaneous branching rule E7 => A2
     sage: [E7,A2]=[WeylCharacterRing(x,style="coroots") for x in ["E7","A2"]]
     sage: E7(1,0,0,0,0,0,0).branch(A2,rule=b)
     A2(1,1) + A2(4,4)
 
-Of course you could define the rule directly without using
-this database, and this is what you would have to do if
-the rank is greater than 8::
+This gives the same branching rule as just pasting line beginning
+to the right of the colon onto the command line::
 
-    sage: b = branching_rule("E7","A2",rule="miscellaneous"); b
+    sage:branching_rule("E7","A2","miscellaneous")
     miscellaneous branching rule E7 => A2
 
 There are two distict embeddings of `A_1=\hbox{SL}(2)` into
-`E_7` as maximal subgroups, so calling ``maximal_subgroups``
-with ``mode="get_rule"`` will return a list of rules::
+`E_7` as maximal subgroups, so the ``maximal_subgroup``
+method will return a list of rules::
 
-     sage: maximal_subgroups("E7",mode="get_rule")["A1"]
+     sage: WeylCharacterRing("E7").maximal_subgroup("A1")
      [iii branching rule E7 => A1, iv branching rule E7 => A1]
 
-The list of maximal subgroups returned by maximal_subgroups
-is believed to be complete up to outer automorphisms. You
-may want a list that is complete up to inner automorphisms.
-For example, `E_6` has a nontrivial Dynkin diagram automorphism
-so it has an outer automorphism that is not inner::
+The list of maximal subgroups returned by the ``maximal_subgroups``
+method for irreducible Cartan types of rank up to 8 is believed to
+be complete up to outer automorphisms. You may want a list that is
+complete up to inner automorphisms.  For example, `E_6` has a
+nontrivial Dynkin diagram automorphism so it has an outer
+automorphism that is not inner::
 
     sage: [E6,A2xG2]=[WeylCharacterRing(x,style="coroots") for x in ["E6","A2xG2"]]
-    sage: b=maximal_subgroups("E6",mode="get_rule")["A2xG2"];b
+    sage: b=E6.maximal_subgroup("A2xG2"); b
     miscellaneous branching rule E6 => A2xG2
     sage: E6(1,0,0,0,0,0).branch(A2xG2,rule=b)
     A2xG2(0,1,1,0) + A2xG2(2,0,0,0)

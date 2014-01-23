@@ -19,7 +19,7 @@ dnl http://trac.sagemath.org/ticket/15606#comment:19
 AC_PREREQ([2.64])
 
 AC_DEFUN([SAGE_VERSION], m4_esyscmd_s([. src/bin/sage-version.sh && echo $SAGE_VERSION]))
-AC_INIT([Sage], [SAGE_VERSION], [sage-devel@googlegroups.com])
+AC_INIT([Sage], SAGE_VERSION, [sage-devel@googlegroups.com])
 
 AC_COPYRIGHT([GPL version 3])
 AC_CONFIG_SRCDIR([configure.ac])

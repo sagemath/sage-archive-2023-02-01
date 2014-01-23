@@ -36,14 +36,14 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
 
         INPUT:
 
-        - parent - an arithmetic subgroup
+        - ``parent`` -- an arithmetic subgroup
 
-        - x - data defining a 2x2 matrix over ZZ
-          which lives in parent
+        - `x` -- data defining a 2x2 matrix over ZZ
+                 which lives in parent
 
-        - check - if True, check that parent
-          is an arithmetic subgroup, and that
-          x defines a matrix of determinant 1.
+        - ``check`` -- if True, check that parent is an arithmetic
+                       subgroup, and that `x` defines a matrix of
+                       determinant `1`.
 
         We tend not to create elements of arithmetic subgroups that aren't
         SL2Z, in order to avoid coercion issues (that is, the other arithmetic
@@ -363,7 +363,7 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
             sage: g.acton(Cusp(-31/15))
             +Infinity
 
-        TESTS::
+        TESTS:
 
         We cover the remaining case, i.e., infinity mapped to infinity::
 

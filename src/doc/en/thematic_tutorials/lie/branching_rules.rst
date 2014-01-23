@@ -517,14 +517,12 @@ may or may not be implemented in Sage. However if it is
 not implemented, it may be constructed as a composition
 of two branching rules.
 
-For example ``branching_rule("E6","A5","levi") returns
-a not-implemented error and the advice to branch to
-``A5xA1``. And we can see from the extended Dynkin
-diagram of `E_6` that indeed `A_5` is not a maximal
-subgroup, since removing node 2 from the extended
-Dynkin diagram (see below) gives ``A5xA1``. To
-construct the branching rule to `A_5` we may proceed
-as follows::
+For example, prior to Sage-6.1 ``branching_rule("E6","A5","levi")
+returned a not-implemented error and the advice to branch to
+``A5xA1``. And we can see from the extended Dynkin diagram of `E_6`
+that indeed `A_5` is not a maximal subgroup, since removing node 2
+from the extended Dynkin diagram (see below) gives ``A5xA1``. To
+construct the branching rule to `A_5` we may proceed as follows::
 
     sage: b = branching_rule("E6","A5xA1","extended")*branching_rule("A5xA1","A5","proj1"); b
     composite branching rule E6 => (extended) A5xA1 => (proj1) A5

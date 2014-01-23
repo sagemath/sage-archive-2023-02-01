@@ -428,6 +428,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 return self(x.polynomial())
             except AttributeError:
                 pass
+        elif isinstance(x, sage.rings.power_series_ring_element.PowerSeries):
+            x = x.truncate()
         return C(self, x, check, is_gen, construct=construct, **kwds)
 
     def is_integral_domain(self, proof = True):

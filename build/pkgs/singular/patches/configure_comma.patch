@@ -1,0 +1,12 @@
+diff -ru a/configure b/configure
+--- a/configure	2012-12-19 22:01:16.000000000 +0100
++++ b/configure	2013-08-26 22:38:41.389607801 +0200
+@@ -2191,7 +2191,7 @@
+   enableval="$enable_countedref"
+   :
+ fi
+-,
++
+ # Check whether --enable-Plural or --disable-Plural was given.
+ if test "${enable_Plural+set}" = set; then
+   enableval="$enable_Plural"

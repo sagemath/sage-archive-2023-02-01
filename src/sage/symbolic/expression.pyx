@@ -7775,8 +7775,7 @@ cdef class Expression(CommutativeRingElement):
     def simplify_full(self):
         """
         Applies simplify_factorial, simplify_trig, simplify_rational,
-        simplify_radical, simplify_log, and again simplify_rational to
-        self (in that order).
+        simplify_log, and again simplify_rational to self (in that order).
 
         ALIAS: simplify_full and full_simplify are the same.
 

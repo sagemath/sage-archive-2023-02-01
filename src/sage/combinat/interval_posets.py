@@ -954,32 +954,32 @@ class TamariIntervalPoset(Element):
         """
         return self.is_linear_extension(binary_tree.to_132_avoiding_permutation())
     
-    def contains_dyck_path(self, dyck_path):
+    def contains_dyck_word(self, dyck_word):
         """
         Return whether the interval represented by ``self`` contains 
-        the Dyck path ``dyck_path``.
+        the Dyck word ``dyck_word``.
 
         INPUT:
 
-        - ``dyck_path`` a Dyck path
+        - ``dyck_word`` a Dyck word
 
         EXAMPLES::
 
             sage: ip = TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)])
-            sage: ip.contains_dyck_path(DyckWord([1,1,1,0,0,0,1,0]))
+            sage: ip.contains_dyck_word(DyckWord([1,1,1,0,0,0,1,0]))
             True
-            sage: ip.contains_dyck_path(DyckWord([1,1,0,1,0,1,0,0]))
+            sage: ip.contains_dyck_word(DyckWord([1,1,0,1,0,1,0,0]))
             True
-            sage: ip.contains_dyck_path(DyckWord([1,0,1,1,0,1,0,0]))
+            sage: ip.contains_dyck_word(DyckWord([1,0,1,1,0,1,0,0]))
             False        
-            sage: ip.contains_dyck_path(ip.lower_dyck_path())
+            sage: ip.contains_dyck_word(ip.lower_dyck_word())
             True
-            sage: ip.contains_dyck_path(ip.upper_dyck_path())
+            sage: ip.contains_dyck_word(ip.upper_dyck_word())
             True
-            sage: all([ip.contains_dyck_path(bt) for bt in ip.dyck_paths()])
+            sage: all([ip.contains_dyck_word(bt) for bt in ip.dyck_words()])
             True
         """
-        return self.contains_binary_tree(dyck_path.to_binary_tree_tamari())
+        return self.contains_binary_tree(dyck_word.to_binary_tree_tamari())
 
     def intersection(self, other):
         """
@@ -1062,19 +1062,19 @@ class TamariIntervalPoset(Element):
         """
         return self.min_linear_extension().binary_search_tree_shape(left_to_right=False)
 
-    def lower_dyck_path(self):
+    def lower_dyck_word(self):
         """
-        Return the lower Dyck path of the interval represented by ``self``.
+        Return the lower Dyck word of the interval represented by ``self``.
 
         EXAMPLES::
 
             sage: ip = TamariIntervalPoset(6,[(3,2),(4,3),(5,2),(6,5),(1,2),(4,5)]); ip
             The tamari interval of size 6 induced by relations [(1, 2), (4, 5), (6, 5), (5, 2), (4, 3), (3, 2)]
-            sage: ip.lower_dyck_path()
+            sage: ip.lower_dyck_word()
             [1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0]
-            sage: TamariIntervalPosets.final_forest(ip.lower_dyck_path()) == ip.final_forest()
+            sage: TamariIntervalPosets.final_forest(ip.lower_dyck_word()) == ip.final_forest()
             True
-            sage: ip == TamariIntervalPosets.from_dyck_paths(ip.lower_dyck_path(),ip.upper_dyck_path())
+            sage: ip == TamariIntervalPosets.from_dyck_words(ip.lower_dyck_word(),ip.upper_dyck_word())
             True
         """
         return self.lower_binary_tree().to_dyck_word_tamari()
@@ -1096,19 +1096,19 @@ class TamariIntervalPoset(Element):
         """
         return self.max_linear_extension().binary_search_tree_shape(left_to_right=False)
         
-    def upper_dyck_path(self):
+    def upper_dyck_word(self):
         """
-        Return the upper Dyck path of the interval represented by ``self``.
+        Return the upper Dyck word of the interval represented by ``self``.
 
         EXAMPLES::
 
             sage: ip = TamariIntervalPoset(6,[(3,2),(4,3),(5,2),(6,5),(1,2),(4,5)]); ip
             The tamari interval of size 6 induced by relations [(1, 2), (4, 5), (6, 5), (5, 2), (4, 3), (3, 2)]
-            sage: ip.upper_dyck_path()
+            sage: ip.upper_dyck_word()
             [1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0]
-            sage: TamariIntervalPosets.initial_forest(ip.upper_dyck_path()) == ip.initial_forest()
+            sage: TamariIntervalPosets.initial_forest(ip.upper_dyck_word()) == ip.initial_forest()
             True
-            sage: ip == TamariIntervalPosets.from_dyck_paths(ip.lower_dyck_path(),ip.upper_dyck_path())
+            sage: ip == TamariIntervalPosets.from_dyck_words(ip.lower_dyck_word(),ip.upper_dyck_word())
             True
         """
         return self.upper_binary_tree().to_dyck_word_tamari()
@@ -1303,7 +1303,7 @@ class TamariIntervalPoset(Element):
     def interval_size(self):
         """
         Return the size of the interval, i.e., the number of elements 
-        (binary trees or Dyck paths) in the interval represented by ``self``.
+        (binary trees or Dyck words) in the interval represented by ``self``.
         
         Not to be confused with ``self.size()`` which is the number of 
         vertices.
@@ -1338,23 +1338,23 @@ class TamariIntervalPoset(Element):
         for ip in self.lower_contained_intervals():
             yield ip.upper_binary_tree()
             
-    def dyck_paths(self):
+    def dyck_words(self):
         """
-        Return an iterator on all the Dyck paths of the interval 
+        Return an iterator on all the Dyck words of the interval 
         represented by ``self``.
 
         EXAMPLES::
 
-            sage: list(TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)]).dyck_paths())
+            sage: list(TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)]).dyck_words())
             [[1, 1, 1, 0, 0, 1, 0, 0],
              [1, 1, 1, 0, 0, 0, 1, 0],
              [1, 1, 0, 1, 0, 1, 0, 0],
              [1, 1, 0, 1, 0, 0, 1, 0]]
-            sage: set(TamariIntervalPoset(4,[]).dyck_paths()) == set(DyckWords(4))
+            sage: set(TamariIntervalPoset(4,[]).dyck_words()) == set(DyckWords(4))
             True
         """
         for ip in self.lower_contained_intervals():
-            yield ip.upper_dyck_path()
+            yield ip.upper_dyck_word()
             
     def maximal_chain_intervals(self):
         """
@@ -1428,17 +1428,17 @@ class TamariIntervalPoset(Element):
         for it in self.maximal_chain_intervals():
             yield it.lower_binary_tree()
             
-    def maximal_chain_dyck_paths(self):
+    def maximal_chain_dyck_words(self):
         """
-        Return an iterator on the Dyck paths forming a maximal chain of ``self``.
+        Return an iterator on the Dyck words forming a maximal chain of ``self``.
 
         EXAMPLES::
 
             sage: ip = TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)])
-            sage: list(ip.maximal_chain_dyck_paths())
+            sage: list(ip.maximal_chain_dyck_words())
             [[1, 1, 0, 1, 0, 0, 1, 0], [1, 1, 0, 1, 0, 1, 0, 0], [1, 1, 1, 0, 0, 1, 0, 0]]
             sage: ip = TamariIntervalPoset(4,[])
-            sage: list(ip.maximal_chain_dyck_paths())
+            sage: list(ip.maximal_chain_dyck_words())
             [[1, 0, 1, 0, 1, 0, 1, 0],
              [1, 1, 0, 0, 1, 0, 1, 0],
              [1, 1, 0, 1, 0, 0, 1, 0],
@@ -1448,7 +1448,7 @@ class TamariIntervalPoset(Element):
              [1, 1, 1, 1, 0, 0, 0, 0]]
         """
         for it in self.maximal_chain_intervals():
-            yield it.lower_dyck_path()
+            yield it.lower_dyck_word()
     
     def length_of_maximal_chain(self):
         """
@@ -1566,7 +1566,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
     @staticmethod
     def final_forest(element):
         """
-        Return the final forest of a binary tree, an interval-poset or a Dyck path. 
+        Return the final forest of a binary tree, an interval-poset or a Dyck word. 
         An final forest is an interval-poset corresponding to a final
         interval of the Tamari lattice, i.e., containing only decreasing 
         relations.
@@ -1577,7 +1577,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``element``, a binary tree, a Dyck path or an interval-poset
+        - ``element``, a binary tree, a Dyck word or an interval-poset
 
         EXAMPLES::
 
@@ -1612,7 +1612,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
             sage: TamariIntervalPosets.final_forest(bt)
             The tamari interval of size 5 induced by relations [(5, 4), (3, 1), (2, 1)]
 
-        from Dyck paths::
+        from Dyck words::
 
             sage: dw = DyckWord([1,0])
             sage: TamariIntervalPosets.final_forest(dw)
@@ -1657,7 +1657,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
     @staticmethod
     def initial_forest(element):
         """
-        Return the inital forest of a binary tree, an interval-poset or a Dyck path. 
+        Return the inital forest of a binary tree, an interval-poset or a Dyck word. 
         An initial forest is an interval-poset corresponding to an initial
         interval of the Tamari lattice, i.e., containing only increasing 
         relations.
@@ -1668,7 +1668,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``element``, a binary tree, a Dyck path or an interval-poset
+        - ``element``, a binary tree, a Dyck word or an interval-poset
 
         EXAMPLES::
 
@@ -1703,7 +1703,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
             sage: TamariIntervalPosets.initial_forest(bt)
             The tamari interval of size 5 induced by relations [(1, 4), (2, 3), (3, 4)]
             
-        from Dyck paths::
+        from Dyck words::
 
             sage: dw = DyckWord([1,0])
             sage: TamariIntervalPosets.initial_forest(dw)
@@ -1790,41 +1790,41 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
             raise ValueError, "The two binary trees are not comparable on the Tamari lattice."%()
 
     @staticmethod
-    def from_dyck_paths(dw1, dw2):
+    def from_dyck_words(dw1, dw2):
         """
         Return the interval-poset corresponding to the interval [``dw1``,``dw2``]
-        in the Tamari lattice. Raise an exception if the two dyck paths are not comparable.
+        in the Tamari lattice. Raise an exception if the two Dyck words are not comparable.
 
         INPUT:
 
-        - ``dw1``, a Dyck path
-        - ``dw2``, a Dyck path biger or equal than ``dw1`` for the Tamari lattice.
+        - ``dw1``, a Dyck word
+        - ``dw2``, a Dyck word biger or equal than ``dw1`` for the Tamari lattice.
 
         EXAMPLES::
 
             sage: dw1 = DyckWord([1,0,1,0])
             sage: dw2 = DyckWord([1,1,0,0]) 
-            sage: TamariIntervalPosets.from_dyck_paths(dw1,dw2)
+            sage: TamariIntervalPosets.from_dyck_words(dw1,dw2)
             The tamari interval of size 2 induced by relations []
-            sage: TamariIntervalPosets.from_dyck_paths(dw1,dw1)
+            sage: TamariIntervalPosets.from_dyck_words(dw1,dw1)
             The tamari interval of size 2 induced by relations [(1, 2)]
-            sage: TamariIntervalPosets.from_dyck_paths(dw2,dw2)
+            sage: TamariIntervalPosets.from_dyck_words(dw2,dw2)
             The tamari interval of size 2 induced by relations [(2, 1)]
 
             sage: dw1 = DyckWord([1,0,1,1,1,0,0,1,1,0,0,0])
             sage: dw2 = DyckWord([1,1,1,1,0,1,1,0,0,0,0,0])
-            sage: TamariIntervalPosets.from_dyck_paths(dw1,dw2)
+            sage: TamariIntervalPosets.from_dyck_words(dw1,dw2)
             The tamari interval of size 6 induced by relations [(4, 5), (6, 5), (5, 2), (4, 3), (3, 2)]
 
             sage: dw3 = DyckWord([1,1,1,0,1,1,1,0,0,0,0,0])
-            sage: TamariIntervalPosets.from_dyck_paths(dw1,dw3)
+            sage: TamariIntervalPosets.from_dyck_words(dw1,dw3)
             Traceback (most recent call last):
             ...
-            ValueError: The two Dyck paths are not comparable on the Tamari lattice.
-            sage: TamariIntervalPosets.from_dyck_paths(dw1,DyckWord([1,0]))
+            ValueError: The two Dyck words are not comparable on the Tamari lattice.
+            sage: TamariIntervalPosets.from_dyck_words(dw1,DyckWord([1,0]))
             Traceback (most recent call last):
             ...
-            ValueError: The two Dyck paths are not comparable on the Tamari lattice.
+            ValueError: The two Dyck words are not comparable on the Tamari lattice.
 
         """
         tree1 = dw1.to_binary_tree_tamari()
@@ -1832,7 +1832,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         try:
             return TamariIntervalPosets.from_binary_trees(tree1,tree2)
         except:
-            raise ValueError, "The two Dyck paths are not comparable on the Tamari lattice."%()
+            raise ValueError, "The two Dyck words are not comparable on the Tamari lattice."%()
 
     def __call__(self, *args, **keywords):
         """

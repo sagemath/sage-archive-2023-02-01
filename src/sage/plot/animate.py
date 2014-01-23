@@ -12,9 +12,10 @@ default, but can be any of the formats supported by ``convert`` or
 
     Note that ImageMagick and FFmpeg are not included with Sage, and
     must be installed by the user.  On unix systems, type ``which
-    convert`` at a command prompt to see if ``convert`` is installed.
-    If it is, you will be given its location.  See [IM] or [FF] for
-    installation instructions.
+    convert`` at a command prompt to see if ``convert`` (part of the
+    ImageMagick suite) is installed.  If it is, you will be given its
+    location.  Similarly, you can check for ``ffmpeg`` with ``which
+    ffmpeg``.  See [IM] or [FF] for installation instructions.
 
 EXAMPLES:
 
@@ -33,8 +34,7 @@ Animate using ffmpeg instead of ImageMagick::
 
 An animated :class:`sage.plot.graphics.GraphicsArray` of rotating ellipses::
 
-    sage: ellipses = (graphics_array([[ellipse((0,0),a,b,angle=t,xmin=-3,xmax=3)+circle((0,0),3,color='blue') for a in range(1,3)] for b in range(2,4)]) for t in sxrange(0,pi/4,.15))
-    sage: E = animate(ellipses)
+    sage: E = animate((graphics_array([[ellipse((0,0),a,b,angle=t,xmin=-3,xmax=3)+circle((0,0),3,color='blue') for a in range(1,3)] for b in range(2,4)]) for t in sxrange(0,pi/4,.15)))
     sage: E         # animations produced from a generator do not have a known length
     Animation with unknown number of frames
     sage: E.show()  # optional -- ImageMagick

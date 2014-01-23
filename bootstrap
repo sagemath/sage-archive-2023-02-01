@@ -10,9 +10,10 @@
 #
 # If optional argument -i is given, then automatically increment the
 # version number
+#
+# If optional argument -d is given, download the files if bootstrapping
+# failed. If -D is given, always download.
 ########################################################################
-
-set -e
 
 # Either run this script from SAGE_ROOT or make sure that SAGE_ROOT
 # is set
@@ -23,15 +24,44 @@ MAKE="${MAKE:-make}"
 CONFVERSION=`cat $PKG/package-version.txt`
 
 bootstrap () {
-    # Start cleanly
-    $MAKE bootstrap-clean
+    aclocal -I m4 && \
+    automake --add-missing --copy build/Makefile-auto && \
+    autoconf
 
-    # Generate auto-generated files
-    $MAKE configure
+    st=$?
+    case $st in
+        0) true;; # Success
+
+        63|127)  # Autotools not installed or version too old
+            if [ $DOWNLOAD = yes ]; then
+                echo >&2 "Bootstrap failed, downloading required files instead."
+                bootstrap-download || exit $?
+            else
+                if [ $st -eq 127 ]; then
+                    verb="install"
+                else
+                    verb="upgrade"
+                fi
+                echo >&2 "Bootstrap failed. Either $verb autotools or run bootstrap with"
+                echo >&2 "the -d option to download the auto-generated files instead."
+                exit $st
+            fi;;
+
+        *) exit $st;; # Failure
+    esac
 }
 
+# Bootstrap by downloading the auto-generated files
+bootstrap-download () {
+    source src/bin/sage-env
+    # The "m" option to tar ensures that timestamps are set to the
+    # current time, not taken from the tarball.
+    build/pipestatus "sage-download-file $SAGE_UPSTREAM/configure/configure-$CONFVERSION.tar.gz" "tar zxmf -"
+}
 
 save () {
+    set -e
+
     # Create configure tarball
     CONFBALL="upstream/configure-$CONFVERSION.tar.gz"
     echo "Creating $CONFBALL..."
@@ -42,38 +72,47 @@ save () {
     echo "$CONFVERSION" >$PKG/package-version.txt
     
     # Compute checksum
-    src/bin/sage-fix-pkg-checksums "$CONFBALL"
+    SAGE_ROOT=. src/bin/sage-fix-pkg-checksums "$CONFBALL"
 }
 
 
 usage () {
-    echo >&2 "Usage: bootstrap [-i] [-s] [-h]"
+    echo >&2 "Usage: $0 [-d|-D|-s] [-i] [-h]"
 }
 
 
 # Parse options
-SAVE=
-while getopts "sih" OPTION
+SAVE=no
+DOWNLOAD=no
+ALWAYSDOWNLOAD=no
+while getopts "Ddsih" OPTION
 do
      case "$OPTION" in
-         s)
-             SAVE=yes
-             ;;
-         i)
-             CONFVERSION=$(( CONFVERSION + 1 ))
-             ;;
-         h)
-             usage
-             exit
-             ;;
-         ?)
-             usage
-             exit 2
-             ;;
+         D) ALWAYSDOWNLOAD=yes; DOWNLOAD=yes;;
+         d) DOWNLOAD=yes;;
+         s) SAVE=yes;;
+         i) CONFVERSION=$(( CONFVERSION + 1 ));;
+         h) usage; exit 0;;
+         ?) usage; exit 2;;
      esac
 done
 
-bootstrap
-if [ -n "$SAVE" ]; then
+if [ $DOWNLOAD$SAVE = yesyes ]; then
+    echo >&2 "$0: refusing to download and save."
+    usage
+    exit 2
+fi
+
+# Start cleanly (it's not a problem if this fails)
+$MAKE bootstrap-clean 2>/dev/null
+mkdir config 2>/dev/null
+
+if [ $ALWAYSDOWNLOAD = yes ]; then
+    bootstrap-download
+else
+    bootstrap
+fi
+
+if [ $SAVE = yes ]; then
     save
 fi

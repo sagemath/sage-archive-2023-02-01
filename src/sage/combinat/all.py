@@ -107,6 +107,7 @@ from ordered_tree import (OrderedTree, OrderedTrees,
                           LabelledOrderedTree, LabelledOrderedTrees)
 from binary_tree import (BinaryTree, BinaryTrees,
                          LabelledBinaryTree, LabelledBinaryTrees)
+from interval_posets import (TamariIntervalPoset, TamariIntervalPosets)
 
 from combination import Combinations
 from cartesian_product import CartesianProduct

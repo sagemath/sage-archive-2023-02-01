@@ -301,6 +301,12 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         Convert ``x`` into this univariate polynomial ring,
         possibly non-canonically.
 
+        Conversion from power series::
+
+            sage: R.<x> = QQ[]
+            sage: R(1 + x + x^2 + O(x^3))
+            x^2 + x + 1
+
         Stacked polynomial rings coerce into constants if possible. First,
         the univariate case::
 

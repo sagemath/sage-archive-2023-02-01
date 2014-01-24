@@ -831,6 +831,18 @@ class IndexedFreeMonoid(IndexedMonoid):
         except TypeError: # Backup (if it is a string)
             return self.element_class(self, ((x,1),))
 
+    def cardinality(self):
+        r"""
+        Return the cardinality of ``self``, which is `\infty`.
+
+        EXAMPLES::
+
+            sage: F = IndexedFreeMonoid(ZZ)
+            sage: F.cardinality()
+            +Infinity
+        """
+        return infinity
+
 class IndexedFreeAbelianMonoid(IndexedMonoid):
     """
     Free abelian monoid with an indexed set of generators.
@@ -932,4 +944,16 @@ class IndexedFreeAbelianMonoid(IndexedMonoid):
             return self.element_class(self, {self._indices(x):1})
         except TypeError: # Backup (if it is a string)
             return self.element_class(self, {x:1})
+
+    def cardinality(self):
+        r"""
+        Return the cardinality of ``self``, which is `\infty`.
+
+        EXAMPLES::
+
+            sage: F = IndexedFreeAbelianMonoid(ZZ)
+            sage: F.cardinality()
+            +Infinity
+        """
+        return infinity
 

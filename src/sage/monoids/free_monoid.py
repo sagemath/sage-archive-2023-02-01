@@ -250,3 +250,17 @@ class FreeMonoid_class(Monoid_class):
             1
         """
         return self(1)
+
+    def cardinality(self):
+        r"""
+        Return the cardinality of ``self``, which is `\infty`.
+
+        EXAMPLES::
+
+            sage: F = FreeMonoid(2005, 'a')
+            sage: F.cardinality()
+            +Infinity
+        """
+        from sage.rings.infinity import infinity
+        return infinity
+

@@ -689,18 +689,20 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         - ``ffmpeg_options`` - string (default: ''); this string is
           passed directly to ffmpeg.
 
-        - ``delay`` - integer (default: None) delay in hundredths of a
-          second between frames; i.e., the framerate is 100/delay.
+        - ``delay`` - integer (default: None); delay in hundredths of a
+          second between frames.  The framerate is 100/delay.
           This is not supported for mpeg files: for mpegs, the frame
           rate is always 25 fps.
 
         - ``iterations`` - integer (default: 0); number of iterations
           of animation. If 0, loop forever.  This is only supported
-          for animated gif output.
+          for animated gif output and requires ffmpeg version 0.9 or
+          later.  For older versions, set ``iterations=None``.
 
         - ``pix_fmt`` - string (default: 'rgb24'); used only for gif
           output.  Different values such as 'rgb8' or 'pal8' may be
-          necessary depending on how ffmpeg was installed.
+          necessary depending on how ffmpeg was installed.  Set
+          ``pix_fmt=None`` to disable this option.
 
         If ``savefile`` is not specified: in notebook mode, display
         the animation; otherwise, save it to a default file name.  Use
@@ -758,7 +760,27 @@ please install it and try again."""
                 savefile += output_format
             early_options = ''
             if output_format == '.gif':
-                ffmpeg_options += ' -pix_fmt {0} -loop {1} '.format(pix_fmt,iterations)
+                # We try to set reasonable options for gif output.
+                #
+                # Older versions of ffmpeg (before 0.9, summer 2011)
+                # use the option -loop_output instead of -loop.
+                # Setting iterations=None is a way of preventing sage
+                # from adding the -loop option.  A separate
+                # -loop_output option can be added with the
+                # ffmpeg_options argument.
+                if iterations is not None:
+                    loop_cmd = '-loop {0} '.format(iterations)
+                else:
+                    loop_cmd = ''
+                # A pix_fmt value is required for some but not all
+                # ffmpeg installations.  Setting pix_fmt=None will
+                # prevent sage from adding this option, and it may be
+                # controlled separately through ffmpeg_options.
+                if pix_fmt is not None:
+                    pix_fmt_cmd = '-pix_fmt {0} '.format(pix_fmt)
+                else:
+                    pix_fmt_cmd = ''
+                ffmpeg_options += ' {0}{1}'.format(pix_fmt_cmd,loop_cmd)
             if delay is not None and output_format != '.mpeg' and output_format != '.mpg':
                 early_options += ' -r %s ' % int(100/delay)
             savefile = os.path.abspath(savefile)

@@ -1,7 +1,7 @@
 r"""
 Animated plots
 
-Animations are generated from a list (or other iteratable) of graphics
+Animations are generated from a list (or other iterable) of graphics
 objects.  Images are produced by calling the ``save_image`` method on
 each input object, and using ImageMagick's ``convert`` program [IM] or
 ``ffmpeg`` [FF] to generate an animation.  The output format is GIF by
@@ -658,7 +658,7 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         return have_program('ffmpeg')
 
     def ffmpeg(self, savefile=None, show_path=False, output_format=None,
-               ffmpeg_options='', delay=None, iterations=0):
+               ffmpeg_options='', delay=None, iterations=0, pix_fmt='rgb24'):
         r"""
         Returns a movie showing an animation composed from rendering
         the frames in self.
@@ -698,6 +698,10 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
           of animation. If 0, loop forever.  This is only supported
           for animated gif output.
 
+        - ``pix_fmt`` - string (default: 'rgb24'); used only for gif
+          output.  Different values such as 'rgb8' or 'pal8' may be
+          necessary depending on how ffmpeg was installed.
+
         If ``savefile`` is not specified: in notebook mode, display
         the animation; otherwise, save it to a default file name.  Use
         :func:`sage.misc.misc.set_verbose` with ``level=1`` to see
@@ -724,6 +728,11 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
               please install it and try again.
 
               See www.ffmpeg.org for more information.
+
+
+        TESTS::
+
+            sage: a.ffmpeg(output_format='gif',delay=30,iterations=5)     # optional -- ffmpeg
         """
         if not self._have_ffmpeg():
             msg = """Error: ffmpeg does not appear to be installed. Saving an animation to
@@ -749,9 +758,9 @@ please install it and try again."""
                 savefile += output_format
             early_options = ''
             if output_format == '.gif':
-                ffmpeg_options += ' -pix_fmt rgb24 -loop_output %s ' % iterations
+                ffmpeg_options += ' -pix_fmt {0} -loop {1} '.format(pix_fmt,iterations)
             if delay is not None and output_format != '.mpeg' and output_format != '.mpg':
-                early_options += ' -r %s -g 3 ' % int(100/delay)
+                early_options += ' -r %s ' % int(100/delay)
             savefile = os.path.abspath(savefile)
             pngdir = self.png()
             pngs = os.path.join(pngdir, "%08d.png")

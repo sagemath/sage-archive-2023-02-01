@@ -353,6 +353,172 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
                                   (p, coeff) in self(x)],
                                  distinct=True)
 
+    def retract_plain(self, f, m):
+        r"""
+        Return the plain retract of the element `f \in R S_n`
+        to `R S_m`, where `m \leq n` (and where `R S_n` is ``self``).
+
+        If `m` is a nonnegative integer less or equal to `n`, then the
+        plain retract from `S_n` to `S_m` is defined as an `R`-linear
+        map `S_n \to S_m` which sends every permutation `p \in S_n`
+        to
+
+        .. MATH::
+
+            \begin{cases} \mbox{pret}(p) &\mbox{if } \mbox{pret}(p)\mbox{ is defined;} \\
+            0 & \mbox{otherwise} \end{cases}.
+
+        Here `\mbox{pret}(p)` denotes the plain retract of the
+        permutation `p` to `S_m`, which is defined in
+        :meth:`~sage.combinat.permutation.Permutation.retract_plain`.
+
+        EXAMPLES::
+
+            sage: SGA3 = SymmetricGroupAlgebra(QQ, 3)
+            sage: SGA3.retract_plain(2*SGA3([1,2,3]) - 4*SGA3([2,1,3]) + 7*SGA3([1,3,2]), 2)
+            2*[1, 2] - 4*[2, 1]
+            sage: SGA3.retract_plain(2*SGA3([1,3,2]) - 5*SGA3([2,3,1]), 2)
+            0
+
+            sage: SGA5 = SymmetricGroupAlgebra(QQ, 5)
+            sage: SGA5.retract_plain(8*SGA5([1,4,2,5,3]) - 6*SGA5([1,3,2,5,4]) + 11*SGA5([3,2,1,4,5]), 4)
+            11*[3, 2, 1, 4]
+            sage: SGA5.retract_plain(8*SGA5([1,4,2,5,3]) - 6*SGA5([1,3,2,5,4]) + 11*SGA5([3,2,1,4,5]), 3)
+            11*[3, 2, 1]
+            sage: SGA5.retract_plain(8*SGA5([1,4,2,5,3]) - 6*SGA5([1,3,2,5,4]) + 11*SGA5([3,2,1,4,5]), 2)
+            0
+            sage: SGA5.retract_plain(8*SGA5([1,4,2,5,3]) - 6*SGA5([1,3,2,5,4]) + 11*SGA5([3,2,1,4,5]), 1)
+            0
+
+            sage: SGA5.retract_plain(8*SGA5([1,2,3,4,5]) - 6*SGA5([1,3,2,4,5]), 3)
+            8*[1, 2, 3] - 6*[1, 3, 2]
+            sage: SGA5.retract_plain(8*SGA5([1,2,3,4,5]) - 6*SGA5([1,3,2,4,5]), 1)
+            8*[1]
+            sage: SGA5.retract_plain(8*SGA5([1,2,3,4,5]) - 6*SGA5([1,3,2,4,5]), 0)
+            8*[]
+
+        .. SEEALSO::
+
+            :meth:`retract_direct_product`, :meth:`retract_okounkov_vershik`
+        """
+        RSm = SymmetricGroupAlgebra(self.base_ring(), m)
+        pairs = []
+        for (p, coeff) in f.monomial_coefficients().iteritems():
+            p_ret = p.retract_plain(m)
+            if not (p_ret is None):
+                pairs.append((p_ret, coeff))
+        return RSm.sum_of_terms(pairs, distinct=True)
+
+    def retract_direct_product(self, f, m):
+        r"""
+        Return the direct-product retract of the element `f \in R S_n`
+        to `R S_m`, where `m \leq n` (and where `R S_n` is ``self``).
+
+        If `m` is a nonnegative integer less or equal to `n`, then the
+        direct-product retract from `S_n` to `S_m` is defined as an
+        `R`-linear map `S_n \to S_m` which sends every permutation
+        `p \in S_n` to
+
+        .. MATH::
+
+            \begin{cases} \mbox{dret}(p) &\mbox{if } \mbox{dret}(p)\mbox{ is defined;} \\
+            0 & \mbox{otherwise} \end{cases}.
+
+        Here `\mbox{dret}(p)` denotes the direct-product retract of the
+        permutation `p` to `S_m`, which is defined in
+        :meth:`~sage.combinat.permutation.Permutation.retract_direct_product`.
+
+        EXAMPLES::
+
+            sage: SGA3 = SymmetricGroupAlgebra(QQ, 3)
+            sage: SGA3.retract_direct_product(2*SGA3([1,2,3]) - 4*SGA3([2,1,3]) + 7*SGA3([1,3,2]), 2)
+            2*[1, 2] - 4*[2, 1]
+            sage: SGA3.retract_direct_product(2*SGA3([1,3,2]) - 5*SGA3([2,3,1]), 2)
+            0
+
+            sage: SGA5 = SymmetricGroupAlgebra(QQ, 5)
+            sage: SGA5.retract_direct_product(8*SGA5([1,4,2,5,3]) - 6*SGA5([1,3,2,5,4]) + 11*SGA5([3,2,1,4,5]), 4)
+            11*[3, 2, 1, 4]
+            sage: SGA5.retract_direct_product(8*SGA5([1,4,2,5,3]) - 6*SGA5([1,3,2,5,4]) + 11*SGA5([3,2,1,4,5]), 3)
+            -6*[1, 3, 2] + 11*[3, 2, 1]
+            sage: SGA5.retract_direct_product(8*SGA5([1,4,2,5,3]) - 6*SGA5([1,3,2,5,4]) + 11*SGA5([3,2,1,4,5]), 2)
+            0
+            sage: SGA5.retract_direct_product(8*SGA5([1,4,2,5,3]) - 6*SGA5([1,3,2,5,4]) + 11*SGA5([3,2,1,4,5]), 1)
+            2*[1]
+
+            sage: SGA5.retract_direct_product(8*SGA5([1,2,3,4,5]) - 6*SGA5([1,3,2,4,5]), 3)
+            8*[1, 2, 3] - 6*[1, 3, 2]
+            sage: SGA5.retract_direct_product(8*SGA5([1,2,3,4,5]) - 6*SGA5([1,3,2,4,5]), 1)
+            2*[1]
+            sage: SGA5.retract_direct_product(8*SGA5([1,2,3,4,5]) - 6*SGA5([1,3,2,4,5]), 0)
+            2*[]
+
+        .. SEEALSO::
+
+            :meth:`retract_plain`, :meth:`retract_okounkov_vershik`
+        """
+        RSm = SymmetricGroupAlgebra(self.base_ring(), m)
+        dct = {}
+        for (p, coeff) in f.monomial_coefficients().iteritems():
+            p_ret = p.retract_direct_product(m)
+            if not (p_ret is None):
+                if not p_ret in dct.keys():
+                    dct[p_ret] = coeff
+                else:
+                    dct[p_ret] += coeff
+        return RSm._from_dict(dct)
+
+    def retract_okounkov_vershik(self, f, m):
+        r"""
+        Return the Okounkov-Vershik retract of the element `f \in R S_n`
+        to `R S_m`, where `m \leq n` (and where `R S_n` is ``self``).
+
+        If `m` is a nonnegative integer less or equal to `n`, then the
+        Okounkov-Vershik retract from `S_n` to `S_m` is defined as an
+        `R`-linear map `S_n \to S_m` which sends every permutation
+        `p \in S_n` to the Okounkov-Vershik retract of the permutation
+        `p` to `S_m`, which is defined in
+        :meth:`~sage.combinat.permutation.Permutation.retract_okounkov_vershik`.
+
+        EXAMPLES::
+
+            sage: SGA3 = SymmetricGroupAlgebra(QQ, 3)
+            sage: SGA3.retract_okounkov_vershik(2*SGA3([1,2,3]) - 4*SGA3([2,1,3]) + 7*SGA3([1,3,2]), 2)
+            9*[1, 2] - 4*[2, 1]
+            sage: SGA3.retract_okounkov_vershik(2*SGA3([1,3,2]) - 5*SGA3([2,3,1]), 2)
+            2*[1, 2] - 5*[2, 1]
+
+            sage: SGA5 = SymmetricGroupAlgebra(QQ, 5)
+            sage: SGA5.retract_okounkov_vershik(8*SGA5([1,4,2,5,3]) - 6*SGA5([1,3,2,5,4]) + 11*SGA5([3,2,1,4,5]), 4)
+            -6*[1, 3, 2, 4] + 8*[1, 4, 2, 3] + 11*[3, 2, 1, 4]
+            sage: SGA5.retract_okounkov_vershik(8*SGA5([1,4,2,5,3]) - 6*SGA5([1,3,2,5,4]) + 11*SGA5([3,2,1,4,5]), 3)
+            2*[1, 3, 2] + 11*[3, 2, 1]
+            sage: SGA5.retract_okounkov_vershik(8*SGA5([1,4,2,5,3]) - 6*SGA5([1,3,2,5,4]) + 11*SGA5([3,2,1,4,5]), 2)
+            13*[1, 2]
+            sage: SGA5.retract_okounkov_vershik(8*SGA5([1,4,2,5,3]) - 6*SGA5([1,3,2,5,4]) + 11*SGA5([3,2,1,4,5]), 1)
+            13*[1]
+
+            sage: SGA5.retract_okounkov_vershik(8*SGA5([1,2,3,4,5]) - 6*SGA5([1,3,2,4,5]), 3)
+            8*[1, 2, 3] - 6*[1, 3, 2]
+            sage: SGA5.retract_okounkov_vershik(8*SGA5([1,2,3,4,5]) - 6*SGA5([1,3,2,4,5]), 1)
+            2*[1]
+            sage: SGA5.retract_okounkov_vershik(8*SGA5([1,2,3,4,5]) - 6*SGA5([1,3,2,4,5]), 0)
+            2*[]
+
+        .. SEEALSO::
+
+            :meth:`retract_plain`, :meth:`retract_direct_product`
+        """
+        RSm = SymmetricGroupAlgebra(self.base_ring(), m)
+        dct = {}
+        for (p, coeff) in f.monomial_coefficients().iteritems():
+            p_ret = p.retract_okounkov_vershik(m)
+            if not p_ret in dct.keys():
+                dct[p_ret] = coeff
+            else:
+                dct[p_ret] += coeff
+        return RSm._from_dict(dct)
+
 #     def _coerce_start(self, x):
 #         """
 #         Coerce things into the symmetric group algebra.

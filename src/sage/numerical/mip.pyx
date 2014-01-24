@@ -202,7 +202,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
       - Gurobi (``solver="Gurobi"``). See the `Gurobi <http://www.gurobi.com/>`_
           web site.
 
-      - PPL (``solver="PPL"``). See the 'PPL<http://bugseng.com/products/ppl>'_
+      - PPL (``solver="PPL"``). See the `PPL<http://bugseng.com/products/ppl>`_
           web site.
 
       - If ``solver=None`` (default), the default solver is used (see

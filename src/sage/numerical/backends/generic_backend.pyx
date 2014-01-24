@@ -141,7 +141,7 @@ cdef class GenericBackend:
 
             *  1  Integer
             *  0  Binary
-            * -1  Continuous
+            *  -1  Continuous
 
         EXAMPLE::
 

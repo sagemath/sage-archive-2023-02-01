@@ -1565,6 +1565,42 @@ class DyckWord(CombinatorialObject, Element):
             [[[., .], .], .]
         """
         return self.to_binary_tree("L1R0")
+    
+    def tamari_interval(self, other):
+        r"""
+        Return the Tamari interval between ``self`` and ``other`` as a
+        :class:`TamariIntervalPoset`.
+        
+        INPUT:
+
+        - ``other`` -- an other Dyck word greater than ``self`` for the 
+         Tamari order.
+
+        EXAMPLES::
+
+            sage: dw = DyckWord([1, 1, 0, 1, 0, 0, 1, 0])
+            sage: ip = dw.tamari_interval(DyckWord([1, 1, 1, 0, 0, 1, 0, 0])); ip
+            The tamari interval of size 4 induced by relations [(2, 4), (3, 4), (3, 1), (2, 1)]
+            sage: ip.lower_dyck_word()
+            [1, 1, 0, 1, 0, 0, 1, 0]
+            sage: ip.upper_dyck_word()
+            [1, 1, 1, 0, 0, 1, 0, 0]
+            sage: ip.interval_size()
+            4
+            sage: ip.length_of_maximal_chain()
+            3
+            sage: list(ip.dyck_words())
+            [[1, 1, 1, 0, 0, 1, 0, 0],
+             [1, 1, 1, 0, 0, 0, 1, 0],
+             [1, 1, 0, 1, 0, 1, 0, 0],
+             [1, 1, 0, 1, 0, 0, 1, 0]]
+            sage: dw.tamari_interval(DyckWord([1,1,0,0,1,1,0,0]))
+            Traceback (most recent call last):
+            ...
+            ValueError: The two Dyck words are not comparable on the Tamari lattice.
+        """
+        from sage.combinat.interval_posets import TamariIntervalPosets
+        return TamariIntervalPosets.from_dyck_words(self,other)
 
     def to_area_sequence(self):
         r"""

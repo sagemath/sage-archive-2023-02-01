@@ -114,6 +114,9 @@ Below are listed all methods and classes defined in this file.
     :meth:`~sage.combinat.permutation.Permutation.right_tableau` | Returns the right standard tableau after performing the RSK algorithm.
     :meth:`~sage.combinat.permutation.Permutation.RS_partition` | Returns the shape of the tableaux obtained by the RSK algorithm.
     :meth:`~sage.combinat.permutation.Permutation.remove_extra_fixed_points` | Returns the permutation obtained by removing any fixed points at the end of ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.retract_plain` | Returns the plain retract of ``self`` to a smaller symmetric group `S_m`.
+    :meth:`~sage.combinat.permutation.Permutation.retract_direct_product` | Returns the direct-product retract of ``self`` to a smaller symmetric group `S_m`.
+    :meth:`~sage.combinat.permutation.Permutation.retract_okounkov_vershik` | Returns the Okounkov-Vershik retract of ``self`` to a smaller symmetric group `S_m`.
     :meth:`~sage.combinat.permutation.Permutation.hyperoctahedral_double_coset_type` | Returns the coset-type of ``self`` as a partition.
     :meth:`~sage.combinat.permutation.Permutation.binary_search_tree_shape` | Returns the shape of the binary search tree of ``self`` (a non labelled binary tree).
     :meth:`~sage.combinat.permutation.Permutation.shifted_concatenation` | Returns the right (or left) shifted concatenation of ``self`` with a permutation ``other``.
@@ -3949,6 +3952,10 @@ class Permutation(CombinatorialObject, Element):
             [2, 1]
             sage: Permutation([1,2,3,4]).remove_extra_fixed_points()
             [1]
+
+        .. SEEALSO::
+
+            :meth:`retract_plain`
         """
         #Strip off all extra fixed points at the end of
         #the permutation.
@@ -3958,6 +3965,184 @@ class Permutation(CombinatorialObject, Element):
                 break
             i -= 1
         return Permutations()(self[:i+1])
+
+    def retract_plain(self, m):
+        r"""
+        Return the plain retract of the permutation ``self`` `\in S_n`
+        to `S_m`, where `m \leq n`. If this retract is undefined, then
+        ``None`` is returned.
+
+        If `p \in S_n` is a permutation, and `m` is a nonnegative integer
+        less or equal to `n`, then the plain retract of `p` to `S_m` is
+        defined only if every `i > m` satisfies `p(i) = i`. In this case,
+        it is defined as the permutation written
+        `(p(1), p(2), \ldots, p(m))` in one-line notation.
+
+        EXAMPLES::
+
+            sage: Permutation([4,1,2,3,5]).retract_plain(4)
+            [4, 1, 2, 3]
+            sage: Permutation([4,1,2,3,5]).retract_plain(3)
+            <BLANKLINE>
+
+            sage: Permutation([1,3,2,4,5,6]).retract_plain(3)
+            [1, 3, 2]
+            sage: Permutation([1,3,2,4,5,6]).retract_plain(2)
+            <BLANKLINE>
+
+            sage: Permutation([1,2,3,4,5]).retract_plain(1)
+            [1]
+            sage: Permutation([1,2,3,4,5]).retract_plain(0)
+            []
+
+            sage: all( p.retract_plain(3) == p for p in Permutations(3) )
+            True
+
+        .. SEEALSO::
+
+            :meth:`retract_direct_product`, :meth:`retract_okounkov_vershik`,
+            :meth:`remove_extra_fixed_points`
+        """
+        n = len(self)
+        p = list(self)
+        for i in range(m, n):
+            if p[i] != i + 1:
+                return None
+        return Permutations(m)(p[:m])
+
+    def retract_direct_product(self, m):
+        r"""
+        Return the direct-product retract of the permutation
+        ``self`` `\in S_n` to `S_m`, where `m \leq n`. If this retract
+        is undefined, then ``None`` is returned.
+
+        If `p \in S_n` is a permutation, and `m` is a nonnegative integer
+        less or equal to `n`, then the direct-product retract of `p` to
+        `S_m` is defined only if `p([m]) = [m]`, where `[m]` denotes the
+        interval `\{1, 2, \ldots, m\}`. In this case, it is defined as the
+        permutation written `(p(1), p(2), \ldots, p(m))` in one-line
+        notation.
+
+        EXAMPLES::
+
+            sage: Permutation([4,1,2,3,5]).retract_direct_product(4)
+            [4, 1, 2, 3]
+            sage: Permutation([4,1,2,3,5]).retract_direct_product(3)
+            <BLANKLINE>
+
+            sage: Permutation([1,4,2,3,6,5]).retract_direct_product(5)
+            <BLANKLINE>
+            sage: Permutation([1,4,2,3,6,5]).retract_direct_product(4)
+            [1, 4, 2, 3]
+            sage: Permutation([1,4,2,3,6,5]).retract_direct_product(3)
+            <BLANKLINE>
+            sage: Permutation([1,4,2,3,6,5]).retract_direct_product(2)
+            <BLANKLINE>
+            sage: Permutation([1,4,2,3,6,5]).retract_direct_product(1)
+            [1]
+            sage: Permutation([1,4,2,3,6,5]).retract_direct_product(0)
+            []
+
+            sage: all( p.retract_direct_product(3) == p for p in Permutations(3) )
+            True
+
+        .. SEEALSO::
+
+            :meth:`retract_plain`, :meth:`retract_okounkov_vershik`
+        """
+        n = len(self)
+        p = list(self)
+        for i in range(m, n):
+            if p[i] <= m:
+                return None
+        return Permutations(m)(p[:m])
+
+    def retract_okounkov_vershik(self, m):
+        r"""
+        Return the Okounkov-Vershik retract of the permutation
+        ``self`` `\in S_n` to `S_m`, where `m \leq n`.
+
+        If `p \in S_n` is a permutation, and `m` is a nonnegative integer
+        less or equal to `n`, then the Okounkov-Vershik retract of `p` to
+        `S_m` is defined as the permutation in `S_m` which sends every
+        `i \in \{1, 2, \ldots, m\}` to `p^{k_i}(i)`, where `k_i` is the
+        smallest positive integer `k` satisfying `p^k(i) \leq m`.
+        
+        In other words, the Okounkov-Vershik retract of `p` is the
+        permutation whose disjoint cycle decomposition is obtained by
+        removing all letters `> m` from the decomposition of `p` into
+        disjoint cycles (and removing all cycles which are emptied in
+        the process).
+
+        When `m = n-1`, the Okounkov-Vershik retract (as a map
+        `S_n \to S_{n-1}`) is the map `\widetilde{p}_n` introduced in
+        Section 7 of [OkounkovVershik2]_, and appears as (3.20) in
+        [CST10]_. In the general case, the Okounkov-Vershik retract
+        of a permutation in `S_n` to `S_m` can be obtained by first
+        taking its Okounkov-Vershik retract to `S_{n-1}`, then that
+        of the resulting permutation to `S_{n-2}`, etc. until arriving
+        in `S_m`.
+
+        REFERENCES:
+
+        .. [OkounkovVershik2] A. M. Vershik, A. Yu. Okounkov,
+           *A New Approach to the Representation Thoery of the Symmetric
+           Groups. 2*. :arxiv:`http://uk.arxiv.org/abs/math/0503040v3`.
+
+        .. [CST10] Tullio Ceccherini-Silberstein, Fabio Scarabotti,
+           Filippo Tolli,
+           *Representation Theory of the Symmetric Groups: The
+           Okounkov-Vershik Approach, Character Formulas, and Partition
+           Algebras*, CUP 2010.
+
+        EXAMPLES::
+
+            sage: Permutation([4,1,2,3,5]).retract_okounkov_vershik(4)
+            [4, 1, 2, 3]
+            sage: Permutation([4,1,2,3,5]).retract_okounkov_vershik(3)
+            [3, 1, 2]
+            sage: Permutation([4,1,2,3,5]).retract_okounkov_vershik(2)
+            [2, 1]
+            sage: Permutation([4,1,2,3,5]).retract_okounkov_vershik(1)
+            [1]
+            sage: Permutation([4,1,2,3,5]).retract_okounkov_vershik(0)
+            []
+
+            sage: Permutation([1,4,2,3,6,5]).retract_okounkov_vershik(5)
+            [1, 4, 2, 3, 5]
+            sage: Permutation([1,4,2,3,6,5]).retract_okounkov_vershik(4)
+            [1, 4, 2, 3]
+            sage: Permutation([1,4,2,3,6,5]).retract_okounkov_vershik(3)
+            [1, 3, 2]
+            sage: Permutation([1,4,2,3,6,5]).retract_okounkov_vershik(2)
+            [1, 2]
+            sage: Permutation([1,4,2,3,6,5]).retract_okounkov_vershik(1)
+            [1]
+            sage: Permutation([1,4,2,3,6,5]).retract_okounkov_vershik(0)
+            []
+
+            sage: Permutation([6,5,4,3,2,1]).retract_okounkov_vershik(5)
+            [1, 5, 4, 3, 2]
+            sage: Permutation([6,5,4,3,2,1]).retract_okounkov_vershik(4)
+            [1, 2, 4, 3]
+
+            sage: Permutation([1,5,2,6,3,7,4,8]).retract_okounkov_vershik(4)
+            [1, 3, 2, 4]
+
+            sage: all( p.retract_direct_product(3) == p for p in Permutations(3) )
+            True
+
+        .. SEEALSO::
+
+            :meth:`retract_plain`, :meth:`retract_direct_product`
+        """
+        res = []
+        for i in range(1, m + 1):
+            j = self(i)
+            while j > m:
+                j = self(j)
+            res.append(j)
+        return Permutations(m)(res)
 
     def hyperoctahedral_double_coset_type(self):
         r"""

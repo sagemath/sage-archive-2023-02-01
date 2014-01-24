@@ -805,14 +805,14 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
         Let `n` be a nonnegative integer. Let `R` be a `\QQ`-algebra.
         In the following, we will use the "left action" convention for
-        multiplying permutations. This means that we set for all
-        permutations `p` and `q` in `S_n`, the product `pq` is defined
-        in such a way that `(pq)(i) = p(q(i))` for each
-        `i \in \{ 1, 2, \ldots, n \}` (this is the same
-        convention as in :meth:`left_action_product`, but not the
-        default semantics of the `*` operator on permutations in Sage).
-        Thus, for instance, `s_2 s_1` is the permutation obtained by
-        first transposing `1` with `2` and then transposing `2` with `3`.
+        multiplying permutations. This means that for all permutations
+        `p` and `q` in `S_n`, the product `pq` is defined in such a way
+        that `(pq)(i) = p(q(i))` for each `i \in \{ 1, 2, \ldots, n \}`
+        (this is the same convention as in :meth:`left_action_product`,
+        but not the default semantics of the `*` operator on
+        permutations in Sage). Thus, for instance, `s_2 s_1` is the
+        permutation obtained by first transposing `1` with `2` and
+        then transposing `2` with `3` (where `s_i = (i, i+1)`).
 
         For every partition `\lambda` of `n`, let `\kappa_\lambda`
         denote `n!` divided by the number of standard Young tableaux
@@ -838,12 +838,12 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         Define an element `e(T)` of `R S_n` to be `a(T) b(T)`. (This
         is implemented in :function:`e` for `R = \QQ`.)
 
-        Let `\mathrm{sh}()T` denote the shape of `T`.
+        Let `\mathrm{sh}(T)` denote the shape of `T`.
         (See :meth:`~sage.combinat.tableau.Tableau.shape`.)
 
         Let `\overline{T}` denote the standard tableau of size `n-1`
         obtained by removing the letter `n` (along with its cell) from
-        `T`.
+        `T` (if `n \geq 1`).
 
         Now, we define an element `\epsilon(T)` of `R S_n`. We define
         it by induction on the size `n` of `T`, so we set
@@ -861,7 +861,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         :function:`epsilon` for `R = \QQ`, but it is also a particular
         case of the elements `\epsilon(T, S)` defined below.
 
-        Now let `S` be a further tableau of the same shape of `T`
+        Now let `S` be a further tableau of the same shape as `T`
         (possibly equal to `T`). Let `\pi_{T, S}` denote the
         permutation in `S_n` such that applying this permutation to
         the entries of `T` yields the tableau `S`. Define an element
@@ -1005,7 +1005,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         The element `\epsilon(I, K)`, where `I` and `K` are the tableaux
         obtained by removing all entries higher than `n - \mathrm{star}`
         from ``itab`` and ``ktab``, respectively. Here, we are using the
-        notations from :meth:`~seminormal_basis`.
+        notations from :meth:`seminormal_basis`.
 
         EXAMPLES::
 
@@ -1106,8 +1106,8 @@ def epsilon_ik(itab, ktab, star=0):
 epsilon_cache = {}
 def epsilon(tab, star=0):
     r"""
-    The `(t, t)`-th entry of the seminormal basis of the group
-    algebra `\QQ[S_n]`, where `t` is the tableau ``tab`` (with its
+    The `(T, T)`-th element of the seminormal basis of the group
+    algebra `\QQ[S_n]`, where `T` is the tableau ``tab`` (with its
     ``star`` highest entries removed if the optional variable
     ``star`` is set).
 

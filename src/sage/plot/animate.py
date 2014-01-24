@@ -124,14 +124,14 @@ class Animation(SageObject):
 
 
     - ``v`` - iterable of Sage objects. These should preferably be
-       graphics objects, but if they aren't then :meth:`make_image` is
-       called on them.
+      graphics objects, but if they aren't then :meth:`make_image` is
+      called on them.
 
     - ``xmin, xmax, ymin, ymax`` - the ranges of the x and y axes.
 
     - ``**kwds`` - all additional inputs are passed onto the rendering
-       command. E.g., use figsize to adjust the resolution and aspect
-       ratio.
+      command. E.g., use figsize to adjust the resolution and aspect
+      ratio.
 
 
     EXAMPLES::
@@ -167,13 +167,13 @@ class Animation(SageObject):
 
     TESTS:
 
-    This illustrates that ticket #2066 is fixed (setting axes
+    This illustrates that :trac:`2066` is fixed (setting axes
     ranges when an endpoint is 0)::
 
         sage: animate([plot(sin, -1,1)], xmin=0, ymin=0)._kwds['xmin']
         0
 
-    We check that Trac #7981 is fixed::
+    We check that :trac:`7981` is fixed::
 
         sage: a = animate([plot(sin(x + float(k)), (0, 2*pi), ymin=-5, ymax=5)
         ....:            for k in srange(0,2*pi,0.3)])
@@ -218,7 +218,7 @@ class Animation(SageObject):
             sage: list(sorted(kwds.items()))
             [('a', 1), ('b', 3), ('xmax', 5), ('xmin', 0)]
 
-        Test that the bug reported in ticket #12107 has been fixed::
+        Test that the bug reported in :trac:`12107` has been fixed::
 
             sage: kwds3 = {}
             sage: kwds4 = {'b':3, 'xmin':0, 'xmax':4}
@@ -344,6 +344,7 @@ class Animation(SageObject):
         Length of self
 
         EXAMPLES::
+
             sage: a = animate([circle((i,0),1,thickness=20*i) for i in srange(0,2,0.4)],
             ....:                xmin=0, ymin=-1, xmax=3, ymax=1, figsize=[2,1], axes=False)
             sage: len(a)

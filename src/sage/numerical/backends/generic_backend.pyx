@@ -983,11 +983,12 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
     - ``constraint_generation``
 
       - When set to ``True``, after solving the ``MixedIntegerLinearProgram``,
-        it is possible to add or modify a constraint, and then solve it again.
+        it is possible to add a constraint, and then solve it again.
         The effect is that solvers that do not support this feature will not be
         used when ``solver=None``,
 
-      - When set to ``False`` (default), this is not possible.
+      - When set to ``False`` (default), also solvers that do not support this
+        feature may be used when ``solver=None``.
 
     .. SEEALSO::
 

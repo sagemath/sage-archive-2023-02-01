@@ -219,11 +219,12 @@ cdef class MixedIntegerLinearProgram(SageObject):
     - ``constraint_generation``
 
       - When set to ``True``, after solving the ``MixedIntegerLinearProgram``,
-        it is possible to add or modify a constraint, and then solve it again.
+        it is possible to add a constraint, and then solve it again.
         The effect is that solvers that do not support this feature will not be
         used when ``solver=None``,
 
-      - When set to ``False`` (default), this is not possible.
+      - When set to ``False`` (default), also solvers that do not support this
+        feature may be used when ``solver=None``.
 
     .. SEEALSO::
 
@@ -282,12 +283,12 @@ cdef class MixedIntegerLinearProgram(SageObject):
         - ``constraint_generation``
 
           - When set to ``True``, after solving the
-            ``MixedIntegerLinearProgram``, it is possible to add or modify a
-            constraint, and then solve it again. The effect is that solvers
-            that do not support this feature will not be used when
-            ``solver=None``,
+            ``MixedIntegerLinearProgram``, it is possible to add a constraint,
+            and then solve it again. The effect is that solvers that do not
+            support this feature will not be used when ``solver=None``,
 
-          - When set to ``False`` (default), this is not possible.
+          - When set to ``False`` (default), also solvers that do not support
+            this feature may be used when ``solver=None``.
 
         - ``check_redundant`` -- whether to check that constraints added to the
           program are redundant with constraints already in the program.

@@ -1,31 +1,32 @@
-# Very loosely based on configure.ac in prereq-0.3 written by William Stein.
-# Version 0.7 written by David Kirkby, released under the GPL version 2.
-# in January 2010
+dnl Very loosely based on configure.ac in prereq-0.3 written by William Stein.
+dnl Version 0.7 written by David Kirkby, released under the GPL version 2.
+dnl in January 2010
 
-# If you are going to update this, please stick the recommended layout
-# in the autoconf manual - i.e.
+dnl If you are going to update this, please stick the recommended layout
+dnl in the autoconf manual - i.e.
 
-# First check for programs
-# Next check for libraries
-# Next check for header files.
-# Next check for types.
-# Next check for structures.
-# Next check compiler characteristics
-# Next check for library functions
-# Next check for system services
+dnl First check for programs
+dnl Next check for libraries
+dnl Next check for header files
+dnl Next check for types
+dnl Next check for structures
+dnl Next check compiler characteristics
+dnl Next check for library functions
+dnl Next check for system services
 
-# We do not want to update this configure.ac each time a new Sage is released
-# so I am putting 'x.y.z'
+dnl Older versions give "undefined macro: _m4_divert_diversion", see
+dnl http://trac.sagemath.org/ticket/15606#comment:19
+AC_PREREQ([2.64])
 
-AC_INIT([Sage],[x.y.z], sage-devel@googlegroups.com)
-AC_PREREQ([2.60])
+AC_DEFUN([SAGE_VERSION], m4_esyscmd_s([. src/bin/sage-version.sh && echo $SAGE_VERSION]))
+AC_INIT([Sage], SAGE_VERSION, [sage-devel@googlegroups.com])
 
-AC_COPYRIGHT([GPL version 2 or (at your option) any later version])
+AC_COPYRIGHT([GPL version 3])
 AC_CONFIG_SRCDIR([configure.ac])
 AC_CONFIG_AUX_DIR([config])
 
-# We don't really use automake, but configure needs aclocal and the
-# automake library files (like config.guess).
+dnl We don't really use automake, but configure needs aclocal and the
+dnl automake library files (like config.guess).
 AM_INIT_AUTOMAKE([1.9.6 foreign])
 
 # Allow "configure --disable-maintainer-mode" to disable timestamp checking
@@ -56,6 +57,98 @@ then
 fi
 
 #---------------------------------------------------------
+# Check whether we are on a supported platform
+AC_CANONICAL_BUILD()
+AC_CANONICAL_HOST()
+
+case $host in
+*-*-sunos*|*-*-solaris2.[1-9])
+AC_MSG_ERROR([[
+Sage is not supported on any version of Solaris earlier than 10.
+Sage has been tested on the first release of Solaris 10
+(03/2005) and works on that. Sage may or may not work with
+your version of Solaris.
+
+More information can be found about Sage on Solaris
+on the Wiki at http://wiki.sagemath.org/solaris]]);;
+
+*-*-darwin[1-7].*)
+AC_MSG_ERROR([[
+Sage has never been built on OS X 10.3 (Panther)
+or earlier. The oldest version of OS X successfully used
+is OS X version 10.4 (Tiger). You might consider updating
+your version of OS X if your hardware permits this, but
+Apple charges for upgrades of OS X]]);;
+
+*-*-hpux*)
+AC_MSG_ERROR([[
+You are attempting to build Sage on HP's HP-UX operating system,
+which is not a supported platform for Sage yet though
+some work has been done on HP-UX. A port does not look to
+be particularly difficult. Some information can be
+found on the Sage Wiki at http://wiki.sagemath.org/HP-UX
+
+If you would like to help port Sage to HP-UX,
+please join the sage-devel discussion list - see
+http://groups.google.com/group/sage-devel
+The Sage community would also appreciate any patches you submit]]);;
+
+*-*-aix*)
+AC_MSG_ERROR([[
+You are attempting to build Sage on IBM's AIX operating system,
+which is not a supported platform for Sage yet. Things may or
+may not work. If you would like to help port Sage to AIX,
+please join the sage-devel discussion list - see
+http://groups.google.com/group/sage-devel
+The Sage community would also appreciate any patches you submit]]);;
+
+*-*-irix*)
+AC_MSG_ERROR([[
+You are attempting to build Sage on SGI's IRIX operating system,
+which is not a supported platform for Sage yet. Things may or
+may not work. If you would like to help port Sage to IRIX,
+please join the sage-devel discussion list - see
+http://groups.google.com/group/sage-devel
+The Sage community would also appreciate any patches you submit]]);;
+
+*-*-osf*)
+AC_MSG_ERROR([[
+You are attempting to build Sage on HP's Tru64 operating system,
+which is not a supported platform for Sage yet. Things may or
+may not work. If you would like to help port Sage to Tru64,
+please join the sage-devel discussion list - see
+http://groups.google.com/group/sage-devel
+The Sage community would also appreciate any patches you submit]]);;
+
+*-*-freebsd*)
+AC_MSG_ERROR([[
+You are attempting to build Sage on the FreeBSD operating system,
+which is not a supported platform for Sage yet, though
+developers are working on adding FreeBSD support. Things may or
+may not work. If you would like to help port Sage to FreeBSD,
+please join the sage-devel discussion list - see
+http://groups.google.com/group/sage-devel
+The Sage community would also appreciate any patches you submit]]);;
+
+# The following are all supported platforms.
+*-*-linux*);;
+*-*-darwin*);;
+*-*-solaris*);;
+*-*-cygwin*);;
+
+# Wildcard for other unsupported platforms
+*)
+AC_MSG_ERROR([[
+You are attempting to build Sage on $host,
+which is not a supported platform for Sage yet. Things may or
+may not work. If you would like to help port Sage to $host,
+please join the sage-devel discussion list - see
+http://groups.google.com/group/sage-devel
+The Sage community would also appreciate any patches you submit]]);;
+esac
+
+
+dnl Check compiler versions
 buggy_gcc_version1="4.0.0"
 minimum_gcc_version_for_no_hassle="4.0.1"
 minimum_gcc_version_for_debugging_purposes="3.4.0"
@@ -69,12 +162,6 @@ AC_ARG_ENABLE([compiler-checks], [Check versions and presence of C, C++ and Fort
 
 # Import environment variables.
 source src/bin/sage-env || AC_MSG_ERROR([failed to source sage-env])
-
-#---------------------------------------------------------
-#   Hardware architecture
-#
-AC_CANONICAL_BUILD
-AC_CANONICAL_HOST
 
 #---------------------------------------------------------
 # Check some programs needed actually exist.
@@ -112,6 +199,53 @@ then
     AC_MSG_NOTICE([On some systems 'strip' can be found in /usr/ccs/bin ])
     AC_MSG_NOTICE(['strip' is also part of the GNU 'binutils' package.])
     AC_MSG_ERROR([Exiting, as 'strip' can not be found.])
+fi
+
+# Check tar
+AC_CACHE_CHECK([for GNU or BSD tar], [ac_cv_path_TAR], [
+AC_PATH_PROGS_FEATURE_CHECK(TAR, [tar gtar], [[
+ac_version_TAR=`$ac_path_TAR --version 2>&1`
+if echo "$ac_version_TAR" | grep >/dev/null GNU; then
+    ac_cv_path_TAR=$ac_path_TAR
+    if test $ac_prog = tar; then
+        ac_path_TAR_found=:
+    fi
+fi
+if echo "$ac_version_TAR" | grep >/dev/null bsdtar; then
+    ac_cv_path_TAR=$ac_path_TAR
+    if test $ac_prog = tar; then
+        ac_path_TAR_found=:
+    fi
+fi
+]],
+[AC_MSG_ERROR([could not find either a GNU or BSD version of tar])],
+[$PATH:/usr/sfw/bin])
+])
+
+command_TAR=`command -v tar 2>/dev/null`
+AS_IF([test x$command_TAR != x$ac_cv_path_TAR],
+      [AC_MSG_ERROR([[found a good version of tar in $ac_cv_path_TAR, but it's not the first "tar" program in your PATH]])]
+)
+
+# Check make (unless MAKE is set)
+if test -z "$MAKE"; then
+    AC_CACHE_CHECK([for GNU make], [ac_cv_path_MAKE], [
+    AC_PATH_PROGS_FEATURE_CHECK(MAKE, [make gmake], [[
+    ac_version_MAKE=`$ac_path_MAKE --version 2>&1`
+    if echo "$ac_version_MAKE" | grep >/dev/null GNU; then
+        ac_cv_path_MAKE=$ac_path_MAKE
+        if test $ac_prog = make; then
+            ac_path_MAKE_found=:
+        fi
+    fi
+    ]],
+    [AC_MSG_ERROR([could not find a GNU version of make])],
+    [$PATH:/usr/sfw/bin])
+    ])
+
+    command_MAKE=`command -v make 2>/dev/null`
+    AS_IF([test x$command_MAKE != x$ac_cv_path_MAKE],
+          [AC_MSG_ERROR([[found GNU make in $ac_cv_path_MAKE, but it's not the first "make" program in your PATH]])])
 fi
 
 # Check for Latex, the use of which is less important in Sage than
@@ -398,73 +532,85 @@ AC_CHECK_LIB(m,sqrt,[],[
                        AC_MSG_ERROR([Exiting, since a maths library was not found.])
                        ])
 
-# Next check for system services
+# Check for system services
 
-# Test for old versions of Solaris, and issue a warning if too old.
-# Advise people to upgrade their Solaris version, but issue a warning
-# in the unlikely event their hardware is too old to run Solaris 10
-# or later.
+# Check that we are not building in a directory containing spaces
+AS_IF([echo "$ac_pwd" |grep " " >/dev/null],
+      AC_MSG_ERROR([the path to the Sage root directory ($ac_pwd) contains a space. Sage will not build correctly in this case])
+)
 
-case "$build_os" in
-    solaris2.?|solaris2.?.*)
-    AC_MSG_WARN([*********************************************************])
-    AC_MSG_WARN([*********************************************************])
-    AC_MSG_WARN([You are using an older version of Solaris.               ])
-    AC_MSG_WARN([AC_PACKAGE_NAME is only supported on Solaris 10 or later, though it ])
-    AC_MSG_WARN([may work on older releases.                              ])
-    if test "x`uname -m`" = 'xsun4m'  ||  test "x`uname -m`" = 'xsun4c'
-    then
-        AC_MSG_WARN([Unfortunately, your hardware is too old to update to     ])
-        AC_MSG_WARN([Solaris 10, so you may experience problems building AC_PACKAGE_NAME.])
-        AC_MSG_WARN([In any case, it would be very slow on such old hardware. ])
-    else
-        AC_MSG_WARN([You can download the latest Solaris version free from])
-        AC_MSG_WARN([http://www.sun.com/software/solaris/ and install it])
-        AC_MSG_WARN([Unless you have other reasons for particularly wishing])
-        AC_MSG_WARN([to an older release of Solaris, upgrading would be  ])
-        AC_MSG_WARN([the easiest way to run AC_PACKAGE_NAME on your hardware.       ])
+
+if test x`uname` = xDarwin; then
+[
+    # Warning: xcodebuild does not seem to be maintained in Xcode 4.3
+    # or later, so do not rely on the variable XCODE_VERS with OS X
+    # 10.7 or later.
+    XCODE_VERS=`xcodebuild -version 2> /dev/null | grep Xcode | sed -e 's/[A-Za-z ]//g'`
+    if [ -z $XCODE_VERS ]; then
+        XCODE_VERS="2"
     fi
-    AC_MSG_WARN([*********************************************************])
-    AC_MSG_WARN([If you would like to help port AC_PACKAGE_NAME to this older release])
-    AC_MSG_WARN([of Solaris, then please join the sage-devel discussion   ])
-    AC_MSG_WARN([list, where development issues are discussed. See: ])
-    AC_MSG_WARN([http://groups.google.com/group/sage-devel])
-    AC_MSG_WARN([The AC_PACKAGE_NAME community would also appreciate any patches you ])
-    AC_MSG_WARN([submit, especially for Solaris 8 and 9.                  ])
-    AC_MSG_WARN([*********************************************************])
-    AC_MSG_WARN([*********************************************************])
-    ;;
-esac
+    XCODE_VERS_MAJOR=`echo $XCODE_VERS | cut '-d.' -f1`
+    DARWIN_VERSION=`uname -r | cut '-d.' -f1`
+    echo "***************************************************"
+    echo "***************************************************"
+    if [ $DARWIN_VERSION -gt 10 ]; then
+        echo "You are using OS X Lion (or later)."
+        echo "You are strongly advised to install Apple's latest Xcode"
+        echo "unless you already have it. You can install this using"
+        echo "the App Store. Also, make sure you install Xcode's"
+        echo "Command Line Tools -- see Sage's README.txt."
+    elif [ $XCODE_VERS_MAJOR -gt 2 ]; then
+        echo "You are using Xcode version $XCODE_VERS."
+        echo "You are strongly advised to install Apple's latest Xcode"
+        echo "unless you already have it. You can download this from"
+        echo "http://developer.apple.com/downloads/."
+        echo "If using Xcode 4.3 or later, make sure you install Xcode's"
+        echo "Command Line Tools -- see Sage's README.txt."
+    else
+        echo "You are using Xcode version 1 or 2"
+        echo "WARNING: You are strongly advised to install the"
+        echo "latest version of Apple's Xcode for your platform,"
+        echo "unless you already have it."
+        if [ $DARWIN_VERSION -eq 10 ]; then
+           echo "Probably you need Xcode 3.2.6"
+        elif [ $DARWIN_VERSION -eq 9 ]; then
+           echo "Probably you need Xcode 3.1.4"
+        elif [ $DARWIN_VERSION -lt 9 ]; then
+           echo "Probably you need Xcode 2.5"
+        fi
+    fi
+]
 
-# Test for old versions of Darwin. It's hard to know exactly what each version
-# will show for build_os, but a search with Google for config.log files show
-# some values that can not be found on
-# http://en.wikipedia.org/wiki/Darwin_(operating_system) (retrieved 10/24/2009)
-# Hence the following are educated guesses, based on a search of config.log files
-# posted by people
+###########################################################################
+# (OS X only)
+# Sage will probably not build at all if either Fink or MacPorts can be
+# found, and the error messages can be extremely confusing.  Even if it does
+# build, the product will probably be wrong.  This runs a basic check to
+# find them. Once the Sage build process is perfected, this won't be necessary.
+# dphilp 15/9/2008
+###########################################################################
+    PORTS_PATH=`which port`
+    if test -f "$PORTS_PATH"; then
+AC_MSG_ERROR([["found MacPorts in $PORTS_PATH. Either:
+(1) rename /opt/local and /sw, or
+(2) change PATH and DYLD_LIBRARY_PATH
+(Once Sage is built, you can restore them.)]])
+    fi
 
-case "$build_os" in
-    darwin5.?|darwin5.?.?|darwin6.?|darwin6.?.?|darwin7.?|darwin7.?.?)
-    AC_MSG_WARN([*********************************************************])
-    AC_MSG_WARN([*********************************************************])
-    AC_MSG_WARN([AC_PACKAGE_NAME has never been built on OS X 10.3 (Panther)])
-    AC_MSG_WARN([or earlier. The oldest version of OS X successfully used ])
-    AC_MSG_WARN([is OS X version 10.4 (Tiger). You might consider updating])
-    AC_MSG_WARN([your version of OS X if your hardware permits this, but  ])
-    AC_MSG_WARN([Apple charges for upgrades of OS X.])
-    AC_MSG_WARN([*********************************************************])
-    AC_MSG_WARN([If you would like to help port AC_PACKAGE_NAME to this older release])
-    AC_MSG_WARN([of OS X, then please join the sage-devel discussion   ])
-    AC_MSG_WARN([list, where development issues are discussed. See: ])
-    AC_MSG_WARN([http://groups.google.com/group/sage-devel])
-    AC_MSG_WARN([*********************************************************])
-    AC_MSG_WARN([*********************************************************])
-    ;;
-esac
+    FINK_PATH=`which fink`
+    if test -f "$FINK_PATH"; then
+AC_MSG_ERROR([["found Fink in $FINK_PATH. Either:
+(1) rename /opt/local and /sw, or
+(2) change PATH and DYLD_LIBRARY_PATH
+(Once Sage is built, you can restore them.)]])
+    fi
+fi
+
 
 dnl AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([build/Makefile-auto])
 AC_CONFIG_MACRO_DIR([m4])
 
-AC_OUTPUT
+AC_OUTPUT()
 
+dnl vim:syntax=m4

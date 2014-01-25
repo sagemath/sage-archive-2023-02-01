@@ -180,7 +180,8 @@ ext_modules = [
     ################################
 
     Extension('sage.coding.binary_code',
-              sources = ['sage/coding/binary_code.pyx']),
+              sources = ['sage/coding/binary_code.pyx'],
+              libraries = ['gmp']),
 
     Extension('sage.coding.codecan.codecan',
               sources = ['sage/coding/codecan/codecan.pyx'],
@@ -379,7 +380,8 @@ ext_modules = [
               sources = ['sage/graphs/graph_decompositions/graph_products.pyx']),
 
     Extension('sage.graphs.convexity_properties',
-              sources = ['sage/graphs/convexity_properties.pyx']),
+              sources = ['sage/graphs/convexity_properties.pyx'],
+              libraries = ['gmp']),
 
     Extension('sage.graphs.comparability',
               sources = ['sage/graphs/comparability.pyx']),
@@ -394,8 +396,12 @@ ext_modules = [
     Extension('sage.graphs.distances_all_pairs',
               sources = ['sage/graphs/distances_all_pairs.pyx']),
 
+    Extension('sage.graphs.base.static_dense_graph',
+              sources = ['sage/graphs/base/static_dense_graph.pyx']),
+
     Extension('sage.graphs.base.static_sparse_graph',
-              sources = ['sage/graphs/base/static_sparse_graph.pyx']),
+              sources = ['sage/graphs/base/static_sparse_graph.pyx'],
+              libraries = ['gmp']),
 
     Extension('sage.graphs.base.static_sparse_backend',
               sources = ['sage/graphs/base/static_sparse_backend.pyx']),
@@ -1145,16 +1151,20 @@ ext_modules = [
             ['sage/matroids/extension.pyx']),
 
     Extension('sage.matroids.set_system',
-            ['sage/matroids/set_system.pyx']),
+            ['sage/matroids/set_system.pyx'],
+              libraries = ['gmp']),
 
     Extension('sage.matroids.lean_matrix',
-            ['sage/matroids/lean_matrix.pyx']),
+            ['sage/matroids/lean_matrix.pyx'],
+              libraries = ['gmp']),
 
     Extension('sage.matroids.basis_exchange_matroid',
-            ['sage/matroids/basis_exchange_matroid.pyx']),
+            ['sage/matroids/basis_exchange_matroid.pyx'],
+              libraries = ['gmp']),
 
     Extension('sage.matroids.basis_matroid',
-            ['sage/matroids/basis_matroid.pyx']),
+            ['sage/matroids/basis_matroid.pyx'],
+              libraries = ['gmp']),
 
     Extension('sage.matroids.linear_matroid',
             ['sage/matroids/linear_matroid.pyx']),
@@ -1184,7 +1194,8 @@ ext_modules = [
               sources = ['sage/misc/allocator.pyx']),
 
     Extension('sage.misc.bitset',
-              sources = ['sage/misc/bitset.pyx']),
+              sources = ['sage/misc/bitset.pyx'],
+              libraries = ['gmp']),
 
     Extension('sage.misc.cachefunc',
               sources = ['sage/misc/cachefunc.pyx']),

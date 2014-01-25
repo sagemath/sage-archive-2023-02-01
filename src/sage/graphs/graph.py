@@ -133,7 +133,7 @@ graphs.
     :meth:`~Graph.modular_decomposition` | Returns the modular decomposition of the current graph.
     :meth:`~Graph.maximum_average_degree` | Returns the Maximum Average Degree (MAD) of the current graph.
     :meth:`~Graph.two_factor_petersen` | Returns a decomposition of the graph into 2-factors.
-
+    :meth:`~Graph.ihara_zeta_function_inverse` | Returns the inverse of the zeta function of the graph.
 
 AUTHORS:
 
@@ -2608,116 +2608,6 @@ class Graph(GenericGraph):
             return answer
 
         return self_complement.is_odd_hole_free(certificate = certificate)
-
-    def is_strongly_regular(self, parameters=False):
-        r"""
-        Tests whether ``self`` is strongly regular.
-
-        A graph `G` is said to be strongly regular with parameters (n, k,
-        \lambda, \mu)` if and only if:
-
-            * `G` has `n` vertices.
-
-            * `G` is `k`-regular.
-
-            * Any two adjacent vertices of `G` have `\lambda` common neighbors.
-
-            * Any two non-adjacent vertices of `G` have `\mu` common neighbors.
-
-        By convention, the complete graphs, the graphs with no edges
-        and the empty graph are not strongly regular.
-
-        See :wikipedia:`Strongly regular graph`
-
-        INPUT:
-
-        - ``parameters`` (boolean) -- whether to return the quadruple `(n,
-          k,\lambda,\mu)`. If ``parameters = False`` (default), this method only
-          returns ``True`` and ``False`` answers. If ``parameters=True``, the
-          ``True`` answers are replaced by quadruples `(n, k,\lambda,\mu)`. See
-          definition above.
-
-        EXAMPLES:
-
-        Petersen's graph is strongly regular::
-
-            sage: g = graphs.PetersenGraph()
-            sage: g.is_strongly_regular()
-            True
-            sage: g.is_strongly_regular(parameters = True)
-            (10, 3, 0, 1)
-
-        And Clebsch's graph is too::
-
-            sage: g = graphs.ClebschGraph()
-            sage: g.is_strongly_regular()
-            True
-            sage: g.is_strongly_regular(parameters = True)
-            (16, 5, 0, 2)
-
-        But Chvatal's graph is not::
-
-            sage: g = graphs.ChvatalGraph()
-            sage: g.is_strongly_regular()
-            False
-
-        Complete graphs are not strongly regular. (:trac:`14297`) ::
-
-            sage: g = graphs.CompleteGraph(5)
-            sage: g.is_strongly_regular()
-            False
-
-        Completements of graphs are not strongly regular::
-
-            sage: g = graphs.CompleteGraph(5).complement()
-            sage: g.is_strongly_regular()
-            False
-
-        The empty graph is not strongly regular::
-
-            sage: g = graphs.EmptyGraph()
-            sage: g.is_strongly_regular()
-            False
-        """
-        self._scream_if_not_simple(allow_loops=True)
-
-        if self.size() == 0: # no vertices or no edges
-            return False
-
-        degree = self.degree()
-        k = degree[0]
-        if not all(d == k for d in degree):
-            return False
-
-        if self.is_clique():
-            return False
-        else:
-            l = m = None
-            for u in self:
-                nu = set(self.neighbors(u))
-                for v in self:
-                    if u == v:
-                        continue
-                    nv = set(self.neighbors(v))
-                    inter = len(nu&nv)
-
-                    if v in nu:
-                        if l is None:
-                            l = inter
-                        else:
-                            if l != inter:
-                                return False
-                    else:
-                        if m is None:
-                            m = inter
-                        else:
-                            if m != inter:
-                                return False
-
-        if parameters:
-            return (self.order(),k,l,m)
-        else:
-            return True
 
     def odd_girth(self):
         r"""
@@ -6441,6 +6331,77 @@ class Graph(GenericGraph):
         D = matrix.diagonal(PolynomialRing(ZZ, name, self.size()).gens())
         return (circuit_mtrx.transpose() * D * circuit_mtrx).determinant()
 
+    def ihara_zeta_function_inverse(self):
+        """
+        Compute the inverse of the Ihara zeta function of the graph
+
+        This is a polynomial in one variable with integer coefficients. The
+        Ihara zeta function itself is the inverse of this polynomial.
+
+        See :wikipedia:`Ihara zeta function`
+
+        ALGORITHM:
+
+        This is computed here using the determinant of a square matrix
+        of size twice the number of edges, related to the adjacency
+        matrix of the line graph, see for example Proposition 9
+        in [ScottStorm]_.
+
+        EXAMPLES::
+
+            sage: G = graphs.CompleteGraph(4)
+            sage: factor(G.ihara_zeta_function_inverse())
+            (2*t - 1) * (t + 1)^2 * (t - 1)^3 * (2*t^2 + t + 1)^3
+
+            sage: G = graphs.CompleteGraph(5)
+            sage: factor(G.ihara_zeta_function_inverse())
+            (-1) * (3*t - 1) * (t + 1)^5 * (t - 1)^6 * (3*t^2 + t + 1)^4
+
+            sage: G = graphs.PetersenGraph()
+            sage: factor(G.ihara_zeta_function_inverse())
+            (-1) * (2*t - 1) * (t + 1)^5 * (t - 1)^6 * (2*t^2 + 2*t + 1)^4
+            * (2*t^2 - t + 1)^5
+
+            sage: G = graphs.RandomTree(10)
+            sage: G.ihara_zeta_function_inverse()
+            1
+
+        REFERENCES:
+
+        .. [HST] Matthew D. Horton, H. M. Stark, and Audrey A. Terras,
+           What are zeta functions of graphs and what are they good for?
+           in Quantum graphs and their applications, 173-189,
+           Contemp. Math., Vol. 415
+
+        .. [Terras] Audrey Terras, Zeta functions of graphs: a stroll through
+           the garden, Cambridge Studies in Advanced Mathematics, Vol. 128
+
+        .. [ScottStorm] Geoffrey Scott and Christopher Storm, The coefficients
+           of the Ihara zeta function, Involve (http://msp.org/involve/2008/1-2/involve-v1-n2-p08-p.pdf)
+        """
+        from sage.matrix.constructor import matrix
+        from sage.rings.integer_ring import ZZ
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+        ring = PolynomialRing(ZZ, 't')
+        t = ring.gen()
+
+        N = self.size()
+
+        labeled_g = DiGraph()
+        labeled_g.add_edges([(u, v, i) for i, (u, v) in
+                             enumerate(self.edges(labels=False))])
+        labeled_g.add_edges([(v, u, i + N) for i, (u, v) in
+                             enumerate(self.edges(labels=False))])
+
+        M = matrix(ring, 2 * N, 2 * N, ring.one())
+        for u, v, i in labeled_g.edges():
+            for vv, ww, j in labeled_g.outgoing_edges(v):
+                M[i, j] += -t
+            M[i, (i + N) % (2 * N)] += t  # fixing the 2-cycles
+
+        return M.determinant()
+
 # Aliases to functions defined in Cython modules
 import types
 
@@ -6466,6 +6427,9 @@ Graph.is_cartesian_product = types.MethodType(sage.graphs.graph_decompositions.g
 
 import sage.graphs.distances_all_pairs
 Graph.is_distance_regular = types.MethodType(sage.graphs.distances_all_pairs.is_distance_regular, None, Graph)
+
+import sage.graphs.base.static_dense_graph
+Graph.is_strongly_regular = types.MethodType(sage.graphs.base.static_dense_graph.is_strongly_regular, None, Graph)
 
 # From Python modules
 import sage.graphs.line_graph

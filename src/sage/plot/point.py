@@ -338,8 +338,17 @@ def point2d(points, **options):
 
     -  ``points`` - either a single point (as a tuple), a list of
        points, a single complex number, or a list of complex numbers.
-
-    Type ``point2d.options`` to see all options.
+    - ``alpha`` -- How transparent the point is.
+    - ``faceted`` -- If True color the edge of the point. (only for 2D plots)
+    - ``hue`` -- The color given as a hue.
+    - ``legend_color`` -- The color of the legend text
+    - ``legend_label`` -- The label for this item in the legend.
+    - ``marker`` -- the marker symbol for 2D plots only (see documentation of
+      :func:`plot` for details)
+    - ``markeredgecolor`` -- the color of the marker edge (only for 2D plots)
+    - ``rgbcolor`` -- The color as an RGB tuple.
+    - ``size`` -- How big the point is (i.e., area in points^2=(1/72 inch)^2).
+    - ``zorder`` -- The layer level in which to draw
 
     EXAMPLES:
 

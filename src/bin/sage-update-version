@@ -59,7 +59,7 @@ SAGE_RELEASE_DATE='$SAGE_RELEASE_DATE'
 EOF
 
 # Update the Sage banner
-"$SAGE_ROOT/sage" -python -c \
+"$SAGE_ROOT/sage" --python -c \
     "import sage.misc.banner; sage.misc.banner.banner()" \
     > "$SAGE_SRC/bin/sage-banner"
 

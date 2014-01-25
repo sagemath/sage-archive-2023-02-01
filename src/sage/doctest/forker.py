@@ -2068,7 +2068,6 @@ class DocTestTask(object):
         try:
             file = self.source.path
             basename = self.source.basename
-            import sage.all_cmdline
             runner = SageDocTestRunner(
                     SageOutputChecker(),
                     verbose=options.verbose,
@@ -2080,7 +2079,12 @@ class DocTestTask(object):
             N = options.file_iterations
             results = DictAsObject(dict(walltime=[],cputime=[],err=None))
             for it in range(N):
-                sage_namespace = RecordingDict(dict(sage.all_cmdline.__dict__))
+                # Make the right set of globals available to doctests
+                if basename.startswith("sagenb."):
+                    import sage.all_notebook as sage_all
+                else:
+                    import sage.all_cmdline as sage_all
+                sage_namespace = RecordingDict(sage_all.__dict__)
                 sage_namespace['__name__'] = '__main__'
                 sage_namespace['__package__'] = None
                 doctests, extras = self.source.create_doctests(sage_namespace)

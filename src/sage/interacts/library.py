@@ -34,7 +34,9 @@ AUTHORS:
 
 
 from sage.all import *
-x=SR.var('x')
+from sagenb.notebook.interact import *
+
+x = SR.var('x')
 
 def library_interact(f):
     """

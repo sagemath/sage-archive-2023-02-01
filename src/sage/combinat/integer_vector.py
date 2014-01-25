@@ -9,6 +9,7 @@ AUTHORS:
 * Travis Scrimshaw (2012-05-12) - Updated doc-strings to tell the user of
   that the class's name is a misnomer (that they only contains non-negative
   entries).
+*  Federico Poloni (2013) - specialized rank()
 * Travis Scrimshaw (2013-02-04) - Refactored to use ``ClonableIntArray``
 """
 #*****************************************************************************
@@ -135,9 +136,7 @@ def _slider01(A, t, k, p1, p2, fixedcols=[]):
     INPUT:
 
     - ``A`` -- an `m \times n` `(0,1)`-matrix
-
     - ``t``, ``k`` -- integers satisfying `0 < t < m`, `0 < k < n`
-
     - ``fixedcols`` -- those columns (if any) whose entries
       aren't permitted to slide
 
@@ -233,7 +232,7 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
     sums can be defined as the solution of the following 
     Linear Program, which Sage knows how to solve.
 
-    .. MATH:: 
+    .. MATH::
 
         \forall i&\sum_{j=1}^{k_2} b_{i,j}=p_{1,j}\\
         \forall i&\sum_{j=1}^{k_1} b_{j,i}=p_{2,j}\\
@@ -1008,6 +1007,34 @@ class IntegerVectors_nk(IntegerVectors, UniqueRepresentation):
             return False
 
         return True
+
+    def rank(self, x):
+        """
+        Return the rank of a given element.
+
+        INPUT:
+
+        - ``x`` -- a list with ``sum(x) == n`` and ``len(x) == k``
+
+        TESTS::
+
+            sage: IV = IntegerVectors(4,5) 
+            sage: range(IV.cardinality()) == [IV.rank(x) for x in IV]
+            True
+        """
+        if x not in self:
+            raise ValueError("argument is not a member of IntegerVectors({},{})".format(self.n, self.k))
+
+        n = self.n
+        k = self.k
+
+        r = 0
+        for i in range(k-1):
+          k -= 1
+          n -= x[i]
+          r += binomial(k+n-1,k)
+
+        return r
 
 class IntegerVectors_nnondescents(IntegerVectors, UniqueRepresentation):
     r"""

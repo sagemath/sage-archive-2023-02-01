@@ -1846,26 +1846,6 @@ cdef class RingElement(ModuleElement):
             return self
         return 1/self
 
-
-    def order(self):
-        """
-        Return the additive order of self.
-
-        This is deprecated; use ``additive_order`` instead.
-
-        EXAMPLES::
-
-            sage: a = Integers(12)(5)
-            sage: a.order()
-            doctest... DeprecationWarning: The function order is deprecated for ring elements; use additive_order or multiplicative_order instead.
-            See http://trac.sagemath.org/5716 for details.
-            12
-        """
-        # deprecation added 2009-05
-        from sage.misc.superseded import deprecation
-        deprecation(5716, "The function order is deprecated for ring elements; use additive_order or multiplicative_order instead.")
-        return self.additive_order()
-
     def additive_order(self):
         """
         Return the additive order of self.
@@ -1879,11 +1859,6 @@ cdef class RingElement(ModuleElement):
         """
         if not self.is_unit():
             raise ArithmeticError, "self (=%s) must be a unit to have a multiplicative order."
-        raise NotImplementedError
-
-    def is_unit(self):
-        if self == 1 or self == -1:
-            return True
         raise NotImplementedError
 
     def is_nilpotent(self):

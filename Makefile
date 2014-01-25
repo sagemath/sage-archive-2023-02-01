@@ -15,7 +15,7 @@ all: start doc  # indirectly depends on build
 logs:
 	mkdir -p $@
 
-build: logs
+build: logs configure
 	cd build && \
 	"../$(PIPE)" \
 		"env SAGE_PARALLEL_SPKG_BUILD='$(SAGE_PARALLEL_SPKG_BUILD)' ./install all 2>&1" \
@@ -152,16 +152,9 @@ ptestoptional: ptestall # just an alias
 
 ptestoptionallong: ptestalllong # just an alias
 
-bootstrap:
-	$(MAKE) configure || \
-		bash -c 'source src/bin/sage-env; sage-download-file $$SAGE_UPSTREAM/configure/configure-`cat build/pkgs/configure/package-version.txt`.tar.gz | tar zxmf -'
-
 configure: configure.ac src/bin/sage-version.sh \
         m4/ax_c_check_flag.m4 m4/ax_gcc_option.m4 m4/ax_gcc_version.m4 m4/ax_gxx_option.m4 m4/ax_gxx_version.m4 m4/ax_prog_perl_version.m4
-	test -d config || mkdir config
-	aclocal -I m4
-	automake --add-missing --copy build/Makefile-auto
-	autoconf
+	./bootstrap -d
 
 install:
 	echo "Experimental use only!"
@@ -182,7 +175,7 @@ install:
 	"$(DESTDIR)"/bin/sage -c # Run sage-location
 
 
-.PHONY: all build build-serial start install micro_release bootstrap \
+.PHONY: all build build-serial start install micro_release \
 	doc doc-html doc-html-jsmath doc-html-mathjax doc-pdf \
 	doc-clean clean lib-clean bdist-clean distclean bootstrap-clean maintainer-clean \
 	test check testoptional testall testlong testoptionallong testallong \

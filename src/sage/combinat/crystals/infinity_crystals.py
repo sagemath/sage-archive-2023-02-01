@@ -12,7 +12,7 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2013 Ben Salisbury <benjamin_salisbury at brown.edu>
+#       Copyright (C) 2013 Ben Salisbury <bsalisbury1 at gmail.com>
 #                          Travis Scrimshaw <tscrim at ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -596,7 +596,8 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
             The content `|T|` of `T \in \mathcal{B}(\infty)` is the number of
             blocks added to the highest weight to obtain `T` with any
             `\overline{\imath}`-boxes in the `i`-th row counted with
-            multiplicity `2`.
+            multiplicity `2` provided the underlying Cartan type is of type
+            `B`, `D`, or `G`.
 
             EXAMPLES::
 
@@ -609,14 +610,20 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
                 sage: b = B(rows=[[1,1,1,1,1,1,2,2,2,-2,-2],[2,0,-2,-2,-2]])
                 sage: b.content()
                 12
+
+                sage: B = InfinityCrystalOfTableaux("C2")
+                sage: b = B(rows=[[1,1,1,1,1,1,2,2,2,-2,-2],[2,-2,-2,-2]])
+                sage: b.content()
+                8
             """
             tab = self.to_tableau()
             count = 0
-            for i in range(len(tab)):
-                for j in range(len(tab[i])):
-                    if tab[i][j] == -i-1:
+            ct = self.parent().cartan_type().type()
+            for i,row in enumerate(tab):
+                for entry in row:
+                    if entry == -i-1 and ct in ('B','D','G'):
                         count += 2
-                    elif tab[i][j] != i+1:
+                    elif entry != i+1:
                         count += 1
             return count
 

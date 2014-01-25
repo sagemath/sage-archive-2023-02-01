@@ -1789,12 +1789,6 @@ class Partition(CombinatorialObject, Element):
         partitions (:meth:`conjugate()`). This action is faithful if
         `n \geq 3`.
 
-        .. NOTE::
-
-            There are two *non-equivalent* definitions for `\sigma_n` in
-            [Sut2002]_. Here are using the formulaic one, not the one using
-            the four steps which actually defines `\sigma_n^{-1}` instead.
-
         INPUT:
 
         - ``n`` -- nonnegative integer
@@ -2109,9 +2103,23 @@ class Partition(CombinatorialObject, Element):
 
     @cached_method
     def young_subgroup(self):
-        """
+        r"""
         Return the corresponding Young, or parabolic, subgroup of the symmetric
         group.
+
+        The Young subgroup of a partition
+        `\lambda = (\lambda_1, \lambda_2, \ldots, \lambda_{\ell})` of `n` is
+        the group:
+
+        .. MATH::
+
+            S_{\lambda_1} \times S_{\lambda_2} \times \cdots \times
+            S_{\lambda_{\ell}}
+
+        embedded into `S_n` in the standard way (i.e.,
+        the `S_{\lambda_i}` factor acts on the numbers from
+        `\lambda_1 + \lambda_2 + \cdots + \lambda_{i-1} + 1` to
+        `\lambda_1 + \lambda_2 + \cdots + \lambda_i`).
 
         EXAMPLES::
 
@@ -2129,17 +2137,26 @@ class Partition(CombinatorialObject, Element):
     def young_subgroup_generators(self):
         """
         Return an indexing set for the generators of the corresponding Young
-        subgroup.
+        subgroup. Here the generators correspond to the simple adjacent
+        transpositions `s_i = (i \; i+1)`.
 
         EXAMPLES::
 
             sage: Partition([4,2]).young_subgroup_generators()
             [1, 2, 3, 5]
+            sage: Partition([1,1,1]).young_subgroup_generators()
+            []
+            sage: Partition([2,2]).young_subgroup_generators()
+            [1, 3]
+
+        .. SEEALSO:
+
+            :meth:`young_subgroup`
         """
         gens=[]
         m=0
         for row in self:
-            gens.extend([c for c in range(m+1,m+row)])
+            gens.extend(range(m+1,m+row))
             m+=row
         return gens
 
@@ -2404,8 +2421,8 @@ class Partition(CombinatorialObject, Element):
     def dominated_partitions(self, rows=None):
         """
         Return a list of the partitions dominated by `n`. If ``rows`` is
-        specified, then it only returns the ones which has number of rows equal
-        to ``rows``.
+        specified, then it only returns the ones whose number of rows
+        is at most ``rows``.
 
         EXAMPLES::
 

@@ -9,10 +9,12 @@
 # build/pkgs/configure/package-version.txt
 #
 # If optional argument -i is given, then automatically increment the
-# version number
+# version number.
 #
-# If optional argument -d is given, download the files if bootstrapping
-# failed. If -D is given, always download.
+# If optional argument -d is given and bootstrapping failed, instead
+# extract the files from a local configure tarball, downloading it if
+# needed. If -D is given, don't try to bootstrap and always extract or
+# donwload.
 ########################################################################
 
 # Either run this script from SAGE_ROOT or make sure that SAGE_ROOT
@@ -54,16 +56,28 @@ bootstrap () {
 # Bootstrap by downloading the auto-generated files
 bootstrap-download () {
     source src/bin/sage-env
+
+    mkdir upstream 2>/dev/null
+    if [ ! -f $CONFBALL ]; then
+        sage-download-file $SAGE_UPSTREAM/configure/configure-$CONFVERSION.tar.gz >$CONFBALL
+        if [ $? -ne 0 ]; then
+            rm -f "$CONFBALL"
+            echo >&2 "Error: downloading configure-$CONFVERSION.tar.gz failed"
+            exit 1
+        fi
+    fi
+
     # The "m" option to tar ensures that timestamps are set to the
     # current time, not taken from the tarball.
-    build/pipestatus "sage-download-file $SAGE_UPSTREAM/configure/configure-$CONFVERSION.tar.gz" "tar zxmf -"
+    # We need these files to be more recent than the input files
+    # like configure.ac, otherwise "make" gets confused.
+    tar xzmf $CONFBALL || exit $?
 }
 
 save () {
     set -e
 
     # Create configure tarball
-    CONFBALL="upstream/configure-$CONFVERSION.tar.gz"
     echo "Creating $CONFBALL..."
     mkdir -p upstream
     tar zcf "$CONFBALL" configure config/* build/Makefile-auto.in
@@ -96,6 +110,7 @@ do
          ?) usage; exit 2;;
      esac
 done
+CONFBALL="upstream/configure-$CONFVERSION.tar.gz"
 
 if [ $DOWNLOAD$SAVE = yesyes ]; then
     echo >&2 "$0: refusing to download and save."
@@ -108,7 +123,7 @@ $MAKE bootstrap-clean 2>/dev/null
 mkdir config 2>/dev/null
 
 if [ $ALWAYSDOWNLOAD = yes ]; then
-    bootstrap-download
+    bootstrap-download || exit $?
 else
     bootstrap
 fi

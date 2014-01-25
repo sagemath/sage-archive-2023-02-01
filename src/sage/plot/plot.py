@@ -711,8 +711,13 @@ def plot(funcs, *args, **kwds):
        - ``"<"`` (triangle left), ``">"`` (triangle right), ``"^"`` (triangle up), ``"v"`` (triangle down)
        - ``"1"`` (tri down), ``"2"`` (tri up), ``"3"`` (tri left), ``"4"`` (tri right)
        - ``0`` (tick left), ``1`` (tick right), ``2`` (tick up), ``3`` (tick down)
-       - ``4`` (caret left), ``5`` (caret right), ``6`` (caret up), ``7`` (caret down)
+       - ``4`` (caret left), ``5`` (caret right), ``6`` (caret up), ``7`` (caret down), ``8`` (octagon)
        - ``"$...$"`` (math TeX string)
+       - ``(numsides, style, angle)`` to create a custom, regular symbol
+
+         - ``numsides`` -- the number of sides
+         - ``style`` -- ``0`` (regular polygon), ``1`` (star shape), ``2`` (asterisk), ``3`` (circle)
+         - ``angle`` -- the angular rotation in degrees
 
     - ``markersize`` - the size of the marker in points
 

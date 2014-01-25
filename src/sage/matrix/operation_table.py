@@ -476,7 +476,7 @@ class OperationTable(SageObject):
             sage: T._name_maker(['x'])
             Traceback (most recent call last):
             ...
-            ValueError: list of element names must be the same size as the set, 1 <> 3
+            ValueError: list of element names must be the same size as the set, 1 != 3
             sage: T._name_maker(['x', 'y', 4])
             Traceback (most recent call last):
             ...
@@ -516,7 +516,7 @@ class OperationTable(SageObject):
                 name_list.append(estr)
         elif isinstance(names, list):
             if len(names) != self._n:
-                raise ValueError('list of element names must be the same size as the set, %s <> %s'%(len(names), self._n))
+                raise ValueError('list of element names must be the same size as the set, %s != %s'%(len(names), self._n))
             width = 0
             for str in names:
                 if not isinstance(str, basestring):

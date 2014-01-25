@@ -174,7 +174,7 @@ Sage example in ./float.tex, line 545::
     sage: def sumharmo(P):
     ....:    RFP = RealField(P)
     ....:    y = RFP(1.); x = RFP(0.); n = 1
-    ....:    while x <> y:
+    ....:    while x != y:
     ....:        y = x; x += 1/n; n += 1
     ....:    return P, n, x
 

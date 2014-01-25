@@ -783,11 +783,11 @@ class TernaryQF(SageObject):
         # cond 6
         # r, s, t <= 0
         if r<=0:
-            if ((a==-t) & (s<>0)):
+            if ((a == -t) & (s != 0)):
                 return False
-            if ((a==-s) & (t<>0)):
+            if ((a == -s) & (t != 0)):
                 return False
-            if ((b==-r) & (t<>0)):
+            if ((b == -r) & (t != 0)):
                 return False
 
         # cond 7

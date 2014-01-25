@@ -739,11 +739,11 @@ def _find_all_ternary_qf_by_level_disc(long long N, long long d):
                                     is_reduced=False
                                 elif ((a+b+r-s-t==0) & (2*a-2*s-t>0)):
                                     is_reduced=False
-                                elif ((a==t) & (s<>0)):
+                                elif ((a == t) & (s != 0)):
                                     is_reduced=False
-                                elif ((a==s) & (t<>0)):
+                                elif ((a == s) & (t != 0)):
                                     is_reduced=False
-                                elif ((b==-r) & (t<>0)):
+                                elif ((b == -r) & (t != 0)):
                                     is_reduced=False
                                 if is_reduced:
                                     m_q=gcd((4*b*c-r**2, 4*a*c-s**2, 4*a*b-t**2, 2*s*t-4*a*r, -2*r*t+4*b*s, -2*r*s+4*c*t))
@@ -880,11 +880,11 @@ def _find_a_ternary_qf_by_level_disc(long long N, long long d):
                                     is_reduced=False
                                 elif ((a+b+r-s-t==0) & (2*a-2*s-t>0)):
                                     is_reduced=False
-                                elif ((a==t) & (s<>0)):
+                                elif ((a == t) & (s != 0)):
                                     is_reduced=False
-                                elif ((a==s) & (t<>0)):
+                                elif ((a == s) & (t != 0)):
                                     is_reduced=False
-                                elif ((b==-r) & (t<>0)):
+                                elif ((b == -r) & (t != 0)):
                                     is_reduced=False
                                 if is_reduced:
                                     m_q=gcd((4*b*c-r**2, 4*a*c-s**2, 4*a*b-t**2, 2*s*t-4*a*r, -2*r*t+4*b*s, -2*r*s+4*c*t))

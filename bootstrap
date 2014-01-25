@@ -24,7 +24,6 @@ test -z "$SAGE_ROOT" || cd "$SAGE_ROOT"
 PKG=build/pkgs/configure
 MAKE="${MAKE:-make}"
 CONFVERSION=`cat $PKG/package-version.txt`
-CONFBALL="upstream/configure-$CONFVERSION.tar.gz"
 
 bootstrap () {
     aclocal -I m4 && \
@@ -111,6 +110,7 @@ do
          ?) usage; exit 2;;
      esac
 done
+CONFBALL="upstream/configure-$CONFVERSION.tar.gz"
 
 if [ $DOWNLOAD$SAVE = yesyes ]; then
     echo >&2 "$0: refusing to download and save."

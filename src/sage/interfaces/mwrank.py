@@ -231,12 +231,12 @@ class Mwrank_class(Expect):
         The input can be five integers separated by whitespace::
 
             sage: mwrank('0 -1 1 0 0')
-            'Curve [0,-1,1,0,0] :\tBasic pair: I=16, J=-304\ndisc=-76032\n2-adic index bound = 2\nBy Lemma 5.1(a), 2-adic index = 1\n2-adic index = 1\nOne (I,J) pair\nLooking for quartics with I = 16, J = -304\nLooking for Type 3 quartics:\nTrying positive a from 1 up to 1 (square a first...)\n(1,0,-4,4,0)\t--trivial\n(1,0,2,4,1)\t--trivial\nTrying positive a from 1 up to 1 (...then non-square a)\nFinished looking for Type 3 quartics.\nMordell rank contribution from B=im(eps) = 0\nSelmer  rank contribution from B=im(eps) = 0\nSha     rank contribution from B=im(eps) = 0\nMordell rank contribution from A=ker(eps) = 0\nSelmer  rank contribution from A=ker(eps) = 0\nSha     rank contribution from A=ker(eps) = 0\n\nUsed full 2-descent via multiplication-by-2 map\nRank = 0\nRank of S^2(E)  = 0\n\nProcessing points found during 2-descent...done:\n  now regulator = 1\n\n\nRegulator = 1\n\nThe rank has been determined unconditionally.\n\n...'
+            'Curve [0,-1,1,0,0] :\tBasic pair: I=16, J=-304\n...'
 
         Or a list or tuple of exactly five integers::
 
             sage: s = mwrank([0,-1,1,0,0])
-            sage: "Rank = 0" in s and "The rank has been determined unconditionally" in s
+            sage: "Rank = 0" in s and "been determined unconditionally" in s
             True
 
         TESTS:

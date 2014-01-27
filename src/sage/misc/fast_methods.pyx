@@ -274,7 +274,7 @@ class SingletonClass(WithEqualityById):
     In order to create a singleton, just add :class:`SingletonClass`
     to the list of base classes. Pickling, copying, hashing and
     comparison are provided for by :class:`SingletonClass` according
-    to the singleton paradigma.
+    to the singleton paradigm.
 
     Note that the unique instance of a singleton will stay in memory
     as long as the singleton itself does.
@@ -298,7 +298,7 @@ class SingletonClass(WithEqualityById):
 
     The pickle data mainly consist of the class of the unique instance, which
     may be a subclass of the original class used to create the instance.
-    If the class is replaced by a sub-sub-class after creation on the
+    If the class is replaced by a sub-sub-class after creation of the
     instance, pickling fails::
 
         sage: orig = type(c)
@@ -324,7 +324,7 @@ class SingletonClass(WithEqualityById):
         EXAMPLES::
 
             sage: from sage.misc.fast_methods import SingletonClass
-            sage: class C(SingletonClass, Parent):                  
+            sage: class C(SingletonClass, Parent):
             ....:     def __init__(self):
             ....:         print "creating singleton"
             ....:         Parent.__init__(self, base=ZZ, category=Rings())
@@ -385,7 +385,7 @@ class SingletonClass(WithEqualityById):
  
         The pickle data mainly consist of the class of the unique instance, which
         may be a subclass of the original class used to create the instance.
-        If the class is replaced by a sub-sub-class after creation on the
+        If the class is replaced by a sub-sub-class after creation of the
         instance, pickling fails::
 
             sage: orig = type(c)

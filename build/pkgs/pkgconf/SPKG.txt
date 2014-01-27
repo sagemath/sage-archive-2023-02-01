@@ -7,7 +7,7 @@ dependencies.
 
 == License ==
 
-BSD
+ISC License (equivalent to Simplified BSD)
 
 == SPKG Maintainers ==
 

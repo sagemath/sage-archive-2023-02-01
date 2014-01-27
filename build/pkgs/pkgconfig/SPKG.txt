@@ -7,7 +7,7 @@ line tool.
 
 == License ==
 
-BSD
+MIT License
 
 == SPKG Maintainers ==
 

@@ -2919,7 +2919,7 @@ class LinearCode(module.Module_old):
         for i in range(1,k+1):
             r = M.rows()[i-1]
             j = r.nonzero_positions()[0]
-            if (j < d and i != j+1):
+            if j < d and i != j+1:
                 perm = perm *G([(i,j+1)])
         if perm != G([()]):
             for i in range(k):

@@ -1,5 +1,5 @@
 """
-Elements of finite algebras
+Elements of Finite Algebras
 """
 
 #*****************************************************************************
@@ -15,6 +15,7 @@ Elements of finite algebras
 
 import re
 
+from sage.misc.cachefunc import cached_method
 from sage.matrix.constructor import Matrix
 from sage.matrix.matrix import is_Matrix
 from sage.modules.free_module_element import vector
@@ -24,20 +25,20 @@ from sage.structure.element import AlgebraElement, is_Vector, parent
 
 class FiniteAlgebraElement(AlgebraElement):
     """
-    Create an element of a FiniteAlgebra using a multiplication table.
+    Create an element of a :class:`FiniteAlgebra` using a multiplication table.
 
     INPUT:
 
-    - ``A`` -- ``FiniteAlgebra``
+    - ``A`` -- a :class:`FiniteAlgebra` which will be the parent
 
     - ``elt`` -- vector, matrix or element of the base field
       (default: ``None``)
 
-    - ``check`` -- boolean (default: True) - if False and ``elt`` is a
+    - ``check`` -- boolean (default: ``True``); if ``False`` and ``elt`` is a
       matrix, assume that it is known to be the matrix of an element
 
     If ``elt`` is a vector, it is interpreted as a vector of
-    coordinates with respect to the given basis of `A`.  If ``elt`` is
+    coordinates with respect to the given basis of ``A``.  If ``elt`` is
     a matrix, it is interpreted as a multiplication matrix with
     respect to this basis.
 
@@ -49,7 +50,6 @@ class FiniteAlgebraElement(AlgebraElement):
         sage: A([1,1])
         e0 + e1
     """
-
     def __init__(self, A, elt=None, check=True):
         """
         TESTS::
@@ -61,8 +61,9 @@ class FiniteAlgebraElement(AlgebraElement):
             TypeError: elt should be a vector, a matrix, or an element of the base field
 
             sage: B = FiniteAlgebra(QQ, [Matrix([[1,0], [0,1]]), Matrix([[0,1], [-1,0]])])
-            sage: B(Matrix([[1,1], [-1,1]]))
+            sage: elt = B(Matrix([[1,1], [-1,1]])); elt
             e0 + e1
+            sage: TestSuite(elt).run()
             sage: B(Matrix([[0,1], [1,0]]))
             Traceback (most recent call last):
             ...
@@ -155,13 +156,13 @@ class FiniteAlgebraElement(AlgebraElement):
 
     def _repr_(self):
         """
-        Return the string representation of self.
+        Return the string representation of ``self``.
 
         EXAMPLE::
 
             sage: A = FiniteAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
-            sage: A(1)._repr_()
-            'e0'
+            sage: A(1)
+            e0
         """
         s = " "
         A = self.parent()
@@ -179,9 +180,9 @@ class FiniteAlgebraElement(AlgebraElement):
                 if y.find('-') == 0:
                     y = y[1:]
                 if not atomic and (y.find("+") != -1 or y.find("-") != -1):
-                    x = "(%s)"%x
-                var = "*%s" % A._names[n]
-                s += "%s%s" % (x, var)
+                    x = "({})".format(x)
+                var = "*{}".format(A._names[n])
+                s += "{}{}".format(x, var)
         s = s.replace(" + -", " - ")
         s = re.sub(r' 1(\.0+)?\*',' ', s)
         s = re.sub(r' -1(\.0+)?\*',' -', s)
@@ -190,8 +191,8 @@ class FiniteAlgebraElement(AlgebraElement):
         return s[1:]
 
     def _latex_(self):
-        """
-        Return the LaTeX representation of self.
+        r"""
+        Return the LaTeX representation of ``self``.
 
         EXAMPLE::
 
@@ -218,10 +219,8 @@ class FiniteAlgebraElement(AlgebraElement):
             False
         """
         A = self.parent()
-        if A.has_coerce_map_from(parent(other)):
-            return self.vector() == A(other).vector()
-        else:
-            return False
+        return (A.has_coerce_map_from(parent(other)) and
+                self.vector() == A(other).vector())
 
     def __ne__(self, other):
         """
@@ -235,105 +234,60 @@ class FiniteAlgebraElement(AlgebraElement):
 
     def __gt__(self, other):
         """
-        Raise a TypeError as there is no ordering defined on a FiniteAlgebra::
+        Raise a ``TypeError`` as there is no (natural) ordering defined on a
+        finite algebra::
 
             sage: A = FiniteAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
             sage: A(1) > 0
             Traceback (most recent call last):
             ...
-            TypeError: there is no ordering defined on a FiniteAlgebra
-        """
-        raise TypeError("there is no ordering defined on a FiniteAlgebra")
-
-    def __lt__(self, other):
-        """
-        Raise a TypeError as there is no ordering defined on a FiniteAlgebra::
-
-            sage: A = FiniteAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
+            TypeError: there is no ordering defined on a finite algebra
             sage: A(1) < 0
             Traceback (most recent call last):
             ...
-            TypeError: there is no ordering defined on a FiniteAlgebra
-        """
-        raise TypeError("there is no ordering defined on a FiniteAlgebra")
-
-    def __ge__(self, other):
-        """
-        Raise a TypeError as there is no ordering defined on a FiniteAlgebra::
-
-            sage: A = FiniteAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
+            TypeError: there is no ordering defined on a finite algebra
             sage: A(1) >= 0
             Traceback (most recent call last):
             ...
-            TypeError: there is no ordering defined on a FiniteAlgebra
-        """
-        raise TypeError("there is no ordering defined on a FiniteAlgebra")
-
-    def __le__(self, other):
-        """
-        Raise a TypeError as there is no ordering defined on a FiniteAlgebra::
-
-            sage: A = FiniteAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
+            TypeError: there is no ordering defined on a finite algebra
             sage: A(1) <= 0
             Traceback (most recent call last):
             ...
-            TypeError: there is no ordering defined on a FiniteAlgebra
+            TypeError: there is no ordering defined on a finite algebra
         """
-        raise TypeError("there is no ordering defined on a FiniteAlgebra")
+        raise TypeError("there is no ordering defined on a finite algebra")
 
-    def __cmp__(self, other):
-        """
-        EXAMPLES::
-
-            sage: A = FiniteAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
-            sage: cmp(A(0), A(1))
-            1
-            sage: cmp(A(0), A(0))
-            0
-
-            sage: B = FiniteAlgebra(QQ, [Matrix([0])])
-            sage: B.basis()[0] == 0
-            False
-            sage: B.basis()[0]^2 == 0
-            True
-        """
-        if self.vector() == other.vector():
-            return 0
-        else:
-            return 1
+    __lt__ = __ge__ = __le__ = __gt__
 
     def _add_(self, other):
         """
         EXAMPLE::
 
             sage: A = FiniteAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
-            sage: A.basis()[0] + A.basis()[1]  # indirect doctest
+            sage: A.basis()[0] + A.basis()[1]
             e0 + e1
         """
-        return FiniteAlgebraElement(self.parent(),
-                                    self.vector() + other.vector())
+        return FiniteAlgebraElement(self.parent(), self._vector + other._vector)
 
     def _sub_(self, other):
         """
         EXAMPLE::
 
             sage: A = FiniteAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
-            sage: A.basis()[0] - A.basis()[1]  # indirect doctest
+            sage: A.basis()[0] - A.basis()[1]
             e0 + 2*e1
         """
-        return FiniteAlgebraElement(self.parent(),
-                                    self.vector() - other.vector())
+        return FiniteAlgebraElement(self.parent(), self._vector - other._vector)
 
     def _mul_(self, other):
         """
         EXAMPLE::
 
             sage: C = FiniteAlgebra(QQ, [Matrix([[1,0,0], [0,0,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,1,0], [0,0,1]])])
-            sage: C.basis()[1] * C.basis()[2]  # indirect doctest
+            sage: C.basis()[1] * C.basis()[2]
             e1
         """
-        return FiniteAlgebraElement(self.parent(),
-                                    self.vector() * other.matrix())
+        return FiniteAlgebraElement(self.parent(), self._vector * other._matrix)
 
     def _lmul_(self, other):
         """
@@ -341,15 +295,13 @@ class FiniteAlgebraElement(AlgebraElement):
 
             sage: C = FiniteAlgebra(QQ, [Matrix([[1,0,0], [0,0,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,1,0], [0,0,1]])])
             sage: c = C.random_element()
-            sage: c * 2 == c + c  # indirect doctest
+            sage: c * 2 == c + c
             True
         """
-        if self.parent().base_ring().has_coerce_map_from(other.parent()):
-            return FiniteAlgebraElement(self.parent(),
-                                        other * self.vector())
-        else:
-            raise TypeError("unsupported operand parent(s) for '*': '%s' and '%s'"
-                            % (self.parent(), other.parent()))
+        if not self.parent().base_ring().has_coerce_map_from(other.parent()):
+            raise TypeError("unsupported operand parent(s) for '*': '{}' and '{}'"
+                            .format(self.parent(), other.parent()))
+        return FiniteAlgebraElement(self.parent(), self._vector * other)
 
     def _rmul_(self, other):
         """
@@ -357,19 +309,17 @@ class FiniteAlgebraElement(AlgebraElement):
 
             sage: C = FiniteAlgebra(QQ, [Matrix([[1,0,0], [0,0,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,1,0], [0,0,1]])])
             sage: c = C.random_element()
-            sage: 2 * c == c + c  # indirect doctest
+            sage: 2 * c == c + c
             True
         """
-        if  self.parent().base_ring().has_coerce_map_from(other.parent()):
-            return FiniteAlgebraElement(self.parent(),
-                                        other * self.vector())
-        else:
-            raise TypeError("unsupported operand parent(s) for '*': '%s' and '%s'"
-                            % (self.parent(), other.parent()))
+        if not self.parent().base_ring().has_coerce_map_from(other.parent()):
+            raise TypeError("unsupported operand parent(s) for '*': '{}' and '{}'"
+                            .format(self.parent(), other.parent()))
+        return FiniteAlgebraElement(self.parent(), other * self._vector) # Note the different order
 
     def __pow__(self, n):
         """
-        Return ``self`` raised to the power `n`.
+        Return ``self`` raised to the power ``n``.
 
         EXAMPLE::
 
@@ -382,7 +332,7 @@ class FiniteAlgebraElement(AlgebraElement):
         if not (A._assume_associative or A.is_associative()):
             raise TypeError("algebra is not associative")
         if n > 0:
-            return FiniteAlgebraElement(A, self.vector() * self.matrix().__pow__(n - 1))
+            return FiniteAlgebraElement(A, self.vector() * self._matrix.__pow__(n - 1))
         if not A.is_unitary():
             raise TypeError("algebra is not unitary")
         if n == 0:
@@ -395,6 +345,12 @@ class FiniteAlgebraElement(AlgebraElement):
         Return ``True`` if ``self`` has a two-sided multiplicative
         inverse.
 
+        .. NOTE::
+
+            If an element of a unitary finite algebra over a field
+            admits a left inverse, then this is the unique left
+            inverse, and it is also a right inverse.
+
         EXAMPLE::
 
             sage: C = FiniteAlgebra(QQ, [Matrix([[1,0], [0,1]]), Matrix([[0,1], [-1,0]])])
@@ -402,50 +358,45 @@ class FiniteAlgebraElement(AlgebraElement):
             True
             sage: C(0).is_invertible()
             False
+        """
+        try:
+            self.inverse()
+        except ZeroDivisionError:
+            return False
+        return True
+
+    @cached_method
+    def inverse(self):
+        """
+        Return the two-sided multiplicative inverse of ``self``, if it
+        exists.
 
         .. NOTE::
 
             If an element of a unitary finite algebra over a field
             admits a left inverse, then this is the unique left
             inverse, and it is also a right inverse.
-        """
-        A = self.parent()
-        if not A.is_unitary():
-            raise TypeError("algebra is not unitary")
-        try:
-            a = self.matrix().inverse()
-        except ZeroDivisionError:
-            return False
-        try:
-            self._inverse = FiniteAlgebraElement(A, a, check=True)
-        except ValueError:
-            return False
-        return True
-
-    def inverse(self):
-        """
-        Return the two-sided multiplicative inverse of ``self``, if it
-        exists.
 
         EXAMPLE::
 
             sage: C = FiniteAlgebra(QQ, [Matrix([[1,0], [0,1]]), Matrix([[0,1], [-1,0]])])
             sage: C([1,2]).inverse()
             1/5*e0 - 2/5*e1
-
-        .. NOTE::
-
-            If an element of a unitary finite algebra over a field
-            admits a left inverse, then this is the unique left
-            inverse, and it is also a right inverse.
         """
-        if self.is_invertible():
-            return self._inverse
-        raise ZeroDivisionError("element is not invertible")
+
+        A = self.parent()
+        if not A.is_unitary():
+            raise TypeError("algebra is not unitary")
+
+        try:
+            a = self.matrix().inverse()
+            return FiniteAlgebraElement(A, a, check=True)
+        except (ZeroDivisionError, ValueError):
+            raise ZeroDivisionError("element is not invertible")
 
     def is_zerodivisor(self):
         """
-        Return true if ``self`` is a left or right zero-divisor.
+        Return ``True`` if ``self`` is a left or right zero-divisor.
 
         EXAMPLES::
 
@@ -454,13 +405,12 @@ class FiniteAlgebraElement(AlgebraElement):
             False
             sage: C([0,1]).is_zerodivisor()
             True
-
         """
         return self.matrix().det() == 0 or self.left_matrix().det() == 0
 
     def is_nilpotent(self):
         """
-        Return true if ``self`` is nilpotent.
+        Return ``True`` if ``self`` is nilpotent.
 
         EXAMPLES::
 
@@ -505,6 +455,13 @@ class FiniteAlgebraElement(AlgebraElement):
         """
         Return the characteristic polynomial of ``self``.
 
+        .. NOTE::
+
+            This function just returns the characteristic polynomial
+            of the matrix of right multiplication by ``self``.  This
+            may not be a very meaningful invariant if the algebra is
+            not unitary and associative.
+
         EXAMPLES::
 
             sage: B = FiniteAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
@@ -515,12 +472,6 @@ class FiniteAlgebraElement(AlgebraElement):
             x^3 - 8*x^2 + 16*x
             sage: f(b) == 0
             True
-
-        .. NOTE::
-
-            This function just returns the characteristic polynomial
-            of the matrix of right multiplication by ``self``.  This
-            may not be a very meaningful invariant if the algebra is
-            not unitary and associative.
         """
         return self.matrix().characteristic_polynomial()
+

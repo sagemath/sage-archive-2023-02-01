@@ -15,7 +15,6 @@ Finite algebras
 
 from finite_algebra_element import FiniteAlgebraElement
 from finite_algebra_ideal import FiniteAlgebraIdeal
-from finite_algebra_morphism import FiniteAlgebraMorphism
 
 from sage.categories.all import FiniteDimensionalAlgebrasWithBasis
 from sage.matrix.constructor import Matrix
@@ -116,14 +115,14 @@ class FiniteAlgebra(Algebra):
             sage: FiniteAlgebra(RR, [Matrix([1])])._repr_()
             'Finite algebra of degree 1 over Real Field with 53 bits of precision'
         """
-        return "Finite algebra of degree %d over %s" % (self.degree(), self.base_ring())
+        return "Finite algebra of degree {} over {}".format(self.degree(), self.base_ring())
 
     def _coerce_map_from_(self, S):
         """
         TESTS::
 
             sage: A = FiniteAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
-            sage: A.has_coerce_map_from(ZZ)  # indirect doctest
+            sage: A.has_coerce_map_from(ZZ)
             True
             sage: A.has_coerce_map_from(GF(3))
             True
@@ -159,12 +158,22 @@ class FiniteAlgebra(Algebra):
     # assumes that the algebra is unitary.
     from_base_ring = _element_constructor_
 
+    def _Hom_(self, B, category):
+        """
+        Construct a homset of ``self`` and ``B``.
+        """
+        if isinstance(B, FiniteAlgebra):
+            category = FiniteDimensionalAlgebrasWithBasis(self.base_ring()).or_subcategory(category)
+            from sage.algebras.finite_algebras.finite_algebra_morphism import FiniteAlgebraHomset
+            return FiniteAlgebraHomset(self, B, category=category)
+        return super(FiniteAlgebra, self)._Hom_(B, category)
+
     def ngens(self):
         """
         Return the number of generators of ``self``, i.e., the degree
         of ``self`` over its base field.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = FiniteAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: A.ngens()
@@ -179,7 +188,7 @@ class FiniteAlgebra(Algebra):
         """
         Return the `i`-th basis element of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = FiniteAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: A.gen(0)
@@ -191,7 +200,7 @@ class FiniteAlgebra(Algebra):
         """
         Return a list of the basis elements of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = FiniteAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: A.basis()
@@ -203,7 +212,7 @@ class FiniteAlgebra(Algebra):
         """
         Return the ideal class of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = FiniteAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: A._ideal_class_()
@@ -216,7 +225,7 @@ class FiniteAlgebra(Algebra):
         Return the multiplication table of ``self``, as a list of
         matrices for right multiplication by the basis elements.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = FiniteAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: A.table()
@@ -233,7 +242,7 @@ class FiniteAlgebra(Algebra):
         Return the list of matrices for left multiplication by the
         basis elements.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B = FiniteAlgebra(QQ, [Matrix([[1,0], [0,1]]), Matrix([[0,1],[-1,0]])])
             sage: B.left_table()
@@ -248,9 +257,9 @@ class FiniteAlgebra(Algebra):
 
     def __cmp__(self, other):
         """
-        Compare self to other.
+        Compare ``self`` to ``other``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = FiniteAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: B = FiniteAlgebra(GF(5), [Matrix([0])])
@@ -270,9 +279,9 @@ class FiniteAlgebra(Algebra):
 
     def base_extend(self, F):
         """
-        Return ``self`` base changed to `F`.
+        Return ``self`` base changed to ``F``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: C = FiniteAlgebra(GF(2), [Matrix([1])])
             sage: k.<y> = GF(4)
@@ -312,18 +321,18 @@ class FiniteAlgebra(Algebra):
 
         INPUT:
 
-        - ``A`` -- FiniteAlgebra
+        - ``A`` -- a :class:`FiniteAlgebra`
 
-        - ``gens`` -- (default: None) - either an element of `A` or a
-          list of elements of `A`, given as vectors, matrices, or
-          FiniteAlgebraElements.  If ``given_by_matrix`` is True, then
+        - ``gens`` -- (default: None) - either an element of ``A`` or a
+          list of elements of ``A``, given as vectors, matrices, or
+          FiniteAlgebraElements.  If ``given_by_matrix`` is ``True``, then
           ``gens`` should instead be a matrix whose rows form a basis
-          of an ideal of `A`.
+          of an ideal of ``A``.
 
         - ``given_by_matrix`` -- boolean (default: ``False``) - if
           ``True``, no checking is done
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = FiniteAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: A.ideal(A([1,1]))
@@ -335,7 +344,7 @@ class FiniteAlgebra(Algebra):
     @cached_method
     def is_associative(self):
         """
-        Return True if ``self`` is associative.
+        Return ``True`` if ``self`` is associative.
 
         EXAMPLES::
 
@@ -363,7 +372,7 @@ class FiniteAlgebra(Algebra):
     @cached_method
     def is_commutative(self):
         """
-        Return True if ``self`` is commutative.
+        Return ``True`` if ``self`` is commutative.
 
         EXAMPLES::
 
@@ -494,7 +503,7 @@ class FiniteAlgebra(Algebra):
         Return a random element of ``self``.
 
         Optional input parameters are propagated to the ``random_element``
-        method of the underlying ``VectorSpace``.
+        method of the underlying :class:`VectorSpace`.
 
         EXAMPLES::
 
@@ -512,40 +521,41 @@ class FiniteAlgebra(Algebra):
         """
         TESTS::
 
-            sage: from sage.algebras.finite_algebras.finite_algebra_morphism import FiniteAlgebraMorphism
             sage: A = FiniteAlgebra(QQ, [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: B = FiniteAlgebra(QQ, [Matrix([1])])
-            sage: FiniteAlgebraMorphism(A, B, Matrix([[1], [0]]))
+            sage: Hom(A, B)(Matrix([[1], [0]]))
             Morphism from Finite algebra of degree 2 over Rational Field to Finite algebra of degree 1 over Rational Field given by matrix
             [1]
             [0]
-            sage: FiniteAlgebraMorphism(B, A, Matrix([[1, 0]]))
+            sage: Hom(B, A)(Matrix([[1, 0]]))
             Morphism from Finite algebra of degree 1 over Rational Field to Finite algebra of degree 2 over Rational Field given by matrix
             [1 0]
-            sage: FiniteAlgebraMorphism(A, A, Matrix.identity(QQ, 2))
+            sage: H = Hom(A, A)
+            sage: H(Matrix.identity(QQ, 2))
             Morphism from Finite algebra of degree 2 over Rational Field to Finite algebra of degree 2 over Rational Field given by matrix
             [1 0]
             [0 1]
-            sage: FiniteAlgebraMorphism(A, A, Matrix([[1, 0], [0, 0]]))
+            sage: H(Matrix([[1, 0], [0, 0]]))
             Morphism from Finite algebra of degree 2 over Rational Field to Finite algebra of degree 2 over Rational Field given by matrix
             [1 0]
             [0 0]
-            sage: FiniteAlgebraMorphism(A, A, Matrix([[1, 0], [1, 1]]))
+            sage: H(Matrix([[1, 0], [1, 1]]))
             Traceback (most recent call last):
             ...
             ValueError: relations do not all (canonically) map to 0 under map determined by images of generators.
-            sage: FiniteAlgebraMorphism(B, B, Matrix([[2]]))
+            sage: Hom(B, B)(Matrix([[2]]))
             Traceback (most recent call last):
             ...
             ValueError: relations do not all (canonically) map to 0 under map determined by images of generators.
         """
-        n = self.degree()
+        assert len(im_gens) == self.degree()
+
         B = self.table()
-        for i in xrange(n):
-            for j in xrange(n):
+        for i,gi in enumerate(im_gens):
+            for j,gj in enumerate(im_gens):
                 eiej = B[j][i]
-                if (sum([other(im_gens[k]) * eiej[k] for k in xrange(n)])
-                        != other(im_gens[i]) * other(im_gens[j])):
+                if (sum([other(im_gens[k]) * v for k,v in enumerate(eiej)])
+                        != other(gi) * other(gj)):
                     return False
         return True
 
@@ -555,11 +565,12 @@ class FiniteAlgebra(Algebra):
 
         INPUT:
 
-        - ``ideal`` -- ``FiniteAlgebraIdeal``
+        - ``ideal`` -- a ``FiniteAlgebraIdeal``
 
         OUTPUT:
 
-        -- ``FiniteAlgebraMorphism``, the quotient homomorphism
+        - :class:`~sage.algebras.finite_algebras.finite_algebra_morphism.FiniteAlgebraMorphism`;
+          the quotient homomorphism
 
         EXAMPLES::
 
@@ -585,22 +596,22 @@ class FiniteAlgebra(Algebra):
             v = self.element_class(self, v)
             table.append(f.solve_right(v.matrix() * f))
         B = FiniteAlgebra(k, table)
-        return FiniteAlgebraMorphism(self, B, f, check=False)
+        return self.hom(f, codomain=B, check=False)
 
     def maximal_ideal(self):
         """
         Compute the maximal ideal of the local algebra ``self``.
 
-        INPUT:
+        .. NOTE::
 
-        - ``self`` -- ``FiniteAlgebra``, must be unitary, commutative,
-          associative and local (have a unique maximal ideal)
+            ``self`` must be unitary, commutative, associative and local
+            (have a unique maximal ideal).
 
         OUTPUT:
 
-        -- ``FiniteAlgebraIdeal``, the unique maximal ideal of
-           ``self``.  If ``self`` is not a local algebra, a ValueError
-           is raised.
+        - :class:`~sage.algebras.finite_algebras.finite_algebra_ideal.FiniteAlgebraIdeal`;
+          the unique maximal ideal of ``self``.  If ``self`` is not a local
+          algebra, a ``ValueError`` is raised.
 
         EXAMPLES::
 
@@ -623,7 +634,7 @@ class FiniteAlgebra(Algebra):
         for x in self.gens():
             f = x.characteristic_polynomial().factor()
             if len(f) != 1:
-                raise ValueError, "algebra is not local"
+                raise ValueError("algebra is not local")
             if f[0][1] > 1:
                 gens.append(f[0][0](x))
         return FiniteAlgebraIdeal(self, gens)
@@ -632,15 +643,14 @@ class FiniteAlgebra(Algebra):
         """
         Return the primary decomposition of ``self``.
 
-        INPUT:
+        .. NOTE::
 
-        - ``self`` -- ``FiniteAlgebra``, must be unitary, commutative
-          and associative
+            ``self`` must be unitary, commutative and associative.
 
         OUTPUT:
 
-        -- a list consisting of the quotient maps ``self`` -> `A`,
-           with `A` running through the primary factors of ``self``
+        - a list consisting of the quotient maps ``self`` -> `A`,
+          with `A` running through the primary factors of ``self``
 
         EXAMPLES::
 
@@ -661,8 +671,8 @@ class FiniteAlgebra(Algebra):
         n = self.degree()
         if n == 0:
             return []
-        if not(self.is_unitary() and self.is_commutative()
-               and (self._assume_associative or self.is_associative())):
+        if not (self.is_unitary() and self.is_commutative()
+                and (self._assume_associative or self.is_associative())):
             raise TypeError("algebra must be unitary, commutative and associative")
         # Start with the trivial decomposition of self.
         components = [Matrix.identity(k, n)]
@@ -687,9 +697,9 @@ class FiniteAlgebra(Algebra):
         quotients = []
         for i in range(len(components)):
             I = Matrix(k, 0, n)
-            for j in range(len(components)):
+            for j,c in enumerate(components):
                 if j != i:
-                    I = I.stack(components[j])
+                    I = I.stack(c)
             quotients.append(self.quotient_map(self.ideal(I, given_by_matrix=True)))
         return quotients
 
@@ -709,3 +719,4 @@ class FiniteAlgebra(Algebra):
         """
         P = self.primary_decomposition()
         return [f.inverse_image(f.codomain().maximal_ideal()) for f in P]
+

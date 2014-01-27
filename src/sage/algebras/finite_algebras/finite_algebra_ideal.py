@@ -1,5 +1,5 @@
 """
-Ideals of finite algebras
+Ideals of Finite Algebras
 """
 
 #*****************************************************************************
@@ -25,16 +25,28 @@ from sage.misc.cachefunc import cached_method
 
 class FiniteAlgebraIdeal(Ideal_generic):
     """
-    Create an ideal of a FiniteAlgebra.
-    """
+    An ideal of a :class:`FiniteAlgebra`.
 
+    INPUT:
+
+    - ``A`` -- a finite algebra
+    - ``gens`` -- the generators of this ideal
+    - ``given_by_matrix`` -- (default: ``False``) whether the basis matrix is
+      given by ``gens``
+
+    EXAMPLES::
+
+        sage: A = FiniteAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
+        sage: A.ideal(A([0,1]))
+        Ideal (e1) of Finite algebra of degree 2 over Finite Field of size 3
+    """
     def __init__(self, A, gens=None, given_by_matrix=False):
         """
         EXAMPLES::
 
             sage: A = FiniteAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
-            sage: A.ideal(A([0,1]))
-            Ideal (e1) of Finite algebra of degree 2 over Finite Field of size 3
+            sage: I = A.ideal(A([0,1]))
+            sage: TestSuite(I).run(skip="_test_category") # Currently ideals are not using the category framework
         """
         k = A.base_ring()
         n = A.degree()
@@ -47,13 +59,12 @@ class FiniteAlgebraIdeal(Ideal_generic):
             B = [FiniteAlgebraIdeal(A, x).basis_matrix() for x in gens]
             B = reduce(lambda x, y: x.stack(y), B, Matrix(k, 0, n))
             self._basis_matrix = B.echelon_form().image().basis_matrix()
-        else:
-            if is_Matrix(gens):
-                gens = FiniteAlgebraElement(A, gens)
-            if isinstance(gens, FiniteAlgebraElement):
-                gens = gens.vector()
-                B = Matrix([gens * b for b in A.table()])
-                self._basis_matrix = B.echelon_form().image().basis_matrix()
+        elif is_Matrix(gens):
+            gens = FiniteAlgebraElement(A, gens)
+        elif isinstance(gens, FiniteAlgebraElement):
+            gens = gens.vector()
+            B = Matrix([gens * b for b in A.table()])
+            self._basis_matrix = B.echelon_form().image().basis_matrix()
         Ideal_generic.__init__(self, A, gens)
 
     def __eq__(self, other):
@@ -69,10 +80,21 @@ class FiniteAlgebraIdeal(Ideal_generic):
             True
             sage: I == I + J
             True
+
+            sage: A2 = FiniteAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
+            sage: A is A2
+            False
+            sage: A == A2
+            True
+            sage: I2 = A.ideal(A([1,1]))
+            sage: I == I2
+            True
         """
         if self is other:
             return True
-        if self.ring() is not other.ring():
+        if not isinstance(other, FiniteAlgebraIdeal):
+            return False
+        if self.ring() != other.ring():
             return False
         return self.basis_matrix() == other.basis_matrix()
 
@@ -179,7 +201,7 @@ class FiniteAlgebraIdeal(Ideal_generic):
         """
         Return the echelonized matrix whose rows form a basis of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = FiniteAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: I = A.ideal(A([1,1]))
@@ -194,7 +216,7 @@ class FiniteAlgebraIdeal(Ideal_generic):
         """
         Return ``self`` as a vector space.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = FiniteAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: I = A.ideal(A([1,1]))
@@ -205,3 +227,4 @@ class FiniteAlgebraIdeal(Ideal_generic):
             [0 1]
         """
         return self.basis_matrix().image()
+

@@ -211,6 +211,18 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             sage: C3 = CartanMatrix(matrix([[2, -2], [-2, 2]]), [0, 1])
             sage: C == C2 and C == C3
             True
+
+        TESTS:
+
+        Check that :trac:`15740` is fixed::
+
+            sage: d = DynkinDiagram()
+            sage: d.add_edge('a', 'b', 2)
+            sage: d.index_set()
+            ('a', 'b')
+            sage: cm = CartanMatrix(d)
+            sage: cm.index_set()
+            ('a', 'b')
         """
         # Special case with 0 args and kwds has cartan type
         if "cartan_type" in kwds and len(args) == 0:

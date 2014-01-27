@@ -114,6 +114,7 @@ graphs.
     :meth:`~Graph.has_homomorphism_to` | Checks whether there is a morphism between two graphs.
     :meth:`~Graph.chromatic_number` | Returns the minimal number of colors needed to color the vertices of the graph.
     :meth:`~Graph.chromatic_polynomial` | Returns the chromatic polynomial of the graph.
+    :meth:`~Graph.tutte_polynomial` | Returns the Tutte polynomial of the graph.
     :meth:`~Graph.is_perfect` | Tests whether the graph is perfect.
 
 
@@ -128,10 +129,11 @@ graphs.
     :meth:`~Graph.cores` | Returns the core number for each vertex in an ordered list.
     :meth:`~Graph.matching` | Returns a maximum weighted matching of the graph
     :meth:`~Graph.fractional_chromatic_index` | Computes the fractional chromatic index of ``self``
+    :meth:`~Graph.kirchhoff_symanzik_polynomial` | Returns the Kirchhoff-Symanzik polynomial of the graph.
     :meth:`~Graph.modular_decomposition` | Returns the modular decomposition of the current graph.
     :meth:`~Graph.maximum_average_degree` | Returns the Maximum Average Degree (MAD) of the current graph.
     :meth:`~Graph.two_factor_petersen` | Returns a decomposition of the graph into 2-factors.
-
+    :meth:`~Graph.ihara_zeta_function_inverse` | Returns the inverse of the zeta function of the graph.
 
 AUTHORS:
 
@@ -1769,7 +1771,7 @@ class Graph(GenericGraph):
         return False
 
     ### Properties
-    def is_tree(self, certificate = False):
+    def is_tree(self, certificate=False, output='vertex'):
         """
         Tests if the graph is a tree
 
@@ -1781,6 +1783,14 @@ class Graph(GenericGraph):
           None)`` when the graph is a tree and ``(False, cycle)`` when it
           contains a cycle. It returns ``(False, None)`` when the graph is not
           connected.
+
+        - ``output`` (``'vertex'`` (default) or ``'edge'``) -- whether the
+          certificate is given as a list of vertices or a list of
+          edges.
+
+        When the certificate cycle is given as a list of edges, the
+        edges are given as `(v_i, v_{i+1}, l)` where `v_1, v_2, \dots,
+        v\n` are the vertices of the cycles (in their cyclic order).
 
         EXAMPLES::
 
@@ -1795,15 +1805,29 @@ class Graph(GenericGraph):
         With certificates::
 
             sage: g = graphs.RandomTree(30)
-            sage: g.is_tree(certificate = True)
+            sage: g.is_tree(certificate=True)
             (True, None)
             sage: g.add_edge(10,-1)
             sage: g.add_edge(11,-1)
-            sage: isit, cycle = g.is_tree(certificate = True)
+            sage: isit, cycle = g.is_tree(certificate=True)
             sage: isit
             False
             sage: -1 in cycle
             True
+
+        One can also ask for the certificate as a list of edges::
+
+            sage: g = graphs.CycleGraph(4)
+            sage: g.is_tree(certificate=True, output='edge')
+            (False, [(3, 2, None), (2, 1, None), (1, 0, None), (0, 3, None)])
+
+        This is useful for graphs with multiple edges::
+
+            sage: G = Graph([(1, 2, 'a'), (1, 2, 'b')])
+            sage: G.is_tree(certificate=True)
+            (False, [1, 2])
+            sage: G.is_tree(certificate=True, output='edge')
+            (False, [(1, 2, 'a'), (2, 1, 'b')])
 
         TESTS:
 
@@ -1817,15 +1841,36 @@ class Graph(GenericGraph):
             sage: g.size()
             10
         """
+        if not output in ['vertex', 'edge']:
+            raise ValueError('output must be either vertex or edge')
+
         if self.order() == 0:
             return False
 
         if not self.is_connected():
-            return (False,None) if certificate else False
+            return (False, None) if certificate else False
 
         if certificate:
             if self.num_verts() == self.num_edges() + 1:
                 return (True, None)
+
+            if self.has_multiple_edges():
+                if output == 'vertex':
+                    return (False, list(self.multiple_edges()[0][:2]))
+                edge1, edge2 = self.multiple_edges()[:2]
+                if edge1[0] != edge2[0]:
+                    return (False, [edge1, edge2])
+                return (False, [edge1, (edge2[1], edge2[0], edge2[2])])
+
+            if output == 'edge':
+                if self.allows_multiple_edges():
+                    def vertices_to_edges(x):
+                        return [(u[0], u[1], self.edge_label(u[0], u[1])[0])
+                                for u in zip(x, x[1:] + [x[0]])]
+                else:
+                    def vertices_to_edges(x):
+                        return [(u[0], u[1], self.edge_label(u[0], u[1]))
+                                for u in zip(x, x[1:] + [x[0]])]
 
             # This code is a depth-first search that looks for a cycle in the
             # graph. We *know* it exists as there are too many edges around.
@@ -1833,28 +1878,30 @@ class Graph(GenericGraph):
             seen = {}
             u = self.vertex_iterator().next()
             seen[u] = u
-            stack = [(u,v) for v in self.neighbor_iterator(u)]
+            stack = [(u, v) for v in self.neighbor_iterator(u)]
             while stack:
-                u,v = stack.pop(-1)
+                u, v = stack.pop(-1)
                 if v in seen:
                     continue
                 for w in self.neighbors(v):
                     if u == w:
                         continue
                     elif w in seen:
-                        cycle = [v,w]
+                        cycle = [v, w]
                         while u != w:
-                            cycle.insert(0,u)
+                            cycle.insert(0, u)
                             u = seen[u]
-                        return (False,cycle)
+                        if output == 'vertex':
+                            return (False, cycle)
+                        return (False, vertices_to_edges(cycle))
                     else:
-                        stack.append((v,w))
+                        stack.append((v, w))
                 seen[v] = u
 
         else:
             return self.num_verts() == self.num_edges() + 1
 
-    def is_forest(self, certificate = False):
+    def is_forest(self, certificate=False, output='vertex'):
         """
         Tests if the graph is a forest, i.e. a disjoint union of trees.
 
@@ -1866,6 +1913,10 @@ class Graph(GenericGraph):
           None)`` when the graph is a forest and ``(False, cycle)`` when it
           contains a cycle.
 
+        - ``output`` (``'vertex'`` (default) or ``'edge'``) -- whether the
+          certificate is given as a list of vertices or a list of
+          edges.
+
         EXAMPLES::
 
             sage: seven_acre_wood = sum(graphs.trees(7), Graph())
@@ -1875,9 +1926,9 @@ class Graph(GenericGraph):
         With certificates::
 
             sage: g = graphs.RandomTree(30)
-            sage: g.is_forest(certificate = True)
+            sage: g.is_forest(certificate=True)
             (True, None)
-            sage: (2*g + graphs.PetersenGraph() + g).is_forest(certificate = True)
+            sage: (2*g + graphs.PetersenGraph() + g).is_forest(certificate=True)
             (False, [63, 62, 61, 60, 64])
         """
         number_of_connected_components = len(self.connected_components())
@@ -1893,13 +1944,13 @@ class Graph(GenericGraph):
 
             # No need to copy the graph
             if number_of_connected_components == 1:
-                return self.is_tree(certificate = True)
+                return self.is_tree(certificate=True, output=output)
 
             # We try to find a cycle in each connected component
             for gg in self.connected_components_subgraphs():
-                isit, cycle = gg.is_tree(certificate = True)
+                isit, cycle = gg.is_tree(certificate=True, output=output)
                 if not isit:
-                    return (False,cycle)
+                    return (False, cycle)
 
     def is_overfull(self):
         r"""
@@ -2557,116 +2608,6 @@ class Graph(GenericGraph):
             return answer
 
         return self_complement.is_odd_hole_free(certificate = certificate)
-
-    def is_strongly_regular(self, parameters=False):
-        r"""
-        Tests whether ``self`` is strongly regular.
-
-        A graph `G` is said to be strongly regular with parameters (n, k,
-        \lambda, \mu)` if and only if:
-
-            * `G` has `n` vertices.
-
-            * `G` is `k`-regular.
-
-            * Any two adjacent vertices of `G` have `\lambda` common neighbors.
-
-            * Any two non-adjacent vertices of `G` have `\mu` common neighbors.
-
-        By convention, the complete graphs, the graphs with no edges
-        and the empty graph are not strongly regular.
-
-        See :wikipedia:`Strongly regular graph`
-
-        INPUT:
-
-        - ``parameters`` (boolean) -- whether to return the quadruple `(n,
-          k,\lambda,\mu)`. If ``parameters = False`` (default), this method only
-          returns ``True`` and ``False`` answers. If ``parameters=True``, the
-          ``True`` answers are replaced by quadruples `(n, k,\lambda,\mu)`. See
-          definition above.
-
-        EXAMPLES:
-
-        Petersen's graph is strongly regular::
-
-            sage: g = graphs.PetersenGraph()
-            sage: g.is_strongly_regular()
-            True
-            sage: g.is_strongly_regular(parameters = True)
-            (10, 3, 0, 1)
-
-        And Clebsch's graph is too::
-
-            sage: g = graphs.ClebschGraph()
-            sage: g.is_strongly_regular()
-            True
-            sage: g.is_strongly_regular(parameters = True)
-            (16, 5, 0, 2)
-
-        But Chvatal's graph is not::
-
-            sage: g = graphs.ChvatalGraph()
-            sage: g.is_strongly_regular()
-            False
-
-        Complete graphs are not strongly regular. (:trac:`14297`) ::
-
-            sage: g = graphs.CompleteGraph(5)
-            sage: g.is_strongly_regular()
-            False
-
-        Completements of graphs are not strongly regular::
-
-            sage: g = graphs.CompleteGraph(5).complement()
-            sage: g.is_strongly_regular()
-            False
-
-        The empty graph is not strongly regular::
-
-            sage: g = graphs.EmptyGraph()
-            sage: g.is_strongly_regular()
-            False
-        """
-        self._scream_if_not_simple(allow_loops=True)
-
-        if self.size() == 0: # no vertices or no edges
-            return False
-
-        degree = self.degree()
-        k = degree[0]
-        if not all(d == k for d in degree):
-            return False
-
-        if self.is_clique():
-            return False
-        else:
-            l = m = None
-            for u in self:
-                nu = set(self.neighbors(u))
-                for v in self:
-                    if u == v:
-                        continue
-                    nv = set(self.neighbors(v))
-                    inter = len(nu&nv)
-
-                    if v in nu:
-                        if l is None:
-                            l = inter
-                        else:
-                            if l != inter:
-                                return False
-                    else:
-                        if m is None:
-                            m = inter
-                        else:
-                            if m != inter:
-                                return False
-
-        if parameters:
-            return (self.order(),k,l,m)
-        else:
-            return True
 
     def odd_girth(self):
         r"""
@@ -6291,6 +6232,175 @@ class Graph(GenericGraph):
 
         return classes_b
 
+    def kirchhoff_symanzik_polynomial(self, name='t'):
+        """
+        Return the Kirchhoff-Symanzik polynomial of a graph.
+
+        This is a polynomial in variables `t_e` (each of them representing an
+        edge of the graph `G`) defined as a sum over all spanning trees:
+
+        .. MATH::
+
+            \Psi_G(t) = \sum_{T\subseteq V\\atop{\\text{a spanning tree}}} \prod_{e \\not\in E(T)} t_e
+
+        This is also called the first Symanzik polynomial or the Kirchhoff
+        polynomial.
+
+        INPUT:
+
+        - ``name``: name of the variables (default: ``'t'``)
+
+        OUTPUT:
+
+        - a polynomial with integer coefficients
+
+        ALGORITHM:
+
+            This is computed here using a determinant, as explained in Section
+            3.1 of [Marcolli2009]_.
+
+            As an intermediate step, one computes a cycle basis `\mathcal C` of
+            `G` and a rectangular `|\mathcal C| \\times |E(G)|` matrix with
+            entries in `\{-1,0,1\}`, which describes which edge belong to which
+            cycle of `\mathcal C` and their respective orientations.
+
+            More precisely, after fixing an arbitrary orientation for each edge
+            `e\in E(G)` and each cycle `C\in\mathcal C`, one gets a sign for
+            every incident pair (edge, cycle) which is `1` if the orientation
+            coincide and `-1` otherwise.
+
+        EXAMPLES:
+
+        For the cycle of length 5::
+
+            sage: G = graphs.CycleGraph(5)
+            sage: G.kirchhoff_symanzik_polynomial()
+            t0 + t1 + t2 + t3 + t4
+
+        One can use another letter for variables::
+
+            sage: G.kirchhoff_symanzik_polynomial(name='u')
+            u0 + u1 + u2 + u3 + u4
+
+        For the 'coffee bean' graph::
+
+            sage: G = Graph([(0,1,'a'),(0,1,'b'),(0,1,'c')])
+            sage: G.kirchhoff_symanzik_polynomial()
+            t0*t1 + t0*t2 + t1*t2
+
+        For the 'parachute' graph::
+
+            sage: G = Graph([(0,2,'a'),(0,2,'b'),(0,1,'c'),(1,2,'d')])
+            sage: G.kirchhoff_symanzik_polynomial()
+            t0*t1 + t0*t2 + t1*t2 + t1*t3 + t2*t3
+
+        For the complete graph with 4 vertices::
+
+            sage: G = graphs.CompleteGraph(4)
+            sage: G.kirchhoff_symanzik_polynomial()
+            t0*t1*t3 + t0*t2*t3 + t1*t2*t3 + t0*t1*t4 + t0*t2*t4 + t1*t2*t4
+            + t1*t3*t4 + t2*t3*t4 + t0*t1*t5 + t0*t2*t5 + t1*t2*t5 + t0*t3*t5
+            + t2*t3*t5 + t0*t4*t5 + t1*t4*t5 + t3*t4*t5
+
+        REFERENCES:
+
+        .. [Marcolli2009] Matilde Marcolli, Feynman Motives, Chapter 3,
+           Feynman integrals and algebraic varieties,
+           http://www.its.caltech.edu/~matilde/LectureN3.pdf
+
+        .. [Brown2011] Francis Brown, Multiple zeta values and periods: From
+           moduli spaces to Feynman integrals, in Contemporary Mathematics vol
+           539
+        """
+        from sage.matrix.constructor import matrix
+        from sage.rings.integer_ring import ZZ
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+        edges = self.edges()
+        cycles = self.cycle_basis(output='edge')
+
+        edge2int = {e: j for j, e in enumerate(edges)}
+        circuit_mtrx = matrix(ZZ, self.size(), len(cycles))
+        for i, cycle in enumerate(cycles):
+            for edge in cycle:
+                if edge in edges:
+                    circuit_mtrx[edge2int[edge], i] = +1
+                else:
+                    circuit_mtrx[edge2int[(edge[1], edge[0], edge[2])], i] = -1
+
+        D = matrix.diagonal(PolynomialRing(ZZ, name, self.size()).gens())
+        return (circuit_mtrx.transpose() * D * circuit_mtrx).determinant()
+
+    def ihara_zeta_function_inverse(self):
+        """
+        Compute the inverse of the Ihara zeta function of the graph
+
+        This is a polynomial in one variable with integer coefficients. The
+        Ihara zeta function itself is the inverse of this polynomial.
+
+        See :wikipedia:`Ihara zeta function`
+
+        ALGORITHM:
+
+        This is computed here using the determinant of a square matrix
+        of size twice the number of edges, related to the adjacency
+        matrix of the line graph, see for example Proposition 9
+        in [ScottStorm]_.
+
+        EXAMPLES::
+
+            sage: G = graphs.CompleteGraph(4)
+            sage: factor(G.ihara_zeta_function_inverse())
+            (2*t - 1) * (t + 1)^2 * (t - 1)^3 * (2*t^2 + t + 1)^3
+
+            sage: G = graphs.CompleteGraph(5)
+            sage: factor(G.ihara_zeta_function_inverse())
+            (-1) * (3*t - 1) * (t + 1)^5 * (t - 1)^6 * (3*t^2 + t + 1)^4
+
+            sage: G = graphs.PetersenGraph()
+            sage: factor(G.ihara_zeta_function_inverse())
+            (-1) * (2*t - 1) * (t + 1)^5 * (t - 1)^6 * (2*t^2 + 2*t + 1)^4
+            * (2*t^2 - t + 1)^5
+
+            sage: G = graphs.RandomTree(10)
+            sage: G.ihara_zeta_function_inverse()
+            1
+
+        REFERENCES:
+
+        .. [HST] Matthew D. Horton, H. M. Stark, and Audrey A. Terras,
+           What are zeta functions of graphs and what are they good for?
+           in Quantum graphs and their applications, 173-189,
+           Contemp. Math., Vol. 415
+
+        .. [Terras] Audrey Terras, Zeta functions of graphs: a stroll through
+           the garden, Cambridge Studies in Advanced Mathematics, Vol. 128
+
+        .. [ScottStorm] Geoffrey Scott and Christopher Storm, The coefficients
+           of the Ihara zeta function, Involve (http://msp.org/involve/2008/1-2/involve-v1-n2-p08-p.pdf)
+        """
+        from sage.matrix.constructor import matrix
+        from sage.rings.integer_ring import ZZ
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+        ring = PolynomialRing(ZZ, 't')
+        t = ring.gen()
+
+        N = self.size()
+
+        labeled_g = DiGraph()
+        labeled_g.add_edges([(u, v, i) for i, (u, v) in
+                             enumerate(self.edges(labels=False))])
+        labeled_g.add_edges([(v, u, i + N) for i, (u, v) in
+                             enumerate(self.edges(labels=False))])
+
+        M = matrix(ring, 2 * N, 2 * N, ring.one())
+        for u, v, i in labeled_g.edges():
+            for vv, ww, j in labeled_g.outgoing_edges(v):
+                M[i, j] += -t
+            M[i, (i + N) % (2 * N)] += t  # fixing the 2-cycles
+
+        return M.determinant()
 
 # Aliases to functions defined in Cython modules
 import types
@@ -6318,9 +6428,16 @@ Graph.is_cartesian_product = types.MethodType(sage.graphs.graph_decompositions.g
 import sage.graphs.distances_all_pairs
 Graph.is_distance_regular = types.MethodType(sage.graphs.distances_all_pairs.is_distance_regular, None, Graph)
 
+import sage.graphs.base.static_dense_graph
+Graph.is_strongly_regular = types.MethodType(sage.graphs.base.static_dense_graph.is_strongly_regular, None, Graph)
+
 # From Python modules
 import sage.graphs.line_graph
 Graph.is_line_graph = sage.graphs.line_graph.is_line_graph
+
+from sage.graphs.tutte_polynomial import tutte_polynomial
+Graph.tutte_polynomial = tutte_polynomial
+
 
 def compare_edges(x, y):
     """

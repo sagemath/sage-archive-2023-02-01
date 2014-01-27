@@ -45,6 +45,8 @@ from sage.plot.colors import to_mpl_color
 from sage.plot.misc import options, rename_keyword
 from sage.plot.all import hyperbolic_arc, hyperbolic_triangle, text
 
+from sage.misc.latex import latex
+
 cdef class Farey:
     r"""
     A class for calculating Farey symbols of arithmetics subgroups of
@@ -68,12 +70,12 @@ cdef class Farey:
 
     Create a Farey symbol for the group `\Gamma_0(11)`::
 
-        sage: F = FareySymbol(Gamma0(11)); F
+        sage: f = FareySymbol(Gamma0(11)); f
         FareySymbol(Congruence Subgroup Gamma0(11))
 
     Calculate the generators::
 
-         sage: F.generators()
+         sage: f.generators()
          [
          [1 1]  [ 7 -2]  [ 8 -3]  [-1  0]
          [0 1], [11 -3], [11 -4], [ 0 -1]
@@ -81,7 +83,7 @@ cdef class Farey:
 
     Pickling the FareySymbol and recovering it::
 
-         sage: F == loads(dumps(F))
+         sage: f == loads(dumps(f))
          True
 
     Calculate the index of `\Gamma_H(33, [2, 5])` in
@@ -130,7 +132,7 @@ cdef class Farey:
         sage: R = SymmetricGroup(4)('(1, 2, 4)')
 
         sage: FareySymbol(ArithmeticSubgroup_Permutation(L, R)).cusps()
-        [2, Infinity]
+        [-1, Infinity]
 
     Calculate the left coset representation of `\Gamma_H(8, [3])`::
 
@@ -155,7 +157,9 @@ cdef class Farey:
         self.group = group
         # if data is present we want to restore
         if data is not None:
+            sig_on()
             self.this_ptr = new cpp_farey(data)
+            sig_off()
             return
         ## to accelerate the calculation of the FareySymbol
         ## we implement the tests for the standard congruence groups
@@ -200,6 +204,28 @@ cdef class Farey:
 
         """
         del self.this_ptr
+
+    def __contains__(self, M):
+        r"""
+        Tests if element is in the arithmetic group of the Farey symbol
+        via LLT algorithm.
+
+        EXAMPLES::
+
+            sage: SL2Z([0, -1, 1, 0]) in FareySymbol(Gamma0(6))
+            False
+
+            sage: SL2Z([1, 1, 0, 1]) in FareySymbol(Gamma0(6))
+            True
+        """
+        cdef Integer a = M.a()
+        cdef Integer b = M.b()
+        cdef Integer c = M.c()
+        cdef Integer d = M.d()
+        sig_on()
+        result = self.this_ptr.is_element(a.value, b.value, c.value, d.value)
+        sig_off()
+        return result
 
     def __cmp__(self, other):
         r"""
@@ -249,19 +275,55 @@ cdef class Farey:
         else:
             return "FareySymbol(?)"
 
-    def _latex_(self):
+    def _latex_(self, forced_format = None):
         r"""
         Return the LaTeX representation of self.
 
+        INPUT:
+
+        - ``forced_format`` -- A format string ('plain' or 'xymatrix')
+                               or ``None``.
+
         EXAMPLES::
 
-            sage: FareySymbol(Gamma0(23))._latex_()
-            '\\mathcal{F}(\\Gamma_0(23))'
+            sage: FareySymbol(Gamma0(11))._latex_(forced_format = 'plain')
+            '\\left( -\\infty\\underbrace{\\quad}_{1} 0\\underbrace{\\quad}_{2} \\frac{1}{3}\\underbrace{\\quad}_{3} \\frac{1}{2}\\underbrace{\\quad}_{2} \\frac{2}{3}\\underbrace{\\quad}_{3} 1\\underbrace{\\quad}_{1} \\infty\\right)'
+            sage: FareySymbol(Gamma0(11))._latex_(forced_format = 'xymatrix')
+            '\\begin{xy}\\xymatrix{& -\\infty \\ar@{-}@/_1pc/[r]_{1}& 0 \\ar@{-}@/_1pc/[r]_{2}& \\frac{1}{3} \\ar@{-}@/_1pc/[r]_{3}& \\frac{1}{2} \\ar@{-}@/_1pc/[r]_{2}& \\frac{2}{3} \\ar@{-}@/_1pc/[r]_{3}& 1 \\ar@{-}@/_1pc/[r]_{1}& \\infty }\\end{xy}'
+
+            sage: if '\\xymatrix' in sage.misc.latex.latex.mathjax_avoid_list():
+            ...        'xymatrix' not in FareySymbol(Gamma0(11))._latex_()
+            ... else:
+            ...       'xymatrix' in FareySymbol(Gamma0(11))._latex_()
+            True
         """
-        if hasattr(self.group, "_latex_"):
-            return "\mathcal{F}(%s)" % self.group._latex_()
+        if forced_format == 'plain' or \
+           (forced_format is None and '\\xymatrix' in latex.mathjax_avoid_list()):
+            # output not using xymatrix
+            s = r'\left( -\infty'
+            a = [x._latex_() for x in self.fractions()] + ['\infty']
+            b = self.pairings()
+            for i in xrange(len(a)):
+                u = b[i]
+                if u == -3: u = r'\bullet'
+                elif u == -2: u = r'\circ'
+                s += r'\underbrace{\quad}_{%s} %s' % (u,a[i])
+            return s + r'\right)'
         else:
-            return "\mathcal{F}(%s)" % "unknonwn"
+            # output using xymatrix
+            s = r'\begin{xy}\xymatrix{& -\infty '
+            f = [x._latex_() for x in self.fractions()]+[r'\infty']
+            f.reverse()
+            for p in self.pairings():
+                if p >= 0:
+                    s += r'\ar@{-}@/_1pc/[r]_{%s}' % p
+                elif p == -2:
+                    s += r'\ar@{-}@/_1pc/[r]_{\circ}'
+                elif p == -3:
+                    s += r'\ar@{-}@/_1pc/[r]_{\bullet}'
+                s += r'& %s ' % f.pop()
+            s += r'}\end{xy}'
+            return s
 
     def index(self):
         r"""
@@ -363,8 +425,8 @@ cdef class Farey:
 
             sage: FareySymbol(ArithmeticSubgroup_Permutation(S2="(1,2)", S3="()")).generators()
             [
-            [ 0 -1]  [-1  1]
-            [ 1  1], [-1  0]
+            [ 0  1]  [-1  1]
+            [-1 -1], [-1  0]
             ]
             sage: FareySymbol(ArithmeticSubgroup_Permutation(S2="(1,2, 3, 4)", S3="(1,3)(2,4)")).generators()
             [
@@ -457,10 +519,69 @@ cdef class Farey:
         """
         return self.this_ptr.get_cusps()+[Cusp(infinity)]
 
-    @rename_keyword(color='rgbcolor')
-    @options(alpha=1, fill=True, thickness=1, rgbcolor="lightgray", \
+    def cusp_widths(self):
+        r"""
+        Cusps widths of the FareySymbol.
+
+        EXAMPLES::
+        
+            sage: FareySymbol(Gamma0(6)).cusp_widths()
+            [6, 2, 3, 1]
+        """
+        return self.this_ptr.get_cusp_widths()
+
+    def cusp_class(self, c):
+        r"""
+        Cusp class of a cusp in the FareySymbol.
+
+        EXAMPLES::
+
+            sage: FareySymbol(Gamma0(12)).cusp_class(Cusp(1, 12))
+            5
+        """
+        cusp = Cusp(c)
+        cdef Integer p = cusp.numerator()
+        cdef Integer q = cusp.denominator()
+        sig_on()
+        result = self.this_ptr.get_cusp_class(p.value, q.value)
+        sig_off()
+        return result
+
+    def reduce_to_cusp(self, r):
+        r"""
+        Transformation of a rational number to cusp representative.
+
+        EXAMPLES::
+
+            sage: FareySymbol(Gamma0(12)).reduce_to_cusp(5/8)
+            [ 5  -3]
+            [12  -7]
+
+        Reduce 11/17 to a cusp of for HsuExample10()::
+
+            sage: from sage.modular.arithgroup.arithgroup_perm import HsuExample10
+            sage: f = FareySymbol(HsuExample10())
+            sage: f.reduce_to_cusp(11/17)
+            [14 -9]
+            [-3  2]
+            sage: _.acton(11/17)
+            1
+            sage: f.cusps()[f.cusp_class(11/17)]
+            1
+        """
+        cdef Integer p = r.numerator()
+        cdef Integer q = r.denominator()
+        sig_on()
+        result = self.this_ptr.get_transformation_to_cusp(p.value, q.value)
+        sig_off()
+        return result
+
+    @rename_keyword(rgbcolor='color')
+    @options(alpha=1, fill=True, thickness=1, color='lightgray', \
+             color_even='white', \
              zorder=2, linestyle='solid', show_pairing=True, \
-             show_tesselation=False)
+             tesselation='Dedekind', ymax=1
+        )
     def fundamental_domain(self, **options):
         r"""
         Plot a fundamental domain of an arithmetic subgroup of
@@ -468,24 +589,32 @@ cdef class Farey:
 
         OPTIONS:
 
-        - ``fill`` - boolean (default True) fill the fundamental domain
+        - ``fill`` -- boolean (default ``True``) fill the fundamental domain
 
-        - ``linestyle`` - string (default: 'solid') The style of the line,
+        - ``linestyle`` -- string (default: 'solid') The style of the line,
           which is one of 'dashed', 'dotted', 'solid', 'dashdot', or '--',
           ':', '-', '-.', respectively
 
-        - ``rgbcolor`` - (default: 'lightgray') fill color
+        - ``color`` -- (default: 'lightgray') fill color; fill
+                       color for odd part of Dedekind tesselation.
 
-        - ``show_pairing`` - boolean (default: True) flag for pairing
+        - ``show_pairing`` -- boolean (default: ``True``) flag for pairing
 
-        - ``show_tesselation`` - boolean (default: False) flag for the
-          hyperbolic tesselation
+        - ``tesselation`` -- (default: 'Dedekind') The type of
+                             hyperbolic tesselation which is one of
+                             'coset', 'Dedekind' or None respectively
 
-        - ``thickness`` - float (default: 1) the thickness of the line
+        - ``color_even`` -- fill color for even parts of Dedekind
+                            tesselation (default 'white'); ignored for
+                            other tesselations
+  
+        - ``thickness`` -- float (default: `1`) the thickness of the line
+
+        - ``ymax`` -- float (default: `1`) maximal height
 
         EXAMPLES:
 
-        For example to plot the fundamental domain of `\Gamma_0(11)`
+        For example, to plot the fundamental domain of `\Gamma_0(11)`
         with pairings use the following command::
 
             sage: FareySymbol(Gamma0(11)).fundamental_domain()
@@ -501,35 +630,56 @@ cdef class Farey:
         Plot the fundamental domain of `\Gamma_0(23)` showing the left
         coset representatives::
 
-            sage: FareySymbol(Gamma0(23)).fundamental_domain(show_tesselation=True)
+            sage: FareySymbol(Gamma0(23)).fundamental_domain(tesselation='coset')
 
         The same as above but with a custom linestyle::
 
-            sage: FareySymbol(Gamma0(23)).fundamental_domain(show_tesselation=True, linestyle=':', thickness='2')
+            sage: FareySymbol(Gamma0(23)).fundamental_domain(tesselation='coset', linestyle=':', thickness='2')
 
         """
         from sage.plot.colors import rainbow
+        I = CC(0, 1)
+        w = RR(3).sqrt()
         L = 1000
         g = Graphics()
         ## show coset
         for x in self.coset_reps():
-            if self.index() != 2:
-                a, b, c, d = x[1, 1], -x[0, 1], -x[1, 0], x[0, 0]
-                A, B = CC(0, L), CC(0, L)
-                if d!=0: A = b/d
-                if c!=0: B = a/c
-                C = (a*c+b*d+(a*d+b*c)/2+CC(0, 1)*RR(3).sqrt()/2)\
-                    /(c*c+c*d+d*d)
+            a, b, c, d = x[1, 1], -x[0, 1], -x[1, 0], x[0, 0]
+            A, B = CC(0, L), CC(0, L)
+            if d!=0: A = b/d
+            if c!=0: B = a/c
+            C = (a*c+b*d+(a*d+b*c)/2+I*w/2)/(c*c+c*d+d*d)
+            D = (a*c+b*d + CC(0, 1))/(c*c+d*d)
+            if options['tesselation'] == 'Dedekind':
+                g += hyperbolic_triangle(A, D, C,
+                                         alpha=options['alpha'],
+                                         color=options['color'],
+                                         fill=options['fill'],
+                                         linestyle=options['linestyle'],
+                                         thickness=options['thickness'])
+                g += hyperbolic_triangle(D, C, B,
+                                         alpha=options['alpha'],
+                                         color=options['color_even'],
+                                         fill=options['fill'],
+                                         linestyle=options['linestyle'],
+                                         thickness=options['thickness'])
+                g += hyperbolic_triangle(A, D, C, color='gray')
+                g += hyperbolic_triangle(D, C, B, color='gray')
+            elif options['tesselation'] == 'coset':
+                g += hyperbolic_triangle(A, B, C,
+                                         alpha=options['alpha'],
+                                         color=options['color'],
+                                         fill=options['fill'],
+                                         linestyle=options['linestyle'],
+                                         thickness=options['thickness'])
+                g += hyperbolic_triangle(A, B, C, color='gray',
+                                         linestyle=options['linestyle'],
+                                         thickness=options['thickness'])
             else:
-                A, B, C = [x.acton(z) for z in [CC(0, 0), CC(1, 0), CC(0, L)]]
-            g += hyperbolic_triangle(A, B, C,
-                                     alpha=options['alpha'],
-                                     color=options['rgbcolor'],
-                                     fill=options['fill'],
-                                     linestyle=options['linestyle'],
-                                     thickness=options['thickness'])
-            if options['show_tesselation']:
-                g += hyperbolic_triangle(A, B, C, color="gray",
+                g += hyperbolic_triangle(A, B, C,
+                                         alpha=options['alpha'],
+                                         color=options['color'],
+                                         fill=options['fill'],
                                          linestyle=options['linestyle'],
                                          thickness=options['thickness'])
         ## show pairings
@@ -551,7 +701,7 @@ cdef class Farey:
                                         linestyle=options['linestyle'],
                                         thickness=options['thickness'])
         d = g.get_minmax_data()
-        g.set_axes_range(d['xmin'], d['xmax'], 0, 1)
+        g.set_axes_range(d['xmin'], d['xmax'], 0, options['ymax'])
         return g
 
 

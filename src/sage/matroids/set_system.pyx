@@ -78,7 +78,10 @@ cdef class SetSystem:
             Iterator over a system of subsets
         """
         cdef long i
-        self._groundset = groundset
+        if not isinstance(groundset, tuple):
+            self._groundset = tuple(groundset)
+        else:
+            self._groundset = groundset
         self._idx = {}
         for i in xrange(len(groundset)):
             self._idx[groundset[i]] = i
@@ -96,7 +99,7 @@ cdef class SetSystem:
 
         INPUT:
 
-        - ``groundset`` -- a list of finitely many elements.
+        - ``groundset`` -- a list or tuple of finitely many elements.
         - ``subsets`` -- (default: ``None``) an enumerator for a set of
           subsets of ``groundset``.
         - ``capacity`` -- (default: ``1``) Initial maximal capacity of the set

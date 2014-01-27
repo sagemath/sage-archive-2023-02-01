@@ -130,6 +130,53 @@ class Magmas(Category_singleton):
             """
             return self._with_axiom("Unital")
 
+        @cached_method
+        def Distributive(self):
+            """
+            Return the full subcategory of the objects of ``self`` where `*` is distributive on `+`.
+
+            Given that `Sage` does not know that
+            :class:`MagmasAndAdditiveMagmas` is the intersection of
+            :class:`Magmas` and :class:`AdditiveMagmas`, the method
+            :meth:`MagmasAndAdditiveMagmas.SubcategoryMethods.Distributive`
+            is not available as would be desirable for this intersection.
+
+            As a workaround, this method checks that ``self`` is a
+            subcategory of both :class:`Magmas` and
+            :class:`AdditiveMagmas` and upgrades it to a subcategory
+            of :class:`MagmasAndAdditiveMagmas` before applying the
+            axiom. It complains overwise, since the ``Distributive``
+            axiom does not make sense for a plain magma.
+
+            EXAMPLES::
+
+                sage: (Magmas() & AdditiveMagmas()).Distributive()
+                Category of distributive magmas and additive magmas
+                sage: (Monoids() & CommutativeAdditiveGroups()).Distributive()
+                Category of rings
+
+                sage: Magmas().Distributive()
+                Traceback (most recent call last):
+                ...
+                ValueError: The distributive axiom only makes sense on a magma which is simultaneously an additive magma
+                sage: Semigroups().Distributive()
+                Traceback (most recent call last):
+                ...
+                ValueError: The distributive axiom only makes sense on a magma which is simultaneously an additive magma
+
+            TESTS::
+
+                sage: Semigroups().Distributive.__module__
+                'sage.categories.magmas'
+                sage: Rings().Distributive.__module__
+                'sage.categories.magmas_and_additive_magmas'
+            """
+            from additive_magmas import AdditiveMagmas
+            if not self.is_subcategory(AdditiveMagmas()):
+                raise ValueError("The distributive axiom only makes sense on a magma which is simultaneously an additive magma")
+            from magmas_and_additive_magmas import MagmasAndAdditiveMagmas
+            return (self & MagmasAndAdditiveMagmas()).Distributive()
+
     Associative = LazyImport('sage.categories.semigroups', 'Semigroups', at_startup=True)
 
     class Algebras(AlgebrasCategory):

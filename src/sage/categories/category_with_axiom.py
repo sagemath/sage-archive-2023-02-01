@@ -46,12 +46,14 @@ categories of semigroups and of infinite sets respectively::
     sage: Semigroups().Infinite().super_categories()
     [Category of semigroups, Category of infinite sets]
 
-In this later case, one needs to create a new class to implement the
-axiom for this category. This boils down to adding a nested class
-inheriting from :class:`CategoryWithAxiom`. Here we implement a
-category ``Cs``, with a subcategory for the objects satisfying the
-``Finite`` axiom defined in the super category ``Sets`` (we will see
-later on how to *define* new axioms)::
+In this case, one needs to create a new class to implement the axiom
+``Infinite`` for this category. This boils down to adding a nested
+class ``Semigroups.Infinite`` inheriting from :class:`CategoryWithAxiom`.
+
+In the following example, we implement a category ``Cs``, with a
+subcategory for the objects satisfying the ``Finite`` axiom defined in
+the super category ``Sets`` (we will see later on how to *define* new
+axioms)::
 
     sage: from sage.categories.category_with_axiom import CategoryWithAxiom
     sage: class Cs(Category):
@@ -89,13 +91,21 @@ all the methods of finite sets and of finite `C`'s, as desired::
       :mod:`covariant functorial constructions
       <sage.categories.covariant_functorial_construction>`.
 
-      From an object oriented point of view, any subcategory ``Cs`` of
-      Sets inherits from a ``Finite`` method, and it can complement
-      this method with extra data (here a mixin class) in the form of
-      a class attribute ``Cs.Finite``. The fact that ``Cs.Finite``
-      *complements* the ``Finite`` method rather than *overriding* is
-      not unnatural: that's what sequences of ``super`` calls are
-      usually about.
+    - From an object oriented point of view, any subcategory ``Cs()``
+      of :class:`Sets`() inherits from a ``Finite`` method, and ``Cs``
+      can complement this method with extra data (here a mixin class)
+      in the form of a class attribute ``Cs.Finite``.
+
+      It may come as a surprise that we can use the same name
+      ``Finite`` for this mixin class as for the method. This indeed
+      takes a bit of magic under the hood, since by default a class
+      does not have a binding behavior and would completely override
+      the method.
+
+      This magic should be thought of as implementing the natural
+      analogue of a method in a class `C` complementing a method of
+      the same name in a superclass `B` by overriding it and calling
+      it with a super call. It gives a concise naming scheme.
 
     - Under the hood, the category ``Cs().Finite()`` is aware that it
       has been constructed from the category ``Cs()`` and adding the
@@ -111,25 +121,26 @@ cumbersome to keep as a nested class of ``Cs``. Or the category with
 axiom may have a name of its own in the litterature, like *semigroups*
 rather than *associative magmas*, or *fields* rather than *commutative
 division rings*. In this case, the category with axiom can be put
-elsewhere, typically in a separate file, with just links to and from
+elsewhere, typically in a separate file, with just a link from
 ``Cs``::
 
     sage: class Cs(Category):
     ....:     def super_categories(self):
     ....:         return [Sets()]
     sage: class FiniteCs(CategoryWithAxiom):
-    ....:     _base_category_class_and_axiom = (Cs, 'Finite')
     ....:     class ParentMethods:
     ....:         def foo(self):
     ....:             print "I am a method on finite C's"
     sage: Cs.Finite = FiniteCs
+    sage: Cs().Finite()
+    Category of finite cs
 
-For a real example, look up the code of the class
-:class:`FiniteGroups` and the link to it in :class:`Groups`. Note that
-the link is implemented using :class:`LazyImport`; this is highly
-recommended: it makes sure that :class:`FiniteGroups` is imported
-after :class:`Groups` it depends upon, and makes it explicit that the
-class :class:`Groups` can be imported and is fully functional without
+For a real example, see the code of the class :class:`FiniteGroups`
+and the link to it in :class:`Groups`. Note that the link is
+implemented using :class:`LazyImport`; this is highly recommended: it
+makes sure that :class:`FiniteGroups` is imported after
+:class:`Groups` it depends upon, and makes it explicit that the class
+:class:`Groups` can be imported and is fully functional without
 importing :class:`FiniteGroups`.
 
 .. NOTE::
@@ -147,41 +158,137 @@ importing :class:`FiniteGroups`.
     constructed upon startup. Each "at_startup=True" that will be
     removed will be a measure of progress in this direction.
 
-Note that the category with axiom can be created either directly or
-through its base category::
+.. NOTE::
+
+    In principle, due to a limitation of :class:`LazyImport` with
+    nested classes (see :trac:`15648`), one should pass the option
+    ``as_name`` to :class:`LazyImport`::
+
+        Finite = LazyImport('sage.categories.finite_groups', 'FiniteGroups', as_name='Finite')
+
+    in order to prevent ``Groups.Finite`` to keep on reimporting
+    ``FiniteGroups``.
+
+    Given that passing this option introduces some redundancy and is
+    error prone, the axiom infrastructure includes a little workaround
+    which makes the ``as_name`` unnecessary in this case.
+
+Making the category with axiom directly callable
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If desired, a category with axiom can be constructed directly through
+its class rather than through its base category::
+
+    sage: Semigroups()
+    Category of semigroups
+    sage: Semigroups() is Magmas().Associative()
+    True
 
     sage: FiniteGroups()
     Category of finite groups
-    sage: Groups().Finite()
-    Category of finite groups
-    sage: Groups().Finite() is FiniteGroups()
+    sage: FiniteGroups() is Groups().Finite()
     True
 
-For the former idiom to work, and with the current implementation of
-axioms, the class :class:`FiniteGroups` needs to be aware of the base
-category class (here, :class:`Groups`) and of the axiom (here,
-``Finite``)::
+For this notation to work, the class :class:`Semigroups` needs to be
+aware of the base category class (here, :class:`Magmas`) and of the
+axiom (here, ``Associative``)::
 
-    sage: FiniteGroups._base_category_class_and_axiom
-    (<class 'sage.categories.groups.Groups'>, 'Finite')
     sage: Semigroups._base_category_class_and_axiom
     (<class 'sage.categories.magmas.Magmas'>, 'Associative')
     sage: Fields._base_category_class_and_axiom
     (<class 'sage.categories.division_rings.DivisionRings'>, 'Commutative')
+    sage: FiniteGroups._base_category_class_and_axiom
+    (<class 'sage.categories.groups.Groups'>, 'Finite')
     sage: FiniteDimensionalAlgebrasWithBasis._base_category_class_and_axiom
     (<class 'sage.categories.algebras_with_basis.AlgebrasWithBasis'>, 'FiniteDimensional')
 
-As a syntactic sugar, Sage tries some obvious heuristics to guess
-those from the name of the category with axiom (see
-:func:`base_category_class_and_axiom` for the details). When this
-fails, typically because the category has a name of its own like
-:class:`Fields`, the attribute ``_base_category_class_and_axiom``
-should be set explicitly. For more examples, see the code of the
-classes :class:`Semigroups` or :class:`Fields`.
+In our example, the attribute ``_base_category_class_and_axiom`` was
+set upon calling ``Cs().Finite()``, which makes the notation seemingly
+work::
 
-In our example ``FiniteCs``, Sage failed to guess automatically the
-base category class and axiom because the class ``Cs`` is not in the
-standard location ``sage.categories.cs``.
+    sage: FiniteCs()
+    Category of finite cs
+    sage: FiniteCs._base_category_class_and_axiom
+    (<class '__main__.Cs'>, 'Finite')
+    sage: FiniteCs._base_category_class_and_axiom_origin
+    'set by __classget__'
+
+But calling ``FiniteCs()`` right after defining the class would have
+failed (try it!). In general, one needs to set the attribute explicitly::
+
+    sage: class FiniteCs(CategoryWithAxiom):
+    ....:     _base_category_class_and_axiom = (Cs, 'Finite')
+    ....:     class ParentMethods:
+    ....:         def foo(self):
+    ....:             print "I am a method on finite C's"
+
+Having to set explicitly this link back from ``FiniteCs`` to ``Cs``
+introduces redundancy in the code. It would therefore be desirable to
+have the infrastructure set the link automatically instead (a
+difficulty is to achieve this while supporting lazy imported
+categories with axiom).
+
+As a first step, the link is set automatically upon accessing the
+class from the base category class::
+
+    sage: Algebras.WithBasis._base_category_class_and_axiom
+    (<class 'sage.categories.algebras.Algebras'>, 'WithBasis')
+    sage: Algebras.WithBasis._base_category_class_and_axiom_origin
+    'set by __classget__'
+
+Hence, for whatever this notation is worth, one can safely do::
+
+    sage: Algebras.WithBasis(QQ)
+    Category of algebras with basis over Rational Field
+
+As a second step, Sage tries some obvious heuristics to guess the link
+from the name of the category with axiom (see
+:func:`base_category_class_and_axiom` for the details). This typically
+covers the following examples::
+
+    sage: FiniteGroups()
+    Category of finite groups
+    sage: FiniteGroups() is Groups().Finite()
+    True
+    sage: FiniteGroups._base_category_class_and_axiom_origin
+    'guessed by base_category_class_and_axiom'
+
+    sage: FiniteDimensionalAlgebrasWithBasis(QQ)
+    Category of finite dimensional algebras with basis over Rational Field
+    sage: FiniteDimensionalAlgebrasWithBasis(QQ) is Algebras(QQ).FiniteDimensional().WithBasis()
+    True
+
+When this guessing fails, typically because the category has a name of
+its own like :class:`Fields`, the attribute
+``_base_category_class_and_axiom`` should be set explicitly. For more
+examples, see the code of the classes :class:`Semigroups` or
+:class:`Fields`.
+
+.. NOTE::
+
+    When printing out a category with axiom, the heuristic determines
+    whether a category has a name of its own by checking out how
+    ``_base_category_class_and_axiom`` was set::
+
+        sage: Fields._base_category_class_and_axiom_origin
+        'hardcoded'
+
+    See :meth:`CategoryWithAxiom._without_axioms`,
+    :meth:`CategoryWithAxiom._repr_object_names_static`.
+
+In our running example ``FiniteCs``, Sage failed to guess
+automatically the base category class and axiom because the class
+``Cs`` is not in the standard location ``sage.categories.cs``.
+
+.. TOPIC:: Design discussion
+
+    The above guessing based on names is undoubtedly inelegant and
+    somewhat brittle. However it saves on some redundant information
+    and is only used for the simple shorthands like ``FiniteGroups()``
+    for ``Groups().Finite()``; furthermore most if not all of these
+    shorthands are likely to eventually disappear (see :trac:`15741`
+    and the :ref:`related discussion in the primer
+    <category-primer-axioms-single-entry-point>`).
 
 Defining a new axiom
 --------------------
@@ -262,7 +369,7 @@ It is therefore the natural spot for the documentation of the axiom.
     ``all_axioms`` is only used marginally, for sanity checks and when
     trying to guess the base category class. The order of the axioms
     in this tuple also controls the order in which they appear when
-    printing categories with axioms (see
+    printing out categories with axioms (see
     :meth:`CategoryWithAxiom._repr_object_names_static`).
 
     During a Sage session, new axioms should only be added at the end
@@ -272,7 +379,7 @@ It is therefore the natural spot for the documentation of the axiom.
     the name is best inserted by editing directly the definition of
     ``all_axioms`` in :mod:`category_with_axiom`.
 
-.. NOTE::
+.. TOPIC:: Design note
 
     Let us state again that, unlike what the existence of
     ``all_axioms`` might suggests, the definition of an axiom is local
@@ -295,17 +402,105 @@ It is therefore the natural spot for the documentation of the axiom.
     and/or have automatic registration there, and/or having a
     register_axiom(...) method.
 
+Special case: defining an axiom depending on several categories
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Handling multiple axioms, tree structure of the code
-----------------------------------------------------
+In some cases, the largest category where the axiom makes sense is the
+intersection of two categories. This is typically the case for axioms
+specify compatibility conditions between two otherwise unrelated
+operations, like ``Distributive`` which specifies a compatibility
+between `*` and `+`. Ideally, we would want the ``Distributive`` axiom
+to be defined by::
+
+    sage: Magmas() & AdditiveMagmas()
+    Join of Category of magmas and Category of additive magmas
+
+The current infrastructure does not support this perfectly: indeed,
+defining an axiom for a category `C` requires `C` to have a class of
+its own; hence a :class:`JoinCategory` as above won't do; we need to
+implement a new class like :class:`MagmasAndAdditiveMagmas`;
+furthermore, we cannot yet model the fact that
+`MagmasAndAdditiveMagmas()`` *is* the intersection of ``Magmas()`` and
+``AdditiveMagmas()`` rather than a mere subcategory::
+
+    sage: from sage.categories.magmas_and_additive_magmas import MagmasAndAdditiveMagmas
+    sage: Magmas() & AdditiveMagmas() is MagmasAndAdditiveMagmas()
+    False
+    sage: Magmas() & AdditiveMagmas()             # todo: not implemented
+    Category of magmas and additive magmas
+
+Still, there is a workaround to get the natural notations::
+
+    sage: (Magmas() & AdditiveMagmas()).Distributive()
+    Category of distributive magmas and additive magmas
+    sage: (Monoids() & CommutativeAdditiveGroups()).Distributive()
+    Category of rings
+
+The trick is to define ``Distributive`` as usual in
+:class:`MagmasAndAdditiveMagmas`, and to add a method
+:meth:`Magmas.SubcategoryMethods.Distributive` which checks that
+``self`` is a subcategory of both ``Magmas()`` and
+``AdditiveMagmas()``, complains if not, and otherwise takes the
+intersection of ``self`` with ``MagmasAndAdditiveMagmas()`` before
+calling ``Distributive``.
+
+The downsides of this workaround are:
+
+- Creation of an otherwise empty class :class:`MagmasAndAdditiveMagmas`.
+
+- Pollution of the namespace of ``Magmas()`` (and subcategories like
+  ``Groups()``) with a method that is irrelevant (but safely complains
+  if called).
+
+- ``C._with_axiom('Distributive`)`` is not strictly equivalent to
+  ``C.Distributive()``, which can be unpleasantly surprising::
+
+    sage: (Monoids() & CommutativeAdditiveGroups()).Distributive()
+    Category of rings
+
+    sage: (Monoids() & CommutativeAdditiveGroups())._with_axiom('Distributive')
+    Join of Category of monoids and Category of commutative additive groups
+
+.. TODO::
+
+    Other categories that would be better implemented via an axiom
+    depending on a join category include:
+
+    - :class:`Algebras`: defining an associative unital algebra as a
+      ring and a module satisfying the suitable compatibility axiom
+      between inner multiplication and multiplication by scalars
+      (bilinearity). Of course this should be implemented at the level
+      of :class:`MagmaticAlgebras`, if not higher.
+
+    - :class:`Bialgebras`: defining an bialgebra as an algebra and
+      coalgebra where the coproduct is a morphism for the product.
+
+    - :class:`Bimodules`: defining a bimodule as a left and right
+      module where the two actions commute.
+
+.. TODO::
+
+    - Design and implement an idiom for the definion of an axiom by a
+      join category.
+
+    - Or support more advanced joins, through some hook or
+      registration process to specify that a given category *is* the
+      intersection of two (or more) categories.
+
+    - Or at least improve the above workaround to avoid the last
+      issue; this possibly could be achieved using a class
+      ``Magmas.Distributive`` with a bit of ``__classcall__`` magic.
+
+Handling multiple axioms, arborescence structure of the code
+------------------------------------------------------------
 
 Prelude
 ^^^^^^^
 
 Let us consider the category of magmas, together with two of its
 axioms, namely ``Associative`` and ``Unital``. An associative magma is
-a semigroup and a unital semigroup is a monoid; we have also seen that
-axioms commute::
+a *semigroup* and a unital semigroup is a *monoid*. We have also seen
+that axioms commute::
 
     sage: Magmas().Unital()
     Category of unital magmas
@@ -316,7 +511,7 @@ axioms commute::
     sage: Magmas().Unital().Associative()
     Category of monoids
 
-At the level of the classes implementing those categories, the
+At the level of the classes implementing these categories, the
 following comes as a general naturalization of the previous section::
 
     sage: Magmas.Unital
@@ -326,7 +521,7 @@ following comes as a general naturalization of the previous section::
     sage: Magmas.Associative.Unital
     <class 'sage.categories.monoids.Monoids'>
 
-However, the following may look suspicous at first::
+However, the following may look suspicious at first::
 
     sage: Magmas.Unital.Associative
     Traceback (most recent call last):
@@ -343,7 +538,7 @@ As we have seen in the :ref:`Primer <category-primer-axioms-explosion>`,
 the objects of a category ``Cs()`` can usually satisfy, or not, many
 different axioms. Out of all combinations of axioms, only a small
 number are relevant in practice; in the sense that we actually want to
-provide features for the objects satisfying those axioms.
+provide features for the objects satisfying these axioms.
 
 Therefore, in the context of the category class `Cs`, we want to
 provide the system with a collection `(D_S)_{S\in \mathcal S}` were
@@ -379,25 +574,49 @@ Otherwise, we get a join category::
     sage: C.super_categories()
     [Category of monoids, Category of infinite sets]
 
-Concrete model as a tree of nested classes
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Concrete model as an arborescence of nested classes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 We further want the construction to be efficient and amenable to
 lazyness. This led us to the following design decision: the collection
-`(D_S)_{S\in \mathcal S}` of classes should be structured as a rooted
-tree. The root is ``Cs``, corresponding to `S=\emptyset`. Any other
-class `D_S` should be the child of a single class `D_{S'}` where `S'`
-is obtained from `S` by removing exactly one axiom `A`. Of course,
-`D_{S'}` and `A` are respectively the base category class and axiom of
-the category with axiom `D_S` that we have met in the first section.
+`(D_S)_{S\in \mathcal S}` of classes should be structured as an
+arborescence. The root is ``Cs``, corresponding to `S=\emptyset`. Any
+other class `D_S` should be the child of a single class `D_{S'}` where
+`S'` is obtained from `S` by removing a single axiom `A`. Of
+course, `D_{S'}` and `A` are respectively the base category class and
+axiom of the category with axiom `D_S` that we have met in the first
+section.
 
 At this point, we urge the reader to explore the code of
 :class:`Magmas` and :class:`DistributiveMagmasAndAdditiveMagmas` and
-see how the tree structure on the categories with axioms is reflected
-by the nesting of category classes.
+see how the arborescence structure on the categories with axioms is
+reflected by the nesting of category classes.
 
 Discussion of the design
 ^^^^^^^^^^^^^^^^^^^^^^^^
+
+Performance
+~~~~~~~~~~~
+
+Thanks to the arborescence structure on subsets of axioms,
+constructing the hierarchy of categories and computing intersections
+can be made efficient with, roughly speaking, a linear complexity in
+the size of the involved category hierarchy multiplied by the number
+of axioms (see Section :ref:`axioms-algorithmic`). This is to be put
+in perspective with the manipulation of arbitrary collections of
+subsets (aka boolean functions) which can easily raise NP-hard
+problems.
+
+Furthermore, thanks to its locality, the algorithms can be made
+suitably lazy: in particular, only the involved category classes need
+to be imported.
+
+Flexibility
+~~~~~~~~~~~
+
+This design also brings in quite some flexibility, with the
+possibility to support features such as defining new axioms depending
+on other axioms and deduction rules. See below.
 
 Asymmetry
 ~~~~~~~~~
@@ -408,94 +627,97 @@ practical cases, we want to work incrementally. It's for example more
 natural to describe :class:`FiniteFields` as :class:`Fields` with the
 axiom ``Finite`` rather than :class:`Magmas` and
 :class:`AdditiveMagmas` with all (or at least sufficiently many) of
-the following axioms (not counting ``Distributive`` which is not yet
-implemented)::
+the following axioms::
 
-    sage: Fields().axioms()
-    frozenset(['Division', 'AdditiveUnital', 'NoZeroDivisors', 'Commutative',
-               'AdditiveInverse', 'AdditiveAssociative', 'Unital',
-	       'AdditiveCommutative', 'Associative'])
+    sage: sorted(Fields().axioms())
+    ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital',
+    'Associative', 'Commutative', 'Distributive', 'Division', 'NoZeroDivisors', 'Unital']
 
 The main limitation is that the infrastructure currently imposes to be
-incremental by steps of one axiom.
+incremental by steps of a single axiom.
 
 In practice, among the roughly 60 categories with axioms that are
 currently implemented in Sage, most admitted a (rather) natural choice
 of a base category and single axiom to add. For example, one usually
 thinks more naturally of a monoid as a semigroup which is unital
-rather than as a unital magma which is associative. Only in a few
-cases is a choice made that feels mathematically arbitrary. This is
-essentially in the chain of nested classes
-:class:`DistributiveMagmasAndAdditiveMagmas.AdditiveAssociative.AdditiveCommutative.AdditiveUnital`.
+rather than as a unital magma which is associative. Modeling this
+asymmetry in the code actually brings a bonus: it is used for printing
+out categories in a (heuristically) mathematician-friendly way::
+
+    sage: Magmas().Commutative().Associative()
+    Category of commutative semigroups
+
+Only in a few cases is a choice made that feels mathematically
+arbitrary. This is essentially in the chain of nested classes
+:class:`DistributiveMagmasAndAdditiveMagmas.AdditiveAssociative.AdditiveCommutative.AdditiveUnital.Associative`.
 
 Placeholder classes
 ~~~~~~~~~~~~~~~~~~~
 
 Given that we can only add a single axiom at a time when implementing
 a :class:`CategoryWithAxiom`, we need to create a few category classes
-that are just placeholders. See for example the chain of nested
-classes
-:class:`DistributiveMagmasAndAdditiveMagmas.AdditiveAssociative.AdditiveCommutative.AdditiveUnital`.
+that are just placeholders. For the worst example, see the chain of
+nested classes
+:class:`DistributiveMagmasAndAdditiveMagmas.AdditiveAssociative.AdditiveCommutative.AdditiveUnital.Associative`.
 
-Yet, this is well within the scope of the axiom infrastructure which
-is to go from a potentially exponential number of placeholder
-categories to just a couple.
+This is suboptimal, but fits within the scope of the axiom
+infrastructure which is to reduce a potentially exponential number of
+placeholder category classes to just a couple.
 
-Mismatch between the tree of nested classes and the hierarchy of categories
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Note also that, in the above example, it's likely that some of the
+intermediate classes will grow to non placeholder ones, as people will
+explore more weaker variants of rings.
 
-This may sound suspicious at first! However, as mentionned in the
-primer, this is actually a big selling point of the axioms
-infrastructure: by calculating automatically the hierarchy relation
-between categories with axioms one avoids the nightmare of maintaining
-it by hand.  Instead, only a rather minimal number of links needs to
-be maintainted in the code (one per category with axiom).
+Mismatch between the arborescence of nested classes and the hierarchy of categories
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The fact that the hierarchy relation between categories is not
+reflected directly as a relation between the classes may sound
+suspicious at first! However, as mentionned in the primer, this is
+actually a big selling point of the axioms infrastructure: by
+calculating automatically the hierarchy relation between categories
+with axioms one avoids the nightmare of maintaining it by hand.
+Instead, only a rather minimal number of links needs to be maintainted
+in the code (one per category with axiom).
 
 Besides, with the flexibility introduced by runtime deduction rules
-(see below) the hierarchy of categories may depend on the parameters
-of the categories and not just their class. So it's best to make it
+(see below), the hierarchy of categories may depend on the parameters
+of the categories and not just their class. So it's fine to make it
 clear from the onset that the two relations do not match.
 
-Flexibility
+Evolutivity
 ~~~~~~~~~~~
 
-This design also brings in quite some flexibility, with the
-possibility to support features such as defining new axioms depending
-on other axioms. See below.
+At this point, the arborescence structure has to be hardcoded by hand
+with the annoyances we have seen. This does not preclude, in a future
+iteration, to design and implement some idiom for categories with
+axioms that adds several axioms at once to a base category; maybe some
+variation around::
 
-Limitations
-~~~~~~~~~~~
+    class DistributiveMagmasAndAdditiveMagmas:
+        ...
 
-As a small variant of what we have seen above, defining the
-``Distributive`` axiom within this infrastructure would require to
-implement a placeholder category ``MagmasAndAdditiveMagmas``. What is
-more annoying is that Sage can't currently be taught that
-``MagmasAndAdditiveMagmas`` is the join of :class:`Magmas` and
-:class:`AdditiveMagmas`, which is why ``MagmasAndAdditiveMagmas``
-together with its ``Distributive`` axiom are not yet implemented.
+        @category_with_axiom(
+            AdditiveAssociative,
+            AdditiveCommutative,
+            AdditiveUnital,
+            AdditiveInverse,
+            Associative)
+        def _(): return LazyImport('sage.categories.rngs', 'Rngs', at_startup=True)
 
-.. TODO::
+or::
 
-   Make :meth:`Category.join` more powerful, to handle such
-   joins. Another typical use case is::
+    register_axiom_category(DistributiveMagmasAndAdditiveMagmas,
+                            {AdditiveAssociative,
+                             AdditiveCommutative,
+                             AdditiveUnital,
+                             AdditiveInverse,
+                             Associative},
+                            'sage.categories.rngs', 'Rngs', at_startup=True)
 
-       sage: C = Algebras(QQ) & Coalgebras(QQ); C   # todo: not implemented
-       Category of bialgebras
-
-       sage: C.Hopf()                               # todo: not implemented
-       Category of hopf algebras
-
-    One could also have the category :class:`Bimodules` be the join of
-    :class:`LeftModules` and :class:`RightModules` with an axiom
-    stating the compatibility between the left and right action.
-
-    This will require some thought on appropriate idioms and
-    algorithms. Potential directions include refactoring the whole
-    implementation with a database mapping sets of axioms to
-    categories together with other deduction rules, or just adding
-    some hook or registration process to specify what the join of two
-    categories is.
-
+The infrastructure would then be in charge of building the appropriate
+arborescence under the hood. Or rely on some database (see discussion
+on :trac:`10963`, in particular at the end of comment 332).
 
 Axioms defined upon other axioms
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -503,24 +725,24 @@ Axioms defined upon other axioms
 Sometimes an axiom can only be defined when some other axiom
 holds. For example, the axiom ``NoZeroDivisors`` only makes sense if
 there is a zero, that is if the axiom ``AdditiveUnital`` holds. Hence,
-for the category :class:`DistributiveMagmasAndAdditiveMagmas`, we
-consider in the abstract model only those subsets of axioms where the
-presence of ``NoZeroDivisors`` implies that of ``AdditiveUnital``.  We
-also want the axiom to be only available if meaningful::
+for the category :class:`MagmasAndAdditiveMagmas`, we consider in the
+abstract model only those subsets of axioms where the presence of
+``NoZeroDivisors`` implies that of ``AdditiveUnital``.  We also want
+the axiom to be only available if meaningful::
 
     sage: Rings().NoZeroDivisors()
     Category of domains
     sage: Rings().Commutative().NoZeroDivisors()
     Category of integral domains
-    sage: DistributiveMagmasAndAdditiveMagmas().NoZeroDivisors()
+    sage: Semirings().NoZeroDivisors()
     Traceback (most recent call last):
     ...
-    AttributeError: 'DistributiveMagmasAndAdditiveMagmas_with_category' object has no attribute 'NoZeroDivisors'
+    AttributeError: 'Semirings_with_category' object has no attribute 'NoZeroDivisors'
 
 Concretely, this is to be implemented by defining the new axiom in the
 (``SubcategoryMethods`` nested class of the) appropriate category with
 axiom. For example the axiom ``NoZeroDivisors`` would be naturally
-defined in :class:`DistributiveMagmasAndAdditiveMagmas.AdditiveUnital`.
+defined in :class:`MagmasAndAdditiveMagmas.Distributive.AdditiveUnital`.
 
 .. NOTE::
 
@@ -536,8 +758,8 @@ Deduction rules
 ^^^^^^^^^^^^^^^
 
 A similar situation is when an axiom ``A`` of a category ``Cs``
-implies some other axiom B, with the same consequence as above on the
-subsets of axioms appearing in the abstract model. For example, a
+implies some other axiom ``B``, with the same consequence as above on
+the subsets of axioms appearing in the abstract model. For example, a
 division ring necessarily has no zero divisors::
 
     sage: 'NoZeroDivisors' in Rings().Division().axioms()
@@ -584,41 +806,36 @@ Special case
 ~~~~~~~~~~~~
 
 In the previous examples, the deduction rule only had an influence on
-the super categories of the category being constructed. For example,
-when constructing ``Rings().Division()``, the rule
+the super categories of the category with axiom being constructed. For
+example, when constructing ``Rings().Division()``, the rule
 :meth:`Rings.Division.extra_super_categories` simply adds
 ``Rings().NoZeroDivisors()`` as a super category thereof.
 
-.. TODO::
-
-    rephrase that as: sometimes we do not want to create a class for
-    the category with axiom just to specify some properties of this
-    class. This is typically because a class for this category already
-    exists elsewhere.
-
-In some situations this idiom is inapplicable. Take for example
-Wedderburn's theorem: any finite division ring is commutative, i.e. is
-a finite field. The new feature of this situation is that this is not
-just about the super categories of the category of finite division
-rings. Instead it's stating that the category of finite division rings
-*coincides* with that of finite fields::
+In some situations this idiom is inapplicable because a class for the
+category with axiom under construction already exists elsewhere. Take
+for example Wedderburn's theorem: any finite division ring is
+commutative, i.e. is a finite field. In other words,
+``DivisionRings().Finite()`` *coincides* with ``Fields().Finite()``::
 
         sage: DivisionRings().Finite()
         Category of finite fields
+        sage: DivisionRings().Finite() is Fields().Finite()
+        True
 
-Therefore, we can't have two separate classes ``DivisionRings.Finite``
-(with an ``extra_super_categories`` method as above) and
-``Fields.Finite`` for this object.
+Therefore we cannot create a class ``DivisionRings.Finite`` to hold
+the desired ``extra_super_categories`` method, because there is
+already a class for this category with axiom, namely
+``Fields.Finite``.
 
-A natural idiom would be to have ``DivisionRings.Finite`` be a
-link to ``Fields.Finite`` (locally introducing a cycle in the tree
-of nested classes). It would be a bit tricky to implement though,
-since one would need to detect, upon constructing
+A natural idiom would be to have ``DivisionRings.Finite`` be a link to
+``Fields.Finite`` (locally introducing a cycle in the arborescence of
+nested classes). It would be a bit tricky to implement though, since
+one would need to detect, upon constructing
 ``DivisionRings().Finite()``, that ``DivisionRings.Finite`` is
 actually ``Fields.Finite``, in order to construct appropriately
 ``Fields().Finite()``; and reciprocally, upon computing the super
 categories of ``Fields().Finite()``, to not try to add
-``DivisionRings().Finite()`` as super category.
+``DivisionRings().Finite()`` as a super category.
 
 Instead the current idiom is to have a method
 ``DivisionRings.Finite_extra_super_categories`` which mimicks the
@@ -632,56 +849,218 @@ This idiom is admittedly rudimentary, but consistent with how
 mathematical facts specifying non trivial inclusion relations between
 categories are implemented elsewhere in the various
 ``extra_super_categories`` methods of axiom categories and covariant
-functorial constructions. Besides, it gives a natural spot to document
-and test the modeling of the mathematical fact.
+functorial constructions. Besides, it gives a natural spot (the
+docstring of the method) to document and test the modeling of the
+mathematical fact. Finally, Wedderburn's theorem is arguably a theorem
+about division rings (in the context of division rings, finiteness
+implies commutativity) and therefore lives naturally in
+:class:`DivisionRings`.
 
+An alternative would be to implement the category of finite division
+rings (i.e. finite fields) in a class ``DivisionRings.Finite`` rather
+than ``Fields.Finite``::
+
+    sage: from sage.categories.category_with_axiom import CategoryWithAxiom
+
+    sage: class MyDivisionRings(Category):
+    ....:     def super_categories(self):
+    ....:         return [Rings()]
+
+    sage: class MyFields(Category):
+    ....:     def super_categories(self):
+    ....:         return [MyDivisionRings()]
+
+    sage: class MyFiniteFields(CategoryWithAxiom):
+    ....:     _base_category_class_and_axiom = (MyDivisionRings, "Finite")
+    ....:     def extra_super_categories(self): # Wedderburn's theorem
+    ....:         return [MyFields()]
+
+    sage: MyDivisionRings.Finite = MyFiniteFields
+
+    sage: MyDivisionRings().Finite()
+    Category of my finite fields
+    sage: MyFields().Finite() is MyDivisionRings().Finite()
+    True
 
 In general, if several categories ``C1s(), C2s(), ... are mapped to
 the same category when applying some axiom ``A`` (that is ``C1s().A()
-== C2s().A() == ...``), then that category with axiom should be
-implemented in ``Cs.A`` where ``Cs`` is the smallest of them, and the
-other categories should implement a method
-``A_extra_super_categories`` returning ``(Cs(),)``.
+== C2s().A() == ...``), then one should be careful to implement this
+category in a single class ``Cs.A``, and setup methods
+``extra_super_categories`` or ``A_extra_super_categories`` methods as
+appropriate. Each such methods should return something like
+``[C2s()]`` and not ``[C2s().A()]`` for the latter would likely lead
+to an infinite recursion.
 
-.. NOTE::
+.. TOPIC:: Design discussion
 
-    An open question is whether there will always be a natural
-    smallest category ``Cs``.
+    Supporting similar deduction rules will be an important feature in
+    the future, with quite a few occurences already implemented in
+    upcoming tickets. For the time being though there is a single
+    occurence of this idiom outside of the tests. So this would be an
+    easy thing to refactor after :trac:`10963` if a better idiom is
+    found.
 
-    Let's put a bit of formalism to explore the question. Let `A` be
-    an axiom, and consider the application `\phi_A` which maps a
-    category to its category of objects satisfying `A`. Equivalently,
-    `\phi_A` is computing the intersection with the defining category
-    with axiom of `A`. It follows immediately from the latter that
-    `\phi_A` is a regressive endomorphism of the lattice of
-    categories.
+Larger synthetic examples
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    The set `L` of categories that can be *constructed* in Sage is
-    also a lattice (with joins = intersections that coincides with
-    that of categories, but not meets). The application `\phi_A`
-    restricts to a regressive endomorphism ``Cs() -> Cs().A()``.
+We now consider some larger synthetic examples to check that the
+machinery works as epexted. Let us start with a category defining a
+bunch of axioms, using :func:`axiom` for conciseness (don't do it for
+real axioms; they deserve a full documentation!)::
 
-    Consider ``C1s(), C2s(), ... `` as above. They form the
-    intersection `S` of some fiber of `\phi_A` with the upper set
-    `I_A` of categories that do not satisfy ``A``. The fiber itself is
-    a sublattice. However `I_A` is not guaranteed to be stable under
-    intersection (though exceptions should be rare). Therefore, there
-    is a priori no guarantee to `S` would be stable under
-    intersection. Also it's presumably finite, in fact small, but this
-    is not guaranteed either.
+    sage: from sage.categories.category_singleton import Category_singleton
+    sage: from sage.categories.category_with_axiom import axiom
+    sage: import sage.categories.category_with_axiom
+    sage: sage.categories.category_with_axiom.all_axioms += ("B","C","D","E","F")
 
-    Altogether I (Nicolas) believe that this is not an issue in
-    practice, but I would need to see a whole array of use cases to
-    check that this is indeed not an issue in practice and, if at all
-    possible, to specify a bit more the framework to guarantee the
-    existence of ``Cs``.
+    sage: class As(Category_singleton):
+    ....:     def super_categories(self):
+    ....:         return [Objects()]
+    ....:
+    ....:     class SubcategoryMethods:
+    ....:         B = axiom("B")
+    ....:         C = axiom("C")
+    ....:         D = axiom("D")
+    ....:         E = axiom("E")
+    ....:         F = axiom("F")
+    ....:
+    ....:     class B(CategoryWithAxiom):
+    ....:         pass
+    ....:     class C(CategoryWithAxiom):
+    ....:         pass
+    ....:     class D(CategoryWithAxiom):
+    ....:         pass
+    ....:     class E(CategoryWithAxiom):
+    ....:         pass
+    ....:     class F(CategoryWithAxiom):
+    ....:         pass
 
-Supporting such deduction rules will be an important feature in the
-future, with quite a few occurences already implemented in upcoming
-tickets. For the time being though there is a single occurence of this
-idiom outside of the tests. So this would be an easy thing to
-refactor after #10963 if a better idiom is found.
+Now we construct a subcategory where, by some theorem of William,
+axioms ``B`` and ``C`` together are equivalent to ``E`` and ``F``
+together::
 
+    sage: class A1s(Category_singleton):
+    ....:     def super_categories(self):
+    ....:         return [As()]
+    ....:
+    ....:     class B(CategoryWithAxiom):
+    ....:         def C_extra_super_categories(self):
+    ....:             return [As().E(), As().F()]
+    ....:
+    ....:     class E(CategoryWithAxiom):
+    ....:         def F_extra_super_categories(self):
+    ....:             return [As().B(), As().C()]
+
+    sage: A1s().B().C()
+    Category of b c e f a1s
+
+Note that this is a join category::
+
+    sage: type(A1s().B().C())
+    <class 'sage.categories.category.JoinCategory_with_category'>
+    sage: A1s().B().C().super_categories()
+    [Category of e a1s,
+     Category of f as,
+     Category of b a1s,
+     Category of c as]
+
+As desired, William's theorem holds::
+
+    sage: A1s().B().C() is A1s().E().F()
+    True
+
+and propagates appropriately to subcategories::
+
+    sage: C =  A1s().E().F().D().B().C()
+    sage: C is A1s().B().C().E().F().D()  # commutativity
+    True
+    sage: C is A1s().E().F().E().F().D()  # William's theorem
+    True
+    sage: C is A1s().E().E().F().F().D()  # commutativity
+    True
+    sage: C is A1s().E().F().D()          # idempotency
+    True
+    sage: C is A1s().D().E().F()
+    True
+
+In this quick variant, we actually implement the category of ``b c
+a2s``, and choose to do so in ``A2s.B.C``::
+
+    sage: class A2s(Category_singleton):
+    ....:     def super_categories(self):
+    ....:         return [As()]
+    ....:
+    ....:     class B(CategoryWithAxiom):
+    ....:         class C(CategoryWithAxiom):
+    ....:             def extra_super_categories(self):
+    ....:                 return [As().E(), As().F()]
+    ....:
+    ....:     class E(CategoryWithAxiom):
+    ....:         def F_extra_super_categories(self):
+    ....:             return [As().B(), As().C()]
+
+
+    sage: A2s().B().C()
+    Category of b c e f a2s
+    sage: type(A2s().B().C())
+    <class '__main__.B.C_with_category'>
+
+As desired, William's theorem and its consequences hold::
+
+    sage: A2s().B().C() is A2s().E().F()
+    True
+    sage: C =  A2s().E().F().D().B().C()
+    sage: C is A2s().B().C().E().F().D()  # commutativity
+    True
+    sage: C is A2s().E().F().E().F().D()  # William's theorem
+    True
+    sage: C is A2s().E().E().F().F().D()  # commutativity
+    True
+    sage: C is A2s().E().F().D()          # idempotency
+    True
+    sage: C is A2s().D().E().F()
+    True
+
+Finally, we "accidently" implement the category of ``b c a1s``, both
+in ``A3s.B.C`` and ``A3s.E.F``::
+
+    sage: class A3s(Category_singleton):
+    ....:     def super_categories(self):
+    ....:         return [As()]
+    ....:
+    ....:     class B(CategoryWithAxiom):
+    ....:         class C(CategoryWithAxiom):
+    ....:             def extra_super_categories(self):
+    ....:                 return [As().E(), As().F()]
+    ....:
+    ....:     class E(CategoryWithAxiom):
+    ....:         class F(CategoryWithAxiom):
+    ....:             def extra_super_categories(self):
+    ....:                 return [As().B(), As().C()]
+
+We can still construct, say::
+
+    sage: A3s().B()
+    Category of b a3s
+    sage: A3s().C()
+    Category of c a3s
+
+However,
+
+    sage: A3s().B().C()           # not tested
+
+runs into an infinite recursion loop, as ``A3s().B().C()`` wants to
+have ``A3s().E().F()`` as super category and reciprocally.
+
+.. TODO::
+
+    The above example violates the specifications (a category should
+    be modelled by at most one class), so it's appropriate that it
+    fails. Yet, the error message could be usefully complemented by
+    some hint at what the source of the problem is (a category
+    implemented in two distinct classes). Leaving a large enough piece
+    of the backtrace would useful though, so that one can explore
+    where the issue comes from (e.g. with post mortem debugging).
 
 Specifications
 ==============
@@ -701,6 +1080,7 @@ method is supposed to model the comparison of the corresponding
 mathematical categories for inclusion of the objects. For example::
 
     sage: Fields().is_subcategory(Rings())
+    True
 
 However this modelling may be incomplete. It can happen that a
 mathematical fact implying that a category `A` is a subcategory of a
@@ -733,36 +1113,76 @@ axiom as nested class ``Ds.A``. The category ``Ds()`` *satisfies* the
 axiom if ``Ds()`` is a subcategory of ``Cs().A()`` (meaning that all
 the objects of ``Ds()`` are known to satisfy the axiom ``A``).
 
+A digression on the structure of fibers when adding an axiom
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider the application `\phi_A` which maps a category to its
+category of objects satisfying `A`. Equivalently, `\phi_A` is
+computing the intersection with the defining category with axiom of
+`A`. It follows immediately from the latter that `\phi_A` is a
+regressive endomorphism of the lattice of categories. It restricts
+restricts to a regressive endomorphism ``Cs() -> Cs().A()``
+on the lattice of constructible categories.
+
+This endomorphism may have non trivial fibers, as in our favorite
+example: ``DivisionRings()`` and ``Fields()`` are in the same fiber
+for the axiom ``Finite``::
+
+    sage: DivisionRings().Finite() is Fields().Finite()
+    True
+
+Consider the intersection `S` of such a fiber of `\phi_A` with the
+upper set `I_A` of categories that do not satisfy ``A``. The fiber
+itself is a sublattice. However `I_A` is not guaranteed to be stable
+under intersection (though exceptions should be rare). Therefore,
+there is a priori no guarantee to `S` would be stable under
+intersection. Also it's presumably finite, in fact small, but this is
+not guaranteed either.
+
 Specifications
 --------------
 
 - Any constructible category ``C`` should admit a finite number of
   larger constructible categories.
 
+- The methods ``super_categories``, ``extra_super_categories``, and
+  friends should always return strict supercategories.
+
+  For example, to specify that a finite division ring is a finite
+  field, ``DivisionRings.Finite_extra_super_categories`` should not
+  return ``Fields().Finite()``! It could possibly return ``Fields()``;
+  but it's preferable to return the largest category that contains the
+  relevant information, in this case ``Magmas().Commutative()``, and
+  to let the infrastructure apply the derivations.
+
 - The base category of a :class:`CategoryWithAxiom` should be an
   implemented category (i.e. not a :class:`JoinCategory`). This is
   checked by :meth:`CategoryWithAxiom._test_category_with_axiom`.
 
-  ??? The base category of a :class:`CategoryWithAxiom` should be a
-  direct super category of it.
+  The base category of a :class:`CategoryWithAxiom` should be a direct
+  super category of it (do we really need this?)
 
-- Tree structure: Let ``Cs()`` be a category, and `S` be some set of
-  axioms defined in some super categories of ``Cs()`` but not
+- Arborescent structure: Let ``Cs()`` be a category, and `S` be some
+  set of axioms defined in some super categories of ``Cs()`` but not
   satisfied by ``Cs()``. Suppose we want to provide a category with
   axiom for the elements of ``Cs()`` satisfying the axioms in
   `S`. Then, there should be a single enumeration ``A1, A2, ..., Ak``
-  without repetition of the axioms in `S` such that
+  without repetition of axioms in `S` such that
   ``Cs.A1.A2....Ak=Ds``. Furthermore, every intermediate step, like
   ``Cs.A1.A2....Ai`` with `i\leq k` should be a category with axiom
   having ``Ai`` as axiom and ``Cs.A1.A2.. Ai-1`` as base category
-  class.
+  class; this base category class should not satisfy ``Ai``. In
+  particular, when some axioms of `S` can be deduced from previous
+  ones by deduction rules, they should not appear in the enumeration
+  ``A1, A2, ..., Ak``.
 
-- If ``Cs()`` is a category that satisfies some axiom ``A`` (e.g. from
-  one of its super categories), then it should not implement that
-  axiom. In particular, a category class ``Cs`` can never have a
-  nested class ``Cs.A.A``. Similarly, applying the specification
-  recursively a category satisfying ``A`` cannot have a nested class
-  ``Cs.A1.A2.A3.A`` where ``A1``, ``A2``, ``A3`` are axioms.
+- In particular, if ``Cs()`` is a category that satisfies some axiom
+  ``A`` (e.g. from one of its super categories), then it should not
+  implement that axiom. For example, a category class ``Cs`` can never
+  have a nested class ``Cs.A.A``. Similarly, applying the
+  specification recursively a category satisfying ``A`` cannot have a
+  nested class ``Cs.A1.A2.A3.A`` where ``A1``, ``A2``, ``A3`` are
+  axioms.
 
 - A category can only implement an axiom if this axiom is defined by
   some super category. The code has not been systematically checked to
@@ -772,7 +1192,7 @@ Specifications
 
 - When a category defines an axiom or functorial construction ``A``,
   this fixes the semantic of ``A`` for all the subcategories. In
-  particular, if two categories define ``A``, then those categories
+  particular, if two categories define ``A``, then these categories
   should be independent, and either the semantic of ``A`` should be
   the same, or there should be no natural intersection between the two
   hierarchies of subcategories.
@@ -824,7 +1244,7 @@ As pointed out in the primer, the main design goal of the axioms
 infrastructure is to subdue the potential combinatorial explosion of
 the category hierarchy by letting the developper focus on implementing
 a few bookshelves for which there is actual code or mathematical
-information, and let Sage *compose dynamically and lazily* those
+information, and let Sage *compose dynamically and lazily* these
 building blocks to construct the minimal hierarchy of classes needed
 for the computation at hand. This to allows for the infrastructure to
 scale smoothly as bookshelves are added, extended, or reorganized.
@@ -872,7 +1292,7 @@ Other design goals include:
         sage: Sets.Finite(Sets())
         Category of finite sets
 
-    None of those syntaxes are really practical for the user. So instead,
+    None of these idioms are really practical for the user. So instead,
     this object is to be constructed using any of the following idioms::
 
         sage: Sets()._with_axiom('Finite')
@@ -898,6 +1318,8 @@ Upcoming features
     - Once full subcategories are implemented (see :trac:`10668`),
       make category with axioms be such. Should all full subcategories
       be implemented in term of axioms?
+
+.. _axioms-algorithmic:
 
 Description of the algorithmic
 ==============================
@@ -942,9 +1364,9 @@ categories of `J`. In particular, it is a finite process.
     categories.
 
     It's reasonnable to assume that there is a finite number of axioms
-    defined in the code. There remains to use this assumptiono to
-    argue that any infinite execution of the algorithm would give rise
-    to such an infinite sequence.
+    defined in the code. There remains to use this assumption to argue
+    that any infinite execution of the algorithm would give rise to
+    such an infinite sequence.
 
 Adding an axiom
 ---------------
@@ -968,7 +1390,7 @@ reciprocally. To avoid this, the :meth:`Category.join` method itself
 does not use :meth:`Category._with_axiom` to add axioms, but its
 sister :meth:`Category._with_axiom_as_tuple`; the latter builds a
 tuple of categories that should be joined together but leaves the
-computation of the join to its caller the master join calculation.
+computation of the join to its caller, the master join calculation.
 
 Adding an axiom ``A`` to a category ``Cs()`` implementing it
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -991,14 +1413,81 @@ recursively a recalculation of ``Cs().A()``! To avoid this,
 :meth:`Category.join` is given an optional argument to specify that
 the axiom ``A`` should *not* be applied to ``Cs()``.
 
-Examples where things go wrong if we are not careful
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Sketch of proof of correctness and evaluation of complexity
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-As we have seen, this is a highly recursive process. In particular,
-some appropriate steps need to be taken to not run in an infinite
-recursion, in particular in case of deduction rule.
+As we have seen, this is a highly recursive process! In particular,
+one needs to argue that, as long as the specifications are satisfied,
+the algorithm won't run in an infinite recursion, in particular in
+case of deduction rule.
 
-.. TODO:: Examples
+.. TOPIC:: Theorem
+
+    Consider the construction of a category `C` by adding an axiom to
+    a category (or computing of a join). Let `H` be the hierarchy of
+    implemented categories above `C`. Let `n` and `m` be respectively
+    the number of categories and the number of inheritance edges in
+    `H`.
+
+    Assuming that the specifications are satisfied, the construction
+    of `C` involves constructing the categories in `H` exactly once
+    (and no other category), and at most `n` join calculations. In
+    particular, the time complexity should be, roughly speaking,
+    bounded by `n^2`. In particular, it's finite.
+
+.. TOPIC:: Remark
+
+    It's actually to be expected that the complexity is more of the
+    order of magnitude of `na+m`, where `a` is the number of axioms
+    satisfied by `C`. But this is to be checked in detail, in
+    particular due to the many category inclusion tests involved.
+
+The key argument is that :Category:`join` cannot call itself
+recursively without going through the construction of some implemented
+category. In turn, the construction of some implemented category `C`
+only involves constructing strictly smaller categories, and possibly a
+direct join calculation whose result is strictly smaller than
+`C`. This statement is obvious if `C` implements the
+``super_categories`` method directly, and easy to check for functorial
+construction categories. It requires a proof for categories with
+axioms since there is a recursive join involved.
+
+.. TOPIC:: Lemma
+
+    Let `C` be a category implementing an axiom `A`. Recall that the
+    construction of ``C.A()`` involves a single direct join
+    calculation for computing the super categories. No other direct
+    join calculation occur, and the calculation involves only
+    implemented categories that are strictly smaller than ``C.A()``.
+
+.. TOPIC:: Proof
+
+   Let `D` be a category involved in the join calculation for the
+   super categories of ``C.A()``, and assume by induction that `D` is
+   strictly smaller than ``C.A()``. A category `E` newly constructed
+   from `D` can come from:
+
+   - ``D.(extra_)super_categories()``
+
+     In this case, the specifications impose that `E` should be
+     strictly smaller than `D` and therefore strictly smaller than
+     `C`.
+
+   - ``D.with_axiom_as_tuple('B')`` or ``D.B_extra_super_categories()`` for some axiom `B`
+
+     In this case, the axiom `B` is satisfied by some subcategory of
+     ``C.A()``, and therefore must be satisfied by ``C.A()`` itself.
+     Since adding an axiom is a regressive construction, `E` must be a
+     subcategory of ``C.A()``. If there is equality, then `E` and
+     ``C.A()`` must have the same class, and therefore, `E` must be
+     directly constructed as ``C.A()``. However the join construction
+     explicitly prevents this call.
+
+   Note that a call to ``D.with_axiom_as_tuple('B')`` does not trigger
+   a direct join calculation; but of course, if `D` implements `B`,
+   the construction of the implemented category ``E=D.B()`` will
+   involve a strictly smaller join calculation.
+
 
 Conclusion
 ==========
@@ -1024,7 +1513,7 @@ TESTS:
 
 ::
 
-    sage: from sage.categories.magmas import Magmas
+Magmas
     sage: Magmas()
     Category of magmas
     sage: Magmas().Finite()
@@ -1067,15 +1556,17 @@ TESTS:
     sage: AdditiveMagmas().AdditiveAssociative().AdditiveCommutative()
     Category of commutative additive semigroups
 
-    sage: from sage.categories.distributive_magmas_and_additive_magmas import DistributiveMagmasAndAdditiveMagmas
-    sage: C = CommutativeAdditiveMonoids() & Monoids() & DistributiveMagmasAndAdditiveMagmas(); C
+    sage: from sage.categories.magmas_and_additive_magmas import MagmasAndAdditiveMagmas
+    sage: C = CommutativeAdditiveMonoids() & Monoids() & MagmasAndAdditiveMagmas().Distributive(); C
     Category of semirings
+    sage: C is (CommutativeAdditiveMonoids() & Monoids()).Distributive()
+    True
     sage: C.AdditiveInverse()
     Category of rings
     sage: Rings().axioms()
     frozenset([...])
     sage: sorted(Rings().axioms())
-    ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'Unital']
+    ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'Distributive', 'Unital']
 
     sage: Domains().Commutative()
     Category of integral domains
@@ -1084,7 +1575,7 @@ TESTS:
     Category of finite fields
 
     sage: FiniteMonoids().Algebras(QQ)
-    Join of Category of finite dimensional algebras with basis over Rational Field and Category of monoid algebras over Rational Field and Category of finite set algebras over Rational Field
+    Join of Category of monoid algebras over Rational Field and Category of finite dimensional algebras with basis over Rational Field and Category of finite set algebras over Rational Field
     sage: FiniteGroups().Algebras(QQ)
     Join of Category of finite dimensional hopf algebras with basis over Rational Field and Category of group algebras over Rational Field and Category of finite set algebras over Rational Field
 """
@@ -1116,6 +1607,7 @@ all_axioms = ("Flying", "Blue",
               "Irreducible",
               "Commutative", "Associative", "Inverse", "Unital", "Division", "NoZeroDivisors",
               "AdditiveCommutative", "AdditiveAssociative", "AdditiveInverse", "AdditiveUnital",
+              "Distributive",
               )
 
 @cached_function
@@ -1741,9 +2233,9 @@ class CategoryWithAxiom(Category):
         exposes the implementation detail that, for example, the
         category of magmas which distribute over an associative
         additive magma is implemented as
-        ``DistributiveMagmasAndAdditiveMagmas.AdditiveAssociative.AdditiveCommutative``
+        ``MagmasAndAdditiveMagmas.Distributive.AdditiveAssociative.AdditiveCommutative``
         and not
-        ``DistributiveMagmasAndAdditiveMagmas.AdditiveCommutative.AdditiveAssociative``::
+        ``MagmasAndAdditiveMagmas.Distributive.AdditiveCommutative.AdditiveAssociative``::
 
         EXAMPLES::
 
@@ -1755,7 +2247,8 @@ class CategoryWithAxiom(Category):
             sage: FiniteSets().__reduce__()
             (<function call_method at ...>, (Category of sets, '_with_axiom', 'Finite'))
 
-            sage: C = DistributiveMagmasAndAdditiveMagmas().AdditiveAssociative().AdditiveCommutative()
+            sage: from sage.categories.magmas_and_additive_magmas import MagmasAndAdditiveMagmas
+            sage: C = MagmasAndAdditiveMagmas().Distributive().AdditiveAssociative().AdditiveCommutative()
             sage: C.__class__
             <class 'sage.categories.distributive_magmas_and_additive_magmas.AdditiveAssociative.AdditiveCommutative_with_category'>
             sage: C.__reduce__()
@@ -1853,14 +2346,15 @@ class CategoryWithAxiom(Category):
             ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Finite', 'FiniteDimensional']
 
             sage: sorted(FiniteMonoids().Algebras(QQ).axioms())
-            ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'FiniteDimensional', 'Unital', 'WithBasis']
+            ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'Distributive', 'FiniteDimensional', 'Unital', 'WithBasis']
             sage: sorted(FiniteMonoids().Algebras(GF(3)).axioms())
-            ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'Finite', 'FiniteDimensional', 'Unital', 'WithBasis']
+            ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'Distributive', 'Finite', 'FiniteDimensional', 'Unital', 'WithBasis']
 
-            sage: DistributiveMagmasAndAdditiveMagmas().Unital().axioms()
-            frozenset(['Unital'])
+            sage: from sage.categories.magmas_and_additive_magmas import MagmasAndAdditiveMagmas
+            sage: MagmasAndAdditiveMagmas().Distributive().Unital().axioms()
+            frozenset(['Distributive', 'Unital'])
 
-            sage: D = DistributiveMagmasAndAdditiveMagmas()
+            sage: D = MagmasAndAdditiveMagmas().Distributive()
             sage: X = D.AdditiveAssociative().AdditiveCommutative().Associative()
             sage: X.Unital().super_categories()[1]
             Category of monoids

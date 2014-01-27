@@ -331,7 +331,7 @@ categories and their super categories::
      Category of unique factorization domains, Category of gcd domains,
      Category of integral domains, Category of domains,
      Category of commutative rings, Category of rings, ...
-     Category of distributive magmas and additive magmas,
+     Category of magmas and additive magmas,
      Category of monoids, Category of semigroups,
      Category of commutative magmas, Category of unital magmas, Category of magmas,
      Category of commutative additive groups, ..., Category of additive magmas,
@@ -641,6 +641,15 @@ but not an algebra over `\ZZ` which is just a `\ZZ`-module!
     overdesigning, right? We felt like this too! But we will see later
     that, once one gets used to it, this approach scales very
     naturally.
+
+    From a computer science point of view, this infrastructure
+    implements, on top of standard multiple inheritance, a dynamic
+    composition mechanism of mixin classes (:wikipedia:`Mixin`),
+    governed by mathematical properties.
+
+    For implementation details on how the hierarchy of classes for
+    parents and elements is constructed, see :class:`Category`.
+
 
 Categories are instances and have operations
 --------------------------------------------
@@ -1066,12 +1075,12 @@ Axioms and categories with axioms
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Here, ``Associative``, ``Unital``, ``Commutative`` are axioms. In
-general, any category `Cs` in Sage can declare a new axiom `A`. Then,
-the *category with axiom* `Cs.A()` models the subcategory of the
-objects of `Cs` satisfying the axiom `A`. It's in fact a *full
-subcategory* (see :wikipedia:`Subcategory`). Moreover, for every
-subcategory `Ds` of `Cs`, `Ds.A()` models the full subcategory of the
-objects of `Ds` satisfying the axiom `A`.
+general, any category ``Cs`` in Sage can declare a new axiom
+``A``. Then, the *category with axiom* ``Cs.A()`` models the
+subcategory of the objects of ``Cs`` satisfying the axiom ``A``. It's
+in fact a *full subcategory* (see :wikipedia:`Subcategory`). Moreover,
+for every subcategory ``Ds`` of ``Cs``, ``Ds.A()`` models the full
+subcategory of the objects of ``Ds`` satisfying the axiom ``A``.
 
 For example, the category of modules defines the ``FiniteDimensional``
 axiom, and this axiom is available in the subcategory of algebras::
@@ -1096,11 +1105,11 @@ For a more advanced example, Sage knows that a set `C` endowed with a
 multiplication which distributes over addition, such that `(C,+)` is
 a commutative additive group and `(C,*)` is a monoid is a ring::
 
-    sage: C = DistributiveMagmasAndAdditiveMagmas() & CommutativeAdditiveGroups() & Monoids(); C
+    sage: C = (CommutativeAdditiveGroups() & Monoids()).Distributive(); C
     Category of rings
 
     sage: sorted(C.axioms())
-    ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'Unital']
+    ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'Distributive', 'Unital']
 
 Note by the way that the axiom "Associative" is about the property of
 the multiplication `*` whereas the axiom "AdditiveAssociative" is
@@ -1112,6 +1121,36 @@ order to encode mathematical facts like Wedderburn's theorem::
     sage: DivisionRings() & Sets().Finite()
     Category of finite fields
 
+.. _category-primer-axioms-single-entry-point:
+
+Single entry point and name space usage
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A nice feature of the notation ``Cs.A()`` is that, from a single entry
+point (say the category :class:`Magmas` as above) one can explore a
+whole range of related categories, typically with the help of
+introspection to discover which axioms are available, and without
+having to import new Python modules. This feature will be used in
+:trac:`15741` to unclutter the global name space from, for example,
+the many variants of the category of algebras like::
+
+    sage: FiniteDimensionalAlgebrasWithBasis(QQ)
+    Category of finite dimensional algebras with basis over Rational Field
+
+There will of course be a deprecation step, but it's recommended to
+prefer right away the more flexible notation::
+
+    sage: Algebras(QQ).WithBasis().FiniteDimensional()
+    Category of finite dimensional algebras with basis over Rational Field
+
+.. TOPIC:: Design discussion
+
+    How far should this be pushed? :class:`Fields` should definitely
+    stay, but should :class:`FiniteGroups` or :class:`DivisionRings`
+    be removed from the global namespace? Do we want to further
+    completely deprecate the notation ``FiniteGroups()` in favor of
+    ``Groups().Finite()``?
+
 .. _category-primer-axioms-explosion:
 
 On the potential combinatorial explosion of categories with axioms
@@ -1121,16 +1160,16 @@ Even for a very simple category like ``Magmas``, there are about `2^5`
 potential combinations of the axioms! Think about what this becomes
 for a category with two operations ``+`` and ``*``::
 
-    sage: DistributiveMagmasAndAdditiveMagmas()
+    sage: C = (Magmas() & AdditiveMagmas()).Distributive(); C
     Category of distributive magmas and additive magmas
 
-    sage: DistributiveMagmasAndAdditiveMagmas().Associative().AdditiveAssociative().AdditiveCommutative().AdditiveUnital().AdditiveInverse()
+    sage: C.Associative().AdditiveAssociative().AdditiveCommutative().AdditiveUnital().AdditiveInverse()
     Category of rngs
 
-    sage: DistributiveMagmasAndAdditiveMagmas().Associative().AdditiveAssociative().AdditiveCommutative().AdditiveUnital().Unital()
+    sage: C.Associative().AdditiveAssociative().AdditiveCommutative().AdditiveUnital().Unital()
     Category of semirings
 
-    sage: DistributiveMagmasAndAdditiveMagmas().Associative().AdditiveAssociative().AdditiveCommutative().AdditiveUnital().AdditiveInverse().Unital()
+    sage: C.Associative().AdditiveAssociative().AdditiveCommutative().AdditiveUnital().AdditiveInverse().Unital()
     Category of rings
 
     sage: Rings().Division()

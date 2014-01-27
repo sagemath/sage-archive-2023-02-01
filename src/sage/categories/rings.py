@@ -29,8 +29,12 @@ class Rings(CategoryWithAxiom):
       Category of rings
       sage: sorted(Rings().super_categories(), key=str)
       [Category of rngs, Category of semirings]
+
       sage: sorted(Rings().axioms())
-      ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'Unital']
+      ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'Distributive', 'Unital']
+
+      sage: Rings() is (CommutativeAdditiveGroups() & Monoids()).Distributive()
+      True
       sage: Rings() is Rngs().Unital()
       True
       sage: Rings() is Semirings().AdditiveInverse()
@@ -61,7 +65,7 @@ class Rings(CategoryWithAxiom):
                 sage: Rings().NoZeroDivisors()
                 Category of domains
 
-            .. NOTE:: this could be generalized to DistributiveMagmasAndAdditiveMagmas.AdditiveUnital.Unital
+            .. NOTE:: this could be generalized to MagmasAndAdditiveMagmas.Distributive.AdditiveUnital
 
             TESTS::
 
@@ -78,7 +82,7 @@ class Rings(CategoryWithAxiom):
             A ring satisfies the division axiom if all non-zero
             elements have multiplicative inverse.
 
-            .. NOTE:: this could be generalized to DistributiveMagmasAndAdditiveMagmas.AdditiveUnital.Unital
+            .. NOTE:: this could be generalized to MagmasAndAdditiveMagmas.Distributive.AdditiveUnital.Unital
 
             EXAMPLES::
 

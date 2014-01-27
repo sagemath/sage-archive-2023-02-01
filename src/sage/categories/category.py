@@ -171,7 +171,7 @@ class Category(UniqueRepresentation, SageObject):
       rationals
 
     See :mod:`sage.categories.primer` for an introduction to
-    categories in Sage, their relevance, purpose and usage. The
+    categories in Sage, their relevance, purpose, and usage. The
     documentation below will focus on their implementation.
 
     Technically, a category is an instance of the class
@@ -1617,11 +1617,14 @@ class Category(UniqueRepresentation, SageObject):
             sage: Sets()._with_axiom_as_tuple('Finite')
             (Category of finite sets,)
             sage: Magmas()._with_axiom_as_tuple('Finite')
-            (Category of finite sets,)
-            sage: Sets().Finite()._with_axiom_as_tuple('Infinite')
-            (Category of infinite sets,)
+            (Category of magmas, Category of finite sets)
+            sage: Rings().Division()._with_axiom_as_tuple('Finite')
+            (Category of division rings,
+             Category of finite monoids,
+             Category of commutative magmas)
             sage: HopfAlgebras(QQ)._with_axiom_as_tuple('FiniteDimensional')
-            (Category of finite dimensional modules over Rational Field,)
+            (Category of hopf algebras over Rational Field,
+             Category of finite dimensional modules over Rational Field)
         """
         if axiom in self.axioms():
             return (self, )

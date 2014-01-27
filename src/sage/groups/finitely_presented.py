@@ -383,6 +383,329 @@ def wrap_FpGroup(libgap_fpgroup):
     return FinitelyPresentedGroup(free_group, relations)
 
 
+class RewritingSystem(object):
+    """
+    A class that wraps GAP's rewriting systems.
+
+    A rewriting system is a set of rules that allow to transform
+    one word in the group to an equivalent one.
+
+    If the rewriting system is confluent, then the transformated
+    word is a unique reduced form of the element of the group.
+
+    .. WARNING::
+
+        Note that the process of making a rewriting system confluent
+        might not end.
+
+    INPUT:
+
+    - ``G`` -- a group
+
+    REFERENCES:
+
+    - :wikipedia:`Knuth-Bendix_completion_algorithm`
+
+    EXAMPLES::
+
+        sage: F.<a,b> = FreeGroup()
+        sage: G = F / [a*b/a/b]
+        sage: k = G.rewriting_system()
+        sage: k
+        Rewriting system of Finitely presented group < a, b | a*b*a^-1*b^-1 >
+        with rules:
+            a*b*a^-1*b^-1    --->    1
+
+        sage: k.reduce(a*b*a*b)
+        (a*b)^2
+        sage: k.make_confluent()
+        sage: k
+        Rewriting system of Finitely presented group < a, b | a*b*a^-1*b^-1 >
+        with rules:
+            b^-1*a^-1    --->    a^-1*b^-1
+            b^-1*a    --->    a*b^-1
+            b*a^-1    --->    a^-1*b
+            b*a    --->    a*b
+
+        sage: k.reduce(a*b*a*b)
+        a^2*b^2
+
+    .. TODO::
+
+        - Include support for different orderings (currently only shortlex
+          is used).
+
+        - Include the GAP package kbmag for more functionalities, including
+          automatic structures and faster compiled functions.
+
+    AUTHORS:
+
+    - Miguel Angel Marco Buzunariz (2013-12-16)
+    """
+    def __init__(self, G):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: F.<a,b,c> = FreeGroup()
+            sage: G = F / [a^2, b^3, c^5]
+            sage: k = G.rewriting_system()
+            sage: k
+            Rewriting system of Finitely presented group < a, b, c | a^2, b^3, c^5 >
+            with rules:
+                a^2    --->    1
+                b^3    --->    1
+                c^5    --->    1
+        """
+        self._free_group = G.free_group()
+        self._fp_group = G
+        self._fp_group_gap = G.gap()
+        self._monoid_isomorphism = self._fp_group_gap.IsomorphismFpMonoid()
+        self._monoid = self._monoid_isomorphism.Image()
+        self._gap = self._monoid.KnuthBendixRewritingSystem()
+
+    def __repr__(self):
+        """
+        Return a string representation.
+
+        EXAMPLES::
+
+            sage: F.<a> = FreeGroup()
+            sage: G = F / [a^2]
+            sage: k = G.rewriting_system()
+            sage: k
+            Rewriting system of Finitely presented group < a | a^2 >
+            with rules:
+                a^2    --->    1
+        """
+        ret = "Rewriting system of {}\nwith rules:".format(self._fp_group)
+        for i in sorted(self.rules().items()): # Make sure they are sorted to the repr is unique
+            ret += "\n    {}    --->    {}".format(i[0], i[1])
+        return ret
+
+    def free_group(self):
+        """
+        The free group after which the rewriting system is defined
+
+        EXAMPLES::
+
+            sage: F = FreeGroup(3)
+            sage: G = F / [ [1,2,3], [-1,-2,-3] ]
+            sage: k = G.rewriting_system()
+            sage: k.free_group()
+            Free Group on generators {x0, x1, x2}
+        """
+        return self._free_group
+
+    def finitely_presented_group(self):
+        """
+        The finitely presented group where the rewriting system is defined.
+
+        EXAMPLES::
+
+            sage: F = FreeGroup(3)
+            sage: G = F / [ [1,2,3], [-1,-2,-3], [1,1], [2,2] ]
+            sage: k = G.rewriting_system()
+            sage: k.make_confluent()
+            sage: k
+            Rewriting system of Finitely presented group < x0, x1, x2 | x0*x1*x2, x0^-1*x1^-1*x2^-1, x0^2, x1^2 >
+            with rules:
+                x0^-1    --->    x0
+                x1^-1    --->    x1
+                x2^-1    --->    x2
+                x0^2    --->    1
+                x0*x1    --->    x2
+                x0*x2    --->    x1
+                x1*x0    --->    x2
+                x1^2    --->    1
+                x1*x2    --->    x0
+                x2*x0    --->    x1
+                x2*x1    --->    x0
+                x2^2    --->    1
+            sage: k.finitely_presented_group()
+            Finitely presented group < x0, x1, x2 | x0*x1*x2, x0^-1*x1^-1*x2^-1, x0^2, x1^2 >
+        """
+        return self._fp_group
+
+    def reduce(self, element):
+        """
+        Applies the rules in the rewriting system to the element, to obtain
+        a reduced form.
+
+        If the rewriting system is confluent, this reduced form is unique
+        for all words representing the same element.
+
+        EXAMPLES::
+
+            sage: F.<a,b> = FreeGroup()
+            sage: G = F/[a^2, b^3, (a*b/a)^3, b*a*b*a]
+            sage: k = G.rewriting_system()
+            sage: k.reduce(b^4)
+            b
+            sage: k.reduce(a*b*a)
+            a*b*a
+        """
+        eg = self._fp_group(element).gap()
+        egim = self._monoid_isomorphism.Image(eg)
+        red = self.gap().ReducedForm(egim.UnderlyingElement())
+        redfpmon = self._monoid.One().FamilyObj().ElementOfFpMonoid(red)
+        reducfpgr = self._monoid_isomorphism.PreImagesRepresentative(redfpmon)
+        tz = reducfpgr.UnderlyingElement().TietzeWordAbstractWord(self._free_group.gap().GeneratorsOfGroup())
+        return self._fp_group(tz.sage())
+
+    def gap(self):
+        """
+        The gap representation of the rewriting system.
+
+        EXAMPLES::
+
+            sage: F.<a,b>=FreeGroup()
+            sage: G=F/[a*a,b*b]
+            sage: k=G.rewriting_system()
+            sage: k.gap()
+            Knuth Bendix Rewriting System for Monoid( [ a, A, b, B ], ... ) with rules
+            [ [ a^2, <identity ...> ], [ a*A, <identity ...> ],
+              [ A*a, <identity ...> ], [ b^2, <identity ...> ],
+              [ b*B, <identity ...> ], [ B*b, <identity ...> ] ]
+        """
+        return self._gap
+
+    def rules(self):
+        """
+        Return the rules that form the rewritig system.
+
+        OUTPUT:
+
+        A dictionary containing the rules of the rewriting system.
+        Each key is a word in the free group, and its corresponding
+        value is the word to which it is reduced.
+
+        EXAMPLES::
+
+            sage: F.<a,b> = FreeGroup()
+            sage: G = F / [a*a*a,b*b*a*a]
+            sage: k = G.rewriting_system()
+            sage: k
+            Rewriting system of Finitely presented group < a, b | a^3, b^2*a^2 >
+            with rules:
+                a^3    --->    1
+                b^2*a^2    --->    1
+
+            sage: k.rules()
+            {b^2*a^2: 1, a^3: 1}
+            sage: k.make_confluent()
+            sage: sorted(k.rules().items())
+            [(a^-2, a), (a^-1*b^-1, a*b), (a^-1*b, b^-1), (a^2, a^-1),
+             (a*b^-1, b), (b^-1*a^-1, a*b), (b^-1*a, b), (b^-2, a^-1),
+             (b*a^-1, b^-1), (b*a, a*b), (b^2, a)]
+        """
+        dic = {}
+        grules = self.gap().Rules()
+        for i in grules:
+            a, b = i
+            afpmon = self._monoid.One().FamilyObj().ElementOfFpMonoid(a)
+            afg = self._monoid_isomorphism.PreImagesRepresentative(afpmon)
+            atz = afg.UnderlyingElement().TietzeWordAbstractWord(self._free_group.gap().GeneratorsOfGroup())
+            af = self._free_group(atz.sage())
+            if len(af.Tietze()) != 0:
+                bfpmon = self._monoid.One().FamilyObj().ElementOfFpMonoid(b)
+                bfg = self._monoid_isomorphism.PreImagesRepresentative(bfpmon)
+                btz = bfg.UnderlyingElement().TietzeWordAbstractWord(self._free_group.gap().GeneratorsOfGroup())
+                bf = self._free_group(btz.sage())
+                dic[af]=bf
+        return dic
+
+    def is_confluent(self):
+        """
+        Return ``True`` if the system is confluent and ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: F = FreeGroup(3)
+            sage: G = F / [F([1,2,1,2,1,3,-1]),F([2,2,2,1,1,2]),F([1,2,3])]
+            sage: k = G.rewriting_system()
+            sage: k.is_confluent()
+            False
+            sage: k
+            Rewriting system of Finitely presented group < x0, x1, x2 | (x0*x1)^2*x0*x2*x0^-1, x1^3*x0^2*x1, x0*x1*x2 >
+            with rules:
+                x0*x1*x2    --->    1
+                x1^3*x0^2*x1    --->    1
+                (x0*x1)^2*x0*x2*x0^-1    --->    1
+
+            sage: k.make_confluent()
+            sage: k.is_confluent()
+            True
+            sage: k
+            Rewriting system of Finitely presented group < x0, x1, x2 | (x0*x1)^2*x0*x2*x0^-1, x1^3*x0^2*x1, x0*x1*x2 >
+            with rules:
+                x0^-1    --->    x0
+                x1^-1    --->    x1
+                x0^2    --->    1
+                x0*x1    --->    x2^-1
+                x0*x2^-1    --->    x1
+                x1*x0    --->    x2
+                x1^2    --->    1
+                x1*x2^-1    --->    x0*x2
+                x1*x2    --->    x0
+                x2^-1*x0    --->    x0*x2
+                x2^-1*x1    --->    x0
+                x2^-2    --->    x2
+                x2*x0    --->    x1
+                x2*x1    --->    x0*x2
+                x2^2    --->    x2^-1
+        """
+        return self._gap.IsConfluent().sage()
+
+    def make_confluent(self):
+        """
+        Applies Knuth-Bendix algorithm to try to transform the rewriting
+        system into a confluent one.
+
+        Note that this method does not return any object, just changes the
+        rewriting sytem internally.
+
+        .. WARNING:
+
+            This algorithm is not granted to finish. Although it may be useful
+            in some occasions to run it, interrupt it manually after some time
+            and use then the transformed rewriting system. Even if it is not
+            confluent, it could be used to reduce some words.
+
+        ALGORITHM:
+
+        Uses GAP's ``MakeConfluent``.
+
+        EXAMPLES::
+
+            sage: F.<a,b> = FreeGroup()
+            sage: G = F / [a^2,b^3,(a*b/a)^3,b*a*b*a]
+            sage: k = G.rewriting_system()
+            sage: k
+            Rewriting system of Finitely presented group < a, b | a^2, b^3, a*b^3*a^-1, (b*a)^2 >
+            with rules:
+                a^2    --->    1
+                b^3    --->    1
+                (b*a)^2    --->    1
+                a*b^3*a^-1    --->    1
+
+            sage: k.make_confluent()
+            sage: k
+            Rewriting system of Finitely presented group < a, b | a^2, b^3, a*b^3*a^-1, (b*a)^2 >
+            with rules:
+                a^-1    --->    a
+                a^2    --->    1
+                b^-1*a    --->    a*b
+                b^-2    --->    b
+                b*a    --->    a*b^-1
+                b^2    --->    b^-1
+        """
+        try:
+            self._gap.MakeConfluent()
+        except ValueError:
+            raise ValueError('could not make the system confluent')
+
 class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
     Group, ParentLibGAP):
     """
@@ -1134,3 +1457,39 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         gen = self._free_group.gens()
         return matrix(len(rel), len(gen),
                       lambda i,j: rel[i].fox_derivative(gen[j]))
+
+    def rewriting_system(self):
+        """
+        Return the rewriting system corresponding to the finitely presented
+        group. This rewriting system can be used to reduce words with respect
+        to the relations.
+
+        If the rewriting system is transformed into a confluent one, the
+        reduction process will give as a result the (unique) reduced form
+        of an element.
+
+        EXAMPLES::
+
+            sage: F.<a,b> = FreeGroup()
+            sage: G = F / [a^2,b^3,(a*b/a)^3,b*a*b*a]
+            sage: k = G.rewriting_system()
+            sage: k
+            Rewriting system of Finitely presented group < a, b | a^2, b^3, a*b^3*a^-1, (b*a)^2 >
+            with rules:
+                a^2    --->    1
+                b^3    --->    1
+                (b*a)^2    --->    1
+                a*b^3*a^-1    --->    1
+
+            sage: G([1,1,2,2,2])
+            a^2*b^3
+            sage: k.reduce(G([1,1,2,2,2]))
+            1
+            sage: k.reduce(G([2,2,1]))
+            b^2*a
+            sage: k.make_confluent()
+            sage: k.reduce(G([2,2,1]))
+            a*b
+        """
+        return RewritingSystem(self)
+

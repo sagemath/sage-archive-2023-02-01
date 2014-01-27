@@ -145,8 +145,16 @@ SAGERUNTIME = $(SCRIPTS) $(INST)/sage $(INST)/$(SAGENB) $(INST)/$(IPYTHON)
 ###############################################################################
 base: $(INST)/prereq $(INST)/$(BZIP2) $(INST)/$(PATCH)
 
-$(INST)/prereq: prereq.sh
-	$(PIPE) "./prereq.sh 2>&1" "tee -a $(SAGE_LOGS)/prereq.log"
+$(INST)/prereq: ../configure
+	@cd ..; rm -f config.log; ln -s logs/pkgs/config.log config.log; \
+	./configure $$PREREQ_OPTIONS || ( \
+	    if [ "x$$SAGE_PORT" = x ]; then \
+	        echo "If you would like to try to build Sage anyway (to help porting),"; \
+	        echo "export the variable 'SAGE_PORT' to something non-empty."; \
+	        exit 1; \
+    	else \
+	        echo "Since 'SAGE_PORT' is set, we will try to build anyway."; \
+    	fi; )
 	touch $@
 
 $(INST)/$(BZIP2): $(INST)/prereq

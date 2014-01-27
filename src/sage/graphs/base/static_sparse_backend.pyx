@@ -382,6 +382,12 @@ class StaticSparseBackend(CGraphBackend):
         self._vertex_to_labels = vertices
         self._vertex_to_int = {v:i for i,v in enumerate(vertices)}
 
+        # Needed by CGraph. The first one is just an alias, and the second is
+        # useless : accessing _vertex_to_labels (which is a list) is faster than
+        # vertex_labels (which is a dictionary)
+        self.vertex_ints = self._vertex_to_int
+        self.vertex_labels = {i:v for i,v in enumerate(vertices)}
+
     def __reduce__(self):
         """
         Return a tuple used for pickling this graph.

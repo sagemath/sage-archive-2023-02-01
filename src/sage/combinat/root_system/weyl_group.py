@@ -571,12 +571,12 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
         return DiGraph(d)
 
 # All of the absolute length code is written to work with arbitrary
-# coxeter groups however as far as I know there is no way to get the
-# coxeter graph without relying on specific implementations so for now
+# Coxeter groups. However as far as I know there is no way to get the
+# Coxeter graph without relying on specific implementations so for now
 # I'm putting the code here.
 
     def simple_reflection_canonical_matrix(self, i):
-        """
+        r"""
         Return the matrix of the simple reflexion `s_i`
 
         EXAMPLES::
@@ -594,13 +594,13 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
         UCF = UniversalCyclotomicField()
         M = Matrix.identity(UCF, n)
         for j in range(n):
-            cij = 2*coxeter_matrix[i, j]
-            b = - (UCF.gen(cij) + 1/UCF.gen(cij))/2
+            cij = 2 * coxeter_matrix[i, j]
+            b = - (UCF.gen(cij) + 1 / UCF.gen(cij)) / 2
             M[i, j] = M[i, j] - (2 * b)
         return M
 
     def canonical_matrix_from_word(self, word):
-        """
+        r"""
         Return the matrix of the word ``word``
 
         EXAMPLES::
@@ -642,9 +642,11 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
     Caveat: the interface is likely to change. The current main
     application is for plots.
 
-    TODO: implement:
-     - Parabolic subrootsystems
-     - Parabolic subgroups with a set of nodes as argument
+    .. TODO::
+    
+        implement:
+        - Parabolic subrootsystems
+        - Parabolic subgroups with a set of nodes as argument
     """
 
     @cached_method
@@ -657,7 +659,8 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
             sage: WeylGroup(['A',3,1]).classical().index_set()
             (1, 2, 3)
 
-        Note: won't be needed, once the lattice will be a parabolic sub root system
+        Note: won't be needed, once the lattice will be a parabolic
+        sub root system
         """
         return self.domain().cartan_type().classical()
 
@@ -673,7 +676,8 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
                               [ 0  1  0]
                               [ 1  1 -1]}
 
-        Note: won't be needed, once the lattice will be a parabolic sub root system
+        Note: won't be needed, once the lattice will be a parabolic
+        sub root system
         """
         return Family(dict((i, self.from_morphism(self.domain().simple_reflection(i))) for i in self.index_set()))
 
@@ -986,16 +990,16 @@ class WeylGroupElement(MatrixGroupElement_gap):
         return "".join(str(i) for i in self.to_permutation())
 
 # All of the absolute length code is written to work with arbitrary
-# coxeter groups however as far as I know there is no way to get the
-# coxeter graph without relying on specific implementations so for now
+# Coxeter groups however as far as I know there is no way to get the
+# Coxeter graph without relying on specific implementations so for now
 # I'm putting the code here.
 
     def canonical_matrix(self):
-        """
-        Return the matrix of self in the canonical representation
+        r"""
+        Return the matrix of ``self`` in the canonical representation
 
-        This is an n-dimension real faithful essential representation,
-        where n is the number of generators of the coxeter group.
+        This is an `n`-dimension real faithful essential representation,
+        where `n` is the number of generators of the Coxeter group.
         Note that this is not always the most natural matrix
         representation, for instance in type A.
 
@@ -1014,7 +1018,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
 
     def absolute_length(self):
         """
-        Return the absolute lenght of self
+        Return the absolute length of ``self``
 
         The absolute length is the length of the shortest expression
         of the element as a product of reflections.
@@ -1032,15 +1036,18 @@ class WeylGroupElement(MatrixGroupElement_gap):
         return (M - 1).image().dimension()
 
     def absolute_le(self, other):
-        """
-        Return wether slef is smaller than other in the absolute order
+        r"""
+        Return whether ``self`` is smaller than ``other`` in the absolute order
 
-        A general reflection is an element of the form w s w^(-1), where s
+        A general reflection is an element of the form `w s w^{-1}`, where `s`
         is a simple reflection. The absolute order is defined analogously to
         the weak order but using general reflections rather than just simple
         reflections.
 
-        See also :meth:`absolute_length`.
+        This partial order can be used to define noncrossing partitions
+        associated with this Coxeter group.
+
+        .. SEEALSO:: :meth:`absolute_length`.
 
         EXAMPLES::
 

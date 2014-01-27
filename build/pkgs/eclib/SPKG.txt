@@ -6,6 +6,10 @@ John Cremona's programs for enumerating and computing with elliptic
 curves defined over the rational numbers. This is the culmination of
 over 25 years of hard work.
 
+== License ==
+
+eclib is licensed GPL v2+.
+
 == Maintainers ==
 
  * William Stein

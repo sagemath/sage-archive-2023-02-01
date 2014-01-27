@@ -221,13 +221,13 @@ def cyclotomic_cosets(q, n, t = None):
     the cosets are in ZZ/nZZ and 2 = 0 in ZZ/2ZZ.
     """
     from sage.misc.misc import srange
-    if not(t==None) and not isinstance(t, Integer):
+    if t is not None and not isinstance(t, Integer):
         raise TypeError,  "Optional input %s must None or an integer."%t
     if q<2 or n<2:
         raise TypeError,  "Inputs %s and %s must be > 1."%(q,n)
     if GCD(q,n) != 1:
         raise TypeError,  "Inputs %s and %s must be relative prime."%(q,n)
-    if t != None and isinstance(t, Integer):
+    if t is not None and isinstance(t, Integer):
         S = Set([t*q**i%n for i in srange(n)])
         L = list(S)
         L.sort()

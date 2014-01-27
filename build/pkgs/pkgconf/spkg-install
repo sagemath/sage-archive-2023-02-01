@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+cd src
+
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error configuring pkgconf."
+    exit 1
+fi
+
+$MAKE
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building pkgconf."
+    exit 1
+fi
+
+$MAKE -j1 install
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing pkgconf."
+    exit 1
+fi
+
+# pkgconf is an alternative to the "official" pkg-config, and does not
+# automatically install a symlink.
+ln -sf pkgconf "$SAGE_LOCAL/bin/pkg-config"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error creating symlink to pkg-config."
+    exit 1
+fi

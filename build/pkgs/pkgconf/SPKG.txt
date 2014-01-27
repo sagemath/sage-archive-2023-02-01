@@ -1,0 +1,26 @@
+= pkgconf =
+
+== Description ==
+
+Pkgconf is an implementation of the pkg-config spec with minimal
+dependencies.
+
+== License ==
+
+BSD
+
+== SPKG Maintainers ==
+
+* Volker Braun
+
+== Upstream Contact ==
+
+https://github.com/pkgconf/pkgconf
+
+== Dependencies ==
+
+* C compiler + toolchain
+
+== Special Update/Build Instructions ==
+
+None, standard autotools-based project.

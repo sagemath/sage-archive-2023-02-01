@@ -600,12 +600,12 @@ Performance
 
 Thanks to the arborescence structure on subsets of axioms,
 constructing the hierarchy of categories and computing intersections
-can be made efficient with, roughly speaking, a linear complexity in
-the size of the involved category hierarchy multiplied by the number
-of axioms (see Section :ref:`axioms-algorithmic`). This is to be put
-in perspective with the manipulation of arbitrary collections of
-subsets (aka boolean functions) which can easily raise NP-hard
-problems.
+can be made efficient with, roughly speaking, a linear/quadratic
+complexity in the size of the involved category hierarchy multiplied
+by the number of axioms (see Section :ref:`axioms-algorithmic`). This
+is to be put in perspective with the manipulation of arbitrary
+collections of subsets (aka boolean functions) which can easily raise
+NP-hard problems.
 
 Furthermore, thanks to its locality, the algorithms can be made
 suitably lazy: in particular, only the involved category classes need
@@ -1114,7 +1114,7 @@ axiom if ``Ds()`` is a subcategory of ``Cs().A()`` (meaning that all
 the objects of ``Ds()`` are known to satisfy the axiom ``A``).
 
 A digression on the structure of fibers when adding an axiom
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Consider the application `\phi_A` which maps a category to its
 category of objects satisfying `A`. Equivalently, `\phi_A` is
@@ -1158,9 +1158,6 @@ Specifications
 - The base category of a :class:`CategoryWithAxiom` should be an
   implemented category (i.e. not a :class:`JoinCategory`). This is
   checked by :meth:`CategoryWithAxiom._test_category_with_axiom`.
-
-  The base category of a :class:`CategoryWithAxiom` should be a direct
-  super category of it (do we really need this?)
 
 - Arborescent structure: Let ``Cs()`` be a category, and `S` be some
   set of axioms defined in some super categories of ``Cs()`` but not
@@ -1442,7 +1439,7 @@ case of deduction rule.
     satisfied by `C`. But this is to be checked in detail, in
     particular due to the many category inclusion tests involved.
 
-The key argument is that :Category:`join` cannot call itself
+The key argument is that :class:`Category.join` cannot call itself
 recursively without going through the construction of some implemented
 category. In turn, the construction of some implemented category `C`
 only involves constructing strictly smaller categories, and possibly a
@@ -1509,11 +1506,10 @@ TESTS:
     implementation of the axiom infrastructure, it is easy to break
     Sage. The following sequence of tests is designed to test the
     infrastructure from the ground up even in a partially broken
-    Sage. Don't remove the imports!
+    Sage. Please don't remove the imports!
 
 ::
 
-Magmas
     sage: Magmas()
     Category of magmas
     sage: Magmas().Finite()

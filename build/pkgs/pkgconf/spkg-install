@@ -22,7 +22,8 @@ fi
 
 # pkgconf is an alternative to the "official" pkg-config, and does not
 # automatically install a symlink.
-ln -sf pkgconf "$SAGE_LOCAL/bin/pkg-config"
+rm -f "$SAGE_LOCAL/bin/pkg-config"
+ln -s pkgconf "$SAGE_LOCAL/bin/pkg-config"
 if [ $? -ne 0 ]; then
     echo >&2 "Error creating symlink to pkg-config."
     exit 1

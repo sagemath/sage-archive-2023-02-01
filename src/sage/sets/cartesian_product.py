@@ -16,6 +16,7 @@ AUTHORS:
 #*****************************************************************************
 from sage.misc.misc import attrcall
 from sage.misc.cachefunc import cached_method
+from sage.misc.superseded import deprecated_function_alias
 from sage.categories.sets_cat import Sets
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -60,23 +61,23 @@ class CartesianProduct(UniqueRepresentation, Parent):
         """
         return "The cartesian product of %s"%(self._sets,)
 
-    def summands(self):
+    def cartesian_factors(self):
         """
-        Return the summands of ``self``
+        Return the cartesian factors of ``self``.
 
-        .. see also:: :meth:`Sets.CartesianProducts.ParentMethods.summands()
-            <sage.categories.sets_cat.Sets.CartesianProducts.ParentMethods.summands>`.
+        .. see also:: :meth:`Sets.CartesianProducts.ParentMethods.cartesian_factors()
+            <sage.categories.sets_cat.Sets.CartesianProducts.ParentMethods.cartesian_factors>`.
 
         EXAMPLES::
 
-            sage: cartesian_product([QQ, ZZ, ZZ]).summands()
+            sage: cartesian_product([QQ, ZZ, ZZ]).cartesian_factors()
             (Rational Field, Integer Ring, Integer Ring)
         """
         return self._sets
 
     def _sets_keys(self):
         """
-        Returns the indices of the summands of ``self``
+        Returns the indices of the cartesian factors of ``self``
         as per
         :meth:`Sets.CartesianProducts.ParentMethods._sets_keys()
         <sage.categories.sets_cat.Sets.CartesianProducts.ParentMethods._sets_keys>`.
@@ -89,16 +90,16 @@ class CartesianProduct(UniqueRepresentation, Parent):
         return range(len(self._sets))
 
     @cached_method
-    def summand_projection(self, i):
+    def cartesian_projection(self, i):
         """
-        Returns the natural projection onto the `i`-th summand of self
-        as per
-        :meth:`Sets.CartesianProducts.ParentMethods.summand_projection()
-        <sage.categories.sets_cat.Sets.CartesianProducts.ParentMethods.summand_projection>`.
+        Returns the natural projection onto the `i`-th cartesian
+        factor of ``self`` as per
+        :meth:`Sets.CartesianProducts.ParentMethods.cartesian_projection()
+        <sage.categories.sets_cat.Sets.CartesianProducts.ParentMethods.cartesian_projection>`.
 
         INPUTS:
 
-         - ``i`` -- the index of a summand of self
+         - ``i`` -- the index of a cartesian factor of self
 
         EXAMPLES::
 
@@ -106,12 +107,20 @@ class CartesianProduct(UniqueRepresentation, Parent):
             The cartesian product of (Set of prime numbers (basic implementation), An example of an infinite enumerated set: the non negative integers, An example of a finite enumerated set: {1,2,3})
             sage: x = C.an_element(); x
             (47, 42, 1)
-            sage: pi = C.summand_projection(1)
+            sage: pi = C.cartesian_projection(1)
             sage: pi(x)
             42
         """
         assert i in self._sets_keys()
-        return attrcall("summand_projection", i)
+        return attrcall("cartesian_projection", i)
+
+    def summand_projection(self, i):
+        """
+        Deprecated; use :meth:`cartesian_projection` instead.
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(10963, 'summand_projection is deprecated; use cartesian_projection instead')
+        return self.cartesian_projection(i)
 
     def _cartesian_product_of_elements(self, elements):
         """
@@ -122,7 +131,8 @@ class CartesianProduct(UniqueRepresentation, Parent):
 
         INPUT:
 
-         - ``elements`` - a tuple with one element of each summand of self
+         - ``elements`` - a tuple with one element of each cartesian
+           factor of ``self``
 
         EXAMPLES::
 
@@ -142,16 +152,16 @@ class CartesianProduct(UniqueRepresentation, Parent):
     from sage.structure.element_wrapper import ElementWrapper
     class Element(ElementWrapper):
 
-        def summand_projection(self, i):
+        def cartesian_projection(self, i):
             """
-            Returns the projection of ``self`` on the `i`-th
-            summand of the cartesian product, as per
-            :meth:`Sets.CartesianProducts.ElementMethods.summand_projection()
-            <sage.categories.sets_cat.Sets.CartesianProducts.ElementMethods.summand_projection>`.
+            Returns the projection of ``self`` on the `i`-th factor of
+            the cartesian product, as per
+            :meth:`Sets.CartesianProducts.ElementMethods.cartesian_projection()
+            <sage.categories.sets_cat.Sets.CartesianProducts.ElementMethods.cartesian_projection>`.
 
             INPUTS:
 
-             - ``i`` -- the index of a summand of the cartesian product
+             - ``i`` -- the index of a factor of the cartesian product
 
             EXAMPLES::
 
@@ -159,9 +169,11 @@ class CartesianProduct(UniqueRepresentation, Parent):
                 The cartesian product of (Set of prime numbers (basic implementation), An example of an infinite enumerated set: the non negative integers, An example of a finite enumerated set: {1,2,3})
                 sage: x = C.an_element(); x
                 (47, 42, 1)
-                sage: x.summand_projection(1)
+                sage: x.cartesian_projection(1)
                 42
             """
             return self.value[i]
+
+        summand_projection = deprecated_function_alias(10963, cartesian_projection)
 
         wrapped_class = tuple

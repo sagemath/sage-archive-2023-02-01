@@ -684,7 +684,7 @@ class Magmas(Category_singleton):
                     sage: x*y
                     B[(0, [1, 2, 3])] + B[(1, [3, 1, 2])]
                 """
-                return self._cartesian_product_of_elements([(a*b) for (a,b) in zip(left.summand_split(), right.summand_split())])
+                return self._cartesian_product_of_elements([(a*b) for (a,b) in zip(left.cartesian_factors(), right.cartesian_factors())])
 
     class Subquotients(SubquotientsCategory):
         r"""

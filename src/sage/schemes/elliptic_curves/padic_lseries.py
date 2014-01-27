@@ -184,9 +184,9 @@ class pAdicLseries(SageObject):
         self._normalize = normalize
         self._use_eclib = use_eclib
         if not self._p.is_prime():
-            raise ValueError, "p (=%s) must be a prime"%p
+            raise ValueError("p (=%s) must be a prime"%p)
         if E.conductor() % (self._p)**2 == 0:
-            raise NotImplementedError, "p (=%s) must be a prime of semi-stable reduction"%p
+            raise NotImplementedError("p (=%s) must be a prime of semi-stable reduction"%p)
 
         try :
             crla = E.label()
@@ -337,7 +337,7 @@ class pAdicLseries(SageObject):
         else :
             D = quadratic_twist
             if sign == -1:
-                raise NotImplementedError, "Quadratic twists for negative modular symbols are not yet implemented."
+                raise NotImplementedError("Quadratic twists for negative modular symbols are not yet implemented.")
             if D > 0:
                 m = self._modular_symbol
                 s = +1
@@ -416,9 +416,9 @@ class pAdicLseries(SageObject):
         """
         s = ZZ(sign)
         if s not in [1, -1]:
-            raise ValueError, "Sign must be +- 1"
+            raise ValueError("Sign must be +- 1")
         if quadratic_twist != 1 and s != 1:
-            raise NotImplementedError, "Quadratic twists not implemented for sign -1"
+            raise NotImplementedError("Quadratic twists not implemented for sign -1")
 
         if quadratic_twist < 0:
             s = -1
@@ -516,7 +516,7 @@ class pAdicLseries(SageObject):
                 if a.valuation() < 1:
                     self._alpha[prec] = K(a)
                     return K(a)
-            raise ValueError, "bug in p-adic L-function alpha"
+            raise RunTimeError("bug in p-adic L-function alpha")
         else: # supersingular case
             f = f.change_ring(Qp(p, prec, print_mode='series'))
             a = f.root_field('alpha', check_irreducible=False).gen()
@@ -578,14 +578,14 @@ class pAdicLseries(SageObject):
             raise NotImplementedError
         E = self.elliptic_curve()
         if not E.is_good(self.prime()):
-            raise ValueError, "prime must be of good reduction"
+            raise ValueError("prime must be of good reduction")
         r = E.rank()
         n = 1
         while True:
             f = self.series(n)
             v = f.valuation()
             if v < n and v < r:
-                raise RuntimeError, "while computing p-adic order of vanishing, got a contradiction: the curve is %s, the curve has rank %s, but the p-adic L-series vanishes to order <= %s"%(E, r, v)
+                raise RuntimeError("while computing p-adic order of vanishing, got a contradiction: the curve is %s, the curve has rank %s, but the p-adic L-series vanishes to order <= %s"%(E, r, v))
             if v == r:
                 self.__ord = v
                 return v
@@ -855,26 +855,28 @@ class pAdicLseriesOrdinary(pAdicLseries):
         """
         n = ZZ(n)
         if n < 1:
-            raise ValueError, "n (=%s) must be a positive integer"%n
+            raise ValueError("n (=%s) must be a positive integer"%n)
+        if prec < 2:
+            raise ValueError("Insufficient precision (%s)"%prec)
         eta = ZZ(eta) % (self._p - 1)
 
         # check if the conditions on quadratic_twist are satisfied
         D = ZZ(quadratic_twist)
         if D != 1:
-            if eta != 0: raise NotImplementedError, "quadratic twists only implemented for the 0th Teichmueller component"
+            if eta != 0: raise NotImplementedError("quadratic twists only implemented for the 0th Teichmueller component")
             if D % 4 == 0:
                 d = D//4
                 if not d.is_squarefree() or d % 4 == 1:
-                    raise ValueError, "quadratic_twist (=%s) must be a fundamental discriminant of a quadratic field"%D
+                    raise ValueError("quadratic_twist (=%s) must be a fundamental discriminant of a quadratic field"%D)
             else:
                 if not D.is_squarefree() or D % 4 != 1:
-                    raise ValueError, "quadratic_twist (=%s) must be a fundamental discriminant of a quadratic field"%D
+                    raise ValueError("quadratic_twist (=%s) must be a fundamental discriminant of a quadratic field"%D)
             if gcd(D,self._p) != 1:
-                raise ValueError, "quadratic twist (=%s) must be coprime to p (=%s) "%(D,self._p)
+                raise ValueError("quadratic twist (=%s) must be coprime to p (=%s) "%(D,self._p))
             if gcd(D,self._E.conductor())!= 1:
                 for ell in prime_divisors(D):
                     if valuation(self._E.conductor(),ell) > valuation(D,ell) :
-                        raise ValueError, "can not twist a curve of conductor (=%s) by the quadratic twist (=%s)."%(self._E.conductor(),D)
+                        raise ValueError("can not twist a curve of conductor (=%s) by the quadratic twist (=%s)."%(self._E.conductor(),D))
 
 
         p = self._p
@@ -1075,23 +1077,25 @@ class pAdicLseriesSupersingular(pAdicLseries):
         """
         n = ZZ(n)
         if n < 1:
-            raise ValueError, "n (=%s) must be a positive integer"%n
+            raise ValueError("n (=%s) must be a positive integer"%n)
+        if prec < 2:
+            raise ValueError("Insufficient precision (%s)"%prec)
 
         # check if the conditions on quadratic_twist are satisfied
         D = ZZ(quadratic_twist)
         if D != 1:
-            if eta != 0: raise NotImplementedError, "quadratic twists only implemented for the 0th Teichmueller component"
+            if eta != 0: raise NotImplementedError("quadratic twists only implemented for the 0th Teichmueller component")
             if D % 4 == 0:
                 d = D//4
                 if not d.is_squarefree() or d % 4 == 1:
-                    raise ValueError, "quadratic_twist (=%s) must be a fundamental discriminant of a quadratic field"%D
+                    raise ValueError("quadratic_twist (=%s) must be a fundamental discriminant of a quadratic field"%D)
             else:
                 if not D.is_squarefree() or D % 4 != 1:
-                    raise ValueError, "quadratic_twist (=%s) must be a fundamental discriminant of a quadratic field"%D
+                    raise ValueError("quadratic_twist (=%s) must be a fundamental discriminant of a quadratic field"%D)
             if gcd(D,self._E.conductor())!= 1:
                 for ell in prime_divisors(D):
                     if valuation(self._E.conductor(),ell) > valuation(D,ell) :
-                        raise ValueError, "can not twist a curve of conductor (=%s) by the quadratic twist (=%s)."%(self._E.conductor(),D)
+                        raise ValueError("can not twist a curve of conductor (=%s) by the quadratic twist (=%s)."%(self._E.conductor(),D) )
 
         p = self._p
         if p == 2 and self._normalize :
@@ -1280,7 +1284,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         E = self._E
         p = self._p
         if algorithm != "mw" and algorithm !="approx":
-            raise ValueError, "Unknown algorithm %s."%algorithm
+            raise ValueError("Unknown algorithm %s."%algorithm)
         if algorithm == "approx":
             return self.__phi_bpr(prec=prec)
         if p < 4 and algorithm == "mw":
@@ -1298,7 +1302,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         # return a vector for PARI's ellchangecurve to pass from e1 to e2
         def isom(e1,e2):
             if not e1.is_isomorphic(e2):
-                raise ValueError, "Curves must be isomorphic."
+                raise ValueError("Curves must be isomorphic.")
             usq = (e1.discriminant()/e2.discriminant()).nth_root(6)
             u = usq.sqrt()
             s = (u   *  e2.a1() - e1.a1() )/ZZ(2)

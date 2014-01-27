@@ -447,9 +447,9 @@ class Sha(SageObject):
            C. R. Acad. Sci. Paris, Ser I. Math, 317 (1993), no 3,
            227-232.
 
-        .. [SW] William Stein and Christian Wuthrich, Computations
-           About Tate-Shafarevich Groups using Iwasawa theory,
-           preprint 2009.
+        .. [SW] William Stein and Christian Wuthrich, Algorithms
+           for the Arithmetic of Elliptic Curves using Iwasawa Theory
+           Mathematics of Computation 82 (2013), 1757-1792.
 
         INPUT:
 
@@ -480,7 +480,7 @@ class Sha(SageObject):
             sage: EllipticCurve('389a1').sha().an_padic(5,4) # rank 2, long time (2s on sage.math, 2011)
             1 + O(5^3)
             sage: EllipticCurve('858k2').sha().an_padic(7)   # rank 0, non trivial sha, long time (10s on sage.math, 2011)
-            Traceback (most recent call last):                           # 32-bit (see ticket :trac: `112111`)
+            Traceback (most recent call last):                           # 32-bit (see ticket :trac: `11211`)
             ...                                                          # 32-bit
             OverflowError: Python int too large to convert to C long     # 32-bit
             7^2 + O(7^6) # 64-bit
@@ -523,6 +523,13 @@ class Sha(SageObject):
             2 + 7 + O(7^6)
             sage: EllipticCurve([-19,34]).sha().an_padic(5)  # see :trac: `6455`, long time (4s on sage.math, 2011)
             1 + O(5)
+
+        Test for :trac: `15737`::
+
+            sage: E = EllipticCurve([-100,0])
+            sage: s = E.sha()
+            sage: s.an_padic(13)
+            1 + O(13^4)
         """
         try:
             return self.__an_padic[(p,prec)]
@@ -535,7 +542,6 @@ class Sha(SageObject):
         tam = E.tamagawa_product()
         tors = E.torsion_order()**2
         reg = E.padic_regulator(p)
-        # todo : here we should cache the rank computation
         r = E.rank()
 
 
@@ -622,7 +628,7 @@ class Sha(SageObject):
 
             not_yet_enough_prec = True
             while not_yet_enough_prec:
-                lps = lp.series(n,quadratic_twist=D,prec=r+1)
+                lps = lp.series(n,quadratic_twist=D,prec=max(2,r+1))
                 lstar = lps[r]
                 if (lstar != 0) or (prec != 0):
                     not_yet_enough_prec = False

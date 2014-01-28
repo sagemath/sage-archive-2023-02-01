@@ -23,7 +23,6 @@ eclib is licensed GPL v2+.
 
 == Dependencies ==
 
- * GMP / MPIR
  * PARI
  * NTL
  * FLINT

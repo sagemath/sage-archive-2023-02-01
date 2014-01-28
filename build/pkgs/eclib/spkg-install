@@ -53,7 +53,6 @@ cd src/
 echo
 echo "Now configuring eclib..."
 ./configure --prefix="$SAGE_LOCAL" \
-            --with-gmp="$SAGE_LOCAL" \
             --with-ntl="$SAGE_LOCAL" \
             --with-pari="$SAGE_LOCAL" \
             --with-flint="$SAGE_LOCAL" \

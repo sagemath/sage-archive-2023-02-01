@@ -6339,11 +6339,16 @@ cdef Integer zero = the_integer_ring._zero_element
 cdef Integer one = the_integer_ring._one_element
 
 # pool of small integer for fast sign computation
+# Use the same defaults as Python, documented at http://docs.python.org/2/c-api/int.html#PyInt_FromLong
 cdef long small_pool_min = -5
-cdef long small_pool_max = 255
+cdef long small_pool_max = 256
 # we could use the above zero and one here
 cdef list small_pool = [Integer(k) for k in range(small_pool_min, small_pool_max+1)]
+
 cdef inline Integer smallInteger(long value):
+    """
+    This is the fastest way to create a (likely) small Integer.
+    """
     cdef Integer z
     if small_pool_min <= value <= small_pool_max:
         return <Integer>small_pool[value - small_pool_min]

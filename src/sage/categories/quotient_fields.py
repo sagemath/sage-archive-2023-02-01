@@ -310,6 +310,25 @@ class QuotientFields(Category_singleton):
                 (1, [1/3, 2/5])
                 sage: (26/75).partial_fraction_decomposition()
                 (-1, [2/3, 3/5, 2/25])
+
+            A larger example::
+
+                sage: S.<t> = QQ[]
+                sage: r = t / (t^3+1)^5
+                sage: r.partial_fraction_decomposition()
+                (0,
+                 [-35/729/(t + 1),
+                  -35/729/(t^2 + 2*t + 1),
+                  -25/729/(t^3 + 3*t^2 + 3*t + 1),
+                  -4/243/(t^4 + 4*t^3 + 6*t^2 + 4*t + 1),
+                  -1/243/(t^5 + 5*t^4 + 10*t^3 + 10*t^2 + 5*t + 1),
+                  (35/729*t - 35/729)/(t^2 - t + 1),
+                  (25/729*t - 8/729)/(t^4 - 2*t^3 + 3*t^2 - 2*t + 1),
+                  (-1/81*t + 5/81)/(t^6 - 3*t^5 + 6*t^4 - 7*t^3 + 6*t^2 - 3*t + 1),
+                  (-2/27*t + 1/9)/(t^8 - 4*t^7 + 10*t^6 - 16*t^5 + 19*t^4 - 16*t^3 + 10*t^2 - 4*t + 1),
+                  (-2/27*t + 1/27)/(t^10 - 5*t^9 + 15*t^8 - 30*t^7 + 45*t^6 - 51*t^5 + 45*t^4 - 30*t^3 + 15*t^2 - 5*t + 1)])
+                sage: sum(r.partial_fraction_decomposition()[1]) == r
+                True
             """
             denom = self.denominator()
             whole, numer = self.numerator().quo_rem(denom)

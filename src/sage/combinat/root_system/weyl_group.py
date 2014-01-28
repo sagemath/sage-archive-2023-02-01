@@ -40,6 +40,7 @@ The Cayley graph of the Weyl Group of type ['D', 4]::
 from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_gap
 from sage.groups.matrix_gps.group_element import MatrixGroupElement_gap
 from sage.rings.all import ZZ, QQ
+from sage.rings.universal_cyclotomic_field.all import UniversalCyclotomicField
 from sage.interfaces.gap import gap
 from sage.misc.cachefunc import cached_method, ClearCacheOnPickle
 from sage.misc.superseded import deprecated_function_alias
@@ -569,6 +570,50 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
             d[x] = [y for y in g if x.length() < y.length() and ref.has_key(x*y.inverse())]
         return DiGraph(d)
 
+# All of the absolute length code is written to work with arbitrary
+# Coxeter groups. However as far as I know there is no way to get the
+# Coxeter graph without relying on specific implementations so for now
+# I'm putting the code here.
+
+    def simple_reflection_canonical_matrix(self, i):
+        r"""
+        Return the matrix of the simple reflexion `s_i`
+
+        EXAMPLES::
+
+            sage: W = WeylGroup("A3", prefix = "s")
+            sage: W.simple_reflection_canonical_matrix(2)
+            [ 1  0  0]
+            [ 1 -1  1]
+            [ 0  0  1]
+        """
+        # switch to zero-based indexing for compatibility with matrices
+        i = i - 1
+        coxeter_matrix = self.cartan_type().coxeter_matrix()
+        n = coxeter_matrix.nrows()
+        UCF = UniversalCyclotomicField()
+        M = Matrix.identity(UCF, n)
+        for j in range(n):
+            cij = 2 * coxeter_matrix[i, j]
+            b = - (UCF.gen(cij) + 1 / UCF.gen(cij)) / 2
+            M[i, j] = M[i, j] - (2 * b)
+        return M
+
+    def canonical_matrix_from_word(self, word):
+        r"""
+        Return the matrix of the word ``word``
+
+        EXAMPLES::
+
+            sage: W = WeylGroup("A3", prefix = "s")
+            sage: W.canonical_matrix_from_word([2,1,2])
+            [ 0 -1  1]
+            [-1  0  1]
+            [ 0  0  1]
+        """
+        from sage.misc.misc_c import prod
+        return prod([self.simple_reflection_canonical_matrix(i) for i in word])
+
 
 class ClassicalWeylSubgroup(WeylGroup_gens):
     """
@@ -597,9 +642,11 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
     Caveat: the interface is likely to change. The current main
     application is for plots.
 
-    TODO: implement:
-     - Parabolic subrootsystems
-     - Parabolic subgroups with a set of nodes as argument
+    .. TODO::
+    
+        implement:
+        - Parabolic subrootsystems
+        - Parabolic subgroups with a set of nodes as argument
     """
 
     @cached_method
@@ -612,7 +659,8 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
             sage: WeylGroup(['A',3,1]).classical().index_set()
             (1, 2, 3)
 
-        Note: won't be needed, once the lattice will be a parabolic sub root system
+        Note: won't be needed, once the lattice will be a parabolic
+        sub root system
         """
         return self.domain().cartan_type().classical()
 
@@ -628,7 +676,8 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
                               [ 0  1  0]
                               [ 1  1 -1]}
 
-        Note: won't be needed, once the lattice will be a parabolic sub root system
+        Note: won't be needed, once the lattice will be a parabolic
+        sub root system
         """
         return Family(dict((i, self.from_morphism(self.domain().simple_reflection(i))) for i in self.index_set()))
 
@@ -932,12 +981,91 @@ class WeylGroupElement(MatrixGroupElement_gap):
     def to_permutation_string(self):
         """
         EXAMPLES::
+
             sage: W = WeylGroup(["A",3])
             sage: s = W.simple_reflections()
             sage: (s[1]*s[2]*s[3]).to_permutation_string()
             '2341'
-
         """
         return "".join(str(i) for i in self.to_permutation())
+
+# All of the absolute length code is written to work with arbitrary
+# Coxeter groups however as far as I know there is no way to get the
+# Coxeter graph without relying on specific implementations so for now
+# I'm putting the code here.
+
+    def canonical_matrix(self):
+        r"""
+        Return the matrix of ``self`` in the canonical representation
+
+        This is an `n`-dimension real faithful essential representation,
+        where `n` is the number of generators of the Coxeter group.
+        Note that this is not always the most natural matrix
+        representation, for instance in type A.
+
+        This is used by :meth:`absolute_length`.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup(["A", 3])
+            sage: s = W.simple_reflections()
+            sage: (s[1]*s[2]*s[3]).canonical_matrix()
+            [ 0  0 -1]
+            [ 1  0 -1]
+            [ 0  1 -1]
+        """
+        return self.parent().canonical_matrix_from_word(self.reduced_word())
+
+    def absolute_length(self):
+        """
+        Return the absolute length of ``self``
+
+        The absolute length is the length of the shortest expression
+        of the element as a product of reflections.
+
+        See also :meth:`absolute_le`.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup(["A", 3])
+            sage: s = W.simple_reflections()
+            sage: (s[1]*s[2]*s[3]).absolute_length()
+            3
+        """
+        M = self.canonical_matrix()
+        return (M - 1).image().dimension()
+
+    def absolute_le(self, other):
+        r"""
+        Return whether ``self`` is smaller than ``other`` in the absolute order
+
+        A general reflection is an element of the form `w s w^{-1}`, where `s`
+        is a simple reflection. The absolute order is defined analogously to
+        the weak order but using general reflections rather than just simple
+        reflections.
+
+        This partial order can be used to define noncrossing partitions
+        associated with this Coxeter group.
+
+        .. SEEALSO:: :meth:`absolute_length`.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup(["A", 3])
+            sage: s = W.simple_reflections()
+            sage: w0 = s[1]
+            sage: w1 = s[1]*s[2]*s[3]
+            sage: w0.absolute_le(w1)
+            True
+            sage: w1.absolute_le(w0)
+            False
+            sage: w1.absolute_le(w1)
+            True
+        """
+        if self == other:
+            return True
+        if self.absolute_length() >= other.absolute_length():
+            return False
+        return self.absolute_length() + (self.inverse() * other).absolute_length() == other.absolute_length()
 
 WeylGroup_gens.Element = WeylGroupElement

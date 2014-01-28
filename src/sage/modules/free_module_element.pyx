@@ -913,6 +913,9 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             array([ 1.        ,  2.        ,  0.83333333])
             sage: v.numpy(dtype=int)
             array([1, 2, 0])
+            sage: import numpy
+            sage: v.numpy(dtype=numpy.uint8)
+            array([1, 2, 0], dtype=uint8)
 
         Passing a dtype of None will let numpy choose a native type, which can
         be more efficient but may have unintended consequences::

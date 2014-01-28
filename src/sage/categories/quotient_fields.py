@@ -265,6 +265,9 @@ class QuotientFields(Category_singleton):
                 [1/3/(t + 1), 3/(t^5 - 15*t^4 + 90*t^3 - 270*t^2 + 405*t - 243), (-1/3*t + 2/3)/(t^2 - t + 1), 2/(t^2 + 2)]
                 sage: sum(parts) == q
                 True
+                sage: q = 2*t / (t + 3)^2
+                sage: q.partial_fraction_decomposition()
+                (0, [2/(t + 3), -6/(t^2 + 6*t + 9)])
 
             We do the best we can over inexact fields::
 
@@ -305,15 +308,14 @@ class QuotientFields(Category_singleton):
 
                 sage: (26/15).partial_fraction_decomposition()
                 (1, [1/3, 2/5])
+                sage: (26/75).partial_fraction_decomposition()
+                (-1, [2/3, 3/5, 2/25])
             """
-            from sage.misc.misc import prod
             denom = self.denominator()
             whole, numer = self.numerator().quo_rem(denom)
             factors = denom.factor()
             if factors.unit() != 1:
                 numer *= ~factors.unit()
-            if len(factors) == 1:
-                return whole, [numer/r**e for r,e in factors]
             if not self.parent().is_exact():
                 # factors not grouped in this case
                 all = {}
@@ -321,13 +323,42 @@ class QuotientFields(Category_singleton):
                 for r in factors: all[r[0]] += r[1]
                 factors = all.items()
                 factors.sort() # for doctest consistency
-            factors = [r**e for r,e in factors]
+
+            # TODO(robertwb): Should there be a category of univariate polynomials?
+            from sage.rings.polynomial.polynomial_ring import PolynomialRing_commutative
+            denom_parent = denom.parent()
+            is_polynomial_over_field = (
+                isinstance(denom_parent, PolynomialRing_commutative)
+                and len(denom_parent.variable_names()) == 1
+                and denom_parent.base_ring().is_field())
+
+            running_total = 0
             parts = []
-            for d in factors:
-                # note that the product below is non-empty, since the case
-                # of only one factor has been dealt with above
-                n = numer * prod([r for r in factors if r != d]).inverse_mod(d) % d # we know the inverse exists as the two are relatively prime
-                parts.append(n/d)
+            for r, e in factors:
+                r_parts = []
+                powers = [1, r]
+                for ee in range(e-1):
+                    powers.append(powers[-1] * r)
+                d = powers[e]
+                denom_div_d = denom // d
+                # We know the inverse exists as the two are relatively prime.
+                n = (numer % d) * denom_div_d.inverse_mod(d) % d
+                if not is_polynomial_over_field:
+                    running_total += n * denom_div_d
+                # If the multiplicity is not one, further reduce.
+                for ee in range(e, 1, -1):
+                    quo, n = n.quo_rem(r)
+                    if n:
+                        r_parts.append(n/powers[ee])
+                    n = quo
+                if n:
+                    r_parts.append(n/r)
+                parts.extend(reversed(r_parts))
+
+            if not is_polynomial_over_field:
+                # remainders not unique, need to re-compute whole to take into
+                # account this freedom
+                whole = (self.numerator() - running_total) // denom
             return whole, parts
 
         def derivative(self, *args):

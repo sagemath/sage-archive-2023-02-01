@@ -142,12 +142,8 @@ class RationalField(SingletonClass, number_field_base.NumberField):
 
         TESTS::
 
-            sage: sage.structure.sage_object.unpickle_all() # indirect doctest
-            doctest:... DeprecationWarning: This class is replaced by
-            Matrix_modn_dense_float/Matrix_modn_dense_double.
-            See http://trac.sagemath.org/4260 for details.
-            Successfully unpickled ... objects.
-            Failed to unpickle 0 objects.
+            sage: RationalField() in Fields() # indirect doctest
+            True
 
         """
         try:

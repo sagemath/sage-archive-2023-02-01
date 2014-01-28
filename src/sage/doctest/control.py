@@ -421,11 +421,15 @@ class DocTestController(SageObject):
         from sage.version import version
         self.log("Running doctests with ID %s."%self.run_id)
 
-    def add_files(self):
+    def add_files(self, testing=False):
         r"""
         Checks for the flags '--all', '--new' and '--sagenb'.
 
         For each one present, this function adds the appropriate directories and files to the todo list.
+
+        INPUT::
+
+        - ``testing`` (boolean) -- if True, also adds files that aren't tracked by git.
 
         EXAMPLES::
 
@@ -440,12 +444,22 @@ class DocTestController(SageObject):
             sage: os.path.join(SAGE_SRC, 'sage') in DC.files
             True
 
-        ::
+        We check that the ``new`` option works correctly from a
+        subdirectory (:trac:`15749`)::
 
+            sage: curdir = os.getcwd()
+            sage: dt = os.path.join(SAGE_SRC, 'sage', 'doctest')
+            sage: os.chdir(dt)
+            sage: with open('phantom.py','w') as F:
+            ....:     F.write("'''\nsage: print 'hello world'\nhello world'''")
             sage: DD = DocTestDefaults(new = True)
             sage: DC = DocTestController(DD, [])
-            sage: DC.add_files()
-            Doctesting ...
+            sage: DC.add_files(testing=True)
+            Doctesting files changed since last git commit
+            sage: 'phantom.py' in DC.files
+            True
+            sage: os.remove(os.path.join(dt, 'phantom.py'))
+            sage: os.chdir(curdir)
 
         ::
 
@@ -483,10 +497,10 @@ class DocTestController(SageObject):
                     continue
                 data = line.strip().split(' ')
                 status, filename = data[0], data[-1]
-                if (set(status).issubset("MARCU")
+                if ((testing or set(status).issubset("MARCU"))
                     and filename.startswith("src/sage")
                     and (filename.endswith(".py") or filename.endswith(".pyx"))):
-                    self.files.append(filename)
+                    self.files.append(os.path.relpath(opj(SAGE_ROOT,filename)))
         if self.options.sagenb:
             if not self.options.all:
                 self.log("Doctesting the Sage notebook.")

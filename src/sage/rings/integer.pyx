@@ -178,7 +178,7 @@ from sage.libs.flint.ulong_extras cimport *
 import sage.rings.infinity
 import sage.libs.pari.all
 
-from sage.structure.element import canonical_coercion
+from sage.structure.element import canonical_coercion, coerce_binop
 from sage.misc.superseded import deprecated_function_alias
 
 cdef object numpy_long_interface = {'typestr': '=i4' if sizeof(long) == 4 else '=i8' }
@@ -5242,23 +5242,20 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
            return [z, -z]
         return z
 
-    def _xgcd(self, Integer n, bint minimal=0):
+    @coerce_binop
+    def xgcd(self, Integer n):
         r"""
-        Computes extended gcd of self and `n`.
+        Return the extended gcd of this element and ``n``.
 
         INPUT:
 
-        -  ``self`` - integer
-
-        -  ``n`` - integer
-
-        -  ``minimal`` - boolean (default false), whether to
-           compute minimal cofactors (see below)
+        - ``n`` -- an integer
 
         OUTPUT:
 
-        A triple (g, s, t), where `g` is the non-negative gcd of self
-        and `n`, and `s` and `t` are cofactors satisfying the Bezout identity
+        A triple ``(g, s, t)`` such that ``g`` is the non-negative gcd of
+        ``self`` and ``n``, and ``s`` and ``t`` are cofactors satisfying the
+        Bezout identity
 
         .. math::
 
@@ -5266,60 +5263,82 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         .. note::
 
-           If minimal is False, then there is no guarantee that the returned
+            There is no guarantee that the cofactors will be minimal. If you
+            need the cofactors to be minimal use :meth:`_xgcd`. Also, using
+            :meth:`_xgcd` directly might be faster in some cases, see
+            :trac:`13628`.
+
+        EXAMPLES::
+
+            sage: 6.xgcd(4)
+            (2, 1, -1)
+
+        """
+        return self._xgcd(n)
+
+    def _xgcd(self, Integer n, bint minimal=0):
+        r"""
+        Return the exteded gcd of ``self`` and ``n``.
+
+        INPUT:
+
+        - ``n`` -- an integer
+        - ``minimal`` -- a boolean (default: ``False``), whether to compute
+          minimal cofactors (see below)
+
+        OUTPUT:
+
+        A triple ``(g, s, t)`` such that ``g`` is the non-negative gcd of
+        ``self`` and ``n``, and ``s`` and ``t`` are cofactors satisfying the
+        Bezout identity
+
+        .. math::
+
+             g = s \cdot \mbox{\rm self} + t \cdot n.
+
+        .. note::
+
+           If ``minimal`` is ``False``, then there is no guarantee that the returned
            cofactors will be minimal in any sense; the only guarantee is that
            the Bezout identity will be satisfied (see examples below).
 
-           If minimal is True, the cofactors will satisfy the following
-           conditions. If either self or `n` are zero, the trivial solution
-           is returned. If both self and `n` are nonzero, the function returns
+           If ``minimal`` is ``True``, the cofactors will satisfy the following
+           conditions. If either ``self`` or ``n`` are zero, the trivial solution
+           is returned. If both ``self`` and ``n`` are nonzero, the function returns
            the unique solution such that `0 \leq s < |n|/g` (which then must
            also satisfy `0 \leq |t| \leq |\mbox{\rm self}|/g`).
 
         EXAMPLES::
 
-            sage: Integer(5)._xgcd(7)
+            sage: 5._xgcd(7)
             (1, 3, -2)
             sage: 5*3 + 7*-2
             1
-            sage: g,s,t = Integer(58526524056)._xgcd(101294172798)
+            sage: g,s,t = 58526524056._xgcd(101294172798)
             sage: g
             22544886
             sage: 58526524056 * s + 101294172798 * t
             22544886
 
-        Without minimality guarantees, weird things can happen::
+        Try ``minimal`` option with various edge cases::
 
-            sage: Integer(3)._xgcd(21)
-            (3, 1, 0)
-            sage: Integer(3)._xgcd(24)
-            (3, 1, 0)
-            sage: Integer(3)._xgcd(48)
-            (3, 1, 0)
-
-        Weirdness disappears with minimal option::
-
-            sage: Integer(3)._xgcd(21, minimal=True)
-            (3, 1, 0)
-            sage: Integer(3)._xgcd(24, minimal=True)
-            (3, 1, 0)
-            sage: Integer(3)._xgcd(48, minimal=True)
-            (3, 1, 0)
-            sage: Integer(21)._xgcd(3, minimal=True)
-            (3, 0, 1)
-
-        Try minimal option with various edge cases::
-
-            sage: Integer(5)._xgcd(0, minimal=True)
+            sage: 5._xgcd(0, minimal=True)
             (5, 1, 0)
-            sage: Integer(-5)._xgcd(0, minimal=True)
+            sage: -5._xgcd(0, minimal=True)
             (5, -1, 0)
-            sage: Integer(0)._xgcd(5, minimal=True)
+            sage: 0._xgcd(5, minimal=True)
             (5, 0, 1)
-            sage: Integer(0)._xgcd(-5, minimal=True)
+            sage: 0._xgcd(-5, minimal=True)
             (5, 0, -1)
-            sage: Integer(0)._xgcd(0, minimal=True)
+            sage: 0._xgcd(0, minimal=True)
             (0, 1, 0)
+
+        Output may differ with and without the ``minimal`` option::
+
+            sage: 2._xgcd(-2)
+            (2, 1, 0)
+            sage: 2._xgcd(-2, minimal=True)
+            (2, 0, -1)
 
         Exhaustive tests, checking minimality conditions::
 

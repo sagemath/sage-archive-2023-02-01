@@ -2196,59 +2196,6 @@ class InfiniteAbstractCombinatorialClass(CombinatorialClass):
                 yield c
             i+=1
 
-
-
-def hurwitz_zeta(s,x,N):
-    """
-    Returns the value of the `\zeta(s,x)` to `N`
-    decimals, where s and x are real.
-
-    The Hurwitz zeta function is one of the many zeta functions. It
-    defined as
-
-    .. math::
-
-             \zeta(s,x) = \sum_{k=0}^\infty (k+x)^{-s}.
-
-
-    When `x = 1`, this coincides with Riemann's zeta function.
-    The Dirichlet L-functions may be expressed as a linear combination
-    of Hurwitz zeta functions.
-
-    Note that if you use floating point inputs, then the results may be
-    slightly off.
-
-    EXAMPLES::
-
-        sage: hurwitz_zeta(3,1/2,6)
-        8.41439000000000
-        sage: hurwitz_zeta(11/10,1/2,6)
-        12.1041000000000
-        sage: hurwitz_zeta(11/10,1/2,50)
-        12.10381349568375510570907741296668061903364861809
-
-    REFERENCES:
-
-    - http://en.wikipedia.org/wiki/Hurwitz_zeta_function
-    """
-    maxima.eval('load ("bffac")')
-    s = maxima.eval("bfhzeta (%s,%s,%s)"%(s,x,N))
-
-    #Handle the case where there is a 'b' in the string
-    #'1.2000b0' means 1.2000 and
-    #'1.2000b1' means 12.000
-    i = s.rfind('b')
-    if i == -1:
-        return sage_eval(s)
-    else:
-        if s[i+1:] == '0':
-            return sage_eval(s[:i])
-        else:
-            return sage_eval(s[:i])*10**sage_eval(s[i+1:])
-
-    return s  ## returns an odd string
-
-
 #####################################################
 #### combinatorial sets/lists
 

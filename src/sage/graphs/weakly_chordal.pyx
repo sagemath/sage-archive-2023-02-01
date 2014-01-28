@@ -107,6 +107,7 @@ def is_long_hole_free(g, certificate=False):
         sage: hole.is_isomorphic(graphs.CycleGraph(hole.order()))
         True
     """
+    g._scream_if_not_simple()
     cdef int a,b,c,i,u,v,d
 
     # relabel the graph on 0...n-1
@@ -275,6 +276,7 @@ def is_long_antihole_free(g, certificate = False):
         sage: a.complement().is_isomorphic( graphs.CycleGraph(9) )
         True
     """
+    g._scream_if_not_simple()
     cdef int a,b,c,i,u,v,d
 
     # relabel the graph on 0...n-1

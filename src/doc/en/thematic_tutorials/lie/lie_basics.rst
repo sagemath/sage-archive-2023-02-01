@@ -555,7 +555,7 @@ There are various ways to get the Dynkin diagram::
     1   3   4   5   6
     E6
     sage: B4 = WeylCharacterRing("B4"); B4
-    The Weyl Character Ring of Type ['B', 4] with Integer Ring coefficients
+    The Weyl Character Ring of Type B4 with Integer Ring coefficients
     sage: B4.dynkin_diagram()
     O---O---O=>=O
     1   2   3   4

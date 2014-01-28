@@ -58,6 +58,11 @@ TESTS::
     Residue field in zbar of Fractional ideal (17)
     sage: TestSuite(ff).run()
 
+Verify that :trac:`15192` has been resolved::
+
+    sage: a.is_unit()
+    True
+
     #sage: R.<t> = GF(11)[]; P = R.ideal(t^3 + t + 4)
     #sage: ff.<a> = ResidueField(P)
     #sage: a == ff(t)

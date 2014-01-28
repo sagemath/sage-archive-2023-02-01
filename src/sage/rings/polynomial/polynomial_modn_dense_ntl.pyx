@@ -1750,16 +1750,22 @@ cdef class Polynomial_dense_mod_p(Polynomial_dense_mod_n):
 
     @coerce_binop
     def gcd(self, right):
-        return self._gcd(right)
+        """
+        Return the greatest common divisor of this polynomial and ``other``, as
+        a monic polynomial.
 
-    def _gcd(self, right):
+        INPUT:
+
+            - ``other`` -- a polynomial defined over the same ring as ``self``
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(GF(3),implementation="NTL")
+            sage: f,g = x + 2, x^2 - 1
+            sage: f.gcd(g)
+            x + 2
+
         """
-        Return the GCD of self and other, as a monic polynomial.
-        """
-        if not isinstance(right, Polynomial_dense_mod_p):
-            right = self.parent()(right)
-        elif self.parent() != right.parent():
-            raise TypeError
         g = self.ntl_ZZ_pX().gcd(right.ntl_ZZ_pX())
         return self.parent()(g, construct=True)
 

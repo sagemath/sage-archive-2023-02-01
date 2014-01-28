@@ -8,6 +8,8 @@ either equalities or less-or-equal. For example::
 
     sage: p = MixedIntegerLinearProgram()
     sage: x = p.new_variable()
+    doctest:839: DeprecationWarning: The default behaviour of new_variable() will soon change ! It will return 'real' variables instead of nonnegative ones. Please be explicit and call new_variable(nonnegative=True) instead.
+    See http://trac.sagemath.org/15521 for details.
     sage: f = 1 + x[1] + 2*x[2];  f     #  a linear function
     1 + x_0 + 2*x_1
     sage: type(f)
@@ -63,7 +65,6 @@ See :trac:`12091` ::
     2*x_0 <= x_1 <= x_2
 """
 
-
 #*****************************************************************************
 #       Copyright (C) 2012 Nathann Cohen <nathann.cohen@gmail.com>
 #       Copyright (C) 2012 Volker Braun <vbraun.name@gmail.com>
@@ -82,12 +83,9 @@ from cpython.object cimport *
 cdef extern from "limits.h":
     long LONG_MAX
 
-
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport ModuleElement, Element
 from sage.misc.cachefunc import cached_function
-
-
 
 #*****************************************************************************
 #
@@ -143,7 +141,6 @@ def is_LinearConstraint(x):
         False
     """
     return isinstance(x, LinearConstraint)
-
 
 #*****************************************************************************
 #

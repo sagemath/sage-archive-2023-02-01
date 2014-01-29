@@ -108,6 +108,25 @@ class Core(CombinatorialObject, Element):
         CombinatorialObject.__init__(self, core)
         Element.__init__(self, parent)
 
+    def __eq__(self, other):
+        """
+        EXAMPLES::
+
+            sage: c = Core([4,2,1,1],5)
+            sage: d = Core([4,2,1,1],5)
+            sage: e = Core([4,2,1,1],6)
+            sage: c == [4,2,1,1]
+            False
+            sage: c == d
+            True
+            sage: c == e
+            False
+        """
+        if isinstance(other, Core):
+            return self._list.__eq__(other._list) and self.parent().k == other.parent().k
+        else:
+            return False
+
     def __hash__(self):
         """
         Computes the hash of ``self`` by computing the hash of the

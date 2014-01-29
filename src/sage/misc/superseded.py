@@ -24,8 +24,6 @@ from warnings import warn, resetwarnings
 import inspect
 
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.rings.integer', 'is_Integer')
 
 
 def _check_trac_number(trac_number):
@@ -41,14 +39,6 @@ def _check_trac_number(trac_number):
     This function returns nothing. A ``ValueError`` is raised if the
     argument can not be a valid trac number.
 
-    TESTS:
-
-        We check that ``is_Integer`` is imported lazily, as per
-        :trac:`15757`::
-
-        sage: type(sage.misc.superseded.is_Integer)
-        <type 'sage.misc.lazy_import.LazyImport'>
-
     EXAMPLES::
 
         sage: from sage.misc.superseded import _check_trac_number
@@ -59,15 +49,13 @@ def _check_trac_number(trac_number):
         Traceback (most recent call last):
         ...
         ValueError: The argument "10" is not a valid trac issue number.
-
-    TESTS:
-
-        sage: type(sage.misc.superseded.is_Integer)
-        <type 'builtin_function_or_method'>
     """
-    if isinstance(trac_number, (int, long)) or is_Integer(trac_number):
-        if trac_number >= 0:
+    try:
+        trac_number.__index__()
+        if trac_number >= 1:
             return
+    except:
+        pass
     raise ValueError('The argument "'+str(trac_number)+'" is not a valid trac issue number.')
 
 def deprecation(trac_number, message):

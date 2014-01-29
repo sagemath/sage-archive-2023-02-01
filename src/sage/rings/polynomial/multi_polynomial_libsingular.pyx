@@ -724,6 +724,12 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: P(a,b)
             a
 
+        Check that :trac:`15746` is fixed::
+
+            sage: R.<x,y> = GF(7)[]
+            sage: R(2^31)
+            2
+
         """
         cdef poly *_p, *mon, *El_poly
         cdef ring *_ring = self._ring

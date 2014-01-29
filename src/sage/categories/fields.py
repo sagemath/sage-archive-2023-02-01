@@ -272,17 +272,17 @@ class Fields(Category_singleton):
             from sage.modules.all import FreeModule
             return FreeModule(self, n)
 
-        def _xgcd_univariate_polynomial(self, other):
+        def _xgcd_univariate_polynomial(self, left, right):
             r"""
-            Extended gcd of ``self`` and ``other``.
+            Extended gcd of ``left`` and ``right``.
 
             INPUT:
 
-                - ``other`` -- a polynomial in the same ring as ``self``
+                - ``left``, ``right`` -- two polynomials over this field
 
             OUTPUT:
 
-            Polynomials ``g``, ``u``, and ``v`` such that ``g = u*self + v*other``
+            Polynomials ``g``, ``u``, and ``v`` such that ``g = u*left + v*right``
 
             .. NOTE::
 
@@ -311,12 +311,12 @@ class Fields(Category_singleton):
                 True
 
             """
-            R = self.parent()
-            if other.is_zero():
-                return self, R.one_element(), R.zero_element()
+            R = left.parent()
+            if right.is_zero():
+                return left, R.one_element(), R.zero_element()
             # Algorithm 3.2.2 of Cohen, GTM 138
-            A = self
-            B = other
+            A = left
+            B = right
             U = R.one_element()
             G = A
             V1 = R.zero_element()

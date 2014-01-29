@@ -131,7 +131,7 @@ class ShuffleProduct_w1w2(CombinatorialClass):
         of ``w1`` and ``w2``.
 
         This is understood as a multiset cardinality, not as a
-        set cardinality; it doesn't count the distinct words only.
+        set cardinality; it does not count the distinct words only.
 
         It is given by `\binom{l_1+l_2}{l_1}`, where `l_1` is the
         length of ``w1`` and where `l_2` is the length of ``w2``.

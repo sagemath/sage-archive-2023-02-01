@@ -196,9 +196,9 @@ def short_vector_list_up_to_length(self, len_bound, up_to_sign_flag=False):
         sage: vs = Q.short_vector_list_up_to_length(8)
         sage: [len(vs[i]) for i in range(len(vs))]
         [1, 72, 270, 720, 936, 2160, 2214, 3600]
-        sage: vs = Q.short_vector_list_up_to_length(40)  # long time
+        sage: vs = Q.short_vector_list_up_to_length(30)  # long time (28s on sage.math, 2014)
         sage: [len(vs[i]) for i in range(len(vs))]       # long time
-        [1, 72, 270, 720, 936, 2160, 2214, 3600, 4590, 6552, 5184, 10800, 9360, 12240, 13500, 17712, 14760, 25920, 19710, 26064, 28080, 36000, 25920, 47520, 37638, 43272, 45900, 59040, 46800, 75600, 51840, 69264, 73710, 88560, 62208, 108000, 85176, 98640, 97740, 122400]
+        [1, 72, 270, 720, 936, 2160, 2214, 3600, 4590, 6552, 5184, 10800, 9360, 12240, 13500, 17712, 14760, 25920, 19710, 26064, 28080, 36000, 25920, 47520, 37638, 43272, 45900, 59040, 46800, 75600]
 
     The cases of ``len_bound < 2`` led to exception or infinite runtime before.
 
@@ -227,7 +227,7 @@ def short_vector_list_up_to_length(self, len_bound, up_to_sign_flag=False):
         sage: Q = QuadraticForm(matrix(2, [72, 12, 12, 120]))
         sage: len_bound_pari = 2*22953421 - 2; len_bound_pari
         45906840
-        sage: vs = list(Q._pari_().qfminim(len_bound_pari)[2])  # long time
+        sage: vs = list(Q._pari_().qfminim(len_bound_pari)[2])  # long time (18s on sage.math, 2014)
         sage: v = vs[0]; v  # long time
         [-65, 623]~
         sage: v.Vec() * Q._pari_() * v  # long time

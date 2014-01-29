@@ -37,6 +37,7 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 from sage.rings.all import Integer, QQ, ZZ
 from sage.functions.all import factorial
+from sage.rings.infinity import PlusInfinity
 from sage.matrix.all import zero_matrix
 
 from sage.combinat.combinat import CombinatorialObject
@@ -1623,25 +1624,18 @@ class SemistandardSkewTableaux(SkewTableaux):
     Semistandard skew tableaux.
 
     This class can be initialized with several optional variables:
-    The size of the skew tableaux (as a nameless integer variable),
+    the size of the skew tableaux (as a nameless integer variable),
     their shape (as a nameless skew partition variable), their
     weight (:meth:`~sage.combinat.skew_tableau.SkewTableau.weight`,
     as a nameless second variable after either the size or the
     shape) and their maximum entry (as an optional keyword variable
-    called ``max_entry``). If the maximum entry is not specified,
-    it defaults to the size of the tableau.
+    called ``max_entry``, unless the weight has been specified). If
+    neither the weight nor the maximum entry is specified, the
+    maximum entry defaults to the size of the tableau.
 
-    .. WARNING::
-
-        The ``max_entry`` variable is ignored if it is the only
-        variable given. In this case, this class returns the class
-        of all semistandard skew tableaux with max entry equal
-        to their size (or at least this is what its ``__iter__``
-        returns; the containment method is more liberal).
-
-    .. TODO::
-
-        Fix this.
+    Note that "maximum entry" does not literally mean the highest
+    entry; instead it is just an upper bound that no entry is
+    allowed to surpass.
 
     EXAMPLES::
 
@@ -1650,15 +1644,17 @@ class SemistandardSkewTableaux(SkewTableaux):
         sage: SemistandardSkewTableaux()
         Semistandard skew tableaux
 
+    The (still infinite) class of all semistandard skew tableaux
+    with maximum entry `2`::
+
+        sage: SemistandardSkewTableaux(max_entry=2)
+        Semistandard skew tableaux with maximum entry 2
+
     The class of all semistandard skew tableaux of given size `3`
     and maximum entry `3`::
 
         sage: SemistandardSkewTableaux(3)
         Semistandard skew tableaux of size 3 and maximum entry 3
-
-    Note that "maximum entry" does not literally mean the highest
-    entry; instead it is just an upper bound that no entry is
-    allowed to surpass.
 
     To set a different maximum entry::
 
@@ -1726,11 +1722,10 @@ class SemistandardSkewTableaux(SkewTableaux):
             sage: SSST1 is SSST2
             True
         """
-        if p is None and mu is None:
-            return SemistandardSkewTableaux_all()
-
         if p is None:
-            raise ValueError("You must specify either a size or shape")
+            if mu is None:
+                return SemistandardSkewTableaux_all(max_entry)
+            raise ValueError("You must specify either a size or a shape")
 
         if isinstance(p, (int, Integer)):
             if mu is None:
@@ -1770,9 +1765,10 @@ class SemistandardSkewTableaux(SkewTableaux):
 
 class SemistandardSkewTableaux_all(SemistandardSkewTableaux):
     """
-    Class of all semistandard skew tableaux.
+    Class of all semistandard skew tableaux, possibly with a given
+    maximum entry.
     """
-    def __init__(self):
+    def __init__(self, max_entry):
         """
         Initialize ``self``.
 
@@ -1780,8 +1776,15 @@ class SemistandardSkewTableaux_all(SemistandardSkewTableaux):
 
             sage: S = SemistandardSkewTableaux()
             sage: TestSuite(S).run()
+
+            sage: S = SemistandardSkewTableaux(3)
+            sage: TestSuite(S).run()
         """
         SemistandardSkewTableaux.__init__(self, category=InfiniteEnumeratedSets())
+        if max_entry is None:
+            self.max_entry = PlusInfinity()
+        else:
+            self.max_entry = max_entry
 
     def _repr_(self):
         """
@@ -1790,13 +1793,35 @@ class SemistandardSkewTableaux_all(SemistandardSkewTableaux):
             sage: SemistandardSkewTableaux()
             Semistandard skew tableaux
         """
-        return "Semistandard skew tableaux"
+        if self.max_entry == PlusInfinity():
+            return "Semistandard skew tableaux"
+        else:
+            return "Semistandard skew tableaux with maximum entry %s"%(repr(self.max_entry))
 
     def __iter__(self):
         """
         Iterate over the elements of ``self``.
 
         EXAMPLES::
+
+            sage: it = SemistandardSkewTableaux(max_entry = 5).__iter__()
+            sage: [it.next() for x in range(12)]
+            [[],
+             [[1]],
+             [[2]],
+             [[3]],
+             [[4]],
+             [[5]],
+             [[1, 1]],
+             [[1, 2]],
+             [[1, 3]],
+             [[1, 4]],
+             [[1, 5]],
+             [[2, 2]]]
+
+        If no max entry is specified, the iteration goes over all
+        semistandard skew tableaux of size `n` with max entry `n`,
+        for all `n`::
 
             sage: it = SemistandardSkewTableaux().__iter__()
             sage: [it.next() for x in range(10)]
@@ -1811,15 +1836,25 @@ class SemistandardSkewTableaux_all(SemistandardSkewTableaux):
              [[None, 1], [2]],
              [[None, 2], [2]]]
         """
-        n = 0
-        while True:
-            for ssst in SemistandardSkewTableaux_size(n, n):
-                yield self.element_class(self, ssst)
-            n += 1
+        if self.max_entry == PlusInfinity():
+            # Old behavior, kept here for backwards compatibility.
+            # The usefulness of this iterator is questionable.
+            n = 0
+            while True:
+                for ssst in SemistandardSkewTableaux_size(n, n):
+                    yield self.element_class(self, ssst)
+                n += 1
+        else:
+            n = 0
+            while True:
+                for ssst in SemistandardSkewTableaux_size(n, self.max_entry):
+                    yield self.element_class(self, ssst)
+                n += 1
 
 class SemistandardSkewTableaux_size(SemistandardSkewTableaux):
     """
-    Class of all semistandard skew tableaux of a fixed size `n`.
+    Class of all semistandard skew tableaux of a fixed size `n`,
+    possibly with a given maximum entry.
     """
     def __init__(self, n, max_entry):
         """
@@ -1939,7 +1974,8 @@ class SemistandardSkewTableaux_size_weight(SemistandardSkewTableaux):
 
 class SemistandardSkewTableaux_shape(SemistandardSkewTableaux):
     r"""
-    Class of semistandard skew tableaux of a fixed skew shape `\lambda / \mu` with a given max entry.
+    Class of semistandard skew tableaux of a fixed skew shape
+    `\lambda / \mu` with a given max entry.
 
     A semistandard skew tableau with max entry `i` is required to have all
     its entries less or equal to `i`. It is not required to actually

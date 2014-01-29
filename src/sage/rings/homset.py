@@ -173,7 +173,7 @@ class RingHomset_generic(HomsetWithBase):
             sage: H == loads(dumps(H))
             True
         """
-        if isinstance(im_gens, (morphism.RingHomomorphism_im_gens,  morphism.RingHomomorphism_cover, morphism.RingHomomorphism_from_base) ):
+        if isinstance(im_gens, morphism.RingHomomorphism):
             return self._coerce_impl(im_gens)
         try:
             return morphism.RingHomomorphism_im_gens(self, im_gens, check=check)

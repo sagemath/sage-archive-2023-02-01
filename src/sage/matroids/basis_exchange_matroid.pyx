@@ -1893,7 +1893,7 @@ cdef class BasisExchangeMatroid(Matroid):
 
         OUTPUT:
 
-        Boolean.
+        A dictionary, or ``None``
 
         EXAMPLES::
 

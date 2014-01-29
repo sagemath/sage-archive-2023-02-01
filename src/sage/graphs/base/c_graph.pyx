@@ -1744,7 +1744,7 @@ class CGraphBackend(GenericGraphBackend):
         # Dense
         else:
             for u_int in self._cg.in_neighbors(v_int):
-                vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+                yield vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
 
     def iterator_out_nbrs(self, v):
         """

@@ -24,6 +24,8 @@ from warnings import warn, resetwarnings
 import inspect
 
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.rings.integer', 'is_Integer')
 
 
 def _check_trac_number(trac_number):
@@ -39,23 +41,34 @@ def _check_trac_number(trac_number):
     This function returns nothing. A ``ValueError`` is raised if the
     argument can not be a valid trac number.
 
+    TESTS:
+
+        We check that ``is_Integer`` is imported lazily, as per
+        :trac:`15757`::
+
+        sage: type(sage.misc.superseded.is_Integer)
+        <type 'sage.misc.lazy_import.LazyImport'>
+
     EXAMPLES::
 
         sage: from sage.misc.superseded import _check_trac_number
         sage: _check_trac_number(1)
         sage: _check_trac_number(int(10))
         sage: _check_trac_number(long(1000))
-        sage: _check_trac_number('1')
+        sage: _check_trac_number('10')
         Traceback (most recent call last):
         ...
-        ValueError: The argument "1" is not a valid trac issue number.
+        ValueError: The argument "10" is not a valid trac issue number.
+
+    TESTS:
+
+        sage: type(sage.misc.superseded.is_Integer)
+        <type 'builtin_function_or_method'>
     """
-    from sage.rings.integer import is_Integer
-    err = ValueError('The argument "'+str(trac_number)+'" is not a valid trac issue number.')
-    if not (is_Integer(trac_number) or isinstance(trac_number, (int,long))):
-        raise err
-    if trac_number < 0:
-        raise err
+    if isinstance(trac_number, (int, long)) or is_Integer(trac_number):
+        if trac_number >= 0:
+            return
+    raise ValueError('The argument "'+str(trac_number)+'" is not a valid trac issue number.')
 
 def deprecation(trac_number, message):
     r"""
@@ -78,9 +91,8 @@ def deprecation(trac_number, message):
         See http://trac.sagemath.org/13109 for details.
     """
     _check_trac_number(trac_number)
-    if trac_number is not None:
-        message += '\n'
-        message += 'See http://trac.sagemath.org/'+ str(trac_number) + ' for details.'
+    message += '\n'
+    message += 'See http://trac.sagemath.org/'+ str(trac_number) + ' for details.'
     resetwarnings()
     # Stack level 3 to get the line number of the code which called
     # the deprecated function which called this function.

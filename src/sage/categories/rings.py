@@ -723,11 +723,11 @@ class Rings(Category_singleton):
                         names = []
                         for poly, var in zip(minpolys, v):
                             w.append(poly)
-                            n, name_chr = gen_name(repr(var), name_chr)
+                            n, name_chr = _gen_name(repr(var), name_chr)
                             names.append(n)
                     else:
                         w = minpolys
-                        name, name_chr = gen_name(repr(v[0]), name_chr)
+                        name, name_chr = _gen_name(repr(v[0]), name_chr)
                         names = [name]
 
                     names = tuple(names)
@@ -824,7 +824,7 @@ class Rings(Category_singleton):
 
 from sage.structure.parent_gens import _certify_names
 
-def gen_name(x, name_chr):
+def _gen_name(x, name_chr):
     r"""
     Used to find a name for a generator when rings are created using the
     ``__getitem__`` syntax, e.g. ``ZZ['x']``. If ``x`` is a symbolic variable,
@@ -834,12 +834,12 @@ def gen_name(x, name_chr):
 
     EXAMPLES::
 
-        sage: from sage.categories.rings import gen_name
-        sage: gen_name(sqrt(5), 1)
+        sage: from sage.categories.rings import _gen_name
+        sage: _gen_name(sqrt(5), 1)
         ('sqrt5', 1)
-        sage: gen_name(sqrt(-17), 88)
+        sage: _gen_name(sqrt(-17), 88)
         ('X', 89)
-        sage: gen_name(x, 1)
+        sage: _gen_name(x, 1)
         ('x', 1)
     """
     from sage.symbolic.ring import is_SymbolicVariable

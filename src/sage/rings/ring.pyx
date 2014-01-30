@@ -69,7 +69,6 @@ AUTHORS:
 include "sage/ext/stdsage.pxi"
 from cpython.bool cimport *
 
-import re
 from types import GeneratorType
 
 from sage.misc.lazy_attribute import lazy_class_attribute

@@ -640,7 +640,7 @@ class Polynomial_generic_field(Polynomial_singular_repr,
 
         INPUT:
 
-            - ``other`` -- a polynomial defined over the same ring as ``self``
+        - ``other`` -- a polynomial defined over the same ring as ``self``
 
         EXAMPLES::
 

@@ -67,7 +67,7 @@ from sage.libs.pari.pari_instance cimport PariInstance
 from integer_ring import ZZ
 
 from sage.structure.element cimport Element, RingElement, ModuleElement
-from sage.structure.element import bin_op, coerce_binop
+from sage.structure.element import bin_op
 from sage.categories.morphism cimport Morphism
 from sage.categories.map cimport Map
 

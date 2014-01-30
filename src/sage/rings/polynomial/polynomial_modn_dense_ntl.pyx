@@ -1756,7 +1756,7 @@ cdef class Polynomial_dense_mod_p(Polynomial_dense_mod_n):
 
         INPUT:
 
-            - ``other`` -- a polynomial defined over the same ring as ``self``
+        - ``other`` -- a polynomial defined over the same ring as ``self``
 
         EXAMPLES::
 

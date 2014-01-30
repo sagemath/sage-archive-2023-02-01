@@ -62,21 +62,21 @@ class EuclideanDomains(Category_singleton):
 
             INPUT:
 
-                - ``other`` -- an element in the same ring as ``self``
+            - ``other`` -- an element in the same ring as ``self``
 
             ALGORITHM:
 
-            Algorithm 3.2.1 in [Coh1996].
+            Algorithm 3.2.1 in [Coh1996]_.
 
             REFERENCES:
 
-            .. [Coh1996] Henri Cohen. A Course in Computational Algebraic Number Theory. Springer, 1996.
+            .. [Coh1996] Henri Cohen. *A Course in Computational Algebraic
+               Number Theory*. Springer, 1996.
 
             EXAMPLES::
 
                 sage: EuclideanDomains().ElementMethods().gcd(6,4)
                 2
-
             """
             A = self
             B = other
@@ -85,3 +85,4 @@ class EuclideanDomains(Category_singleton):
                 A = B
                 B = R
             return A
+

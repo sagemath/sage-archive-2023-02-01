@@ -1780,7 +1780,7 @@ cdef class Polynomial_dense_mod_p(Polynomial_dense_mod_n):
 
         OUTPUT:
 
-        A tuple ``r,s,t`` of elements in the polynomial ring such
+        A tuple ``(r,s,t)`` of elements in the polynomial ring such
         that ``r = s*self + t*other``.
 
         EXAMPLES::

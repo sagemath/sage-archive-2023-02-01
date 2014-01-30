@@ -5387,7 +5387,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: 5._xgcd(0, minimal=True)
             (5, 1, 0)
-            sage: -5._xgcd(0, minimal=True)
+            sage: (-5)._xgcd(0, minimal=True)
             (5, -1, 0)
             sage: 0._xgcd(5, minimal=True)
             (5, 0, 1)

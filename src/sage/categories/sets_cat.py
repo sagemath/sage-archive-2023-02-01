@@ -17,6 +17,7 @@ from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.lazy_import import lazy_import, LazyImport
 from sage.misc.lazy_format import LazyFormat
+from sage.misc.superseded import deprecated_function_alias
 from sage.categories.category import HomCategory
 from sage.categories.category_singleton import Category_singleton
 # Do not use sage.categories.all here to avoid initialization loop
@@ -1682,7 +1683,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
             @abstract_method
             def _sets_keys(self):
                 """
-                Returns the indices of the cartesian factors of ``self``.
+                Return the indices of the cartesian factors of ``self``.
 
                 EXAMPLES::
 
@@ -1704,7 +1705,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
             @abstract_method
             def cartesian_projection(self, i):
                 """
-                Returns the natural projection onto the `i`-th
+                Return the natural projection onto the `i`-th
                 cartesian factor of ``self``.
 
                 INPUTS:
@@ -1725,11 +1726,11 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
             @abstract_method
             def _cartesian_product_of_elements(self, elements):
                 """
-                Returns the cartesian product of the given ``elements``
+                Return the cartesian product of the given ``elements``.
 
                 INPUT:
 
-                 - ``elements`` - a tuple with one element of each
+                 - ``elements`` -- a tuple with one element of each
                    cartesian factor of ``self``
 
                 EXAMPLES::
@@ -1745,7 +1746,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
 
             def cartesian_projection(self, i):
                 """
-                Returns the projection of ``self`` on the `i`-th
+                Return the projection of ``self`` onto the `i`-th
                 factor of the cartesian product.
 
                 INPUTS:
@@ -1765,17 +1766,11 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
                 """
                 return self.parent().cartesian_projection(i)(self)
 
-            def summand_projection(self, i):
-                """
-                Deprecated; use :meth:`cartesian_projection` instead.
-                """
-                from sage.misc.superseded import deprecation
-                deprecation(10963, "summand_projection is deprecated; use cartesian_projection instead')
-                return self.cartesian_projection(i)
+            summand_projection = deprecated_function_alias(12963, cartesian_projection)
 
             def cartesian_factors(self):
                 """
-                Splits ``self`` into its cartesian factors.
+                Return the cartesian factors of ``self``.
 
                 EXAMPLES::
 
@@ -1797,14 +1792,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
                 return tuple(self.cartesian_projection(i) for i in self.parent()._sets_keys())
                 #return Family(self._sets.keys(), self.projection)
 
-            def summand_split(self):
-                """
-                Deprecated; use :meth:`cartesian_factors` instead.
-                """
-                from sage.misc.superseded import deprecation
-                deprecation(10963, "summand_split is deprecated; use cartesian_factors instead')
-                return self.cartesian_factors()
-
+            summand_split = deprecated_function_alias(12963, cartesian_factors)
 
     class Algebras(AlgebrasCategory):
 

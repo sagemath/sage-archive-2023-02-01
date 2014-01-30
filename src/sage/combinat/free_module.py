@@ -2852,9 +2852,10 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
         # TODO: make this overridable by setting _name
 
     @cached_method
-    def summand_embedding(self, i):
+    def cartesian_embedding(self, i):
         """
-        Returns the natural embedding morphism of the i-th summand of self into self
+        Return the natural embedding morphism of the ``i``-th
+        cartesian factor (summand) of ``self`` into ``self``.
 
         INPUTS:
 
@@ -2875,13 +2876,13 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
         assert i in self._sets_keys()
         return self._sets[i]._module_morphism(lambda t: self.monomial((i,t)), codomain = self)
 
-    cartesian_embedding = summand_embedding
+    summand_embedding = cartesian_embedding
 
     @cached_method
     def cartesian_projection(self, i):
         """
-        Returns the natural projection onto the `i`-th factor of
-        ``self``.
+        Return the natural projection onto the `i`-th cartesian factor
+        (summand) of ``self``.
 
         INPUTS:
 
@@ -2910,11 +2911,11 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
 
     def _cartesian_product_of_elements(self, elements):
         """
-        Returns the cartesian product of the elements
+        Return the cartesian product of the elements.
 
         INPUT:
 
-         - ``elements`` - a tuple with one element of each cartesian
+         - ``elements`` -- a tuple with one element of each cartesian
            factor of ``self``
 
         EXAMPLES::

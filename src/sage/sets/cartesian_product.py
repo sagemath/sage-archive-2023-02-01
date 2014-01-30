@@ -65,7 +65,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
         """
         Return the cartesian factors of ``self``.
 
-        .. see also:: :meth:`Sets.CartesianProducts.ParentMethods.cartesian_factors()
+        .. SEE ALSO:: :meth:`Sets.CartesianProducts.ParentMethods.cartesian_factors()
             <sage.categories.sets_cat.Sets.CartesianProducts.ParentMethods.cartesian_factors>`.
 
         EXAMPLES::
@@ -77,7 +77,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
 
     def _sets_keys(self):
         """
-        Returns the indices of the cartesian factors of ``self``
+        Return the indices of the cartesian factors of ``self``
         as per
         :meth:`Sets.CartesianProducts.ParentMethods._sets_keys()
         <sage.categories.sets_cat.Sets.CartesianProducts.ParentMethods._sets_keys>`.
@@ -92,12 +92,12 @@ class CartesianProduct(UniqueRepresentation, Parent):
     @cached_method
     def cartesian_projection(self, i):
         """
-        Returns the natural projection onto the `i`-th cartesian
+        Return the natural projection onto the `i`-th cartesian
         factor of ``self`` as per
         :meth:`Sets.CartesianProducts.ParentMethods.cartesian_projection()
         <sage.categories.sets_cat.Sets.CartesianProducts.ParentMethods.cartesian_projection>`.
 
-        INPUTS:
+        INPUT:
 
          - ``i`` -- the index of a cartesian factor of self
 
@@ -114,13 +114,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
         assert i in self._sets_keys()
         return attrcall("cartesian_projection", i)
 
-    def summand_projection(self, i):
-        """
-        Deprecated; use :meth:`cartesian_projection` instead.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(10963, 'summand_projection is deprecated; use cartesian_projection instead')
-        return self.cartesian_projection(i)
+    summand_projection = deprecated_function_alias(12963, cartesian_projection)
 
     def _cartesian_product_of_elements(self, elements):
         """
@@ -154,7 +148,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
 
         def cartesian_projection(self, i):
             """
-            Returns the projection of ``self`` on the `i`-th factor of
+            Return the projection of ``self`` on the `i`-th factor of
             the cartesian product, as per
             :meth:`Sets.CartesianProducts.ElementMethods.cartesian_projection()
             <sage.categories.sets_cat.Sets.CartesianProducts.ElementMethods.cartesian_projection>`.
@@ -171,9 +165,12 @@ class CartesianProduct(UniqueRepresentation, Parent):
                 (47, 42, 1)
                 sage: x.cartesian_projection(1)
                 42
+
+                sage: x.summand_projection(1)
+                doctest:1: DeprecationWarning: summand_projection is deprecated. Please use cartesian_projection instead.
+                See http://trac.sagemath.org/12963 for details.
+                42
             """
             return self.value[i]
-
-        summand_projection = deprecated_function_alias(10963, cartesian_projection)
 
         wrapped_class = tuple

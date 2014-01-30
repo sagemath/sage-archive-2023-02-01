@@ -1789,12 +1789,6 @@ class Partition(CombinatorialObject, Element):
         partitions (:meth:`conjugate()`). This action is faithful if
         `n \geq 3`.
 
-        .. NOTE::
-
-            There are two *non-equivalent* definitions for `\sigma_n` in
-            [Sut2002]_. Here are using the formulaic one, not the one using
-            the four steps which actually defines `\sigma_n^{-1}` instead.
-
         INPUT:
 
         - ``n`` -- nonnegative integer
@@ -2109,9 +2103,23 @@ class Partition(CombinatorialObject, Element):
 
     @cached_method
     def young_subgroup(self):
-        """
+        r"""
         Return the corresponding Young, or parabolic, subgroup of the symmetric
         group.
+
+        The Young subgroup of a partition
+        `\lambda = (\lambda_1, \lambda_2, \ldots, \lambda_{\ell})` of `n` is
+        the group:
+
+        .. MATH::
+
+            S_{\lambda_1} \times S_{\lambda_2} \times \cdots \times
+            S_{\lambda_{\ell}}
+
+        embedded into `S_n` in the standard way (i.e.,
+        the `S_{\lambda_i}` factor acts on the numbers from
+        `\lambda_1 + \lambda_2 + \cdots + \lambda_{i-1} + 1` to
+        `\lambda_1 + \lambda_2 + \cdots + \lambda_i`).
 
         EXAMPLES::
 
@@ -2129,17 +2137,26 @@ class Partition(CombinatorialObject, Element):
     def young_subgroup_generators(self):
         """
         Return an indexing set for the generators of the corresponding Young
-        subgroup.
+        subgroup. Here the generators correspond to the simple adjacent
+        transpositions `s_i = (i \; i+1)`.
 
         EXAMPLES::
 
             sage: Partition([4,2]).young_subgroup_generators()
             [1, 2, 3, 5]
+            sage: Partition([1,1,1]).young_subgroup_generators()
+            []
+            sage: Partition([2,2]).young_subgroup_generators()
+            [1, 3]
+
+        .. SEEALSO:
+
+            :meth:`young_subgroup`
         """
         gens=[]
         m=0
         for row in self:
-            gens.extend([c for c in range(m+1,m+row)])
+            gens.extend(range(m+1,m+row))
             m+=row
         return gens
 
@@ -2404,8 +2421,8 @@ class Partition(CombinatorialObject, Element):
     def dominated_partitions(self, rows=None):
         """
         Return a list of the partitions dominated by `n`. If ``rows`` is
-        specified, then it only returns the ones which has number of rows equal
-        to ``rows``.
+        specified, then it only returns the ones whose number of rows
+        is at most ``rows``.
 
         EXAMPLES::
 
@@ -4220,10 +4237,12 @@ class Partitions(UniqueRepresentation, Parent):
     ``parts_in``. They have the following meanings:
 
     - ``starting=p`` specifies that the partitions should all be less
-      than or equal to `p` in lex order.
+      than or equal to `p` in lex order. This argument cannot be combined
+      with any other (see :trac:`15467`).
 
     - ``ending=p`` specifies that the partitions should all be greater than
-      or equal to `p` in lex order.
+      or equal to `p` in lex order. This argument cannot be combined with any
+      other (see :trac:`15467`).
 
     - ``length=k`` specifies that the partitions have
       exactly `k` parts.
@@ -4245,16 +4264,8 @@ class Partitions(UniqueRepresentation, Parent):
 
     - ``parts_in=S`` specifies that the partitions have parts in the set
       `S`, which can be any sequence of pairwise distinct positive
-      integers.
-
-    The ``max_*`` versions, along with ``inner`` and ``ending``, work
-    analogously.
-
-    Right now, the ``parts_in``, ``starting``, and ``ending`` keyword
-    arguments are mutually exclusive, both of each other and of other
-    keyword arguments. If you specify, say, ``parts_in``, all other
-    keyword arguments will be ignored; ``starting`` and ``ending`` work
-    the same way.
+      integers. This argument cannot be combined with any other
+      (see :trac:`15467`).
 
     EXAMPLES:
 
@@ -4423,6 +4434,29 @@ class Partitions(UniqueRepresentation, Parent):
 
         sage: 1 in Partitions()
         False
+
+    Check :trac:`15467`::
+
+        sage: Partitions(5,parts_in=[1,2,3,4], length=4)
+        Traceback (most recent call last):
+        ...
+        ValueError: The parameters 'parts_in', 'starting' and 'ending' cannot be combined with anything else.
+        sage: Partitions(5,starting=[3,2], length=2)
+        Traceback (most recent call last):
+        ...
+        ValueError: The parameters 'parts_in', 'starting' and 'ending' cannot be combined with anything else.
+        sage: Partitions(5,ending=[3,2], length=2)
+        Traceback (most recent call last):
+        ...
+        ValueError: The parameters 'parts_in', 'starting' and 'ending' cannot be combined with anything else.
+        sage: Partitions(NN, length=2)
+        Traceback (most recent call last):
+        ...
+        ValueError: the size must be specified with any keyword argument
+        sage: Partitions(('la','la','laaaa'), max_part=8)
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be an integer or be equal to one of None, NN, NonNegativeIntegers()
     """
     @staticmethod
     def __classcall_private__(cls, n=None, **kwargs):
@@ -4442,54 +4476,54 @@ class Partitions(UniqueRepresentation, Parent):
             sage: P2 = Partitions(int(4))
             sage: P is P2
             True
-            sage: P = Partitions(4, length=2, parts_in=[3,1,1])
-            sage: P2 = Partitions(4, length=2, parts_in=(3,1,1))
-            sage: P is P2
-            True
         """
         if n == infinity:
             raise ValueError("n cannot be infinite")
         if n is None or n is NN or n is NonNegativeIntegers():
             if len(kwargs) > 0:
-                if len(kwargs) == 1:
-                    if 'max_part' in kwargs:
-                        return Partitions_all_bounded(kwargs['max_part'])
-                raise ValueError("the size must be specified with any keyword argument")
-            return Partitions_all()
-        else:
-            if len(kwargs) == 0:
-                if isinstance(n, (int,Integer)):
-                    return Partitions_n(n)
+                if len(kwargs) == 1 and 'max_part' in kwargs:
+                    return Partitions_all_bounded(kwargs['max_part'])
                 else:
-                    raise ValueError("n must be an integer")
+                    raise ValueError("the size must be specified with any keyword argument")
+            else:
+                return Partitions_all()
+        elif isinstance(n, (int,Integer)):
+            if len(kwargs) == 0:
+                return Partitions_n(n)
+
             if len(kwargs) == 1 and 'max_part' in kwargs:
                 return PartitionsGreatestLE(n, kwargs['max_part'])
 
-            # FIXME: should inherit from IntegerListLex, and implement repr, or _name as a lazy attribute
-            kwargs['name'] = "Partitions of the integer %s satisfying constraints %s"%(n, ", ".join( ["%s=%s"%(key, kwargs[key]) for key in sorted(kwargs.keys())] ))
+            if (len(kwargs) > 1 and
+                ('parts_in' in kwargs or
+                 'starting' in kwargs or
+                 'ending'   in kwargs)):
+                raise ValueError("The parameters 'parts_in', 'starting' and "+
+                                 "'ending' cannot be combined with anything else.")
+
             if 'parts_in' in kwargs:
-                return Partitions_parts_in(n, kwargs['parts_in'])
+                 return Partitions_parts_in(n, kwargs['parts_in'])
             elif 'starting' in kwargs:
                 return Partitions_starting(n, kwargs['starting'])
             elif 'ending' in kwargs:
                 return Partitions_ending(n, kwargs['ending'])
 
-            if 'min_part' not in kwargs:
-                kwargs['min_part'] = 1
-            elif kwargs['min_part'] <= 0:
-                kwargs['min_part'] = 1
+            # FIXME: should inherit from IntegerListLex, and implement repr, or _name as a lazy attribute
+            kwargs['name'] = "Partitions of the integer %s satisfying constraints %s"%(n, ", ".join( ["%s=%s"%(key, kwargs[key]) for key in sorted(kwargs.keys())] ))
 
-            if 'max_slope' not in kwargs:
-                kwargs['max_slope'] = 0
-            elif kwargs['max_slope'] > 0:
-                kwargs['max_slope'] = 0
+            # min_part is at least 1, and it is 1 by default
+            kwargs['min_part']  = max(1,kwargs.get('min_part',1))
+
+            # max_slope is at most 0, and it is 0 by default
+            kwargs['max_slope'] = min(0,kwargs.get('max_slope',0))
 
             if 'outer' in kwargs:
-                kwargs['ceiling'] = kwargs['outer']
                 if 'max_length' in kwargs:
                     kwargs['max_length'] = min(len(kwargs['outer']), kwargs['max_length'])
                 else:
                     kwargs['max_length'] = len(kwargs['outer'])
+
+                kwargs['ceiling'] = kwargs['outer']
                 del kwargs['outer']
 
             if 'inner' in kwargs:
@@ -4500,9 +4534,13 @@ class Partitions(UniqueRepresentation, Parent):
                 else:
                     kwargs['min_length'] = len(inner)
                 del kwargs['inner']
+
             kwargs['element_class'] = Partition
             kwargs['global_options'] = Partitions.global_options
             return IntegerListsLex(n, **kwargs)
+        else:
+            raise ValueError("n must be an integer or be equal to one of "+
+                             "None, NN, NonNegativeIntegers()")
 
     def __init__(self, is_infinite=False):
         """

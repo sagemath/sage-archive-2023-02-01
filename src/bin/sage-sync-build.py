@@ -83,7 +83,7 @@ def clean_tree(prune_directories=True, dry_run=False):
                 if dry_run:
                     print("Remove file: %s"%file_path)
                 else:
-                    os.rmdir(dir_path)
+                    os.remove(file_path)
         for directory in dirs:
             dir_path = os.path.join(path, directory)
             file_ls = os.listdir(dir_path)

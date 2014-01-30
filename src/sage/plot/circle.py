@@ -173,7 +173,7 @@ class Circle(GraphicPrimitive):
 
         -  ``z`` - optional 3D height above `xy`-plane.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: circle((0,0), 1).plot3d()
 

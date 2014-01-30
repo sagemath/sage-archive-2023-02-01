@@ -721,29 +721,6 @@ cdef class Ring(ParentWithGens):
 
     one = one_element # Transitional
 
-    def is_zero(self):
-        """
-        Return ``True`` if this is the zero ring.
-
-        EXAMPLES::
-
-            sage: Integers(1).is_zero()
-            True
-            sage: Integers(2).is_zero()
-            False
-            sage: QQ.is_zero()
-            False
-            sage: R.<x> = ZZ[]
-            sage: R.quo(1).is_zero()
-            True
-            sage: R.<x> = GF(101)[]
-            sage: R.quo(77).is_zero()
-            True
-            sage: R.quo(x^2+1).is_zero()
-            False
-        """
-        return self.one_element() == self.zero_element()
-
     def is_commutative(self):
         """
         Return ``True`` if this ring is commutative.

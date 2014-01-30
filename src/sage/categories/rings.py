@@ -67,6 +67,29 @@ class Rings(Category_singleton):
             """
             return True
 
+        def is_zero(self):
+            """
+            Return ``True`` if this is the zero ring.
+
+            EXAMPLES::
+
+                sage: Integers(1).is_zero()
+                True
+                sage: Integers(2).is_zero()
+                False
+                sage: QQ.is_zero()
+                False
+                sage: R.<x> = ZZ[]
+                sage: R.quo(1).is_zero()
+                True
+                sage: R.<x> = GF(101)[]
+                sage: R.quo(77).is_zero()
+                True
+                sage: R.quo(x^2+1).is_zero()
+                False
+            """
+            return self.one_element() == self.zero_element()
+
         def bracket(self, x, y):
             """
             Returns the Lie bracket `[x, y] = x y - y x` of `x` and `y`.

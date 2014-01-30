@@ -240,12 +240,23 @@ class QuotientFields(Category_singleton):
             return (self.numerator().factor(*args, **kwds) /
                     self.denominator().factor(*args, **kwds))
 
-        def partial_fraction_decomposition(self):
+        def partial_fraction_decomposition(self, decompose_powers=True):
             """
             Decomposes fraction field element into a whole part and a list of
             fraction field elements over prime power denominators.
 
             The sum will be equal to the original fraction.
+
+            INPUT:
+
+            - decompose_powers - whether to decompose prime power
+                                 denominators as opposed to having a single
+                                 term for each irreducible factor of the
+                                 denominator (default: True)
+
+            OUTPUT:
+
+            - Partial fraction decomposition of self over the base ring.
 
             AUTHORS:
 
@@ -268,6 +279,11 @@ class QuotientFields(Category_singleton):
                 sage: q = 2*t / (t + 3)^2
                 sage: q.partial_fraction_decomposition()
                 (0, [2/(t + 3), -6/(t^2 + 6*t + 9)])
+                sage: for p in q.partial_fraction_decomposition()[1]: print p.factor()
+                (2) * (t + 3)^-1
+                (-6) * (t + 3)^-2
+                sage: q.partial_fraction_decomposition(decompose_powers=False)
+                (0, [2*t/(t^2 + 6*t + 9)])
 
             We do the best we can over inexact fields::
 
@@ -365,14 +381,17 @@ class QuotientFields(Category_singleton):
                 if not is_polynomial_over_field:
                     running_total += n * denom_div_d
                 # If the multiplicity is not one, further reduce.
-                for ee in range(e, 1, -1):
-                    quo, n = n.quo_rem(r)
+                if decompose_powers:
+                    for ee in range(e, 1, -1):
+                        quo, n = n.quo_rem(r)
+                        if n:
+                            r_parts.append(n/powers[ee])
+                        n = quo
                     if n:
-                        r_parts.append(n/powers[ee])
-                    n = quo
-                if n:
-                    r_parts.append(n/r)
-                parts.extend(reversed(r_parts))
+                        r_parts.append(n/r)
+                    parts.extend(reversed(r_parts))
+                else:
+                    parts.append(n/powers[e])
 
             if not is_polynomial_over_field:
                 # remainders not unique, need to re-compute whole to take into

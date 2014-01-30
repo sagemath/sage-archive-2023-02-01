@@ -83,7 +83,6 @@ Find the full syntax parse tree of a boolean formula from a list of tokens::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from types import *
 import string
 
 __symbols = '()&|~<->^'
@@ -119,7 +118,7 @@ def parse(s):
     toks, vars_order = tokenize(s)
     tree = tree_parse(toks)
     # special case of tree == single variable
-    if isinstance(tree, StringType):
+    if isinstance(tree, str):
         return ['&', tree, tree], vars_order
     return tree, vars_order
 
@@ -153,7 +152,7 @@ def polish_parse(s):
     toks, vars_order = tokenize(s)
     tree = tree_parse(toks, polish = True)
     # special case where the formula s is a single variable
-    if isinstance(tree, StringType):
+    if isinstance(tree, str):
         return vars_order
     return tree
 

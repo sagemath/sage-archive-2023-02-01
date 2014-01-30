@@ -307,8 +307,9 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         - if `x` is the left brother of `y` in `t`, then `x` becomes the
           left child of `y`;
         - if `x` is the last child of `y` in `t`, then `x` becomes the
-          right child of `y`;
-        - the root of `t` is removed.
+          right child of `y`,
+
+        and removing the root of `t`.
 
         EXAMPLES::
 
@@ -340,8 +341,9 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         - if `x` is the right brother of `y` in `t`, then`x` becomes the
           right child of `y`;
         - if `x` is the first child of `y` in `t`, then `x` becomes the
-          left child of `y`;
-        - the root of `t` is removed.
+          left child of `y`,
+
+        and removing the root of `t`.
 
         EXAMPLES::
 

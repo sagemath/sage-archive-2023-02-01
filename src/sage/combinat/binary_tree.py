@@ -2005,7 +2005,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
     @combinatorial_map(name="Over operation on Binary Trees")
     def over(self, bt):
         r"""
-        Return ``self`` over ``bt``
+        Return ``self`` over ``bt``, where "over" is the ``over``
+        (`/`) operation.
 
         If `T` and `T'` are two binary trees, then `T` over `T'`
         (written `T / T'`) is defined as the tree obtained by grafting
@@ -2015,12 +2016,14 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         If `T` is empty, then `T / T' = T'`.
 
-        .. WARNING::
-
-            Trees in sage have their root at the top, contrary to the
-            trees in [LodayRonco]_ which are growing upwards. For this
-            reason, the names of the over and under operations are
-            swapped, in order to keep a graphical meaning.
+        The definition of this "over" operation goes back to
+        Loday-Ronco [LodRon0102066]_ (Definition 2.2), but it is
+        denoted by `\backslash` and called the "under" operation there.
+        In fact, trees in sage have their root at the top, contrary to
+        the trees in [LodRon0102066]_ which are growing upwards. For
+        this reason, the names of the over and under operations are
+        swapped, in order to keep a graphical meaning.
+        (Our notation follows that of section 4.5 of [HNT05]_.)
 
         .. SEEALSO::
 
@@ -2111,22 +2114,24 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
     def under(self, bt):
         r"""
         Return ``self`` under ``bt``, where "under" is the ``under``
-        (`\backslash`) operation defined by Loday-Ronco [LodayRonco]_.
+        (`\backslash`) operation.
 
         If `T` and `T'` are two binary trees, then `T` under `T'`
         (written `T \backslash T'`) is defined as the tree obtained
         by grafting `T` on the leftmost leaf of `T'`. More precisely,
         `T \backslash T'` is defined by identifying the root of `T`
-        with the leftmost leaf of `T'`. See section 4.5 of [HNT05]_.
+        with the leftmost leaf of `T'`.
 
         If `T'` is empty, then `T \backslash T' = T`.
 
-        .. WARNING::
-
-            Trees in sage have their root at the top, contrary to the
-            trees in [LodayRonco]_ which are growing upwards. For this
-            reason, the names of the over and under operations are
-            swapped, in order to keep a graphical meaning.
+        The definition of this "under" operation goes back to
+        Loday-Ronco [LodRon0102066]_ (Definition 2.2), but it is
+        denoted by `/` and called the "over" operation there. In fact,
+        trees in sage have their root at the top, contrary to the trees
+        in [LodRon0102066]_ which are growing upwards. For this reason,
+        the names of the over and under operations are swapped, in
+        order to keep a graphical meaning.
+        (Our notation follows that of section 4.5 of [HNT05]_.)
 
         .. SEEALSO::
 
@@ -2545,7 +2550,7 @@ class BinaryTrees(UniqueRepresentation, Parent):
     @cached_method
     def leaf(self):
         """
-        Return a left tree with ``self`` as parent.
+        Return a leaf tree with ``self`` as parent.
 
         EXAMPLES::
 

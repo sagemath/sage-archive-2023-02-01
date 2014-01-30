@@ -1770,28 +1770,36 @@ cdef class Polynomial_dense_mod_p(Polynomial_dense_mod_n):
         return self.parent()(g, construct=True)
 
     @coerce_binop
-    def xgcd(self, right):
+    def xgcd(self, other):
         r"""
-        Return the extended gcd of self and other, i.e., elements `r, s, t` such that
+        Compute the extended gcd of this element and ``other``.
 
-        .. math::
+        INPUT:
 
-           r = s \cdot self + t \cdot other.
+            - ``other`` -- an element in the same polynomial ring
+
+        OUTPUT:
+
+            A tuple ``r,s,t`` of elements in the polynomial ring such
+            that ``r = s*self + t*other``.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(GF(3),implementation='NTL')
+            sage: x.xgcd(x)
+            (x, 0, 1)
+            sage: (x^2 - 1).xgcd(x - 1)
+            (x + 2, 0, 1)
+            sage: R.zero().xgcd(R.one())
+            (1, 0, 1)
+            sage: (x^3 - 1).xgcd((x - 1)^2)
+            (x^2 + x + 1, 0, 1)
+            sage: ((x - 1)*(x + 1)).xgcd(x*(x - 1))
+            (x + 2, 1, 2)
 
         """
-        # copied from sage.structure.element.PrincipalIdealDomainElement due to lack of mult inheritance
-        if not PY_TYPE_CHECK(right, Element) or not ((<Element>right)._parent is self._parent):
-            from sage.rings.arith import xgcd
-            return bin_op(self, right, xgcd)
-        return self._xgcd(right)
-
-    def _xgcd(self, right):
-        """
-        Return ``g, u, v`` such that ``g = u*self + v*right``.
-        """
-        r, s, t = self.ntl_ZZ_pX().xgcd(right.ntl_ZZ_pX())
-        return self.parent()(r, construct=True), self.parent()(s, construct=True), \
-               self.parent()(t, construct=True)
+        r, s, t = self.ntl_ZZ_pX().xgcd(other.ntl_ZZ_pX())
+        return self.parent()(r, construct=True), self.parent()(s, construct=True), self.parent()(t, construct=True)
 
     @coerce_binop
     def resultant(self, other):

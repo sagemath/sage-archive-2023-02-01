@@ -45,17 +45,18 @@ def _check_trac_number(trac_number):
         sage: _check_trac_number(1)
         sage: _check_trac_number(int(10))
         sage: _check_trac_number(long(1000))
-        sage: _check_trac_number('1')
+        sage: _check_trac_number('10')
         Traceback (most recent call last):
         ...
-        ValueError: The argument "1" is not a valid trac issue number.
+        ValueError: The argument "10" is not a valid trac issue number.
     """
-    from sage.rings.integer import is_Integer
-    err = ValueError('The argument "'+str(trac_number)+'" is not a valid trac issue number.')
-    if not (is_Integer(trac_number) or isinstance(trac_number, (int,long))):
-        raise err
-    if trac_number < 0:
-        raise err
+    try:
+        trac_number.__index__()
+        if trac_number >= 1:
+            return
+    except:
+        pass
+    raise ValueError('The argument "'+str(trac_number)+'" is not a valid trac issue number.')
 
 def deprecation(trac_number, message):
     r"""
@@ -78,9 +79,8 @@ def deprecation(trac_number, message):
         See http://trac.sagemath.org/13109 for details.
     """
     _check_trac_number(trac_number)
-    if trac_number is not None:
-        message += '\n'
-        message += 'See http://trac.sagemath.org/'+ str(trac_number) + ' for details.'
+    message += '\n'
+    message += 'See http://trac.sagemath.org/'+ str(trac_number) + ' for details.'
     resetwarnings()
     # Stack level 3 to get the line number of the code which called
     # the deprecated function which called this function.

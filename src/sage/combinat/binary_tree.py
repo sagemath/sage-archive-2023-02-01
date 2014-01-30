@@ -2005,8 +2005,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
     @combinatorial_map(name="Over operation on Binary Trees")
     def over(self, bt):
         r"""
-        Return ``self`` over ``bt``, where "over" is the ``over`` (`/`)
-        operation defined by Loday-Ronco [LodayRonco]_.
+        Return ``self`` over ``bt``
 
         If `T` and `T'` are two binary trees, then `T` over `T'`
         (written `T / T'`) is defined as the tree obtained by grafting
@@ -2016,16 +2015,16 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         If `T` is empty, then `T / T' = T'`.
 
-        .. TODO::
+        .. WARNING::
 
-            I do not see the "over" operation defined in
-            [LodayRonco]_, although [HNT05]_ pretends that it
-            is defined there. Loday and Ronco seem to define
-            "over" on page 2 of "Order structure on the algebra
-            of permutations and of planar binary trees", but
-            with a different choice of left/right.
+            Trees in sage have their root at the top, contrary to the
+            trees in [LodayRonco]_ which are growing upwards. For this
+            reason, the names of the over and under operations are
+            swapped, in order to keep a graphical meaning.
 
-            Same for "under".
+        .. SEEALSO::
+
+            :meth:`under`
 
         EXAMPLES:
 
@@ -2121,6 +2120,17 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         with the leftmost leaf of `T'`. See section 4.5 of [HNT05]_.
 
         If `T'` is empty, then `T \backslash T' = T`.
+
+        .. WARNING::
+
+            Trees in sage have their root at the top, contrary to the
+            trees in [LodayRonco]_ which are growing upwards. For this
+            reason, the names of the over and under operations are
+            swapped, in order to keep a graphical meaning.
+
+        .. SEEALSO::
+
+            :meth:`over`
 
         EXAMPLES:
 

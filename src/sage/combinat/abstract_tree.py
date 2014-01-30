@@ -116,7 +116,7 @@ class AbstractTree(object):
         is::
 
             yield the root (in the case of binary trees, if it is not
-                a node);
+                a leaf);
             then explore each subtree (by the algorithm) from the
                 leftmost one to the rightmost one.
 
@@ -178,7 +178,7 @@ class AbstractTree(object):
             sage: [n for n in BinaryTree(None).pre_order_traversal_iter()]
             []
 
-        The following test checks that things don't go wrong if some among
+        The following test checks that things do not go wrong if some among
         the descendants of the tree are equal or even identical::
 
             sage: u = BinaryTree(None)
@@ -257,7 +257,7 @@ class AbstractTree(object):
             sage: l
             [1]
 
-        The following test checks that things don't go wrong if some among
+        The following test checks that things do not go wrong if some among
         the descendants of the tree are equal or even identical::
 
             sage: u = BinaryTree(None)
@@ -374,7 +374,7 @@ class AbstractTree(object):
             sage: l
             [1]
 
-        The following test checks that things don't go wrong if some among
+        The following test checks that things do not go wrong if some among
         the descendants of the tree are equal or even identical::
 
             sage: u = BinaryTree(None)
@@ -404,7 +404,7 @@ class AbstractTree(object):
             explore each subtree (by the algorithm) from the
                 leftmost one to the rightmost one;
             then yield the root (in the case of binary trees, only if
-                it is not a node).
+                it is not a leaf).
 
         EXAMPLES:
 
@@ -468,7 +468,7 @@ class AbstractTree(object):
             ....:     canonical_labelling().post_order_traversal_iter()]
             [1]
 
-        The following test checks that things don't go wrong if some among
+        The following test checks that things do not go wrong if some among
         the descendants of the tree are equal or even identical::
 
             sage: u = BinaryTree(None)
@@ -547,7 +547,7 @@ class AbstractTree(object):
             sage: l
             [1]
 
-        The following test checks that things don't go wrong if some among
+        The following test checks that things do not go wrong if some among
         the descendants of the tree are equal or even identical::
 
             sage: u = BinaryTree(None)
@@ -620,7 +620,7 @@ class AbstractTree(object):
             sage: l
             [1]
 
-        The following test checks that things don't go wrong if some among
+        The following test checks that things do not go wrong if some among
         the descendants of the tree are equal or even identical::
 
             sage: u = BinaryTree(None)
@@ -1222,7 +1222,7 @@ class AbstractTree(object):
                     except:
                         if i >= lmat:
                             if i != 0:
-                                # mat[i] doesn't exist but
+                                # mat[i] does not exist but
                                 # mat[0] has k "&"
                                 # mat2[i] -> n' & n' & ...
                                 # ==> (_ &)*k+1 n' & n' & ...
@@ -1236,7 +1236,7 @@ class AbstractTree(object):
                                 return
                         else:
                             # mat[i] -> n & n & ...
-                            # mat2[i] doesn't exist but mat2[0] exists
+                            # mat2[i] does not exist but mat2[0] exists
                             # # and has k "&"
                             # NOTE:: i != 0 because that is a no-empty subtree.
                             # ==> n & n & ... (& _)*k+1
@@ -1472,7 +1472,7 @@ class AbstractClonableTree(AbstractTree):
 
     .. NOTE:: Due to the limitation of Cython inheritance, one cannot inherit
        here from :class:`~sage.structure.list_clone.ClonableElement`, because
-       it would prevent us from later inheriting from from
+       it would prevent us from later inheriting from
        :class:`~sage.structure.list_clone.ClonableArray` or
        :class:`~sage.structure.list_clone.ClonableList`.
 

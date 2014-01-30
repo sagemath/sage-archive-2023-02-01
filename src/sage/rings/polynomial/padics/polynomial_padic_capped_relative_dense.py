@@ -965,7 +965,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
 
         INPUT:
 
-            - ``other`` -- an element with the same parent as ``self``
+        - ``other`` -- an element with the same parent as ``self``
 
         OUTPUT:
 

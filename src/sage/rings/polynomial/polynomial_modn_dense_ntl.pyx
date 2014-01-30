@@ -1776,12 +1776,12 @@ cdef class Polynomial_dense_mod_p(Polynomial_dense_mod_n):
 
         INPUT:
 
-            - ``other`` -- an element in the same polynomial ring
+        - ``other`` -- an element in the same polynomial ring
 
         OUTPUT:
 
-            A tuple ``r,s,t`` of elements in the polynomial ring such
-            that ``r = s*self + t*other``.
+        A tuple ``r,s,t`` of elements in the polynomial ring such
+        that ``r = s*self + t*other``.
 
         EXAMPLES::
 

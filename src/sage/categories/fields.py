@@ -407,14 +407,14 @@ class Fields(Category_singleton):
 
             INPUT:
 
-                - ``other`` -- an element with the same parent as ``self``
+            - ``other`` -- an element with the same parent as ``self``
 
             OUTPUT:
 
-                A tuple ``r,s,t`` of elements in the parent of ``self`` such
-                that ``r = s*self + t*other``. Since the computations are done
-                over a field, ``r`` is zero if ``self`` and ``other`` are zero,
-                and one otherwise.
+            A tuple ``(r, s, t)`` of elements in the parent of ``self`` such
+            that ``r = s * self + t * other``. Since the computations are done
+            over a field, ``r`` is zero if ``self`` and ``other`` are zero,
+            and one otherwise.
 
             AUTHORS:
 
@@ -429,12 +429,12 @@ class Fields(Category_singleton):
                 (1, 0, 1/2)
                 sage: (0/2).xgcd(0)
                 (0, 0, 0)
-
             """
             R = self.parent()
             if not self.is_zero():
-                return R.one(), ~self, R.zero()
-            elif not other.is_zero():
-                return R.one(), R.zero(), ~other
-            else: # both are 0
-                return R.zero(), R.zero(), R.zero()
+                return (R.one(), ~self, R.zero())
+            if not other.is_zero():
+                return (R.one(), R.zero(), ~other)
+            # else both are 0
+            return (R.zero(), R.zero(), R.zero())
+

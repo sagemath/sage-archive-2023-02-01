@@ -5319,11 +5319,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         ``self`` and ``n``, and ``s`` and ``t`` are cofactors satisfying the
         Bezout identity
 
-        .. math::
+        .. MATH::
 
-             g = s \cdot \mbox{\rm self} + t \cdot n.
+            g = s \cdot \mbox{\rm self} + t \cdot n.
 
-        .. note::
+        .. NOET::
 
             There is no guarantee that the cofactors will be minimal. If you
             need the cofactors to be minimal use :meth:`_xgcd`. Also, using
@@ -5354,21 +5354,22 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         ``self`` and ``n``, and ``s`` and ``t`` are cofactors satisfying the
         Bezout identity
 
-        .. math::
+        .. MATH::
 
-             g = s \cdot \mbox{\rm self} + t \cdot n.
+            g = s \cdot \mbox{\rm self} + t \cdot n.
 
-        .. note::
+        .. NOTE::
 
-           If ``minimal`` is ``False``, then there is no guarantee that the returned
-           cofactors will be minimal in any sense; the only guarantee is that
-           the Bezout identity will be satisfied (see examples below).
+            If ``minimal`` is ``False``, then there is no guarantee that the
+            returned cofactors will be minimal in any sense; the only guarantee
+            is that the Bezout identity will be satisfied (see examples below).
 
-           If ``minimal`` is ``True``, the cofactors will satisfy the following
-           conditions. If either ``self`` or ``n`` are zero, the trivial solution
-           is returned. If both ``self`` and ``n`` are nonzero, the function returns
-           the unique solution such that `0 \leq s < |n|/g` (which then must
-           also satisfy `0 \leq |t| \leq |\mbox{\rm self}|/g`).
+            If ``minimal`` is ``True``, the cofactors will satisfy the following
+            conditions. If either ``self`` or ``n`` are zero, the trivial
+            solution is returned. If both ``self`` and ``n`` are nonzero, the
+            function returns the unique solution such that `0 \leq s < |n|/g`
+            (which then must also satisfy
+            `0 \leq |t| \leq |\mbox{\rm self}|/g`).
 
         EXAMPLES::
 
@@ -5405,18 +5406,18 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Exhaustive tests, checking minimality conditions::
 
             sage: for a in srange(-20, 20):
-            ...     for b in srange(-20, 20):
-            ...       if a == 0 or b == 0: continue
-            ...       g, s, t = a._xgcd(b)
-            ...       assert g > 0
-            ...       assert a % g == 0 and b % g == 0
-            ...       assert a*s + b*t == g
-            ...       g, s, t = a._xgcd(b, minimal=True)
-            ...       assert g > 0
-            ...       assert a % g == 0 and b % g == 0
-            ...       assert a*s + b*t == g
-            ...       assert s >= 0 and s < abs(b)/g
-            ...       assert abs(t) <= abs(a)/g
+            ....:   for b in srange(-20, 20):
+            ....:     if a == 0 or b == 0: continue
+            ....:     g, s, t = a._xgcd(b)
+            ....:     assert g > 0
+            ....:     assert a % g == 0 and b % g == 0
+            ....:     assert a*s + b*t == g
+            ....:     g, s, t = a._xgcd(b, minimal=True)
+            ....:     assert g > 0
+            ....:     assert a % g == 0 and b % g == 0
+            ....:     assert a*s + b*t == g
+            ....:     assert s >= 0 and s < abs(b)/g
+            ....:     assert abs(t) <= abs(a)/g
 
         AUTHORS:
 

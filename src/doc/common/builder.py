@@ -84,6 +84,13 @@ def builder_helper(type):
         except Exception:
             import traceback
             logger.error(traceback.format_exc())
+            logger.error('Error building the documentation.')
+            if INCREMENTAL_BUILD:
+                logger.error('''
+Note: incremental documentation builds sometimes cause spurious
+error messages. To be certain that these are real errors, run
+"make doc-clean" first and try again.''')
+            sys.exit(1)
 
 
         # Print message about location of output:

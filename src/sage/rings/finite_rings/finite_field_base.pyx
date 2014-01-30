@@ -838,7 +838,7 @@ cdef class FiniteField(Field):
             return (AlgebraicExtensionFunctor([self.polynomial()], [self.variable_name()], [None]),
                     self.base_ring())
 
-    def extension(self, modulus, name=None, names=None, embedding=None, **kwds):
+    def extension(self, modulus, name=None, names=None, map=False, embedding=None, **kwds):
         """
         Return an extension of this finite field.
 
@@ -849,6 +849,10 @@ cdef class FiniteField(Field):
 
         - ``name`` -- string: the name of the generator in the new
           extension
+
+        - ``map`` -- boolean (default: ``False``): if ``False``,
+          return just the extension `E`; if ``True``, return a pair
+          `(E, f)`, where `f` is an embedding of ``self`` into `E`.
 
         - ``embedding`` -- currently not used; for compatibility with
           other ``AlgebraicExtensionFunctor`` calls.
@@ -872,6 +876,19 @@ cdef class FiniteField(Field):
             sage: k.extension(3, conway=True, prefix='z')
             Finite Field in z12 of size 3^12
 
+        An example using the ``map`` argument::
+
+            sage: F = GF(5)
+            sage: E, f = F.extension(2, 'b', map=True)
+            sage: E
+            Finite Field in b of size 5^2
+            sage: f
+            Conversion map:
+              From: Finite Field of size 5
+              To:   Finite Field in b of size 5^2
+            sage: f.parent()
+            Set of field embeddings from Finite Field of size 5 to Finite Field in b of size 5^2
+
         Extensions of non-prime finite fields by polynomials are not yet
         supported: we fall back to generic code::
 
@@ -885,18 +902,26 @@ cdef class FiniteField(Field):
             name = names
         if self.degree() == 1:
             if isinstance(modulus, Integer):
-                return GF(self.characteristic()**modulus, name=name, **kwds)
+                E = GF(self.characteristic()**modulus, name=name, **kwds)
             elif isinstance(modulus, (list, tuple)):
-                return GF(self.characteristic()**(len(modulus) - 1), name=name, modulus=modulus, **kwds)
+                E = GF(self.characteristic()**(len(modulus) - 1), name=name, modulus=modulus, **kwds)
             elif is_Polynomial(modulus):
                 if modulus.change_ring(self).is_irreducible():
-                    return GF(self.characteristic()**(modulus.degree()), name=name, modulus=modulus, **kwds)
+                    E = GF(self.characteristic()**(modulus.degree()), name=name, modulus=modulus, **kwds)
                 else:
-                    return Field.extension(self, modulus, name=name, embedding=embedding)
+                    E = Field.extension(self, modulus, name=name, embedding=embedding)
         elif isinstance(modulus, Integer):
-            return GF(self.order()**modulus, name=name, **kwds)
+            E = GF(self.order()**modulus, name=name, **kwds)
         else:
-            return Field.extension(self, modulus, name=name, embedding=embedding)
+            E = Field.extension(self, modulus, name=name, embedding=embedding)
+        if not map:
+            return E
+        # Use the canonical map if it exists.
+        f = E.coerce_map_from(self)
+        if f is None:
+            from sage.categories.homset import Hom
+            f = Hom(self, E).an_element()
+        return (E, f)
 
     def subfields(self, degree=0, name=None):
         """

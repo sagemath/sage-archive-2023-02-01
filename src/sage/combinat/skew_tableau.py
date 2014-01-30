@@ -1703,6 +1703,14 @@ class SemistandardSkewTableaux(SkewTableaux):
 
     .. WARNING::
 
+        If the shape is not specified, the iterator of this class
+        yields only skew tableaux whose shape is reduced, in the
+        sense that there are no empty rows before the last nonempty
+        row, and there are no empty columns before the last
+        nonempty column. (Otherwise it would go on indefinitely.)
+
+    .. WARNING::
+
         This class acts as a factory. The resulting classes are mainly
         useful for iteration. Do not rely on their containment tests,
         as they are not correct, e. g.::

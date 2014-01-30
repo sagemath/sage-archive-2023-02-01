@@ -288,9 +288,9 @@ class AllBuilder(object):
             logger.error('Error building the documentation.')
             if INCREMENTAL_BUILD:
                 logger.error('''
-                Note: incremental documentation builds sometimes cause spurious
-                error messages. To be certain that these are real errors, run
-                "make doc-clean" first and try again.''')
+Note: incremental documentation builds sometimes cause spurious
+error messages. To be certain that these are real errors, run
+"make doc-clean" first and try again.''')
             raise
         logger.warning("Elapsed time: %.1f seconds."%(time.time()-start))
         logger.warning("Done building the documentation!")
@@ -490,9 +490,9 @@ class ReferenceBuilder(AllBuilder):
                 logger.error('Error building the documentation.')
                 if INCREMENTAL_BUILD:
                     logger.error('''
-                    Note: incremental documentation builds sometimes cause spurious
-                    error messages. To be certain that these are real errors, run
-                    "make doc-clean" first and try again.''')
+Note: incremental documentation builds sometimes cause spurious
+error messages. To be certain that these are real errors, run
+"make doc-clean" first and try again.''')
                 raise
             # The html refman must be build at the end to ensure correct
             # merging of indexes and inventories.

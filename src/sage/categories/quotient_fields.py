@@ -266,6 +266,32 @@ class QuotientFields(Category_singleton):
                 sage: sum(parts) == q
                 True
 
+            We can decompose over a given algebraic extension::
+
+                sage: R.<x> = QQ[sqrt(2)][]
+                sage: r =  1/(x^4+1)
+                sage: r.partial_fraction_decomposition()
+                (0,
+                 [(-1/4*sqrt2*x + 1/2)/(x^2 - sqrt2*x + 1),
+                  (1/4*sqrt2*x + 1/2)/(x^2 + sqrt2*x + 1)])
+
+                sage: R.<x> = QQ[I][]  # of QQ[sqrt(-1)]
+                sage: r =  1/(x^4+1)
+                sage: r.partial_fraction_decomposition()
+                (0, [(-1/2*I)/(x^2 - I), 1/2*I/(x^2 + I)])
+
+            We can also ask Sage to find the least extension where the
+            denominator factors in linear terms::
+
+                sage: R.<x> = QQbar[]
+                sage: r =  1/(x^4+1)
+                sage: r.partial_fraction_decomposition()
+                (0,
+                 [(-0.1767766952966369? - 0.1767766952966369?*I)/(x - 0.7071067811865475? - 0.7071067811865475?*I),
+                  (-0.1767766952966369? + 0.1767766952966369?*I)/(x - 0.7071067811865475? + 0.7071067811865475?*I),
+                  (0.1767766952966369? - 0.1767766952966369?*I)/(x + 0.7071067811865475? - 0.7071067811865475?*I),
+                  (0.1767766952966369? + 0.1767766952966369?*I)/(x + 0.7071067811865475? + 0.7071067811865475?*I)])
+
             We do the best we can over inexact fields::
 
                 sage: R.<x> = RealField(20)[]

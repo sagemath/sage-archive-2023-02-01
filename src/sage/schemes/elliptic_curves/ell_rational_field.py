@@ -3886,6 +3886,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            database), or the one with minimal `a`-invariant list
            (otherwise).
 
+        .. note::
+
+           For curves with `j`-invariant 0 or 1728 the curve returned
+           is the minimal quadratic twist, not necessarily the minimal
+           twist (which would have conductor 27 or 32 respectively).
+
         EXAMPLES::
 
             sage: E = EllipticCurve('121d1')
@@ -3909,20 +3915,35 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.minimal_quadratic_twist()
             (Elliptic Curve defined by y^2 = x^3 + 4*x over Rational Field, 5)
 
+        If the curve has square-free conductor then it is already minimal (see :trac:`14060`)::
 
+            sage: E = cremona_optimal_curves([2*3*5*7*11]).next()
+            sage: (E, 1) == E.minimal_quadratic_twist()
+            True
+
+        An example where the minimal quadratic twist is not the
+        minimal twist (which has conductor 27)::
+
+            sage: E = EllipticCurve([0,0,0,0,7])
+            sage: E.j_invariant()
+            0
+            sage: E.minimal_quadratic_twist()[0].conductor()
+            5292
         """
+        if self.conductor().is_squarefree():
+            return self, Integer(1)
         j = self.j_invariant()
         if j!=0 and j!=1728:
             # the constructor from j will give the minimal twist
             Et = constructor.EllipticCurve_from_j(j)
         else:
-            if j==0:
+            if j==0:  # divide c6 by largest cube
                 c = -2*self.c6()
                 for p in c.support():
                     e = c.valuation(p)//3
                     c /= p**(3*e)
                 E1 = constructor.EllipticCurve([0,0,0,0,c])
-            elif j==1728:
+            elif j==1728: # divide c4 by largest square
                 c = -3*self.c4()
                 for p in c.support():
                     e = c.valuation(p)//2

@@ -1470,12 +1470,6 @@ cdef class Parent(category_object.CategoryObject):
 
         EXAMPLES::
 
-            sage: MatrixSpace(GF(3), 2, 2)[9]
-            [0 2]
-            [0 0]
-            sage: MatrixSpace(GF(3), 2, 2)[0]
-            [0 0]
-            [0 0]
             sage: VectorSpace(GF(7), 3)[:10]
             [(0, 0, 0),
              (1, 0, 0),

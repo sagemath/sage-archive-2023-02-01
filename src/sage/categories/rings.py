@@ -639,13 +639,21 @@ class Rings(Category_singleton):
             """
             raise TypeError, "Use self.quo(I) or self.quotient(I) to construct the quotient ring."
 
-        def __getitem__(self, x):
+        def __getitem__(self, arg):
             """
-            Create a polynomial or power series ring over ``self`` and inject
-            the variables into the global module scope.
+            Extend this ring by one or several elements to create a polynomial
+            ring, a power series ring, or an algebraic extension.
 
-            If ``x`` is an algebraic element, this will return an extension of
-            ``self`` that contains ``x``.
+            This is a convenience method intended primarily for interactive
+            use.
+
+            .. SEEALSO::
+
+                :func:`~sage.rings.polynomial.polynomial_ring_constructor.PolynomialRing`,
+                :func:`~sage.rings.power_series_ring.PowerSeriesRing`,
+                :meth:`~sage.rings.ring.Ring.extension`,
+                :meth:`sage.rings.integer_ring.IntegerRing_class.__getitem__`,
+                TODO: matrices
 
             EXAMPLES:
 
@@ -659,6 +667,8 @@ class Rings(Category_singleton):
                 Univariate Polynomial Ring in abc over Finite Field of size 17
                 sage: GF(17)['a,b,c']
                 Multivariate Polynomial Ring in a, b, c over Finite Field of size 17
+                sage: GF(17)['a']['b']
+                Univariate Polynomial Ring in b over Univariate Polynomial Ring in a over Finite Field of size 17
 
             We can also create power series rings by using double brackets::
 
@@ -677,7 +687,7 @@ class Rings(Category_singleton):
                 sage: Frac(QQ[['t']])
                 Laurent Series Ring in t over Rational Field
 
-            This can be used to create number fields too::
+            Note that the same syntax can be used to create number fields::
 
                 sage: QQ[I]
                 Number Field in I with defining polynomial x^2 + 1
@@ -694,99 +704,107 @@ class Rings(Category_singleton):
                 Order in Number Field in sqrt5 with defining polynomial x^2 - 5
                 sage: ZZ[sqrt(2)+sqrt(3)]
                 Order in Number Field in a with defining polynomial x^4 - 10*x^2 + 1
+
+            TESTS:
+
+            A few corner cases::
+
+                sage: QQ[()]
+                Multivariate Polynomial Ring in no variables over Rational Field
+
+                sage: QQ[[]]
+                Traceback (most recent call last):
+                ...
+                TypeError: power series rings must have at least one variable
+
+            Some flexibility is allowed when specifying variables::
+
+                sage: QQ["x", SR.var('y'), polygen(CC, 'z')]
+                Multivariate Polynomial Ring in x, y, z over Rational Field
+                sage: QQ[["x", SR.var('y'), polygen(CC, 'z')]]
+                Multivariate Power Series Ring in x, y, z over Rational Field
+
+            but more baroque expressions do not work::
+
+                sage: QQ['a,b','c']
+                Traceback (most recent call last):
+                ...
+                ValueError: variable names must be alphanumeric, but one is 'a,b' which is not.
+                sage: QQ[['a,b','c']]
+                Traceback (most recent call last):
+                ...
+                ValueError: variable names must be alphanumeric, but one is 'a,b' which is not.
+
+                sage: QQ[[['x']]]
+                Traceback (most recent call last):
+                ...
+                TypeError: expected R[...] or R[[...]], not R[[[...]]]
+
+            Extension towers are built as follows and use distinct generator names::
+
+                sage: K = QQ[2^(1/3), 2^(1/2), 3^(1/3)]
+                sage: K
+                Number Field in a with defining polynomial x^3 - 2 over its base field
+                sage: K.base_field()
+                Number Field in sqrt2 with defining polynomial x^2 - 2 over its base field
+                sage: K.base_field().base_field()
+                Number Field in b with defining polynomial x^3 - 3
+
             """
-
-            from sage.rings.polynomial.polynomial_element import is_Polynomial
-            if is_Polynomial(x):
-                x = str(x)
-
-            if not isinstance(x, str):
-                if isinstance(x, tuple):
-                    v = x
+            def normalize_arg(arg):
+                if isinstance(arg, (tuple, list)):
+                    # Allowing arbitrary iterables would create confusion, but we
+                    # may want to support a few more.
+                    return tuple(arg)
+                elif isinstance(arg, str):
+                    return tuple(arg.split(','))
                 else:
-                    v = (x,)
+                    return (arg,)
 
-                minpolys = None
-                try:
-                    minpolys = [a.minpoly() for a in v]
-                except (AttributeError, NotImplementedError, ValueError, TypeError), err:
-                    pass
+            # 1. If arg is a list, try to return a power series ring.
 
-                if minpolys:
-                    R = self
-                    # how to pass in names?
-                    # TODO: set up embeddings
-                    name_chr = 97 # a
-
-                    if len(minpolys) > 1:
-                        w = []
-                        names = []
-                        for poly, var in zip(minpolys, v):
-                            w.append(poly)
-                            n, name_chr = _gen_name(repr(var), name_chr)
-                            names.append(n)
-                    else:
-                        w = minpolys
-                        name, name_chr = _gen_name(repr(v[0]), name_chr)
-                        names = [name]
-
-                    names = tuple(names)
-                    if len(w) > 1:
-                        try:
-                            # Doing the extension all at once is best, if possible.
-                            return R.extension(w, names)
-                        except (TypeError, ValueError):
-                            pass
-                    for poly, var in zip(w, names):
-                        R = R.extension(poly, var)
-                    return R
-
-            if not isinstance(x, list):
-                from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-                P = PolynomialRing(self, x)
-                return P
-
-            P = None
-            if isinstance(x, list):
-                if len(x) == 1:
-                    if isinstance(x[0], str):
-                        x = x[0].split(',')
-                x = tuple([str(j) for j in x])
-
+            if isinstance(arg, list):
+                if arg == []:
+                    raise TypeError("power series rings must have at least one variable")
+                elif len(arg) == 1:
+                    # R[["a,b"]], R[[(a,b)]]...
+                    if isinstance(arg[0], list):
+                        raise TypeError("expected R[...] or R[[...]], not R[[[...]]]")
+                    elts = normalize_arg(arg[0])
+                else:
+                    elts = normalize_arg(arg)
                 from sage.rings.power_series_ring import PowerSeriesRing
-                P = PowerSeriesRing
+                return PowerSeriesRing(self, elts)
 
+            # 2. Otherwise, if all specified elements are algebraic, try to
+            #    return an algebraic extension
 
-            # TODO: is this code ever used? Should it be?
+            elts = normalize_arg(arg)
 
-            elif isinstance(x, (tuple, str)):
-                from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-                P = PolynomialRing
-                if isinstance(x, tuple):
-                    y = []
-                    for w in x:
-                        y.append(str(w))
-                    x = tuple(y)
+            try:
+                minpolys = [a.minpoly() for a in elts]
+            except (AttributeError, NotImplementedError, ValueError, TypeError):
+                minpolys = None
 
-            else:
-                from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-                P = PolynomialRing
-                x = (str(x),)
+            if minpolys:
+                # how to pass in names?
+                # TODO: set up embeddings
+                next_chr = 97 # a
+                names = []
+                for var in elts:
+                    name, next_chr = _gen_name(repr(var), next_chr)
+                    names.append(name)
+                try:
+                    # Doing the extension all at once is best, if possible...
+                    return self.extension(minpolys, names)
+                except (TypeError, ValueError):
+                    # ...but we can also construct it iteratively
+                    return reduce(lambda R, ext: R.extension(*ext), zip(minpolys, names), self)
 
-            if P is None:
-                raise NotImplementedError
+            # 2. Otherwise, try to return a polynomial ring
 
-            if isinstance(x, tuple):
-                v = x
-            else:
-                v = x.split(',')
-
-            if len(v) > 1:
-                R = P(self, len(v), names=v)
-            else:
-                R = P(self, x)
-
-            return R
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            return PolynomialRing(self, elts)
 
     class ElementMethods:
         def is_unit(self):

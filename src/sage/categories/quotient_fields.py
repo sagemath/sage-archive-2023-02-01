@@ -283,6 +283,22 @@ class QuotientFields(Category_singleton):
             We can also ask Sage to find the least extension where the
             denominator factors in linear terms::
 
+                sage: R.<x> = QQ[]
+                sage: r = 1/(x^4+2)
+                sage: N = r.denominator().splitting_field('a')
+                sage: N
+                Number Field in a with defining polynomial x^8 - 8*x^6 + 28*x^4 + 16*x^2 + 36
+                sage: R1.<x1>=N[]
+                sage: r1 = 1/(x1^4+2)
+                sage: r1.partial_fraction_decomposition()
+                (0,
+                 [(-1/224*a^6 + 13/448*a^4 - 5/56*a^2 - 25/224)/(x1 - 1/28*a^6 + 13/56*a^4 - 5/7*a^2 - 25/28),
+                  (1/224*a^6 - 13/448*a^4 + 5/56*a^2 + 25/224)/(x1 + 1/28*a^6 - 13/56*a^4 + 5/7*a^2 + 25/28),
+                  (-5/1344*a^7 + 43/1344*a^5 - 85/672*a^3 - 31/672*a)/(x1 - 5/168*a^7 + 43/168*a^5 - 85/84*a^3 - 31/84*a),
+                  (5/1344*a^7 - 43/1344*a^5 + 85/672*a^3 + 31/672*a)/(x1 + 5/168*a^7 - 43/168*a^5 + 85/84*a^3 + 31/84*a)])
+
+            Or we may work directly over an algebraically closed field::
+
                 sage: R.<x> = QQbar[]
                 sage: r =  1/(x^4+1)
                 sage: r.partial_fraction_decomposition()

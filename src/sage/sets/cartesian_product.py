@@ -114,7 +114,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
         assert i in self._sets_keys()
         return attrcall("cartesian_projection", i)
 
-    summand_projection = deprecated_function_alias(12963, cartesian_projection)
+    summand_projection = deprecated_function_alias(10963, cartesian_projection)
 
     def _cartesian_product_of_elements(self, elements):
         """
@@ -168,7 +168,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
 
                 sage: x.summand_projection(1)
                 doctest:1: DeprecationWarning: summand_projection is deprecated. Please use cartesian_projection instead.
-                See http://trac.sagemath.org/12963 for details.
+                See http://trac.sagemath.org/10963 for details.
                 42
             """
             return self.value[i]

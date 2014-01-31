@@ -1766,7 +1766,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
                 """
                 return self.parent().cartesian_projection(i)(self)
 
-            summand_projection = deprecated_function_alias(12963, cartesian_projection)
+            summand_projection = deprecated_function_alias(10963, cartesian_projection)
 
             def cartesian_factors(self):
                 """
@@ -1792,7 +1792,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
                 return tuple(self.cartesian_projection(i) for i in self.parent()._sets_keys())
                 #return Family(self._sets.keys(), self.projection)
 
-            summand_split = deprecated_function_alias(12963, cartesian_factors)
+            summand_split = deprecated_function_alias(10963, cartesian_factors)
 
     class Algebras(AlgebrasCategory):
 

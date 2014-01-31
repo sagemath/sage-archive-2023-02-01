@@ -789,11 +789,7 @@ class Rings(Category_singleton):
             if minpolys:
                 # how to pass in names?
                 # TODO: set up embeddings
-                next_chr = 97 # a
-                names = []
-                for var in elts:
-                    name, next_chr = _gen_name(repr(var), next_chr)
-                    names.append(name)
+                names = tuple(_gen_names(elts))
                 try:
                     # Doing the extension all at once is best, if possible...
                     return self.extension(minpolys, names)
@@ -842,34 +838,32 @@ class Rings(Category_singleton):
 
 from sage.structure.parent_gens import _certify_names
 
-def _gen_name(x, name_chr):
+def _gen_names(elts):
     r"""
     Used to find a name for a generator when rings are created using the
-    ``__getitem__`` syntax, e.g. ``ZZ['x']``. If ``x`` is a symbolic variable,
-    return the name of ``x``; if ``x`` is the symbolic square root of a
-    positive integer `d`, return "sqrtd"; else, return a letter of the
-    alphabet and increment a counter to avoid that letter being used again.
+    ``__getitem__`` syntax, e.g. ``ZZ['x']``.
 
     EXAMPLES::
 
-        sage: from sage.categories.rings import _gen_name
-        sage: _gen_name(sqrt(5), 1)
-        ('sqrt5', 1)
-        sage: _gen_name(sqrt(-17), 88)
-        ('X', 89)
-        sage: _gen_name(x, 1)
-        ('x', 1)
+        sage: from sage.categories.rings import _gen_names
+        sage: list(_gen_names([sqrt(5)]))
+        ['sqrt5']
+        sage: list(_gen_names([sqrt(-17), 2^(1/3)]))
+        ['a', 'b']
+        sage: list(_gen_names((1..27)))[-1]
+        'aa'
     """
     from sage.symbolic.ring import is_SymbolicVariable
-    if is_SymbolicVariable(x):
-        return repr(x), name_chr
-    name = str(x)
-    m = re.match('^sqrt\((\d+)\)$', name)
-    if m:
-        name = "sqrt%s" % m.groups()[0]
-    try:
-        _certify_names([name])
-    except ValueError, msg:
-        name = chr(name_chr)
-        name_chr += 1
-    return name, name_chr
+    from sage.combinat.words.words import Words
+    it = iter(Words("abcdefghijklmnopqrstuvwxyz"))
+    it.next() # skip empty word
+    for x in elts:
+        name = str(x)
+        m = re.match('^sqrt\((\d+)\)$', name)
+        if m:
+            name = "sqrt%s" % m.groups()[0]
+        try:
+            _certify_names([name])
+        except ValueError, msg:
+            name = it.next().string_rep()
+        yield name

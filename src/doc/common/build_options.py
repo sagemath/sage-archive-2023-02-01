@@ -25,3 +25,4 @@ NUM_THREADS = int(os.environ.get('SAGE_NUM_THREADS', 1))
 from sage.interfaces.gap import set_gap_memory_pool_size
 set_gap_memory_pool_size(0)  # will be rounded up to 1M
 
+INCREMENTAL_BUILD = os.path.exists(os.path.join(SAGE_DOC, 'output'))

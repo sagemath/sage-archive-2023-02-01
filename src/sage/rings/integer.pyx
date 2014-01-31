@@ -5321,9 +5321,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         .. MATH::
 
-            g = s \cdot \mbox{\rm self} + t \cdot n.
+            g = s \cdot \mathrm{self} + t \cdot n.
 
-        .. NOET::
+        .. NOTE::
 
             There is no guarantee that the cofactors will be minimal. If you
             need the cofactors to be minimal use :meth:`_xgcd`. Also, using
@@ -5356,7 +5356,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         .. MATH::
 
-            g = s \cdot \mbox{\rm self} + t \cdot n.
+            g = s \cdot \mathrm{self} + t \cdot n.
 
         .. NOTE::
 

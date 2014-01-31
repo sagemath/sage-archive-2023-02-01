@@ -39,6 +39,8 @@ Solaris, but should also work on OSX and Cygwin.
  * patches/do_not_force_mutex.patch: always use assembly over mutex
    since the mutex version fails to build a shared library. See #15045
    for details.
+ * patches/glibc_scanf_workaround.patch: Workaround for the scanf bug
+   in glibc-2.18 that breaks the atlas auto-tuning system.
  * lapack-x.y.z.tgz: The netlib lapack tarball. If you update this,
    make sure you also update the LAPACK_TARBALL variable in
    spkg-install.

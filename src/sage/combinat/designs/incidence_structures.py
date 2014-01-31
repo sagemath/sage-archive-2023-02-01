@@ -39,9 +39,9 @@ Classes and methods
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.integer_ring import ZZ
 from sage.rings.arith import binomial
-from sage.misc.decorators import rename_keyword
 
 ###  utility functions  -------------------------------------------------------
+
 
 def coordinatewise_product(L):
     """
@@ -65,6 +65,7 @@ def coordinatewise_product(L):
     for x in L:
         ans = [ans[i]*x[i] for i in range(n)]
     return ans
+
 
 def IncidenceStructureFromMatrix(M, name=None):
     """
@@ -92,10 +93,11 @@ def IncidenceStructureFromMatrix(M, name=None):
     for i in range(b):
         B = []
         for j in range(v):
-            if M[i,j]!=0:
+            if M[i, j] != 0:
                 B.append(j)
         blocks.append(B)
     return IncidenceStructure(range(v), blocks, name=nm)
+
 
 class IncidenceStructure(object):
     """
@@ -131,11 +133,11 @@ class IncidenceStructure(object):
 
         TESTS:
 
-        The following shows that Trac Ticket #11333  is fixed.  ::
+        The following shows that :trac:`11333` is fixed.  ::
 
             sage: A = IncidenceStructure([0,1],[[0]])
             sage: B = IncidenceStructure([1,0],[[0]])
-            sage: B==A
+            sage: B == A
             True
 
         REFERENCES:
@@ -150,7 +152,7 @@ class IncidenceStructure(object):
             if test:
                 for x in block:
                     if not(x in self.pnts):
-                        raise ValueError('Point %s is not in the base set.'%x)
+                        raise ValueError('Point %s is not in the base set.' % x)
             try:
                 y = block[:]
                 y.sort()
@@ -176,7 +178,6 @@ class IncidenceStructure(object):
 
         return iter(self.blcks)
 
-
     def __repr__(self):
         """
         A print method.
@@ -188,7 +189,7 @@ class IncidenceStructure(object):
             sage: BD
             Incidence structure with 7 points and 7 blocks
         """
-        repr = 'Incidence structure with %s points and %s blocks'%(len(self.pnts),len(self.blcks))
+        repr = 'Incidence structure with %s points and %s blocks' % (len(self.pnts), len(self.blcks))
         return repr
 
     def __str__(self):
@@ -206,9 +207,11 @@ class IncidenceStructure(object):
             IncidenceStructure<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
         """
         if self.name:
-            repr = '%s<points=%s, blocks=%s>'%(self.name, self.pnts, self.blcks)
+            repr = '%s<points=%s, blocks=%s>' % (self.name, self.pnts,
+                                                 self.blcks)
         else:
-            repr = 'IncidenceStructure<points=%s, blocks=%s>'%( self.pnts, self.blcks)
+            repr = 'IncidenceStructure<points=%s, blocks=%s>' % (self.pnts,
+                                                                 self.blcks)
         return repr
 
     def automorphism_group(self):
@@ -234,7 +237,7 @@ class IncidenceStructure(object):
         from sage.groups.perm_gps.permgroup import PermutationGroup
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         M1 = self.incidence_matrix()
-        M2 =  MatrixStruct(M1)
+        M2 = MatrixStruct(M1)
         M2.run()
         gens = M2.automorphism_group()[0]
         v = len(self.points())
@@ -295,7 +298,7 @@ class IncidenceStructure(object):
         from sage.sets.set import Set
         if not(v == len(self.points())):
             return False
-        b = lmbda*binomial(v,t)/binomial(k,t)
+        b = lmbda*binomial(v, t)/binomial(k, t)
         r = int(b*k/v)
         if not(b == len(self.blocks())):
             return False
@@ -310,21 +313,20 @@ class IncidenceStructure(object):
         for i in range(v):
             if not(sum(A.rows()[i]) == r):
                 return False
-        gD = self._gap_()
-        if type==None:
+        if type is None:
             return True
-        if type=="binary":
+        if type == "binary":
             for b in self.blocks():
-                if len(b)!=len(Set(b)):
-                     return False
+                if len(b) != len(Set(b)):
+                    return False
             return True
-        if type=="simple":
+        if type == "simple":
             B = self.blocks()
             for b in B:
-                 if B.count(b)>1:
-                     return False
+                if B.count(b) > 1:
+                    return False
             return True
-        if type=="connected":
+        if type == "connected":
             Gamma = self.incidence_graph()
             if Gamma.is_connected():
                 return True
@@ -374,7 +376,7 @@ class IncidenceStructure(object):
             sage: BD.block_sizes()
             [3, 3, 3, 3, 3, 3, 3]
         """
-        self._block_sizes = map(len,self.blocks())
+        self._block_sizes = map(len, self.blocks())
         return self._block_sizes
 
     def _gap_(self):
@@ -388,12 +390,11 @@ class IncidenceStructure(object):
             sage: BD._gap_()
             'BlockDesign(7,[[1, 2, 3], [1, 4, 5], [1, 6, 7], [2, 4, 6], [2, 5, 7], [3, 4, 7], [3, 5, 6]])'
         """
-        from sage.sets.set import Set
         B = self.blocks()
         v = len(self.points())
         gB = []
         for b in B:
-           gB.append([x+1 for x in b])
+            gB.append([x+1 for x in b])
         return "BlockDesign("+str(v)+","+str(gB)+")"
 
     def dual_incidence_structure(self, algorithm=None):
@@ -431,12 +432,9 @@ class IncidenceStructure(object):
         - Soicher, Leonard, Design package manual, available at
           http://www.gap-system.org/Manuals/pkg/design/htm/CHAP003.htm
         """
-        from sage.interfaces.gap import gap, GapElement
-        from sage.sets.set import Set
-        from sage.misc.flatten import flatten
-        from sage.combinat.designs.block_design import BlockDesign
+        from sage.interfaces.gap import gap
         from sage.misc.functional import transpose
-        if algorithm=="gap":
+        if algorithm == "gap":
             gap.load_package("design")
             gD = self._gap_()
             gap.eval("DD:=DualBlockDesign("+gD+")")
@@ -473,19 +471,19 @@ class IncidenceStructure(object):
             [0 0 1 1 0 0 1]
             [0 0 1 0 1 1 0]
         """
-        if self._incidence_matrix!=None:
+        if not self._incidence_matrix is None:
             return self._incidence_matrix
         else:
             v = len(self.points())
             blks = self.blocks()
             b = len(blks)
-            MS = MatrixSpace(ZZ,v,b)
+            MS = MatrixSpace(ZZ, v, b)
             A = MS(0)
             #A = NUM.zeros((v,b), NUM.Int)
             for i in range(v):
                 for j, b in enumerate(blks):
                     if i in b:
-                        A[i,j] = 1
+                        A[i, j] = 1
             self._incidence_matrix = A
             return A
 
@@ -533,10 +531,9 @@ class IncidenceStructure(object):
             (True, [5, 12, 6, 1])
             sage: BD = designs.AffineGeometryDesign(3, 1, GF(2))
             sage: BD.is_block_design()
-            (True, [2, 8, 2, 2])
+            (True, [2, 8, 2, 1])
         """
         from sage.combinat.designs.incidence_structures import coordinatewise_product
-        from sage.combinat.combinat import unordered_tuples
         from sage.combinat.combination import Combinations
         A = self.incidence_matrix()
         v = len(self.points())
@@ -553,27 +550,27 @@ class IncidenceStructure(object):
                 return False
         t_found_yet = False
         lambdas = []
-        for t in range(2,min(v,11)):
+        for t in range(2, min(v, 11)):
             #print t
-            L1 = Combinations(range(v),t)
+            L1 = Combinations(range(v), t)
             L2 = [[rowsA[i] for i in L] for L in L1]
             #print t,len(L2)
             lmbda = VS(coordinatewise_product(L2[0])).hamming_weight()
             lambdas.append(lmbda)
-            pars = [t,v,k,lmbda]
+            pars = [t, v, k, lmbda]
             #print pars
             for ell in L2:
                 a = VS(coordinatewise_product(ell)).hamming_weight()
-                if not(a == lmbda) or a==0:
+                if not(a == lmbda) or a == 0:
                     if not(t_found_yet):
-                        pars = [t-1,v,k,lambdas[t-3]]
+                        pars = [t-1, v, k, lambdas[t-3]]
                         return False, pars
                     else:
                         #print pars, lambdas
-                        pars = [t-1,v,k,lambdas[t-3]]
+                        pars = [t-1, v, k, lambdas[t-3]]
                         return True, pars
                 t_found_yet = True
-        pars = [t-1,v,k,lambdas[t-3]]
+        pars = [t-1, v, k, lambdas[t-3]]
         return True, pars
 
     def parameters(self, t=2):
@@ -596,8 +593,8 @@ class IncidenceStructure(object):
         b = len(blks)
         #A = self.incidence_matrix()
         #r = sum(A.rows()[0])
-        lmbda = int(b/(binomial(v,t)/binomial(k,t)))
-        return (t,v,k,lmbda)
+        lmbda = int(b/(binomial(v, t)/binomial(k, t)))
+        return (t, v, k, lmbda)
 
     def points(self):
         """
@@ -631,12 +628,8 @@ class IncidenceStructure(object):
         from sage.misc.superseded import deprecation
         deprecation(14499, ('Unless somebody protests this method will be '
                             'removed, as nobody seems to know why it is there.'))
-        from sage.interfaces.gap import gap, GapElement
-        from sage.sets.set import Set
+        from sage.interfaces.gap import gap
         gap.load_package("design")
         gD = self._gap_()
-        gP = gap.eval("BlockDesignPoints("+gD+")").replace("..",",")
-        return range(eval(gP)[0],eval(gP)[1]+1)
-
-
-
+        gP = gap.eval("BlockDesignPoints("+gD+")").replace("..", ",")
+        return range(eval(gP)[0], eval(gP)[1]+1)

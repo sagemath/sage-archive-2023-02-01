@@ -39,3 +39,10 @@ if [ $? -ne 0 ]; then
     echo >&2 "Error installing IPython"
     exit 1
 fi
+
+# add symlink if we are running on python3
+if python -c 'import sys; sys.exit(sys.version_info.major != 3)'; then
+    cd "$SAGE_LOCAL"/bin
+    rm -f ipython
+    ln -s ipython3 ipython
+fi

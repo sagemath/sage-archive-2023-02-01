@@ -796,7 +796,7 @@ def _check_polynomial_P1xP1(biquadric, variables):
     polynomial ring. A ``ValueError`` is raised if the polynomial is
     not homogeneous.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.schemes.toric.weierstrass import _check_polynomial_P1xP1
         sage: R.<x0,x1,y0,y1> = QQ[]

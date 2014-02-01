@@ -16636,21 +16636,11 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: To relabel an immutable graph use inplace=False
-
-        A couple of lines to remove when hasse diagrams will not have a
-        ``._immutable`` attribute by default::
-
-            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
-            sage: if getattr(HasseDiagram,'_immutable', "YES") == "YES":
-            ....:     print "two lines must be removed from this function"
-
         """
         from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 
         if not inplace:
             G = self.copy(immutable=False)
-            if getattr(G, "_immutable", False): # can be removed when posets
-                G._immutable = False            # have immutable backends
             perm2 = G.relabel(perm,
                               return_map= return_map,
                               check_input = check_input,

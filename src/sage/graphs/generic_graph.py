@@ -13723,18 +13723,27 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             TypeError: complement not well defined for (di)graphs with multiple edges
+
+        TESTS:
+
+        We check that :trac:`15699` is fixed::
+
+            sage: G = graphs.PathGraph(5).copy(immutable=True)
+            sage: G.complement()
+            complement(Path Graph): Graph on 5 vertices
         """
         if self.has_multiple_edges():
             raise TypeError('complement not well defined for (di)graphs with multiple edges')
         self._scream_if_not_simple()
-        from copy import copy
-        G = copy(self)
+        G = self.copy(immutable=False) # Make sure it's a mutable copy
         G.delete_edges(G.edges())
         G.name('complement(%s)'%self.name())
         for u in self:
             for v in self:
                 if not self.has_edge(u,v):
                     G.add_edge(u,v)
+        if getattr(self, '_immutable', False):
+            return G.copy(immutable=True)
         return G
 
     def to_simple(self):

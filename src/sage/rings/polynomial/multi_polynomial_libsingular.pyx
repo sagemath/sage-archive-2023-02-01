@@ -3008,8 +3008,11 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         if not p_IsUnit(self._poly, _ring):
             raise ArithmeticError, "Element is not a unit."
-        else:
-            return new_MP(self._parent,pInvers(0,self._poly,NULL))
+
+        sig_on()
+        cdef MPolynomial_libsingular r = new_MP(self._parent, pInvers(0, self._poly, NULL))
+        sig_off()
+        return r
 
     def is_homogeneous(self):
         """

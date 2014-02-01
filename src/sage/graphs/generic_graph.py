@@ -315,8 +315,6 @@ from sage.misc.superseded import deprecation, deprecated_function_alias
 class GenericGraph(GenericGraph_pyx):
     """
     Base class for graphs and digraphs.
-
-    .. autofunction:: _scream_if_not_simple
     """
 
     # Nice defaults for plotting arrays of graphs (see sage.misc.functional.show)

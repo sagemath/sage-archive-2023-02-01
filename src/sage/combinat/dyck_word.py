@@ -1600,7 +1600,7 @@ class DyckWord(CombinatorialObject, Element):
             ValueError: The two Dyck words are not comparable on the Tamari lattice.
         """
         from sage.combinat.interval_posets import TamariIntervalPosets
-        return TamariIntervalPosets.from_dyck_words(self,other)
+        return TamariIntervalPosets.from_dyck_words(self, other)
 
     def to_area_sequence(self):
         r"""

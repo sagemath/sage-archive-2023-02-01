@@ -632,7 +632,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         """
         from sage.combinat.interval_posets import TamariIntervalPosets
-        return TamariIntervalPosets.from_binary_trees(self,other)
+        return TamariIntervalPosets.from_binary_trees(self, other)
 
     @combinatorial_map(name="to Dyck paths: up step, left tree, down step, right tree")
     def to_dyck_word(self, usemap="1L0R"):

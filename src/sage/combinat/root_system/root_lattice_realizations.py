@@ -153,6 +153,8 @@ class RootLatticeRealizations(Category_over_base_ring):
 
     Algebras = LazyImport('sage.combinat.root_system.root_lattice_realization_algebras', 'Algebras')
 
+    Algebras = LazyImport('sage.combinat.root_system.root_lattice_realization_algebras', 'Algebras')
+
     class ParentMethods:
 
         def __init_extra__(self):
@@ -653,9 +655,9 @@ class RootLatticeRealizations(Category_over_base_ring):
             EXAMPLES::
 
                 sage: RootSystem(['C',2]).root_lattice().positive_roots_by_height()
-                [alpha[1], alpha[2], alpha[1] + alpha[2], 2*alpha[1] + alpha[2]]
+                [alpha[2], alpha[1], alpha[1] + alpha[2], 2*alpha[1] + alpha[2]]
                 sage: RootSystem(['C',2]).root_lattice().positive_roots_by_height(increasing = False)
-                [2*alpha[1] + alpha[2], alpha[1] + alpha[2], alpha[1], alpha[2]]
+                [2*alpha[1] + alpha[2], alpha[1] + alpha[2], alpha[2], alpha[1]]
                 sage: RootSystem(['A',2,1]).root_lattice().positive_roots_by_height()
                 Traceback (most recent call last):
                 ...
@@ -695,17 +697,18 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: Phi = RootSystem(['A',2]).root_poset(); Phi
                 Finite poset containing 3 elements
                 sage: Phi.cover_relations()
-                [[alpha[1], alpha[1] + alpha[2]], [alpha[2], alpha[1] + alpha[2]]]
+                [[alpha[2], alpha[1] + alpha[2]], [alpha[1], alpha[1] + alpha[2]]]
 
                 sage: Phi = RootSystem(['A',3]).root_poset(restricted=True); Phi
                 Finite poset containing 3 elements
                 sage: Phi.cover_relations()
-                [[alpha[1] + alpha[2], alpha[1] + alpha[2] + alpha[3]], [alpha[2] + alpha[3], alpha[1] + alpha[2] + alpha[3]]]
+                [[alpha[2] + alpha[3], alpha[1] + alpha[2] + alpha[3]], [alpha[1] + alpha[2], alpha[1] + alpha[2] + alpha[3]]]
 
                 sage: Phi = RootSystem(['B',2]).root_poset(); Phi
                 Finite poset containing 4 elements
                 sage: Phi.cover_relations()
-                [[alpha[1], alpha[1] + alpha[2]], [alpha[2], alpha[1] + alpha[2]], [alpha[1] + alpha[2], alpha[1] + 2*alpha[2]]]
+                [[alpha[2], alpha[1] + alpha[2]], [alpha[1], alpha[1] + alpha[2]], [alpha[1] + alpha[2], alpha[1] + 2*alpha[2]]]
+
             """
             from sage.combinat.posets.posets import Poset
             rels = []
@@ -1964,16 +1967,10 @@ class RootLatticeRealizations(Category_over_base_ring):
             TESTS::
 
                 sage: list(RootSystem(["A",2]).weight_lattice().plot_fundamental_weights())
-                [Arrow from (0.0,0.0) to (0.0,1.0),
-                 Text '$\Lambda_{2}$' at the point (0.0,1.05),
-                 Arrow from (0.0,0.0) to (1.0,0.0),
-                 Text '$\Lambda_{1}$' at the point (1.05,0.0)]
+                [Arrow from (0.0,0.0) to (1.0,0.0), Text '$\Lambda_{1}$' at the point (1.05,0.0), Arrow from (0.0,0.0) to (0.0,1.0), Text '$\Lambda_{2}$' at the point (0.0,1.05)]
+                sage: list(RootSystem(["A",2]).ambient_lattice().plot_fundamental_weights())
+                [Arrow from (0.0,0.0) to (0.5,0.866024518389), Text '$\Lambda_{1}$' at the point (0.525,0.909325744308), Arrow from (0.0,0.0) to (-0.5,0.866024518389), Text '$\Lambda_{2}$' at the point (-0.525,0.909325744308)]
 
-                 sage: list(RootSystem(["A",2]).ambient_lattice().plot_fundamental_weights())
-                 [Arrow from (0.0,0.0) to (-0.5,0.86...),
-                  Text '$\Lambda_{2}$' at the point (-0.525,0.90...),
-                  Arrow from (0.0,0.0) to (0.5,0.86...),
-                  Text '$\Lambda_{1}$' at the point (0.525,0.90...)]
             """
             plot_options = self.plot_parse_options(**options)
             # We build the family of fundamental weights in this space,
@@ -2516,6 +2513,63 @@ class RootLatticeRealizations(Category_over_base_ring):
                 raise NotImplementedError, "Implemented only for irreducible finite root systems"
             L = self.root_system.ambient_space() # uses peculiarities of ambient embedding
             return max([root.scalar(root) for root in L.simple_roots()])
+
+        @cached_method
+        def dual_type_cospace(self):
+            r"""
+            Returns the cospace of dual type.
+
+            For example, if invoked on the root lattice of type `['B',2]`, returns the
+            coroot lattice of type `['C',2]`.
+
+            ..warning::
+
+                Not implemented for ambient spaces.
+
+            EXAMPLES::
+
+                sage: CartanType(['B',2]).root_system().root_lattice().dual_type_cospace()
+                Coroot lattice of the Root system of type ['C', 2]
+                sage: CartanType(['F',4]).root_system().coweight_lattice().dual_type_cospace()
+                Weight lattice of the Root system of type ['F', 4] relabelled by {1: 4, 2: 3, 3: 2, 4: 1}
+
+            """
+            from root_space import RootSpace
+            from weight_space import WeightSpace
+
+            if isinstance(self, RootSpace):
+                if self.root_system.dual_side:
+                    return self.cartan_type().root_system().root_space(self.base_ring())
+                else:
+                    return self.cartan_type().dual().root_system().coroot_space(self.base_ring())
+            if isinstance(self, WeightSpace):
+                if self.root_system.dual_side:
+                    return self.cartan_type().root_system().weight_space(self.base_ring())
+                else:
+                    return self.cartan_type().dual().root_system().coweight_space(self.base_ring())
+            raise TypeError, "Not implemented for %s"%self
+
+        @abstract_method(optional=True)
+        def to_ambient_space_morphism(self):
+            r"""
+            Return the morphism to the ambient space.
+
+            EXAMPLES::
+
+                sage: CartanType(['B',2]).root_system().root_lattice().to_ambient_space_morphism()
+                Generic morphism:
+                From: Root lattice of the Root system of type ['B', 2]
+                To:   Ambient space of the Root system of type ['B', 2]
+                sage: CartanType(['B',2]).root_system().coroot_lattice().to_ambient_space_morphism()
+                Generic morphism:
+                From: Coroot lattice of the Root system of type ['B', 2]
+                To:   Ambient space of the Root system of type ['B', 2]
+                sage: CartanType(['B',2]).root_system().weight_lattice().to_ambient_space_morphism()
+                Generic morphism:
+                From: Weight lattice of the Root system of type ['B', 2]
+                To:   Ambient space of the Root system of type ['B', 2]
+
+            """
 
     ##########################################################################
 
@@ -3357,3 +3411,71 @@ class RootLatticeRealizations(Category_over_base_ring):
             #if ct.type() == 'C' or ct.type() == 'G':
             #    return True
             #return False
+
+        def to_dual_type_cospace(self):
+            r"""
+            Map ``self`` to the dual type cospace.
+
+            For example, if ``self`` is in the root lattice of type `['B',2]`, send it to
+            the coroot lattice of type `['C',2]`.
+
+            EXAMPLES::
+
+                sage: v = CartanType(['C',3]).root_system().weight_lattice().an_element(); v
+                2*Lambda[1] + 2*Lambda[2] + 3*Lambda[3]
+                sage: w = v.to_dual_type_cospace(); w
+                2*Lambdacheck[1] + 2*Lambdacheck[2] + 3*Lambdacheck[3]
+                sage: w.parent()
+                Coweight lattice of the Root system of type ['B', 3]
+
+            """
+            return self.parent().dual_type_cospace().from_vector(self.to_vector())
+
+        def to_classical(self):
+            r"""
+            Map ``self`` to the classical lattice/space.
+
+            Only makes sense for affine type.
+
+            EXAMPLES::
+
+                sage: R = CartanType(['A',3,1]).root_system()
+                sage: alpha = R.root_lattice().an_element(); alpha
+                2*alpha[0] + 2*alpha[1] + 3*alpha[2]
+                sage: alb = alpha.to_classical(); alb
+                alpha[2] - 2*alpha[3]
+                sage: alb.parent()
+                Root lattice of the Root system of type ['A', 3]
+                sage: v = R.ambient_space().an_element(); v
+                2*e[0] + 2*e[1] + 3*e[2]
+                sage: v.to_classical()
+                (2, 2, 3, 0)
+
+            """
+            return self.parent().classical()(self)
+
+        @abstract_method(optional=True)
+        def to_ambient(self):
+            r"""
+            Map ``self`` to the ambient space.
+
+            EXAMPLES::
+
+                sage: alpha = CartanType(['B',4]).root_system().root_lattice().an_element(); alpha
+                2*alpha[1] + 2*alpha[2] + 3*alpha[3]
+                sage: alpha.to_ambient()
+                (2, 0, 1, -3)
+                sage: mu = CartanType(['B',4]).root_system().weight_lattice().an_element(); mu
+                2*Lambda[1] + 2*Lambda[2] + 3*Lambda[3]
+                sage: mu.to_ambient()
+                (7, 5, 3, 0)
+                sage: v = CartanType(['B',4]).root_system().ambient_space().an_element(); v
+                (2, 2, 3, 0)
+                sage: v.to_ambient()
+                (2, 2, 3, 0)
+                sage: alphavee = CartanType(['B',4]).root_system().coroot_lattice().an_element(); alphavee
+                2*alphacheck[1] + 2*alphacheck[2] + 3*alphacheck[3]
+                sage: alphavee.to_ambient()
+                (2, 0, 1, -3)
+
+            """

@@ -3,11 +3,11 @@ Fast Fourier Transforms Using GSL
 
 AUTHORS:
 
-    - William Stein (2006-9): initial file (radix2)
-    - D. Joyner (2006-10): Minor modifications (from radix2 to general case\
-                           and some documentation).
-    - M. Hansen (2013-3): Fix radix2 backwards transformation
-    - L.F. Tabera Alonso (2013-3): Documentation
+- William Stein (2006-9): initial file (radix2)
+- D. Joyner (2006-10): Minor modifications (from radix2 to general case\
+                        and some documentation).
+- M. Hansen (2013-3): Fix radix2 backwards transformation
+- L.F. Tabera Alonso (2013-3): Documentation
 """
 
 #*****************************************************************************
@@ -38,8 +38,8 @@ def FastFourierTransform(size, base_ring=None):
 
     INPUT:
 
-        - ``size`` -- The size of the array
-        - ``base_ring`` -- Unused (2013-03)
+    - ``size`` -- The size of the array
+    - ``base_ring`` -- Unused (2013-03)
 
     EXAMPLES:
 
@@ -99,8 +99,8 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
 
         INPUT:
 
-            - ``n`` -- An integer, the size of the array
-            - ``stride`` -- The stride to be applied when manipulating the array.
+        - ``n`` -- An integer, the size of the array
+        - ``stride`` -- The stride to be applied when manipulating the array.
 
         EXAMPLES::
 
@@ -150,8 +150,8 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
 
         INPUT:
 
-            - ``i`` -- An integer peresenting the index.
-            - ``xy`` -- An object to store as `i`-th element of the array ``self[i]``.
+        - ``i`` -- An integer peresenting the index.
+        - ``xy`` -- An object to store as `i`-th element of the array ``self[i]``.
 
         EXAMPLE::
 
@@ -185,11 +185,11 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
 
         INPUT:
 
-            - ``i``: An integer.
+        - ``i``: An integer.
 
         OUTPUT:
 
-            - The `i`-th element of the array ``self[i]``.
+        - The `i`-th element of the array ``self[i]``.
 
         EXAMPLES::
 
@@ -215,8 +215,8 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
 
         OUTPUT:
 
-            - A string representing this array. The complex numbers are
-              presented as a tuple of two float elements.
+        - A string representing this array. The complex numbers are
+            presented as a tuple of two float elements.
 
         EXAMPLES::
 
@@ -234,13 +234,13 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
 
         INPUT:
 
-            - ``xmin`` -- The lower bound of the slice to plot.
-            - ``xmax`` -- The upper bound of the slice to plot.
-            - ``**args`` -- passed on to the line plotting function.
+        - ``xmin`` -- The lower bound of the slice to plot.
+        - ``xmax`` -- The upper bound of the slice to plot.
+        - ``**args`` -- passed on to the line plotting function.
 
         OUTPUT:
 
-            - A plot of the array interpreting each element as polar coordinates.
+        - A plot of the array interpreting each element as polar coordinates.
 
         This method should not be called directly. See :meth:`plot` for the details.
 
@@ -271,13 +271,13 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
 
         INPUT:
 
-            - ``xmin`` -- The lower bound of the slice to plot.
-            - ``xmax`` -- The upper bound of the slice to plot.
-            - ``**args`` -- passed on to the line plotting function.
+        - ``xmin`` -- The lower bound of the slice to plot.
+        - ``xmax`` -- The upper bound of the slice to plot.
+        - ``**args`` -- passed on to the line plotting function.
 
         OUTPUT:
 
-            - A plot of the array.
+        - A plot of the array.
 
         This method should not be called directly. See :meth:`plot` for the details.
 
@@ -303,18 +303,18 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
         """
         Plot a slice of the array.
 
-            - ``style`` -- Style of the plot, options are ``"rect"`` or ``"polar"``
-                - ``rect`` -- height represents real part, color represents
-                  imaginary part.
-                - ``polar`` -- height represents absolute value, color
-                  represents argument.
-            - ``xmin`` -- The lower bound of the slice to plot. 0 by default.
-            - ``xmax`` -- The upper bound of the slice to plot. ``len(self)`` by default.
-            - ``**args`` -- passed on to the line plotting function.
+        - ``style`` -- Style of the plot, options are ``"rect"`` or ``"polar"``
+            - ``rect`` -- height represents real part, color represents
+                imaginary part.
+            - ``polar`` -- height represents absolute value, color
+                represents argument.
+        - ``xmin`` -- The lower bound of the slice to plot. 0 by default.
+        - ``xmax`` -- The upper bound of the slice to plot. ``len(self)`` by default.
+        - ``**args`` -- passed on to the line plotting function.
 
         OUTPUT:
 
-            - A plot of the array.
+        - A plot of the array.
 
         EXAMPLE::
 
@@ -352,12 +352,12 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
 
     def forward_transform(self):
         """
-         Compute the in-place forward Fourier transform of this data
-         using the Cooley-Tukey algorithm.
+        Compute the in-place forward Fourier transform of this data
+        using the Cooley-Tukey algorithm.
 
-         OUTPUT:
+        OUTPUT:
 
-            - None, the transformation is done in-place.
+        - None, the transformation is done in-place.
 
         If the number of sample points in the input is a power of 2 then the
         gsl function ``gsl_fft_complex_radix2_forward`` is automatically called.
@@ -392,7 +392,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
 
         OUTPUT:
 
-            - None, the transformation is done in-place.
+        - None, the transformation is done in-place.
 
         If the number of sample points in the input is a power of 2 then the
         function ``gsl_fft_complex_radix2_inverse`` is automatically called.
@@ -444,7 +444,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
 
         OUTPUT:
 
-            - None, the transformation is done in-place.
+        - None, the transformation is done in-place.
 
         This is the same as :meth:`inverse_transform` but lacks normalization
         so that ``f.forward_transform().backward_transform() == n*f``. Where

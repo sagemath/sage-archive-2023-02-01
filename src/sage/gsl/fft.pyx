@@ -34,7 +34,7 @@ from sage.rings.complex_number import ComplexNumber
 
 def FastFourierTransform(size, base_ring=None):
     """
-    Create an array for fast fourier transform conversion using gsl.
+    Create an array for fast Fourier transform conversion using gsl.
 
     INPUT:
 
@@ -55,7 +55,7 @@ def FastFourierTransform(size, base_ring=None):
         sage: a
         [(1.0, 0.0), (2.0, 0.0), (3.0, 0.0), (4.0, 0.0), (5.0, 0.0), (6.0, 0.0), (7.0, 0.0), (8.0, 0.0)]
 
-    We can perform the forward fourier transform on the array::
+    We can perform the forward Fourier transform on the array::
 
         sage: a.forward_transform()
         sage: a                       #abs tol 1e-2
@@ -104,7 +104,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
 
         EXAMPLES::
 
-            sage: a = FastFourierTransform(1) #indirect doctest
+            sage: a = FastFourierTransform(1) # indirect doctest
             sage: a
             [(0.0, 0.0)]
 
@@ -146,12 +146,12 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
     def __setitem__(self, size_t i, xy):
         """
         Assign a value to an index of the array. Currently the input has to be
-        en element that can be coerced to float or a ComplexNumber element.
+        en element that can be coerced to ``float` or a ``ComplexNumber`` element.
 
         INPUT:
 
             - ``i`` -- An integer peresenting the index.
-            - ``xy`` -- An object to store as `i`-th element of the array `self[i]`.
+            - ``xy`` -- An object to store as `i`-th element of the array ``self[i]``.
 
         EXAMPLE::
 
@@ -189,7 +189,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
 
         OUTPUT:
 
-            - The `i`-th element of the array `self[i]`.
+            - The `i`-th element of the array ``self[i]``.
 
         EXAMPLES::
 
@@ -234,8 +234,8 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
 
         INPUT:
 
-            - ``xmin`` -- The lower bound of the slice to plot. 0 by default.
-            - ``xmax`` -- The upper bound of the slice to plot. `len(self)` by default.
+            - ``xmin`` -- The lower bound of the slice to plot.
+            - ``xmax`` -- The upper bound of the slice to plot.
             - ``**args`` -- passed on to the line plotting function.
 
         OUTPUT:
@@ -271,8 +271,8 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
 
         INPUT:
 
-            - ``xmin`` -- The lower bound of the slice to plot. 0 by default.
-            - ``xmax`` -- The upper bound of the slice to plot. `len(self)` by default.
+            - ``xmin`` -- The lower bound of the slice to plot.
+            - ``xmax`` -- The upper bound of the slice to plot.
             - ``**args`` -- passed on to the line plotting function.
 
         OUTPUT:
@@ -309,7 +309,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
                 - ``polar`` -- height represents absolute value, color
                   represents argument.
             - ``xmin`` -- The lower bound of the slice to plot. 0 by default.
-            - ``xmax`` -- The upper bound of the slice to plot. `len(self)` by default.
+            - ``xmax`` -- The upper bound of the slice to plot. ``len(self)`` by default.
             - ``**args`` -- passed on to the line plotting function.
 
         OUTPUT:

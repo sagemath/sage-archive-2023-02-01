@@ -449,7 +449,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
         if BSD.curve.j_invariant() in non_max_j_invs: # is this possible for optimal curves?
             if verbosity > 0:
                 print 'CM by non maximal order: switching curves'
-            for E in BSD.curve.isogeny_class(use_tuple=False):
+            for E in BSD.curve.isogeny_class():
                 if E.j_invariant() not in non_max_j_invs:
                     BSD.curve = E
                     break
@@ -659,7 +659,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
             kolyvagin_primes.append(p)
     # Stein et al.
     if not BSD.curve.has_cm():
-        L = arith.lcm([F.torsion_order() for F in BSD.curve.isogeny_class(use_tuple=False)])
+        L = arith.lcm([F.torsion_order() for F in BSD.curve.isogeny_class()])
         for p in BSD.primes:
             if p in kolyvagin_primes or p == 2: continue
             if L%p != 0:

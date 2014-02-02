@@ -173,7 +173,7 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
         out = self.sum_of_terms((Partition(e), c)
                                 for (e,c) in f.dict().iteritems()
                                 if tuple(sorted(e)) == tuple(reversed(e)))
-        if check and out.expand(f.parent().ngens(),f.parent().gens()) <> f:
+        if check and out.expand(f.parent().ngens(),f.parent().gens()) != f:
             raise ValueError, "%s is not a symmetric polynomial"%f
         return out
 

@@ -1705,6 +1705,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f^3
             x^3 - 3*x^2 + 3*x - 1
 
+            sage: R = PolynomialRing(GF(2), x)
+            sage: f = R(x^9 + x^7 + x^6 + x^5 + x^4 + x^2 + x)
+            sage: h = R(x^10 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + 1)
+            sage: pow(f, 2, h)
+            x^9 + x^8 + x^7 + x^5 + x^3
+
         TESTS::
 
             sage: x^(1/2)
@@ -1722,13 +1728,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
         ::
 
             sage: k = GF(5)
+            sage: D.<x> = k[]
             sage: l.<x> = k.extension(x^2 + 2)
             sage: R.<t> = l[]
             sage: f = t^4 + (2*x - 1)*t^3 + (2*x + 1)*t^2 + 3
             sage: h = t^4 - x*t^3 + (3*x + 1)*t^2 + 2*t + 2*x - 1
             sage: pow(f, 2, h)
             3*t^3 + (2*x + 3)*t^2 + (2*x + 2)*t + 2*x + 2
-            sage: pow(f, 10**7, h)    # fast
+            sage: pow(f, 10**7, h)
             4*x*t^3 + 2*x*t^2 + 4*x*t + 4
         """
         if not PY_TYPE_CHECK_EXACT(right, Integer) or \

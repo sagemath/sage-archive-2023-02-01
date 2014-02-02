@@ -259,7 +259,7 @@ def MPComplexField(prec=53, rnd="RNDNN", names=None):
     """
     global cache
     mykey = (prec, rnd)
-    if cache.has_key(mykey):
+    if mykey in cache:
         X = cache[mykey]
         C = X()
         if not C is None:

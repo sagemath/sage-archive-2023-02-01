@@ -527,7 +527,7 @@ cdef PowComputer_base PowComputer_c(Integer m, Integer cache_limit, Integer prec
         raise ValueError, "cannot create p-adic parents with precision cap larger than (1 << (sizeof(long)*8 - 2))"
 
     key = (m, cache_limit, prec_cap, in_field)
-    if pow_comp_cache.has_key(key):
+    if key in pow_comp_cache:
         PC = pow_comp_cache[key]()
         if PC is not None:
             return PC

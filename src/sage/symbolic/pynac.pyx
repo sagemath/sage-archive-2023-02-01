@@ -19,7 +19,7 @@ include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/ext/python.pxi"
 
-from sage.libs.ginac cimport *
+from ginac cimport *
 
 # for complex log and log gamma
 include "sage/gsl/gsl_complex.pxi"

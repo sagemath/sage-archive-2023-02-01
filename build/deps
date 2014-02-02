@@ -476,8 +476,6 @@ $(INST)/csage: $(INST)/$(SCONS) \
        $(INST)/$(MPIR) \
        $(INST)/$(NTL) \
        $(INST)/$(PARI) \
-       $(INST)/$(POLYBORI) \
-       $(INST)/$(PYNAC) \
        $(INST)/$(PYTHON)
 	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
 		cd $(SAGE_SRC) && source bin/sage-env && cd c_lib && \

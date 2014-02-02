@@ -214,7 +214,7 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.rings.all import Integer, PolynomialRing, is_Polynomial, is_MPolynomial, QQ
 import sage.combinat.partition
-from sage.combinat.partition import Partitions
+from sage.combinat.partition import _Partitions, Partitions
 import sage.libs.symmetrica.all as symmetrica  # used in eval()
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
@@ -828,6 +828,54 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             #This code relied heavily on the construction of bases of
             #``SymmetricFunctions`` and on their reduction.
 
+        def Eulerian(self, n, j, k=None):
+            """
+            Return the Eulerian symmetric function `Q_{n,j}` (with `n`
+            either an integer or a partition) or `Q_{n,j,k}` (if the
+            optional argument ``k`` is specified) in terms of the basis
+            ``self``.
+
+            It is known that the Eulerian quasisymmetric functions are
+            in fact symmetric functions [SW2010]_. For more information,
+            see :meth:`QuasiSymmetricFunctions.Fundamental.Eulerian()`,
+            which accepts the same syntax as this method.
+
+            INPUT:
+
+            - ``n`` -- the nonnegative integer `n` or a partition
+            - ``j`` -- the number of excedances
+            - ``k`` -- (optional) if specified, determines the number of fixed
+              points of the permutations which are being summed over
+
+            EXAMPLES::
+
+                sage: Sym = SymmetricFunctions(QQ)
+                sage: m = Sym.m()
+                sage: m.Eulerian(3, 1)
+                4*m[1, 1, 1] + 3*m[2, 1] + 2*m[3]
+                sage: h = Sym.h()
+                sage: h.Eulerian(4, 2)
+                h[2, 2] + h[3, 1] + h[4]
+                sage: s = Sym.s()
+                sage: s.Eulerian(5, 2)
+                s[2, 2, 1] + s[3, 1, 1] + 5*s[3, 2] + 6*s[4, 1] + 6*s[5]
+                sage: s.Eulerian([2,2,1], 2)
+                s[2, 2, 1] + s[3, 2] + s[4, 1] + s[5]
+                sage: s.Eulerian(5, 2, 2)
+                s[3, 2] + s[4, 1] + s[5]
+
+            We check Equation (5.4) in [SW2010]_::
+
+                sage: h.Eulerian([6], 3)
+                h[3, 2, 1] - h[4, 1, 1] + 2*h[4, 2] + h[5, 1]
+                sage: s.Eulerian([6], 3)
+                s[3, 2, 1] + s[3, 3] + 3*s[4, 2] + 3*s[5, 1] + 3*s[6]
+            """
+            from sage.combinat.ncsf_qsym.qsym import QuasiSymmetricFunctions
+            F = QuasiSymmetricFunctions(self.base_ring()).F()
+            if n in _Partitions:
+                n = _Partitions(n)
+            return self(F.Eulerian(n, j, k).to_symmetric_function())
 
     class ElementMethods:
 
@@ -897,7 +945,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         if prefix is not None:
             self._prefix = prefix
         self._sym = Sym
-        CombinatorialFreeModule.__init__(self, Sym.base_ring(), sage.combinat.partition.Partitions(),
+        CombinatorialFreeModule.__init__(self, Sym.base_ring(), _Partitions,
                                          category = SymmetricFunctionsBases(Sym),
                                          bracket = "", prefix = prefix)
 
@@ -1152,7 +1200,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
                 cache_function(sum(part))
             # Make sure it is a partition (for #13605), this is
             #   needed for the old kschur functions - TCS
-            part = Partitions()(part)
+            part = _Partitions(part)
             for part2, c2 in cache_dict[sum(part)][part].iteritems():
                 if hasattr(c2,'subs'): # c3 may be in the base ring
                     c3 = c*BR(c2.subs(**subs_dict))
@@ -1616,7 +1664,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         # We are going to be doing everything like we are in the upper-triangular case
         # We list the partitions in "decreasing order" and work from the beginning forward.
         # If we are in the lower-triangular case, then we shouldn't reverse the list
-        l = sage.combinat.partition.Partitions(n).list()
+        l = Partitions(n).list()
         if upper_triangular:
             l.reverse()
 

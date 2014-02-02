@@ -53,7 +53,7 @@ from sage.matrix.constructor import matrix
 from sage.combinat.permutation import Permutations
 from sage.combinat.composition import Composition, Compositions
 from sage.combinat.composition_tableau import CompositionTableaux
-from sage.combinat.partition import Partitions
+from sage.combinat.partition import Partitions, _Partitions
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.combinat.ncsf_qsym.generic_basis_code import BasesOfQSymOrNCSF
@@ -734,6 +734,43 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 """
                 g = self.realization_of().from_polynomial(f, check=check)
                 return self(g)
+
+            def Eulerian(self, n, j, k=None):
+                """
+                Return the Eulerian (quasi)symmetric function `Q_{n,j}` in
+                terms of ``self``.
+
+                INPUT:
+
+                - ``n`` -- the value `n` or a partition
+                - ``j`` -- the number of excedances
+                - ``k`` -- (optional) if specified, determines the number of
+                  fixed points of the permtutation
+
+                EXAMPLES::
+
+                    sage: QSym = QuasiSymmetricFunctions(QQ)
+                    sage: M = QSym.M()
+                    sage: M.Eulerian(3, 1)
+                    4*M[1, 1, 1] + 3*M[1, 2] + 3*M[2, 1] + 2*M[3]
+                    sage: M.Eulerian(4, 1, 2)
+                    6*M[1, 1, 1, 1] + 4*M[1, 1, 2] + 4*M[1, 2, 1]
+                     + 2*M[1, 3] + 4*M[2, 1, 1] + 3*M[2, 2] + 2*M[3, 1] + M[4]
+                    sage: QS = QSym.QS()
+                    sage: QS.Eulerian(4, 2)
+                    2*QS[1, 3] + QS[2, 2] + 2*QS[3, 1] + 3*QS[4]
+                    sage: QS.Eulerian([2, 2, 1], 2)
+                    QS[1, 2, 2] + QS[1, 4] + QS[2, 1, 2] + QS[2, 2, 1]
+                     + QS[2, 3] + QS[3, 2] + QS[4, 1] + QS[5]
+                    sage: dI = QSym.dI()
+                    sage: dI.Eulerian(5, 2)
+                    -dI[1, 3, 1] - 5*dI[1, 4] + dI[2, 2, 1] + dI[3, 1, 1]
+                     + 5*dI[3, 2] + 6*dI[4, 1] + 6*dI[5]
+                """
+                F = self.realization_of().F()
+                if n in _Partitions:
+                    n = _Partitions(n)
+                return self(F.Eulerian(n, j, k))
 
         class ElementMethods:
             r"""
@@ -1551,7 +1588,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 m = SymmetricFunctions(self.parent().base_ring()).monomial()
                 if self.is_symmetric():
                     return m.sum_of_terms([(I, coeff) for (I, coeff) in self
-                        if list(I) in Partitions()], distinct=True)
+                        if list(I) in _Partitions], distinct=True)
                 else:
                     raise ValueError, "%s is not a symmetric function"%self
 
@@ -1678,6 +1715,143 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                    T.sum_of_monomials( ( C(compo[:i]+[j]), C([compo[i]-j]+compo[i+1:]) )
                                        for i in range(len(compo))
                                        for j in range(1, compo[i]) )
+
+        @cached_method
+        def Eulerian(self, n, j, k=None):
+            r"""
+            Return the Eulerian (quasi)symmetric function `Q_{n,j}` (with
+            `n` either an integer or a partition) defined in [SW2010]_ in
+            terms of the fundamental quasisymmetric functions.
+            Or, if the optional argument ``k`` is specified, return the
+            function `Q_{n,j,k}` defined ibidem.
+
+            If `n` and `j` are nonnegative integers, then the Eulerian
+            quasisymmetric function `Q_{n,j}` is defined as
+
+            .. MATH::
+
+                Q_{n,j} := \sum_{\sigma} F_{\mathrm{Dex}(\sigma)},
+
+            where we sum over all permutations `\sigma \in S_n` such that
+            the number of excedances of `\sigma` is `j`, and where
+            `\mathrm{Dex}(\sigma)` is a composition of `n` defined as follows:
+            Let `S` be the set of all `i \in \{ 1, 2, \ldots, n-1 \}` such
+            that either `\sigma_i > \sigma_{i+1} > i+1` or
+            `i \geq \sigma_i > \sigma_{i+1}` or
+            `\sigma_{i+1} > i + 1 > \sigma_i`. Then,
+            `\mathrm{Dex}(\sigma)` is set to be the composition of `n` whose
+            descent set is `S`.
+
+            Here, an excedance of a permutation `\sigma \in S_n` means an
+            element `i \in \{ 1, 2, \ldots, n-1 \}` satisfying `\sigma_i > i`.
+
+            Similarly we can define a quasisymmetric function `Q_{\lambda, j}`
+            for every partition `\lambda` and every nonnegative integer `j`.
+            This differs from `Q_{n,j}` only in that the sum is restricted to
+            all permutations `\sigma \in S_n` whose cycle type is `\lambda`
+            (where `n = |\lambda|`, and where we still require the number of
+            excedances to be `j`). The method at hand allows computing these
+            functions by passing `\lambda` as the ``n`` parameter.
+
+            Analogously we can define a quasisymmetric function `Q_{n,j,k}` for
+            any nonnegative integers `n`, `j` and `k` by restricting the sum to
+            all permutations `\sigma \in S_n` that have exactly `k` fixed
+            points (and `j` excedances). This can be obtained by specifying the
+            optional ``k`` argument in this method.
+
+            All three versions of Eulerian quasisymmetric functions
+            (`Q_{n,j}`, `Q_{\lambda,j}` and `Q_{n,j,k}`) are actually
+            symmetric functions. See
+            :meth:`~sage.combinat.sf.SymmetricFunctionsBases.ParentMethods.Eulerian`.
+
+            INPUT:
+
+            - ``n`` -- the nonnegative integer `n` or a partition
+            - ``j`` -- the number of excedances
+            - ``k`` -- (optional) if specified, determines the number of fixed
+              points of the permutations which are being summed over
+
+            REFERENCES:
+
+            .. [SW2010] John Shareshian and Michelle Wachs.
+               *Eulerian quasisymmetric functions*. (2010).
+               :arxiv:`0812.0764v2`
+
+            EXAMPLES::
+
+                sage: F = QuasiSymmetricFunctions(QQ).F()
+                sage: F.Eulerian(3, 1)
+                F[1, 2] + F[2, 1] + 2*F[3]
+                sage: F.Eulerian(4, 2)
+                F[1, 2, 1] + 2*F[1, 3] + 3*F[2, 2] + 2*F[3, 1] + 3*F[4]
+                sage: F.Eulerian(5, 2)
+                F[1, 1, 2, 1] + F[1, 1, 3] + F[1, 2, 1, 1] + 7*F[1, 2, 2] + 6*F[1, 3, 1] + 6*F[1, 4] + 2*F[2, 1, 2] + 7*F[2, 2, 1] + 11*F[2, 3] + F[3, 1, 1] + 11*F[3, 2] + 6*F[4, 1] + 6*F[5]
+                sage: F.Eulerian(4, 0)
+                F[4]
+                sage: F.Eulerian(4, 3)
+                F[4]
+                sage: F.Eulerian(4, 1, 2)
+                F[1, 2, 1] + F[1, 3] + 2*F[2, 2] + F[3, 1] + F[4]
+                sage: F.Eulerian(Partition([2, 2, 1]), 2)
+                F[1, 1, 2, 1] + F[1, 2, 1, 1] + 2*F[1, 2, 2] + F[1, 3, 1]
+                 + F[1, 4] + F[2, 1, 2] + 2*F[2, 2, 1] + 2*F[2, 3]
+                 + 2*F[3, 2] + F[4, 1] + F[5]
+                sage: F.Eulerian(0, 0)
+                F[]
+                sage: F.Eulerian(0, 1)
+                0
+                sage: F.Eulerian(1, 0)
+                F[1]
+                sage: F.Eulerian(1, 1)
+                0
+
+            TESTS::
+
+                sage: F = QuasiSymmetricFunctions(QQ).F()
+                sage: F.Eulerian(Partition([3, 1]), 1, 1)
+                Traceback (most recent call last):
+                ...
+                ValueError: invalid input, k cannot be specified
+            """
+            from sage.combinat.partition import _Partitions
+            if n in _Partitions:
+                if k is not None:
+                    raise ValueError("invalid input, k cannot be specified")
+                la = _Partitions(n)
+                n = sum(la)
+            else:
+                la = None
+
+            if n == 0:
+                if k is not None and k != 0:
+                    return self.zero()
+                if j != 0:
+                    return self.zero()
+                return self.one()
+
+            monomials = []
+            for p in Permutations(n):
+                dex = []
+                exc = 0
+                for i in range(n-1):
+                    if p[i] > i + 1:
+                        exc += 1
+                    if (p[i] > p[i+1] or (p[i] <= i+1 and p[i+1] > i+2)) \
+                            and not (p[i] > i+1 and p[i+1] <= i+2):
+                        dex.append(i)
+
+                if exc != j:
+                    continue
+                if k is not None and p.number_of_fixed_points() != k:
+                    continue
+                if la is not None and p.cycle_type() != la:
+                    continue
+
+                # Converting to a composition
+                d = [-1] + dex + [n-1]
+                monomials.append(Compositions()( [d[i+1]-d[i] for i in range(len(d)-1)] ))
+
+            return self.sum_of_monomials(monomials)
 
         class Element(CombinatorialFreeModule.Element):
             def internal_coproduct(self):

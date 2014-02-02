@@ -393,7 +393,7 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
 
             for k in range(1,n+1):
                 goodcols = [i for i in range(n) if s[i]==sum(A0.column(i))]
-                if sum(A0.column(n-k))<>s[n-k]:
+                if sum(A0.column(n-k)) != s[n-k]:
                     A0 = _slider01(A0,s[n-k],n-k, p1, p2, goodcols)
 
             # If we need to add empty rows/columns

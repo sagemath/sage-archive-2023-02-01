@@ -44,15 +44,12 @@ None
 
 === Patches ===
 
- * osx_gcc_flags.patch: Pass -no-cpp-precomp to GCC on OS X.
-
- * SPARC_fix.patch: Don't mess with _XOPEN_SOURCE on Solaris.
-
- * xopen_source_extended.patch: Only define _XOPEN_SOURCE_EXTENDED for
-   C compiler.
-
+ * None.
 
 == Changelog ==
+
+=== ncurses-5.9-20131221 (Jean-Pierre Flori, 1 January 2014) ===
+ * #15617: Update ncurses to dev version 5.9-20131221.
 
 === ncurses-5.9.p2 (Jean-Pierre Flori, 4 November 2013) ===
  * #15268: Let ncurses build on Solaris.

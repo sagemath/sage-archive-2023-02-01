@@ -1089,6 +1089,12 @@ class Graph(GenericGraph):
             sage: g = graphs.PetersenGraph()
             sage: g = Graph(g.edges(),immutable=False)
             sage: g.add_edge("Hey", "Heyyyyyyy")
+
+        And their name is set::
+
+            sage: g = graphs.PetersenGraph()
+            sage: Graph(g, immutable=True)
+            Petersen graph: Graph on 10 vertices
         """
         GenericGraph.__init__(self)
         msg = ''
@@ -1790,7 +1796,7 @@ class Graph(GenericGraph):
 
         When the certificate cycle is given as a list of edges, the
         edges are given as `(v_i, v_{i+1}, l)` where `v_1, v_2, \dots,
-        v\n` are the vertices of the cycles (in their cyclic order).
+        v_n` are the vertices of the cycles (in their cyclic order).
 
         EXAMPLES::
 

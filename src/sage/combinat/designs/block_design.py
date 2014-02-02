@@ -89,7 +89,7 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None):
 
     A projective geometry design of parameters `n,d,F` has for points the lines
     of `F^{n+1}`, and for blocks the `d+1`-dimensional subspaces of `F^{n+1}`,
-    each of which contains `\frac {|F|^{d+1}-1} {|F|-1}` lines.
+    each of which contains `\\frac {|F|^{d+1}-1} {|F|-1}` lines.
 
     INPUT:
 
@@ -107,8 +107,8 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None):
 
     EXAMPLES:
 
-    The points of the following design are the `\frac {2^{2+1}-1} {2-1}=7` lines
-    of `\mathbb{Z}_2^{2+1}`. It has `7` blocks, corresponding to each
+    The points of the following design are the `\\frac {2^{2+1}-1} {2-1}=7`
+    lines of `\mathbb{Z}_2^{2+1}`. It has `7` blocks, corresponding to each
     2-dimensional subspace of `\mathbb{Z}_2^{2+1}`::
 
         sage: designs.ProjectiveGeometryDesign(2, 1, GF(2))

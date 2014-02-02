@@ -1733,9 +1733,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<t> = l[]
             sage: f = t^4 + (2*x - 1)*t^3 + (2*x + 1)*t^2 + 3
             sage: h = t^4 - x*t^3 + (3*x + 1)*t^2 + 2*t + 2*x - 1
-            sage: pow(f, 2, h)
+            sage: pow(f, 2, h) # not tested - see #15777
             3*t^3 + (2*x + 3)*t^2 + (2*x + 2)*t + 2*x + 2
-            sage: pow(f, 10**7, h)
+            sage: pow(f, 10**7, h) # not tested - see #15777
             4*x*t^3 + 2*x*t^2 + 4*x*t + 4
         """
         if not PY_TYPE_CHECK_EXACT(right, Integer) or \

@@ -26,7 +26,6 @@ from algebra import Algebra, is_Algebra
 # Ring element base classes
 from algebra_element import AlgebraElement, is_AlgebraElement
 
-
 from free_algebra import FreeAlgebra, is_FreeAlgebra
 from free_algebra_quotient import FreeAlgebraQuotient
 
@@ -41,3 +40,6 @@ lazy_import('sage.algebras.nil_coxeter_algebra', 'NilCoxeterAlgebra')
 lazy_import('sage.algebras.hall_algebra', 'HallAlgebra')
 
 lazy_import('sage.algebras.shuffle_algebra', 'ShuffleAlgebra')
+
+lazy_import('sage.algebras.tensor_algebra', 'TensorAlgebra')
+

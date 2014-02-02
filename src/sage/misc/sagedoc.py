@@ -37,7 +37,6 @@ import os, re, sys
 import pydoc
 from sage.misc.viewer import browser
 from sage.misc.misc import tmp_dir
-from sagenb.misc.sphinxify import sphinxify
 import sage.version
 from sage.env import SAGE_DOC, SAGE_SRC
 
@@ -198,6 +197,7 @@ def detex(s, embedded=False):
     if not embedded: # not in the notebook
         s = _rmcmd(s, 'mathop')
         s = _rmcmd(s, 'mathrm')
+        from sagenb.misc.sphinxify import sphinxify
         s = sphinxify(s, format='text')
         for a,b in math_substitutes:  # do math substitutions
             s = s.replace(a,b)
@@ -1279,6 +1279,7 @@ class _sage_doc:
 
         # now s should be the reST version of the docstring
         if output == 'html':
+            from sagenb.misc.sphinxify import sphinxify
             html = sphinxify(s)
             if view:
                 path = os.path.join(tmp_dir(), "temp.html")
@@ -1347,6 +1348,7 @@ class _sage_doc:
         elif output == 'rst':
             return s
         elif output == 'text':
+            from sagenb.misc.sphinxify import sphinxify
             return sphinxify(s, format='text')
         else:
             raise ValueError, "output type %s not recognized" % output

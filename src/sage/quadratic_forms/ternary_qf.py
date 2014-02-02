@@ -1722,20 +1722,24 @@ class TernaryQF(SageObject):
 
     def _automorphisms_reduced_slow(self):
         """
-        Return the automorphisms of the reduced ternary quadratic form. It searches over all 3x3 matrices with coefficients -1, 0, 1, determinant 1 and finite order, because Eisenstein reduced forms are Minkowski reduced. See Cassels.
+        Return the automorphisms of the reduced ternary quadratic form.
+        It searches over all 3x3 matrices with coefficients -1, 0, 1,
+        determinant 1 and finite order, because Eisenstein reduced forms
+        are Minkowski reduced. See Cassels.
 
         EXAMPLES::
+
             sage: Q = TernaryQF([1, 1, 7, 0, 0, 0])
             sage: Q.is_eisenstein_reduced()
             True
-            sage: auts = Q._automorphisms_reduced_slow()    #long time
-            sage: len(auts)                                 #long time
+            sage: auts = Q._automorphisms_reduced_slow()  # long time (3s on sage.math, 2014)
+            sage: len(auts)                               # long time
             8
-            sage: A = auts[randint(0,7)]                    #long time
-            sage: Q(A) == Q                                 #long time
+            sage: A = auts[randint(0,7)]                  # long time
+            sage: Q(A) == Q                               # long time
             True
             sage: Q = TernaryQF([3, 4, 5, 3, 3, 2])
-            sage: Q._automorphisms_reduced_slow()           #long time
+            sage: Q._automorphisms_reduced_slow()         # long time
             [
             [1 0 0]
             [0 1 0]
@@ -1764,8 +1768,8 @@ class TernaryQF(SageObject):
         EXAMPLES::
 
             sage: Q = TernaryQF([1, 1, 7, 0, 0, 0])
-            sage: auts = Q.automorphisms()              #long time
-            sage: auts                                  #long time
+            sage: auts = Q.automorphisms()
+            sage: auts
             [
             [-1  0  0]  [-1  0  0]  [ 0 -1  0]  [ 0 -1  0]  [ 0  1  0]  [ 0  1  0]
             [ 0 -1  0]  [ 0  1  0]  [-1  0  0]  [ 1  0  0]  [-1  0  0]  [ 1  0  0]
@@ -1774,8 +1778,8 @@ class TernaryQF(SageObject):
             [ 0 -1  0]  [0 1 0]
             [ 0  0 -1], [0 0 1]
             ]
-            sage: False in [Q == Q(A) for A in auts]    #long time
-            False
+            sage: all(Q == Q(A) for A in auts)
+            True
             sage: Q = TernaryQF([3, 4, 5, 3, 3, 2])
             sage: Q.automorphisms(slow = False)
             [
@@ -2025,7 +2029,7 @@ class TernaryQF(SageObject):
             Ternary quadratic form with integer coefficients:
             [449 33 7]
             [-14 -112 102]
-            sage: Q1.number_of_automorphisms()    #long time
+            sage: Q1.number_of_automorphisms()
             8
             sage: Q = TernaryQF([-19, -7, -6, -12, 20, 23])
             sage: Q.is_negative_definite()

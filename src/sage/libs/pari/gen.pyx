@@ -8109,20 +8109,37 @@ cdef class gen(sage.structure.element.RingElement):
     def lllgramint(self):
         return self.qflllgram(1)
 
-    def qfminim(self, B, max, long flag=0):
+    def qfminim(self, b=None, m=None, long flag=0, unsigned long precision=0):
         """
-        qfminim(x,bound,maxnum,flag=0): number of vectors of square norm =
-        bound, maximum norm and list of vectors for the integral and
-        definite quadratic form x; minimal non-zero vectors if bound=0.
-        flag is optional, and can be 0: default; 1: returns the first
-        minimal vector found (ignore maxnum); 2: as 0 but uses a more
-        robust, slower implementation, valid for non integral quadratic
-        forms.
+        ``self`` being a square and symmetric matrix representing a
+        positive definite quadratic form, this function deals with the
+        vectors of ``self`` whose norm is less than or equal to `b`,
+        enumerated using the Fincke-Pohst algorithm, storing at most `m`
+        vectors (no limit if `m` is negative). The function searches for
+        the minimal non-zero vectors if `b` is omitted. The precise
+        behavior depends on flag. 0: seeks at most `2m` vectors (unless
+        `m` omitted), returns `[N,M,mat]` where `N` is the number of
+        vectors found, `M` the maximum norm among these, and `mat` lists
+        half the vectors (the other half is given by `-mat`).
+        1: ignores `m` and returns the first vector whose norm is less
+        than `b`. 2: as 0 but uses a more robust, slower implementation,
+        valid for non integral quadratic forms.
         """
-        cdef gen t0 = objtogen(B)
-        cdef gen t1 = objtogen(max)
+        cdef gen t0, t1
+        cdef GEN g0, g1
+        if b is None:
+            g0 = NULL
+        else:
+            t0 = objtogen(b)
+            g0 = t0.g
+        if m is None:
+            g1 = NULL
+        else:
+            t1 = objtogen(m)
+            g1 = t1.g
         pari_catch_sig_on()
-        return P.new_gen(qfminim0(self.g, t0.g, t1.g, flag, precdl))
+        # precision is only used when flag == 2
+        return P.new_gen(qfminim0(self.g, g0, g1, flag, prec_bits_to_words(precision)))
 
     def qfrep(self, B, long flag=0):
         """

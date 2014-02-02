@@ -27,6 +27,21 @@ REFERENCES:
 .. [Rad1979] David E. Radford, *A natural ring basis for the shuffle algebra
    and an application to group schemes*, J. Algebra **58** (1979), 432-454.
 
+.. [NCSF1] Israel Gelfand, D. Krob, Alain Lascoux, B. Leclerc,
+   V. S. Retakh, J.-Y. Thibon,
+   *Noncommutative symmetric functions*.
+   :arxiv:`hep-th/9407124v1`
+
+.. [NCSF2] D. Krob, B. Leclerc, J.-Y. Thibon,
+   *Noncommutative symmetric functions II: Transformations of alphabets*.
+   http://www-igm.univ-mlv.fr/~jyt/ARTICLES/NCSF2.ps
+
+.. [LMvW13] Kurt Luoto, Stefan Mykytiuk and Stephanie van Willigenburg,
+   *An introduction to quasisymmetric Schur functions -- Hopf algebras,
+   quasisymmetric functions, and Young composition tableaux*,
+   May 23, 2013, Springer.
+   http://www.math.ubc.ca/%7Esteph/papers/QuasiSchurBook.pdf
+
 AUTHOR:
 
 - Jason Bandlow
@@ -622,7 +637,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         exponent_coefficient = f.dict()
         z = {}
         for (e, c) in exponent_coefficient.iteritems():
-            I = Composition([ei for ei in e if ei > 0])
+            I = Compositions()([ei for ei in e if ei > 0])
             if I not in z:
                 z[I] = c
         out = self.Monomial()._from_dict(z)
@@ -1078,12 +1093,158 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 # then convert back.
                 parent = self.parent()
                 M = parent.realization_of().M()
-                dct = {Composition(map(lambda i: n * i, I)): coeff
+                C = parent._basis_keys
+                dct = {C(map(lambda i: n * i, I)): coeff
                        for (I, coeff) in M(self).monomial_coefficients().items()}
                 result_in_M_basis = M._from_dict(dct)
                 return parent(result_in_M_basis)
 
             adams_operation = frobenius
+
+            def star_involution(self):
+                r"""
+                Return the image of the quasisymmetric function ``self`` under
+                the star involution.
+
+                The star involution is defined as the linear map
+                `QSym \to QSym` which, for every composition `I`, sends the
+                monomial quasisymmetric function `M_I` to `M_{I^r}`. Here, if
+                `I` is a composition, we denote by `I^r` the reversed
+                composition of `I`. Denoting by `f^{\ast}` the image of an
+                element `f \in QSym` under the star involution, it can be shown
+                that every composition `I` satisfies
+
+                .. MATH::
+
+                    (M_I)^{\ast} = M_{I^r}, \quad (F_I)^{\ast} = F_{I^r},
+
+                where `F_I` denotes the fundamental quasisymmetric function
+                corresponding to the composition `I`. The star involution is an
+                involution, an algebra automorphism and a coalgebra
+                anti-automorphism of `QSym`. It also is an automorphism of the
+                graded vector space `QSym`, and is the identity on the subspace
+                `Sym` of `QSym`. It is adjoint to the star involution on `NCSF`
+                by the standard adjunction between `NCSF` and `QSym`.
+
+                The star involution has been denoted by `\rho` in [LMvW13]_,
+                section 3.6.
+
+                .. SEEALSO::
+
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.star_involution`.
+
+                EXAMPLES::
+
+                    sage: QSym = QuasiSymmetricFunctions(ZZ)
+                    sage: M = QSym.M()
+                    sage: M[3,2].star_involution()
+                    M[2, 3]
+                    sage: M[6,3].star_involution()
+                    M[3, 6]
+                    sage: (M[9,1] - M[6,2] + 2*M[6,4] - 3*M[3] + 4*M[[]]).star_involution()
+                    4*M[] + M[1, 9] - M[2, 6] - 3*M[3] + 2*M[4, 6]
+                    sage: (M[3,3] - 2*M[2]).star_involution()
+                    -2*M[2] + M[3, 3]
+                    sage: M([4,2]).star_involution()
+                    M[2, 4]
+                    sage: dI = QSym.dI()
+                    sage: dI([1,2]).star_involution()
+                    -dI[1, 2] + dI[2, 1]
+                    sage: dI.zero().star_involution()
+                    0
+
+                The star involution commutes with the antipode::
+
+                    sage: all( M(I).star_involution().antipode()
+                    ....:      == M(I).antipode().star_involution()
+                    ....:      for I in Compositions(4) )
+                    True
+
+                The star involution is the identity on `Sym`::
+
+                    sage: Sym = SymmetricFunctions(ZZ)
+                    sage: e = Sym.e()
+                    sage: all( M(e(lam)).star_involution() == M(e(lam))
+                    ....:      for lam in Partitions(4) )
+                    True
+                """
+                # Convert to the homogeneous basis, there apply the star
+                # involution componentwise, then convert back.
+                parent = self.parent()
+                M = parent.realization_of().M()
+                dct = {I.reversed(): coeff
+                       for (I, coeff) in M(self).monomial_coefficients().items()}
+                return parent(M._from_dict(dct))
+
+            def psi_involution(self):
+                r"""
+                Return the image of the quasisymmetric function ``self``
+                under the involution `\psi`.
+
+                The involution `\psi` is defined as the linear map
+                `QSym \to QSym` which, for every composition `I`, sends the
+                fundamental quasisymmetric function `F_I` to `F_{I^c}`, where
+                `I^c` denotes the complement of the composition `I`.
+                The map `\psi` is an involution and a graded Hopf algebra
+                automorphism of `QSym`. Its restriction to the ring of
+                symmetric functions coincides with the omega automorphism of
+                the latter ring.
+
+                The involution `\psi` of `QSym` is adjoint to the involution
+                `\psi` of `NCSF` by the standard adjunction between `NCSF` and
+                `QSym`.
+
+                The involution `\psi` has been denoted by `\psi` in [LMvW13]_,
+                section 3.6.
+
+                .. SEEALSO::
+
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.psi_involution`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.QSym.Bases.ElementMethods.star_involution`.
+
+                EXAMPLES::
+
+                    sage: QSym = QuasiSymmetricFunctions(ZZ)
+                    sage: F = QSym.F()
+                    sage: F[3,2].psi_involution()
+                    F[1, 1, 2, 1]
+                    sage: F[6,3].psi_involution()
+                    F[1, 1, 1, 1, 1, 2, 1, 1]
+                    sage: (F[9,1] - F[8,2] + 2*F[2,4] - 3*F[3] + 4*F[[]]).psi_involution()
+                    4*F[] - 3*F[1, 1, 1] + F[1, 1, 1, 1, 1, 1, 1, 1, 2] - F[1, 1, 1, 1, 1, 1, 1, 2, 1] + 2*F[1, 2, 1, 1, 1]
+                    sage: (F[3,3] - 2*F[2]).psi_involution()
+                    -2*F[1, 1] + F[1, 1, 2, 1, 1]
+                    sage: F([2,1,1]).psi_involution()
+                    F[1, 3]
+                    sage: M = QSym.M()
+                    sage: M([2,1]).psi_involution()
+                    -M[2, 1] - M[3]
+                    sage: M.zero().psi_involution()
+                    0
+
+                The involution `\psi` commutes with the antipode::
+
+                    sage: all( F(I).psi_involution().antipode()
+                    ....:      == F(I).antipode().psi_involution()
+                    ....:      for I in Compositions(4) )
+                    True
+
+                Testing the fact that the restriction of `\psi` to `Sym`
+                is the omega automorphism of `Sym`::
+
+                    sage: Sym = SymmetricFunctions(ZZ)
+                    sage: e = Sym.e()
+                    sage: all( F(e[lam]).psi_involution() == F(e[lam].omega())
+                    ....:      for lam in Partitions(4) )
+                    True
+                """
+                # Convert to the fundamental basis, there apply the psi
+                # involution componentwise, then convert back.
+                parent = self.parent()
+                F = parent.realization_of().F()
+                dct = {I.complement(): coeff
+                       for (I, coeff) in F(self).monomial_coefficients().items()}
+                return parent(F._from_dict(dct))
 
             def expand(self, n, alphabet='x'):
                 r"""
@@ -1327,7 +1488,8 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: M.coproduct_on_basis(Composition([]))
                 M[] # M[]
             """
-            return self.tensor_square().sum_of_monomials((Composition(compo[:i]), Composition(compo[i:]))
+            return self.tensor_square().sum_of_monomials((self._basis_keys(compo[:i]),
+                                                          self._basis_keys(compo[i:]))
                                                          for i in range(0,len(compo)+1))
 
         def lambda_of_monomial(self, I, n):
@@ -1435,7 +1597,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             QQ_result = QQM.zero()
             for lam in Partitions(n):
                 coeff = QQ((-1) ** len(lam)) / lam.centralizer_size()
-                QQ_result += coeff * QQM.prod([QQM(Composition([k * i for i in I]))
+                QQ_result += coeff * QQM.prod([QQM(self._basis_keys([k * i for i in I]))
                                                for k in lam])
             QQ_result *= (-1) ** n
             # QQ_result is now \lambda^n(M_I) over QQ.
@@ -1448,6 +1610,72 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             r"""
             Element methods of the ``Monomial`` basis of ``QuasiSymmetricFunctions``.
             """
+
+            def psi_involution(self):
+                r"""
+                Return the image of the quasisymmetric function ``self``
+                under the involution `\psi`.
+
+                The involution `\psi` is defined as the linear map
+                `QSym \to QSym` which, for every composition `I`, sends the
+                fundamental quasisymmetric function `F_I` to `F_{I^c}`, where
+                `I^c` denotes the complement of the composition `I`.
+                The map `\psi` is an involution and a graded Hopf algebra
+                automorphism of `QSym`. Its restriction to the ring of
+                symmetric functions coincides with the omega automorphism of
+                the latter ring.
+
+                The involution `\psi` of `QSym` is adjoint to the involution
+                `\psi` of `NCSF` by the standard adjunction between `NCSF` and
+                `QSym`.
+
+                The involution `\psi` has been denoted by `\psi` in [LMvW13]_,
+                section 3.6.
+
+                .. SEEALSO::
+
+                    :meth:`sage.combinat.ncsf_qsym.qsym.QSym.Bases.ElementMethods.psi_involution`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.psi_involution`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.QSym.Bases.ElementMethods.star_involution`.
+
+                EXAMPLES::
+
+                    sage: QSym = QuasiSymmetricFunctions(ZZ)
+                    sage: M = QSym.M()
+                    sage: M[3,2].psi_involution()
+                    -M[3, 2] - M[5]
+                    sage: M[3,1].psi_involution()
+                    M[3, 1] + M[4]
+                    sage: M[3,1,1].psi_involution()
+                    M[3, 1, 1] + M[3, 2] + M[4, 1] + M[5]
+                    sage: M[1,1,1].psi_involution()
+                    M[1, 1, 1] + M[1, 2] + M[2, 1] + M[3]
+                    sage: M[[]].psi_involution()
+                    M[]
+                    sage: M(0).psi_involution()
+                    0
+                    sage: (2*M[[]] - M[3,1] + 4*M[2]).psi_involution()
+                    2*M[] - 4*M[2] - M[3, 1] - M[4]
+
+                This particular implementation is tailored to the monomial
+                basis. It is semantically equivalent to the generic
+                implementation it overshadows::
+
+                    sage: F = QSym.F()
+                    sage: all( F(M[I].psi_involution()) == F(M[I]).psi_involution()
+                    ....:      for I in Compositions(3) )
+                    True
+
+                    sage: F = QSym.F()
+                    sage: all( F(M[I].psi_involution()) == F(M[I]).psi_involution()
+                    ....:      for I in Compositions(4) )
+                    True
+                """
+                parent = self.parent()
+                return parent.sum( (-1) ** (I.size() - len(I)) * coeff
+                                   * parent.sum_of_fatter_compositions(I)
+                                   for I, coeff in
+                                   self._monomial_coefficients.items() )
 
             def expand(self, n, alphabet='x'):
                 r"""
@@ -1854,6 +2082,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             return self.sum_of_monomials(monomials)
 
         class Element(CombinatorialFreeModule.Element):
+
             def internal_coproduct(self):
                 r"""
                 Return the inner coproduct of ``self`` in the Fundamental basis.
@@ -1975,6 +2204,64 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             kronecker_coproduct = internal_coproduct
 
+            def star_involution(self):
+                r"""
+                Return the image of the quasisymmetric function ``self`` under
+                the star involution.
+
+                The star involution is defined as the linear map
+                `QSym \to QSym` which, for every composition `I`, sends the
+                monomial quasisymmetric function `M_I` to `M_{I^r}`. Here, if
+                `I` is a composition, we denote by `I^r` the reversed
+                composition of `I`. Denoting by `f^{\ast}` the image of an
+                element `f \in QSym` under the star involution, it can be shown
+                that every composition `I` satisfies
+
+                .. MATH::
+
+                    (M_I)^{\ast} = M_{I^r}, \quad (F_I)^{\ast} = F_{I^r},
+
+                where `F_I` denotes the fundamental quasisymmetric function
+                corresponding to the composition `I`. The star involution is an
+                involution, an algebra automorphism and a coalgebra
+                anti-automorphism of `QSym`. It also is an automorphism of the
+                graded vector space `QSym`, and is the identity on the subspace
+                `Sym` of `QSym`. It is adjoint to the star involution on `NCSF`
+                by the standard adjunction between `NCSF` and `QSym`.
+
+                The star involution has been denoted by `\rho` in [LMvW13]_,
+                section 3.6.
+
+                .. SEEALSO::
+
+                    :meth:`sage.combinat.ncsf_qsym.qsym.QSym.Bases.ElementMethods.star_involution`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.star_involution`.
+
+                EXAMPLES::
+
+                    sage: QSym = QuasiSymmetricFunctions(ZZ)
+                    sage: F = QSym.F()
+                    sage: F[3,1].star_involution()
+                    F[1, 3]
+                    sage: F[5,3].star_involution()
+                    F[3, 5]
+                    sage: (F[9,1] - F[6,2] + 2*F[6,4] - 3*F[3] + 4*F[[]]).star_involution()
+                    4*F[] + F[1, 9] - F[2, 6] - 3*F[3] + 2*F[4, 6]
+                    sage: (F[3,3] - 2*F[2]).star_involution()
+                    -2*F[2] + F[3, 3]
+                    sage: F([4,2]).star_involution()
+                    F[2, 4]
+                    sage: dI = QSym.dI()
+                    sage: dI([1,2]).star_involution()
+                    -dI[1, 2] + dI[2, 1]
+                    sage: dI.zero().star_involution()
+                    0
+                """
+                parent = self.parent()
+                dct = {I.reversed(): coeff
+                       for (I, coeff) in self.monomial_coefficients().items()}
+                return parent._from_dict(dct)
+
     F = Fundamental
 
     class Quasisymmetric_Schur(CombinatorialFreeModule, BindableClass):
@@ -1982,7 +2269,10 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         The Hopf algebra of quasi-symmetric function in the Quasisymmetric
         Schur basis.
 
-        The basis of Quasisymmetric Schur functions is defined in [QSCHUR]_.
+        The basis of Quasisymmetric Schur functions is defined in [QSCHUR]_
+        and in Definition 5.1.1 of [LMvW13]_.
+        Don't mistake them for the completely unrelated quasi-Schur
+        functions of [NCSF1]_!
 
         EXAMPLES::
 
@@ -2261,10 +2551,11 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             S = N.S()
             mat = []
             C = Compositions()
-            for alp in Compositions(n):
+            C_n = Compositions(n)
+            for alp in C_n:
                 row = []
                 expansion = S(I(C(alp)))
-                for bet in Compositions(n):
+                for bet in C_n:
                     row.append(expansion.coefficient(C(bet)))
                 mat.append(row)
             return mat
@@ -2585,7 +2876,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             # Handle the n == 0 case separately
             if n == 0:
-                part = Composition([])
+                part = self._basis_keys([])
                 to_self_cache[ part ] = { part: base_ring(1) }
                 from_self_cache[ part ] = { part: base_ring(1) }
                 transition_matrices[n] = matrix(base_ring, [[1]])
@@ -2613,7 +2904,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 # M_coeffs will be M(self[I])._monomial_coefficients
                 M_coeffs = {}
 
-                self_I_in_M_basis = M.prod([from_self_gen_function(Composition(list(J)))
+                self_I_in_M_basis = M.prod([from_self_gen_function(self._basis_keys(list(J)))
                                             for J in Word(I).lyndon_factorization()])
 
                 j = 0
@@ -2837,5 +3128,5 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             # either some i satisfies a_i > b_i and (a_j == b_j for all
             # j < i), or we have n > m and all i <= m satisfy a_i == b_i.
             new_factors = sorted(I_factors + J_factors, reverse=True)
-            return self[Composition(flatten(new_factors))]
+            return self.monomial(self._basis_keys(flatten(new_factors)))
 

@@ -2774,14 +2774,6 @@ cdef class PrincipalIdealDomainElement(DedekindDomainElement):
             return coercion_model.bin_op(self, right, lcm)
         return self._lcm(right)
 
-    def gcd(self, right):
-        """
-        Returns the gcd of self and right, or 0 if both are 0.
-        """
-        if not PY_TYPE_CHECK(right, Element) or not ((<Element>right)._parent is self._parent):
-            return coercion_model.bin_op(self, right, gcd)
-        return self._gcd(right)
-
     def xgcd(self, right):
         r"""
         Return the extended gcd of self and other, i.e., elements `r, s, t` such that
@@ -2815,20 +2807,6 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
 
     def degree(self):
         raise NotImplementedError
-
-    def _gcd(self, other):
-        """
-        Return the greatest common divisor of self and other.
-
-        Algorithm 3.2.1 in Cohen, GTM 138.
-        """
-        A = self
-        B = other
-        while not B.is_zero():
-            Q, R = A.quo_rem(B)
-            A = B
-            B = R
-        return A
 
     def leading_coefficient(self):
         raise NotImplementedError
@@ -2913,15 +2891,6 @@ cdef class FieldElement(CommutativeRingElement):
             True
         """
         return not not self
-
-    def _gcd(self, FieldElement other):
-        """
-        Return the greatest common divisor of self and other.
-        """
-        if self.is_zero() and other.is_zero():
-            return self
-        else:
-            return self._parent(1)
 
     def _lcm(self, FieldElement other):
         """

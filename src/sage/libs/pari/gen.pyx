@@ -7768,7 +7768,22 @@ cdef class gen(sage.structure.element.RingElement):
 
     def poldisc(self, var=-1):
         """
-        f.poldist(var=x): Return the discriminant of this polynomial.
+        Return the discriminant of this polynomial.
+
+        EXAMPLES::
+
+            sage: pari("x^2 + 1").poldisc()
+            -4
+
+        Before :trac:`15654`, this used to take a very long time.
+        Now it takes much less than a second::
+
+            sage: pari.allocatemem(200000)
+            PARI stack size set to 200000 bytes
+            sage: x = polygen(ZpFM(3,10))
+            sage: pol = ((x-1)^50 + x)
+            sage: pari(pol).poldisc()
+            2*3 + 3^4 + 2*3^6 + 3^7 + 2*3^8 + 2*3^9 + O(3^10)
         """
         pari_catch_sig_on()
         return P.new_gen(poldisc0(self.g, P.get_var(var)))

@@ -4541,7 +4541,7 @@ def _ford_fulkerson_chronicle(G, s, t, a):
         else:
             # Step MC2b in Britz-Fomin, Algorithm 7.2.
             for v in G.vertex_iterator():
-                if not X.has_key(v):
+                if v not in X:
                     pi[v] += 1
             p += 1
 

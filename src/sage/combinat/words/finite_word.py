@@ -6128,7 +6128,7 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         seen, res = {}, []
         for x in self:
-            if not seen.has_key(x):
+            if x not in seen:
                 res.append(x)
                 seen[x] = True
         return res

@@ -96,7 +96,7 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
             sage: isinstance(B, DirectSumOfCrystals)
             True
         """
-        if options.has_key('keepkey'):
+        if 'keepkey' in options:
             keepkey = options['keepkey']
         else:
             keepkey = False

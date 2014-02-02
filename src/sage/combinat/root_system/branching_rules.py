@@ -2205,7 +2205,7 @@ def maximal_subgroups(ct, mode="print_rules"):
         for line in rul:
             [k, br] = line.split(":")
             br = eval(br)
-            if d.has_key(k):
+            if k in d:
                 if type(d[k]) is not list:
                     d[k] = [d[k]]
                 d[k].append(br)

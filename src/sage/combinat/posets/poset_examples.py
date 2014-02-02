@@ -481,7 +481,7 @@ class Posets(object):
             nodes[perm] = [succ_perm for succ_perm in perm.bruhat_succ()
                                 if succ_perm.bruhat_lequal(end)]
             for succ_perm in nodes[perm]:
-                if not nodes.has_key(succ_perm):
+                if succ_perm not in nodes:
                     unseen.append(succ_perm)
         return Poset(nodes)
 

@@ -605,6 +605,7 @@ def latex_extra_preamble():
         sage: from sage.misc.latex import latex_extra_preamble
         sage: print latex_extra_preamble()
         ...
+        <BLANKLINE>
         \newcommand{\ZZ}{\Bold{Z}}
         \newcommand{\NN}{\Bold{N}}
         \newcommand{\RR}{\Bold{R}}

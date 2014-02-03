@@ -1637,7 +1637,7 @@ class SemistandardSkewTableaux(SkewTableaux):
     entry; instead it is just an upper bound that no entry is
     allowed to surpass.
 
-    EXAMPLES::
+    EXAMPLES:
 
     The (infinite) class of all semistandard skew tableaux::
 

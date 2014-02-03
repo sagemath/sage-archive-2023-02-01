@@ -12,6 +12,7 @@ Morphisms Between Finite Algebras
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.misc.cachefunc import cached_method
 from sage.categories.homset import Hom
 from sage.rings.morphism import RingHomomorphism_im_gens
 from sage.rings.homset import RingHomset_generic
@@ -24,7 +25,7 @@ class FiniteAlgebraMorphism(RingHomomorphism_im_gens):
 
     INPUT:
 
-    - ``A``, ``B`` -- finite algebras
+    - ``parent`` -- the parent homset
 
     - ``f`` -- matrix of the underlying `k`-linear map
 
@@ -33,8 +34,8 @@ class FiniteAlgebraMorphism(RingHomomorphism_im_gens):
       unitary and ``f`` respects unit elements
 
     - ``check`` -- boolean (default: ``True``); check whether the given
-      k-linear map really defines a (not necessarily unitary)
-      k-algebra homomorphism
+      `k`-linear map really defines a (not necessarily unitary)
+      `k`-algebra homomorphism
 
     The algebras ``A`` and ``B`` must be defined over the same base field.
 
@@ -44,7 +45,7 @@ class FiniteAlgebraMorphism(RingHomomorphism_im_gens):
         sage: A = FiniteAlgebra(QQ, [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
         sage: B = FiniteAlgebra(QQ, [Matrix([1])])
         sage: H = Hom(A, B)
-        sage: f = FiniteAlgebraMorphism(H, Matrix([[1], [0]]))
+        sage: f = H(Matrix([[1], [0]]))
         sage: f.domain() is A
         True
         sage: f.codomain() is B
@@ -56,37 +57,44 @@ class FiniteAlgebraMorphism(RingHomomorphism_im_gens):
 
     .. TODO:: An example illustrating unitary flag.
     """
-    def __init__(self, parent, im_gens, check=True, unitary=True, f=None):
+    def __init__(self, parent, f, check=True, unitary=True):
         """
-        TEST::
+        TESTS::
 
             sage: from sage.algebras.finite_algebras.finite_algebra_morphism import FiniteAlgebraMorphism
             sage: A = FiniteAlgebra(QQ, [Matrix([1])])
             sage: B = FiniteAlgebra(QQ, [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: H = Hom(A, B)
             sage: phi = FiniteAlgebraMorphism(H, Matrix([[1, 0]]))
-            sage: TestSuite(phi).run(skip="_test_category") # Currently ring morphisms are not using the category framework
+            sage: TestSuite(phi).run(skip="_test_category")
         """
         A = parent.domain()
         B = parent.codomain()
-        if not (unitary and check) and (not A.is_unitary()
-                                        or not B.is_unitary()
-                                        or self(A.one()) != B.one()):
+
+        RingHomomorphism_im_gens.__init__(self, parent=parent, im_gens=f.rows(), check=check)
+        self._matrix = f
+
+        if unitary and check and (not A.is_unitary()
+                                  or not B.is_unitary()
+                                  or self(A.one()) != B.one()):
             raise ValueError("homomorphism does not respect unit elements")
 
-        if f is None:
-            if is_Matrix(im_gens):
-                f = im_gens
-                im_gens = f.rows()
-            else:
-                f = matrix(im_gens)
+    def _repr_(self):
+        """
+        TESTS::
 
-        RingHomomorphism_im_gens.__init__(self, parent=parent, im_gens=im_gens, check=check)
-        self._matrix = f
+            sage: A = FiniteAlgebra(QQ, [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
+            sage: I = A.maximal_ideal()
+            sage: q = A.quotient_map(I)
+            sage: q._repr_()
+            'Morphism from Finite algebra of degree 2 over Rational Field to Finite algebra of degree 1 over Rational Field given by matrix\n[1]\n[0]'
+        """
+        return "Morphism from {} to {} given by matrix\n{}".format(
+                self.domain(), self.codomain(), self._matrix)
 
     def __call__(self, x):
         """
-        TEST::
+        TESTS::
 
             sage: A = FiniteAlgebra(QQ, [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: I = A.maximal_ideal()
@@ -98,31 +106,55 @@ class FiniteAlgebraMorphism(RingHomomorphism_im_gens):
         B = self.codomain()
         return B.element_class(B, x.vector() * self._matrix)
 
-    def _repr_(self):
+    def __eq__(self, other):
         """
-        TEST::
+        Check equality.
 
-            sage: A = FiniteAlgebra(QQ, [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
-            sage: I = A.maximal_ideal()
-            sage: q = A.quotient_map(I)
-            sage: q._repr_()
-            'Morphism from Finite algebra of degree 2 over Rational Field to Finite algebra of degree 1 over Rational Field given by matrix\n[1]\n[0]'
+        TESTS::
+
+            sage: A = FiniteAlgebra(QQ, [Matrix([1])])
+            sage: B = FiniteAlgebra(QQ, [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
+            sage: H = Hom(A, B)
+            sage: phi = H(Matrix([[1, 0]]))
+            sage: psi = H(Matrix([[1, 0]]))
+            sage: phi == psi
+            True
+            sage: phi == H.zero()
+            False
         """
-        return "Morphism from {} to {} given by matrix\n{}".format(
-                self.domain(), self.codomain(), self._matrix)
+        return (isinstance(other, FiniteAlgebraMorphism)
+                and self.parent() == other.parent()
+                and self._matrix == other._matrix)
+
+    def __ne__(self, other):
+        """
+        Check not equals.
+
+        TESTS::
+
+            sage: A = FiniteAlgebra(QQ, [Matrix([1])])
+            sage: B = FiniteAlgebra(QQ, [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
+            sage: H = Hom(A, B)
+            sage: phi = H(Matrix([[1, 0]]))
+            sage: psi = H(Matrix([[1, 0]]))
+            sage: phi != psi
+            False
+            sage: phi != H.zero()
+            True
+        """
+        return not self.__eq__(other)
 
     def matrix(self):
         """
         Return the matrix of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
-            sage: from sage.algebras.finite_algebras.finite_algebra_morphism import FiniteAlgebraMorphism
             sage: A = FiniteAlgebra(QQ, [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: B = FiniteAlgebra(QQ, [Matrix([1])])
             sage: M = Matrix([[1], [0]])
             sage: H = Hom(A, B)
-            sage: f = FiniteAlgebraMorphism(H, M)
+            sage: f = H(M)
             sage: f.matrix() == M
             True
         """
@@ -156,17 +188,54 @@ class FiniteAlgebraHomset(RingHomset_generic):
     """
     Set of morphisms between two finite algebras.
     """
-    def __call__(self, im_gens, check=True, unitary=True):
+    @cached_method
+    def zero(self):
+        """
+        Construct the zero morphism of ``self``.
+
+        EXAMPLES::
+
+            sage: A = FiniteAlgebra(QQ, [Matrix([1])])
+            sage: B = FiniteAlgebra(QQ, [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
+            sage: H = Hom(A, B)
+            sage: H.zero()
+            Morphism from Finite algebra of degree 1 over Rational Field to
+             Finite algebra of degree 2 over Rational Field given by matrix
+            [0 0]
+        """
+        from sage.matrix.constructor import matrix
+        return FiniteAlgebraMorphism(self, matrix.zero(self.domain().ngens(),
+                                                       self.codomain().ngens()),
+                                     False, False)
+
+    def __call__(self, f, check=True, unitary=True):
         """
         Construct a homomorphism.
+
+        .. TODO::
+
+            Implement taking generator images and converting them to a matrix.
+
+        EXAMPLES::
+
+            sage: A = FiniteAlgebra(QQ, [Matrix([1])])
+            sage: B = FiniteAlgebra(QQ, [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
+            sage: H = Hom(A, B)
+            sage: H(Matrix([[1, 0]]))
+            Morphism from Finite algebra of degree 1 over Rational Field to
+             Finite algebra of degree 2 over Rational Field given by matrix
+            [1 0]
         """
-        if is_Matrix(im_gens):
-            return FiniteAlgebraMorphism(self, im_gens.rows(), check=check, unitary=unitary, f=im_gens)
-        if isinstance(im_gens, FiniteAlgebraMorphism):
-            if im_gens.parent() == self:
-                return FiniteAlgebraMorphism(self, im_gens.im_gens(), check=check, unitary=unitary, f=im_gens._matrix)
+        if isinstance(f, FiniteAlgebraMorphism):
+            if f.parent() is self:
+                return f
+            if f.parent() == self:
+                return FiniteAlgebraMorphism(self, f._matrix, check, unitary)
+        elif is_Matrix(f):
+            return FiniteAlgebraMorphism(self, f, check, unitary)
         try:
-            return FiniteAlgebraMorphism(self, im_gens.rows(), check=check, unitary=unitary, f=im_gens)
-        except (NotImplementedError, ValueError):
-            return RingHomset_generic.__call__(self, im_gens, check)
+            from sage.matrix.constructor import Matrix
+            return FiniteAlgebraMorphism(self, Matrix(f), check, unitary)
+        except Exception:
+            return RingHomset_generic.__call__(self, f, check)
 

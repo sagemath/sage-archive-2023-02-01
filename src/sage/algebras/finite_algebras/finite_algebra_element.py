@@ -97,14 +97,13 @@ class FiniteAlgebraElement(AlgebraElement):
                 self._vector = elt.base_extend(k)
                 self._matrix = Matrix(k, sum([elt[i] * A.table()[i] for i in xrange(n)]))
             elif is_Matrix(elt):
-                if A.is_unitary():
-                    self._vector = A._one * elt
-                    if not check or sum([self._vector[i]*A.table()[i] for i in xrange(n)]) == elt:
-                        self._matrix = elt
-                    else:
-                        raise ValueError("matrix does not define an element of the algebra")
-                else:
+                if not A.is_unitary():
                     raise TypeError("algebra is not unitary")
+                self._vector = A._one * elt
+                if not check or sum([self._vector[i]*A.table()[i] for i in xrange(n)]) == elt:
+                    self._matrix = elt
+                else:
+                    raise ValueError("matrix does not define an element of the algebra")
             else:
                 raise TypeError("elt should be a vector, a matrix, " +
                                 "or an element of the base field")

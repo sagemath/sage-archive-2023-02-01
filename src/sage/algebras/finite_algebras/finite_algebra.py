@@ -149,7 +149,7 @@ class FiniteAlgebra(Algebra):
             TypeError: algebra is not unitary
 
             sage: B = FiniteAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
-            sage: B(17)  # indirect doctest
+            sage: B(17)
             17*e0 + 17*e2
         """
         return self.element_class(self, x)
@@ -161,6 +161,13 @@ class FiniteAlgebra(Algebra):
     def _Hom_(self, B, category):
         """
         Construct a homset of ``self`` and ``B``.
+
+        EXAMPLES::
+
+            sage: A = FiniteAlgebra(QQ, [Matrix([1])])
+            sage: B = FiniteAlgebra(QQ, [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
+            sage: A._Hom_(B, A.category())
+            Set of Homomorphisms from Finite algebra of degree 1 over Rational Field to Finite algebra of degree 2 over Rational Field
         """
         if isinstance(B, FiniteAlgebra):
             category = FiniteDimensionalAlgebrasWithBasis(self.base_ring()).or_subcategory(category)

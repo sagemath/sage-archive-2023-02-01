@@ -1666,7 +1666,7 @@ class SparseGraphBackend(CGraphBackend):
         for e in edges:
             try:
                 u,v,l = e
-            except StandardError:
+            except Exception:
                 u,v = e
                 l = None
             self.add_edge(u,v,l,directed)

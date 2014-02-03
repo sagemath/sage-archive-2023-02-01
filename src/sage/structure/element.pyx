@@ -3322,7 +3322,7 @@ cdef generic_power_c(a, nn, one):
                     return a.parent().one()
                 except AttributeError:
                     return type(a)(1)
-            except StandardError:
+            except Exception:
                 return 1 #oops, the one sucks
         else:
             return one

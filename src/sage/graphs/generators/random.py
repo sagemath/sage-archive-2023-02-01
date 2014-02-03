@@ -700,7 +700,7 @@ def RandomRegular(d, n, seed=None):
         N = networkx.random_regular_graph(d, n, seed=seed)
         if N is False: return False
         return Graph(N, sparse=True)
-    except StandardError:
+    except Exception:
         return False
 
 def RandomShell(constructor, seed=None):

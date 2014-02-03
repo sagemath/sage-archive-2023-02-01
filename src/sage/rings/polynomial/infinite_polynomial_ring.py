@@ -449,7 +449,7 @@ class InfiniteGenDict:
         try:
             if len(L)==2:
                 return self._D[L[0]][int(L[1])]
-        except StandardError:
+        except Exception:
             pass
         raise KeyError, "%s is not a variable name"%k
 
@@ -671,7 +671,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         try:
             if not (hasattr(R,'is_ring') and R.is_ring() and hasattr(R,'is_commutative') and R.is_commutative()):
                 raise TypeError
-        except StandardError:
+        except Exception:
             raise TypeError, "The given 'base ring' (= %s) must be a commutative ring"%(R)
 
         # now, the input is accepted
@@ -853,7 +853,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             # We don't care about the orders. But base ring and generators
             # of the pushout should remain the same as in self.
             return (P._names == self._names and P._base == self._base)
-        except StandardError:
+        except Exception:
             return False
 
     def _element_constructor_(self, x):
@@ -890,7 +890,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         if isinstance(x, basestring):
             try:
                 return sage_eval(x, self.gens_dict())
-            except StandardError:
+            except Exception:
                 raise ValueError, "Can't convert %s into an element of %s" % (x, self)
 
         if hasattr(x, 'parent') and isinstance(x.parent(), InfinitePolynomialRing_sparse):
@@ -913,7 +913,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             # remark: Conversion to self._P (if applicable)
             # is done in InfinitePolynomial()
             return InfinitePolynomial(self, x)
-        except StandardError:
+        except Exception:
             pass
 
         # By now, we can assume that x has a parent, because
@@ -924,7 +924,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         if not hasattr(x,'variables'):
             try:
                 return sage_eval(repr(x), self.gens_dict())
-            except StandardError:
+            except Exception:
                 raise ValueError, "Can't convert %s into an element of %s" % (x, self)
 
         # direct conversion will only be used if the underlying polynomials are libsingular.
@@ -1014,7 +1014,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
                 # Hence, for being on the safe side, we coerce into a pushout ring:
                 x = R(1)*x
                 return InfinitePolynomial(self,x)
-            except StandardError:
+            except Exception:
                 # OK, last resort, to be on the safe side
                 try:
                     return sage_eval(repr(x), self._gens_dict)
@@ -1069,7 +1069,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         # try to find the correct base ring in other ways:
         try:
             o = B.one_element()*R.one_element()
-        except StandardError:
+        except Exception:
             raise TypeError, "We can't tensor with "+repr(R)
         return InfinitePolynomialRing(o.parent(), self._names, self._order, implementation='sparse')
 
@@ -1569,7 +1569,7 @@ class InfinitePolynomialRing_dense(InfinitePolynomialRing_sparse):
         # try to find the correct base ring in other ways:
         try:
             o = B.one_element()*R.one_element()
-        except StandardError:
+        except Exception:
             raise TypeError, "We can't tensor with "+repr(R)
         return InfinitePolynomialRing(o.parent(), self._names, self._order, implementation='dense')
 

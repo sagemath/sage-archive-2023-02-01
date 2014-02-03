@@ -8175,7 +8175,7 @@ cdef class Matrix(matrix1.Matrix):
             raise NotImplementedError('QR decomposition is implemented over exact rings, try CDF for numerical results, not %s' % R)
         try:
             F = R.fraction_field()
-        except StandardError:
+        except Exception:
             raise ValueError("QR decomposition needs a fraction field of %s" % R)
         m = self.nrows()
         n = self.ncols()
@@ -9610,14 +9610,14 @@ cdef class Matrix(matrix1.Matrix):
                 JA, SA = A.jordan_form(transformation=True)
             else:
                 JA = A.jordan_form(transformation=False)
-        except StandardError:
+        except Exception:
             raise ValueError('unable to compute Jordan canonical form for a matrix')
         try:
             if transformation:
                 JB, SB = B.jordan_form(transformation=True)
             else:
                 JB = B.jordan_form(transformation=False)
-        except StandardError:
+        except Exception:
             raise ValueError('unable to compute Jordan canonical form for a matrix')
         similar = (JA == JB)
         transform = None
@@ -11004,7 +11004,7 @@ cdef class Matrix(matrix1.Matrix):
         if not R.is_field():
             try:
                 F = R.fraction_field()
-            except StandardError:
+            except Exception:
                 msg = 'base ring of the matrix needs a field of fractions, not {0}'
                 raise TypeError(msg.format(R))
         else:
@@ -11017,7 +11017,7 @@ cdef class Matrix(matrix1.Matrix):
             try:
                 abs(F.an_element())
                 pivot = 'partial'
-            except StandardError:
+            except Exception:
                 if pivot == 'partial':
                     msg = "cannot take absolute value of matrix entries, try 'pivot=nonzero'"
                     raise TypeError(msg)

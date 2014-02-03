@@ -311,7 +311,7 @@ class tr_data_rel:
             # The value of k is the largest index of the coefficients of a which is
             # currently unknown; e.g., if k == -1, then we can iterate
             # over polynomials, and if k == n-1, then we have finished iterating.
-            if a[len(a)-1] <> 1:
+            if a[len(a)-1] != 1:
                 raise ValueError, "a[len(a)-1](=%s) must be 1 so polynomial is monic"%a[len(a)-1]
 
             raise NotImplementedError, "These have not been checked."
@@ -518,7 +518,7 @@ class tr_data_rel:
                             # the Python routine should be sufficiently fast...
                             f = self.Fx(self.gnk[k+1])
                             df = self.Fx(self.gnk[k+2])
-                            if gcd(f,df) <> 1:
+                            if gcd(f,df) != 1:
                                 if verbose:
                                     print "  gnk has multiple factor!"
                                 maxoutflag = True
@@ -725,7 +725,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
     nfF = pari(str(F.defining_polynomial()).replace('x', str(F.primitive_element()) ) )
     parit = pari(str(F.primitive_element()))
 
-    while f_out[m] <> 0:
+    while f_out[m] != 0:
         counts[0] += 1
         if verbose:
             print "==>", f_out,

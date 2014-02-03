@@ -496,7 +496,7 @@ class QuadraticForm(SageObject):
 
     def _pari_(self):
         """
-        Return a pari-formatted Hessian matrix for Q.
+        Return a PARI-formatted Hessian matrix for Q.
 
         EXAMPLES::
 
@@ -506,6 +506,19 @@ class QuadraticForm(SageObject):
 
         """
         return self.matrix()._pari_()
+
+    def _pari_init_(self):
+        """
+        Return a PARI-formatted Hessian matrix for Q, as string.
+
+        EXAMPLES::
+
+            sage: Q = QuadraticForm(ZZ, 2, [1,0,5])
+            sage: Q._pari_init_()
+            'Mat([2,0;0,10])'
+
+        """
+        return self.matrix()._pari_init_()
 
 
     def _repr_(self):

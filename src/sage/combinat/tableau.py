@@ -3047,6 +3047,111 @@ class Tableau(CombinatorialObject, Element):
                 key[i].insert(0,key_val)
         return Tableau(key).conjugate()
 
+    #################
+    # seg and flush #
+    #################
+
+    def _segments(self):
+        r"""
+        Internal function returning the set of segments of a tableau as
+        a dictionary.
+
+        OUTPUT:
+
+        - A dictionary with items of the form ``{(r,k):c}``, where ``r`` is the
+          row the ``k``-segment appears and ``c`` is the column the left-most
+          box of the ``k``-segment appears.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,1,2,3,5],[2,3,5,5],[3,4]])
+            sage: sorted(t._segments().items())
+            [((0, 2), 2), ((0, 3), 3), ((0, 5), 4), ((1, 3), 1), ((1, 5), 2), ((2, 4), 1)]
+
+            sage: B = CrystalOfTableaux("A4", shape=[4,3,2,1])
+            sage: t = B[31].to_tableau()
+            sage: sorted(t._segments().items())
+            [((0, 5), 3), ((1, 4), 2), ((2, 4), 1)]
+        """
+        segments = {}
+        for r,row in enumerate(self):
+            for c in range(len(row)):
+                for j in range(c+1):
+                    if row[j] != r+1 and (r,row[j]) not in segments.keys():
+                        segments[(r,row[j])] = j
+        return segments
+
+    def seg(self):
+        r"""
+        Return the total number of segments in ``self``, as in [S14]_.
+
+        Let `T` be a tableaux.  We define a `k`-*segment* of `T` (in the `i`-th
+        row) to be a maximal consecutive sequence of `k`-boxes in the `i`-th
+        row for any `i+1 \le k \le r+1`.  Denote the total number of
+        `k`-segments in `T` by `\mathrm{seg}(T)`.
+
+        REFERENCES:
+
+        .. [S14] B. Salisbury.
+           The flush statistic on semistandard Young tableaux.
+           :arXiv:`1401.1185`
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,1,2,3,5],[2,3,5,5],[3,4]])
+            sage: t.seg()
+            6
+
+            sage: B = CrystalOfTableaux("A4",shape=[4,3,2,1])
+            sage: t = B[31].to_tableau()
+            sage: t.seg()
+            3
+        """
+        return len(self._segments())
+
+    def flush(self):
+        r"""
+        Return the number of flush segments in ``self``, as in [S14]_.
+
+        Let `1 \le i < k \le r+1` and suppose `\ell` is the smallest integer
+        greater than `k` such that there exists an `\ell`-segment in the
+        `(i+1)`-st row of `T`.  A `k`-segment in the `i`-th row of `T` is
+        called *flush* if the leftmost box in the `k`-segment and the leftmost
+        box of the `\ell`-segment are in the same column of `T`.  If, however,
+        no such `\ell` exists, then this `k`-segment is said to be *flush* if
+        the number of boxes in the `k`-segment is equal to `\theta_i`, where
+        `\theta_i = \lambda_i - \lambda_{i+1}` and the shape of `T` is
+        `\lambda = (\lambda_1 > \lambda_2 > \cdots > \lambda_r)`.  Denote the
+        number of flush `k`-segments in `T` by `\mathrm{flush}(T)`.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,1,2,3,5],[2,3,5,5],[3,4]])
+            sage: t.flush()
+            3
+
+            sage: B = CrystalOfTableaux("A4",shape=[4,3,2,1])
+            sage: t = B[32].to_tableau()
+            sage: t.flush()
+            4
+        """
+        for i in range(len(self)-1):
+            if len(self[i]) <= len(self[i+1]):
+                raise ValueError('only defined for tableaux with stricly decreasing parts')
+        f = 0
+        S = self._segments().items()
+        for s in S:
+            if (s[0][0] != len(self)-1 and s[1] == len(self[s[0][0]+1])
+                and self[s[0][0]+1][-1] <= s[0][1]) \
+              or (s[0][0] == len(self)-1 and s[1] == 0):
+                f += 1
+            else:
+                for t in S:
+                    if s[0][0]+1 == t[0][0] and s[1] == t[1] and (
+                            (s[1] >= 1 and self[s[0][0]+1][s[1]-1] <= self[s[0][0]][s[1]])
+                            or (s[1] < 1 and self[s[0][0]+1][s[1]] != s[0][0]+2) ):
+                        f += 1
+        return f
 
 
 class SemistandardTableau(Tableau):

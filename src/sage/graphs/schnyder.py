@@ -84,7 +84,7 @@ def _triangulate(g, comb_emb):
     # At this point we know that the graph is connected, has at least 3 vertices, and
     # that it is not the graph o--o--o. This is where the real work starts.
 
-    faces = g.trace_faces(comb_emb)        # We start by finding all of the faces of this embedding.
+    faces = g.faces(comb_emb)        # We start by finding all of the faces of this embedding.
 
     edges_added = []                        # The list of edges that we add to the graph.
                                             # This will be returned at the end.
@@ -153,7 +153,7 @@ def _normal_label(g, comb_emb, external_face):
         sage: g = Graph(graphs.CycleGraph(7))
         sage: g.is_planar(set_embedding=True)
         True
-        sage: faces = g.trace_faces(g._embedding)
+        sage: faces = g.faces(g._embedding)
         sage: _triangulate(g, g._embedding)
         [(2, 0), (4, 2), (6, 4), (5, 0), (3, 5), (1, 3), (4, 0), (3, 0)]
         sage: tn = _normal_label(g, g._embedding, faces[0])
@@ -351,7 +351,7 @@ def _realizer(g, x, example=False):
         sage: g = Graph(graphs.CycleGraph(7))
         sage: g.is_planar(set_embedding=True)
         True
-        sage: faces = g.trace_faces(g._embedding)
+        sage: faces = g.faces(g._embedding)
         sage: _triangulate(g, g._embedding)
         [(2, 0), (4, 2), (6, 4), (5, 0), (3, 5), (1, 3), (4, 0), (3, 0)]
         sage: tn = _normal_label(g, g._embedding, faces[0])
@@ -432,7 +432,7 @@ def _compute_coordinates(g, x):
         sage: g = Graph(graphs.CycleGraph(7))
         sage: g.is_planar(set_embedding=True)
         True
-        sage: faces = g.trace_faces(g._embedding)
+        sage: faces = g.faces(g._embedding)
         sage: _triangulate(g, g._embedding)
         [(2, 0), (4, 2), (6, 4), (5, 0), (3, 5), (1, 3), (4, 0), (3, 0)]
         sage: tn = _normal_label(g, g._embedding, faces[0])

@@ -531,7 +531,7 @@ class IncidenceStructure(object):
             (True, [5, 12, 6, 1])
             sage: BD = designs.AffineGeometryDesign(3, 1, GF(2))
             sage: BD.is_block_design()
-            (True, [2, 8, 2, 2])
+            (True, [2, 8, 2, 1])
         """
         from sage.combinat.designs.incidence_structures import coordinatewise_product
         from sage.combinat.combination import Combinations

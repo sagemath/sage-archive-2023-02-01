@@ -1880,33 +1880,6 @@ class CGraphBackend(GenericGraphBackend):
         else:
             self._loops = False
 
-    def name(self, new=None):
-        """
-        Returns the name of this graph.
-
-        INPUT:
-
-        - ``new`` -- (default: ``None``); boolean (to set) or ``None``
-          (to get).
-
-        OUTPUT:
-
-        - If ``new=None``, return the name of this graph. Otherwise, set the
-          name of this graph to the value of ``new``.
-
-        EXAMPLE::
-
-            sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
-            sage: G._backend.name()
-            'Petersen graph'
-            sage: G._backend.name("Peter Pan's graph")
-            sage: G._backend.name()
-            "Peter Pan's graph"
-        """
-        if new is None:
-            return self._name
-        self._name = new
-
     def num_edges(self, directed):
         """
         Returns the number of edges in ``self``.

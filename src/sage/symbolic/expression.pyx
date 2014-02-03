@@ -9187,6 +9187,8 @@ cdef class Expression(CommutativeRingElement):
         """
         Numerically find a root of self on the closed interval [a,b] (or
         [b,a]) if possible, where self is a function in the one variable.
+        Note: this function only works in fixed (machine) precision, it is not
+        possible to get arbitrary precision approximations with it.
 
         INPUT:
 
@@ -9195,12 +9197,12 @@ cdef class Expression(CommutativeRingElement):
         -  ``var`` - optional variable
 
         -  ``xtol, rtol`` - the routine converges when a root
-           is known to lie within xtol of the value return. Should be = 0. The
+           is known to lie within xtol of the value return. Should be >= 0. The
            routine modifies this to take into account the relative precision
            of doubles.
 
         -  ``maxiter`` - integer; if convergence is not
-           achieved in maxiter iterations, an error is raised. Must be = 0.
+           achieved in maxiter iterations, an error is raised. Must be >= 0.
 
         -  ``full_output`` - bool (default: False), if True,
            also return object that contains information about convergence.

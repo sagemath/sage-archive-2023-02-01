@@ -313,7 +313,7 @@ if [ "$SAGE_SERVER" = "" ]; then
 fi
 
 if [ "$SAGE_UPSTREAM" = "" ]; then
-    SAGE_UPSTREAM="http://www.sagemath.org/packages/upstream/"
+    SAGE_UPSTREAM="${SAGE_SERVER}packages/upstream"
     export SAGE_UPSTREAM
 fi
 if [ -z "$SAGE_REPO_ANONYMOUS" ]; then

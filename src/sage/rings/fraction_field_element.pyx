@@ -121,24 +121,11 @@ cdef class FractionFieldElement(FieldElement):
             sage: K(355/113)
             355/113
 
-        The next example failed before :trac:`4376`::
-
-            sage: K(pari((x + 1)/(x^2 + x + 1)))
-            (x + 1)/(x^2 + x + 1)
-
         """
         FieldElement.__init__(self, parent)
         if coerce:
-            try:
-                self.__numerator   = parent.ring()(numerator)
-                self.__denominator = parent.ring()(denominator)
-            except (TypeError, ValueError):
-                # workaround for symbolic ring
-                if denominator == 1 and hasattr(numerator, 'numerator'):
-                    self.__numerator   = parent.ring()(numerator.numerator())
-                    self.__denominator = parent.ring()(numerator.denominator())
-                else:
-                    raise
+            self.__numerator   = parent.ring()(numerator)
+            self.__denominator = parent.ring()(denominator)
         else:
             self.__numerator   = numerator
             self.__denominator = denominator

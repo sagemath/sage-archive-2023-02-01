@@ -486,7 +486,7 @@ class DocTestController(SageObject):
                 if (set(status).issubset("MARCU")
                     and filename.startswith("src/sage")
                     and (filename.endswith(".py") or filename.endswith(".pyx"))):
-                    self.files.append(filename)
+                    self.files.append(os.path.relpath(opj(SAGE_ROOT,filename)))
         if self.options.sagenb:
             if not self.options.all:
                 self.log("Doctesting the Sage notebook.")

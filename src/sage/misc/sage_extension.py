@@ -419,15 +419,25 @@ from sage.misc.interpreter import sage_prompt
 
     def register_interface_magics(self):
         """Register magics for each of the Sage interfaces"""
-        interfaces = sorted([ obj.name()
-                              for obj in sage.interfaces.all.__dict__.values()
-                              if isinstance(obj, sage.interfaces.interface.Interface) ])
-        for name in interfaces:
-            def tmp(line,name=name):
-                self.shell.run_cell('%s.interact()'%name)
-            tmp.__doc__="Interact with %s"%name
-            self.shell.register_magic_function(tmp, magic_name=name)
+        from sage.misc.superseded import deprecation
+        interfaces = [(name, obj)
+                      for name, obj in sage.interfaces.all.__dict__.items()
+                      if isinstance(obj, sage.interfaces.interface.Interface)]
 
+        for real_name, obj in interfaces:
+            def tmp(line, name=real_name):
+                self.shell.run_cell('%s.interact()' % name)
+            tmp.__doc__ = "Interact with %s" % real_name
+            self.shell.register_magic_function(tmp, magic_name=real_name)
+
+            obj_name = obj.name()
+            if real_name != obj_name:
+                def tmp_deprecated(line, name=real_name, badname=obj_name):
+                    deprecation(6288, 'Use %%%s instead of %%%s.' % (name,
+                                                                     badname))
+                    self.shell.run_cell('%s.interact()' % name)
+                tmp_deprecated.__doc__ = "Interact with %s" % real_name
+                self.shell.register_magic_function(tmp_deprecated, magic_name=obj_name)
 
     def set_quit_hook(self):
         """

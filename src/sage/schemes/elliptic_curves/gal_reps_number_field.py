@@ -15,11 +15,11 @@ EXAMPLES::
     False
     sage: rho.is_surjective(31) # See Section 5.10 of [Serre72].
     True
-    sage: rho.non_surjective()  # long time (8s on sage.math, 2013)
+    sage: rho.non_surjective()  # long time (4s on sage.math, 2014)
     [3, 5, 29]
 
     sage: E = EllipticCurve_from_j(1728).change_ring(K) # CM
-    sage: E.galois_representation().non_surjective()
+    sage: E.galois_representation().non_surjective()  # long time (2s on sage.math, 2014)
     [0]
 
 AUTHORS:
@@ -174,7 +174,7 @@ class GaloisRepresentation(SageObject):
             sage: K = NumberField(x**2 + 3, 'a'); a = K.gen()
             sage: E = EllipticCurve([0, -1, 1, -10, -20]).change_ring(K) # X_0(11)
             sage: rho = E.galois_representation()
-            sage: rho.non_surjective()  # long time (8s on sage.math, 2013)
+            sage: rho.non_surjective()  # long time (4s on sage.math, 2014)
             [3, 5]
             sage: K = NumberField(x**2 + 1, 'a'); a = K.gen()
             sage: E = EllipticCurve_from_j(1728).change_ring(K) # CM
@@ -184,7 +184,7 @@ class GaloisRepresentation(SageObject):
             sage: K = NumberField(x**2 - 5, 'a'); a = K.gen()
             sage: E = EllipticCurve_from_j(146329141248*a - 327201914880) # CM
             sage: rho = E.galois_representation()
-            sage: rho.non_surjective() # long time - 11s
+            sage: rho.non_surjective() # long time (3s on sage.math, 2014)
             [0]
         """
         try:

@@ -2302,8 +2302,25 @@ class GenericGraph(GenericGraph_pyx):
             Graph on 10 vertices
             sage: G.name()
             ''
+
+        Name of an immutable graph :trac:`15681` ::
+
+            sage: g = graphs.PetersenGraph()
+            sage: gi = g.copy(immutable=True)
+            sage: gi.name()
+            'Petersen graph'
+            sage: gi.name("Hey")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: An immutable graph does not change name
         """
-        return self._backend.name(new)
+        if new is None:
+            return getattr(self, '_name', "")
+
+        if getattr(self, '_immutable', False):
+            raise NotImplementedError("An immutable graph does not change name")
+
+        self._name = str(new)
 
     def get_pos(self, dim = 2):
         """
@@ -13706,18 +13723,27 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             TypeError: complement not well defined for (di)graphs with multiple edges
+
+        TESTS:
+
+        We check that :trac:`15699` is fixed::
+
+            sage: G = graphs.PathGraph(5).copy(immutable=True)
+            sage: G.complement()
+            complement(Path Graph): Graph on 5 vertices
         """
         if self.has_multiple_edges():
             raise TypeError('complement not well defined for (di)graphs with multiple edges')
         self._scream_if_not_simple()
-        from copy import copy
-        G = copy(self)
+        G = self.copy(immutable=False) # Make sure it's a mutable copy
         G.delete_edges(G.edges())
         G.name('complement(%s)'%self.name())
         for u in self:
             for v in self:
                 if not self.has_edge(u,v):
                     G.add_edge(u,v)
+        if getattr(self, '_immutable', False):
+            return G.copy(immutable=True)
         return G
 
     def to_simple(self):
@@ -16636,21 +16662,11 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: To relabel an immutable graph use inplace=False
-
-        A couple of lines to remove when hasse diagrams will not have a
-        ``._immutable`` attribute by default::
-
-            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
-            sage: if getattr(HasseDiagram,'_immutable', "YES") == "YES":
-            ....:     print "two lines must be removed from this function"
-
         """
         from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 
         if not inplace:
             G = self.copy(immutable=False)
-            if getattr(G, "_immutable", False): # can be removed when posets
-                G._immutable = False            # have immutable backends
             perm2 = G.relabel(perm,
                               return_map= return_map,
                               check_input = check_input,

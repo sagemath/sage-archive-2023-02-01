@@ -1269,7 +1269,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             sage: C200(1+i).is_real()
             False
         """
-        return (mpfr_zero_p(self.value.im) <> 0)
+        return (mpfr_zero_p(self.value.im) != 0)
 
     def is_imaginary(self):
         """
@@ -1283,7 +1283,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             sage: C200(1+i).is_imaginary()
             False
         """
-        return (mpfr_zero_p(self.value.re) <> 0)
+        return (mpfr_zero_p(self.value.re) != 0)
 
     def algebraic_dependency(self, n, **kwds):
         """

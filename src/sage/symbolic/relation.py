@@ -382,8 +382,6 @@ def test_relation_maxima(relation):
         True
         sage: test_relation_maxima(x!=1)
         False
-        sage: test_relation_maxima(x<>1) # alternate syntax for not equal
-        False
         sage: forget()
         sage: assume(x>0)
         sage: test_relation_maxima(x==0)

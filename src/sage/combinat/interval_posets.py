@@ -13,6 +13,7 @@ REFERENCES:
 **AUTHORS:**
 
 - Viviane Pons 2014: initial implementation
+- Frederic Chapoton 2014: review
 """
 #*****************************************************************************
 #       Copyright (C) 2013 Viviane Pons <viviane.pons@univie.ac.at>,
@@ -2011,11 +2012,13 @@ class TamariIntervalPosets_size(TamariIntervalPosets):
 
         EXAMPLES::
 
-            sage: [TamariIntervalPosets(i).cardinality() for i in range(1,6)]
-            [1, 3, 13, 68, 399]
+            sage: [TamariIntervalPosets(i).cardinality() for i in range(6)]
+            [1, 1, 3, 13, 68, 399]
         """
         from sage.rings.arith import binomial
         n = self._size
+        if n==0:
+            return Integer(1)
         return (2 * binomial(4 * n + 1, n - 1)) // (n * (n + 1))
         # return Integer(2 * factorial(4*n+1)/(factorial(n+1)*factorial(3*n+2)))
 

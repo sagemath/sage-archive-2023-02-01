@@ -1236,7 +1236,7 @@ def loads(s, compress=True):
     return unpickler.load()
 
 
-cdef bint make_pickle_jar = os.environ.has_key('SAGE_PICKLE_JAR')
+cdef bint make_pickle_jar = 'SAGE_PICKLE_JAR' in os.environ
 
 def picklejar(obj, dir=None):
     """

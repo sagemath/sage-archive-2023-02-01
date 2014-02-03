@@ -620,9 +620,9 @@ cdef class Element(sage_object.SageObject):
         # required to have the latter
         for i in xrange(0,ngens):
             gen=parent.gen(i)
-            if kwds.has_key(str(gen)):
+            if str(gen) in kwds:
                 variables.append(kwds[str(gen)])
-            elif in_dict and in_dict.has_key(gen):
+            elif in_dict and gen in in_dict:
                 variables.append(in_dict[gen])
             else:
                 variables.append(gen)

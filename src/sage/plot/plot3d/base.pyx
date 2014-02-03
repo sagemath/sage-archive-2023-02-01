@@ -1780,7 +1780,7 @@ cdef class PrimitiveObject(Graphics3d):
     This is the base class for the non-container 3d objects.
     """
     def __init__(self, **kwds):
-        if kwds.has_key('texture'):
+        if 'texture' in kwds:
             self.texture = kwds['texture']
             if not is_Texture(self.texture):
                 self.texture = Texture(self.texture)

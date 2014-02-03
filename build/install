@@ -13,7 +13,7 @@ SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
 SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
 SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 SAGE_VERSION=`cat $SAGE_ROOT/VERSION.txt | sed 's+.*\ \(.*\),.*+\1+'`
-PATH="$SAGE_ROOT/src/bin:$SAGE_LOCAL/bin:$PATH"
+PATH="$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
 PYTHONPATH="$SAGE_LOCAL"
 export SAGE_ROOT SAGE_SRC SAGE_LOCAL SAGE_EXTCODE SAGE_LOGS SAGE_SPKG_INST SAGE_VERSION PATH PYTHONPATH
 
@@ -60,16 +60,6 @@ mkdir -p "$SAGE_LOCAL/etc"
 mkdir -p "$SAGE_LOCAL/lib"
 mkdir -p "$SAGE_SPKG_INST"
 mkdir -p "$SAGE_SHARE"
-
-# If we are upgrading from an old version of Sage where $SAGE_SHARE
-# was stored at $SAGE_ROOT/data, move it to the right location.
-# Check that $SAGE_ROOT/data is an existing directory and not a symlink.
-if [ -d "$SAGE_ROOT/data" ] && [ ! -h "$SAGE_ROOT/data" ]; then
-    mkdir -p "$SAGE_ROOT/devel"
-    mv "$SAGE_ROOT"/data/extcode "$SAGE_ROOT/devel/ext-main"
-    mv "$SAGE_ROOT"/data/* "$SAGE_SHARE"
-    rm -rf "$SAGE_ROOT/data"
-fi
 
 ###############################################################################
 # Determine whether to install GCC (gcc, g++, gfortran).
@@ -331,6 +321,11 @@ cat >&3 <<EOF
 
 EOF
 
+# Use bash as shell for the Makefile (bash obviously exists, since
+# this build/install script runs under bash).
+echo >&3 "SHELL = `command -v bash`"
+echo >&3
+
 # If the user (or the Makefile) has set SAGE_PARALLEL_SPKG_BUILD=no,
 # then turn off parallel building: disable just building multiple
 # packages at the same time.   Individual packages can still be built
@@ -339,26 +334,6 @@ if [ "${SAGE_PARALLEL_SPKG_BUILD:-yes}" = no ]; then
     echo ".NOTPARALLEL:" >&3
     echo "" >&3
 fi
-
-# Usage: newest_version_base $pkg
-# Print version number of latest (according to modification time)
-# base package $pkg
-newest_version_base() {
-    PKG=$1
-    # As a fallback, we also look at the latest installed package.
-    for FILE in `{ ls -1t base/$PKG-*-install; ls -1t installed/$PKG-*; } 2>/dev/null`
-    do
-        ANS=`echo "$FILE" | sed 's|.*/||; s|-install||'`
-        if [ -n "$ANS" ]; then
-            echo "$ANS"
-            return 0
-        fi
-    done
-
-    echo >&2 "Cannot determine latest version of $PKG."
-    echo "$PKG"
-    return 1
-}
 
 # Usage: newest_version $pkg
 # Print version number of latest standard package $pkg
@@ -375,9 +350,6 @@ newest_version() {
 }
 
 cat >&3 <<EOF
-# Base packages
-PREREQ=`newest_version_base prereq`
-
 # Standard packages
 ATLAS=`newest_version atlas`
 BOEHM_GC=`newest_version boehm_gc`
@@ -437,7 +409,7 @@ PALP=`newest_version palp`
 PARI=`newest_version pari`
 PATCH=`newest_version patch`
 PEXPECT=`newest_version pexpect`
-PIL=`newest_version pil`
+PILLOW=`newest_version pillow`
 POLYBORI=`newest_version polybori`
 POLYTOPES_DB=`newest_version polytopes_db`
 PPL=`newest_version ppl`
@@ -490,7 +462,7 @@ for file in "$SAGE_SRC/bin/"*; do
     echo >&3 "                 \$(SAGE_SRC)${file#$SAGE_SRC} \\"
 done
 echo >&3
-echo >&3 'SCRIPT_TARGETS = \'
+echo >&3 'SCRIPTS = \'
 for file in "$SAGE_SRC/bin/"*; do
     echo >&3 "                 \$(SAGE_LOCAL)${file#$SAGE_SRC} \\"
 done
@@ -500,7 +472,7 @@ for file in `find "$SAGE_SRC"/ext -type f`; do
     echo >&3 "                  \$(SAGE_SRC)${file#$SAGE_SRC} \\"
 done
 echo >&3
-echo >&3 'EXTCODE_TARGETS = \'
+echo >&3 'EXTCODE = \'
 for file in `find "$SAGE_SRC"/ext -type f`; do
     echo >&3 "                  \$(SAGE_EXTCODE)${file#$SAGE_SRC/ext} \\"
 done

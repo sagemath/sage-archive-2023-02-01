@@ -10,11 +10,11 @@ elliptic curve case (not more general hyperelliptic curves).
 
 REFERENCES:
 
--  Kedlaya, K., "Counting points on hyperelliptic curves using
+.. [Ked2001] Kedlaya, K., "Counting points on hyperelliptic curves using
    Monsky-Washnitzer cohomology", J. Ramanujan Math. Soc. 16 (2001) no
    4, 323-338
 
--  Edixhoven, B., "Point counting after Kedlaya", EIDMA-Stieltjes
+.. [Edix] Edixhoven, B., "Point counting after Kedlaya", EIDMA-Stieltjes
    graduate course, Lieden (lecture notes?).
 
 AUTHORS:
@@ -84,10 +84,12 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
     (which is the dominant operation in the frobenius matrix
     calculation). I haven't actually tested this theory though...
 
-    TODO: - Eventually we will want to run this in characteristic 3, so
-    we need to: (a) Allow `Q(x)` to contain an `x^2` term, and
-    (b) Remove the requirement that 3 be invertible. Currently this is
-    used in the Toom-Cook algorithm to speed multiplication.
+    .. TODO::
+
+        Eventually we will want to run this in characteristic 3, so we
+        need to: (a) Allow `Q(x)` to contain an `x^2` term, and (b) Remove
+        the requirement that 3 be invertible. Currently this is used in
+        the Toom-Cook algorithm to speed multiplication.
 
     EXAMPLES::
 
@@ -131,25 +133,24 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
         sage: (x^10).coeffs()
         [[8, 61, 3, 0], [40, 12, 93, 1], [9, 61, 3, 0]]
 
-    TODO: write an example checking multiplication of these polynomials
-    against Sage's ordinary quotient ring arithmetic. I can't seem to
-    get the quotient ring stuff happening right now...
-    """
+    .. TODO::
 
-    def __init__(self, Q, laurent_series = False):
+        write an example checking multiplication of these polynomials
+        against Sage's ordinary quotient ring arithmetic. I can't seem
+        to get the quotient ring stuff happening right now...
+    """
+    def __init__(self, Q, laurent_series=False):
         """
         Constructor.
 
         INPUT:
 
-
-        -  ``Q`` - a polynomial of the form
+        - ``Q`` -- a polynomial of the form
            `Q(x) = x^3 + ax + b`, where `a`, `b` belong to a ring in which
            2, 3 are invertible.
 
-        -  ``laurent_series`` - whether or not to allow
+        - ``laurent_series`` -- whether or not to allow
            negative powers of `T` (default=False)
-
 
         EXAMPLES::
 
@@ -174,17 +175,16 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
             ArithmeticError: 2 and 3 must be invertible in the coefficient ring (=Ring of integers modulo 10) of Q
         """
         if not is_Polynomial(Q):
-            raise TypeError, "Q (=%s) must be a polynomial" % Q
+            raise TypeError("Q (=%s) must be a polynomial" % Q)
 
         if Q.degree() != 3 or not Q[2].is_zero():
-            raise ValueError, "Q (=%s) must be of the form x^3 + ax + b" % Q
+            raise ValueError("Q (=%s) must be of the form x^3 + ax + b" % Q)
 
         base_ring = Q.parent().base_ring()
 
         if not base_ring(6).is_unit():
-            raise ArithmeticError, \
-                  "2 and 3 must be invertible in the coefficient ring (=%s) of Q" % \
-                  base_ring
+            raise ArithmeticError("2 and 3 must be invertible in the "
+                                  "coefficient ring (=%s) of Q" % base_ring)
 
         # CommutativeAlgebra.__init__ tries to establish a coercion
         # from the base ring, by trac ticket #9138. The corresponding
@@ -206,17 +206,16 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
         # This is where we need 2 and 3 invertible.
 
         # (a good description of Toom-Cook is online at:
-        # http://www.gnu.org/software/gmp/manual/html_node/Toom-Cook-3-Way-Multiplication.html )
+        # http://www.gnu.org/software/gmp/manual/html_node/Toom-Cook-3-Way-Multiplication.html)
 
-        self._speedup_matrix = \
-                             (matrix(Integers(), 3, 3, [2, 4, 8,
-                                                        1, 1, 1,
-                                                        8, 4, 2])**(-1)
-                              ).change_ring(base_ring).list()
-
+        self._speedup_matrix = (matrix(Integers(), 3, 3, [2, 4, 8,
+                                                          1, 1, 1,
+                                                          8, 4, 2])**(-1)).change_ring(base_ring).list()
 
     def __repr__(self):
         """
+        String representation
+
         EXAMPLES::
 
             sage: B.<t> = PolynomialRing(Integers(125))
@@ -225,8 +224,8 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
             SpecialCubicQuotientRing over Ring of integers modulo 125 with polynomial T = x^3 + 124*x + 94
         """
         return "SpecialCubicQuotientRing over %s with polynomial T = %s" % \
-               (self.base_ring(), PolynomialRing(self.base_ring(), 'x')(
-                                                [self._b, self._a, 0, 1]))
+            (self.base_ring(), PolynomialRing(self.base_ring(), 'x')(
+                [self._b, self._a, 0, 1]))
 
     def poly_ring(self):
         """
@@ -248,8 +247,8 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
 
         .. note::
 
-           I have no idea if this is compatible with the usual Sage
-           'gens' interface.
+            I have no idea if this is compatible with the usual Sage
+            'gens' interface.
 
         EXAMPLES::
 
@@ -261,12 +260,14 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
             sage: T
             (T) + (0)*x + (0)*x^2
         """
-        return [SpecialCubicQuotientRingElement(self,
-                   self._poly_ring(0), self._poly_ring(1), self._poly_ring(0),
-                   check=False),
-                SpecialCubicQuotientRingElement(self,
-                   self._poly_generator, self._poly_ring(0), self._poly_ring(0),
-                   check=False)]
+        return [SpecialCubicQuotientRingElement(self, self._poly_ring(0),
+                                                self._poly_ring(1),
+                                                self._poly_ring(0),
+                                                check=False),
+                SpecialCubicQuotientRingElement(self, self._poly_generator,
+                                                self._poly_ring(0),
+                                                self._poly_ring(0),
+                                                check=False)]
 
     def create_element(self, p0, p1, p2, check=True):
         """
@@ -275,13 +276,11 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
 
         INPUT:
 
-
-        -  ``p0, p1, p2`` - coefficients; must be coercible
+        - ``p0, p1, p2`` -- coefficients; must be coercible
            into poly_ring()
 
-        -  ``check`` - bool (default True): whether to carry
+        - ``check`` -- bool (default True): whether to carry
            out coercion
-
 
         EXAMPLES::
 
@@ -293,7 +292,6 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
         """
         return SpecialCubicQuotientRingElement(self, p0, p1, p2, check)
 
-
     def __call__(self, value):
         """
         EXAMPLES::
@@ -304,7 +302,6 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
             (3) + (0)*x + (0)*x^2
         """
         return self._coerce_(value)
-
 
     def _coerce_impl(self, value):
         """
@@ -318,17 +315,14 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
         # coerce to underlying polynomial ring (possibly via base ring):
         value = self._poly_ring._coerce_(value)
 
-        return SpecialCubicQuotientRingElement(self,
-                   value, self._poly_ring(0), self._poly_ring(0), check=False)
-
-
+        return SpecialCubicQuotientRingElement(self, value, self._poly_ring(0),
+                                               self._poly_ring(0), check=False)
 
 
 class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
     """
     An element of a SpecialCubicQuotientRing.
     """
-
     def __init__(self, parent, p0, p1, p2, check=True):
         """
         Constructs the element `p_0 + p_1*x + p_2*x^2`, where
@@ -336,15 +330,13 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
 
         INPUT:
 
+        - ``parent`` -- a SpecialCubicQuotientRing
 
-        -  ``parent`` - a SpecialCubicQuotientRing
-
-        -  ``p0, p1, p2`` - coefficients; must be coercible
+        - ``p0, p1, p2`` -- coefficients; must be coercible
            into parent.poly_ring()
 
-        -  ``check`` - bool (default True): whether to carry
+        - ``check`` -- bool (default True): whether to carry
            out coercion
-
 
         EXAMPLES::
 
@@ -355,8 +347,7 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
             (2) + (3)*x + (4)*x^2
         """
         if not isinstance(parent, SpecialCubicQuotientRing):
-            raise TypeError, \
-                  "parent (=%s) must be a SpecialCubicQuotientRing" % parent
+            raise TypeError("parent (=%s) must be a SpecialCubicQuotientRing" % parent)
 
         CommutativeAlgebraElement.__init__(self, parent)
 
@@ -433,7 +424,6 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
         """
         return "(%s) + (%s)*x + (%s)*x^2" % self._triple
 
-
     def _latex_(self):
         """
         EXAMPLES::
@@ -447,7 +437,6 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
         """
         return "(%s) + (%s)x + (%s)x^2" % \
                tuple([column._latex_() for column in self._triple])
-
 
     def _add_(self, other):
         """
@@ -466,7 +455,6 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
                                                self._triple[2] + other._triple[2],
                                                check=False)
 
-
     def _sub_(self, other):
         """
         EXAMPLES::
@@ -483,7 +471,6 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
                                                self._triple[1] - other._triple[1],
                                                self._triple[2] - other._triple[2],
                                                check=False)
-
 
     def shift(self, n):
         """
@@ -507,7 +494,6 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
                                                self._triple[2].shift(n),
                                                check=False)
 
-
     def scalar_multiply(self, scalar):
         """
         Multiplies this element by a scalar, i.e. just multiply each
@@ -515,10 +501,8 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
 
         INPUT:
 
-
-        -  ``scalar`` - either an element of base_ring, or an
+        - ``scalar`` -- either an element of base_ring, or an
            element of poly_ring.
-
 
         EXAMPLES::
 
@@ -555,7 +539,6 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
             (73*T^5 + 16*T^4 + 38*T^3 + 39*T^2 + 70*T + 120) + (121*T^5 + 113*T^4 + 73*T^3 + 8*T^2 + 51*T + 61)*x + (18*T^4 + 60*T^3 + 22*T^2 + 108*T + 31)*x^2
         """
         return self * self
-
 
     def _mul_(self, other):
         """
@@ -631,21 +614,18 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
                                                -a*c4 + c2,
                                                check=False)
 
+
 def transpose_list(input):
     """
     INPUT:
 
-
-    -  ``input`` - a list of lists, each list of the same
+    - ``input`` -- a list of lists, each list of the same
        length
-
 
     OUTPUT:
 
-
-    -  ``output`` - a list of lists such that output[i][j]
+    - ``output`` -- a list of lists such that output[i][j]
        = input[j][i]
-
 
     EXAMPLES::
 
@@ -654,7 +634,6 @@ def transpose_list(input):
         sage: transpose_list(L)
         [[1, 3, 5], [2, 4, 6]]
     """
-
     h = len(input)
     w = len(input[0])
 
@@ -667,7 +646,6 @@ def transpose_list(input):
     return output
 
 
-
 def helper_matrix(Q):
     """
     Computes the (constant) matrix used to calculate the linear
@@ -677,8 +655,16 @@ def helper_matrix(Q):
 
     INPUT:
 
+    - ``Q`` -- cubic polynomial
 
-    -  ``Q`` - cubic polynomial
+    EXAMPLES::
+
+        sage: t = polygen(QQ,'t')
+        sage: from sage.schemes.elliptic_curves.monsky_washnitzer import helper_matrix
+        sage: helper_matrix(t**3-4*t-691)
+        [     64/12891731  -16584/12891731 4297329/12891731]
+        [   6219/12891731     -32/12891731    8292/12891731]
+        [    -24/12891731    6219/12891731     -32/12891731]
     """
     a = Q[1]
     b = Q[0]
@@ -692,10 +678,10 @@ def helper_matrix(Q):
     #   [  0,  -2a,  -3b ]
     #   [  3,    0,  -2a ]
 
-    M = Dinv * matrix( [  [4*a**2 , -6*b*a  , 9*b**2  ],
-                           [-9*b   , -2*a**2 , 3*b*a   ],
-                           [ 6*a   , -9*b    , -2*a**2 ] ])
-    return M
+    return Dinv * matrix([[4*a**2, -6*b*a, 9*b**2],
+                          [-9*b, -2*a**2, 3*b*a],
+                          [6*a, -9*b, -2*a**2]])
+
 
 def lift(x):
     r"""
@@ -707,12 +693,25 @@ def lift(x):
     This function is just a very kludgy solution to the problem of
     trying to make the reduction code (below) work over both Zp and
     Zp[[t]].
+
+    EXAMPLES::
+
+        sage: from sage.schemes.elliptic_curves.monsky_washnitzer import lift
+        sage: l = lift(Qp(13)(131)); l
+        131
+        sage: l.parent()
+        Integer Ring
+
+        sage: x=PowerSeriesRing(Qp(17),'x').gen()
+        sage: l = lift(4+5*x+17*x**6); l
+        4 + 5*t + 17*t^6
+        sage: l.parent()
+        Power Series Ring in t over Rational Field
     """
     try:
         return x.lift()
     except AttributeError:
         return PowerSeriesRing(Rationals(), "t")(x.list(), x.prec())
-
 
 
 def reduce_negative(Q, p, coeffs, offset, exact_form=None):
@@ -722,17 +721,15 @@ def reduce_negative(Q, p, coeffs, offset, exact_form=None):
 
     INPUT:
 
+    - ``p`` -- prime
 
-    -  ``p`` - prime
+    - ``Q`` -- cubic polynomial
 
-    -  ``Q`` - cubic polynomial
-
-    -  ``coeffs`` - list of length 3 lists. The
+    - ``coeffs`` -- list of length 3 lists. The
        `i^{th}` list [a, b, c] represents
        `y^{2(i - offset)} (a + bx + cx^2) dx/y`.
 
-    -  ``offset`` - nonnegative integer
-
+    - ``offset`` -- nonnegative integer
 
     OUTPUT: The reduction is performed in-place. The output is placed
     in coeffs[offset]. Note that coeffs[i] will be meaningless for i
@@ -788,15 +785,15 @@ def reduce_negative(Q, p, coeffs, offset, exact_form=None):
             # using pAdicInteger.
 
             if (p.divides(j+1)):
-               # need to lift here to perform the division
-               a[0] = base_ring(lift(a[0]) / (j+1))
-               a[1] = base_ring(lift(a[1]) / (j+1))
-               a[2] = base_ring(lift(a[2]) / (j+1))
+                # need to lift here to perform the division
+                a[0] = base_ring(lift(a[0]) / (j+1))
+                a[1] = base_ring(lift(a[1]) / (j+1))
+                a[2] = base_ring(lift(a[2]) / (j+1))
             else:
-               j_plus_1_inv = ~base_ring(j+1)
-               a[0] = a[0] * j_plus_1_inv
-               a[1] = a[1] * j_plus_1_inv
-               a[2] = a[2] * j_plus_1_inv
+                j_plus_1_inv = ~base_ring(j+1)
+                a[0] = a[0] * j_plus_1_inv
+                a[1] = a[1] * j_plus_1_inv
+                a[2] = a[2] * j_plus_1_inv
 
             c1 = m[3]*a[0] + m[4]*a[1] + m[5]*a[2]
             c2 = m[6]*a[0] + m[7]*a[1] + m[8]*a[2]
@@ -810,16 +807,14 @@ def reduce_negative(Q, p, coeffs, offset, exact_form=None):
                 c0 = m[0]*a[0] + m[1]*a[1] + m[2]*a[2]
                 exact_form += (c0 + c1*x + c2 * x**2) * y**(j+1)
 
-
     except NotImplementedError:
-        raise NotImplementedError, \
-            "It looks like you've found a non-integral matrix of Frobenius! " \
-            "(Q=%s, p=%s)\nTime to write a paper." % (Q, p)
+        raise NotImplementedError("It looks like you've found a "
+                                  "non-integral matrix of Frobenius! "
+                                  "(Q=%s, p=%s)\nTime to write a paper." % (Q, p))
 
     coeffs[int(offset)] = next_a
 
     return exact_form
-
 
 
 def reduce_positive(Q, p, coeffs, offset, exact_form=None):
@@ -829,15 +824,13 @@ def reduce_positive(Q, p, coeffs, offset, exact_form=None):
 
     INPUT:
 
+    - ``Q`` -- cubic polynomial
 
-    -  ``Q`` - cubic polynomial
-
-    -  ``coeffs`` - list of length 3 lists. The
+    - ``coeffs`` -- list of length 3 lists. The
        `i^{th}` list [a, b, c] represents
        `y^{2(i - offset)} (a + bx + cx^2) dx/y`.
 
-    -  ``offset`` - nonnegative integer
-
+    - ``offset`` -- nonnegative integer
 
     OUTPUT: The reduction is performed in-place. The output is placed
     in coeffs[offset]. Note that coeffs[i] will be meaningless for i
@@ -876,7 +869,6 @@ def reduce_positive(Q, p, coeffs, offset, exact_form=None):
 
     offset = Integer(offset)
 
-
     if exact_form is not None:
         x = exact_form.parent().gen(0)
         y = exact_form.parent().base_ring().gen(0)
@@ -907,7 +899,7 @@ def reduce_positive(Q, p, coeffs, offset, exact_form=None):
 
         next_a[0] = next_a[0] + B*c1*(j+1)
         next_a[1] = next_a[1] + A*c1*(j+1) + B*c2*(j+1)
-        next_a[2] = next_a[2]              + A*c2*(j+1)
+        next_a[2] = next_a[2] + A*c2*(j+1)
 
         if exact_form is not None:
             exact_form += (c1*x + c2 * x**2) * y**(j+1)
@@ -917,7 +909,6 @@ def reduce_positive(Q, p, coeffs, offset, exact_form=None):
     return exact_form
 
 
-
 def reduce_zero(Q, coeffs, offset, exact_form=None):
     """
     Applies cohomology relation to incorporate `x^2 y^0` term
@@ -925,15 +916,13 @@ def reduce_zero(Q, coeffs, offset, exact_form=None):
 
     INPUT:
 
+    - ``Q`` -- cubic polynomial
 
-    -  ``Q`` - cubic polynomial
-
-    -  ``coeffs`` - list of length 3 lists. The
+    - ``coeffs`` -- list of length 3 lists. The
        `i^{th}` list [a, b, c] represents
        `y^{2(i - offset)} (a + bx + cx^2) dx/y`.
 
-    -  ``offset`` - nonnegative integer
-
+    - ``offset`` -- nonnegative integer
 
     OUTPUT: The reduction is performed in-place. The output is placed
     in coeffs[offset]. This method completely ignores coeffs[i] for i
@@ -961,7 +950,6 @@ def reduce_zero(Q, coeffs, offset, exact_form=None):
     coeffs[int(offset)] = a
 
     if exact_form is not None:
-        x = exact_form.parent().gen(0)
         y = exact_form.parent()(exact_form.parent().base_ring().gen(0))
         exact_form += Q.base_ring()(a[2] / 3) * y
 
@@ -971,7 +959,6 @@ def reduce_zero(Q, coeffs, offset, exact_form=None):
     return exact_form
 
 
-
 def reduce_all(Q, p, coeffs, offset, compute_exact_form=False):
     """
     Applies cohomology relations to reduce all terms to a linear
@@ -979,14 +966,13 @@ def reduce_all(Q, p, coeffs, offset, compute_exact_form=False):
 
     INPUT:
 
+    - ``Q`` -- cubic polynomial
 
-    -  ``Q`` - cubic polynomial
-
-    -  ``coeffs`` - list of length 3 lists. The
+    - ``coeffs`` -- list of length 3 lists. The
        `i^{th}` list [a, b, c] represents
        `y^{2(i - offset)} (a + bx + cx^2) dx/y`.
 
-    -  ``offset`` - nonnegative integer
+    - ``offset`` -- nonnegative integer
 
 
     OUTPUT:
@@ -1035,12 +1021,11 @@ def reduce_all(Q, p, coeffs, offset, compute_exact_form=False):
         return (coeffs[int(offset)][0], coeffs[int(offset)][1]), exact_form
 
 
-
 def frobenius_expansion_by_newton(Q, p, M):
     r"""
     Computes the action of Frobenius on `dx/y` and on
     `x dx/y`, using Newton's method (as suggested in Kedlaya's
-    paper).
+    paper [Ked2001]_).
 
     (This function does *not* yet use the cohomology relations - that
     happens afterwards in the "reduction" step.)
@@ -1069,24 +1054,33 @@ def frobenius_expansion_by_newton(Q, p, M):
 
     INPUT:
 
-
-    -  ``Q`` - cubic polynomial of the form
+    - ``Q`` -- cubic polynomial of the form
        `Q(x) = x^3 + ax + b`, whose coefficient ring is a
        `Z/(p^M)Z`-algebra
 
-    -  ``p`` - residue characteristic of the p-adic field
+    - ``p`` -- residue characteristic of the p-adic field
 
-    -  ``M`` - p-adic precision of the coefficient ring
+    - ``M`` -- p-adic precision of the coefficient ring
        (this will be used to determine the number of Newton iterations)
 
-
     OUTPUT:
-
 
     -  ``F0, F1`` - elements of
        SpecialCubicQuotientRing(Q), as described above
 
     -  ``r`` - non-negative integer, as described above
+
+    EXAMPLES::
+
+        sage: from sage.schemes.elliptic_curves.monsky_washnitzer import frobenius_expansion_by_newton
+        sage: R.<x> = Integers(5^3)['x']
+        sage: Q = x^3 - x + R(1/4)
+        sage: frobenius_expansion_by_newton(Q,5,3)
+        ((25*T^5 + 75*T^3 + 100*T^2 + 100*T + 100) + (5*T^6 + 80*T^5 + 100*T^3
+        + 25*T + 50)*x + (55*T^5 + 50*T^4 + 75*T^3 + 25*T^2 + 25*T + 25)*x^2,
+        (5*T^8 + 15*T^7 + 95*T^6 + 10*T^5 + 25*T^4 + 25*T^3 + 100*T^2 + 50)
+        + (65*T^7 + 55*T^6 + 70*T^5 + 100*T^4 + 25*T^2 + 100*T)*x
+        + (15*T^6 + 115*T^5 + 75*T^4 + 100*T^3 + 50*T^2 + 75*T + 75)*x^2, 7)
     """
 
     S = SpecialCubicQuotientRing(Q)
@@ -1118,7 +1112,7 @@ def frobenius_expansion_by_newton(Q, p, M):
     if M <= 3:
         initial_precision = M
     elif ceil(log(M/2, 2)) == ceil(log(M/3, 2)):
-        # In this case there's no advantage to starting with precision three,
+        # In this case there is no advantage to starting with precision three,
         # because we'll overshoot at the end. E.g. suppose the final precision
         # is 8. If we start with precision 2, we need two iterations to get us
         # to 8. If we start at precision 3, we will still need two iterations,
@@ -1139,14 +1133,11 @@ def frobenius_expansion_by_newton(Q, p, M):
         k = 2
         X = S(base_ring(3) / base_ring(2)).shift(p) - r
     elif initial_precision == 3:
-      # approximation is (15 - 10 s + 3 s^2) / 8
-      k = 3
-      X = (base_ring(1) / base_ring(8)) * (
-            S(15).shift(2*p) - \
-            (base_ring(20) * r).shift(p) + \
-            (base_ring(12) * r.square()) \
-          )
-
+        # approximation is (15 - 10 s + 3 s^2) / 8
+        k = 3
+        X = (base_ring(1) / base_ring(8)) * (S(15).shift(2*p)
+                                             - (base_ring(20) * r).shift(p) +
+                                             (base_ring(12) * r.square()))
     # The key to the following calculation is that the T^{-m} coefficient
     # of every x_i is divisible by p^(ceil(m/p)) (for m >= 0). Therefore if
     # we are only expecting an answer correct mod p^k, we can truncate
@@ -1169,7 +1160,7 @@ def frobenius_expansion_by_newton(Q, p, M):
 
         # This prevents us overshooting. For example if the current precision
         # is 3 and we want to get to 10, we're better off going up to 5
-        # instead of 6, because it's less work to get from 5 to 10 than it
+        # instead of 6, because it is less work to get from 5 to 10 than it
         # is to get from 6 to 10.
         if ceil(log(M/target_k, 2)) == ceil(log(M/(target_k-1), 2)):
             target_k -= 1
@@ -1193,7 +1184,7 @@ def frobenius_expansion_by_newton(Q, p, M):
 
     # We should have s^{-1/2} correct to precision M.
     # The following line can be uncommented to verify this.
-    # (It's a slow verification though, can double the whole computation time.)
+    # (It is a slow verification though, can double the whole computation time.)
 
     #assert (p * X.square() * r * base_ring(2)).coeffs() == \
     #       R(p).shift(p*(2*M - 1)).coeffs()
@@ -1207,8 +1198,6 @@ def frobenius_expansion_by_newton(Q, p, M):
     return F0, F1, offset
 
 
-
-
 def frobenius_expansion_by_series(Q, p, M):
     r"""
     Computes the action of Frobenius on `dx/y` and on `x dx/y`, using a
@@ -1219,7 +1208,7 @@ def frobenius_expansion_by_series(Q, p, M):
     Theoretically the Newton method should be asymptotically faster,
     when the precision gets large. However, in practice, this functions
     seems to be marginally faster for moderate precision, so I'm
-    keeping it here until I figure out exactly why it's faster.)
+    keeping it here until I figure out exactly why it is faster.)
 
     (This function does *not* yet use the cohomology relations - that
     happens afterwards in the "reduction" step.)
@@ -1252,14 +1241,13 @@ def frobenius_expansion_by_series(Q, p, M):
 
     INPUT:
 
-
-    -  ``Q`` - cubic polynomial of the form
+    - ``Q`` -- cubic polynomial of the form
        `Q(x) = x^3 + ax + b`, whose coefficient ring is a
        `\ZZ/(p^M)\ZZ` -algebra
 
-    -  ``p`` - residue characteristic of the `p`-adic field
+    - ``p`` -- residue characteristic of the `p`-adic field
 
-    -  ``M`` - `p`-adic precision of the coefficient ring
+    - ``M`` -- `p`-adic precision of the coefficient ring
        (this will be used to determine the number of terms in the
        series)
 
@@ -1269,6 +1257,18 @@ def frobenius_expansion_by_series(Q, p, M):
        SpecialCubicQuotientRing(Q), as described above
 
     -  ``r`` - non-negative integer, as described above
+
+    EXAMPLES::
+
+        sage: from sage.schemes.elliptic_curves.monsky_washnitzer import frobenius_expansion_by_series
+        sage: R.<x> = Integers(5^3)['x']
+        sage: Q = x^3 - x + R(1/4)
+        sage: frobenius_expansion_by_series(Q,5,3)
+        ((25*T^5 + 75*T^3 + 100*T^2 + 100*T + 100) + (5*T^6 + 80*T^5 + 100*T^3
+        + 25*T + 50)*x + (55*T^5 + 50*T^4 + 75*T^3 + 25*T^2 + 25*T + 25)*x^2,
+        (5*T^8 + 15*T^7 + 95*T^6 + 10*T^5 + 25*T^4 + 25*T^3 + 100*T^2 + 50)
+        + (65*T^7 + 55*T^6 + 70*T^5 + 100*T^4 + 25*T^2 + 100*T)*x
+        + (15*T^6 + 115*T^5 + 75*T^4 + 100*T^3 + 50*T^2 + 75*T + 75)*x^2, 7)
     """
 
     S = SpecialCubicQuotientRing(Q)
@@ -1287,7 +1287,7 @@ def frobenius_expansion_by_series(Q, p, M):
 
     E = frobQ - S(1).shift(p)    # E =  Q(x^p) - Q(x)^p
 
-    offset = int( ((2*M-3)*p-1)/2 )
+    offset = int(((2*M-3)*p-1)/2)
     term = p * x_to_p_less_1
     F0 = term.shift((M-2)*p)
 
@@ -1312,18 +1312,17 @@ def frobenius_expansion_by_series(Q, p, M):
     return F0, F0 * x_to_p, offset
 
 
-
 def adjusted_prec(p, prec):
     r"""
     Computes how much precision is required in matrix_of_frobenius to
     get an answer correct to prec `p`-adic digits.
 
-    The issue is that the algorithm used in matrix_of_frobenius
-    sometimes performs divisions by `p`, so precision is lost
-    during the algorithm.
+    The issue is that the algorithm used in
+    :func:`matrix_of_frobenius` sometimes performs divisions by `p`,
+    so precision is lost during the algorithm.
 
     The estimate returned by this function is based on Kedlaya's result
-    (Lemmas 2 and 3 of "Counting Points on Hyperelliptic Curves..."),
+    (Lemmas 2 and 3 of [Ked2001]_),
     which implies that if we start with `M` `p`-adic
     digits, the total precision loss is at most
     `1 + \lfloor \log_p(2M-3) \rfloor` `p`-adic
@@ -1333,27 +1332,24 @@ def adjusted_prec(p, prec):
 
     INPUT:
 
+    - ``p`` -- a prime = 5
 
-    -  ``p`` - a prime = 5
-
-    -  ``prec`` - integer, desired output precision, = 1
-
+    - ``prec`` -- integer, desired output precision, = 1
 
     OUTPUT: adjusted precision (usually slightly more than prec)
     """
 
     # initial estimate:
     if prec <= 2:
-      adjusted = 2
+        adjusted = 2
     else:
-      adjusted = prec + int(log(2*prec - 3, p)) - 1
+        adjusted = prec + int(log(2*prec - 3, p)) - 1
 
     # increase it until we have enough
     while adjusted - int(log(2*adjusted - 3, p)) - 1 < prec:
         adjusted += 1
 
     return adjusted
-
 
 
 def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
@@ -1363,24 +1359,23 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
 
     INPUT:
 
-
-    -  ``Q`` - cubic polynomial `Q(x) = x^3 + ax + b`
+    - ``Q`` -- cubic polynomial `Q(x) = x^3 + ax + b`
        defining an elliptic curve `E` by
        `y^2 = Q(x)`. The coefficient ring of `Q` should be a
        `\ZZ/(p^M)\ZZ`-algebra in which the matrix of
        frobenius will be constructed.
 
-    -  ``p`` - prime = 5 for which E has good reduction
+    - ``p`` -- prime = 5 for which E has good reduction
 
-    -  ``M`` - integer = 2; `p` -adic precision of
+    - ``M`` -- integer = 2; `p` -adic precision of
        the coefficient ring
 
-    -  ``trace`` - (optional) the trace of the matrix, if
-       known in advance. This is easy to compute because it's just the
+    - ``trace`` -- (optional) the trace of the matrix, if
+       known in advance. This is easy to compute because it is just the
        `a_p` of the curve. If the trace is supplied,
        matrix_of_frobenius will use it to speed the computation (i.e. we
        know the determinant is `p`, so we have two conditions, so
-       really only column of the matrix needs to be computed. It's
+       really only column of the matrix needs to be computed. it is
        actually a little more complicated than that, but that's the basic
        idea.) If trace=None, then both columns will be computed
        independently, and you can get a strong indication of correctness
@@ -1388,11 +1383,10 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
 
        .. warning::
 
-          THE RESULT WILL NOT NECESSARILY BE CORRECT TO M p-ADIC
-          DIGITS. If you want prec digits of precision, you need to use
-          the function adjusted_prec(), and then you need to reduce the
-          answer mod `p^{\mathrm{prec}}` at the end.
-
+           THE RESULT WILL NOT NECESSARILY BE CORRECT TO M p-ADIC
+           DIGITS. If you want prec digits of precision, you need to use
+           the function adjusted_prec(), and then you need to reduce the
+           answer mod `p^{\mathrm{prec}}` at the end.
 
     OUTPUT:
 
@@ -1457,8 +1451,8 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
         [0 2]
         [0 3]
 
-    Here's an example that's particularly badly conditioned for using
-    the trace trick::
+    Here is an example that is particularly badly conditioned for
+    using the trace trick::
 
         sage: p = 11
         sage: prec = 3
@@ -1483,9 +1477,9 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
         [1144  176]
         [ 847  185]
 
-    The running time is about ``O(p*prec**2)`` (times
-    some logarithmic factors), so it's feasible to run on fairly large
-    primes, or precision (or both?!?!)::
+    The running time is about ``O(p*prec**2)`` (times some logarithmic
+    factors), so it is feasible to run on fairly large primes, or
+    precision (or both?!?!)::
 
         sage: p = 10007
         sage: prec = 2
@@ -1519,7 +1513,7 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
         sage: EllipticCurve([-1, 1/4]).ap(5)                        # long time
         -2
 
-    Let's check consistency of the results for a range of precisions::
+    Let us check consistency of the results for a range of precisions::
 
         sage: p = 5
         sage: max_prec = 60
@@ -1574,13 +1568,13 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
     However, it appears that the determinant always has the property
     that if you substitute t - 11t, you do get the constant series p
     (mod p\*\*prec). Similarly for the trace. And since the parameter
-    only really makes sense when it's divisible by p anyway, perhaps
+    only really makes sense when it is divisible by p anyway, perhaps
     this isn't a problem after all.
     """
 
     M = int(M)
     if M < 2:
-        raise ValueError, "M (=%s) must be at least 2" % M
+        raise ValueError("M (=%s) must be at least 2" % M)
 
     base_ring = Q.base_ring()
 
@@ -1602,7 +1596,7 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
         # This implies that only one digit of precision is valid, so we only need
         # to reduce the second column. Also, the trace doesn't help at all.
 
-        F0_reduced = [ base_ring(0), base_ring(0) ]
+        F0_reduced = [base_ring(0), base_ring(0)]
 
         F1_coeffs = transpose_list(F1.coeffs())
         F1_reduced = reduce_all(Q, p, F1_coeffs, offset)
@@ -1638,7 +1632,7 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
 
         # todo: actually we only need to do this reduction step mod p^2, not
         # mod p^M, which is what the code currently does. If the base ring
-        # is Integers(p^M), then it's easy. Otherwise it's tricky to construct
+        # is Integers(p^M), then it is easy. Otherwise it is tricky to construct
         # the right ring, I don't know how to do it.
 
         F1_coeffs = transpose_list(F1.coeffs())
@@ -1654,10 +1648,10 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
 
             F1_reduced = reduce_all(Q, p, F1_coeffs, offset)
 
-            F0_reduced = [ base_ring(trace) - F1_reduced[1], None ]
+            F0_reduced = [base_ring(trace) - F1_reduced[1], None]
             # using that the determinant is p:
             F0_reduced[1] = (F0_reduced[0] * F1_reduced[1] - base_ring(p)) \
-                            / F1_reduced[0]
+                / F1_reduced[0]
 
         else:
             # If the first entry is zero mod p, then F((x+1) dx/y) will be sufficient
@@ -1665,42 +1659,42 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
             # entry *cannot* be zero mod p. This is guaranteed by some results in
             # section 3.2 of ``Computation of p-adic Heights and Log Convergence''
             # by Mazur, Stein, Tate. But let's quickly check it anyway :-))
-            assert F1_modp_reduced[1].is_unit(), \
-                   "Hey that's impossible! The second entry in the second column " \
-                   "should be invertible mod p!"
+            msg = "The second entry in the second column "
+            msg += "should be invertible mod p!"
+            assert F1_modp_reduced[1].is_unit(), msg
 
-            G0_coeffs = transpose_list( (F0 + F1).coeffs())
+            G0_coeffs = transpose_list((F0 + F1).coeffs())
             G0_reduced = reduce_all(Q, p, G0_coeffs, offset)
 
             # Now G0_reduced expresses F((x+1) dx/y) in terms of dx/y and x dx/y.
             # Re-express this in terms of (x+1) dx/y and x dx/y.
-            H0_reduced = [ G0_reduced[0], G0_reduced[1] - G0_reduced[0] ]
+            H0_reduced = [G0_reduced[0], G0_reduced[1] - G0_reduced[0]]
 
             # The thing we're about to divide by better be a unit.
-            assert H0_reduced[1].is_unit(), \
-                   "Hey that's impossible! The second entry in this column " \
-                   "should be invertible mod p!"
+            msg = "The second entry in this column "
+            msg += "should be invertible mod p!"
+            assert H0_reduced[1].is_unit(), msg
 
             # Figure out the second column using the trace...
-            H1_reduced = [ None, base_ring(trace) - H0_reduced[0] ]
+            H1_reduced = [None, base_ring(trace) - H0_reduced[0]]
             # ... and using that the determinant is p:
             H1_reduced[0] = (H0_reduced[0] * H1_reduced[1] - base_ring(p)) \
-                            / H0_reduced[1]
+                / H0_reduced[1]
 
             # Finally, change back to the usual basis (dx/y, x dx/y)
-            F1_reduced = [ H1_reduced[0], \
-                           H1_reduced[0] + H1_reduced[1] ]
-            F0_reduced = [ H0_reduced[0] - F1_reduced[0],
-                           H0_reduced[0] + H0_reduced[1] - F1_reduced[1] ]
+            F1_reduced = [H1_reduced[0],
+                          H1_reduced[0] + H1_reduced[1]]
+            F0_reduced = [H0_reduced[0] - F1_reduced[0],
+                          H0_reduced[0] + H0_reduced[1] - F1_reduced[1]]
 
         # One more sanity check: our final result should be congruent mod p
         # to the approximation we used earlier.
+        msg = "The output matrix is not congruent mod p "
+        msg += "to the approximation found earlier!"
         assert not (
-          (F1_reduced[0] - F1_modp_reduced[0]).is_unit() or \
-          (F1_reduced[1] - F1_modp_reduced[1]).is_unit() or \
-          F0_reduced[0].is_unit() or F0_reduced[1].is_unit()), \
-          "Hey that's impossible! The output matrix is not congruent mod p " \
-          "to the approximation found earlier!"
+            (F1_reduced[0] - F1_modp_reduced[0]).is_unit() or
+            (F1_reduced[1] - F1_modp_reduced[1]).is_unit() or
+            F0_reduced[0].is_unit() or F0_reduced[1].is_unit()), msg
 
     if compute_exact_forms:
         return matrix(base_ring, 2, 2, [F0_reduced[0], F1_reduced[0],
@@ -1708,8 +1702,6 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
     else:
         return matrix(base_ring, 2, 2, [F0_reduced[0], F1_reduced[0],
                                         F0_reduced[1], F1_reduced[1]])
-
-
 
 
 #*****************************************************************************
@@ -1727,7 +1719,6 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
 #
 #*****************************************************************************
 
-
 import weakref
 
 from sage.schemes.hyperelliptic_curves.all import is_HyperellipticCurve, HyperellipticCurve
@@ -1742,6 +1733,7 @@ from sage.modules.all import FreeModule, is_FreeModuleElement
 from sage.misc.profiler import Profiler
 from sage.misc.misc import repr_lincomb
 
+
 def matrix_of_frobenius_hyperelliptic(Q, p=None, prec=None, M=None):
     """
     Computes the matrix of Frobenius on Monsky-Washnitzer cohomology,
@@ -1750,13 +1742,13 @@ def matrix_of_frobenius_hyperelliptic(Q, p=None, prec=None, M=None):
 
     INPUT:
 
-    -  ``Q`` - monic polynomial `Q(x)`
+    - ``Q`` -- monic polynomial `Q(x)`
 
-    -  ``p`` - prime `\geq 5` for which `E` has good reduction
+    - ``p`` -- prime `\geq 5` for which `E` has good reduction
 
-    -  ``prec`` - (optional) `p`-adic precision of the coefficient ring
+    - ``prec`` -- (optional) `p`-adic precision of the coefficient ring
 
-    - ``M`` - (optional) adjusted `p`-adic precision of the coefficint ring
+    - ``M`` -- (optional) adjusted `p`-adic precision of the coefficint ring
 
     OUTPUT:
 
@@ -1788,20 +1780,21 @@ def matrix_of_frobenius_hyperelliptic(Q, p=None, prec=None, M=None):
             p = K.prime()
             prec = K.precision_cap()
         except AttributeError:
-            raise ValueError, "p and prec must be specified if Q is not defined over a p-adic ring"
+            raise ValueError("p and prec must be specified if Q is not "
+                             "defined over a p-adic ring")
     if M is None:
         M = adjusted_prec(p, prec)
     extra_prec_ring = Integers(p**M)
 #    extra_prec_ring = pAdicField(p, M) # SLOW!
 
-    real_prec_ring = pAdicField(p, prec) # pAdicField(p, prec) # To capped absolute?
+    real_prec_ring = pAdicField(p, prec)  # pAdicField(p, prec) # To capped absolute?
     S = SpecialHyperellipticQuotientRing(Q, extra_prec_ring, True)
     MW = S.monsky_washnitzer()
     prof("frob basis elements")
     F = MW.frob_basis_elements(M, p)
 
     prof("rationalize")
-    # do reduction over Q in case we have non-integral entries (and it's so much faster than padics)
+    # do reduction over Q in case we have non-integral entries (and it is so much faster than padics)
     rational_S = S.change_ring(QQ)
     # this is a hack until pAdics are fast
     # (They are in the latest development bundle, but its not standard and I'd need to merge.
@@ -1829,11 +1822,9 @@ def matrix_of_frobenius_hyperelliptic(Q, p=None, prec=None, M=None):
     M = matrix(real_prec_ring, [a for f, a in reduced])
     for i in range(M.ncols()):
         for j in range(M.nrows()):
-            M[i,j] = M[i,j].add_bigoh(prec)
+            M[i, j] = M[i, j].add_bigoh(prec)
 #    print prof
     return M.transpose(), [f for f, a in reduced]
-
-
 
 
 # For uniqueness (as many of the non-trivial calculations are cached along the way).
@@ -1841,8 +1832,9 @@ def matrix_of_frobenius_hyperelliptic(Q, p=None, prec=None, M=None):
 _special_ring_cache = {}
 _mw_cache = {}
 
+
 def SpecialHyperellipticQuotientRing(*args):
-    if _special_ring_cache.has_key(args):
+    if args in _special_ring_cache:
         R = _special_ring_cache[args]()
         if R is not None:
             return R
@@ -1850,8 +1842,9 @@ def SpecialHyperellipticQuotientRing(*args):
     _special_ring_cache[args] = weakref.ref(R)
     return R
 
+
 def MonskyWashnitzerDifferentialRing(base_ring):
-    if _mw_cache.has_key(base_ring):
+    if base_ring in _mw_cache:
         R = _mw_cache[base_ring]()
         if R is not None:
             return R
@@ -1859,6 +1852,7 @@ def MonskyWashnitzerDifferentialRing(base_ring):
     R = MonskyWashnitzerDifferentialRing_class(base_ring)
     _mw_cache[base_ring] = weakref.ref(R)
     return R
+
 
 class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
 
@@ -1879,14 +1873,15 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
         if is_EllipticCurve(Q):
             E = Q
             if E.a1() != 0 or E.a2() != 0:
-                raise NotImplementedError, "Curve must be in Weierstrass normal form."
-            Q = -E.change_ring(R).defining_polynomial()(x,0,1)
+                raise NotImplementedError("Curve must be in Weierstrass "
+                                          "normal form.")
+            Q = -E.change_ring(R).defining_polynomial()(x, 0, 1)
             self._curve = E
 
         elif is_HyperellipticCurve(Q):
             C = Q
             if C.hyperelliptic_polynomials()[1] != 0:
-                raise NotImplementedError, "Curve must be of form y^2 = Q(x)."
+                raise NotImplementedError("Curve must be of form y^2 = Q(x).")
             Q = C.hyperelliptic_polynomials()[0].change_ring(R)
             self._curve = C
 
@@ -1894,7 +1889,7 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
             self._Q = Q.change_ring(R)
             self._coeffs = self._Q.coeffs()
             if self._coeffs.pop() != 1:
-                raise NotImplementedError, "Polynomial must be monic."
+                raise NotImplementedError("Polynomial must be monic.")
             if not hasattr(self, '_curve'):
                 if self._Q.degree() == 3:
                     ainvs = [0, self._Q[2], 0, self._Q[1], self._Q[0]]
@@ -1903,9 +1898,10 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
                     self._curve = HyperellipticCurve(self._Q)
 
         else:
-            raise NotImplementedError, "Must be an elliptic curve or polynomial Q for y^2 = Q(x)\n(Got element of %s)" % Q.parent()
+            raise NotImplementedError("Must be an elliptic curve or polynomial "
+                                      "Q for y^2 = Q(x)\n(Got element of %s)" % Q.parent())
 
-        self._n = degree = int(Q.degree())
+        self._n = int(Q.degree())
         self._series_ring = (LaurentSeriesRing if invert_y else PolynomialRing)(R, 'y')
         self._series_ring_y = self._series_ring.gen(0)
         self._series_ring_0 = self._series_ring(0)
@@ -1928,16 +1924,53 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
         self._monomial_diff_coeffs = {}
 
     def _repr_(self):
+        """
+        String representation
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-3*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: x.parent()  # indirect doctest
+            SpecialHyperellipticQuotientRing K[x,y,y^-1] / (y^2 = x^5 - 3*x + 1) over Rational Field
+        """
         y_inverse = ",y^-1" if is_LaurentSeriesRing(self._series_ring) else ""
-        return "SpecialHyperellipticQuotientRing K[x,y%s] / (y^2 = %s) over %s"%(y_inverse, self._Q, self.base_ring())
+        return "SpecialHyperellipticQuotientRing K[x,y%s] / (y^2 = %s) over %s" % (y_inverse, self._Q, self.base_ring())
 
     def base_extend(self, R):
+        """
+        Return the base extension of ``self`` to the ring ``R`` if possible.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-3*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: x.parent().base_extend(UniversalCyclotomicField())
+            SpecialHyperellipticQuotientRing K[x,y,y^-1] / (y^2 = x^5 - 3*x + 1) over Universal Cyclotomic Field
+            sage: x.parent().base_extend(ZZ)
+            Traceback (most recent call last):
+            ...
+            TypeError: no such base extension
+        """
         if R.has_coerce_map_from(self.base_ring()):
             return self.change_ring(R)
         else:
-            raise TypeError, "no such base extension"
+            raise TypeError("no such base extension")
 
     def change_ring(self, R):
+        """
+        Return the analog of ``self`` over the ring ``R``
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-3*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: x.parent().change_ring(ZZ)
+            SpecialHyperellipticQuotientRing K[x,y,y^-1] / (y^2 = x^5 - 3*x + 1) over Integer Ring
+        """
         return SpecialHyperellipticQuotientRing(self._Q, R, is_LaurentSeriesRing(self._series_ring))
 
     def __call__(self, val, offset=0, check=True):
@@ -1951,17 +1984,58 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
         return SpecialHyperellipticQuotientElement(self, val, offset, check)
 
     def gens(self):
+        """
+        Return the generators of ``self``
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-3*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: x.parent().gens()
+            (x, y*1)
+        """
         return self._x, self._y
 
     def x(self):
+        r"""
+        Return the generator `x` of ``self``
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-3*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: x.parent().x()
+            x
+        """
         return self._x
 
     def y(self):
+        r"""
+        Return the generator `y` of ``self``
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-3*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: x.parent().y()
+            y*1
+        """
         return self._y
 
     def monomial(self, i, j, b=None):
         """
         Returns `b y^j x^i`, computed quickly.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-3*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: x.parent().monomial(4,5)
+            y^5*x^4
         """
         i = int(i)
         j = int(j)
@@ -1992,7 +2066,7 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
         the "hard" way, and the rest are easy.
         """
         try:
-            return self._monomial_diff_coeffs[i,j]
+            return self._monomial_diff_coeffs[i, j]
         except KeyError:
             pass
         if i < self._n:
@@ -2008,11 +2082,11 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
         else:
             dg = self.monomial(i, j).diff()
             coeffs = [dg.extract_pow_y(j-1), dg.extract_pow_y(j+1)]
-            self._monomial_diff_coeffs[i,j] = coeffs
+            self._monomial_diff_coeffs[i, j] = coeffs
             return coeffs
 
     def monomial_diff_coeffs_matrices(self):
-        self.monomial_diff_coeffs(0, 0) # precompute stuff
+        self.monomial_diff_coeffs(0, 0)  # precompute stuff
         R = self.base_ring()
         mat_1 = matrix(R, self._n, self._n)
         mat_2 = matrix(R, self._n, self._n)
@@ -2030,17 +2104,49 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
             dg = self.monomial(i, 1).diff()
             two_i_x_to_i = R(2*i) * x**(i-1) * y*y if i > 0 else self(0)
             A = dg - self._monsky_washnitzer(two_i_x_to_i)
-            As.append( (V(A.extract_pow_y(0)), V(A.extract_pow_y(2)), V(two_i_x_to_i.extract_pow_y(2))) )
+            As.append((V(A.extract_pow_y(0)), V(A.extract_pow_y(2)), V(two_i_x_to_i.extract_pow_y(2))))
         return As
 
-
     def Q(self):
+        """
+        Return the defining polynomial of the underlying hyperelliptic curve.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-2*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: x.parent().Q()
+            x^5 - 2*x + 1
+        """
         return self._Q
 
     def curve(self):
+        """
+        Return the underlying hyperelliptic curve.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-3*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: x.parent().curve()
+            Hyperelliptic Curve over Rational Field defined by y^2 = x^5 - 3*x + 1
+        """
         return self._curve
 
     def degree(self):
+        """
+        Return the degree of the underlying hyperelliptic curve.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-3*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: x.parent().degree()
+            5
+        """
         return self._n
 
     def prime(self):
@@ -2049,14 +2155,36 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
     def monsky_washnitzer(self):
         return self._monsky_washnitzer
 
-    def is_field(self, proof = True):
-        return False
+    def is_field(self, proof=True):
+        """
+        Return False as ``self`` is not a field.
 
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-3*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: x.parent().is_field()
+            False
+        """
+        return False
 
 
 class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
 
     def __init__(self, parent, val=0, offset=0, check=True):
+        """
+        Elements in the Hyperelliptic quotient ring
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-36*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: MW = x.parent()
+            sage: MW(x+x**2+y-77)  # indirect doctest
+            -(77-y)*1 + x + x^2
+        """
         CommutativeAlgebraElement.__init__(self, parent)
         if not check:
             self._f = parent._poly_ring(val, check=False)
@@ -2074,45 +2202,156 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
             self._f = self._f.parent()([a << offset for a in self._f], check=False)
 
     def __cmp__(self, other):
-      """
-      EXAMPLES:
-      """
-      return cmp(self._f, other._f)
+        """
+        Compares the elements
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-36*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: x.__cmp__(x)
+            0
+            sage: x.__cmp__(y)
+            1
+        """
+        return cmp(self._f, other._f)
 
     def change_ring(self, R):
+        """
+        Return the same element after changing the base ring to R
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-36*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: MW = x.parent()
+            sage: z = MW(x+x**2+y-77)
+            sage: z.change_ring(AA).parent()
+            SpecialHyperellipticQuotientRing K[x,y,y^-1] / (y^2 = x^5 - 36*x + 1) over Algebraic Real Field
+        """
         return self.parent().change_ring(R)(self)
 
     def __call__(self, *x):
+        """
+        Evaluate ``self`` at given arguments
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-36*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: MW = x.parent()
+            sage: z = MW(x+x**2+y-77); z
+            -(77-y)*1 + x + x^2
+            sage: z(66)
+            4345 + y
+            sage: z(5,4)
+            -43
+        """
         return self._f(*x)
 
     def __invert__(self):
         """
-        The general element in our ring is not invertible, but `y` may be. We
-        do not want to pass to the fraction field.
+        Return the inverse of the element
+
+        The general element in our ring is not invertible, but `y` may
+        be. We do not want to pass to the fraction field.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-36*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: MW = x.parent()
+            sage: z = y**(-1) # indirect doctest
+            sage: z.parent()
+            SpecialHyperellipticQuotientRing K[x,y,y^-1] / (y^2 = x^5 - 36*x + 1) over Rational Field
+
+            sage: z = (x+y)**(-1) # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Element not invertible
         """
         if self._f.degree() == 0 and self._f[0].is_unit():
             return SpecialHyperellipticQuotientElement(self.parent(), ~self._f[0])
         else:
-            raise ZeroDivisionError, "Element not invertible"
+            raise ZeroDivisionError("Element not invertible")
 
     def __nonzero__(self):
+        """
+        Return True iff ``self`` is not zero.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-3*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: x.__nonzero__()
+            True
+        """
         return not not self._f
 
     def __eq__(self, other):
+        """
+        Return True iff ``self`` is equal to ``other``
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-3*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: x == y  # indirect doctest
+            False
+        """
         if not isinstance(other, SpecialHyperellipticQuotientElement):
             other = self.parent()(other)
         return self._f == other._f
 
     def _add_(self, other):
+        """
+        Return the sum of two elements
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-36*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: x+y
+            y*1 + x
+        """
         return SpecialHyperellipticQuotientElement(self.parent(), self._f + other._f)
 
     def _sub_(self, other):
+        """
+        Return the difference of two elements
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-36*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: y-x
+            y*1 - x
+        """
         return SpecialHyperellipticQuotientElement(self.parent(), self._f - other._f)
 
     def _mul_(self, other):
-        # over laurent series, addition and subtraction can be expensive,
-        # and the degree of this poly is small enough that Karatsuba actually hurts
-        # significantly in some cases
+        """
+        Return the product of two elements
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-36*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: y*x
+            y*x
+        """
+        # over laurent series, addition and subtraction can be
+        # expensive, and the degree of this poly is small enough that
+        # Karatsuba actually hurts significantly in some cases
         if self._f[0].valuation() + other._f[0].valuation() > -200:
             prod = self._f._mul_generic(other._f)
         else:
@@ -2145,21 +2384,64 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
         return self.parent()([a >> k for a in coeffs], check=False)
 
     def truncate_neg(self, n):
+        """
+        Return ``self`` minus its terms of degree less than `n` wrt `y`.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-3*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: (x+3*y+7*x*2*y**4).truncate_neg(1)
+            3*y*1 + 14*y^4*x
+        """
         coeffs = self._f.list(copy=False)
         return self.parent()([a.truncate_neg(n) for a in coeffs], check=False)
 
     def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-3*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: (x+3*y)._repr_()
+            '3*y*1 + x'
+        """
         x = PolynomialRing(QQ, 'x').gen(0)
         coeffs = self._f.list()
         return repr_lincomb([(x**i, coeffs[i]) for i in range(len(coeffs))])
 
     def _latex_(self):
+        """
+        Return a LateX string for ``self``.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-3*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: (x+3*y)._latex_()
+            '3y1 + x'
+        """
         x = PolynomialRing(QQ, 'x').gen(0)
         coeffs = self._f.list()
         return repr_lincomb([(x**i, coeffs[i]) for i in range(len(coeffs))], is_latex=True)
 
     def diff(self):
+        """
+        Return the differential of ``self``
 
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-3*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: (x+3*y).diff()
+            (-(9-2*y)*1 + 15*x^4) dx/2y
+        """
 #        try:
 #            return self._diff_x
 #        except AttributeError:
@@ -2172,25 +2454,58 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
         x, y = parent.gens()
         v = self._f.list()
         n = len(v)
-        A = parent([R(i) * v[i] for i in range(1,n)])
+        A = parent([R(i) * v[i] for i in range(1, n)])
         B = parent([a.derivative() for a in v])
         dQ = parent._dQ
-        return parent._monsky_washnitzer( (R(2) * A << 1) + dQ * B )
-#        self._diff = self.parent()._monsky_washnitzer( two_y * A + dQ * B )
+        return parent._monsky_washnitzer((R(2) * A << 1) + dQ * B)
+#        self._diff = self.parent()._monsky_washnitzer(two_y * A + dQ * B)
 #        return self._diff
 
     def extract_pow_y(self, k):
+        r"""
+        Return the coefficients of `y^k` in ``self`` as a list
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-3*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: (x+3*y+9*x*y).extract_pow_y(1)
+            [3, 9, 0, 0, 0]
+        """
         v = [a[k] for a in self._f.list()]
         while len(v) < self.parent()._n:
             v.append(0)
         return v
 
     def min_pow_y(self):
+        """
+        Return the minimal degree of ``self`` w.r.t. y
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-3*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: (x+3*y).min_pow_y()
+            0
+        """
         if self._f.degree() == -1:
             return 0
         return min([a.valuation() for a in self._f.list()])
 
     def max_pow_y(self):
+        """
+        Return the maximal degree of ``self`` w.r.t. y
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-3*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: (x+3*y).max_pow_y()
+            1
+        """
         if self._f.degree() == -1:
             return 0
         return max([a.degree() for a in self._f.list()])
@@ -2201,14 +2516,14 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
 
         INPUT:
 
-         - ``R`` - an (optional) base-ring in which to cast the coefficients
+        - ``R`` -- an (optional) base-ring in which to cast the coefficients
 
         OUTPUT:
 
-         - ``coeffs`` - a list of coefficients of powers of `x` for each power
+        - ``coeffs`` -- a list of coefficients of powers of `x` for each power
            of `y`
 
-         - ``n`` - an offset indicating the power of `y` of the first list
+        - ``n`` -- an offset indicating the power of `y` of the first list
            element
 
         EXAMPLES::
@@ -2276,13 +2591,12 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
             if k is Infinity: k = 0
             k -= y_offset
             z = a.list()
-            coeffs.append( [zero] * k + z + [zero]*(n - len(z) - k))
+            coeffs.append([zero] * k + z + [zero]*(n - len(z) - k))
         while len(coeffs) < self.parent().degree():
-            coeffs.append( [zero] * n )
+            coeffs.append([zero] * n)
         V = FreeModule(self.base_ring() if R is None else R, self.parent().degree())
         coeffs = transpose_list(coeffs)
         return [V(a) for a in coeffs], y_offset
-
 
 
 class MonskyWashnitzerDifferentialRing_class(Module):
@@ -2318,7 +2632,7 @@ class MonskyWashnitzerDifferentialRing_class(Module):
 
         INPUT:
 
-        - ``R`` - ring
+        - ``R`` -- ring
 
         OUTPUT:
 
@@ -2343,7 +2657,7 @@ class MonskyWashnitzerDifferentialRing_class(Module):
 
         INPUT:
 
-        - ``R`` - ring of coefficients
+        - ``R`` -- ring of coefficients
 
         OUTPUT:
 
@@ -2504,38 +2818,42 @@ class MonskyWashnitzerDifferentialRing_class(Module):
         a = self.frob_Q(p) >> 2*p  # frobQ * y^{-2p}
 
         prof("sqrt")
-        Q = self.base_ring()._Q
 
+#        Q = self.base_ring()._Q
 #        three_halves = Q.parent().base_ring()(Rational((3,2)))
 #        one_half = Q.parent().base_ring()(Rational((1,2)))
-        three_halves = self.base_ring()._series_ring.base_ring()(Rational((3,2)))
-        one_half     = self.base_ring()._series_ring.base_ring()(Rational((1,2)))
-        half_a       = a._rmul_(one_half)
+        three_halves = self.base_ring()._series_ring.base_ring()(Rational((3, 2)))
+        one_half = self.base_ring()._series_ring.base_ring()(Rational((1, 2)))
+        half_a = a._rmul_(one_half)
 
         # We are solving for t = a^{-1/2} = (F_pQ y^{-p})^{-1/2}
         # Newton's method converges because we know the root is in the same residue class as 1.
 
-#        t = self.base_ring()(1)
-        t = self.base_ring()(three_halves) - half_a # first iteration trivial, start with prec 2
+        #        t = self.base_ring()(1)
+        t = self.base_ring()(three_halves) - half_a
+        # first iteration trivial, start with prec 2
 
-        for cur_prec in newton_method_sizes(prec)[2:]: # newton_method_sizes = [1, 2, ...]
-            y_prec = -(2*cur_prec-1)*p+1 # binomial expansion is  $\sum p^{k+1} y^{-(2k+1)p+1} f(x)$
-                                         # so if we are only correct mod p^prec, can ignore y powers less than y_prec
+        for cur_prec in newton_method_sizes(prec)[2:]:
+            # newton_method_sizes = [1, 2, ...]
+            y_prec = -(2*cur_prec-1)*p+1
+            # binomial expansion is  $\sum p^{k+1} y^{-(2k+1)p+1} f(x)$
+            # so if we are only correct mod p^prec,
+            # can ignore y powers less than y_prec
             t_cube = (t*t*t).truncate_neg(y_prec)
-            t = t._rmul_(three_halves) - (half_a * t_cube).truncate_neg(y_prec)# t = (3/2) t - (1/2) a t^3
-#        print "a =", a
-#        print "t =", t
-
-#        prof("verify")
-#        print "a*t^2 =", a * t**2
+            t = t._rmul_(three_halves) - (half_a * t_cube).truncate_neg(y_prec)
+            # t = (3/2) t - (1/2) a t^3
+            #        print "a =", a
+            #        print "t =", t
+            #        prof("verify")
+            #        print "a*t^2 =", a * t**2
 
         prof("compose")
         F_dx_y = (p * x_to_p_less_1 * t) >> (p-1)  # px^{p-1} sqrt(a) * y^{-p+1}
 
-#        print "-----", F_dx_y
-#        print "-----", x_to_p * F_dx_y
+        #        print "-----", F_dx_y
+        #        print "-----", x_to_p * F_dx_y
         prof("done")
-#        print prof
+        #        print prof
         return MonskyWashnitzerDifferential(self, F_dx_y)
 
     def frob_basis_elements(self, prec, p):
@@ -2571,6 +2889,18 @@ class MonskyWashnitzerDifferentialRing_class(Module):
         We use this to solve for the linear combination of
         `x^i y^j` needed to clear all terms with
         `y^{j-1}`.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: C = HyperellipticCurve(x^5-4*x+4)
+            sage: MW = C.invariant_differential().parent()
+            sage: MW.helper_matrix()
+            [ 256/2101  320/2101  400/2101  500/2101  625/2101]
+            [-625/8404  -64/2101  -80/2101 -100/2101 -125/2101]
+            [-125/2101 -625/8404  -64/2101  -80/2101 -100/2101]
+            [-100/2101 -125/2101 -625/8404  -64/2101  -80/2101]
+            [ -80/2101 -100/2101 -125/2101 -625/8404  -64/2101]
         """
         try:
             return self._helper_matrix
@@ -2582,7 +2912,7 @@ class MonskyWashnitzerDifferentialRing_class(Module):
         x, y = self.base_ring().gens()
         n = self.degree()
         for i in range(n):
-            L.append( (y*x**i).diff().extract_pow_y(0) )
+            L.append((y*x**i).diff().extract_pow_y(0))
         A = matrix(L).transpose()
         if not is_IntegralDomain(A.base_ring()):
             # must be using integer_mod or something to approximate
@@ -2601,12 +2931,12 @@ class MonskyWashnitzerDifferential(ModuleElement):
 
         INPUT:
 
-        - ``parent`` - Monsky-Washnitzer differential ring (instance of class
+        - ``parent`` -- Monsky-Washnitzer differential ring (instance of class
           :class:`~MonskyWashnitzerDifferentialRing_class`
 
-        - ``val`` - element of the base ring, or list of coefficients
+        - ``val`` -- element of the base ring, or list of coefficients
 
-        - ``offset`` - if non-zero, shift val by `y^\text{offset}` (default 0)
+        - ``offset`` -- if non-zero, shift val by `y^\text{offset}` (default 0)
 
         EXAMPLES::
 
@@ -2778,7 +3108,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
         """
         s = self._coeff._repr_()
         if s.find("+") != -1 or s.find("-") > 0:
-            s = "(%s)"%s
+            s = "(%s)" % s
         return s + " dx/2y"
 
     def _latex_(self):
@@ -2797,8 +3127,8 @@ class MonskyWashnitzerDifferential(ModuleElement):
             x \frac{dx}{2y}
         """
         s = self._coeff._latex_()
-        if s.find("+") != -1 or s.find("-") >  0:
-            s = "\\left(%s\\right)"%s
+        if s.find("+") != -1 or s.find("-") > 0:
+            s = "\\left(%s\\right)" % s
         return s + " \\frac{dx}{2y}"
 
     def extract_pow_y(self, k):
@@ -2967,8 +3297,18 @@ class MonskyWashnitzerDifferential(ModuleElement):
     def reduce_neg_y_faster(self, even_degree_only=False):
         """
         Use homology relations to eliminate negative powers of `y`.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: C = HyperellipticCurve(x^5-3*x+1)
+            sage: x,y = C.monsky_washnitzer_gens()
+            sage: (y^-1).diff().reduce_neg_y()
+            ((y^-1)*1, 0 dx/2y)
+            sage: (y^-5*x^2+y^-1*x).diff().reduce_neg_y_faster()
+            ((y^-1)*x + (y^-5)*x^2, 0 dx/2y)
         """
-        # Timings indicate this isn't any faster after all...
+        # Timings indicate that this is not any faster after all...
 
         S = self.parent().base_ring()
         R = S.base_ring()
@@ -3001,7 +3341,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
                             v[kk] = ((a * ppow) % S._prec_cap) / ppow
                     except AttributeError:
                         pass
-                j_inverse =  ~R(j)
+                j_inverse = ~R(j)
                 lin_comb = (M * coeffs[j-offset-1])
                 forms.append(j_inverse * lin_comb)
                 coeffs[j-offset+1] -= (d_mat_1 + j_inverse * d_mat_2) * lin_comb
@@ -3010,7 +3350,6 @@ class MonskyWashnitzerDifferential(ModuleElement):
         reduced = S._monsky_washnitzer(coeffs[-1-offset:], -1)
 #        reduced = self - f.diff()
         return f, reduced
-
 
     def reduce_pos_y(self):
         """
@@ -3033,9 +3372,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
             (y^3*1 + x, x dx/2y)
         """
         S = self.parent().base_ring()
-        series = S.base_ring()
         n = S.Q().degree()
-        p = S._p
         x, y = S.gens()
         f = S(0)
         reduced = self
@@ -3054,7 +3391,6 @@ class MonskyWashnitzerDifferential(ModuleElement):
                     reduced -= c * dg
 
         return f, reduced
-
 
     def reduce_pos_y_fast(self, even_degree_only=False):
         """
@@ -3204,7 +3540,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
 
         INPUT:
 
-        - R - An (optional) base ring in which to cast the coefficients
+        - R -- An (optional) base ring in which to cast the coefficients
 
         OUTPUT:
 
@@ -3233,7 +3569,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
 
         INPUT:
 
-        - P, Q - Two points on the underlying curve
+        - P, Q -- Two points on the underlying curve
 
         OUTPUT:
 
@@ -3256,9 +3592,6 @@ class MonskyWashnitzerDifferential(ModuleElement):
             sage: (2*w).coleman_integral(P, Q) == 2*(w.coleman_integral(P, Q))
             True
         """
-
         return self.parent().base_ring().curve().coleman_integral(self, P, Q)
 
     integrate = coleman_integral
-
-### end of file

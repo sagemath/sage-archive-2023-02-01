@@ -72,23 +72,30 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def change_ring(self, R):
         """
-        Returns this HyperEllipticCurve over a new base ring R.
+        Returns this HyperellipticCurve over a new base ring R.
 
         EXAMPLES::
 
-            sage: R.<x> = QQ['x']
-            sage: H = HyperellipticCurve(x^3-10*x+9)
+            sage: R.<x> = QQ[]
+            sage: H = HyperellipticCurve(x^5 - 10*x + 9)
             sage: K = Qp(3,5)
-            sage: J.<a> = K.extension(x^30-3)
+            sage: L.<a> = K.extension(x^30-3)
             sage: HK = H.change_ring(K)
-            sage: HJ = HK.change_ring(J); HJ
-            Hyperelliptic Curve over Eisenstein Extension of 3-adic Field with capped relative precision 5 in a defined by (1 + O(3^5))*x^30 + (O(3^6))*x^29 + (O(3^6))*x^28 + (O(3^6))*x^27 + (O(3^6))*x^26 + (O(3^6))*x^25 + (O(3^6))*x^24 + (O(3^6))*x^23 + (O(3^6))*x^22 + (O(3^6))*x^21 + (O(3^6))*x^20 + (O(3^6))*x^19 + (O(3^6))*x^18 + (O(3^6))*x^17 + (O(3^6))*x^16 + (O(3^6))*x^15 + (O(3^6))*x^14 + (O(3^6))*x^13 + (O(3^6))*x^12 + (O(3^6))*x^11 + (O(3^6))*x^10 + (O(3^6))*x^9 + (O(3^6))*x^8 + (O(3^6))*x^7 + (O(3^6))*x^6 + (O(3^6))*x^5 + (O(3^6))*x^4 + (O(3^6))*x^3 + (O(3^6))*x^2 + (O(3^6))*x + (2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + O(3^6)) defined by (1 + O(a^150))*y^2 = (1 + O(a^150))*x^3 + (2 + 2*a^30 + a^60 + 2*a^90 + 2*a^120 + O(a^150))*x + a^60 + O(a^210)
+            sage: HL = HK.change_ring(L); HL
+            Hyperelliptic Curve over Eisenstein Extension of 3-adic Field with capped relative precision 5 in a defined by (1 + O(3^5))*x^30 + (O(3^6))*x^29 + (O(3^6))*x^28 + (O(3^6))*x^27 + (O(3^6))*x^26 + (O(3^6))*x^25 + (O(3^6))*x^24 + (O(3^6))*x^23 + (O(3^6))*x^22 + (O(3^6))*x^21 + (O(3^6))*x^20 + (O(3^6))*x^19 + (O(3^6))*x^18 + (O(3^6))*x^17 + (O(3^6))*x^16 + (O(3^6))*x^15 + (O(3^6))*x^14 + (O(3^6))*x^13 + (O(3^6))*x^12 + (O(3^6))*x^11 + (O(3^6))*x^10 + (O(3^6))*x^9 + (O(3^6))*x^8 + (O(3^6))*x^7 + (O(3^6))*x^6 + (O(3^6))*x^5 + (O(3^6))*x^4 + (O(3^6))*x^3 + (O(3^6))*x^2 + (O(3^6))*x + (2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + O(3^6)) defined by (1 + O(a^150))*y^2 = (1 + O(a^150))*x^5 + (2 + 2*a^30 + a^60 + 2*a^90 + 2*a^120 + O(a^150))*x + a^60 + O(a^210)
+
+            sage: R.<x> = FiniteField(7)[]
+            sage: H = HyperellipticCurve(x^8 + x + 5)
+            sage: H.base_extend(FiniteField(7^2, 'a'))
+            Hyperelliptic Curve over Finite Field in a of size 7^2 defined by y^2 = x^8 + x + 5
         """
         from constructor import HyperellipticCurve
         f, h = self._hyperelliptic_polynomials
         y = self._printing_ring.variable_name()
         x = self._printing_ring.base_ring().variable_name()
-        return HyperellipticCurve(f.change_ring(R), h, "%s,%s"%(x,y))
+        return HyperellipticCurve(f.change_ring(R), h.change_ring(R), "%s,%s"%(x,y))
+
+    base_extend = change_ring
 
     def _repr_(self):
         """

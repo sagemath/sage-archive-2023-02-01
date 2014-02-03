@@ -1731,8 +1731,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.is_lequal(z,z)
             True
         """
-        r = self.compare_elements(x,y)
-        return r == 0 or r == -1
+        i = self._element_to_vertex(x)
+        j = self._element_to_vertex(y)
+        return (i == j or self._hasse_diagram.is_lequal(i, j))
+
     le = is_lequal
 
     def is_less_than(self, x, y):
@@ -1755,7 +1757,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.is_less_than(z,z)
             False
         """
-        return self.compare_elements(x,y) == -1
+        i = self._element_to_vertex(x)
+        j = self._element_to_vertex(y)
+        return self._hasse_diagram.is_less_than(i, j)
+
     lt = is_less_than
 
     def is_gequal(self, x, y):
@@ -1780,8 +1785,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.is_gequal(z,z)
             True
         """
-        r = self.compare_elements(x,y)
-        return r == 0 or r == 1
+        i = self._element_to_vertex(x)
+        j = self._element_to_vertex(y)
+        return (i == j or self._hasse_diagram.is_lequal(j, i))
+
     ge = is_gequal
 
     def is_greater_than(self, x, y):
@@ -1806,7 +1813,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.is_greater_than(z,z)
             False
         """
-        return self.compare_elements(x,y) == 1
+        i = self._element_to_vertex(x)
+        j = self._element_to_vertex(y)
+        return self._hasse_diagram.is_less_than(j, i)
+
     gt = is_greater_than
 
     def compare_elements(self, x, y):

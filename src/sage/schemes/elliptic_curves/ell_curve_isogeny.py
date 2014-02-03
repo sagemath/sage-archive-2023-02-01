@@ -524,7 +524,7 @@ class EllipticCurveIsogeny(Morphism):
         x
         sage: phi.rational_maps()
         ((x^2 + 1)/x, (x^2*y - y)/x^2)
-        sage: phi == loads(dumps(phi))   # not tested - pickling http://trac.sagemath.org/sage_trac/ticket/11599
+        sage: phi == loads(dumps(phi))  # known bug
         True
 
     A more complicated example of a characteristic 2 field::

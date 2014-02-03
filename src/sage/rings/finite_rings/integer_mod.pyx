@@ -69,6 +69,7 @@ TESTS::
 
 include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "sage/ext/stdsage.pxi"
+
 from cpython.int cimport *
 from cpython.list cimport *
 from cpython.ref cimport *
@@ -783,6 +784,15 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: Mod(1/25, 2^40).is_square()
             True
 
+            sage: for p,q,r in cartesian_product_iterator([[3,5],[11,13],[17,19]]): # long time
+            ....:     for ep,eq,er in cartesian_product_iterator([[0,1,2,3],[0,1,2,3],[0,1,2,3]]):
+            ....:         for e2 in [0, 1, 2, 3, 4]:
+            ....:             n = p^ep * q^eq * r^er * 2^e2
+            ....:             for _ in range(2):
+            ....:                 a = Zmod(n).random_element()
+            ....:                 if a.is_square().__xor__(a._pari_().issquare()):
+            ....:                     print a, n
+
         ALGORITHM: Calculate the Jacobi symbol
         `(\mathtt{self}/p)` at each prime `p`
         dividing `n`. It must be 1 or 0 for each prime, and if it
@@ -799,34 +809,27 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         return self.is_square_c()
 
     cdef bint is_square_c(self) except -2:
+        cdef int l2, m2
         if self.is_zero() or self.is_one():
             return 1
-        moduli = self.parent().factored_order()
-        cdef int val, e
+        # We first try to rule out self being a square without
+        # factoring the modulus.
         lift = self.lift()
-        if len(moduli) == 1:
-            p, e = moduli[0]
-            if e == 1:
-                return lift.jacobi(p) != -1
-            elif p == 2:
-                return self._pari_().issquare() # TODO: implement directly
-            elif self % p == 0:
-                val = lift.valuation(p)
-                return val >= e or (val % 2 == 0 and (lift // p**val).jacobi(p) != -1)
-            else:
-                return lift.jacobi(p) != -1
-        else:
-            for p, e in moduli:
-                if p == 2:
-                    if e > 1 and not self._pari_().issquare(): # TODO: implement directly
-                        return 0
-                elif e > 1 and lift % p == 0:
-                    val = lift.valuation(p)
-                    if val < e and (val % 2 == 1 or (lift // p**val).jacobi(p) == -1):
-                        return 0
-                elif lift.jacobi(p) == -1:
-                    return 0
-            return 1
+        m2, modd = self.modulus().val_unit(2)
+        if m2 == 2:
+            if lift & 2 == 2:  # lift = 2 or 3 (mod 4)
+                return 0
+        elif m2 > 2:
+            l2, lodd = lift.val_unit(2)
+            if l2 < m2 and (l2 % 2 == 1 or lodd % (1 << min(3, m2 - l2)) != 1):
+                return 0
+        # self is a square modulo 2^m2.  We compute the Jacobi symbol
+        # modulo modd.  If this is -1, then self is not a square.
+        if lift.jacobi(modd) == -1:
+            return 0
+        # We need to factor the modulus.  We do it here instead of
+        # letting PARI do it, so that we can cache the factorisation.
+        return lift._pari_().Zn_issquare(self._parent.factored_order()._pari_())
 
     def sqrt(self, extend=True, all=False):
         r"""
@@ -2678,36 +2681,27 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         return hash(self.ivalue)
 
     cdef bint is_square_c(self) except -2:
+        cdef int_fast32_t l2, lodd, m2, modd
         if self.ivalue <= 1:
             return 1
-        moduli = self._parent.factored_order()
-        cdef int val, e
-        cdef int_fast32_t p
-        if len(moduli) == 1:
-            sage_p, e = moduli[0]
-            p = sage_p
-            if e == 1:
-                return jacobi_int(self.ivalue, p) != -1
-            elif p == 2:
-                return self._pari_().issquare() # TODO: implement directly
-            elif self.ivalue % p == 0:
-                val = self.lift().valuation(sage_p)
-                return val >= e or (val % 2 == 0 and jacobi_int(self.ivalue / int(sage_p**val), p) != -1)
-            else:
-                return jacobi_int(self.ivalue, p) != -1
-        else:
-            for sage_p, e in moduli:
-                p = sage_p
-                if p == 2:
-                    if e > 1 and not self._pari_().issquare(): # TODO: implement directly
-                        return 0
-                elif e > 1 and self.ivalue % p == 0:
-                    val = self.lift().valuation(sage_p)
-                    if val < e and (val % 2 == 1 or jacobi_int(self.ivalue / int(sage_p**val), p) == -1):
-                        return 0
-                elif jacobi_int(self.ivalue, p) == -1:
-                    return 0
-            return 1
+        # We first try to rule out self being a square without
+        # factoring the modulus.
+        lift = self.lift()
+        m2, modd = self.modulus().val_unit(2)
+        if m2 == 2:
+            if self.ivalue & 2 == 2:  # self.ivalue = 2 or 3 (mod 4)
+                return 0
+        elif m2 > 2:
+            l2, lodd = lift.val_unit(2)
+            if l2 < m2 and (l2 % 2 == 1 or lodd % (1 << min(3, m2 - l2)) != 1):
+                return 0
+        # self is a square modulo 2^m2.  We compute the Jacobi symbol
+        # modulo modd.  If this is -1, then self is not a square.
+        if jacobi_int(self.ivalue, modd) == -1:
+            return 0
+        # We need to factor the modulus.  We do it here instead of
+        # letting PARI do it, so that we can cache the factorisation.
+        return lift._pari_().Zn_issquare(self._parent.factored_order()._pari_())
 
     def sqrt(self, extend=True, all=False):
         r"""
@@ -3939,8 +3933,7 @@ cpdef square_root_mod_prime(IntegerMod_abstract a, p=None):
             b *= g*g
         return res
 
-
-def fast_lucas(mm, IntegerMod_abstract P):
+def lucas_q1(mm, IntegerMod_abstract P):
     """
     Return `V_k(P, 1)` where `V_k` is the Lucas
     function defined by the recursive relation
@@ -3951,8 +3944,8 @@ def fast_lucas(mm, IntegerMod_abstract P):
 
     REFERENCES:
 
-    - H. Postl. 'Fast evaluation of Dickson Polynomials' Contrib. to
-      General Algebra, Vol. 6 (1988) pp. 223-225
+    .. [Pos88] H. Postl. 'Fast evaluation of Dickson Polynomials' Contrib. to
+       General Algebra, Vol. 6 (1988) pp. 223-225
 
     AUTHORS:
 
@@ -3960,10 +3953,10 @@ def fast_lucas(mm, IntegerMod_abstract P):
 
     TESTS::
 
-        sage: from sage.rings.finite_rings.integer_mod import fast_lucas, slow_lucas
-        sage: all([fast_lucas(k, a) == slow_lucas(k, a)
-        ...        for a in Integers(23)
-        ...        for k in range(13)])
+        sage: from sage.rings.finite_rings.integer_mod import lucas_q1
+        sage: all([lucas_q1(k, a) == BinaryRecurrenceSequence(a, -1, 2, a)(k)
+        ....:      for a in Integers(23)
+        ....:      for k in range(13)])
         True
     """
     if mm == 0:
@@ -3992,18 +3985,145 @@ def fast_lucas(mm, IntegerMod_abstract P):
     else:
         return d1*d1 - two
 
+from sage.misc.superseded import deprecated_function_alias
+fast_lucas = deprecated_function_alias(11802, lucas_q1)
+
 def slow_lucas(k, P, Q=1):
     """
     Lucas function defined using the standard definition, for
-    consistency testing.
+    consistency testing. This is deprecated in :trac:`11802`. Use
+    ``BinaryRecurrenceSequence(P, -Q, 2, P)(k)`` instead.
+
+    .. SEEALSO::
+
+        :class:`~sage.combinat.binary_recurrence_sequences.BinaryRecurrenceSequence`
+
+    REFERENCES:
+
+    - :wikipedia:`Lucas_sequence`
+
+    TESTS::
+
+        sage: from sage.rings.finite_rings.integer_mod import slow_lucas
+        sage: [slow_lucas(k, 1, -1) for k in range(10)]
+        doctest:...: DeprecationWarning: slow_lucas() is deprecated. Use BinaryRecurrenceSequence instead.
+        See http://trac.sagemath.org/11802 for details.
+        [2, 1, 3, 4, 7, 11, 18, 29, 47, 76]
     """
+    from sage.misc.superseded import deprecation
+    deprecation(11802, 'slow_lucas() is deprecated. Use BinaryRecurrenceSequence instead.')
     if k == 0:
         return 2
     elif k == 1:
         return P
-    else:
-        return P*slow_lucas(k-1, P, Q) - Q*slow_lucas(k-2, P, Q)
+    from sage.combinat.binary_recurrence_sequences import BinaryRecurrenceSequence
+    B = BinaryRecurrenceSequence(P, -Q, 2, P)
+    return B(k)
 
+def lucas(k, P, Q=1, n=None):
+    r"""
+    Return `[V_k(P, Q) \mod n, Q^{\lfloor k/2 \rfloor} \mod n]` where `V_k`
+    is the Lucas function defined by the recursive relation
+
+    .. MATH::
+
+        V_k(P, Q) = P V_{k-1}(P, Q) -  Q V_{k-2}(P, Q)
+
+    with `V_0 = 2, V_1 = P`.
+
+    INPUT:
+
+    - ``k`` -- integer; index to compute
+
+    - ``P``, ``Q`` -- integers or modular integers; initial values
+
+    - ``n`` -- integer (optional); modulus to use if ``P`` is not a modular
+      integer
+
+    REFERENCES:
+
+    .. [IEEEP1363] IEEE P1363 / D13 (Draft Version 13). Standard Specifications
+       for Public Key Cryptography Annex A (Informative).
+       Number-Theoretic Background. Section A.2.4
+
+    AUTHORS:
+
+    - Somindu Chaya Ramanna, Shashank Singh and Srinivas Vivek Venkatesh
+      (2011-09-15, ECC2011 summer school)
+
+    - Robert Bradshaw
+
+    TESTS::
+
+        sage: from sage.rings.finite_rings.integer_mod import lucas
+        sage: p = randint(0,100000)
+        sage: q = randint(0,100000)
+        sage: n = randint(0,100)
+        sage: all([lucas(k,p,q,n)[0] == Mod(lucas_number2(k,p,q),n)
+        ...        for k in Integers(20)])
+        True
+        sage: from sage.rings.finite_rings.integer_mod import lucas
+        sage: p = randint(0,100000)
+        sage: q = randint(0,100000)
+        sage: n = randint(0,100)
+        sage: k = randint(0,100)
+        sage: lucas(k,p,q,n) == [Mod(lucas_number2(k,p,q),n),Mod(q^(int(k/2)),n)]
+        True
+
+    EXAMPLES::
+
+        sage: [lucas(k,4,5,11)[0] for k in range(30)]
+        [2, 4, 6, 4, 8, 1, 8, 5, 2, 5, 10, 4, 10, 9, 8, 9, 7, 5, 7, 3, 10, 3, 6, 9, 6, 1, 7, 1, 2, 3]
+
+        sage: lucas(20,4,5,11)
+        [10, 1]
+    """
+    cdef IntegerMod_abstract p,q
+
+    if n is None and not is_IntegerMod(P):
+        raise ValueError
+
+    if n is None:
+        n = P.modulus()
+
+    if not is_IntegerMod(P):
+        p = Mod(P,n)
+    else:
+        p = P
+
+    if not is_IntegerMod(Q):
+        q = Mod(Q,n)
+    else:
+        q = Q
+
+    if k == 0:
+        return [2, 1]
+    elif k == 1:
+        return [p, 1]
+
+    cdef sage.rings.integer.Integer m
+    m = <sage.rings.integer.Integer>k if PY_TYPE_CHECK(k, sage.rings.integer.Integer) else sage.rings.integer.Integer(k)
+    two = p._new_c_from_long(2)
+
+    v0 = p._new_c_from_long(2)
+    v1 = p
+    q0 = p._new_c_from_long(1)
+    q1 = p._new_c_from_long(1)
+
+    sig_on()
+    cdef int j
+    for j from mpz_sizeinbase(m.value, 2)-1 >= j >= 0:
+        q0 = q0*q1
+        if mpz_tstbit(m.value, j):
+            q1 = q0*Q
+            v0 = v0*v1 - p*q0
+            v1 = v1*v1 - two*q1
+        else:
+            q1 = q0
+            v1 = v0*v1 - p*q0
+            v0 = v0*v0 - two*q0
+    sig_off()
+    return [v0,q0]
 
 ############# Homomorphisms ###############
 

@@ -210,6 +210,7 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
         sage: g.is_cartesian_product()
         False
     """
+    g._scream_if_not_simple()
     if relabeling:
         certificate = True
 

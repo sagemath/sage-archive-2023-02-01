@@ -76,23 +76,7 @@ cdef class gen(sage.structure.element.RingElement):
     Python extension class that models the PARI GEN type.
     """
     def __init__(self):
-        self.b = 0
-        self._parent = P
-        self._refers_to = {}
-
-    def parent(self):
-        return P
-
-    cdef void init(self, GEN g, pari_sp b):
-        """
-        g - PARI GEN b - pointer to memory chunk where PARI gen lives (if
-        nonzero then this memory is freed when the object goes out of
-        scope)
-        """
-        self.g = g
-        self.b = b
-        self._parent = P
-        self._refers_to = {}
+        raise RuntimeError("PARI objects cannot be instantiated directly; use pari(x) to convert x to PARI")
 
     def __dealloc__(self):
         if self.b:
@@ -268,11 +252,32 @@ cdef class gen(sage.structure.element.RingElement):
         pari_catch_sig_on()
         return P.new_gen(ginv(self.g))
 
-    ###########################################
-    # ACCESS
-    ###########################################
-    def getattr(self, attr):
-        return objtogen(str(self) + '.' + str(attr))
+    def getattr(gen self, attr):
+        """
+        Return the PARI attribute with the given name.
+
+        EXAMPLES::
+
+            sage: K = pari("nfinit(x^2 - x - 1)")
+            sage: K.getattr("pol")
+            x^2 - x - 1
+            sage: K.getattr("disc")
+            5
+
+            sage: K.getattr("reg")
+            Traceback (most recent call last):
+            ...
+            PariError: _.reg: incorrect type in reg
+            sage: K.getattr("zzz")
+            Traceback (most recent call last):
+            ...
+            PariError: no function named "_.zzz"
+
+        """
+        cdef str s = "_." + attr
+        cdef char *t = PyString_AsString(s)
+        pari_catch_sig_on()
+        return P.new_gen(closure_callgen1(strtofunction(t), self.g))
 
     def mod(self):
         """
@@ -716,15 +721,18 @@ cdef class gen(sage.structure.element.RingElement):
 
             ind = (i,j)
 
-            if PyDict_Contains(self._refers_to, ind):
-                return self._refers_to[ind]
+            if self.refers_to is not None and ind in self.refers_to:
+                return self.refers_to[ind]
             else:
                 ## In this case, we're being asked to return
                 ## a GEN that has no gen pointing to it, so
                 ## we need to create such a gen, add it to
-                ## self._refers_to, and return it.
+                ## self.refers_to, and return it.
                 val = P.new_ref(gmael(self.g, j+1, i+1), self)
-                self._refers_to[ind] = val
+                if self.refers_to is None:
+                    self.refers_to = {ind: val}
+                else:
+                    self.refers_to[ind] = val
                 return val
 
         elif isinstance(n, slice):
@@ -769,15 +777,18 @@ cdef class gen(sage.structure.element.RingElement):
         elif pari_type == t_VEC or pari_type == t_MAT:
             #t_VEC    : row vector        [ code ] [  x_1  ] ... [  x_k  ]
             #t_MAT    : matrix            [ code ] [ col_1 ] ... [ col_k ]
-            if PyDict_Contains(self._refers_to, n):
-                return self._refers_to[n]
+            if self.refers_to is not None and n in self.refers_to:
+                return self.refers_to[n]
             else:
                 ## In this case, we're being asked to return
                 ## a GEN that has no gen pointing to it, so
                 ## we need to create such a gen, add it to
-                ## self._refers_to, and return it.
+                ## self.refers_to, and return it.
                 val = P.new_ref(gel(self.g, n+1), self)
-                self._refers_to[n] = val
+                if self.refers_to is None:
+                    self.refers_to = {n: val}
+                else:
+                    self.refers_to[n] = val
                 return val
 
         elif pari_type == t_VECSMALL:
@@ -931,7 +942,10 @@ cdef class gen(sage.structure.element.RingElement):
                     raise IndexError, "row i(=%s) must be between 0 and %s"%(i,self.nrows()-1)
                 if j < 0 or j >= glength(self.g):
                     raise IndexError, "column j(=%s) must be between 0 and %s"%(j,self.ncols()-1)
-                self._refers_to[ind] = x
+                if self.refers_to is None:
+                    self.refers_to = {ind: x}
+                else:
+                    self.refers_to[ind] = x
 
                 (<GEN>(self.g)[j+1])[i+1] = <long>(x.g)
                 return
@@ -956,7 +970,10 @@ cdef class gen(sage.structure.element.RingElement):
             # so python memory manager will work correctly
             # and not free x if PARI part of self is the
             # only thing pointing to it.
-            self._refers_to[i] = x
+            if self.refers_to is None:
+                self.refers_to = {i: x}
+            else:
+                self.refers_to[i] = x
 
             ## correct indexing for t_POLs
             if typ(self.g) == t_POL:
@@ -5038,17 +5055,31 @@ cdef class gen(sage.structure.element.RingElement):
         pari_catch_sig_on()
         return P.new_gen(fibo(long(x)))
 
+    def gcd(gen x, y=None):
+        """
+        Return the greatest common divisor of `x` and `y`.
 
-    def gcd(gen x, y, long flag=0):
+        If `y` is ``None``, then `x` must be a list or tuple, and the
+        greatest common divisor of its components is returned.
+
+        EXAMPLES::
+
+            sage: pari(10).gcd(15)
+            5
+            sage: pari([5, 'y']).gcd()
+            1
+            sage: pari(['x', x^2]).gcd()      
+            x
+
         """
-        gcd(x,y,flag=0): greatest common divisor of x and y. flag is
-        optional, and can be 0: default, 1: use the modular gcd algorithm
-        (x and y must be polynomials), 2 use the subresultant algorithm (x
-        and y must be polynomials)
-        """
-        cdef gen t0 = objtogen(y)
-        pari_catch_sig_on()
-        return P.new_gen(ggcd0(x.g, t0.g))
+        cdef gen t0
+        if y is None:
+            pari_catch_sig_on()
+            return P.new_gen(ggcd0(x.g, NULL))
+        else:
+            t0 = objtogen(y)
+            pari_catch_sig_on()
+            return P.new_gen(ggcd0(x.g, t0.g))
 
     def issquare(gen x, find_root=False):
         """
@@ -5085,16 +5116,31 @@ cdef class gen(sage.structure.element.RingElement):
         pari_catch_sig_off()
         return t != 0
 
-    def lcm(gen x, y):
+    def lcm(gen x, y=None):
         """
-        Return the least common multiple of x and y. EXAMPLES::
+        Return the least common multiple of `x` and `y`.
+
+        If `y` is ``None``, then `x` must be a list or tuple, and the
+        least common multiple of its components is returned.
+
+        EXAMPLES::
 
             sage: pari(10).lcm(15)
             30
+            sage: pari([5, 'y']).lcm()
+            5*y
+            sage: pari([10, 'x', x^2]).lcm()
+            10*x^2
+
         """
-        cdef gen t0 = objtogen(y)
-        pari_catch_sig_on()
-        return P.new_gen(glcm(x.g, t0.g))
+        cdef gen t0
+        if y is None:
+            pari_catch_sig_on()
+            return P.new_gen(glcm0(x.g, NULL))
+        else:
+            t0 = objtogen(y)
+            pari_catch_sig_on()
+            return P.new_gen(glcm0(x.g, t0.g))
 
     def numdiv(gen n):
         """
@@ -5181,6 +5227,61 @@ cdef class gen(sage.structure.element.RingElement):
             (5, -1, 1)
         """
         return x.bezout(y)
+
+    def Zn_issquare(gen self, n):
+        """
+        Return ``True`` if ``self`` is a square modulo `n`, ``False``
+        if not.
+
+        INPUT:
+
+        - ``self`` -- integer
+
+        - ``n`` -- integer or factorisation matrix
+
+        EXAMPLES::
+
+            sage: pari(3).Zn_issquare(4)
+            False
+            sage: pari(4).Zn_issquare(30.factor())
+            True
+
+        """
+        cdef gen t0 = objtogen(n)
+        pari_catch_sig_on()
+        cdef long t = Zn_issquare(self.g, t0.g)
+        pari_catch_sig_off()
+        return t != 0
+
+    def Zn_sqrt(gen self, n):
+        """
+        Return a square root of ``self`` modulo `n`, if such a square
+        root exists; otherwise, raise a ``ValueError``.
+
+        INPUT:
+
+        - ``self`` -- integer
+
+        - ``n`` -- integer or factorisation matrix
+
+        EXAMPLES::
+
+            sage: pari(3).Zn_sqrt(4)
+            Traceback (most recent call last):
+            ...
+            ValueError: 3 is not a square modulo 4
+            sage: pari(4).Zn_sqrt(30.factor())
+            22
+
+        """
+        cdef gen t0 = objtogen(n)
+        cdef GEN s
+        pari_catch_sig_on()
+        s = Zn_sqrt(self.g, t0.g)
+        if s == NULL:
+            pari_catch_sig_off()
+            raise ValueError("%s is not a square modulo %s" % (self, n))
+        return P.new_gen(s)
 
 
     ##################################################
@@ -7261,7 +7362,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: nf = pari(y^2 - 6*y + 24).nfinit()
             sage: rnf = nf.rnfinit(x^2 - pari(y))
 
-        This is the relative HNF of the inert ideal (2) in rnf:
+        This is the relative HNF of the inert ideal (2) in rnf::
 
             sage: P = pari('[[[1, 0]~, [0, 0]~; [0, 0]~, [1, 0]~], [[2, 0; 0, 2], [2, 0; 0, 1/2]]]')
 

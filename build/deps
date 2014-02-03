@@ -80,7 +80,7 @@ all-sage: \
      $(INST)/$(PALP) \
      $(INST)/$(PARI) \
      $(INST)/$(PEXPECT) \
-     $(INST)/$(PIL) \
+     $(INST)/$(PILLOW) \
      $(INST)/$(POLYBORI) \
      $(INST)/$(POLYTOPES_DB) \
      $(INST)/$(PPL) \
@@ -109,10 +109,10 @@ all-sage: \
      $(INST)/$(NCURSES) \
      $(INST)/$(ZLIB) \
      $(INST)/$(ZNPOLY) \
-     scripts \
-     sage \
-     csage \
-     extcode
+     $(INST)/sage \
+     $(INST)/csage \
+     $(EXTCODE) \
+     $(SCRIPTS)
 
 # TOOLCHAIN consists of dependencies determined by build/install,
 # including for example the GCC package.
@@ -133,7 +133,7 @@ toolchain-deps:
 
 # Everything needed to start up Sage using "./sage".  Of course, not
 # every part of Sage will work.  It does not include Maxima for example.
-SAGERUNTIME = scripts sage $(INST)/$(SAGENB) $(INST)/$(IPYTHON) $(INST)/$(GAP)
+SAGERUNTIME = $(SCRIPTS) $(INST)/sage $(INST)/$(SAGENB) $(INST)/$(IPYTHON)
 
 ###############################################################################
 # Building the base system
@@ -143,12 +143,21 @@ SAGERUNTIME = scripts sage $(INST)/$(SAGENB) $(INST)/$(IPYTHON) $(INST)/$(GAP)
 # an update of these packages will not trigger a rebuild of every other
 # package during an upgrade, see #13415.
 ###############################################################################
-base: $(INST)/$(PREREQ) $(INST)/$(BZIP2) $(INST)/$(PATCH)
+base: $(INST)/prereq $(INST)/$(BZIP2) $(INST)/$(PATCH)
 
-$(INST)/$(PREREQ):
-	$(PIPE) "base/$(PREREQ)-install 2>&1" "tee -a $(SAGE_LOGS)/$(PREREQ).log"
+$(INST)/prereq: ../configure
+	@cd ..; rm -f config.log; ln -s logs/pkgs/config.log config.log; \
+	./configure $$PREREQ_OPTIONS || ( \
+	    if [ "x$$SAGE_PORT" = x ]; then \
+	        echo "If you would like to try to build Sage anyway (to help porting),"; \
+	        echo "export the variable 'SAGE_PORT' to something non-empty."; \
+	        exit 1; \
+    	else \
+	        echo "Since 'SAGE_PORT' is set, we will try to build anyway."; \
+    	fi; )
+	touch $@
 
-$(INST)/$(BZIP2): $(INST)/$(PREREQ)
+$(INST)/$(BZIP2): $(INST)/prereq
 	+$(PIPE) "$(SAGE_SPKG) $(BZIP2) 2>&1" "tee -a $(SAGE_LOGS)/$(BZIP2).log"
 
 $(INST)/$(PATCH): $(INST)/$(BZIP2)
@@ -308,10 +317,10 @@ $(INST)/$(SQLITE): $(INST)/$(READLINE)
 	+$(PIPE) "$(SAGE_SPKG) $(SQLITE) 2>&1" "tee -a $(SAGE_LOGS)/$(SQLITE).log"
 
 # To build SageTeX, you just need Python, but to test (SAGE_CHECK=yes)
-# SageTeX, you actually need to run sage, produce plots,...
+# SageTeX, you actually need to run Sage, produce plots,...
 $(INST)/$(SAGETEX): $(INST)/$(PYTHON) \
                     $(SAGERUNTIME) $(INST)/$(MAXIMA) $(INST)/$(SCIPY) \
-                    $(INST)/$(MATPLOTLIB) $(INST)/$(PIL) $(INST)/$(TACHYON)
+                    $(INST)/$(MATPLOTLIB) $(INST)/$(PILLOW) $(INST)/$(TACHYON)
 	+$(PIPE) "$(SAGE_SPKG) $(SAGETEX) 2>&1" "tee -a $(SAGE_LOGS)/$(SAGETEX).log"
 
 $(INST)/$(SETUPTOOLS): $(INST)/$(PYTHON)
@@ -336,7 +345,7 @@ $(INST)/$(ZLIB):
 $(INST)/$(JMOL): $(INST)/$(SAGENB)
 	+$(PIPE) "$(SAGE_SPKG) $(JMOL) 2>&1" "tee -a $(SAGE_LOGS)/$(JMOL).log"
 
-$(INST)/$(FREETYPE):
+$(INST)/$(FREETYPE): $(INST)/$(LIBPNG)
 	+$(PIPE) "$(SAGE_SPKG) $(FREETYPE) 2>&1" "tee -a $(SAGE_LOGS)/$(FREETYPE).log"
 
 $(INST)/$(LIBPNG): $(INST)/$(ZLIB)
@@ -418,7 +427,7 @@ $(INST)/$(PYGMENTS): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 # on the one hand, programs needed for the build/install process of the
 # Sage library (e.g. JINJA2), and on the
 # other hand all dependencies for Cython files (e.g. PARI, NTL, MPIR).
-sage: \
+$(INST)/sage: \
 		 $(INST)/$(ATLAS) \
 		 $(INST)/$(CEPHES) \
 		 $(INST)/$(CLIQUER) \
@@ -456,21 +465,25 @@ sage: \
 		 $(INST)/$(SINGULAR) \
 		 $(INST)/$(SYMMETRICA) \
 		 $(INST)/$(ZNPOLY) \
-		 csage
-	$(PIPE) '{ if [ -z "$(SAGE_INSTALL_FETCH_ONLY)" ]; then cd $(SAGE_SRC) && . ./bin/sage-env && time python setup.py install; fi; } 2>&1' 'tee -a $(SAGE_LOGS)/sage-$(SAGE_VERSION).log'
+		 $(INST)/csage
+	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
+		cd $(SAGE_SRC) && source bin/sage-env && \
+		$(PIPE) 'time python setup.py install 2>&1' 'tee -a $(SAGE_LOGS)/sage-$(SAGE_VERSION).log' && \
+		touch $@; \
+	fi
 
-scripts: $(SCRIPT_TARGETS)
-
-extcode: $(EXTCODE_TARGETS)
-
-csage: $(INST)/$(SCONS) \
+$(INST)/csage: $(INST)/$(SCONS) \
        $(INST)/$(MPIR) \
        $(INST)/$(NTL) \
        $(INST)/$(PARI) \
        $(INST)/$(POLYBORI) \
        $(INST)/$(PYNAC) \
        $(INST)/$(PYTHON)
-	$(PIPE) '{ if [ -z "$(SAGE_INSTALL_FETCH_ONLY)" ]; then cd $(SAGE_SRC)/c_lib && . ../bin/sage-env && time scons -Q install; fi; } 2>&1' 'tee -a $(SAGE_LOGS)/csage-$(SAGE_VERSION).log'
+	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
+		cd $(SAGE_SRC) && source bin/sage-env && cd c_lib && \
+		$(PIPE) 'time scons -Q install 2>&1' 'tee -a $(SAGE_LOGS)/csage-$(SAGE_VERSION).log' && \
+		touch $@; \
+	fi
 
 $(INST)/ccache: $(BASE) $(INST)/$(ZLIB)
 	+$(PIPE) "$(SAGE_SPKG) ccache 2>&1" "tee -a $(SAGE_LOGS)/ccache.log"
@@ -480,8 +493,8 @@ $(INST)/$(GCC): $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(MPC) \
                 $(INST)/$(ZLIB)
 	+$(PIPE) "$(SAGE_SPKG) $(GCC) 2>&1" "tee -a $(SAGE_LOGS)/$(GCC).log"
 
-$(INST)/$(PIL): $(INST)/$(PYTHON)
-	+$(PIPE) "$(SAGE_SPKG) $(PIL) 2>&1" "tee -a $(SAGE_LOGS)/$(PIL).log"
+$(INST)/$(PILLOW): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
+	+$(PIPE) "$(SAGE_SPKG) $(PILLOW) 2>&1" "tee -a $(SAGE_LOGS)/$(PILLOW).log"
 
 $(INST)/$(NUMPY): $(INST)/$(PYTHON) $(INST)/$(ATLAS)
 	+$(PIPE) "$(SAGE_SPKG) $(NUMPY) 2>&1" "tee -a $(SAGE_LOGS)/$(NUMPY).log"
@@ -503,6 +516,7 @@ $(INST)/$(CEPHES):
 # setuptools forgets to update easy-install.pth during parallel
 # builds, so we build the relevant packages serially.
 
+$(INST)/$(SQLALCHEMY): $(INST)/$(PILLOW)
 $(INST)/$(PYGMENTS): $(INST)/$(SQLALCHEMY)
 $(INST)/$(JINJA2): $(INST)/$(PYGMENTS)
 $(INST)/$(SPHINX): $(INST)/$(JINJA2)

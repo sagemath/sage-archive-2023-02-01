@@ -192,7 +192,8 @@ class GroupSemidirectProduct(CartesianProduct):
             h = x.summand_projection(1)
         gg = self.summands()[0](g)
         hh = self.summands()[1](h)
-        return self._cartesian_product_of_elements((gg,hh))
+#        return self._cartesian_product_of_elements((gg,hh))
+        return self.element_class(self,(gg,hh))
 
     @cached_method
     def one(self):

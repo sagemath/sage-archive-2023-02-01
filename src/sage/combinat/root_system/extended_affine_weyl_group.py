@@ -162,7 +162,7 @@ def ExtendedAffineWeylGroup(cartan_type, prefix0=None, prefix=None, print_tuple 
         sage: PW0 = ExtendedAffineWeylGroup(["A",2,1], prefix0="s", prefix="S"); PW0
         Semidirect product of Multiplicative form of Coweight lattice of the Root system of type ['A', 2] acted upon by Weyl Group of type ['A', 2] (as a matrix group acting on the coweight lattice)
 
-    This gives the default realization, style "PW0", of
+    Style "PW0" is the default realization of 
     :class:`~sage.combinat.root_system.extended_affine_weyl_group.ExtendedAffineWeylGroup_Class`
     which is stored in the variable ``E`` below.
 
@@ -173,8 +173,7 @@ def ExtendedAffineWeylGroup(cartan_type, prefix0=None, prefix=None, print_tuple 
         sage: type(E)
         <class 'sage.combinat.root_system.extended_affine_weyl_group.ExtendedAffineWeylGroup_Class_with_category'>
 
-    There are also realizations "W0P", "WF",and "FW". Each realization can be accessed
-    from the others via ``E``.
+    The other realizations "W0P", "WF", and "FW" can be accessed from the others via ``E``.
 
     ::
 
@@ -187,8 +186,7 @@ def ExtendedAffineWeylGroup(cartan_type, prefix0=None, prefix=None, print_tuple 
         sage: FW = E.FW(); FW
         Semidirect product of Fundamental group of type ['A', 2, 1] acting on Weyl Group of type ['A', 2, 1] (as a matrix group acting on the root lattice)
 
-    When the realizations are constructed from each other as above, there are built-in
-    coercions between them.
+    When the realizations are constructed from each other as above, there are built-in coercions between them.
 
     ::
 

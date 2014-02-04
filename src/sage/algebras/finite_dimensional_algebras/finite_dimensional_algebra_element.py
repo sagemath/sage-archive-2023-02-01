@@ -23,13 +23,13 @@ from sage.rings.integer import Integer
 from sage.structure.element import AlgebraElement, is_Vector, parent
 
 
-class FiniteAlgebraElement(AlgebraElement):
+class FiniteDimensionalAlgebraElement(AlgebraElement):
     """
-    Create an element of a :class:`FiniteAlgebra` using a multiplication table.
+    Create an element of a :class:`FiniteDimensionalAlgebra` using a multiplication table.
 
     INPUT:
 
-    - ``A`` -- a :class:`FiniteAlgebra` which will be the parent
+    - ``A`` -- a :class:`FiniteDimensionalAlgebra` which will be the parent
 
     - ``elt`` -- vector, matrix or element of the base field
       (default: ``None``)
@@ -44,7 +44,7 @@ class FiniteAlgebraElement(AlgebraElement):
 
     EXAMPLES::
 
-        sage: A = FiniteAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
+        sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
         sage: A(17)
         2*e0
         sage: A([1,1])
@@ -54,13 +54,13 @@ class FiniteAlgebraElement(AlgebraElement):
         """
         TESTS::
 
-            sage: A = FiniteAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
+            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
             sage: A(QQ(4))
             Traceback (most recent call last):
             ...
             TypeError: elt should be a vector, a matrix, or an element of the base field
 
-            sage: B = FiniteAlgebra(QQ, [Matrix([[1,0], [0,1]]), Matrix([[0,1], [-1,0]])])
+            sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0], [0,1]]), Matrix([[0,1], [-1,0]])])
             sage: elt = B(Matrix([[1,1], [-1,1]])); elt
             e0 + e1
             sage: TestSuite(elt).run()
@@ -114,7 +114,7 @@ class FiniteAlgebraElement(AlgebraElement):
 
         EXAMPLE::
 
-            sage: B = FiniteAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
+            sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
             sage: B(5).vector()
             (5, 0, 5)
         """
@@ -126,7 +126,7 @@ class FiniteAlgebraElement(AlgebraElement):
 
         EXAMPLE::
 
-            sage: B = FiniteAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
+            sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
             sage: B(5).matrix()
             [5 0 0]
             [0 5 0]
@@ -140,7 +140,7 @@ class FiniteAlgebraElement(AlgebraElement):
 
         EXAMPLES::
 
-            sage: C = FiniteAlgebra(QQ, [Matrix([[1,0,0], [0,0,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,1,0], [0,0,1]])])
+            sage: C = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,0,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,1,0], [0,0,1]])])
             sage: C([1,2,0]).left_matrix()
             [1 0 0]
             [0 1 0]
@@ -159,7 +159,7 @@ class FiniteAlgebraElement(AlgebraElement):
 
         EXAMPLE::
 
-            sage: A = FiniteAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
+            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
             sage: A(1)
             e0
         """
@@ -195,7 +195,7 @@ class FiniteAlgebraElement(AlgebraElement):
 
         EXAMPLE::
 
-            sage: A = FiniteAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
+            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
             sage: latex(A(1))  # indirect doctest
             \left(\begin{array}{rr}
             1 & 0 \\
@@ -209,7 +209,7 @@ class FiniteAlgebraElement(AlgebraElement):
         """
         EXAMPLES::
 
-            sage: A = FiniteAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
+            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
             sage: A(2) == 2
             True
             sage: A(2) == 3
@@ -225,7 +225,7 @@ class FiniteAlgebraElement(AlgebraElement):
         """
         EXAMPLE::
 
-            sage: B = FiniteAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
+            sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
             sage: B(1) != 0
             True
         """
@@ -234,27 +234,27 @@ class FiniteAlgebraElement(AlgebraElement):
     def __gt__(self, other):
         """
         Raise a ``TypeError`` as there is no (natural) ordering defined on a
-        finite algebra::
+        finite dimensional algebra::
 
-            sage: A = FiniteAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
+            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
             sage: A(1) > 0
             Traceback (most recent call last):
             ...
-            TypeError: there is no ordering defined on a finite algebra
+            TypeError: there is no ordering defined on a finite dimensional algebra
             sage: A(1) < 0
             Traceback (most recent call last):
             ...
-            TypeError: there is no ordering defined on a finite algebra
+            TypeError: there is no ordering defined on a finite dimensional algebra
             sage: A(1) >= 0
             Traceback (most recent call last):
             ...
-            TypeError: there is no ordering defined on a finite algebra
+            TypeError: there is no ordering defined on a finite dimensional algebra
             sage: A(1) <= 0
             Traceback (most recent call last):
             ...
-            TypeError: there is no ordering defined on a finite algebra
+            TypeError: there is no ordering defined on a finite dimensional algebra
         """
-        raise TypeError("there is no ordering defined on a finite algebra")
+        raise TypeError("there is no ordering defined on a finite dimensional algebra")
 
     __lt__ = __ge__ = __le__ = __gt__
 
@@ -262,37 +262,37 @@ class FiniteAlgebraElement(AlgebraElement):
         """
         EXAMPLE::
 
-            sage: A = FiniteAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
+            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
             sage: A.basis()[0] + A.basis()[1]
             e0 + e1
         """
-        return FiniteAlgebraElement(self.parent(), self._vector + other._vector)
+        return FiniteDimensionalAlgebraElement(self.parent(), self._vector + other._vector)
 
     def _sub_(self, other):
         """
         EXAMPLE::
 
-            sage: A = FiniteAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
+            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
             sage: A.basis()[0] - A.basis()[1]
             e0 + 2*e1
         """
-        return FiniteAlgebraElement(self.parent(), self._vector - other._vector)
+        return FiniteDimensionalAlgebraElement(self.parent(), self._vector - other._vector)
 
     def _mul_(self, other):
         """
         EXAMPLE::
 
-            sage: C = FiniteAlgebra(QQ, [Matrix([[1,0,0], [0,0,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,1,0], [0,0,1]])])
+            sage: C = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,0,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,1,0], [0,0,1]])])
             sage: C.basis()[1] * C.basis()[2]
             e1
         """
-        return FiniteAlgebraElement(self.parent(), self._vector * other._matrix)
+        return FiniteDimensionalAlgebraElement(self.parent(), self._vector * other._matrix)
 
     def _lmul_(self, other):
         """
         TESTS::
 
-            sage: C = FiniteAlgebra(QQ, [Matrix([[1,0,0], [0,0,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,1,0], [0,0,1]])])
+            sage: C = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,0,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,1,0], [0,0,1]])])
             sage: c = C.random_element()
             sage: c * 2 == c + c
             True
@@ -300,13 +300,13 @@ class FiniteAlgebraElement(AlgebraElement):
         if not self.parent().base_ring().has_coerce_map_from(other.parent()):
             raise TypeError("unsupported operand parent(s) for '*': '{}' and '{}'"
                             .format(self.parent(), other.parent()))
-        return FiniteAlgebraElement(self.parent(), self._vector * other)
+        return FiniteDimensionalAlgebraElement(self.parent(), self._vector * other)
 
     def _rmul_(self, other):
         """
         TESTS::
 
-            sage: C = FiniteAlgebra(QQ, [Matrix([[1,0,0], [0,0,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,1,0], [0,0,1]])])
+            sage: C = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,0,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,1,0], [0,0,1]])])
             sage: c = C.random_element()
             sage: 2 * c == c + c
             True
@@ -314,7 +314,7 @@ class FiniteAlgebraElement(AlgebraElement):
         if not self.parent().base_ring().has_coerce_map_from(other.parent()):
             raise TypeError("unsupported operand parent(s) for '*': '{}' and '{}'"
                             .format(self.parent(), other.parent()))
-        return FiniteAlgebraElement(self.parent(), other * self._vector) # Note the different order
+        return FiniteDimensionalAlgebraElement(self.parent(), other * self._vector) # Note the different order
 
     def __pow__(self, n):
         """
@@ -322,7 +322,7 @@ class FiniteAlgebraElement(AlgebraElement):
 
         EXAMPLE::
 
-            sage: B = FiniteAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
+            sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
             sage: b = B(vector(QQ, [2,3,4]))
             sage: b^6
             64*e0 + 576*e1 + 4096*e2
@@ -331,13 +331,13 @@ class FiniteAlgebraElement(AlgebraElement):
         if not (A._assume_associative or A.is_associative()):
             raise TypeError("algebra is not associative")
         if n > 0:
-            return FiniteAlgebraElement(A, self.vector() * self._matrix.__pow__(n - 1))
+            return FiniteDimensionalAlgebraElement(A, self.vector() * self._matrix.__pow__(n - 1))
         if not A.is_unitary():
             raise TypeError("algebra is not unitary")
         if n == 0:
             return A.one()
         a = self.inverse()
-        return FiniteAlgebraElement(A, a.vector() * a.matrix().__pow__(-n - 1))
+        return FiniteDimensionalAlgebraElement(A, a.vector() * a.matrix().__pow__(-n - 1))
 
     def is_invertible(self):
         """
@@ -346,13 +346,13 @@ class FiniteAlgebraElement(AlgebraElement):
 
         .. NOTE::
 
-            If an element of a unitary finite algebra over a field
+            If an element of a unitary finite dimensional algebra over a field
             admits a left inverse, then this is the unique left
             inverse, and it is also a right inverse.
 
         EXAMPLE::
 
-            sage: C = FiniteAlgebra(QQ, [Matrix([[1,0], [0,1]]), Matrix([[0,1], [-1,0]])])
+            sage: C = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0], [0,1]]), Matrix([[0,1], [-1,0]])])
             sage: C([1,2]).is_invertible()
             True
             sage: C(0).is_invertible()
@@ -372,13 +372,13 @@ class FiniteAlgebraElement(AlgebraElement):
 
         .. NOTE::
 
-            If an element of a unitary finite algebra over a field
+            If an element of a unitary finite dimensional algebra over a field
             admits a left inverse, then this is the unique left
             inverse, and it is also a right inverse.
 
         EXAMPLE::
 
-            sage: C = FiniteAlgebra(QQ, [Matrix([[1,0], [0,1]]), Matrix([[0,1], [-1,0]])])
+            sage: C = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0], [0,1]]), Matrix([[0,1], [-1,0]])])
             sage: C([1,2]).inverse()
             1/5*e0 - 2/5*e1
         """
@@ -389,7 +389,7 @@ class FiniteAlgebraElement(AlgebraElement):
 
         try:
             a = self.matrix().inverse()
-            return FiniteAlgebraElement(A, a, check=True)
+            return FiniteDimensionalAlgebraElement(A, a, check=True)
         except (ZeroDivisionError, ValueError):
             raise ZeroDivisionError("element is not invertible")
 
@@ -399,7 +399,7 @@ class FiniteAlgebraElement(AlgebraElement):
 
         EXAMPLES::
 
-            sage: C = FiniteAlgebra(QQ, [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
+            sage: C = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
             sage: C([1,0]).is_zerodivisor()
             False
             sage: C([0,1]).is_zerodivisor()
@@ -413,13 +413,13 @@ class FiniteAlgebraElement(AlgebraElement):
 
         EXAMPLES::
 
-            sage: C = FiniteAlgebra(QQ, [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
+            sage: C = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
             sage: C([1,0]).is_nilpotent()
             False
             sage: C([0,1]).is_nilpotent()
             True
 
-            sage: A = FiniteAlgebra(QQ, [Matrix([0])])
+            sage: A = FiniteDimensionalAlgebra(QQ, [Matrix([0])])
             sage: A([1]).is_nilpotent()
             True
         """
@@ -434,7 +434,7 @@ class FiniteAlgebraElement(AlgebraElement):
 
         EXAMPLES::
 
-            sage: B = FiniteAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
+            sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
             sage: B(0).minimal_polynomial()
             x
             sage: b = B.random_element()
@@ -463,7 +463,7 @@ class FiniteAlgebraElement(AlgebraElement):
 
         EXAMPLES::
 
-            sage: B = FiniteAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
+            sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
             sage: B(0).characteristic_polynomial()
             x^3
             sage: b = B.random_element()

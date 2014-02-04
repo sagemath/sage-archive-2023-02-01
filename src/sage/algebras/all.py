@@ -32,7 +32,7 @@ from free_algebra_quotient import FreeAlgebraQuotient
 
 from steenrod.all import *
 
-from finite_algebras.all import FiniteAlgebra
+from finite_dimensional_algebras.all import FiniteDimensionalAlgebra
 
 from group_algebra_new import GroupAlgebra
 

@@ -1,1 +1,0 @@
-from finite_algebra import FiniteAlgebra

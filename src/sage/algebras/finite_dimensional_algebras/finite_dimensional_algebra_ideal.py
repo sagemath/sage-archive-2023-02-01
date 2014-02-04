@@ -12,7 +12,7 @@ Ideals of Finite Algebras
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from finite_algebra_element import FiniteAlgebraElement
+from finite_dimensional_algebra_element import FiniteDimensionalAlgebraElement
 
 from sage.matrix.constructor import Matrix
 from sage.matrix.matrix import is_Matrix
@@ -23,28 +23,28 @@ from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 
 
-class FiniteAlgebraIdeal(Ideal_generic):
+class FiniteDimensionalAlgebraIdeal(Ideal_generic):
     """
-    An ideal of a :class:`FiniteAlgebra`.
+    An ideal of a :class:`FiniteDimensionalAlgebra`.
 
     INPUT:
 
-    - ``A`` -- a finite algebra
+    - ``A`` -- a finite dimensional algebra
     - ``gens`` -- the generators of this ideal
     - ``given_by_matrix`` -- (default: ``False``) whether the basis matrix is
       given by ``gens``
 
     EXAMPLES::
 
-        sage: A = FiniteAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
+        sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
         sage: A.ideal(A([0,1]))
-        Ideal (e1) of Finite algebra of degree 2 over Finite Field of size 3
+        Ideal (e1) of Finite dimensional algebra of degree 2 over Finite Field of size 3
     """
     def __init__(self, A, gens=None, given_by_matrix=False):
         """
         EXAMPLES::
 
-            sage: A = FiniteAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
+            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: I = A.ideal(A([0,1]))
             sage: TestSuite(I).run(skip="_test_category") # Currently ideals are not using the category framework
         """
@@ -56,12 +56,12 @@ class FiniteAlgebraIdeal(Ideal_generic):
         elif gens is None:
             self._basis_matrix = Matrix(k, 0, n)
         elif isinstance(gens, (list, tuple)):
-            B = [FiniteAlgebraIdeal(A, x).basis_matrix() for x in gens]
+            B = [FiniteDimensionalAlgebraIdeal(A, x).basis_matrix() for x in gens]
             B = reduce(lambda x, y: x.stack(y), B, Matrix(k, 0, n))
             self._basis_matrix = B.echelon_form().image().basis_matrix()
         elif is_Matrix(gens):
-            gens = FiniteAlgebraElement(A, gens)
-        elif isinstance(gens, FiniteAlgebraElement):
+            gens = FiniteDimensionalAlgebraElement(A, gens)
+        elif isinstance(gens, FiniteDimensionalAlgebraElement):
             gens = gens.vector()
             B = Matrix([gens * b for b in A.table()])
             self._basis_matrix = B.echelon_form().image().basis_matrix()
@@ -71,7 +71,7 @@ class FiniteAlgebraIdeal(Ideal_generic):
         """
         EXAMPLES::
 
-            sage: A = FiniteAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
+            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: I = A.ideal(A([1,1]))
             sage: J = A.ideal(A([0,1]))
             sage: I == J
@@ -81,7 +81,7 @@ class FiniteAlgebraIdeal(Ideal_generic):
             sage: I == I + J
             True
 
-            sage: A2 = FiniteAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
+            sage: A2 = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: A is A2
             False
             sage: A == A2
@@ -92,7 +92,7 @@ class FiniteAlgebraIdeal(Ideal_generic):
         """
         if self is other:
             return True
-        if not isinstance(other, FiniteAlgebraIdeal):
+        if not isinstance(other, FiniteDimensionalAlgebraIdeal):
             return False
         if self.ring() != other.ring():
             return False
@@ -102,7 +102,7 @@ class FiniteAlgebraIdeal(Ideal_generic):
         """
         EXAMPLES::
 
-            sage: A = FiniteAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
+            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: I = A.ideal(A([1,1]))
             sage: J = A.ideal(A([0,1]))
             sage: I != J
@@ -118,7 +118,7 @@ class FiniteAlgebraIdeal(Ideal_generic):
         """
         EXAMPLES::
 
-            sage: A = FiniteAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
+            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: J = A.ideal(A([0,1]))
             sage: A([0,1]) in J
             True
@@ -133,7 +133,7 @@ class FiniteAlgebraIdeal(Ideal_generic):
         """
         EXAMPLES::
 
-            sage: A = FiniteAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
+            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: I = A.ideal(A([1,1]))
             sage: J = A.ideal(A([0,1]))
             sage: I <= J
@@ -153,7 +153,7 @@ class FiniteAlgebraIdeal(Ideal_generic):
         """
         EXAMPLES::
 
-            sage: A = FiniteAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
+            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: I = A.ideal(A([1,1]))
             sage: J = A.ideal(A([0,1]))
             sage: I < J
@@ -169,7 +169,7 @@ class FiniteAlgebraIdeal(Ideal_generic):
         """
         EXAMPLES::
 
-            sage: A = FiniteAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
+            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: I = A.ideal(A([1,1]))
             sage: J = A.ideal(A([0,1]))
             sage: I >= J
@@ -185,7 +185,7 @@ class FiniteAlgebraIdeal(Ideal_generic):
         """
         EXAMPLES::
 
-            sage: A = FiniteAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
+            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: I = A.ideal(A([1,1]))
             sage: J = A.ideal(A([0,1]))
             sage: I > J
@@ -203,7 +203,7 @@ class FiniteAlgebraIdeal(Ideal_generic):
 
         EXAMPLES::
 
-            sage: A = FiniteAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
+            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: I = A.ideal(A([1,1]))
             sage: I.basis_matrix()
             [1 0]
@@ -218,7 +218,7 @@ class FiniteAlgebraIdeal(Ideal_generic):
 
         EXAMPLES::
 
-            sage: A = FiniteAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
+            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: I = A.ideal(A([1,1]))
             sage: I.vector_space()
             Vector space of degree 2 and dimension 2 over Finite Field of size 3

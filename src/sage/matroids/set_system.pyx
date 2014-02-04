@@ -448,7 +448,7 @@ cdef class SetSystem:
         if E is None:
             E = xrange(self._len)
         if P is None:
-            if len(self._groundset)>0:
+            if self._groundset:
                 P = SetSystem(self._groundset, [self._groundset], capacity=self._groundset_size)
             else:
                 P = SetSystem([], [])

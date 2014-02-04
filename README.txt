@@ -75,12 +75,23 @@ Installation Guide:
    "Precise"), you need the dpkg-dev package.
 
    OS X: Xcode. Make sure you have installed the most recent version
-   of Xcode. For pre-Lion versions of OS X, you can download Xcode
-   from http://developer.apple.com/downloads/. For OS X Lion, you can
-   install it using the App Store. With Xcode 4.3 or later, you need
-   to install the "Command Line Tools": from the File menu, choose
-   "Preferences", then the "Downloads" tab, and then "Install" the
-   Command Line Tools.
+   of Xcode. With recent versions of OS X (OS X Lion or later), you
+   can install Xcode for free from the App Store. For pre-Lion
+   versions of OS X, you can download Xcode from
+   http://developer.apple.com/downloads/.
+
+   With OS X, you also need to install the "command line tools". When
+   using OS X Mavericks, after installing Xcode, run this command from
+   a terminal window:
+
+      xcode-select --install
+
+   Then click "Install" in the pop-up window.
+
+   When using OS X Mountain Lion or earlier, you need to install the
+   command line tools from Xcode: run Xcode; then from the File
+   menu, choose "Preferences", then the "Downloads" tab, and then
+   "Install" the Command Line Tools.
 
    Other platforms: See detailed instructions below.
 

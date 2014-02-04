@@ -1,23 +1,37 @@
 r"""
 Tamari Interval-posets
 
-This module implements the combinatorial object Tamari interval-poset which
-represents an interval of the Tamari order. It has been introduced in [PCH]_
+This module implements Tamari interval-posets: combinatorial objects which
+represent intervals of the Tamari order. They have been introduced in [PCh2013]_
 and allows for many combinatorial operations on Tamari intervals. In particular,
 it is linked to :class:`DyckWords` and :class:`BinaryTrees`.
 
-The Tamari lattice can be defined on many Catalan objects, especially binary
-trees and Dyck paths [TAM]_ [HUT]_ [STA]_ . An interval can be seen as a
-couple of comparable elements. The number of intervals has been given in 
-[CHA]_ .
+The Tamari lattice can be defined as a lattice structure on either of several
+classes of Catalan objects, especially binary trees and Dyck paths
+[TamBrack1962]_ [HuTAss1972]_ [StaEC2]_ . An interval can be seen as a pair of
+comparable elements. The number of intervals has been given in
+[ChapTamari08]_ .
 
 REFERENCES:
 
-.. [PCH] Counting smaller trees in the Tamari order, G. Chatel, V. Pons, FPSAC, 2013 :arxiv:`1212.0751`
-.. [TAM] The algebra of bracketings and their enumeration, D. Tamari, Nieuw Arch. Wisk., 1962
-.. [HUT] Problems of associativity: A simple proof for the lattice property of systems ordered by a semi-associative law, S. Huang and D. Tamari, J. Combinatorial Theory Ser. A, 1972
-.. [STA] Enumerative combinatorics. Vol. 2, R.P. Stanley, Cambridge University Press, 1999
-.. [CHA] Sur le nombre d'intervalles dans les treillis de Tamari, F. Chapoton, Sem. Lothar. Combin. 2008
+.. [PCh2013] Gregory Chatel, Viviane Pons,
+   *Counting smaller trees in the Tamari order*,
+   FPSAC, 2013, :arxiv:`1212.0751v1`.
+.. [TamBrack1962] Dov Tamari,
+   *The algebra of bracketings and their enumeration*,
+   Nieuw Arch. Wisk., 1962.
+.. [HuTAss1972] Samuel Huang and Dov Tamari,
+   *Problems of associativity: A simple proof for the lattice property
+   of systems ordered by a semi-associative law*,
+   J. Combinatorial Theory Ser. A, 1972,
+   http://www.sciencedirect.com/science/article/pii/0097316572900039 .
+.. [StaEC2] Richard P. Stanley,
+   *Enumerative combinatorics, vol. 2*,
+   Cambridge University Press, 1999.
+.. [ChapTamari08] Frederic Chapoton,
+   *Sur le nombre d'intervalles dans les treillis de Tamari*,
+   Sem. Lothar. Combin. 2008.
+   :arxiv:`math/0602368v1`.
 
 **AUTHORS:**
 
@@ -104,16 +118,20 @@ class TamariIntervalPoset(Element):
     r"""
     The class of Tamari Interval-posets.
 
-    An interval-poset is a labelled poset of size n, with labels `1,\dots,n`
-    satisfying the following conditions:
+    An interval-poset is a labelled poset of size `n`, with labels
+    `1,\dots,n`, satisfying the following conditions:
 
-    - if `a < c` (as a number) and `a` precedes `c` in the poset, then,
+    - if `a<c` (as integers) and `a` precedes `c` in the poset, then,
       for all `b` such that `a<b<c`, `b` precedes `c`,
 
-    - if `a<c` (as a number) and `c` precedes `a` in the poset, then,
+    - if `a<c` (as integers) and `c` precedes `a` in the poset, then,
       for all `b` such that `a<b<c`, `b` precedes `a`.
 
-    They are in bijection with intervals of the Tamari lattice.
+    ("Precedes" means "is smaller than with respect to the poset
+    structure"; this does not imply a covering relation.)
+
+    Interval-posets of size `n` are in bijection with intervals of
+    the Tamari lattice of binary trees of size `n`.
 
     INPUT:
 
@@ -2013,11 +2031,7 @@ class TamariIntervalPosets_size(TamariIntervalPosets):
         r"""
         The cardinality of ``self``
 
-        The formula was given in [CHA]_ `\frac{2(4n+1)!}{(n+1)!(3n+2)!}`
-
-        REFERENCES:
-
-        .. [CHA] Sur le nombre d'intervalles dans les treillis de Tamari, F. Chapoton, 2008
+        The formula was given in [ChapTamari08]: `\frac{2(4n+1)!}{(n+1)!(3n+2)!}`
 
         EXAMPLES::
 

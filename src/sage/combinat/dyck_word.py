@@ -3,7 +3,7 @@ Dyck Words
 
 A class of an object enumerated by the
 :func:`Catalan numbers<sage.combinat.combinat.catalan_number>`,
-see [Sta1999]_, [Sta]_ for details.
+see [Sta1999]_, [StaCat98]_ for details.
 
 AUTHORS:
 
@@ -27,14 +27,17 @@ AUTHORS:
 
 REFERENCES:
 
-.. [Sta1999] R. Stanley, Enumerative Combinatorics, Volume 2.
+.. [Sta1999] R. Stanley, *Enumerative Combinatorics*, Volume 2.
    Cambridge University Press, 2001.
 
-.. [Sta] R. Stanley, electronic document containing the list
-   of Catalan objects at http://www-math.mit.edu/~rstan/ec/catalan.pdf
+.. [StaCat98] R. Stanley, *Exercises on Catalan and Related Numbers
+   excerpted from Enumerative Combinatorics, vol. 2 (CUP 1999),
+   version of 23 June 1998.
+   http://www-math.mit.edu/~rstan/ec/catalan.pdf
 
-.. [Hag2008] The `q,t` -- Catalan Numbers and the Space of Diagonal Harmonics:
-   With an Appendix on the Combinatorics of Macdonald Polynomials, James Haglund,
+.. [Hag2008] James Haglund, *The `q,t` -- Catalan Numbers and the
+   Space of Diagonal Harmonics:
+   With an Appendix on the Combinatorics of Macdonald Polynomials*,
    University of Pennsylvania, Philadelphia -- AMS, 2008, 167 pp.
 """
 
@@ -655,9 +658,10 @@ class DyckWord(CombinatorialObject, Element):
         Display a DyckWord as a lattice path in the `\ZZ^2` grid.
 
         If the ``type`` is "N-E", then the a cell below the diagonal is
-        indicated by a period, a cell below the path, but above the
-        diagonal are indicated by an x. If a list of labels is included,
-        they are displayed along the vertical edges of the Dyck path.
+        indicated by a period, whereas a cell below the path but above
+        the diagonal is indicated by an x. If a list of labels is
+        included, they are displayed along the vertical edges of the
+        Dyck path.
 
         If the ``type`` is "NE-SE", then the path is simply printed
         as up steps and down steps.
@@ -675,7 +679,7 @@ class DyckWord(CombinatorialObject, Element):
           the up steps in ``self``.
 
         - ``underpath`` -- (if type is "N-E", default:``True``) If ``True``,
-          the labelling is shown under the path otherwise, it is shown to
+          the labelling is shown under the path; otherwise, it is shown to
           the right of the path.
 
         EXAMPLES::
@@ -1088,7 +1092,9 @@ class DyckWord(CombinatorialObject, Element):
     def associated_parenthesis(self, pos):
         r"""
         Report the position for the parenthesis in ``self`` that matches the
-        one at position ``pos`` .
+        one at position ``pos``.
+
+        The positions in ``self`` are counted from `0`.
 
         INPUT:
 
@@ -1131,7 +1137,7 @@ class DyckWord(CombinatorialObject, Element):
             d -= 1
             height -= 1
         else:
-            raise ValueError("unknown symbol %s"%self[pos-1])
+            raise ValueError("unknown symbol %s"%self[pos])
 
         while height != 0:
             pos += d
@@ -1570,10 +1576,19 @@ class DyckWord(CombinatorialObject, Element):
         r"""
         Return the Tamari interval between ``self`` and ``other`` as a
         :class:`TamariIntervalPoset`.
-        
+
+        A "Tamari interval" means an interval in the Tamari order. The
+        Tamari order on the set of Dyck words of size `n` is the
+        partial order obtained from the Tamari order on the set of
+        binary trees of size `n` (see
+        :meth:`~sage.combinat.binary_tree.BinaryTree.tamari_greater`)
+        by means of the Tamari bijection between Dyck words and binary
+        trees
+        (:meth:`~sage.combinat.binary_tree.BinaryTree.to_dyck_word_tamari`).
+
         INPUT:
 
-        - ``other`` -- an other Dyck word greater than ``self`` for the 
+        - ``other`` -- a Dyck word greater or equal to ``self`` in the
          Tamari order.
 
         EXAMPLES::
@@ -2207,15 +2222,24 @@ class DyckWord_complete(DyckWord):
 
     def to_Catalan_code(self):
         r"""
-        Return the Catalan code associated to ``self`` .  The Catalan code is a
-        sequence of non--negative integers `a_i` such that if `i < j` and
-        `a_i > 0` and `a_j > 0` and `a_{i+1} = a_{i+2} = \cdots = a_{j-1} = 0`
-        then `a_i - a_j < j-i`.
+        Return the Catalan code associated to ``self``.
+
+        A Catalan code of length `n` is a sequence
+        `(a_1, a_2, \ldots, a_n)` of `n` integers `a_i` such that:
+
+        - `0 \leq a_i \leq n-i` for every `i`;
+
+        - if `i < j` and `a_i > 0` and `a_j > 0` and
+          `a_{i+1} = a_{i+2} = \cdots = a_{j-1} = 0`,
+          then `a_i - a_j < j-i`.
+
+        It turns out that the Catalan codes of length `n` are in
+        bijection with Dyck words.
 
         The Catalan code of a Dyck word is example (x) in Richard Stanley's
         exercises on combinatorial interpretations for Catalan objects.
         The code in this example is the reverse of the description provided
-        there. See [Sta1999]_ and [Sta]_.
+        there. See [Sta1999]_ and [StaCat98]_.
 
         EXAMPLES::
 
@@ -2310,7 +2334,7 @@ class DyckWord_complete(DyckWord):
             if u == 1:
                 levels.append(OrderedTree().clone())
             else:
-                tree =levels.pop()
+                tree = levels.pop()
                 tree.set_immutable()
                 root = levels.pop()
                 root.append(tree)
@@ -3494,14 +3518,22 @@ class CompleteDyckWords(DyckWords):
         Return the Dyck word associated to the given Catalan code
         ``code``.
 
-        A Catalan code is a sequence of non--negative integers `a_i` such
-        that if `i < j` and `a_i > 0` and `a_j > 0` and `a_{i+1} = a_{i+2}
-        = \cdots = a_{j-1} = 0` then `a_i - a_j < j-i`.
+        A Catalan code of length `n` is a sequence
+        `(a_1, a_2, \ldots, a_n)` of `n` integers `a_i` such that:
+
+        - `0 \leq a_i \leq n-i` for every `i`;
+
+        - if `i < j` and `a_i > 0` and `a_j > 0` and
+          `a_{i+1} = a_{i+2} = \cdots = a_{j-1} = 0`,
+          then `a_i - a_j < j-i`.
+
+        It turns out that the Catalan codes of length `n` are in
+        bijection with Dyck words.
 
         The Catalan code of a Dyck word is example (x) in Richard Stanley's
         exercises on combinatorial interpretations for Catalan objects.
         The code in this example is the reverse of the description provided
-        there. See [Sta1999]_ and [Sta]_.
+        there. See [Sta1999]_ and [StaCat98]_.
 
         EXAMPLES::
 

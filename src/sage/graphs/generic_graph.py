@@ -8686,11 +8686,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(D.neighbor_iterator(0))
             [1, 2, 3]
         """
-        if self._directed:
-            return iter(set(self.neighbor_out_iterator(vertex)) \
-                    | set(self.neighbor_in_iterator(vertex)))
-        else:
-            return self._backend.iterator_nbrs(vertex)
+        return self._backend.iterator_nbrs(vertex)
 
     def vertices(self, key=None, boundary_first=False):
         r"""

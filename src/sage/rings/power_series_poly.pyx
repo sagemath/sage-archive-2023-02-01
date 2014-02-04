@@ -1103,6 +1103,8 @@ cdef class PowerSeries_poly(PowerSeries):
 
             f(z) - Q(z)/P(z) = O(z^{m+n+1}).
 
+        The formal power series `f` must be known up to order `n + m + 1`.
+
         See :wikipedia:`Padé\_approximant`
 
         INPUT:
@@ -1113,13 +1115,19 @@ cdef class PowerSeries_poly(PowerSeries):
 
         a ratio of two polynomials
 
-        .. NOTE::
+        .. WARNING::
 
-            This is a first implementation and may be rather slow.
+            The current implementation uses a very slow algorithm and is not
+            suitable for high orders.
 
         ALGORITHM:
 
         This method uses the formula as a quotient of two determinants.
+
+        .. SEEALSO::
+
+            :func:`sage.matrix.berlekamp_massey`,
+            :meth:`sage.rings.polynomial.polynomial_zmod_flint.Polynomial_zmod_flint.rational_reconstruct`
 
         EXAMPLES::
 
@@ -1135,11 +1143,27 @@ cdef class PowerSeries_poly(PowerSeries):
             - 140*z + 70)
             sage: sqrt(1+z).pade(3, 2)
             (1/6*z^3 + 3*z^2 + 8*z + 16/3)/(z^2 + 16/3*z + 16/3)
+
+        With real coefficients::
+
+            sage: R.<z> = RR[[]]
+            sage: f = exp(2*z)
+            sage: f.pade(3,3)
+            ???
+
+        When precision is too low::
+
+            sage: f = z+O(z**6)
+            sage: f.pade(4,4)
+            Traceback (most recent call last):
+            ...
+            ValueError: the precision of the series is not large enough
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.matrix.constructor import Matrix
-        fps = self.parent()
-        polyring = PolynomialRing(fps.base_ring(), str(fps.gen()))
+        if self.precision_absolute() < n + m + 2:
+            raise ValueError("the precision of the series is not large enough")
+        polyring = self.parent()._poly_ring()
         z = polyring.gen()
         c = self.list()
         mat = Matrix(polyring, n + 1, n + 1)

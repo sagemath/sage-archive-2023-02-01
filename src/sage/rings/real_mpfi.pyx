@@ -1896,7 +1896,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         # the right of the last mantissa digit (that is, so the number
         # is mantissa*base^exponent, if you interpret mantissa as an integer).
 
-        cdef int digits
+        cdef long digits
         digits = strlen(lower_s)
         if lower_s[0] == '-':
             digits -= 1
@@ -1943,7 +1943,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         if mpfr_zero_p(&self.value.right):
             upper_expo = lower_expo
 
-        cdef int expo_delta
+        cdef mp_exp_t expo_delta
 
         if lower_expo < upper_expo:
             expo_delta = upper_expo - lower_expo
@@ -1974,7 +1974,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
                 mpz_cdiv_q(upper_mpz, upper_mpz, tmp)
             upper_expo = lower_expo
 
-        cdef int expo = lower_expo
+        cdef mp_exp_t expo = lower_expo
 
         # Now the basic plan is to repeat
         # lower = floor(lower/base); upper = ceiling(upper/base)
@@ -2014,8 +2014,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         # the internals of mpz_sizeinbase, or by writing our own
         # approximate logarithm.)
 
-        cdef int cur_error_digits = mpz_sizeinbase(cur_error, base)
-        cdef int max_error_digits = mpz_sizeinbase(max_error, base)
+        cdef long cur_error_digits = mpz_sizeinbase(cur_error, base)
+        cdef long max_error_digits = mpz_sizeinbase(max_error, base)
 
         # The GMP documentation claims that mpz_sizeinbase will be either
         # the true number of digits, or one too high.  So
@@ -2028,7 +2028,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         # k-1 = cur_error_digits-2-max_error_digits, and
         # k = cur_error_digits-1-max_error_digits.
 
-        cdef int k = cur_error_digits - 1 - max_error_digits
+        cdef long k = cur_error_digits - 1 - max_error_digits
 
         if k > 0:
             mpz_ui_pow_ui(tmp, base, k)
@@ -2108,7 +2108,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         # If we use scientific notation, we put the radix point to the
         # right of the first digit; that would give us an exponent of:
-        cdef int sci_expo = expo + digits - 1
+        cdef mp_exp_t sci_expo = expo + digits - 1
         if abs(sci_expo) >= 6:
             scientific = True
 

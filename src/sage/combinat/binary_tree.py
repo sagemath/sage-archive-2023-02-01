@@ -596,6 +596,43 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         """
         from sage.combinat.dyck_word import DyckWord
         return self.to_dyck_word("L1R0")
+        
+    def tamari_interval(self, other):
+        r"""
+        Return the Tamari interval between ``self`` and ``other`` as a
+        :class:`TamariIntervalPoset`.
+        
+        INPUT:
+
+        - ``other`` -- an other binary tree greater than ``self`` for the 
+         Tamari order.
+
+        EXAMPLES::
+
+            sage: bt = BinaryTree([[None, [[], None]], None])
+            sage: ip = bt.tamari_interval(BinaryTree([None, [[None, []], None]])); ip
+            The tamari interval of size 4 induced by relations [(2, 4), (3, 4), (3, 1), (2, 1)]
+            sage: ip.lower_binary_tree()
+            [[., [[., .], .]], .]
+            sage: ip.upper_binary_tree()
+            [., [[., [., .]], .]]
+            sage: ip.interval_cardinality()
+            4
+            sage: ip.length_of_maximal_chain()
+            3
+            sage: list(ip.binary_trees())
+            [[., [[., [., .]], .]],
+             [[., [., [., .]]], .],
+             [., [[[., .], .], .]],
+             [[., [[., .], .]], .]]
+            sage: bt.tamari_interval(BinaryTree([[None,[]],[]]))
+            Traceback (most recent call last):
+            ...
+            ValueError: The two binary trees are not comparable on the Tamari lattice.
+
+        """
+        from sage.combinat.interval_posets import TamariIntervalPosets
+        return TamariIntervalPosets.from_binary_trees(self, other)
 
     @combinatorial_map(name="to Dyck paths: up step, left tree, down step, right tree")
     def to_dyck_word(self, usemap="1L0R"):

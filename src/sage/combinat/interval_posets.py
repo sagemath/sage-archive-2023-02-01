@@ -6,9 +6,18 @@ represents an interval of the Tamari order. It has been introduced in [PCH]_
 and allows for many combinatorial operations on Tamari intervals. In particular,
 it is linked to :class:`DyckWords` and :class:`BinaryTrees`.
 
+The Tamari lattice can be defined on many Catalan objects, especially binary
+trees and Dyck paths [TAM]_ [HUT]_ [STA]_ . An interval can be seen as a
+couple of comparable elements. The number of intervals has been given in 
+[CHA]_ .
+
 REFERENCES:
 
-.. [PCH] Counting smaller trees in the Tamari order, G. Chatel, V. Pons, 2013
+.. [PCH] Counting smaller trees in the Tamari order, G. Chatel, V. Pons, FPSAC, 2013 :arxiv:`1212.0751`
+.. [TAM] The algebra of bracketings and their enumeration, D. Tamari, Nieuw Arch. Wisk., 1962
+.. [HUT] Problems of associativity: A simple proof for the lattice property of systems ordered by a semi-associative law, S. Huang and D. Tamari, J. Combinatorial Theory Ser. A, 1972
+.. [STA] Enumerative combinatorics. Vol. 2, R.P. Stanley, Cambridge University Press, 1999
+.. [CHA] Sur le nombre d'intervalles dans les treillis de Tamari, F. Chapoton, Sem. Lothar. Combin. 2008
 
 **AUTHORS:**
 
@@ -800,7 +809,7 @@ class TamariIntervalPoset(Element):
     def contains_interval(self, other):
         r"""
         Return whether the interval represented by ``other`` is contained
-        into ``self`` as an interval of the Tamari lattice.
+        in ``self`` as an interval of the Tamari lattice.
 
         In terms of interval-posets, it means that all relations of ``self``
         are relations of ``other``.
@@ -832,7 +841,7 @@ class TamariIntervalPoset(Element):
     def lower_contains_interval(self, other):
         r"""
         Return whether the interval represented by ``other`` is contained
-        into ``self`` as an interval of the Tamari lattice and if they share
+        in ``self`` as an interval of the Tamari lattice and if they share
         the same lower bound.
 
         As interval-posets, it means that ``other`` contains the relations
@@ -868,7 +877,7 @@ class TamariIntervalPoset(Element):
     def upper_contains_interval(self, other):
         r"""
         Return whether the interval represented by ``other`` is contained
-        into ``self`` as an interval of the Tamari lattice and if they share
+        in ``self`` as an interval of the Tamari lattice and if they share
         the same upper bound.
 
         As interval-posets, it means that ``other`` contains the relations
@@ -1232,7 +1241,7 @@ class TamariIntervalPoset(Element):
     def lower_contained_intervals(self):
         r"""
         If ``self`` represents the interval `[t_1, t_2]`,
-        return an interator on all intervals `[t_1,t]` with `t \leq t2` for the Tamari lattice.
+        return an interator on all intervals `[t_1,t]` with `t \leq t_2` for the Tamari lattice.
 
         In terms of interval-posets, it corresponds to add all possible relations
         `n` precedes `m` with `n<m`.
@@ -1298,7 +1307,7 @@ class TamariIntervalPoset(Element):
         for inter in add_relations(self, 1, 2):
             yield inter
 
-    def cardinality(self):
+    def interval_cardinality(self):
         r"""
         Return the cardinality of the interval, i.e., the number of elements
         (binary trees or Dyck words) in the interval represented by ``self``.
@@ -1308,11 +1317,11 @@ class TamariIntervalPoset(Element):
 
         EXAMPLES::
 
-            sage: TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)]).cardinality()
+            sage: TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)]).interval_cardinality()
             4
-            sage: TamariIntervalPoset(4,[]).cardinality()
+            sage: TamariIntervalPoset(4,[]).interval_cardinality()
             14
-            sage: TamariIntervalPoset(4,[(1,2),(2,3),(3,4)]).cardinality()
+            sage: TamariIntervalPoset(4,[(1,2),(2,3),(3,4)]).interval_cardinality()
             1
         """
         return len(list(self.lower_contained_intervals()))

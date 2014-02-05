@@ -438,13 +438,21 @@ class TamariIntervalPoset(Element):
         r"""
         Return ``self`` as a labelled poset.
 
-        An interval-poset is indeed constructed from a classical labelled
-        poset which is stored internally. This method allows to acces the
-        poset and all the associated methods.
+        An interval-poset is indeed constructed from a labelled poset which 
+        is stored internally. This method allows to acces the poset and 
+        all the associated methods.
 
         EXAMPLES::
 
-            
+            sage: ip = TamariIntervalPoset(4,[(1,2),(3,2),(2,4),(3,4)])
+            sage: pos = ip.poset(); pos
+            Finite poset containing 4 elements
+            sage: pos.maximal_chains()
+            [[3, 2, 4], [1, 2, 4]]
+            sage: pos.maximal_elements()
+            [4]
+            sage: pos.is_lattice()
+            False
         """
         return self._poset
 

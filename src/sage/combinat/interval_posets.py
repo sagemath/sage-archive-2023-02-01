@@ -127,8 +127,9 @@ class TamariIntervalPoset(Element):
     - if `a<c` (as integers) and `c` precedes `a` in the poset, then,
       for all `b` such that `a<b<c`, `b` precedes `a`.
 
-    ("Precedes" means "is smaller than with respect to the poset
-    structure"; this does not imply a covering relation.)
+    We use the word "precedes" here to distinguish the poset order and 
+    the natural order on numbers. "Precedes" means "is smaller than with 
+    respect to the poset structure"; this does not imply a covering relation. 
 
     Interval-posets of size `n` are in bijection with intervals of
     the Tamari lattice of binary trees of size `n`.
@@ -432,6 +433,20 @@ class TamariIntervalPoset(Element):
                 # we draw all remaining nodes
                 nodes += draw_node(n[0], x, n[1])
         return start + nodes + relations + end
+
+    def poset(self):
+        r"""
+        Return ``self`` as a labelled poset.
+
+        An interval-poset is indeed constructed from a classical labelled
+        poset which is stored internally. This method allows to acces the
+        poset and all the associated methods.
+
+        EXAMPLES::
+
+            
+        """
+        return self._poset
 
     @cached_method
     def increasing_cover_relations(self):

@@ -27,4 +27,8 @@
  * Email:   soos.mate@gmail.com
  * Website: http://www.msoos.org/cryptominisat2
 
+== Special Update/Build Instructions ==
 
+CryptoMiniSat's tarball is called cmsat-VERSION.tar.gz and unpacks to
+cmsat-VERSION. It should be unpacked, renamed to cryptominisat-VERSION and
+repackaged.

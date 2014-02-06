@@ -1738,18 +1738,13 @@ class CGraphBackend(GenericGraphBackend):
                                     self._cg)
         # Sparse
         if self._cg_rev is not None:
-            return iter([vertex_label(u_int,
-                                      self.vertex_ints,
-                                      self.vertex_labels,
-                                      self._cg)
-                         for u_int in self._cg_rev.out_neighbors(v_int)])
+            for u_int in self._cg_rev.out_neighbors(v_int):
+                yield vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+
         # Dense
         else:
-            return iter([vertex_label(u_int,
-                                      self.vertex_ints,
-                                      self.vertex_labels,
-                                      self._cg)
-                         for u_int in self._cg.in_neighbors(v_int)])
+            for u_int in self._cg.in_neighbors(v_int):
+                yield vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
 
     def iterator_out_nbrs(self, v):
         """
@@ -1782,11 +1777,9 @@ class CGraphBackend(GenericGraphBackend):
                                     self.vertex_ints,
                                     self.vertex_labels,
                                     self._cg)
-        return iter([vertex_label(u_int,
-                                  self.vertex_ints,
-                                  self.vertex_labels,
-                                  self._cg)
-                     for u_int in self._cg.out_neighbors(v_int)])
+
+        for u_int in self._cg.out_neighbors(v_int):
+            yield vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
 
     def iterator_verts(self, verts=None):
         """

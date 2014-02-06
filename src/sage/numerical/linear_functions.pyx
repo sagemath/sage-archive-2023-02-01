@@ -63,7 +63,6 @@ See :trac:`12091` ::
     2*x_0 <= x_1 <= x_2
 """
 
-
 #*****************************************************************************
 #       Copyright (C) 2012 Nathann Cohen <nathann.cohen@gmail.com>
 #       Copyright (C) 2012 Volker Braun <vbraun.name@gmail.com>
@@ -82,12 +81,9 @@ from cpython.object cimport *
 cdef extern from "limits.h":
     long LONG_MAX
 
-
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport ModuleElement, Element
 from sage.misc.cachefunc import cached_function
-
-
 
 #*****************************************************************************
 #
@@ -143,7 +139,6 @@ def is_LinearConstraint(x):
         False
     """
     return isinstance(x, LinearConstraint)
-
 
 #*****************************************************************************
 #

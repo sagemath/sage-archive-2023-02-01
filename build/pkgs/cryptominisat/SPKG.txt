@@ -28,25 +28,3 @@
  * Website: http://www.msoos.org/cryptominisat2
 
 
-== Releases/Changelog ==
-
-=== cryptominisat-2.9.6 (Martin Albrecht, February 27th, 2013) ===
- * new upstream release (#14198)
-
-=== cryptominisat-2.9.5 (Martin Albrecht, June 29th, 2012) ===
- * new upstream release
-
-=== cryptominisat-2.9.4 (Martin Albrecht, May 31th, 2012) ===
- * new upstream release
- * manually delete stdint.h
-
-=== cryptominisat-2.9.1 (Martin Albrecht, May 20th, 2011) ===
- * new upstream release
- * building shared library
-
-=== cryptominisat-2.9.0 (Martin Albrecht, April 30th, 2011) ===
- * new upstream release
-
-=== cryptominisat-2.7.1 (Martin Albrecht, November 3rd 2010) ===
- * initially Sage-ification of CryptoMiniSat
-

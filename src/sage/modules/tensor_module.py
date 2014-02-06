@@ -25,6 +25,17 @@ class TensorModule(CombinatorialFreeModule):
 
     Let `\{ b_i \}` be a basis of `M`, then the tensor module is the span of
     `\{ b_{i_1} \otimes b_{i_2} \otimes \cdots \otimes b_{i_k} \}`.
+
+    .. SEEALSO::
+
+        :class:`TensorModule`
+
+    EXAMPLES::
+
+        sage: C = CombinatorialFreeModule(QQ, ['a','b','c'])
+        sage: TC = TensorModule(C)
+        sage: TC.dimension()
+        +Infinity
     """
     def __init__(self, M, prefix='T', category=None, **options):
         r"""

@@ -1276,7 +1276,7 @@ end_scene""" % (render_params.antialiasing,
                 opts['aspect_ratio'], opts['zoom']
             )
 
-            if ext == 'png':
+            if ext == '.png':
                 # No conversion is necessary
                 out_filename = filename
             else:
@@ -1284,7 +1284,7 @@ end_scene""" % (render_params.antialiasing,
                 out_filename = sage.misc.temporary_file.tmp_filename(ext=ext)
             tachyon_rt(T.tachyon(), out_filename, opts['verbosity'], True,
                 '-res %s %s' % (opts['figsize'][0]*100, opts['figsize'][1]*100))
-            if ext != 'png':
+            if ext != '.png':
                 import PIL.Image as Image
                 Image.open(out_filename).save(filename)
         else:

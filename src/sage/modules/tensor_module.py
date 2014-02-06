@@ -72,7 +72,13 @@ class TensorModule(CombinatorialFreeModule):
             sage: s = TC(['a']*3 + ['b']*2 + ['a','c','b']).leading_support()
             sage: TC._repr_term(s)
             "B['a'] # B['a'] # B['a'] # B['b'] # B['b'] # B['a'] # B['c'] # B['b']"
+
+            sage: I = TC.indices()
+            sage: TC._repr_term(I.one())
+            '1'
         """
+        if len(m) == 0:
+            return '1'
         symb = self._print_options['tensor_symbol']
         if symb is None:
             symb = tensor.symbol
@@ -89,7 +95,13 @@ class TensorModule(CombinatorialFreeModule):
             sage: s = TC.an_element().leading_support()
             sage: TC._latex_term(s)
             'B_{a} \\otimes B_{b} \\otimes B_{c}'
+
+            sage: I = TC.indices()
+            sage: TC._latex_term(I.one())
+            '1'
         """
+        if len(m) == 0:
+            return '1'
         symb = " \\otimes "
         return symb.join(self._base_module._latex_term(k) for k,e in m._monomial for i in range(e))
 
@@ -115,7 +127,13 @@ class TensorModule(CombinatorialFreeModule):
              **     **
              **     **
              *      *
+
+            sage: I = TC.indices()
+            sage: TC._ascii_art_term(I.one())
+            '1'
         """
+        if len(m) == 0:
+            return '1'
         from sage.misc.ascii_art import AsciiArt
         symb = self._print_options['tensor_symbol']
         if symb is None:
@@ -174,6 +192,19 @@ class TensorModule(CombinatorialFreeModule):
             3
         """
         return m.length()
+
+    def base_module(self):
+        """
+        Return the base module of ``self``.
+
+        EXAMPLES::
+
+            sage: C = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: TC = TensorModule(C)
+            sage: TC.base_module() is C
+            True
+        """
+        return self._base_module
 
     def algebra(self):
         """

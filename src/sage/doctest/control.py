@@ -309,7 +309,7 @@ class DocTestController(SageObject):
         try:
             with open(filename) as stats_file:
                 self.stats.update(json.load(stats_file))
-        except StandardError:
+        except Exception:
             self.log("Error loading stats from %s"%filename)
 
     def save_stats(self, filename):

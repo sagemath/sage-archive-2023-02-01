@@ -1545,7 +1545,7 @@ class CrystalOfTableaux(CrystalOfWords):
         spin_shapes = tuple( tuple(shape) for shape in shapes )
         try:
             shapes = tuple( tuple(trunc(i) for i in shape) for shape in spin_shapes )
-        except StandardError:
+        except Exception:
             raise ValueError("shapes should all be partitions or half-integer partitions")
         if spin_shapes == shapes:
             return super(CrystalOfTableaux, cls).__classcall__(cls, cartan_type, shapes)

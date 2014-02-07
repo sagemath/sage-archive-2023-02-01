@@ -425,7 +425,7 @@ class QuadraticForm(SageObject):
         ## Verify the size of the matrix is an integer >= 0
         try:
             n = int(n)
-        except StandardError:
+        except Exception:
             raise TypeError, "Oops! The size " + str(n) + " must be an integer."
             if (n < 0):
                 raise TypeError, "Oops! The size " + str(n) + " must be a non-negative integer."
@@ -640,7 +640,7 @@ class QuadraticForm(SageObject):
         ## Set the entry
         try:
             self.__coeffs[i*self.__n - i*(i-1)/2 + j -i] = self.__base_ring(coeff)
-        except StandardError:
+        except Exception:
             raise RuntimeError, "Oops!  This coefficient can't be coerced to an element of the base ring for the quadratic form."
 
 
@@ -768,7 +768,7 @@ class QuadraticForm(SageObject):
 #        """
 #        try:
 #            c = self.base_ring()(right)
-#        except StandardError:
+#        except Exception:
 #            raise TypeError, "Oh no! The multiplier cannot be coerced into the base ring of the quadratic form. =("
 #
 #        return QuadraticForm(self.base_ring(), self.dim(), [c * self.__coeffs[i]  for i in range(len(self.__coeffs))])
@@ -884,7 +884,7 @@ class QuadraticForm(SageObject):
             if len(v) > 0:
                 try:
                     x = self.base_ring()(v[0])
-                except StandardError:
+                except Exception:
                     raise TypeError, "Oops!  Your vector is not coercible to the base ring of the quadratic form... =("
 
             ## Attempt to evaluate Q[v]
@@ -948,7 +948,7 @@ class QuadraticForm(SageObject):
                 for i in range(n):
                     for j in range(i, n):
                         x = R(A[i,j])
-            except StandardError:
+            except Exception:
                 return False
 
         ## Test that the diagonal is even (if 1/2 isn't in R)
@@ -1100,7 +1100,7 @@ class QuadraticForm(SageObject):
         flag = True
         try:
             self.Gram_matrix()
-        except StandardError:
+        except Exception:
             flag = False
 
         return flag
@@ -1172,7 +1172,7 @@ class QuadraticForm(SageObject):
         B = self.base_ring()
         try:
             R = PolynomialRing(self.base_ring(),names,n)
-        except StandardError:
+        except Exception:
             raise ValueError, 'Can only create polynomial rings over commutative rings.'
         V = vector(R.gens())
         P = (V*M).dot_product(V)

@@ -1010,7 +1010,7 @@ def designs_from_XML(fname):
         sage: d = BlockDesign(v, blocks)
         sage: d.blocks()
         [[0, 1], [0, 1]]
-        sage: d.parameters()
+        sage: d.parameters(t=2)
         (2, 2, 2, 2)
     """
 

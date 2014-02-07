@@ -53,7 +53,7 @@ def basis_of_short_vectors(self, show_lengths=False, safe_flag=True):
                 return deepcopy(self.__basis_of_short_vectors)
             else:
                 return deepcopy(self.__basis_of_short_vectors)
-    except StandardError:
+    except Exception:
         pass
 
 
@@ -473,7 +473,7 @@ def number_of_automorphisms(self, recompute=False):
     self.__number_of_automorphisms = self.number_of_automorphisms__souvigner()
     try:
         self._external_initialization_list.remove('number_of_automorphisms')
-    except StandardError:
+    except Exception:
         pass  ## Do nothing if the removal fails, since it might not be in the list (causing an error)!
     return self.__number_of_automorphisms
 

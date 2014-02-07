@@ -106,7 +106,7 @@ class Fields(Category_singleton):
         """
         try:
             return self._contains_helper(x) or sage.rings.ring._is_Field(x)
-        except StandardError:
+        except Exception:
             return False
 
     @lazy_class_attribute

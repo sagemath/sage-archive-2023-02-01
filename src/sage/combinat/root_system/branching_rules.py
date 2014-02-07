@@ -1348,7 +1348,7 @@ def branching_rule(Rtype, Stype, rule="default"):
             if Stype.is_compound() and s == r-1:
                 try:
                     return branching_rule(Rtype, Stype, rule="levi")
-                except StandardError:
+                except Exception:
                     pass
             if Rtype[0] == "A":
                 if Stype[0] == "B" and r == 2*s:
@@ -1365,7 +1365,7 @@ def branching_rule(Rtype, Stype, rule="default"):
             if s == r-1:
                 try:
                     return branching_rule(Rtype, Stype, rule="levi")
-                except StandardError:
+                except Exception:
                     pass
         raise ValueError("No default rule found (you must specify the rule)")
     elif rule == "identity":

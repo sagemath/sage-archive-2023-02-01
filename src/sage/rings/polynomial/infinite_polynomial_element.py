@@ -335,7 +335,7 @@ class InfinitePolynomial_sparse(RingElement):
         try:
             from sage.misc.sage_eval import sage_eval
             return sage_eval(repr(res), self.parent()._gens_dict)
-        except StandardError:
+        except Exception:
             return res
 
     def _getAttributeNames(self):
@@ -510,7 +510,7 @@ class InfinitePolynomial_sparse(RingElement):
         # One may need a new parent for  self._p and x._p
         try:
             return InfinitePolynomial_sparse(self.parent(),self._p+x._p)
-        except StandardError:
+        except Exception:
             pass
         ## We can now assume that self._p and x._p actually are polynomials,
         ## hence, their parent is not simply the underlying ring.
@@ -534,7 +534,7 @@ class InfinitePolynomial_sparse(RingElement):
         """
         try:
             return InfinitePolynomial_sparse(self.parent(),self._p*x._p)
-        except StandardError:
+        except Exception:
             pass
         ## We can now assume that self._p and x._p actually are polynomials,
         ## hence, their parent is not just the underlying ring.
@@ -649,7 +649,7 @@ class InfinitePolynomial_sparse(RingElement):
         """
         try:
             return InfinitePolynomial_sparse(self.parent(),self._p-x._p)
-        except StandardError:
+        except Exception:
             pass
         ## We can now assume that self._p and x._p actually are polynomials,
         ## hence, their parent is not just the underlying ring.
@@ -1363,11 +1363,11 @@ class InfinitePolynomial_dense(InfinitePolynomial_sparse):
         # But, to be on the safe side...
         try:
             self._p = self.parent()._P(self._p)
-        except StandardError:
+        except Exception:
             pass
         try:
             x._p = x.parent()._P(x._p)
-        except StandardError:
+        except Exception:
             pass
         return cmp(self._p,x._p)
 

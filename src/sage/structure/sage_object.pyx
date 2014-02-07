@@ -443,7 +443,7 @@ cdef class SageObject:
             except NotImplementedError:
                 # It would be best to make sure that this NotImplementedError was triggered by AbstractMethod
                 tester.fail("Not implemented method: %s"%name)
-            except StandardError:
+            except Exception:
                 pass
 
     def _test_pickling(self, **options):
@@ -509,7 +509,7 @@ cdef class SageObject:
         else:
             try:
                 s = self._interface_init_(I)
-            except StandardError:
+            except Exception:
                 raise NotImplementedError, "coercion of object %s to %s not implemented:\n%s\n%s"%\
                   (repr(self), I)
         X = I(s)

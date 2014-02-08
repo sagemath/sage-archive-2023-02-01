@@ -14,8 +14,11 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.categories.graded_modules_with_basis import GradedModulesWithBasis
+from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.categories.tensor import tensor
-from sage.combinat.free_module import CombinatorialFreeModule
+from sage.categories.morphism import Morphism
+from sage.categories.homset import Hom
+from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModule_Tensor
 from sage.monoids.indexed_monoid import IndexedFreeMonoid
 from sage.misc.cachefunc import cached_method
 
@@ -179,13 +182,17 @@ class TensorModule(CombinatorialFreeModule):
             B['a'] # B['b'] # B['c'] + B['a'] # B['b'] # B['a']
             sage: TC.an_element() + TC(['a','b','c'])
             2*B['a'] # B['b'] # B['c']
+            sage: TC(C.an_element())
+            2*B['a'] + 2*B['b'] + 3*B['c']
         """
         FM = self._indices
         if isinstance(x, (list, tuple)):
-            x = FM.prod(FM(elt) for elt in x)
+            x = FM.prod(FM.gen(elt) for elt in x)
             return self.monomial(x)
         if x in FM._indices:
-            return self.monomial(FM(x))
+            return self.monomial(FM.gen(x))
+        if x in self._base_module:
+            return self.sum_of_terms((FM.gen(k), v) for k,v in x)
         return CombinatorialFreeModule._element_constructor_(self, x)
 
     def degree_on_basis(self, m):
@@ -230,4 +237,129 @@ class TensorModule(CombinatorialFreeModule):
         """
         from sage.algebras.tensor_algebra import TensorAlgebra
         return TensorAlgebra(self._base_module, **self._print_options)
+
+    def _tensor_constructor_(self, elts):
+        """
+        Construct an element of ``self`` from the list of base module
+        elements ``elts``.
+
+        TESTS::
+
+            sage: C = CombinatorialFreeModule(ZZ, ['a','b'])
+            sage: TC = TensorModule(C)
+            sage: x = C.an_element(); x
+            2*B['a'] + 2*B['b']
+            sage: TC._tensor_constructor_([x, x])
+            4*B['a'] # B['a'] + 4*B['b'] # B['b'] + 4*B['b'] # B['a'] + 4*B['a'] # B['b']
+        """
+        if len(elts) == 0:
+            return self.zero()
+
+        I = self._indices
+        cur = {I.gen(k):v for k,v in elts[0]}
+        for x in elts[1:]:
+            next = {}
+            for k,v in cur.items():
+                for m,c in x:
+                    i = k * I.gen(m)
+                    next[i] = cur.get(i, 0) + v * c
+            cur = next
+        return self._from_dict(cur)
+
+    def _coerce_map_from_(self, R):
+        """
+        Return ``True`` if there is a coercion from ``R`` into ``self`` and
+        ``False`` otherwise.  The things that coerce into ``self`` are:
+
+        - Anything with a coercion into ``self.base_ring()``.
+
+        - Anything with a coercion into the base module of ``self``.
+
+        - A tensor module whose factors have a coercion into the
+          the base module of ``self``.
+
+        TESTS::
+
+            sage: C = CombinatorialFreeModule(ZZ, Set([1,2]))
+            sage: TMC = TensorModule(C)
+            sage: TMC.has_coerce_map_from(ZZ)
+            True
+            sage: TMC.has_coerce_map_from(C)
+            True
+
+            sage: TCC = tensor((C,C))
+            sage: TMC.has_coerce_map_from(TCC)
+            True
+
+        ::
+
+            sage: D = CombinatorialFreeModule(ZZ, Set([2,4]))
+            sage: TMD = TensorModule(D)
+            sage: f = C.module_morphism(on_basis=lambda x: D.monomial(2*x), codomain=D)
+            sage: f.register_as_coercion()
+
+            sage: TCD = tensor((C,D))
+            sage: TMD.has_coerce_map_from(TCC)
+            True
+            sage: TMD.has_coerce_map_from(TCD)
+            True
+            sage: TMC.has_coerce_map_from(TCD)
+            False
+            sage: TMD.has_coerce_map_from(TMC)
+            True
+        """
+        # Base ring coercions
+        if self.base_ring() == R:
+            return BaseRingLift(Hom(self.base_ring(), self))
+        if self.base_ring().has_coerce_map_from(R):
+            return BaseRingLift(Hom(self.base_ring(), self)) * self.base_ring().coerce_map_from(R)
+
+        M = self._base_module
+        # Base module coercions
+        if R == M:
+            return True
+        if M.has_coerce_map_from(R):
+            phi = M.coerce_map_from(R)
+            return self.coerce_map_from(M) * phi
+
+        # Tensor module coercions
+        if isinstance(R, TensorModule) and M.has_coerce_map_from(R._base_module):
+            RM = R._base_module
+            phi = M.coerce_map_from(RM)
+            return R.module_morphism(lambda m: self._tensor_constructor_(
+                                               [phi(RM.monomial(k)) for k in m.to_word_list()]),
+                                     codomain=self)
+
+        # Coercions from tensor products
+        if R in ModulesWithBasis(self.base_ring()).TensorProducts() \
+                and isinstance(R, CombinatorialFreeModule_Tensor) \
+                and all(M.has_coerce_map_from(RM) for RM in R._sets):
+            modules = R._sets
+            vector_map = [M.coerce_map_from(RM) for RM in R._sets]
+            return R.module_morphism(lambda x: self._tensor_constructor_(
+                                               [vector_map[i](M.monomial(x[i]))
+                                                for i,M in enumerate(modules)]),
+                                     codomain=self)
+
+        return super(TensorModule, self)._coerce_map_from_(R)
+
+class BaseRingLift(Morphism):
+    """
+    Morphism which lifts the base ring of a tensor module `T(M)` into `T(M)`
+    to the `0`-th graded part.
+    """
+    def _call_(self, x):
+        """
+        Construct the element from ``x``.
+
+        TESTS::
+
+            sage: C = CombinatorialFreeModule(QQ, Set([1,2]))
+            sage: TC = TensorModule(C)
+            sage: TC(ZZ(2)) # indirect doctest
+            2
+        """
+        T = self.codomain()
+        R = T.base_ring()
+        return T.term(T.indices().one(), R(x))
 

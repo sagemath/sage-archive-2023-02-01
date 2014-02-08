@@ -659,6 +659,21 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion from Laurent Series Ring in t over Integer Ring to Power Series Ring in t over Integer Ring
+
+            sage: PowerSeriesRing(PowerSeriesRing(QQ,'x'),'y')(x)
+            x
+            sage: PowerSeriesRing(PowerSeriesRing(QQ,'y'),'x')(x)
+            x
+            sage: PowerSeriesRing(PowerSeriesRing(QQ,'t'),'y')(x)
+            y
+            sage: PowerSeriesRing(PowerSeriesRing(QQ,'t'),'y')(1/(1+x), 5)
+            1 - y + y^2 - y^3 + y^4 + O(y^5)
+            sage: PowerSeriesRing(PowerSeriesRing(QQ,'x',5),'y')(1/(1+x))
+            1 - x + x^2 - x^3 + x^4 + O(x^5)
+            sage: PowerSeriesRing(PowerSeriesRing(QQ,'y'),'x')(1/(1+x), 5)
+            1 - x + x^2 - x^3 + x^4 + O(x^5)
+            sage: PowerSeriesRing(PowerSeriesRing(QQ,'x'),'x')(x).coefficients()
+            [x]
         """
         if isinstance(f, power_series_ring_element.PowerSeries) and f.parent() is self:
             if prec >= f.prec():

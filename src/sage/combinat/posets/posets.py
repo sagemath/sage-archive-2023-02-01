@@ -544,7 +544,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
         # Compute a linear extension of the poset (a topological sort).
         try:
             lin_ext = D.topological_sort()
-        except StandardError:
+        except Exception:
             raise ValueError, "Hasse diagram contains cycles."
 
     # Relabel using the linear_extension.
@@ -740,7 +740,7 @@ class FinitePoset(UniqueRepresentation, Parent):
                 facade = hasse_diagram in Sets().Facades()
             hasse_diagram = hasse_diagram._hasse_diagram
         else:
-            hasse_diagram = HasseDiagram(hasse_diagram)
+            hasse_diagram = HasseDiagram(hasse_diagram, data_structure="static_sparse")
             if elements is None:
                 elements = hasse_diagram.vertices()
             if facade is None:
@@ -1477,21 +1477,23 @@ class FinitePoset(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: P = Poset({0:[1,2],1:[3],2:[3],3:[]})
-            sage: P.to_graph()
-            Graph on 4 vertices
-            sage: P = Poset()
             sage: G = P.to_graph(); G
+            Graph on 4 vertices
+            sage: S = Poset()
+            sage: H = S.to_graph(); H
             Graph on 0 vertices
 
-        Check that it is hashable::
+        Check that it is hashable and coincides with the Hasse diagram as a
+        graph::
 
             sage: hash(G) == hash(G)
             True
+            sage: G == Graph(P.hasse_diagram())
+            True
+
         """
         from sage.graphs.graph import Graph
-        G = Graph(self.hasse_diagram())
-        G._immutable = True
-        return G
+        return Graph(self.hasse_diagram(), immutable=True)
 
     def level_sets(self):
         """

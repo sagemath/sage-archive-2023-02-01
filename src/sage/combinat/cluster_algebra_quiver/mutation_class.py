@@ -507,6 +507,6 @@ def _is_valid_digraph_edge_set( edges, frozen=0 ):
             return False
 
         return True
-    except StandardError:
+    except Exception:
         print "Could not even build a digraph from the input data."
         return False

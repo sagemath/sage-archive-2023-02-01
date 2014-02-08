@@ -296,11 +296,11 @@ class FiniteWord_class(Word_class):
             try:
                 other = self.parent()(other)
                 other.parent()._check(other, length=None)
-            except StandardError:
+            except Exception:
                 try:
                     self = other.parent()(self)
                     self.parent()._check(self, length=None)
-                except StandardError:
+                except Exception:
                     raise TypeError, "no coercion rule between %r and %r" % (self.parent(), other.parent())
         return self, other
 

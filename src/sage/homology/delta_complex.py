@@ -588,7 +588,7 @@ class DeltaComplex(GenericCellComplex):
             Z
             sage: circle.cohomology(dim=1)
             Z
-            sage: T = T = delta_complexes.Torus()
+            sage: T = delta_complexes.Torus()
             sage: T.chain_complex(subcomplex=T)
             Trivial chain complex over Integer Ring
             sage: T.homology(subcomplex=T)

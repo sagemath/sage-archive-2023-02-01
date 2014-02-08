@@ -1666,7 +1666,7 @@ class SparseGraphBackend(CGraphBackend):
         for e in edges:
             try:
                 u,v,l = e
-            except StandardError:
+            except Exception:
                 u,v = e
                 l = None
             self.add_edge(u,v,l,directed)
@@ -1826,8 +1826,9 @@ class SparseGraphBackend(CGraphBackend):
         assumed to be undirected.
 
         INPUT:
-         - ``vertices`` - a list of vertex labels
-         - ``labels`` - boolean, whether to return labels as well
+
+        - ``vertices`` - a list of vertex labels
+        - ``labels`` - boolean, whether to return labels as well
 
         EXAMPLE::
 
@@ -1842,52 +1843,45 @@ class SparseGraphBackend(CGraphBackend):
         # Improvement possible in the code below !
         #
         # It is through this function that Sage answers to G.edges(). That's so
-        # unefficient that it hurts to see it. Basically, to answer G.edges(),
+        # inefficient that it hurts to see it. Basically, to answer G.edges(),
         # Sage first builds the list L of all vertices, then and returns all the
         # edges which have at least one endpoint in L. That is, absolutely *ALL*
         # the edges, but it checks this condition on the endpoints for each of
         # them. It tests containment in a LIST, not even a set. That should
         # REALLY be updated.
-        cdef object v, l, L
+        cdef object u, v, l, L
         vertices = [get_vertex(v, self.vertex_ints, self.vertex_labels,
                     self._cg) for v in vertices if self.has_vertex(v)]
         cdef int u_int, v_int, l_int
         if labels:
-            L = []
             for v_int in vertices:
                 v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
                 for u_int in self._cg.out_neighbors(v_int):
                     if u_int >= v_int or u_int not in vertices:
+                        u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
                         for l_int in self._cg.all_arcs(v_int, u_int):
                             if l_int == 0:
                                 l = None
                             else:
                                 l = self.edge_labels[l_int]
-                            L.append(tuple(sorted(
-            (v,
-             vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
-            )))+(l,))
-            return iter(L)
+                            yield tuple(sorted((v, u))) + (l,)
         else:
-            L = []
             for v_int in vertices:
                 v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
                 for u_int in self._cg.out_neighbors(v_int):
                     if u_int >= v_int or u_int not in vertices:
+                        u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
                         for l_int in self._cg.all_arcs(v_int, u_int):
-                            L.append(tuple(sorted(
-            (v,
-             vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
-            ))))
-            return iter(L)
+                            yield tuple(sorted((v, u)))
 
     def iterator_in_edges(self, object vertices, bint labels):
         """
         Iterate over the incoming edges incident to a sequence of vertices.
 
         INPUT:
-         - ``vertices`` - a list of vertex labels
-         - ``labels`` - boolean, whether to return labels as well
+
+        - ``vertices`` - a list of vertex labels
+        - ``labels`` - boolean, whether to return labels as well
 
         EXAMPLE::
 
@@ -1901,61 +1895,40 @@ class SparseGraphBackend(CGraphBackend):
             [(1, 2, 3)]
 
         """
-        cdef object v, L, l
+        cdef object u, v, L, l
         vertices = [get_vertex(v, self.vertex_ints, self.vertex_labels,
                     self._cg) for v in vertices if self.has_vertex(v)]
         cdef int u_int, v_int, l_int
         if self.multiple_edges(None):
             if labels:
-                L = []
                 for v_int in vertices:
                     v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
                     for u_int in self._cg_rev.out_neighbors(v_int):
+                        u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
                         for l_int in self._cg.all_arcs(u_int, v_int):
-                            if l_int == 0:
-                                l = None
-                            else:
-                                l = self.edge_labels[l_int]
-                            L.append(
-                (vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg),
-                 v,
-                 l))
-                return iter(L)
+                            yield (u, v, None if l_int == 0 else self.edge_labels[l_int])
             else:
-                L = []
                 for v_int in vertices:
                     v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
                     for u_int in self._cg_rev.out_neighbors(v_int):
+                        u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
                         for l_int in self._cg.all_arcs(u_int, v_int):
-                            L.append(
-                (vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg),
-                 v))
-                return iter(L)
+                            yield (u, v)
         else:
             if labels:
-                L = []
                 for v_int in vertices:
                     v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
                     for u_int in self._cg_rev.out_neighbors(v_int):
                         l_int = self._cg.arc_label(u_int, v_int)
-                        if l_int == 0:
-                            l = None
-                        else:
-                            l = self.edge_labels[l_int]
-                        L.append(
-                (vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg),
-                 v,
-                 l))
-                return iter(L)
+                        yield (vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg),
+                               v,
+                               None if l_int == 0 else self.edge_labels[l_int])
             else:
-                L = []
                 for v_int in vertices:
                     v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
                     for u_int in self._cg_rev.out_neighbors(v_int):
-                        L.append(
-                (vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg),
-                 v))
-                return iter(L)
+                        yield (vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg),
+                               v)
 
     def iterator_out_edges(self, object vertices, bint labels):
         """
@@ -1983,55 +1956,34 @@ class SparseGraphBackend(CGraphBackend):
         cdef int u_int, v_int, l_int
         if self.multiple_edges(None):
             if labels:
-                L = []
                 for v_int in vertices:
                     v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
                     for u_int in self._cg.out_neighbors(v_int):
+                        u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
                         for l_int in self._cg.all_arcs(v_int, u_int):
-                            if l_int == 0:
-                                l = None
-                            else:
-                                l = self.edge_labels[l_int]
-                            L.append(
-                (v,
-                 vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg),
-                 l))
-                return iter(L)
+                            yield (v, u, None if l_int == 0 else self.edge_labels[l_int])
             else:
-                L = []
                 for v_int in vertices:
                     v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
                     for u_int in self._cg.out_neighbors(v_int):
+                        u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
                         for l_int in self._cg.all_arcs(v_int, u_int):
-                            L.append(
-                (v,
-                 vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)))
-                return iter(L)
+                            yield (v, u)
         else:
             if labels:
-                L = []
                 for v_int in vertices:
                     v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
                     for u_int in self._cg.out_neighbors(v_int):
                         l_int = self._cg.arc_label(v_int, u_int)
-                        if l_int == 0:
-                            l = None
-                        else:
-                            l = self.edge_labels[l_int]
-                        L.append(
-                (v,
-                 vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg),
-                 l))
-                return iter(L)
+                        yield (v,
+                               vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg),
+                               None if l_int == 0 else self.edge_labels[l_int])
             else:
-                L = []
                 for v_int in vertices:
                     v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
                     for u_int in self._cg.out_neighbors(v_int):
-                        L.append(
-                (v,
-                 vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)))
-                return iter(L)
+                        yield (v,
+                               vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg))
 
     def multiple_edges(self, new):
         """

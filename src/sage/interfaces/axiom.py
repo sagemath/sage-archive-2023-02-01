@@ -886,7 +886,7 @@ class PanAxiomElement(ExpectElement):
         try:
             import sage.misc.sage_eval
             return sage.misc.sage_eval.sage_eval(self.unparsed_input_form())
-        except StandardError:
+        except Exception:
             raise NotImplementedError
 
 

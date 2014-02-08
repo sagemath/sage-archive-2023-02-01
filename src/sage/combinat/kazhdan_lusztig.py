@@ -164,7 +164,7 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
         tr = floor((y.length()-x.length()+1)/2)
         try:
             ret = p.truncate(tr)
-        except StandardError:
+        except Exception:
             ret = laurent_polynomial_truncate(p, tr)
         if self._trace:
             print "    P(%s,%s)=%s"%(x, y, ret)

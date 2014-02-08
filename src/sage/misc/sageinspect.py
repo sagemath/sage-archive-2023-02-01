@@ -1194,14 +1194,14 @@ def sage_getargspec(obj):
         ArgSpec(args=['n', 'proof', 'int_', 'algorithm', 'verbose'], varargs=None, keywords='kwds', defaults=(None, False, 'pari', 0))
 
 
-    In the case of a class or a class instance, the ``ArgSpec`` of the ``__new__`` or ``__init__``
-    methods are returned::
+    In the case of a class or a class instance, the ``ArgSpec`` of the
+    ``__new__``, ``__init__`` or ``__call__`` method is returned::
 
         sage: P.<x,y> = QQ[]
         sage: sage_getargspec(P)
-        ArgSpec(args=['self', 'element'], varargs=None, keywords=None, defaults=None)
+        ArgSpec(args=['self', 'x'], varargs='args', keywords='kwds', defaults=(0,))
         sage: sage_getargspec(P.__class__)
-        ArgSpec(args=['self', 'element'], varargs=None, keywords=None, defaults=None)
+        ArgSpec(args=['self', 'x'], varargs='args', keywords='kwds', defaults=(0,))
 
     The following tests against various bugs that were fixed in
     :trac:`9976`::

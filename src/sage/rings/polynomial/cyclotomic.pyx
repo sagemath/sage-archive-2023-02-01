@@ -281,7 +281,7 @@ def cyclotomic_value(n, x):
         raise ValueError, "n must be positive"
     try:
         return x.parent()(pari.polcyclo_eval(n, x._pari_()))
-    except StandardError:
+    except Exception:
         pass
     # The following is modeled on the implementation in Pari
     factors = factor(n)

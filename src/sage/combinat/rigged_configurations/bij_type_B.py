@@ -437,7 +437,7 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
         if singular_max_width:
             try:
                 self.ret_rig_con.check()
-            except StandardError:
+            except Exception:
                 self.other_outcome(cp, pos_val, width_n)
 
     def other_outcome(self, rc, pos_val, width_n):

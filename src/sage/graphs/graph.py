@@ -1089,6 +1089,12 @@ class Graph(GenericGraph):
             sage: g = graphs.PetersenGraph()
             sage: g = Graph(g.edges(),immutable=False)
             sage: g.add_edge("Hey", "Heyyyyyyy")
+
+        And their name is set::
+
+            sage: g = graphs.PetersenGraph()
+            sage: Graph(g, immutable=True)
+            Petersen graph: Graph on 10 vertices
         """
         GenericGraph.__init__(self)
         msg = ''

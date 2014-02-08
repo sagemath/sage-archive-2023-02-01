@@ -668,7 +668,12 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
             v = sage_eval(f.Eltseq())
             return self(v) * (self.gen(0)**f.Valuation())
         elif isinstance(f, FractionFieldElement):
-            return self.coerce(self.element_class(self, f.numerator(), prec, check=check) / self.element_class(self, f.denominator(), prec, check=check))
+            if self.base_ring().has_coerce_map_from(f.parent()):
+                return self.element_class(self, [f], prec, check=check)
+            else:
+                num = self.element_class(self, f.numerator(), prec, check=check)
+                den = self.element_class(self, f.denominator(), prec, check=check)
+                return self.coerce(num/den)
         return self.element_class(self, f, prec, check=check)
 
     def construction(self):

@@ -158,7 +158,7 @@ class CombinatorialFreeModuleElement(Element):
         try:
             v.sort(cmp = print_options['monomial_cmp'],
                    key = lambda (monomial,coeff): monomial)
-        except StandardError: # Sorting the output is a plus, but if we can't, no big deal
+        except Exception: # Sorting the output is a plus, but if we can't, no big deal
             pass
         return v
 
@@ -1260,7 +1260,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
         TESTS:
 
-        Regression test for #10127: ``self._indices`` needs to be
+        Regression test for :trac:10127`: ``self._indices`` needs to be
         set early enough, in case the initialization of the categories
         use ``self.basis().keys()``. This occured on several occasions
         in non trivial constructions. In the following example,
@@ -1371,13 +1371,13 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         R = self.base_ring()
         try:
             x = x + self.monomial(I.an_element())
-        except StandardError:
+        except Exception:
             pass
         try:
             g = iter(self.basis().keys())
             for c in range(1,4):
                 x = x + self.term(g.next(), R(c))
-        except (StandardError, StopIteration):
+        except Exception:
             pass
         return x
 

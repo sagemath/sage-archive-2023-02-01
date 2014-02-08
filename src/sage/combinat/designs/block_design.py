@@ -89,7 +89,7 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None):
 
     A projective geometry design of parameters `n,d,F` has for points the lines
     of `F^{n+1}`, and for blocks the `d+1`-dimensional subspaces of `F^{n+1}`,
-    each of which contains `\frac {|F|^{d+1}-1} {|F|-1}` lines.
+    each of which contains `\\frac {|F|^{d+1}-1} {|F|-1}` lines.
 
     INPUT:
 
@@ -107,8 +107,8 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None):
 
     EXAMPLES:
 
-    The points of the following design are the `\frac {2^{2+1}-1} {2-1}=7` lines
-    of `\mathbb{Z}_2^{2+1}`. It has `7` blocks, corresponding to each
+    The points of the following design are the `\\frac {2^{2+1}-1} {2-1}=7`
+    lines of `\mathbb{Z}_2^{2+1}`. It has `7` blocks, corresponding to each
     2-dimensional subspace of `\mathbb{Z}_2^{2+1}`::
 
         sage: designs.ProjectiveGeometryDesign(2, 1, GF(2))
@@ -247,20 +247,26 @@ def AffineGeometryDesign(n, d, F):
     EXAMPLES::
 
         sage: BD = designs.AffineGeometryDesign(3, 1, GF(2))
-        sage: BD.parameters()
+        sage: BD.parameters(t=2)
         (2, 8, 2, 1)
         sage: BD.is_block_design()
         (True, [2, 8, 2, 1])
         sage: BD = designs.AffineGeometryDesign(3, 2, GF(2))
-        sage: BD.parameters()
-        (2, 8, 4, 3)
+        sage: BD.parameters(t=3)
+        (3, 8, 4, 1)
         sage: BD.is_block_design()
         (True, [3, 8, 4, 1])
+
+    A 3-design::
+
+        sage: D = IncidenceStructure(range(32),designs.steiner_quadruple_system(32))
+        sage: D.is_block_design()
+        (True, [3, 32, 4, 1])
 
     With an integer instead of a Finite Field::
 
         sage: BD = designs.AffineGeometryDesign(3, 2, 4)
-        sage: BD.parameters()
+        sage: BD.parameters(t=2)
         (2, 64, 16, 5)
     """
     try:
@@ -301,14 +307,14 @@ def WittDesign(n):
     EXAMPLES::
 
         sage: BD = designs.WittDesign(9)   # optional - gap_packages (design package)
-        sage: BD.parameters()      # optional - gap_packages (design package)
+        sage: BD.is_block_design()      # optional - gap_packages (design package)
         (2, 9, 3, 1)
         sage: BD                   # optional - gap_packages (design package)
         Incidence structure with 9 points and 12 blocks
         sage: print BD             # optional - gap_packages (design package)
         WittDesign<points=[0, 1, 2, 3, 4, 5, 6, 7, 8], blocks=[[0, 1, 7], [0, 2, 5], [0, 3, 4], [0, 6, 8], [1, 2, 6], [1, 3, 5], [1, 4, 8], [2, 3, 8], [2, 4, 7], [3, 6, 7], [4, 5, 6], [5, 7, 8]]>
         sage: BD = designs.WittDesign(12)  # optional - gap_packages (design package)
-        sage: BD.parameters(t=5)   # optional - gap_packages (design package)
+        sage: BD.is_block_design()   # optional - gap_packages (design package)
         (5, 12, 6, 1)
     """
     from sage.interfaces.gap import gap, GapElement
@@ -383,7 +389,7 @@ def steiner_triple_system(n):
 
     As any pair of vertices is covered once, its parameters are ::
 
-        sage: sts.parameters()
+        sage: sts.parameters(t=2)
         (2, 9, 3, 1)
 
     An exception is raised for invalid values of ``n`` ::
@@ -455,7 +461,7 @@ def BlockDesign(max_pt, blks, name=None, test=True):
     if not(test):
         return BD
     else:
-        pars = BD.parameters()
+        pars = BD.parameters(t=2)
         if BD.block_design_checker(pars[0],pars[1],pars[2],pars[3]):
             return BD
         else:

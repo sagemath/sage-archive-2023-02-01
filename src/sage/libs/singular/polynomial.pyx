@@ -282,10 +282,12 @@ cdef int singular_polynomial_div_coeff(poly** ret, poly *p, poly *q, ring *r) ex
     """
     if q == NULL:
         raise ZeroDivisionError
+    sig_on()
     cdef number *n = p_GetCoeff(q, r)
     n = r.cf.nInvers(n)
     ret[0] = pp_Mult_nn(p, n, r)
     n_Delete(&n, r)
+    sig_off()
     return 0
 
 cdef int singular_polynomial_pow(poly **ret, poly *p, long exp, ring *r) except -1:

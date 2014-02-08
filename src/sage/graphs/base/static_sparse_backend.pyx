@@ -40,6 +40,7 @@ from sage.graphs.base.static_sparse_graph cimport (init_short_digraph,
 from c_graph import CGraphBackend
 from sage.misc.bitset cimport FrozenBitset
 from libc.stdint cimport uint32_t
+include 'sage/misc/bitset.pxi'
 
 cdef class StaticSparseCGraph(CGraph):
     """
@@ -64,9 +65,13 @@ cdef class StaticSparseCGraph(CGraph):
         has_labels = any(not l is None for _,_,l in G.edge_iterator())
         self.directed = G.is_directed()
 
-        init_short_digraph(self.g,G, edge_labelled = has_labels)
+        init_short_digraph(self.g, G, edge_labelled = has_labels)
         if self.directed:
             init_reverse(self.g_rev,self.g)
+
+        # Defining the meaningless set of 'active' vertices. Because of CGraph.
+        bitset_init(self.active_vertices,  self.g.n+1)
+        bitset_set_first_n(self.active_vertices, self.g.n)
 
     def __dealloc__(self):
         r"""
@@ -77,6 +82,7 @@ cdef class StaticSparseCGraph(CGraph):
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseCGraph
             sage: g = StaticSparseCGraph(graphs.PetersenGraph())
         """
+        bitset_free(self.active_vertices)
         free_short_digraph(self.g)
         if self.g_rev != NULL:
             free_short_digraph(self.g_rev)
@@ -361,7 +367,9 @@ class StaticSparseBackend(CGraphBackend):
         """
         cdef StaticSparseCGraph cg = <StaticSparseCGraph> StaticSparseCGraph(G)
         self._cg = cg
-        self._directed = cg.directed
+
+        # .directed and not ._directed. Because of CGraph.
+        self.directed = cg.directed
 
         vertices = G.vertices()
         self._order = len(vertices)
@@ -373,6 +381,12 @@ class StaticSparseBackend(CGraphBackend):
         # Dictionary translating a vertex int to a label, and the other way around.
         self._vertex_to_labels = vertices
         self._vertex_to_int = {v:i for i,v in enumerate(vertices)}
+
+        # Needed by CGraph. The first one is just an alias, and the second is
+        # useless : accessing _vertex_to_labels (which is a list) is faster than
+        # vertex_labels (which is a dictionary)
+        self.vertex_ints = self._vertex_to_int
+        self.vertex_labels = {i:v for i,v in enumerate(vertices)}
 
     def __reduce__(self):
         """
@@ -416,7 +430,7 @@ class StaticSparseBackend(CGraphBackend):
             sage: loads(dumps(gi)) == gi
             True
         """
-        if self._directed:
+        if self.directed:
             from sage.graphs.digraph import DiGraph
             G = DiGraph(loops=self._loops, multiedges=self._multiedges)
             G.add_edges(list(self.iterator_out_edges(self.iterator_verts(None),True)))
@@ -592,6 +606,13 @@ class StaticSparseBackend(CGraphBackend):
             [(0, 1), (0, 4), (0, 5)]
             sage: list(g.iterator_in_edges([0],True))
             [(0, 1, None), (0, 4, None), (0, 5, None)]
+
+        ::
+
+            sage: DiGraph(digraphs.Path(5),immutable=False).incoming_edges([2])
+            [(1, 2, None)]
+            sage: DiGraph(digraphs.Path(5),immutable=True).incoming_edges([2])
+            [(1, 2, None)]
         """
         cdef StaticSparseCGraph cg = self._cg
         if not cg.directed:
@@ -609,11 +630,11 @@ class StaticSparseBackend(CGraphBackend):
             vi = self._vertex_to_labels[i]
             for j in range(out_degree(cg.g_rev,i)):
                 if labels:
-                    yield (vi,
-                           self._vertex_to_labels[cg.g_rev.neighbors[i][j]],
+                    yield (self._vertex_to_labels[cg.g_rev.neighbors[i][j]],
+                           vi,
                            edge_label(cg.g_rev,cg.g_rev.neighbors[i]+j))
                 else:
-                    yield vi,self._vertex_to_labels[cg.g_rev.neighbors[i][j]]
+                    yield self._vertex_to_labels[cg.g_rev.neighbors[i][j]], vi
 
     def iterator_out_edges(self, object vertices, bint labels):
         """
@@ -633,6 +654,7 @@ class StaticSparseBackend(CGraphBackend):
             [(0, 1), (0, 4), (0, 5)]
             sage: list(g.iterator_out_edges([0],True))
             [(0, 1, None), (0, 4, None), (0, 5, None)]
+
         """
         try:
             vertices = [self._vertex_to_int[x] for x in vertices]

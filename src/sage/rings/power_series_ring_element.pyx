@@ -313,6 +313,8 @@ cdef class PowerSeries(AlgebraElement):
         if PY_TYPE_CHECK(right, int):
             return self.is_zero()
 
+        from sage.misc.stopgap import stopgap 
+        stopgap("Warning: Comparison of power series may be wrong if certain coefficients are zero. The padded_list method can be used to give correct comparisons.", 9457)
         prec = self.common_prec(right)
         x = self.list()
         y = right.list()

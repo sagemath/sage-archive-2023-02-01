@@ -272,7 +272,7 @@ def source_code(s, globs, system='sage'):
     try:
         try:
             return obj._sage_src_()
-        except StandardError:
+        except Exception:
             pass
         newline = "\n\n"  # blank line to start new paragraph
         indent = "    "   # indent source code to mark it as a code block

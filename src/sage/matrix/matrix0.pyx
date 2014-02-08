@@ -1663,7 +1663,6 @@ cdef class Matrix(sage.structure.element.Matrix):
              100 x 100 dense matrix over Integer Ring]
 
         """
-        from sage.misc.sageinspect import sage_getvariablename
         if self._nrows < max_rows and self._ncols < max_cols:
             return self.str()
         if self.is_sparse():

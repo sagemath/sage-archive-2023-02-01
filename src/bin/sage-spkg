@@ -54,6 +54,8 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+# Avoid surprises with character ranges [a-z] in regular expressions
+export LC_ALL=C
 
 # error_msg(header, command)
 # This is for printing an error message if something went wrong.

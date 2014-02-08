@@ -308,6 +308,12 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         Convert ``x`` into this univariate polynomial ring,
         possibly non-canonically.
 
+        Conversion from power series::
+
+            sage: R.<x> = QQ[]
+            sage: R(1 + x + x^2 + O(x^3))
+            x^2 + x + 1
+
         Stacked polynomial rings coerce into constants if possible. First,
         the univariate case::
 
@@ -410,7 +416,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             self._singular_().set_ring()
             try:
                 return x.sage_poly(self)
-            except StandardError:
+            except Exception:
                 raise TypeError, "Unable to coerce singular object"
         elif isinstance(x , str):
             try:
@@ -435,6 +441,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 return self(x.polynomial())
             except AttributeError:
                 pass
+        elif isinstance(x, sage.rings.power_series_ring_element.PowerSeries):
+            x = x.truncate()
         return C(self, x, check, is_gen, construct=construct, **kwds)
 
     def is_integral_domain(self, proof = True):

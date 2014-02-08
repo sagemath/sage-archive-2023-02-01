@@ -1097,7 +1097,7 @@ class Macaulay2Element(ExpectElement):
         from sage.misc.sage_eval import sage_eval
         try:
             return sage_eval(repr_str)
-        except StandardError:
+        except Exception:
             raise NotImplementedError, "cannot convert %s to a Sage object"%repr_str
 
 

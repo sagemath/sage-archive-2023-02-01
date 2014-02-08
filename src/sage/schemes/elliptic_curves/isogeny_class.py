@@ -36,8 +36,8 @@ class IsogenyClass_EC(SageObject):
     Isogeny class of an elliptic curve.
 
     The current implementation chooses a curve from each isomorphism
-    class in the isogeny class, since over Q there is a unique reduced
-    minimal model in each isomorphism class.
+    class in the isogeny class, since over `\QQ` there is a unique
+    reduced minimal model in each isomorphism class.
 
     EXAMPLES::
 
@@ -45,7 +45,7 @@ class IsogenyClass_EC(SageObject):
     """
     def __init__(self, E, label=None, empty=False):
         """
-        Over Q we use curves since minimal models exist and there is a canonical choice of one.
+        Over `\QQ` we use curves since minimal models exist and there is a canonical choice of one.
 
         INPUT:
 
@@ -54,7 +54,7 @@ class IsogenyClass_EC(SageObject):
 
         EXAMPLES::
 
-            sage: cls = EllipticCurve('1011b1').isogeny_class(use_tuple=False)
+            sage: cls = EllipticCurve('1011b1').isogeny_class()
             sage: print "\n".join([repr(E) for E in cls.curves])
             Elliptic Curve defined by y^2 + x*y = x^3 - 8*x - 9 over Rational Field
             Elliptic Curve defined by y^2 + x*y = x^3 - 23*x + 30 over Rational Field
@@ -71,7 +71,7 @@ class IsogenyClass_EC(SageObject):
         EXAMPLES::
 
             sage: E = EllipticCurve('15a')
-            sage: len(E.isogeny_class(use_tuple=False)) # indirect doctest
+            sage: len(E.isogeny_class()) # indirect doctest
             8
         """
         return len(self.curves)
@@ -83,7 +83,7 @@ class IsogenyClass_EC(SageObject):
         EXAMPLES::
 
             sage: E = EllipticCurve('15a')
-            sage: all(C.conductor() == 15 for C in E.isogeny_class(use_tuple=False)) # indirect doctest
+            sage: all(C.conductor() == 15 for C in E.isogeny_class()) # indirect doctest
             True
         """
         return iter(self.curves)
@@ -95,7 +95,7 @@ class IsogenyClass_EC(SageObject):
         EXAMPLES::
 
             sage: E = EllipticCurve('990j1')
-            sage: iso = E.isogeny_class(order="lmfdb",use_tuple=False) # orders lexicographically on a-invariants
+            sage: iso = E.isogeny_class(order="lmfdb") # orders lexicographically on a-invariants
             sage: iso[2] == E # indirect doctest
             True
         """
@@ -117,7 +117,7 @@ class IsogenyClass_EC(SageObject):
         EXAMPLES::
 
             sage: E = EllipticCurve('990j1')
-            sage: iso = E.isogeny_class(order="lmfdb", use_tuple=False) # orders lexicographically on a-invariants
+            sage: iso = E.isogeny_class(order="lmfdb") # orders lexicographically on a-invariants
             sage: iso.index(E.short_weierstrass_model())
             2
         """
@@ -141,7 +141,7 @@ class IsogenyClass_EC(SageObject):
 
             sage: E = EllipticCurve('990j1')
             sage: EE = EllipticCurve('990j4')
-            sage: E.isogeny_class(use_tuple=False) == EE.isogeny_class(use_tuple=False) # indirect doctest
+            sage: E.isogeny_class() == EE.isogeny_class() # indirect doctest
             True
         """
         # This will need updating once we start talking about curves over more general number fields
@@ -157,7 +157,7 @@ class IsogenyClass_EC(SageObject):
         EXAMPLES::
 
             sage: E = EllipticCurve('990j1')
-            sage: C = E.isogeny_class(use_tuple=False)
+            sage: C = E.isogeny_class()
             sage: hash(C) == hash(tuple(sorted([curve.a_invariants() for curve in C.curves]))) # indirect doctest
             True
         """
@@ -179,21 +179,21 @@ class IsogenyClass_EC(SageObject):
         label is used::
 
             sage: E = EllipticCurve('462.f3')
-            sage: E.isogeny_class(use_tuple=False) # indirect doctest
+            sage: E.isogeny_class() # indirect doctest
             Elliptic curve isogeny class 462.f
 
         If the curve is constructed from a Cremona label then that
         label is used::
 
             sage: E = EllipticCurve('990j1')
-            sage: E.isogeny_class(use_tuple=False)
+            sage: E.isogeny_class()
             Elliptic curve isogeny class 990j
 
         Otherwise the representation is determined from the first
         curve in the class::
 
             sage: E = EllipticCurve([1,2,3,4,5])
-            sage: E.isogeny_class(use_tuple=False)
+            sage: E.isogeny_class()
             Isogeny class of Elliptic Curve defined by y^2 + x*y = x^3 - x^2 + 4*x + 3 over Rational Field
         """
         if self._label:
@@ -213,7 +213,7 @@ class IsogenyClass_EC(SageObject):
 
         EXAMPLES::
 
-            sage: cls = EllipticCurve('15a3').isogeny_class(use_tuple=False)
+            sage: cls = EllipticCurve('15a3').isogeny_class()
             sage: E = EllipticCurve('15a7'); E in cls
             True
             sage: E.short_weierstrass_model() in cls
@@ -237,7 +237,7 @@ class IsogenyClass_EC(SageObject):
 
         EXAMPLES::
 
-            sage: isocls = EllipticCurve('15a3').isogeny_class(use_tuple=False)
+            sage: isocls = EllipticCurve('15a3').isogeny_class()
             sage: isocls.matrix()
             [ 1  2  2  2  4  4  8  8]
             [ 2  1  4  4  8  8 16 16]
@@ -294,7 +294,7 @@ class IsogenyClass_EC(SageObject):
 
         EXAMPLES::
 
-            sage: isocls = EllipticCurve('15a3').isogeny_class(use_tuple=False)
+            sage: isocls = EllipticCurve('15a3').isogeny_class()
             sage: f = isocls.isogenies()[0][1]; f
             Isogeny of degree 2 from Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 5*x + 2 over Rational Field to Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 80*x + 242 over Rational Field
             sage: f.domain() == isocls.curves[0] and f.codomain() == isocls.curves[1]
@@ -316,7 +316,7 @@ class IsogenyClass_EC(SageObject):
         .. note:
 
             There are only finitely many possible isogeny graphs for
-            curves over Q [M78].  This function tries to lay out the graph
+            curves over `\QQ` [M78].  This function tries to lay out the graph
             nicely by special casing each isogeny graph.
 
         .. note:
@@ -326,7 +326,7 @@ class IsogenyClass_EC(SageObject):
 
         EXAMPLES::
 
-            sage: isocls = EllipticCurve('15a3').isogeny_class(use_tuple=False)
+            sage: isocls = EllipticCurve('15a3').isogeny_class()
             sage: G = isocls.graph()
             sage: sorted(G._pos.items())
             [(1, [-0.8660254, 0.5]), (2, [-0.8660254, 1.5]), (3, [-1.7320508, 0]), (4, [0, 0]), (5, [0, -1]), (6, [0.8660254, 0.5]), (7, [0.8660254, 1.5]), (8, [1.7320508, 0])]
@@ -429,7 +429,7 @@ class IsogenyClass_EC(SageObject):
 
         EXAMPLES::
 
-            sage: isocls = EllipticCurve('15a1').isogeny_class(use_tuple=False)
+            sage: isocls = EllipticCurve('15a1').isogeny_class()
             sage: print "\n".join([repr(C) for C in isocls.curves])
             Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 10*x - 10 over Rational Field
             Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 5*x + 2 over Rational Field
@@ -456,7 +456,7 @@ class IsogenyClass_EC(SageObject):
             if order == "lmfdb":
                 reordered_curves = sorted(self.curves, key = lambda E: E.a_invariants())
             else:
-                reordered_curves = list(self.E.isogeny_class(algorithm=order, use_tuple=False))
+                reordered_curves = list(self.E.isogeny_class(algorithm=order))
         elif isinstance(order, (list, tuple, IsogenyClass_EC)):
             reordered_curves = list(order)
             if len(reordered_curves) != len(self.curves):
@@ -499,12 +499,9 @@ class IsogenyClass_EC(SageObject):
         in ``self.curves``, and possibly ``self._mat`` and
         ``self._maps`` as well, depending on the algorithm.
 
-        EXAMPLES::
+        .. note:
 
-            sage: EllipticCurve('11a1').isogeny_class('mwrank',use_tuple=False).matrix() # indirect doctest
-            [ 1  5  5]
-            [ 5  1 25]
-            [ 5 25  1]
+            This is currently redundant; it used to be required when mwrank was used.
         """
         pass
 
@@ -516,7 +513,7 @@ class IsogenyClass_EC(SageObject):
 
         EXAMPLES::
 
-            sage: EllipticCurve('11a1').isogeny_class('database',use_tuple=False).matrix() # indirect doctest
+            sage: EllipticCurve('11a1').isogeny_class('database').matrix() # indirect doctest
             [ 1  5  5]
             [ 5  1 25]
             [ 5 25  1]
@@ -529,19 +526,17 @@ class IsogenyClass_EC(SageObject):
         For algorithms that don't compute the isogenies at first, this
         function should fill in ``self._maps``.
 
-        EXAMPLES::
+        .. note:
 
-            sage: f = EllipticCurve('11a1').isogeny_class('mwrank',use_tuple=False).isogenies()[0][1] # indirect doctest
-            sage: f.domain()
-            Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+            This is currently redundant; it used to be required when mwrank was used.
         """
         pass
 
 class IsogenyClass_EC_Rational(IsogenyClass_EC):
     """
-    Isogeny classes for elliptic curves over Q.
+    Isogeny classes for elliptic curves over `\QQ`.
     """
-    def __init__(self, E, algorithm="sage", verbose=False, label=None, empty=False):
+    def __init__(self, E, algorithm="sage", label=None, empty=False):
         """
         INPUT:
 
@@ -553,14 +548,8 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC):
           - "sage" -- Use sage's implementation to compute the curves,
             matrix and isogenies
 
-          - "mwrank" -- Use the mwrank C++ library
-
           - "database" -- Use the Cremona database (only works if the
             curve is in the database)
-
-        - ``verbose`` -- boolean (default False).  Only relevant for
-          algorithm="mwrank", controls verbosity of output while
-          running mwrank.
 
         - ``label`` -- a string, the label of this isogeny class
           (e.g. '15a' or '37.b').  Used in printing.
@@ -569,17 +558,16 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC):
 
         EXAMPLES::
 
-            sage: isocls = EllipticCurve('389a1').isogeny_class(use_tuple=False); isocls
+            sage: isocls = EllipticCurve('389a1').isogeny_class(); isocls
             Elliptic curve isogeny class 389a
             sage: E = EllipticCurve([0, 0, 0, 0, 1001]) # conductor 108216108
-            sage: E.isogeny_class(use_tuple=False, order='database')
+            sage: E.isogeny_class(order='database')
             Traceback (most recent call last):
             ...
             RuntimeError: unable to to find Elliptic Curve defined by y^2 = x^3 + 1001 over Rational Field in the database
             sage: TestSuite(isocls).run()
         """
         self._algorithm = algorithm
-        self._verbose = verbose
         IsogenyClass_EC.__init__(self, E, label=label, empty=empty)
 
     def copy(self):
@@ -588,14 +576,14 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC):
 
         EXAMPLES::
 
-            sage: isocls = EllipticCurve('389a1').isogeny_class(use_tuple=False)
+            sage: isocls = EllipticCurve('389a1').isogeny_class()
             sage: isocls2 = isocls.copy()
             sage: isocls is isocls2
             False
             sage: isocls == isocls2
             True
         """
-        ans = IsogenyClass_EC_Rational(self.E, self._algorithm, self._verbose, self._label, empty=True)
+        ans = IsogenyClass_EC_Rational(self.E, self._algorithm, self._label, empty=True)
         # The following isn't needed internally, but it will keep
         # things from breaking if this is used for something other
         # than reordering.
@@ -611,7 +599,7 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC):
 
         EXAMPLES::
 
-            sage: isocls = EllipticCurve('48a1').isogeny_class('sage',use_tuple=False).copy()
+            sage: isocls = EllipticCurve('48a1').isogeny_class('sage').copy()
             sage: isocls._mat
             sage: isocls._compute(); isocls._mat
             [0 2 2 2 0 0]
@@ -625,15 +613,7 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC):
         from sage.schemes.elliptic_curves.ell_curve_isogeny import fill_isogeny_matrix, unfill_isogeny_matrix
         from sage.matrix.all import MatrixSpace
         self._maps = None
-        if algorithm == "mwrank":
-            try:
-                E = self.E.mwrank_curve()
-            except ValueError:
-                E = self.E.minimal_model().mwrank_curve()
-            I, A = E.isogeny_class(verbose=self._verbose)
-            self._mat = MatrixSpace(ZZ, len(A))(A)
-            self.curves = tuple([constructor.EllipticCurve(ainvs) for ainvs in I])
-        elif algorithm == "database":
+        if algorithm == "database":
             try:
                 label = self.E.cremona_label(space=False)
             except RuntimeError:
@@ -686,29 +666,26 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC):
 
         EXAMPLES::
 
-            sage: isocls = EllipticCurve('1225h1').isogeny_class('database',use_tuple=False)
+            sage: isocls = EllipticCurve('1225h1').isogeny_class('database')
             sage: isocls._mat
             sage: isocls._compute_matrix(); isocls._mat
             [ 0 37]
             [37  0]
         """
-        try:
-            self._mat = self.E.isogeny_class(algorithm="mwrank",order=self.curves,use_tuple=False)._mat
-        except ValueError: # incorrect length because mwrank didn't have enough precision
-            self._mat = self.E.isogeny_class(algorithm="sage",order=self.curves,use_tuple=False)._mat
+        self._mat = self.E.isogeny_class(order=self.curves)._mat
 
     def _compute_isogenies(self):
         """
         EXAMPLES::
 
             sage: E = EllipticCurve('15a1')
-            sage: isocls = E.isogeny_class(algorithm='mwrank',use_tuple=False)
+            sage: isocls = E.isogeny_class()
             sage: maps = isocls.isogenies() # indirect doctest
             sage: f = maps[0][1]
             sage: f.domain() == isocls[0] and f.codomain() == isocls[1]
             True
         """
-        recomputed = self.E.isogeny_class(algorithm="sage",order=self.curves,use_tuple=False)
+        recomputed = self.E.isogeny_class(order=self.curves)
         self._mat = recomputed._mat
         # The domains and codomains here will be equal, but not the same Python object.
         self._maps = recomputed._maps

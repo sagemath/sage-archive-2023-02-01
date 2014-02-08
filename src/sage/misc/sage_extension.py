@@ -243,11 +243,11 @@ class SageMagics(Magics):
             assert(args_split[0] == "ascii_art"), "if a width is given then the mode must be `ascii_art`"
             try:
                 ascii_art.MAX_WIDTH = int(args_split[1])
-            except StandardError:
+            except Exception:
                 raise AttributeError("Second argument must be a non-negative integer")
         try:
             displayhook.SPTextFormatter.set_display(self._magic_display_status)
-        except StandardError:
+        except Exception:
             print mode, args_split
             raise AttributeError("First argument must be `simple` or `ascii_art` or the method must be call without argument")
 

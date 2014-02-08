@@ -215,3 +215,16 @@ class FreeAbelianMonoid_class(ParentWithGens):
         """
         return self.__ngens
 
+    def cardinality(self):
+        r"""
+        Return the cardinality of ``self``, which is `\infty`.
+
+        EXAMPLES::
+
+            sage: F = FreeAbelianMonoid(3000, 'a')
+            sage: F.cardinality()
+            +Infinity
+        """
+        from sage.rings.infinity import infinity
+        return infinity
+

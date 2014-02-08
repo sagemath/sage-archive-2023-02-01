@@ -84,7 +84,7 @@ def builder_helper(type):
         except Exception:
             import traceback
             logger.error(traceback.format_exc())
-
+            raise
 
         # Print message about location of output:
         #   - by default if html output
@@ -278,9 +278,20 @@ class AllBuilder(object):
         L = [(doc, name, kwds) + args for doc in others]
         # map_async handles KeyboardInterrupt correctly. Plain map and
         # apply_async does not, so don't use it.
-        pool.map_async(build_other_doc, L, 1).get(99999)
-        pool.close()
-        pool.join()
+        x = pool.map_async(build_other_doc, L, 1)
+        try:
+            x.get(99999)
+            pool.close()
+            pool.join()
+        except Exception:
+            pool.terminate()
+            logger.error('Error building the documentation.')
+            if INCREMENTAL_BUILD:
+                logger.error('''
+Note: incremental documentation builds sometimes cause spurious
+error messages. To be certain that these are real errors, run
+"make doc-clean" first and try again.''')
+            raise
         logger.warning("Elapsed time: %.1f seconds."%(time.time()-start))
         logger.warning("Done building the documentation!")
 
@@ -469,9 +480,20 @@ class ReferenceBuilder(AllBuilder):
             pool = Pool(NUM_THREADS, maxtasksperchild=1)
             L = [(doc, lang, format, kwds) + args for doc in self.get_all_documents(refdir)]
             # (See comment in AllBuilder._wrapper about using map instead of apply.)
-            pool.map_async(build_ref_doc, L, 1).get(99999)
-            pool.close()
-            pool.join()
+            x = pool.map_async(build_ref_doc, L, 1)
+            try:
+                x.get(99999)
+                pool.close()
+                pool.join()
+            except Exception:
+                pool.terminate()
+                logger.error('Error building the documentation.')
+                if INCREMENTAL_BUILD:
+                    logger.error('''
+Note: incremental documentation builds sometimes cause spurious
+error messages. To be certain that these are real errors, run
+"make doc-clean" first and try again.''')
+                raise
             # The html refman must be build at the end to ensure correct
             # merging of indexes and inventories.
             # Sphinx is run here in the current process (not in a

@@ -35,9 +35,9 @@ class IndexedMonoidElement(MonoidElement):
     def __init__(self, F, x):
         """
         Create the element ``x`` of an indexed free abelian monoid ``F``.
-        
+
         EXAMPLES::
-        
+
             sage: F = IndexedFreeAbelianMonoid(ZZ)
             sage: F(1)
             1
@@ -399,13 +399,50 @@ class IndexedMonoidElement(MonoidElement):
             return None
         return self._sorted_items()[-1][0]
 
+    def to_word_list(self):
+        """
+        Return ``self`` as a word represented as a list whose entries
+        are indices of ``self``.
+
+        EXAMPLES::
+
+            sage: F = IndexedFreeMonoid(ZZ)
+            sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
+            sage: (b*a*c^3*a).to_word_list()
+            [1, 0, 2, 2, 2, 0]
+
+        ::
+
+            sage: F = IndexedFreeAbelianMonoid(ZZ)
+            sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
+            sage: (b*c^3*a).to_word_list()
+            [0, 1, 2, 2, 2]
+        """
+        return [k for k,e in self._sorted_items() for dummy in range(e)]
+
 class IndexedFreeMonoidElement(IndexedMonoidElement):
     """
     An element of an indexed free abelian monoid.
     """
+    def __init__(self, F, x):
+        """
+        Create the element ``x`` of an indexed free abelian monoid ``F``.
+
+        EXAMPLES::
+
+            sage: F = IndexedFreeMonoid('abcde')
+            sage: x = F( [(1, 2), (0, 1), (3, 2), (0, 1)] )
+            sage: y = F( ((1, 2), (0, 1), [3, 2], [0, 1]) )
+            sage: z = F( reversed([(0, 1), (3, 2), (0, 1), (1, 2)]) )
+            sage: x == y and y == z
+            True
+            sage: TestSuite(x).run()
+        """
+        IndexedMonoidElement.__init__(self, F, tuple(map(tuple, x)))
+
     def _sorted_items(self):
         """
-        Returns the items (i.e terms) of ``self``, sorted for printing
+        Return the items (i.e terms) of ``self``, sorted for printing.
 
         EXAMPLES::
 
@@ -485,9 +522,25 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
     """
     An element of an indexed free abelian monoid.
     """
+    def __init__(self, F, x):
+        """
+        Create the element ``x`` of an indexed free abelian monoid ``F``.
+
+        EXAMPLES::
+
+            sage: F = IndexedFreeAbelianMonoid(ZZ)
+            sage: x = F([(0, 1), (2, 2), (-1, 2)])
+            sage: y = F({0:1, 2:2, -1:2})
+            sage: z = F(reversed([(0, 1), (2, 2), (-1, 2)]))
+            sage: x == y and y == z
+            True
+            sage: TestSuite(x).run()
+        """
+        IndexedMonoidElement.__init__(self, F, dict(x))
+
     def _sorted_items(self):
         """
-        Return the items (i.e syllables) of ``self``, sorted for printing.
+        Return the items (i.e terms) of ``self``, sorted for printing.
 
         EXAMPLES::
 
@@ -831,6 +884,18 @@ class IndexedFreeMonoid(IndexedMonoid):
         except TypeError: # Backup (if it is a string)
             return self.element_class(self, ((x,1),))
 
+    def cardinality(self):
+        r"""
+        Return the cardinality of ``self``, which is `\infty`.
+
+        EXAMPLES::
+
+            sage: F = IndexedFreeMonoid(ZZ)
+            sage: F.cardinality()
+            +Infinity
+        """
+        return infinity
+
 class IndexedFreeAbelianMonoid(IndexedMonoid):
     """
     Free abelian monoid with an indexed set of generators.
@@ -932,4 +997,16 @@ class IndexedFreeAbelianMonoid(IndexedMonoid):
             return self.element_class(self, {self._indices(x):1})
         except TypeError: # Backup (if it is a string)
             return self.element_class(self, {x:1})
+
+    def cardinality(self):
+        r"""
+        Return the cardinality of ``self``, which is `\infty`.
+
+        EXAMPLES::
+
+            sage: F = IndexedFreeAbelianMonoid(ZZ)
+            sage: F.cardinality()
+            +Infinity
+        """
+        return infinity
 

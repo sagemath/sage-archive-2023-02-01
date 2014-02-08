@@ -265,9 +265,6 @@ $(INST)/$(LINBOX): $(INST)/$(MPIR) $(INST)/$(NTL) $(INST)/$(GIVARO) \
 $(INST)/$(IML): $(INST)/$(MPIR) $(INST)/$(GSL) $(INST)/$(ATLAS)
 	+$(PIPE) "$(SAGE_SPKG) $(IML) 2>&1" "tee -a $(SAGE_LOGS)/$(IML).log"
 
-$(INST)/$(ECLIB): $(INST)/$(MPIR) $(INST)/$(PARI) $(INST)/$(NTL)
-	+$(PIPE) "$(SAGE_SPKG) $(ECLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(ECLIB).log"
-
 $(INST)/$(GENUS2REDUCTION): $(INST)/$(PARI)
 	+$(PIPE) "$(SAGE_SPKG) $(GENUS2REDUCTION) 2>&1" "tee -a $(SAGE_LOGS)/$(GENUS2REDUCTION).log"
 
@@ -395,6 +392,9 @@ $(INST)/$(FLINTQS): $(INST)/$(MPIR)
 $(INST)/$(FLINT): $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(NTL)
 	+$(PIPE) "$(SAGE_SPKG) $(FLINT) 2>&1" "tee -a $(SAGE_LOGS)/$(FLINT).log"
 
+$(INST)/$(ECLIB): $(INST)/$(PARI) $(INST)/$(NTL) $(INST)/$(FLINT)
+	+$(PIPE) "$(SAGE_SPKG) $(ECLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(ECLIB).log"
+
 $(INST)/$(M4RI): $(INST)/$(LIBPNG)
 	+$(PIPE) "$(SAGE_SPKG) $(M4RI) 2>&1" "tee -a $(SAGE_LOGS)/$(M4RI).log"
 
@@ -476,8 +476,6 @@ $(INST)/csage: $(INST)/$(SCONS) \
        $(INST)/$(MPIR) \
        $(INST)/$(NTL) \
        $(INST)/$(PARI) \
-       $(INST)/$(POLYBORI) \
-       $(INST)/$(PYNAC) \
        $(INST)/$(PYTHON)
 	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
 		cd $(SAGE_SRC) && source bin/sage-env && cd c_lib && \

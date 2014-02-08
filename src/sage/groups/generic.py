@@ -557,7 +557,7 @@ def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
         sage: def test():
         ....:     try:
         ....:          discrete_log_rho(I(123456),I(1),operation='+')
-        ....:     except StandardError:
+        ....:     except Exception:
         ....:          print "FAILURE"
         sage: test()  # random failure
         FAILURE
@@ -785,17 +785,17 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         if operation in multiplication_names:
             try:
                 ord = base.multiplicative_order()
-            except StandardError:
+            except Exception:
                 ord = base.order()
         elif operation in addition_names:
             try:
                 ord = base.additive_order()
-            except StandardError:
+            except Exception:
                 ord = base.order()
         else:
             try:
                 ord = base.order()
-            except StandardError:
+            except Exception:
                 raise ValueError, "ord must be specified"
     try:
         from sage.rings.infinity import Infinity
@@ -984,7 +984,7 @@ def linear_relation(P, Q, operation='+', identity=None, inverse=None, op=None):
         try:
             n = P.multiplicative_order()
             m = Q.multiplicative_order()
-        except StandardError:
+        except Exception:
             n = P.order()
             m = Q.order()
     elif operation in addition_names:
@@ -992,7 +992,7 @@ def linear_relation(P, Q, operation='+', identity=None, inverse=None, op=None):
         try:
             n = P.additive_order()
             m = Q.additive_order()
-        except StandardError:
+        except Exception:
             n = P.order()
             m = Q.order()
     else:

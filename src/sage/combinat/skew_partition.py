@@ -709,6 +709,135 @@ class SkewPartition(CombinatorialObject, Element):
         icorners += [(nn, 0)]
         return icorners
 
+    def cell_poset(self, orientation="SE"):
+        """
+        Return the Young diagram of ``self`` as a poset. The optional
+        keyword variable ``orientation`` determines the order relation
+        of the poset.
+
+        The poset always uses the set of cells of the Young diagram
+        of ``self`` as its ground set. The order relation of the poset
+        depends on the ``orientation`` variable (which defaults to
+        ``"SE"``). Concretely, ``orientation`` has to be specified to
+        one of the strings ``"NW"``, ``"NE"``, ``"SW"``, and ``"SE"``,
+        standing for "northwest", "northeast", "southwest" and
+        "southeast", respectively. If ``orientation`` is ``"SE"``, then
+        the order relation of the poset is such that a cell `u` is
+        greater or equal to a cell `v` in the poset if and only if `u`
+        lies weakly southeast of `v` (this means that `u` can be
+        reached from `v` by a sequence of south and east steps; the
+        sequence is allowed to consist of south steps only, or of east
+        steps only, or even be empty). Similarly the order relation is
+        defined for the other three orientations. The Young diagram is
+        supposed to be drawn in English notation.
+
+        The elements of the poset are the cells of the Young diagram
+        of ``self``, written as tuples of zero-based coordinates (so
+        that `(3, 7)` stands for the `8`-th cell of the `4`-th row,
+        etc.).
+
+        EXAMPLES::
+
+            sage: p = SkewPartition([[3,3,1], [2,1]])
+            sage: Q = p.cell_poset(); Q
+            Finite poset containing 4 elements
+            sage: sorted(Q)
+            [(0, 2), (1, 1), (1, 2), (2, 0)]
+            sage: sorted(Q.maximal_elements())
+            [(1, 2), (2, 0)]
+            sage: sorted(Q.minimal_elements())
+            [(0, 2), (1, 1), (2, 0)]
+            sage: sorted(Q.upper_covers((1, 1)))
+            [(1, 2)]
+            sage: sorted(Q.upper_covers((0, 2)))
+            [(1, 2)]
+
+            sage: P = p.cell_poset(orientation="NW"); P
+            Finite poset containing 4 elements
+            sage: sorted(P)
+            [(0, 2), (1, 1), (1, 2), (2, 0)]
+            sage: sorted(P.minimal_elements())
+            [(1, 2), (2, 0)]
+            sage: sorted(P.maximal_elements())
+            [(0, 2), (1, 1), (2, 0)]
+            sage: sorted(P.upper_covers((1, 2)))
+            [(0, 2), (1, 1)]
+
+            sage: R = p.cell_poset(orientation="NE"); R
+            Finite poset containing 4 elements
+            sage: sorted(R)
+            [(0, 2), (1, 1), (1, 2), (2, 0)]
+            sage: R.maximal_elements()
+            [(0, 2)]
+            sage: R.minimal_elements()
+            [(2, 0)]
+            sage: R.upper_covers((2, 0))
+            [(1, 1)]
+            sage: sorted([len(R.upper_covers(v)) for v in R])
+            [0, 1, 1, 1]
+
+        TESTS:
+
+        We check that the posets are really what they should be for size
+        up to `6`::
+
+            sage: def check_NW(n):
+            ....:     for p in SkewPartitions(n):
+            ....:         P = p.cell_poset(orientation="NW")
+            ....:         for c in p.cells():
+            ....:             for d in p.cells():
+            ....:                 if P.le(c, d) != (c[0] >= d[0]
+            ....:                                   and c[1] >= d[1]):
+            ....:                     return False
+            ....:     return True
+            sage: all( check_NW(n) for n in range(7) )
+            True
+
+            sage: def check_NE(n):
+            ....:     for p in SkewPartitions(n):
+            ....:         P = p.cell_poset(orientation="NE")
+            ....:         for c in p.cells():
+            ....:             for d in p.cells():
+            ....:                 if P.le(c, d) != (c[0] >= d[0]
+            ....:                                   and c[1] <= d[1]):
+            ....:                     return False
+            ....:     return True
+            sage: all( check_NE(n) for n in range(7) )
+            True
+
+            sage: def test_duality(n, ori1, ori2):
+            ....:     for p in SkewPartitions(n):
+            ....:         P = p.cell_poset(orientation=ori1)
+            ....:         Q = p.cell_poset(orientation=ori2)
+            ....:         for c in p.cells():
+            ....:             for d in p.cells():
+            ....:                 if P.lt(c, d) != Q.lt(d, c):
+            ....:                     return False
+            ....:     return True
+            sage: all( test_duality(n, "NW", "SE") for n in range(7) )
+            True
+            sage: all( test_duality(n, "NE", "SW") for n in range(7) )
+            True
+            sage: all( test_duality(n, "NE", "SE") for n in range(4) )
+            False
+        """
+        from sage.combinat.posets.posets import Poset
+        # Getting the cover relations seems hard, so let's just compute
+        # the comparison function.
+        if orientation == "NW":
+            def poset_le(u, v):
+                return u[0] >= v[0] and u[1] >= v[1]
+        elif orientation == "NE":
+            def poset_le(u, v):
+                return u[0] >= v[0] and u[1] <= v[1]
+        elif orientation == "SE":
+            def poset_le(u, v):
+                return u[0] <= v[0] and u[1] <= v[1]
+        elif orientation == "SW":
+            def poset_le(u, v):
+                return u[0] <= v[0] and u[1] >= v[1]
+        return Poset((self.cells(), poset_le))
+
     def frobenius_rank(self):
         r"""
         Return the Frobenius rank of the skew partition ``self``.

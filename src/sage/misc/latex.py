@@ -605,6 +605,7 @@ def latex_extra_preamble():
         sage: from sage.misc.latex import latex_extra_preamble
         sage: print latex_extra_preamble()
         ...
+        <BLANKLINE>
         \newcommand{\ZZ}{\Bold{Z}}
         \newcommand{\NN}{\Bold{N}}
         \newcommand{\RR}{\Bold{R}}
@@ -2341,7 +2342,7 @@ def repr_lincomb(symbols, coeffs):
                 try:
                     if bv in CC:
                         s += "%s\cdot %s"%(coeff, b)
-                except StandardError:
+                except Exception:
                     s += "%s%s"%(coeff, b)
             first = False
         i += 1

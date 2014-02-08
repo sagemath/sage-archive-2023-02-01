@@ -1018,7 +1018,7 @@ class IntegerVectors_nk(IntegerVectors, UniqueRepresentation):
 
         TESTS::
 
-            sage: IV = IntegerVectors(4,5) 
+            sage: IV = IntegerVectors(4,5)
             sage: range(IV.cardinality()) == [IV.rank(x) for x in IV]
             True
         """
@@ -1030,9 +1030,9 @@ class IntegerVectors_nk(IntegerVectors, UniqueRepresentation):
 
         r = 0
         for i in range(k-1):
-          k -= 1
-          n -= x[i]
-          r += binomial(k+n-1,k)
+            k -= 1
+            n -= x[i]
+            r += binomial(k+n-1,k)
 
         return r
 

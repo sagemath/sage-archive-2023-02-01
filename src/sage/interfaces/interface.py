@@ -738,7 +738,7 @@ class InterfaceElement(RingElement):
         try:
             if P.eval("%s %s %s"%(self.name(), P._greaterthan_symbol(), other.name())) == P._true_symbol():
                 return 1
-        except StandardError:
+        except Exception:
             pass
 
         # everything is supposed to be comparable in Python, so we define
@@ -851,7 +851,7 @@ class InterfaceElement(RingElement):
         string = self._sage_repr()
         try:
             return sage.misc.sage_eval.sage_eval(string)
-        except StandardError:
+        except Exception:
             raise NotImplementedError, "Unable to parse output: %s" % string
 
 

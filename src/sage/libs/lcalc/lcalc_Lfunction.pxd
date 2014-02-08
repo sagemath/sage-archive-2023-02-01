@@ -23,6 +23,7 @@ cdef extern from "lcalc_sage.h":
 
     ctypedef struct c_Lfunction_I "L_function<int>":
         c_Complex (* value) (c_Complex s, int derivative, char *whattype)
+        int (* compute_rank) ()
         double (* N) (double T)
         void  (* find_zeros_v)(double T1, double T2, double stepsize, doublevec result )
         void (*find_zeros_via_N_v)(long count,int do_negative,double max_refine, int rank, int test_explicit_formula, doublevec result)
@@ -38,6 +39,7 @@ cdef extern from "lcalc_sage.h":
 
     ctypedef struct c_Lfunction_D "L_function<double>":
         c_Complex (* value) (c_Complex s, int derivative, char *whattype)
+        int (* compute_rank) ()
         double (* N) (double T)
         double *dirichlet_coefficient
         void  (* find_zeros_v)(double T1, double T2, double stepsize, doublevec result )
@@ -53,7 +55,8 @@ cdef extern from "lcalc_sage.h":
     ######################
 
     ctypedef struct c_Lfunction_C "L_function<Complex>":
-        c_Complex (* value) (c_Complex s, int derivative)
+        c_Complex (* value) (c_Complex s, int derivative, char *whattype)
+        int (* compute_rank) ()
         double (* N) (double T)
         void  (* find_zeros_v)(double T1, double T2, double stepsize, doublevec result )
         void (*find_zeros_via_N_v)(long count,int do_negative,double max_refine, int rank, int test_explicit_formula, doublevec result)
@@ -69,6 +72,7 @@ cdef extern from "lcalc_sage.h":
 
     ctypedef struct c_Lfunction_Zeta "L_function<int>":
         c_Complex (* value) (c_Complex s, int derivative, char *whattype)
+        int (* compute_rank) ()
         double (* N) (double T)
         void  (* find_zeros_v)(double T1, double T2, double stepsize, doublevec result )
         void (*find_zeros_via_N_v)(long count,int do_negative,double max_refine, int rank, int test_explicit_formula, doublevec result)#puts result in vector<double> result
@@ -107,6 +111,8 @@ cdef class Lfunction:
     cdef void *thisptr
     cdef void __init_fun(self, char *NAME, int what_type, dirichlet_coeff, long long Period, double q,  c_Complex w, int A, double *g, c_Complex *l, int n_poles, c_Complex *p, c_Complex *r)
     cdef c_Complex __value(self,c_Complex s,int derivative)
+    cdef c_Complex __hardy_z_function(self,c_Complex s)
+    cdef int __compute_rank(self)
     #strange bug, replacing Double with double gives me a compile error
     cdef Double __typedN(self, double T)
     cdef void __find_zeros_v(self, double T1, double T2, double stepsize,doublevec *result)

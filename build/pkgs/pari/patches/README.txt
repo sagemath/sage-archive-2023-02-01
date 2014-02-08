@@ -69,3 +69,7 @@ C files:
   - 54eb37055167dbd8d4856b1bd698cf7018db561b
   and completely backport new algorithm for mpveceint1(). The prefix
   q_ in the patch filename is to ensure it comes after polred.patch.
+* det_garbage.patch (Jeroen Demeyer, #15654): When computing a
+  determinant(), only collect garbage once per outer loop iteration.
+  Better increase PARI stack size instead of collecting garbage too
+  often.

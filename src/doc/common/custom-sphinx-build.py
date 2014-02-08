@@ -46,6 +46,18 @@ if 'inventory' in sys.argv:
     replacements += ([re.compile('build succeeded, [0-9]+ warning[s]?.'),
                       'build succeeded.'], )
 
+# warnings: regular expressions (or strings) indicating a problem with
+# docbuilding. Raise an exception if any of these occur.
+
+warnings = (re.compile('Segmentation fault'),
+            re.compile('SEVERE'),
+            re.compile('ERROR'),
+            re.compile('^make.*Error'),
+            re.compile('Exception occurred'),
+            re.compile('Sphinx error'))
+
+if 'pdf' not in sys.argv:
+    warnings += (re.compile('WARNING'),)
 
 class SageSphinxLogger(object):
     """
@@ -74,6 +86,13 @@ class SageSphinxLogger(object):
                 return True
         return False
 
+    def _warnings(self, line):
+        global warnings
+        for regex in warnings:
+            if regex.search(line) is not None:
+                return True
+        return False
+
     def _log_line(self, line):
         if self._filter_out(line):
             return
@@ -85,6 +104,8 @@ class SageSphinxLogger(object):
             line = self.ansi_color.sub('', line)
         self._stream.write(line)
         self._stream.flush()
+        if self._warnings(line):
+            raise OSError(line)
 
     _line_buffer = ''
 
@@ -142,6 +163,8 @@ class SageSphinxLogger(object):
     def write(self, str):
         try:
             self._write(str)
+        except OSError:
+            raise
         except StandardError:
             import traceback
             traceback.print_exc(file=self._stream)

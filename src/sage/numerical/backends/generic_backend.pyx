@@ -980,15 +980,14 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
         ``"CPLEX"``, ``"Gurobi"``, ``"PPL"``, or ``None``. If ``solver=None`` (default),
         the default solver is used (see ``default_mip_solver`` method.
 
-    - ``constraint_generation``
+    - ``constraint_generation`` -- Only used when ``solver=None``.
 
       - When set to ``True``, after solving the ``MixedIntegerLinearProgram``,
         it is possible to add a constraint, and then solve it again.
         The effect is that solvers that do not support this feature will not be
-        used when ``solver=None``,
+        used.
 
-      - When set to ``False`` (default), also solvers that do not support this
-        feature may be used when ``solver=None``.
+      - Defaults to ``False``.
 
     .. SEEALSO::
 

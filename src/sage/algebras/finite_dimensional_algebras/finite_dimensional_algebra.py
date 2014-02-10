@@ -1,5 +1,5 @@
 """
-Finite Dimensional Algebras
+Finite-Dimensional Algebras
 """
 
 #*****************************************************************************
@@ -27,7 +27,7 @@ from sage.misc.cachefunc import cached_method
 
 class FiniteDimensionalAlgebra(Algebra):
     """
-    Create a finite dimensional `k`-algebra from a multiplication table.
+    Create a finite-dimensional `k`-algebra from a multiplication table.
 
     INPUT:
 
@@ -46,7 +46,7 @@ class FiniteDimensionalAlgebra(Algebra):
       the category to which this algebra belongs
 
     The list ``table`` must have the following form: there exists a
-    finite dimensional `k`-algebra of degree `n` with basis
+    finite-dimensional `k`-algebra of degree `n` with basis
     `(e_1, \ldots, e_n)` such that the `i`-th element of ``table`` is the
     matrix of right multiplication by `e_i` with respect to the basis
     `(e_1, \ldots, e_n)`.
@@ -55,11 +55,11 @@ class FiniteDimensionalAlgebra(Algebra):
 
         sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
         sage: A
-        Finite dimensional algebra of degree 2 over Finite Field of size 3
+        Finite-dimensional algebra of degree 2 over Finite Field of size 3
 
         sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
         sage: B
-        Finite dimensional algebra of degree 3 over Rational Field
+        Finite-dimensional algebra of degree 3 over Rational Field
     """
 
     def __init__(self, k, table, names='e', assume_associative=False, category=None):
@@ -68,19 +68,19 @@ class FiniteDimensionalAlgebra(Algebra):
 
             sage: A = FiniteDimensionalAlgebra(QQ, [])
             sage: A
-            Finite dimensional algebra of degree 0 over Rational Field
+            Finite-dimensional algebra of degree 0 over Rational Field
             sage: type(A)
             <class 'sage.algebras.finite_dimensional_algebras.finite_dimensional_algebra.FiniteDimensionalAlgebra_with_category'>
             sage: TestSuite(A).run()
 
             sage: B = FiniteDimensionalAlgebra(GF(7), [Matrix([1])])
             sage: B
-            Finite dimensional algebra of degree 1 over Finite Field of size 7
+            Finite-dimensional algebra of degree 1 over Finite Field of size 7
             sage: TestSuite(B).run()
 
             sage: C = FiniteDimensionalAlgebra(CC, [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: C
-            Finite dimensional algebra of degree 2 over Complex Field with 53 bits of precision
+            Finite-dimensional algebra of degree 2 over Complex Field with 53 bits of precision
             sage: TestSuite(C).run()
 
             sage: FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]])])
@@ -113,9 +113,9 @@ class FiniteDimensionalAlgebra(Algebra):
         TEST::
 
             sage: FiniteDimensionalAlgebra(RR, [Matrix([1])])._repr_()
-            'Finite dimensional algebra of degree 1 over Real Field with 53 bits of precision'
+            'Finite-dimensional algebra of degree 1 over Real Field with 53 bits of precision'
         """
-        return "Finite dimensional algebra of degree {} over {}".format(self.degree(), self.base_ring())
+        return "Finite-dimensional algebra of degree {} over {}".format(self.degree(), self.base_ring())
 
     def _coerce_map_from_(self, S):
         """
@@ -142,7 +142,7 @@ class FiniteDimensionalAlgebra(Algebra):
             sage: A = FiniteDimensionalAlgebra(QQ, [Matrix([0])])
             sage: a = A(0)
             sage: a.parent()
-            Finite dimensional algebra of degree 1 over Rational Field
+            Finite-dimensional algebra of degree 1 over Rational Field
             sage: A(1)
             Traceback (most recent call last):
             ...
@@ -167,7 +167,7 @@ class FiniteDimensionalAlgebra(Algebra):
             sage: A = FiniteDimensionalAlgebra(QQ, [Matrix([1])])
             sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: A._Hom_(B, A.category())
-            Set of Homomorphisms from Finite dimensional algebra of degree 1 over Rational Field to Finite dimensional algebra of degree 2 over Rational Field
+            Set of Homomorphisms from Finite-dimensional algebra of degree 1 over Rational Field to Finite-dimensional algebra of degree 2 over Rational Field
         """
         if isinstance(B, FiniteDimensionalAlgebra):
             category = FiniteDimensionalAlgebrasWithBasis(self.base_ring()).or_subcategory(category)
@@ -293,7 +293,7 @@ class FiniteDimensionalAlgebra(Algebra):
             sage: C = FiniteDimensionalAlgebra(GF(2), [Matrix([1])])
             sage: k.<y> = GF(4)
             sage: C.base_extend(k)
-            Finite dimensional algebra of degree 1 over Finite Field in y of size 2^2
+            Finite-dimensional algebra of degree 1 over Finite Field in y of size 2^2
         """
         # Base extension of the multiplication table is done by __init__.
         return FiniteDimensionalAlgebra(F, self.table())
@@ -343,7 +343,7 @@ class FiniteDimensionalAlgebra(Algebra):
 
             sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: A.ideal(A([1,1]))
-            Ideal (e0 + e1) of Finite dimensional algebra of degree 2 over Finite Field of size 3
+            Ideal (e0 + e1) of Finite-dimensional algebra of degree 2 over Finite Field of size 3
         """
         return self._ideal_class_()(self, gens=gens,
                                     given_by_matrix=given_by_matrix)
@@ -445,7 +445,7 @@ class FiniteDimensionalAlgebra(Algebra):
 
         .. NOTE::
 
-            If a finite dimensional algebra over a field admits a left identity,
+            If a finite-dimensional algebra over a field admits a left identity,
             then this is the unique left identity, and it is also a
             right identity.
         """
@@ -531,19 +531,19 @@ class FiniteDimensionalAlgebra(Algebra):
             sage: A = FiniteDimensionalAlgebra(QQ, [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([1])])
             sage: Hom(A, B)(Matrix([[1], [0]]))
-            Morphism from Finite dimensional algebra of degree 2 over Rational Field to Finite dimensional algebra of degree 1 over Rational Field given by matrix
+            Morphism from Finite-dimensional algebra of degree 2 over Rational Field to Finite-dimensional algebra of degree 1 over Rational Field given by matrix
             [1]
             [0]
             sage: Hom(B, A)(Matrix([[1, 0]]))
-            Morphism from Finite dimensional algebra of degree 1 over Rational Field to Finite dimensional algebra of degree 2 over Rational Field given by matrix
+            Morphism from Finite-dimensional algebra of degree 1 over Rational Field to Finite-dimensional algebra of degree 2 over Rational Field given by matrix
             [1 0]
             sage: H = Hom(A, A)
             sage: H(Matrix.identity(QQ, 2))
-            Morphism from Finite dimensional algebra of degree 2 over Rational Field to Finite dimensional algebra of degree 2 over Rational Field given by matrix
+            Morphism from Finite-dimensional algebra of degree 2 over Rational Field to Finite-dimensional algebra of degree 2 over Rational Field given by matrix
             [1 0]
             [0 1]
             sage: H(Matrix([[1, 0], [0, 0]]))
-            Morphism from Finite dimensional algebra of degree 2 over Rational Field to Finite dimensional algebra of degree 2 over Rational Field given by matrix
+            Morphism from Finite-dimensional algebra of degree 2 over Rational Field to Finite-dimensional algebra of degree 2 over Rational Field given by matrix
             [1 0]
             [0 0]
             sage: H(Matrix([[1, 0], [1, 1]]))
@@ -584,12 +584,12 @@ class FiniteDimensionalAlgebra(Algebra):
             sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: q0 = A.quotient_map(A.zero_ideal())
             sage: q0
-            Morphism from Finite dimensional algebra of degree 2 over Finite Field of size 3 to Finite dimensional algebra of degree 2 over Finite Field of size 3 given by matrix
+            Morphism from Finite-dimensional algebra of degree 2 over Finite Field of size 3 to Finite-dimensional algebra of degree 2 over Finite Field of size 3 given by matrix
             [1 0]
             [0 1]
             sage: q1 = A.quotient_map(A.ideal(A.gen(1)))
             sage: q1
-            Morphism from Finite dimensional algebra of degree 2 over Finite Field of size 3 to Finite dimensional algebra of degree 1 over Finite Field of size 3 given by matrix
+            Morphism from Finite-dimensional algebra of degree 2 over Finite Field of size 3 to Finite-dimensional algebra of degree 1 over Finite Field of size 3 given by matrix
             [1]
             [0]
         """
@@ -624,7 +624,7 @@ class FiniteDimensionalAlgebra(Algebra):
 
             sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: A.maximal_ideal()
-            Ideal (0, e1) of Finite dimensional algebra of degree 2 over Finite Field of size 3
+            Ideal (0, e1) of Finite-dimensional algebra of degree 2 over Finite Field of size 3
 
             sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
             sage: B.maximal_ideal()
@@ -663,14 +663,14 @@ class FiniteDimensionalAlgebra(Algebra):
 
             sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: A.primary_decomposition()
-            [Morphism from Finite dimensional algebra of degree 2 over Finite Field of size 3 to Finite dimensional algebra of degree 2 over Finite Field of size 3 given by matrix [1 0]
+            [Morphism from Finite-dimensional algebra of degree 2 over Finite Field of size 3 to Finite-dimensional algebra of degree 2 over Finite Field of size 3 given by matrix [1 0]
             [0 1]]
 
             sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
             sage: B.primary_decomposition()
-            [Morphism from Finite dimensional algebra of degree 3 over Rational Field to Finite dimensional algebra of degree 1 over Rational Field given by matrix [0]
+            [Morphism from Finite-dimensional algebra of degree 3 over Rational Field to Finite-dimensional algebra of degree 1 over Rational Field given by matrix [0]
             [0]
-            [1], Morphism from Finite dimensional algebra of degree 3 over Rational Field to Finite dimensional algebra of degree 2 over Rational Field given by matrix [1 0]
+            [1], Morphism from Finite-dimensional algebra of degree 3 over Rational Field to Finite-dimensional algebra of degree 2 over Rational Field given by matrix [1 0]
             [0 1]
             [0 0]]
         """
@@ -718,7 +718,7 @@ class FiniteDimensionalAlgebra(Algebra):
 
             sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: A.maximal_ideals()
-            [Ideal (e1) of Finite dimensional algebra of degree 2 over Finite Field of size 3]
+            [Ideal (e1) of Finite-dimensional algebra of degree 2 over Finite Field of size 3]
 
             sage: B = FiniteDimensionalAlgebra(QQ, [])
             sage: B.maximal_ideals()

@@ -29,7 +29,7 @@ class FiniteDimensionalAlgebraIdeal(Ideal_generic):
 
     INPUT:
 
-    - ``A`` -- a finite dimensional algebra
+    - ``A`` -- a finite-dimensional algebra
     - ``gens`` -- the generators of this ideal
     - ``given_by_matrix`` -- (default: ``False``) whether the basis matrix is
       given by ``gens``
@@ -38,7 +38,7 @@ class FiniteDimensionalAlgebraIdeal(Ideal_generic):
 
         sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
         sage: A.ideal(A([0,1]))
-        Ideal (e1) of Finite dimensional algebra of degree 2 over Finite Field of size 3
+        Ideal (e1) of Finite-dimensional algebra of degree 2 over Finite Field of size 3
     """
     def __init__(self, A, gens=None, given_by_matrix=False):
         """

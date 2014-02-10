@@ -21,7 +21,7 @@ from sage.matrix.matrix import is_Matrix
 
 class FiniteDimensionalAlgebraMorphism(RingHomomorphism_im_gens):
     """
-    Create a morphism between two :class:`finite dimensional algebras <FiniteDimensionalAlgebra>`.
+    Create a morphism between two :class:`finite-dimensional algebras <FiniteDimensionalAlgebra>`.
 
     INPUT:
 
@@ -87,7 +87,7 @@ class FiniteDimensionalAlgebraMorphism(RingHomomorphism_im_gens):
             sage: I = A.maximal_ideal()
             sage: q = A.quotient_map(I)
             sage: q._repr_()
-            'Morphism from Finite dimensional algebra of degree 2 over Rational Field to Finite dimensional algebra of degree 1 over Rational Field given by matrix\n[1]\n[0]'
+            'Morphism from Finite-dimensional algebra of degree 2 over Rational Field to Finite-dimensional algebra of degree 1 over Rational Field given by matrix\n[1]\n[0]'
         """
         return "Morphism from {} to {} given by matrix\n{}".format(
                 self.domain(), self.codomain(), self._matrix)
@@ -186,7 +186,7 @@ class FiniteDimensionalAlgebraMorphism(RingHomomorphism_im_gens):
 
 class FiniteDimensionalAlgebraHomset(RingHomset_generic):
     """
-    Set of morphisms between two finite dimensional algebras.
+    Set of morphisms between two finite-dimensional algebras.
     """
     @cached_method
     def zero(self):
@@ -199,8 +199,8 @@ class FiniteDimensionalAlgebraHomset(RingHomset_generic):
             sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: H = Hom(A, B)
             sage: H.zero()
-            Morphism from Finite dimensional algebra of degree 1 over Rational Field to
-             Finite dimensional algebra of degree 2 over Rational Field given by matrix
+            Morphism from Finite-dimensional algebra of degree 1 over Rational Field to
+             Finite-dimensional algebra of degree 2 over Rational Field given by matrix
             [0 0]
         """
         from sage.matrix.constructor import matrix
@@ -222,8 +222,8 @@ class FiniteDimensionalAlgebraHomset(RingHomset_generic):
             sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: H = Hom(A, B)
             sage: H(Matrix([[1, 0]]))
-            Morphism from Finite dimensional algebra of degree 1 over Rational Field to
-             Finite dimensional algebra of degree 2 over Rational Field given by matrix
+            Morphism from Finite-dimensional algebra of degree 1 over Rational Field to
+             Finite-dimensional algebra of degree 2 over Rational Field given by matrix
             [1 0]
         """
         if isinstance(f, FiniteDimensionalAlgebraMorphism):

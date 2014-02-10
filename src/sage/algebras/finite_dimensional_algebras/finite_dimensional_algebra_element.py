@@ -15,7 +15,7 @@ Elements of Finite Algebras
 
 import re
 
-from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.matrix.constructor import Matrix
 from sage.matrix.matrix import is_Matrix
 from sage.modules.free_module_element import vector
@@ -24,7 +24,7 @@ from sage.structure.element import AlgebraElement, is_Vector, parent
 
 
 class FiniteDimensionalAlgebraElement(AlgebraElement):
-    """
+    r"""
     Create an element of a :class:`FiniteDimensionalAlgebra` using a multiplication table.
 
     INPUT:
@@ -112,7 +112,7 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         """
         Return ``self`` as a vector.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
             sage: B(5).vector()
@@ -124,7 +124,7 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         """
         Return the matrix for multiplication by ``self`` from the right.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
             sage: B(5).matrix()
@@ -157,7 +157,7 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         """
         Return the string representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
             sage: A(1)
@@ -193,7 +193,7 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         r"""
         Return the LaTeX representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
             sage: latex(A(1))  # indirect doctest
@@ -223,7 +223,7 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
 
     def __ne__(self, other):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
             sage: B(1) != 0
@@ -234,59 +234,59 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
     def __gt__(self, other):
         """
         Raise a ``TypeError`` as there is no (natural) ordering defined on a
-        finite dimensional algebra::
+        finite-dimensional algebra::
 
             sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
             sage: A(1) > 0
             Traceback (most recent call last):
             ...
-            TypeError: there is no ordering defined on a finite dimensional algebra
+            TypeError: there is no ordering defined on a finite-dimensional algebra
             sage: A(1) < 0
             Traceback (most recent call last):
             ...
-            TypeError: there is no ordering defined on a finite dimensional algebra
+            TypeError: there is no ordering defined on a finite-dimensional algebra
             sage: A(1) >= 0
             Traceback (most recent call last):
             ...
-            TypeError: there is no ordering defined on a finite dimensional algebra
+            TypeError: there is no ordering defined on a finite-dimensional algebra
             sage: A(1) <= 0
             Traceback (most recent call last):
             ...
-            TypeError: there is no ordering defined on a finite dimensional algebra
+            TypeError: there is no ordering defined on a finite-dimensional algebra
         """
-        raise TypeError("there is no ordering defined on a finite dimensional algebra")
+        raise TypeError("there is no ordering defined on a finite-dimensional algebra")
 
     __lt__ = __ge__ = __le__ = __gt__
 
     def _add_(self, other):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
             sage: A.basis()[0] + A.basis()[1]
             e0 + e1
         """
-        return FiniteDimensionalAlgebraElement(self.parent(), self._vector + other._vector)
+        return self.__class__(self.parent(), self._vector + other._vector)
 
     def _sub_(self, other):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
             sage: A.basis()[0] - A.basis()[1]
             e0 + 2*e1
         """
-        return FiniteDimensionalAlgebraElement(self.parent(), self._vector - other._vector)
+        return self.__class__(self.parent(), self._vector - other._vector)
 
     def _mul_(self, other):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: C = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,0,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,1,0], [0,0,1]])])
             sage: C.basis()[1] * C.basis()[2]
             e1
         """
-        return FiniteDimensionalAlgebraElement(self.parent(), self._vector * other._matrix)
+        return self.__class__(self.parent(), self._vector * other._matrix)
 
     def _lmul_(self, other):
         """
@@ -300,7 +300,7 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         if not self.parent().base_ring().has_coerce_map_from(other.parent()):
             raise TypeError("unsupported operand parent(s) for '*': '{}' and '{}'"
                             .format(self.parent(), other.parent()))
-        return FiniteDimensionalAlgebraElement(self.parent(), self._vector * other)
+        return self.__class__(self.parent(), self._vector * other)
 
     def _rmul_(self, other):
         """
@@ -320,7 +320,7 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         """
         Return ``self`` raised to the power ``n``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
             sage: b = B(vector(QQ, [2,3,4]))
@@ -331,13 +331,13 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         if not (A._assume_associative or A.is_associative()):
             raise TypeError("algebra is not associative")
         if n > 0:
-            return FiniteDimensionalAlgebraElement(A, self.vector() * self._matrix.__pow__(n - 1))
+            return self.__class__(A, self.vector() * self._matrix.__pow__(n - 1))
         if not A.is_unitary():
             raise TypeError("algebra is not unitary")
         if n == 0:
             return A.one()
         a = self.inverse()
-        return FiniteDimensionalAlgebraElement(A, a.vector() * a.matrix().__pow__(-n - 1))
+        return self.__class__(A, a.vector() * a.matrix().__pow__(-n - 1))
 
     def is_invertible(self):
         """
@@ -346,11 +346,11 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
 
         .. NOTE::
 
-            If an element of a unitary finite dimensional algebra over a field
+            If an element of a unitary finite-dimensional algebra over a field
             admits a left inverse, then this is the unique left
             inverse, and it is also a right inverse.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: C = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0], [0,1]]), Matrix([[0,1], [-1,0]])])
             sage: C([1,2]).is_invertible()
@@ -358,13 +358,34 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
             sage: C(0).is_invertible()
             False
         """
-        try:
-            self.inverse()
-        except ZeroDivisionError:
-            return False
-        return True
+        return self._inverse is not None
 
-    @cached_method
+    @lazy_attribute
+    def _inverse(self):
+        """
+        The two-sided inverse of ``self``, if it exists; otherwise this
+        is ``None``.
+
+        EXAMPLES::
+
+            sage: C = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0], [0,1]]), Matrix([[0,1], [-1,0]])])
+            sage: C([1,2])._inverse
+            1/5*e0 - 2/5*e1
+            sage: C(0)._inverse is None
+            True
+        """
+        A = self.parent()
+        if not A.is_unitary():
+            return None
+
+        try:
+            a = self.matrix().inverse()
+            y = FiniteDimensionalAlgebraElement(A, a, check=True)
+            y._inverse = self
+            return y
+        except (ZeroDivisionError, ValueError):
+            return None
+
     def inverse(self):
         """
         Return the two-sided multiplicative inverse of ``self``, if it
@@ -372,26 +393,23 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
 
         .. NOTE::
 
-            If an element of a unitary finite dimensional algebra over a field
+            If an element of a unitary finite-dimensional algebra over a field
             admits a left inverse, then this is the unique left
             inverse, and it is also a right inverse.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: C = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0], [0,1]]), Matrix([[0,1], [-1,0]])])
             sage: C([1,2]).inverse()
             1/5*e0 - 2/5*e1
         """
-
         A = self.parent()
         if not A.is_unitary():
             raise TypeError("algebra is not unitary")
 
-        try:
-            a = self.matrix().inverse()
-            return FiniteDimensionalAlgebraElement(A, a, check=True)
-        except (ZeroDivisionError, ValueError):
+        if self._inverse is None:
             raise ZeroDivisionError("element is not invertible")
+        return self._inverse
 
     def is_zerodivisor(self):
         """

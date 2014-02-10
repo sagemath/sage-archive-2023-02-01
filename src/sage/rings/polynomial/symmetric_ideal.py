@@ -247,7 +247,7 @@ class SymmetricIdeal( Ideal_generic ):
         """
         try:
             return self.reduce(p) == 0
-        except StandardError:
+        except Exception:
             return False
 
     def __mul__ (self, other):
@@ -953,7 +953,7 @@ class SymmetricIdeal( Ideal_generic ):
 
             try: # working around one libsingular bug and one libsingular oddity
                 DenseIdeal = [CommonR(P._p) if ((CommonR is P._p.parent()) or CommonR.ngens()!=P._p.parent().ngens()) else CommonR(repr(P._p))  for P in OUT.gens()]*CommonR
-            except StandardError:
+            except Exception:
                 if report != None:
                     print "working around a libsingular bug"
                 DenseIdeal = [repr(P._p) for P in OUT.gens()]*CommonR

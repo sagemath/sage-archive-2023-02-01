@@ -1633,7 +1633,7 @@ def is_iterator(it):
     # see trac #7398 for a discussion
     try:
         return it is iter(it)
-    except StandardError:
+    except Exception:
         return False
 
 
@@ -1935,6 +1935,8 @@ def alarm(seconds):
     seconds. This is useful for automatically interrupting long
     computations and can be trapped using exception handling.
 
+    Use :func:`cancel_alarm` to cancel a previously scheduled alarm.
+
     INPUT:
 
     -  ``seconds`` -- positive number, may be floating point
@@ -1956,7 +1958,7 @@ def alarm(seconds):
 
 def cancel_alarm():
     """
-    Cancel a previously scheduled alarm (if any).
+    Cancel a previously scheduled alarm (if any) set by :func:`alarm`.
 
     EXAMPLES::
 

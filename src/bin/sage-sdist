@@ -53,6 +53,7 @@ SAGE_INSTALL_FETCH_ONLY=yes SAGE_SPKG_OPTS="-f -d" \
 # Create source .tar.gz
 cd "$TMP_DIR"
 echo "Creating dist/$TARGET.tar.gz ..."
+chmod -R go=rX "$TARGET"
 tar zcf "$TARGET".tar.gz "$TARGET"
 
 mkdir -p "$SAGE_ROOT"/dist

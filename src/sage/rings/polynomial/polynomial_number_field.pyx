@@ -69,6 +69,8 @@ We can also construct polynomials over relative number fields::
 #*****************************************************************************
 
 from polynomial_element_generic import Polynomial_generic_dense_field
+from sage.rings.rational_field import QQ
+from sage.structure.element import coerce_binop
 
 class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
     """
@@ -105,6 +107,104 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
         """
         Polynomial_generic_dense_field.__init__(self, parent, x, check, is_gen, construct)
 
+    @coerce_binop
+    def gcd(self, other):
+        """
+        Compute de monic gcd of two univariate polynomials using pari.
+
+        INPUT:
+
+        - ``other`` -- a polynomial with the same parent as self.
+
+        OUTPUT:
+
+        - The monic gcd of ``self`` and ``other``
+
+        EXAMPLES::
+
+            sage: N.<a> = NumberField(x^3-1/2, 'a')
+            sage: R.<r> = N['r']
+            sage: f = (5/4*a^2 - 2*a + 4)*r^2 + (5*a^2 - 81/5*a - 17/2)*r + 4/5*a^2 + 24*a + 6
+            sage: g = (5/4*a^2 - 2*a + 4)*r^2 + (-11*a^2 + 79/5*a - 7/2)*r - 4/5*a^2 - 24*a - 6
+            sage: gcd(f, g**2)
+            r - 60808/96625*a^2 - 69936/96625*a - 149212/96625
+            sage: R = QQ[I]['x']
+            sage: f = R.random_element(2)
+            sage: g = f + 1
+            sage: h = R.random_element(2).monic()
+            sage: f *=h
+            sage: g *=h
+            sage: gcd(f, g) - h
+            0
+            sage: f.gcd(g) - h
+            0
+
+    TESTS:
+
+        Test for degree one extensions::
+
+            sage: x = var('x')
+            sage: N = NumberField(x-3, 'a')
+            sage: a = N.gen()
+            sage: R = N[x]
+            sage: f = R.random_element()
+            sage: g1 = R.random_element()
+            sage: g2 = g1*R.random_element() + 1
+            sage: g1 *= f
+            sage: g2 *= f
+            sage: d = gcd(g1, g2)
+            sage: f.monic() - d
+            0
+            sage: d.parent() is R
+            True
+
+        Test for coercion with other rings and force weird variables to test
+        pari behavior::
+
+            sage: r = var('r')
+            sage: N = NumberField(r^2 - 2, 'r')
+            sage: a = N.gen()
+            sage: R = N['r']
+            sage: r = R.gen()
+            sage: f = N.random_element(4)*r + 1
+            sage: g = ZZ['r']([1, 2, 3, 4, 5, 6, 7]); g
+            7*r^6 + 6*r^5 + 5*r^4 + 4*r^3 + 3*r^2 + 2*r + 1
+            sage: gcd(f, g) == gcd(g, f)
+            True
+            sage: h = f.gcd(g); h
+            1
+            sage: h.parent()
+            Univariate Polynomial Ring in r over Number Field in r with defining polynomial r^2 - 2
+            sage: gcd([a*r+2, r^2-2])
+            r + r
+        """
+        if self.is_zero():
+            if other.is_zero():
+                return self
+            else:
+                return other.monic()
+        elif other.is_zero():
+            return self.monic()
+        elif self.degree() == 0:
+            return self.parent().one_element()
+        elif other.degree() == 0:
+            return other.parent().one_element()
+
+        #If the extension is of degree one, use the gcd from QQ[x]
+
+        if self.base_ring().degree().is_one():
+            R = self.parent()
+            x = self.variable_name()
+            a = QQ[x](self)
+            b = QQ[x](other)
+            g = a.gcd(b)
+            return R(g)
+
+        h1 = self._pari_with_name('x')
+        h2 = other._pari_with_name('x')
+        g = h1.gcd(h2)
+        return (self.parent()(g)).monic()
+
 
 class Polynomial_relative_number_field_dense(Polynomial_generic_dense_field):
     """
@@ -137,3 +237,98 @@ class Polynomial_relative_number_field_dense(Polynomial_generic_dense_field):
             <class 'sage.rings.polynomial.polynomial_number_field.Polynomial_relative_number_field_dense'>
         """
         Polynomial_generic_dense_field.__init__(self, parent, x, check, is_gen, construct)
+
+    @coerce_binop
+    def gcd(self, other):
+        """
+        Compute the monic gcd of two polynomials.
+
+        Currently, the method checks corner cases in which one of the
+        polynomials is zero or a constant. Then, computes an absolute extension
+        and perform there the computations.
+
+        INPUT:
+
+        - ``other`` -- a polynomial with the same parent as self.
+
+        OUTPUT:
+
+        - The monic gcd of ``self`` and ``other``
+
+        See :meth:`Polynomial_absolute_number_field_dense.gcd` for more details.
+
+        EXAMPLES::
+
+            sage: N = QQ[sqrt(2), sqrt(3)]
+            sage: s2, s3 = N.gens()
+            sage: x = polygen(N)
+            sage: f = x^4 - 5*x^2 +6
+            sage: g = x^3 + (-2*s2 + s3)*x^2 + (-2*s3*s2 + 2)*x + 2*s3
+            sage: gcd(f, g)
+            x^2 + (-sqrt2 + sqrt3)*x - sqrt3*sqrt2
+            sage: f.gcd(g)
+            x^2 + (-sqrt2 + sqrt3)*x - sqrt3*sqrt2
+
+        TESTS::
+
+            sage: x = var('x')
+            sage: R = NumberField([x^2-2, x^2-3], 'a')[x]
+            sage: f = R.random_element()
+            sage: g1 = R.random_element()
+            sage: g2 = R.random_element()*g1+1
+            sage: g1 *= f
+            sage: g2 *= f
+            sage: f.monic() - g1.gcd(g2)
+            0
+
+        Test for degree one extensions::
+
+            sage: R = NumberField([x-2,x+1,x-3],'a')[x]
+            sage: f = R.random_element(2)
+            sage: g1 = R.random_element(2)
+            sage: g2 = R.random_element(2)*g1+1
+            sage: g1 *= f
+            sage: g2 *= f
+            sage: d = gcd(g1, g2)
+            sage: d - f.monic()
+            0
+            sage: d.parent() is R
+            True
+
+        Test for hardcoded variables::
+
+            sage: R = N['sqrt2sqrt3']
+            sage: x = R.gen()
+            sage: f = x^2 - 2
+            sage: g1 = x^2 - s3
+            sage: g2 = x - s2
+            sage: gcd(f, g1)
+            1
+            sage: gcd(f, g2)
+            sqrt2sqrt3 - sqrt2
+        """
+        if self.is_zero():
+            if other.is_zero():
+                return self
+            else:
+                return other.monic()
+        elif other.is_zero():
+            return self.monic()
+        elif self.degree() == 0:
+            return self.parent().one_element()
+        elif other.degree() == 0:
+            return other.parent().one_element()
+
+        L = self.parent()
+        x = L.gen()
+        N = self.base_ring()
+        c = ''.join(map(str,N.variable_names()))
+        M = N.absolute_field(c)
+        M_to_N, N_to_M = M.structure()
+        R = M[x]
+        first = R(([N_to_M(foo) for foo in self.list()]))
+        second = R(([N_to_M(foo) for foo in other.list()]))
+        result = first.gcd(second)
+        result = L(([M_to_N(foo) for foo in result.list()]))
+        #the result is already monic
+        return result

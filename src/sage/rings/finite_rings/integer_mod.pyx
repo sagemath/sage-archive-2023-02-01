@@ -107,6 +107,7 @@ from sage.categories.morphism cimport Morphism
 from sage.categories.map cimport Map
 
 from sage.structure.sage_object import register_unpickle_override
+from sage.misc.superseded import deprecated_function_alias
 
 #from sage.structure.parent cimport Parent
 
@@ -753,6 +754,8 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             return x
         else:
             return x - n
+
+    centerlift = deprecated_function_alias(15804,lift_centered)
 
     cpdef bint is_one(self):
         raise NotImplementedError

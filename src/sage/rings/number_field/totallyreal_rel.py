@@ -594,9 +594,9 @@ class tr_data_rel:
                                   -sum([self.a[i]*(-2)**i for i in range(1,m+1)])]
                         for a0 in a0s:
                             try:
-                                ind = self.amaxvals[0].remove(a0)
-                            except StandardError:
-                                True
+                                self.amaxvals[0].remove(a0)
+                            except Exception:
+                                pass
 
                     if verbose:
                         print "  amaxvals[k]:", self.amaxvals[k]

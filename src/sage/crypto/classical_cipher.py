@@ -230,7 +230,7 @@ class HillCipher(SymmetricKeyCipher):
         E = self.parent()
         try:
             B = E.inverse_key(self.key())
-        except StandardError:
+        except Exception:
             raise ValueError, "Argument\n\n%s\n\nmust be an invertible cipher." % self
         return E(B)
 

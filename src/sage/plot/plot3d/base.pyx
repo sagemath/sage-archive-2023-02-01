@@ -1227,6 +1227,28 @@ end_scene""" % (render_params.antialiasing,
                 pipes = "2>/dev/null 1>/dev/null &"
             os.system('%s "%s.%s" %s' % (viewer_app, filename, ext, pipes))
 
+    def save_image(self, filename=None, *args, **kwds):
+        r"""
+        Save an image representation of self.  The image type is
+        determined by the extension of the filename.  For example,
+        this could be ``.png``, ``.jpg``, ``.gif``, ``.pdf``,
+        ``.svg``.  Currently this is implemented by calling the
+        :meth:`save` method of self, passing along all arguments and
+        keywords.
+
+        .. Note::
+
+            Not all image types are necessarily implemented for all
+            graphics types.  See :meth:`save` for more details.
+
+        EXAMPLES::
+
+            sage: f = tmp_filename() + '.png'
+            sage: G = sphere()
+            sage: G.save_image(f)
+        """
+        self.save(filename, *args, **kwds)
+
     def save(self, filename, **kwds):
         """
         Save the graphic to an image file (of type: PNG, BMP, GIF, PPM, or TIFF)

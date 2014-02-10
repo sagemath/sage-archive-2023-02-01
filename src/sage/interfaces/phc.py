@@ -228,7 +228,7 @@ class PHC_Object:
         start_data += output_list[found_solutions] + '\n\n'
         try:
             var_number = int(output_list[found_solutions+1].split(' ')[1])
-        except StandardError:
+        except Exception:
             # bad error handling
             var_number = int(output_list[found_solutions+2].split(' ')[1])
         sol_count = 0

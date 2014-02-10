@@ -414,6 +414,34 @@ cdef class ntl_ZZ_p:
         ZZ_p_modulus( &r.x, &self.x )
         return r
 
+    def lift_centered(self):
+        """
+        Compute a representative of ``self`` in `(-n/2 , n/2]` as an
+        ``ntl.ZZ object``.
+
+        OUTPUT:
+
+        - An ``ntl.ZZ`` object `r` such that  `-n/2 < r <= n/2` and `Mod(r, n) == self`.
+
+        EXAMPLES::
+
+            sage: x = ntl.ZZ_p(8, 18)
+            sage: x.lift_centered()
+            8
+            sage: type(x.lift())
+            <type 'sage.libs.ntl.ntl_ZZ.ntl_ZZ'>
+            sage: x = ntl.ZZ_p(12, 18)
+            sage: x.lift_centered()
+            -6
+            sage: type(x.lift())
+            <type 'sage.libs.ntl.ntl_ZZ.ntl_ZZ'>
+        """
+        cdef ntl_ZZ r = self.lift()
+        cdef ntl_ZZ m = self.modulus()
+        if r*2 > m:
+            r -= m
+        return r
+
     def _integer_(self, ZZ=None):
         """
         Return a lift of self as a Sage integer.

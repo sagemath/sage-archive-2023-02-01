@@ -2184,6 +2184,38 @@ def rational_reconstruction(a, m, algorithm='fast'):
     else:
         raise ValueError("unknown algorithm")
 
+def lift_centered(p):
+    r"""
+    Compute a representative of the element `p` mod `n` in `(-n/2 , n/2]`
+
+    INPUT:
+
+    - ``p`` -- an integer mod `n`
+
+    OUTPUT:
+
+    - An integer `r` in `\ZZ` such that  `-n/2 < r \leq n/2`
+
+    For specific classes, check the `p.lift_centered` attribute.
+
+    EXAMPLES::
+
+        sage: p = Mod(2,4)
+        sage: lift_centered(p)
+        2
+        sage: p = Mod(3,4)
+        sage: lift_centered(p)
+        -1
+    """
+    try:
+        return ZZ(p.lift_centered())
+    except(AttributeError):
+        pass
+    r = p.lift()
+    if r*2 > p.modulus():
+        r -= p.modulus()
+    return ZZ(r)
+
 def _rational_reconstruction_python(a,m):
     """
     Internal fallback function for rational_reconstruction; see

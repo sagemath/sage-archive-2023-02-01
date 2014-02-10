@@ -1174,7 +1174,7 @@ cdef class Matrix(matrix1.Matrix):
                 d = R(self._pari_().matdet())
             else:
                 # Lift to ZZ and compute there.
-                d = R(self.apply_map(lambda x : x.centerlift()).det())
+                d = R(self.apply_map(lambda x : x.lift_centered()).det())
             self.cache('det', d)
             return d
 

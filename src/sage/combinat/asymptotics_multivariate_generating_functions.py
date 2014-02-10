@@ -1,31 +1,41 @@
 r"""
-Let $F(x) = \sum_{\nu \in \NN^d} F_{\nu} x^\nu$ be a multivariate power series with complex coefficients that converges in a neighborhood of the origin. Assume that $F = G/H$ for some functions $G$ and $H$ holomorphic in a neighborhood of the origin.
-Assume also that $H$ is a polynomial.
+Asymptotics of Multivariate Generating Series
 
-This Python module for use within `Sage <http://www.sagemath.org>`_ computes asymptotics for the coefficients $F_{r \alpha}$ as $r \to \infty$ with $r \alpha \in \NN^d$ for $\alpha$ in a permissible subset of $d$-tuples of positive reals.
-More specifically, it computes arbitrary terms of the asymptotic expansion for $F_{r \alpha}$ when the asymptotics are controlled by a strictly minimal multiple point of the alegbraic variety $H = 0$.
+Let `F(x) = \sum_{\nu \in \NN^d} F_{\nu} x^\nu` be a multivariate power series
+with complex coefficients that converges in a neighborhood of the origin.
+Assume that `F = G/H` for some functions `G` and `H` holomorphic in a
+neighborhood of the origin. Assume also that `H` is a polynomial.
+
+This computes asymptotics for the coefficients `F_{r \alpha}` as `r \to \infty`
+with `r \alpha \in \NN^d` for `\alpha` in a permissible subset of `d`-tuples of
+positive reals. More specifically, it computes arbitrary terms of the
+asymptotic expansion for `F_{r \alpha}` when the asymptotics are controlled by
+a strictly minimal multiple point of the alegbraic variety `H = 0`.
 
 The algorithms and formulas implemented here come from [RaWi2008a]_
 and [RaWi2012]_.
 
-.. [AiYu1983] I.A. Aizenberg and A.P. Yuzhakov, "Integral representations and residues in multidimensional complex analysis", Translations of Mathematical Monographs, 58. American Mathematical Society, Providence, RI, 1983. x+283 pp. ISBN: 0-8218-4511-X.
+.. [AiYu1983] I.A. Aizenberg and A.P. Yuzhakov.
+   *Integral representations and residues in multidimensional complex analysis*.
+   Translations of Mathematical Monographs, **58**. American Mathematical
+   Society, Providence, RI. (1983). x+283 pp. ISBN: 0-8218-4511-X.
 
-.. [Raic2012] Alexander Raichev, "Leinartas's partial fraction decomposition", `<http://arxiv.org/abs/1206.4740>`_.
+.. [Raic2012] Alexander Raichev. *Leinartas's partial fraction decomposition*.
+   :arxiv:`1206.4740`.
 
-.. [RaWi2008a] Alexander Raichev and Mark C. Wilson, "Asymptotics of coefficients of multivariate generating functions: improvements for smooth points", Electronic Journal of Combinatorics, Vol. 15 (2008), R89, `<http://arxiv.org/pdf/0803.2914.pdf>`_.
+.. [RaWi2008a] Alexander Raichev and Mark C. Wilson. *Asymptotics of
+   coefficients of multivariate generating functions: improvements for
+   smooth points*, Electronic Journal of Combinatorics, Vol. 15 (2008).
+   R89 :arxiv:`0803.2914`.
 
-.. [RaWi2012] Alexander Raichev and Mark C. Wilson, "Asymptotics of coefficients of multivariate generating functions: improvements for smooth points", To appear in 2012 in the Online Journal of Analytic Combinatorics, `<http://arxiv.org/pdf/1009.5715.pdf>`_.
+.. [RaWi2012] Alexander Raichev and Mark C. Wilson. *Asymptotics of
+   coefficients of multivariate generating functions: improvements for
+   smooth points*, To appear in 2012 in the Online Journal of Analytic
+   Combinatorics. :arxiv:`1009.5715`.
 
 AUTHORS:
 
 - Alexander Raichev (2008-10-01): Initial version
-- Alexander Raichev (2010-09-28): Corrected many functions
-- Alexander Raichev (2010-12-15): Updated documentation
-- Alexander Raichev (2011-03-09): Fixed a division by zero bug in relative_error()
-- Alexander Raichev (2011-04-26): Rewrote in object-oreinted style
-- Alexander Raichev (2011-05-06): Fixed bug in cohomologous_integrand() and fixed _crit_cone_combo() to work in SR
-- Alexander Raichev (2012-08-06): Major rewrite. Created class FFPD and moved functions around.
-- Alexander Raichev (2012-10-03): Fixed whitespace errors, added examples to those six functions missing them (which i overlooked), changed package name to a more descriptive title, made asymptotics methods work for univariate functions.
 
 EXAMPLES::
 
@@ -43,7 +53,11 @@ A univariate smooth point example::
     sage: alpha = [1]
     sage: decomp = F.asymptotic_decomposition(alpha)
     sage: print decomp
-    [(0, []), (-1/2*(x^2 + 6*x + 9)*r^2/(x^5 + 9*x^4 + 27*x^3 + 27*x^2) - 1/2*(5*x^2 + 24*x + 27)*r/(x^5 + 9*x^4 + 27*x^3 + 27*x^2) - 3*(x^2 + 3*x + 3)/(x^5 + 9*x^4 + 27*x^3 + 27*x^2), [(x - 1/2, 1)])]
+    [(0, []),
+     (-1/2*(x^2 + 6*x + 9)*r^2/(x^5 + 9*x^4 + 27*x^3 + 27*x^2)
+      - 1/2*(5*x^2 + 24*x + 27)*r/(x^5 + 9*x^4 + 27*x^3 + 27*x^2)
+      - 3*(x^2 + 3*x + 3)/(x^5 + 9*x^4 + 27*x^3 + 27*x^2),
+     [(x - 1/2, 1)])]
     sage: F1 = decomp[1]
     sage: p = {x: 1/2}
     sage: asy = F1.asymptotics(p, alpha, 3)
@@ -52,7 +66,11 @@ A univariate smooth point example::
     sage: print F.relative_error(asy[0], alpha, [1, 2, 4, 8, 16], asy[1])
     Calculating errors table in the form
     exponent, scaled Maclaurin coefficient, scaled asymptotic values, relative errors...
-    [((1,), 7.555555556, [7.556851312], [-0.0001714971672]), ((2,), 14.74074074, [14.74052478], [0.00001465051901]), ((4,), 35.96502058, [35.96501458], [1.667911934e-7]), ((8,), 105.8425656, [105.8425656], [4.399565380e-11]), ((16,), 355.3119534, [355.3119534], [0.0000000000])]
+    [((1,), 7.555555556, [7.556851312], [-0.0001714971672]),
+     ((2,), 14.74074074, [14.74052478], [0.00001465051901]),
+     ((4,), 35.96502058, [35.96501458], [1.667911934e-7]),
+     ((8,), 105.8425656, [105.8425656], [4.399565380e-11]),
+     ((16,), 355.3119534, [355.3119534], [0.0000000000])]
 
 Another smooth point example (Example 5.4 of [RaWi2008a]_)::
 
@@ -81,16 +99,16 @@ Another smooth point example (Example 5.4 of [RaWi2008a]_)::
     Computing second order differential operator actions...
     sage: print asy # long time
     (1/12*2^(2/3)*sqrt(3)*gamma(1/3)/(pi*r^(1/3)), 1,
-    1/12*2^(2/3)*sqrt(3)*gamma(1/3)/(pi*r^(1/3)))
+     1/12*2^(2/3)*sqrt(3)*gamma(1/3)/(pi*r^(1/3)))
     sage: print F.relative_error(asy[0], alpha, [1, 2, 4, 8, 16], asy[1]) # long time
     Calculating errors table in the form
     exponent, scaled Maclaurin coefficient, scaled asymptotic values,
     relative errors...
     [((4, 1), 0.1875000000, [0.1953794675], [-0.04202382689]), ((8, 2),
-    0.1523437500, [0.1550727862], [-0.01791367323]), ((16, 4), 0.1221771240,
-    [0.1230813519], [-0.007400959228]), ((32, 8), 0.09739671811,
-    [0.09768973377], [-0.003008475766]), ((64, 16), 0.07744253816,
-    [0.07753639308], [-0.001211929722])]
+     0.1523437500, [0.1550727862], [-0.01791367323]), ((16, 4), 0.1221771240,
+     [0.1230813519], [-0.007400959228]), ((32, 8), 0.09739671811,
+     [0.09768973377], [-0.003008475766]), ((64, 16), 0.07744253816,
+     [0.07753639308], [-0.001211929722])]
 
 A multiple point example (Example 6.5 of [RaWi2012]_)::
 
@@ -110,14 +128,16 @@ A multiple point example (Example 6.5 of [RaWi2012]_)::
     (True, 'convenient in variables [x, y]')
     sage: alpha = (var('a'), var('b'))
     sage: decomp =  F.asymptotic_decomposition(alpha); print decomp # long time
-    [(0, []), (-1/9*(2*a^2*y^2 - 5*a*b*x*y + 2*b^2*x^2)*r^2/(x^2*y^2) +
-    1/9*(5*(a + b)*x*y - 6*a*y^2 - 6*b*x^2)*r/(x^2*y^2) - 1/9*(4*x^2 - 5*x*y
-    + 4*y^2)/(x^2*y^2), [(x + 2*y - 1, 1), (2*x + y - 1, 1)])]
+    [(0, []),
+     (-1/9*(2*a^2*y^2 - 5*a*b*x*y + 2*b^2*x^2)*r^2/(x^2*y^2) +
+      1/9*(5*(a + b)*x*y - 6*a*y^2 - 6*b*x^2)*r/(x^2*y^2) - 1/9*(4*x^2 - 5*x*y
+      + 4*y^2)/(x^2*y^2),
+     [(x + 2*y - 1, 1), (2*x + y - 1, 1)])]
     sage: F1 = decomp[1]
     sage: print F1.asymptotics(p, alpha, 2) # long time
-    (-3*((2*a^2 - 5*a*b + 2*b^2)*r^2 + (a + b)*r +
-    3)*((1/3)^(-b)*(1/3)^(-a))^r, (1/3)^(-b)*(1/3)^(-a), -3*(2*a^2 - 5*a*b +
-    2*b^2)*r^2 - 3*(a + b)*r - 9)
+    (-3*((2*a^2 - 5*a*b + 2*b^2)*r^2 + (a + b)*r + 3)*((1/3)^(-b)*(1/3)^(-a))^r,
+     (1/3)^(-b)*(1/3)^(-a),
+     -3*(2*a^2 - 5*a*b + 2*b^2)*r^2 - 3*(a + b)*r - 9)
     sage: alpha = [4, 3]
     sage: decomp =  F.asymptotic_decomposition(alpha)
     sage: F1 = decomp[1]
@@ -129,10 +149,9 @@ A multiple point example (Example 6.5 of [RaWi2012]_)::
     exponent, scaled Maclaurin coefficient, scaled asymptotic values,
     relative errors...
     [((4, 3), 30.72702332, [0.0000000000], [1.000000000]), ((8, 6),
-    111.9315678, [69.00000000], [0.3835519207]), ((16, 12), 442.7813138,
-    [387.0000000], [0.1259793763]), ((32, 24), 1799.879232, [1743.000000],
-    [0.03160169385])]
-
+     111.9315678, [69.00000000], [0.3835519207]), ((16, 12), 442.7813138,
+     [387.0000000], [0.1259793763]), ((32, 24), 1799.879232, [1743.000000],
+     [0.03160169385])]
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Alexander Raichev <tortoise.said@gmail.com>
@@ -145,30 +164,30 @@ from functools import total_ordering
 
 # Sage libraries
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.polynomial.polynomial_ring  import is_PolynomialRing
-from sage.rings.polynomial.multi_polynomial_ring_generic    import is_MPolynomialRing
+from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
 from sage.symbolic.ring import SR
 from sage.geometry.cone import Cone
-from sage.calculus.functional   import diff
-from sage.calculus.functions    import jacobian
-from sage.calculus.var  import function, var
-from sage.combinat.combinat     import stirling_number1
-from sage.combinat.permutation  import Permutation
-from sage.combinat.tuple    import UnorderedTuples
-from sage.functions.log     import exp, log
-from sage.functions.other   import factorial, gamma, sqrt
-from sage.matrix.constructor    import matrix
+from sage.calculus.functional import diff
+from sage.calculus.functions import jacobian
+from sage.calculus.var import function, var
+from sage.combinat.combinat import stirling_number1
+from sage.combinat.permutation import Permutation
+from sage.combinat.tuple import UnorderedTuples
+from sage.functions.log import exp, log
+from sage.functions.other import factorial, gamma, sqrt
+from sage.matrix.constructor import matrix
 from sage.misc.misc import add
-from sage.misc.misc_c   import prod
-from sage.misc.mrange   import cartesian_product_iterator, mrange
-from sage.modules.free_module_element   import vector
-from sage.rings.arith   import binomial, xgcd
+from sage.misc.misc_c import prod
+from sage.misc.mrange import cartesian_product_iterator, mrange
+from sage.modules.free_module_element import vector
+from sage.rings.arith import binomial, xgcd
 from sage.rings.all import CC
 from sage.rings.fraction_field  import FractionField
 from sage.rings.integer import Integer
-from sage.rings.rational_field  import QQ
-from sage.sets.set  import Set
-from sage.symbolic.constants    import pi
+from sage.rings.rational_field import QQ
+from sage.sets.set import Set
+from sage.symbolic.constants import pi
 from sage.symbolic.relation import solve
 from sage.combinat.subset import Subsets
 
@@ -176,125 +195,130 @@ from sage.combinat.subset import Subsets
 class FFPD(object):
     r"""
     Represents a fraction with factored polynomial denominator (FFPD)
-    $p/(q_1^{e_1} \cdots q_n^{e_n})$ by storing the parts $p$ and
-    $[(q_1, e_1), \ldots, (q_n, e_n)]$.
-    Here $q_1, \ldots, q_n$ are elements of a 0- or multi-variate factorial
-    polynomial ring $R$ , $q_1, \ldots, q_n$ are distinct irreducible elements
-    of $R$ , $e_1, \ldots, e_n$ are positive integers, and $p$ is a function
-    of the indeterminates of $R$ (a Sage Symbolic Expression).
-    An element $r$ with no polynomial denominator is represented as $[r, (,)]$.
+    `p/(q_1^{e_1} \cdots q_n^{e_n})` by storing the parts `p` and
+    `[(q_1, e_1), \ldots, (q_n, e_n)]`.
+    Here `q_1, \ldots, q_n` are elements of a 0- or multi-variate factorial
+    polynomial ring `R` , `q_1, \ldots, q_n` are distinct irreducible elements
+    of `R` , `e_1, \ldots, e_n` are positive integers, and `p` is a function
+    of the indeterminates of `R` (a Sage symbolic expression).
+    An element `r` with no polynomial denominator is represented as `[r, (,)]`.
+
+    INPUT:
+
+    - ``numerator`` -- (optional) an element `p` of a
+      0- or 1-variate factorial polynomial ring `R`
+    - ``denominator_factored`` -- (optional) a list of the form
+      `[(q_1, e_1), \ldots, (q_n, e_n)]` where the `q_1, \ldots, q_n` are
+      distinct irreducible elements of `R` and the `e_i` are positive
+      integers
+    - ``quotient`` -- (optional) an element of a field of
+      fractions of a factorial ring
+    - ``reduce_`` -- (optional) if ``True``, then represent
+      `p/(q_1^{e_1} \cdots q_n^{e_n})` in lowest terms, otherwise
+      this won't attempt to divide `p` by any of the `q_i`.
+
+    OUTPUT:
+
+    A FFPD instance representing the rational expression
+    `p/(q_1^{e_1} \cdots q_n^{e_n})`.
+    To get a non-``None`` output, one of ``numerator`` or ``quotient``
+    must not be ``None``.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD
+        sage: R.<x, y> = PolynomialRing(QQ)
+        sage: df = [x, 1], [y, 1], [x*y+1, 1]
+        sage: f = FFPD(x, df)
+        sage: print f
+        (1, [(y, 1), (x*y + 1, 1)])
+        sage: ff = FFPD(x, df, reduce_=False)
+        sage: print ff
+        (x, [(y, 1), (x, 1), (x*y + 1, 1)])
+
+    ::
+
+        sage: f = FFPD(x + y, [(x + y, 1)])
+        sage: print f
+        (1, [])
+
+    ::
+
+        sage: R.<x> = PolynomialRing(QQ)
+        sage: f = 5*x^3 + 1/x + 1/(x-1) + 1/(3*x^2 + 1)
+        sage: print FFPD(quotient=f)
+        (5*x^7 - 5*x^6 + 5/3*x^5 - 5/3*x^4 + 2*x^3 - 2/3*x^2 + 1/3*x - 1/3,
+        [(x - 1, 1), (x, 1), (x^2 + 1/3, 1)])
+
+    ::
+
+        sage: R.<x, y> = PolynomialRing(QQ)
+        sage: f = 2*y/(5*(x^3 - 1)*(y + 1))
+        sage: print FFPD(quotient=f)
+        (2/5*y, [(y + 1, 1), (x - 1, 1), (x^2 + x + 1, 1)])
+
+    ::
+
+        sage: R.<x, y>= PolynomialRing(QQ)
+        sage: p = 1/x^2
+        sage: q = 3*x**2*y
+        sage: qs = q.factor()
+        sage: f = FFPD(p/qs.unit(), qs)
+        sage: print f
+        (1/(3*x^2), [(y, 1), (x, 2)])
+
+    ::
+
+        sage: R.<x, y> = PolynomialRing(QQ)
+        sage: f = FFPD(cos(x)*x*y^2, [(x, 2), (y, 1)])
+        sage: print f
+        (x*y^2*cos(x), [(y, 1), (x, 2)])
+
+    ::
+
+        sage: R.<x, y> = PolynomialRing(QQ)
+        sage: G = exp(x + y)
+        sage: H = (1 - 2*x - y) * (1 - x - 2*y)
+        sage: a = FFPD(quotient=G/H)
+        sage: print a
+        (e^(x + y)/(2*x^2 + 5*x*y + 2*y^2 - 3*x - 3*y + 1), [])
+        sage: print a._ring
+        None
+        sage: b = FFPD(G, H.factor())
+        sage: print b
+        (e^(x + y), [(x + 2*y - 1, 1), (2*x + y - 1, 1)])
+        sage: print b._ring
+        Multivariate Polynomial Ring in x, y over Rational Field
+
+    Singular throws a 'not implemented' error when trying to factor in
+    a multivariate polynomial ring over an inexact field ::
+
+        sage: R.<x, y>= PolynomialRing(CC)
+        sage: f = (x + 1)/(x*y*(x*y + 1)^2)
+        sage: FFPD(quotient=f)
+        Traceback (most recent call last):
+        ...
+        TypeError: Singular error:
+           ? not implemented
+           ? error occurred in or before STDIN line 17:
+           `def sage9=factorize(sage8);`
 
     AUTHORS:
 
     - Alexander Raichev (2012-07-26)
     """
-
     def __init__(self, numerator=None, denominator_factored=None,
                  quotient=None, reduce_=True):
         r"""
         Create a FFPD instance.
 
-        INPUT:
-
-        - ``numerator`` - (Optional; default=None) An element $p$ of a
-          0- or 1-variate factorial polynomial ring $R$.
-        - ``denominator_factored`` - (Optional; default=None)
-          A list of the form
-          $[(q_1, e_1), \ldots, (q_n, e_n)]$ where the $q_1, \ldots, q_n$ are
-          distinct irreducible elements of $R$ and the $e_i$ are positive
-          integers.
-        - ``quotient`` - (Optional; default=None) An element of a field of
-          fractions of a factorial ring.
-        - ``reduce_`` - (Optional; default=True) If True, then represent
-          $p/(q_1^{e_1} \cdots q_n^{e_n})$ in lowest terms.
-          If False, then won't attempt to divide $p$ by any of the $q_i$.
-
-        OUTPUT:
-
-        A FFPD instance representing the rational expression
-        $p/(q_1^{e_1} \cdots q_n^{e_n})$.
-        To get a non-None output, one of ``numerator`` or ``quotient`` must be
-        non-None.
-
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD
             sage: R.<x, y> = PolynomialRing(QQ)
             sage: df = [x, 1], [y, 1], [x*y+1, 1]
             sage: f = FFPD(x, df)
-            sage: print f
-            (1, [(y, 1), (x*y + 1, 1)])
-            sage: ff = FFPD(x, df, reduce_=False)
-            sage: print ff
-            (x, [(y, 1), (x, 1), (x*y + 1, 1)])
-
-        ::
-
-            sage: f = FFPD(x + y, [(x + y, 1)])
-            sage: print f
-            (1, [])
-
-        ::
-
-            sage: R.<x> = PolynomialRing(QQ)
-            sage: f = 5*x^3 + 1/x + 1/(x-1) + 1/(3*x^2 + 1)
-            sage: print FFPD(quotient=f)
-            (5*x^7 - 5*x^6 + 5/3*x^5 - 5/3*x^4 + 2*x^3 - 2/3*x^2 + 1/3*x - 1/3,
-            [(x - 1, 1), (x, 1), (x^2 + 1/3, 1)])
-
-        ::
-
-            sage: R.<x, y> = PolynomialRing(QQ)
-            sage: f = 2*y/(5*(x^3 - 1)*(y + 1))
-            sage: print FFPD(quotient=f)
-            (2/5*y, [(y + 1, 1), (x - 1, 1), (x^2 + x + 1, 1)])
-
-        ::
-
-            sage: R.<x, y>= PolynomialRing(QQ)
-            sage: p = 1/x^2
-            sage: q = 3*x**2*y
-            sage: qs = q.factor()
-            sage: f = FFPD(p/qs.unit(), qs)
-            sage: print f
-            (1/(3*x^2), [(y, 1), (x, 2)])
-
-        ::
-
-            sage: R.<x, y> = PolynomialRing(QQ)
-            sage: f = FFPD(cos(x)*x*y^2, [(x, 2), (y, 1)])
-            sage: print f
-            (x*y^2*cos(x), [(y, 1), (x, 2)])
-
-        ::
-
-            sage: R.<x, y> = PolynomialRing(QQ)
-            sage: G = exp(x + y)
-            sage: H = (1 - 2*x - y) * (1 - x - 2*y)
-            sage: a = FFPD(quotient=G/H)
-            sage: print a
-            (e^(x + y)/(2*x^2 + 5*x*y + 2*y^2 - 3*x - 3*y + 1), [])
-            sage: print a._ring
-            None
-            sage: b = FFPD(G, H.factor())
-            sage: print b
-            (e^(x + y), [(x + 2*y - 1, 1), (2*x + y - 1, 1)])
-            sage: print b._ring
-            Multivariate Polynomial Ring in x, y over Rational Field
-
-        Singular throws a 'not implemented' error when trying to factor in
-        a multivariate polynomial ring over an inexact field ::
-
-            sage: R.<x, y>= PolynomialRing(CC)
-            sage: f = (x + 1)/(x*y*(x*y + 1)^2)
-            sage: FFPD(quotient=f)
-            Traceback (most recent call last):
-            ...
-            TypeError: Singular error:
-               ? not implemented
-               ? error occurred in or before STDIN line 17:
-               `def sage9=factorize(sage8);`
-
+            sage: TestSuite(f).run()
         """
         # Attributes are
         # self._numerator
@@ -355,7 +379,7 @@ class FFPD(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD
             sage: R.<x,y>= PolynomialRing(QQ)
             sage: H = (1 - x - y - x*y)**2*(1-x)
             sage: Hfac = H.factor()
@@ -372,7 +396,7 @@ class FFPD(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD
             sage: R.<x,y>= PolynomialRing(QQ)
             sage: H = (1 - x - y - x*y)**2*(1-x)
             sage: Hfac = H.factor()
@@ -391,7 +415,7 @@ class FFPD(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD
             sage: R.<x,y>= PolynomialRing(QQ)
             sage: H = (1 - x - y - x*y)**2*(1-x)
             sage: Hfac = H.factor()
@@ -409,7 +433,7 @@ class FFPD(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD
             sage: R.<x,y>= PolynomialRing(QQ)
             sage: H = (1 - x - y - x*y)**2*(1-x)
             sage: Hfac = H.factor()
@@ -432,7 +456,7 @@ class FFPD(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD
             sage: R.<x,y>= PolynomialRing(QQ)
             sage: H = (1 - x - y - x*y)**2*(1-x)
             sage: Hfac = H.factor()
@@ -444,8 +468,7 @@ class FFPD(object):
         R = self.ring()
         if is_PolynomialRing(R) or is_MPolynomialRing(R):
             return R.ngens()
-        else:
-            return None
+        return None
 
     def list(self):
         r"""
@@ -453,7 +476,7 @@ class FFPD(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD
             sage: R.<x,y>= PolynomialRing(QQ)
             sage: H = (1 - x - y - x*y)**2*(1-x)
             sage: Hfac = H.factor()
@@ -470,7 +493,7 @@ class FFPD(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD
             sage: R.<x,y>= PolynomialRing(QQ)
             sage: H = (1 - x - y - x*y)**2*(1-x)
             sage: Hfac = H.factor()
@@ -490,7 +513,7 @@ class FFPD(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: f = FFPD(x + y, [(y, 1), (x, 1)])
             sage: print f
@@ -506,7 +529,7 @@ class FFPD(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD
             sage: R.<x, y>= PolynomialRing(QQ)
             sage: df = [x, 1], [y, 1], [x*y+1, 1]
             sage: f = FFPD(x, df)
@@ -533,7 +556,7 @@ class FFPD(object):
         r"""
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD
             sage: R.<x, y>= PolynomialRing(QQ)
             sage: df = [x, 1], [y, 1], [x*y+1, 1]
             sage: f = FFPD(x, df)
@@ -541,24 +564,24 @@ class FFPD(object):
             sage: f != ff
             False
             sage: g = FFPD(y, df)
-            sage: g != f # indirect doctest
+            sage: g != f
             True
         """
         return not (self == other)
 
     def __lt__(self, other):
         r"""
-        FFPD A is less than FFPD B iff
-        (the denominator factorization of A is shorter than that of B) or
-        (the denominator factorization lengths are equal and
-        the denominator of A is less than that of B in their ring) or
+        FFPD ``A`` is less than FFPD ``B`` iff
+        (the denominator factorization of ``A`` is shorter than that of ``B``)
+        of (the denominator factorization lengths are equal and
+        the denominator of ``A`` is less than that of ``B`` in their ring) or
         (the denominator factorization lengths are equal and the
-        denominators are equal and the numerator of A is less than that of B
-        in their ring).
+        denominators are equal and the numerator of ``A`` is less than that
+        of ``B`` in their ring).
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD
             sage: R.<x, y>= PolynomialRing(QQ)
             sage: df = [x, 1], [y, 1], [x*y+1, 1]
             sage: f = FFPD(x, df)
@@ -591,13 +614,13 @@ class FFPD(object):
     def univariate_decomposition(self):
         r"""
         Return the usual univariate partial fraction decomposition
-        of ``self`` as a FFPDSum instance.
+        of ``self`` as a :class:`FFPDSum` instance.
         Assume that ``self`` lies in the field of fractions
         of a univariate factorial polynomial ring.
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD
 
         One variable::
 
@@ -641,29 +664,30 @@ class FFPD(object):
             sage: f = 5*x^3 + 1/x + 1/(x-1) + 1/(3*x^2 + 1)
             sage: print f
             (15.0000000000000*x^7 - 15.0000000000000*x^6 + 5.00000000000000*x^5
-            - 5.00000000000000*x^4 + 6.00000000000000*x^3 -
-            2.00000000000000*x^2 + x - 1.00000000000000)/(3.00000000000000*x^4
-            - 3.00000000000000*x^3 + x^2 - x)
+             - 5.00000000000000*x^4 + 6.00000000000000*x^3
+             - 2.00000000000000*x^2 + x - 1.00000000000000)/(3.00000000000000*x^4
+             - 3.00000000000000*x^3 + x^2 - x)
             sage: decomp = FFPD(quotient=f).univariate_decomposition()
             sage: print decomp
-            [(5.00000000000000*x^3, []), (1.00000000000000,
-            [(x - 1.00000000000000, 1)]), (-0.288675134594813*I,
-            [(x - 0.577350269189626*I, 1)]), (1.00000000000000, [(x, 1)]),
-            (0.288675134594813*I, [(x + 0.577350269189626*I, 1)])]
+            [(5.00000000000000*x^3, []),
+             (1.00000000000000, [(x - 1.00000000000000, 1)]),
+             (-0.288675134594813*I, [(x - 0.577350269189626*I, 1)]),
+             (1.00000000000000, [(x, 1)]),
+             (0.288675134594813*I, [(x + 0.577350269189626*I, 1)])]
             sage: print decomp.sum().quotient() == f # Rounding error coming
             False
 
         NOTE::
 
-        Let $f = p/q$ be a rational expression where $p$ and $q$ lie in a
-        univariate factorial polynomial ring $R$.
-        Let $q_1^{e_1} \cdots q_n^{e_n}$ be the
-        unique factorization of $q$ in $R$ into irreducible factors.
-        Then $f$ can be written uniquely as
+        Let `f = p/q` be a rational expression where `p` and `q` lie in a
+        univariate factorial polynomial ring `R`.
+        Let `q_1^{e_1} \cdots q_n^{e_n}` be the
+        unique factorization of `q` in `R` into irreducible factors.
+        Then `f` can be written uniquely as
 
-        (*)   $p_0 + \sum_{i=1}^{m} p_i/ q_i^{e_i}$,
+        (*)   `p_0 + \sum_{i=1}^{m} p_i/ q_i^{e_i}`,
 
-        for some $p_j \in R$.
+        for some `p_j \in R`.
         I call (*) the *usual partial fraction decomposition* of f.
 
         AUTHORS:
@@ -694,16 +718,18 @@ class FFPD(object):
 
     def nullstellensatz_certificate(self):
         r"""
-        Let $[(q_1, e_1), \ldots, (q_n, e_n)]$ be the denominator factorization
+        Return a Nullstellensatz certificate of ``self`` if it exists.
+
+        Let `[(q_1, e_1), \ldots, (q_n, e_n)]` be the denominator factorization
         of ``self``.
-        Return a list of polynomials $h_1, \ldots, h_m$ in ``self.ring()``
-        that satisfies $h_1 q_1 + \cdots + h_m q_n = 1$ if it exists.
-        Otherwise return None.
+        Return a list of polynomials `h_1, \ldots, h_m` in ``self.ring()``
+        that satisfies `h_1 q_1 + \cdots + h_m q_n = 1` if it exists.
+        Otherwise return ``None``.
         Only works for multivariate ``self``.
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD
             sage: R.<x, y> = PolynomialRing(QQ)
             sage: G = sin(x)
             sage: H = x^2 * (x*y + 1)
@@ -721,9 +747,7 @@ class FFPD(object):
             sage: L = FFPD(quotient=f).nullstellensatz_certificate()
             sage: L is None
             True
-
         """
-
         R = self.ring()
         if R is None:
             return None
@@ -732,16 +756,38 @@ class FFPD(object):
         J = R.ideal([q**e for q, e in df])
         if R(1) in J:
             return R(1).lift(J)
-        else:
-            return None
+        return None
 
     def nullstellensatz_decomposition(self):
         r"""
-        Return a Nullstellensatz decomposition of ``self`` as a FFPDSum
-        instance.
+        Return a Nullstellensatz decomposition of ``self`` as a
+        :class:`FFPDSum` instance.
 
-        Recursive.
-        Only works for multivariate ``self``.
+        Recursive. Only works for multivariate ``self``.
+
+        .. NOTE::
+
+            Let `f = p/q` where `q` lies in a `d` -variate polynomial ring
+            `K[X]` for some field `K` and `d \geq 1`.
+            Let `q_1^{e_1} \cdots q_n^{e_n}` be the
+            unique factorization of `q` in `K[X]` into irreducible factors and
+            let `V_i` be the algebraic variety `\{x \in L^d \mid q_i(x) = 0\}`
+            of `q_i` over the algebraic closure `L` of `K`.
+            By [Raic2012]_, `f` can be written as
+
+            .. MATH::
+
+                (*) \sum_A \frac{p_A}{\prod_{i \in A} q_i^{e_i}},
+
+            where the `p_A` are products of `p` and elements in `K[X]` and
+            the sum is taken over all subsets
+            `A \subseteq \{1, \ldots, m\}` such that
+            `\cap_{i\in A} T_i \neq \emptyset`.
+
+            We call (*) a *Nullstellensatz decomposition* of `f`.
+            Nullstellensatz decompositions are not unique.
+
+            The algorithm used comes from [Raic2012]_.
 
         EXAMPLES::
 
@@ -753,13 +799,8 @@ class FFPD(object):
             [(0, []), (1, [(x, 1)]), (-y, [(x*y + 1, 1)])]
             sage: decomp.sum().quotient() == f
             True
-            sage: for r in decomp:
-            ...       L = r.nullstellensatz_certificate()
-            ...       L is None
-            ...
-            True
-            True
-            True
+            sage: [r.nullstellensatz_certificate() is None for r in decomp]
+            [True, True, True]
 
         ::
 
@@ -772,34 +813,8 @@ class FFPD(object):
             [(0, []), (sin(y), [(x, 1)]), (-y*sin(y), [(x*y + 1, 1)])]
             sage: bool(decomp.sum().quotient() == G/H)
             True
-            sage: for r in decomp:
-            ...       L = r.nullstellensatz_certificate()
-            ...       L is None
-            ...
-            True
-            True
-            True
-
-        NOTE::
-
-        Let $f = p/q$ where $q$ lies in a $d$ -variate polynomial ring $K[X]$ for some field $K$ and $d \ge 1$.
-        Let $q_1^{e_1} \cdots q_n^{e_n}$ be the
-        unique factorization of $q$ in $K[X]$ into irreducible factors and
-        let $V_i$ be the algebraic variety $\{x \in L^d: q_i(x) = 0\}$ of
-        $q_i$ over the algebraic closure $L$ of $K$.
-        By [Raic2012]_, $f$ can be written as
-
-        (*)   $\sum p_A/\prod_{i \in A} q_i^{e_i}$,
-
-        where the $p_A$ are products of $p$ and elements in $K[X]$ and
-        the sum is taken over all subsets
-        $A \subseteq \{1, \ldots, m\}$ such that
-        $\cap_{i\in A} T_i \neq \emptyset$.
-
-        I call (*) a *Nullstellensatz decomposition* of $f$.
-        Nullstellensatz decompositions are not unique.
-
-        The algorithm used comes from [Raic2012]_.
+            sage: [r.nullstellensatz_certificate() is None for r in decomp]
+            [True, True, True]
         """
         L = self.nullstellensatz_certificate()
         if L is None:
@@ -824,25 +839,27 @@ class FFPD(object):
 
     def algebraic_dependence_certificate(self):
         r"""
-        Return the ideal $J$ of annihilating polynomials for the set
+        Return the algebraic dependence certificate of ``self`` if it exists.
+
+        Return the ideal `J` of annihilating polynomials for the set
         of polynomials ``[q**e for (q, e) in self.denominator_factored()]``,
         which could be the zero ideal.
-        The ideal $J$ lies in a polynomial ring over the field
+        The ideal `J` lies in a polynomial ring over the field
         ``self.ring().base_ring()`` that has
         ``m = len(self.denominator_factored())`` indeterminates.
-        Return None if ``self.ring()`` is None.
+        Return ``None`` if ``self.ring()`` is ``None``.
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD
             sage: R.<x, y> = PolynomialRing(QQ)
             sage: f = 1/(x^2 * (x*y + 1) * y^3)
             sage: ff = FFPD(quotient=f)
             sage: J = ff.algebraic_dependence_certificate()
             sage: print J
             Ideal (1 - 6*T2 + 15*T2^2 - 20*T2^3 + 15*T2^4 - T0^2*T1^3 -
-            6*T2^5  + T2^6) of Multivariate Polynomial Ring in
-            T0, T1, T2 over Rational Field
+             6*T2^5  + T2^6) of Multivariate Polynomial Ring in
+             T0, T1, T2 over Rational Field
             sage: g = J.gens()[0]
             sage: df = ff.denominator_factored()
             sage: g(*(q**e for q, e in df)) == 0
@@ -919,15 +936,38 @@ class FFPD(object):
 
     def algebraic_dependence_decomposition(self, whole_and_parts=True):
         r"""
-        Return an algebraic dependence decomposition of ``self`` as a FFPDSum
-        instance.
+        Return an algebraic dependence decomposition of ``self`` as a
+        :class:`FFPDSum` instance.
 
-        Recursive.
+        .. NOTE::
+
+            Let `f = p/q` where `q` lies in a `d` -variate polynomial ring
+            `K[X]` for some field `K`.
+            Let `q_1^{e_1} \cdots q_n^{e_n}` be the
+            unique factorization of `q` in `K[X]` into irreducible factors and
+            let `V_i` be the algebraic variety `\{x\in L^d: q_i(x) = 0\}` of
+            `q_i` over the algebraic closure `L` of `K`.
+            By [Raic2012]_, `f` can be written as
+
+            .. MATH::
+
+                (*) \sum_A \frac{p_A}{\prod_{i \in A} q_i^{b_i}},
+
+            where the `b_i` are positive integers, each `p_A` is a products
+            of `p` and an element in `K[X]`,
+            and the sum is taken over all subsets
+            `A \subseteq \{1, \ldots, m\}` such that `|A| \leq d` and
+            `\{q_i \mid i \in A\}` is algebraically independent.
+
+            We call (*) an *algebraic dependence decomposition* of `f`.
+            Algebraic dependence decompositions are not unique.
+
+            The algorithm used comes from [Raic2012]_.
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
-            sage: R.<x, y> = PolynomialRing(QQ)
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD
+            sage: R.<x,y> = PolynomialRing(QQ)
             sage: f = 1/(x^2 * (x*y + 1) * y^3)
             sage: ff = FFPD(quotient=f)
             sage: decomp = ff.algebraic_dependence_decomposition()
@@ -937,9 +977,8 @@ class FFPD(object):
             sage: print decomp.sum().quotient() == f
             True
             sage: for r in decomp:
-            ...       J = r.algebraic_dependence_certificate()
-            ...       J is None or J == J.ring().ideal()  # The zero ideal
-            ...
+            ....:     J = r.algebraic_dependence_certificate()
+            ....:     J is None or J == J.ring().ideal()  # The zero ideal
             True
             True
             True
@@ -958,35 +997,11 @@ class FFPD(object):
             sage: bool(decomp.sum().quotient() == G/H)
             True
             sage: for r in decomp:
-            ...       J = r.algebraic_dependence_certificate()
-            ...       J is None or J == J.ring().ideal()
-            ...
+            ....:     J = r.algebraic_dependence_certificate()
+            ....:     J is None or J == J.ring().ideal()
             True
             True
             True
-
-        NOTE::
-
-        Let $f = p/q$ where $q$ lies in a $d$ -variate polynomial ring
-        $K[X]$ for some field $K$.
-        Let $q_1^{e_1} \cdots q_n^{e_n}$ be the
-        unique factorization of $q$ in $K[X]$ into irreducible factors and
-        let $V_i$ be the algebraic variety $\{x\in L^d: q_i(x) = 0\}$ of
-        $q_i$ over the algebraic closure $L$ of $K$.
-        By [Raic2012]_, $f$ can be written as
-
-        (*)   $\sum p_A/\prod_{i \in A} q_i^{b_i}$,
-
-        where the $b_i$ are positive integers, each $p_A$ is a products
-        of $p$ and an element in $K[X]$,
-        and the sum is taken over all subsets
-        $A \subseteq \{1, \ldots, m\}$ such that $|A| \le d$ and
-        $\{q_i : i\in A\}$ is algebraically independent.
-
-        I call (*) an *algebraic dependence decomposition* of $f$.
-        Algebraic dependence decompositions are not unique.
-
-        The algorithm used comes from [Raic2012]_.
         """
         J = self.algebraic_dependence_certificate()
         if not J:
@@ -1034,11 +1049,44 @@ class FFPD(object):
 
     def leinartas_decomposition(self):
         r"""
-        Return a Leinartas decomposition of ``self`` as a FFPDSum instance.
+        Return a Leinartas decomposition of ``self`` as a
+        :class:`FFPDSum` instance.
+
+        .. NOTE::
+
+            Let `f = p/q` where `q` lies in a `d` -variate polynomial
+            ring `K[X]` for some field `K`.
+            Let `q_1^{e_1} \cdots q_n^{e_n}` be the
+            unique factorization of `q` in `K[X]` into irreducible factors and
+            let `V_i` be the algebraic variety
+            `\{x\in L^d \mid q_i(x) = 0\}` of `q_i` over the algebraic closure
+            `L` of `K`. By [Raic2012]_, `f` can be written as
+
+            .. MATH::
+
+                (*)   \sum_A \frac{p_A}{\prod_{i \in A} q_i^{b_i}},
+
+            where the `b_i` are positive integers, each `p_A` is a product of
+            `p` and an element of `K[X]`, and the sum is taken over all
+            subsets `A \subseteq \{1, \ldots, m\}` such that
+
+            1. `|A| \le d`,
+            2. `\cap_{i\in A} T_i \neq \emptyset`, and
+            3. `\{q_i \mid i\in A\}` is algebraically independent.
+
+            In particular, any rational expression in `d` variables
+            can be represented as a sum of rational expressions
+            whose denominators each contain at most `d` distinct irreducible
+            factors.
+
+            We call (*) a *Leinartas decomposition* of `f`.
+            Leinartas decompositions are not unique.
+
+            The algorithm used comes from [Raic2012]_.
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD
             sage: R.<x> = PolynomialRing(QQ)
             sage: f = (x^2 + 1)/((x + 2)*(x - 1)*(x^2 + x + 1))
             sage: decomp = FFPD(quotient=f).leinartas_decomposition()
@@ -1057,11 +1105,10 @@ class FFPD(object):
             sage: print decomp.sum().quotient() == f
             True
             sage: for r in decomp:
-            ...       L = r.nullstellensatz_certificate()
-            ...       print L is None
-            ...       J = r.algebraic_dependence_certificate()
-            ...       print J is None or J == J.ring().ideal()
-            ...
+            ....:     L = r.nullstellensatz_certificate()
+            ....:     print L is None
+            ....:     J = r.algebraic_dependence_certificate()
+            ....:     print J is None or J == J.ring().ideal()
             True
             True
             True
@@ -1085,11 +1132,10 @@ class FFPD(object):
             sage: bool(decomp.sum().quotient() == f)
             True
             sage: for r in decomp:
-            ...       L = r.nullstellensatz_certificate()
-            ...       print L is None
-            ...       J = r.algebraic_dependence_certificate()
-            ...       print J is None or J == J.ring().ideal()
-            ...
+            ....:     L = r.nullstellensatz_certificate()
+            ....:     print L is None
+            ....:     J = r.algebraic_dependence_certificate()
+            ....:     print J is None or J == J.ring().ideal()
             True
             True
             True
@@ -1109,35 +1155,6 @@ class FFPD(object):
             (1, [(z, 2), (y, 1), (x, 1)])]
             sage: print decomp.sum().quotient() == f
             True
-
-        NOTE::
-
-        Let $f = p/q$ where $q$ lies in a $d$ -variate polynomial ring $K[X]$
-        for some field $K$.
-        Let $q_1^{e_1} \cdots q_n^{e_n}$ be the
-        unique factorization of $q$ in $K[X]$ into irreducible factors and
-        let $V_i$ be the algebraic variety
-        $\{x\in L^d: q_i(x) = 0\}$ of $q_i$ over the algebraic closure
-        $L$ of $K$.
-        By [Raic2012]_, $f$ can be written as
-
-        (*)   $\sum p_A/\prod_{i \in A} q_i^{b_i}$,
-
-        where the $b_i$ are positive integers, each $p_A$ is a product of $p$ and an element of $K[X]$,
-        and the sum is taken over all subsets $A \subseteq \{1, \ldots, m\}$ such that
-        (1) $|A| \le d$,
-        (2) $\cap_{i\in A} T_i \neq \emptyset$, and
-        (3) $\{q_i : i\in A\}$ is algebraically independent.
-
-        In particular, any rational expression in $d$ variables
-        can be represented as a sum of rational expressions
-        whose denominators each contain at most $d$ distinct irreducible
-        factors.
-
-        I call (*) a *Leinartas decomposition* of $f$.
-        Leinartas decompositions are not unique.
-
-        The algorithm used comes from [Raic2012]_.
         """
         if self.dimension() == 1:
             # Sage's lift() function doesn't work in
@@ -1159,24 +1176,31 @@ class FFPD(object):
 
     def cohomology_decomposition(self):
         r"""
-        Let $p/(q_1^{e_1} \cdots q_n^{e_n})$ be the fraction represented
-        by ``self`` and let $K[x_1, \ldots, x_d]$ be the polynomial ring
-        in which the $q_i$ lie.
-        Assume that $n \le d$ and that the gradients of the $q_i$ are linearly
+        Return the cohomology decomposition of ``self``.
+
+        Let `p / (q_1^{e_1} \cdots q_n^{e_n})` be the fraction represented
+        by ``self`` and let `K[x_1, \ldots, x_d]` be the polynomial ring
+        in which the `q_i` lie.
+        Assume that `n \leq d` and that the gradients of the `q_i` are linearly
         independent at all points in the intersection
-        $V_1 \cap \ldots \cap V_n$ of the algebraic varieties
-        $V_i = \{x \in L^d: q_i(x) = 0 \}$, where $L$ is the algebraic closure
-        of the field $K$.
-        Return a FFPDSum $f$ such that the differential form
-        $f dx_1 \wedge \cdots \wedge dx_d$ is de Rham cohomologous to the
+        `V_1 \cap \ldots \cap V_n` of the algebraic varieties
+        `V_i = \{x \in L^d \mid q_i(x) = 0 \}`, where `L` is the algebraic
+        closure of the field `K`.
+        Return a :class:`FFPDSum` `f` such that the differential form
+        `f dx_1 \wedge \cdots \wedge dx_d` is de Rham cohomologous to the
         differential form
-        $p/(q_1^{e_1} \cdots q_n^{e_n}) dx_1 \wedge \cdots \wedge dx_d$
-        and such that the denominator of each summand of $f$ contains
+        `p / (q_1^{e_1} \cdots q_n^{e_n}) dx_1 \wedge \cdots \wedge dx_d`
+        and such that the denominator of each summand of `f` contains
         no repeated irreducible factors.
+
+        .. NOTE::
+
+            The algorithm used here comes from the proof of Theorem 17.4 of
+            [AiYu1983]_.
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD
             sage: R.<x> = PolynomialRing(QQ)
             sage: f = 1/(x^2 + x + 1)^3
             sage: decomp = FFPD(quotient=f).cohomology_decomposition()
@@ -1198,15 +1222,6 @@ class FFPD(object):
             sage: print f.cohomology_decomposition()
             [(0, []), (4/3*x*y + 4/3, [(x^2 + y^2 - 1, 1)]),
             (1/3, [(x*y - 1, 1), (x^2 + y^2 - 1, 1)])]
-
-        NOTES:
-
-        The algorithm used here comes from the proof of Theorem 17.4 of
-        [AiYu1983]_.
-
-        AUTHORS:
-
-        - Alexander Raichev (2008-10-01, 2011-01-15, 2012-07-31)
         """
         R = self.ring()
         df = self.denominator_factored()
@@ -1275,7 +1290,7 @@ class FFPD(object):
                            [SR(qs[j]) for j in xrange(n) if j != J],
                            [SR(xx) for xx in x])
             det = jac.determinant()
-            psign = FFPD.permutation_sign(x, X)
+            psign = FFPD._permutation_sign(x, X)
             iteration1.append(FFPD((-1)**J*det/\
                                    (psign*new_df[J][1]),
                                    new_df))
@@ -1288,17 +1303,17 @@ class FFPD(object):
         return decomp.combine_like_terms().whole_and_parts()
 
     @staticmethod
-    def permutation_sign(s, u):
+    def _permutation_sign(s, u):
         r"""
         This function returns the sign of the permutation on
         ``1, ..., len(u)`` that is induced by the sublist
         ``s`` of ``u``.
-        For internal use by cohomology_decomposition().
+        For internal use by :meth:`cohomology_decomposition()`.
 
         INPUT:
 
-        - ``s`` - A sublist of ``u``.
-        - ``u`` - A list.
+        - ``s`` -- a sublist of ``u``
+        - ``u`` -- a list
 
         OUTPUT:
 
@@ -1308,18 +1323,14 @@ class FFPD(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD
             sage: u = ['a','b','c','d','e']
             sage: s = ['b','d']
-            sage: FFPD.permutation_sign(s, u)
+            sage: FFPD._permutation_sign(s, u)
             -1
             sage: s = ['d','b']
-            sage: FFPD.permutation_sign(s, u)
+            sage: FFPD._permutation_sign(s, u)
             1
-
-        AUTHORS:
-
-        - Alexander Raichev (2008-10-01, 2012-07-31)
         """
         # Convert lists to lists of numbers in {1,..., len(u)}
         A = [i + 1  for i in xrange(len(u))]
@@ -1331,19 +1342,19 @@ class FFPD(object):
 
     def asymptotic_decomposition(self, alpha, asy_var=None):
         r"""
-        Return a FFPDSum that has the same asymptotic expansion as ``self``
-        in the direction ``alpha`` but each of whose FFPDs has a
-        denominator factorization of the form $[(q_1, 1), \ldots, (q_n, 1)]$,
+        Return a :class:`FFPDSum` that has the same asymptotic expansion
+        as ``self`` in the direction ``alpha`` but each of whose FFPDs has a
+        denominator factorization of the form `[(q_1, 1), \ldots, (q_n, 1)]`,
         where ``n`` is at most ``d = self.dimension()``.
         The output results from a Leinartas decomposition followed by a
         cohomology decomposition.
 
         INPUT:
 
-        - ``alpha`` - A d-tuple of positive integers or symbolic variables.
-        - ``asy_var`` - (Optional; default=None) A symbolic variable with
-          respect to which to compute asymptotics.
-          If None is given the set ``asy_var = var('r')``.
+        - ``alpha`` -- a `d`-tuple of positive integers or symbolic variables
+        - ``asy_var`` -- (default: ``None``) a symbolic variable with
+          respect to which to compute asymptotics;
+          if ``None`` is given, we set ``asy_var = var('r')``
 
         EXAMPLES::
 
@@ -1353,11 +1364,14 @@ class FFPD(object):
             sage: F = FFPD(quotient=f)
             sage: alpha = [var('a')]
             sage: print F.asymptotic_decomposition(alpha)
-            [(0, []), (1/54*(5*a^2*x^2 + 2*a^2*x + 11*a^2)*r^2/x^2 - 1/54*(5*a*x^2 - 2*a*x - 33*a)*r/x^2 + 11/27/x^2, [(x - 1, 1)]), (-5/27, [(x + 2, 1)])]
+            [(0, []),
+             (1/54*(5*a^2*x^2 + 2*a^2*x + 11*a^2)*r^2/x^2
+              - 1/54*(5*a*x^2 - 2*a*x - 33*a)*r/x^2 + 11/27/x^2, [(x - 1, 1)]),
+             (-5/27, [(x + 2, 1)])]
 
         ::
 
-            sage: R.<x, y>= PolynomialRing(QQ)
+            sage: R.<x,y>= PolynomialRing(QQ)
             sage: H = (1 - 2*x -y)*(1 - x -2*y)**2
             sage: Hfac = H.factor()
             sage: G = 1/Hfac.unit()
@@ -1365,11 +1379,7 @@ class FFPD(object):
             sage: alpha = var('a, b')
             sage: print F.asymptotic_decomposition(alpha) # long time
             [(0, []), (-1/3*(a*y - 2*b*x)*r/(x*y) + 1/3*(2*x - y)/(x*y),
-            [(x + 2*y - 1, 1), (2*x + y - 1, 1)])]
-
-        AUTHORS:
-
-        - Alexander Raichev (2012-08-01)
+             [(x + 2*y - 1, 1), (2*x + y - 1, 1)])]
         """
         R = self.ring()
         if R is None:
@@ -1411,51 +1421,51 @@ class FFPD(object):
 
     def asymptotics(self, p, alpha, N, asy_var=None, numerical=0):
         r"""
-        Return the first $N$ terms (some of which could be zero)
+        Return the first `N` terms (some of which could be zero)
         of the asymptotic expansion of the Maclaurin ray coefficients
-        $F_{r\alpha}$ of the function $F$ represented by ``self``
-        as $r\to\infty$, where $r$ = ``asy_var`` and ``alpha`` is a tuple of
-        positive integers of length ``d = self.dimension()``.
+        `F_{r \alpha}` of the function `F` represented by ``self``
+        as `r \to \infty`, where `r` is ``asy_var`` and ``alpha`` is a tuple of
+        positive integers of length `d` which is ``self.dimension()``.
         Assume that
 
-        - $F$ is holomorphic in a neighborhood of the origin;
-        - the unique factorization of the denominator $H$ of $F$ in the local
-          algebraic ring at $p$ equals its unique factorization in the local
-          analytic ring at $p$;
-        - the unique factorization of $H$ in the local algebraic ring at $p$
-          has $<= d$ irreducible factors, none of which are repeated
+        - `F` is holomorphic in a neighborhood of the origin;
+        - the unique factorization of the denominator `H` of `F` in the local
+          algebraic ring at `p` equals its unique factorization in the local
+          analytic ring at `p`;
+        - the unique factorization of `H` in the local algebraic ring at `p`
+          has `<= d` irreducible factors, none of which are repeated
           (one can reduce to this case via asymptotic_decomposition());
-        - $p$ is a convenient strictly minimal smooth or multiple point
+        - `p` is a convenient strictly minimal smooth or multiple point
           with all nonzero coordinates that is critical and nondegenerate
           for ``alpha``.
 
         INPUT:
 
-        - ``p`` - A dictionary with keys that can be coerced to equal
-          ``self.ring().gens()``.
-        - ``alpha`` - A tuple of length ``self.dimension()`` of
-          positive integers or, if $p$ is a smooth point,
-          possibly of symbolic variables.
-        - ``N`` - A positive integer.
-        - ``numerical`` - (Optional; default=0) A natural number.
-          If numerical > 0, then return a numerical approximation
-          of $F_{r \alpha}$ with ``numerical`` digits of precision.
-          Otherwise return exact values.
-        - ``asy_var`` - (Optional; default=None) A  symbolic variable.
-          The variable of the asymptotic expansion.
-          If none is given, ``var('r')`` will be assigned.
+        - ``p`` -- a dictionary with keys that can be coerced to equal
+          ``self.ring().gens()``
+        - ``alpha`` -- a tuple of length ``self.dimension()`` of
+          positive integers or, if `p` is a smooth point,
+          possibly of symbolic variables
+        - ``N`` -- a positive integer
+        - ``numerical`` -- (default: 0) a natural number.
+          If ``numerical`` is greater than 0, then return a numerical
+          approximation of `F_{r \alpha}` with ``numerical`` digits of
+          precision; otherwise return exact values.
+        - ``asy_var`` -- (default: ``None``) a symbolic variable for the
+          asymptotic expansion; if ``none`` is given, then
+          ``var('r')`` will be assigned
 
         OUTPUT:
 
-        The tuple (asy, exp_scale, subexp_part).
-        Here asy is the sum of the first $N$ terms (some of which might be 0)
-        of the asymptotic expansion of $F_{r\alpha}$ as $r\to\infty$;
-        exp_scale**r is the exponential factor of asy;
-        subexp_part is the subexponential factor of asy.
+        The tuple ``(asy, exp_scale, subexp_part)``.
+        Here ``asy`` is the sum of the first `N` terms (some of which might
+        be 0) of the asymptotic expansion of `F_{r\alpha}` as `r \to \infty`;
+        ``exp_scale**r`` is the exponential factor of ``asy``;
+        ``subexp_part`` is the subexponential factor of ``asy``.
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD
 
         A smooth point example::
 
@@ -1476,16 +1486,20 @@ class FFPD(object):
             Computing derivatives of more auxiliary functions...
             Computing second order differential operator actions...
             sage: print asy  # long time
-            (1/6000*(3600*sqrt(2)*sqrt(3)*sqrt(5)*sqrt(r)/sqrt(pi) + 463*sqrt(2)*sqrt(3)*sqrt(5)/(sqrt(pi)*sqrt(r)))*432^r, 432, 3/5*sqrt(2)*sqrt(3)*sqrt(5)*sqrt(r)/sqrt(pi) + 463/6000*sqrt(2)*sqrt(3)*sqrt(5)/(sqrt(pi)*sqrt(r)))
+            (1/6000*(3600*sqrt(2)*sqrt(3)*sqrt(5)*sqrt(r)/sqrt(pi)
+              + 463*sqrt(2)*sqrt(3)*sqrt(5)/(sqrt(pi)*sqrt(r)))*432^r,
+             432,
+             3/5*sqrt(2)*sqrt(3)*sqrt(5)*sqrt(r)/sqrt(pi)
+              + 463/6000*sqrt(2)*sqrt(3)*sqrt(5)/(sqrt(pi)*sqrt(r)))
             sage: print F.relative_error(asy[0], alpha, [1, 2, 4, 8, 16], asy[1]) # long time
             Calculating errors table in the form
             exponent, scaled Maclaurin coefficient, scaled asymptotic
             values, relative errors...
             [((4, 3), 2.083333333, [2.092576110], [-0.004436533009]),
-            ((8, 6), 2.787374614, [2.790732875], [-0.001204811281]),
-            ((16, 12), 3.826259447, [3.827462310], [-0.0003143703383]),
-            ((32, 24), 5.328112821, [5.328540787], [-0.00008032229296]),
-            ((64, 48), 7.475927885, [7.476079664], [-0.00002030233658])]
+             ((8, 6), 2.787374614, [2.790732875], [-0.001204811281]),
+             ((16, 12), 3.826259447, [3.827462310], [-0.0003143703383]),
+             ((32, 24), 5.328112821, [5.328540787], [-0.00008032229296]),
+             ((64, 48), 7.475927885, [7.476079664], [-0.00002030233658])]
 
         A multiple point example::
 
@@ -1498,7 +1512,9 @@ class FFPD(object):
             (-16, [(x + 2*y + z - 4, 1), (2*x + y + z - 4, 2)])
             sage: alpha = [3, 3, 2]
             sage: decomp = F.asymptotic_decomposition(alpha); print decomp
-            [(0, []), (16*(4*y - 3*z)*r/(y*z) + 16*(2*y - z)/(y*z), [(x + 2*y + z - 4, 1), (2*x + y + z - 4, 1)])]
+            [(0, []),
+             (16*(4*y - 3*z)*r/(y*z) + 16*(2*y - z)/(y*z), [(x + 2*y + z - 4, 1),
+             (2*x + y + z - 4, 1)])]
             sage: F1 = decomp[1]
             sage: p = {x: 1, y: 1, z: 1}
             sage: asy = F1.asymptotics(p, alpha, 2)
@@ -1507,25 +1523,21 @@ class FFPD(object):
             Computing derivatives of more auxiliary functions...
             Computing second-order differential operator actions...
             sage: print asy
-            (4/3*sqrt(3)*sqrt(r)/sqrt(pi) + 47/216*sqrt(3)/(sqrt(pi)*sqrt(r)), 1, 4/3*sqrt(3)*sqrt(r)/sqrt(pi) + 47/216*sqrt(3)/(sqrt(pi)*sqrt(r)))
+            (4/3*sqrt(3)*sqrt(r)/sqrt(pi) + 47/216*sqrt(3)/(sqrt(pi)*sqrt(r)),
+             1, 4/3*sqrt(3)*sqrt(r)/sqrt(pi) + 47/216*sqrt(3)/(sqrt(pi)*sqrt(r)))
             sage: print F.relative_error(asy[0], alpha, [1, 2, 4, 8], asy[1])
             Calculating errors table in the form
             exponent, scaled Maclaurin coefficient, scaled asymptotic values,
             relative errors...
             [((3, 3, 2), 0.9812164307, [1.515572606], [-0.5445854340]),
-            ((6, 6, 4),
-            1.576181132, [1.992989399], [-0.2644418580]),
-            ((12, 12, 8), 2.485286378,
-            [2.712196351], [-0.09130133851]), ((24, 24, 16), 3.700576827,
-            [3.760447895], [-0.01617884750])]
+             ((6, 6, 4), 1.576181132, [1.992989399], [-0.2644418580]),
+             ((12, 12, 8), 2.485286378,
+             [2.712196351], [-0.09130133851]), ((24, 24, 16), 3.700576827,
+             [3.760447895], [-0.01617884750])]
 
-        NOTES:
+        .. NOTE::
 
-        The algorithms used here come from [RaWi2008a]_ and [RaWi2012]_.
-
-        AUTHORS:
-
-        - Alexander Raichev (2008-10-01, 2010-09-28, 2011-04-27, 2012-08-03)
+            The algorithms used here come from [RaWi2008a]_ and [RaWi2012]_.
         """
         R = self.ring()
         if R is None:
@@ -1571,7 +1583,7 @@ class FFPD(object):
         - ``p`` - A dictionary with keys that can be coerced to equal
           ``self.ring().gens()``.
         - ``alpha`` - A tuple of length ``d = self.dimension()`` of
-          positive integers or, if $p$ is a smooth point,
+          positive integers or, if `p` is a smooth point,
           possibly of symbolic variables.
         - ``N`` - A positive integer.
         - ``asy_var`` - (Optional; default=None) A symbolic variable.
@@ -1592,7 +1604,7 @@ class FFPD(object):
         The formulas used for computing the asymptotic expansions are
         Theorems 3.2 and 3.3 [RaWi2008a]_ with the exponent of H equal to 1.
         Theorem 3.2 is a specialization of Theorem 3.4 of [RaWi2012]_
-        with $n=1$.
+        with `n=1`.
 
         EXAMPLES::
 
@@ -1934,7 +1946,7 @@ class FFPD(object):
         - ``p`` - A dictionary with keys that can be coerced to equal
           ``self.ring().gens()``.
         - ``alpha`` - A tuple of length ``d = self.dimension()`` of
-          positive integers or, if $p$ is a smooth point,
+          positive integers or, if `p` is a smooth point,
           possibly of symbolic variables.
         - ``N`` - A positive integer.
         - ``asy_var`` - (Optional; default=None) A symbolic variable.
@@ -2214,8 +2226,8 @@ class FFPD(object):
     @staticmethod
     def subs_all(f, sub, simplify=False):
         r"""
-        Return the items of $f$ substituted by the dictionaries
-        of $sub$ in order of their appearance in $sub$.
+        Return the items of `f` substituted by the dictionaries
+        of `sub` in order of their appearance in `sub`.
 
         INPUT:
 
@@ -2225,8 +2237,8 @@ class FFPD(object):
 
         OUTPUT:
 
-        The items of $f$ substituted by the dictionaries of $sub$ in order of
-        their appearance in $sub$.
+        The items of `f` substituted by the dictionaries of `sub` in order of
+        their appearance in `sub`.
         The subs() command is used.
         If simplify is True, then simplify() is used after substitution.
 
@@ -2297,41 +2309,41 @@ class FFPD(object):
                  zero_order=0, rekey=None):
         r"""
         Return a dictionary of representative mixed partial
-        derivatives of $f$ from order 1 up to order $n$ with respect to the
-        variables in $V$.
+        derivatives of `f` from order 1 up to order `n` with respect to the
+        variables in `V`.
         The default is to key the dictionary by all nondecreasing sequences
-        in $V$ of length 1 up to length $n$.
+        in `V` of length 1 up to length `n`.
         For internal use.
 
         INPUT:
 
-        - ``f`` - An individual or list of $\mathcal{C}^{n+1}$ functions.
-        - ``V`` - A list of variables occurring in $f$.
+        - ``f`` - An individual or list of `\mathcal{C}^{n+1}` functions.
+        - ``V`` - A list of variables occurring in `f`.
         - ``n`` - A natural number.
-        - ``ending`` - A list of variables in $V$.
+        - ``ending`` - A list of variables in `V`.
         - ``sub`` - An individual or list of dictionaries.
         - ``sub_final`` - An individual or list of dictionaries.
-        - ``rekey`` - A callable symbolic function in $V$ or list thereof.
+        - ``rekey`` - A callable symbolic function in `V` or list thereof.
         - ``zero_order`` - A natural number.
 
         OUTPUT:
 
-        The dictionary ${s_1:deriv_1,..., s_r:deriv_r}$.
-        Here $s_1,\ldots, s_r$ is a listing of
-        all nondecreasing sequences of length 1 up to length $n$ over the
-        alphabet $V$, where $w > v$ in $X$ iff $str(w) > str(v)$, and
-        $deriv_j$ is the derivative of $f$ with respect to the derivative
-        sequence $s_j$ and simplified with respect to the substitutions in
-        $sub$ and evaluated at $sub_final$.
+        The dictionary `{s_1:deriv_1,..., s_r:deriv_r}`.
+        Here `s_1,\ldots, s_r` is a listing of
+        all nondecreasing sequences of length 1 up to length `n` over the
+        alphabet `V`, where `w > v` in `X` iff `str(w) > str(v)`, and
+        `deriv_j` is the derivative of `f` with respect to the derivative
+        sequence `s_j` and simplified with respect to the substitutions in
+        `sub` and evaluated at `sub_final`.
         Moreover, all derivatives with respect to sequences of length less than
-        $zero_order$ (derivatives of order less than $zero_order$ )
+        `zero_order` (derivatives of order less than `zero_order` )
         will be made zero.
 
-        If $rekey$ is nonempty, then $s_1,\ldots, s_r$ will be replaced by the
-        symbolic derivatives of the functions in $rekey$.
+        If `rekey` is nonempty, then `s_1,\ldots, s_r` will be replaced by the
+        symbolic derivatives of the functions in `rekey`.
 
-        If $ending$ is nonempty, then every derivative sequence $s_j$ will be
-        suffixed by $ending$.
+        If `ending` is nonempty, then every derivative sequence `s_j` will be
+        suffixed by `ending`.
 
         EXAMPLES::
 
@@ -2464,12 +2476,12 @@ class FFPD(object):
     @staticmethod
     def diff_op(A, B, AB_derivs, V, M, r, N):
         r"""
-        Return the derivatives $DD^(l+k)(A[j] B^l)$ evaluated at a point
-        $p$ for various natural numbers $j, k, l$ which depend on $r$ and $N$.
-        Here $DD$ is a specific second-order linear differential operator
-        that depends on $M$ , $A$ is a list of symbolic functions,
-        $B$ is symbolic function, and $AB_derivs$ contains all the derivatives
-        of $A$ and $B$ evaluated at $p$ that are necessary for the computation.
+        Return the derivatives `DD^(l+k)(A[j] B^l)` evaluated at a point
+        `p` for various natural numbers `j, k, l` which depend on `r` and `N`.
+        Here `DD` is a specific second-order linear differential operator
+        that depends on `M` , `A` is a list of symbolic functions,
+        `B` is symbolic function, and `AB_derivs` contains all the derivatives
+        of `A` and `B` evaluated at `p` that are necessary for the computation.
         For internal use by the functions asymptotics_smooth() and
         asymptotics_multiple().
 
@@ -2482,20 +2494,20 @@ class FFPD(object):
           derivatives of ``A[0], ..., A[r-1]`` up to order ``2*N-2`` and
           the (symbolic) derivatives of ``B`` up to order ``2*N``.
           The values of the dictionary are complex numbers that are
-          the keys evaluated at a common point $p$.
+          the keys evaluated at a common point `p`.
         - ``V`` - The variables of the ``A[j]`` and ``B``.
-        - ``M`` - A symmetric $l \times l$ matrix, where $l$ is the
+        - ``M`` - A symmetric `l \times l` matrix, where `l` is the
           length of ``V``.
         - ``r, N`` - Natural numbers.
 
         OUTPUT:
 
         A dictionary whose keys are natural number tuples of the form
-        $(j, k, l)$, where $l \le 2k$, $j \le r-1$, and $j+k \le N-1$,
-        and whose values are $DD^(l+k)(A[j] B^l)$ evaluated at a point
-        $p$, where $DD$ is the linear second-order differential operator
-        $-\sum_{i=0}^{l-1} \sum_{j=0}^{l-1} M[i][j]
-        \partial^2 /(\partial V[j] \partial V[i])$.
+        `(j, k, l)`, where `l \le 2k`, `j \le r-1`, and `j+k \le N-1`,
+        and whose values are `DD^(l+k)(A[j] B^l)` evaluated at a point
+        `p`, where `DD` is the linear second-order differential operator
+        `-\sum_{i=0}^{l-1} \sum_{j=0}^{l-1} M[i][j]
+        \partial^2 /(\partial V[j] \partial V[i])`.
 
         EXAMPLES::
 
@@ -2593,11 +2605,11 @@ class FFPD(object):
     @staticmethod
     def diff_op_simple(A, B, AB_derivs, x, v, a, N):
         r"""
-        Return $DD^(e k + v l)(A B^l)$ evaluated at a point $p$ for
-        various natural numbers $e, k, l$ that depend on $v$ and $N$.
-        Here $DD$ is a specific linear differential operator that depends
-        on $a$ and $v$ , $A$ and $B$ are symbolic functions, and $AB_derivs$
-        contains all the derivatives of $A$ and $B$ evaluated at $p$ that are
+        Return `DD^(e k + v l)(A B^l)` evaluated at a point `p` for
+        various natural numbers `e, k, l` that depend on `v` and `N`.
+        Here `DD` is a specific linear differential operator that depends
+        on `a` and `v` , `A` and `B` are symbolic functions, and `AB_derivs`
+        contains all the derivatives of `A` and `B` evaluated at `p` that are
         necessary for the computation.
         For internal use by the function asymptotics_smooth().
 
@@ -2610,20 +2622,20 @@ class FFPD(object):
           up to order ``2*N + v`` if ``v`` is even or ``N + v``
           if ``v`` is odd.
           The values of the dictionary are complex numbers that are
-          the keys evaluated at a common point $p$.
+          the keys evaluated at a common point `p`.
         - ``x`` - Symbolic variable.
         - ``a`` - A complex number.
         - ``v, N`` - Natural numbers.
 
         OUTPUT:
 
-        A dictionary whose keys are natural number pairs of the form $(k, l)$,
-        where $k < N$ and $l \le 2k$ and whose values are
-        $DD^(e k + v l)(A B^l)$ evaluated at a point $p$.
-        Here $e=2$ if $v$ is even, $e=1$ if $v$ is odd, and $DD$ is the
+        A dictionary whose keys are natural number pairs of the form `(k, l)`,
+        where `k < N` and `l \le 2k` and whose values are
+        `DD^(e k + v l)(A B^l)` evaluated at a point `p`.
+        Here `e=2` if `v` is even, `e=1` if `v` is odd, and `DD` is the
         linear differential operator
-        $(a^{-1/v} d/dt)$ if $v$ is even and
-        $(|a|^{-1/v} i \text{sgn}(a) d/dt)$ if $v$ is odd.
+        `(a^{-1/v} d/dt)` if `v` is even and
+        `(|a|^{-1/v} i \text{sgn}(a) d/dt)` if `v` is odd.
 
         EXAMPLES::
 
@@ -2659,8 +2671,8 @@ class FFPD(object):
     @staticmethod
     def diff_prod(f_derivs, u, g, X, interval, end, uderivs, atc):
         r"""
-        Take various derivatives of the equation $f = ug$,
-        evaluate them at a point $c$, and solve for the derivatives of $u$.
+        Take various derivatives of the equation `f = ug`,
+        evaluate them at a point `c`, and solve for the derivatives of `u`.
         For internal use by the function asymptotics_multiple().
 
         INPUT:
@@ -2668,27 +2680,27 @@ class FFPD(object):
         - ``f_derivs`` - A dictionary whose keys are all tuples of the form
           ``s + end``, where ``s`` is a sequence of variables from ``X`` whose
           length lies in ``interval``, and whose values are the derivatives
-          of a function $f$ evaluated at $c$.
+          of a function `f` evaluated at `c`.
         - ``u`` - A callable symbolic function.
         - ``g`` - An expression or callable symbolic function.
         - ``X`` - A list of symbolic variables.
         - ``interval`` - A list of positive integers.
-          Call the first and last values $n$ and $nn$, respectively.
+          Call the first and last values `n` and `nn`, respectively.
         - ``end`` - A possibly empty list of repetitions of the
           variable ``z``, where ``z`` is the last element of ``X``.
         - ``uderivs`` - A dictionary whose keys are the symbolic
-          derivatives of order 0 to order $n-1$ of ``u`` evaluated at $c$
+          derivatives of order 0 to order `n-1` of ``u`` evaluated at `c`
           and whose values are the corresponding derivatives evaluated
-          at $c$.
-        - ``atc`` - A dictionary whose keys are the keys of $c$ and all
-          the symbolic derivatives of order 0 to order $nn$ of ``g``
-          evaluated $c$ and whose values are the corresponding
-          derivatives evaluated at $c$.
+          at `c`.
+        - ``atc`` - A dictionary whose keys are the keys of `c` and all
+          the symbolic derivatives of order 0 to order `nn` of ``g``
+          evaluated `c` and whose values are the corresponding
+          derivatives evaluated at `c`.
 
         OUTPUT:
 
         A dictionary whose keys are the derivatives of ``u`` up to order
-        $nn$ and whose values are those derivatives evaluated at $c$.
+        `nn` and whose values are those derivatives evaluated at `c`.
 
         EXAMPLES::
 
@@ -2709,13 +2721,13 @@ class FFPD(object):
 
         NOTES:
 
-        This function works by differentiating the equation $f = ug$
+        This function works by differentiating the equation `f = ug`
         with respect to the variable sequence ``s + end``,
         for all tuples ``s`` of ``X`` of lengths in ``interval``,
-        evaluating at the point $c$ ,
+        evaluating at the point `c` ,
         and solving for the remaining derivatives of ``u``.
         This function assumes that ``u`` never appears in the
-        differentiations of $f = ug$ after evaluating at $c$.
+        differentiations of `f = ug` after evaluating at `c`.
 
         AUTHORS:
 
@@ -2755,9 +2767,9 @@ class FFPD(object):
 
         OUTPUT:
 
-        A solution of the matrix equation $y \Gamma = \alpha'$ for $y$ ,
-        where $\Gamma$ is the matrix given by
-        ``[FFPD.direction(v) for v in self.log_grads(p)]`` and $\alpha'$
+        A solution of the matrix equation `y \Gamma = \alpha'` for `y` ,
+        where `\Gamma` is the matrix given by
+        ``[FFPD.direction(v) for v in self.log_grads(p)]`` and `\alpha'`
         is ``FFPD.direction(alpha)``
 
         EXAMPLES::
@@ -2774,9 +2786,9 @@ class FFPD(object):
 
         NOTES:
 
-        Use this function only when $\Gamma$ is well-defined and
+        Use this function only when `\Gamma` is well-defined and
         there is a unique solution to the matrix equation
-        $y \Gamma = \alpha'$.
+        `y \Gamma = \alpha'`.
         Fails otherwise.
 
         AUTHORS:
@@ -2895,9 +2907,9 @@ class FFPD(object):
 
         NOTE:
 
-        The logarithmic gradient of a function $f$ at point $p$ is the vector
-        $(x_1 \partial_1 f(x), \ldots, x_d \partial_d f(x) )$ evaluated at
-        $p$.
+        The logarithmic gradient of a function `f` at point `p` is the vector
+        `(x_1 \partial_1 f(x), \ldots, x_d \partial_d f(x) )` evaluated at
+        `p`.
 
 
         EXAMPLES::
@@ -3093,13 +3105,13 @@ class FFPD(object):
 
     def singular_ideal(self):
         r"""
-        Let $R$ be the ring of ``self`` and $H$ its denominator.
-        Let $Hred$ be the reduction (square-free part) of $H$.
-        Return the ideal in $R$ generated by $Hred$ and
+        Let `R` be the ring of ``self`` and `H` its denominator.
+        Let `Hred` be the reduction (square-free part) of `H`.
+        Return the ideal in `R` generated by `Hred` and
         its partial derivatives.
-        If the coefficient field of $R$ is algebraically closed,
+        If the coefficient field of `R` is algebraically closed,
         then the output is the ideal of the singular locus (which is a variety)
-        of the variety of $H$.
+        of the variety of `H`.
 
         EXAMPLES::
 
@@ -3128,11 +3140,11 @@ class FFPD(object):
 
     def smooth_critical_ideal(self, alpha):
         r"""
-        Let $R$ be the ring of ``self`` and $H$ its denominator.
-        Return the ideal in $R$ of smooth critical points of the variety
-        of $H$ for the direction ``alpha``.
-        If the variety $V$ of $H$ has no smooth points, then return the ideal
-        in $R$ of $V$.
+        Let `R` be the ring of ``self`` and `H` its denominator.
+        Return the ideal in `R` of smooth critical points of the variety
+        of `H` for the direction ``alpha``.
+        If the variety `V` of `H` has no smooth points, then return the ideal
+        in `R` of `V`.
 
         INPUT:
 
@@ -3407,7 +3419,7 @@ class FFPD(object):
             sage: print p
             {y: 7/8, x: 1}
             sage: for k in sorted(p.keys()):
-            ...       print k, k.parent()
+            ....:     print k, k.parent()
             ...
             y Symbolic Ring
             x Symbolic Ring
@@ -3415,7 +3427,7 @@ class FFPD(object):
             sage: print q
             {y: 7/8, x: 1}
             sage: for k in sorted(q.keys()):
-            ...       print k, k.parent()
+            ....:     print k, k.parent()
             ...
             y Multivariate Polynomial Ring in x, y over Rational Field
             x Multivariate Polynomial Ring in x, y over Rational Field
@@ -3435,7 +3447,7 @@ class FFPD(object):
 
 class FFPDSum(list):
     r"""
-    A list representing the sum of FFPD objects with distinct
+    A list representing the sum of :class:`FFPD` objects with distinct
     denominator factorizations.
 
     AUTHORS:
@@ -3444,27 +3456,26 @@ class FFPDSum(list):
     """
     def __str__(self):
         r"""
-        Returns a string representation of ``self``
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD, FFPDSum
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: f = FFPD(x + y, [(y, 1), (x, 1)])
             sage: g = FFPD(x**2 + y, [(y, 1), (x, 2)])
             sage: print FFPDSum([f, g])
             [(x + y, [(y, 1), (x, 1)]), (x^2 + y, [(y, 1), (x, 2)])]
-
         """
         return str([r.list() for r in self])
 
     def __eq__(self, other):
         r"""
-        Returns True if ``self`` is equal to ``other``
+        Return ``True`` if ``self`` is equal to ``other``.
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD, FFPDSum
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: f = FFPD(x + y, [(y, 1), (x, 1)])
             sage: g = FFPD(x*(x + y), [(y, 1), (x, 2)])
@@ -3474,17 +3485,16 @@ class FFPDSum(list):
             [(x + y, [(y, 1), (x, 1)])] [(x + y, [(y, 1), (x, 1)])]
             sage: print s == t
             True
-
         """
         return sorted(self) == sorted(other)
 
     def __ne__(self, other):
         r"""
-        Returns True if ``self`` is not equal to ``other``
+        Return ``True`` if ``self`` is not equal to ``other``.
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD, FFPDSum
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: f = FFPD(x + y, [(y, 1), (x, 1)])
             sage: g = FFPD(x + y, [(y, 1), (x, 2)])
@@ -3494,19 +3504,18 @@ class FFPDSum(list):
             [(x + y, [(y, 1), (x, 1)])] [(x + y, [(y, 1), (x, 2)])]
             sage: print s != t
             True
-
         """
-        return not (self == other)
+        return not self.__eq__(other)
 
     def ring(self):
         r"""
         Return the polynomial ring of the denominators of ``self``.
 
-        If ``self`` does not have any denominators, then return None.
+        If ``self`` does not have any denominators, then return ``None``.
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD, FFPDSum
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: f = FFPD(x + y, [(y, 1), (x, 1)])
             sage: s = FFPDSum([f])
@@ -3516,7 +3525,6 @@ class FFPDSum(list):
             sage: t = FFPDSum([g])
             sage: print t.ring()
             None
-
         """
         for r in self:
             R = r.ring()
@@ -3526,15 +3534,15 @@ class FFPDSum(list):
 
     def whole_and_parts(self):
         r"""
-        Rewrite ``self`` as a FFPDSum of a (possibly zero) polynomial
+        Rewrite ``self`` as a :class:`FFPDSum` of a (possibly zero) polynomial
         FFPD followed by reduced rational expression FFPDs.
 
         Only useful for multivariate decompositions.
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
-            sage: R.<x, y> = PolynomialRing(QQ, 'x, y')
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD, FFPDSum
+            sage: R.<x,y> = PolynomialRing(QQ)
             sage: f = x**2 + 3*y + 1/x + 1/y
             sage: f = FFPD(quotient=f)
             sage: print f
@@ -3544,7 +3552,7 @@ class FFPDSum(list):
 
         ::
 
-            sage: R.<x, y> = PolynomialRing(QQ)
+            sage: R.<x,y> = PolynomialRing(QQ)
             sage: f = cos(x)**2 + 3*y + 1/x + 1/y
             sage: print f
             1/x + 1/y + cos(x)^2 + 3*y
@@ -3588,8 +3596,8 @@ class FFPDSum(list):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
-            sage: R.<x, y>= PolynomialRing(QQ)
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD, FFPDSum
+            sage: R.<x,y>= PolynomialRing(QQ)
             sage: f = FFPD(quotient=1/(x * y * (x*y + 1)))
             sage: g = FFPD(quotient=x/(x * y * (x*y + 1)))
             sage: s = FFPDSum([f, g, f])
@@ -3602,7 +3610,7 @@ class FFPDSum(list):
 
         ::
 
-            sage: R.<x, y>= PolynomialRing(QQ)
+            sage: R.<x,y>= PolynomialRing(QQ)
             sage: H = x * y * (x*y + 1)
             sage: f = FFPD(1, H.factor())
             sage: g = FFPD(exp(x + y), H.factor())
@@ -3635,12 +3643,12 @@ class FFPDSum(list):
 
     def sum(self):
         r"""
-        Return the sum of the FFPDs in ``self`` as a FFPD.
+        Return the sum of the FFPDs in ``self`` as a :class:`FFPD`.
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
-            sage: R.<x, y> = PolynomialRing(QQ)
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD, FFPDSum
+            sage: R.<x,y> = PolynomialRing(QQ)
             sage: df = (x, 1), (y, 1), (x*y + 1, 1)
             sage: f = FFPD(2, df)
             sage: g = FFPD(2*x*y, df)
@@ -3658,8 +3666,6 @@ class FFPDSum(list):
             [(cos(x), [(x, 2)]), (cos(y), [(y, 2), (x, 1)])]
             sage: print FFPDSum([f, g]).sum()
             (y^2*cos(x) + x*cos(y), [(y, 2), (x, 2)])
-
-
         """
         if not self:
             return self
@@ -3697,3 +3703,4 @@ class FFPDSum(list):
             if e > 0:
                 df.append((q, e))
         return FFPD(numer, df, reduce_=False)
+

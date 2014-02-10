@@ -62,6 +62,11 @@ if [ `uname -m` = "armv6l" ]; then
     GCC_CONFIGURE="--with-arch=armv6 --with-fpu=vfp --with-float=hard $GCC_CONFIGURE"
 fi
 
+# Let GCC build on more recent ARM boards using hard floats.
+if [ `uname -m` = "armv7l" ]; then
+    GCC_CONFIGURE="--with-arch=armv7-a --with-fpu=vfpv3-d16 --with-float=hard $GCC_CONFIGURE"
+fi
+
 if [ "$SAGE_CHECK" = yes ]; then
     # Enable internal checks in GCC.  These checks do not affect the
     # binaries produced by GCC, but they do increase the compile time

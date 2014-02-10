@@ -167,12 +167,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             # faster than using the base_ring
             if self._isPrimeFiniteField:
                 coefficients=poly.coefficients()
-            	height=max(coefficients).lift()
-            	numTerms=len(coefficients)
-            	largest_value=numTerms*height*(prime-1)**degree
-            	# If the calculations will not overflow the float data type use domain float
-            	# Else use domain integer
-            	if largest_value < (2**27):
+                height=max(coefficients).lift()
+                numTerms=len(coefficients)
+                largest_value=numTerms*height*(prime-1)**degree
+                # If the calculations will not overflow the float data type use domain float
+                # Else use domain integer
+                if largest_value < (2**27):
                     self._fastPolys.append(fast_callable(poly,domain=float))
                 else:
                     self._fastPolys.append(fast_callable(poly,domain=ZZ))
@@ -180,6 +180,13 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                 self._fastPolys.append(fast_callable(poly,domain=poly.base_ring()))
     
     def __call__(self, x,check=True):
+        from sage.schemes.projective.projective_point import SchemeMorphism_point_projective_ring
+        if check:
+            if not isinstance(x,SchemeMorphism_point_projective_ring):
+                x = self.domain()(x)
+            elif x.codomain()!=self.domain():
+                raise TypeError, "Point must be in the domain of the function"
+        
         # Passes the array of args to _fast_eval
         P = self._fast_eval(x._coords, check)
         return self.codomain().point(P,check)

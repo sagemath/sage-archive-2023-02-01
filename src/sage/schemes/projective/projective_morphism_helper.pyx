@@ -75,34 +75,34 @@ def _fast_possible_periods(self,return_points=False):
     if not self._is_prime_finite_field:
         raise TypeError("Must be prime field")
     from sage.schemes.projective.projective_space import is_ProjectiveSpace
-    if is_ProjectiveSpace(self.domain())==False or self.domain()!=self.codomain():
+    if is_ProjectiveSpace(self.domain()) == False or self.domain()!=self.codomain():
         raise NotImplementedError("Must be an endomorphism of projective space")
 
-    PS=self.domain()
-    p=PS.base_ring().order()
-    N=PS.dimension_relative()
+    PS = self.domain()
+    p = PS.base_ring().order()
+    N = PS.dimension_relative()
 
-    point_table=[[0,0] for i in xrange(p**(N+1))]
-    index=1
-    periods=set()
-    points_periods=[]
+    point_table = [[0,0] for i in xrange(p**(N + 1))]
+    index = 1
+    periods = set()
+    points_periods = []
 
-    for P in _enum_points(p,N):
+    for P in _enum_points(p, N):
 
-        hash_p=_hash(P,p)
-        if point_table[hash_p][1]==0:
-            startindex=index
-            while point_table[hash_p][1]==0:
-                point_table[hash_p][1]=index
-                Q=self._fast_eval(P)
-                Q=_normalize_coordinates(Q,p,N+1)
-                hash_q=_hash(Q,p)
-                point_table[hash_p][0]=hash_q
+        hash_p = _hash(P, p)
+        if point_table[hash_p][1] == 0:
+            startindex = index
+            while point_table[hash_p][1] == 0:
+                point_table[hash_p][1] = index
+                Q = self._fast_eval(P)
+                Q = _normalize_coordinates(Q, p, N+1)
+                hash_q = _hash(Q, p)
+                point_table[hash_p][0] = hash_q
                 P=Q
                 hash_p=hash_q
                 index+=1
 
-            if point_table[hash_p][1]>= startindex:
+            if point_table[hash_p][1] >= startindex:
                 P_proj=PS(P)
                 period=index-point_table[hash_p][1]
                 periods.add(period)
@@ -129,7 +129,7 @@ def _fast_possible_periods(self,return_points=False):
                         r=rvalues[k]
                         periods.add(period*r)
                         points_periods.append([P_proj,period*r])
-                        if p==2 or p==3: #need e=1 for N=1, QQ
+                        if p == 2 or p == 3: #need e=1 for N=1, QQ
                             periods.add(period*r*p)
                             points_periods.append([P_proj,period*r*p])
                 else:
@@ -179,7 +179,7 @@ def _hash(list Point,int prime):
     EXAMPLES::
 
         sage: from sage.schemes.projective.projective_morphism_helper import _hash
-        sage: _hash([1, 2, 1],3)
+        sage: _hash([1, 2, 1], 3)
         16
 
     """
@@ -187,10 +187,10 @@ def _hash(list Point,int prime):
     cdef int coefficient
 
     Point.reverse()
-    hash_q=0
+    hash_q = 0
 
     for coefficient in Point:
-        hash_q=hash_q*prime+coefficient
+        hash_q = hash_q * prime + coefficient
 
     Point.reverse()
 
@@ -211,9 +211,9 @@ def _get_point_from_hash(int value,int prime,int dimension):
     cdef int i
     P=[]
 
-    for i in xrange(dimension+1):
-        P.append(value%prime)
-        value=value/prime
+    for i in xrange(dimension + 1):
+        P.append(value % prime)
+        value = value / prime
 
     return P
 
@@ -226,7 +226,6 @@ def _mod_inv(int num, int prime):
         sage: from sage.schemes.projective.projective_morphism_helper import _mod_inv
         sage: _mod_inv(2,7)
         4
-
     """
     cdef int a, b, q, t, x, y
     a = prime

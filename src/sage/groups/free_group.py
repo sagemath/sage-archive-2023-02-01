@@ -433,9 +433,9 @@ class FreeGroupElement(ElementLibGAP):
         return prod( replace[gen] ** power for gen, power in self.syllables() )
 
 
-def FreeGroup(n=None, names='x'):
+def FreeGroup(n=None, names='x', index_set=None, abelian=False, **kwds):
     """
-    Construct a Free Group
+    Construct a Free Group.
 
     INPUT:
 
@@ -444,6 +444,9 @@ def FreeGroup(n=None, names='x'):
 
     - ``names`` -- string or list/tuple/iterable of strings (default:
       ``'x'``). The generator names or name prefix.
+
+    - ``index_set`` -- (optional) an index set for the generators; if
+      specified then the optional keyword ``abelian`` can be used
 
     EXAMPLES::
 
@@ -465,6 +468,13 @@ def FreeGroup(n=None, names='x'):
         Free Group on generators {g0, g1, g2}
         sage: FreeGroup()
         Free Group on generators {x}
+
+    We give two examples with the index set::
+
+        sage: FreeGroup(index_set=ZZ)
+        Free group indexed by Integer Ring
+        sage: FreeGroup(index_set=ZZ, abelian=True)
+        Free abelian group indexed by Integer Ring
 
     TESTS::
 
@@ -490,6 +500,13 @@ def FreeGroup(n=None, names='x'):
             n = len(names)
     from sage.structure.parent import normalize_names
     names = tuple(normalize_names(n, names))
+    if index_set is not None:
+        if abelian:
+            from sage.groups.indexed_group import IndexedFreeAbelianGroup
+            return IndexedFreeAbelianGroup(index_set, names=names, **kwds)
+
+        from sage.groups.indexed_group import IndexedFreeGroup
+        return IndexedFreeGroup(index_set, names=names, **kwds)
     return FreeGroup_class(names)
 
 

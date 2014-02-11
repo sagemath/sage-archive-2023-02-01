@@ -4050,7 +4050,7 @@ class GenericGraph(GenericGraph_pyx):
                         g += genus.simple_connected_graph_genus(H, set_embedding = True, check = False, minimal = True)
                         emb = H.get_embedding()
                         for v in emb:
-                            if embedding.has_key(v):
+                            if v in embedding:
                                 embedding[v] += emb[v]
                             else:
                                 embedding[v] = emb[v]
@@ -5289,7 +5289,7 @@ class GenericGraph(GenericGraph_pyx):
                 l0 = []
                 l1 = []
                 for x in g.vertex_iterator():
-                    if v.has_key(x) and v[x] == 1:
+                    if x in v and v[x] == 1:
                         l1.append(x)
                     else:
                         l0.append(x)
@@ -5410,8 +5410,8 @@ class GenericGraph(GenericGraph_pyx):
                 l1 = []
                 for x in g.vertex_iterator():
                     # if the vertex is not in the cut
-                    if not (b.has_key(x) and b[x] == 1):
-                        if (v.has_key(x) and v[x] == 1):
+                    if not (x in b and b[x] == 1):
+                        if (x in v and v[x] == 1):
                             l1.append(x)
                         else:
                             l0.append(x)
@@ -6309,7 +6309,7 @@ class GenericGraph(GenericGraph_pyx):
                     # the weights of the parallel edges
 
                     #  new value *if* ( none other        *or*   new==None and last > 1     *else*  change nothing
-                    e[(u,v)] = l if (not e.has_key((u,v)) or ( (l is None or l == {}) and e[(u,v)] > 1 )) else e[(u,v)]
+                    e[(u,v)] = l if ((u,v) not in e or ( (l is None or l == {}) and e[(u,v)] > 1 )) else e[(u,v)]
 
                 g.add_edges([(u,v) for (u,v),l in e.iteritems()])
 
@@ -15554,10 +15554,10 @@ class GenericGraph(GenericGraph_pyx):
                 edge_colors = { (0,0,0) : self.edges() }
 
             # by default turn off the frame
-            if not kwds.has_key('frame'):
+            if 'frame' not in kwds:
                 kwds['frame'] = False
             # by default make the background given by bgcolor
-            if not kwds.has_key('background'):
+            if 'background' not in kwds:
                 kwds['background'] = bgcolor
             try:
                 graphic = 0

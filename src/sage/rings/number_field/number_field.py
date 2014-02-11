@@ -444,7 +444,7 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
         key = (polynomial, polynomial.base_ring(), name, latex_name,
                embedding, embedding.parent() if embedding is not None else None,
                assume_disc_small, None if maximize_at_primes is None else tuple(maximize_at_primes))
-        if _nf_cache.has_key(key):
+        if key in _nf_cache:
             K = _nf_cache[key]()
             if not K is None: return K
 
@@ -910,7 +910,7 @@ def CyclotomicField(n=0, names=None, bracket="()", embedding=True):
     if embedding is True:
         embedding = (2 * CLF.pi() * CLF.gen() / n).exp()
     key = (n, names, embedding)
-    if _cyclo_cache.has_key(key):
+    if key in _cyclo_cache:
         K = _cyclo_cache[key]()
         if not K is None: return K
     K = NumberField_cyclotomic(n, names, embedding=embedding)

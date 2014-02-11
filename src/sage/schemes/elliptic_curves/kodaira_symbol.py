@@ -323,7 +323,7 @@ def KodairaSymbol(symbol):
         sage: all([KS(str(KS(n)))==KS(n) for n in range(-10,10) if n!=0])
         True
     """
-    if _ks_cache.has_key(symbol):
+    if symbol in _ks_cache:
         ks = _ks_cache[symbol]()
         if not ks is None:
             return ks

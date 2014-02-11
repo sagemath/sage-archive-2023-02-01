@@ -1571,7 +1571,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         else:
             try:
                 p = (<MPComplexField_class>x._parent)(right)
-            except StandardError:
+            except Exception:
                 raise ValueError
             mpc_pow(z.value, x.value, p.value, (<MPComplexField_class>x._parent).__rnd)
 

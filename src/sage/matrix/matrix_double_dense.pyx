@@ -2807,7 +2807,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         global numpy
         try:
             tol = float(tol)
-        except StandardError:
+        except Exception:
             raise TypeError('tolerance must be a real number, not {0}'.format(tol))
         if tol <= 0:
             raise ValueError('tolerance must be positive, not {0}'.format(tol))

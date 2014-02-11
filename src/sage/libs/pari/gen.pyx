@@ -8126,19 +8126,71 @@ cdef class gen(sage.structure.element.RingElement):
 
     def qfminim(self, b=None, m=None, long flag=0, unsigned long precision=0):
         """
-        ``self`` being a square and symmetric matrix representing a
-        positive definite quadratic form, this function deals with the
-        vectors of ``self`` whose norm is less than or equal to `b`,
-        enumerated using the Fincke-Pohst algorithm, storing at most `m`
-        vectors (no limit if `m` is negative). The function searches for
-        the minimal non-zero vectors if `b` is omitted. The precise
-        behavior depends on flag. 0: seeks at most `2m` vectors (unless
-        `m` omitted), returns `[N,M,mat]` where `N` is the number of
-        vectors found, `M` the maximum norm among these, and `mat` lists
-        half the vectors (the other half is given by `-mat`).
-        1: ignores `m` and returns the first vector whose norm is less
-        than `b`. 2: as 0 but uses a more robust, slower implementation,
-        valid for non integral quadratic forms.
+        Return vectors with bounded norm for this quadratic form.
+
+        INPUT:
+
+        - ``self`` -- a quadratic form
+        - ``b`` -- a bound on vector norm (finds minimal non-zero
+          vectors if b=0)
+        - ``m`` -- maximum number of vectors to return.  If ``None``
+          (default), return all vectors of norm at most B
+        - flag (optional) --
+
+           - 0: default;
+           - 1: return only the first minimal vector found (ignore ``max``);
+           - 2: as 0 but uses a more robust, slower implementation,
+             valid for non integral quadratic forms.
+
+        OUTPUT:
+
+        A triple consisting of
+
+        - the number of vectors of norm <= b,
+        - the actual maximum norm of vectors listed
+        - a matrix whose columns are vectors with norm less than or
+          equal to b for the definite quadratic form. Only one of `v`
+          and `-v` is returned and the zero vector is never returned.
+
+        .. note::
+
+           If max is specified then only max vectors will be output,
+           but all vectors withing the given norm bound will be computed.
+
+        EXAMPLES::
+
+            sage: A = Matrix(3,3,[1,2,3,2,5,5,3,5,11])
+            sage: A.is_positive_definite()
+            True
+
+        The first 5 vectors of norm at most 10::
+
+             sage: pari(A).qfminim(10, 5).python()
+             [
+                      [-17 -14 -15 -16 -13]
+                      [  4   3   3   3   2]
+             146, 10, [  3   3   3   3   3]
+             ]
+
+
+        All vectors of minimal norm::
+
+             sage: pari(A).qfminim(0).python()
+             [
+                   [-5 -2  1]
+                   [ 1  1  0]
+             6, 1, [ 1  0  0]
+             ]
+
+        Use flag=2 for non-integral input::
+
+             sage: pari(A.change_ring(RR)).qfminim(5, m=5, flag=2).python()
+             [
+                                      [ -5 -10  -2  -7   3]
+                                      [  1   2   1   2   0]
+             10, 5.00000000023283..., [  1   2   0   1  -1]
+             ]
+
         """
         cdef gen t0, t1
         cdef GEN g0, g1

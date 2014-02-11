@@ -1324,14 +1324,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.analytic_rank(algorithm='pari')
             2
             sage: E.analytic_rank(algorithm='rubinstein')
-              ***   Warning:...new stack size = ...
             2
             sage: E.analytic_rank(algorithm='sympow')
             2
             sage: E.analytic_rank(algorithm='magma')    # optional - magma
             2
             sage: E.analytic_rank(algorithm='all')
-              ***   Warning:...new stack size = ...
             2
 
         With the optional parameter leading_coefficient set to ``True``, a

@@ -66,7 +66,6 @@ def coordinatewise_product(L):
         ans = [ans[i]*x[i] for i in range(n)]
     return ans
 
-
 def IncidenceStructureFromMatrix(M, name=None):
     """
     Builds and incidence structure from a matrix.
@@ -157,7 +156,7 @@ class IncidenceStructure(object):
                 y = block[:]
                 y.sort()
                 bs.append(y)
-            except StandardError:
+            except Exception:
                 bs.append(block)
         bs.sort(cmp)
         self.v = v
@@ -284,8 +283,8 @@ class IncidenceStructure(object):
 
             sage: from sage.combinat.designs.block_design import BlockDesign
             sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: BD.parameters()
-            (2, 7, 3, 1)
+            sage: BD.is_block_design()
+            (True, [2, 7, 3, 1])
             sage: BD.block_design_checker(2, 7, 3, 1)
             True
             sage: BD.block_design_checker(2, 7, 3, 1,"binary")
@@ -533,60 +532,81 @@ class IncidenceStructure(object):
             sage: BD.is_block_design()
             (True, [2, 8, 2, 1])
         """
-        from sage.combinat.designs.incidence_structures import coordinatewise_product
-        from sage.combinat.combination import Combinations
-        A = self.incidence_matrix()
+        from sage.rings.arith import binomial
+        from itertools import combinations
         v = len(self.points())
-        b = len(self.blocks())
-        k = sum(A.columns()[0])
-        rowsA = A.rows()
-        VS = rowsA[0].parent()
-        r = sum(rowsA[0])
-        for i in range(b):
-            if not(sum(A.columns()[i]) == k):
-                return False
-        for i in range(v):
-            if not(sum(A.rows()[i]) == r):
-                return False
-        t_found_yet = False
-        lambdas = []
-        for t in range(2, min(v, 11)):
-            #print t
-            L1 = Combinations(range(v), t)
-            L2 = [[rowsA[i] for i in L] for L in L1]
-            #print t,len(L2)
-            lmbda = VS(coordinatewise_product(L2[0])).hamming_weight()
-            lambdas.append(lmbda)
-            pars = [t, v, k, lmbda]
-            #print pars
-            for ell in L2:
-                a = VS(coordinatewise_product(ell)).hamming_weight()
-                if not(a == lmbda) or a == 0:
-                    if not(t_found_yet):
-                        pars = [t-1, v, k, lambdas[t-3]]
-                        return False, pars
-                    else:
-                        #print pars, lambdas
-                        pars = [t-1, v, k, lambdas[t-3]]
-                        return True, pars
-                t_found_yet = True
-        pars = [t-1, v, k, lambdas[t-3]]
-        return True, pars
+        b = len(self.blcks)
 
-    def parameters(self, t=2):
+        # Definition and consistency of 'k' and 'r'
+        #
+        # r_list stores the degree of each point
+        k = len(self.blcks[0])
+        r_list = [0]*v
+        for block in self.blcks:
+            if len(block) != k:
+                return False
+            for x in block:
+                r_list[x] += 1
+
+        r = r_list[0]
+        if any(x!=r for x in r_list):
+            return False
+
+        # Definition and consistency of 'l' (lambda) and 't'
+        t_found_yet = False
+
+        for t in range(2,min(v,k+1)):
+
+            # Is lambda an integer ?
+            if (b*binomial(k,t)) % binomial(v,t) == 0:
+                l = (b*binomial(k,t))/binomial(v,t)
+            else:
+                continue
+
+            # Associates to every t-subset of [v] the number of its occurrences
+            # as a subset of a block
+            t_counts = {}
+            for block in self.blcks:
+                for t_set in combinations(sorted(block),t):
+                    t_counts[t_set] = t_counts.get(t_set,0)+1
+
+            # Checking the consistency of l
+            l_values = t_counts.values()
+
+            if all(l == x for x in l_values):
+                t_found_yet = True
+                t_lambda = t,l
+
+        if t_found_yet:
+            t,l = t_lambda
+            return (True, [t,v,k,l])
+        else:
+            return (False, [0,0,0,0])
+
+    def parameters(self, t=None):
         """
         Returns `(t,v,k,lambda)`. Does not check if the input is a block
-        design. Uses `t=2` by default.
+        design.
+
+        INPUT:
+
+        - ``t`` -- `t` such that the design is a `t`-design.
 
         EXAMPLES::
 
             sage: from sage.combinat.designs.block_design import BlockDesign
             sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]], name="FanoPlane")
-            sage: BD.parameters()
+            sage: BD.parameters(t=2)
             (2, 7, 3, 1)
             sage: BD.parameters(t=3)
             (3, 7, 3, 0)
         """
+        if t is None:
+            from sage.misc.superseded import deprecation
+            deprecation(15664, "the 't' argument will become mandatory soon. 2"+
+                        " is used when none is provided.")
+            t = 2
+
         v = len(self.points())
         blks = self.blocks()
         k = len(blks[int(0)])

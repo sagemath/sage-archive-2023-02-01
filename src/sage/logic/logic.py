@@ -274,43 +274,44 @@ class SymbolicLogic:
 
     def combine(self, statement1, statement2):
         r"""
-            This function returns a new statement which contains the
-            two statements or'd together
+        Return a new statement which contains the
+        two statements or'd together.
 
-            INPUT:
-                self -- the called object: not used
-                statement1 -- the first statement
-                statement 2 -- the second statement
+        INPUT:
 
-            OUTPUT:
-                returns a new staement which or'd the given statements
-                together
+        - ``statement1`` -- the first statement
+        - ``statement2`` -- the second statement
 
-            EXAMPLE:
-                sage: log = SymbolicLogic()
-                sage: s1 = log.statement("(a&b)")
-                sage: s2 = log.statement("b")
-                sage: log.combine(s1,s2)
-                [['OPAREN',
-                  'OPAREN',
-                  'OPAREN',
-                  'a',
-                  'AND',
-                  'b',
-                  'CPAREN',
-                  'CPAREN',
-                  'OR',
-                  'OPAREN',
-                  'b',
-                  'CPAREN',
-                  'CPAREN'],
-                 {'a': 'False', 'b': 'False'},
-                 ['a', 'b', 'b']]       
+        OUTPUT:
+
+        A new staement which or'd the given statements together.
+
+        EXAMPLES::
+
+            sage: log = SymbolicLogic()
+            sage: s1 = log.statement("(a&b)")
+            sage: s2 = log.statement("b")
+            sage: log.combine(s1,s2)
+            [['OPAREN',
+              'OPAREN',
+              'OPAREN',
+              'a',
+              'AND',
+              'b',
+              'CPAREN',
+              'CPAREN',
+              'OR',
+              'OPAREN',
+              'b',
+              'CPAREN',
+              'CPAREN'],
+             {'a': 'False', 'b': 'False'},
+             ['a', 'b', 'b']]       
         """
-        toks = ['OPAREN']+statement1[0]+['OR']+statement2[0]+['CPAREN']
-        vars = dict(statement1[1].items() +  statement2[1].items())
-        var_order = statement1[2]+statement2[2]
-        return [toks,vars,var_order]
+        toks = ['OPAREN'] + statement1[0] + ['OR'] + statement2[0] + ['CPAREN']
+        variables = dict(statement1[1].items() + statement2[1].items())
+        var_order = statement1[2] + statement2[2]
+        return [toks, variables, var_order]
 
 
     #TODO: implement the simplify function which calls

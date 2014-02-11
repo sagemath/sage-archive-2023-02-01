@@ -562,17 +562,17 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
                       From: Multivariate Polynomial Ring in x, y over Rational Field
                       To:   Multivariate Laurent Polynomial Ring in x, y over Rational Field
         """
-
-        if R is self._R:
+        if R is self._R or (isinstance(R, LaurentPolynomialRing_generic)
+            and self._R.has_coerce_map_from(R._R)):
             from sage.structure.coerce_maps import CallableConvertMap
             return CallableConvertMap(R, self, self._element_constructor_,
                                       parent_as_first_arg=False)
-        else:
-            f = self._R.coerce_map_from(R)
-            if f is not None:
-                from sage.categories.homset import Hom
-                from sage.categories.morphism import CallMorphism
-                return CallMorphism(Hom(self._R, self)) * f
+
+        f = self._R.coerce_map_from(R)
+        if f is not None:
+            from sage.categories.homset import Hom
+            from sage.categories.morphism import CallMorphism
+            return CallMorphism(Hom(self._R, self)) * f
 
     def __cmp__(left, right):
         """

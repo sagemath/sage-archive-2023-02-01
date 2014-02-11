@@ -206,6 +206,16 @@ def _fast_possible_periods(self,return_points=False):
         return(PointsPeriods)
 
 def _enum_points(int prime,int dimension):
+    """
+    Enumerate points in projective space with given prime and dimension.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.projective.projective_morphism_helper import _enum_points
+        sage: _enum_points(9,2)
+        [[1, 0, 0], [0, 1, 0], [1, 1, 0], [2, 1, 0], [0, 0, 1], [1, 0, 1], [2, 0, 1], [0, 1, 1], [1, 1, 1], [2, 1, 1], [0, 2, 1], [1, 2, 1], [2, 2, 1]]
+
+    """
     cdef list points=[]
     cdef list ranges=[]
     cdef int currPrime
@@ -227,6 +237,16 @@ def _enum_points(int prime,int dimension):
     return points
 
 def _hash(list Point,int prime):
+    """
+    Hash point given as list to unique number.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.projective.projective_morphism_helper import _enum_points
+        sage: _hash([1, 2, 1],3)
+        16
+
+    """
     cdef int hashQ
     cdef int coefficient
     
@@ -241,6 +261,16 @@ def _hash(list Point,int prime):
     return hashQ
 
 def _get_point_from_hash(int value,int prime,int dimension):
+    """
+    Hash unique number to point as a list.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.projective.projective_morphism_helper import _enum_points
+        sage: _get_point_from_hash(16,3,2)
+        [1, 2, 1]
+
+    """
     cdef list P
     cdef int i
     P=[]
@@ -252,6 +282,16 @@ def _get_point_from_hash(int value,int prime,int dimension):
     return P
     
 def _mod_inv(int num, int prime):
+    """
+    Find the mod inverse of the number for the given prime.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.projective.projective_morphism_helper import _enum_points
+        sage: _mod_inv(2,7)
+        4
+
+    """
     cdef int a, b, q, t, x, y
     a = prime
     b = num
@@ -272,6 +312,16 @@ def _mod_inv(int num, int prime):
         return y
 
 def _normalize_coordinates(list point, int prime):
+    """
+    Normalize the coordinates of the point for the given prime.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.projective.projective_morphism_helper import _enum_points
+        sage: _normalize_coordinates([1,5,1],3)
+        [1, 2, 1]
+
+    """
     cdef int last_coefficient, coefficient, mod_inverse
     
     for coefficient in xrange(len(point)):

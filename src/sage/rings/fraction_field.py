@@ -265,11 +265,18 @@ class FractionField_generic(field.Field):
             sage: F2(R22(F2('a')))
             a
 
+        Coercion from Laurent polynomials now works (:trac:`15345`)::
+
+            sage: R = LaurentPolynomialRing(ZZ, 'x')
+            sage: T = PolynomialRing(ZZ, 'x')
+            sage: R.gen() + FractionField(T).gen()
+            2*x
         """
         from sage.rings.integer_ring import ZZ
         from sage.rings.rational_field import QQ
         from sage.rings.number_field.number_field_base import NumberField
-        from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing_generic
+        from sage.rings.polynomial.laurent_polynomial_ring import \
+            LaurentPolynomialRing_generic
 
         # The case ``S`` being `\QQ` requires special handling since `\QQ` is
         # not implemented as a ``FractionField_generic``.

@@ -561,6 +561,14 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
                       Call morphism:
                       From: Multivariate Polynomial Ring in x, y over Rational Field
                       To:   Multivariate Laurent Polynomial Ring in x, y over Rational Field
+
+        Let us check that coercion between Laurent Polynomials over
+        different base rings works (:trac:`15345`)::
+
+            sage: R = LaurentPolynomialRing(ZZ, 'x')
+            sage: T = LaurentPolynomialRing(QQ, 'x')
+            sage: R.gen() + 3*T.gen()
+            4*x
         """
         if R is self._R or (isinstance(R, LaurentPolynomialRing_generic)
             and self._R.has_coerce_map_from(R._R)):

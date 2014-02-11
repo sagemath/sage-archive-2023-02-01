@@ -52,7 +52,8 @@ two lines.
 
 AUTHORS:
  
-- Ben Hutz: (June 2012): support for rings
+- Dillon Rose (2014-01):  Speed enhancements
+
 """
 
 #*****************************************************************************
@@ -72,54 +73,53 @@ def _fast_possible_periods(self,return_points=False):
     Returns the list of possible minimal periods of a periodic point
     over `\QQ` and (optionally) a point in each cycle.
 
-	ALGORITHM:
-	
-	The list comes from: Hutz, Good reduction of periodic points, Illinois Journal of
-	Mathematics 53 (Winter 2009), no. 4, 1109-1126.
-	
-	INPUT:
-   
-	- ``return_points`` - Boolean (optional) - a value of True returns the points as well as the possible periods.
-	
-	OUTPUT:
-	
-	- a list of positive integers, or a list of pairs of projective points and periods if ``flag`` is 1.
-	
-	Examples::
-	
-		sage: P.<x,y>=ProjectiveSpace(GF(23),1)
-		sage: H=Hom(P,P)
-		sage: f=H([x^2-2*y^2,y^2])
-		sage: f.possible_periods()
-		[1, 5, 11, 22, 110]
-	
-	::
-	
-		sage: P.<x,y>=ProjectiveSpace(GF(13),1)
-		sage: H=Hom(P,P)
-		sage: f=H([x^2-y^2,y^2])
-		sage: f.possible_periods(True)
-		[[(1 : 0), 1], [(0 : 1), 2], [(3 : 1), 3], [(3 : 1), 36]]
-	
-	::
-	
-		sage: PS.<x,y,z>=ProjectiveSpace(2,GF(7))
-		sage: H=Hom(PS,PS)
-		sage: f=H([-360*x^3 + 760*x*z^2, y^3 - 604*y*z^2 + 240*z^3, 240*z^3])
-		sage: f.possible_periods()
-		[1, 2, 4, 6, 12, 14, 28, 42, 84]
-		
-	.. TODO::
-		
-		- do not reutrn duplicate points
-		
-		- check == False to speed up?
-		
-		- move to Cython
-	"""
+    ALGORITHM:
+
+    The list comes from: Hutz, Good reduction of periodic points, Illinois Journal of
+    Mathematics 53 (Winter 2009), no. 4, 1109-1126.
+
+    INPUT:
+
+    - ``return_points`` - Boolean (optional) - a value of True returns the points as well as the possible periods.
+    
+    OUTPUT:
+    
+    - a list of positive integers, or a list of pairs of projective points and periods if ``flag`` is 1.
+    
+    Examples::
+    
+        sage: P.<x,y>=ProjectiveSpace(GF(23),1)
+        sage: H=Hom(P,P)
+        sage: f=H([x^2-2*y^2,y^2])
+        sage: f.possible_periods()
+        [1, 5, 11, 22, 110]
+
+    ::
+
+        sage: P.<x,y>=ProjectiveSpace(GF(13),1)
+        sage: H=Hom(P,P)
+        sage: f=H([x^2-y^2,y^2])
+        sage: f.possible_periods(True)
+        [[(1 : 0), 1], [(0 : 1), 2], [(3 : 1), 3], [(3 : 1), 36]]
+
+    ::
+
+        sage: PS.<x,y,z>=ProjectiveSpace(2,GF(7))
+        sage: H=Hom(PS,PS)
+        sage: f=H([-360*x^3 + 760*x*z^2, y^3 - 604*y*z^2 + 240*z^3, 240*z^3])
+        sage: f.possible_periods()
+        [1, 2, 4, 6, 12, 14, 28, 42, 84]
+        
+    .. TODO::
+
+        - do not reutrn duplicate points
+
+        - check == False to speed up?
+
+    """
     cdef int i, k
     cdef list pointslist
-	
+
     if not is_PrimeFiniteField(self.domain().base_ring()):
         raise TypeError("Must be prime field")
     from sage.schemes.projective.projective_space import is_ProjectiveSpace
@@ -165,12 +165,12 @@ def _fast_possible_periods(self,return_points=False):
                         leigen=l.change_ring(GF(p**q,'t')).eigenvalues()
                     except NotImplementedError:
                         q+=5
-                
+
                 lorders=set([])
                 for k in xrange(len(leigen)):
                     if leigen[k]!=0:
                         lorders.add(leigen[k].multiplicative_order())
-                
+
                 lorders=list(Set(lorders).subsets())
                 rvalues=set()
                 for k in xrange(1,len(lorders)):

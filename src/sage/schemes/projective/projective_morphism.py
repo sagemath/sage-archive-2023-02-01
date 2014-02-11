@@ -20,6 +20,8 @@ AUTHORS:
 
 - Brian Stout, Ben Hutz (Nov 2013) - added minimal model functionality
 
+- Dillon Rose (2014-01):  Speed enhancements
+
 """
 
 # Historical note: in trac #11599, V.B. renamed
@@ -2954,86 +2956,9 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
 
         .. TODO::
 
-            - do not reutrn duplicate points
+            - do not return duplicate points
 
             - check == False to speed up?
-
-            - move to Cython
-
         """
-        if not is_PrimeFiniteField(self.domain().base_ring()):
-            raise TypeError("Must be prime field")
-        if not self.is_endomorphism():
-            raise NotImplementedError("Must be an endomorphism of projective space")
-
-        PS = self.domain()
-        p = PS.base_ring().order()
-        N = PS.dimension_relative()
-        pointsdict = PS.rational_points_dictionary() #assume p is prime
-        pointslist = list(pointsdict)
-        hashlist = pointsdict.values()
-        pointtable = [[0, 0] for i in range(len(pointsdict))]
-        index = 1
-        periods = set()
-        points_periods = []
-        for j in range(len(pointsdict)):
-            hashP = hashlist[j]
-            if pointtable[hashP][1] == 0:
-                startindex = index
-                P = pointslist[j]
-                while pointtable[hashP][1] == 0:
-                    pointtable[hashP][1] = index
-                    Q = self(P)
-                    Q.normalize_coordinates()
-                    hashQ = pointsdict[Q]
-                    pointtable[hashP][0] = hashQ
-                    P = Q
-                    hashP = hashQ
-                    index += 1
-                if pointtable[hashP][1] >= startindex:
-                    period = index - pointtable[hashP][1]
-                    periods.add(period)
-                    points_periods.append([P, period])
-                    l = P.multiplier(self, period, False)
-                    lorders = set()
-                    for poly, _ in l.charpoly().factor():
-                        if poly.degree() == 1:
-                            eig = -poly.constant_coefficient()
-                            if not eig:
-                                continue # exclude 0
-                        else:
-                            eig = GF(p ** poly.degree(), 't', modulus=poly).gen()
-                        if eig:
-                            lorders.add(eig.multiplicative_order())
-                    S = subsets(lorders)
-                    S.next()   # get rid of the empty set
-                    rvalues = set()
-                    for s in S:
-                        rvalues.add(lcm(s))
-                    rvalues = list(rvalues)
-                    if N == 1:
-                        for k in range(len(rvalues)):
-                            r = rvalues[k]
-                            periods.add(period * r)
-                            points_periods.append([P, period * r])
-                            if p == 2 or p == 3: #need e=1 for N=1, QQ
-                                periods.add(period * r * p)
-                                points_periods.append([P, period * r * p])
-                    else:
-                        for k in range(len(rvalues)):
-                            r = rvalues[k]
-                            periods.add(period * r)
-                            periods.add(period * r * p)
-                            points_periods.append([P, period * r])
-                            points_periods.append([P, period * r * p])
-                            if p == 2:  #need e=3 for N>1, QQ
-                                periods.add(period * r * 4)
-                                points_periods.append([P, period * r * 4])
-                                periods.add(period * r * 8)
-                                points_periods.append([P, period * r * 8])
-
-        if return_points == False:
-            return(sorted(periods))
-        else:
-            return(points_periods)
+        return _fast_possible_periods(self,return_points)
 

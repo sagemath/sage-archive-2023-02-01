@@ -3260,15 +3260,17 @@ class SimplicialComplex(GenericCellComplex):
             sage: S4 = simplicial_complexes.Sphere(4)
             sage: S3 = simplicial_complexes.Sphere(3)
             sage: fix = S4.fixed_complex([S4.automorphism_group()([(0,1)])])
+            sage: fix
+            Simplicial complex with vertex set (0, 2, 3, 4, 5) and 5 facets
             sage: fix.is_isomorphic(S3)
             True
 
         Another simple example::
 
             sage: T = SimplicialComplex([[1,2,3],[2,3,4]])
-            sage: G = CP2.automorphism_group()
+            sage: G = T.automorphism_group()
             sage: T.fixed_complex([G([(1,4)])])
-            Simplicial complex with vertex set ? and facets ?
+            Simplicial complex with vertex set (2, 3) and facets {(2, 3)}
 
         A more sophisticated example::
 

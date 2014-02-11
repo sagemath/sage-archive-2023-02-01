@@ -31,7 +31,8 @@ class QuiverRepFactory(UniqueFactory):
 
     - ``k`` - ring, the base ring of the representation
 
-    - ``Q`` - Quiver, the quiver of the representation
+    - ``P`` - the partial semigroup formed by the paths of the quiver of the
+      representation
 
     Then to specify the spaces and maps associated to the Quiver there are three
     possible options.  The first is the ``values`` option, where the next two
@@ -39,7 +40,7 @@ class QuiverRepFactory(UniqueFactory):
     two entries in the argument list or they can be passed by keyword.  If the
     argument list is long enough the keywords are ignored; the keywords are only
     checked in the event that the argument list does not have enough entries after
-    ``Q``.
+    ``P``.
 
     - ``spaces`` - dict (default: empty), a dictionary associating to each vertex a
       free module over the base ring k.  Not all vertices must be specified,
@@ -146,19 +147,19 @@ class QuiverRepFactory(UniqueFactory):
         (0, 1, 2)
     """
 
-    def create_key(self, k, Q, *args, **kwds):
+    def create_key(self, k, P, *args, **kwds):
         """
         Returns a key for the specified module.
 
         The key is a tuple.  The first and second entries are the base ring
-        ``k`` and the Quiver ``Q``.  The third entry is the 'option' and the
-        remaining entries depend on that option.  If the option is 'values'
-        and the Quiver has n vertices then the next n entries are the vector
-        spaces to be assigned to those vertices.  After that are the matrices
-        of the maps assigned to edges, listed in the same order that
-        ``Q.edges()`` uses.  If the option is 'paths' or 'dual paths' then the
-        next entry is a tuple containing a sorted list of the paths that form
-        a basis of the Quiver.
+        ``k`` and the partial semigroup ``P`` formed by the paths of a quiver.
+        The third entry is the 'option' and the remaining entries depend on
+        that option.  If the option is 'values' and the Quiver has n vertices
+        then the next n entries are the vector spaces to be assigned to those
+        vertices.  After that are the matrices of the maps assigned to edges,
+        listed in the same order that ``Q.edges()`` uses.  If the option is
+        'paths' or 'dual paths' then the next entry is a tuple containing a
+        sorted list of the paths that form a basis of the Quiver.
 
         INPUT:
 
@@ -170,14 +171,13 @@ class QuiverRepFactory(UniqueFactory):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a']}})
+            sage: P = Quiver({1:{2:['a']}}).path_semigroup()
             sage: from sage.quivers.representation import QuiverRep
-            sage: QuiverRep.create_key(GF(5), Q)
+            sage: QuiverRep.create_key(GF(5), P)
             (Finite Field of size 5, Quiver on 2 vertices, 'values', Vector space of dimension 0 over Finite Field of size 5, Vector space of dimension 0 over Finite Field of size 5, [])
         """
-
-        key = [k, Q]
-        F = Q.free_small_category()
+        key = [k, P]
+        Q = P.quiver()
         if 'option' in kwds and (kwds['option'] == 'paths' or kwds['option'] == 'dual paths'):
             # Follow the 'paths' specification for the input
             key.append(kwds['option'])
@@ -189,11 +189,11 @@ class QuiverRepFactory(UniqueFactory):
             # Add as QuiverPaths to a set
             paths = set()
             for p in basis:
-                paths.add(F(p))
+                paths.add(P(p))
 
             if kwds['option'] == 'paths':
                 # Close the set under right mult by edges
-                edges = [F(e) for e in Q.edges()]
+                edges = [P(e) for e in Q.edges()]
                 just_added = paths
                 while just_added:
                     to_be_added = []
@@ -207,7 +207,7 @@ class QuiverRepFactory(UniqueFactory):
 
             if kwds['option'] == 'dual paths':
                 # Close the set under left mult by edges
-                edges = [F(e) for e in Q.edges()]
+                edges = [P(e) for e in Q.edges()]
                 just_added = paths
                 while just_added:
                     to_be_added = []
@@ -220,7 +220,7 @@ class QuiverRepFactory(UniqueFactory):
                     just_added = to_be_added
 
             # Remove the invalid path
-            paths.difference_update([F(None)])
+            paths.difference_update([P(None)])
 
             # Add to the key
             key.append(tuple(sorted(paths)))
@@ -333,7 +333,8 @@ class QuiverRepFactory(UniqueFactory):
             raise ValueError("Invalid key used in QuiverRepFactory!")
 
         # Get the quiver
-        Q = key[1]
+        P = key[1]
+        Q = P.quiver()
 
         if key[2] == 'values':
             # Get the spaces
@@ -350,15 +351,15 @@ class QuiverRepFactory(UniqueFactory):
                 i += 1
 
             # Create and return the module
-            return QuiverRep_generic(key[0], Q, spaces, maps)
+            return QuiverRep_generic(key[0], P, spaces, maps)
 
         elif key[2] == 'paths':
             # Create and return the module
-            return QuiverRep_with_path_basis(key[0], Q, key[3])
+            return QuiverRep_with_path_basis(key[0], P, key[3])
 
         elif key[2] == 'dual paths':
             # Create and return the module
-            return QuiverRep_with_dual_path_basis(key[0], Q, key[3])
+            return QuiverRep_with_dual_path_basis(key[0], P, key[3])
 
         else:
             raise ValueError("Invalid key used in QuiverRepFactory!")
@@ -940,7 +941,7 @@ class QuiverRep_generic(Module):
     #                                                                         #
     ###########################################################################
 
-    def __init__(self, k, Q, spaces, maps):
+    def __init__(self, k, P, spaces, maps):
         """
         Type QuiverRep? for more information.
 
@@ -976,7 +977,7 @@ class QuiverRep_generic(Module):
         #      A dictionary which associates to each edge of the quiver a homomorphism
         #      whose domain and codomain equal the initial and terminal vertex of the
         #      edge.
-
+        Q = P.quiver()
         self._quiver = Q
         self._base_ring = k
         self._spaces = {}
@@ -1021,7 +1022,7 @@ class QuiverRep_generic(Module):
 
         self._assert_valid_quiverrep()
 
-        super(QuiverRep_generic, self).__init__(Q.algebra(k))
+        super(QuiverRep_generic, self).__init__(P.algebra(k))
 
     def _assert_valid_quiverrep(self):
         """
@@ -2283,7 +2284,7 @@ class QuiverRep_generic(Module):
         """
 
         # Convert to a QuiverPath
-        qpath = self._quiver.free_small_category()(path)
+        qpath = self._quiver.path_semigroup()(path)
 
         # Invalid paths are zero in the quiver algebra
         result = self()  # this must not be self.zero(), which is cached
@@ -2342,7 +2343,7 @@ class QuiverRep_with_path_basis(QuiverRep_generic):
     #       associated to vertex v in the QuiverRepElement by the matrix
     #       _left_action_mats[e][v]
 
-    def __init__(self, k, Q, basis):
+    def __init__(self, k, P, basis):
         """
         Type QuiverRep_with_path_basis? for more information.
 
@@ -2364,7 +2365,7 @@ class QuiverRep_with_path_basis(QuiverRep_generic):
             (0, 1, 2)
         """
 
-        self._quiver = Q
+        self._quiver = Q = P.quiver()
         self._base_ring = k
 
         # Add the paths to the basis dictionary.  The terminal vertex is the
@@ -2377,9 +2378,8 @@ class QuiverRep_with_path_basis(QuiverRep_generic):
         # Create the matrices of the maps
         from sage.matrix.constructor import Matrix
         maps = {}
-        F = Q.free_small_category()
         for e in Q.edges():
-            arrow = F(e)
+            arrow = P(e)
             # Start with the zero matrix and fill in from there
             maps[e] = Matrix(self._base_ring, len(self._bases[e[0]]), len(self._bases[e[1]]))
             for i in range(0, len(self._bases[e[0]])):
@@ -2389,7 +2389,7 @@ class QuiverRep_with_path_basis(QuiverRep_generic):
 
         # Create the spaces and then the representation
         spaces = dict((v, len(self._bases[v])) for v in Q)
-        super(QuiverRep_with_path_basis, self).__init__(k, Q, spaces, maps)
+        super(QuiverRep_with_path_basis, self).__init__(k, P, spaces, maps)
 
         # Try and create the matrices for the left edge action of edges.  If it
         # fails just return, there's no edge action and the construction is
@@ -2405,7 +2405,7 @@ class QuiverRep_with_path_basis(QuiverRep_generic):
                 for j in range(0, l):
                     if e[1] == self._bases[v][j].initial_vertex():
                         try:
-                            action_mats[e][v][self._bases[v].index(F(e)*self._bases[v][j]), j] = self._base_ring(1)
+                            action_mats[e][v][self._bases[v].index(P(e)*self._bases[v][j]), j] = self._base_ring(1)
                         except ValueError:
                             # There is no left action
                             return
@@ -2555,7 +2555,7 @@ class QuiverRep_with_dual_path_basis(QuiverRep_generic):
     #       correspond to the basis elements of the space assigned to that
     #       vertex.
 
-    def __init__(self, k, Q, basis):
+    def __init__(self, k, P, basis):
         """
         Type QuiverRep_with_dual_path_basis? for more information.
 
@@ -2577,9 +2577,8 @@ class QuiverRep_with_dual_path_basis(QuiverRep_generic):
             (2, 1, 0)
         """
 
-        self._quiver = Q
+        self._quiver = Q = P.quiver()
         self._base_ring = k
-        F = Q.free_small_category()
 
         # Add the paths to the basis dictionary.  The initial vertex is the
         # key
@@ -2591,9 +2590,8 @@ class QuiverRep_with_dual_path_basis(QuiverRep_generic):
         # Create the matrices of the maps
         from sage.matrix.constructor import Matrix
         maps = {}
-        F = Q.free_small_category()
         for e in Q.edges():
-            arrow = F(e)
+            arrow = P(e)
             # Start with the zero matrix and fill in from there
             maps[e] = Matrix(self._base_ring, len(self._bases[e[0]]), len(self._bases[e[1]]))
             for i in range(0, len(self._bases[e[0]])):
@@ -2604,5 +2602,5 @@ class QuiverRep_with_dual_path_basis(QuiverRep_generic):
 
         # Create the spaces and then the representation
         spaces = dict((v, len(self._bases[v])) for v in Q)
-        super(QuiverRep_with_dual_path_basis, self).__init__(k, Q, spaces, maps)
+        super(QuiverRep_with_dual_path_basis, self).__init__(k, P, spaces, maps)
 

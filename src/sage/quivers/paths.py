@@ -54,8 +54,8 @@ class QuiverPath(MonoidElement):
 
     Specify a path by giving a list of edges::
 
-        sage: Q = Quiver({1:{2:['a','d'], 3:['e']}, 2:{3:['b']}, 3:{1:['f'], 4:['c']}})
-        sage: F = Q.free_small_category()
+        sage: Q = DiGraph({1:{2:['a','d'], 3:['e']}, 2:{3:['b']}, 3:{1:['f'], 4:['c']}})
+        sage: F = Q.path_semigroup()
         sage: p = F([(1, 2, 'a'), (2, 2), (2, 3, 'b')])
         sage: p
         a*b
@@ -129,14 +129,14 @@ class QuiverPath(MonoidElement):
         sage: p.terminal_vertex()
         3
     """
-    def __init__(self, path, check=True, parent=None):
+    def __init__(self, parent, path, check=True):
         """
         Creates a path object.  Type QuiverPath? for more information.
 
         TESTS::
 
             sage: from sage.quivers.paths import QuiverPath
-            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}}).free_small_category()
+            sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
             sage: p = Q([(1, 1), (1, 1)])
 
         Note that QuiverPath should not be called directly, because
@@ -209,7 +209,7 @@ class QuiverPath(MonoidElement):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}}).free_small_category()
+            sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
             sage: Q([(1, 2, 'a'), (1, 2, 'a')]) # indirect doctest
             invalid path
             sage: Q([(1, 2, 'a'), (2, 3, 'b')]) # indirect doctest
@@ -230,7 +230,7 @@ class QuiverPath(MonoidElement):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}}).free_small_category()
+            sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
             sage: len(Q([(1, 2, 'a'), (1, 2, 'a')]))
             0
             sage: len(Q([(1, 2, 'a'), (2, 3, 'b')]))
@@ -251,7 +251,7 @@ class QuiverPath(MonoidElement):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}}).free_small_category()
+            sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
             sage: Q([(1, 2, 'a'), (1, 2, 'a')]).deg()
             0
             sage: Q([(1, 2, 'a'), (2, 3, 'b')]).deg()
@@ -274,7 +274,7 @@ class QuiverPath(MonoidElement):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}}).free_small_category()
+            sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
             sage: a = Q((1, 2, 'a'))
             sage: b = Q((2, 3, 'b'))
             sage: bool(a*b)
@@ -304,7 +304,7 @@ class QuiverPath(MonoidElement):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c'], 4:['d']}}).free_small_category()
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c'], 4:['d']}}).path_semigroup()
             sage: a = Q((1, 2, 'a'))
             sage: b = Q((1, 2, 'b'))
             sage: c = Q((2, 3, 'c'))
@@ -341,7 +341,7 @@ class QuiverPath(MonoidElement):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}, 3:{4:['c']}}).free_small_category()
+            sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}, 3:{4:['c']}}).path_semigroup()
             sage: p = Q([(1, 2, 'a'), (2, 3, 'b'), (3, 4, 'c')])
             sage: p
             a*b*c
@@ -364,7 +364,7 @@ class QuiverPath(MonoidElement):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}, 3:{4:['c']}}).free_small_category()
+            sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}, 3:{4:['c']}}).path_semigroup()
             sage: p = Q([(1, 2, 'a'), (2, 3, 'b'), (3, 4, 'c')])
             sage: for e in p: print e
             (1, 2, 'a')
@@ -385,7 +385,7 @@ class QuiverPath(MonoidElement):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}, 3:{4:['c']}, 4:{5:['d']}}).free_small_category()
+            sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}, 3:{4:['c']}, 4:{5:['d']}}).path_semigroup()
             sage: x = Q([(1, 2, 'a'), (2, 3, 'b')])
             sage: y = Q([(3, 4, 'c'), (4, 5, 'd')])
             sage: y*x
@@ -428,7 +428,7 @@ class QuiverPath(MonoidElement):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}}).free_small_category()
+            sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
             sage: p = Q([(1, 2, 'a'), (2, 3, 'b')])
             sage: a = Q((1, 2, 'a'))
             sage: b = Q((2, 3, 'b'))
@@ -482,7 +482,7 @@ class QuiverPath(MonoidElement):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}}).free_small_category()
+            sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
             sage: y = Q([(1, 2, 'a'), (2, 3, 'b')])
             sage: y.initial_vertex()
             1
@@ -507,7 +507,7 @@ class QuiverPath(MonoidElement):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}}).free_small_category()
+            sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
             sage: y = Q([(1, 2, 'a'), (2, 3, 'b')])
             sage: y.terminal_vertex()
             3
@@ -526,7 +526,7 @@ class QuiverPath(MonoidElement):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}}).free_small_category()
+            sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
             sage: p = Q([(1, 2, 'a'), (2, 3, 'b')])
             sage: p.reverse()
             b*a

@@ -95,13 +95,18 @@ class QuiverAlgebra(CombinatorialFreeModule):
     #                                                                         #
     ###########################################################################
 
-    def __init__(self, k, Q):
+    def __init__(self, k, P):
         """
         Creates a QuiverAlgebra object.  Type QuiverAlgebra? for more information.
 
+        INPUT:
+
+        - ``k``, a commutagive ring
+        - ``P``, the partial semigroup formed by the paths of a quiver.
+
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b', 'c']}, 4:{}})
+            sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b', 'c']}, 4:{}}).path_semigroup()
             sage: Q.algebra(GF(5))
             Algebra of Quiver on 4 vertices over Finite Field of size 5
         """
@@ -118,14 +123,14 @@ class QuiverAlgebra(CombinatorialFreeModule):
         #       Shortcut for _quiver.free_small_category()
 
         from sage.categories.graded_algebras_with_basis import GradedAlgebrasWithBasis
-        self._quiver = Q
-        self._free_small_category = Q.free_small_category()
-        super(QuiverAlgebra, self).__init__(k, self._free_small_category,
+        self._quiver = P.quiver()
+        self._semigroup = P
+        super(QuiverAlgebra, self).__init__(k, self._semigroup,
                                             prefix='',
                                             element_class=self.Element,
                                             category=GradedAlgebrasWithBasis(k),
                                             bracket=False)
-        self._assign_names(self._free_small_category.variable_names())
+        self._assign_names(self._semigroup.variable_names())
 
     @cached_method
     def gens(self):
@@ -142,7 +147,7 @@ class QuiverAlgebra(CombinatorialFreeModule):
             (e_1, e_2, e_3, e_4, a, b, c)
 
         """
-        return tuple(self._from_dict( {index: self.base_ring().one()}, remove_zeros = False ) for index in self._free_small_category.gens())
+        return tuple(self._from_dict( {index: self.base_ring().one()}, remove_zeros = False ) for index in self._semigroup.gens())
 
     @cached_method
     def arrows(self):
@@ -157,7 +162,7 @@ class QuiverAlgebra(CombinatorialFreeModule):
             (a, b, c)
 
         """
-        return tuple(self._from_dict( {index: self.base_ring().one()}, remove_zeros = False ) for index in self._free_small_category.arrows())
+        return tuple(self._from_dict( {index: self.base_ring().one()}, remove_zeros = False ) for index in self._semigroup.arrows())
 
     @cached_method
     def idempotents(self):
@@ -172,7 +177,7 @@ class QuiverAlgebra(CombinatorialFreeModule):
             (e_1, e_2, e_3, e_4)
 
         """
-        return tuple(self._from_dict( {index: self.base_ring().one()}, remove_zeros = False ) for index in self._free_small_category.idempotents())
+        return tuple(self._from_dict( {index: self.base_ring().one()}, remove_zeros = False ) for index in self._semigroup.idempotents())
 
 
     def gen(self, i):
@@ -191,7 +196,7 @@ class QuiverAlgebra(CombinatorialFreeModule):
             b
 
         """
-        return self._from_dict( {self._free_small_category.gen(i): self.base_ring().one()}, remove_zeros = False )
+        return self._from_dict( {self._semigroup.gen(i): self.base_ring().one()}, remove_zeros = False )
 
     def ngens(self):
         """
@@ -205,7 +210,7 @@ class QuiverAlgebra(CombinatorialFreeModule):
             7
 
         """
-        return self._free_small_category.ngens()
+        return self._semigroup.ngens()
 
     def _element_constructor_(self, x):
         """
@@ -243,7 +248,7 @@ class QuiverAlgebra(CombinatorialFreeModule):
         # If it's a tuple or a list try and create a QuiverPath from it and
         # then return the associated basis element
         if isinstance(x, tuple) or isinstance(x, list):
-            return self.monomial(self._free_small_category(x))
+            return self.monomial(self._semigroup(x))
 
         # Otherwise let CombinatorialFreeModule try
         return super(QuiverAlgebra, self)._element_constructor_(x)
@@ -295,11 +300,11 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         ::
 
-            sage: A2.coerce_map_from(Q1.free_small_category())
+            sage: A2.coerce_map_from(Q1.path_semigroup())
             Conversion map:
               From: Free small category of Quiver on 2 vertices
               To:   Algebra of Quiver on 2 vertices over Finite Field of size 3
-            sage: a = Q1.free_small_category()(Q1.free_small_category().arrows()[0]); a
+            sage: a = Q1.path_semigroup()(Q1.path_semigroup().arrows()[0]); a
             a
             sage: A2.one() * a == a     # indirect doctest
             True
@@ -310,7 +315,7 @@ class QuiverAlgebra(CombinatorialFreeModule):
                 self._base.has_coerce_map_from(other._base) and
                 other._quiver <= self._quiver):
             return True
-        if self._free_small_category.has_coerce_map_from(other):
+        if self._semigroup.has_coerce_map_from(other):
             return True
         return self._base.has_coerce_map_from(other)
 
@@ -341,7 +346,7 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}}).free_small_category()
+            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
             sage: inv = Q([(1,3,'x')])
             sage: inv
             invalid path
@@ -367,7 +372,7 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}, 3:{4:['c']}}).free_small_category()
+            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}, 3:{4:['c']}}).path_semigroup()
             sage: p1 = Q((1, 2, 'a'))
             sage: p2 = Q([(2, 3, 'b'), (3, 4, 'c')])
             sage: A = Q.algebra(QQ)
@@ -377,7 +382,7 @@ class QuiverAlgebra(CombinatorialFreeModule):
             0
 
         """
-        FSC = self._free_small_category
+        FSC = self._semigroup
         p = FSC(p1)*FSC(p2)
         if p:
             return self.basis()[p]
@@ -399,7 +404,7 @@ class QuiverAlgebra(CombinatorialFreeModule):
             2
         """
 
-        return len(self._free_small_category(p))
+        return len(self._semigroup(p))
 
     def one(self):
         """
@@ -418,7 +423,7 @@ class QuiverAlgebra(CombinatorialFreeModule):
         x = self.zero()
         B = self.basis()
         for v in self._quiver:
-            x += B[self._free_small_category([(v, v)], check=False)]
+            x += B[self._semigroup([(v, v)], check=False)]
         return x
 
     ###########################################################################
@@ -462,10 +467,10 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
             sage: Q = Quiver({1:{2:['a', 'b']}})
             sage: A = Q.algebra(GF(3))
-            sage: A.semigroup() is Q.free_small_category()
+            sage: A.semigroup() is Q.path_semigroup()
             True
         """
-        return self._free_small_category
+        return self._semigroup
 
     def homogeneous_component(self, n):
         """

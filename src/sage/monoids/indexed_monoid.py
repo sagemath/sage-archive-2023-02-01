@@ -757,14 +757,24 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
 
             sage: G = FreeAbelianMonoid(index_set=ZZ)
             sage: G.an_element()
-            F[1]
-            sage: G = FreeMonoid(index_set='abc')
+            F[-1]^3*F[0]*F[1]^3
+            sage: G = FreeMonoid(index_set='ab')
             sage: G.an_element()
-            F['a']*F['b']*F['c']
+            F['a']^2*F['b']^2
         """
-        if self._indices.cardinality() != infinity:
-            return self.prod(self.gens())
-        return self.gen(self._indices.an_element())
+        x = self.one()
+        I = self._indices
+        try:
+            x *= self.gen(I.an_element())
+        except Exception:
+            pass
+        try:
+            g = iter(self._indices)
+            for c in range(1,4):
+                x *= self.gen(g.next()) ** c
+        except Exception:
+            pass
+        return x
 
     def __contains__(self, x):
         r"""

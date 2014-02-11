@@ -364,12 +364,16 @@ class StaticSparseBackend(CGraphBackend):
             [1]
             sage: g.edges()
             [(1, 1, 1), (1, 1, 2), (1, 1, 3)]
+
+        :trac:`15810` is fixed::
+
+            sage: DiGraph({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}}, immutable=True).is_directed_acyclic()
+            True
         """
         cdef StaticSparseCGraph cg = <StaticSparseCGraph> StaticSparseCGraph(G)
         self._cg = cg
 
-        # .directed and not ._directed. Because of CGraph.
-        self.directed = cg.directed
+        self._directed = cg.directed
 
         vertices = G.vertices()
         self._order = len(vertices)
@@ -430,7 +434,7 @@ class StaticSparseBackend(CGraphBackend):
             sage: loads(dumps(gi)) == gi
             True
         """
-        if self.directed:
+        if self._directed:
             from sage.graphs.digraph import DiGraph
             G = DiGraph(loops=self._loops, multiedges=self._multiedges)
             G.add_edges(list(self.iterator_out_edges(self.iterator_verts(None),True)))

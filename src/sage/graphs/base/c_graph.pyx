@@ -3011,7 +3011,7 @@ cdef class Search_iterator:
 
         self.stack = [v_id]
 
-        if not self.graph.directed:
+        if not self.graph._directed:
             ignore_direction = False
 
         self.test_out = (not reverse) or ignore_direction

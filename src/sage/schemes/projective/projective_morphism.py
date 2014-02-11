@@ -194,7 +194,18 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         return self.codomain().point(P,check)
         
     def _fast_eval(self, x,check=True):
-        # Quickly evaluates a polynomial at point x
+         """
+        Evaluate projective morphism at point described by list x.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z>=ProjectiveSpace(QQ,2)
+            sage: H=Hom(P,P)
+            sage: f=H([x^2+y^2,y^2,z^2 + y*z])
+            sage: f._fast_eval([1,1,1])
+            [5,4,3]
+
+        """
         P = [f(*x) for f in self._fastPolys]
         return P
 
@@ -2704,8 +2715,18 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_polynomial_projective_space_field):
         
     def _fast_eval(self, x,check=True):
-        # Quickly evaluates a polynomial at point x
-        # Applies mod where necessary
+         """
+         Evaluate projective morphism at point described by list x.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z>=ProjectiveSpace(GF(7),2)
+            sage: H=Hom(P,P)
+            sage: f=H([x^2+y^2,y^2,z^2 + y*z])
+            sage: f._fast_eval([1,1,1])
+            [2,1,2]
+
+        """
         if self._isPrimeFiniteField:
             p=self.base_ring().characteristic()
             P = [f(*x)%p for f in self._fastPolys]

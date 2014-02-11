@@ -2402,7 +2402,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
 
     cpdef linear_extensions(self, element=None, F=None, simple=False, fundamentals=None):
         r"""
-        Create a list of linear matroids represented by single-element
+        Create a list of linear matroids represented by rank-preserving single-element
         extensions of this linear matroid representation.
 
         INPUT:
@@ -2416,8 +2416,9 @@ cdef class LinearMatroid(BasisExchangeMatroid):
 
         OUTPUT:
 
-        A list of linear matroids represented by single-element extensions of
-        this linear matroid representation.
+        A list of linear matroids represented by rank-preserving single-element extensions of
+        this linear matroid representation. In particular, the extension by a coloop is not 
+        generated.
 
         If one or more of the above inputs is given, the list is restricted to
         matroids
@@ -2470,7 +2471,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
 
     cpdef linear_coextensions(self, element=None, F=None, cosimple=False, fundamentals=None):
         r"""
-        Create a list of linear matroids represented by single-element
+        Create a list of linear matroids represented by corank-preserving single-element
         coextensions of this linear matroid representation.
 
         INPUT:
@@ -2484,8 +2485,9 @@ cdef class LinearMatroid(BasisExchangeMatroid):
 
         OUTPUT:
 
-        A list of linear matroids represented by single-element coextensions
-        of this linear matroid representation.
+        A list of linear matroids represented by corank-preserving single-element 
+        coextensions of this linear matroid representation. In particular, the coextension 
+        by a loop is not generated. 
 
         If one or more of the above inputs is given, the list is restricted to
         coextensions

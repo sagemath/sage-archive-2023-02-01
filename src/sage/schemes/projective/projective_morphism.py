@@ -180,6 +180,18 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                 self._fastPolys.append(fast_callable(poly,domain=poly.base_ring()))
     
     def __call__(self, x,check=True):
+        """
+        Evaluate projective morphism at point described by list x.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z>=ProjectiveSpace(QQ,2)
+            sage: H=Hom(P,P)
+            sage: f=H([x^2+y^2,y^2,z^2 + y*z])
+            sage: f._fast_eval([1,1,1])
+            [5,4,3]
+
+        """
         from sage.schemes.projective.projective_point import SchemeMorphism_point_projective_ring
         if check:
             if not isinstance(x,SchemeMorphism_point_projective_ring):
@@ -192,7 +204,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         return self.codomain().point(P,check)
         
     def _fast_eval(self, x,check=True):
-         """
+        """
         Evaluate projective morphism at point described by list x.
 
         EXAMPLES::

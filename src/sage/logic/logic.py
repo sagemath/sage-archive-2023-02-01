@@ -291,7 +291,21 @@ class SymbolicLogic:
                 sage: s1 = log.statement("(a&b)")
                 sage: s2 = log.statement("b")
                 sage: log.combine(s1,s2)
-                
+                [['OPAREN',
+                  'OPAREN',
+                  'OPAREN',
+                  'a',
+                  'AND',
+                  'b',
+                  'CPAREN',
+                  'CPAREN',
+                  'OR',
+                  'OPAREN',
+                  'b',
+                  'CPAREN',
+                  'CPAREN'],
+                 {'a': 'False', 'b': 'False'},
+                 ['a', 'b', 'b']]       
         """
         toks = ['OPAREN']+statement1[0]+['OR']+statement2[0]+['CPAREN']
         vars = dict(statement1[1].items() +  statement2[1].items())

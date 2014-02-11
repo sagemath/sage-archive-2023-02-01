@@ -3242,12 +3242,18 @@ class SimplicialComplex(GenericCellComplex):
 
         INPUT:
 
-        - `G` -- a subgroup of the automorphism group of the simplicial complex
-                 or a list of elements of the automorphism group
+        - `G` -- a subgroup of the automorphism group of the
+                 simplicial complex or a list of elements of the
+                 automorphism group
 
         OUTPUT:
 
-        - a simplicial complex
+        - a simplicial complex `Fix(G)`
+
+        Vertices in `Fix(G)` are the orbits of `G` (acting on vertices
+        of ``self``) that form a simplex in ``self``. More generally,
+        simplices in `Fix(G)` correspond to simplices in ``self`` that
+        are union of such orbits.
 
         A basic example::
 
@@ -3257,6 +3263,13 @@ class SimplicialComplex(GenericCellComplex):
             sage: fix.is_isomorphic(S3)
             True
 
+        Another simple example::
+
+            sage: T = SimplicialComplex([[1,2,3],[2,3,4]])
+            sage: G = CP2.automorphism_group()
+            sage: T.fixed_complex([G([(1,4)])])
+            Simplicial complex with vertex set ? and facets ?
+
         A more sophisticated example::
 
             sage: RP2 = simplicial_complexes.ProjectivePlane()
@@ -3265,8 +3278,6 @@ class SimplicialComplex(GenericCellComplex):
             sage: H = G.subgroup([G([(2,3),(5,6),(8,9)])])
             sage: CP2.fixed_complex(H).is_isomorphic(RP2)
             True
-
-        REFERENCES:
         """
         from sage.categories.groups import Groups
         if G in Groups():
@@ -3275,10 +3286,10 @@ class SimplicialComplex(GenericCellComplex):
             gens = G
             G = self.automorphism_group().subgroup(gens)
 
-        invariant_f = [u for u in self.face_iterator()
+        invariant_f = [list(u) for u in self.face_iterator()
                        if all(sorted([sigma(j) for j in u]) == sorted(list(u))
                               for sigma in gens)]
-        new_verts = [min(o) for o in G.orbits()]
+        new_verts = [min(o) for o in G.orbits() if o in invariant_f]
         return SimplicialComplex([[s for s in f if s in new_verts]
                                   for f in invariant_f])
 

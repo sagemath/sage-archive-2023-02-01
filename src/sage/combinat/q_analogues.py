@@ -69,8 +69,8 @@ def q_int(n, q=None):
         raise ValueError('%s must be an integer' % n)
 
     if q is None:
-        q = ZZ['q'].gens()[0]
-    if n == 0: # Special case
+        q = ZZ['q'].gen()
+    if n == 0:  # Special case
         return q.parent().zero()
     if n >= 0:
         return sum(q**i for i in range(n))

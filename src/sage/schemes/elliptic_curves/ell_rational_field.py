@@ -1324,14 +1324,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.analytic_rank(algorithm='pari')
             2
             sage: E.analytic_rank(algorithm='rubinstein')
-              ***   Warning:...new stack size = ...
             2
             sage: E.analytic_rank(algorithm='sympow')
             2
             sage: E.analytic_rank(algorithm='magma')    # optional - magma
             2
             sage: E.analytic_rank(algorithm='all')
-              ***   Warning:...new stack size = ...
             2
 
         With the optional parameter leading_coefficient set to ``True``, a
@@ -2160,13 +2158,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             113.302910926080
             sage: E.saturation([P])
             ([(-192128125858676194585718821667542660822323528626273/336995568430319276695106602174283479617040716649 : 70208213492933395764907328787228427430477177498927549075405076353624188436/195630373799784831667835900062564586429333568841391304129067339731164107 : 1)], 1, 113.302910926080)
-            sage: E.saturation([2*P])  # needs higher precision; long time
-            After 10 attempts at enlargement, giving up!
-            ...
-            ([(1755450733726721618440965414535034458701302721700399/970334851896750960577261378321772998240802013604 : -59636173615502879504846810677646864329901430096139563516090202443694810309127/955833935771565601591243078845907133814963790187832340692216425242529192 : 1)], 2, 113.302910926080)
+            sage: (Q,), ind, reg = E.saturation([2*P])  # needs higher precision, handled by eclib
+            sage: 2*Q == 2*P
+            True
+            sage: ind
+            2
+            sage: reg
+            113.302910926080
 
-        See #10840.  This causes eclib to crash since the curve is
-        non-minimal at 2::
+        See :trac:`10840`.  This used to cause eclib to crash since the
+        curve is non-minimal at 2::
 
             sage: E = EllipticCurve([0,0,0,-13711473216,0])
             sage: P = E([-19992,16313472])
@@ -3886,6 +3887,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            database), or the one with minimal `a`-invariant list
            (otherwise).
 
+        .. note::
+
+           For curves with `j`-invariant 0 or 1728 the curve returned
+           is the minimal quadratic twist, not necessarily the minimal
+           twist (which would have conductor 27 or 32 respectively).
+
         EXAMPLES::
 
             sage: E = EllipticCurve('121d1')
@@ -3909,20 +3916,35 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.minimal_quadratic_twist()
             (Elliptic Curve defined by y^2 = x^3 + 4*x over Rational Field, 5)
 
+        If the curve has square-free conductor then it is already minimal (see :trac:`14060`)::
 
+            sage: E = cremona_optimal_curves([2*3*5*7*11]).next()
+            sage: (E, 1) == E.minimal_quadratic_twist()
+            True
+
+        An example where the minimal quadratic twist is not the
+        minimal twist (which has conductor 27)::
+
+            sage: E = EllipticCurve([0,0,0,0,7])
+            sage: E.j_invariant()
+            0
+            sage: E.minimal_quadratic_twist()[0].conductor()
+            5292
         """
+        if self.conductor().is_squarefree():
+            return self, Integer(1)
         j = self.j_invariant()
         if j!=0 and j!=1728:
             # the constructor from j will give the minimal twist
             Et = constructor.EllipticCurve_from_j(j)
         else:
-            if j==0:
+            if j==0:  # divide c6 by largest cube
                 c = -2*self.c6()
                 for p in c.support():
                     e = c.valuation(p)//3
                     c /= p**(3*e)
                 E1 = constructor.EllipticCurve([0,0,0,0,c])
-            elif j==1728:
+            elif j==1728: # divide c4 by largest square
                 c = -3*self.c4()
                 for p in c.support():
                     e = c.valuation(p)//2
@@ -3946,96 +3968,52 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     ##########################################################
     # Isogeny class
     ##########################################################
-    def isogeny_class(self, algorithm="sage", verbose=False, fill_matrix=True, return_maps=False, order=None, use_tuple=True):
+    def isogeny_class(self, algorithm="sage", order=None):
         r"""
-        Returns all curves over `\QQ` isogenous to this elliptic curve.
+        Returns the `\QQ`-isogeny class of this elliptic curve.
 
         INPUT:
 
         -  ``algorithm`` - string: one of the following:
-
-           - "mwrank" - use the mwrank C++ library
 
            - "database" - use the Cremona database (only works if
              curve is isomorphic to a curve in the database)
 
            - "sage" (default) - use the native Sage implementation.
 
-        - ``verbose`` -- bool (default: False): ignored unless
-          ``algorithm`` == "mwrank", in which case it is passed to the
-          isogeny class function in mwrank.
-
-        - ``fill_matrix`` -- bool (default: True): See below.
-
-        - ``return_maps`` -- bool (default: False): Ignored unless
-          ``algorithm`` == "sage"; then if True, also returns a list of
-          lists indexed by pairs of curves in the class such that the
-          `(i,j)` entry is the isogeny from curve `i` to curve `j` if
-          that isogeny has prime degree, else 0.
-
         - ``order`` -- None, string, or list of curves (default:
           None): If not None then the curves in the class are
           reordered after being computed.  Note that if the order is
           None then the resulting order will depend on the algorithm.
 
-          - if ``order`` is "mwrank", "database", or "sage" then the
-            reordering is so that the order of curves lines up with
-            the order produced by that algorithm.
+          - if ``order`` is "database" or "sage", then the reordering
+            is so that the order of curves matches the order produced
+            by that algorithm.
 
           - if ``order`` is "lmfdb" then the curves are sorted
-            lexicographically by a-invariants.
+            lexicographically by a-invariants, in the LMFDB database.
 
           - if ``order`` is a list of curves, then the curves in the
             class are reordered to be isomorphic with the specified
             list of curves.
 
-        - ``use_tuple`` -- bool (default: True).  Controls the output
-          format: see below.  ``use_tuple==True`` is deprecated.
-
         OUTPUT:
 
-        If ``use_tuple`` is False, returns a
-        :class:`sage.schemes.elliptic_curves.isogeny_class.IsogenyClass_EC_Rational`
-        instance.  This object models a list of minimal models (with
-        containment, index, etc based on isomorphism classes).  It
-        also has methods for computing the isogeny matrix and the list
-        of isogenies between curves in this class.
-
-        If ``use_tuple`` is True (deprecated), then returns a
-        tuple (isogeny class, matrix of integers) or (isogeny class,
-        matrix of integers, matrix of isogenies). The sorted list of
-        all curves isogenous to self is returned. If ``algorithm`` is
-        not "database", the isogeny matrix is also returned, otherwise
-        None is returned as the second return value.  When fill_matrix
-        is True (default) the `(i,j)` entry of the matrix is a
-        positive integer giving the least degree of a cyclic isogeny
-        from curve `i` to curve `j` (in particular, the diagonal
-        entries are all `1`).  When fill_matrix is False, the
-        non-prime entries are replaced by `0` (used in the
-        ``isogeny_graph()`` function).
+        An instance of the class
+        :class:`sage.schemes.elliptic_curves.isogeny_class.IsogenyClass_EC_Rational`.
+        This object models a list of minimal models (with containment,
+        index, etc based on isomorphism classes).  It also has methods
+        for computing the isogeny matrix and the list of isogenies
+        between curves in this class.
 
         .. note::
 
-            The curves in the isogeny class are all standard minimal models.
-
-        .. warning::
-
-            With ``algorithm`` "mwrank", the result is *not*
-            provably correct, in the sense that when the numbers are
-            huge isogenies could be missed because of precision
-            issues.  Using ``algorithm`` "sage" avoids this problem,
-            though is slower.
-
-        .. note::
-
-           TO DO: when composition of isogenies is implemented, the
-           optional returned matrix of isogenies should be completed
-           to include all the isogenies, not just those of prime
-           degree.
+            The curves in the isogeny class will all be standard
+            minimal models.
 
         EXAMPLES::
 
-            sage: isocls = EllipticCurve('37b').isogeny_class('mwrank',order="lmfdb",use_tuple=False)
+            sage: isocls = EllipticCurve('37b').isogeny_class(order="lmfdb")
             sage: isocls
             Elliptic curve isogeny class 37b
             sage: isocls.curves
@@ -4049,7 +4027,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         ::
 
-            sage: isocls = EllipticCurve('37b').isogeny_class('database', order="lmfdb", use_tuple=False); isocls.curves
+            sage: isocls = EllipticCurve('37b').isogeny_class('database', order="lmfdb"); isocls.curves
             (Elliptic Curve defined by y^2 + y = x^3 + x^2 - 1873*x - 31833 over Rational Field,
              Elliptic Curve defined by y^2 + y = x^3 + x^2 - 23*x - 50 over Rational Field,
              Elliptic Curve defined by y^2 + y = x^3 + x^2 - 3*x + 1 over Rational Field)
@@ -4057,7 +4035,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         This is an example of a curve with a `37`-isogeny::
 
             sage: E = EllipticCurve([1,1,1,-8,6])
-            sage: isocls = E.isogeny_class(use_tuple=False); isocls
+            sage: isocls = E.isogeny_class(); isocls
             Isogeny class of Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 8*x + 6 over Rational Field
             sage: isocls.matrix()
             [ 1 37]
@@ -4069,7 +4047,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         This curve had numerous `2`-isogenies::
 
             sage: e=EllipticCurve([1,0,0,-39,90])
-            sage: isocls = e.isogeny_class(use_tuple=False); isocls.matrix()
+            sage: isocls = e.isogeny_class(); isocls.matrix()
             [1 2 4 4 8 8]
             [2 1 2 2 4 4]
             [4 2 1 4 8 8]
@@ -4083,24 +4061,19 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         ::
 
             sage: E = EllipticCurve(j = -262537412640768000)
-            sage: isocls = E.isogeny_class(algorithm="sage", use_tuple=False); isocls.matrix()
+            sage: isocls = E.isogeny_class(); isocls.matrix()
             [  1 163]
             [163   1]
             sage: print "\n".join([repr(C) for C in isocls.curves])
             Elliptic Curve defined by y^2 + y = x^3 - 2174420*x + 1234136692 over Rational Field
             Elliptic Curve defined by y^2 + y = x^3 - 57772164980*x - 5344733777551611 over Rational Field
 
-        For large examples, the "mwrank" algorithm may fail to find
-        some isogenies since it works in fixed precision::
 
+        The degrees of isogenies are invariant under twists::
+
+            sage: E = EllipticCurve(j = -262537412640768000)
             sage: E1 = E.quadratic_twist(6584935282)
-            sage: E1.isogeny_class(algorithm="mwrank", use_tuple=False).matrix()
-            [1]
-
-        Using algorithm="sage" gives another isogeny (even though
-        results are cached: the cache depends on the algorithm)::
-
-            sage: isocls = E1.isogeny_class(algorithm="sage", use_tuple=False); isocls.matrix()
+            sage: isocls = E1.isogeny_class(); isocls.matrix()
             [  1 163]
             [163   1]
             sage: E1.conductor()
@@ -4109,7 +4082,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         ::
 
             sage: E = EllipticCurve('14a1')
-            sage: isocls = E.isogeny_class(algorithm="sage", use_tuple=False); isocls.matrix()
+            sage: isocls = E.isogeny_class(); isocls.matrix()
             [ 1  2  3  3  6  6]
             [ 2  1  6  6  3  3]
             [ 3  6  1  9  2 18]
@@ -4141,7 +4114,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         ::
 
             sage: E = EllipticCurve('11a1')
-            sage: isocls = E.isogeny_class(algorithm="sage", use_tuple=False); isocls.matrix()
+            sage: isocls = E.isogeny_class(); isocls.matrix()
             [ 1  5  5]
             [ 5  1 25]
             [ 5 25  1]
@@ -4158,23 +4131,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 label = self.__cremona_label[:-1]
             else:
                 label = None
-            isoclass = IsogenyClass_EC_Rational(self, algorithm, verbose, label)
+
+            isoclass = IsogenyClass_EC_Rational(self, algorithm, label)
             self._isoclass[algorithm] = isoclass
+
         if order:
             isoclass = isoclass.reorder(order)
-        if use_tuple:
-            from sage.misc.superseded import deprecation
-            deprecation(12768, """For elliptic curves E over Q, isogeny_class(use_tuple=False) returns a class
-that has methods producing the isogeny graph and list of lists of isogenies.
-use_tuple=True (currently default) is deprecated.""")
-            # After a year or so (in May 2013) we should switch the default to use_tuple=False as the default and deprecate
-            # the keyword argument
-            if return_maps:
-                return isoclass, isoclass.matrix(fill_matrix), isoclass.isogenies()
-            else:
-                return isoclass, isoclass.matrix(fill_matrix)
-        else:
-            return isoclass
+
+        return isoclass
 
     def isogenies_prime_degree(self, l=None):
         r"""
@@ -4328,7 +4292,7 @@ use_tuple=True (currently default) is deprecated.""")
         if not proof:
             return True
         else:
-            return  E2 in E1.isogeny_class(use_tuple=False).curves
+            return  E2 in E1.isogeny_class().curves
 
     def isogeny_degree(self, other):
         """
@@ -4439,7 +4403,7 @@ use_tuple=True (currently default) is deprecated.""")
         if not E1.is_isogenous(E2, proof=False):
             return Integer(0)
 
-        isocls = E1.isogeny_class(use_tuple=False)
+        isocls = E1.isogeny_class()
         try:
             return isocls.matrix(fill=True)[0,isocls.index(E2)]
         except ValueError:
@@ -4552,7 +4516,7 @@ use_tuple=True (currently default) is deprecated.""")
             8 Elliptic Curve defined by y^2 + x*y  = x^3 - 130000*x - 18051943 over Rational Field
             sage: G.plot(edge_labels=True)
         """
-        return self.isogeny_class(algorithm='mwrank', order=order, use_tuple=False).graph()
+        return self.isogeny_class(order=order).graph()
 
     def manin_constant(self):
         r"""
@@ -4600,7 +4564,7 @@ use_tuple=True (currently default) is deprecated.""")
 
         E = self.minimal_model()
         C = self.optimal_curve()
-        m = C.isogeny_class(use_tuple=False).matrix()
+        m = C.isogeny_class().matrix()
         ma = max(max(x) for x in m)
         OmC = C.period_lattice().basis()
         OmE = E.period_lattice().basis()
@@ -4639,12 +4603,6 @@ use_tuple=True (currently default) is deprecated.""")
         curves and corresponding dictionary of shortest isogeny paths
         from self to each other curve in the isogeny class.
 
-        .. warning::
-
-           The result is *not* provably correct, in the
-           sense that when the numbers are huge isogenies could be
-           missed because of precision issues.
-
         OUTPUT:
 
         list, dict
@@ -4653,8 +4611,8 @@ use_tuple=True (currently default) is deprecated.""")
 
             sage: EllipticCurve('11a1')._shortest_paths()
             ((Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field,
-              Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field,
-              Elliptic Curve defined by y^2 + y = x^3 - x^2 over Rational Field),
+              Elliptic Curve defined by y^2 + y = x^3 - x^2 over Rational Field,
+              Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field),
              {0: 0, 1: 5, 2: 5})
             sage: EllipticCurve('11a2')._shortest_paths()
             ((Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field,
@@ -4663,7 +4621,7 @@ use_tuple=True (currently default) is deprecated.""")
              {0: 0, 1: 5, 2: 25})
         """
         from sage.graphs.graph import Graph
-        isocls = self.isogeny_class(algorithm='mwrank',use_tuple=False)
+        isocls = self.isogeny_class()
         M = isocls.matrix(fill=True).change_ring(rings.RR)
         # see trac #4889 for nebulous M.list() --> M.entries() change...
         # Take logs here since shortest path minimizes the *sum* of the weights -- not the product.

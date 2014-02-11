@@ -7768,7 +7768,22 @@ cdef class gen(sage.structure.element.RingElement):
 
     def poldisc(self, var=-1):
         """
-        f.poldist(var=x): Return the discriminant of this polynomial.
+        Return the discriminant of this polynomial.
+
+        EXAMPLES::
+
+            sage: pari("x^2 + 1").poldisc()
+            -4
+
+        Before :trac:`15654`, this used to take a very long time.
+        Now it takes much less than a second::
+
+            sage: pari.allocatemem(200000)
+            PARI stack size set to 200000 bytes
+            sage: x = polygen(ZpFM(3,10))
+            sage: pol = ((x-1)^50 + x)
+            sage: pari(pol).poldisc()
+            2*3 + 3^4 + 2*3^6 + 3^7 + 2*3^8 + 2*3^9 + O(3^10)
         """
         pari_catch_sig_on()
         return P.new_gen(poldisc0(self.g, P.get_var(var)))
@@ -8109,20 +8124,89 @@ cdef class gen(sage.structure.element.RingElement):
     def lllgramint(self):
         return self.qflllgram(1)
 
-    def qfminim(self, B, max, long flag=0):
+    def qfminim(self, b=None, m=None, long flag=0, unsigned long precision=0):
         """
-        qfminim(x,bound,maxnum,flag=0): number of vectors of square norm =
-        bound, maximum norm and list of vectors for the integral and
-        definite quadratic form x; minimal non-zero vectors if bound=0.
-        flag is optional, and can be 0: default; 1: returns the first
-        minimal vector found (ignore maxnum); 2: as 0 but uses a more
-        robust, slower implementation, valid for non integral quadratic
-        forms.
+        Return vectors with bounded norm for this quadratic form.
+
+        INPUT:
+
+        - ``self`` -- a quadratic form
+        - ``b`` -- a bound on vector norm (finds minimal non-zero
+          vectors if b=0)
+        - ``m`` -- maximum number of vectors to return.  If ``None``
+          (default), return all vectors of norm at most B
+        - flag (optional) --
+
+           - 0: default;
+           - 1: return only the first minimal vector found (ignore ``max``);
+           - 2: as 0 but uses a more robust, slower implementation,
+             valid for non integral quadratic forms.
+
+        OUTPUT:
+
+        A triple consisting of
+
+        - the number of vectors of norm <= b,
+        - the actual maximum norm of vectors listed
+        - a matrix whose columns are vectors with norm less than or
+          equal to b for the definite quadratic form. Only one of `v`
+          and `-v` is returned and the zero vector is never returned.
+
+        .. note::
+
+           If max is specified then only max vectors will be output,
+           but all vectors withing the given norm bound will be computed.
+
+        EXAMPLES::
+
+            sage: A = Matrix(3,3,[1,2,3,2,5,5,3,5,11])
+            sage: A.is_positive_definite()
+            True
+
+        The first 5 vectors of norm at most 10::
+
+             sage: pari(A).qfminim(10, 5).python()
+             [
+                      [-17 -14 -15 -16 -13]
+                      [  4   3   3   3   2]
+             146, 10, [  3   3   3   3   3]
+             ]
+
+
+        All vectors of minimal norm::
+
+             sage: pari(A).qfminim(0).python()
+             [
+                   [-5 -2  1]
+                   [ 1  1  0]
+             6, 1, [ 1  0  0]
+             ]
+
+        Use flag=2 for non-integral input::
+
+             sage: pari(A.change_ring(RR)).qfminim(5, m=5, flag=2).python()
+             [
+                                      [ -5 -10  -2  -7   3]
+                                      [  1   2   1   2   0]
+             10, 5.00000000023283..., [  1   2   0   1  -1]
+             ]
+
         """
-        cdef gen t0 = objtogen(B)
-        cdef gen t1 = objtogen(max)
+        cdef gen t0, t1
+        cdef GEN g0, g1
+        if b is None:
+            g0 = NULL
+        else:
+            t0 = objtogen(b)
+            g0 = t0.g
+        if m is None:
+            g1 = NULL
+        else:
+            t1 = objtogen(m)
+            g1 = t1.g
         pari_catch_sig_on()
-        return P.new_gen(qfminim0(self.g, t0.g, t1.g, flag, precdl))
+        # precision is only used when flag == 2
+        return P.new_gen(qfminim0(self.g, g0, g1, flag, prec_bits_to_words(precision)))
 
     def qfrep(self, B, long flag=0):
         """

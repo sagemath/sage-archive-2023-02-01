@@ -20,7 +20,7 @@ Non-Commutative Symmetric Functions
 
 ########################################
 # TODO:
-# 1. Make Coersion run faster between multiple bases.
+# 1. Make Coercion run faster between multiple bases.
 ########################################
 
 from sage.misc.bindable_class import BindableClass
@@ -29,19 +29,21 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.functions.other import factorial
 from sage.categories.realizations import Category_realization_of_parent
 from sage.categories.rings import Rings
 from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
-from sage.combinat.composition import Composition, Compositions
+from sage.combinat.composition import Compositions
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.ncsf_qsym.generic_basis_code import BasesOfQSymOrNCSF
-from sage.combinat.ncsf_qsym.combinatorics import *
+from sage.combinat.ncsf_qsym.combinatorics import (coeff_pi, coeff_lp,
+        coeff_sp, coeff_ell, m_to_s_stat, number_of_fCT)
 from sage.combinat.partition import Partition
 from sage.combinat.permutation import Permutations
 
 class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
     r"""
-    The abstract algebra of non-commutative symmetric functions
+    The abstract algebra of non-commutative symmetric functions.
 
     We construct the abstract algebra of non-commutative symmetric
     functions over the rational numbers::
@@ -579,8 +581,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                     \mathbf{V}_n(S_r) = S_{r/n},
                     \quad \mathbf{V}_n(\Lambda_r) = (-1)^{r - r/n} \Lambda_{r/n},
-                    \quad \mathbf{V}_n(\Psi_r) = n \Psi_r,
-                    \quad \mathbf{V}_n(\Phi_r) = n \Phi_r
+                    \quad \mathbf{V}_n(\Psi_r) = n \Psi_{r/n},
+                    \quad \mathbf{V}_n(\Phi_r) = n \Phi_{r/n}
 
                 (where `S_r` denotes the `r`-th complete non-commutative
                 symmetric function, `\Lambda_r` denotes the `r`-th elementary
@@ -588,7 +590,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 power-sum non-commutative symmetric function of the first kind,
                 and `\Phi_r` denotes the `r`-th power-sum non-commutative
                 symmetric function of the second kind). For every positive
-                integer `r` with `n \not\mid r`, it satisfes
+                integer `r` with `n \nmid r`, it satisfes
 
                 .. MATH::
 
@@ -610,11 +612,10 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 .. MATH::
 
                     \mathbf{V}_n ( R_I )
-                    = (-1)^{\ell(I) - \ell(J)}
-                    \cdot R_{J/n},
+                    = (-1)^{\ell(I) - \ell(J)} \cdot R_{J / n},
 
                 where `J` denotes the meet of the compositions `I` and
-                `(\underbrace{n, n, \ldots, n}_{\ell\mbox{ times}})`,
+                `(\underbrace{n, n, \ldots, n}_{|I|/n \mbox{ times}})`,
                 where `\ell(I)` is the length of `I`, and
                 where `J / n` denotes the composition obtained by dividing
                 every entry of `J` by `n`.
@@ -623,6 +624,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
+                    :meth:`sage.combinat.ncsf_qsym.qsym.QSym.Bases.ElementMethods.frobenius`,
                     :meth:`sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
 
                 INPUT:
@@ -684,10 +686,268 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 # componentwise, then convert back.
                 parent = self.parent()
                 S = parent.realization_of().S()
-                dct = {Composition(map(lambda i: i // n, I)): coeff
+                C = parent._basis_keys
+                dct = {C(map(lambda i: i // n, I)): coeff
                        for (I, coeff) in S(self).monomial_coefficients().items()
                        if all(i % n == 0 for i in I)}
                 return parent(S._from_dict(dct))
+
+            def star_involution(self):
+                r"""
+                Return the image of the noncommutative symmetric function
+                ``self`` under the star involution.
+
+                The star involution is defined as the algebra antihomomorphism
+                `NCSF \to NCSF` which, for every positive integer `n`, sends
+                the `n`-th complete non-commutative symmetric function `S_n` to
+                `S_n`. Denoting by `f^{\ast}` the image of an element
+                `f \in NCSF` under this star involution, it can be shown that
+                every composition `I` satisfies
+
+                .. MATH::
+
+                    (S^I)^{\ast} = S^{I^r}, \quad
+                    (\Lambda^I)^{\ast} = \Lambda^{I^r}, \quad
+                    R_I^{\ast} = R_{I^r}, \quad
+                    (\Phi^I)^{\ast} = \Phi^{I^r},
+
+                where `I^r` denotes the reversed composition of `I`, and
+                standard notations for classical bases of `NCSF` are being used
+                (`S` for the complete basis, `\Lambda` for the elementary basis,
+                `R` for the ribbon basis, and `\Phi` for that of the power-sums
+                of the second kind). The star involution is an involution and a
+                coalgebra automorphism of `NCSF`. It is an automorphism of the
+                graded vector space `NCSF`. Under the canonical isomorphism
+                between the `n`-th graded component of `NCSF` and the descent
+                algebra of the symmetric group `S_n` (see
+                :meth:`to_descent_algebra`), the star involution (restricted to
+                the `n`-th graded component) corresponds to the automorphism
+                of the descent algebra given by
+                `x \mapsto \omega_n x \omega_n`, where `\omega_n` is the
+                permutation `(n, n-1, ..., 1) \in S_n` (written here in
+                one-line notation). If `\pi` denotes the projection from `NCSF`
+                to the ring of symmetric functions
+                (:meth:`to_symmetric_function`), then `\pi(f^{\ast}) = \pi(f)`
+                for every `f \in NCSF`.
+
+                The star involution on `NCSF` is adjoint to the star involution
+                on `QSym` by the standard adjunction between `NCSF` and `QSym`.
+
+                The star involution has been denoted by `\rho` in [LMvW13]_,
+                section 3.6.
+                See [NCSF2]_, section 2.3 for the properties of this map.
+
+                .. SEEALSO::
+
+                    :meth:`sage.combinat.ncsf_qsym.qsym.QSym.Bases.ElementMethods.star_involution`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.psi_involution`.
+
+                EXAMPLES::
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(ZZ)
+                    sage: S = NSym.S()
+                    sage: S[3,2].star_involution()
+                    S[2, 3]
+                    sage: S[6,3].star_involution()
+                    S[3, 6]
+                    sage: (S[9,1] - S[8,2] + 2*S[6,4] - 3*S[3] + 4*S[[]]).star_involution()
+                    4*S[] + S[1, 9] - S[2, 8] - 3*S[3] + 2*S[4, 6]
+                    sage: (S[3,3] - 2*S[2]).star_involution()
+                    -2*S[2] + S[3, 3]
+                    sage: S([4,2]).star_involution()
+                    S[2, 4]
+                    sage: R = NSym.R()
+                    sage: R([4,2]).star_involution()
+                    R[2, 4]
+                    sage: R.zero().star_involution()
+                    0
+                    sage: NSym = NonCommutativeSymmetricFunctions(QQ)
+                    sage: Phi = NSym.Phi()
+                    sage: Phi([2,1]).star_involution()
+                    Phi[1, 2]
+
+                The Psi basis doesn't behave as nicely::
+
+                    sage: Psi = NSym.Psi()
+                    sage: Psi([2,1]).star_involution()
+                    Psi[1, 2]
+                    sage: Psi([3,1]).star_involution()
+                    1/2*Psi[1, 1, 2] - 1/2*Psi[1, 2, 1] + Psi[1, 3]
+
+                The star involution commutes with the antipode::
+
+                    sage: all( R(I).star_involution().antipode()
+                    ....:      == R(I).antipode().star_involution()
+                    ....:      for I in Compositions(4) )
+                    True
+
+                Checking the relation with the descent algebra described
+                above::
+
+                    sage: def descent_test(n):
+                    ....:     DA = DescentAlgebra(QQ, n)
+                    ....:     NSym = NonCommutativeSymmetricFunctions(QQ)
+                    ....:     S = NSym.S()
+                    ....:     DAD = DA.D()
+                    ....:     w_n = DAD(set(range(1, n)))
+                    ....:     for I in Compositions(n):
+                    ....:         if not (S[I].star_involution()
+                    ....:                 == w_n * S[I].to_descent_algebra(n) * w_n):
+                    ....:             return False
+                    ....:         return True
+                    sage: all( descent_test(i) for i in range(4) ) # not tested
+                    True
+                    sage: all( descent_test(i) for i in range(6) ) # not tested
+                    True
+
+                .. TODO::
+
+                    Once :trac:`10963` is in, remove the first "not tested" above,
+                    and replace the second one by "long time".
+
+                Testing the `\pi(f^{\ast}) = \pi(f)` relation noticed above::
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(QQ)
+                    sage: R = NSym.R()
+                    sage: all( R(I).star_involution().to_symmetric_function()
+                    ....:      == R(I).to_symmetric_function()
+                    ....:      for I in Compositions(4) )
+                    True
+
+                The star involution on `QSym` is adjoint to the star involution
+                on `NSym` with respect to the duality pairing::
+
+                    sage: QSym = QuasiSymmetricFunctions(QQ)
+                    sage: M = QSym.M()
+                    sage: NSym = NonCommutativeSymmetricFunctions(QQ)
+                    sage: S = NSym.S()
+                    sage: all( all( M(I).star_involution().duality_pairing(S(J))
+                    ....:           == M(I).duality_pairing(S(J).star_involution())
+                    ....:           for I in Compositions(2) )
+                    ....:      for J in Compositions(3) )
+                    True
+                """
+                # Convert to the homogeneous basis, there apply the star
+                # involution componentwise, then convert back.
+                parent = self.parent()
+                S = parent.realization_of().S()
+                dct = {I.reversed(): coeff
+                       for (I, coeff) in S(self).monomial_coefficients().items()}
+                return parent(S._from_dict(dct))
+
+            def psi_involution(self):
+                r"""
+                Return the image of the noncommutative symmetric function
+                ``self`` under the involution `\psi`.
+
+                The involution `\psi` is defined as the linear map
+                `NCSF \to NCSF` which, for every composition `I`, sends the
+                complete noncommutative symmetric function `S^I` to the
+                elementary noncommutative symmetric function `\Lambda^I`.
+                It can be shown that every composition `I` satisfies
+
+                .. MATH::
+
+                    \psi(R_I) = R^{I^c}, \quad \psi(S^I) = \Lambda^I, \quad
+                    \psi(\Lambda^I) = S^I, \quad
+                    \psi(\Phi^I) = (-1)^{|I| - \ell(I)} \Phi^I
+
+                where `I^c` denotes the complement of the composition `I`, and
+                `\ell(I)` denotes the length of `I`, and where standard
+                notations for classical bases of `NCSF` are being used
+                (`S` for the complete basis, `\Lambda` for the elementary basis,
+                `\Phi` for the basis of the power sums of the second kind,
+                and `R` for the ribbon basis). The map `\psi` is an involution
+                and a graded Hopf algebra automorphism of `NCSF`. If `\pi`
+                denotes the projection from `NCSF` to the ring of symmetric
+                functions (:meth:`to_symmetric_function`), then
+                `\pi(\psi(f)) = \omega(\pi(f))` for every `f \in NCSF`, where
+                the `\omega` on the right hand side denotes the omega
+                automorphism of `Sym`.
+
+                The involution `\psi` of `NCSF` is adjoint to the involution
+                `\psi` of `QSym` by the standard adjunction between `NCSF` and
+                `QSym`.
+
+                The involution `\psi` has been denoted by `\psi` in [LMvW13]_,
+                section 3.6.
+
+                .. SEEALSO::
+
+                    :meth:`sage.combinat.ncsf_qsym.qsym.QSym.Bases.ElementMethods.psi_involution`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.star_involution`.
+
+                EXAMPLES::
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(ZZ)
+                    sage: R = NSym.R()
+                    sage: R[3,2].psi_involution()
+                    R[1, 1, 2, 1]
+                    sage: R[6,3].psi_involution()
+                    R[1, 1, 1, 1, 1, 2, 1, 1]
+                    sage: (R[9,1] - R[8,2] + 2*R[2,4] - 3*R[3] + 4*R[[]]).psi_involution()
+                    4*R[] - 3*R[1, 1, 1] + R[1, 1, 1, 1, 1, 1, 1, 1, 2] - R[1, 1, 1, 1, 1, 1, 1, 2, 1] + 2*R[1, 2, 1, 1, 1]
+                    sage: (R[3,3] - 2*R[2]).psi_involution()
+                    -2*R[1, 1] + R[1, 1, 2, 1, 1]
+                    sage: R([2,1,1]).psi_involution()
+                    R[1, 3]
+                    sage: S = NSym.S()
+                    sage: S([2,1]).psi_involution()
+                    S[1, 1, 1] - S[2, 1]
+                    sage: S.zero().psi_involution()
+                    0
+                    sage: NSym = NonCommutativeSymmetricFunctions(QQ)
+                    sage: Phi = NSym.Phi()
+                    sage: Phi([2,1]).psi_involution()
+                    -Phi[2, 1]
+                    sage: Phi([3,1]).psi_involution()
+                    Phi[3, 1]
+
+                The Psi basis doesn't behave as nicely::
+
+                    sage: Psi = NSym.Psi()
+                    sage: Psi([2,1]).psi_involution()
+                    -Psi[2, 1]
+                    sage: Psi([3,1]).psi_involution()
+                    1/2*Psi[1, 2, 1] - 1/2*Psi[2, 1, 1] + Psi[3, 1]
+
+                The involution `\psi` commutes with the antipode::
+
+                    sage: all( R(I).psi_involution().antipode()
+                    ....:      == R(I).antipode().psi_involution()
+                    ....:      for I in Compositions(4) )
+                    True
+
+                Testing the `\pi(\psi(f)) = \omega(\pi(f))` relation noticed
+                above::
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(QQ)
+                    sage: R = NSym.R()
+                    sage: all( R(I).psi_involution().to_symmetric_function()
+                    ....:      == R(I).to_symmetric_function().omega()
+                    ....:      for I in Compositions(4) )
+                    True
+
+                The involution `\psi` of `QSym` is adjoint to the involution
+                `\psi` of `NSym` with respect to the duality pairing::
+
+                    sage: QSym = QuasiSymmetricFunctions(QQ)
+                    sage: M = QSym.M()
+                    sage: NSym = NonCommutativeSymmetricFunctions(QQ)
+                    sage: S = NSym.S()
+                    sage: all( all( M(I).psi_involution().duality_pairing(S(J))
+                    ....:           == M(I).duality_pairing(S(J).psi_involution())
+                    ....:           for I in Compositions(2) )
+                    ....:      for J in Compositions(3) )
+                    True
+                """
+                # Convert to the ribbon basis, there apply the psi
+                # involution componentwise, then convert back.
+                parent = self.parent()
+                R = parent.realization_of().R()
+                dct = {I.complement(): coeff
+                       for (I, coeff) in R(self).monomial_coefficients().items()}
+                return parent(R._from_dict(dct))
 
             def to_descent_algebra(self, n):
                 r"""
@@ -872,7 +1132,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 """
                 from sage.sets.family import Family
                 from sage.sets.positive_integers import PositiveIntegers
-                return Family(PositiveIntegers(), lambda i: self.monomial(Composition([i])))
+                return Family(PositiveIntegers(), lambda i: self.monomial(self._basis_keys([i])))
 
             def product_on_basis(self, composition1, composition2):
                 """
@@ -1117,7 +1377,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 """
                 if i<1:
                     return "Not a positive integer: %s" % `i`
-                def C(i): return Composition([i]) if i else Composition([])
+                def C(i): return self._basis_keys([i]) if i else self._basis_keys([])
                 T = self.tensor_square()
                 return T.sum_of_monomials( (C(j), C(i-j)) for j in range(0,i+1) )
 
@@ -1360,8 +1620,46 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             elif J == []:
                 return self.monomial(I)
             else:
-                return self.monomial(Composition(I[:] + J[:])) + \
-                       self.monomial(Composition(I[:-1] + [I[-1]+J[0]] + J[1:]))
+                return self.monomial(self._basis_keys(I[:] + J[:])) + \
+                       self.monomial(self._basis_keys(I[:-1] + [I[-1]+J[0]] + J[1:]))
+
+        def antipode_on_basis(self, composition):
+            """
+            Return the application of the antipode to a basis element
+            of the ribbon basis ``self``.
+
+            INPUT:
+
+            - ``composition`` -- a composition
+
+            OUTPUT:
+
+            - The image of the basis element indexed by ``composition``
+              under the antipode map.
+
+            EXAMPLES::
+
+                sage: R = NonCommutativeSymmetricFunctions(QQ).ribbon()
+                sage: R.antipode_on_basis(Composition([2,1]))
+                -R[2, 1]
+                sage: R[3,1].antipode() # indirect doctest
+                R[2, 1, 1]
+                sage: R[[]].antipode() # indirect doctest
+                R[]
+
+            We check that the implementation of the antipode at hand does
+            not contradict the generic one::
+
+                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
+                sage: all( S(R[I].antipode()) == S(R[I]).antipode()
+                ....:      for I in Compositions(4) )
+                True
+            """
+            # TODO: avoid this -1^... by using properly
+            if composition.size() % 2 == 0:
+                return self[composition.conjugate()]
+            else:
+                return - self[composition.conjugate()]
 
         def to_symmetric_function_on_basis(self, I):
             r"""
@@ -1393,6 +1691,225 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             if I == []:
                 return s([])
             return s(I.to_skew_partition())
+
+        class Element(CombinatorialFreeModule.Element):
+
+            def verschiebung(self, n):
+                r"""
+                Return the image of the noncommutative symmetric function
+                ``self`` under the `n`-th Verschiebung operator.
+
+                The `n`-th Verschiebung operator `\mathbf{V}_n` is defined
+                to be the map from the `\mathbf{k}`-algebra of noncommutative
+                symmetric functions to itself that sends the complete function
+                `S^I` indexed by a composition `I = (i_1, i_2, \ldots , i_k)`
+                to `S^{(i_1/n, i_2/n, \ldots , i_k/n)}` if all of the numbers
+                `i_1, i_2, \ldots, i_k` are divisible by `n`, and to `0`
+                otherwise. This operator `\mathbf{V}_n` is a Hopf algebra
+                endomorphism. For every positive integer `r` with `n \mid r`,
+                it satisfies
+
+                .. MATH::
+
+                    \mathbf{V}_n(S_r) = S_{r/n},
+                    \quad \mathbf{V}_n(\Lambda_r) = (-1)^{r - r/n} \Lambda_{r/n},
+                    \quad \mathbf{V}_n(\Psi_r) = n \Psi_{r/n},
+                    \quad \mathbf{V}_n(\Phi_r) = n \Phi_{r/n}
+
+                (where `S_r` denotes the `r`-th complete non-commutative
+                symmetric function, `\Lambda_r` denotes the `r`-th elementary
+                non-commutative symmetric function, `\Psi_r` denotes the `r`-th
+                power-sum non-commutative symmetric function of the first kind,
+                and `\Phi_r` denotes the `r`-th power-sum non-commutative
+                symmetric function of the second kind). For every positive
+                integer `r` with `n \nmid r`, it satisfes
+
+                .. MATH::
+
+                    \mathbf{V}_n(S_r) = \mathbf{V}_n(\Lambda_r)
+                    = \mathbf{V}_n(\Psi_r) = \mathbf{V}_n(\Phi_r) = 0.
+
+                The `n`-th Verschiebung operator is also called the `n`-th
+                Verschiebung endomorphism.
+
+                It is a lift of the `n`-th Verschiebung operator on the ring
+                of symmetric functions (
+                :meth:`sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
+                ) to the ring of noncommutative symmetric functions.
+
+                The action of the `n`-th Verschiebung operator can also be
+                described on the ribbon Schur functions. Namely, every
+                composition `I` of size `n \ell` satisfies
+
+                .. MATH::
+
+                    \mathbf{V}_n ( R_I )
+                    = (-1)^{\ell(I) - \ell(J)} \cdot R_{J / n},
+
+                where `J` denotes the meet of the compositions `I` and
+                `(\underbrace{n, n, \ldots, n}_{|I|/n \mbox{ times}})`,
+                where `\ell(I)` is the length of `I`, and
+                where `J / n` denotes the composition obtained by
+                dividing every entry of `J` by `n`.
+                For a composition `I` of size not divisible by `n`, we
+                have `\mathbf{V}_n ( R_I ) = 0`.
+
+                .. SEEALSO::
+
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.verschiebung`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.QSym.Bases.ElementMethods.frobenius`,
+                    :meth:`sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
+
+                INPUT:
+
+                - ``n`` -- a positive integer
+
+                OUTPUT:
+
+                The result of applying the `n`-th Verschiebung operator (on the
+                ring of noncommutative symmetric functions) to ``self``.
+
+                EXAMPLES::
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(ZZ)
+                    sage: R = NSym.R()
+                    sage: R([4,2]).verschiebung(2)
+                    R[2, 1]
+                    sage: R([2,1]).verschiebung(3)
+                    -R[1]
+                    sage: R([3]).verschiebung(2)
+                    0
+                    sage: R([]).verschiebung(2)
+                    R[]
+                    sage: R([5, 1]).verschiebung(3)
+                    -R[2]
+                    sage: R([5, 1]).verschiebung(6)
+                    -R[1]
+                    sage: R([5, 1]).verschiebung(2)
+                    -R[3]
+                    sage: R([1, 2, 3, 1]).verschiebung(7)
+                    -R[1]
+                    sage: R([1, 2, 3, 1]).verschiebung(5)
+                    0
+                    sage: (R[1] - R[2] + 2*R[3]).verschiebung(1)
+                    R[1] - R[2] + 2*R[3]
+
+                TESTS:
+
+                The current implementation on the ribbon basis gives the
+                same results as the default implementation::
+
+                    sage: S = NSym.S()
+                    sage: def test_ribbon(N, n):
+                    ....:     for I in Compositions(N):
+                    ....:         if S(R[I].verschiebung(n)) != S(R[I]).verschiebung(n):
+                    ....:             return False
+                    ....:     return True
+                    sage: test_ribbon(4, 2)
+                    True
+                    sage: test_ribbon(6, 2)
+                    True
+                    sage: test_ribbon(6, 3)
+                    True
+                    sage: test_ribbon(8, 4)     # long time
+                    True
+                """
+                parent = self.parent()
+                C = parent._basis_keys
+                def ribbon_mapper(I, coeff):
+                    # return \mathbf{V}_n ( coeff * R_I ) as pair
+                    # (composition, coefficient)
+                    M = sum(I)
+                    m = M // n
+                    J = I.meet([n] * m)
+                    Jn = C([j // n for j in J])
+                    if (len(I) - len(J)) % 2 == 1:
+                        return (Jn, - coeff)
+                    else:
+                        return (Jn, coeff)
+                return parent.sum_of_terms([ribbon_mapper(I, coeff)
+                                            for (I, coeff) in self
+                                            if sum(I) % n == 0])
+
+            def star_involution(self):
+                r"""
+                Return the image of the noncommutative symmetric function
+                ``self`` under the star involution.
+
+                The star involution is defined as the algebra antihomomorphism
+                `NCSF \to NCSF` which, for every positive integer `n`, sends
+                the `n`-th complete non-commutative symmetric function `S_n` to
+                `S_n`. Denoting by `f^{\ast}` the image of an element
+                `f \in NCSF` under this star involution, it can be shown that
+                every composition `I` satisfies
+
+                .. MATH::
+
+                    (S^I)^{\ast} = S^{I^r}, \quad
+                    (\Lambda^I)^{\ast} = \Lambda^{I^r}, \quad
+                    R_I^{\ast} = R_{I^r}, \quad
+                    (\Phi^I)^{\ast} = \Phi^{I^r},
+
+                where `I^r` denotes the reversed composition of `I`, and
+                standard notations for classical bases of `NCSF` are being used
+                (`S` for the complete basis, `\Lambda` for the elementary basis,
+                `R` for the ribbon basis, and `\Phi` for that of the power-sums
+                of the second kind). The star involution is an involution and a
+                coalgebra automorphism of `NCSF`. It is an automorphism of the
+                graded vector space `NCSF`. Under the canonical isomorphism
+                between the `n`-th graded component of `NCSF` and the descent
+                algebra of the symmetric group `S_n` (see
+                :meth:`to_descent_algebra`), the star involution (restricted to
+                the `n`-th graded component) corresponds to the automorphism
+                of the descent algebra given by
+                `x \mapsto \omega_n x \omega_n`, where `\omega_n` is the
+                permutation `(n, n-1, ..., 1) \in S_n` (written here in
+                one-line notation). If `\pi` denotes the projection from `NCSF`
+                to the ring of symmetric functions
+                (:meth:`to_symmetric_function`), then `\pi(f^{\ast}) = \pi(f)`
+                for every `f \in NCSF`.
+
+                The star involution on `NCSF` is adjoint to the star involution
+                on `QSym` by the standard adjunction between `NCSF` and `QSym`.
+
+                The star involution has been denoted by `\rho` in [LMvW13]_,
+                section 3.6.
+                See [NCSF2]_, section 2.3 for the properties of this map.
+
+                .. SEEALSO::
+
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.star_involution`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.QSym.Bases.ElementMethods.star_involution`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.psi_involution`.
+
+                EXAMPLES::
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(ZZ)
+                    sage: R = NSym.R()
+                    sage: R[3,1,4,2].star_involution()
+                    R[2, 4, 1, 3]
+                    sage: R[4,1,2].star_involution()
+                    R[2, 1, 4]
+                    sage: (R[1] - R[2] + 2*R[5,4] - 3*R[3] + 4*R[[]]).star_involution()
+                    4*R[] + R[1] - R[2] - 3*R[3] + 2*R[4, 5]
+                    sage: (R[3,3] - 21*R[1]).star_involution()
+                    -21*R[1] + R[3, 3]
+                    sage: R([14,1]).star_involution()
+                    R[1, 14]
+
+                The implementation at hand is tailored to the ribbon basis.
+                It is equivalent to the generic implementation via the
+                complete basis::
+
+                    sage: S = NSym.S()
+                    sage: all( S(R[I].star_involution()) == S(R[I]).star_involution()
+                    ....:      for I in Compositions(4) )
+                    True
+                """
+                parent = self.parent()
+                dct = {I.reversed(): coeff
+                       for (I, coeff) in self.monomial_coefficients().items()}
+                return parent._from_dict(dct)
 
     R = ribbon = Ribbon
 
@@ -1544,8 +2061,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             r"""
             Return the image of the complete non-commutative symmetric function indexed
             by the composition ``I`` in the symmetric group algebra under the canonical
-            embedding of the non-commutative symmetric functions into the symmetric
-            group algebra.
+            embedding of the degree-`|I|` homogeneous non-commutative symmetric
+            functions into the `|I|`-th symmetric group algebra.
 
             This embedding sends the complete basis element indexed by the composition
             ``I`` to the sum of all permutations whose descent composition is fatter
@@ -1558,7 +2075,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            - The sum of all permutations with right descent set contained in ``I``.
+            - The sum of all permutations of `\{ 1, 2, \ldots, |I| \}` with right
+              descent set contained in ``I``.
 
             EXAMPLES::
 
@@ -1640,6 +2158,83 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             c_num = lambda A: prod([factorial(i) for i in A.shape()], R.one())
             return prod(m.sum_of_terms([(P(A), R(c_num(A) / factorial(n))) for A in SetPartitions(n)], distinct=True)
                         for n in I)
+
+        class Element(CombinatorialFreeModule.Element):
+            """
+            An element in the Complete basis.
+            """
+            def psi_involution(self):
+                r"""
+                Return the image of the noncommutative symmetric function
+                ``self`` under the involution `\psi`.
+
+                The involution `\psi` is defined as the linear map
+                `NCSF \to NCSF` which, for every composition `I`, sends the
+                complete noncommutative symmetric function `S^I` to the
+                elementary noncommutative symmetric function `\Lambda^I`.
+                It can be shown that every composition `I` satisfies
+
+                .. MATH::
+
+                    \psi(R_I) = R^{I^c}, \quad \psi(S^I) = \Lambda^I, \quad
+                    \psi(\Lambda^I) = S^I, \quad
+                    \psi(\Phi^I) = (-1)^{|I| - \ell(I)} \Phi^I
+
+                where `I^c` denotes the complement of the composition `I`, and
+                `\ell(I)` denotes the length of `I`, and where standard
+                notations for classical bases of `NCSF` are being used
+                (`S` for the complete basis, `\Lambda` for the elementary
+                basis, `\Phi` for the basis of the power sums of the second
+                kind, and `R` for the ribbon basis). The map `\psi` is an
+                involution and a graded Hopf algebra automorphism of `NCSF`.
+                If `\pi` denotes the projection from `NCSF` to the ring of
+                symmetric functions (:meth:`to_symmetric_function`), then
+                `\pi(\psi(f)) = \omega(\pi(f))` for every `f \in NCSF`, where
+                the `\omega` on the right hand side denotes the omega
+                automorphism of `Sym`.
+
+                The involution `\psi` of `NCSF` is adjoint to the involution
+                `\psi` of `QSym` by the standard adjunction between `NCSF` and
+                `QSym`.
+
+                The involution `\psi` has been denoted by `\psi` in [LMvW13]_,
+                section 3.6.
+
+                .. SEEALSO::
+
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.psi_involution`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.QSym.Bases.ElementMethods.psi_involution`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.star_involution`.
+
+                EXAMPLES::
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(ZZ)
+                    sage: S = NSym.S()
+                    sage: L = NSym.L()
+                    sage: S[3,1].psi_involution()
+                    S[1, 1, 1, 1] - S[1, 2, 1] - S[2, 1, 1] + S[3, 1]
+                    sage: L(S[3,1].psi_involution())
+                    L[3, 1]
+                    sage: S[[]].psi_involution()
+                    S[]
+                    sage: S[1,1].psi_involution()
+                    S[1, 1]
+                    sage: (S[2,1] - 2*S[2]).psi_involution()
+                    -2*S[1, 1] + S[1, 1, 1] + 2*S[2] - S[2, 1]
+
+                The implementation at hand is tailored to the complete basis.
+                It is equivalent to the generic implementation via the
+                ribbon basis::
+
+                    sage: R = NSym.R()
+                    sage: all( R(S[I].psi_involution()) == R(S[I]).psi_involution()
+                    ....:      for I in Compositions(4) )
+                    True
+                """
+                parent = self.parent()
+                return parent.sum( (-1) ** (I.size() - len(I)) * coeff
+                                   * parent.alternating_sum_of_finer_compositions(I)
+                                   for I, coeff in self._monomial_coefficients.items() )
 
     S = complete = Complete
 
@@ -1741,6 +2336,165 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             minus_one = -self.base_ring().one()
             return self.sum_of_terms( (compo, minus_one**(len(compo)-n)) for compo in I.finer() )
 
+        class Element(CombinatorialFreeModule.Element):
+
+            def star_involution(self):
+                r"""
+                Return the image of the noncommutative symmetric function
+                ``self`` under the star involution.
+
+                The star involution is defined as the algebra antihomomorphism
+                `NCSF \to NCSF` which, for every positive integer `n`, sends
+                the `n`-th complete non-commutative symmetric function `S_n` to
+                `S_n`. Denoting by `f^{\ast}` the image of an element
+                `f \in NCSF` under this star involution, it can be shown that
+                every composition `I` satisfies
+
+                .. MATH::
+
+                    (S^I)^{\ast} = S^{I^r}, \quad
+                    (\Lambda^I)^{\ast} = \Lambda^{I^r}, \quad
+                    R_I^{\ast} = R_{I^r}, \quad
+                    (\Phi^I)^{\ast} = \Phi^{I^r},
+
+                where `I^r` denotes the reversed composition of `I`, and
+                standard notations for classical bases of `NCSF` are being used
+                (`S` for the complete basis, `\Lambda` for the elementary basis,
+                `R` for the ribbon basis, and `\Phi` for that of the power-sums
+                of the second kind). The star involution is an involution and a
+                coalgebra automorphism of `NCSF`. It is an automorphism of the
+                graded vector space `NCSF`. Under the canonical isomorphism
+                between the `n`-th graded component of `NCSF` and the descent
+                algebra of the symmetric group `S_n` (see
+                :meth:`to_descent_algebra`), the star involution (restricted to
+                the `n`-th graded component) corresponds to the automorphism
+                of the descent algebra given by
+                `x \mapsto \omega_n x \omega_n`, where `\omega_n` is the
+                permutation `(n, n-1, ..., 1) \in S_n` (written here in
+                one-line notation). If `\pi` denotes the projection from `NCSF`
+                to the ring of symmetric functions
+                (:meth:`to_symmetric_function`), then `\pi(f^{\ast}) = \pi(f)`
+                for every `f \in NCSF`.
+
+                The star involution on `NCSF` is adjoint to the star involution
+                on `QSym` by the standard adjunction between `NCSF` and `QSym`.
+
+                The star involution has been denoted by `\rho` in [LMvW13]_,
+                section 3.6.
+                See [NCSF2]_, section 2.3 for the properties of this map.
+
+                .. SEEALSO::
+
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.star_involution`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.psi_involution`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.QSym.Bases.ElementMethods.star_involution`.
+
+                EXAMPLES::
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(ZZ)
+                    sage: L = NSym.L()
+                    sage: L[3,3,2,3].star_involution()
+                    L[3, 2, 3, 3]
+                    sage: L[6,3,3].star_involution()
+                    L[3, 3, 6]
+                    sage: (L[1,9,1] - L[8,2] + 2*L[6,4] - 3*L[3] + 4*L[[]]).star_involution()
+                    4*L[] + L[1, 9, 1] - L[2, 8] - 3*L[3] + 2*L[4, 6]
+                    sage: (L[3,3] - 2*L[2]).star_involution()
+                    -2*L[2] + L[3, 3]
+                    sage: L([4,1]).star_involution()
+                    L[1, 4]
+
+                The implementation at hand is tailored to the elementary basis.
+                It is equivalent to the generic implementation via the
+                complete basis::
+
+                    sage: S = NSym.S()
+                    sage: all( S(L[I].star_involution()) == S(L[I]).star_involution()
+                    ....:      for I in Compositions(4) )
+                    True
+                """
+                parent = self.parent()
+                dct = {I.reversed(): coeff
+                       for (I, coeff) in self.monomial_coefficients().items()}
+                return parent._from_dict(dct)
+
+            def psi_involution(self):
+                r"""
+                Return the image of the noncommutative symmetric function
+                ``self`` under the involution `\psi`.
+
+                The involution `\psi` is defined as the linear map
+                `NCSF \to NCSF` which, for every composition `I`, sends the
+                complete noncommutative symmetric function `S^I` to the
+                elementary noncommutative symmetric function `\Lambda^I`.
+                It can be shown that every composition `I` satisfies
+
+                .. MATH::
+
+                    \psi(R_I) = R^{I^c}, \quad \psi(S^I) = \Lambda^I, \quad
+                    \psi(\Lambda^I) = S^I, \quad
+                    \psi(\Phi^I) = (-1)^{|I| - \ell(I)} \Phi^I
+
+                where `I^c` denotes the complement of the composition `I`, and
+                `\ell(I)` denotes the length of `I`, and where standard
+                notations for classical bases of `NCSF` are being used
+                (`S` for the complete basis, `\Lambda` for the elementary basis,
+                `\Phi` for the basis of the power sums of the second kind,
+                and `R` for the ribbon basis). The map `\psi` is an involution
+                and a graded Hopf algebra automorphism of `NCSF`. If `\pi`
+                denotes the projection from `NCSF` to the ring of symmetric
+                functions (:meth:`to_symmetric_function`), then
+                `\pi(\psi(f)) = \omega(\pi(f))` for every `f \in NCSF`, where
+                the `\omega` on the right hand side denotes the omega
+                automorphism of `Sym`.
+
+                The involution `\psi` of `NCSF` is adjoint to the involution
+                `\psi` of `QSym` by the standard adjunction between `NCSF` and
+                `QSym`.
+
+                The involution `\psi` has been denoted by `\psi` in [LMvW13]_,
+                section 3.6.
+
+                .. SEEALSO::
+
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.psi_involution`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.QSym.Bases.ElementMethods.psi_involution`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.star_involution`.
+
+                EXAMPLES::
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(QQ)
+                    sage: S = NSym.S()
+                    sage: L = NSym.L()
+                    sage: L[3,1].psi_involution()
+                    L[1, 1, 1, 1] - L[1, 2, 1] - L[2, 1, 1] + L[3, 1]
+                    sage: S(L[3,1].psi_involution())
+                    S[3, 1]
+                    sage: L[[]].psi_involution()
+                    L[]
+                    sage: L[1,1].psi_involution()
+                    L[1, 1]
+                    sage: (L[2,1] - 2*L[2]).psi_involution()
+                    -2*L[1, 1] + L[1, 1, 1] + 2*L[2] - L[2, 1]
+
+                The implementation at hand is tailored to the elementary basis.
+                It is equivalent to the generic implementation via the
+                ribbon basis::
+
+                    sage: R = NSym.R()
+                    sage: all( R(L[I].psi_involution()) == R(L[I]).psi_involution()
+                    ....:      for I in Compositions(3) )
+                    True
+                    sage: all( R(L[I].psi_involution()) == R(L[I]).psi_involution()
+                    ....:      for I in Compositions(4) )
+                    True
+                """
+                parent = self.parent()
+                return parent.sum( (-1) ** (I.size() - len(I)) * coeff
+                                   * parent.alternating_sum_of_finer_compositions(I)
+                                   for I, coeff in
+                                   self._monomial_coefficients.items() )
+
     L = elementary = Elementary
 
     class Psi(CombinatorialFreeModule, BindableClass):
@@ -1775,6 +2529,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         `\QQ`-algebra (although the `\Psi^I` can be defined over any base
         ring). The elements of the `\Psi`-basis are known as the
         "power-sum non-commutative symmetric functions of the first kind".
+        The generators `\Psi_n` correspond to the Dynkin
+        (quasi-)idempotents in the descent algebras of the symmetric
+        groups (see [NCSF1]_, 5.2 for details).
 
         EXAMPLES::
 
@@ -1831,7 +2588,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             """
             # Equation (58) of NCSF I article
             one = self.base_ring().one()
-            I = Composition([n])
+            I = self._basis_keys([n])
             # TODO: I being trivial, there is no refinement going on here, so
             # one can probably be a bit more explicit / fast
             return self.sum_of_terms((J, one/coeff_pi(J,I)) for J in Compositions(n))
@@ -1911,6 +2668,142 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             return complete.sum_of_terms((J, minus_one**(len(J)-len(I))*coeff_lp(J,I))
                                             for J in I.finer())
 
+        class Element(CombinatorialFreeModule.Element):
+
+            def verschiebung(self, n):
+                r"""
+                Return the image of the noncommutative symmetric function
+                ``self`` under the `n`-th Verschiebung operator.
+
+                The `n`-th Verschiebung operator `\mathbf{V}_n` is defined
+                to be the map from the `\mathbf{k}`-algebra of noncommutative
+                symmetric functions to itself that sends the complete function
+                `S^I` indexed by a composition `I = (i_1, i_2, \ldots , i_k)`
+                to `S^{(i_1/n, i_2/n, \ldots , i_k/n)}` if all of the numbers
+                `i_1, i_2, \ldots, i_k` are divisible by `n`, and to `0`
+                otherwise. This operator `\mathbf{V}_n` is a Hopf algebra
+                endomorphism. For every positive integer `r` with `n \mid r`,
+                it satisfies
+
+                .. MATH::
+
+                    \mathbf{V}_n(S_r) = S_{r/n},
+                    \quad \mathbf{V}_n(\Lambda_r) = (-1)^{r - r/n} \Lambda_{r/n},
+                    \quad \mathbf{V}_n(\Psi_r) = n \Psi_{r/n},
+                    \quad \mathbf{V}_n(\Phi_r) = n \Phi_{r/n}
+
+                (where `S_r` denotes the `r`-th complete non-commutative
+                symmetric function, `\Lambda_r` denotes the `r`-th elementary
+                non-commutative symmetric function, `\Psi_r` denotes the `r`-th
+                power-sum non-commutative symmetric function of the first kind,
+                and `\Phi_r` denotes the `r`-th power-sum non-commutative
+                symmetric function of the second kind). For every positive
+                integer `r` with `n \nmid r`, it satisfes
+
+                .. MATH::
+
+                    \mathbf{V}_n(S_r) = \mathbf{V}_n(\Lambda_r)
+                    = \mathbf{V}_n(\Psi_r) = \mathbf{V}_n(\Phi_r) = 0.
+
+                The `n`-th Verschiebung operator is also called the `n`-th
+                Verschiebung endomorphism.
+
+                It is a lift of the `n`-th Verschiebung operator on the ring
+                of symmetric functions (
+                :meth:`sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
+                ) to the ring of noncommutative symmetric functions.
+
+                The action of the `n`-th Verschiebung operator can also be
+                described on the ribbon Schur functions. Namely, every
+                composition `I` of size `n \ell` satisfies
+
+                .. MATH::
+
+                    \mathbf{V}_n ( R_I )
+                    = (-1)^{\ell(I) - \ell(J)} \cdot R_{J / n},
+
+                where `J` denotes the meet of the compositions `I` and
+                `(\underbrace{n, n, \ldots, n}_{|I|/n \mbox{ times}})`,
+                where `\ell(I)` is the length of `I`, and
+                where `J / n` denotes the composition obtained by
+                dividing every entry of `J` by `n`.
+                For a composition `I` of size not divisible by `n`, we
+                have `\mathbf{V}_n ( R_I ) = 0`.
+
+                .. SEEALSO::
+
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.verschiebung`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.QSym.Bases.ElementMethods.frobenius`,
+                    :meth:`sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
+
+                INPUT:
+
+                - ``n`` -- a positive integer
+
+                OUTPUT:
+
+                The result of applying the `n`-th Verschiebung operator (on the
+                ring of noncommutative symmetric functions) to ``self``.
+
+                EXAMPLES::
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(ZZ)
+                    sage: Psi = NSym.Psi()
+                    sage: Psi([4,2]).verschiebung(2)
+                    4*Psi[2, 1]
+                    sage: Psi([2,4]).verschiebung(2)
+                    4*Psi[1, 2]
+                    sage: Psi([6]).verschiebung(2)
+                    2*Psi[3]
+                    sage: Psi([2,1]).verschiebung(3)
+                    0
+                    sage: Psi([3]).verschiebung(2)
+                    0
+                    sage: Psi([]).verschiebung(2)
+                    Psi[]
+                    sage: Psi([5, 1]).verschiebung(3)
+                    0
+                    sage: Psi([5, 1]).verschiebung(6)
+                    0
+                    sage: Psi([5, 1]).verschiebung(2)
+                    0
+                    sage: Psi([1, 2, 3, 1]).verschiebung(7)
+                    0
+                    sage: Psi([7]).verschiebung(7)
+                    7*Psi[1]
+                    sage: Psi([1, 2, 3, 1]).verschiebung(5)
+                    0
+                    sage: (Psi[1] - Psi[2] + 2*Psi[3]).verschiebung(1)
+                    Psi[1] - Psi[2] + 2*Psi[3]
+
+                TESTS:
+
+                The current implementation on the Psi basis gives the
+                same results as the default implementation::
+
+                    sage: S = NSym.S()
+                    sage: def test_psi(N, n):
+                    ....:     for I in Compositions(N):
+                    ....:         if S(Psi[I].verschiebung(n)) != S(Psi[I]).verschiebung(n):
+                    ....:             return False
+                    ....:     return True
+                    sage: test_psi(4, 2)
+                    True
+                    sage: test_psi(6, 2)
+                    True
+                    sage: test_psi(6, 3)
+                    True
+                    sage: test_psi(8, 4)     # long time
+                    True
+                """
+                parent = self.parent()
+                C = parent._basis_keys
+                return parent.sum_of_terms([(C([i // n for i in I]),
+                                            coeff * (n ** len(I)))
+                                            for (I, coeff) in self
+                                            if all(i % n == 0 for i in I)],
+                                           distinct=True)
+
     class Phi(CombinatorialFreeModule, BindableClass):
         r"""
         The Hopf algebra of non-commutative symmetric functions in the
@@ -1937,6 +2830,10 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         `\QQ`-algebra. The elements of the `\Phi`-basis are known as the
         "power-sum non-commutative symmetric functions of the second
         kind".
+
+        The generators `\Phi_n` are related to the (first) Eulerian
+        idempotents in the descent algebras of the symmetric groups (see
+        [NCSF1]_, 5.4 for details).
 
         EXAMPLES::
 
@@ -2042,6 +2939,294 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             return complete.sum_of_terms((J, minus_one**(len(J)-len(I)) * prod(I) / coeff_ell(J,I))
                                          for J in I.finer())
 
+        class Element(CombinatorialFreeModule.Element):
+
+            def verschiebung(self, n):
+                r"""
+                Return the image of the noncommutative symmetric function
+                ``self`` under the `n`-th Verschiebung operator.
+
+                The `n`-th Verschiebung operator `\mathbf{V}_n` is defined
+                to be the map from the `\mathbf{k}`-algebra of noncommutative
+                symmetric functions to itself that sends the complete function
+                `S^I` indexed by a composition `I = (i_1, i_2, \ldots , i_k)`
+                to `S^{(i_1/n, i_2/n, \ldots , i_k/n)}` if all of the numbers
+                `i_1, i_2, \ldots, i_k` are divisible by `n`, and to `0`
+                otherwise. This operator `\mathbf{V}_n` is a Hopf algebra
+                endomorphism. For every positive integer `r` with `n \mid r`,
+                it satisfies
+
+                .. MATH::
+
+                    \mathbf{V}_n(S_r) = S_{r/n},
+                    \quad \mathbf{V}_n(\Lambda_r) = (-1)^{r - r/n} \Lambda_{r/n},
+                    \quad \mathbf{V}_n(\Psi_r) = n \Psi_{r/n},
+                    \quad \mathbf{V}_n(\Phi_r) = n \Phi_{r/n}
+
+                (where `S_r` denotes the `r`-th complete non-commutative
+                symmetric function, `\Lambda_r` denotes the `r`-th elementary
+                non-commutative symmetric function, `\Psi_r` denotes the `r`-th
+                power-sum non-commutative symmetric function of the first kind,
+                and `\Phi_r` denotes the `r`-th power-sum non-commutative
+                symmetric function of the second kind). For every positive
+                integer `r` with `n \nmid r`, it satisfes
+
+                .. MATH::
+
+                    \mathbf{V}_n(S_r) = \mathbf{V}_n(\Lambda_r)
+                    = \mathbf{V}_n(\Psi_r) = \mathbf{V}_n(\Phi_r) = 0.
+
+                The `n`-th Verschiebung operator is also called the `n`-th
+                Verschiebung endomorphism.
+
+                It is a lift of the `n`-th Verschiebung operator on the ring
+                of symmetric functions (
+                :meth:`sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
+                ) to the ring of noncommutative symmetric functions.
+
+                The action of the `n`-th Verschiebung operator can also be
+                described on the ribbon Schur functions. Namely, every
+                composition `I` of size `n \ell` satisfies
+
+                .. MATH::
+
+                    \mathbf{V}_n ( R_I )
+                    = (-1)^{\ell(I) - \ell(J)} \cdot R_{J / n},
+
+                where `J` denotes the meet of the compositions `I` and
+                `(\underbrace{n, n, \ldots, n}_{|I|/n \mbox{ times}})`,
+                where `\ell(I)` is the length of `I`, and
+                where `J / n` denotes the composition obtained by
+                dividing every entry of `J` by `n`.
+                For a composition `I` of size not divisible by `n`, we
+                have `\mathbf{V}_n ( R_I ) = 0`.
+
+                .. SEEALSO::
+
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.verschiebung`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.QSym.Bases.ElementMethods.frobenius`,
+                    :meth:`sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
+
+                INPUT:
+
+                - ``n`` -- a positive integer
+
+                OUTPUT:
+
+                The result of applying the `n`-th Verschiebung operator (on the
+                ring of noncommutative symmetric functions) to ``self``.
+
+                EXAMPLES::
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(ZZ)
+                    sage: Phi = NSym.Phi()
+                    sage: Phi([4,2]).verschiebung(2)
+                    4*Phi[2, 1]
+                    sage: Phi([2,4]).verschiebung(2)
+                    4*Phi[1, 2]
+                    sage: Phi([6]).verschiebung(2)
+                    2*Phi[3]
+                    sage: Phi([2,1]).verschiebung(3)
+                    0
+                    sage: Phi([3]).verschiebung(2)
+                    0
+                    sage: Phi([]).verschiebung(2)
+                    Phi[]
+                    sage: Phi([5, 1]).verschiebung(3)
+                    0
+                    sage: Phi([5, 1]).verschiebung(6)
+                    0
+                    sage: Phi([5, 1]).verschiebung(2)
+                    0
+                    sage: Phi([1, 2, 3, 1]).verschiebung(7)
+                    0
+                    sage: Phi([7]).verschiebung(7)
+                    7*Phi[1]
+                    sage: Phi([1, 2, 3, 1]).verschiebung(5)
+                    0
+                    sage: (Phi[1] - Phi[2] + 2*Phi[3]).verschiebung(1)
+                    Phi[1] - Phi[2] + 2*Phi[3]
+
+                TESTS:
+
+                The current implementation on the Phi basis gives the
+                same results as the default implementation::
+
+                    sage: S = NSym.S()
+                    sage: def test_phi(N, n):
+                    ....:     for I in Compositions(N):
+                    ....:         if S(Phi[I].verschiebung(n)) != S(Phi[I]).verschiebung(n):
+                    ....:             return False
+                    ....:     return True
+                    sage: test_phi(4, 2)
+                    True
+                    sage: test_phi(6, 2)
+                    True
+                    sage: test_phi(6, 3)
+                    True
+                    sage: test_phi(8, 4)     # long time
+                    True
+                """
+                parent = self.parent()
+                C = parent._basis_keys
+                return parent.sum_of_terms([(C([i // n for i in I]),
+                                            coeff * (n ** len(I)))
+                                            for (I, coeff) in self
+                                            if all(i % n == 0 for i in I)],
+                                           distinct=True)
+
+            def star_involution(self):
+                r"""
+                Return the image of the noncommutative symmetric function
+                ``self`` under the star involution.
+
+                The star involution is defined as the algebra antihomomorphism
+                `NCSF \to NCSF` which, for every positive integer `n`, sends
+                the `n`-th complete non-commutative symmetric function `S_n` to
+                `S_n`. Denoting by `f^{\ast}` the image of an element
+                `f \in NCSF` under this star involution, it can be shown that
+                every composition `I` satisfies
+
+                .. MATH::
+
+                    (S^I)^{\ast} = S^{I^r}, \quad
+                    (\Lambda^I)^{\ast} = \Lambda^{I^r}, \quad
+                    R_I^{\ast} = R_{I^r}, \quad
+                    (\Phi^I)^{\ast} = \Phi^{I^r},
+
+                where `I^r` denotes the reversed composition of `I`, and
+                standard notations for classical bases of `NCSF` are being used
+                (`S` for the complete basis, `\Lambda` for the elementary basis,
+                `R` for the ribbon basis, and `\Phi` for that of the power-sums
+                of the second kind). The star involution is an involution and a
+                coalgebra automorphism of `NCSF`. It is an automorphism of the
+                graded vector space `NCSF`. Under the canonical isomorphism
+                between the `n`-th graded component of `NCSF` and the descent
+                algebra of the symmetric group `S_n` (see
+                :meth:`to_descent_algebra`), the star involution (restricted to
+                the `n`-th graded component) corresponds to the automorphism
+                of the descent algebra given by
+                `x \mapsto \omega_n x \omega_n`, where `\omega_n` is the
+                permutation `(n, n-1, ..., 1) \in S_n` (written here in
+                one-line notation). If `\pi` denotes the projection from `NCSF`
+                to the ring of symmetric functions
+                (:meth:`to_symmetric_function`), then `\pi(f^{\ast}) = \pi(f)`
+                for every `f \in NCSF`.
+
+                The star involution on `NCSF` is adjoint to the star involution
+                on `QSym` by the standard adjunction between `NCSF` and `QSym`.
+
+                The star involution has been denoted by `\rho` in [LMvW13]_,
+                section 3.6.
+                See [NCSF2]_, section 2.3 for the properties of this map.
+
+                .. SEEALSO::
+
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.star_involution`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.psi_involution`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.QSym.Bases.ElementMethods.star_involution`.
+
+                EXAMPLES::
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(QQ)
+                    sage: Phi = NSym.Phi()
+                    sage: Phi[3,1,1,4].star_involution()
+                    Phi[4, 1, 1, 3]
+                    sage: Phi[4,2,1].star_involution()
+                    Phi[1, 2, 4]
+                    sage: (Phi[1,4] - Phi[2,3] + 2*Phi[5,4] - 3*Phi[3] + 4*Phi[[]]).star_involution()
+                    4*Phi[] - 3*Phi[3] - Phi[3, 2] + Phi[4, 1] + 2*Phi[4, 5]
+                    sage: (Phi[3,3] + 3*Phi[1]).star_involution()
+                    3*Phi[1] + Phi[3, 3]
+                    sage: Phi([2,1]).star_involution()
+                    Phi[1, 2]
+
+                The implementation at hand is tailored to the Phi basis.
+                It is equivalent to the generic implementation via the
+                complete basis::
+
+                    sage: S = NSym.S()
+                    sage: all( S(Phi[I].star_involution()) == S(Phi[I]).star_involution()
+                    ....:      for I in Compositions(4) )
+                    True
+                """
+                parent = self.parent()
+                dct = {I.reversed(): coeff
+                       for (I, coeff) in self.monomial_coefficients().items()}
+                return parent._from_dict(dct)
+
+            def psi_involution(self):
+                r"""
+                Return the image of the noncommutative symmetric function
+                ``self`` under the involution `\psi`.
+
+                The involution `\psi` is defined as the linear map
+                `NCSF \to NCSF` which, for every composition `I`, sends the
+                complete noncommutative symmetric function `S^I` to the
+                elementary noncommutative symmetric function `\Lambda^I`.
+                It can be shown that every composition `I` satisfies
+
+                .. MATH::
+
+                    \psi(R_I) = R^{I^c}, \quad \psi(S^I) = \Lambda^I, \quad
+                    \psi(\Lambda^I) = S^I, \quad
+                    \psi(\Phi^I) = (-1)^{|I| - \ell(I)} \Phi^I
+
+                where `I^c` denotes the complement of the composition `I`, and
+                `\ell(I)` denotes the length of `I`, and where standard
+                notations for classical bases of `NCSF` are being used
+                (`S` for the complete basis, `\Lambda` for the elementary basis,
+                `\Phi` for the basis of the power sums of the second kind,
+                and `R` for the ribbon basis). The map `\psi` is an involution
+                and a graded Hopf algebra automorphism of `NCSF`. If `\pi`
+                denotes the projection from `NCSF` to the ring of symmetric
+                functions (:meth:`to_symmetric_function`), then
+                `\pi(\psi(f)) = \omega(\pi(f))` for every `f \in NCSF`, where
+                the `\omega` on the right hand side denotes the omega
+                automorphism of `Sym`.
+
+                The involution `\psi` of `NCSF` is adjoint to the involution
+                `\psi` of `QSym` by the standard adjunction between `NCSF` and
+                `QSym`.
+
+                The involution `\psi` has been denoted by `\psi` in [LMvW13]_,
+                section 3.6.
+
+                .. SEEALSO::
+
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.psi_involution`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.QSym.Bases.ElementMethods.psi_involution`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.star_involution`.
+
+                EXAMPLES::
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(QQ)
+                    sage: Phi = NSym.Phi()
+                    sage: Phi[3,2].psi_involution()
+                    -Phi[3, 2]
+                    sage: Phi[2,2].psi_involution()
+                    Phi[2, 2]
+                    sage: Phi[[]].psi_involution()
+                    Phi[]
+                    sage: (Phi[2,1] - 2*Phi[2]).psi_involution()
+                    2*Phi[2] - Phi[2, 1]
+                    sage: Phi(0).psi_involution()
+                    0
+
+                The implementation at hand is tailored to the Phi basis.
+                It is equivalent to the generic implementation via the
+                ribbon basis::
+
+                    sage: R = NSym.R()
+                    sage: all( R(Phi[I].psi_involution()) == R(Phi[I]).psi_involution()
+                    ....:      for I in Compositions(4) )
+                    True
+                """
+                parent = self.parent()
+                dct = {I: (-1) ** (I.size() - len(I)) * coeff
+                       for (I, coeff) in self.monomial_coefficients().items()}
+                return parent._from_dict(dct)
+
     class Monomial(CombinatorialFreeModule, BindableClass):
         def __init__(self, NCSF):
             r"""
@@ -2111,7 +3296,10 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 S[1, 1, 1] - 2*S[1, 2] - S[2, 1] + 3*S[3]
             """
             S = NonCommutativeSymmetricFunctions(self.base_ring()).S()
-            return sum(m_to_s_stat(self.base_ring(),I,K) * S(K) for K in Compositions(Composition(I).size()))
+            return sum( m_to_s_stat(self.base_ring(),I,K) * S(K) for K in Compositions(sum(I)) )
+            # Note: sum(I) works both if I is a list and if I is a composition
+            # (although the latter case doesn't work in IPython, cf.
+            # :trac:`15163`).
 
         def _from_psi_on_basis(self, I):
             r"""
@@ -2145,7 +3333,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             for J in Compositions(I.size()):
                 if I.is_finer(J):
                     len_of_J = len(J)
-                    p = [0] + Composition(I).refinement_splitting_lengths(J).partial_sums()
+                    p = [0] + self._basis_keys(I).refinement_splitting_lengths(J).partial_sums()
                     sum_of_elements += prod( (len_of_J - k)**(p[k+1]-p[k]) for k in range(len_of_J) ) * M(J)
             return sum_of_elements
 
@@ -2282,7 +3470,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             - The expansion in the Immaculate basis of the basis element
               of the complete basis indexed by the composition
-              ``comp_content`` .
+              ``comp_content``.
 
             EXAMPLES::
 
@@ -2297,6 +3485,6 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 return I([])
             else:
                 return sum( number_of_fCT(comp_content,comp_shape) * I(comp_shape) \
-                            for comp_shape in Compositions(Composition(comp_content).size()) )
+                            for comp_shape in Compositions(sum(comp_content)) )
 
     I = Immaculate

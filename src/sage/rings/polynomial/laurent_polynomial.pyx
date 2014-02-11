@@ -513,9 +513,9 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         var = ring.gens()
         for i, j in enumerate(self._mon):
             if j > 0:
-                poly *= var[i]**j
+                numer *= var[i] ** j
             else:
-                denom *= var[i]**(-j)
+                denom *= var[i] ** (-j)
         return (numer, denom)
 
     cpdef ModuleElement _add_(self, ModuleElement _right):

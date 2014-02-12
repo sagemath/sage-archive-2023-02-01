@@ -271,6 +271,8 @@ class FractionField_generic(field.Field):
             sage: T = PolynomialRing(ZZ, 'x')
             sage: R.gen() + FractionField(T).gen()
             2*x
+            sage: 1/R.gen()
+            1/x
         """
         from sage.rings.integer_ring import ZZ
         from sage.rings.rational_field import QQ
@@ -293,9 +295,13 @@ class FractionField_generic(field.Field):
 
         # special treatment for LaurentPolynomialRings
         if isinstance(S, LaurentPolynomialRing_generic):
-            return CallableConvertMap(S, self, \
-                lambda x: self._element_class(self, *x.to_fraction()),
-                                      parent_as_first_arg=False)
+            def converter(x,y=None):
+                if y is None:
+                    return self._element_class(self, *x.to_fraction())
+                xnum, xden = x.to_fraction()
+                ynum, yden = y.to_fraction()
+                return self._element_class(self, xnum*yden, xden*ynum)
+            return CallableConvertMap(S, self, converter, parent_as_first_arg=False)
 
         if isinstance(S, FractionField_generic) and \
             self._R.has_coerce_map_from(S.ring()):

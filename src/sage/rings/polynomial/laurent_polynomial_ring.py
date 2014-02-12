@@ -767,6 +767,20 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
         else:
             return LaurentPolynomialRing(base_ring, self._n, names, order = order)
 
+    def fraction_field(self):
+        """
+        The fraction field is the same as the fraction field of the
+        polynomial ring.
+
+        EXAMPLES::
+
+            sage: L.<x> = LaurentPolynomialRing(QQ)
+            sage: L.fraction_field()
+            Fraction Field of Multivariate Polynomial Ring in x over Rational Field
+            sage: (x^-1 + 2) / (x - 1)
+            (2*x + 1)/(x^2 - x)
+        """
+        return self.polynomial_ring().fraction_field()
 
 class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
     def __init__(self, R, prepend_string, names):

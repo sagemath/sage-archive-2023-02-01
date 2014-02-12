@@ -486,7 +486,7 @@ class Simplex(SageObject):
         if n >= 0 and n <= self.dimension():
             return Simplex(self.__tuple[:n] + self.__tuple[n+1:])
         else:
-            raise IndexError("%s does not have an nth face for n=%s." % (self, n))
+            raise IndexError("{} does not have an nth face for n={}.".format(self, n))
 
     def faces(self):
         """
@@ -3242,9 +3242,8 @@ class SimplicialComplex(GenericCellComplex):
 
         INPUT:
 
-        - `G` -- a subgroup of the automorphism group of the
-                 simplicial complex or a list of elements of the
-                 automorphism group
+        - ``G`` -- a subgroup of the automorphism group of the simplicial
+          complex or a list of elements of the automorphism group
 
         OUTPUT:
 

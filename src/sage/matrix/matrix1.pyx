@@ -603,6 +603,48 @@ cdef class Matrix(matrix0.Matrix):
                 return self.change_ring(S)
         return self
 
+    def lift_centered(self):
+        """
+
+        Apply the lift_centered method to every entry of self.
+
+        If self is a matrix over `Integers(n)`, this method returns the unique
+        matrix `m` such that `m` is congruent to `self` mod `n` and for every
+        i, j we have `-n/2 < m[i,j] \leq n/2`.
+
+        EXAMPLES::
+
+            sage: M = Matrix(Integers(7), 2, 2, [5, 9, 13, 15]) ; M
+            [5 2]
+            [6 1]
+            sage: M.lift_centered()
+            [-2 2]
+            [-1 1]
+            sage: parent(M.lift_centered())
+            Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
+
+        The field QQ doesn't have a cover_ring method::
+
+            sage: hasattr(QQ, 'cover_ring')
+            False
+
+        So lifting a matrix over QQ gives back the same exact matrix.
+
+        ::
+
+            sage: B = matrix(QQ, 2, [1..4])
+            sage: B.lift_centered()
+            [1 2]
+            [3 4]
+            sage: B.lift_centered() is B
+            True
+        """
+        if hasattr(self._base_ring, 'cover_ring'):
+            S = self._base_ring.cover_ring()
+            if S is not self._base_ring:
+                return self.parent().change_ring(S)([v.lift_centered() for v in self])
+        return self
+
     #############################################################################################
     # rows, columns, sparse_rows, sparse_columns, dense_rows, dense_columns, row, column
     #############################################################################################

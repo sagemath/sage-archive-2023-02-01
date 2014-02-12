@@ -726,7 +726,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
     def lift_centered(self):
         r"""
-        Lift ``self`` to an integer `i` such that `n/2 < i <= n/2`
+        Lift ``self`` to an integer `i` such that `-n/2 < i \leq n/2`
         (where `n` denotes the modulus).
 
         EXAMPLES::

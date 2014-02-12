@@ -1718,6 +1718,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def lift(self):
         """
+        Return a lift of self to the covering ring of the base ring `R`,
+        which is by definition the ring returned by calling
+        cover_ring() on `R`, or just `R` itself if the cover_ring method
+        is not defined.
+
         EXAMPLES::
 
             sage: V = vector(Integers(7), [5, 9, 13, 15]) ; V
@@ -1726,8 +1731,39 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             (5, 2, 6, 1)
             sage: parent(V.lift())
             Ambient free module of rank 4 over the principal ideal domain Integer Ring
+
+        If the base ring does not have a cover method, return a copy of the vector::
+
+            sage: W = vector(QQ, [1, 2, 3])
+            sage: W1 = W.lift()
+            sage: W is W1
+            False
+            sage: parent(W1)
+            Vector space of dimension 3 over Rational Field
         """
-        return self.change_ring(self.base_ring().cover_ring())
+        if hasattr(self.base_ring(),'cover_ring'):
+            return self.change_ring(self.base_ring().cover_ring())
+        from copy import copy
+        return copy(self)
+
+    def lift_centered(self):
+        """
+        Lift self to the unique vector ``v`` over `\ZZ` such that foreach `i`
+        `Mod(v[i],n) = Mod(self[i],n)` and `-n/2 < v[i] \leq n/2`.
+
+        EXAMPLES::
+
+            sage: V = vector(Integers(7), [5, 9, 13, 15]) ; V
+            (5, 2, 6, 1)
+            sage: V.lift_centered()
+            (-2, 2, -1, 1)
+            sage: parent(V.lift_centered())
+            Ambient free module of rank 4 over the principal ideal domain Integer Ring
+        """
+        R = self.base_ring().cover_ring()
+        l = [foo.lift_centered() for foo in self]
+        P = self.parent().change_ring(R)
+        return P(l)
 
     def __pos__(self):
         """

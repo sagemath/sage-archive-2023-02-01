@@ -2186,7 +2186,7 @@ def rational_reconstruction(a, m, algorithm='fast'):
 
 def lift_centered(p):
     r"""
-    Compute a representative of the element `p` mod `n` in `(-n/2 , n/2]`
+    Compute a representative of the element `p` mod `n` in `(-n/2 , n/2]`.
 
     INPUT:
 
@@ -2194,7 +2194,7 @@ def lift_centered(p):
 
     OUTPUT:
 
-    - An integer `r` in `\ZZ` such that  `-n/2 < r \leq n/2`
+    - An integer `r` such that  `-n/2 < r \leq n/2`
 
     For specific classes, check the `p.lift_centered` attribute.
 
@@ -2206,15 +2206,51 @@ def lift_centered(p):
         sage: p = Mod(3,4)
         sage: lift_centered(p)
         -1
+
+    If `p` does not have a lift_centered attribute, fallback to the lift method::
+
+        sage: K.<x,y,z> = QQ[]
+        sage: I = Ideal(x*y,x*z,y*z)
+        sage: R =K.quotient_ring(I)
+        sage: f = R(x+y+z)^2
+        sage: lift_centered(f)
+        x^2 + y^2 + z^2
+
+    Note that the type of `r` may vary depending on the input::
+
+        sage: c = ntl.ZZ_pContext(12)
+        sage: p = ntl.ZZ_p(10,c)
+        sage: r = lift_centered(p); r
+        -2
+        sage: type(r)
+        <type 'sage.libs.ntl.ntl_ZZ.ntl_ZZ'>
+
+    The function can be applied to vectors or matrices::
+
+        sage: v = vector(Integers(9),range(9)); v
+        (0, 1, 2, 3, 4, 5, 6, 7, 8)
+        sage: lift_centered(v)
+        (0, 1, 2, 3, 4, -4, -3, -2, -1)
+        sage: m = matrix(Integers(6),2,3,range(6)); m
+        [0 1 2]
+        [3 4 5]
+        sage: lift_centered(m)
+        [ 0  1  2]
+        [ 3 -2 -1]
+
+    An example with polynomials::
+
+        sage: K.<x> = GF(7)[]
+        sage: f = 1 + 2*x + 5*x^2
+        sage: f1 = f.map_coefficients(lift_centered, new_base_ring=ZZ); f1
+        -2*x^2 + 2*x + 1
+        sage: f1.parent()
+        Univariate Polynomial Ring in x over Integer Ring
     """
     try:
-        return ZZ(p.lift_centered())
+        return p.lift_centered()
     except(AttributeError):
-        pass
-    r = p.lift()
-    if r*2 > p.modulus():
-        r -= p.modulus()
-    return ZZ(r)
+        return p.lift()
 
 def _rational_reconstruction_python(a,m):
     """

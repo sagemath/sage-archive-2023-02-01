@@ -987,6 +987,53 @@ class RationalField(_uniq, number_field_base.NumberField):
         """
         return sib.name('QQ')
 
+    def _factor_univariate_polynomial(self, f):
+        """
+        Factor the univariate polynomial ``f``.
+
+        INPUT:
+
+        - ``f`` -- a univariate polynomial defined over the rationals
+
+        OUTPUT:
+
+        - A factorization of ``f`` over the rationals into a unit and monic
+          irreducible factors
+
+        .. NOTE::
+
+            This is a helper method for
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.factor`.
+
+            This method calls PARI to compute the factorization.
+
+        TESTS::
+
+            sage: R.<x> = QQ[]
+            sage: QQ._factor_univariate_polynomial( x )
+            x
+            sage: QQ._factor_univariate_polynomial( 2*x )
+            (2) * x
+            sage: QQ._factor_univariate_polynomial( (x^2 - 1/4)^4 )
+            (x - 1/2)^4 * (x + 1/2)^4
+            sage: QQ._factor_univariate_polynomial( (2*x + 1) * (3*x^2 - 5)^2 )
+            (18) * (x + 1/2) * (x^2 - 5/3)^2
+            sage: f = prod((k^2*x^k + k)^(k-1) for k in primes(10))
+            sage: QQ._factor_univariate_polynomial(f)
+            (1751787911376562500) * (x^2 + 1/2) * (x^3 + 1/3)^2 * (x^5 + 1/5)^4 * (x^7 + 1/7)^6
+            sage: QQ._factor_univariate_polynomial( 10*x^5 - 1 )
+            (10) * (x^5 - 1/10)
+            sage: QQ._factor_univariate_polynomial( 10*x^5 - 10 )
+            (10) * (x - 1) * (x^4 + x^3 + x^2 + x + 1)
+
+        """
+        G = list(f._pari_with_name().factor())
+
+        # normalize the leading coefficients
+        F = [(f.parent()(g).monic(), int(e)) for (g,e) in zip(*G)]
+
+        from sage.structure.factorization import Factorization
+        return Factorization(F, f.leading_coefficient())
 
 QQ = RationalField()
 Q = QQ

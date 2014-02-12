@@ -273,24 +273,25 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.simon_two_descent()  # long time (3s on sage.math, 2013), points can vary
             (1, 3, [...])
 
-        A failure in the PARI/GP script ell.gp (VERSION 25/03/2009) is reported::
+        Check that the bug reported in :trac:`15483` is fixed::
+
+            sage: K.<s> = QuadraticField(229)
+            sage: c4 = 2173 - 235*(1 - s)/2
+            sage: c6 = -124369 + 15988*(1 - s)/2
+            sage: E = EllipticCurve([-c4/48, -c6/864])
+            sage: E.simon_two_descent()
+            (0, 0, [])
+
+            sage: R.<t> = QQ[]
+            sage: L.<g> = NumberField(t^3 - 9*t^2 + 13*t - 4)
+            sage: E1 = EllipticCurve(L,[1-g*(g-1),-g^2*(g-1),-g^2*(g-1),0,0])
+            sage: E1.rank()  # long time (about 5 s)
+            0
 
             sage: K = CyclotomicField(43).subfields(3)[0][0]
             sage: E = EllipticCurve(K, '37')
             sage: E.simon_two_descent()  # long time (4s on sage.math, 2013)
-            Traceback (most recent call last):
-            ...
-            RuntimeError:
-              ***   at top-level: ans=bnfellrank(K,[0,0,1,
-              ***                     ^--------------------
-              ***   in function bnfellrank: ...eqtheta,rnfeq,bbnf];rang=
-              ***   bnfell2descent_gen(b
-              ***   ^--------------------
-              ***   in function bnfell2descent_gen: ...und,r=nfsqrt(nf,norm(zc))
-              ***   [1];if(DEBUGLEVEL_el
-              ***   ^--------------------
-              ***   array index (1) out of allowed range [none].
-            An error occurred while running Simon's 2-descent program
+            (3, 3, [(-1 : 0 : 1), (1/2*zeta43_0^2 + 3/2*zeta43_0 - 2 : -zeta43_0^2 - 4*zeta43_0 + 3 : 1), (-zeta43_0 + 2 : -1/2*zeta43_0^2 + 3/2*zeta43_0 : 1)])
 
         """
 

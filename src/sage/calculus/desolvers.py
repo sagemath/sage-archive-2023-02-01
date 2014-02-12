@@ -14,17 +14,17 @@ Commands:
 - ``desolve_laplace`` - Solves an ODE using laplace transforms via
   Maxima. Initials conditions are optional.
 
-- ``desolve_system`` - Solves any size system of 1st order odes using
-  Maxima. Initials conditions are optional.
-
 - ``desolve_rk4`` - Solves numerically IVP for one first order
-  equation, returns list of points or plot
+  equation, returns list of points or plot.
 
 - ``desolve_system_rk4`` - Solves numerically IVP for system of first
-  order equations, returns list of points
+  order equations, returns list of points.
 
 - ``desolve_odeint`` - Solves numerically a system of first-order ordinary
   differential equations using ``odeint`` from scipy.integrate module.
+
+- ``desolve_system`` - Solves any size system of 1st order odes using
+  Maxima. Initials conditions are optional.
 
 - ``eulers_method`` - Approximate solution to a 1st order DE,
   presented as a table.
@@ -88,7 +88,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         final ``x`` and ``y`` boundary conditions, i.e. write `[x_0, y(x_0), x_1, y(x_1)]`.
 
       - gives an error if the solution is not SymbolicEquation (as happens for
-        example for Clairaut equation)
+        example for a Clairaut equation)
 
     - ``ivar`` - (optional) the independent variable (hereafter called
       x), which must be specified if there is more than one
@@ -96,25 +96,25 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
 
     - ``show_method`` - (optional) if true, then Sage returns pair
       ``[solution, method]``, where method is the string describing
-      method which has been used to get solution (Maxima uses the
+      the method which has been used to get a solution (Maxima uses the
       following order for first order equations: linear, separable,
       exact (including exact with integrating factor), homogeneous,
       bernoulli, generalized homogeneous) - use carefully in class,
       see below for the example of the equation which is separable but
-      this property is not recognized by Maxima and equation is solved
+      this property is not recognized by Maxima and the equation is solved
       as exact.
 
     - ``contrib_ode`` - (optional) if true, desolve allows to solve
-      clairaut, lagrange, riccati and some other equations. May take
-      a long time and thus turned off by default.  Initial conditions
+      Clairaut, Lagrange, Riccati and some other equations. This may take
+      a long time and is thus turned off by default.  Initial conditions
       can be used only if the result is one SymbolicEquation (does not
-      contain singular solution, for example)
+      contain a singular solution, for example)
 
     OUTPUT:
 
-    In most cases returns SymbolicEquation which defines the solution
+    In most cases return a SymbolicEquation which defines the solution
     implicitly.  If the result is in the form y(x)=... (happens for
-    linear eqs.), returns the right-hand side only.  The possible
+    linear eqs.), return the right-hand side only.  The possible
     constant solutions of separable ODE's are omitted.
 
 
@@ -174,12 +174,12 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         sage: desolve(y*diff(y,x)+sin(x)==0,y)
         -1/2*y(x)^2 == c - cos(x)
 
-    Clairot equation: general and singular solutions::
+    Clairaut equation: general and singular solutions::
 
         sage: desolve(diff(y,x)^2+x*diff(y,x)-y==0,y,contrib_ode=True,show_method=True)
         [[y(x) == c^2 + c*x, y(x) == -1/4*x^2], 'clairault']
 
-    For equations involving more variables we specify independent variable::
+    For equations involving more variables we specify an independent variable::
 
         sage: a,b,c,n=var('a b c n')
         sage: desolve(x^2*diff(y,x)==a+b*x^n+c*x^2*y^2,y,ivar=x,contrib_ode=True)
@@ -191,7 +191,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         [[[y(x) == 0, (b*x^(n - 2) + a/x^2)*c^2*u == 0]], 'riccati']
 
 
-    Higher orded, not involving independent variable::
+    Higher ordered, not involving independent variable::
 
         sage: desolve(diff(y,x,2)+y*(diff(y,x,1))^3==0,y).expand()
         1/6*y(x)^3 + k1*y(x) == k2 + x
@@ -243,27 +243,27 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         sage: desolve(diff(y,x)==exp(x-y),y,show_method=True)
         [-e^x + e^y(x) == c, 'exact']
 
-    You can solve Bessel equations. You can also use initial
-    conditions, but you cannot put (sometimes desired) initial
-    condition at x=0, since this point is singlar point of the
+    You can solve Bessel equations, also using initial
+    conditions, but you cannot put (sometimes desired) the initial
+    condition at x=0, since this point is a singlar point of the
     equation. Anyway, if the solution should be bounded at x=0, then
     k2=0.::
 
         sage: desolve(x^2*diff(y,x,x)+x*diff(y,x)+(x^2-4)*y==0,y)
         k1*bessel_J(2, x) + k2*bessel_Y(2, x)
 
-    Difficult ODE produces error::
+    Example of difficult ODE producing an error::
 
         sage: desolve(sqrt(y)*diff(y,x)+e^(y)+cos(x)-sin(x+y)==0,y) # not tested
         Traceback (click to the left for traceback)
         ...
         NotImplementedError, "Maxima was unable to solve this ODE. Consider to set option contrib_ode to True."
 
-    Difficult ODE produces error - moreover, takes a long time ::
+    Another difficult ODE with error - moreover, it takes a long time ::
 
         sage: desolve(sqrt(y)*diff(y,x)+e^(y)+cos(x)-sin(x+y)==0,y,contrib_ode=True) # not tested
 
-    Some more types od ODE's::
+    Some more types of ODE's::
 
         sage: desolve(x*diff(y,x)^2-(1+x*y)*diff(y,x)+y==0,y,contrib_ode=True,show_method=True)
         [[y(x) == c + log(x), y(x) == c*e^x], 'factor']
@@ -273,8 +273,8 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         sage: desolve(diff(y,x)==(x+y)^2,y,contrib_ode=True,show_method=True)
         [[[x == c - arctan(sqrt(t)), y(x) == -x - sqrt(t)], [x == c + arctan(sqrt(t)), y(x) == -x + sqrt(t)]], 'lagrange']
 
-    These two examples produce error (as expected, Maxima 5.18 cannot
-    solve equations from initial conditions). Current Maxima 5.18
+    These two examples produce an error (as expected, Maxima 5.18 cannot
+    solve equations from initial conditions). Maxima 5.18
     returns false answer in this case!::
 
         sage: desolve(diff(y,x,2)+y*(diff(y,x,1))^3==0,y,[0,1,2]).expand() # not tested

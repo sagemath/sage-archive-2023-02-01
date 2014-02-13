@@ -345,6 +345,20 @@ class QuotientFields(Category_singleton):
                   (-2/27*t + 1/27)/(t^10 - 5*t^9 + 15*t^8 - 30*t^7 + 45*t^6 - 51*t^5 + 45*t^4 - 30*t^3 + 15*t^2 - 5*t + 1)])
                 sage: sum(r.partial_fraction_decomposition()[1]) == r
                 True
+
+            Some special cases::
+
+                sage: R = Frac(QQ['x']); x = R.gen()
+                sage: x.partial_fraction_decomposition()
+                (x, [])
+                sage: R(0).partial_fraction_decomposition()
+                (0, [])
+                sage: R(1).partial_fraction_decomposition()
+                (1, [])
+                sage: (1/x).partial_fraction_decomposition()
+                (0, [1/x])
+                sage: (1/x+1/x^3).partial_fraction_decomposition()
+                (0, [1/x, 1/x^3])
             """
             denom = self.denominator()
             whole, numer = self.numerator().quo_rem(denom)
@@ -360,35 +374,28 @@ class QuotientFields(Category_singleton):
                 factors.sort() # for doctest consistency
 
             # TODO(robertwb): Should there be a category of univariate polynomials?
-            from sage.rings.polynomial.polynomial_ring import PolynomialRing_commutative
-            denom_parent = denom.parent()
-            is_polynomial_over_field = (
-                isinstance(denom_parent, PolynomialRing_commutative)
-                and len(denom_parent.variable_names()) == 1
-                and denom_parent.base_ring().is_field())
+            from sage.rings.fraction_field_element import FractionFieldElement_1poly_field
+            is_polynomial_over_field = isinstance(self, FractionFieldElement_1poly_field)
 
             running_total = 0
             parts = []
             for r, e in factors:
-                r_parts = []
-                powers = [1, r]
-                for ee in range(e-1):
+                powers = [1]
+                for ee in range(e):
                     powers.append(powers[-1] * r)
                 d = powers[e]
                 denom_div_d = denom // d
                 # We know the inverse exists as the two are relatively prime.
-                n = (numer % d) * denom_div_d.inverse_mod(d) % d
+                n = ((numer % d) * denom_div_d.inverse_mod(d)) % d
                 if not is_polynomial_over_field:
                     running_total += n * denom_div_d
                 # If the multiplicity is not one, further reduce.
                 if decompose_powers:
-                    for ee in range(e, 1, -1):
-                        quo, n = n.quo_rem(r)
-                        if n:
-                            r_parts.append(n/powers[ee])
-                        n = quo
-                    if n:
-                        r_parts.append(n/r)
+                    r_parts = []
+                    for ee in range(e, 0, -1):
+                        n, n_part = n.quo_rem(r)
+                        if n_part:
+                            r_parts.append(n_part/powers[ee])
                     parts.extend(reversed(r_parts))
                 else:
                     parts.append(n/powers[e])

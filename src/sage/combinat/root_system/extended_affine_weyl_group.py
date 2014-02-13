@@ -420,6 +420,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
         self._I0 = self._ct0.index_set()
         self._ct0v = self._ct0.dual()
         self._R0v = self._ct0v.root_system()
+        self._a0check = self._cartan_type.acheck()[0]
 
         # `BC` (`A_{2n}^{(2)\dagger}`) is considered untwisted and its dual is considered twisted
         self._untwisted = (self._cartan_type.is_untwisted_affine() or self._cartan_type.dual().type() == 'BC')
@@ -434,6 +435,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
             self._basis_name = 'Lambdacheck'
             self._simpleR0 = self._R0.root_lattice().simple_roots()
             if self._cartan_type.dual().type() == 'BC':
+                # A_{2n}^{(2)} dual
                 self._special_root = self._R0.coroot_lattice().highest_root()
                 self._special_translation = self._lattice.fundamental_weight(1)
             else:
@@ -451,6 +453,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
             self._basis_name = 'Lambda'
             self._simpleR0 = self._R0.coroot_lattice().simple_roots()
             if self._cartan_type.type() == 'BC':
+                # A_{2n}^{(2)}
                 self._special_root = self._R0.root_lattice().highest_root()
                 self._special_translation = self._lattice.fundamental_weight(1)
                 self._special_translation_covector = 2*self._special_root.associated_coroot()
@@ -540,11 +543,14 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
             if i is None:
                 # the element is in the fundamental group; use its known formula
                 ispecial = f.value()
+                W=E.classical_weyl()
                 if ispecial == 0:
                     weight = E.lattice().zero()
+                    wo = W.one()
                 else:
                     weight = E.lattice_basis()[ispecial]
-                return PW0((weight, E.classical_weyl().from_reduced_word(E.fundamental_group().finite_action()[ispecial])))
+                    wo = W.from_reduced_word(E.fundamental_group().finite_action()[ispecial])
+                return PW0((weight,wo))
             sx = x.apply_simple_reflection(i, side='left')
             spw0 = WF_to_PW0_func(sx)
             return spw0.apply_simple_reflection(i, side='left')
@@ -556,13 +562,21 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
         PvW0_to_W0Pv.register_as_coercion()
         W0Pv_to_PvW0 = SetMorphism(Hom(W0Pv, PvW0, Groups()),lambda x: PvW0(x.to_opposite()))
         W0Pv_to_PvW0.register_as_coercion()
-        PW0_to_PvW0 = SetMorphism(Hom(PW0, PvW0, Groups()), lambda x: PvW0((self.exp_dual_lattice()(x.summand_projection(0).value.to_dual_type_cospace()),self.dual_classical_weyl().from_reduced_word(x.summand_projection(1).reduced_word()))))
+
+        if self._untwisted:
+            PW0_to_PvW0 = SetMorphism(Hom(PW0, PvW0, Groups()), lambda x: PvW0((self.exp_dual_lattice()(x.summand_projection(0).value.to_dual_type_cospace()),self.dual_classical_weyl().from_reduced_word(x.summand_projection(1).reduced_word()))))
+            PvW0_to_PW0 = SetMorphism(Hom(PvW0, PW0, Groups()), lambda x: PW0((self.exp_lattice()(x.summand_projection(0).value.to_dual_type_cospace()),self.classical_weyl().from_reduced_word(x.summand_projection(1).reduced_word()))))
+            W0P_to_W0Pv = SetMorphism(Hom(W0P, W0Pv, Groups()), lambda x: W0Pv((self.dual_classical_weyl().from_reduced_word(x.summand_projection(0).reduced_word()),self.exp_dual_lattice()(x.summand_projection(1).value.to_dual_type_cospace()))))
+            W0Pv_to_W0P = SetMorphism(Hom(W0Pv, W0P, Groups()), lambda x: W0P((self.classical_weyl().from_reduced_word(x.summand_projection(0).reduced_word()),self.exp_lattice()(x.summand_projection(1).value.to_dual_type_cospace()))))
+        else:
+            PW0_to_PvW0 = SetMorphism(Hom(PW0, PvW0, Groups()), lambda x: PvW0((x.summand_projection(0),self.dual_classical_weyl().from_reduced_word(x.summand_projection(1).reduced_word()))))
+            PvW0_to_PW0 = SetMorphism(Hom(PvW0, PW0, Groups()), lambda x: PW0((x.summand_projection(0),self.classical_weyl().from_reduced_word(x.summand_projection(1).reduced_word()))))
+            W0P_to_W0Pv = SetMorphism(Hom(W0P, W0Pv, Groups()), lambda x: W0Pv((self.dual_classical_weyl().from_reduced_word(x.summand_projection(0).reduced_word()),x.summand_projection(1))))
+            W0Pv_to_W0P = SetMorphism(Hom(W0Pv, W0P, Groups()), lambda x: W0P((self.classical_weyl().from_reduced_word(x.summand_projection(0).reduced_word()),x.summand_projection(1))))
+
         PW0_to_PvW0.register_as_coercion()
-        PvW0_to_PW0 = SetMorphism(Hom(PvW0, PW0, Groups()), lambda x: PW0((self.exp_lattice()(x.summand_projection(0).value.to_dual_type_cospace()),self.classical_weyl().from_reduced_word(x.summand_projection(1).reduced_word()))))
         PvW0_to_PW0.register_as_coercion()
-        W0P_to_W0Pv = SetMorphism(Hom(W0P, W0Pv, Groups()), lambda x: W0Pv((self.dual_classical_weyl().from_reduced_word(x.summand_projection(0).reduced_word()),self.exp_dual_lattice()(x.summand_projection(1).value.to_dual_type_cospace()))))
         W0P_to_W0Pv.register_as_coercion()
-        W0Pv_to_W0P = SetMorphism(Hom(W0Pv, W0P, Groups()), lambda x: W0P((self.classical_weyl().from_reduced_word(x.summand_projection(0).reduced_word()),self.exp_lattice()(x.summand_projection(1).value.to_dual_type_cospace()))))
         W0Pv_to_W0P.register_as_coercion()
 
         # coercions of the translation lattice into the appropriate realizations
@@ -1195,7 +1209,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
                     - `positive` -- True or False (default: False)
 
                 If ``side``='left' then the reflection acts
-                on the left. If ``positive``=True then the inequality is reversed.
+                on the left. If ``positive`` = True then the inequality is reversed.
 
                 EXAMPLES::
 
@@ -1736,6 +1750,50 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
         The element class for the "PW0" realization.
         """
 
+        def has_descent(self, i, side='right', positive=False):
+            r"""
+            Whether `self` has `i` as a descent.
+
+            INPUT:
+
+                - `i` - an index.
+
+            OPTIONAL:
+
+                - side -- 'left' or 'right' (default: 'right')
+                - positive -- True or False (default: False)
+
+            EXAMPLES::
+
+                sage: We = ExtendedAffineWeylGroup(['A',4,2])
+                sage: w = We.from_reduced_word([0,1]); w
+                t[Lambda[1]] * s1*s2
+                sage: w.has_descent(0, side='left')
+                True
+
+            """
+
+            E = self.parent().realization_of()
+            if side == 'right':
+                self = ~self
+            if positive:
+                return not self.has_descent(i, side='left')
+            la = self.summand_projection(0).value
+            w = self.summand_projection(1)
+            if i == 0:
+                ip = la.scalar(E._special_translation_covector) * E._a0check
+                if ip > 1:
+                    return True
+                if ip < 1:
+                    return False
+                return E._special_root.weyl_action(w, inverse=True).is_positive_root()
+            ip = la.scalar(E._simpleR0[i]) # test height versus simple (co)root
+            if ip < 0:
+                return True
+            if ip > 0:
+                return False
+            return w.has_descent(i, side='left')
+
         def action(self, la):
             r"""
             Returns the action of ``self`` on an element ``la`` of the translation lattice.
@@ -1755,47 +1813,6 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
             w = self.summand_projection(1)
             assert la in w.parent().domain()
             return self.summand_projection(0).value + w.action(la)
-
-        def has_descent(self, i, side='right', positive=False):
-            r"""
-            INPUT:
-
-            - `i` - an index.
-
-            OPTIONAL:
-
-            - side -- 'left' or 'right' (default: 'right')
-            - positive -- True or False (default: False)
-
-            EXAMPLES::
-
-                sage: We = ExtendedAffineWeylGroup(['A',4,2])
-                sage: w = We.from_reduced_word([0,1]); w
-                t[Lambda[1]] * s1*s2
-                sage: w.has_descent(0, side='left')
-                True
-
-            """
-            E = self.parent().realization_of()
-            if side == 'right':
-                self = ~self
-            if positive:
-                return not self.has_descent(i, side='left')
-            la = self.summand_projection(0).value
-            w = self.summand_projection(1)
-            if i == 0:
-                ip = la.scalar(E._special_translation_covector)
-                if ip > 1:
-                    return True
-                if ip < 1:
-                    return False
-                return E._special_root.weyl_action(w, inverse=True).is_positive_root()
-            ip = la.scalar(E._simpleR0[i]) # test height versus simple (co)root
-            if ip < 0:
-                return True
-            if ip > 0:
-                return False
-            return w.has_descent(i, side='left')
 
         def to_translation_left(self):
             r"""
@@ -1961,13 +1978,13 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
             w = self.summand_projection(0)
             la = self.summand_projection(1).value
             if i == 0:
-                ip = la.scalar(E._special_translation_covector)
+                ip = la.scalar(E._special_translation_covector) * E._a0check
                 if ip < -1:
                     return True
                 if ip > -1:
                     return False
                 return E._special_root.weyl_action(w).is_positive_root()
-            ip = l.scalar(E._simpleR0[i]) # test height versus simple (co)root
+            ip = la.scalar(E._simpleR0[i]) # test height versus simple (co)root
             if ip > 0:
                 return True
             if ip < 0:
@@ -2049,6 +2066,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
             E = self.realization_of()
             return self.classical_weyl_morphism(E.classical_weyl().simple_reflection(i))
 
+        @cached_method
         def simple_reflections(self):
             r"""
             Returns the family of simple reflections.
@@ -2393,6 +2411,31 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
         The element class for the "PvW0" realization.
         """
 
+        def has_descent(self, i, side='right', positive=False):
+            r"""
+            Whether `self` has `i` as a descent.
+
+            INPUT:
+
+                - `i` - an index.
+
+            OPTIONAL:
+
+                - side -- 'left' or 'right' (default: 'right')
+                - positive -- True or False (default: False)
+
+            EXAMPLES::
+
+                sage: PvW0 = ExtendedAffineWeylGroup(['A',4,2],style="PvW0")
+                sage: w = PvW0.from_reduced_word([0,1]); w
+                t[Lambda[1]] * s1*s2
+                sage: w.has_descent(0, side='left')
+                True
+
+            """
+
+            return self.parent().realization_of().PW0()(self).has_descent(i, side=side, positive=positive)
+
         def dual_action(self, la):
             r"""
             Returns the action of ``self`` on an element ``la`` of the dual version of the translation lattice.
@@ -2412,28 +2455,6 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
             w = self.summand_projection(1)
             assert la in w.parent().domain()
             return self.summand_projection(0).value + w.action(la)
-
-        def has_descent(self, i, side='right', positive=False):
-            r"""
-            INPUT:
-
-            - `i` - an index.
-
-            OPTIONAL:
-
-            - side -- 'left' or 'right' (default: 'right')
-            - positive -- True or False (default: False)
-
-            EXAMPLES::
-
-                sage: We = ExtendedAffineWeylGroup(['B',2,1],style="PvW0")
-                sage: w = We.from_reduced_word([0,1]); w
-                t[Lambda[2]] * s2*s1*s2*s1
-                sage: w.has_descent(0, side='left')
-                True
-
-            """
-            return self.parent().realization_of().PW0()(self).has_descent(i, side='left')
 
         def to_dual_translation_left(self):
             r"""
@@ -2587,19 +2608,19 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
             OPTIONAL:
 
-            - side -- 'left' or 'right' (default: 'right')
-            - positive -- True or False (default: False)
+            - side - 'left' or 'right' (default: 'right')
+            - positive - True or False (default: False)
 
             EXAMPLES::
 
-                sage: W0Pv = ExtendedAffineWeylGroup(["C",2,1],style="W0Pv")
+                sage: W0Pv = ExtendedAffineWeylGroup(['A',4,2],style="W0Pv")
                 sage: w = W0Pv.from_reduced_word([0,1]); w
-                s1*s2 * t[Lambda[1] - 2*Lambda[2]]
+                s1*s2 * t[Lambda[1] - Lambda[2]]
                 sage: w.has_descent(0, side='left')
                 True
 
             """
-            return self.parent().realization_of().W0P()(self).has_descent(i, side='left')
+            return self.parent().realization_of().W0P()(self).has_descent(i, side=side, positive=positive)
 
         def to_dual_translation_right(self):
             r"""

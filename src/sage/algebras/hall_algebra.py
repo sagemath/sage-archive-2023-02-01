@@ -122,14 +122,14 @@ class HallAlgebra(CombinatorialFreeModule):
             sage: R.<q> = LaurentPolynomialRing(ZZ)
             sage: H = HallAlgebra(R, q)
             sage: I = H.monomial_basis()
-            sage: H(I[2,1])
-            H[2, 1] + ((-q^3+1)/(-q+1))*H[1, 1, 1]
-            sage: H[2]*H[2]
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand parent(s) for '-':
-             'Hall algebra with q=q over Univariate Laurent Polynomial Ring in q over Integer Ring'
-             and '<type 'NoneType'>'
+            sage: hi = H(I[2,1]); hi
+            H[2, 1] + (q^2+q+1)*H[1, 1, 1]
+            sage: hi.parent() is H
+            True
+            sage: h22 = H[2]*H[2]; h22
+            H[4] + (q-1)*H[3, 1] + (q^2+q)*H[2, 2]
+            sage: h22.parent() is H
+            True
 
     EXAMPLES::
 

@@ -2334,14 +2334,17 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
             sage: f = H([x^2 + y^2,2*x*y])
-            sage: f.rational_preimages([0,1])
+            sage: f.rational_preimages([CC.0,1])
+            Traceback (most recent call last):
+            ...
+            TypeError: Point must be in codomain of self
         """
         if not self.is_endomorphism():
             raise NotImplementedError("Must be an endomorphism of projective space")
         if self.domain().base_ring()!=QQ:
             raise NotImplementedError("Must be QQ")
-        if Q not in self.domain():
-            raise TypeError("Point must in domain of self")
+        if (Q in self.codomain())==False:
+            raise TypeError("Point must be in codomain of self")
         PS=self.domain()
         R=PS.coordinate_ring()
         N=PS.dimension_relative()

@@ -3253,6 +3253,9 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return mpz_cmp_si(mpq_denref(self.value), 1) == 0
 
+    def is_integer(self):
+        return self in ZZ
+
     def is_S_integral(self, S=[]):
         r"""
         Determine if the rational number is ``S``-integral.

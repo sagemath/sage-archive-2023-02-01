@@ -361,7 +361,9 @@ fact that the third output is different than the first::
     # Verified
     AA(2)
 
-Just for fun, let's try ``sage_input`` on a very complicated expression::
+Just for fun, let's try ``sage_input`` on a very complicated expression. The
+output of this example changed with the rewritting of polynomial multiplication
+algorithms in #10255::
 
     sage: rt2 = sqrt(AA(2))
     sage: rt3 = sqrt(QQbar(3))
@@ -377,20 +379,17 @@ Just for fun, let's try ``sage_input`` on a very complicated expression::
     v2 = QQbar(sqrt(v1))
     v3 = QQbar(3)
     v4 = sqrt(v3)
-    v5 = v2*v4
-    v6 = (1 - v2)*(1 - v4) - 1 - v5
-    v7 = QQbar(sqrt(v1))
-    v8 = sqrt(v3)
-    si1 = v7*v8
-    cp = AA.common_polynomial(x^2 + ((1 - v7)*(1 + v8) - 1 + si1)*x - si1)
-    v9 = QQbar.polynomial_root(cp, RIF(-RR(1.7320508075688774), -RR(1.7320508075688772)))
-    v10 = 1 - v9
-    v11 = v6 + (v10 - 1)
-    v12 = -1 - v4 - QQbar.polynomial_root(cp, RIF(-RR(1.7320508075688774), -RR(1.7320508075688772)))
-    v13 = 1 + v12
-    v14 = v10*(v6 + v5) - (v6 - v5*v9)
-    si2 = v5*v9
-    AA.polynomial_root(AA.common_polynomial(x^4 + (v11 + (v13 - 1))*x^3 + (v14 + (v13*v11 - v11))*x^2 + (v13*(v14 - si2) - (v14 - si2*v12))*x - si2*v12), RIF(RR(0.99999999999999989), RR(1.0000000000000002)))
+    v5 = -v2 - v4
+    v6 = QQbar(sqrt(v1))
+    v7 = sqrt(v3)
+    cp = AA.common_polynomial(x^2 + (-v6 + v7)*x - v6*v7)
+    v8 = QQbar.polynomial_root(cp, RIF(-RR(1.7320508075688774), -RR(1.7320508075688772)))
+    v9 = v5 - v8
+    v10 = -1 - v4 - QQbar.polynomial_root(cp, RIF(-RR(1.7320508075688774), -RR(1.7320508075688772)))
+    v11 = v2*v4
+    v12 = v11 - v5*v8
+    si = v11*v8
+    AA.polynomial_root(AA.common_polynomial(x^4 + (v9 + v10)*x^3 + (v12 + v9*v10)*x^2 + (-si + v12*v10)*x - si*v10), RIF(RR(0.99999999999999989), RR(1.0000000000000002)))
     sage: one
     1
 
@@ -498,7 +497,6 @@ from sage.rings.rational_field import QQ
 from sage.rings.number_field.number_field import NumberField, QuadraticField, CyclotomicField
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 from sage.rings.arith import factor
-from sage.libs.pari.gen import pari
 from sage.structure.element import generic_power, canonical_coercion
 import infinity
 from sage.misc.functional import cyclotomic_polynomial

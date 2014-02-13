@@ -102,7 +102,7 @@ is an involution::
     sage: SkewPartition([[4,3,1],[2]]).conjugate().conjugate()
     [4, 3, 1] / [2]
 
-The :meth:`jacobi_trudy()` method computes the Jacobi-Trudi matrix. See
+The :meth:`jacobi_trudi()` method computes the Jacobi-Trudi matrix. See
 [Mac95]_ for a definition and discussion.
 
 ::
@@ -160,7 +160,7 @@ from sage.graphs.digraph import DiGraph
 from sage.matrix.matrix_space import MatrixSpace
 
 from sage.combinat.combinat import CombinatorialObject
-from sage.combinat.partition import Partitions, PartitionOptions, _Partitions
+from sage.combinat.partition import PartitionOptions, _Partitions
 from sage.combinat.tableau import TableauOptions
 from sage.combinat.composition import Compositions
 
@@ -709,6 +709,212 @@ class SkewPartition(CombinatorialObject, Element):
         icorners += [(nn, 0)]
         return icorners
 
+    def cell_poset(self, orientation="SE"):
+        """
+        Return the Young diagram of ``self`` as a poset. The optional
+        keyword variable ``orientation`` determines the order relation
+        of the poset.
+
+        The poset always uses the set of cells of the Young diagram
+        of ``self`` as its ground set. The order relation of the poset
+        depends on the ``orientation`` variable (which defaults to
+        ``"SE"``). Concretely, ``orientation`` has to be specified to
+        one of the strings ``"NW"``, ``"NE"``, ``"SW"``, and ``"SE"``,
+        standing for "northwest", "northeast", "southwest" and
+        "southeast", respectively. If ``orientation`` is ``"SE"``, then
+        the order relation of the poset is such that a cell `u` is
+        greater or equal to a cell `v` in the poset if and only if `u`
+        lies weakly southeast of `v` (this means that `u` can be
+        reached from `v` by a sequence of south and east steps; the
+        sequence is allowed to consist of south steps only, or of east
+        steps only, or even be empty). Similarly the order relation is
+        defined for the other three orientations. The Young diagram is
+        supposed to be drawn in English notation.
+
+        The elements of the poset are the cells of the Young diagram
+        of ``self``, written as tuples of zero-based coordinates (so
+        that `(3, 7)` stands for the `8`-th cell of the `4`-th row,
+        etc.).
+
+        EXAMPLES::
+
+            sage: p = SkewPartition([[3,3,1], [2,1]])
+            sage: Q = p.cell_poset(); Q
+            Finite poset containing 4 elements
+            sage: sorted(Q)
+            [(0, 2), (1, 1), (1, 2), (2, 0)]
+            sage: sorted(Q.maximal_elements())
+            [(1, 2), (2, 0)]
+            sage: sorted(Q.minimal_elements())
+            [(0, 2), (1, 1), (2, 0)]
+            sage: sorted(Q.upper_covers((1, 1)))
+            [(1, 2)]
+            sage: sorted(Q.upper_covers((0, 2)))
+            [(1, 2)]
+
+            sage: P = p.cell_poset(orientation="NW"); P
+            Finite poset containing 4 elements
+            sage: sorted(P)
+            [(0, 2), (1, 1), (1, 2), (2, 0)]
+            sage: sorted(P.minimal_elements())
+            [(1, 2), (2, 0)]
+            sage: sorted(P.maximal_elements())
+            [(0, 2), (1, 1), (2, 0)]
+            sage: sorted(P.upper_covers((1, 2)))
+            [(0, 2), (1, 1)]
+
+            sage: R = p.cell_poset(orientation="NE"); R
+            Finite poset containing 4 elements
+            sage: sorted(R)
+            [(0, 2), (1, 1), (1, 2), (2, 0)]
+            sage: R.maximal_elements()
+            [(0, 2)]
+            sage: R.minimal_elements()
+            [(2, 0)]
+            sage: R.upper_covers((2, 0))
+            [(1, 1)]
+            sage: sorted([len(R.upper_covers(v)) for v in R])
+            [0, 1, 1, 1]
+
+        TESTS:
+
+        We check that the posets are really what they should be for size
+        up to `6`::
+
+            sage: def check_NW(n):
+            ....:     for p in SkewPartitions(n):
+            ....:         P = p.cell_poset(orientation="NW")
+            ....:         for c in p.cells():
+            ....:             for d in p.cells():
+            ....:                 if P.le(c, d) != (c[0] >= d[0]
+            ....:                                   and c[1] >= d[1]):
+            ....:                     return False
+            ....:     return True
+            sage: all( check_NW(n) for n in range(7) )
+            True
+
+            sage: def check_NE(n):
+            ....:     for p in SkewPartitions(n):
+            ....:         P = p.cell_poset(orientation="NE")
+            ....:         for c in p.cells():
+            ....:             for d in p.cells():
+            ....:                 if P.le(c, d) != (c[0] >= d[0]
+            ....:                                   and c[1] <= d[1]):
+            ....:                     return False
+            ....:     return True
+            sage: all( check_NE(n) for n in range(7) )
+            True
+
+            sage: def test_duality(n, ori1, ori2):
+            ....:     for p in SkewPartitions(n):
+            ....:         P = p.cell_poset(orientation=ori1)
+            ....:         Q = p.cell_poset(orientation=ori2)
+            ....:         for c in p.cells():
+            ....:             for d in p.cells():
+            ....:                 if P.lt(c, d) != Q.lt(d, c):
+            ....:                     return False
+            ....:     return True
+            sage: all( test_duality(n, "NW", "SE") for n in range(7) )
+            True
+            sage: all( test_duality(n, "NE", "SW") for n in range(7) )
+            True
+            sage: all( test_duality(n, "NE", "SE") for n in range(4) )
+            False
+        """
+        from sage.combinat.posets.posets import Poset
+        # Getting the cover relations seems hard, so let's just compute
+        # the comparison function.
+        if orientation == "NW":
+            def poset_le(u, v):
+                return u[0] >= v[0] and u[1] >= v[1]
+        elif orientation == "NE":
+            def poset_le(u, v):
+                return u[0] >= v[0] and u[1] <= v[1]
+        elif orientation == "SE":
+            def poset_le(u, v):
+                return u[0] <= v[0] and u[1] <= v[1]
+        elif orientation == "SW":
+            def poset_le(u, v):
+                return u[0] <= v[0] and u[1] >= v[1]
+        return Poset((self.cells(), poset_le))
+
+    def frobenius_rank(self):
+        r"""
+        Return the Frobenius rank of the skew partition ``self``.
+
+        The Frobenius rank of a skew partition `\lambda / \mu` can be
+        defined in various ways. The quickest one is probably the
+        following: Writing `\lambda` as
+        `(\lambda_1, \lambda_2, \cdots , \lambda_N)`, and writing `\mu`
+        as `(\mu_1, \mu_2, \cdots , \mu_N)`, we define the Frobenius
+        rank of `\lambda / \mu` to be the number of all
+        `1 \leq i \leq N` such that
+
+        .. MATH::
+
+            \lambda_i - i
+            \not\in \{ \mu_1 - 1, \mu_2 - 2, \cdots , \mu_N - N \}.
+
+        In other words, the Frobenius rank of `\lambda / \mu` is the
+        number of rows in the Jacobi-Trudi matrix of `\lambda / \mu`
+        which don't contain `h_0`. Further definitions have been
+        considered in [Stan2002]_ (where Frobenius rank is just being
+        called rank).
+
+        If `\mu` is the empty shape, then the Frobenius rank of
+        `\lambda / \mu` is just the usual Frobenius rank of the
+        partition `\lambda` (see
+        :meth:`~sage.combinat.partition.Partition.frobenius_rank()`).
+
+        REFERENCES:
+
+        .. [Stan2002] Richard P. Stanley,
+           *The rank and minimal border strip decompositions of a
+           skew partition*,
+           J. Combin. Theory Ser. A 100 (2002), pp. 349-375.
+           :arxiv:`math/0109092v1`.
+
+        EXAMPLES::
+
+            sage: SkewPartition([[8,8,7,4], [4,1,1]]).frobenius_rank()
+            4
+            sage: SkewPartition([[2,1], [1]]).frobenius_rank()
+            2
+            sage: SkewPartition([[2,1,1], [1]]).frobenius_rank()
+            2
+            sage: SkewPartition([[2,1,1], [1,1]]).frobenius_rank()
+            2
+            sage: SkewPartition([[5,4,3,2], [2,1,1]]).frobenius_rank()
+            3
+            sage: SkewPartition([[4,2,1], [3,1,1]]).frobenius_rank()
+            2
+            sage: SkewPartition([[4,2,1], [3,2,1]]).frobenius_rank()
+            1
+
+        If the inner shape is empty, then the Frobenius rank of the skew
+        partition is just the standard Frobenius rank of the partition::
+
+            sage: all( SkewPartition([lam, Partition([])]).frobenius_rank()
+            ....:      == lam.frobenius_rank() for i in range(6)
+            ....:      for lam in Partitions(i) )
+            True
+
+        If the inner and outer shapes are equal, then the Frobenius rank
+        is zero::
+
+            sage: all( SkewPartition([lam, lam]).frobenius_rank() == 0
+            ....:      for i in range(6) for lam in Partitions(i) )
+            True
+        """
+        N = len(self[0])
+        mu_betas = [x - j for (j, x) in enumerate(self[1])]
+        mu_betas.extend([- j for j in range(len(self[1]), N)])
+        res = 0
+        for i, x in enumerate(self[0]):
+            if not x - i in mu_betas:
+                res += 1
+        return res
+
     def cells(self):
         """
         Return the coordinates of the cells of ``self``. Coordinates are
@@ -749,7 +955,12 @@ class SkewPartition(CombinatorialObject, Element):
     def to_dag(self):
         """
         Return a directed acyclic graph corresponding to the skew
-        partition.
+        partition ``self``.
+
+        The directed acyclic graph corresponding to a skew partition
+        `p` is the digraph whose vertices are the cells of `p`, and
+        whose edges go from each cell to its lower and right
+        neighbors (in English notation).
 
         EXAMPLES::
 
@@ -782,9 +993,8 @@ class SkewPartition(CombinatorialObject, Element):
                     #Check to see if there is anything below
                     if row != len(skew) - 1:
                         if len(skew[row+1]) > column:
-                            if skew[row+1][column] is not None:
-                                newstring = "%d,%d" % (row+1, column)
-                                G.add_edge(string, newstring)
+                            newstring = "%d,%d" % (row+1, column)
+                            G.add_edge(string, newstring)
         return G
 
     def quotient(self, k):
@@ -809,8 +1019,8 @@ class SkewPartition(CombinatorialObject, Element):
 
     def rows_intersection_set(self):
         r"""
-        Return the set of cells in the lines of `\lambda` which intersect the
-        skew partition.
+        Return the set of cells in the rows of the outer shape of
+        ``self`` which rows intersect the skew diagram of ``self``.
 
         EXAMPLES::
 
@@ -832,8 +1042,8 @@ class SkewPartition(CombinatorialObject, Element):
 
     def columns_intersection_set(self):
         """
-        Return the set of cells in the lines of lambda which intersect the
-        skew partition.
+        Return the set of cells in the columns of the outer shape of
+        ``self`` which columns intersect the skew diagram of ``self``.
 
         EXAMPLES::
 
@@ -887,6 +1097,8 @@ class SkewPartition(CombinatorialObject, Element):
 
     def jacobi_trudi(self):
         """
+        Return the Jacobi-Trudi matrix of ``self``.
+
         EXAMPLES::
 
             sage: SkewPartition([[3,2,1],[2,1]]).jacobi_trudi()
@@ -901,20 +1113,20 @@ class SkewPartition(CombinatorialObject, Element):
         p = self.outer()
         q = self.inner()
         from sage.combinat.sf.sf import SymmetricFunctions
-        if len(p) == 0 and len(q) == 0:
-            return MatrixSpace(SymmetricFunctions(QQ).homogeneous(), 0)(0)
         nn = len(p)
+        if nn == 0:
+            return MatrixSpace(SymmetricFunctions(QQ).homogeneous(), 0)(0)
         h = SymmetricFunctions(QQ).homogeneous()
         H = MatrixSpace(h, nn)
 
-        q  = q + [0]*int(nn-len(q))
+        q = q + [0]*int(nn-len(q))
         m = []
         for i in range(1,nn+1):
             row = []
             for j in range(1,nn+1):
                 v = p[j-1]-q[i-1]-j+i
                 if v < 0:
-                    row.append(h(0))
+                    row.append(h.zero())
                 elif v == 0:
                     row.append(h([]))
                 else:
@@ -1497,7 +1709,7 @@ class SkewPartitions_rowlengths(SkewPartitions):
         if x in SkewPartitions():
             o = x[0]
             i = x[1]+[0]*(len(x[0])-len(x[1]))
-            return [x[0]-x[1] for x in zip(o,i)] == self.co
+            return [u[0]-u[1] for u in zip(o,i)] == self.co
         return False
 
     def _repr_(self):
@@ -1561,7 +1773,6 @@ class SkewPartitions_rowlengths(SkewPartitions):
             yield self.element_class(self, [[self.co[0]],[]])
             return
 
-        result = []
         for sskp in SkewPartitions(row_lengths=self.co[:-1], overlap=self.overlap):
             for sp in self._from_row_lengths_aux(sskp, self.co[-2], self.co[-1], self.overlap):
                 yield self.element_class(self, sp)

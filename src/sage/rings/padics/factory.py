@@ -8,6 +8,17 @@ AUTHORS:
 - David Roe
 """
 
+#*****************************************************************************
+#       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
+#                               William Stein <wstein@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from sage.structure.factory import UniqueFactory
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
@@ -1603,7 +1614,7 @@ def Zq(q, prec = DEFAULT_PREC, type = 'capped-abs', modulus = None, names=None,
 
         sage: P.<x> = ZZ[]
         sage: R.<a> = Zq(27, modulus = x^3 + 2*x + 1); R.modulus()
-        (1 + O(3^20))*x^3 + (2 + O(3^20))*x + (1 + O(3^20))
+        (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
         sage: P.<x> = QQ[]
         sage: S.<a> = Zq(27, modulus = x^3 + 2/7*x + 1)
         sage: P.<x> = Zp(3)[]
@@ -1638,7 +1649,7 @@ def Zq(q, prec = DEFAULT_PREC, type = 'capped-abs', modulus = None, names=None,
 
         sage: x = var('x')
         sage: X.<a> = Zq(27, modulus = x^3 + 2*x + 1); X.modulus()
-        (1 + O(3^20))*x^3 + (2 + O(3^20))*x + (1 + O(3^20))
+        (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
         sage: X == R
         True
 
@@ -1648,7 +1659,7 @@ def Zq(q, prec = DEFAULT_PREC, type = 'capped-abs', modulus = None, names=None,
         sage: GF(125, 'a').modulus()
         x^3 + 3*x + 3
         sage: Y.<a> = Zq(125); Y.modulus()
-        (1 + O(5^20))*x^3 + (3 + O(5^20))*x + (3 + O(5^20))
+        (1 + O(5^20))*x^3 + (O(5^20))*x^2 + (3 + O(5^20))*x + (3 + O(5^20))
 
     However, you can choose another polynomial if desired (as long as
     the reduction to `\mathbb{F}_p[x]` is irreducible).::

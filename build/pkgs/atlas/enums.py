@@ -6,6 +6,8 @@ TESTS::
     sage: check_enums(sample_print_enums_output)
 """
 
+from __future__ import print_function
+
 # constants from src/ATLAS/CONFIG/include/atlconf.h
 # Note: must be lists, not tuples, for Python-2.4 support
 
@@ -189,6 +191,6 @@ def make_check_enums():
     """
     from subprocess import check_output
     output = check_output('make xprint_enums ; ./xprint_enums', shell=True)
-    print output
+    print(output)
     check_enums(output)
 

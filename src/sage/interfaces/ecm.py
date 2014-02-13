@@ -1,6 +1,13 @@
 r"""
 The Elliptic Curve Factorization Method
 
+The elliptic curve factorization method (ECM) is the fastest way to
+factor a **known composite** integer if one of the factors is
+relatively small (up to approximately 80 bits / 25 decimal digits). To
+factor an arbitrary integer it must be combined with a primality
+test. The :meth:`ECM.factor` method is an example for how to combine
+ECM with a primality test to compute the prime factorization of integers.
+
 Sage includes GMP-ECM, which is a highly optimized implementation of
 Lenstra's elliptic curve factorization method.  See
 http://ecm.gforge.inria.fr for more about GMP-ECM.
@@ -331,7 +338,10 @@ class ECM(SageObject):
         OUTPUT:
 
         List of pairs ``(integer, bool)`` consisting of factors of the
-        ECM input and whether they are probable prime.
+        ECM input and whether they are deemed to be probable
+        prime. Note that ECM is not a good primality test, and there
+        is a sizeable probability that the "probable prime" is
+        actually composite.
 
         EXAMPLES::
 
@@ -406,6 +416,10 @@ class ECM(SageObject):
         """
         Run one single ECM (or P-1/P+1) curve on input n.
 
+        Note that trying a single curve is not particularly useful by
+        itself. One typically needs to run over thousands of trial
+        curves to factor `n`.
+
         INPUT:
         
         - ``n`` -- a positive integer
@@ -472,7 +486,9 @@ class ECM(SageObject):
         OUTPUT:
 
         List of pairs ``(integer, bool)`` consisting of factors of the
-        ECM input and whether they are probable prime.
+        ECM input and whether they are probable prime. Note that ECM
+        is not a good primality test and there is a sizeable chance
+        that a "probable prime" is actually composite.
 
         EXAMPLES::
 
@@ -485,7 +501,7 @@ class ECM(SageObject):
         n = self._validate(n)
         kwds.setdefault('c', 1000000000)
         kwds.setdefault('I', 1)
-        if not factor_digits is None:
+        if factor_digits is not None:
             B1 = self.recommended_B1(factor_digits)
         kwds['one'] = True
         kwds['cofdec'] = True
@@ -497,22 +513,33 @@ class ECM(SageObject):
         """
         Return a factor of n.
 
-        See also :meth:`factor`.
+        See also :meth:`factor` if you want a prime factorization of
+        `n`.
 
         INPUT:
         
-        - ``n`` -- a positive integer
+        - ``n`` -- a positive integer, 
 
-        - ``factor_digits`` -- integer. Decimal digits estimate of the
-          wanted factor
+        - ``factor_digits`` -- integer or ``None`` (default). Decimal
+          digits estimate of the wanted factor.
 
-        - ``B1`` -- integer. Stage 1 bound (default 2000).
+        - ``B1`` -- integer. Stage 1 bound (default 2000). This is
+          used as bound if ``factor_digits`` is not specified.
 
         - ``kwds`` -- optional keyword parameters.
 
         OUTPUT:
 
-        list of integers whose product is n
+        List of integers whose product is n. For certain lengths of
+        the factor, this is the best algorithm to find a
+        factor.
+
+        .. NOTE: 
+
+            ECM is not a good primality test. Not finding a
+            factorization is only weak evidence for `n` being
+            prime. You shoud run a **good** primality test before
+            calling this function.
 
         EXAMPLES::
 
@@ -534,38 +561,50 @@ class ECM(SageObject):
 
     def factor(self, n, factor_digits=None, B1=2000, **kwds):
         """
-        Returns a list of integers whose product is n, computed using
-        GMP-ECM, and PARI for small factors.
+        Return a probable prime factorization of `n`.
+
+        For small `n`, PARI is used directly. Otherwise, GMP-ECM
+        combined with PARI's Baillie-PSW probabilistic primality test
+        are used.
 
         .. WARNING::
 
-            There is no guarantee that the factors returned are
-            actually prime. It is probable, thought.
+            There is no mathematical guarantee that the factors
+            returned are actually prime. It is extremely likely,
+            though. There are no known pseudoprimes for Baille-PSW so
+            far, though it is conjectured that there are infinitely
+            many.
 
         INPUT:
 
         - ``n`` -- a positive integer
 
-        - ``factor_digits`` -- optional guess at how many digits are
-          in the smallest factor.
+        - ``factor_digits`` -- integer or ``None`` (default). Optional
+          guess at how many digits are in the smallest factor.
 
         - ``B1`` -- initial lower bound, defaults to 2000 (15 digit
-          factors)
+          factors). Used if ``factor_digits`` is not specified.
         
         - ``kwds`` -- keyword arguments to pass to ecm-gmp. See help
           for :class:`ECM` for more details.
 
         OUTPUT:
 
-        A list of integers whose product is n
+        A list of integers whose product is n.
 
         .. NOTE::
 
-            Trial division should typically be performed before using
-            this method.  Also, if you suspect that n is the product
-            of two similarly-sized primes, other methods (such as a
-            quadratic sieve -- use the qsieve command) will usually be
-            faster.
+            Trial division should typically be performed, but this is
+            not implemented (yet) in this method.  
+
+            If you suspect that n is the product of two
+            similarly-sized primes, other methods (such as a quadratic
+            sieve -- use the qsieve command) will usually be faster.
+
+            The best known algorithm for factoring in the case where
+            all factors are large is the general number field
+            sieve. This is not implemented in Sage; You probably want
+            to use a cluster/supercomputer for problems of this size.
 
         EXAMPLES::
 
@@ -574,19 +613,40 @@ class ECM(SageObject):
             sage: ecm.factor((2^197 + 1)/3)  # long time
             [197002597249, 1348959352853811313, 251951573867253012259144010843]
         """
+        from sage.libs.pari.pari_instance import pari 
         n = self._validate(n)
-        if B1 < 2000 or len(str(n)) < 15:
-            return sum([[p]*e for p, e in n.factor()], [])
-
-        probable_prime_factors = []
-        factors = self._find_factor(n, factor_digits, B1, **kwds)
+        factors = [n]                 # factors that need to be factorized futher
+        probable_prime_factors = []   # output prime factors
         while len(factors) > 0:
-            factor, is_probable_prime = factors.pop()
-            if is_probable_prime:
-                probable_prime_factors.append(factor)
-            else:
-                factors.extend(
-                    self._find_factor(factor, factor_digits, B1, **kwds))
+            n = factors.pop()
+            
+            # Step 0: Use PARI directly for small primes
+            if n.ndigits() < 15:
+                for p,e in n.factor(algorithm='pari'):
+                    probable_prime_factors.extend([p]*e)
+
+            # Step 1: Baillie-PSW primality test
+            if pari.pari(n).ispseudoprime():
+                proable_prime_factors.append(n)
+                continue
+
+            # Step 1+1/3: Determine if N is a perfect power
+            if n.is_perfect_power():
+                base, exp = n.perfect_power()
+                factors.extend([base] * exp)
+                continue
+
+            # Step 1+2/3: Do trial division to remove small prime
+            # factors, and maybe some other factorization algorithms
+            # that perform well on small ranges. This all depends on
+            # the kind of number you are trying to factor (todo)
+
+            # Step 2: Call find_factor until a factorization is found
+            factorization = [n]
+            while len(factorization) == 1:
+                factorization = self.find_factor(n)
+            factors.extend(factorization)
+
         return sorted(probable_prime_factors)
 
     def get_last_params(self):

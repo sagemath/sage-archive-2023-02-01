@@ -559,21 +559,23 @@ class ECM(SageObject):
         factors = self._find_factor(n, factor_digits, B1, **kwds)
         return [factor[0] for factor in factors]
 
-    def factor(self, n, factor_digits=None, B1=2000, **kwds):
+    def factor(self, n, factor_digits=None, B1=2000, proof=False, **kwds):
         """
         Return a probable prime factorization of `n`.
 
-        For small `n`, PARI is used directly. Otherwise, GMP-ECM
-        combined with PARI's Baillie-PSW probabilistic primality test
-        are used.
+        Combines GMP-ECM with a primality test, see
+        :meth:`~sage.rings.integer.Integer.is_prime`. The primality
+        test is provable or probabilistic depending on the `proof`
+        flag. 
+
+        Moreover, for small `n` PARI is used directly.
 
         .. WARNING::
 
             There is no mathematical guarantee that the factors
-            returned are actually prime. It is extremely likely,
-            though. There are no known pseudoprimes for Baille-PSW so
-            far, though it is conjectured that there are infinitely
-            many.
+            returned are actually prime if ``proof=False``
+            (default). It is extremely likely, though. Currently,
+            there are no known examples where this fails.
 
         INPUT:
 
@@ -585,6 +587,9 @@ class ECM(SageObject):
         - ``B1`` -- initial lower bound, defaults to 2000 (15 digit
           factors). Used if ``factor_digits`` is not specified.
         
+        - ``proof`` -- boolean (default: ``False``). Whether to prove
+          that the factors are prime.
+
         - ``kwds`` -- keyword arguments to pass to ecm-gmp. See help
           for :class:`ECM` for more details.
 
@@ -604,7 +609,7 @@ class ECM(SageObject):
             The best known algorithm for factoring in the case where
             all factors are large is the general number field
             sieve. This is not implemented in Sage; You probably want
-            to use a cluster/supercomputer for problems of this size.
+            to use a cluster for problems of this size.
 
         EXAMPLES::
 
@@ -612,40 +617,43 @@ class ECM(SageObject):
             [45949729863572179, 13109994191499930367061460439]
             sage: ecm.factor((2^197 + 1)/3)  # long time
             [197002597249, 1348959352853811313, 251951573867253012259144010843]
+            sage: ecm.factor(179427217^13) == [179427217] * 13
+            True
         """
-        from sage.libs.pari.pari_instance import pari 
         n = self._validate(n)
         factors = [n]                 # factors that need to be factorized futher
         probable_prime_factors = []   # output prime factors
         while len(factors) > 0:
             n = factors.pop()
             
-            # Step 0: Use PARI directly for small primes
+            # Step 0: Primality test
+            if n.is_prime(proof=proof):
+                probable_prime_factors.append(n)
+                continue
+
+            # Step 1: Use PARI directly for small primes
             if n.ndigits() < 15:
                 for p,e in n.factor(algorithm='pari'):
                     probable_prime_factors.extend([p]*e)
-
-            # Step 1: Baillie-PSW primality test
-            if pari.pari(n).ispseudoprime():
-                proable_prime_factors.append(n)
                 continue
-
-            # Step 1+1/3: Determine if N is a perfect power
+                
+            # Step 2: Deal with small factors efficiently
+            # Step 2+1/3: Determine if N is a perfect power
             if n.is_perfect_power():
                 base, exp = n.perfect_power()
                 factors.extend([base] * exp)
                 continue
 
-            # Step 1+2/3: Do trial division to remove small prime
+            # Step 2+2/3: Do trial division to remove small prime
             # factors, and maybe some other factorization algorithms
             # that perform well on small ranges. This all depends on
             # the kind of number you are trying to factor (todo)
 
-            # Step 2: Call find_factor until a factorization is found
-            factorization = [n]
-            while len(factorization) == 1:
-                factorization = self.find_factor(n)
-            factors.extend(factorization)
+            # Step 3: Call find_factor until a factorization is found
+            n_factorization = [n]
+            while len(n_factorization) == 1:
+                n_factorization = self.find_factor(n)
+            factors.extend(n_factorization)
 
         return sorted(probable_prime_factors)
 

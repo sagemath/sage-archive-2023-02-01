@@ -139,14 +139,23 @@ class TamariIntervalPoset(Element):
     - ``size`` -- an integer, the size of the interval-posets (number of
       vertices)
 
-    - ``relations`` -- an iterable of pairs ``(a,b)`` (themselves lists,
-      tuples or other iterables), each representing a relation of the form
-      '`a` precedes `b`' in the poset.
+    - ``relations`` -- a list (or tuple) of pairs ``(a,b)`` (themselves
+      lists, tuples or other iterables), each representing a relation of
+      the form '`a` precedes `b`' in the poset.
 
     - ``check`` -- (default: ``True``) whether to check the interval-poset
       condition or not.
 
+    .. WARNING::
+
+        The ``relations`` input can be a list or tuple, but not an
+        iterator.
+
     NOTATION:
+
+    Here and in the following, the signs `<` and `>` always refer to
+    the natural ordering on integers, whereas the word "precedes" refers
+    to the order of the interval-poset.
 
     The *increasing relations* of an interval-poset `P` mean the pairs
     `(a, b)` of elements of `P` such that `a < b` as integers and `a`
@@ -551,9 +560,6 @@ class TamariIntervalPoset(Element):
         r"""
         Return the children of ``v`` in the initial forest of ``self``.
 
-        These are the elements `a` of ``v`` such that `a < v` as integers
-        and such that `a` precedes `v`.
-
         INPUT:
 
         - ``v`` -- an integer representing a vertex of ``self`` (between 1 and ``size``)
@@ -733,7 +739,7 @@ class TamariIntervalPoset(Element):
 
     def le(self, e1, e2):
         r"""
-        Return whether ``e1`` precedes or equals ``e2`` in ``self``
+        Return whether ``e1`` precedes or equals ``e2`` in ``self``.
 
         EXAMPLES::
 
@@ -753,7 +759,7 @@ class TamariIntervalPoset(Element):
 
     def lt(self, e1, e2):
         r"""
-        Return whether ``e1`` strictly precedes ``e2`` in ``self``
+        Return whether ``e1`` strictly precedes ``e2`` in ``self``.
 
         EXAMPLES::
 
@@ -773,7 +779,7 @@ class TamariIntervalPoset(Element):
 
     def ge(self, e1, e2):
         r"""
-        Return whether ``e2`` precedes or equals ``e1`` in ``self``
+        Return whether ``e2`` precedes or equals ``e1`` in ``self``.
 
         EXAMPLES::
 
@@ -793,7 +799,7 @@ class TamariIntervalPoset(Element):
 
     def gt(self, e1, e2):
         r"""
-        Return whether ``e2`` strictly precedes ``e1`` in ``self``
+        Return whether ``e2`` strictly precedes ``e1`` in ``self``.
 
         EXAMPLES::
 
@@ -821,6 +827,29 @@ class TamariIntervalPoset(Element):
             3
         """
         return self._size
+
+    def complement(self):
+        r"""
+        Return the complement of the interval-poset ``self``.
+
+        If `P` is a Tamari interval-poset of size `n`, then the
+        *complement* of `P` is defined as the interval-poset `Q` whose
+        base set is `[n] = \{1, 2, \ldots, n\}` (just as for `P`), but
+        whose order relation has `a` precede `b` if and only if
+        `n + 1 - a` precedes `n + 1 - b` in `P`.
+
+        EXAMPLES::
+
+            sage: TamariIntervalPoset(3, [(2, 1), (3, 1)]).complement()
+            The tamari interval of size 3 induced by relations [(1, 3), (2, 3)]
+            sage: TamariIntervalPoset(0, []).complement()
+            The tamari interval of size 0 induced by relations []
+            sage: TamariIntervalPoset(4, [(1, 2), (2, 4), (3, 4)]).complement() == TamariIntervalPoset(4, [(2, 1), (3, 1), (4, 3)])
+            True
+        """
+        N = self._size + 1
+        new_covers = [[N - i[0], N - i[1]] for i in self._poset.cover_relations_iterator()]
+        return TamariIntervalPoset(N - 1, new_covers)
 
     def _repr_(self):
         r"""

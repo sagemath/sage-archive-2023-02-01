@@ -297,9 +297,9 @@ class FractionField_generic(field.Field):
         if isinstance(S, LaurentPolynomialRing_generic):
             def converter(x,y=None):
                 if y is None:
-                    return self._element_class(self, *x.to_fraction())
-                xnum, xden = x.to_fraction()
-                ynum, yden = y.to_fraction()
+                    return self._element_class(self, *x._fraction_pair())
+                xnum, xden = x._fraction_pair()
+                ynum, yden = y._fraction_pair()
                 return self._element_class(self, xnum*yden, xden*ynum)
             return CallableConvertMap(S, self, converter, parent_as_first_arg=False)
 

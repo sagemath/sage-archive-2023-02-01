@@ -492,9 +492,10 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
             self._compute_polydict()
         return self._prod.dict()
 
-    def to_fraction(self):
+    def _fraction_pair(self):
         """
-        Return one representation of self as a pair (numerator, denominator)
+        Return one representation of ``self`` as a pair
+        ``(numerator, denominator)``.
 
         Here both the numerator and the denominator are polynomials.
 
@@ -504,7 +505,7 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
 
             sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
             sage: f = 4*x^7*z^-1 + 3*x^3*y + 2*x^4*z^-2 + x^6*y^-7
-            sage: f.to_fraction()
+            sage: f._fraction_pair()
             (4*x^7*y^7*z + 3*x^3*y^8*z^2 + 2*x^4*y^7 + x^6*z^2, y^7*z^2)
         """
         ring = self.parent().polynomial_ring()

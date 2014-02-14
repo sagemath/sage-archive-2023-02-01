@@ -372,9 +372,25 @@ cdef class TropicalSemiringElement(RingElement):
             -4
             sage: elt**(3/7)
             6/7
+            sage: elt**0
+            0
+
+            sage: elt = T.infinity()
+            sage: elt**0
+            0
+            sage: elt**(1/2)
+            +infinity
+            sage: elt*33
+            +infinity
         """
         cdef TropicalSemiringElement self, x
         self = base
+        if self._val is None:
+            if exp > 0:
+                return self
+            elif exp == 0:
+                return self.parent().one()
+            raise ZeroDivisionError("Tropical division by infinity")
         x = self._new()
         x._val = exp*self._val
         return x

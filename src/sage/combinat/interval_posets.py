@@ -132,7 +132,16 @@ class TamariIntervalPoset(Element):
     respect to the poset structure"; this does not imply a covering relation. 
 
     Interval-posets of size `n` are in bijection with intervals of
-    the Tamari lattice of binary trees of size `n`.
+    the Tamari lattice of binary trees of size `n`. Specifically, if
+    `P` is an interval-poset of size `n`, then the set of linear
+    extensions of `P` (as permutations in `S_n`) is an interval in the
+    right weak order (see
+    :meth:`~sage.combinat.permutation.Permutation.permutohedron_lequal`),
+    and is in fact the preimage of an interval in the Tamari lattice (of
+    binary trees of size `n`) under the operation which sends a
+    permutation to its binary search tree
+    (:meth:`~sage.combinat.permutation.Permutation.binary_search_tree`)
+    without its labelling.
 
     INPUT:
 
@@ -155,7 +164,8 @@ class TamariIntervalPoset(Element):
 
     Here and in the following, the signs `<` and `>` always refer to
     the natural ordering on integers, whereas the word "precedes" refers
-    to the order of the interval-poset.
+    to the order of the interval-poset. "Minimal" and "maximal" refer
+    to the natural ordering on integers.
 
     The *increasing relations* of an interval-poset `P` mean the pairs
     `(a, b)` of elements of `P` such that `a < b` as integers and `a`
@@ -285,7 +295,7 @@ class TamariIntervalPoset(Element):
 
         - ``hspace`` -- (default: 1) the difference between horizontal coordinates of adjacent vertices
 
-        - ``vpsace`` -- (default: 1) the difference between vertical coordinates of adjacent vertices
+        - ``vspace`` -- (default: 1) the difference between vertical coordinates of adjacent vertices
 
         INPUT:
 
@@ -335,7 +345,7 @@ class TamariIntervalPoset(Element):
 
         - ``hspace`` -- (default: 1) the difference between horizontal coordinates of adjacent vertices
 
-        - ``vpsace`` -- (default: 1) the difference between vertical coordinates of adjacent vertices
+        - ``vspace`` -- (default: 1) the difference between vertical coordinates of adjacent vertices
 
         EXAMPLES::
 
@@ -1254,7 +1264,7 @@ class TamariIntervalPoset(Element):
 
     def sub_poset(self, start, end):
         r"""
-        Return the remormalized sub-poset of ``self`` from ``start`` (inclusive)
+        Return the renormalized sub-poset of ``self`` from ``start`` (inclusive)
         to ``end`` (not inclusive).
 
         INPUT:
@@ -1657,13 +1667,14 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
     @staticmethod
     def check_poset(poset):
         r"""
-        Checks if the given poset is a interval-poset, that is
+        Checks if the given poset is a interval-poset, that is, if it
+        satisfies the following properties:
 
-        - if its labels are exactly `1,\dots,n`
-        - if a<c (as numbers) and a precedes c, then b precedes c for all
-          b such that a<b<c
-        - if a<c (as numbers) and c precedes a, then b precedes a for all
-          b such that a<b<c
+        - Its labels are exactly `1,\dots,n`.
+        - If `a<c` (as numbers) and `a` precedes `c`, then `b` precedes
+          `c` for all `b` such that `a<b<c`.
+        - If `a<c` (as numbers) and `c` precedes `a`, then `b` precedes
+          `a` for all `b` such that `a<b<c`.
 
         INPUT:
 
@@ -1684,19 +1695,19 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
             sage: TamariIntervalPosets.check_poset(p)
             False
         """
-        if not set(poset._elements) == set([i for i in xrange(1, poset.cardinality() + 1)]):
+        if not set(poset._elements) == set(range(1, poset.cardinality() + 1)):
             return False
 
         for i in xrange(1, poset.cardinality() + 1):
             stop = False
             for j in xrange(i - 1, 0, -1):
-                if(not poset.le(j, i)):
+                if (not poset.le(j, i)):
                     stop = True  # j does not precede i so no j'<j should
                 elif stop:
                     return False
             stop = False
             for j in xrange(i + 1, poset.cardinality() + 1):
-                if(not poset.le(j, i)):
+                if (not poset.le(j, i)):
                     stop = True  # j does not precede i so no j'>j should
                 elif stop:
                     return False
@@ -1974,7 +1985,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
 
     def __call__(self, *args, **keywords):
         r"""
-        Allows for a poset to be directly transformed into an interval-poset
+        Allows for a poset to be directly transformed into an interval-poset.
 
         It is some kind of coercion but cannot be made through the coercion
         system because posets do not have parents.
@@ -2099,7 +2110,7 @@ class TamariIntervalPosets_all(DisjointUnionEnumeratedSets, TamariIntervalPosets
 #################################################################
 class TamariIntervalPosets_size(TamariIntervalPosets):
     r"""
-    The enumerated sets of interval-posets of a given size
+    The enumerated set of interval-posets of a given size.
 
     TESTS::
 
@@ -2146,9 +2157,10 @@ class TamariIntervalPosets_size(TamariIntervalPosets):
 
     def cardinality(self):
         r"""
-        The cardinality of ``self``
+        The cardinality of ``self``. That is, the number of
+        interval-posets of size `n`.
 
-        The formula was given in [ChapTamari08]: `\frac{2(4n+1)!}{(n+1)!(3n+2)!}`
+        The formula was given in [ChapTamari08]: `\frac{2(4n+1)!}{(n+1)!(3n+2)!}`.
 
         EXAMPLES::
 
@@ -2165,7 +2177,8 @@ class TamariIntervalPosets_size(TamariIntervalPosets):
     def __iter__(self):
         r"""
         Recursive generation: we iterate through all interval-posets of
-        `size -1` and add all possible relations to the last vertex.
+        size ``size - 1`` and add all possible relations to the last
+        vertex.
 
         TESTS::
 

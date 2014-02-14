@@ -446,7 +446,7 @@ class TropicalSemiring(Parent, UniqueRepresentation):
 
         Specifically do not use ``sum(...)`` as this converts `0` to `0` as
         a tropical element, which is not the same as :meth:`zero`. Instead
-        use the ``sum`` method::
+        use the ``sum`` method of the tropical semiring::
 
             sage: T = TropicalSemiring(QQ)
 
@@ -490,10 +490,10 @@ class TropicalSemiring(Parent, UniqueRepresentation):
         -6/7
 
     Note that "zero" and "one" are the additive and multiplicative
-    identities of the tropical semiring. In other words,
-    they are **not** `0 \in R` and `1 \in R` respectively, but instead
-    the (tropical) additive and multiplicative identities `+\infty` and `0`
-    respectively::
+    identities of the tropical semiring. In general, they are **not**
+    the elements `0` and `1` of `R`, respectively, even if such elements
+    exist (e.g., for `R = \ZZ`), but instead the (tropical) additive and
+    multiplicative identities `+\infty` and `0` respectively::
 
         sage: T.zero() + T(3) == T(3)
         True
@@ -538,7 +538,7 @@ class TropicalSemiring(Parent, UniqueRepresentation):
 
     def _coerce_map_from_(self, S):
         """
-        Canonical coercion of into ``self`` from ``S``.
+        Canonical coercion into ``self`` from ``S``.
 
         The only objects that canonically coerce to a tropical semiring are
         tropical semirings whose base rings have a coercion.

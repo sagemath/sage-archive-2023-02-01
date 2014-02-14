@@ -3253,8 +3253,10 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return mpz_cmp_si(mpq_denref(self.value), 1) == 0
 
-    def is_integer(self):
-        return self in ZZ
+
+    #Function alias for checking if the number is a integer.Added to solve ticket 15500    
+    is_integer = is_integral
+
 
     def is_S_integral(self, S=[]):
         r"""

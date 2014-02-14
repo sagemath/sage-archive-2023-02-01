@@ -4,6 +4,7 @@ cdef class CachedFunction(object):
     cdef object _argument_fixer
     cdef public object _fix_to_pos
     cdef public object f
+    cdef public object key
     # cache is not always of type "dict"!
     cdef public object cache
     cdef tuple _default_key

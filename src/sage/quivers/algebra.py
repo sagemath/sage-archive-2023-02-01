@@ -1,70 +1,71 @@
 from sage.misc.cachefunc import cached_method
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
 
-class QuiverAlgebra(CombinatorialFreeModule):
+class PathAlgebra(CombinatorialFreeModule):
     """
-    Creates the Quiver Algebra of a Quiver over a given field.
+    Creates the path algebra of a Quiver over a given field.
 
-    Given a Quiver Q and a field k the quiver algebra kQ is defined as follows.  As
-    a vector space it has basis the set of all paths in Q.  Multiplication is
-    defined on this basis and extended bilinearly.  If p is a path with terminal
-    vertex t and q is a path with initial vertex i then the product p*q is defined
-    to be the composition of the paths p and q if t = i and 0 otherwise.
+    Given a Quiver `Q` and a field `k` the path algebra `kQ` is defined as
+    follows.  As a vector space it has basis the set of all paths in `Q`.
+    Multiplication is defined on this basis and extended bilinearly.  If `p`
+    is a path with terminal vertex `t` and `q` is a path with initial vertex
+    `i` then the product `p*q` is defined to be the composition of the paths `p`
+    and `q` if `t = i` and 0 otherwise.
 
     INPUT:
 
-    - ``k`` - field, the base field of the quiver algebra.
+    - `k` - field, the base field of the path algebra.
 
-    - ``Q`` - Quiver or DiGraph, the quiver of the quiver algebra.
+    - `P` - the path semigroup of a quiver `Q`.
 
     OUTPUT:
 
-        - QuiverAlgebra
+    - Path algebra `kP`
 
     EXAMPLES::
 
-        sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}})
-        sage: A = Q.algebra(GF(7))
+        sage: P = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
+        sage: A = P.algebra(GF(7))
         sage: A
-        Algebra of Quiver on 3 vertices over Finite Field of size 7
+        Path algebra of Multi-digraph on 3 vertices over Finite Field of size 7
         sage: A.variable_names()
         ('e_1', 'e_2', 'e_3', 'a', 'b')
 
-    Note that QuiverAlgebras are uniquely defined by their Quiver and field::
+    Note that path algebras are uniquely defined by their quiver and field::
 
-        sage: A is Q.algebra(GF(7))
+        sage: A is P.algebra(GF(7))
         True
-        sage: A is Q.algebra(RR)
+        sage: A is P.algebra(RR)
         False
-        sage: A is Quiver({1:{2:['a']}}).algebra(GF(7))
+        sage: A is DiGraph({1:{2:['a']}}).path_semigroup().algebra(GF(7))
         False
 
-    The QuiverAlgebra of an acyclic quiver has a finite basis::
+    The path algebra of an acyclic quiver has a finite basis::
 
         sage: A.dimension()
         6
         sage: list(A.basis())
         [e_1, e_2, e_3, a, b, a*b]
 
-    The QuiverAlgebra can create elements from QuiverPaths or from elements of the
+    The path algebra can create elements from paths or from elements of the
     base ring::
 
         sage: A(5)
         5*e_1 + 5*e_2 + 5*e_3
         sage: S = A.semigroup()
         sage: S
-        Free small category of Quiver on 3 vertices
+        Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices
         sage: p = S((1, 2, 'a'))
         sage: r = S((2, 3, 'b'))
         sage: e2 = S((2, 2))
         sage: x = A(p) + A(e2)
         sage: x
-        a + e_2
+        e_2 + a
         sage: y = A(p) + A(r)
         sage: y
         a + b
 
-    QuiverAlgebras are graded algebras.  The grading is given by assigning to each
+    Path algebras are graded algebras.  The grading is given by assigning to each
     basis element the length of the path corresponding to that basis element::
 
         sage: x.is_homogeneous()
@@ -97,7 +98,7 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
     def __init__(self, k, P):
         """
-        Creates a QuiverAlgebra object.  Type QuiverAlgebra? for more information.
+        Creates a :class:`PathAlgebra` object.  Type PathAlgebra? for more information.
 
         INPUT:
 
@@ -106,26 +107,26 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         TESTS::
 
-            sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b', 'c']}, 4:{}}).path_semigroup()
-            sage: Q.algebra(GF(5))
-            Algebra of Quiver on 4 vertices over Finite Field of size 5
+            sage: P = DiGraph({1:{2:['a']}, 2:{3:['b', 'c']}, 4:{}}).path_semigroup()
+            sage: P.algebra(GF(5))
+            Path algebra of Multi-digraph on 4 vertices over Finite Field of size 5
         """
         # The following hidden methods are relevant:
         #
         # - _base
-        #       The base ring of the quiver algebra.
+        #       The base ring of the path algebra.
         # - _basis_keys
         #       Finite enumerated set containing the QuiverPaths that form the
         #       basis.
         # - _quiver
-        #       The quiver of the quiver algebra
+        #       The quiver of the path algebra
         # - _free_small_category
         #       Shortcut for _quiver.free_small_category()
 
         from sage.categories.graded_algebras_with_basis import GradedAlgebrasWithBasis
         self._quiver = P.quiver()
         self._semigroup = P
-        super(QuiverAlgebra, self).__init__(k, self._semigroup,
+        super(PathAlgebra, self).__init__(k, self._semigroup,
                                             prefix='',
                                             element_class=self.Element,
                                             category=GradedAlgebrasWithBasis(k),
@@ -139,8 +140,8 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b', 'c']}, 4:{}})
-            sage: A = Q.algebra(GF(5))
+            sage: P = DiGraph({1:{2:['a']}, 2:{3:['b', 'c']}, 4:{}}).path_semigroup()
+            sage: A = P.algebra(GF(5))
             sage: A.variable_names()
             ('e_1', 'e_2', 'e_3', 'e_4', 'a', 'b', 'c')
             sage: A.gens()
@@ -156,8 +157,8 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b', 'c']}, 4:{}})
-            sage: A = Q.algebra(GF(5))
+            sage: P = DiGraph({1:{2:['a']}, 2:{3:['b', 'c']}, 4:{}}).path_semigroup()
+            sage: A = P.algebra(GF(5))
             sage: A.arrows()
             (a, b, c)
 
@@ -171,8 +172,8 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b', 'c']}, 4:{}})
-            sage: A = Q.algebra(GF(5))
+            sage: P = DiGraph({1:{2:['a']}, 2:{3:['b', 'c']}, 4:{}}).path_semigroup()
+            sage: A = P.algebra(GF(5))
             sage: A.idempotents()
             (e_1, e_2, e_3, e_4)
 
@@ -186,8 +187,8 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b', 'c']}, 4:{}})
-            sage: A = Q.algebra(GF(5))
+            sage: P = DiGraph({1:{2:['a']}, 2:{3:['b', 'c']}, 4:{}}).path_semigroup()
+            sage: A = P.algebra(GF(5))
             sage: A.gens()
             (e_1, e_2, e_3, e_4, a, b, c)
             sage: A.gen(2)
@@ -204,8 +205,8 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b', 'c']}, 4:{}})
-            sage: A = Q.algebra(GF(5))
+            sage: P = DiGraph({1:{2:['a']}, 2:{3:['b', 'c']}, 4:{}}).path_semigroup()
+            sage: A = P.algebra(GF(5))
             sage: A.ngens()
             7
 
@@ -218,20 +219,20 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         TESTS::
 
-            sage: A = Quiver({1:{2:['a']}}).algebra(QQ)
-            sage: B = Quiver({1:{2:['a']}, 2:{3:['b']}}).algebra(QQ)
+            sage: A = DiGraph({1:{2:['a']}}).path_semigroup().algebra(QQ)
+            sage: B = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup().algebra(QQ)
             sage: x = A((1, 2, 'a')) + 1 # indirect doctest
             sage: x
-            a + e_1 + e_2
+            e_1 + e_2 + a
             sage: B(x) # indirect doctest
-            a + e_1 + e_2
+            e_1 + e_2 + a
             sage: A(1) # indirect doctest
             e_1 + e_2
         """
         from sage.quivers.paths import QuiverPath
-        # If it's an element of another quiver algebra, do a linear combination
+        # If it's an element of another path algebra, do a linear combination
         # of the basis
-        if isinstance(x, CombinatorialFreeModuleElement) and isinstance(x.parent(), QuiverAlgebra):
+        if isinstance(x, CombinatorialFreeModuleElement) and isinstance(x.parent(), PathAlgebra):
             coeffs = x.monomial_coefficients()
             result = self.zero()
             for key in coeffs:
@@ -240,10 +241,7 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         # If it's a QuiverPath return the associated basis element
         if isinstance(x, QuiverPath):
-            if x:
-                return self.monomial(x)
-            else:
-                return self.zero()
+            return self.monomial(x)
 
         # If it's a tuple or a list try and create a QuiverPath from it and
         # then return the associated basis element
@@ -251,13 +249,13 @@ class QuiverAlgebra(CombinatorialFreeModule):
             return self.monomial(self._semigroup(x))
 
         # Otherwise let CombinatorialFreeModule try
-        return super(QuiverAlgebra, self)._element_constructor_(x)
+        return super(PathAlgebra, self)._element_constructor_(x)
 
     def _coerce_map_from_(self, other):
         """
         True if there is a coercion from other to self.
 
-        The algebras that coerce into a quiver algebra are rings k or quiver algebras
+        The algebras that coerce into a path algebra are rings k or path algebras
         kQ such that k has a coercion into the base ring of self and Q is a subquiver
         of the quiver of self.
 
@@ -265,53 +263,53 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         TESTS::
 
-            sage: Q1 = Quiver({1:{2:['a']}})
-            sage: Q2 = Quiver({1:{2:['a','b']}})
-            sage: A1 = Q1.algebra(GF(3))
-            sage: A2 = Q2.algebra(GF(3))
+            sage: P1 = DiGraph({1:{2:['a']}}).path_semigroup()
+            sage: P2 = DiGraph({1:{2:['a','b']}}).path_semigroup()
+            sage: A1 = P1.algebra(GF(3))
+            sage: A2 = P2.algebra(GF(3))
             sage: A1.coerce_map_from(A2) # indirect doctest
             sage: A2.coerce_map_from(A1) # indirect doctest
             Conversion map:
-                  From: Algebra of Quiver on 2 vertices over Finite Field of size 3
-                  To:   Algebra of Quiver on 2 vertices over Finite Field of size 3
+              From: Path algebra of Multi-digraph on 2 vertices over Finite Field of size 3
+              To:   Path algebra of Multi-digraph on 2 vertices over Finite Field of size 3
             sage: A1.coerce_map_from(ZZ) # indirect doctest
             Composite map:
                   From: Integer Ring
-                  To:   Algebra of Quiver on 2 vertices over Finite Field of size 3
+                  To:   Path algebra of Multi-digraph on 2 vertices over Finite Field of size 3
                   Defn:   Natural morphism:
                           From: Integer Ring
                           To:   Finite Field of size 3
                         then
                           Generic morphism:
                           From: Finite Field of size 3
-                          To:   Algebra of Quiver on 2 vertices over Finite Field of size 3
+                          To:   Path algebra of Multi-digraph on 2 vertices over Finite Field of size 3
             sage: A1.coerce_map_from(QQ) # indirect doctest
             sage: A1.coerce_map_from(ZZ)
             Composite map:
               From: Integer Ring
-              To:   Algebra of Quiver on 2 vertices over Finite Field of size 3
+              To:   Path algebra of Multi-digraph on 2 vertices over Finite Field of size 3
               Defn:   Natural morphism:
                       From: Integer Ring
                       To:   Finite Field of size 3
                     then
                       Generic morphism:
                       From: Finite Field of size 3
-                      To:   Algebra of Quiver on 2 vertices over Finite Field of size 3
+                      To:   Path algebra of Multi-digraph on 2 vertices over Finite Field of size 3
 
         ::
 
-            sage: A2.coerce_map_from(Q1.path_semigroup())
+            sage: A2.coerce_map_from(P1)
             Conversion map:
-              From: Free small category of Quiver on 2 vertices
-              To:   Algebra of Quiver on 2 vertices over Finite Field of size 3
-            sage: a = Q1.path_semigroup()(Q1.path_semigroup().arrows()[0]); a
+              From: Partial semigroup formed by the directed paths of Multi-digraph on 2 vertices
+              To:   Path algebra of Multi-digraph on 2 vertices over Finite Field of size 3
+            sage: a = P1(P1.arrows()[0]); a
             a
             sage: A2.one() * a == a     # indirect doctest
             True
 
         """
 
-        if (isinstance(other, QuiverAlgebra) and
+        if (isinstance(other, PathAlgebra) and
                 self._base.has_coerce_map_from(other._base) and
                 other._quiver <= self._quiver):
             return True
@@ -325,12 +323,12 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}})
-            sage: Q.algebra(RR) # indirect doctest
-            Algebra of Quiver on 3 vertices over Real Field with 53 bits of precision
+            sage: P = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
+            sage: P.algebra(RR) # indirect doctest
+            Path algebra of Multi-digraph on 3 vertices over Real Field with 53 bits of precision
         """
 
-        return "Algebra of {0} over {1}".format(self._quiver, self._base)
+        return "Path algebra of {0} over {1}".format(self._quiver, self._base)
 
     ###########################################################################
     #                                                                         #
@@ -346,21 +344,20 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
-            sage: inv = Q([(1,3,'x')])
-            sage: inv
-            invalid path
-            sage: Q.algebra(ZZ)(inv)          # indirect doctest
+            sage: P = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
+            sage: P.algebra(ZZ)(P((1,2,'a'))*P((2,3,'b')))
+            a*b
+            sage: P.algebra(ZZ)(P((2,3,'b')))*P.algebra(ZZ)(P((1,2,'a')))  # indirect doctest
             0
 
         """
-        if index:
+        if index is not None:
             return self._from_dict( {index: self.base_ring().one()}, remove_zeros = False )
         return self.zero()
 
     def product_on_basis(self, p1, p2):
         """
-        Returns the element corresponding to p1*p2 in the quiver algebra.
+        Returns the element corresponding to p1*p2 in the path algebra.
 
         INPUT:
 
@@ -372,7 +369,7 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}, 3:{4:['c']}}).path_semigroup()
+            sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}, 3:{4:['c']}}).path_semigroup()
             sage: p1 = Q((1, 2, 'a'))
             sage: p2 = Q([(2, 3, 'b'), (3, 4, 'c')])
             sage: A = Q.algebra(QQ)
@@ -382,9 +379,9 @@ class QuiverAlgebra(CombinatorialFreeModule):
             0
 
         """
-        FSC = self._semigroup
-        p = FSC(p1)*FSC(p2)
-        if p:
+        PSG = self._semigroup
+        p = PSG(p1)*PSG(p2)
+        if p is not None:
             return self.basis()[p]
         else:
             return self.zero()
@@ -395,7 +392,7 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = Quiver({1:{2:['a']}, 2:{3:['b']}}).algebra(QQ)
+            sage: A = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup().algebra(QQ)
             sage: A.degree_on_basis((1, 1))
             0
             sage: A.degree_on_basis((1, 2, 'a'))
@@ -410,12 +407,12 @@ class QuiverAlgebra(CombinatorialFreeModule):
         """
         Return the multiplicative identity element.
 
-        The multiplicative identity of a quiver algebra is the sum of the basis
+        The multiplicative identity of a path algebra is the sum of the basis
         elements corresponding to the trivial paths at each vertex.
 
         EXAMPLES::
 
-            sage: A = Quiver({1:{2:['a']}, 2:{3:['b']}}).algebra(QQ)
+            sage: A = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup().algebra(QQ)
             sage: A.one()
             e_1 + e_2 + e_3
         """
@@ -429,7 +426,7 @@ class QuiverAlgebra(CombinatorialFreeModule):
     ###########################################################################
     #                                                                         #
     # DATA FUNCTIONS                                                          #
-    #    These functions return data and subspaces of the quiver algebra.     #
+    #    These functions return data and subspaces of the path algebra.     #
     #                                                                         #
     ###########################################################################
 
@@ -443,9 +440,9 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         EXAMPLES:
 
-            sage: Q = Quiver({1:{2:['a', 'b']}})
-            sage: A = Q.algebra(GF(3))
-            sage: A.quiver() is Q
+            sage: P = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
+            sage: A = P.algebra(GF(3))
+            sage: A.quiver() is P.quiver()
             True
         """
         return self._quiver
@@ -465,16 +462,16 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         EXAMPLES:
 
-            sage: Q = Quiver({1:{2:['a', 'b']}})
-            sage: A = Q.algebra(GF(3))
-            sage: A.semigroup() is Q.path_semigroup()
+            sage: P = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
+            sage: A = P.algebra(GF(3))
+            sage: A.semigroup() is P
             True
         """
         return self._semigroup
 
     def homogeneous_component(self, n):
         """
-        Return the nth homogeneous piece of the quiver algebra.
+        Return the nth homogeneous piece of the path algebra.
 
         INPUT:
 
@@ -487,8 +484,8 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a'], 3:['b']}, 2:{4:['c']}, 3:{4:['d']}})
-            sage: A = Q.algebra(GF(7))
+            sage: P = DiGraph({1:{2:['a'], 3:['b']}, 2:{4:['c']}, 3:{4:['d']}}).path_semigroup()
+            sage: A = P.algebra(GF(7))
             sage: A.homogeneous_component(2)
             Free module spanned by [a*c, b*d] over Finite Field of size 7
         """
@@ -503,7 +500,7 @@ class QuiverAlgebra(CombinatorialFreeModule):
     ###########################################################################
     #                                                                         #
     # ELEMENT CLASS                                                           #
-    #    The class of elements of the quiver algebra.                         #
+    #    The class of elements of the path algebra.                           #
     #                                                                         #
     ###########################################################################
 
@@ -514,7 +511,7 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
             EXAMPLES::
 
-                sage: A = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}}).algebra(QQ)
+                sage: A = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup().algebra(QQ)
                 sage: (A((1, 2, 'a')) + A((1, 2, 'b'))).is_homogeneous()
                 True
                 sage: (A((1, 1)) + A((1, 2, 'a'))).is_homogeneous()
@@ -539,7 +536,7 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
             EXAMPLES::
 
-                sage: A = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}}).algebra(QQ)
+                sage: A = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup().algebra(QQ)
                 sage: A((1, 1)).degree()
                 0
                 sage: (A((1, 2, 'a')) + A((1, 2, 'b'))).degree()

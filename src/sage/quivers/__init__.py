@@ -45,7 +45,7 @@ semigroup*.  Note that with this definition there are three paths from 1 to 3
 in our example::
 
     sage: Q.path_semigroup().all_paths(1, 3)
-    [b*d, a*d, c]
+    [a*d, b*d, c]
 
 The returned paths are of type :class:`~sage.quivers.paths.QuiverPath`, which
 are elements in the path semigroup that is associated with the quiver. You can
@@ -73,28 +73,31 @@ to define a path::
     True
 
 If the vertex of a trivial path does not match with adjacent edges, or if two
-adjacent edges do not match, no error is raised.  Instead the invalid path is
-returned.  The invalid path can be detected by converting a QuiverPath to a
-Boolean.  Valid paths are True, the invalid path is False::
+adjacent edges do not match an error is raised.
+
+::
 
     sage: inv1 = PQ([(1, 2, 'a'), (1, 1)])
-    sage: print inv1
-    invalid path
+    Traceback (most recent call last):
+    ...
+    ValueError: Cannot interprete [(1, 2, 'a'), (1, 1)] as element of
+    Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices
     sage: inv2 = PQ([(1, 2, 'a'), (1, 2, 'a')])
-    sage: inv1 is inv2
-    False
-    sage: inv1 == inv2
-    True
-    sage: bool(p)
-    True
-    sage: bool(inv1)
-    False
+    Traceback (most recent call last):
+    ...
+    ValueError: Cannot interprete [(1, 2, 'a'), (1, 2, 'a')] as element of
+    Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices
+    sage: inv3 = PQ([(1, 2, 'x')])
+    Traceback (most recent call last):
+    ...
+    ValueError: Cannot interprete [(1, 2, 'x')] as element of
+    Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices
 
 The `*` operator is concatenation of paths. If the two paths do not compose,
-then the result is the invalid path.  ::
+then the result is None.  ::
 
-    sage: bool(p*q)
-    False
+    sage: print p*q
+    None
 
 Let us now construct a larger quiver::
 
@@ -117,36 +120,25 @@ composed with paths that were defined for the larger quiver::
     sage: Pbig([(4, 5, 'f'), (5, 1, 'g')])*p
     f*g*a*d
 
-The length of a path is the number of edges in that path.  The invalid path and
-trivial paths are therefore length 0::
+The length of a path is the number of edges in that path::
 
     sage: len(p)
     2
     sage: triv = PQ((1, 1))
     sage: len(triv)
     0
-    sage: len(inv1)
-    0
 
 List index and slice notation can be used to access the edges in a path.
-QuiverPaths can also be iterated over.  Trivial paths and the invalid path have
-no elements::
+QuiverPaths can also be iterated over.  Trivial paths have no elements::
 
     sage: for x in p: print x
     (1, 2, 'a')
     (2, 3, 'd')
     sage: triv[:]
     []
-    sage: inv1[0]
-    Traceback (most recent call last):
-    ...
-    IndexError: tuple index out of range
 
-There are methods giving the initial and terminal vertex of a path.  These
-return None when called on the invalid path::
+There are methods giving the initial and terminal vertex of a path::
 
-    sage: inv1.initial_vertex()
-    sage: inv1.terminal_vertex()
     sage: p.initial_vertex()
     1
     sage: p.terminal_vertex()
@@ -163,7 +155,7 @@ are handled by the QuiverAlgebra class::
 
     sage: A = PQ.algebra(GF(7))
     sage: A
-    Algebra of Quiver on 3 vertices over Finite Field of size 7
+    Path algebra of Multi-digraph on 3 vertices over Finite Field of size 7
 
 Quivers have a method that creates their algebra over a given field.  Note that
 QuiverAlgebras are uniquely defined by their Quiver and field, and play nicely
@@ -175,9 +167,10 @@ with coercions of the underlying free small categories::
     False
     sage: Q1 = Q.copy()
     sage: Q1.add_vertex(4)
-    sage: A is Q1.algebra(GF(7))
+    sage: PQ1 = Q1.path_semigroup()
+    sage: A is PQ1.algebra(GF(7))
     False
-    sage: Qbig.algebra(GF(7)).has_coerce_map_from(A)
+    sage: Pbig.algebra(GF(7)).has_coerce_map_from(A)
     True
 
 The QuiverAlgebra can create elements from QuiverPaths or from elements of the
@@ -189,7 +182,7 @@ base ring::
     sage: e2 = PQ((2, 2))
     sage: x = A(p) + A(e2)
     sage: x
-    a*d + e_2
+    e_2 + a*d
     sage: y = A(p) + A(r)
     sage: y
     a*d + b*d
@@ -208,9 +201,9 @@ basis element the length of the path corresponding to that basis element::
     sage: y.degree()
     2
     sage: A[1]
-    Free module spanned by [b, a, c, d] over Finite Field of size 7
+    Free module spanned by [a, b, c, d] over Finite Field of size 7
     sage: A[2]
-    Free module spanned by [b*d, a*d] over Finite Field of size 7
+    Free module spanned by [a*d, b*d] over Finite Field of size 7
 
 The category of right modules over a given quiver algebra is equivalent to the
 category of representations of that quiver.  A quiver representation is a
@@ -374,9 +367,9 @@ quiver algebra is the algebra of the opposite quiver, so both these methods
 yeild modules and representations of the opposite quiver::
 
     sage: f.linear_dual()
-    Homomorphism of representations of Quiver on Reverse of ()
+    Homomorphism of representations of Reverse of (): Multi-digraph on 2 vertices
     sage: D = M2.algebraic_dual()
-    sage: D.quiver() is Q2.reverse()
+    sage: D.quiver() is PQ2.reverse().quiver()
     True
 
 .. TODO::
@@ -389,7 +382,7 @@ homomorphism::
 
     sage: cov = M2.projective_cover()
     sage: cov
-    Homomorphism of representations of Quiver on 2 vertices
+    Homomorphism of representations of Multi-digraph on 2 vertices
     sage: cov.domain()
     Representation with dimension vector (2, 4)
 

@@ -42,7 +42,7 @@ class QuiverRepHom(CallMorphism):
 
     EXAMPLES::
 
-        sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+        sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
         sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
         sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
         sage: M = Q.representation(QQ, spaces, maps)
@@ -93,7 +93,7 @@ class QuiverRepHom(CallMorphism):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
             sage: M = Q.representation(QQ, spaces, maps)
@@ -117,7 +117,7 @@ class QuiverRepHom(CallMorphism):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a']}})
+            sage: Q = DiGraph({1:{2:['a']}}).path_semigroup()
             sage: H1 = Q.P(GF(3), 2).Hom(Q.S(GF(3), 2))
             sage: H2 = Q.P(GF(3), 2).Hom(Q.S(GF(3), 1))
             sage: H1.an_element() in H1   # indirect doctest
@@ -265,14 +265,14 @@ class QuiverRepHom(CallMorphism):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
             sage: M = Q.representation(QQ, spaces, maps)
             sage: spaces2 = {2: QQ^1, 3: QQ^1}
             sage: S = Q.representation(QQ, spaces2)
             sage: S.hom(M) # indirect doctest
-            Homomorphism of representations of Quiver on 3 vertices
+            Homomorphism of representations of Multi-digraph on 3 vertices
         """
 
         return "Homomorphism of representations of " + self._quiver.__repr__()
@@ -283,7 +283,7 @@ class QuiverRepHom(CallMorphism):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
             sage: M = Q.representation(QQ, spaces, maps)
@@ -312,7 +312,7 @@ class QuiverRepHom(CallMorphism):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
             sage: M = Q.representation(QQ, spaces, maps)
@@ -339,7 +339,7 @@ class QuiverRepHom(CallMorphism):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
             sage: M = Q.representation(QQ, spaces, maps)
@@ -366,7 +366,7 @@ class QuiverRepHom(CallMorphism):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
             sage: M = Q.representation(QQ, spaces, maps)
@@ -394,7 +394,7 @@ class QuiverRepHom(CallMorphism):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
             sage: M = Q.representation(QQ, spaces, maps)
@@ -422,7 +422,7 @@ class QuiverRepHom(CallMorphism):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
             sage: M = Q.representation(QQ, spaces, maps)
@@ -447,7 +447,7 @@ class QuiverRepHom(CallMorphism):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
             sage: M = Q.representation(QQ, spaces, maps)
@@ -469,7 +469,7 @@ class QuiverRepHom(CallMorphism):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
             sage: M = Q.representation(QQ, spaces, maps)
@@ -498,7 +498,7 @@ class QuiverRepHom(CallMorphism):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
             sage: M = Q.representation(QQ, spaces, maps)
@@ -528,7 +528,7 @@ class QuiverRepHom(CallMorphism):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: spaces2 = {2: QQ^1, 3: QQ^1}
             sage: S = Q.representation(QQ, spaces2)
             sage: x = S.gens()[0]
@@ -560,7 +560,7 @@ class QuiverRepHom(CallMorphism):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
             sage: M = Q.representation(QQ, spaces, maps)
@@ -602,7 +602,7 @@ class QuiverRepHom(CallMorphism):
 
         - QuiverRep, the domain
 
-        sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+        sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
         sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
         sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
         sage: M = Q.representation(QQ, spaces, maps)
@@ -622,7 +622,7 @@ class QuiverRepHom(CallMorphism):
 
         - QuiverRep, the codomain
 
-        sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+        sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
         sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
         sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
         sage: M = Q.representation(QQ, spaces, maps)
@@ -649,7 +649,7 @@ class QuiverRepHom(CallMorphism):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: I = Q.I(QQ, 3)
             sage: M = I/I.radical()
             sage: f = M.coerce_map_from(I)
@@ -684,7 +684,7 @@ class QuiverRepHom(CallMorphism):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: P = Q.P(QQ, 1)
             sage: S = P/P.radical()
             sage: f = S.coerce_map_from(P)
@@ -704,10 +704,10 @@ class QuiverRepHom(CallMorphism):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: P = Q.P(QQ, 1)
             sage: f = P.hom({1: 1, 2: 1, 3: 1}, P)
-            sage: f.quiver() is Q
+            sage: f.quiver() is Q.quiver()
             True
         """
 
@@ -723,7 +723,7 @@ class QuiverRepHom(CallMorphism):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: P = Q.P(QQ, 1)
             sage: f = P.hom({1: 1, 2: 1, 3: 1}, P)
             sage: f.base_ring() is QQ
@@ -749,7 +749,7 @@ class QuiverRepHom(CallMorphism):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: P = Q.P(QQ, 1)
             sage: f = P.hom({1: 1, 2: 1, 3: 1}, P)
             sage: f.is_injective()
@@ -777,7 +777,7 @@ class QuiverRepHom(CallMorphism):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: P = Q.P(QQ, 1)
             sage: f = P.hom({1: 1, 2: 1, 3: 1}, P)
             sage: f.is_surjective()
@@ -806,7 +806,7 @@ class QuiverRepHom(CallMorphism):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: P = Q.P(QQ, 1)
             sage: f = P.hom({1: 1, 2: 1, 3: 1}, P)
             sage: f.is_isomorphism()
@@ -833,7 +833,7 @@ class QuiverRepHom(CallMorphism):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: P = Q.P(QQ, 1)
             sage: f = P.hom({1: 1, 2: 1, 3: 1}, P)
             sage: f.is_zero()
@@ -860,7 +860,7 @@ class QuiverRepHom(CallMorphism):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: P = Q.P(QQ, 1)
             sage: f = P.hom({1: 1, 2: 1, 3: 1}, P)
             sage: f.is_endomorphism()
@@ -883,7 +883,7 @@ class QuiverRepHom(CallMorphism):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: P = Q.P(QQ, 1)
             sage: S = P/P.radical()
             sage: f = S.coerce_map_from(P)
@@ -920,7 +920,7 @@ class QuiverRepHom(CallMorphism):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
             sage: M = Q.representation(QQ, spaces, maps)
@@ -950,7 +950,7 @@ class QuiverRepHom(CallMorphism):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
             sage: M = Q.representation(QQ, spaces, maps)
@@ -980,7 +980,7 @@ class QuiverRepHom(CallMorphism):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
             sage: M = Q.representation(QQ, spaces, maps)
@@ -1011,7 +1011,7 @@ class QuiverRepHom(CallMorphism):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: P = Q.P(QQ, 1)
             sage: S = P/P.radical()
             sage: f = S.coerce_map_from(P)
@@ -1027,7 +1027,7 @@ class QuiverRepHom(CallMorphism):
         The dual of a right module is a left module for the same quiver, Sage
         represents this as a right module for the opposite quiver::
 
-            sage: g.quiver() == Q.reverse()
+            sage: g.quiver().path_semigroup() is Q.reverse()
             True
 
         The double dual of a map is the original representation::
@@ -1059,7 +1059,7 @@ class QuiverRepHom(CallMorphism):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a'], 3:['b','c','d']}, 2:{4:['e','f']}, 3:{4:['g']}, 5:{2:['h','i']}})
+            sage: Q = DiGraph({1:{2:['a'], 3:['b','c','d']}, 2:{4:['e','f']}, 3:{4:['g']}, 5:{2:['h','i']}}).path_semigroup()
             sage: P1 = Q.P(QQ, 4)
             sage: P1.algebraic_dual()
             Representation with dimension vector (5, 2, 1, 1, 4)
@@ -1119,7 +1119,7 @@ class QuiverRepHom(CallMorphism):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
             sage: P1 = Q.P(GF(3), 1)
             sage: P2 = Q.P(GF(3), 2)
             sage: S1 = P1/P1.radical()
@@ -1206,7 +1206,7 @@ class QuiverRepHom(CallMorphism):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a','b']}, 2:{3:['c','d']}})
+            sage: Q = DiGraph({1:{2:['a','b']}, 2:{3:['c','d']}}).path_semigroup()
             sage: P = Q.P(RR, 3)
             sage: S = P/P.radical()
             sage: proj = S.coerce_map_from(P)
@@ -1240,7 +1240,7 @@ class QuiverRepHom(CallMorphism):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a','b']}})
+            sage: Q = DiGraph({1:{2:['a','b']}}).path_semigroup()
             sage: M = Q.P(QQ, 1)
             sage: f = M.Hom(M).an_element()
             sage: x = M.an_element()
@@ -1258,7 +1258,7 @@ class QuiverRepHom(CallMorphism):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a','b']}})
+            sage: Q = DiGraph({1:{2:['a','b']}}).path_semigroup()
             sage: M = Q.P(QQ, 1)
             sage: f = M.Hom(M).an_element()
             sage: x = M.an_element()

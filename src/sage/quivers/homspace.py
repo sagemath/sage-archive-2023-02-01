@@ -42,12 +42,13 @@ class QuiverHomSpace(Homset):
 
     EXAMPLES::
 
-        sage: Q = Quiver({1:{2:['a', 'b']}})
+        sage: Q = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
         sage: H = Q.S(QQ, 2).Hom(Q.P(QQ, 1))
         sage: H.dimension()
         2
         sage: H.gens()
-        [Homomorphism of representations of Quiver on 2 vertices, Homomorphism of representations of Quiver on 2 vertices]
+        [Homomorphism of representations of Multi-digraph on 2 vertices,
+         Homomorphism of representations of Multi-digraph on 2 vertices]
         sage: TestSuite(H).run()
 
     """
@@ -66,12 +67,13 @@ class QuiverHomSpace(Homset):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
             sage: H = Q.S(QQ, 2).Hom(Q.P(QQ, 1))
             sage: H.dimension()
             2
             sage: H.gens()
-            [Homomorphism of representations of Quiver on 2 vertices, Homomorphism of representations of Quiver on 2 vertices]
+            [Homomorphism of representations of Multi-digraph on 2 vertices,
+             Homomorphism of representations of Multi-digraph on 2 vertices]
         """
         # The data in the class is stored in the following private variables:
         #
@@ -94,9 +96,10 @@ class QuiverHomSpace(Homset):
 
         # Get the quiver and base ring and check they they are the same for
         # both modules
-        if domain._quiver != codomain._quiver:
+        if domain._semigroup != codomain._semigroup:
             raise ValueError("Representations are not over the same quiver.")
         self._quiver = domain._quiver
+        self._semigroup = domain._semigroup
 
         # Check that the bases are compatible, and then initialise the homset:
         if codomain._base_ring != domain._base_ring:
@@ -183,7 +186,7 @@ class QuiverHomSpace(Homset):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
             sage: H = Q.S(QQ, 2).Hom(Q.P(QQ, 1))
             sage: H.zero() + H.an_element() == H.an_element()
             True
@@ -202,7 +205,7 @@ class QuiverHomSpace(Homset):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a']}})
+            sage: Q = DiGraph({1:{2:['a']}}).path_semigroup()
             sage: P = Q.P(QQ, 1)
             sage: S = Q.S(QQ, 1)
             sage: H1 = P.Hom(S)
@@ -264,7 +267,7 @@ class QuiverHomSpace(Homset):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
             sage: M = Q.representation(QQ, spaces, maps)
@@ -323,7 +326,7 @@ class QuiverHomSpace(Homset):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a']}})
+            sage: Q = DiGraph({1:{2:['a']}}).path_semigroup()
             sage: Q.P(GF(3), 2).Hom(Q.S(GF(3), 2)) # indirect doctest
             Dimension 1 QuiverHomSpace
         """
@@ -336,14 +339,14 @@ class QuiverHomSpace(Homset):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
             sage: M = Q.representation(QQ, spaces, maps)
             sage: spaces2 = {2: QQ^1, 3: QQ^1}
             sage: S = Q.representation(QQ, spaces2)
             sage: S.hom(M)      # indirect doctest
-            Homomorphism of representations of Quiver on 3 vertices
+            Homomorphism of representations of Multi-digraph on 3 vertices
             sage: S.hom(M) == S.Hom(M).natural_map()
             True
 
@@ -360,7 +363,7 @@ class QuiverHomSpace(Homset):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a']}})
+            sage: Q = DiGraph({1:{2:['a']}}).path_semigroup()
             sage: P = Q.P(QQ, 1)
             sage: H = P.Hom(P)
             sage: f = H.identity() # indirect doctest
@@ -391,7 +394,7 @@ class QuiverHomSpace(Homset):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
             sage: H = Q.S(QQ, 2).Hom(Q.P(QQ, 1))
             sage: H.base_ring()
             Rational Field
@@ -409,9 +412,9 @@ class QuiverHomSpace(Homset):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}})
-            sage: H = Q.S(QQ, 2).Hom(Q.P(QQ, 1))
-            sage: H.quiver() is Q
+            sage: P = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
+            sage: H = P.S(QQ, 2).Hom(P.P(QQ, 1))
+            sage: H.quiver() is P.quiver()
             True
         """
 
@@ -427,7 +430,7 @@ class QuiverHomSpace(Homset):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
             sage: S = Q.S(QQ, 2)
             sage: H = S.Hom(Q.P(QQ, 1))
             sage: H.domain() is S
@@ -446,7 +449,7 @@ class QuiverHomSpace(Homset):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
             sage: P = Q.P(QQ, 1)
             sage: H = Q.S(QQ, 2).Hom(P)
             sage: H.codomain() is P
@@ -472,7 +475,7 @@ class QuiverHomSpace(Homset):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
             sage: H = Q.S(QQ, 2).Hom(Q.P(QQ, 1))
             sage: H.dimension()
             2
@@ -490,10 +493,11 @@ class QuiverHomSpace(Homset):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
             sage: H = Q.S(QQ, 2).Hom(Q.P(QQ, 1))
             sage: H.gens()
-            [Homomorphism of representations of Quiver on 2 vertices, Homomorphism of representations of Quiver on 2 vertices]
+            [Homomorphism of representations of Multi-digraph on 2 vertices,
+             Homomorphism of representations of Multi-digraph on 2 vertices]
         """
 
         return [self.element_class(self._domain, self._codomain, f) for f in self._space.gens()]
@@ -513,7 +517,7 @@ class QuiverHomSpace(Homset):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
             sage: S = Q.S(QQ, 2)
             sage: P = Q.P(QQ, 1)
             sage: H = S.Hom(P)
@@ -538,7 +542,7 @@ class QuiverHomSpace(Homset):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
             sage: S = Q.S(QQ, 2)
             sage: P = Q.P(QQ, 1)
             sage: H = S.Hom(P)
@@ -576,7 +580,7 @@ class QuiverHomSpace(Homset):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b'], 3: ['c', 'd']}, 2:{3:['e']}})
+            sage: Q = DiGraph({1:{2:['a', 'b'], 3: ['c', 'd']}, 2:{3:['e']}}).path_semigroup()
             sage: P = Q.P(GF(3), 3)
             sage: A = Q.free_module(GF(3))
             sage: H = P.Hom(A)
@@ -622,7 +626,7 @@ class QuiverHomSpace(Homset):
             basis_dict = {}
             for v in self._quiver:
                 basis_dict[v] = [self.element_class(self._domain, self._codomain, vec) for vec in spaces[v].gens()]
-            return (QuiverRep(self._base, self._quiver.reverse(), spaces, maps), basis_dict)
+            return (QuiverRep(self._base, self._semigroup.reverse(), spaces, maps), basis_dict)
         else:
-            return QuiverRep(self._base, self._quiver.reverse(), spaces, maps)
+            return QuiverRep(self._base, self._semigroup.reverse(), spaces, maps)
 

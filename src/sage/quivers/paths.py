@@ -21,22 +21,21 @@ class QuiverPath(MonoidElement):
     """
     Class for paths in a quiver.
 
-    A path is given by two vertices, start and end, and a finite (possibly empty)
-    list of edges e_1, e_2, ..., e_n such that the initial vertex of e_1 is start,
-    the final vertex of e_i is the initial vertex of e_{i + 1}, and the final
-    vertex of e_n is end.  In the case where no edges are specified we must have
-    start = end and the path is called the trivial path at the given vertex.  This
-    class can also represent an invalid path.
+    A path is given by two vertices, start and end, and a finite (possibly
+    empty) list of edges `e_1, e_2, ..., e_n` such that the initial vertex of
+    `e_1` is start, the final vertex of `e_i` is the initial vertex of `e_{i +
+    1}`, and the final vertex of `e_n` is end.  In the case where no edges are
+    specified we must have start = end and the path is called the trivial path
+    at the given vertex.
 
     INPUT:
 
-    - ``path`` -- tuple or iterable (default: empty list), if ``path`` is a tuple then it is
+    - ``path`` -- tuple or iterable. If ``path`` is a tuple then it is
       assumed to be of the form (vertex, vertex) or (start, end, label).  In the
       first case the trivial path at the given vertex is created.  In the second
       case a path consisting of just the given edge is created.  If ``path`` is not a
       tuple then it is assumed to be an iterable variable giving the edges of a
-      path, where each edge is in one of the two forms above.  If these edges do
-      not compose to form a valid path then an invalid path is returned.
+      path, where each edge is in one of the two forms above.
     - ``check`` -- bool (default: True). If it is False, no sanity check will be performed
       on the given iterable.
     - ``parent`` -- the free small category associated with a quiver
@@ -69,61 +68,36 @@ class QuiverPath(MonoidElement):
         sage: p == q
         True
 
-    There is an "invalid path", that is obtained by concatenating arrows whose
-    endpoints do not match.  It can be detected by converting a path to a
-    Boolean. Valid paths are True, an invalid path is False::
+    The `*` operator is concatenation of paths. If the two paths do not
+    compose the result is None::
 
-        sage: inv1 = F([(1, 1), (2, 2)])
-        sage: inv2 = F([(1, 2, 'a'), (1, 2, 'a')])
-        sage: inv1 is inv2
-        False
-        sage: inv1 == inv2
-        True
-        sage: bool(p)
-        True
-        sage: bool(inv1)
-        False
-
-    The ``*`` operator is concatenation of paths. If the two paths do not
-    compose the result is the invalid path::
-
-        sage: bool(p*q)
-        False
+        sage: print(p*q)
+        None
         sage: p*F((3, 4, 'c'))
         a*b*c
         sage: F([(2,3,'b'), (3,1,'f')])*p
         b*f*a*b
 
-    The length of a path is the number of edges in that path.  The invalid path and
-    trivial paths are therefore length 0::
+    The length of a path is the number of edges in that path.  Trivial paths
+    are therefore length 0::
 
         sage: len(p)
         2
         sage: triv = F((1, 1))
         sage: len(triv)
         0
-        sage: len(inv1)
-        0
 
     List index and slice notation can be used to access the edges in a path.
-    QuiverPaths can also be iterated over.  Trivial paths and the invalid path have
-    no elements::
+    QuiverPaths can also be iterated over.  Trivial paths have no elements::
 
         sage: for x in p: print x
         (1, 2, 'a')
         (2, 3, 'b')
         sage: triv[:]
         []
-        sage: inv1[0]
-        Traceback (most recent call last):
-        ...
-        IndexError: tuple index out of range
 
-    There are methods giving the initial and terminal vertex of a path.  These
-    return None when called on the invalid path::
+    There are methods giving the initial and terminal vertex of a path::
 
-        sage: inv1.initial_vertex()
-        sage: inv1.terminal_vertex()
         sage: p.initial_vertex()
         1
         sage: p.terminal_vertex()
@@ -138,21 +112,24 @@ class QuiverPath(MonoidElement):
             sage: from sage.quivers.paths import QuiverPath
             sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
             sage: p = Q([(1, 1), (1, 1)])
+            sage: Q([(1,3,'x')])
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot interprete [(1, 3, 'x')] as element of
+            Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices
 
         Note that QuiverPath should not be called directly, because
         the elements of the free small category associated with a quiver
         use a sub-class of QuiverPath. Nonetheless, just for test, we
         show that it *is* possible to create a path in a deprecated way::
 
-            sage: p == QuiverPath((1, 1), parent=Q)
+            sage: p == QuiverPath(Q, (1, 1))
             True
             sage: Q([(1, 1), (1, 2, 'a'), (2, 2), (2, 3, 'b'), (3, 3)])._path
             ((1, 2, 'a'), (2, 3, 'b'))
         """
         MonoidElement.__init__(self, parent=parent)
-        if path is None: # invalid path
-            self._path = None
-            return
+
         # Normalise the given path, unless it is asserted that the input is
         # fine
         if not check:
@@ -172,8 +149,6 @@ class QuiverPath(MonoidElement):
             new_path = list(path._path)
         # A tuple is assumed to be an edge, anything else is assumed to be a
         # list of edges
-        elif path is None:
-            new_path = []
         elif isinstance(path, tuple):
             new_path = [path]
         else:
@@ -189,12 +164,12 @@ class QuiverPath(MonoidElement):
                 good = False
                 break
         if not good:
-            new_path = []
+            raise ValueError("Cannot interprete %s as element of %s"%(path,parent))
         # Delete trivial edges, and clear the path if not valid
         i = 0
         while i + 1 < len(new_path):
             if new_path[i][1] != new_path[i + 1][0]:
-                new_path = []
+                raise ValueError("Cannot interprete %s as element of %s"%(path,parent))
             elif len(new_path[i])!=3:
                 del new_path[i]
             else:
@@ -210,16 +185,12 @@ class QuiverPath(MonoidElement):
         TESTS::
 
             sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
-            sage: Q([(1, 2, 'a'), (1, 2, 'a')]) # indirect doctest
-            invalid path
             sage: Q([(1, 2, 'a'), (2, 3, 'b')]) # indirect doctest
             a*b
             sage: Q((1, 1)) # indirect doctest
             e_1
         """
-        if not self._path:
-            return 'invalid path'
-        elif len(self._path[0])!=3:
+        if len(self._path[0])!=3:
             return 'e_{0}'.format(self._path[0][0])
         else:
             return '*'.join([e[2] for e in self._path])
@@ -231,8 +202,6 @@ class QuiverPath(MonoidElement):
         TESTS::
 
             sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
-            sage: len(Q([(1, 2, 'a'), (1, 2, 'a')]))
-            0
             sage: len(Q([(1, 2, 'a'), (2, 3, 'b')]))
             2
             sage: len(Q((1, 1)))
@@ -252,8 +221,6 @@ class QuiverPath(MonoidElement):
         TESTS::
 
             sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
-            sage: Q([(1, 2, 'a'), (1, 2, 'a')]).deg()
-            0
             sage: Q([(1, 2, 'a'), (2, 3, 'b')]).deg()
             2
             sage: Q((1, 1)).deg()
@@ -269,8 +236,8 @@ class QuiverPath(MonoidElement):
 
         NOTE:
 
-        The boolean value is True if and only if the path
-        is not the invalid path
+        The boolean value is always True, since the partial semigroup formed
+        by the paths of a quiver does not contain zero.
 
         TESTS::
 
@@ -279,28 +246,30 @@ class QuiverPath(MonoidElement):
             sage: b = Q((2, 3, 'b'))
             sage: bool(a*b)
             True
-            sage: bool(b*a)
-            False
+            sage: bool(Q.idempotents()[0])
+            True
+
         """
-        return bool(self._path)
+        return True
 
     def __cmp__(self, other):
         """
         Comparison for QuiverPaths.
 
-        If other is not of type QuiverPath then the comparison is made using `id`.
-        If other is a QuiverPath then equality is tested using `is`.  If the
-        QuiverPaths are unequal then one of the following data (listed in order of
-        preferance) is unequal and used for comparison:
+        As usual in Sage, the ``__cmp__`` method of a Python sub-classes of
+        :class:`sage.structure.element.Element` can assume that both arguments
+        belong to the same parent.
 
-        - Length of the path
-        - String representation of the path
-        - Vertexes of the path (from initial to final)
+        If the QuiverPaths are unequal then one of the following data (listed
+        in order of preferance) is unequal and used for comparison:
+
+        - Length of the paths
+        - Edge sequence of the paths.
 
         .. NOTES::
 
             This code is used by CombinatorialFreeModule to order the monomials
-            when printing elements of QuiverAlgebras.
+            when printing elements of path algebras.
 
         TESTS::
 
@@ -308,32 +277,44 @@ class QuiverPath(MonoidElement):
             sage: a = Q((1, 2, 'a'))
             sage: b = Q((1, 2, 'b'))
             sage: c = Q((2, 3, 'c'))
-            sage: c2 = Q((2, 4, 'd'))
-            sage: a < a*b
+            sage: d = Q((2, 4, 'd'))
+            sage: e = Q.idempotents()[3]
+            sage: e < a
             True
-            sage: a*b < a
+            sage: a < e
+            False
+            sage: d < a*c
+            True
+            sage: a*c < d
             False
             sage: a < b
             True
             sage: b < a
             False
-            sage: a*c < a*c2
+            sage: a*c < a*d
             True
-            sage: a*c2 < a*c
+            sage: a*d < a*c
             False
             sage: a < a
             False
         """
         # Since QuiverPath inherits from element, it is guaranteed that
         # both arguments are elements of the same free small category
+        s_p = self._path
+        o_p = other._path
 
         # Compare lengths if different
-        c = cmp(len(other),len(self))
+        c = cmp(len(s_p),len(o_p))
         if c:
             return c
 
-        # Compare internal tuple
-        return cmp(self._path, other._path)
+        # Trivial paths should be smaller than non-trivial paths
+        c = cmp(len(s_p[0]),len(o_p[0]))
+        if c:
+            return c
+
+        # Now we have two non-trivial paths. Compare internal tuple
+        return cmp(s_p, o_p)
 
     def __getitem__(self, *args):
         """
@@ -383,13 +364,18 @@ class QuiverPath(MonoidElement):
         """
         Composes two paths.
 
+        NOTE:
+
+        ``None`` is returned, if the terminal vertex of the first path does
+        not coincide with the initial vertex of the second path.
+
         TESTS::
 
             sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}, 3:{4:['c']}, 4:{5:['d']}}).path_semigroup()
             sage: x = Q([(1, 2, 'a'), (2, 3, 'b')])
             sage: y = Q([(3, 4, 'c'), (4, 5, 'd')])
-            sage: y*x
-            invalid path
+            sage: print y*x
+            None
             sage: x*y
             a*b*c*d
             sage: x*Q((3, 4, 'c'))
@@ -399,32 +385,28 @@ class QuiverPath(MonoidElement):
             sage: x*6
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Free small category of Quiver on 5 vertices' and 'Integer Ring'
+            TypeError: unsupported operand parent(s) for '*':
+            'Partial semigroup formed by the directed paths of Multi-digraph on 5 vertices'
+            and 'Integer Ring'
         """
         # By Sage's coercion model, both paths belong to the same quiver
+        # In particular, both are QuiverPath
         Q = self.parent()
-        # Handle the invalid path
-        if not self._path:
+        if self.terminal_vertex()!=other.initial_vertex():
+            return None
+        if len(self._path[0])<3:
+            return other
+        elif len(other._path[0])<3:
             return self
-
-        if isinstance(other, QuiverPath):
-            if not other._path:
-                return other
-            return Q(list(self._path) + list(other._path))
-        if isinstance(other, tuple):
-            return Q(list(self._path) + [other])
-        if isinstance(other, list):
-            return Q(list(self._path) + other)
-        raise TypeError("QuiverPath cannot be multiplied with {0}".format(type(other)))
+        return Q(self._path+other._path, check=False)
 
     def __mod__(self, other):
         """
-        Returns self with other deleted from the beginning.
+        Returns ``self`` with ``other`` deleted from the beginning.
 
-        If other is not the beginning of self the result is the invalid path.  Deleting
-        the trivial path at vertex v from a path that begins at v does nothing.
-        Deleting it from a path that does not begin at v returns the invalid path.
-        Deleting the invalid path returns the invalid path.
+        If ``other`` is not the beginning of ``self`` then ``None`` is
+        returned.  Deleting the trivial path at vertex `v` from a path that
+        begins at `v` does not change the path.
 
         TESTS::
 
@@ -436,23 +418,17 @@ class QuiverPath(MonoidElement):
             sage: e2 = Q((2, 2))
             sage: p % a
             b
-            sage: p % b
-            invalid path
+            sage: print p % b
+            None
             sage: p % e1
             a*b
-            sage: p % e2
-            invalid path
+            sage: print p % e2
+            None
 
         """
-        # Handle invalid path
-        if not self._path:
-            return self
         Q = self.parent()
         # Convert other to a QuiverPath
         oth = Q(other)
-        # Is oth invalid or equal to self?
-        if not oth._path:
-            return oth
         if self._path==oth._path:
             v = self._path[-1][1]
             return Q(((v, v),), check=False)
@@ -462,23 +438,21 @@ class QuiverPath(MonoidElement):
             if self._path[0][0] == oth._path[0][0]:
                 return self
             else:
-                return Q(None)
+                return None
 
         # If other is the beginning, return the rest
         if self._path[:len(oth._path)] == oth._path:
             return Q(list(self._path[len(oth._path):]), check=False)
         else:
-            return Q(None)
+            return None
 
     def initial_vertex(self):
         """
         Returns the initial vertex of the path.
 
-        The invalid path does not have an initial vertex, so None is returned.
-
         OUTPUT:
 
-        - integer or None
+        - integer, the label of the initial vertex
 
         EXAMPLES::
 
@@ -486,24 +460,18 @@ class QuiverPath(MonoidElement):
             sage: y = Q([(1, 2, 'a'), (2, 3, 'b')])
             sage: y.initial_vertex()
             1
-            sage: print Q([(1, 1), (2, 2)]).initial_vertex()
-            None
+
         """
 
-        if self._path:
-            return self._path[0][0]
-        else:
-            return None
+        return self._path[0][0]
 
     def terminal_vertex(self):
         """
         Returns the terminal vertex of the path.
 
-        The invalid path does not have a terminal vertex, so None is returned.
-
         OUTPUT:
 
-        - integer or None
+        - integer, the label of the terminal vertex
 
         EXAMPLES::
 
@@ -511,14 +479,8 @@ class QuiverPath(MonoidElement):
             sage: y = Q([(1, 2, 'a'), (2, 3, 'b')])
             sage: y.terminal_vertex()
             3
-            sage: print Q([(1, 1), (2, 2)]).terminal_vertex()
-            None
         """
-
-        if self._path:
-            return self._path[-1][1]
-        else:
-            return None
+        return self._path[-1][1]
 
     def reverse(self):
         """
@@ -532,15 +494,18 @@ class QuiverPath(MonoidElement):
             b*a
             sage: p.reverse().parent() is Q.reverse()
             True
+            sage: e = Q.idempotents()[0]
+            sage: e
+            e_1
+            sage: e.reverse()
+            e_1
 
         """
         Q = self.parent().reverse()
-        # Handle the invalid path and trivial paths
-        if not self._path:
-            return Q(None)
+        # Handle trivial paths
         if self._path[0][0] == self._path[0][1]:
-            return Q((self._path[0][0],self._path[0][0]))
+            return Q(((self._path[0][0],self._path[0][0]),), check=False)
 
         # Reverse all the edges in the path, then reverse the path
         new_path = [(e[1], e[0], e[2]) for e in self._path]
-        return Q(reversed(new_path))
+        return Q(reversed(new_path), check=False)

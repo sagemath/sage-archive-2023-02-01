@@ -91,7 +91,7 @@ class QuiverRepFactory(UniqueFactory):
 
     EXAMPLES::
 
-        sage: Q1 = Quiver({1:{2:['a']}})
+        sage: Q1 = DiGraph({1:{2:['a']}}).path_semigroup()
 
     When the ``option`` keyword is not supplied the constructor uses the 'values'
     option and expects the spaces and maps to be specified.  If no maps or spaces
@@ -138,7 +138,7 @@ class QuiverRepFactory(UniqueFactory):
     The dimension at each vertex equals the number of paths in the closed basis whose
     terminal point is that vertex::
 
-        sage: Q2 = Quiver({1:{2:['a'], 3:['b', 'c']}, 2:{3:['d']}})
+        sage: Q2 = DiGraph({1:{2:['a'], 3:['b', 'c']}, 2:{3:['d']}}).path_semigroup()
         sage: M = Q2.representation(QQ, [[(2, 2)], [(1, 2, 'a')]], option='paths')
         sage: M.dimension_vector()
         (0, 2, 2)
@@ -171,10 +171,10 @@ class QuiverRepFactory(UniqueFactory):
 
         EXAMPLES::
 
-            sage: P = Quiver({1:{2:['a']}}).path_semigroup()
+            sage: P = DiGraph({1:{2:['a']}}).path_semigroup()
             sage: from sage.quivers.representation import QuiverRep
             sage: QuiverRep.create_key(GF(5), P)
-            (Finite Field of size 5, Quiver on 2 vertices, 'values', Vector space of dimension 0 over Finite Field of size 5, Vector space of dimension 0 over Finite Field of size 5, [])
+            (Finite Field of size 5, Partial semigroup formed by the directed paths of Multi-digraph on 2 vertices, 'values', Vector space of dimension 0 over Finite Field of size 5, Vector space of dimension 0 over Finite Field of size 5, [])
         """
         key = [k, P]
         Q = P.quiver()
@@ -199,8 +199,9 @@ class QuiverRepFactory(UniqueFactory):
                     to_be_added = []
                     for e in edges:
                         for p in just_added:
-                            if p*e not in paths:
-                                to_be_added.append(p*e)
+                            pe = p*e
+                            if pe is not None and pe not in paths:
+                                to_be_added.append(pe)
 
                     paths.update(to_be_added)
                     just_added = to_be_added
@@ -213,14 +214,12 @@ class QuiverRepFactory(UniqueFactory):
                     to_be_added = []
                     for e in edges:
                         for p in just_added:
-                            if e*p not in paths:
-                                to_be_added.append(e*p)
+                            ep = e*p
+                            if ep is not None and ep not in paths:
+                                to_be_added.append(ep)
 
                     paths.update(to_be_added)
                     just_added = to_be_added
-
-            # Remove the invalid path
-            paths.difference_update([P(None)])
 
             # Add to the key
             key.append(tuple(sorted(paths)))
@@ -322,7 +321,7 @@ class QuiverRepFactory(UniqueFactory):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a']}})
+            sage: Q = DiGraph({1:{2:['a']}}).path_semigroup()
             sage: from sage.quivers.representation import QuiverRep
             sage: key = QuiverRep.create_key(GF(5), Q)
             sage: QuiverRep.create_object(Q.version(), key)
@@ -402,8 +401,8 @@ class QuiverRepElement(ModuleElement):
 
     EXAMPLES::
 
-        sage: Q = Quiver({1:{2:['a'], 3:['b']}, 2:{3:['c']}})
-        sage: spaces = dict((v, GF(3)^2) for v in Q)
+        sage: Q = DiGraph({1:{2:['a'], 3:['b']}, 2:{3:['c']}}).path_semigroup()
+        sage: spaces = dict((v, GF(3)^2) for v in Q.quiver())
         sage: M = Q.representation(GF(3), spaces)
         sage: elems = {1: (1, 0), 2: (0, 1), 3: (2, 1)}
         sage: M(elems)
@@ -422,14 +421,14 @@ class QuiverRepElement(ModuleElement):
     #                                                                         #
     ###########################################################################
 
-    def __init__(self, elements=None, name=None, parent=None):
+    def __init__(self, parent, elements=None, name=None):
         """
         Type QuiverRepElement? for more information.
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a'], 3:['b']}, 2:{3:['c']}})
-            sage: spaces = dict((v, GF(3)^2) for v in Q)
+            sage: Q = DiGraph({1:{2:['a'], 3:['b']}, 2:{3:['c']}}).path_semigroup()
+            sage: spaces = dict((v, GF(3)^2) for v in Q.quiver())
             sage: M = Q.representation(GF(3), spaces)
             sage: elems = {1: (1, 0), 2: (0, 1), 3: (2, 1)}
             sage: M()
@@ -473,7 +472,7 @@ class QuiverRepElement(ModuleElement):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a'], 3:['b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a'], 3:['b']}, 2:{3:['c']}}).path_semigroup()
             sage: Q.P(QQ, 3).an_element() # indirect doctest
             Element of quiver representation
         """
@@ -485,8 +484,8 @@ class QuiverRepElement(ModuleElement):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a'], 3:['b']}, 2:{3:['c']}})
-            sage: spaces = dict((v, GF(3)^2) for v in Q)
+            sage: Q = DiGraph({1:{2:['a'], 3:['b']}, 2:{3:['c']}}).path_semigroup()
+            sage: spaces = dict((v, GF(3)^2) for v in Q.quiver())
             sage: M = Q.representation(GF(3), spaces)
             sage: elems = {1: (1, 0), 2: (0, 1), 3: (2, 1)}
             sage: v = M(elems)
@@ -506,8 +505,8 @@ class QuiverRepElement(ModuleElement):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a'], 3:['b']}, 2:{3:['c']}})
-            sage: spaces = dict((v, GF(3)^2) for v in Q)
+            sage: Q = DiGraph({1:{2:['a'], 3:['b']}, 2:{3:['c']}}).path_semigroup()
+            sage: spaces = dict((v, GF(3)^2) for v in Q.quiver())
             sage: M = Q.representation(GF(3), spaces)
             sage: elems = {1: (1, 0), 2: (0, 1), 3: (2, 1)}
             sage: v = M(elems)
@@ -530,8 +529,8 @@ class QuiverRepElement(ModuleElement):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a'], 3:['b']}, 2:{3:['c']}})
-            sage: spaces = dict((v, GF(3)^2) for v in Q)
+            sage: Q = DiGraph({1:{2:['a'], 3:['b']}, 2:{3:['c']}}).path_semigroup()
+            sage: spaces = dict((v, GF(3)^2) for v in Q.quiver())
             sage: M = Q.representation(GF(3), spaces)
             sage: elems = {1: (1, 0), 2: (0, 1), 3: (2, 1)}
             sage: v = M(elems)
@@ -551,8 +550,8 @@ class QuiverRepElement(ModuleElement):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a'], 3:['b']}, 2:{3:['c']}})
-            sage: spaces = dict((v, GF(3)^2) for v in Q)
+            sage: Q = DiGraph({1:{2:['a'], 3:['b']}, 2:{3:['c']}}).path_semigroup()
+            sage: spaces = dict((v, GF(3)^2) for v in Q.quiver())
             sage: M = Q.representation(GF(3), spaces)
             sage: elems = {1: (1, 0), 2: (0, 1), 3: (2, 1)}
             sage: v = M(elems)
@@ -572,8 +571,8 @@ class QuiverRepElement(ModuleElement):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a'], 3:['b']}, 2:{3:['c']}})
-            sage: spaces = dict((v, GF(3)^2) for v in Q)
+            sage: Q = DiGraph({1:{2:['a'], 3:['b']}, 2:{3:['c']}}).path_semigroup()
+            sage: spaces = dict((v, GF(3)^2) for v in Q.quiver())
             sage: M = Q.representation(GF(3), spaces)
             sage: elems = {1: (1, 0), 2: (0, 1), 3: (2, 1)}
             sage: v = M(elems)
@@ -593,7 +592,7 @@ class QuiverRepElement(ModuleElement):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a']}})
+            sage: Q = DiGraph({1:{2:['a']}}).path_semigroup()
             sage: P = Q.P(QQ, 1)
             sage: A = Q.algebra(QQ)
             sage: m = P.an_element()
@@ -636,8 +635,8 @@ class QuiverRepElement(ModuleElement):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a'], 3:['b']}, 2:{3:['c']}})
-            sage: spaces = dict((v, GF(3)^2) for v in Q)
+            sage: Q = DiGraph({1:{2:['a'], 3:['b']}, 2:{3:['c']}}).path_semigroup()
+            sage: spaces = dict((v, GF(3)^2) for v in Q.quiver())
             sage: M = Q.representation(GF(3), spaces)
             sage: elems = {1: (1, 0), 2: (0, 1), 3: (2, 1)}
             sage: v = M(elems)
@@ -668,8 +667,8 @@ class QuiverRepElement(ModuleElement):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a'], 3:['b']}, 2:{3:['c']}})
-            sage: spaces = dict((v, GF(3)^2) for v in Q)
+            sage: Q = DiGraph({1:{2:['a'], 3:['b']}, 2:{3:['c']}}).path_semigroup()
+            sage: spaces = dict((v, GF(3)^2) for v in Q.quiver())
             sage: M = Q.representation(GF(3), spaces)
             sage: elems = {1: (1, 0), 2: (0, 1), 3: (2, 1)}
             sage: v = M(elems)
@@ -711,10 +710,10 @@ class QuiverRepElement(ModuleElement):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a'], 3:['b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a'], 3:['b']}, 2:{3:['c']}}).path_semigroup()
             sage: P = Q.P(QQ, 1)
             sage: v = P.an_element()
-            sage: v.quiver() is Q
+            sage: v.quiver() is Q.quiver()
             True
         """
 
@@ -734,8 +733,8 @@ class QuiverRepElement(ModuleElement):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a'], 3:['b']}, 2:{3:['c']}})
-            sage: spaces = dict((v, GF(3)^2) for v in Q)
+            sage: Q = DiGraph({1:{2:['a'], 3:['b']}, 2:{3:['c']}}).path_semigroup()
+            sage: spaces = dict((v, GF(3)^2) for v in Q.quiver())
             sage: M = Q.representation(GF(3), spaces)
             sage: elems = {1: (1, 0), 2: (0, 1), 3: (2, 1)}
             sage: v = M(elems)
@@ -760,8 +759,8 @@ class QuiverRepElement(ModuleElement):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a'], 3:['b']}, 2:{3:['c']}})
-            sage: spaces = dict((v, GF(3)^2) for v in Q)
+            sage: Q = DiGraph({1:{2:['a'], 3:['b']}, 2:{3:['c']}}).path_semigroup()
+            sage: spaces = dict((v, GF(3)^2) for v in Q.quiver())
             sage: M = Q.representation(GF(3), spaces)
             sage: elems = {1: (1, 0), 2: (0, 1), 3: (2, 1)}
             sage: v = M(elems)
@@ -791,8 +790,8 @@ class QuiverRepElement(ModuleElement):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a'], 3:['b']}, 2:{3:['c']}})
-            sage: spaces = dict((v, GF(3)^2) for v in Q)
+            sage: Q = DiGraph({1:{2:['a'], 3:['b']}, 2:{3:['c']}}).path_semigroup()
+            sage: spaces = dict((v, GF(3)^2) for v in Q.quiver())
             sage: M = Q.representation(GF(3), spaces)
             sage: elems = {1: (1, 0), 2: (0, 1), 3: (2, 1)}
             sage: v = M(elems)
@@ -828,8 +827,8 @@ class QuiverRepElement(ModuleElement):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a'], 3:['b']}, 2:{3:['c']}})
-            sage: spaces = dict((v, GF(3)^2) for v in Q)
+            sage: Q = DiGraph({1:{2:['a'], 3:['b']}, 2:{3:['c']}}).path_semigroup()
+            sage: spaces = dict((v, GF(3)^2) for v in Q.quiver())
             sage: M = Q.representation(GF(3), spaces)
             sage: elems = {1: (1, 0), 2: (0, 0), 3: (2, 1)}
             sage: v = M(elems)
@@ -858,8 +857,8 @@ class QuiverRepElement(ModuleElement):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a'], 3:['b']}, 2:{3:['c']}})
-            sage: spaces = dict((v, GF(3)^2) for v in Q)
+            sage: Q = DiGraph({1:{2:['a'], 3:['b']}, 2:{3:['c']}}).path_semigroup()
+            sage: spaces = dict((v, GF(3)^2) for v in Q.quiver())
             sage: M = Q.representation(GF(3), spaces)
             sage: elems = {1: (1, 0), 2: (0, 1), 3: (2, 1)}
             sage: v = M(elems)
@@ -909,14 +908,14 @@ class QuiverRep_generic(Module):
 
     EXAMPLES::
 
-        sage: Q = Quiver({1:{3:['a']}, 2:{3:['b']}})
+        sage: Q = DiGraph({1:{3:['a']}, 2:{3:['b']}}).path_semigroup()
         sage: spaces = {1: QQ^2, 2: QQ^3, 3: QQ^2}
         sage: maps = {(1, 3, 'a'): (QQ^2).Hom(QQ^2).identity(), (2, 3, 'b'): [[1, 0], [0, 0], [0, 0]]}
         sage: M = Q.representation(QQ, spaces, maps)
 
     ::
 
-        sage: Q = Quiver({1:{2:['a']}})
+        sage: Q = DiGraph({1:{2:['a']}}).path_semigroup()
         sage: P = Q.P(GF(3), 1)
         sage: I = Q.I(QQ, 1)
         sage: P.an_element() in P
@@ -954,7 +953,7 @@ class QuiverRep_generic(Module):
         TESTS::
 
             sage: from sage.quivers.representation import QuiverRep_generic
-            sage: Q = Quiver({1:{2:['a']}})
+            sage: Q = DiGraph({1:{2:['a']}}).path_semigroup()
             sage: QuiverRep_generic(GF(5), Q, {1: GF(5)^2, 2: GF(5)^3}, {})
             Representation with dimension vector (2, 3)
 
@@ -978,6 +977,7 @@ class QuiverRep_generic(Module):
         #      whose domain and codomain equal the initial and terminal vertex of the
         #      edge.
         Q = P.quiver()
+        self._semigroup = P
         self._quiver = Q
         self._base_ring = k
         self._spaces = {}
@@ -1034,7 +1034,7 @@ class QuiverRep_generic(Module):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a']}})
+            sage: Q = DiGraph({1:{2:['a']}}).path_semigroup()
             sage: M = Q.P(GF(3), 2) # indirect doctest
 
         Due to unique representation, we will cause bugs in later code if we modify M
@@ -1070,7 +1070,7 @@ class QuiverRep_generic(Module):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a']}})
+            sage: Q = DiGraph({1:{2:['a']}}).path_semigroup()
             sage: Q.P(GF(3), 2) # indirect doctest
             Representation with dimension vector (0, 1)
         """
@@ -1083,7 +1083,7 @@ class QuiverRep_generic(Module):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a']}})
+            sage: Q = DiGraph({1:{2:['a']}}).path_semigroup()
             sage: P = Q.P(GF(3), 1)
             sage: R = P.radical()
             sage: (P/R).is_simple()
@@ -1098,7 +1098,7 @@ class QuiverRep_generic(Module):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a']}})
+            sage: Q = DiGraph({1:{2:['a']}}).path_semigroup()
             sage: P = Q.P(GF(3), 1)
             sage: R = P.radical()
             sage: (P/R).is_simple()
@@ -1117,7 +1117,7 @@ class QuiverRep_generic(Module):
 
         TESTS::
 
-            sage: Q = Quiver({1:{3:['a']}, 2:{3:['b']}})
+            sage: Q = DiGraph({1:{3:['a']}, 2:{3:['b']}}).path_semigroup()
             sage: spaces = {1: QQ^2, 2: QQ^3, 3: QQ^2}
             sage: maps = {(1, 3, 'a'): (QQ^2).Hom(QQ^2).identity(), (2, 3, 'b'): [[1, 0], [0, 0], [0, 0]]}
             sage: M = Q.representation(QQ, spaces, maps)
@@ -1148,7 +1148,7 @@ class QuiverRep_generic(Module):
         for e in self._quiver.edges():
             maps[e] = self._maps[e].restrict_domain(spaces[e[0]]).restrict_codomain(spaces[e[1]])
 
-        return self._quiver.representation(self._base_ring, spaces, maps)
+        return self._semigroup.representation(self._base_ring, spaces, maps)
 
     def _coerce_map_from_(self, domain):
         """
@@ -1171,13 +1171,13 @@ class QuiverRep_generic(Module):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a','b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a','b']}, 2:{3:['c']}}).path_semigroup()
             sage: M = Q.P(QQ, 1)
             sage: S = M.radical()
             sage: M.coerce_map_from(S) # indirect doctest
-            Homomorphism of representations of Quiver on 3 vertices
+            Homomorphism of representations of Multi-digraph on 3 vertices
             sage: (M/S).coerce_map_from(M) # indirect doctest
-            Homomorphism of representations of Quiver on 3 vertices
+            Homomorphism of representations of Multi-digraph on 3 vertices
 
         Here sage coerces a map but the result is not a homomorphism::
 
@@ -1198,7 +1198,7 @@ class QuiverRep_generic(Module):
         maps = {}
         for v in self._quiver:
             maps[v] = self._spaces[v].coerce_map_from(domain._spaces[v])
-            if maps[v]==None or maps[v]==False:
+            if maps[v] is None or maps[v] is False:
                 return False
 
         # Create and return the hom, return False if it wasn't valid
@@ -1220,7 +1220,7 @@ class QuiverRep_generic(Module):
         EXAMPLES::
 
             sage: from sage.categories.homset import Hom
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c', 'd']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c', 'd']}}).path_semigroup()
             sage: P = Q.P(GF(3), 2)
             sage: S = P/P.radical()
             sage: Hom(P, S) # indirect doctest
@@ -1250,7 +1250,7 @@ class QuiverRep_generic(Module):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a'], 3:['b']}})
+            sage: Q = DiGraph({1:{2:['a'], 3:['b']}}).path_semigroup()
             sage: Q.P(QQ, 1).get_space(1)
             Vector space of dimension 1 over Rational Field
         """
@@ -1268,7 +1268,7 @@ class QuiverRep_generic(Module):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
             sage: Q.P(ZZ, 1).get_map((1, 2, 'a'))
             Free module morphism defined by the matrix
             [1 0]
@@ -1288,9 +1288,9 @@ class QuiverRep_generic(Module):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a']}})
+            sage: Q = DiGraph({1:{2:['a']}}).path_semigroup()
             sage: M = Q.representation(GF(5))
-            sage: M.quiver() is Q
+            sage: M.quiver() is Q.quiver()
             True
         """
 
@@ -1311,7 +1311,7 @@ class QuiverRep_generic(Module):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a']}})
+            sage: Q = DiGraph({1:{2:['a']}}).path_semigroup()
             sage: M = Q.representation(GF(5))
             sage: M.base_ring() is GF(5)
             True
@@ -1342,7 +1342,7 @@ class QuiverRep_generic(Module):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
             sage: P = Q.P(GF(2), 1)
             sage: P.dimension(1)
             1
@@ -1355,7 +1355,7 @@ class QuiverRep_generic(Module):
             3
         """
 
-        if vertex == None:
+        if vertex is None:
             # Sum the dimensions of each vertex
             dim = 0
             for x in self._quiver:
@@ -1380,7 +1380,7 @@ class QuiverRep_generic(Module):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
             sage: P = Q.P(GF(2), 1)
             sage: P.dimension_vector()
             (1, 2)
@@ -1404,7 +1404,7 @@ class QuiverRep_generic(Module):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
             sage: M = Q.representation(ZZ)
             sage: N = Q.representation(ZZ, {1: 1})
             sage: M
@@ -1429,7 +1429,7 @@ class QuiverRep_generic(Module):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
             sage: Q.P(RR, 1).is_simple()
             False
             sage: Q.S(RR, 1).is_simple()
@@ -1450,7 +1450,7 @@ class QuiverRep_generic(Module):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
             sage: M = Q.P(QQ, 1)
             sage: (M/M.radical()).is_semisimple()
             True
@@ -1473,7 +1473,7 @@ class QuiverRep_generic(Module):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
             sage: M = Q.P(QQ, 1)
             sage: M.an_element()
             Element of quiver representation
@@ -1494,7 +1494,7 @@ class QuiverRep_generic(Module):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a']}, 3:{2:['b'], 4:['c']}})
+            sage: Q = DiGraph({1:{2:['a']}, 3:{2:['b'], 4:['c']}}).path_semigroup()
             sage: M = Q.P(QQ, 3)
             sage: M
             Representation with dimension vector (0, 1, 1, 1)
@@ -1531,7 +1531,7 @@ class QuiverRep_generic(Module):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
             sage: M = Q.P(QQ, 1)
             sage: M.gens()
             [v_0, v_1, v_2]
@@ -1594,7 +1594,7 @@ class QuiverRep_generic(Module):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
             sage: M = Q.P(QQ, 1)
             sage: x, y, z = M.gens('xyz')
             sage: M.coordinates(x - y + z)
@@ -1628,7 +1628,7 @@ class QuiverRep_generic(Module):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
             sage: M = Q.P(QQ, 1)
             sage: x, y, z = M.gens('xyz')
             sage: e = x - y + z
@@ -1681,7 +1681,7 @@ class QuiverRep_generic(Module):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{3:['a']}, 2:{3:['b']}})
+            sage: Q = DiGraph({1:{3:['a']}, 2:{3:['b']}}).path_semigroup()
             sage: spaces = {1: QQ^2, 2: QQ^3, 3: QQ^2}
             sage: maps = {(1, 3, 'a'): (QQ^2).Hom(QQ^2).identity(), (2, 3, 'b'): [[1, 0], [0, 0], [0, 0]]}
             sage: M = Q.representation(QQ, spaces, maps)
@@ -1787,7 +1787,7 @@ class QuiverRep_generic(Module):
 
         EXAMPLES:
 
-            sage: Q = Quiver({1:{2:['a','b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a','b']}, 2:{3:['c']}}).path_semigroup()
             sage: M = Q.I(GF(3), 3)
             sage: N = Q.S(GF(3), 3)
             sage: M.quotient(N)
@@ -1833,7 +1833,7 @@ class QuiverRep_generic(Module):
                 # quotient in the codomain.
                 maps[e] = spaces[e[0]].hom([self._maps[e](factor.lift(x)) for x in spaces[e[0]].gens()], spaces[e[1]])
 
-        return self._quiver.representation(self._base_ring, spaces, maps)
+        return self._semigroup.representation(self._base_ring, spaces, maps)
 
     def socle(self):
         """
@@ -1845,7 +1845,7 @@ class QuiverRep_generic(Module):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a','b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a','b']}, 2:{3:['c']}}).path_semigroup()
             sage: M = Q.P(QQ, 1)
             sage: M.socle()
             Representation with dimension vector (0, 0, 2)
@@ -1870,7 +1870,7 @@ class QuiverRep_generic(Module):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a','b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a','b']}, 2:{3:['c']}}).path_semigroup()
             sage: M = Q.P(QQ, 1)
             sage: M.radical()
             Representation with dimension vector (0, 2, 2)
@@ -1895,7 +1895,7 @@ class QuiverRep_generic(Module):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a','b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a','b']}, 2:{3:['c']}}).path_semigroup()
             sage: M = Q.P(QQ, 1)
             sage: M.top()
             Representation with dimension vector (1, 0, 0)
@@ -1915,7 +1915,7 @@ class QuiverRep_generic(Module):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a','b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a','b']}, 2:{3:['c']}}).path_semigroup()
             sage: M = Q.P(QQ, 1)
             sage: M.zero_submodule()
             Representation with dimension vector (0, 0, 0)
@@ -1942,11 +1942,11 @@ class QuiverRep_generic(Module):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a','b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a','b']}, 2:{3:['c']}}).path_semigroup()
             sage: M = Q.P(QQ, 1)
             sage: M.linear_dual()
             Representation with dimension vector (1, 2, 2)
-            sage: M.linear_dual().quiver() == Q.reverse()
+            sage: M.linear_dual().quiver() is Q.reverse().quiver()
             True
         """
 
@@ -1964,15 +1964,15 @@ class QuiverRep_generic(Module):
                 basis.extend(bases[v])
 
         if isinstance(self, QuiverRep_with_path_basis):
-            result = self._quiver.reverse().representation(self._base_ring, basis, option='dual paths')
+            result = self._semigroup.reverse().representation(self._base_ring, basis, option='dual paths')
             result._maps = maps
             result._bases = bases
         elif isinstance(self, QuiverRep_with_dual_path_basis):
-            result = self._quiver.reverse().representation(self._base_ring, basis, option='paths')
+            result = self._semigroup.reverse().representation(self._base_ring, basis, option='paths')
             result._maps = maps
             result._bases = bases
         else:
-            result = self._quiver.reverse().representation(self._base_ring, spaces, maps)
+            result = self._semigroup.reverse().representation(self._base_ring, spaces, maps)
 
         return result
 
@@ -2000,13 +2000,13 @@ class QuiverRep_generic(Module):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b'], 3: ['c', 'd']}, 2:{3:['e']}})
+            sage: Q = DiGraph({1:{2:['a', 'b'], 3: ['c', 'd']}, 2:{3:['e']}}).path_semigroup()
             sage: Q.free_module(GF(7)).algebraic_dual().dimension_vector()
             (7, 2, 1)
         """
         from sage.quivers.homspace import QuiverHomSpace
 
-        return QuiverHomSpace(self, self._quiver.free_module(self._base_ring)).left_module(basis)
+        return QuiverHomSpace(self, self._semigroup.free_module(self._base_ring)).left_module(basis)
 
     def Hom(self, codomain):
         """
@@ -2016,7 +2016,7 @@ class QuiverRep_generic(Module):
 
         TESTS::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
             sage: Q.S(QQ, 2).Hom(Q.P(QQ, 1))
             Dimension 2 QuiverHomSpace
         """
@@ -2049,7 +2049,7 @@ class QuiverRep_generic(Module):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a'], 3:['b']}, 2:{4:['c']}, 3:{4:['d']}})
+            sage: Q = DiGraph({1:{2:['a'], 3:['b']}, 2:{4:['c']}, 3:{4:['d']}}).path_semigroup()
             sage: P1 = Q.P(QQ, 1)
             sage: P2 = Q.P(QQ, 2)
             sage: S = P1.direct_sum(P2)
@@ -2117,7 +2117,7 @@ class QuiverRep_generic(Module):
             maps[e] = block_diagonal_matrix([x._maps[e].matrix() for x in mods], subdivide=False)
 
         # Create the QuiverRep, return if the maps aren't wanted
-        result = self._quiver.representation(self._base_ring, spaces, maps)
+        result = self._semigroup.representation(self._base_ring, spaces, maps)
         if not return_maps:
             return result
 
@@ -2154,7 +2154,7 @@ class QuiverRep_generic(Module):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a','b']}, 2:{3:['c','d']}})
+            sage: Q = DiGraph({1:{2:['a','b']}, 2:{3:['c','d']}}).path_semigroup()
             sage: S1 = Q.S(GF(3), 1)
             sage: f1 = S1.projective_cover()
             sage: f1.is_surjective()
@@ -2178,7 +2178,7 @@ class QuiverRep_generic(Module):
         lifts = [proj_to_top.lift(x) for x in gens]
 
         # Get projective summands of the cover
-        Ps = [self._quiver.P(self._base_ring, x.support()[0]) for x in gens]
+        Ps = [self._semigroup.P(self._base_ring, x.support()[0]) for x in gens]
 
         # Factor the maps through self
         maps = [Ps[i].hom(lifts[i], self) for i in range(0, len(gens))]
@@ -2200,7 +2200,7 @@ class QuiverRep_generic(Module):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
             sage: M = Q.representation(GF(3), {1: 1, 2: 1}, {(1, 2, 'a'): 1})
             sage: M.transpose()
             Representation with dimension vector (1, 1)
@@ -2222,7 +2222,7 @@ class QuiverRep_generic(Module):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a', 'b']}})
+            sage: Q = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
             sage: M = Q.representation(GF(3), {1: 1, 2: 1}, {(1, 2, 'a'): 1})
             sage: tauM = M.AR_translate()
             sage: tauM
@@ -2234,7 +2234,7 @@ class QuiverRep_generic(Module):
 
         The module M above is its own AR translate.  This is not always true::
 
-            sage: Q2 = Quiver({3:{1:['b']}, 5:{3:['a']}})
+            sage: Q2 = DiGraph({3:{1:['b']}, 5:{3:['a']}}).path_semigroup()
             sage: Q2.S(QQ, 5).AR_translate()
             Representation with dimension vector (0, 1, 0)
         """
@@ -2266,7 +2266,7 @@ class QuiverRep_generic(Module):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a','b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a','b']}, 2:{3:['c']}}).path_semigroup()
             sage: M = Q.P(QQ, 1)
             sage: v = M.an_element()
             sage: v.support()
@@ -2275,8 +2275,6 @@ class QuiverRep_generic(Module):
             [1]
             sage: M.right_edge_action(v, [(1, 1)]).support()
             [1]
-            sage: M.right_edge_action(v, [(1, 1), (2, 2)]).support()
-            []
             sage: M.right_edge_action(v, [(1, 1), (1, 2, 'a')]).support()
             [2]
             sage: M.right_edge_action(v, (1, 2, 'a')) == M.right_edge_action(v, [(1, 1), (1, 2, 'a'), (2, 2)])
@@ -2284,7 +2282,7 @@ class QuiverRep_generic(Module):
         """
 
         # Convert to a QuiverPath
-        qpath = self._quiver.path_semigroup()(path)
+        qpath = self._semigroup(path)
 
         # Invalid paths are zero in the quiver algebra
         result = self()  # this must not be self.zero(), which is cached
@@ -2349,14 +2347,14 @@ class QuiverRep_with_path_basis(QuiverRep_generic):
 
         TESTS::
 
-            sage: Q1 = Quiver({1:{2:['a']}})
+            sage: Q1 = DiGraph({1:{2:['a']}}).path_semigroup()
             sage: P1 = Q1.representation(QQ, [[(1, 1)]], option='paths')
             sage: P1.dimension()
             2
             sage: kQ = Q1.representation(QQ, [[(1, 1)], [(2, 2)], [(1, 1), (1, 2, 'a'), (2, 2)], [(1, 2, 'a')]], option='paths')
             sage: kQ.dimension()
             3
-            sage: Q2 = Quiver({1:{2:['a'], 3:['b', 'c']}, 2:{3:['d']}})
+            sage: Q2 = DiGraph({1:{2:['a'], 3:['b', 'c']}, 2:{3:['d']}}).path_semigroup()
             sage: M = Q2.representation(QQ, [[(2, 2)], [(1, 2, 'a')]], option='paths')
             sage: M.dimension_vector()
             (0, 2, 2)
@@ -2450,7 +2448,7 @@ class QuiverRep_with_path_basis(QuiverRep_generic):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a','b']}, 2:{3:['c']}})
+            sage: Q = DiGraph({1:{2:['a','b']}, 2:{3:['c']}}).path_semigroup()
             sage: M = Q.representation(QQ, [[(1, 1)], [(2, 2)], [(3, 3)]], option='paths')
             sage: v = M.an_element()
             sage: v.support()
@@ -2495,7 +2493,7 @@ class QuiverRep_with_path_basis(QuiverRep_generic):
 
         EXAMPLES::
 
-            sage: Q1 = Quiver({1:{2:['a']}})
+            sage: Q1 = DiGraph({1:{2:['a']}}).path_semigroup()
             sage: P2 = Q1.representation(QQ, [[(2, 2)]], option='paths')
             sage: P2.is_left_module()
             False
@@ -2511,7 +2509,7 @@ class QuiverRep_with_path_basis(QuiverRep_generic):
 
         Taking the right closure of a left closed set produces another left closed set::
 
-            sage: Q2 = Quiver({1:{2:['a'], 3:['b', 'c']}, 2:{3:['d']}})
+            sage: Q2 = DiGraph({1:{2:['a'], 3:['b', 'c']}, 2:{3:['d']}}).path_semigroup()
             sage: M = Q2.representation(QQ, [[(2, 2)], [(1, 2, 'a')]], option='paths')
             sage: M.is_left_module()
             True
@@ -2561,14 +2559,14 @@ class QuiverRep_with_dual_path_basis(QuiverRep_generic):
 
         TESTS::
 
-            sage: Q1 = Quiver({1:{2:['a']}})
+            sage: Q1 = DiGraph({1:{2:['a']}}).path_semigroup()
             sage: I2 = Q1.representation(QQ, [(2, 2)], option='dual paths')
             sage: I2.dimension()
             2
             sage: kQdual = Q1.representation(QQ, [[(1, 1)], [(2, 2)], [(1, 1), (1, 2, 'a'), (2, 2)], [(1, 2, 'a')]], option='dual paths')
             sage: kQdual.dimension()
             3
-            sage: Q2 = Quiver({1:{2:['a'], 3:['b', 'c']}, 2:{3:['d']}})
+            sage: Q2 = DiGraph({1:{2:['a'], 3:['b', 'c']}, 2:{3:['d']}}).path_semigroup()
             sage: M = Q2.representation(QQ, [[(1, 2, 'a'), (2, 3, 'd')], [(1, 3, 'b')]], option='dual paths')
             sage: M.dimension_vector()
             (2, 0, 0)

@@ -26,12 +26,17 @@ class PathSemigroup(UniqueRepresentation, Parent):
         sage: S.gens()
         (e_1, e_2, e_3, a, b, c, d)
         sage: S.category()
-        Join of Category of finite enumerated sets and Category of magmas
-        sage: TestSuite(S).run()
+        Join of Category of semigroups and Category of finite enumerated sets
+
+    In the test suite, we skip the associativity test, as in this example the
+    paths used for testing can't be concatenated::
+
+        sage: TestSuite(S).run(skip=['_test_associativity'])
 
     If there is only a single vertex, the partial semigroup is a monoid. If
     the underlying quiver has cycles or loops, then the (partial) semigroup
-    only is an infinite enumerated set::
+    only is an infinite enumerated set. This time, there is no need to skip
+    tests::
 
         sage: Q = DiGraph({1:{1:['a','b', 'c', 'd']}})
         sage: M = Q.path_semigroup()
@@ -178,21 +183,6 @@ class PathSemigroup(UniqueRepresentation, Parent):
         return all(sQ.has_edge(*e) for e in oQ.iterator_out_edges(oQ.iterator_verts(None), True))
 
     @cached_method
-    def zero(self):
-        """
-        A free algebra has a unique "invalid" element, that behaves like a zero.
-
-        EXAMPLES::
-
-            sage: Q = DiGraph({1:{2:['a','b'], 3:['c']}, 3:{1:['d']}})
-            sage: F = Q.path_semigroup()
-            sage: F.zero()
-            invalid path
-
-        """
-        return self.element_class(self, None)
-
-    @cached_method
     def arrows(self):
         """
         The elements corresponding to edges of the underlying quiver.
@@ -314,7 +304,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: len(F)
             9
             sage: list(F)
-            [e_1, e_2, e_3, b, a, c, d, b*d, a*d]
+            [e_1, e_2, e_3, a, b, c, d, a*d, b*d]
             sage: Q = DiGraph({1:{2:['a','b'], 3:['c']}, 3:{1:['d']}})
             sage: F = Q.path_semigroup()
             sage: len(F)
@@ -335,7 +325,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             9
             sage: A = F.algebra(QQ)
             sage: list(A.basis())
-            [e_1, e_2, e_3, b, a, c, d, b*d, a*d]
+            [e_1, e_2, e_3, a, b, c, d, a*d, b*d]
             sage: Q = DiGraph({1:{2:['a','b'], 3:['c']}, 3:{1:['d']}})
             sage: F = Q.path_semigroup()
             sage: F.cardinality()
@@ -362,7 +352,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: Q = DiGraph({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}})
             sage: P = Q.path_semigroup()
             sage: list(P)
-            [e_1, e_2, e_3, b, a, c, d, b*d, a*d]
+            [e_1, e_2, e_3, a, b, c, d, a*d, b*d]
 
         The elements are sorted by length. Of course, the list of elements
         is infinite for quivers with cycles. ::
@@ -491,11 +481,11 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: F.is_finite()
             False
             sage: list(F.iter_paths_by_length_and_endpoint(4,1))
-            [c*b*d*c, c*a*d*c]
+            [c*a*d*c, c*b*d*c]
             sage: list(F.iter_paths_by_length_and_endpoint(5,1))
-            [d*c*b*d*c, d*c*a*d*c]
+            [d*c*a*d*c, d*c*b*d*c]
             sage: list(F.iter_paths_by_length_and_endpoint(5,2))
-            [c*b*d*c*b, c*a*d*c*b, c*b*d*c*a, c*a*d*c*a]
+            [c*a*d*c*a, c*b*d*c*a, c*a*d*c*b, c*b*d*c*b]
 
         """
         # iterate over length d paths ending at vertex v
@@ -512,13 +502,18 @@ class PathSemigroup(UniqueRepresentation, Parent):
 
     def quiver(self):
         """
-        The underlying quiver of this free small category.
+        The underlying quiver (i.e., digraph) of this free small category.
+
+        NOTE:
+
+        The returned digraph always is an immutable copy of the originally
+        given digraph.
 
         EXAMPLES::
 
             sage: Q = DiGraph({1:{2:['a','b']}, 2:{3:['d']}, 3:{1:['c']}})
             sage: F = Q.path_semigroup()
-            sage: F.quiver() is Q
+            sage: F.quiver() == Q
             True
         """
         return self._quiver
@@ -550,11 +545,11 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: Q = DiGraph({1:{2:['a','b']}, 2:{3:['d']}, 3:{1:['c']}})
             sage: P = Q.path_semigroup()
             sage: P.algebra(GF(3))
-            Algebra of Multi-digraph on 3 vertices over Finite Field of size 3
+            Path algebra of Multi-digraph on 3 vertices over Finite Field of size 3
 
         """
-        from sage.quivers.algebra import QuiverAlgebra
-        return QuiverAlgebra(k, self)
+        from sage.quivers.algebra import PathAlgebra
+        return PathAlgebra(k, self)
 
     ###########################################################################
     #                                                                         #
@@ -600,15 +595,15 @@ class PathSemigroup(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: P = DiGraph({1:{2:['a','b']}, 2:{3:['c','d']}}).path_semigroup()
-            sage: S1 = Q.S(GF(3), 1)
-            sage: Q.S(ZZ, 3).dimension_vector()
+            sage: S1 = P.S(GF(3), 1)
+            sage: P.S(ZZ, 3).dimension_vector()
             (0, 0, 1)
-            sage: Q.S(ZZ, 1).dimension_vector()
+            sage: P.S(ZZ, 1).dimension_vector()
             (1, 0, 0)
 
         The vertex given must be a vertex of the quiver::
 
-            sage: Q.S(QQ, 4)
+            sage: P.S(QQ, 4)
             Traceback (most recent call last):
             ...
             ValueError: Must specify a valid vertex of the quiver.
@@ -742,7 +737,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: Q = DiGraph({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}})
             sage: F = Q.path_semigroup()
             sage: F.all_paths(1, 3)
-            [b*d, a*d, c]
+            [a*d, b*d, c]
 
         If start=end then we expect only the trivial path at that vertex::
 
@@ -765,14 +760,14 @@ class PathSemigroup(UniqueRepresentation, Parent):
         different edge paths::
 
             sage: F.all_paths(None, 2)
-            [b, a, e_2]
+            [a, b, e_2]
             sage: F.all_paths(end=2)
-            [b, a, e_2]
+            [a, b, e_2]
 
         If start=end=None then all edge paths are returned, including trivial paths::
 
             sage: F.all_paths()
-            [e_1, b, a, b*d, a*d, c, e_2, d, e_3]
+            [e_1, a, b, a*d, b*d, c, e_2, d, e_3]
 
         The vertex given must be a vertex of the quiver::
 
@@ -805,14 +800,14 @@ class PathSemigroup(UniqueRepresentation, Parent):
             raise ValueError("The underlying quiver has cycles, thus, there may be an infinity of directed paths")
 
         # Handle start=None
-        if start == None:
+        if start is None:
             results = []
             for v in Q:
                 results += self.all_paths(v, end)
             return results
 
         # Handle end=None
-        if end == None:
+        if end is None:
             results = []
             for v in Q:
                 results += self.all_paths(start, v)

@@ -21,9 +21,8 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.all import cached_method
 from sage.rings.all import ZZ, infinity
 from sage.graphs.all import Graph, DiGraph
-from sage.rings.all import binomial
+from sage.rings.arith import binomial, Euler_Phi
 from sage.all import prod
-from sage.rings.arith import Euler_Phi
 from sage.matrix.all import matrix
 
 class QuiverMutationTypeFactory(SageObject):

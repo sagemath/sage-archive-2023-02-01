@@ -20,7 +20,8 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import ZZ, RR, binomial
+from sage.rings.all import ZZ, RR
+from sage.rings.arith import binomial
 import hyperelliptic_generic
 from sage.schemes.hyperelliptic_curves.hypellfrob import hypellfrob
 from sage.misc.cachefunc import cached_method

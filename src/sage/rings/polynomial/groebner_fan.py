@@ -1408,7 +1408,7 @@ class GroebnerFan(SageObject):
                 if j>i:
                     try:
                         edges.append([tpoints[i],tpoints[j]])
-                    except StandardError:
+                    except Exception:
                         print adj
                         print 'tpoints: ' + str(tpoints)
                         print 'fpoints: ' + str(fpoints)
@@ -1466,7 +1466,7 @@ class GroebnerFan(SageObject):
         for cone_data in cone_info:
             try:
                 cone_lines = self._4d_to_3d(cone_data)
-            except StandardError:
+            except Exception:
                 print cone_data._rays
                 raise RuntimeError
             for a_line in cone_lines:

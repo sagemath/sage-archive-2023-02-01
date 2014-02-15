@@ -35,7 +35,7 @@ character-by-character::
     sage: load_attach_mode(attach_debug=False)
     sage: try:
     ....:     attach(src)
-    ....: except StandardError:
+    ....: except Exception:
     ....:     traceback.print_exc()
     Traceback (most recent call last):
     ...
@@ -47,7 +47,7 @@ character-by-character::
     sage: load_attach_mode(attach_debug=True)
     sage: try:
     ....:     attach(src)
-    ....: except StandardError:
+    ....: except Exception:
     ....:     traceback.print_exc()
     Traceback (most recent call last):
     ...

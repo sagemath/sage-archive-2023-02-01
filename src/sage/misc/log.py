@@ -254,7 +254,7 @@ class log_html(Log):
         x = self._output[n]
         try:
             L = latex.latex(x)
-        except StandardError:
+        except Exception:
             L = "\\mbox{error TeXing object}"
         single_png = os.path.join(self._images, '%s.png' % n)
         try:

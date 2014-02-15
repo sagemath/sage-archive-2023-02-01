@@ -79,8 +79,7 @@ class LinearExtensions(CombinatorialClass):
         ################
         #Precomputation#
         ################
-        from copy import copy
-        dag_copy = copy(dag)
+        dag_copy = dag.copy(immutable=False)
         le = []
         a  = []
         b  = []

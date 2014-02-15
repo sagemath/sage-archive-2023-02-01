@@ -2614,7 +2614,7 @@ def test_pickle(p, verbose_eval=False, pedantic=False, args=()):
     try:
         cpickle_res = unp.load()
         cpickle_ok = True
-    except StandardError:
+    except Exception:
         cpickle_ok = False
 
     current_repr = repr(current_res)

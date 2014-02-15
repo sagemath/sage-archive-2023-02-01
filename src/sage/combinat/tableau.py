@@ -1557,10 +1557,10 @@ class Tableau(CombinatorialObject, Element):
         # attempt to return a tableau of the same type
         try:
             return self.parent()( res )
-        except StandardError:
+        except Exception:
             try:
                 return self.parent().Element( res )
-            except StandardError:
+            except Exception:
                 return Tableau(res)
 
     def restriction_shape(self, n):
@@ -2423,7 +2423,7 @@ class Tableau(CombinatorialObject, Element):
         if not isinstance(tab2, Tableau):
             try:
                 tab2 = Tableau(tab2)
-            except StandardError:
+            except Exception:
                 raise TypeError("tab2 must be a standard tableau")
 
         if tab2.size() != n:
@@ -2551,7 +2551,7 @@ class Tableau(CombinatorialObject, Element):
         else:
             try:
                 return self.parent().Element(tab)
-            except StandardError:
+            except Exception:
                 return Tableau(tab)
 
 
@@ -2885,7 +2885,7 @@ class Tableau(CombinatorialObject, Element):
         w = w + [i+1 for i in range(len(w), self.size())]   #need to ensure that it belongs to Sym_size
         try:
             return self.parent()([[w[entry-1] for entry in row] for row in self])
-        except StandardError:
+        except Exception:
             return Tableau([[w[entry-1] for entry in row] for row in self])
 
     def is_key_tableau(self):

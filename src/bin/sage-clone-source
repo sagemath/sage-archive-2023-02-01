@@ -21,14 +21,12 @@ fi
 SRC="$1"
 DST="$2"
 
-# Filename of configure tarball, which needs to exist
+cd "$SRC"
+
+# Filename of configure tarball, which is downloaded if it doesn't exist
 CONFVERSION=`cat build/pkgs/configure/package-version.txt`
 CONFBALL="$SRC/upstream/configure-$CONFVERSION.tar.gz"
-if [ ! -f "$CONFBALL" ]; then
-    echo >&2 "Error: configure tarball '$CONFBALL' does not exist."
-    echo >&2 "Run sage-autogen and try again."
-    exit 1
-fi
+[ -f "$CONFBALL" ] || ./bootstrap -D
 
 rm -rf "$DST"
 mkdir -p "$DST"

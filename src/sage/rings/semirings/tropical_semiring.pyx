@@ -389,7 +389,7 @@ cdef class TropicalSemiringElement(RingElement):
             if exp > 0:
                 return self
             elif exp == 0:
-                return self.parent().one()
+                return self.parent().multiplicative_identity()
             raise ZeroDivisionError("Tropical division by infinity")
         x = self._new()
         x._val = exp*self._val
@@ -402,9 +402,9 @@ cdef class TropicalSemiringElement(RingElement):
         EXAMPLES::
 
             sage: T = TropicalSemiring(QQ)
-            sage: T.one().multiplicative_order()
+            sage: T.multiplicative_identity().multiplicative_order()
             1
-            sage: T.zero().multiplicative_order()
+            sage: T.additive_identity().multiplicative_order()
             +Infinity
         """
         if self.is_one():
@@ -460,8 +460,8 @@ class TropicalSemiring(Parent, UniqueRepresentation):
 
     INPUT:
 
-    - ``base`` -- The base ordered additive semigroup `R`.
-    - ``use_min`` -- (Default: ``True``) If ``True``, then the semiring uses
+    - ``base`` -- the base ordered additive semigroup `R`
+    - ``use_min`` -- (default: ``True``) if ``True``, then the semiring uses
       `a \oplus b = \min(a, b)`; otherwise uses `a \oplus b = \max(a, b)`
 
     EXAMPLES::
@@ -499,6 +499,10 @@ class TropicalSemiring(Parent, UniqueRepresentation):
         True
         sage: T.one() * T(3) == T(3)
         True
+        sage: T.zero() == T(0)
+        False
+        sage: T.one() == T(1)
+        False
     """
     def __init__(self, base, use_min=True):
         r"""
@@ -523,7 +527,7 @@ class TropicalSemiring(Parent, UniqueRepresentation):
             sage: TropicalSemiring(QQ)
             Tropical semiring over Rational Field
         """
-        return "Tropical semiring over %s"%self.base()
+        return "Tropical semiring over {}".format(self.base())
 
     def _latex_(self):
         r"""

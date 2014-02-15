@@ -13,14 +13,14 @@ representation theoretic code, it is assumed that
 
 - the vertices of the quiver are labelled by integers, and
 
-- each edge of the quiveris labelled with a nonempty string.  The label cannot
+- each edge of the quiver is labelled with a nonempty string.  The label cannot
   begin with 'e_' or contain '*' and distinct edges must have distinct labels.
 
 As far as the :class:`~sage.graphs.digraph.DiGraph` class is concerned, a path
 is a finite list of vertices `v_1, ..., v_n` such that there exists an edge
 from `v_i` to `v_{i + 1}`.  If there are multiple edges between the same two
-vertices this does not contribute to additional paths as listed by the DiGraph
-class, for example only two paths are listed from 1 to 3 in Q::
+vertices this does not contribute additional paths as listed by the DiGraph
+class; for example only two paths are listed from 1 to 3 in Q::
 
     sage: Q = DiGraph({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}})
     sage: Q.edges()
@@ -30,14 +30,14 @@ class, for example only two paths are listed from 1 to 3 in Q::
 
 When listing paths in a Quiver in representation theory, it is of theoretical
 importance to distinguish parallel edges between the same two vertices of a
-Quiver.  Specifically we say a path is given by two vertices, start and end,
-and a finite (possibly empty) list of edges `e_1, e_2, ..., e_n` such that the
-initial vertex of `e_1` is start, the final vertex of `e_i` is the initial
-vertex of `e_{i + 1}`, and the final vertex of e_n is end.  In the case where
-no edges are specified we must have start = end and the path is called the
-trivial path at the given vertex.
+Quiver.  Specifically we say a path is given by two vertices, ``start`` and
+``end``, and a finite (possibly empty) list of edges `e_1, e_2, ..., e_n`
+such that the initial vertex of `e_1` is ``start``, the final vertex of `e_i`
+is the initial vertex of `e_{i + 1}`, and the final vertex of `e_n` is
+``end``.  In the case where no edges are specified, we must have
+``start = end`` and the path is called the trivial path at the given vertex.
 
-Quiver paths in the sense stated above corresponds to the elements of a
+Quiver paths in the sense stated above correspond to the elements of a
 partial semigroup, with multiplication of paths given by concatenation. Hence,
 rather than overloading the method name inherited from DiGraph or inventing a
 new method name, we move this functionality to this so-called *path
@@ -51,21 +51,21 @@ The returned paths are of type :class:`~sage.quivers.paths.QuiverPath`, which
 are elements in the path semigroup that is associated with the quiver. You can
 specify a QuiverPath by giving an edge or a list of edges, passed as arguments
 to the path semigroup containing this path.  Here an edge is a tuple of
-the form (i, j, l), where i and j are vertices and l is the label of an edge
-from i to j::
+the form ``(i, j, l)``, where ``i`` and ``j`` are vertices and ``l`` is the
+label of an edge from i to j::
 
     sage: p = Q.path_semigroup()([(1, 2, 'a'), (2, 3, 'd')])
     sage: p
     a*d
 
-Trivial paths are indicated by passing the tuple (vertex, vertex)::
+Trivial paths are indicated by passing the tuple ``(vertex, vertex)``::
 
     sage: Q.path_semigroup()((6, 6))
     e_6
 
-Trivial edges can occur in the input.  They are simply deleted if their vertex
-matches the start and end vertex of adjacent edges. Here is an alternative way
-to define a path::
+Trivial "edges" can occur in the input.  They are simply deleted if their
+vertex matches the start and end vertex of adjacent edges. Here is an
+alternative way to define a path::
 
     sage: PQ = Q.path_semigroup()
     sage: q = PQ([(1, 1), (1, 2, 'a'), (2, 2), (2, 3, 'd'), (3, 3)])
@@ -73,28 +73,28 @@ to define a path::
     True
 
 If the vertex of a trivial path does not match with adjacent edges, or if two
-adjacent edges do not match an error is raised.
+adjacent edges do not match, an error is raised.
 
 ::
 
     sage: inv1 = PQ([(1, 2, 'a'), (1, 1)])
     Traceback (most recent call last):
     ...
-    ValueError: Cannot interprete [(1, 2, 'a'), (1, 1)] as element of
+    ValueError: Cannot interpret [(1, 2, 'a'), (1, 1)] as element of
     Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices
     sage: inv2 = PQ([(1, 2, 'a'), (1, 2, 'a')])
     Traceback (most recent call last):
     ...
-    ValueError: Cannot interprete [(1, 2, 'a'), (1, 2, 'a')] as element of
+    ValueError: Cannot interpret [(1, 2, 'a'), (1, 2, 'a')] as element of
     Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices
     sage: inv3 = PQ([(1, 2, 'x')])
     Traceback (most recent call last):
     ...
-    ValueError: Cannot interprete [(1, 2, 'x')] as element of
+    ValueError: Cannot interpret [(1, 2, 'x')] as element of
     Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices
 
 The `*` operator is concatenation of paths. If the two paths do not compose,
-then the result is None.  ::
+then the result is ``None`` (whence the "partial" in "partial semigroup").  ::
 
     sage: print p*q
     None
@@ -105,7 +105,7 @@ Let us now construct a larger quiver::
     sage: Pbig = Qbig.path_semigroup()
 
 Since ``Q`` is a sub-digraph of ``Qbig``, we have a coercion of the associated
-free small categories::
+path semigroups::
 
     sage: Pbig.has_coerce_map_from(PQ)
     True
@@ -144,22 +144,25 @@ There are methods giving the initial and terminal vertex of a path::
     sage: p.terminal_vertex()
     3
 
-QuiverPaths form the basis of the quiver algebra of a quiver.  Given a field k
-and a Quiver Q the quiver algebra kQ is, as a vector space it has basis the set
-of all paths in Q.  Multiplication is defined on this basis and extended
-bilinearly.  We multiplication is given as path composition when it makes sense
-and is zero otherwise.  Specifically if the terminal vertex of the left path
-equals the initial vertex of the right path then their product is the
-composition of the two paths, otherwise it is zero. In sage quiver algebras
-are handled by the QuiverAlgebra class::
+QuiverPaths form the basis of the quiver algebra of a quiver.  Given a
+field `k` and a Quiver `Q`, the quiver algebra `kQ` is, as a vector space,
+the free `k`-vector space whose basis is the set of all paths in `Q`.
+Multiplication is defined on this basis and extended bilinearly.  The
+product of two basis elements is given by path composition when it
+makes sense and is set to be zero otherwise.  Specifically, if the
+terminal vertex of the left path equals the initial vertex of the right
+path, then their product is the concatenation of the two paths, and
+otherwise their product is zero. In sage, quiver algebras
+are handled by the :class:`QuiverAlgebra` class::
 
     sage: A = PQ.algebra(GF(7))
     sage: A
     Path algebra of Multi-digraph on 3 vertices over Finite Field of size 7
 
-Quivers have a method that creates their algebra over a given field.  Note that
-QuiverAlgebras are uniquely defined by their Quiver and field, and play nicely
-with coercions of the underlying free small categories::
+Quivers have a method that creates their algebra over a given field (or,
+more generally, commutative ring).  Note that QuiverAlgebras are uniquely
+defined by their Quiver and field, and play nicely with coercions of the
+underlying path semigroups::
 
     sage: A is PQ.algebra(GF(7))
     True
@@ -187,8 +190,9 @@ base ring::
     sage: y
     a*d + b*d
 
-QuiverAlgebras are graded algebras.  The grading is given by assigning to each
-basis element the length of the path corresponding to that basis element::
+QuiverAlgebras are `\NN`-graded algebras.  The grading is given by
+assigning to each basis element the length of the path corresponding to
+that basis element::
 
     sage: x.is_homogeneous()
     False
@@ -210,17 +214,16 @@ category of representations of that quiver.  A quiver representation is a
 diagram in the category of vector spaces whose underlying graph is the quiver.
 So to each vertex of the quiver we assign a vector space and to each edge of
 the quiver a linear map between the vector spaces assigned to the start and end
-vertexes of that edge.  To create the zero representation we just specify the
+vertices of that edge.  To create the zero representation we just specify the
 base ring and the path semigroup::
-
 
     sage: Z = Q1.path_semigroup().representation(GF(5))
     sage: Z.is_zero()
     True
 
 To each vertex of a Quiver there is associated a simple module, an
-indecomposable projective, and an indecomposable injective and these can be
-created from the Quiver::
+indecomposable projective, and an indecomposable injective, and these can
+be created from the Quiver::
 
     sage: S = PQ.S(GF(3), 1)
     sage: I = PQ.I(QQ, 2)
@@ -254,10 +257,10 @@ along with a path or list of paths that generate the desired ideal::
     (1, 2, 3)
 
 There are also special methods to deal with modules that are given as the
-linear dual of a right ideal in the quiver algebra.  To create such a module
-pass the keyword option='dual paths' to the constructor along with a path or
-list of paths.  The module returned is the dual of the ideal created in the
-opposite quiver by the reverse of the given paths::
+linear dual of a right ideal in the quiver algebra.  To create such a
+module, pass the keyword ``option='dual paths'`` to the constructor along
+with a path or list of paths.  The module returned is the dual of the
+ideal created in the opposite quiver by the reverses of the given paths::
 
     sage: D = PQ.representation(QQ, [[(1, 1)], [(1, 2, 'a')]], option='dual paths')
     sage: D.dimension_vector()
@@ -285,7 +288,7 @@ A homomorphism between two quiver representations is given by homomorphisms
 between the spaces assigned to the vertices of those representations such that
 those homomorphisms commute with the edge maps of the representations. The
 homomorphisms are created in the usual Sage syntax, the defining data given by
-a dictionary associating maps to vertexes::
+a dictionary associating maps to vertices::
 
     sage: P2 = PQ2.P(QQ, 1)
     sage: f = P2.hom({1:[1, 1], 2:[[1], [1]]}, M2)
@@ -300,8 +303,8 @@ is then induced by acting on that element::
     sage: f == P2.hom(f(x), M2)
     True
 
-As you can see above homomorphisms can be applied to elements.  Just like
-elements, addition is defined via the + operator.  On elements scalar
+As you can see, the above homomorphisms can be applied to elements.  Just
+like elements, addition is defined via the + operator.  On elements scalar
 multiplication is defined via the `*` operator but on homomorphisms `*`
 defines composition, so scalar multiplication is done using a method::
 
@@ -344,7 +347,7 @@ We can create all the standard modules associated to maps::
     Representation with dimension vector (1, 1)
 
 These methods, as well as the ``submodule`` and ``quotient`` methods that are
-defined for representations return only the resulting representation.  To get
+defined for representations, return only the resulting representation.  To get
 the inclusion map of a submodule or the factor homomorphism of a quotient use
 ``coerce_map_from``::
 
@@ -359,12 +362,12 @@ the inclusion map of a submodule or the factor homomorphism of a quotient use
 Both :class:`~sage.quivers.representation.QuiverRep` objects and
 :class:`~sage.quivers.homspace.QuiverRepHom` objects have ``linear_dual`` and
 ``algebraic_dual`` methods.  The ``linear_dual`` method applies the functor
-`Hom_k(..., k)` where k is the base ring of the representation and the
-``algebraic_dual`` method applies the functor `Hom_Q(..., kQ)` where kQ is the
-quiver algebra.  Both these functors yeild left modules.  A left module is
-equivalent to a right module over the opposite algebra and the opposite of a
-quiver algebra is the algebra of the opposite quiver, so both these methods
-yeild modules and representations of the opposite quiver::
+`Hom_k(..., k)` where `k` is the base ring of the representation, and the
+``algebraic_dual`` method applies the functor `Hom_Q(..., kQ)` where `kQ`
+is the quiver algebra.  Both these functors yield left modules.  A left
+module is equivalent to a right module over the opposite algebra, and the
+opposite of a quiver algebra is the algebra of the opposite quiver, so both
+these methods yield modules and representations of the opposite quiver::
 
     sage: f.linear_dual()
     Homomorphism of representations of Reverse of (): Multi-digraph on 2 vertices
@@ -377,7 +380,7 @@ yeild modules and representations of the opposite quiver::
     Change the wording ``Reverse of ()`` into something more meaningful.
 
 There is a method returning the projective cover of any module.  Note that this
-method returns the homomorphism, to get the module take the domain of the
+method returns the homomorphism; to get the module take the domain of the
 homomorphism::
 
     sage: cov = M2.projective_cover()
@@ -386,7 +389,7 @@ homomorphism::
     sage: cov.domain()
     Representation with dimension vector (2, 4)
 
-As projective covers are computable so are the transpose and Auslander-Reiten
+As projective covers are computable, so are the transpose and Auslander-Reiten
 translates of modules::
 
     sage: M2.transpose()

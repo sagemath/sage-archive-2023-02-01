@@ -115,7 +115,7 @@ class QuiverPath(MonoidElement):
             sage: Q([(1,3,'x')])
             Traceback (most recent call last):
             ...
-            ValueError: Cannot interprete [(1, 3, 'x')] as element of
+            ValueError: Cannot interpret [(1, 3, 'x')] as element of
             Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices
 
         Note that QuiverPath should not be called directly, because
@@ -164,12 +164,12 @@ class QuiverPath(MonoidElement):
                 good = False
                 break
         if not good:
-            raise ValueError("Cannot interprete %s as element of %s"%(path,parent))
+            raise ValueError("Cannot interpret %s as element of %s"%(path,parent))
         # Delete trivial edges, and clear the path if not valid
         i = 0
         while i + 1 < len(new_path):
             if new_path[i][1] != new_path[i + 1][0]:
-                raise ValueError("Cannot interprete %s as element of %s"%(path,parent))
+                raise ValueError("Cannot interpret %s as element of %s"%(path,parent))
             elif len(new_path[i])!=3:
                 del new_path[i]
             else:

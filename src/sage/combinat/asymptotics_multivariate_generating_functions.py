@@ -48,11 +48,11 @@ A univariate smooth point example::
     sage: Hfac = H.factor()
     sage: G = -1/(x + 3)/Hfac.unit()
     sage: F = FFPD(G, Hfac)
-    sage: print F
+    sage: F
     (-1/(x + 3), [(x - 1/2, 3)])
     sage: alpha = [1]
     sage: decomp = F.asymptotic_decomposition(alpha)
-    sage: print decomp
+    sage: decomp
     [(0, []),
      (-1/2*(x^2 + 6*x + 9)*r^2/(x^5 + 9*x^4 + 27*x^3 + 27*x^2)
       - 1/2*(5*x^2 + 24*x + 27)*r/(x^5 + 9*x^4 + 27*x^3 + 27*x^2)
@@ -61,9 +61,9 @@ A univariate smooth point example::
     sage: F1 = decomp[1]
     sage: p = {x: 1/2}
     sage: asy = F1.asymptotics(p, alpha, 3)
-    sage: print asy
+    sage: asy
     (8/343*(49*r^2 + 161*r + 114)*2^r, 2, 8/7*r^2 + 184/49*r + 912/343)
-    sage: print F.relative_error(asy[0], alpha, [1, 2, 4, 8, 16], asy[1])
+    sage: F.relative_error(asy[0], alpha, [1, 2, 4, 8, 16], asy[1])
     [((1,), 7.555555556, [7.556851312], [-0.0001714971672]),
      ((2,), 14.74074074, [14.74052478], [0.00001465051901]),
      ((4,), 35.96502058, [35.96501458], [1.667911934e-7]),
@@ -80,14 +80,14 @@ Another smooth point example (Example 5.4 of [RaWi2008a]_)::
     sage: G = (1 - q*x)/Hfac.unit()
     sage: F = FFPD(G, Hfac)
     sage: alpha = list(qq*vector([2, 1 - q]))
-    sage: print alpha
+    sage: alpha
     [4, 1]
     sage: I = F.smooth_critical_ideal(alpha)
-    sage: print I
-    Ideal (y^2 - 2*y + 1, x + 1/4*y - 5/4) of Multivariate Polynomial Ring
-    in x, y over Rational Field
+    sage: I
+    Ideal (y^2 - 2*y + 1, x + 1/4*y - 5/4) of
+      Multivariate Polynomial Ring in x, y over Rational Field
     sage: s = solve(I.gens(), [SR(x) for x in R.gens()], solution_dict=true)
-    sage: print s
+    sage: s
     [{x: 1, y: 1}]
     sage: p = s[0]
     sage: asy = F.asymptotics(p, alpha, 1, verbose=True)
@@ -95,10 +95,10 @@ Another smooth point example (Example 5.4 of [RaWi2008a]_)::
     Computing derivatives of auxiallary functions...
     Computing derivatives of more auxiliary functions...
     Computing second order differential operator actions...
-    sage: print asy 
+    sage: asy 
     (1/12*sqrt(3)*2^(2/3)*gamma(1/3)/(pi*r^(1/3)), 1,
      1/12*sqrt(3)*2^(2/3)*gamma(1/3)/(pi*r^(1/3)))
-    sage: print F.relative_error(asy[0], alpha, [1, 2, 4, 8, 16], asy[1])
+    sage: F.relative_error(asy[0], alpha, [1, 2, 4, 8, 16], asy[1])
     [((4, 1), 0.1875000000, [0.1953794675], [-0.042023826...]),
      ((8, 2), 0.1523437500, [0.1550727862], [-0.017913673...]),
      ((16, 4), 0.1221771240, [0.1230813519], [-0.0074009592...]),
@@ -112,33 +112,33 @@ A multiple point example (Example 6.5 of [RaWi2012]_)::
     sage: Hfac = H.factor()
     sage: G = 1/Hfac.unit()
     sage: F = FFPD(G, Hfac)
-    sage: print F
+    sage: F
     (1, [(x + 2*y - 1, 2), (2*x + y - 1, 2)])
     sage: I = F.singular_ideal()
-    sage: print I
+    sage: I
     Ideal (x - 1/3, y - 1/3) of Multivariate Polynomial Ring in x, y over
     Rational Field
     sage: p = {x: 1/3, y: 1/3}
-    sage: print F.is_convenient_multiple_point(p)
+    sage: F.is_convenient_multiple_point(p)
     (True, 'convenient in variables [x, y]')
     sage: alpha = (var('a'), var('b'))
-    sage: decomp =  F.asymptotic_decomposition(alpha); print decomp
+    sage: decomp =  F.asymptotic_decomposition(alpha); decomp
     [(0, []),
      (-1/9*(2*b^2*x^2 - 5*a*b*x*y + 2*a^2*y^2)*r^2/(x^2*y^2)
        - 1/9*(6*b*x^2 - 5*(a + b)*x*y + 6*a*y^2)*r/(x^2*y^2)
        - 1/9*(4*x^2 - 5*x*y + 4*y^2)/(x^2*y^2),
       [(x + 2*y - 1, 1), (2*x + y - 1, 1)])]
     sage: F1 = decomp[1]
-    sage: print F1.asymptotics(p, alpha, 2)
+    sage: F1.asymptotics(p, alpha, 2)
     (-3*((2*a^2 - 5*a*b + 2*b^2)*r^2 + (a + b)*r + 3)*((1/3)^(-a)*(1/3)^(-b))^r,
      (1/3)^(-a)*(1/3)^(-b), -3*(2*a^2 - 5*a*b + 2*b^2)*r^2 - 3*(a + b)*r - 9)
     sage: alpha = [4, 3]
     sage: decomp =  F.asymptotic_decomposition(alpha)
     sage: F1 = decomp[1]
     sage: asy = F1.asymptotics(p, alpha, 2)
-    sage: print asy
+    sage: asy
     (3*(10*r^2 - 7*r - 3)*2187^r, 2187, 30*r^2 - 21*r - 9)
-    sage: print F.relative_error(asy[0], alpha, [1, 2, 4, 8], asy[1])
+    sage: F.relative_error(asy[0], alpha, [1, 2, 4, 8], asy[1])
     [((4, 3), 30.72702332, [0.0000000000], [1.000000000]),
      ((8, 6), 111.9315678, [69.00000000], [0.3835519207]),
      ((16, 12), 442.7813138, [387.0000000], [0.1259793763]),
@@ -221,21 +221,21 @@ class FFPD(object):
         sage: R.<x,y> = PolynomialRing(QQ)
         sage: df = [x, 1], [y, 1], [x*y+1, 1]
         sage: f = FFPD(x, df)
-        sage: print f
+        sage: f
         (1, [(y, 1), (x*y + 1, 1)])
         sage: ff = FFPD(x, df, reduce_=False)
-        sage: print ff
+        sage: ff
         (x, [(y, 1), (x, 1), (x*y + 1, 1)])
 
         sage: f = FFPD(x + y, [(x + y, 1)])
-        sage: print f
+        sage: f
         (1, [])
 
     ::
 
         sage: R.<x> = PolynomialRing(QQ)
         sage: f = 5*x^3 + 1/x + 1/(x-1) + 1/(3*x^2 + 1)
-        sage: print FFPD(quotient=f)
+        sage: FFPD(quotient=f)
         (5*x^7 - 5*x^6 + 5/3*x^5 - 5/3*x^4 + 2*x^3 - 2/3*x^2 + 1/3*x - 1/3,
         [(x - 1, 1), (x, 1), (x^2 + 1/3, 1)])
 
@@ -243,31 +243,30 @@ class FFPD(object):
 
         sage: R.<x,y> = PolynomialRing(QQ)
         sage: f = 2*y/(5*(x^3 - 1)*(y + 1))
-        sage: print FFPD(quotient=f)
+        sage: FFPD(quotient=f)
         (2/5*y, [(y + 1, 1), (x - 1, 1), (x^2 + x + 1, 1)])
 
         sage: p = 1/x^2
         sage: q = 3*x**2*y
         sage: qs = q.factor()
         sage: f = FFPD(p/qs.unit(), qs)
-        sage: print f
+        sage: f
         (1/(3*x^2), [(y, 1), (x, 2)])
 
         sage: f = FFPD(cos(x)*x*y^2, [(x, 2), (y, 1)])
-        sage: print f
+        sage: f
         (x*y^2*cos(x), [(y, 1), (x, 2)])
 
         sage: G = exp(x + y)
         sage: H = (1 - 2*x - y) * (1 - x - 2*y)
         sage: a = FFPD(quotient=G/H)
-        sage: print a
+        sage: a
         (e^(x + y)/(2*x^2 + 5*x*y + 2*y^2 - 3*x - 3*y + 1), [])
-        sage: print a._ring
-        None
+        sage: a._ring
         sage: b = FFPD(G, H.factor())
-        sage: print b
+        sage: b
         (e^(x + y), [(x + 2*y - 1, 1), (2*x + y - 1, 1)])
-        sage: print b._ring
+        sage: b._ring
         Multivariate Polynomial Ring in x, y over Rational Field
 
     Singular throws a 'not implemented' error when trying to factor in
@@ -365,7 +364,7 @@ class FFPD(object):
             sage: Hfac = H.factor()
             sage: G = exp(y)/Hfac.unit()
             sage: F = FFPD(G, Hfac)
-            sage: print F.numerator()
+            sage: F.numerator()
             -e^y
         """
         return self._numerator
@@ -382,7 +381,7 @@ class FFPD(object):
             sage: Hfac = H.factor()
             sage: G = exp(y)/Hfac.unit()
             sage: F = FFPD(G, Hfac)
-            sage: print F.denominator()
+            sage: F.denominator()
             x^3*y^2 + 2*x^3*y + x^2*y^2 + x^3 - 2*x^2*y - x*y^2 - 3*x^2 - 2*x*y
             - y^2 + 3*x + 2*y - 1
         """
@@ -401,7 +400,7 @@ class FFPD(object):
             sage: Hfac = H.factor()
             sage: G = exp(y)/Hfac.unit()
             sage: F = FFPD(G, Hfac)
-            sage: print F.denominator_factored()
+            sage: F.denominator_factored()
             [(x - 1, 1), (x*y + x + y - 1, 2)]
         """
         return self._denominator_factored
@@ -419,10 +418,10 @@ class FFPD(object):
             sage: Hfac = H.factor()
             sage: G = exp(y)/Hfac.unit()
             sage: F = FFPD(G, Hfac)
-            sage: print F.ring()
+            sage: F.ring()
             Multivariate Polynomial Ring in x, y over Rational Field
             sage: F = FFPD(quotient=G/H)
-            sage: print F
+            sage: F
             (e^y/(x^3*y^2 + 2*x^3*y + x^2*y^2 + x^3 - 2*x^2*y - x*y^2 - 3*x^2 -
             2*x*y - y^2 + 3*x + 2*y - 1), [])
             sage: print F.ring()
@@ -442,7 +441,7 @@ class FFPD(object):
             sage: Hfac = H.factor()
             sage: G = exp(y)/Hfac.unit()
             sage: F = FFPD(G, Hfac)
-            sage: print F.dimension()
+            sage: F.dimension()
             2
         """
         R = self.ring()
@@ -452,7 +451,7 @@ class FFPD(object):
 
     def list(self):
         r"""
-        Convert ``self`` into a list for printing.
+        Convert ``self`` into a list.
 
         EXAMPLES::
 
@@ -462,10 +461,10 @@ class FFPD(object):
             sage: Hfac = H.factor()
             sage: G = exp(y)/Hfac.unit()
             sage: F = FFPD(G, Hfac)
-            sage: print F # indirect doctest
-            (-e^y, [(x - 1, 1), (x*y + x + y - 1, 2)])
+            sage: F.list()
+            [-e^y, [(x - 1, 1), (x*y + x + y - 1, 2)]]
         """
-        return (self.numerator(), self.denominator_factored())
+        return [self.numerator(), self.denominator_factored()]
 
     def quotient(self):
         r"""
@@ -479,28 +478,27 @@ class FFPD(object):
             sage: Hfac = H.factor()
             sage: G = exp(y)/Hfac.unit()
             sage: F = FFPD(G, Hfac)
-            sage: print F
+            sage: F
             (-e^y, [(x - 1, 1), (x*y + x + y - 1, 2)])
-            sage: print F.quotient()
+            sage: F.quotient()
             -e^y/(x^3*y^2 + 2*x^3*y + x^2*y^2 + x^3 - 2*x^2*y - x*y^2 - 3*x^2 -
             2*x*y - y^2 + 3*x + 2*y - 1)
         """
         return self.numerator()/self.denominator()
 
-    def __str__(self):
+    def __repr__(self):
         r"""
-        Returns a string representation of ``self``
+        Return a string representation of ``self``
 
         EXAMPLES::
 
             sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: f = FFPD(x + y, [(y, 1), (x, 1)])
-            sage: print f
+            sage: f
             (x + y, [(y, 1), (x, 1)])
-
         """
-        return str(self.list())
+        return repr((self.numerator(), self.denominator_factored()))
 
     def __eq__(self, other):
         r"""
@@ -564,20 +562,20 @@ class FFPD(object):
             sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: df = [x, 1], [y, 1], [x*y+1, 1]
-            sage: f = FFPD(x, df)
-            sage: ff = FFPD(x, df, reduce_=False)
+            sage: f = FFPD(x, df); f
+            (1, [(y, 1), (x*y + 1, 1)])
+            sage: ff = FFPD(x, df, reduce_=False); ff
+            (x, [(y, 1), (x, 1), (x*y + 1, 1)])
             sage: g = FFPD(y, df)
             sage: h = FFPD(exp(x), df)
             sage: i = FFPD(sin(x + 2), df)
-            sage: print f, ff
-            (1, [(y, 1), (x*y + 1, 1)]) (x, [(y, 1), (x, 1), (x*y + 1, 1)])
-            sage: print f < ff
+            sage: f < ff
             True
-            sage: print f < g
+            sage: f < g
             True
-            sage: print g < h
+            sage: g < h
             True
-            sage: print h < i
+            sage: h < i
             False
         """
         sn = self.numerator()
@@ -619,55 +617,55 @@ class FFPD(object):
 
             sage: R.<x> = PolynomialRing(QQ)
             sage: f = 5*x^3 + 1/x + 1/(x-1) + 1/(3*x^2 + 1)
-            sage: print f
+            sage: f
             (15*x^7 - 15*x^6 + 5*x^5 - 5*x^4 + 6*x^3 - 2*x^2 + x - 1)/(3*x^4 -
             3*x^3 + x^2 - x)
             sage: decomp = FFPD(quotient=f).univariate_decomposition()
-            sage: print decomp
+            sage: decomp
             [(5*x^3, []), (1, [(x - 1, 1)]), (1, [(x, 1)]),
             (1/3, [(x^2 + 1/3, 1)])]
-            sage: print decomp.sum().quotient() == f
+            sage: decomp.sum().quotient() == f
             True
 
         One variable with numerator in symbolic ring::
 
             sage: R.<x> = PolynomialRing(QQ)
             sage: f = 5*x^3 + 1/x + 1/(x-1) + exp(x)/(3*x^2 + 1)
-            sage: print f
+            sage: f
             e^x/(3*x^2 + 1) + ((5*(x - 1)*x^3 + 2)*x - 1)/((x - 1)*x)
             sage: decomp = FFPD(quotient=f).univariate_decomposition()
-            sage: print decomp
+            sage: decomp
             [(e^x/(3*x^2 + 1) + ((5*(x - 1)*x^3 + 2)*x - 1)/((x - 1)*x), [])]
 
         One variable over a finite field::
 
             sage: R.<x> = PolynomialRing(GF(2))
             sage: f = 5*x^3 + 1/x + 1/(x-1) + 1/(3*x^2 + 1)
-            sage: print f
+            sage: f
             (x^6 + x^4 + 1)/(x^3 + x)
             sage: decomp = FFPD(quotient=f).univariate_decomposition()
-            sage: print decomp
+            sage: decomp
             [(x^3, []), (1, [(x, 1)]), (x, [(x + 1, 2)])]
-            sage: print decomp.sum().quotient() == f
+            sage: decomp.sum().quotient() == f
             True
 
         One variable over an inexact field::
 
             sage: R.<x> = PolynomialRing(CC)
             sage: f = 5*x^3 + 1/x + 1/(x-1) + 1/(3*x^2 + 1)
-            sage: print f
+            sage: f
             (15.0000000000000*x^7 - 15.0000000000000*x^6 + 5.00000000000000*x^5
              - 5.00000000000000*x^4 + 6.00000000000000*x^3
              - 2.00000000000000*x^2 + x - 1.00000000000000)/(3.00000000000000*x^4
              - 3.00000000000000*x^3 + x^2 - x)
             sage: decomp = FFPD(quotient=f).univariate_decomposition()
-            sage: print decomp
+            sage: decomp
             [(5.00000000000000*x^3, []),
              (1.00000000000000, [(x - 1.00000000000000, 1)]),
              (-0.288675134594813*I, [(x - 0.577350269189626*I, 1)]),
              (1.00000000000000, [(x, 1)]),
              (0.288675134594813*I, [(x + 0.577350269189626*I, 1)])]
-            sage: print decomp.sum().quotient() == f # Rounding error coming
+            sage: decomp.sum().quotient() == f # Rounding error coming
             False
 
         AUTHORS:
@@ -715,7 +713,7 @@ class FFPD(object):
             sage: H = x^2 * (x*y + 1)
             sage: f = FFPD(G, H.factor())
             sage: L = f.nullstellensatz_certificate()
-            sage: print L
+            sage: L
             [y^2, -x*y + 1]
             sage: df = f.denominator_factored()
             sage: sum([L[i]*df[i][0]**df[i][1] for i in xrange(len(df))]) == 1
@@ -775,7 +773,7 @@ class FFPD(object):
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: f = 1/(x*(x*y + 1))
             sage: decomp = FFPD(quotient=f).nullstellensatz_decomposition()
-            sage: print decomp
+            sage: decomp
             [(0, []), (1, [(x, 1)]), (-y, [(x*y + 1, 1)])]
             sage: decomp.sum().quotient() == f
             True
@@ -789,7 +787,7 @@ class FFPD(object):
             sage: H = x*(x*y + 1)
             sage: f = FFPD(G, H.factor())
             sage: decomp = f.nullstellensatz_decomposition()
-            sage: print decomp
+            sage: decomp
             [(0, []), (sin(y), [(x, 1)]), (-y*sin(y), [(x*y + 1, 1)])]
             sage: bool(decomp.sum().quotient() == G/H)
             True
@@ -835,8 +833,7 @@ class FFPD(object):
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: f = 1/(x^2 * (x*y + 1) * y^3)
             sage: ff = FFPD(quotient=f)
-            sage: J = ff.algebraic_dependence_certificate()
-            sage: print J
+            sage: J = ff.algebraic_dependence_certificate(); J
             Ideal (1 - 6*T2 + 15*T2^2 - 20*T2^3 + 15*T2^4 - T0^2*T1^3 -
              6*T2^5  + T2^6) of Multivariate Polynomial Ring in
              T0, T1, T2 over Rational Field
@@ -851,8 +848,7 @@ class FFPD(object):
             sage: G = exp(x + y)
             sage: H = x^2 * (x*y + 1) * y^3
             sage: ff = FFPD(G, H.factor())
-            sage: J = ff.algebraic_dependence_certificate()
-            sage: print J
+            sage: J = ff.algebraic_dependence_certificate(); J
             Ideal (1 - 6*T2 + 15*T2^2 - 20*T2^3 + 15*T2^4 - T0^2*T1^3 -
             6*T2^5 + T2^6) of Multivariate Polynomial Ring in
             T0, T1, T2 over Rational Field
@@ -865,7 +861,7 @@ class FFPD(object):
 
             sage: f = 1/(x^3 * y^2)
             sage: J = FFPD(quotient=f).algebraic_dependence_certificate()
-            sage: print J
+            sage: J
             Ideal (0) of Multivariate Polynomial Ring in T0, T1 over
             Rational Field
 
@@ -949,10 +945,10 @@ class FFPD(object):
             sage: f = 1/(x^2 * (x*y + 1) * y^3)
             sage: ff = FFPD(quotient=f)
             sage: decomp = ff.algebraic_dependence_decomposition()
-            sage: print decomp
+            sage: decomp
             [(0, []), (-x, [(x*y + 1, 1)]), (x^2*y^2 - x*y + 1,
             [(y, 3), (x, 2)])]
-            sage: print decomp.sum().quotient() == f
+            sage: decomp.sum().quotient() == f
             True
             sage: for r in decomp:
             ....:     J = r.algebraic_dependence_certificate()
@@ -968,7 +964,7 @@ class FFPD(object):
             sage: H = x^2 * (x*y + 1) * y^3
             sage: f = FFPD(G, H.factor())
             sage: decomp = f.algebraic_dependence_decomposition()
-            sage: print decomp
+            sage: decomp
             [(0, []), (x^4*y^3*sin(x), [(x*y + 1, 1)]),
             (-(x^5*y^5 - x^4*y^4 + x^3*y^3 - x^2*y^2 + x*y - 1)*sin(x),
             [(y, 3), (x, 2)])]
@@ -1066,9 +1062,9 @@ class FFPD(object):
             sage: R.<x> = PolynomialRing(QQ)
             sage: f = (x^2 + 1)/((x + 2)*(x - 1)*(x^2 + x + 1))
             sage: decomp = FFPD(quotient=f).leinartas_decomposition()
-            sage: print decomp
+            sage: decomp
             [(0, []), (2/9, [(x - 1, 1)]), (-5/9, [(x + 2, 1)]), (1/3*x, [(x^2 + x + 1, 1)])]
-            sage: print decomp.sum().quotient() == f
+            sage: decomp.sum().quotient() == f
             True
 
         ::
@@ -1076,9 +1072,9 @@ class FFPD(object):
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: f = 1/x + 1/y + 1/(x*y + 1)
             sage: decomp = FFPD(quotient=f).leinartas_decomposition()
-            sage: print decomp
+            sage: decomp
             [(0, []), (1, [(x*y + 1, 1)]), (x + y, [(y, 1), (x, 1)])]
-            sage: print decomp.sum().quotient() == f
+            sage: decomp.sum().quotient() == f
             True
             sage: for r in decomp:
             ....:     L = r.nullstellensatz_certificate()
@@ -1100,7 +1096,7 @@ class FFPD(object):
             sage: H = R(f.denominator())
             sage: ff = FFPD(G, H.factor())
             sage: decomp = ff.leinartas_decomposition()
-            sage: print decomp
+            sage: decomp
             [(0, []), (-(x*y^2*sin(x) + x^2*y + x*y + y*sin(x) + x)*y,
             [(y, 1)]), ((x*y^2*sin(x) + x^2*y + x*y + y*sin(x) + x)*x*y,
             [(x*y + 1, 1)]), (x*y^2*sin(x) + x^2*y + x*y + y*sin(x) + x,
@@ -1126,10 +1122,10 @@ class FFPD(object):
             sage: R.<x,y,z>= PolynomialRing(GF(2, 'a'))
             sage: f = 1/(x * y * z * (x*y + z))
             sage: decomp = FFPD(quotient=f).leinartas_decomposition()
-            sage: print decomp
+            sage: decomp
             [(0, []), (1, [(z, 2), (x*y + z, 1)]),
             (1, [(z, 2), (y, 1), (x, 1)])]
-            sage: print decomp.sum().quotient() == f
+            sage: decomp.sum().quotient() == f
             True
         """
         if self.dimension() == 1:
@@ -1178,17 +1174,17 @@ class FFPD(object):
             sage: R.<x> = PolynomialRing(QQ)
             sage: f = 1/(x^2 + x + 1)^3
             sage: decomp = FFPD(quotient=f).cohomology_decomposition()
-            sage: print decomp
+            sage: decomp
             [(0, []), (2/3, [(x^2 + x + 1, 1)])]
 
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: print FFPD(1, [(x, 1), (y, 2)]).cohomology_decomposition()
+            sage: FFPD(1, [(x, 1), (y, 2)]).cohomology_decomposition()
             [(0, [])]
 
             sage: p = 1
             sage: qs = [(x*y - 1, 1), (x**2 + y**2 - 1, 2)]
             sage: f = FFPD(p, qs)
-            sage: print f.cohomology_decomposition()
+            sage: f.cohomology_decomposition()
             [(0, []), (4/3*x*y + 4/3, [(x^2 + y^2 - 1, 1)]),
             (1/3, [(x*y - 1, 1), (x^2 + y^2 - 1, 1)])]
         """
@@ -1332,7 +1328,7 @@ class FFPD(object):
             sage: f = (x^2 + 1)/((x - 1)^3*(x + 2))
             sage: F = FFPD(quotient=f)
             sage: alpha = [var('a')]
-            sage: print F.asymptotic_decomposition(alpha)
+            sage: F.asymptotic_decomposition(alpha)
             [(0, []),
              (1/54*(5*a^2*x^2 + 2*a^2*x + 11*a^2)*r^2/x^2
               - 1/54*(5*a*x^2 - 2*a*x - 33*a)*r/x^2 + 11/27/x^2, [(x - 1, 1)]),
@@ -1346,7 +1342,7 @@ class FFPD(object):
             sage: G = 1/Hfac.unit()
             sage: F = FFPD(G, Hfac)
             sage: alpha = var('a, b')
-            sage: print F.asymptotic_decomposition(alpha)
+            sage: F.asymptotic_decomposition(alpha)
             [(0, []),
              (1/3*(2*b*x - a*y)*r/(x*y) + 1/3*(2*x - y)/(x*y),
               [(x + 2*y - 1, 1), (2*x + y - 1, 1)])]
@@ -1450,7 +1446,7 @@ class FFPD(object):
             sage: F = FFPD(G, Hfac); print(F)
             (1, [(x*y + x + y - 1, 2)])
             sage: alpha = [4, 3]
-            sage: decomp = F.asymptotic_decomposition(alpha); print decomp
+            sage: decomp = F.asymptotic_decomposition(alpha); decomp
             [(0, []), (-3/2*r*(y + 1)/y - 1/2*(y + 1)/y, [(x*y + x + y - 1, 1)])]
             sage: F1 = decomp[1]
             sage: p = {y: 1/3, x: 1/2}
@@ -1459,13 +1455,13 @@ class FFPD(object):
             Computing derivatives of auxiallary functions...
             Computing derivatives of more auxiliary functions...
             Computing second order differential operator actions...
-            sage: print asy
+            sage: asy
             (1/6000*(3600*sqrt(5)*sqrt(3)*sqrt(2)*sqrt(r)/sqrt(pi)
               + 463*sqrt(5)*sqrt(3)*sqrt(2)/(sqrt(pi)*sqrt(r)))*432^r,
              432,
              3/5*sqrt(5)*sqrt(3)*sqrt(2)*sqrt(r)/sqrt(pi)
               + 463/6000*sqrt(5)*sqrt(3)*sqrt(2)/(sqrt(pi)*sqrt(r)))
-            sage: print F.relative_error(asy[0], alpha, [1, 2, 4, 8, 16], asy[1])
+            sage: F.relative_error(asy[0], alpha, [1, 2, 4, 8, 16], asy[1])
             [((4, 3), 2.083333333, [2.092576110], [-0.0044365330...]),
              ((8, 6), 2.787374614, [2.790732875], [-0.0012048112...]),
              ((16, 12), 3.826259447, [3.827462310], [-0.0003143703...]),
@@ -1479,10 +1475,10 @@ class FFPD(object):
             sage: Hfac = H.factor()
             sage: G = 16/Hfac.unit()
             sage: F = FFPD(G, Hfac)
-            sage: print F
+            sage: F
             (-16, [(x + 2*y + z - 4, 1), (2*x + y + z - 4, 2)])
             sage: alpha = [3, 3, 2]
-            sage: decomp = F.asymptotic_decomposition(alpha); print decomp
+            sage: decomp = F.asymptotic_decomposition(alpha); decomp
             [(0, []),
              (16*r*(4*y - 3*z)/(y*z) + 16*(2*y - z)/(y*z),
               [(x + 2*y + z - 4, 1), (2*x + y + z - 4, 1)])]
@@ -1493,10 +1489,10 @@ class FFPD(object):
             Computing derivatives of auxiliary functions...
             Computing derivatives of more auxiliary functions...
             Computing second-order differential operator actions...
-            sage: print asy # long time
+            sage: asy # long time
             (4/3*sqrt(3)*sqrt(r)/sqrt(pi) + 47/216*sqrt(3)/(sqrt(pi)*sqrt(r)),
              1, 4/3*sqrt(3)*sqrt(r)/sqrt(pi) + 47/216*sqrt(3)/(sqrt(pi)*sqrt(r)))
-            sage: print F.relative_error(asy[0], alpha, [1, 2, 4, 8], asy[1]) # long time
+            sage: F.relative_error(asy[0], alpha, [1, 2, 4, 8], asy[1]) # long time
             [((3, 3, 2), 0.9812164307, [1.515572606], [-0.54458543...]),
              ((6, 6, 4), 1.576181132, [1.992989399], [-0.26444185...]),
              ((12, 12, 8), 2.485286378, [2.712196351], [-0.091301338...]),
@@ -1576,12 +1572,12 @@ class FFPD(object):
             sage: Hfac = H.factor()
             sage: G = 1/Hfac.unit()
             sage: F = FFPD(G, Hfac)
-            sage: print F
+            sage: F
             (-1/3, [(x - 2/3, 1)])
             sage: alpha = [2]
             sage: p = {x: 2/3}
             sage: asy = F.asymptotics_smooth(p, alpha, 3, asy_var=var('r'))
-            sage: print asy
+            sage: asy
             (1/2*(9/4)^r, 9/4, 1/2)
 
         ::
@@ -1593,7 +1589,7 @@ class FFPD(object):
             sage: F = FFPD(G, Hfac)
             sage: alpha = [3, 2]
             sage: p = {y: 1/2*sqrt(13) - 3/2, x: 1/3*sqrt(13) - 2/3}
-            sage: print F.asymptotics_smooth(p, alpha, 2, var('r'), numerical=3, verbose=True)
+            sage: F.asymptotics_smooth(p, alpha, 2, var('r'), numerical=3, verbose=True)
             Creating auxiliary functions...
             Computing derivatives of auxiallary functions...
             Computing derivatives of more auxiliary functions...
@@ -1607,10 +1603,10 @@ class FFPD(object):
             sage: G = (1 - q*x)/Hfac.unit()
             sage: F = FFPD(G, Hfac)
             sage: alpha = list(qq*vector([2, 1 - q]))
-            sage: print alpha
+            sage: alpha
             [4, 1]
             sage: p = {x: 1, y: 1}
-            sage: print F.asymptotics_smooth(p, alpha, 5, var('r'), verbose=True) # not tested (140 seconds)
+            sage: F.asymptotics_smooth(p, alpha, 5, var('r'), verbose=True) # not tested (140 seconds)
             Creating auxiliary functions...
             Computing derivatives of auxiallary functions...
             Computing derivatives of more auxiliary functions...
@@ -1666,7 +1662,7 @@ class FFPD(object):
 
         # Setup.
         if verbose:
-            print "Creating auxiliary functions..."
+            print("Creating auxiliary functions...")
         # Implicit functions.
         h = function('h', *tuple(X[:d - 1]))
         U = function('U', *tuple(X))
@@ -1709,7 +1705,7 @@ class FFPD(object):
         # to diff_prod later.
         Hderivs = FFPD._diff_all(H, X, 2*N, ending=[X[d - 1]], sub_final=P)
         if verbose:
-            print "Computing derivatives of auxiallary functions..."
+            print("Computing derivatives of auxiallary functions...")
         # For convenience in checking if all the nontrivial derivatives of U
         # at p are zero a few line below, store the value of U(p) in atP
         # instead of in Uderivs.
@@ -1781,7 +1777,7 @@ class FFPD(object):
             # create symbolic functions AA and BB
             # to stand in for the expressions At and Phitu, respectively.
             if verbose:
-                print "Computing derivatives of more auxiliary functions..."
+                print("Computing derivatives of more auxiliary functions...")
             AA = function('AA', t)
             BB = function('BB', t)
             if v.mod(2) == 0:
@@ -1804,7 +1800,7 @@ class FFPD(object):
             AABB_derivs[AA] = At.subs(Tstar).subs(atP)
             AABB_derivs[BB] = Phitu.subs(Tstar).subs(atP)
             if verbose:
-                print "Computing second order differential operator actions..."
+                print("Computing second order differential operator actions...")
             DD = FFPD._diff_op_simple(AA, BB, AABB_derivs, t, v, a, N)
 
             # Plug above into asymptotic formula.
@@ -1851,7 +1847,7 @@ class FFPD(object):
             # create symbolic functions AA and BB
             # to stand in for the expressions At and Phitu, respectively.
             if verbose:
-                print "Computing derivatives of more auxiliary functions..."
+                print("Computing derivatives of more auxiliary functions...")
             AA = function('AA', *tuple(T))
             At_derivs = FFPD._diff_all(At, T, 2*N - 2, sub=hderivs1,
                                       sub_final =[Tstar, atP], rekey=AA)
@@ -1864,7 +1860,7 @@ class FFPD(object):
             AABB_derivs[AA] = At.subs(Tstar).subs(atP)
             AABB_derivs[BB] = Phitu.subs(Tstar).subs(atP)
             if verbose:
-                print "Computing second order differential operator actions..."
+                print("Computing second order differential operator actions...")
             DD = FFPD._diff_op(AA, BB, AABB_derivs, T, a_inv, 1 , N)
 
             # Plug above into asymptotic formula.
@@ -1936,11 +1932,11 @@ class FFPD(object):
             sage: Hfac = H.factor()
             sage: G = 16/Hfac.unit()
             sage: F = FFPD(G, Hfac)
-            sage: print F
+            sage: F
             (16, [(x + 2*y + z - 4, 1), (2*x + y + z - 4, 1)])
             sage: p = {x: 1, y: 1, z: 1}
             sage: alpha = [3, 3, 2]
-            sage: print F.asymptotics_multiple(p, alpha, 2, var('r'), verbose=True) # long time
+            sage: F.asymptotics_multiple(p, alpha, 2, var('r'), verbose=True) # long time
             Creating auxiliary functions...
             Computing derivatives of auxiliary functions...
             Computing derivatives of more auxiliary functions...
@@ -1953,11 +1949,11 @@ class FFPD(object):
             sage: Hfac = H.factor()
             sage: G = 1/Hfac.unit()
             sage: F = FFPD(G, Hfac)
-            sage: print F
+            sage: F
             (1, [(x*y + x - 1, 1), (2*x^2*y*z + x^2*z - 1, 1)])
             sage: p = {x: 1/2, z: 4/3, y: 1}
             sage: alpha = [8, 3, 3]
-            sage: print F.asymptotics_multiple(p, alpha, 2, var('r'), coordinate=1, verbose=True) # long time
+            sage: F.asymptotics_multiple(p, alpha, 2, var('r'), coordinate=1, verbose=True) # long time
             Creating auxiliary functions...
             Computing derivatives of auxiliary functions...
             Computing derivatives of more auxiliary functions...
@@ -1975,11 +1971,11 @@ class FFPD(object):
             sage: Hfac = H.factor()
             sage: G = exp(x + y)/Hfac.unit()
             sage: F = FFPD(G, Hfac)
-            sage: print F
+            sage: F
             (e^(x + y), [(x + 2*y - 1, 1), (2*x + y - 1, 1)])
             sage: p = {x: 1/3, y: 1/3}
             sage: alpha = (var('a'), var('b'))
-            sage: print F.asymptotics_multiple(p, alpha, 2, var('r')) # long time
+            sage: F.asymptotics_multiple(p, alpha, 2, var('r')) # long time
             (3*((1/3)^(-a)*(1/3)^(-b))^r*e^(2/3), (1/3)^(-a)*(1/3)^(-b), 3*e^(2/3))
         """
         from itertools import product
@@ -2031,7 +2027,7 @@ class FFPD(object):
 
         # Setup.
         if verbose:
-            print "Creating auxiliary functions..."
+            print("Creating auxiliary functions...")
         # Create T and S variables.
         t = 't'
         while t in [str(x) for x in X]:
@@ -2083,7 +2079,7 @@ class FFPD(object):
         # Need the derivatives of H with short keys to pass on to
         # diff_prod later.
         if verbose:
-            print "Computing derivatives of auxiliary functions..."
+            print("Computing derivatives of auxiliary functions...")
         m = min(n, N)
         end = [X[d-1] for j in xrange(n)]
         Hprodderivs = FFPD._diff_all(Hprod, X, 2*N - 2 + n, ending=end,
@@ -2133,7 +2129,7 @@ class FFPD(object):
         # To speed up later computations, create symbolic functions AA and BB
         # to stand in for the expressions At and Phitu respectively.
         if verbose:
-            print "Computing derivatives of more auxiliary functions..."
+            print("Computing derivatives of more auxiliary functions...")
         AA = [function('A' + str(j), *tuple(T + S)) for j in xrange(n)]
         At_derivs = FFPD._diff_all(At, T + S, 2*N - 2, sub=hderivs1,
                                   sub_final =[thetastar, atP], rekey=AA)
@@ -2148,7 +2144,7 @@ class FFPD(object):
         AABB_derivs[BB] = Phitu.subs(thetastar).subs(atP)
 
         if verbose:
-            print "Computing second-order differential operator actions..."
+            print("Computing second-order differential operator actions...")
         DD = FFPD._diff_op(AA, BB, AABB_derivs, T + S, a_inv, n, N)
         L = {}
         for (j, k) in product(xrange(min(n, N)), xrange(max(0, N - 1 - n), N)):
@@ -2463,7 +2459,7 @@ class FFPD(object):
             sage: AB_derivs = {}
             sage: M = matrix([[1, 2],[2, 1]])
             sage: DD = FFPD._diff_op(A, B, AB_derivs, T, M, 1, 2)
-            sage: print sorted(DD.keys())
+            sage: sorted(DD.keys())
             [(0, 0, 0), (0, 1, 0), (0, 1, 1), (0, 1, 2)]
             sage: len(DD[(0, 1, 2)])
             246
@@ -2718,7 +2714,7 @@ class FFPD(object):
             sage: f = FFPD(p, df)
             sage: p = {x: 1/3, y: 1/3}
             sage: alpha = (var('a'), var('b'))
-            sage: print f._crit_cone_combo(p, alpha)
+            sage: f._crit_cone_combo(p, alpha)
             [1/3*(2*a - b)/b, -2/3*(a - 2*b)/b]
         """
         # Assuming here that each log_grads(f) has nonzero final component.
@@ -2784,16 +2780,16 @@ class FFPD(object):
             sage: p = exp(x)
             sage: df = [(x**3 + 3*y^2, 5), (x*y, 2), (y, 1)]
             sage: f = FFPD(p, df)
-            sage: print f
+            sage: f
             (e^x, [(y, 1), (x*y, 2), (x^3 + 3*y^2, 5)])
-            sage: print R.gens()
+            sage: R.gens()
             (x, y)
             sage: p = None
-            sage: print f.grads(p)
+            sage: f.grads(p)
             [(0, 1), (y, x), (3*x^2, 6*y)]
 
             sage: p = {x: sqrt(2), y: var('a')}
-            sage: print f.grads(p)
+            sage: f.grads(p)
             [(0, 1), (a, sqrt(2)), (6, 6*a)]
         """
         R = self.ring()
@@ -2830,16 +2826,16 @@ class FFPD(object):
             sage: p = exp(x)
             sage: df = [(x**3 + 3*y^2, 5), (x*y, 2), (y, 1)]
             sage: f = FFPD(p, df)
-            sage: print f
+            sage: f
             (e^x, [(y, 1), (x*y, 2), (x^3 + 3*y^2, 5)])
-            sage: print R.gens()
+            sage: R.gens()
             (x, y)
             sage: p = None
-            sage: print f.log_grads(p)
+            sage: f.log_grads(p)
             [(0, y), (x*y, x*y), (3*x^3, 6*y^2)]
 
             sage: p = {x: sqrt(2), y: var('a')}
-            sage: print f.log_grads(p)
+            sage: f.log_grads(p)
             [(0, a), (sqrt(2)*a, sqrt(2)*a), (6*sqrt(2), 6*a^2)]
         """
         R = self.ring()
@@ -2885,7 +2881,7 @@ class FFPD(object):
             sage: G = 1/Hfac.unit()
             sage: F = FFPD(G, Hfac)
             sage: p = {x: 1/2, y: 1, z: 4/3}
-            sage: print F.critical_cone(p)
+            sage: F.critical_cone(p)
             ([(2, 1, 0), (3, 1, 3/2)], 2-d cone in 3-d lattice N)
         """
         R = self.ring()
@@ -2944,9 +2940,9 @@ class FFPD(object):
             sage: F = FFPD(G, df)
             sage: p1 = {x: 1/2, y: 1, z: 4/3}
             sage: p2 = {x: 1, y: 2, z: 1/2}
-            sage: print F.is_convenient_multiple_point(p1)
+            sage: F.is_convenient_multiple_point(p1)
             (True, 'convenient in variables [x, y]')
-            sage: print F.is_convenient_multiple_point(p2)
+            sage: F.is_convenient_multiple_point(p2)
             (False, 'not a singular point')
         """
         R = self.ring()
@@ -3131,9 +3127,9 @@ class FFPD(object):
             sage: Hfac = H.factor()
             sage: G = 1/Hfac.unit()
             sage: F = FFPD(G, Hfac)
-            sage: print F
+            sage: F
             (-1/3, [(x - 2/3, 1)])
-            sage: print F.maclaurin_coefficients([(2*k,) for k in range(6)])
+            sage: F.maclaurin_coefficients([(2*k,) for k in range(6)])
             {(0,): 1/2, (2,): 9/8, (8,): 6561/512, (4,): 81/32, (10,): 59049/2048, (6,): 729/128}
 
         ::
@@ -3146,7 +3142,7 @@ class FFPD(object):
             sage: alpha = vector([3, 3, 2])
             sage: interval = [1, 2, 4]
             sage: S = [r*alpha for r in interval]
-            sage: print F.maclaurin_coefficients(S, numerical=10)
+            sage: F.maclaurin_coefficients(S, numerical=10)
             {(6, 6, 4): 0.7005249476, (12, 12, 8): 0.5847732654,
             (3, 3, 2): 0.7849731445}
         """
@@ -3287,14 +3283,14 @@ class FFPD(object):
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: f = FFPD()
             sage: p = {SR(x): 1, SR(y): 7/8}
-            sage: print p
+            sage: p
             {x: 1, y: 7/8}
             sage: for k in sorted(p.keys()):
             ....:     print k, k.parent()
             x Symbolic Ring
             y Symbolic Ring
             sage: q = f.coerce_point(R, p)
-            sage: print q
+            sage: q
             {y: 7/8, x: 1}
             sage: for k in sorted(q.keys()):
             ....:     print k, k.parent()
@@ -3319,7 +3315,7 @@ class FFPDSum(list):
 
     - Alexander Raichev (2012-06-25)
     """
-    def __str__(self):
+    def __repr__(self):
         r"""
         Return a string representation of ``self``.
 
@@ -3329,10 +3325,10 @@ class FFPDSum(list):
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: f = FFPD(x + y, [(y, 1), (x, 1)])
             sage: g = FFPD(x**2 + y, [(y, 1), (x, 2)])
-            sage: print FFPDSum([f, g])
+            sage: FFPDSum([f, g])
             [(x + y, [(y, 1), (x, 1)]), (x^2 + y, [(y, 1), (x, 2)])]
         """
-        return str([r.list() for r in self])
+        return repr([(r.numerator(), r.denominator_factored()) for r in self])
 
     def __eq__(self, other):
         r"""
@@ -3344,11 +3340,11 @@ class FFPDSum(list):
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: f = FFPD(x + y, [(y, 1), (x, 1)])
             sage: g = FFPD(x*(x + y), [(y, 1), (x, 2)])
-            sage: s = FFPDSum([f])
-            sage: t = FFPDSum([g])
-            sage: print s, t
-            [(x + y, [(y, 1), (x, 1)])] [(x + y, [(y, 1), (x, 1)])]
-            sage: print s == t
+            sage: s = FFPDSum([f]); s
+            [(x + y, [(y, 1), (x, 1)])]
+            sage: t = FFPDSum([g]); t
+            [(x + y, [(y, 1), (x, 1)])]
+            sage: s == t
             True
         """
         return sorted(self) == sorted(other)
@@ -3363,11 +3359,11 @@ class FFPDSum(list):
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: f = FFPD(x + y, [(y, 1), (x, 1)])
             sage: g = FFPD(x + y, [(y, 1), (x, 2)])
-            sage: s = FFPDSum([f])
-            sage: t = FFPDSum([g])
-            sage: print s, t
-            [(x + y, [(y, 1), (x, 1)])] [(x + y, [(y, 1), (x, 2)])]
-            sage: print s != t
+            sage: s = FFPDSum([f]); s
+            [(x + y, [(y, 1), (x, 1)])]
+            sage: t = FFPDSum([g]); t
+            [(x + y, [(y, 1), (x, 2)])]
+            sage: s != t
             True
         """
         return not self.__eq__(other)
@@ -3384,7 +3380,7 @@ class FFPDSum(list):
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: f = FFPD(x + y, [(y, 1), (x, 1)])
             sage: s = FFPDSum([f])
-            sage: print s.ring()
+            sage: s.ring()
             Multivariate Polynomial Ring in x, y over Rational Field
             sage: g = FFPD(x + y, [])
             sage: t = FFPDSum([g])
@@ -3409,21 +3405,18 @@ class FFPDSum(list):
             sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPD, FFPDSum
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: f = x**2 + 3*y + 1/x + 1/y
-            sage: f = FFPD(quotient=f)
-            sage: print f
+            sage: f = FFPD(quotient=f); f
             (x^3*y + 3*x*y^2 + x + y, [(y, 1), (x, 1)])
-            sage: print FFPDSum([f]).whole_and_parts()
+            sage: FFPDSum([f]).whole_and_parts()
             [(x^2 + 3*y, []), (x + y, [(y, 1), (x, 1)])]
 
-            sage: f = cos(x)**2 + 3*y + 1/x + 1/y
-            sage: print f
+            sage: f = cos(x)**2 + 3*y + 1/x + 1/y; f
             cos(x)^2 + 3*y + 1/x + 1/y
             sage: G = f.numerator()
             sage: H = R(f.denominator())
-            sage: f = FFPD(G, H.factor())
-            sage: print f
+            sage: f = FFPD(G, H.factor()); f
             (x*y*cos(x)^2 + 3*x*y^2 + x + y, [(y, 1), (x, 1)])
-            sage: print FFPDSum([f]).whole_and_parts()
+            sage: FFPDSum([f]).whole_and_parts()
             [(0, []), (x*y*cos(x)^2 + 3*x*y^2 + x + y, [(y, 1), (x, 1)])]
         """
         whole = 0
@@ -3464,21 +3457,22 @@ class FFPDSum(list):
             sage: g = FFPD(quotient=x/(x * y * (x*y + 1)))
             sage: s = FFPDSum([f, g, f])
             sage: t = s.combine_like_terms()
-            sage: print s
-            [(1, [(y, 1), (x, 1), (x*y + 1, 1)]), (1, [(y, 1), (x*y + 1, 1)]),
-            (1, [(y, 1), (x, 1), (x*y + 1, 1)])]
-            sage: print t
+            sage: s
+            [(1, [(y, 1), (x, 1), (x*y + 1, 1)]),
+             (1, [(y, 1), (x*y + 1, 1)]),
+             (1, [(y, 1), (x, 1), (x*y + 1, 1)])]
+            sage: t
             [(1, [(y, 1), (x*y + 1, 1)]), (2, [(y, 1), (x, 1), (x*y + 1, 1)])]
 
             sage: H = x * y * (x*y + 1)
             sage: f = FFPD(1, H.factor())
             sage: g = FFPD(exp(x + y), H.factor())
             sage: s = FFPDSum([f, g])
-            sage: print s
+            sage: s
             [(1, [(y, 1), (x, 1), (x*y + 1, 1)]), (e^(x + y), [(y, 1), (x, 1),
             (x*y + 1, 1)])]
             sage: t = s.combine_like_terms()
-            sage: print t
+            sage: t
             [(e^(x + y) + 1, [(y, 1), (x, 1), (x*y + 1, 1)])]
         """
         if not self:
@@ -3511,16 +3505,16 @@ class FFPDSum(list):
             sage: df = (x, 1), (y, 1), (x*y + 1, 1)
             sage: f = FFPD(2, df)
             sage: g = FFPD(2*x*y, df)
-            sage: print FFPDSum([f, g])
+            sage: FFPDSum([f, g])
             [(2, [(y, 1), (x, 1), (x*y + 1, 1)]), (2, [(x*y + 1, 1)])]
-            sage: print FFPDSum([f, g]).sum()
+            sage: FFPDSum([f, g]).sum()
             (2, [(y, 1), (x, 1)])
 
             sage: f = FFPD(cos(x), [(x, 2)])
             sage: g = FFPD(cos(y), [(x, 1), (y, 2)])
-            sage: print FFPDSum([f, g])
+            sage: FFPDSum([f, g])
             [(cos(x), [(x, 2)]), (cos(y), [(y, 2), (x, 1)])]
-            sage: print FFPDSum([f, g]).sum()
+            sage: FFPDSum([f, g]).sum()
             (y^2*cos(x) + x*cos(y), [(y, 2), (x, 2)])
         """
         if not self:

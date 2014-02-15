@@ -4562,6 +4562,22 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         known_bits = -self.relative_diameter().log2()
 
         return sage.rings.arith.algdep(self.center(), n, known_bits=known_bits)
+        
+    def factorial(self):
+        """
+        Return the factorial evaluated on ``self``.
+
+        EXAMPLES::
+
+            sage: RIF(5).factorial()
+            120
+            sage: RIF(2.3,5.7).factorial()
+            1.?e3
+        """
+        cdef RealIntervalFieldElement x
+        x = self._new()
+        self = self + 1
+        return RIF(self).gamma()
 
     def gamma(self):
         """

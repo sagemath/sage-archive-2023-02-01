@@ -396,6 +396,26 @@ cdef class TropicalSemiringElement(RingElement):
         from sage.rings.infinity import infinity
         return infinity
 
+    cpdef ModuleElement lift(self):
+        """
+        Return the value of ``self`` lifted to the base.
+
+        EXAMPLES::
+
+            sage: T = TropicalSemiring(QQ)
+            sage: elt = T(2)
+            sage: elt.lift()
+            2
+            sage: elt.lift().parent() is QQ
+            True
+            sage: T.additive_identity().lift().parent()
+            The Infinity Ring
+        """
+        if self._val is None:
+            from sage.rings.infinity import infinity
+            return infinity
+        return self._val
+
 class TropicalSemiring(Parent, UniqueRepresentation):
     r"""
     The tropical semiring.

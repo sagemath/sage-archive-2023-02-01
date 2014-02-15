@@ -1105,7 +1105,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
                     prompt_config = cfg.PromptManager
                     prompt_config.in_template = 'debug: '
                     prompt_config.in2_template = '.....: '
-                    shell = InteractiveShellEmbed.instance(config=cfg, banner1='', user_ns=dict(globs))
+                    shell = InteractiveShellEmbed(config=cfg, banner1='', user_ns=dict(globs))
                     shell(header='', stack_depth=2)
                 except KeyboardInterrupt:
                     # Assume this is a *real* interrupt. We need to

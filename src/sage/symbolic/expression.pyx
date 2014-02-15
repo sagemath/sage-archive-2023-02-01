@@ -143,6 +143,7 @@ import sage.rings.integer
 import sage.rings.rational
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.symbolic.getitem cimport OperandsWrapper
+from sage.symbolic.complexity_measures import string_length
 from sage.symbolic.function import get_sfunction_from_serial, SymbolicFunction
 from sage.rings.rational import Rational  # Used for sqrt.
 from sage.misc.derivative import multi_derivative
@@ -7828,6 +7829,86 @@ cdef class Expression(CommutativeRingElement):
         return x
 
     full_simplify = simplify_full
+
+
+    def simplify_rectform(self, complexity_measure = string_length):
+        r"""
+        Attempt to simplify this expression by expressing it in the
+        form `a + bi` where both `a` and `b` are real. This
+        transformation is generally not a simplification, so we use
+        the given ``complexity_measure`` to discard
+        non-simplifications.
+
+        INPUT:
+
+        - ``self`` -- the expression to simplify.
+
+        - ``complexity_measure`` -- (default:
+          ``sage.symbolic.complexity_measures.string_length``) a
+          function taking a symbolic expression as an argument and
+          returning a measure of that expressions complexity. If
+          ``None`` is supplied, the simplification will be performed
+          regardless of the result.
+
+        OUTPUT:
+
+        If the transformation produces a simpler expression (according
+        to ``complexity_measure``) then that simpler expression is
+        returned. Otherwise, the original expression is returned.
+
+        ALGORITHM:
+
+        We first call :meth:`rectform()` on the given
+        expression. Then, the supplied complexity measure is used to
+        determine whether or not the result is simpler than the
+        original expression.
+
+        EXAMPLES:
+
+        The exponential form of `\tan(x)`::
+
+            sage: f = ( e^(I*x) - e^(-I*x) ) / ( I*e^(I*x) + I*e^(-I*x) )
+            sage: f.simplify_rectform()
+            sin(x)/cos(x)
+
+        This should not be expanded with Euler's formula since the
+        resulting expression is longer when considered as a string,
+        and the default ``complexity_measure`` uses string length to
+        determine which expression is simpler::
+
+            sage: f = e^(I*x)
+            sage: f.simplify_rectform()
+            e^(I*x)
+
+        However, if we pass ``None`` as our complexity measure, it
+        is::
+
+            sage: f = e^(I*x)
+            sage: f.simplify_rectform(complexity_measure = None)
+            I*sin(x) + cos(x)
+
+        TESTS:
+
+        When given ``None``, we should always call :meth:`rectform()`
+        and return the result::
+
+            sage: polynomials = QQ['x']
+            sage: f = SR(polynomials.random_element())
+            sage: g = f.simplify_rectform(complexity_measure = None)
+            sage: bool(g == f.rectform())
+            True
+
+        """
+        simplified_expr = self.rectform()
+
+        if complexity_measure is None:
+            return simplified_expr
+        
+        if complexity_measure(simplified_expr) < complexity_measure(self):
+            return simplified_expr
+        else:
+            return self
+
 
     def simplify_trig(self,expand=True):
         r"""

@@ -24,6 +24,7 @@ Combinatorics
    :maxdepth: 1
 
    sage/combinat/alternating_sign_matrix
+   sage/combinat/asymptotics_multivariate_generating_functions
    sage/combinat/composition
    sage/combinat/core
    designs

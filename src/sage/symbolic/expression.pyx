@@ -7885,7 +7885,7 @@ cdef class Expression(CommutativeRingElement):
 
             sage: f = e^(I*x)
             sage: f.simplify_rectform(complexity_measure = None)
-            I*sin(x) + cos(x)
+            cos(x) + I*sin(x)
 
         TESTS:
 

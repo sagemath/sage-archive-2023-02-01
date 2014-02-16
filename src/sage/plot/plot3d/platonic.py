@@ -84,12 +84,12 @@ def index_face_set(face_list, point_list, enclosed, **kwds):
 
         sage: icosahedron(center=(2,0,0),size=2,color='red')
     """
-    if kwds.has_key('center'):
+    if 'center' in kwds:
         center = kwds['center']
         del kwds['center']
     else:
         center = (0,0,0)
-    if kwds.has_key('size'):
+    if 'size' in kwds:
         size = kwds['size']
         del kwds['size']
     else:

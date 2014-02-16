@@ -356,7 +356,7 @@ class Sandpile(DiGraph):
             sage: S.__getattr__('_max_stable')
             {1: 3, 2: 3, 3: 3, 4: 3}
         """
-        if not self.__dict__.has_key(name):
+        if name not in self.__dict__:
             if name == '_max_stable':
                 self._set_max_stable()
                 return deepcopy(self.__dict__[name])
@@ -2318,7 +2318,7 @@ class SandpileConfig(dict):
             sage: C.__getattr__('_deg')
             3
         """
-        if not self.__dict__.has_key(name):
+        if name not in self.__dict__:
             if name=='_deg':
                 self._set_deg()
                 return self.__dict__[name]
@@ -3186,7 +3186,7 @@ class SandpileConfig(dict):
         """
         if '_recurrents' in self._sandpile.__dict__:
             self._is_recurrent = (self in self._sandpile._recurrents)
-        elif self.__dict__.has_key('_equivalent_recurrent'):
+        elif '_equivalent_recurrent' in self.__dict__:
             self._is_recurrent = (self._equivalent_recurrent == self)
         else:
             # add the burning configuration to config
@@ -3297,7 +3297,7 @@ class SandpileConfig(dict):
         """
         if '_superstables' in self._sandpile.__dict__:
             self._is_superstable = (self in self._sandpile._superstables)
-        elif self.__dict__.has_key('_equivalent_superstable'):
+        elif '_equivalent_superstable' in self.__dict__:
             self._is_superstable = (self._equivalent_superstable[0] == self)
         else:
             self._is_superstable = self.dualize().is_recurrent()
@@ -3540,7 +3540,7 @@ class SandpileDivisor(dict):
             sage: D.__getattr__('_deg')
             6
         """
-        if not self.__dict__.has_key(name):
+        if name not in self.__dict__:
             if name=='_deg':
                 self._set_deg()
                 return self.__dict__[name]

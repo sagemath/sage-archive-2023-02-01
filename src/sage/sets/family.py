@@ -582,7 +582,7 @@ class FiniteFamily(AbstractFamily):
             sage: Family({"a":1, "b":2, "c":3}).has_key("d")
             False
         """
-        return self._dictionary.has_key(k)
+        return k in self._dictionary
 
     def __eq__(self, other):
         """

@@ -206,7 +206,7 @@ def set_editor(editor_name,opts=''):
       'vi -c ${line} ${file}'
    """
 
-   if sage.misc.edit_module.template_defaults.has_key(editor_name):
+   if editor_name in sage.misc.edit_module.template_defaults:
       set_edit_template(Template(template_defaults[editor_name].safe_substitute(opts=opts)))
    else:
       raise ValueError, "editor_name not known. Try set_edit_template(<template_string>) instead."

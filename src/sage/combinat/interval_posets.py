@@ -848,13 +848,28 @@ class TamariIntervalPoset(Element):
         whose order relation has `a` precede `b` if and only if
         `n + 1 - a` precedes `n + 1 - b` in `P`.
 
+        In terms of the Tamari lattice, the *complement* is the symmetric
+        of ``self``. It is formed from the left-right symmeterized of 
+        the binary trees of the interval (switching left and right subtrees,
+        see :meth:`~sage.combinat.binary_tree.BinaryTree.left_right_symmetry`).
+        In particular, initial intervals are sent to final intervals and vice-versa.
+
         EXAMPLES::
 
             sage: TamariIntervalPoset(3, [(2, 1), (3, 1)]).complement()
             The tamari interval of size 3 induced by relations [(1, 3), (2, 3)]
             sage: TamariIntervalPoset(0, []).complement()
             The tamari interval of size 0 induced by relations []
-            sage: TamariIntervalPoset(4, [(1, 2), (2, 4), (3, 4)]).complement() == TamariIntervalPoset(4, [(2, 1), (3, 1), (4, 3)])
+            sage: ip = TamariIntervalPoset(4, [(1, 2), (2, 4), (3, 4)])
+            sage: ip.complement() == TamariIntervalPoset(4, [(2, 1), (3, 1), (4, 3)])
+            True
+            sage: ip.lower_binary_tree() == ip.complement().upper_binary_tree().left_right_symmetry()
+            True
+            sage: ip.upper_binary_tree() == ip.complement().lower_binary_tree().left_right_symmetry()
+            True
+            sage: ip.is_initial_interval()
+            True
+            sage: ip.complement().is_final_interval()
             True
         """
         N = self._size + 1
@@ -1193,6 +1208,54 @@ class TamariIntervalPoset(Element):
             True
         """
         return TamariIntervalPoset(self.size(), self.decreasing_cover_relations())
+
+    def is_initial_interval(self):
+        r"""
+        Return if ``self`` corresponds to an initial interval of the Tamari
+        lattice, i.e. if its lower end is the initial element of the lattice.
+        In consists of checking that ``self`` does not contain any decreasing
+        relations.
+
+        EXAMPLES::
+
+            sage: ip = TamariIntervalPoset(4, [(1, 2), (2, 4), (3, 4)])
+            sage: ip.is_initial_interval()
+            True
+            sage: ip.lower_dyck_word()
+            [1, 0, 1, 0, 1, 0, 1, 0]
+            sage: ip = TamariIntervalPoset(4, [(1, 2), (2, 4), (3, 4), (3, 2)])
+            sage: ip.is_initial_interval()
+            False
+            sage: ip.lower_dyck_word()
+            [1, 0, 1, 1, 0, 0, 1, 0]
+            sage: all([ DyckWord([1,0,1,0,1,0]).tamari_interval(dw).is_initial_interval() for dw in DyckWords(3)])
+            True
+        """
+        return self.decreasing_cover_relations() == []
+
+    def is_final_interval(self):
+        r"""
+        Return if ``self`` corresponds to an initial interval of the Tamari
+        lattice, i.e. if its upper end is the final element of the lattice.
+        In consists of checking that ``self`` does not contain any increasing
+        relations.
+
+        EXAMPLES::
+
+            sage: ip = TamariIntervalPoset(4, [(4, 3), (3, 1), (2, 1)])
+            sage: ip.is_final_interval()
+            True
+            sage: ip.upper_dyck_word()
+            [1, 1, 1, 1, 0, 0, 0, 0]
+            sage: ip = TamariIntervalPoset(4, [(4, 3), (3, 1), (2, 1), (2, 3)])
+            sage: ip.is_final_interval()
+            False
+            sage: ip.upper_dyck_word()
+            [1, 1, 0, 1, 1, 0, 0, 0]
+            sage: all([ dw.tamari_interval(DyckWord([1, 1, 1, 0, 0, 0])).is_final_interval() for dw in DyckWords(3)])
+            True
+        """
+        return self.increasing_cover_relations() == []
 
     def lower_binary_tree(self):
         r"""
@@ -2169,7 +2232,7 @@ class TamariIntervalPosets_size(TamariIntervalPosets):
         """
         from sage.rings.arith import binomial
         n = self._size
-        if n==0:
+        if n == 0:
             return Integer(1)
         return (2 * binomial(4 * n + 1, n - 1)) // (n * (n + 1))
         # return Integer(2 * factorial(4*n+1)/(factorial(n+1)*factorial(3*n+2)))

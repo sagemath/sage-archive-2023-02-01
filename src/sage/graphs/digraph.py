@@ -2886,11 +2886,11 @@ class DiGraph(GenericGraph):
 
         EXAMPLES::
 
-            sage: Q = Quiver({1:{2:['a','c']}, 2:{3:['b']}})
-            sage: F = Q.free_small_category(); F
-            Free small category of Quiver on 3 vertices
+            sage: Q = DiGraph({1:{2:['a','c']}, 2:{3:['b']}})
+            sage: F = Q.path_semigroup(); F
+            Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices
             sage: list(F)
-            [e_1, e_2, e_3, c, a, b, c*b, a*b]
+            [e_1, e_2, e_3, a, c, b, a*b, c*b]
 
         """
         from sage.quivers.path_semigroup import PathSemigroup

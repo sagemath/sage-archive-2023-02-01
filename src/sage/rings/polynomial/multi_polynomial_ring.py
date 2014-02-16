@@ -525,7 +525,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
             do_coerce = True
         elif not isinstance(gens, (list, tuple)):
             gens = [gens]
-        if (kwds.has_key('coerce') and kwds['coerce']) or do_coerce:
+        if ('coerce' in kwds and kwds['coerce']) or do_coerce:
             gens = [self(x) for x in gens]  # this will even coerce from singular ideals correctly!
         return multi_polynomial_ideal.MPolynomialIdeal(self, gens, **kwds)
 

@@ -46,7 +46,7 @@ def _get(key):
         ...
         ValueError: element not in cache
     """
-    if _cache.has_key(key):
+    if key in _cache:
         z = _cache[key]()
         if z is not None:
             return z

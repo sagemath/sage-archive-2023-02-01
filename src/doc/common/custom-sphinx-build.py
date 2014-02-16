@@ -56,7 +56,7 @@ warnings = (re.compile('Segmentation fault'),
             re.compile('Exception occurred'),
             re.compile('Sphinx error'))
 
-if 'pdf' not in sys.argv:
+if 'latex' not in sys.argv:
     warnings += (re.compile('WARNING'),)
 
 class SageSphinxLogger(object):

@@ -14,9 +14,9 @@ TESTS:
 
 Check the fix from trac #8323::
 
-    sage: globals().has_key('name')
+    sage: 'name' in globals()
     False
-    sage: globals().has_key('func')
+    sage: 'func' in globals()
     False
 
 """

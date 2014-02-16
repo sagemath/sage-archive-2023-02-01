@@ -156,7 +156,7 @@ def _is_new_var(x, v, hidden):
         return True
     # A variable could also be new even if it was there at init, say if
     # its value changed.
-    return not (x in state_at_init and state_at_init[x] is v)
+    return x not in state_at_init or state_at_init[x] is not v
 
 def show_identifiers(hidden=False):
     r"""

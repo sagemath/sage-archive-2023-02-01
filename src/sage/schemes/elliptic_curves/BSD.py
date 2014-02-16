@@ -618,7 +618,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
                 if verbosity > 1:
                     print '    p = %d: Trying p_primary_bound'%p
                 p_bound = BSD.Sha.p_primary_bound(p)
-                if BSD.proof.has_key(p):
+                if p in BSD.proof:
                     BSD.proof[p].append(('Stein-Wuthrich', p_bound))
                 else:
                     BSD.proof[p] = [('Stein-Wuthrich', p_bound)]
@@ -627,7 +627,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
                         print 'True for p=%d by Stein-Wuthrich.'%p
                     primes_to_remove.append(p)
                 else:
-                    if BSD.bounds.has_key(p):
+                    if p in BSD.bounds:
                         BSD.bounds[p][1] = min(BSD.bounds[p][1], p_bound)
                     else:
                         BSD.bounds[p] = (0, p_bound)
@@ -652,7 +652,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
         if D_K%p != 0 and BSD.N%(p**2) != 0 and galrep.is_irreducible(p):
             if verbosity > 0:
                 print 'Kolyvagin\'s bound for p = %d applies by Cha.'%p
-            if BSD.proof.has_key(p):
+            if p in BSD.proof:
                 BSD.proof[p].append('Cha')
             else:
                 BSD.proof[p] = ['Cha']
@@ -668,7 +668,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
                 if verbosity > 0:
                     print 'Kolyvagin\'s bound for p = %d applies by Stein et al.'%p
                 kolyvagin_primes.append(p)
-                if BSD.proof.has_key(p):
+                if p in BSD.proof:
                     BSD.proof[p].append('Stein et al.')
                 else:
                     BSD.proof[p] = ['Stein et al.']
@@ -689,7 +689,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
             if m_max > 0:
                 if verbosity > 0:
                     print 'Jetchev\'s results apply (at p = %d) with m_max ='%p, m_max
-                if BSD.proof.has_key(p):
+                if p in BSD.proof:
                     BSD.proof[p].append(('Jetchev',m_max))
                 else:
                     BSD.proof[p] = [('Jetchev',m_max)]
@@ -703,7 +703,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
                 # now ord_p_bound is one on I_K!!!
                 ord_p_bound *= 2 # by Kolyvagin, now ord_p_bound is one on #Sha
                 break
-        if BSD.proof.has_key(p):
+        if p in BSD.proof:
             BSD.proof[p].append(('Kolyvagin',ord_p_bound))
         else:
             BSD.proof[p] = [('Kolyvagin',ord_p_bound)]
@@ -714,7 +714,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
         elif BSD.sha_an.ord(p) > ord_p_bound:
             raise RuntimeError("p = %d: ord_p_bound == %d, but sha_an.ord(p) == %d. This appears to be a counterexample to BSD, but is more likely a bug."%(p,ord_p_bound,BSD.sha_an.ord(p)))
         else: # BSD.sha_an.ord(p) <= ord_p_bound != 0:
-            if BSD.bounds.has_key(p):
+            if p in BSD.bounds:
                 low = BSD.bounds[p][0]
                 BSD.bounds[p] = (low, min(BSD.bounds[p][1], ord_p_bound))
             else:
@@ -734,7 +734,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
                 if verbosity > 0:
                     print 'Kato further implies that #Sha[%d] is trivial.'%p
                 primes_to_remove.append(p)
-                if BSD.proof.has_key(p):
+                if p in BSD.proof:
                     BSD.proof[p].append(('Kato',0))
                 else:
                     BSD.proof[p] = [('Kato',0)]
@@ -743,11 +743,11 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
                     bd = L_over_Omega.valuation(p)
                     if verbosity > 1:
                         print 'Kato implies that ord_p(#Sha[%d]) <= %d '%(p,bd)
-                    if BSD.proof.has_key(p):
+                    if p in BSD.proof:
                         BSD.proof[p].append(('Kato',bd))
                     else:
                         BSD.proof[p] = [('Kato',bd)]
-                    if BSD.bounds.has_key(p):
+                    if p in BSD.bounds:
                         low = BSD.bounds[p][0]
                         BSD.bounds[p][1] = (low, min(BSD.bounds[p][1], bd))
                     else:
@@ -766,7 +766,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
                     print 'True for p=%s by Mazur'%p
         for p in primes_to_remove:
             BSD.primes.remove(p)
-            if BSD.proof.has_key(p):
+            if p in BSD.proof:
                 BSD.proof[p].append('Mazur')
             else:
                 BSD.proof[p] = ['Mazur']
@@ -906,7 +906,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
                     s += 'non-split multiplicative'
             if BSD.curve.tamagawa_product()%p==0:
                 s += ', divides a Tamagawa number'
-            if BSD.bounds.has_key(p):
+            if p in BSD.bounds:
                 s += '\n    (%d <= ord_p <= %d)'%BSD.bounds[p]
             else:
                 s += '\n    (no bounds found)'

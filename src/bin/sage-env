@@ -353,13 +353,17 @@ if [ "$DOT_SAGE" = "" ]; then
     export DOT_SAGE
 fi
 
-
 if [ "$SAGE_STARTUP_FILE" = "" ]; then
     SAGE_STARTUP_FILE="$DOT_SAGE/init.sage"
     export SAGE_STARTUP_FILE
 fi
 
 export IPYTHONDIR="$DOT_SAGE/ipython-0.12"
+
+if [ "$PYTHON_EGG_CACHE" = "" ]; then
+    PYTHON_EGG_CACHE="$DOT_SAGE/.python-eggs"
+    export PYTHON_EGG_CACHE
+fi
 
 if [ -d "$SAGE_ROOT/local/lib/python" ]; then
     PYTHONPATH="$SAGE_ROOT/local/lib/python"

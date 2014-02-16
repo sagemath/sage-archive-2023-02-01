@@ -940,7 +940,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             coerce = True
         elif not isinstance(gens, (list, tuple)):
             gens = [gens]
-        if kwds.has_key('coerce') and kwds['coerce']:
+        if 'coerce' in kwds and kwds['coerce']:
             gens = [self(x) for x in gens]  # this will even coerce from singular ideals correctly!
         return sage.rings.polynomial.multi_polynomial_ideal.MPolynomialIdeal(self, gens, **kwds)
 

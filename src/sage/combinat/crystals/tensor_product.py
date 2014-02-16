@@ -684,7 +684,7 @@ class FullTensorProductOfCrystals(TensorProductOfCrystals):
         category = Category.meet([crystal.category() for crystal in crystals])
         Parent.__init__(self, category = category)
         self.crystals = crystals
-        if options.has_key('cartan_type'):
+        if 'cartan_type' in options:
             self._cartan_type = CartanType(options['cartan_type'])
         else:
             if len(crystals) == 0:
@@ -1728,9 +1728,9 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
         if len(args) == 1:
             if isinstance(args[0], Tableau):
                 options['rows'] = args[0]
-        if options.has_key('list'):
+        if 'list' in options:
             list = options['list']
-        elif options.has_key('rows'):
+        elif 'rows' in options:
             rows=options['rows']
 #            list=Tableau(rows).to_word_by_column()
             rows=Tableau(rows).conjugate()
@@ -1738,7 +1738,7 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
             for col in rows:
                 col.reverse()
                 list+=col
-        elif options.has_key('columns'):
+        elif 'columns' in options:
             columns=options['columns']
             list=[]
             for col in columns:

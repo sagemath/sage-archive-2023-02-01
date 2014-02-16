@@ -357,7 +357,7 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
         letter_cache = self._letter_cache
         func = self._func
         for x in domain:
-            if not letter_cache.has_key(x):
+            if x not in letter_cache:
                 letter_cache[x] = func(x)
             yield letter_cache[x]
 
@@ -491,7 +491,7 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
         if isinstance(key, slice):
             return super(WordDatatype_callable_with_caching, self).__getitem__(key)
         else:
-            if not self._letter_cache.has_key(key):
+            if key not in self._letter_cache:
                 self._letter_cache[key] = \
                     super(WordDatatype_callable_with_caching, self).__getitem__(key)
             return self._letter_cache[key]

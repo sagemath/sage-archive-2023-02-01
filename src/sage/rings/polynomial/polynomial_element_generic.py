@@ -212,7 +212,7 @@ class Polynomial_generic_sparse(Polynomial):
         d = {}
         for n, c in self.__coeffs.iteritems():
             d[n-1] = n*c
-        if d.has_key(-1):
+        if -1 in d:
             del d[-1]
         return P(d)
 
@@ -329,7 +329,7 @@ class Polynomial_generic_sparse(Polynomial):
             P = self.parent()
             return P(v)
         else:
-            if not self.__coeffs.has_key(n):
+            if n not in self.__coeffs:
                 return self.base_ring()(0)
             return self.__coeffs[n]
 
@@ -359,7 +359,7 @@ class Polynomial_generic_sparse(Polynomial):
         if n < 0:
             raise IndexError, "polynomial coefficient index must be nonnegative"
         if value == 0:
-            if x.has_key(n):
+            if n in x:
                 del x[n]
         else:
             x[n] = value

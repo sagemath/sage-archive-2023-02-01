@@ -63,10 +63,10 @@ cdef class StaticSparseCGraph(CGraph):
             sage: g = StaticSparseCGraph(graphs.PetersenGraph())
         """
         has_labels = any(not l is None for _,_,l in G.edge_iterator())
-        self.directed = G.is_directed()
+        self._directed = G.is_directed()
 
         init_short_digraph(self.g, G, edge_labelled = has_labels)
-        if self.directed:
+        if self._directed:
             init_reverse(self.g_rev,self.g)
 
         # Defining the meaningless set of 'active' vertices. Because of CGraph.
@@ -191,7 +191,7 @@ cdef class StaticSparseCGraph(CGraph):
         return -1 if size < degree else degree
 
     cdef int in_neighbors_unsafe(self, int u, int *neighbors, int size) except? -2:
-        if not self.directed:
+        if not self._directed:
             return self.out_neighbors_unsafe(u,neighbors,size)
 
         cdef int degree = self.g_rev.neighbors[u+1] - self.g_rev.neighbors[u]
@@ -236,7 +236,7 @@ cdef class StaticSparseCGraph(CGraph):
             sage: g.in_neighbors(0)
             [1, 4, 5]
         """
-        if not self.directed:
+        if not self._directed:
             return self.out_neighbors(u)
 
         if u<0 or u>self.g.n:
@@ -283,7 +283,7 @@ cdef class StaticSparseCGraph(CGraph):
         if u<0 or u>self.g.n:
             raise LookupError("The vertex does not belong to the graph")
 
-        if not self.directed:
+        if not self._directed:
             return self.g.neighbors[u+1] - self.g.neighbors[u]
         else:
             return self.g_rev.neighbors[u+1] - self.g_rev.neighbors[u]
@@ -364,12 +364,16 @@ class StaticSparseBackend(CGraphBackend):
             [1]
             sage: g.edges()
             [(1, 1, 1), (1, 1, 2), (1, 1, 3)]
+
+        :trac:`15810` is fixed::
+
+            sage: DiGraph({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}}, immutable=True).is_directed_acyclic()
+            True
         """
         cdef StaticSparseCGraph cg = <StaticSparseCGraph> StaticSparseCGraph(G)
         self._cg = cg
 
-        # .directed and not ._directed. Because of CGraph.
-        self.directed = cg.directed
+        self._directed = cg._directed
 
         vertices = G.vertices()
         self._order = len(vertices)
@@ -430,7 +434,7 @@ class StaticSparseBackend(CGraphBackend):
             sage: loads(dumps(gi)) == gi
             True
         """
-        if self.directed:
+        if self._directed:
             from sage.graphs.digraph import DiGraph
             G = DiGraph(loops=self._loops, multiedges=self._multiedges)
             G.add_edges(list(self.iterator_out_edges(self.iterator_verts(None),True)))
@@ -615,7 +619,7 @@ class StaticSparseBackend(CGraphBackend):
             [(1, 2, None)]
         """
         cdef StaticSparseCGraph cg = self._cg
-        if not cg.directed:
+        if not cg._directed:
             for x in self.iterator_out_edges(vertices, labels):
                 yield x
             return
@@ -795,7 +799,7 @@ class StaticSparseBackend(CGraphBackend):
         cdef StaticSparseCGraph cg = <StaticSparseCGraph> self._cg
 
         if directed:
-            if cg.directed:
+            if cg._directed:
                 # Returns the real number of directed arcs
                 return int(cg.g.m)
             else:
@@ -804,7 +808,7 @@ class StaticSparseBackend(CGraphBackend):
                 # cg.g.neighbors[cg.g.n] in the array `cg.g.edges`
                 return int(cg.g.neighbors[cg.g.n]-cg.g.edges)
         else:
-            if cg.directed:
+            if cg._directed:
                 raise NotImplementedError("Sorry, I have no idea what is expected "
                                           "in this situation. I don't think "
                                           "that it is well-defined either, "
@@ -892,12 +896,12 @@ class StaticSparseBackend(CGraphBackend):
         cdef StaticSparseCGraph cg = self._cg
 
         if directed:
-            if cg.directed:
+            if cg._directed:
                 return cg.in_degree(v) + cg.out_degree(v)
             else:
                 return 2*cg.out_degree(v)
         else:
-            if cg.directed:
+            if cg._directed:
                 raise NotImplementedError("Sorry, I have no idea what is expected "
                                           "in this situation. I don't think "
                                           "that it is well-defined either, "
@@ -926,7 +930,7 @@ class StaticSparseBackend(CGraphBackend):
 
         cdef StaticSparseCGraph cg = self._cg
 
-        if cg.directed:
+        if cg._directed:
             return cg.in_degree(v)
         else:
             return cg.out_degree(v)
@@ -1026,7 +1030,7 @@ class StaticSparseBackend(CGraphBackend):
         cdef StaticSparseCGraph cg = self._cg
         cdef short_digraph g
 
-        if cg.directed:
+        if cg._directed:
             for i in range(out_degree(cg.g_rev,v)):
                 yield self._vertex_to_labels[cg.g_rev.neighbors[v][i]]
         else:

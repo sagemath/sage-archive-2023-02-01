@@ -2734,7 +2734,7 @@ class FileCache:
             keystr = kwdstr + argstr
         return self._dir + self._prefix + keystr
 
-    def has_key(self, key):
+    def __contains__(self, key):
         """
         Return ``True`` if ``self[key]`` is defined and ``False`` otherwise.
 
@@ -2745,9 +2745,9 @@ class FileCache:
             sage: FC = FileCache(dir, memory_cache = False, prefix='foo')
             sage: k = ((),(('a',1),))
             sage: FC[k] = True
-            sage: FC.has_key(k)
+            sage: k in FC
             True
-            sage: FC.has_key(((),()))
+            sage: ((),()) in FC
             False
         """
         return os.path.exists(self._filename(key) + '.key.sobj')
@@ -2778,7 +2778,7 @@ class FileCache:
 
         cache = self._cache
         if cache is not None:
-            if cache.has_key(key):
+            if key in cache:
                 return cache[key]
 
         f = self._filename(key) + '.sobj'
@@ -2837,12 +2837,12 @@ class FileCache:
             sage: t = randint(0, 1000)
             sage: FC1[k] = t
             sage: del FC2[k]
-            sage: FC1.has_key(k)
+            sage: k in FC1
             False
        """
         f = self._filename(key)
         cache = self._cache
-        if cache is not None and cache.has_key(key):
+        if cache is not None and key in cache:
             del self._cache[key]
         if os.path.exists(f + '.sobj'):
             os.remove(f + '.sobj')

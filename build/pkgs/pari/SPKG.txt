@@ -14,8 +14,6 @@ Originally developed by Henri Cohen and his co-workers (Université
 Bordeaux I, France), PARI is now under the GPL and maintained by Karim
 Belabas with the help of many volunteer contributors.
 
-Website: http://pari.math.u-bordeaux.fr/
-
 == License ==
 
 GPL version 2+
@@ -27,42 +25,13 @@ GPL version 2+
  * Jeroen Demeyer
 
 == Upstream Contact ==
- * Karim Belabas, http://www.math.u-bordeaux.fr/~belabas/
- * pari-dev@list.cr.yp.to
+ * http://pari.math.u-bordeaux.fr/
 
 == Dependencies ==
  * MPIR (in place of GMP)
  * Readline
- * Termcap
  * GNU patch (shipped with Sage)
 
 == Special Update/Build Instructions ==
 
 See patches/README.txt for a list of patches.
-
-Most of the building of a new version of the PARI spkg is automated
-in the script spkg-src.  Normally, the following should work.  In case
-of doubt, have a look at the file spkg-src.
-
-  0) Edit the line "git checkout pari-2.5.5".
-
-  1) ./spkg-src
-     This will download the git sources to the directory parigit/
-     and will also download galdata.tgz and ellsea-small.tgz.
-     Then, a src/ directory will be created.
-     WARNING: This script will remove any existing src/ directory.
-     NOTES: The script ./spkg-src will actually compile PARI/GP, but
-     the compiled files are not used for the spkg.  We only need a few
-     files, in particular those created by bison.
-     Running spkg-src should be done on a reasonably standard machine
-     on which PARI/GP compiles out of the box.
-
-  2) Check that everything is okay somehow.  In particular, look at
-     patches/README.txt
-
-  3) rm -rf parigit
-     The directory parigit contains a git repository for the PARI sources.
-     When making this package just for testing, you can keep the parigit
-     directory.  However, it should not be there in a final version.
-
-  4) cd ..; sage --spkg pari-version-name

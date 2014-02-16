@@ -756,7 +756,8 @@ class Maxima(MaximaAbstract, Expect):
         line_echo = self._expect.readline()
         if not wait_for_prompt:
             return
-        assert line_echo.strip() == line.strip(), 'mismatch:\n' + line_echo + line
+        # line_echo sometimes has randomly inserted terminal echo in front #15811
+        assert line_echo.strip().endswith(line.strip()), 'mismatch:\n' + line_echo + line
 
         self._expect_expr(self._display_prompt)
         out = self._before()        # input echo + output prompt + output

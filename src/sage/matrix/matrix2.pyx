@@ -5855,9 +5855,9 @@ cdef class Matrix(matrix1.Matrix):
         self.check_mutability()
         cdef Matrix d, a
         cdef Py_ssize_t r, c
-        cdef bint transformation = kwds.has_key('transformation') and kwds['transformation']
+        cdef bint transformation = 'transformation' in kwds and kwds['transformation']
         if self._base_ring == ZZ:
-            if kwds.has_key('include_zero_rows') and not kwds['include_zero_rows']:
+            if 'include_zero_rows' in kwds and not kwds['include_zero_rows']:
                 raise ValueError, "cannot echelonize in place and delete zero rows"
             if transformation:
                 d, a = self.dense_matrix().echelon_form(**kwds)
@@ -6098,7 +6098,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: T*D == E
             True
         """
-        cdef bint transformation = (kwds.has_key('transformation') and kwds['transformation'])
+        cdef bint transformation = ('transformation' in kwds and kwds['transformation'])
         x = self.fetch('echelon_form')
         if x is not None:
             if not transformation:

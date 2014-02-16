@@ -1169,6 +1169,13 @@ class SkewPartitions(Parent, UniqueRepresentation):
     """
     Skew partitions.
 
+    .. WARNING::
+
+        The iterator of this class only yields skew partitions which
+        are reduced, in the sense that there are no empty rows
+        before the last nonempty row, and there are no empty columns
+        before the last nonempty column.
+
     EXAMPLES::
 
         sage: SkewPartitions(4)
@@ -1435,14 +1442,14 @@ class SkewPartitions_all(SkewPartitions):
 
 class SkewPartitions_n(SkewPartitions):
     """
-    The set of skew partitions of ``n`` with overlap
-    at least ``overlap`` and no empty row.
+    The set of skew partitions of ``n`` with overlap at least
+    ``overlap`` and no empty row.
 
     INPUT:
 
-    - ``n`` -- A non-negative integer
+    - ``n`` -- a non-negative integer
 
-    - ``overlap`` -- An integer
+    - ``overlap`` -- an integer (default: `0`)
 
     Caveat: this set is stable under conjugation only for ``overlap`` equal
     to 0 or 1. What exactly happens for negative overlaps is not yet
@@ -1474,12 +1481,7 @@ class SkewPartitions_n(SkewPartitions):
 
     def __init__(self, n, overlap):
         """
-        INPUT:
-
-         - ``n`` -- a non-negative integer
-         - ``overlap`` -- an integer
-
-        Returns the set of the skew partitions of ``n`` with overlap
+        Return the set of the skew partitions of ``n`` with overlap
         at least ``overlap``, and no empty row.
 
         The iteration order is not specified yet.
@@ -1494,6 +1496,11 @@ class SkewPartitions_n(SkewPartitions):
         ``Compositions(n)`` (which give the row lengths) and
         ``SkewPartition(n, row_lengths=...)``, and one would want to
         "inherit" list and cardinality from this composition.
+
+        INPUT:
+
+        - ``n`` -- a non-negative integer
+        - ``overlap`` -- an integer
 
         TESTS::
 
@@ -1583,7 +1590,9 @@ class SkewPartitions_n(SkewPartitions):
 
     def cardinality(self):
         """
-        Return the number of skew partitions of the integer `n`.
+        Return the number of skew partitions of the integer `n`
+        (with given overlap, if specified; and with no empty rows before
+        the last row).
 
         EXAMPLES::
 
@@ -1617,7 +1626,9 @@ class SkewPartitions_n(SkewPartitions):
 
     def __iter__(self):
         """
-        Iterate through the skew partitions of `n`.
+        Iterate through the skew partitions of `n`
+        (with given overlap, if specified; and with no empty rows before
+        the last row).
 
         EXAMPLES::
 

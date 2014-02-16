@@ -224,8 +224,15 @@ $(INST)/$(NTL): $(INST)/$(MPIR) $(INST)/$(GF2X)
 $(INST)/$(FPLLL): $(INST)/$(MPIR) $(INST)/$(MPFR)
 	+$(PIPE) "$(SAGE_SPKG) $(FPLLL) 2>&1" "tee -a $(SAGE_LOGS)/$(FPLLL).log"
 
-$(INST)/$(PARI): $(INST)/$(READLINE) $(INST)/$(MPIR)
+$(INST)/$(PARI): $(INST)/$(READLINE) $(INST)/$(MPIR) \
+    $(INST)/$(PARI_GALDATA) $(INST)/$(PARI_SEADATA_SMALL)
 	+$(PIPE) "$(SAGE_SPKG) $(PARI) 2>&1" "tee -a $(SAGE_LOGS)/$(PARI).log"
+
+$(INST)/$(PARI_GALDATA):
+	+$(PIPE) "$(SAGE_SPKG) $(PARI_GALDATA) 2>&1" "tee -a $(SAGE_LOGS)/$(PARI_GALDATA).log"
+
+$(INST)/$(PARI_SEADATA_SMALL):
+	+$(PIPE) "$(SAGE_SPKG) $(PARI_SEADATA_SMALL) 2>&1" "tee -a $(SAGE_LOGS)/$(PARI_SEADATA_SMALL).log"
 
 $(INST)/$(POLYBORI): $(INST)/$(PYTHON) $(INST)/$(IPYTHON) \
          $(INST)/$(SCONS) $(INST)/$(BOOST_CROPPED) \

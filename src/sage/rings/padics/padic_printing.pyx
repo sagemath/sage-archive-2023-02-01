@@ -60,7 +60,7 @@ def pAdicPrinter(ring, options={}):
         series printer for 5-adic Ring with capped relative precision 20
     """
     for option in ['mode', 'pos', 'ram_name', 'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet']:
-        if not options.has_key(option):
+        if option not in options:
             options[option] = None
     return pAdicPrinter_class(ring, **options)
 

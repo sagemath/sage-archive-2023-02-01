@@ -658,7 +658,7 @@ cdef class LinearFunction(ModuleElement):
         cdef bint first = True
         t = ""
 
-        if d.has_key(-1):
+        if -1 in d:
             coeff = d.pop(-1)
             if coeff!=0:
                 t = self._coeff_formatter(coeff, constant_term=True)

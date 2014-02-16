@@ -952,7 +952,7 @@ class InfinitePolynomial_sparse(RingElement):
             for t in L:
                 n = t[0][0]       # the variable *n*ame
                 s = int(t[0][1])  # the variable *s*hift
-                if not self._footprint.has_key(s):
+                if s not in self._footprint:
                     self._footprint[s] = [0]*l
                 self._footprint[s][self.parent()._name_dict[n]] = t[1]   # the exponent
             self._has_footprint = True
@@ -1035,7 +1035,7 @@ class InfinitePolynomial_sparse(RingElement):
         P = range(Lbig[-1]+1)
         gens = xrange(PARENT.ngens())
         if Lsmall[0]==0:
-            if not Fbig.has_key(0):
+            if 0 not in Fbig:
                 return (None,1,1)
             Lsmall.pop(0)
             Lbig.pop(0)

@@ -1682,7 +1682,7 @@ class SingularElement(ExpectElement):
                     sage_repr[ETuple(exp,ngens)]=k(singular_poly_list[coeff_start+i])
                 else:
                     elem = singular_poly_list[coeff_start+i]
-                    if not kcache.has_key(elem):
+                    if elem not in kcache:
                         kcache[elem] = k( elem )
                     sage_repr[ETuple(exp,ngens)]= kcache[elem]
 
@@ -1711,7 +1711,7 @@ class SingularElement(ExpectElement):
                     sage_repr[exp]=k(singular_poly_list[coeff_start+i])
                 else:
                     elem = singular_poly_list[coeff_start+i]
-                    if not kcache.has_key(elem):
+                    if elem not in kcache:
                         kcache[elem] = k( elem )
                     sage_repr[ exp ]= kcache[elem]
 

@@ -157,11 +157,11 @@ class HeckeModule_generic(sage.modules.module.Module_old):
             raise ArithmeticError, "p must be a prime"
         # T_{p^r} := T_p * T_{p^{r-1}} - eps(p)p^{k-1} T_{p^{r-2}}.
         pow = p**(r-1)
-        if not self._hecke_matrices.has_key(pow):
+        if pow not in self._hecke_matrices:
             # The following will force computation of T_{p^s}
             # for all s<=r-1, except possibly s=0.
             self._hecke_matrices[pow] = self._compute_hecke_matrix(pow)
-        if not self._hecke_matrices.has_key(1):
+        if 1 not in self._hecke_matrices:
             self._hecke_matrices[1] = self._compute_hecke_matrix(1)
         Tp = self._hecke_matrices[p]
         Tpr1 = self._hecke_matrices[pow]
@@ -188,7 +188,7 @@ class HeckeModule_generic(sage.modules.module.Module_old):
         prod = None
         for p, r in F:
             pow = int(p**r)
-            if not self._hecke_matrices.has_key(pow):
+            if pow not in self._hecke_matrices:
                 self._hecke_matrices[pow] = self._compute_hecke_matrix(pow)
             if prod is None:
                 prod = self._hecke_matrices[pow]
@@ -1206,7 +1206,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             self._dual_hecke_matrices
         except AttributeError:
             self._dual_hecke_matrices = {}
-        if not self._dual_hecke_matrices.has_key(n):
+        if n not in self._dual_hecke_matrices:
             T = self._compute_dual_hecke_matrix(n)
             self._dual_hecke_matrices[n] = T
         return self._dual_hecke_matrices[n]
@@ -1292,7 +1292,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         for p, r in F:
             (p, r) = (int(p), int(r))
             pow = p**r
-            if not (ev.has_key(pow) and ev[pow].has_key(name)):
+            if not (pow in ev and name in ev[pow]):
                 # TODO: Optimization -- do something much more
                 # intelligent in case character is not defined.  For
                 # example, compute it using the diamond operators <d>
@@ -1358,7 +1358,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         n = int(n)
         if n <= 0:
             raise IndexError, "n must be positive."
-        if not self._hecke_matrices.has_key(n):
+        if n not in self._hecke_matrices:
             T = self._compute_hecke_matrix(n)
             T.set_immutable()
             self._hecke_matrices[n] = T
@@ -1416,7 +1416,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             [ 0  0 -1  0]
         """
         d = int(d) % self.level()
-        if not self._diamond_matrices.has_key(d):
+        if d not in self._diamond_matrices:
             if self.character() is not None:
                 D = matrix_space.MatrixSpace(self.base_ring(),self.rank())(self.character()(d))
             else:
@@ -1757,7 +1757,7 @@ def _dict_set(v, n, key, val):
         sage: _dict_set(v, 1, 3, 4); v
         {1: {2: 3, 3: 4}}
     """
-    if v.has_key(n):
+    if n in v:
         v[n][key] = val
     else:
         v[n] = {key:val}

@@ -9503,7 +9503,7 @@ cdef class Expression(CommutativeRingElement):
         from sage.plot.plot import plot
 
         # see if the user passed a variable in.
-        if kwds.has_key('param'):
+        if 'param' in kwds:
             param = kwds['param']
         else:
             param = None

@@ -126,7 +126,7 @@ def mode(v):
 
     freq = {}
     for i in v:
-        if freq.has_key(i):
+        if i in freq:
             freq[i] += 1
         else:
             freq[i] = 1

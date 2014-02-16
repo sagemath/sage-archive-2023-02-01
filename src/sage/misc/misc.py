@@ -14,9 +14,9 @@ TESTS:
 
 Check the fix from trac #8323::
 
-    sage: globals().has_key('name')
+    sage: 'name' in globals()
     False
-    sage: globals().has_key('func')
+    sage: 'func' in globals()
     False
 
 """
@@ -910,7 +910,7 @@ def assert_attribute(x, attr, init=None):
     If the object x has the attribute attr, do nothing. If not, set
     x.attr to init.
     """
-    if x.__dict__.has_key(attr): return
+    if attr in x.__dict__: return
     if attr[:2] == "__":
         z = str(x.__class__).split("'")
         if len(z) > 1:

@@ -144,7 +144,7 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
         return L
     else:
         v = []
-        if kwds.has_key('texture'):
+        if 'texture' in kwds:
             kwds = kwds.copy()
             texture = kwds.pop('texture')
         else:
@@ -644,7 +644,7 @@ def text3d(txt, (x,y,z), **kwds):
 
         sage: text3d("Sage is...",(2,12,1), rgbcolor=(1,0,0)) + text3d("quite powerful!!",(4,10,0), rgbcolor=(0,0,1))
     """
-    if not kwds.has_key('color') and not kwds.has_key('rgbcolor'):
+    if 'color' not in kwds and 'rgbcolor' not in kwds:
         kwds['color'] = (0,0,0)
     G = Text(txt, **kwds).translate((x,y,z))
     G._set_extra_kwds(kwds)

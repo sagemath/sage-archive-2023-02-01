@@ -178,7 +178,7 @@ class Mwrank_class(Expect):
             sage: from sage.interfaces.mwrank import Mwrank_class
             sage: M = Mwrank_class('-v 0 -l')
             sage: M('0 -1 1 0 0')
-            'Curve [0,-1,1,0,0] :\tRank = 0\n\n\nRegulator = 1\n'
+            'Curve [0,-1,1,0,0] :...Rank = 0...Regulator = 1...'
 
             sage: from sage.interfaces.mwrank import Mwrank_class
             sage: TestSuite(Mwrank_class).run()
@@ -231,7 +231,7 @@ class Mwrank_class(Expect):
         The input can be five integers separated by whitespace::
 
             sage: mwrank('0 -1 1 0 0')
-            'Curve [0,-1,1,0,0] :\tBasic pair: I=16, J=-304\n...'
+            'Curve [0,-1,1,0,0] :...Basic pair: I=16, J=-304...'
 
         Or a list or tuple of exactly five integers::
 

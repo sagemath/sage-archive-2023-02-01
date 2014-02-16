@@ -1744,7 +1744,7 @@ class EllipticCurveIsogeny(Morphism):
                 self.__kernel_2tor[xQ] = (xQ,yQ,gxQ,gyQ,vQ,uQ)
                 v = v + vQ
                 w = w + (uQ + xQ*vQ)
-            elif (not self.__kernel_non2tor.has_key(xQ)): # Q is not a 2-torsion
+            elif xQ not in self.__kernel_non2tor: # Q is not a 2-torsion
                 vQ = 2*gxQ - a1*gyQ
                 self.__kernel_non2tor[xQ] = (xQ,yQ,gxQ,gyQ,vQ,uQ)
                 v = v + vQ
@@ -1858,7 +1858,7 @@ class EllipticCurveIsogeny(Morphism):
 
         """
         # first check if the point is in the kernel
-        if ( self.__kernel_2tor.has_key(xP) or self.__kernel_non2tor.has_key(xP) ) :
+        if xP in self.__kernel_2tor or xP in self.__kernel_non2tor:
             return self.__intermediate_codomain(0)
 
         outP = self.__compute_via_velu(xP,yP)

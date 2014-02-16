@@ -594,7 +594,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
                 self.__bernoulli
             except AttributeError:
                 self.__bernoulli = {}
-            if self.__bernoulli.has_key(k):
+            if k in self.__bernoulli:
                 return self.__bernoulli[k]
         N = self.modulus()
         K = self.base_ring()
@@ -1762,7 +1762,7 @@ def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None,
         zeta_order = zeta.multiplicative_order()
 
     key = (base_ring, modulus, zeta, zeta_order)
-    if _cache.has_key(key):
+    if key in _cache:
         x = _cache[key]()
         if not x is None: return x
 

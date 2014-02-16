@@ -293,7 +293,7 @@ def _get_from_cache(key):
         True
     """
     try:
-        if _cache.has_key(key):
+        if key in _cache:
             return _cache[key]   # put () here to re-enable weakrefs
     except TypeError, msg:
         raise TypeError, 'key = %s\n%s'%(key,msg)

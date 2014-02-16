@@ -1100,7 +1100,6 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             # could check which of x and y has less terms
             # for mx, cx in x:
             for mx, cx in x._monomial_coefficients.iteritems():
-                # if not y.has_key(mx):
                 if mx not in y._monomial_coefficients:
                     continue
                 else:

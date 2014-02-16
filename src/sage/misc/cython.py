@@ -35,7 +35,7 @@ def cblas():
         sage: sage.misc.cython.cblas() # random -- depends on OS, etc.
         'cblas'
     """
-    if os.environ.has_key('SAGE_CBLAS'):
+    if 'SAGE_CBLAS' in os.environ:
         return os.environ['SAGE_CBLAS']
     elif os.path.exists('/usr/lib/libcblas.dylib') or \
          os.path.exists('/usr/lib/libcblas.so'):
@@ -156,7 +156,7 @@ def environ_parse(s):
     else:
         j = i + j
     name = s[i+1:j]
-    if os.environ.has_key(name):
+    if name in os.environ:
         s = s[:i] + os.environ[name] + s[j:]
     else:
         return s
@@ -425,7 +425,7 @@ def cython(filename, verbose=False, compile_message=False,
         name = base
     else:
         global sequence_number
-        if not sequence_number.has_key(base):
+        if base not in sequence_number:
             sequence_number[base] = 0
         name = '%s_%s'%(base, sequence_number[base])
 

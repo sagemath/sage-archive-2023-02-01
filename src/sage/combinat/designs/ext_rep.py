@@ -694,7 +694,7 @@ class XTree(object):
             [0, 1, 2]
         """
 
-        if self.xt_attributes.has_key(attr):
+        if attr in self.xt_attributes:
             return self.xt_attributes[attr]
         else:
             for child in self.xt_children:

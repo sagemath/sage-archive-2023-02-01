@@ -663,7 +663,7 @@ class LatinSquare:
                 if e >= n: return False
 
                 # Entry has already appeared in this row:
-                if vals_in_row.has_key(e): return False
+                if e in vals_in_row: return False
 
                 vals_in_row[e] = True
 
@@ -679,7 +679,7 @@ class LatinSquare:
                 if e >= n: return False
 
                 # Entry has already appeared in this column:
-                if vals_in_col.has_key(e): return False
+                if e in vals_in_col: return False
 
                 vals_in_col[e] = True
 
@@ -1057,8 +1057,8 @@ class LatinSquare:
                     if (not allow_subtrade) and self[r, c] == e: continue
 
                     # The permissible symbols must come from this row/column.
-                    if not(valsrow.has_key(e)): continue
-                    if not(valscol.has_key(e)): continue
+                    if e not in valsrow: continue
+                    if e not in valscol: continue
 
                     dlx_rows.append([c_OFFSET, r_OFFSET, xy_OFFSET])
 
@@ -2216,7 +2216,7 @@ def pq_group_bitrade_generators(p, q):
     P = []
     seenValues = {}
     for i in range(2, q):
-        if seenValues.has_key(i):
+        if i in seenValues:
             continue
 
         cycle = []
@@ -2594,8 +2594,8 @@ def dlxcpp_rows_and_map(P):
                 # We only want the correct value to pop in here
                 if P[r, c] >= 0 and P[r, c] != e: continue
 
-                if P[r, c] < 0 and valsrow.has_key(e): continue
-                if P[r, c] < 0 and valscol.has_key(e): continue
+                if P[r, c] < 0 and e in valsrow: continue
+                if P[r, c] < 0 and e in valscol: continue
 
                 dlx_rows.append([c_OFFSET, r_OFFSET, xy_OFFSET])
 

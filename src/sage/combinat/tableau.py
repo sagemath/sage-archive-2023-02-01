@@ -4084,7 +4084,8 @@ class SemistandardTableaux(Tableaux):
 
     - ``size`` -- The size of the tableaux
     - ``shape`` -- The shape of the tableaux
-    - ``eval`` -- The weight (also called content or weight) of the tableaux
+    - ``eval`` -- The weight (also called content or evaluation) of
+      the tableaux
     - ``max_entry`` -- A maximum entry for the tableaux.  This can be a
       positive integer or infinity (``oo``). If ``size`` or ``shape`` are
       specified, ``max_entry`` defaults to be ``size`` or the size of
@@ -4093,7 +4094,7 @@ class SemistandardTableaux(Tableaux):
     Positional arguments:
 
     - The first argument is interpreted as either ``size`` or ``shape``
-      according to  whether it is an integer or a partition
+      according to whether it is an integer or a partition
     - The second keyword argument will always be interpreted as ``eval``
 
     OUTPUT:
@@ -4366,7 +4367,7 @@ class SemistandardTableaux(Tableaux):
             sage: S = SemistandardTableaux()
             sage: TestSuite(S).run()
         """
-        if kwds.has_key('max_entry'):
+        if 'max_entry' in kwds:
             self.max_entry = kwds['max_entry']
             kwds.pop('max_entry')
         else:
@@ -5705,20 +5706,19 @@ class StandardTableaux_shape(StandardTableaux):
 
         yield self.element_class(self, tableau)
 
-        if self.cardinality() == 1:
-            last_tableau = True
-        else:
-            last_tableau = False
+        # iterate until we reach the last tableau which is 
+        # filled with the row indices.
+        last_tableau=flatten([ [row]*l for (row,l) in enumerate(pi)])
 
-        while not last_tableau:
-            #Convert the tableau to "vector format"
-            #tableau_vector[i] is the row that number i
-            #is in
-            tableau_vector = [None]*size
-            for row in range(len(pi)):
-                for col in range(pi[row]):
-                    tableau_vector[tableau[row][col]-1] = row
+        #Convert the tableau to "vector format"
+        #tableau_vector[i] is the row that number i
+        #is in
+        tableau_vector = [None]*size
+        for row in range(len(pi)):
+            for col in range(pi[row]):
+                tableau_vector[tableau[row][col]-1] = row
 
+        while tableau_vector!=last_tableau:
             #Locate the smallest integer j such that j is not
             #in the lowest corner of the subtableau T_j formed by
             #1,...,j.  This happens to be first j such that
@@ -5769,20 +5769,6 @@ class StandardTableaux_shape(StandardTableaux):
                 row_count[tableau_vector[i]] += 1
 
             yield self.element_class(self, tableau)
-
-            #Check to see if we are at the last tableau
-            #The last tableau if given by filling in the
-            #partition along the rows.  For example, the
-            #last tableau corresponding to [3,2] is
-            #[[1,2,3],
-            # [4,5]]
-            last_tableau = True
-            i = 1
-            for row in range(len(pi)):
-                for col in range(pi[row]):
-                    if tableau[row][col] != i:
-                        last_tableau = False
-                    i += 1
 
         return
 

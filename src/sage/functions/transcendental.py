@@ -407,7 +407,7 @@ class DickmanRho(BuiltinFunction):
         elif x <= 2:
             return 1 - x.log()
         n = x.floor()
-        if self._cur_prec < x.parent().prec() or not self._f.has_key(n):
+        if self._cur_prec < x.parent().prec() or n not in self._f:
             self._cur_prec = rel_prec = x.parent().prec()
             # Go a bit beyond so we're not constantly re-computing.
             max = x.parent()(1.1)*x + 10

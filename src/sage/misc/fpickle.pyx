@@ -125,7 +125,7 @@ def pickleModule(module):
 
 def unpickleModule(name):
     'support function for copy_reg to unpickle module refs'
-    if oldModules.has_key(name):
+    if name in oldModules:
         name = oldModules[name]
     return __import__(name,{},{},'x')
 

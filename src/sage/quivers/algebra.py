@@ -259,7 +259,7 @@ class PathAlgebra(CombinatorialFreeModule):
         algebras `kQ` such that `k` has a coercion into the base ring of
         ``self`` and `Q` is a subquiver of the quiver of ``self``.
 
-        In addition, the free algebra of a subquiver coerces into the
+        In addition, the path semigroup of a subquiver coerces into the
         algebra.
 
         TESTS::
@@ -448,15 +448,14 @@ class PathAlgebra(CombinatorialFreeModule):
 
     def semigroup(self):
         """
-        Return the semigroup from which the algebra ``self`` was
+        Return the (partial) semigroup from which the algebra ``self`` was
         constructed.
 
         NOTE:
 
-        The semigroup is the same as the free small category that is
-        associated with the underlying quiver (except that the
-        composition `f \circ g` of two morphisms in the category
-        corresponds to the product `g*f` in the path semigroup).
+        The partial semigroup is formed by the paths of a quiver, multiplied
+        by concatenation. If the quiver has more than a single vertex, then
+        multiplication in the path semigrop is not always defined.
 
         OUTPUT:
 

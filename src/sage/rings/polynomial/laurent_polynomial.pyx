@@ -13,20 +13,27 @@ from sage.misc.derivative import multi_derivative
 from sage.rings.polynomial.polynomial_element import Polynomial
 
 
-cdef class LaurentPolynomial_univariate(CommutativeAlgebraElement):
+cdef class LaurentPolynomial_generic(CommutativeAlgebraElement):
+    """
+    A generic Laurent polynomial.
+    """
+    pass
+
+
+cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
     """
     A univariate Laurent polynomial in the form of `t^n \cdot f`
     where `f` is a polynomial in `t`.
 
     INPUT:
 
-    -  ``parent`` -- a Laurent polynomial ring
+    - ``parent`` -- a Laurent polynomial ring
 
-    -  ``f`` -- a polynomial (or something can be coerced to one)
+    - ``f`` -- a polynomial (or something can be coerced to one)
 
-    -  ``n`` -- (default: 0) an integer
+    - ``n`` -- (default: 0) an integer
 
-    AUTHORS::
+    AUTHORS:
 
     - Tom Boothby (2011) copied this class almost verbatim from
       ``laurent_series_ring_element.pyx``, so most of the credit goes to
@@ -123,7 +130,7 @@ cdef class LaurentPolynomial_univariate(CommutativeAlgebraElement):
             sage: g.is_unit()
             False
             sage: 1/g
-            1/(2*s)
+            1/2*s^-1
 
         ALGORITHM: A Laurent polynomial is a unit if and only if its "unit
         part" is a unit.
@@ -160,7 +167,7 @@ cdef class LaurentPolynomial_univariate(CommutativeAlgebraElement):
             sage: not z
             True
         """
-        return not not self.__u
+        return not self.__u.is_zero()
 
     def _im_gens_(self, codomain, im_gens):
         """
@@ -227,14 +234,14 @@ cdef class LaurentPolynomial_univariate(CommutativeAlgebraElement):
                 if not first:
                     s += " + "
                 if not atomic_repr and (x[1:].find("+") != -1 or x[1:].find("-") != -1):
-                    x = "(%s)"%x
+                    x = "({})".format(x)
                 if e == 1:
-                    var = "*%s"%X
+                    var = "*{}".format(X)
                 elif e == 0:
                     var = ""
                 else:
-                    var = "*%s^%s"%(X,e)
-                s += "%s%s"%(x,var)
+                    var = "*{}^{}".format(X,e)
+                s += "{}{}".format(x,var)
                 first = False
         s = s.replace(" + -", " - ")
         s = s.replace(" 1*"," ")
@@ -277,20 +284,20 @@ cdef class LaurentPolynomial_univariate(CommutativeAlgebraElement):
                 if not first:
                     s += " + "
                 if not atomic_repr and e > 0 and (x[1:].find("+") != -1 or x[1:].find("-") != -1):
-                    x = "\\left(%s\\right)"%x
+                    x = "\\left({}\\right)".format(x)
                 if e == 1:
-                    var = "|%s"%X
+                    var = "|{}".format(X)
                 elif e == 0:
                     var = ""
                 elif e > 0:
-                    var = "|%s^{%s}"%(X,e)
+                    var = "|{}^{{{}}}".format(X,e)
                 if e >= 0:
-                    s += "%s%s"%(x,var)
+                    s += "{}{}".format(x,var)
                 else: # negative e
                     if e == -1:
-                        s += "\\frac{%s}{%s}"%(x, X)
+                        s += "\\frac{{{}}}{{{}}}".format(x, X)
                     else:
-                        s += "\\frac{%s}{%s^{%s}}"%(x, X,-e)
+                        s += "\\frac{{{}}}{{{}^{{{}}}}}".format(x, X,-e)
                 first = False
         s = s.replace(" + -", " - ")
         s = s.replace(" 1|"," ")
@@ -515,8 +522,7 @@ cdef class LaurentPolynomial_univariate(CommutativeAlgebraElement):
         if self.__n == right.__n:
             self.__u += right.__u
             return self
-        else:
-            return self._add_(right)
+        return self._add_(right)
 
     cpdef ModuleElement _sub_(self, ModuleElement right_m):
         """
@@ -709,7 +715,7 @@ cdef class LaurentPolynomial_univariate(CommutativeAlgebraElement):
         """
         return LaurentPolynomial_univariate(self._parent, self.__u, self.__n - k)
 
-    cpdef RingElement _div_(self, RingElement right_r):
+    cpdef RingElement _div_(self, RingElement rhs):
         """
         EXAMPLES::
 
@@ -719,23 +725,16 @@ cdef class LaurentPolynomial_univariate(CommutativeAlgebraElement):
             sage: f / x
             1 + x + 3*x^3
             sage: f / g
-            (x + x^2 + 3*x^4)/(x^-7 - x + x^2 - x^4)
+            (3*x^11 + x^9 + x^8)/(-x^11 + x^9 - x^8 + 1)
             sage: (x^-2 + x)*(x^-2 + 1) / ((x^5 + x^8)*(x + 2))
-            (1 + x^2)/(2*x^9 + x^10)
+            (x^2 + 1)/(x^10 + 2*x^9)
             sage: (x^-2 + x)*(x^-2 + 1) / ((x^-5 + x^-8)*(x + 2))
-            (x^4 + x^6)/(2 + x)
+            (x^6 + x^4)/(x + 2)
         """
-        cdef LaurentPolynomial_univariate right = <LaurentPolynomial_univariate>right_r
+        cdef LaurentPolynomial_univariate right = <LaurentPolynomial_univariate> rhs
         if right.__u.is_zero():
             raise ZeroDivisionError
-
-        try:
-            return LaurentPolynomial_univariate(self._parent,
-                             self.__u / right.__u,
-                             self.__n - right.__n)
-        except TypeError:
-            # If that didn't work, try the fraction field
-            return RingElement._div_(self, right)
+        return self * ~right
 
     def __invert__(self):
         """
@@ -753,15 +752,21 @@ cdef class LaurentPolynomial_univariate(CommutativeAlgebraElement):
             sage: i.parent() is R
             True
             sage: i = ~(t^-2 + 2 + t^2); i
-            1/(t^-2 + 2 + t^2)
+            t^2/(t^4 + 2*t^2 + 1)
             sage: i.parent()
-            Fraction Field of Univariate Laurent Polynomial Ring in t over Rational Field
+            Fraction Field of Univariate Polynomial Ring in t over Rational Field
         """
-        if self.__u.is_constant():
-            return LaurentPolynomial_univariate(self._parent, ~self.__u, -self.__n)
-        if self.__u.is_unit():
-            return LaurentPolynomial_univariate(self._parent, self.__u.inverse_of_unit(), -self.__n)
-        return self._parent.one() / self
+        if self.__u.is_constant(): # this has a single term c*x^n
+            if self.__u.is_unit():
+                return LaurentPolynomial_univariate(self._parent, self.__u.inverse_of_unit(), -self.__n)
+            # Enlarge the ring so we can divide by the coefficient
+            R = self.base_ring().fraction_field()
+            P = self.parent().change_ring(R)
+            return LaurentPolynomial_univariate(P, ~R(self.__u), -self.__n)
+        P = self.parent().polynomial_ring()
+        if self.__n < 0:
+            return P.gen()**-self.__n / self.__u
+        return P.one() / (P.gen()**self.__n * self.__u)
 
     def inverse_of_unit(self):
         """
@@ -780,6 +785,31 @@ cdef class LaurentPolynomial_univariate(CommutativeAlgebraElement):
         if self.is_unit():
             return self.__invert__()
         raise ArithmeticError("element is not a unit")
+
+    def _fraction_pair(self):
+        """
+        Return one representation of ``self`` as a pair
+        ``(numerator, denominator)``.
+
+        Here both the numerator and the denominator are polynomials.
+
+        This is used for coercion into the fraction field.
+
+        EXAMPLES::
+
+            sage: L.<x> = LaurentPolynomialRing(QQ)
+            sage: f = 4*x^-7 + 3*x^3 + 1 + 2*x^4 + x^6
+            sage: f._fraction_pair()
+            (x^13 + 2*x^11 + 3*x^10 + x^7 + 4, x^7)
+        """
+        P = self.parent().polynomial_ring()
+        numer = self.__u
+        denom = P.one()
+        if self.__n > 0:
+            numer *= P.gen()**self.__n
+        elif self.__n < 0:
+            denom *= P.gen()**-self.__n
+        return (numer, denom)
 
     def gcd(self, right):
         """
@@ -1255,7 +1285,10 @@ cdef class LaurentPolynomial_univariate(CommutativeAlgebraElement):
         """
         return self[0]
 
-cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
+cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
+    """
+    Multivariate Laurent polynomials.
+    """
     def __init__(self, parent, x, reduce=True):
         """
         Currently, one can only create LaurentPolynomials out of dictionaries
@@ -1359,7 +1392,6 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
             if e > 0:
                 self._poly = self._poly / self._poly.parent().gen(i)
                 self._mon = self._mon.eadd_p(e, i)
-
 
     def _dict(self):
         """

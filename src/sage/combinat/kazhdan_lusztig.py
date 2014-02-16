@@ -12,7 +12,7 @@ Kazhdan-Lusztig Polynomials
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.functions.other import floor
 from sage.misc.cachefunc import cached_method
-from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial_mpair
+from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial_generic
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.root_system.coxeter_group import CoxeterGroup
@@ -73,7 +73,7 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
         self._base_ring = q.parent()
         if is_Polynomial(q):
             self._base_ring_type = "polynomial"
-        elif isinstance(q, LaurentPolynomial_mpair):
+        elif isinstance(q, LaurentPolynomial_generic):
             self._base_ring_type = "laurent"
         else:
             self._base_ring_type = "unknown"

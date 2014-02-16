@@ -259,7 +259,7 @@ class PathAlgebra(CombinatorialFreeModule):
         algebras `kQ` such that `k` has a coercion into the base ring of
         ``self`` and `Q` is a subquiver of the quiver of ``self``.
 
-        In addition, the path semigroup of a subquiver coerces into the
+        In particular, the path semigroup of a subquiver coerces into the
         algebra.
 
         TESTS::
@@ -425,7 +425,7 @@ class PathAlgebra(CombinatorialFreeModule):
     ###########################################################################
     #                                                                         #
     # DATA FUNCTIONS                                                          #
-    #    These functions return data and subspaces of the path algebra.     #
+    #    These functions return data and subspaces of the path algebra.       #
     #                                                                         #
     ###########################################################################
 

@@ -11,12 +11,21 @@ from representation import QuiverRep
 from sage.graphs.digraph import DiGraph
 
 class PathSemigroup(UniqueRepresentation, Parent):
-    """
+    r"""
     The partial semigroup that is given by the directed paths of a quiver,
     subject to concatenation.
 
-    Note that a partial semigroup is not required to have a neutral
-    element (and this one usually does not).
+    See :mod:`~sage.quivers.__init__` for a definition of this
+    semigroup and of the notion of a path in a quiver.
+
+    Note that a *partial semigroup* here is defined as a set `G` with a
+    partial binary operation `G \times G \to G \cup \{\mbox{None}\}`,
+    which is written infix as a `*` sign and satisfies associativity in
+    the following sense: If `a`, `b` and `c` are three elements of `G`,
+    and if one of the products `(a*b)*c` and `a*(b*c)` exists, then so
+    does the other and the two products are equal. A partial semigroup
+    is not required to have a neutral element (and this one usually has
+    no such element).
 
     EXAMPLES::
 
@@ -773,22 +782,23 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: F.all_paths(3, 1)
             []
 
-        If end=None then all edge paths beginning at start are returned, including the
-        trivial path::
+        If ``end=None`` then all edge paths beginning at ``start`` are
+        returned, including the trivial path::
 
             sage: F.all_paths(2)
             [e_2, d]
 
-        If start=None then all edge paths ending at end are returned, including the
-        trivial path.  Note that the two edges from vertex 1 to vertex 2 count as two
-        different edge paths::
+        If ``start=None`` then all edge paths ending at ``end`` are
+        returned, including the trivial path.  Note that the two edges
+        from vertex 1 to vertex 2 count as two different edge paths::
 
             sage: F.all_paths(None, 2)
             [a, b, e_2]
             sage: F.all_paths(end=2)
             [a, b, e_2]
 
-        If start=end=None then all edge paths are returned, including trivial paths::
+        If ``start=end=None`` then all edge paths are returned, including
+        trivial paths::
 
             sage: F.all_paths()
             [e_1, a, b, a*d, b*d, c, e_2, d, e_3]

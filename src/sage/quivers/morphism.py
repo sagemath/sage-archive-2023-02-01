@@ -6,7 +6,7 @@ class QuiverRepHom(CallMorphism):
     A homomorphism of quiver representations is for each vertex of the quiver a
     homomorphism of the spaces assigned to those vertices such that these
     homomorphisms commute with the edge maps.  The domain and codomain of the
-    homomorphism are required to be representations over the same quiver with
+    homomorphism are required to be representations of the same quiver with
     the same base ring.
 
     INPUT:

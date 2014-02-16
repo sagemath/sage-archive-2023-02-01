@@ -43,13 +43,13 @@ class QuiverRepFactory(UniqueFactory):
     ``P``.
 
     - ``spaces`` - dict (default: empty), a dictionary associating to each vertex a
-      free module over the base ring k.  Not all vertices must be specified,
-      unspecified vertices are automatically set to k^0.  Keys of the dictionary
+      free module over the base ring `k`.  Not all vertices must be specified;
+      unspecified vertices are automatically set to `k^0`.  Keys of the dictionary
       that don't correspond to vertices are ignored.
 
     - ``maps`` - dict (default: empty), a dictionary associating to each edge a map
       whose domain and codomain are the spaces associated to the initial and
-      terminal vertex of the edge respectively.  Not all edges must be specified,
+      terminal vertex of the edge respectively.  Not all edges must be specified;
       unspecified edges are automatically set to the zero map.  Keys of the
       dictionary that don't correspond to edges are ignored.
 
@@ -82,8 +82,8 @@ class QuiverRepFactory(UniqueFactory):
     Using the second and third options requires that the following keyword be
     passed to the constructor.  This must be passed as a keyword.
 
-    - ``option`` - string (default: None), either 'values' or 'paths'.  None is
-      equivalent to 'values'.
+    - ``option`` - string (default: ``None``), either 'values' or 'paths' or
+      'dual paths'.  ``None`` is equivalent to 'values'.
 
     OUTPUT:
 

@@ -1,4 +1,4 @@
-"""
+r"""
 This module contains tools for computing with quiver representations.
 
 AUTHOR:
@@ -16,11 +16,12 @@ representation theoretic code, it is assumed that
 - each edge of the quiver is labelled with a nonempty string.  The label cannot
   begin with 'e_' or contain '*' and distinct edges must have distinct labels.
 
-As far as the :class:`~sage.graphs.digraph.DiGraph` class is concerned, a path
-is a finite list of vertices `v_1, ..., v_n` such that there exists an edge
-from `v_i` to `v_{i + 1}`.  If there are multiple edges between the same two
-vertices this does not contribute additional paths as listed by the DiGraph
-class; for example only two paths are listed from 1 to 3 in Q::
+As far as the :class:`~sage.graphs.digraph.DiGraph` class is concerned, a
+path is a finite list of pairwise distinct vertices `v_1, ..., v_n` such
+that there exists an edge from `v_i` to `v_{i + 1}`.  If there are
+multiple edges between the same two vertices this does not contribute
+additional paths as listed by the DiGraph class; for example only two
+paths are listed from 1 to 3 in Q::
 
     sage: Q = DiGraph({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}})
     sage: Q.edges()
@@ -28,9 +29,16 @@ class; for example only two paths are listed from 1 to 3 in Q::
     sage: Q.all_paths(1, 3)
     [[1, 2, 3], [1, 3]]
 
-When listing paths in a Quiver in representation theory, it is of theoretical
-importance to distinguish parallel edges between the same two vertices of a
-Quiver.  Specifically we say a path is given by two vertices, ``start`` and
+The notion of a path in a quiver (in representation theory) is
+fundamentally different in several aspects. First, paths are no longer
+required to have distinct vertices, or even distinct edges; thus, "path"
+in quiver theory is closer to the notion of "walk" in graph theory.
+Furthermore, paths in quiver theory "know" their edges, so parallel edges
+between the same two vertices of a Quiver make different paths. But
+paths in quiver theory also "know" their vertices, so that a length-`0`
+path from `a` to `a` is not the same as a length-`0` path from `b` to `b`
+for `a \neq b`.
+Formally, we say that a path is given by two vertices, ``start`` and
 ``end``, and a finite (possibly empty) list of edges `e_1, e_2, ..., e_n`
 such that the initial vertex of `e_1` is ``start``, the final vertex of `e_i`
 is the initial vertex of `e_{i + 1}`, and the final vertex of `e_n` is

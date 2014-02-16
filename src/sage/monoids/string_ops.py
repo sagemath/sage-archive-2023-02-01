@@ -43,7 +43,7 @@ def frequency_distribution(S, n=1, field=None):
         eps = field(1)/N
         for i in range(N):
             c = S[i]
-            if P.has_key(c):
+            if c in P:
                 P[c] += eps
             else:
                 P[c] = eps
@@ -68,7 +68,7 @@ def coincidence_index(S,n=1):
     X = {}
     for i in range(N):
         c = S[i:i+n]
-        if X.has_key(c):
+        if c in X:
             X[c] += 1
         else:
             X[c] = 1

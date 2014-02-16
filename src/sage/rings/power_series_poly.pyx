@@ -294,7 +294,7 @@ cdef class PowerSeries_poly(PowerSeries):
 
         if len(kwds) >= 1:
             name = P.variable_name()
-            if kwds.has_key(name): # a keyword specifies the power series generator
+            if name in kwds: # a keyword specifies the power series generator
                 if len(x) > 0:
                     raise ValueError, "must not specify %s keyword and positional argument" % name
                 a = self(kwds[name])

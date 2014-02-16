@@ -2242,7 +2242,7 @@ cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
         elif n == self.prec_cap:
             return &self.top_mod
         else:
-            if self.modulus_dict.has_key(n):
+            if n in self.modulus_dict:
                 return &((<ntl_ZZ_pX_Modulus>self.modulus_dict[n]).x)
             else:
                 c = self.get_context(n)

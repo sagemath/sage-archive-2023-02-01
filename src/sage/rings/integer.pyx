@@ -3386,12 +3386,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
              more information
 
            - ``'ecm'`` - use ECM-GMP, an implementation of Hendrik
-             Lenstra's elliptic curve method; WARNING: the factors
-             returned may not be prime, see ecm.factor? for more
-             information
+             Lenstra's elliptic curve method.
 
-        -  ``proof`` - bool (default: True) whether or not to
-           prove primality of each factor (only applicable for PARI).
+        - ``proof`` - bool (default: True) whether or not to prove
+           primality of each factor (only applicable for ``'pari'``
+           and ``'ecm'``).
 
         -  ``limit`` - int or None (default: None) if limit is
            given it must fit in a signed int, and the factorization is done
@@ -3458,8 +3457,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: q = next_prime(10^21)
             sage: n = p*q
             sage: n.factor(algorithm='ecm')
-            doctest:... RuntimeWarning: the factors returned by ecm
-            are not guaranteed to be prime; see ecm.factor? for details
             1000000000000037 * 1000000000000000000117
 
         TESTS::
@@ -3538,11 +3535,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             F = IntegerFactorization(res, unit)
             return F
         elif algorithm == 'ecm':
-            message = "the factors returned by ecm are not guaranteed to be prime; see ecm.factor? for details"
-            from warnings import warn
-            warn(message, RuntimeWarning, stacklevel=2)
             from sage.interfaces.ecm import ecm
-            res = [(p, 1) for p in ecm.factor(n)]
+            res = [(p, 1) for p in ecm.factor(n, proof=proof)]
             F = IntegerFactorization(res, unit)
             return F
         else:
@@ -4495,11 +4489,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_prime(self, proof=None):
         r"""
-        Returns ``True`` if ``self`` is prime.
+        Test whether ``self`` is prime.
 
         INPUT:
 
-        - ``proof`` -- If False, use a strong pseudo-primality test.
+        - ``proof`` -- Boolean or ``None`` (default). If False, use a
+          strong pseudo-primality test (see :meth:`is_pseudoprime`).
           If True, use a provable primality test.  If unset, use the
           default arithmetic proof flag.
 
@@ -4582,7 +4577,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_pseudoprime(self):
         r"""
-        Returns ``True`` if self is a pseudoprime
+        Test whether self is a pseudoprime
+
+        This uses PARI's Baillie-PSW probabilistic primality
+        test. Currently, there are no known pseudoprimes for
+        Baille-PSW that are not actually prime. However it is
+        conjectured that there are infinitely many.
 
         EXAMPLES::
 

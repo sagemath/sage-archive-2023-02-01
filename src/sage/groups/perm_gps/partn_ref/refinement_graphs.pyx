@@ -1009,7 +1009,7 @@ def get_orbits(list gens, int n):
     orbit_dict = {}
     for i from 0 <= i < n:
         j = OP_find(OP, i)
-        if orbit_dict.has_key(j):
+        if j in orbit_dict:
             orbit_dict[j].append(i)
         else:
             orbit_dict[j] = [i]

@@ -1784,7 +1784,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             if callable(rep_mapping):
                 rep = rep_mapping(x)
             # avoid hashing entries, especially algebraic numbers
-            elif rep_mapping and rep_mapping.has_key(x):
+            elif rep_mapping and x in rep_mapping:
                 rep = rep_mapping.get(x)
             else:
                 rep = repr(x)

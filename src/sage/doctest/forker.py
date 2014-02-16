@@ -791,7 +791,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','forker.py')
             sage: FDS = FileDocTestSource(filename,DD)
             sage: globs = RecordingDict(globals())
-            sage: globs.has_key('doctest_var')
+            sage: 'doctest_var' in globs
             False
             sage: doctests, extras = FDS.create_doctests(globs)
             sage: ex0 = doctests[0].examples[0]
@@ -1285,7 +1285,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             [('cputime', [...]), ('err', None), ('failures', 0), ('walltime', [...])]
         """
         for key in ["cputime","walltime"]:
-            if not D.has_key(key):
+            if key not in D:
                 D[key] = []
             if hasattr(self, key):
                 D[key].append(self.__dict__[key])

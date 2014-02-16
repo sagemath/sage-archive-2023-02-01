@@ -93,7 +93,7 @@ def ComplexIntervalField(prec=53, names=None):
         0.207879576350761908546955619834978770033877841631769608075136?
     """
     global cache
-    if cache.has_key(prec):
+    if prec in cache:
         X = cache[prec]
         C = X()
         if not C is None:

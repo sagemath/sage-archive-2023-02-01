@@ -5791,7 +5791,7 @@ class AlgebraicPolynomialTracker(SageObject):
              -1.189207115002721?*I,
              1.189207115002721?*I]
         """
-        if self._roots_cache.has_key(multiplicity):
+        if multiplicity in self._roots_cache:
             roots = self._roots_cache[multiplicity]
             if roots[0] >= prec:
                 return roots[1]

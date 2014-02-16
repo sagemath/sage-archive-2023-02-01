@@ -97,7 +97,7 @@ def WeightSpace_constructor(p, base_ring=None):
     """
     if base_ring is None:
         base_ring = Qp(p)
-    if _wscache.has_key((p, base_ring)):
+    if (p, base_ring) in _wscache:
         m = _wscache[(p, base_ring)]()
         if m is not None:
             return m

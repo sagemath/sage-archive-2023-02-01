@@ -512,7 +512,7 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
                 # optimize this inner loop a little.)
                 if h <= hmax:
                     z = (Integer(D), Integer(f))
-                    if T.has_key(h):
+                    if h in T:
                         T[h].append(z)
                     else:
                         T[h] = [z]

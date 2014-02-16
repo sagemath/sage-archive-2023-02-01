@@ -210,7 +210,7 @@ def all_graph_colorings(G,n,count_only=False, hex_colors=False, vertex_color_dic
             coloring = {}
             if vertex_color_dict:
                 for x in a:
-                    if colormap.has_key(x):
+                    if x in colormap:
                         v,c = colormap[x]
                         if hex_colors:
                             coloring[v] = colors[c]
@@ -218,15 +218,15 @@ def all_graph_colorings(G,n,count_only=False, hex_colors=False, vertex_color_dic
                             coloring[v] = color_dict[colors[c]]
             else:
                 for x in a:
-                    if colormap.has_key(x):
+                    if x in colormap:
                         v,c = colormap[x]
                         if hex_colors:
-                            if coloring.has_key(colors[c]):
+                            if colors[c] in coloring:
                                 coloring[colors[c]].append(v)
                             else:
                                 coloring[colors[c]] = [v]
                         else:
-                            if coloring.has_key(color_dict[colors[c]]):
+                            if color_dict[colors[c]] in coloring:
                                 coloring[color_dict[colors[c]]].append(v)
                             else:
                                 coloring[color_dict[colors[c]]] = [v]

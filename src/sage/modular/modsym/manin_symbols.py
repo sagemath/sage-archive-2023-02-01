@@ -292,7 +292,7 @@ class ManinSymbolList(SageObject):
             sage: all([i == m.index(m[i]) for i in xrange(len(m))])
             True
         """
-        if self._index.has_key(x):
+        if x in self._index:
             return self._index[x]
         x = self.normalize(x)
         try:
@@ -1266,7 +1266,7 @@ class ManinSymbolList_character(ManinSymbolList):
             (16, 1),
             (17, 1)]
         """
-        if self._index.has_key(x):
+        if x in self._index:
             return self._index[x], 1
         x, s= self.normalize(x)
         try:

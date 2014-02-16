@@ -2306,7 +2306,7 @@ cdef class BooleanMonomial(MonoidElement):
         """
         res = 1
         for i in self.iterindex():
-            if d.has_key(i):
+            if i in d:
                 res *= d[i]
             else:
                 res *= (<object>self._parent).gen(i)

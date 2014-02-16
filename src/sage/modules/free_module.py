@@ -1942,6 +1942,35 @@ done from the right side.""")
         res.set_immutable()
         return res
 
+    def are_linearly_dependent(self, vecs):
+        """
+        Return ``True`` if the vectors ``vecs`` are linearly dependent and
+        ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: M = QQ^3
+            sage: vecs = [M([1,2,3]), M([4,5,6])]
+            sage: M.are_linearly_dependent(vecs)
+            False
+            sage: vecs.append(M([3,3,3]))
+            sage: M.are_linearly_dependent(vecs)
+            True
+
+            sage: R.<x> = QQ[]
+            sage: M = FreeModule(R, 2)
+            sage: vecs = [M([x^2+1, x+1]), M([x+2, 2*x+1])]
+            sage: M.are_linearly_dependent(vecs)
+            False
+            sage: vecs.append(M([-2*x+1, -2*x^2+1]))
+            sage: M.are_linearly_dependent(vecs)
+            True
+        """
+        from sage.matrix.constructor import matrix
+        A = matrix(vecs)
+        A.echelonize()
+        return any(row.is_zero() for row in A.rows())
+
     def _magma_init_(self, magma):
         """
         EXAMPLES::

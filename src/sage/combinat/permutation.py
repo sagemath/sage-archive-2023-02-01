@@ -3821,6 +3821,21 @@ class Permutation(CombinatorialObject, Element):
         """
         Return the binary search tree associated to ``self``.
 
+        If `w` is a word, then the binary search tree associated to `w`
+        is defined as the result of starting with an empty binary tree,
+        and then inserting the letters of `w` one by one into this tree.
+        Here, the insertion is being done according to the method
+        :meth:`~sage.combinat.binary_tree.LabelledBinaryTree.binary_search_insert`,
+        and the word `w` is being traversed from left to right.
+
+        A permutation is regarded as a word (using one-line notation),
+        and thus a binary search tree associated to a permutation is
+        defined.
+
+        If the optional keyword variable ``left_to_right`` is set to
+        ``False``, the word `w` is being traversed from right to left
+        instead.
+
         EXAMPLES::
 
             sage: Permutation([1,4,3,2]).binary_search_tree()
@@ -3851,6 +3866,70 @@ class Permutation(CombinatorialObject, Element):
             res = res.binary_search_insert(i)
         return res
 
+    def sylvester_class(self, left_to_right=False):
+        """
+        Iterate over the equivalence class of the permutation ``self``
+        under Sylvester congruence.
+
+        Sylvester congruence is an equivalence relation on the set `S_n`
+        of all permutations of `n`. It is defined as the smallest
+        equivalence relation such that every permutation of the form
+        `uacvbw` with `u`, `v` and `w` being words and `a`, `b` and `c`
+        being letters satisfying `a \leq b < c` is equivalent to the
+        permutation `ucavbw`. (Here, permutations are regarded as words
+        by way of one-line notation.) This definition comes from [HNT05]_,
+        Definition 8, where it is more generally applied to arbitrary
+        words.
+
+        This is related to the
+        :meth:`~sage.combinat.binary_tree.LabelledBinaryTree.sylvester_class`
+        method in that the equivalence class of a permutation `\pi` under
+        Sylvester congruence is the Sylvester class of the right-to-left
+        binary search tree of ``self``. However, the present method
+        yields permutations, while the method on labelled binary trees
+        yields plain lists.
+
+        If the variable ``left_to_right`` is set to ``True``,
+        left-to-right binary search trees are used instead.
+
+        .. TODO::
+
+            Explain the ltr/rtl story. Doctest ltr.
+
+        EXAMPLES::
+
+            sage: p = Permutation([3, 5, 1, 2, 4])
+            sage: sorted(p.sylvester_class())
+            [[1, 3, 2, 5, 4],
+             [1, 3, 5, 2, 4],
+             [1, 5, 3, 2, 4],
+             [3, 1, 2, 5, 4],
+             [3, 1, 5, 2, 4],
+             [3, 5, 1, 2, 4],
+             [5, 1, 3, 2, 4],
+             [5, 3, 1, 2, 4]]
+
+            sage: all( p in p.sylvester_class() for p in Permutations(4) )
+            True
+
+            sage: list(Permutation([]).sylvester_class())
+            [[]]
+
+            sage: list(Permutation([1]).sylvester_class())
+            [[1]]
+
+            sage: [sorted(p.sylvester_class()) for p in Permutations(3)]
+            [[[1, 2, 3]],
+             [[1, 3, 2], [3, 1, 2]],
+             [[2, 1, 3]],
+             [[2, 3, 1]],
+             [[1, 3, 2], [3, 1, 2]],
+             [[3, 2, 1]]]
+        """
+        parself = self.parent()
+        t = self.binary_search_tree(left_to_right=left_to_right)
+        for u in t.sylvester_class():
+            yield parself(u)
 
     @combinatorial_map(name='Robinson-Schensted tableau shape')
     def RS_partition(self):

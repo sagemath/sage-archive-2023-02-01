@@ -139,8 +139,9 @@ class TamariIntervalPoset(Element):
     :meth:`~sage.combinat.permutation.Permutation.permutohedron_lequal`),
     and is in fact the preimage of an interval in the Tamari lattice (of
     binary trees of size `n`) under the operation which sends a
-    permutation to its binary search tree
-    (:meth:`~sage.combinat.permutation.Permutation.binary_search_tree`)
+    permutation to its right-to-left binary search tree
+    (:meth:`~sage.combinat.permutation.Permutation.binary_search_tree`
+    with the ``left_to_right`` variable set to ``False``)
     without its labelling.
 
     INPUT:
@@ -1213,7 +1214,7 @@ class TamariIntervalPoset(Element):
         r"""
         Return if ``self`` corresponds to an initial interval of the Tamari
         lattice, i.e. if its lower end is the initial element of the lattice.
-        In consists of checking that ``self`` does not contain any decreasing
+        It consists of checking that ``self`` does not contain any decreasing
         relations.
 
         EXAMPLES::
@@ -1237,7 +1238,7 @@ class TamariIntervalPoset(Element):
         r"""
         Return if ``self`` corresponds to an initial interval of the Tamari
         lattice, i.e. if its upper end is the final element of the lattice.
-        In consists of checking that ``self`` does not contain any increasing
+        It consists of checking that ``self`` does not contain any increasing
         relations.
 
         EXAMPLES::
@@ -1877,7 +1878,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         relations.
 
         It can be constructed from a binary tree by its binary
-        search tree labeling  with the rule: `a` precedes
+        search tree labeling with the rule: `a` precedes
         `b` in the initial forest iff `a` is in the left subtree of `b`.
 
         INPUT:

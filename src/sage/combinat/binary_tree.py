@@ -2275,12 +2275,13 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         ``self``.
 
         The sylvester class of a tree `T` is the set of permutations
-        `\sigma` whose binary search tree (a notion defined in [HNT05]_,
-        Definition 7) is `T` after forgetting the labels. This is an
-        equivalence class of the sylvester congruence (the congruence on
-        words which holds two words `uacvbw` and `ucavbw` congruent
-        whenever `a`, `b`, `c` are letters satisfying `a \leq b < c`, and
-        extends by transitivity) on the symmetric group.
+        `\sigma` whose right-to-left binary search tree (a notion defined
+        in [HNT05]_, Definition 7) is `T` after forgetting the labels.
+        This is an equivalence class of the sylvester congruence (the
+        congruence on words which holds two words `uacvbw` and `ucavbw`
+        congruent whenever `a`, `b`, `c` are letters satisfying
+        `a \leq b < c`, and extends by transitivity) on the symmetric
+        group.
 
         For example the following tree's sylvester class consists of the
         permutations `(1,3,2)` and `(3,1,2)`::
@@ -2291,15 +2292,59 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         (only the nodes are drawn here).
 
-        The binary search tree of a word is constructed by an RSK-like
-        insertion algorithm which proceeds as follows: Start with an
-        empty labelled binary tree, and read the word from left to right.
-        Each time a letter is read from the word, insert this letter in
-        the existing tree using binary search tree insertion
+        The right-to-left binary search tree of a word is constructed by
+        an RSK-like insertion algorithm which proceeds as follows: Start
+        with an empty labelled binary tree, and read the word from right
+        to left. Each time a letter is read from the word, insert this
+        letter in the existing tree using binary search tree insertion
         (:meth:`~sage.combinat.binary_tree.LabelledBinaryTree.binary_search_insert`).
+        This is what the
+        :meth:`~sage.combinat.permutation.Permutation.binary_search_tree`
+        method computes if it is given the keyword
+        ``left_to_right=False``.
+
         If a left-to-right reading is to be employed instead, the
         ``left_to_right`` optional keyword variable should be set to
         ``True``.
+
+        .. WARNING::
+
+            This method yields the elements of the sylvester class as
+            raw lists, not as permutations!
+
+        .. TODO::
+
+            Document left_to_right=True properly.
+
+        EXAMPLES:
+
+        Verifying the claim that the right-to-left binary search trees of
+        the permutations in the sylvester class of a tree `t` all equal
+        `t`::
+
+            sage: def test_bst_of_sc(n, left_to_right):
+            ....:     for t in BinaryTrees(n):
+            ....:         for p in t.sylvester_class(left_to_right=left_to_right):
+            ....:             p_per = Permutation(p)
+            ....:             tree = p_per.binary_search_tree(left_to_right=left_to_right)
+            ....:             if not BinaryTree(tree) == t:
+            ....:                 return False
+            ....:     return True
+            sage: test_bst_of_sc(4, False)
+            True
+            sage: test_bst_of_sc(5, False)   # long time
+            True
+            sage: test_bst_of_sc(6, False)   # long time
+            True
+
+        The same with the left-to-right version of binary search::
+
+            sage: test_bst_of_sc(4, True)
+            True
+            sage: test_bst_of_sc(5, True)   # long time
+            True
+            sage: test_bst_of_sc(6, True)   # long time
+            True
 
         TESTS::
 
@@ -2351,8 +2396,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             builder = lambda i, p: list(p) + [i]
 
         shift = self[0].node_number() + 1
-        for l, r in product(self[0].sylvester_class(),
-                            self[1].sylvester_class()):
+        for l, r in product(self[0].sylvester_class(left_to_right=left_to_right),
+                            self[1].sylvester_class(left_to_right=left_to_right)):
            for p in shuffle(W(l), W([shift + ri for ri in r])):
                yield builder(shift, p)
 

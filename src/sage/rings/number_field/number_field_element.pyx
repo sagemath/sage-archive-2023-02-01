@@ -2463,7 +2463,7 @@ cdef class NumberFieldElement(FieldElement):
         if isinstance(self.number_field(), number_field.NumberField_cyclotomic):
             t = self.number_field()._multiplicative_order_table()
             f = self.polynomial()
-            if t.has_key(f):
+            if f in t:
                 self.__multiplicative_order = t[f]
                 return self.__multiplicative_order
             else:

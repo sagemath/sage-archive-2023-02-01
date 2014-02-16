@@ -63,6 +63,7 @@ import sage.rings.polynomial.polynomial_element as polynomial
 import sage.misc.latex
 import sage.rings.ring_element as ring_element
 from sage.rings.integer import Integer
+from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial_univariate
 
 from sage.structure.element cimport Element, ModuleElement, RingElement, AlgebraElement
 
@@ -77,23 +78,22 @@ def is_LaurentSeries(x):
 cdef class LaurentSeries(AlgebraElement):
     """
     A Laurent Series.
-    """
 
+    We consider a Laurent series of the form `t^n \cdot f` where `f` is a
+    power series.
+
+    INPUT:
+
+    - ``parent`` -- a Laurent series ring
+
+    - ``f`` -- a power series (or something can be coerced
+      to one); note that ``f`` does *not* have to be a unit
+
+    - ``n`` -- (default: 0) integer
+    """
     def __init__(self, parent, f, n=0):
         r"""
-        Create the Laurent series `t^n \cdot f`. The default is
-        n=0.
-
-        INPUT:
-
-
-        -  ``parent`` - a Laurent series ring
-
-        -  ``f`` - a power series (or something can be coerced
-           to one); note that f does *not* have to be a unit.
-
-        -  ``n`` - integer (default 0)
-
+        Initialize ``self``.
 
         OUTPUT: a Laurent series
 
@@ -118,13 +118,15 @@ cdef class LaurentSeries(AlgebraElement):
         """
         AlgebraElement.__init__(self, parent)
 
-        if PY_TYPE_CHECK(f, LaurentSeries):
+        if isinstance(f, LaurentSeries):
             n += (<LaurentSeries>f).__n
             if (<LaurentSeries>f).__u._parent is parent.power_series_ring():
                 f = (<LaurentSeries>f).__u
             else:
                 f = parent.power_series_ring()((<LaurentSeries>f).__u)
-        elif not PY_TYPE_CHECK(f, PowerSeries):
+        elif isinstance(f, LaurentPolynomial_univariate):
+            f = f(parent.gen())
+        elif not isinstance(f, PowerSeries):
             f = parent.power_series_ring()(f)
         ## now this is a power series, over a different ring ...
         ## requires that power series rings with same vars over the
@@ -481,7 +483,7 @@ cdef class LaurentSeries(AlgebraElement):
             sage: R.<t> = LaurentSeriesRing(QQ)
             sage: f = t^-3 + t + 7*t^2 + O(t^5)
             sage: g = f.laurent_polynomial(); g
-            7*t^2 + t + t^-3
+            t^-3 + t + 7*t^2
             sage: g.parent()
             Univariate Laurent Polynomial Ring in t over Rational Field
         """
@@ -730,10 +732,10 @@ cdef class LaurentSeries(AlgebraElement):
 
     def shift(self, k):
         r"""
-        Returns this laurent series multiplied by the power `t^n`.
+        Returns this Laurent series multiplied by the power `t^n`.
         Does not change this series.
 
-        .. note::
+        .. NOTE::
 
            Despite the fact that higher order terms are printed to the
            right in a power series, right shifting decreases the

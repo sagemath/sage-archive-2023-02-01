@@ -47,13 +47,13 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
         sage: R.<q> = LaurentPolynomialRing(QQ)
         sage: KL = KazhdanLusztigPolynomial(W,q)
         sage: KL.P(s2,s3*s2*s3*s1*s2)
-        q + 1
+        1 + q
 
     A faster implementation (using the optional package Coxeter 3) is given by::
 
         sage: W = CoxeterGroup(['B', 3], implementation='coxeter3') # optional - coxeter3
         sage: W.kazhdan_lusztig_polynomial([2], [3,2,3,1,2])        # optional - coxeter3
-        q + 1
+        1 + q
     """
     def __init__(self, W, q, trace=False):
         """

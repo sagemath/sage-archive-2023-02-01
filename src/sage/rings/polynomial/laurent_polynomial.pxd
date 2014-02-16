@@ -4,6 +4,11 @@ from sage.rings.polynomial.polydict cimport ETuple, PolyDict
 from sage.rings.polynomial.multi_polynomial cimport MPolynomial
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 
+
+cdef class LaurentPolynomial_univariate(CommutativeAlgebraElement):
+    cpdef ModuleElement __u
+    cdef long __n
+
 cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
     cdef ETuple _mon
     cdef MPolynomial _poly

@@ -2387,7 +2387,7 @@ class CGraphBackend(GenericGraphBackend):
 
             sage: g = 2*graphs.RandomGNP(20,.3)
             sage: paths = g._backend.shortest_path_all_vertices(0)
-            sage: all([ (not paths.has_key(v) and g.distance(0,v) == +Infinity) or len(paths[v])-1 == g.distance(0,v) for v in g])
+            sage: all([ (v not in paths and g.distance(0,v) == +Infinity) or len(paths[v])-1 == g.distance(0,v) for v in g])
             True
         """
         cdef list current_layer
@@ -3011,7 +3011,7 @@ cdef class Search_iterator:
 
         self.stack = [v_id]
 
-        if not self.graph.directed:
+        if not self.graph._directed:
             ignore_direction = False
 
         self.test_out = (not reverse) or ignore_direction

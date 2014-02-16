@@ -113,7 +113,7 @@ class SuffixTrie(SageObject):
         # While r is not the auxiliary vertex, or
         # there is not transition from r along letter, ...
         while r != -1 and \
-                not self._transition_function.has_key((r,letter)):
+                (r,letter) not in self._transition_function:
             # adjoin a new state s
             s = len(self._suffix_link)
             self._suffix_link.append(None)
@@ -748,7 +748,7 @@ class ImplicitSuffixTree(SageObject):
         if state == -1:
             return ((0, 0), 0)
         else:
-            if self._transition_function.has_key(state):
+            if state in self._transition_function:
                 for ((k,p),s) in self._transition_function[state].iteritems():
                     if self._letters[k-1] == letter:
                         return ((k,p), s)
@@ -1020,7 +1020,7 @@ class ImplicitSuffixTree(SageObject):
                 ...
             TypeError: there is no suffix link from -1
         """
-        if self._suffix_link.has_key(state):
+        if state in self._suffix_link:
             return self._suffix_link[state]
         else:
             raise TypeError, "there is no suffix link from %s" % state

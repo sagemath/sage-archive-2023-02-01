@@ -321,8 +321,8 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
             return False
         return (self._ring,self._partition)==(other._ring,other._partition)
 #        # both self and other must have caching enabled
-#        if self.__dict__.has_key('representation_matrix'):
-#            if not other.__dict__.has_key('representation_matrix'):
+#        if 'representation_matrix' in self.__dict__:
+#            if 'representation_matrix' not in other.__dict__:
 #                return False
 #            else:
 #                for key in self.__dict__:
@@ -332,7 +332,7 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
 #                else:
 #                    return True
 #        else:
-#            if other.__dict__.has_key('representation_matrix'):
+#            if 'representation_matrix' in other.__dict__:
 #                return False
 #            else:
 #                return self.__dict__.__eq__(other.__dict__)

@@ -919,7 +919,6 @@ class DiGraph(GenericGraph):
                 self._weighted = weighted
                 self.allow_loops(loops, check=False)
                 self.allow_multiple_edges(multiedges, check=False)
-            self._backend.directed = True
         else:
             raise NotImplementedError("Supported implementations: networkx, c_graph.")
 

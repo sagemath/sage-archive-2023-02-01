@@ -94,7 +94,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         elif isinstance(print_mode, str):
             print_mode = {'mode': print_mode}
         for option in ['mode', 'pos', 'ram_name', 'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet']:
-            if not print_mode.has_key(option):
+            if option not in print_mode:
                 print_mode[option] = self._printer.dict()[option]
         return print_mode
 
@@ -476,17 +476,17 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             if not isinstance(print_mode, dict):
                 print_mode = dict(print_mode)
             for option in ['mode', 'pos', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet']:
-                if print_mode.has_key(option):
+                if option in print_mode:
                     print_mode["print_" + option] = print_mode[option]
                     del print_mode[option]
-                elif not print_mode.has_key("print_" + option):
-                    if kwds.has_key("print_" + option):
+                elif "print_" + option not in print_mode:
+                    if "print_" + option in kwds:
                         print_mode["print_" + option] = kwds["print_" + option]
                     else:
                         print_mode["print_" + option] = self._printer.dict()[option]
             for option in ['ram_name', 'unram_name', 'var_name']:
-                if not print_mode.has_key(option):
-                    if kwds.has_key(option):
+                if option not in print_mode:
+                    if option in kwds:
                         print_mode[option] = kwds[option]
                     else:
                         print_mode[option] = self._printer.dict()[option]
@@ -854,6 +854,6 @@ def local_print_mode(obj, print_options, pos = None, ram_name = None):
     if ram_name is not None:
         print_options['ram_name'] = ram_name
     for option in ['mode', 'pos', 'ram_name', 'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet']:
-        if not print_options.has_key(option):
+        if option not in print_options:
             print_options[option] = obj._printer.dict()[option]
     return pAdicPrinter(obj, print_options)

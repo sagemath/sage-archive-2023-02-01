@@ -75,8 +75,12 @@ http://www.python.org/community/
  * inc_lib_dirs-issue_17990.patch: Only modify include and library search
    paths when cross-compiling.
  * node-issue_3871.patch: fix _PyNode_Sizeof declaration.
+ * tinfo.patch: make sure tinfo is correctly linked in when needed on Cygwin.
 
 == Changelog ==
+
+=== python-2.7.5.p2 (Jean-Pierre Flori, 5 January 2014) ===
+ * Trac #15317: Make sure tinfo is correctly linked in when needed on Cygwin.
 
 === python-2.7.5.p1 (Jean-Pierre Flori, 3 June 2013) ===
  * Trac #14600: give patches more talkative names.

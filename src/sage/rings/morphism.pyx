@@ -657,7 +657,7 @@ cdef class RingHomomorphism(RingMap):
         self._lift = lift
 
     cdef _update_slots(self, _slots):
-        if _slots.has_key('_lift'):
+        if '_lift' in _slots:
             self._lift = _slots['_lift']
         Morphism._update_slots(self, _slots)
 

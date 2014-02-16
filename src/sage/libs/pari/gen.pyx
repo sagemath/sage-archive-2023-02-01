@@ -218,19 +218,49 @@ cdef class gen(sage.structure.element.RingElement):
         return P.new_gen(gaddsg(1, self.g))
 
     def __mod__(self, other):
-        cdef gen selfgen
-        cdef gen othergen
-        if isinstance(other, gen) and isinstance(self, gen):
-            selfgen = self
-            othergen = other
-            pari_catch_sig_on()
-            return P.new_gen(gmod(selfgen.g, othergen.g))
-        return sage.structure.element.bin_op(self, other, operator.mod)
+        """
+        Return ``self`` modulo ``other``.
 
-    def __pow__(gen self, n, m):
-        cdef gen t0 = objtogen(n)
+        EXAMPLES::
+
+            sage: pari(15) % pari(6)
+            3
+            sage: pari("x^3+x^2+x+1") % pari("x^2")
+            x + 1
+            sage: pari(-2) % int(3)
+            1
+            sage: int(-2) % pari(3)
+            1
+        """
+        cdef gen selfgen = objtogen(self)
+        cdef gen othergen = objtogen(other)
         pari_catch_sig_on()
-        return P.new_gen(gpow(self.g, t0.g, prec_bits_to_words(0)))
+        return P.new_gen(gmod(selfgen.g, othergen.g))
+
+    def __pow__(self, n, m):
+        """
+        Return ``self`` to the power ``n`` (if ``m`` is ``None``) or
+        ``Mod(self, m)^n`` if ``m`` is not ``None``.
+
+        EXAMPLES::
+
+            sage: pari(5) ^ pari(3)
+            125
+            sage: pari("x-1") ^ 3
+            x^3 - 3*x^2 + 3*x - 1
+            sage: pow(pari(5), pari(28), int(29))
+            Mod(1, 29)
+            sage: int(2) ^ pari(-5)
+            1/32
+            sage: pari(2) ^ int(-5)
+            1/32
+        """
+        cdef gen t0 = objtogen(self)
+        cdef gen t1 = objtogen(n)
+        if m is not None:
+            t0 = t0.Mod(m)
+        pari_catch_sig_on()
+        return P.new_gen(gpow(t0.g, t1.g, prec_bits_to_words(0)))
 
     def __neg__(gen self):
         pari_catch_sig_on()
@@ -240,13 +270,48 @@ cdef class gen(sage.structure.element.RingElement):
         raise RuntimeError, "Use ** for exponentiation, not '^', which means xor\n"+\
               "in Python, and has the wrong precedence."
 
-    def __rshift__(gen self, long n):
-        pari_catch_sig_on()
-        return P.new_gen(gshift(self.g, -n))
+    def __rshift__(self, long n):
+        """
+        Divide ``self`` by `2^n` (truncating or not, depending on the
+        input type).
 
-    def __lshift__(gen self, long n):
+        EXAMPLES::
+
+            sage: pari(25) >> 3
+            3
+            sage: pari(25/2) >> 2
+            25/8
+            sage: pari("x") >> 3
+            1/8*x
+            sage: pari(1.0) >> 100
+            7.88860905221012 E-31
+            sage: int(33) >> pari(2)
+            8
+        """
+        cdef gen t0 = objtogen(self)
         pari_catch_sig_on()
-        return P.new_gen(gshift(self.g, n))
+        return P.new_gen(gshift(t0.g, -n))
+
+    def __lshift__(self, long n):
+        """
+        Multiply ``self`` by `2^n`.
+
+        EXAMPLES::
+
+            sage: pari(25) << 3
+            200
+            sage: pari(25/32) << 2
+            25/8
+            sage: pari("x") << 3
+            8*x
+            sage: pari(1.0) << 100
+            1.26765060022823 E30
+            sage: int(33) << pari(2)
+            132
+        """
+        cdef gen t0 = objtogen(self)
+        pari_catch_sig_on()
+        return P.new_gen(gshift(t0.g, n))
 
     def __invert__(gen self):
         pari_catch_sig_on()

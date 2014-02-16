@@ -247,7 +247,7 @@ cdef class CategoryObject(sage_object.SageObject):
     ##############################################################################
 
     def _populate_generators_(self, gens=None, names=None, normalize = True, category=None):
-        if self._generators.has_key(category):
+        if category in self._generators:
             raise ValueError, "Generators cannot be changed after object creation."
         if category is None:
             category = self._category

@@ -168,7 +168,7 @@ cdef class Map(Element):
 
         # Several pickles exist without a _repr_type_str, so
         # if there is none saved, we just set it to None.
-        if _slots.has_key('_repr_type_str'):
+        if '_repr_type_str' in _slots:
             self._repr_type_str = _slots['_repr_type_str']
         else:
             self._repr_type_str = None

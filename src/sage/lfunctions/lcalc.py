@@ -343,7 +343,7 @@ class LCalc(SageObject):
             d, x = a.split()
             x = RR(x)
             d = Z(d)
-            if w.has_key(d):
+            if d in w:
                 w[d].append(x)
             else:
                 w[d] = [x]

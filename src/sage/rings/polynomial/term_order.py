@@ -547,7 +547,7 @@ class TermOrder(SageObject):
             sage: t2._weights is None
             True
         """
-        if not dict.has_key('_weights'):
+        if '_weights' not in dict:
             name = dict['_TermOrder__name']
             n = dict['_TermOrder__length']
             t = TermOrder(name,n)

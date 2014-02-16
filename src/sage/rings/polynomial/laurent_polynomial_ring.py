@@ -794,7 +794,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
 
             sage: L.<x> = LaurentPolynomialRing(QQ)
             sage: L.fraction_field()
-            Fraction Field of Multivariate Polynomial Ring in x over Rational Field
+            Fraction Field of Univariate Polynomial Ring in x over Rational Field
             sage: (x^-1 + 2) / (x - 1)
             (2*x + 1)/(x^2 - x)
         """

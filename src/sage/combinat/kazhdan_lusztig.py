@@ -162,30 +162,8 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
                 return self._base_ring.zero()
         p = sum(-self.R(x,t)*self.P(t,y) for t in self._coxeter_group.bruhat_interval(x,y) if t != x)
         tr = floor((y.length()-x.length()+1)/2)
-        try:
-            ret = p.truncate(tr)
-        except Exception:
-            ret = laurent_polynomial_truncate(p, tr)
+        ret = p.truncate(tr)
         if self._trace:
-            print "    P(%s,%s)=%s"%(x, y, ret)
+            print "    P({},{})={}".format(x, y, ret)
         return ret
-
-def laurent_polynomial_truncate(p, n):
-    """
-    Truncate the Laurent polynomial ``p``, returning only terms of degree
-    less than ``n``, similar to the truncate method for polynomials.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.kazhdan_lusztig import laurent_polynomial_truncate
-        sage: P.<q> = LaurentPolynomialRing(QQ)
-        sage: laurent_polynomial_truncate((q+q^-1)^3+q^2*(q+q^-1)^4,3)
-        6*q^2 + 3*q + 4 + 3*q^-1 + q^-2 + q^-3
-    """
-    pdict = p._dict()
-    dict = {}
-    for k in pdict:
-        if k[0] < n:
-            dict[k] = pdict[k]
-    return p.parent()(dict)
 

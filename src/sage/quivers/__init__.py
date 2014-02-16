@@ -48,7 +48,8 @@ in our example::
     [a*d, b*d, c]
 
 The returned paths are of type :class:`~sage.quivers.paths.QuiverPath`, which
-are elements in the path semigroup that is associated with the quiver. You can
+are elements in the path semigroup that is associated with the quiver (a
+partial semigroup, which does not generally have a neutral element). You can
 specify a QuiverPath by giving an edge or a list of edges, passed as arguments
 to the path semigroup containing this path.  Here an edge is a tuple of
 the form ``(i, j, l)``, where ``i`` and ``j`` are vertices and ``l`` is the

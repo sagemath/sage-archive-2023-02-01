@@ -21,24 +21,27 @@ class QuiverPath(MonoidElement):
     """
     Class for paths in a quiver.
 
-    A path is given by two vertices, start and end, and a finite (possibly
-    empty) list of edges `e_1, e_2, ..., e_n` such that the initial vertex of
-    `e_1` is start, the final vertex of `e_i` is the initial vertex of `e_{i +
-    1}`, and the final vertex of `e_n` is end.  In the case where no edges are
-    specified we must have start = end and the path is called the trivial path
-    at the given vertex.
+    A path is given by two vertices, ``start`` and ``end``, and a finite
+    (possibly empty) list of edges `e_1, e_2, ..., e_n` such that the
+    initial vertex of `e_1` is ``start``, the final vertex of `e_i` is
+    the initial vertex of `e_{i + 1}`, and the final vertex of `e_n` is
+    ``end``.  In the case where no edges are specified, we must have
+    ``start = end`` and the path is called the trivial path at the given
+    vertex.
 
     INPUT:
 
+    - ``parent`` -- the path semigroup associated with a quiver; this is
+      where the path will live
     - ``path`` -- tuple or iterable. If ``path`` is a tuple then it is
-      assumed to be of the form (vertex, vertex) or (start, end, label).  In the
-      first case the trivial path at the given vertex is created.  In the second
-      case a path consisting of just the given edge is created.  If ``path`` is not a
-      tuple then it is assumed to be an iterable variable giving the edges of a
-      path, where each edge is in one of the two forms above.
-    - ``check`` -- bool (default: True). If it is False, no sanity check will be performed
-      on the given iterable.
-    - ``parent`` -- the free small category associated with a quiver
+      assumed to be of the form ``(vertex, vertex)`` or
+      ``(start, end, label)``.  In the first case the trivial path at the
+      given vertex is created.  In the second case a path consisting of
+      just the given edge is created.  If ``path`` is not a tuple then it
+      is assumed to be an iterable variable giving the edges of a path,
+      where each edge is in one of the two forms above.
+    - ``check`` -- boolean (default: ``True``). If it is ``False``, no
+      sanity check will be performed on the given iterable.
 
     OUTPUT:
 
@@ -47,9 +50,9 @@ class QuiverPath(MonoidElement):
     NOTE:
 
     Do *not* use this constructor directly! Instead, pass the input to the
-    free small category that shall be the parent of this path.
+    path semigroup that shall be the parent of this path.
 
-    EXAMPLES::
+    EXAMPLES:
 
     Specify a path by giving a list of edges::
 
@@ -69,7 +72,7 @@ class QuiverPath(MonoidElement):
         True
 
     The `*` operator is concatenation of paths. If the two paths do not
-    compose the result is None::
+    compose, its result is ``None``::
 
         sage: print(p*q)
         None
@@ -79,7 +82,7 @@ class QuiverPath(MonoidElement):
         b*f*a*b
 
     The length of a path is the number of edges in that path.  Trivial paths
-    are therefore length 0::
+    are therefore length-`0`::
 
         sage: len(p)
         2
@@ -119,7 +122,7 @@ class QuiverPath(MonoidElement):
             Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices
 
         Note that QuiverPath should not be called directly, because
-        the elements of the free small category associated with a quiver
+        the elements of the path semigroup associated with a quiver
         use a sub-class of QuiverPath. Nonetheless, just for test, we
         show that it *is* possible to create a path in a deprecated way::
 
@@ -197,7 +200,7 @@ class QuiverPath(MonoidElement):
 
     def __len__(self):
         """
-        Returns the length of the path.
+        Return the length of the path.
 
         TESTS::
 
@@ -216,7 +219,7 @@ class QuiverPath(MonoidElement):
 
     def deg(self):
         """
-        Returns the degree of the path, which is the same as its length.
+        Return the degree of the path, which is the same as its length.
 
         TESTS::
 
@@ -256,7 +259,7 @@ class QuiverPath(MonoidElement):
         """
         Comparison for QuiverPaths.
 
-        As usual in Sage, the ``__cmp__`` method of a Python sub-classes of
+        As usual in Sage, the ``__cmp__`` method of a Python sub-class of
         :class:`sage.structure.element.Element` can assume that both arguments
         belong to the same parent.
 
@@ -298,8 +301,8 @@ class QuiverPath(MonoidElement):
             sage: a < a
             False
         """
-        # Since QuiverPath inherits from element, it is guaranteed that
-        # both arguments are elements of the same free small category
+        # Since QuiverPath inherits from Element, it is guaranteed that
+        # both arguments are elements of the same path semigroup
         s_p = self._path
         o_p = other._path
 
@@ -362,11 +365,11 @@ class QuiverPath(MonoidElement):
 
     def _mul_(self, other):
         """
-        Composes two paths.
+        Compose two paths.
 
         NOTE:
 
-        ``None`` is returned, if the terminal vertex of the first path does
+        ``None`` is returned if the terminal vertex of the first path does
         not coincide with the initial vertex of the second path.
 
         TESTS::
@@ -402,7 +405,7 @@ class QuiverPath(MonoidElement):
 
     def __mod__(self, other):
         """
-        Returns ``self`` with ``other`` deleted from the beginning.
+        Return ``self`` with ``other`` deleted from the beginning.
 
         If ``other`` is not the beginning of ``self`` then ``None`` is
         returned.  Deleting the trivial path at vertex `v` from a path that
@@ -448,7 +451,7 @@ class QuiverPath(MonoidElement):
 
     def initial_vertex(self):
         """
-        Returns the initial vertex of the path.
+        Return the initial vertex of the path.
 
         OUTPUT:
 
@@ -462,12 +465,11 @@ class QuiverPath(MonoidElement):
             1
 
         """
-
         return self._path[0][0]
 
     def terminal_vertex(self):
         """
-        Returns the terminal vertex of the path.
+        Return the terminal vertex of the path.
 
         OUTPUT:
 
@@ -484,7 +486,8 @@ class QuiverPath(MonoidElement):
 
     def reverse(self):
         """
-        Returns the path along the same edges in the opposite quiver.
+        Return the path along the same edges in reverse order in the
+        opposite quiver.
 
         EXAMPLES::
 

@@ -3,18 +3,18 @@ from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFree
 
 class PathAlgebra(CombinatorialFreeModule):
     """
-    Creates the path algebra of a Quiver over a given field.
+    Create the path algebra of a Quiver over a given field.
 
-    Given a Quiver `Q` and a field `k` the path algebra `kQ` is defined as
+    Given a Quiver `Q` and a field `k`, the path algebra `kQ` is defined as
     follows.  As a vector space it has basis the set of all paths in `Q`.
     Multiplication is defined on this basis and extended bilinearly.  If `p`
     is a path with terminal vertex `t` and `q` is a path with initial vertex
     `i` then the product `p*q` is defined to be the composition of the paths `p`
-    and `q` if `t = i` and 0 otherwise.
+    and `q` if `t = i` and `0` otherwise.
 
     INPUT:
 
-    - `k` - field, the base field of the path algebra.
+    - `k` - field (or commutative ring), the base field of the path algebra.
 
     - `P` - the path semigroup of a quiver `Q`.
 
@@ -102,7 +102,7 @@ class PathAlgebra(CombinatorialFreeModule):
 
         INPUT:
 
-        - ``k``, a commutagive ring
+        - ``k``, a commutative ring
         - ``P``, the partial semigroup formed by the paths of a quiver.
 
         TESTS::
@@ -120,8 +120,8 @@ class PathAlgebra(CombinatorialFreeModule):
         #       basis.
         # - _quiver
         #       The quiver of the path algebra
-        # - _free_small_category
-        #       Shortcut for _quiver.free_small_category()
+        # - _semigroup
+        #       Shortcut for _quiver.semigroup()
 
         from sage.categories.graded_algebras_with_basis import GradedAlgebrasWithBasis
         self._quiver = P.quiver()
@@ -215,7 +215,7 @@ class PathAlgebra(CombinatorialFreeModule):
 
     def _element_constructor_(self, x):
         """
-        Attempts to construct an element of self from x.
+        Attempt to construct an element of ``self`` from `x`.
 
         TESTS::
 
@@ -253,13 +253,14 @@ class PathAlgebra(CombinatorialFreeModule):
 
     def _coerce_map_from_(self, other):
         """
-        True if there is a coercion from other to self.
+        ``True`` if there is a coercion from ``other`` to ``self``.
 
-        The algebras that coerce into a path algebra are rings k or path algebras
-        kQ such that k has a coercion into the base ring of self and Q is a subquiver
-        of the quiver of self.
+        The algebras that coerce into a path algebra are rings `k` or path
+        algebras `kQ` such that `k` has a coercion into the base ring of
+        ``self`` and `Q` is a subquiver of the quiver of ``self``.
 
-        In addition, the free algebra of a subquiver coerces into the algebra.
+        In addition, the free algebra of a subquiver coerces into the
+        algebra.
 
         TESTS::
 
@@ -357,7 +358,7 @@ class PathAlgebra(CombinatorialFreeModule):
 
     def product_on_basis(self, p1, p2):
         """
-        Returns the element corresponding to p1*p2 in the path algebra.
+        Return the product ``p1*p2`` in the path algebra.
 
         INPUT:
 
@@ -388,7 +389,7 @@ class PathAlgebra(CombinatorialFreeModule):
 
     def degree_on_basis(self, p):
         """
-        Return the degree of the monomial specified by p.
+        Return the degree of the monomial specified by the path ``p``.
 
         EXAMPLES::
 
@@ -400,7 +401,6 @@ class PathAlgebra(CombinatorialFreeModule):
             sage: A.degree_on_basis([(1, 2, 'a'), (2, 3, 'b')])
             2
         """
-
         return len(self._semigroup(p))
 
     def one(self):
@@ -416,7 +416,6 @@ class PathAlgebra(CombinatorialFreeModule):
             sage: A.one()
             e_1 + e_2 + e_3
         """
-
         x = self.zero()
         B = self.basis()
         for v in self._quiver:
@@ -432,7 +431,7 @@ class PathAlgebra(CombinatorialFreeModule):
 
     def quiver(self):
         """
-        Return the quiver of this algebra.
+        Return the quiver from which the algebra ``self`` was formed.
 
         OUTPUT:
 
@@ -449,16 +448,20 @@ class PathAlgebra(CombinatorialFreeModule):
 
     def semigroup(self):
         """
-        Return the semigroup of this algebra.
+        Return the semigroup from which the algebra ``self`` was
+        constructed.
 
         NOTE:
 
         The semigroup is the same as the free small category that is
-        associated with the underlying quiver.
+        associated with the underlying quiver (except that the
+        composition `f \circ g` of two morphisms in the category
+        corresponds to the product `g*f` in the path semigroup).
 
         OUTPUT:
 
-        - Quiver
+        - The path semigroup from which ``self`` was formed (a partial
+          semigroup).
 
         EXAMPLES:
 
@@ -471,7 +474,7 @@ class PathAlgebra(CombinatorialFreeModule):
 
     def homogeneous_component(self, n):
         """
-        Return the nth homogeneous piece of the path algebra.
+        Return the `n`-th homogeneous piece of the path algebra.
 
         INPUT:
 
@@ -479,8 +482,8 @@ class PathAlgebra(CombinatorialFreeModule):
 
         OUTPUT:
 
-        - CombinatorialFreeModule, module spanned by the paths of lenth n in the
-          quiver.
+        - CombinatorialFreeModule, module spanned by the paths of length
+          `n` in the quiver.
 
         EXAMPLES::
 
@@ -488,9 +491,16 @@ class PathAlgebra(CombinatorialFreeModule):
             sage: A = P.algebra(GF(7))
             sage: A.homogeneous_component(2)
             Free module spanned by [a*c, b*d] over Finite Field of size 7
-        """
 
-        basis = [p for p in self._basis_keys if len(p) == n]
+            sage: D = DiGraph({1: {2: 'a'}, 2: {3: 'b'}, 3: {1: 'c'}})
+            sage: P = D.path_semigroup()
+            sage: A = P.algebra(ZZ)
+            sage: A.homogeneous_component(3)
+            Free module spanned by [a*b*c, b*c*a, c*a*b] over Integer Ring
+        """
+        basis = []
+        for v in self._semigroup._quiver:
+            basis.extend(self._semigroup.iter_paths_by_length_and_startpoint(n, v))
         M = CombinatorialFreeModule(self._base, basis, prefix='', bracket=False)
         M._name = "Free module spanned by {0}".format(basis)
         return M
@@ -507,7 +517,7 @@ class PathAlgebra(CombinatorialFreeModule):
     class Element(CombinatorialFreeModuleElement):
         def is_homogeneous(self):
             """
-            Return True if and only if this element is homogeneous.
+            Return ``True`` if and only if this element is homogeneous.
 
             EXAMPLES::
 
@@ -532,7 +542,7 @@ class PathAlgebra(CombinatorialFreeModule):
 
         def degree(self):
             """
-            The degree of self.
+            The degree of ``self``, if ``self`` is homogeneous.
 
             EXAMPLES::
 

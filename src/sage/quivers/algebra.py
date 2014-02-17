@@ -353,9 +353,22 @@ class PathAlgebra(CombinatorialFreeModule):
             sage: P.algebra(ZZ)(P((2,3,'b')))*P.algebra(ZZ)(P((1,2,'a')))  # indirect doctest
             0
 
+        The following was an issue during work at :trac:`12630`::
+
+            sage: P1 = DiGraph({1:{2:['a']}}).path_semigroup()
+            sage: P2 = DiGraph({1:{2:['a','b']}}).path_semigroup()
+            sage: A1 = P1.algebra(GF(3))
+            sage: A2 = P2.algebra(GF(3))
+            sage: b = P2.arrows()[1]; b
+            b
+            sage: A1(b)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot interpret b as element of Partial semigroup
+            formed by the directed paths of Multi-digraph on 2 vertices
         """
         if index is not None:
-            return self._from_dict( {index: self.base_ring().one()}, remove_zeros = False )
+            return self._from_dict( {self._semigroup(index): self.base_ring().one()}, remove_zeros = False )
         return self.zero()
 
     def product_on_basis(self, p1, p2):

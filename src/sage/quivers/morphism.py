@@ -277,10 +277,8 @@ class QuiverRepHom(CallMorphism):
 
         return "Homomorphism of representations of " + self._quiver.__repr__()
 
-    def __call__(self, x):
+    def _call_(self, x):
         """
-        This function overloads functional notation f(x).
-
         TESTS::
 
             sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
@@ -296,6 +294,16 @@ class QuiverRepHom(CallMorphism):
             True
             sage: h(S.gens()[1]) == y
             True
+
+        The following was an issue during work on :trac:`12630`::
+
+            sage: Q = DiGraph({1: {}}).path_semigroup()
+            sage: M = Q.I(GF(3), 1)
+            sage: m = M.an_element()
+            sage: R = M.quotient(M)
+            sage: R(m)
+            Element of quiver representation
+
         """
 
         from sage.quivers.representation import QuiverRepElement

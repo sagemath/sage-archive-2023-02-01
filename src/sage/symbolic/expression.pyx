@@ -4912,8 +4912,30 @@ cdef class Expression(CommutativeRingElement):
             sage: f.coefficient(x, 0)
             sqrt(x)*sin(y) + z^z
 
+        TESTS::
+
+        Check if :trac:`9505` is fixed::
+
+            sage: var('x,y,z')
+            (x, y, z)
+            sage: f = x*y*z^2
+            sage: f.coeff(x*y)
+            z^2
+            sage: f.coeff(x*y, 2)
+            Traceback (most recent call last):
+            ...
+            TypeError: n <> 1 only allowed for s being a variable
+
         """
         cdef Expression ss = self.coerce_in(s)
+        if n <> 1 and not is_a_symbol(ss._gobj):
+           raise TypeError, "n <> 1 only allowed for s being a variable"
+        # the following is a temporary fix for GiNaC bug #9505
+        if is_a_mul(ss._gobj): # necessarily n=1 here
+           res = self
+           for i from 0 <= i < ss._gobj.nops():
+              res = res.coeff(new_Expression_from_GEx(self._parent, ss._gobj.op(i)))
+           return res
         return new_Expression_from_GEx(self._parent, self._gobj.coeff(ss._gobj, n))
 
     coeff = coefficient

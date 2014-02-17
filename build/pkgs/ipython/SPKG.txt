@@ -12,7 +12,7 @@ IPython is a multiplatform, Free Software project (BSD licensed) that offers:
  * A library to build customized interactive environments using Python
    as the basic language (but with the possibility of having extended
    or alternate syntaxes).
-* A system for interactive distributed and parallel computing (this is
+ * A system for interactive distributed and parallel computing (this is
    part of IPython's new development).
 
 == License ==
@@ -38,5 +38,6 @@ ipython-user@scipy.org
 
 == Patches ==
 
- * prun_magics.patch: See https://github.com/ipython/ipython/pull/4008.
-   This patch allows Sage to preparse %prun commands.
+ * 0001-Allow-InputTransformers-to-raise-SyntaxErrors.patch: See
+   https://github.com/ipython/ipython/pull/4504. This patch allows
+   Sage to raise SyntaxErrors for our extensions to the Python language.

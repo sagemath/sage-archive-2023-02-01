@@ -229,54 +229,50 @@ class SageInteractiveShell(TerminalInteractiveShell):
 ###################################################################
 # Transformers used in the SageInputSplitter
 ###################################################################
-from IPython.core.inputtransformer import (CoroutineInputTransformer,
+from IPython.core.inputtransformer import (InputTransformer,
+                                           CoroutineInputTransformer,
                                            StatelessInputTransformer,
                                            _strip_prompts)
 
-@CoroutineInputTransformer.wrap
-def sage_preparse_transformer():
-    """
-    Implement Sage-specific preparsing (see sage.misc.preparser.preparse)
+class SagePreparseTransformer(InputTransformer):
+    def push(self, line):
+        """
+        EXAMPLES::
 
-    EXAMPLES::
+            sage: from sage.misc.interpreter import SagePreparseTransformer
+            sage: spt = SagePreparseTransformer()
+            sage: spt.push('1+1r+2.3^2.3r')
+            "Integer(1)+1+RealNumber('2.3')**2.3"
+            sage: preparser(False)
+            sage: spt.push('2.3^2')
+            '2.3^2'
 
-        sage: from sage.misc.interpreter import sage_preparse_transformer
-        sage: spt = sage_preparse_transformer()
-        sage: spt.push('1+1r+2.3^2.3r')
-        "Integer(1)+1+RealNumber('2.3')**2.3"
-        sage: preparser(False)
-        sage: spt.push('2.3^2')
-        '2.3^2'
+        TESTS:
 
-    TESTS:
+        Check that syntax errors in the preparser do not crash IPython,
+        see :trac:`14961`. ::
 
-    Check that syntax errors in the preparser do not crash IPython,
-    see :trac:`14961`. ::
-
-        sage: bad_syntax = "R.<t> = QQ{]"
-        sage: preparse(bad_syntax)
-        Traceback (most recent call last):
-        ...
-        SyntaxError: Mismatched ']'
-        sage: from sage.misc.interpreter import get_test_shell
-        sage: shell = get_test_shell()
-        sage: shell.run_cell(bad_syntax)
-        SyntaxError: Mismatched ']'
-    """
-    line = (yield '')
-    while True:
+            sage: bad_syntax = "R.<t> = QQ{]"
+            sage: preparse(bad_syntax)
+            Traceback (most recent call last):
+            ...
+            SyntaxError: Mismatched ']'
+            sage: from sage.misc.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.run_cell(bad_syntax)
+            Traceback (most recent call last):
+            ...
+            SyntaxError: Mismatched ']'
+        """
         if line is None:
-            rline = preparse('', reset=True)
+            self.reset()
         elif do_preparse and not line.startswith('%'):
-            try:
-                rline = preparse(line)
-            except SyntaxError as err:
-                import traceback
-                traceback.print_exc()
-                rline = preparse('', reset=True)
+            return preparse(line)
         else:
-            rline = line
-        line = (yield rline)
+            return line
+
+    def reset(self):
+        preparse('', reset=True)
 
 _magic_deprecations = {'load': '%runfile',
                        'attach': '%attach',

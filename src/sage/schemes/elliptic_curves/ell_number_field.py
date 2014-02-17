@@ -163,19 +163,23 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
     def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
         r"""
-        Computes lower and upper bounds on the rank of the Mordell-Weil group,
-        and a list of independent points. Used internally by the :meth:`~rank`,
+        Return lower and upper bounds on the rank of the Mordell-Weil
+        group `E(K)` and a list of points.
+
+        This method is used internally by the :meth:`~rank`,
         :meth:`~rank_bounds` and :meth:`~gens` methods.
 
         INPUT:
 
+        - ``self`` -- an elliptic curve `E` over a number field `K`
+
         - ``verbose`` -- 0, 1, 2, or 3 (default: 0), the verbosity level
 
-        - ``lim1``    -- (default: 5) limit on trivial points on quartics
+        - ``lim1`` -- (default: 5) limit on trivial points on quartics
 
-        - ``lim3``  -- (default: 50) limit on points on ELS quartics
+        - ``lim3`` -- (default: 50) limit on points on ELS quartics
 
-        - ``limtriv`` -- (default: 10) limit on trivial points on elliptic curve
+        - ``limtriv`` -- (default: 10) limit on trivial points on `E`
 
         - ``maxprob`` -- (default: 20)
 
@@ -183,13 +187,21 @@ class EllipticCurve_number_field(EllipticCurve_field):
           small and large prime numbers. Use probabilistic tests for
           large primes. If 0, don't use probabilistic tests.
 
-        OUTPUT:
+        OUTPUT: a triple ``(lower, upper, list)`` consisting of
 
-        ``(lower, upper, list)`` where ``lower`` is a lower bound on
-        the rank, ``upper`` is an upper bound (the dimension of the
-        2-Selmer group) and
-        ``list`` is a list of points of infinite order on the Weierstrass
-        model.
+        - ``lower`` (integer) -- lower bound on the rank
+
+        - ``upper`` (integer) -- upper bound on the rank
+
+        - ``list`` -- list of points in `E(K)`
+
+        The integer ``upper`` is in fact an upper bound on the
+        dimension of the 2-Selmer group, hence on the dimension of
+        `E(K)/2E(K)`.  It is equal to the dimension of the 2-Selmer
+        group except possibly if `E(K)[2]` has dimension 1.  In that
+        case, ``upper`` may exceed the dimension of the 2-Selmer group
+        by an even number, due to the fact that the algorithm does not
+        perform a second descent.
 
         .. note::
 

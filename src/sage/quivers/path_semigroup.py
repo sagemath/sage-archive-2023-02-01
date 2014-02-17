@@ -328,7 +328,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: len(F)
             Traceback (most recent call last):
             ...
-            NotImplementedError: infinite list
+            ValueError: The underlying quiver has cycles, thus, there may be an infinity of directed paths
 
         """
         return len(self.all_paths())
@@ -382,7 +382,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: list(P)
             Traceback (most recent call last):
             ...
-            NotImplementedError: infinite list
+            ValueError: The underlying quiver has cycles, thus, there may be an infinity of directed paths
 
          However, one can iterate::
 
@@ -817,11 +817,9 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: F.all_paths()
             Traceback (most recent call last):
             ...
-            NotImplementedError: infinite list
+            ValueError: The underlying quiver has cycles, thus, there may be an infinity of directed paths
 
         """
-        if not self.is_finite():
-            raise NotImplementedError("infinite list")
         # Check that given arguments are vertices
         if start is not None and start not in self._quiver:
             raise ValueError("The start vertex " + str(start) + " is not a vertex of the quiver.")
@@ -830,7 +828,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
 
         # Handle quivers with cycles
         Q = self._quiver
-        if not (Q.is_directed_acyclic() and not Q.has_loops()):
+        if not (Q.is_directed_acyclic()):
             raise ValueError("The underlying quiver has cycles, thus, there may be an infinity of directed paths")
 
         # Handle start=None
@@ -855,11 +853,11 @@ class PathSemigroup(UniqueRepresentation, Parent):
         # vertices to a list of QuiverPaths.
         def _v_to_e(path):
             if len(path) == 1:
-                return [self([(path[0], path[0])],check=False)]
+                return [self([(path[0], path[0])], check=False)]
             paths = []
             for a in Q.edge_label(path[0], path[1]):
                 for b in _v_to_e(path[1:]):
-                    paths.append(self([(path[0], path[1], a)]+list(b),check=False))
+                    paths.append(self([(path[0], path[1], a)] + list(b), check=False))
             return paths
 
         # For each vertex path we append the resulting edge paths

@@ -1079,7 +1079,8 @@ class QuiverRep_generic(Module):
 
     def __div__(self, sub):
         """
-        This and __Truediv__ below together overload the / operator.
+        This and :meth:`__Truediv__` below together overload the /
+        operator.
 
         TESTS::
 
@@ -1089,12 +1090,11 @@ class QuiverRep_generic(Module):
             sage: (P/R).is_simple()
             True
         """
-
         return self.quotient(sub)
 
     def __truediv__(self, sub):
         """
-        This and __Truediv__ below together overload the / operator.
+        This and :meth:`__div__` above together overload the / operator.
 
         TESTS::
 
@@ -1104,7 +1104,6 @@ class QuiverRep_generic(Module):
             sage: (P/R).is_simple()
             True
         """
-
         return self.quotient(sub)
 
     def _submodule(self, spaces={}):
@@ -1152,14 +1151,15 @@ class QuiverRep_generic(Module):
 
     def _coerce_map_from_(self, domain):
         """
-        Returns either a QuiverRepHom from domain to self, or False.
+        Return either a QuiverRepHom from ``domain`` to ``self``, or
+        ``False``.
 
-        .. NOTES::
+        .. NOTE::
 
             This function simply tries to coerce a map at each vertex and then check if
-            the result is a valid homomorphism.  If it is then that homomorphism is
+            the result is a valid homomorphism.  If it is, then that homomorphism is
             returned.  If it is not or if no coercion was possible then it returns
-            False.
+            ``False``.
 
         INPUT:
 
@@ -1328,17 +1328,19 @@ class QuiverRep_generic(Module):
 
     def dimension(self, vertex=None):
         """
-        Returns the dimension of the space associated to the given vertex.
+        Returns the dimension of the space associated to the given vertex
+        ``vertex``.
 
         INPUT:
 
-        - ``vertex`` - integer or None (default: None), the given vertex
+        - ``vertex`` - integer or ``None`` (default: ``None``), the given
+          vertex
 
         OUTPUT:
 
-        - integer, the dimension over the base ring of the space associated to the
-          given vertex.  If vertex=None then the dimension over the base ring of the
-          module is returned
+        - integer, the dimension over the base ring of the space
+          associated to the given vertex.  If ``vertex=None`` then the
+          dimension over the base ring of the module is returned
 
         EXAMPLES::
 
@@ -1349,7 +1351,8 @@ class QuiverRep_generic(Module):
             sage: P.dimension(2)
             2
 
-        The total dimension of the module is the sum of the dimensions at each vertex::
+        The total dimension of the module is the sum of the dimensions
+        at each vertex::
 
             sage: P.dimension()
             3
@@ -1367,7 +1370,7 @@ class QuiverRep_generic(Module):
 
     def dimension_vector(self):
         """
-        Returns the dimension vector of the representation.
+        Return the dimension vector of the representation.
 
         OUTPUT:
 
@@ -1465,7 +1468,7 @@ class QuiverRep_generic(Module):
 
     def an_element(self):
         """
-        Returns an element of self.
+        Return an element of ``self``.
 
         OUTPUT:
 
@@ -1479,7 +1482,7 @@ class QuiverRep_generic(Module):
             Element of quiver representation
         """
 
-        # Here we just the the an_element function from each space.
+        # Here we just use the an_element function from each space.
         elements = dict((v, self._spaces[v].an_element()) for v in self._quiver)
         return self(elements)
 
@@ -1515,9 +1518,10 @@ class QuiverRep_generic(Module):
 
         INPUT:
 
-        - ``names`` - an iterable variable of length equal to the number of generators or a
-          string (default: 'v'), gives the names of the generators either by giving a
-          name to each generator or by giving a name to which an index will be appended
+        - ``names`` - an iterable variable of length equal to the number
+          of generators, or a string (default: 'v'); gives the names of
+          the generators either by giving a name to each generator or by
+          giving a name to which an index will be appended
 
         OUTPUT:
 
@@ -1581,7 +1585,8 @@ class QuiverRep_generic(Module):
 
     def coordinates(self, vector):
         """
-        Returns the coordinates when vector is expressed in terms of the gens.
+        Returns the coordinates when ``vector`` is expressed in terms of
+        the gens.
 
         INPUT:
 
@@ -1614,13 +1619,15 @@ class QuiverRep_generic(Module):
 
     def linear_combination_of_basis(self, coordinates):
         """
-        Return the linear combination of the basis for self given by ``coordinates``.
+        Return the linear combination of the basis for ``self`` given
+        by ``coordinates``.
 
         INPUT:
 
-        - ``coordinates`` - list, a list whose length is the dimension of self.  The ith
-          element of this list defines the coefficient of the ith basis vector in the
-          linear combination.
+        - ``coordinates`` - list, a list whose length is the dimension of
+          ``self``.  The `i`-th element of this list defines the
+          coefficient of the `i`-th basis vector in the linear
+          combination.
 
         OUTPUT:
 
@@ -1662,17 +1669,18 @@ class QuiverRep_generic(Module):
 
         INPUT:
 
-        - ``elements`` - a collection of QuiverRepElements (default: empty list), each
-          should be an element of self
+        - ``elements`` -- a collection of QuiverRepElements (default:
+          empty list), each should be an element of ``self``
 
-        - ``spaces`` - dictionary (default: empty), this dictionary should contain entries
-          of the form {v: S} where v is a vertex of the quiver and S is a subspace of
-          the vector space associated to v
+        - ``spaces`` -- dictionary (default: empty), this dictionary
+          should contain entries of the form ``{v: S}`` where `v` is a
+          vertex of the quiver and `S` is a subspace of the vector space
+          associated to `v`
 
         OUTPUT:
 
-        - QuiverRep, the smallest subspace of self containing the given elements and
-          the given subspaces
+        - QuiverRep, the smallest subrepresentation of ``self``
+          containing the given elements and the given subspaces
 
         .. NOTE::
 
@@ -1764,26 +1772,29 @@ class QuiverRep_generic(Module):
 
     def quotient(self, sub, check=True):
         """
-        Returns the quotient of self by the submodule sub.
+        Return the quotient of ``self`` by the submodule ``sub``.
 
         INPUT:
 
-        - ``sub`` - QuiverRep, this must be a submodule of self, meaning the space
-          associated to each vertex v of sub is a subspace of the space associated to v
-          in self and the map associated to each edge e of sub is the restriction of
-          the map associated to e in self
+        - ``sub`` -- QuiverRep; this must be a submodule of ``self``,
+          meaning the space associated to each vertex `v` of ``sub`` is a
+          subspace of the space associated to `v` in ``self`` and the map
+          associated to each edge `e` of ``sub`` is the restriction of
+          the map associated to `e` in ``self``
 
-        - ``check`` - bool, if True then sub is checked to verify that it is indeed a
-          submodule of self and an error is raised if it is not
+        - ``check`` -- bool; if ``True`` then ``sub`` is checked to verify
+          that it is indeed a submodule of ``self`` and an error is raised
+          if it is not
 
         OUTPUT:
 
-        - QuiverRep, the quotient module self/sub
+        - QuiverRep, the quotient module ``self``/``sub``
 
         .. NOTE::
 
-            This function returns only a QuiverRep object ``quot``.  The inclusion map of
-            ``quot`` into ``M``=self can be obtained by calling ``M.coerce_map_from(quot)``.
+            This function returns only a QuiverRep object ``quot``.  The
+            projection map from ``self`` to ``quot`` can be obtained by
+            calling ``quot.coerce_map_from(self)``.
 
         EXAMPLES:
 
@@ -1794,6 +1805,8 @@ class QuiverRep_generic(Module):
             Representation with dimension vector (2, 1, 0)
             sage: M.quotient(M.radical())
             Representation with dimension vector (2, 0, 0)
+            sage: M.quotient(M)
+            Representation with dimension vector (0, 0, 0)
         """
 
         # First form the quotient space at each vertex
@@ -1822,6 +1835,8 @@ class QuiverRep_generic(Module):
             # TODO: This 'if' shouldn't need to be here, but sage crashes when
             # coercing elements into a quotient that is zero.  Once Trac ticket
             # 12413 gets fixed only the else should need to execute.
+            # NOTE: This is no longer necessary. Keep around for speed or
+            # remove? -- darij, 16 Feb 2014
             if spaces[e[1]].dimension() == 0:
                 maps[e] = spaces[e[0]].Hom(spaces[e[1]]).zero_element()
             else:
@@ -1837,7 +1852,7 @@ class QuiverRep_generic(Module):
 
     def socle(self):
         """
-        The socle of self.
+        The socle of ``self``.
 
         OUTPUT:
 

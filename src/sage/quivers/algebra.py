@@ -310,10 +310,12 @@ class PathAlgebra(CombinatorialFreeModule):
 
         """
 
-        if (isinstance(other, PathAlgebra) and
-                self._base.has_coerce_map_from(other._base) and
-                other._quiver <= self._quiver):
-            return True
+        if isinstance(other, PathAlgebra) and self._base.has_coerce_map_from(other._base):
+            OQ = other._quiver
+            SQ = self._quiver
+            SQE = SQ.edges()
+            if all(v in SQ for v in OQ.vertices()) and all(e in SQE for e in OQ.edges()):
+                return True
         if self._semigroup.has_coerce_map_from(other):
             return True
         return self._base.has_coerce_map_from(other)

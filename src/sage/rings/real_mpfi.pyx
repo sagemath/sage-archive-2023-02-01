@@ -4573,11 +4573,10 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             120
             sage: RIF(2.3,5.7).factorial()
             1.?e3
+            sage: RIF(2.3).factorial()
+            2.683437381955768?
         """
-        cdef RealIntervalFieldElement x
-        x = self._new()
-        self = self + 1
-        return RIF(self).gamma()
+        return RIF(self+1).gamma()
 
     def gamma(self):
         """

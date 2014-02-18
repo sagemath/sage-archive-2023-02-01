@@ -2191,7 +2191,7 @@ class JoinCategory(CategoryWithParameters):
         # Use __super_categories to not overwrite the lazy attribute Category._super_categories
         # Maybe this would not be needed if the flattening/sorting is does consistently?
         self.__super_categories = list(super_categories)
-        if kwds.has_key('name'):
+        if 'name' in kwds:
             Category.__init__(self, kwds['name'])
         else:
             Category.__init__(self)

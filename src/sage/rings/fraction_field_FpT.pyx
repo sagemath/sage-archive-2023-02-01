@@ -1118,7 +1118,7 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
                 nmod_poly_set(ans._denom, &((<Polynomial_zmod_flint?>y).x))
         else:
             raise ValueError, "FpT only supports two positional arguments"
-        if not (kwds.has_key('reduce') and not kwds['reduce']):
+        if 'reduce' not in kwds or kwds['reduce']:
             normalize(ans._numer, ans._denom, ans.p)
         ans.initalized = True
         return ans
@@ -1314,7 +1314,7 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
                 nmod_poly_set(ans._denom, &((<Polynomial_zmod_flint?>y).x))
         else:
             raise ValueError, "FpT only supports two positional arguments"
-        if not (kwds.has_key('reduce') and not kwds['reduce']):
+        if 'reduce' not in kwds or kwds['reduce']:
             normalize(ans._numer, ans._denom, ans.p)
         ans.initalized = True
         return ans
@@ -1523,7 +1523,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
                 nmod_poly_set(ans._denom, &((<Polynomial_zmod_flint?>y).x))
         else:
             raise ValueError, "FpT only supports two positional arguments"
-        if not (kwds.has_key('reduce') and not kwds['reduce']):
+        if 'reduce' not in kwds or kwds['reduce']:
             normalize(ans._numer, ans._denom, ans.p)
         ans.initalized = True
         return ans

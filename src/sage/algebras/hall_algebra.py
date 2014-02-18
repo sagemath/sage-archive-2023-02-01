@@ -228,7 +228,7 @@ class HallAlgebra(CombinatorialFreeModule):
                 hopf_structure = False
             else:
                 hopf_structure = True
-        except StandardError:
+        except Exception:
             hopf_structure = False
         if hopf_structure:
             category = HopfAlgebrasWithBasis(base_ring)
@@ -549,7 +549,7 @@ class HallAlgebraMonomials(CombinatorialFreeModule):
                 hopf_structure = False
             else:
                 hopf_structure = True
-        except StandardError:
+        except Exception:
             hopf_structure = False
         if hopf_structure:
             category = HopfAlgebrasWithBasis(base_ring)

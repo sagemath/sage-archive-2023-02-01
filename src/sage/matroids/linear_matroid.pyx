@@ -908,7 +908,11 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             False
             sage: M1.is_field_equivalent(M3)
             True
+            sage: M1.is_field_equivalent(M1)
+            True
         """
+        if self is other:
+            return True
         if self.base_ring() != other.base_ring():
             return False
         if self.groundset() != other.groundset():
@@ -1897,8 +1901,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
                 i += 1
             if i < self._representation.nrows():
                 raise ValueError("provided column has too few entries")
-            E = copy(self._E)
-            E.append(element)
+            E = self._E + (element,)
             return type(self)(matrix=self._representation.augment(cl), groundset=E)
         elif col is not None:
             raise ValueError("can only specify column relative to fixed representation. Run self._matrix_() first.")
@@ -1997,8 +2000,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
                 i += 1
             if i < self._representation.ncols():
                 raise ValueError("provided row has too few entries")
-            E = copy(self._E)
-            E.append(element)
+            E = self._E + (element,)
             col = type(self._representation)(self._representation.nrows() + 1, 1, ring=self.base_ring())
             col.set_unsafe(self._representation.nrows(), 0, self._one)
             return type(self)(matrix=self._representation.stack(rw).augment(col), groundset=E)
@@ -2046,7 +2048,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             M = type(self._A)(self.full_rank(), self.size() + 1, self._basic_representation())
         else:
             M = type(self._A)(self._representation.nrows(), self.size() + 1, self._representation)
-        E = self._E + [element]
+        E = self._E + (element,)
         D = {}
         for i from 0 <= i < self.size():
             D[E[i]] = i
@@ -2097,7 +2099,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         else:
             M = type(self._A)(self._representation.nrows() + 1, self.size() + 1, self._representation)
         M.set_unsafe(M.nrows() - 1, M.ncols() - 1, self._one)
-        E = self._E + [element]
+        E = self._E + (element,)
         D = {}
         for i from 0 <= i < self.size():
             D[E[i]] = i

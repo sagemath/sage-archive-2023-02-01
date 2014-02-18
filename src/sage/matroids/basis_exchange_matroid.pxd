@@ -8,7 +8,7 @@ from set_system cimport SetSystem
 cdef class BasisExchangeMatroid(Matroid):
     cdef long _groundset_size, _matroid_rank, _bitset_size
     cdef bitset_t _current_basis, _inside, _outside, _input, _input2, _output, _temp
-    cdef list _E
+    cdef tuple _E
     cdef dict _idx
     cdef frozenset _groundset
 

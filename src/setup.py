@@ -47,7 +47,9 @@ include_dirs = [SAGE_INC,
 # search for dependencies only
 extra_include_dirs = [ os.path.join(SAGE_INC,'python'+platform.python_version().rsplit('.', 1)[0]) ]
 
-extra_compile_args = [ ]
+# Manually add -fno-strict-aliasing, which is needed to compile Cython
+# and disappears from the default flags if the user has set CFLAGS.
+extra_compile_args = [ "-fno-strict-aliasing" ]
 extra_link_args = [ ]
 
 # comment these four lines out to turn on warnings from gcc

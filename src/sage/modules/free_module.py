@@ -378,7 +378,7 @@ done from the right side.""")
             elif base_ring.is_field():
                 return FreeModule_ambient_field(base_ring, rank, sparse=sparse)
 
-            elif isinstance(base_ring, principal_ideal_domain.PrincipalIdealDomain):
+            elif base_ring in PrincipalIdealDomains():
                 return FreeModule_ambient_pid(base_ring, rank, sparse=sparse)
 
             elif isinstance(base_ring, sage.rings.number_field.order.Order) \

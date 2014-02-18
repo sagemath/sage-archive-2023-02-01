@@ -182,6 +182,18 @@ def characteristic_polynomial(x, var='x'):
         T^10 + T^6 + T^5 + 4*T^4 + T^3 + 2*T^2 + 3*T + 3
         sage: characteristic_polynomial(alpha, 'T')
         T^10 + T^6 + T^5 + 4*T^4 + T^3 + 2*T^2 + 3*T + 3
+
+    Ensure the variable name of the polynomial does not conflict with
+    variables used within the matrix, and that non-integral powers of
+    variables don't confuse the computation (:trac:`14403`)::
+
+        sage: y = var('y')
+        sage: a = matrix([[x,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])
+        sage: characteristic_polynomial(a).list()
+        [x, -3*x - 1, 3*x + 3, -x - 3, 1]
+        sage: b = matrix([[y^(1/2),0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])
+        sage: charpoly(b).list()
+        [sqrt(y), -3*sqrt(y) - 1, 3*sqrt(y) + 3, -sqrt(y) - 3, 1]
     """
     try:
         return x.charpoly(var)

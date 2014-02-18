@@ -7851,7 +7851,9 @@ cdef class Matrix(matrix1.Matrix):
             [-4*x    0]
             [   0 -4*x]
 
-        TESTS::
+        TESTS:
+
+        Ensure correct handling of very small matrices::
 
             sage: A = matrix(ZZ, 0, 0)
             sage: A
@@ -7863,6 +7865,15 @@ cdef class Matrix(matrix1.Matrix):
             [2]
             sage: A._adjoint()
             [1]
+
+        Ensure proper computation of the adjoint matrix even in the
+        presence of non-integral powers of the variable `x`
+        (:trac:`14403`)::
+
+            sage: x = var('x')
+            sage: Matrix([[sqrt(x),x],[1,0]]).adjoint()
+            [      0      -x]
+            [     -1 sqrt(x)]
 
         NOTES:
 

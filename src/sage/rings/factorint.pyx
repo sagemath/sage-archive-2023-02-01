@@ -32,17 +32,20 @@ cdef extern from "limits.h":
 
 cpdef aurifeuillian(n, m, F=None, bint check=True):
     r"""
-    Return Aurifeuillian factors `F_n^\pm(m^2n)`
+    Return the Aurifeuillian factors `F_n^\pm(m^2n)`.
+
+    This is based off Theorem 3 of [Brent93]_.
 
     INPUT:
 
-    - ``n`` - integer
-    - ``m`` - integer
-    - ``F`` - integer (default: None)
+    - ``n`` -- integer
+    - ``m`` -- integer
+    - ``F`` -- integer (default: ``None``)
+    - ``check`` -- boolean (default: ``True``)
 
     OUTPUT:
 
-        List of factors
+    List of factors.
 
     EXAMPLES::
 
@@ -70,24 +73,25 @@ cpdef aurifeuillian(n, m, F=None, bint check=True):
 
     .. NOTE::
 
-    There is no need to set `F`. It's only for increasing speed
-    of factor_aurifeuillian().
+        There is no need to set `F`. It's only for increasing speed
+        of :meth:`factor_aurifeuillian()`.
 
     REFERENCES:
 
-    .. Brent, On computing factors of cyclotomic polynomials, Theorem 3
-        arXiv:1004.5466v1 [math.NT]
-
+    .. [Brent93] Richard P. Brent.
+       *On computing factors of cyclotomic polynomials*.
+       Mathematics of Computation. **61** (1993). No. 203. pp 131-149.
+       :arXiv:`1004.5466v1`. http://www.jstor.org/stable/2152941
     """
     from sage.rings.arith import euler_phi
     from sage.rings.real_mpfi import RealIntervalField
     if check:
         if not n.is_squarefree():
-            raise ValueError, "n has to be square-free"
+            raise ValueError("n has to be square-free")
         if n < 2:
-            raise ValueError, "n has to be greater than 1"
+            raise ValueError("n has to be greater than 1")
         if m < 1:
-            raise ValueError, "m has to be positive"
+            raise ValueError("m has to be positive")
     x = m**2*n
     cdef Py_ssize_t y = euler_phi(2*n)//2
     if F is None:
@@ -126,13 +130,13 @@ cpdef factor_aurifeuillian(n, check=True):
 
     INPUT:
 
-    - ``n`` - integer
+    - ``n`` -- integer
 
     OUTPUT:
 
-        List of factors of `n` found by Aurifeuillian factorization.
+    List of factors of `n` found by Aurifeuillian factorization.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.rings.factorint import factor_aurifeuillian as fa
         sage: fa(2^6+1)
@@ -153,18 +157,16 @@ cpdef factor_aurifeuillian(n, check=True):
     TESTS::
 
         sage: for n in [2,3,5,6,30,31,33]:
-        ...       for m in [8,96,109201283]:
-        ...           s = -1 if n % 4 == 1 else 1
-        ...           y = (m^2*n)^n + s
-        ...           F = fa(y)
-        ...           assert(len(F) > 0 and prod(F) == y)
+        ....:     for m in [8,96,109201283]:
+        ....:         s = -1 if n % 4 == 1 else 1
+        ....:         y = (m^2*n)^n + s
+        ....:         F = fa(y)
+        ....:         assert(len(F) > 0 and prod(F) == y)
 
     REFERENCES:
 
-    .. http://mathworld.wolfram.com/AurifeuilleanFactorization.html
-
-    .. Brent, On computing factors of cyclotomic polynomials, Theorem 3
-        arXiv:1004.5466v1 [math.NT]
+    - http://mathworld.wolfram.com/AurifeuilleanFactorization.html
+    - [Brent93]_ Theorem 3
     """
     if n in [-2, -1, 0, 1, 2]:
         return [n]

@@ -782,11 +782,12 @@ class QuiverRepElement(ModuleElement):
 
     def is_zero(self):
         """
-        Tests whether self is zero.
+        Tests whether ``self`` is zero.
 
         OUTPUT:
 
-        - bool, True is the element is the zero element, False otherwise
+        - bool, ``True`` if the element is the zero element, ``False``
+          otherwise
 
         EXAMPLES::
 
@@ -817,9 +818,10 @@ class QuiverRepElement(ModuleElement):
 
     def support(self):
         """
-        Returns the support of self as a list.
+        Returns the support of ``self`` as a list.
 
-        The support is the set of vertices to which a nonzero vector is associated.
+        The support is the set of vertices to which a nonzero vector is
+        associated.
 
         OUTPUT
 
@@ -853,7 +855,7 @@ class QuiverRepElement(ModuleElement):
 
     def copy(self):
         """
-        Returns a copy of self.
+        Returns a copy of ``self``.
 
         EXAMPLES::
 
@@ -1013,7 +1015,7 @@ class QuiverRep_generic(Module):
             #If a morphism is specified use it, otherwise assume the hom
             # function can convert the object to a morphism.  Matrices and the
             # zero and one of the base ring are valid inputs (one is valid only
-            # when the domain and codomain are equal.
+            # when the domain and codomain are equal).
             from sage.categories.morphism import Morphism
             if isinstance(e, Morphism):
                 self._maps[x] = e
@@ -1110,8 +1112,8 @@ class QuiverRep_generic(Module):
         """
         Returns the submodule specified by the data.
 
-        This differs from self.submodule in that it assumes the data correctly
-        specifies a submodule whereas self.submodule returns the smallest submodule
+        This differs from ``self.submodule`` in that it assumes the data correctly
+        specifies a submodule whereas ``self.submodule`` returns the smallest submodule
         containing the data.
 
         TESTS::
@@ -1514,7 +1516,7 @@ class QuiverRep_generic(Module):
 
     def gens(self, names='v'):
         """
-        Returns a list of generators.
+        Return a list of generators.
 
         INPUT:
 
@@ -1684,8 +1686,9 @@ class QuiverRep_generic(Module):
 
         .. NOTE::
 
-            This function returns only a QuiverRep object ``sub``.  The inclusion map
-            of ``sub`` into ``M``=self can be obtained by calling ``M.coerce_map_from(sub)``.
+            This function returns only a QuiverRep object ``sub``.  The
+            inclusion map of ``sub`` into ``M``=``self`` can be obtained
+            by calling ``M.coerce_map_from(sub)``.
 
         EXAMPLES::
 
@@ -1697,21 +1700,23 @@ class QuiverRep_generic(Module):
             sage: M.submodule([v])
             Representation with dimension vector (1, 1, 1)
 
-        The smallest submodule containing the vector space at vertex 1 also contains
-        the image of the rank 1 homomorphism associated to the edge (1, 3, 'a')::
+        The smallest submodule containing the vector space at vertex 1
+        also contains the entire vector space associated to vertex 3
+        because there is an isomorphism associated to the edge
+        ``(1, 3, 'a')``::
 
             sage: M.submodule(spaces={1: QQ^2})
             Representation with dimension vector (2, 0, 2)
 
-        The smallest submodule containing the vector space at vertex 2 also contains
-        the entire vector space associated to vertex 3 because there is an isomorphism
-        associated to the edge (2, 3, 'b')::
+        The smallest submodule containing the vector space at vertex 2
+        also contains the image of the rank 1 homomorphism associated to
+        the edge ``(2, 3, 'b')``::
 
             sage: M.submodule(spaces={2: QQ^3})
             Representation with dimension vector (0, 3, 1)
 
-        As v is not already contained in this submodule adding it as a generator yields
-        a larger submodule::
+        As ``v`` is not already contained in this submodule, adding it as
+        a generator yields a larger submodule::
 
             sage: v.support()
             [1, 2, 3]
@@ -1877,11 +1882,11 @@ class QuiverRep_generic(Module):
 
     def radical(self):
         """
-        Returns the Jacobson radical of self.
+        Returns the Jacobson radical of ``self``.
 
         OUTPUT:
 
-        - QuiverRep, the socle
+        - QuiverRep, the Jacobson radical
 
         EXAMPLES::
 
@@ -1902,11 +1907,11 @@ class QuiverRep_generic(Module):
 
     def top(self):
         """
-        Returns the top of self.
+        Returns the top of ``self``.
 
         OUTPUT:
 
-        - QuiverRep, the quotient of self by its radical
+        - QuiverRep, the quotient of ``self`` by its radical
 
         EXAMPLES::
 
@@ -1922,11 +1927,11 @@ class QuiverRep_generic(Module):
 
     def zero_submodule(self):
         """
-        Returns the zero submodule.
+        Returns the zero submodule of ``self``.
 
         OUTPUT:
 
-        - QuiverRep, the quotient of self by its radical
+        - QuiverRep, the zero submodule of ``self``.
 
         EXAMPLES::
 

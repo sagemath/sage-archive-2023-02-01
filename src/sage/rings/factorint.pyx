@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-*
 r"""
 Integer factorization functions
 
@@ -45,7 +46,7 @@ cpdef aurifeuillian(n, m, F=None, bint check=True):
 
     OUTPUT:
 
-    List of factors.
+    A list of factors.
 
     EXAMPLES::
 
@@ -214,18 +215,18 @@ def factor_cunningham(m, proof=None):
     r"""
     Return factorization of self obtained using trial division
     for all primes in the so called Cunningham table. This is
-    efficient if self has some factors of type $b^n+1$ or $b^n-1$,
-    with $b$ in $\{2,3,5,6,7,10,11,12\}$.
+    efficient if self has some factors of type `b^n+1` or `b^n-1`,
+    with `b` in `\{2,3,5,6,7,10,11,12\}`.
 
     You need to install an optional package to use this method,
     this can be done with the following command line:
-    ``sage -i cunningham_tables``
+    ``sage -i cunningham_tables``.
 
     INPUT:
 
-     - ``proof`` - bool (default: None) whether or not to
-       prove primality of each factor, this is only for factors
-       not in the Cunningham table.
+    - ``proof`` -- bool (default: ``None``); whether or not to
+      prove primality of each factor, this is only for factors
+      not in the Cunningham table
 
     EXAMPLES::
 
@@ -260,7 +261,7 @@ cpdef factor_trial_division(m, long limit=LONG_MAX):
 
     INPUT:
 
-     - ``limit`` - integer (default: LONG_MAX) that fits in a C signed long
+    - ``limit`` -- integer (default: ``LONG_MAX``) that fits in a C signed long
 
     EXAMPLES::
 
@@ -310,19 +311,19 @@ cpdef factor_using_pari(n, int_=False, debug_level=0, proof=None):
 
     INPUT:
 
-     - ``int_`` -- (default: ``False``), whether the factors are
-       of type ``int`` instead of ``Integer``
+    - ``int_`` -- (default: ``False``), whether the factors are
+      of type ``int`` instead of ``Integer``
 
-     - ``debug_level`` -- (default: 0), debug level of the call
-       to PARI
+    - ``debug_level`` -- (default: 0), debug level of the call
+      to PARI
 
-     - ``proof`` -- (default: ``None``), whether the factors are
-       required to be proven prime;  if ``None``, the global default
-       is used
+    - ``proof`` -- (default: ``None``), whether the factors are
+      required to be proven prime;  if ``None``, the global default
+      is used
 
     OUTPUT:
 
-        -  a list of pairs
+    A list of pairs.
 
     EXAMPLES::
 

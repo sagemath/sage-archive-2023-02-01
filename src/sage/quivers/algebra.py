@@ -431,11 +431,8 @@ class PathAlgebra(CombinatorialFreeModule):
             sage: A.one()
             e_1 + e_2 + e_3
         """
-        x = self.zero()
-        B = self.basis()
-        for v in self._quiver:
-            x += B[self._semigroup([(v, v)], check=False)]
-        return x
+        return self.sum_of_monomials([self._semigroup([(v, v)], check=False)
+                                      for v in self._quiver])
 
     ###########################################################################
     #                                                                         #

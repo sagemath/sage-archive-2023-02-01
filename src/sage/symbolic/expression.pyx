@@ -690,10 +690,15 @@ cdef class Expression(CommutativeRingElement):
             sage: latex(x*(1/(x^2)+sqrt(x^7)))
             x {\left(\sqrt{x^{7}} + \frac{1}{x^{2}}\right)}
 
-        Check spacing of coefficients of mul expressions (#3202)::
+        Check spacing of coefficients of mul expressions (:trac:`3202` and
+        :trac:`13356`)::
 
             sage: latex(2*3^x)
-            2 \, 3^{x}
+            2 \cdot 3^{x}
+            sage: latex(1/2/3^x)
+            \frac{1}{2 \cdot 3^{x}}
+            sage: latex(1/2*3^x)
+            \frac{1}{2} \cdot 3^{x}
 
         Powers::
 

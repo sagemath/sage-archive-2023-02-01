@@ -1,11 +1,5 @@
 #!/usr/bin/env bash
 
-if [ "$SAGE_LOCAL" = "" ]; then
-    echo "SAGE_LOCAL undefined ... exiting";
-    echo "Maybe run 'sage -sh'?"
-    exit 1
-fi
-
 OPTIMIZATION_FLAGS="-O3 -funroll-loops -fomit-frame-pointer"
 # Work around a bug in gcc 4.6.0: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48774
 if [ "`testcc.sh $CC`" = GCC ] ; then
@@ -53,13 +47,15 @@ for patch in ../patches/*.patch; do
     patch -p1 <"$patch"
     if [ $? -ne 0 ]; then
         echo >&2 "Error applying '$patch'"
-        return 1
+        exit 1
     fi
 done
 
-set -e
-
 $MAKE
+if [ $? -ne 0 ]; then
+    echo >&2 "Failed to compile cliquer"
+    exit 1
+fi
 
 rm -rf "$SAGE_LOCAL/include/cliquer/"
 mkdir "$SAGE_LOCAL/include/cliquer/"

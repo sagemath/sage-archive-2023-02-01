@@ -3467,6 +3467,42 @@ cdef class Expression(CommutativeRingElement):
             sig_off()
         return new_Expression_from_GEx(self._parent, x)
 
+    def residue(self, x, a):
+        """
+        Calculates the residue at `x=a`.
+
+        INPUT:
+
+        - ``x`` - a symbolic variable
+
+        - ``a`` - a symbolic expression
+
+        OUTPUT:
+
+        The residue of ``self``.
+
+        This function calculates the residue of ``self`` at `x=a`,
+        i.e., the coefficient of `1/(x-a)` of the series expansion of
+        ``self`` around `a`.
+
+        EXAMPLES::
+
+            sage: (1/x).residue(x, 0)
+            1
+            sage: (1/x).residue(x, oo)
+            -1
+            sage: (1/x^2).residue(x, 0)
+            0
+            sage: var('q, n, z')
+            (q, n, z)
+            sage: (-z^(-n-1)/(1-z/q)^2).residue(z, q).simplify_full()
+            (n + 1)/q^n
+        """
+        if a == infinity:
+            return (-self.subs({x: 1/x}) / x**2).residue(x, 0)
+        s = self.parent().var('s')
+        return self.series(x == a, 1).subs({x: s + a}).coefficient(s, -1)
+
     def taylor(self, *args):
         r"""
         Expands this symbolic expression in a truncated Taylor or

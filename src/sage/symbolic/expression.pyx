@@ -4081,7 +4081,7 @@ cdef class Expression(CommutativeRingElement):
             smap.insert(make_pair((<Expression>self.coerce_in(k))._gobj,
                                   (<Expression>self.coerce_in(v))._gobj))
 
-        return new_Expression_from_GEx(self._parent, self._gobj.subs_map(smap))
+        return new_Expression_from_GEx(self._parent, self._gobj.subs_map(smap, 0))
 
     subs = substitute
 

@@ -153,6 +153,9 @@ cdef class Function(SageObject):
         if not self._evalf_params_first:
             opt.do_not_evalf_params()
 
+        if hasattr(self, '_subs_'):
+            opt.subs_func(self)
+
         if hasattr(self, '_evalf_'):
             opt.evalf_func(self)
 

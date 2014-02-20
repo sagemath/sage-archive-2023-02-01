@@ -1785,7 +1785,7 @@ class Function_arg(BuiltinFunction):
             # or x involves an expression such as sqrt(2)
             return None
 
-    def _evalf_(self, x, parent_d=None):
+    def _evalf_(self, x, parent_d=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -1811,6 +1811,11 @@ class Function_arg(BuiltinFunction):
             3.14159265358979
             sage: arg(2.0+3*i)
             0.982793723247329
+
+        TESTS::
+
+            sage: C = arg(5+I)
+            sage: C.n()
         """
         try:
             return x.arg()

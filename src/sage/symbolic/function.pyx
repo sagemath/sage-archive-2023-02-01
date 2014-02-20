@@ -960,7 +960,7 @@ cdef class SymbolicFunction(Function):
             sage: class my_function(SymbolicFunction):
             ....:     def __init__(self):
             ....:         SymbolicFunction.__init__(self, 'foo', nargs=2)
-            ....:     def _evalf_(self, x, y, parent=None):
+            ....:     def _evalf_(self, x, y, parent=None, algorithm=None):
             ....:         return x*y*2r
             ....:     def _conjugate_(self, x, y):
             ....:         return x

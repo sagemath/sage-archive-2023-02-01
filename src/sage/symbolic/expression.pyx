@@ -978,7 +978,7 @@ cdef class Expression(CommutativeRingElement):
                     R_complex = R.complex_field()
                 except (TypeError, AttributeError):
                     raise err
-            res = self._gobj.evalf(0, {'parent':R})
+            res = self._gobj.evalf(0, {'parent':R_complex})
         if is_a_numeric(res):
             return R(py_object_from_numeric(res))
         else:

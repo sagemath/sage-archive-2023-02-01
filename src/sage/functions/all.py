@@ -24,7 +24,8 @@ from other import ( ceil, floor, gamma, psi, factorial, beta,
 from log import (exp, log, ln, polylog, dilog, lambert_w)
 
 
-from transcendental import (zeta, zetaderiv, zeta_symmetric, dickman_rho)
+from transcendental import (zeta, zetaderiv, zeta_symmetric, hurwitz_zeta,
+                            dickman_rho)
 
 from sage.functions.bessel import (bessel_I, bessel_J, bessel_K, bessel_Y, Bessel)
 

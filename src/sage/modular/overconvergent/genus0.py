@@ -246,7 +246,7 @@ def OverconvergentModularForms(prime, weight, radius, base_ring=QQ, prec = 20, c
     if int(prime) not in [2, 3, 5, 7, 13]:
         raise ValueError, "p must be one of {2, 3, 5, 7, 13}"
     key = (prime, weight, radius, base_ring, prec, char)
-    if __ocmfdict.has_key(key):
+    if key in __ocmfdict:
         w = __ocmfdict[key]
         M = w()
         if not (M is None):

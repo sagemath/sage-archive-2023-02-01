@@ -1637,8 +1637,8 @@ def polar_plot(funcs, *args, **kwds):
 @options(aspect_ratio='automatic')
 def list_plot(data, plotjoined=False, **kwargs):
     r"""
-    ``list_plot`` takes either a list of numbers, a list of tuples,
-    or a dictionary and plots the corresponding points.
+    ``list_plot`` takes either a list of numbers, a list of tuples, a numpy
+    array, or a dictionary and plots the corresponding points.
 
     If given a list of numbers (that is, not a list of tuples or lists),
     ``list_plot`` forms a list of tuples ``(i, x_i)`` where ``i`` goes from
@@ -1675,6 +1675,13 @@ def list_plot(data, plotjoined=False, **kwargs):
     This gives all the random points joined in a purple line::
 
         sage: list_plot(r, plotjoined=True, color='purple')
+
+    You can provide a numpy array.::
+
+        sage: import numpy
+        sage: list_plot(numpy.arange(10))
+
+        sage: list_plot(numpy.array([[1,2], [2,3], [3,4]]))
 
     Plot a list of complex numbers::
 
@@ -1761,18 +1768,27 @@ def list_plot(data, plotjoined=False, **kwargs):
         100.0
     """
     from sage.plot.all import line, point
-    if data == {} or data == () or data == []:
-        return Graphics()
+    try:
+        if not data:
+            return Graphics()
+    except ValueError: # numpy raises ValueError if it is not empty
+        pass
+    if not isinstance(plotjoined, bool):
+        raise TypeError("The second argument 'plotjoined' should be boolean "
+                    "(True or False).  If you meant to plot two lists 'x' "
+                    "and 'y' against each other, use 'list_plot(zip(x,y))'.")
     if isinstance(data, dict):
         if plotjoined:
             list_data = sorted(list(data.iteritems()))
         else:
             list_data = list(data.iteritems())
         return list_plot(list_data, plotjoined=plotjoined, **kwargs)
-    if not isinstance(data[0], (list, tuple)):
-        data = zip(range(len(data)), data)
-    if isinstance(plotjoined, (list, tuple)):
-        raise TypeError, "The second argument 'plotjoined' should be boolean (True or False).  If you meant to plot two lists 'x' and 'y' against each other, use 'list_plot(zip(x,y))'."
+    try:
+        from sage.rings.all import RDF
+        tmp = RDF(data[0])
+        data = list(enumerate(data))
+    except TypeError:
+        pass
     try:
         if plotjoined:
             return line(data, **kwargs)
@@ -1785,7 +1801,7 @@ def list_plot(data, plotjoined=False, **kwargs):
         # gets to (1, I).
         from sage.rings.complex_field import ComplexField
         CC = ComplexField()
-        # if we get here, we already did "zip(range(len(data)), data)",
+        # if we get here, we already did "list(enumerate(data))",
         # so look at z[1] in inner list
         data = [(z.real(), z.imag()) for z in [CC(z[1]) for z in data]]
         if plotjoined:

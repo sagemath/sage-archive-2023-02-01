@@ -1,7 +1,7 @@
 """
 Substitution Maps
 
-This object wraps Pynac ``smap`` objects. These encode substitutions
+This object wraps Pynac ``exmap`` objects. These encode substitutions
 of symbolic expressions. The main use of this module is to hook into
 Pynac's ``subs()`` methods and pass a wrapper for the substitution map
 back to Python.

@@ -984,7 +984,7 @@ cdef class Expression(CommutativeRingElement):
         else:
             raise TypeError, "Cannot evaluate symbolic expression to a numeric value."
 
-    cpdef _convert(self, R):
+    cpdef _convert(self, kwds):
         """
         Convert all the numeric coefficients and constants in this expression
         to the given ring `R`. This results in an expression which contains
@@ -1027,7 +1027,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f._convert({'parent':int})
             -0.989992496600445*sqrt(2)
         """
-        cdef GEx res = self._gobj.evalf(0, {'parent':R})
+        cdef GEx res = self._gobj.evalf(0, kwds)
         return new_Expression_from_GEx(self._parent, res)
 
     def _mpfr_(self, R):

@@ -215,7 +215,7 @@ class _uniq(object):
             sage: sage.rings.infinity.UnsignedInfinityRing_class() is sage.rings.infinity.UnsignedInfinityRing_class()
             True
         """
-        if _obj.has_key(cls):
+        if cls in _obj:
             return _obj[cls]
         _obj[cls] = O = cls.__bases__[-1].__new__(cls, *args)
         return O

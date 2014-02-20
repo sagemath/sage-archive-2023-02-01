@@ -21,7 +21,8 @@ def find_root(f, a, b, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False
     """
     Numerically find a root of ``f`` on the closed interval `[a,b]`
     (or `[b,a]`) if possible, where ``f`` is a function in the one variable.
-
+    Note: this function only works in fixed (machine) precision, it is not
+    possible to get arbitrary precision approximations with it.
 
     INPUT:
 

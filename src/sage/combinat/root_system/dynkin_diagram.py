@@ -558,6 +558,36 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
 
     is_crystalographic = deprecated_function_alias(14673, is_crystallographic)
 
+    def symmetrizer(self):
+        """
+        Return the symmetrizer of the corresponding Cartan matrix.
+
+        EXAMPLES::
+
+            sage: d = DynkinDiagram()
+            sage: d.add_edge(1,2,3)
+            sage: d.add_edge(2,3)
+            sage: d.add_edge(3,4,3)
+            sage: d.symmetrizer()
+            Finite family {1: 9, 2: 3, 3: 3, 4: 1}
+
+        TESTS:
+
+        We check that :trac:`15740` is fixed::
+
+            sage: d = DynkinDiagram()
+            sage: d.add_edge(1,2,3)
+            sage: d.add_edge(2,3)
+            sage: d.add_edge(3,4,3)
+            sage: L = d.root_system().root_lattice()
+            sage: al = L.simple_roots()
+            sage: al[1].associated_coroot()
+            alphacheck[1]
+            sage: al[1].reflection(al[2])
+            alpha[1] + 3*alpha[2]
+        """
+        return self.cartan_matrix().symmetrizer()
+
     def __getitem__(self, i):
         r"""
         With a tuple (i,j) as argument, returns the scalar product

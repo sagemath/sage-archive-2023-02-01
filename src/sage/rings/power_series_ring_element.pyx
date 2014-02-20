@@ -112,7 +112,6 @@ import rational_field, integer_ring
 from integer import Integer
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.libs.pari.all import pari
-from sage.libs.all import PariError
 from sage.misc.functional import sqrt, log
 from sage.rings.arith import integer_ceil as ceil
 
@@ -314,6 +313,8 @@ cdef class PowerSeries(AlgebraElement):
         if PY_TYPE_CHECK(right, int):
             return self.is_zero()
 
+        from sage.misc.stopgap import stopgap 
+        stopgap("Warning: Comparison of power series may be wrong if certain coefficients are zero. The padded_list method can be used to give correct comparisons.", 9457)
         prec = self.common_prec(right)
         x = self.list()
         y = right.list()
@@ -455,6 +456,47 @@ cdef class PowerSeries(AlgebraElement):
             100
         """
         return self._prec
+
+    def precision_absolute(self):
+        """
+        Return the absolute precision of this series.
+
+        By definition, the absolute precision of 
+        `...+O(x^r)` is `r`.
+        
+        EXAMPLES::
+        
+            sage: R.<t> = ZZ[[]]
+            sage: (t^2 + O(t^3)).precision_absolute()
+            3
+            sage: (1 - t^2 + O(t^100)).precision_absolute()
+            100
+        """
+        return self.prec()
+
+    def precision_relative(self):
+        """
+        Return the relative precision of this series, that
+        is the difference between its absolute precision 
+        and its valuation.
+
+        By convension, the relative precision of `0` (or
+        `O(x^r)` for any `r`) is `0`.
+        
+        EXAMPLES::
+        
+            sage: R.<t> = ZZ[[]]
+            sage: (t^2 + O(t^3)).precision_relative()
+            1
+            sage: (1 - t^2 + O(t^100)).precision_relative()
+            100
+            sage: O(t^4).precision_relative()
+            0
+        """
+        if self.is_zero():
+            return 0
+        else:
+            return self.prec() - self.valuation()
 
     def _repr_(self):
         """

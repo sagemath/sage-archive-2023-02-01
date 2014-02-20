@@ -550,7 +550,7 @@ cdef class Expression(CommutativeRingElement):
         #            num_columns = MAX_LENGTH  ## option of pretty
         try:
             s = pretty(sympify(self), use_unicode=False)
-        except StandardError:
+        except Exception:
             s = self
         return AsciiArt(str(s).splitlines())
 
@@ -3539,7 +3539,7 @@ cdef class Expression(CommutativeRingElement):
             else:
                 B=[A[0],SR(A[1])]
             B.append(Integer(A[len(A)-1]))
-        except StandardError:
+        except Exception:
             raise NotImplementedError, "Wrong arguments passed to taylor. See taylor? for more details."
         l = self._maxima_().taylor(B)
         return self.parent()(l)
@@ -7797,8 +7797,7 @@ cdef class Expression(CommutativeRingElement):
     def simplify_full(self):
         """
         Applies simplify_factorial, simplify_trig, simplify_rational,
-        simplify_radical, simplify_log, and again simplify_rational to
-        self (in that order).
+        simplify_log, and again simplify_rational to self (in that order).
 
         ALIAS: simplify_full and full_simplify are the same.
 
@@ -7839,6 +7838,17 @@ cdef class Expression(CommutativeRingElement):
             sage: simplified = f.full_simplify().imag_part()
             sage: original - simplified
             0
+
+        The invalid simplification from :trac:`12322` should not occur
+        after :trac:`12737`::
+
+            sage: t = var('t')
+            sage: assume(t, 'complex')
+            sage: assumptions()
+            [t is complex]
+            sage: f = (1/2)*log(2*t) + (1/2)*log(1/t)
+            sage: f.simplify_full()
+            1/2*log(2*t) - 1/2*log(t)
 
         """
         x = self
@@ -9063,11 +9073,11 @@ cdef class Expression(CommutativeRingElement):
                 from sage.symbolic.relation import solve_ineq
                 try:
                     return(solve_ineq(self)) # trying solve_ineq_univar
-                except StandardError:
+                except Exception:
                     pass
                 try:
                     return(solve_ineq([self])) # trying solve_ineq_fourier
-                except StandardError:
+                except Exception:
                     raise NotImplementedError, "solving only implemented for equalities and few special inequalities, see solve_ineq"
             ex = self
         else:
@@ -9147,7 +9157,7 @@ cdef class Expression(CommutativeRingElement):
                     s = m.to_poly_solve(x)
                     T = string_to_list_of_solutions(repr(s))
                     X = [t[0] for t in T]
-                except StandardError: # if that gives an error, stick with no solutions
+                except Exception: # if that gives an error, stick with no solutions
                     X = []
 
             for eq in X:
@@ -9198,6 +9208,8 @@ cdef class Expression(CommutativeRingElement):
         """
         Numerically find a root of self on the closed interval [a,b] (or
         [b,a]) if possible, where self is a function in the one variable.
+        Note: this function only works in fixed (machine) precision, it is not
+        possible to get arbitrary precision approximations with it.
 
         INPUT:
 
@@ -9206,12 +9218,12 @@ cdef class Expression(CommutativeRingElement):
         -  ``var`` - optional variable
 
         -  ``xtol, rtol`` - the routine converges when a root
-           is known to lie within xtol of the value return. Should be = 0. The
+           is known to lie within xtol of the value return. Should be >= 0. The
            routine modifies this to take into account the relative precision
            of doubles.
 
         -  ``maxiter`` - integer; if convergence is not
-           achieved in maxiter iterations, an error is raised. Must be = 0.
+           achieved in maxiter iterations, an error is raised. Must be >= 0.
 
         -  ``full_output`` - bool (default: False), if True,
            also return object that contains information about convergence.
@@ -9513,7 +9525,7 @@ cdef class Expression(CommutativeRingElement):
         from sage.plot.plot import plot
 
         # see if the user passed a variable in.
-        if kwds.has_key('param'):
+        if 'param' in kwds:
             param = kwds['param']
         else:
             param = None

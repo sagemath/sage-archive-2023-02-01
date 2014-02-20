@@ -161,8 +161,12 @@ from knutson_tao_puzzles import KnutsonTaoPuzzleSolver
 from gelfand_tsetlin_patterns import GelfandTsetlinPattern, GelfandTsetlinPatterns
 
 # Finite State Machines (Automaton, Transducer)
-sage.misc.lazy_import.lazy_import('sage.combinat.finite_state_machine',
-                                  ['Automaton', 'Transducer',
-                                   'FiniteStateMachine'])
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.combinat.finite_state_machine',
+            ['Automaton', 'Transducer', 'FiniteStateMachine'])
 # Binary Recurrence Sequences
 from binary_recurrence_sequences import BinaryRecurrenceSequence
+
+# Six Vertex Model
+lazy_import('sage.combinat.six_vertex_model', 'SixVertexModel')
+

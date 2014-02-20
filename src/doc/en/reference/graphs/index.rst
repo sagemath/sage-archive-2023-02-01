@@ -37,6 +37,7 @@ Low-level implementation
    sage/graphs/base/c_graph
    sage/graphs/base/sparse_graph
    sage/graphs/base/dense_graph
+   sage/graphs/base/static_dense_graph
    sage/graphs/base/static_sparse_graph
    sage/graphs/base/static_sparse_backend
    sage/graphs/base/graph_backends
@@ -79,5 +80,6 @@ Libraries of algorithms
    sage/graphs/graph_latex
    sage/graphs/graph_list
    sage/graphs/hyperbolicity
+   sage/graphs/tutte_polynomial
 
 .. include:: ../footer.txt

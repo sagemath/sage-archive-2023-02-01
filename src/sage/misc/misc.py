@@ -14,9 +14,9 @@ TESTS:
 
 Check the fix from trac #8323::
 
-    sage: globals().has_key('name')
+    sage: 'name' in globals()
     False
-    sage: globals().has_key('func')
+    sage: 'func' in globals()
     False
 
 """
@@ -910,7 +910,7 @@ def assert_attribute(x, attr, init=None):
     If the object x has the attribute attr, do nothing. If not, set
     x.attr to init.
     """
-    if x.__dict__.has_key(attr): return
+    if attr in x.__dict__: return
     if attr[:2] == "__":
         z = str(x.__class__).split("'")
         if len(z) > 1:
@@ -1633,7 +1633,7 @@ def is_iterator(it):
     # see trac #7398 for a discussion
     try:
         return it is iter(it)
-    except StandardError:
+    except Exception:
         return False
 
 
@@ -1935,6 +1935,8 @@ def alarm(seconds):
     seconds. This is useful for automatically interrupting long
     computations and can be trapped using exception handling.
 
+    Use :func:`cancel_alarm` to cancel a previously scheduled alarm.
+
     INPUT:
 
     -  ``seconds`` -- positive number, may be floating point
@@ -1956,7 +1958,7 @@ def alarm(seconds):
 
 def cancel_alarm():
     """
-    Cancel a previously scheduled alarm (if any).
+    Cancel a previously scheduled alarm (if any) set by :func:`alarm`.
 
     EXAMPLES::
 

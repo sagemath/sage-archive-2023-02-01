@@ -488,7 +488,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
     @cached_method
     def simple_coroot(self, i):
         """
-        EXAMPLES:
+        EXAMPLES::
 
             sage: A = RootSystem("A1xB2").ambient_space()
             sage: A.simple_coroot(2)

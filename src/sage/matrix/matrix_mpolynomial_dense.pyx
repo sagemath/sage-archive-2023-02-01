@@ -473,7 +473,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
 
         EXAMPLES:
 
-        We compute the determinant of the arbitrary 3x3 matrix::
+        We compute the determinant of the arbitrary `3x3` matrix::
 
             sage: R = PolynomialRing(QQ, 9, 'x')
             sage: A = matrix(R, 3, R.gens())

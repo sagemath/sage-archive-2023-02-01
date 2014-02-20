@@ -305,7 +305,7 @@ cdef class PolyDict:
             4
         """
         K = mon.keys()[0]
-        if not self.__repn.has_key(K):
+        if K not in self.__repn:
             return 0
         return self.__repn[K]
 

@@ -172,13 +172,16 @@ cdef extern from "mpz_longlong.h":
 cdef extern from "convert.h":
     cdef void t_INT_to_ZZ( mpz_t value, long *g )
 
-from sage.libs.pari.gen cimport gen as pari_gen, PariInstance
+from sage.libs.pari.gen cimport gen as pari_gen
+from sage.libs.pari.pari_instance cimport PariInstance
 from sage.libs.flint.ulong_extras cimport *
 
 import sage.rings.infinity
-import sage.libs.pari.all
 
-from sage.structure.element import canonical_coercion
+import sage.libs.pari.pari_instance
+cdef PariInstance pari = sage.libs.pari.pari_instance.pari
+
+from sage.structure.element import canonical_coercion, coerce_binop
 from sage.misc.superseded import deprecated_function_alias
 
 cdef object numpy_long_interface = {'typestr': '=i4' if sizeof(long) == 4 else '=i8' }
@@ -618,7 +621,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef unsigned int ibase
 
         cdef Element lift
-        cdef PariInstance pari
 
         if x is None:
             if mpz_sgn(self.value) != 0:
@@ -675,7 +677,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     elif paritype == t_FFELT:
                         # x = (f modulo defining polynomial of finite field);
                         # we extract f.
-                        pari = sage.libs.pari.gen.pari
                         sig_on()
                         x = pari.new_gen(FF_to_FpXQ_i((<pari_gen>x).g))
                     else:
@@ -2232,7 +2233,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         # upper is *greater* than the answer
         try:
             upper = rif_log.upper().ceiling()
-        except StandardError:
+        except Exception:
             # ceiling is probably Infinity
             # I'm not sure what to do now
             upper = 0
@@ -3377,8 +3378,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
            - ``'kash'`` - use the KASH computer algebra system (requires
              the optional kash package)
 
-        -  ``proof`` - bool (default: True) whether or not to
-           prove primality of each factor (only applicable for PARI).
+           - ``'magma'`` - use the MAGMA computer algebra system (requires
+             an installation of MAGMA)
+
+           - ``'qsieve'`` - use Bill Hart's quadratic sieve code;
+             WARNING: this may not work as expected, see qsieve? for
+             more information
+
+           - ``'ecm'`` - use ECM-GMP, an implementation of Hendrik
+             Lenstra's elliptic curve method.
+
+        - ``proof`` - bool (default: True) whether or not to prove
+           primality of each factor (only applicable for ``'pari'``
+           and ``'ecm'``).
 
         -  ``limit`` - int or None (default: None) if limit is
            given it must fit in a signed int, and the factorization is done
@@ -3427,6 +3439,25 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: n.factor(limit=1000)
             2 * 11 * 41835640583745019265831379463815822381094652231
+
+        We factor using a quadratic sieve algorithm::
+
+            sage: p = next_prime(10^20)
+            sage: q = next_prime(10^21)
+            sage: n = p*q
+            sage: n.factor(algorithm='qsieve')
+            doctest:... RuntimeWarning: the factorization returned
+            by qsieve may be incomplete (the factors may not be prime)
+            or even wrong; see qsieve? for details
+            100000000000000000039 * 1000000000000000000117
+
+        We factor using the elliptic curve method::
+
+            sage: p = next_prime(10^15)
+            sage: q = next_prime(10^21)
+            sage: n = p*q
+            sage: n.factor(algorithm='ecm')
+            1000000000000037 * 1000000000000000000117
 
         TESTS::
 
@@ -3495,6 +3526,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             exp_type = int if int_ else Integer
             F = [(Integer(p), exp_type(e)) for p,e in zip(res[0::2], res[1::2])]
             return Factorization(F, unit)
+        elif algorithm == 'qsieve':
+            message = "the factorization returned by qsieve may be incomplete (the factors may not be prime) or even wrong; see qsieve? for details"
+            from warnings import warn
+            warn(message, RuntimeWarning, stacklevel=5)
+            from sage.interfaces.qsieve import qsieve
+            res = [(p, 1) for p in qsieve(n)[0]]
+            F = IntegerFactorization(res, unit)
+            return F
+        elif algorithm == 'ecm':
+            from sage.interfaces.ecm import ecm
+            res = [(p, 1) for p in ecm.factor(n, proof=proof)]
+            F = IntegerFactorization(res, unit)
+            return F
         else:
             raise ValueError, "Algorithm is not known"
 
@@ -4445,11 +4489,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_prime(self, proof=None):
         r"""
-        Returns ``True`` if ``self`` is prime.
+        Test whether ``self`` is prime.
 
         INPUT:
 
-        - ``proof`` -- If False, use a strong pseudo-primality test.
+        - ``proof`` -- Boolean or ``None`` (default). If False, use a
+          strong pseudo-primality test (see :meth:`is_pseudoprime`).
           If True, use a provable primality test.  If unset, use the
           default arithmetic proof flag.
 
@@ -4483,6 +4528,20 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
             sage: z.is_prime(proof=True)
             True
+
+        When starting Sage the arithmetic proof flag is True. We can change
+        it to False as follows::
+
+            sage: proof.arithmetic()
+            True
+            sage: n = 10^100 + 267
+            sage: timeit("n.is_prime()") # random
+            5 loops, best of 3: 163 ms per loop
+            sage: proof.arithmetic(False)
+            sage: proof.arithmetic()
+            False
+            sage: timeit("n.is_prime()") # random
+            1000 loops, best of 3: 573 us per loop
 
         IMPLEMENTATION: Calls the PARI ``isprime`` function.
         """
@@ -4518,7 +4577,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_pseudoprime(self):
         r"""
-        Returns ``True`` if self is a pseudoprime
+        Test whether self is a pseudoprime
+
+        This uses PARI's Baillie-PSW probabilistic primality
+        test. Currently, there are no known pseudoprimes for
+        Baille-PSW that are not actually prime. However it is
+        conjectured that there are infinitely many.
 
         EXAMPLES::
 
@@ -4948,9 +5012,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return self._pari_c()
 
     cdef _pari_c(self):
-        cdef PariInstance P
-        P = sage.libs.pari.gen.pari
-        return P.new_gen_from_mpz_t(self.value)
+        return pari.new_gen_from_mpz_t(self.value)
 
     def _interface_init_(self, I=None):
         """
@@ -5242,100 +5304,120 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
            return [z, -z]
         return z
 
-    def _xgcd(self, Integer n, bint minimal=0):
+    @coerce_binop
+    def xgcd(self, Integer n):
         r"""
-        Computes extended gcd of self and `n`.
+        Return the extended gcd of this element and ``n``.
 
         INPUT:
 
-        -  ``self`` - integer
-
-        -  ``n`` - integer
-
-        -  ``minimal`` - boolean (default false), whether to
-           compute minimal cofactors (see below)
+        - ``n`` -- an integer
 
         OUTPUT:
 
-        A triple (g, s, t), where `g` is the non-negative gcd of self
-        and `n`, and `s` and `t` are cofactors satisfying the Bezout identity
+        A triple ``(g, s, t)`` such that ``g`` is the non-negative gcd of
+        ``self`` and ``n``, and ``s`` and ``t`` are cofactors satisfying the
+        Bezout identity
 
-        .. math::
+        .. MATH::
 
-             g = s \cdot \mbox{\rm self} + t \cdot n.
+            g = s \cdot \mathrm{self} + t \cdot n.
 
-        .. note::
+        .. NOTE::
 
-           If minimal is False, then there is no guarantee that the returned
-           cofactors will be minimal in any sense; the only guarantee is that
-           the Bezout identity will be satisfied (see examples below).
-
-           If minimal is True, the cofactors will satisfy the following
-           conditions. If either self or `n` are zero, the trivial solution
-           is returned. If both self and `n` are nonzero, the function returns
-           the unique solution such that `0 \leq s < |n|/g` (which then must
-           also satisfy `0 \leq |t| \leq |\mbox{\rm self}|/g`).
+            There is no guarantee that the cofactors will be minimal. If you
+            need the cofactors to be minimal use :meth:`_xgcd`. Also, using
+            :meth:`_xgcd` directly might be faster in some cases, see
+            :trac:`13628`.
 
         EXAMPLES::
 
-            sage: Integer(5)._xgcd(7)
+            sage: 6.xgcd(4)
+            (2, 1, -1)
+
+        """
+        return self._xgcd(n)
+
+    def _xgcd(self, Integer n, bint minimal=0):
+        r"""
+        Return the exteded gcd of ``self`` and ``n``.
+
+        INPUT:
+
+        - ``n`` -- an integer
+        - ``minimal`` -- a boolean (default: ``False``), whether to compute
+          minimal cofactors (see below)
+
+        OUTPUT:
+
+        A triple ``(g, s, t)`` such that ``g`` is the non-negative gcd of
+        ``self`` and ``n``, and ``s`` and ``t`` are cofactors satisfying the
+        Bezout identity
+
+        .. MATH::
+
+            g = s \cdot \mathrm{self} + t \cdot n.
+
+        .. NOTE::
+
+            If ``minimal`` is ``False``, then there is no guarantee that the
+            returned cofactors will be minimal in any sense; the only guarantee
+            is that the Bezout identity will be satisfied (see examples below).
+
+            If ``minimal`` is ``True``, the cofactors will satisfy the following
+            conditions. If either ``self`` or ``n`` are zero, the trivial
+            solution is returned. If both ``self`` and ``n`` are nonzero, the
+            function returns the unique solution such that `0 \leq s < |n|/g`
+            (which then must also satisfy
+            `0 \leq |t| \leq |\mbox{\rm self}|/g`).
+
+        EXAMPLES::
+
+            sage: 5._xgcd(7)
             (1, 3, -2)
             sage: 5*3 + 7*-2
             1
-            sage: g,s,t = Integer(58526524056)._xgcd(101294172798)
+            sage: g,s,t = 58526524056._xgcd(101294172798)
             sage: g
             22544886
             sage: 58526524056 * s + 101294172798 * t
             22544886
 
-        Without minimality guarantees, weird things can happen::
+        Try ``minimal`` option with various edge cases::
 
-            sage: Integer(3)._xgcd(21)
-            (3, 1, 0)
-            sage: Integer(3)._xgcd(24)
-            (3, 1, 0)
-            sage: Integer(3)._xgcd(48)
-            (3, 1, 0)
-
-        Weirdness disappears with minimal option::
-
-            sage: Integer(3)._xgcd(21, minimal=True)
-            (3, 1, 0)
-            sage: Integer(3)._xgcd(24, minimal=True)
-            (3, 1, 0)
-            sage: Integer(3)._xgcd(48, minimal=True)
-            (3, 1, 0)
-            sage: Integer(21)._xgcd(3, minimal=True)
-            (3, 0, 1)
-
-        Try minimal option with various edge cases::
-
-            sage: Integer(5)._xgcd(0, minimal=True)
+            sage: 5._xgcd(0, minimal=True)
             (5, 1, 0)
-            sage: Integer(-5)._xgcd(0, minimal=True)
+            sage: (-5)._xgcd(0, minimal=True)
             (5, -1, 0)
-            sage: Integer(0)._xgcd(5, minimal=True)
+            sage: 0._xgcd(5, minimal=True)
             (5, 0, 1)
-            sage: Integer(0)._xgcd(-5, minimal=True)
+            sage: 0._xgcd(-5, minimal=True)
             (5, 0, -1)
-            sage: Integer(0)._xgcd(0, minimal=True)
+            sage: 0._xgcd(0, minimal=True)
             (0, 1, 0)
+
+        Output may differ with and without the ``minimal`` option::
+
+            sage: 2._xgcd(-2)
+            (2, 1, 0)
+            sage: 2._xgcd(-2, minimal=True)
+            (2, 0, -1)
 
         Exhaustive tests, checking minimality conditions::
 
             sage: for a in srange(-20, 20):
-            ...     for b in srange(-20, 20):
-            ...       if a == 0 or b == 0: continue
-            ...       g, s, t = a._xgcd(b)
-            ...       assert g > 0
-            ...       assert a % g == 0 and b % g == 0
-            ...       assert a*s + b*t == g
-            ...       g, s, t = a._xgcd(b, minimal=True)
-            ...       assert g > 0
-            ...       assert a % g == 0 and b % g == 0
-            ...       assert a*s + b*t == g
-            ...       assert s >= 0 and s < abs(b)/g
-            ...       assert abs(t) <= abs(a)/g
+            ....:   for b in srange(-20, 20):
+            ....:     if a == 0 or b == 0: continue
+            ....:     g, s, t = a._xgcd(b)
+            ....:     assert g > 0
+            ....:     assert a % g == 0 and b % g == 0
+            ....:     assert a*s + b*t == g
+            ....:     g, s, t = a._xgcd(b, minimal=True)
+            ....:     assert g > 0
+            ....:     assert a % g == 0 and b % g == 0
+            ....:     assert a*s + b*t == g
+            ....:     assert s >= 0 and s < abs(b)/g
+            ....:     assert abs(t) <= abs(a)/g
 
         AUTHORS:
 

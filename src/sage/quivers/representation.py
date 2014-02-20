@@ -16,6 +16,7 @@
 from sage.structure.factory import UniqueFactory
 from sage.modules.module import Module
 from sage.modules.module_element import ModuleElement
+from sage.misc.cachefunc import cached_method
 
 class QuiverRepFactory(UniqueFactory):
     """
@@ -629,6 +630,30 @@ class QuiverRepElement(ModuleElement):
 
         return result
 
+    @cached_method
+    def __hash__(self):
+        """
+        The hash only depends on the elements assigned to each vertex of the
+        underlying quiver.
+
+        NOTE:
+
+        The default hash inherited from :class:`~sage.structure.element.Element`
+        would depend on the name of the element and would thus be mutable.
+
+        EXAMPLES::
+
+            sage: Q = DiGraph({1:{2:['a'], 3:['b']}, 2:{4:['c']}, 3:{4:['d']}}).path_semigroup()
+            sage: P = Q.P(QQ, 2)
+            sage: v = P.zero()
+            sage: h1 = hash(v)
+            sage: v.rename('foobar')
+            sage: h1 == hash(v)
+            True
+
+        """
+        return hash(frozenset((v,tuple(self._elems[v])) for v in self._quiver))
+
     def __eq__(self, other):
         """
         This overrides the == operator.
@@ -746,7 +771,7 @@ class QuiverRepElement(ModuleElement):
 
         return self._elems[vertex]
 
-    def set_element(self, vector, vertex):
+    def _set_element(self, vector, vertex):
         """
         Set the value of the element ``self`` at the given vertex
         ``vertex`` to ``vector`` (while the values at all other vertices
@@ -759,6 +784,11 @@ class QuiverRepElement(ModuleElement):
 
         - ``vertex`` - integer, a vertex of the quiver
 
+        .. WARNING::
+
+            Only use this method if you know what you are doing. In particular,
+            do not apply it to an element that is cached somewhere.
+
         EXAMPLES::
 
             sage: Q = DiGraph({1:{2:['a'], 3:['b']}, 2:{3:['c']}}).path_semigroup()
@@ -768,7 +798,7 @@ class QuiverRepElement(ModuleElement):
             sage: v = M(elems)
             sage: v.get_element(1)
             (1, 0)
-            sage: v.set_element((1, 1), 1)
+            sage: v._set_element((1, 1), 1)
             sage: v.get_element(1)
             (1, 1)
         """
@@ -867,7 +897,7 @@ class QuiverRepElement(ModuleElement):
             sage: elems = {1: (1, 0), 2: (0, 1), 3: (2, 1)}
             sage: v = M(elems)
             sage: w = v.copy()
-            sage: w.set_element((0, 0), 1)
+            sage: w._set_element((0, 0), 1)
             sage: w.get_element(1)
             (0, 0)
             sage: v.get_element(1)

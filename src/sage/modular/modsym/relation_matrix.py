@@ -207,7 +207,7 @@ def T_relation_matrix_wtk_g0(syms, mod, field, sparse):
             if w==2: already_seen.add(j)
             j0, s0 = mod[j]
             s0 = s*s0
-            if v.has_key(j0):
+            if j0 in v:
                 v[j0] += s0
             else:
                 v[j0] = s0
@@ -786,7 +786,7 @@ def sparse_2term_quotient(rels, n, F):
 ##         iT_plus_iTT = M.apply_T(i) + M.apply_TT(i)
 ##         v = {i:ONE}
 ##         for j, s in iT_plus_iTT:
-##             if v.has_key(j):
+##             if j in v:
 ##                 v[j] += field(s)
 ##             else:
 ##                 v[j] = field(s)

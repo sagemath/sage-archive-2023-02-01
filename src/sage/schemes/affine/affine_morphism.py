@@ -219,7 +219,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         S=PolynomialRing(A.base_ring(),Vars)
         try:
             l=lcm([self[i].denominator() for i in range(N)])
-        except StandardError:  #no lcm
+        except Exception:  #no lcm
             l=prod([self[i].denominator() for i in range(N)])
 
         from sage.rings.polynomial.polynomial_ring import PolynomialRing_general

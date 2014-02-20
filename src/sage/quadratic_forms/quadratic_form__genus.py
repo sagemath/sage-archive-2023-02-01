@@ -60,7 +60,7 @@ def global_genus_symbol(self):
     ## Return the result
     try:
         return Genus(self.Hessian_matrix())
-    except StandardError:
+    except Exception:
         raise TypeError, "Oops!  There is a problem computing the genus symbols for this form."
 
 
@@ -127,7 +127,7 @@ def local_genus_symbol(self, p):
     try:
         M = self.Hessian_matrix()
         return LocalGenusSymbol(M, p)
-    except StandardError:
+    except Exception:
         raise TypeError, "Oops!  There is a problem computing the local genus symbol at the prime " + str(p) + " for this form."
 
 

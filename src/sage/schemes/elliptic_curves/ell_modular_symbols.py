@@ -465,9 +465,9 @@ class ModularSymbolECLIB(ModularSymbol):
             8
 
             sage: E = EllipticCurve('15a1')
-            sage: [C.modular_symbol(use_eclib=True,normalize='L_ratio')(0) for C in E.isogeny_class(use_tuple=False)]
+            sage: [C.modular_symbol(use_eclib=True,normalize='L_ratio')(0) for C in E.isogeny_class()]
             [1/4, 1/8, 1/4, 1/2, 1/8, 1/16, 1/2, 1]
-            sage: [C.modular_symbol(use_eclib=True,normalize='none')(0) for C in E.isogeny_class(use_tuple=False)]
+            sage: [C.modular_symbol(use_eclib=True,normalize='none')(0) for C in E.isogeny_class()]
             [1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4]
 
         Currently, the interface for negative modular symbols in eclib is not yet written::
@@ -544,6 +544,10 @@ class ModularSymbolECLIB(ModularSymbol):
 
         """
         # this computes {0,oo} - {0,r} = {r,oo}
+        from sage.rings.rational import Rational
+        if r != oo:
+            r = Rational(r)
+            r = r.numer() % r.denom() / r.denom()
         return (self._atzero - self._modsym(r))*self._scaling
 
 
@@ -605,11 +609,11 @@ class ModularSymbolSage(ModularSymbol):
             1
 
             sage: E = EllipticCurve('15a1')
-            sage: [C.modular_symbol(use_eclib=False, normalize='L_ratio')(0) for C in E.isogeny_class(use_tuple=False)]
+            sage: [C.modular_symbol(use_eclib=False, normalize='L_ratio')(0) for C in E.isogeny_class()]
             [1/4, 1/8, 1/4, 1/2, 1/8, 1/16, 1/2, 1]
-            sage: [C.modular_symbol(use_eclib=False, normalize='period')(0) for C in E.isogeny_class(use_tuple=False)]
+            sage: [C.modular_symbol(use_eclib=False, normalize='period')(0) for C in E.isogeny_class()]
             [1/8, 1/16, 1/8, 1/4, 1/16, 1/32, 1/4, 1/2]
-            sage: [C.modular_symbol(use_eclib=False, normalize='none')(0) for C in E.isogeny_class(use_tuple=False)]
+            sage: [C.modular_symbol(use_eclib=False, normalize='none')(0) for C in E.isogeny_class()]
             [1, 1, 1, 1, 1, 1, 1, 1]
 
         """

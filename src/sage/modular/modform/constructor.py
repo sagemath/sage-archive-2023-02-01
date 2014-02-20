@@ -306,7 +306,7 @@ def ModularForms(group  = 1,
 
     key = canonical_parameters(group, level, weight, base_ring)
 
-    if use_cache and _cache.has_key(key):
+    if use_cache and key in _cache:
          M = _cache[key]()
          if not (M is None):
              M.set_precision(prec)

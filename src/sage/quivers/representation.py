@@ -645,7 +645,7 @@ class QuiverRepElement(ModuleElement):
 
             sage: Q = DiGraph({1:{2:['a'], 3:['b']}, 2:{4:['c']}, 3:{4:['d']}}).path_semigroup()
             sage: P = Q.P(QQ, 2)
-            sage: v = P.zero()
+            sage: v = P()   # let's not muddy P.zero(), which is cached
             sage: h1 = hash(v)
             sage: v.rename('foobar')
             sage: h1 == hash(v)
@@ -787,7 +787,8 @@ class QuiverRepElement(ModuleElement):
         .. WARNING::
 
             Only use this method if you know what you are doing. In particular,
-            do not apply it to an element that is cached somewhere.
+            do not apply it to an element that is cached somewhere (such as
+            :meth:`zero`).
 
         EXAMPLES::
 

@@ -166,8 +166,11 @@ Alternatively, if you have already installed
 `Xcode <http://developer.apple.com/xcode/>`_
 (which at the time of writing is freely available in the Mac App Store,
 or through http://developer.apple.com/downloads/ provided you registered for an
-Apple Developer account),
-you can open Xcode's "Downloads" preference pane and install the command line
+Apple Developer account), you can install the command line tools from
+there: with OS X Mavericks, run the command ``xcode-select --install``
+from a Terminal window and click "Install" in the pop-up dialog
+box. Using OS X Mountain Lion or earlier, run Xcode, open its "Downloads"
+preference pane and install the command line
 tools from there.
 On pre-Lion OS X systems, the command line tools are not available as a
 separate download and you have to install the full-blown Xcode supporting your
@@ -1055,20 +1058,6 @@ Environment variables dealing with specific Sage packages:
     work on a sun4v machine, even if created on an older sun4u machine.
 
   - If this variable is unset, include the patch on sun4v machines only.
-
-- :envvar:`SAGE_BINARY_BUILD` - used by the pil package.
-  If set to ``yes``, then force Sage to use the versions of libjpeg, libtiff
-  and libpng from :file:`$SAGE_ROOT/local/lib`.
-  Otherwise, allow the use of the system's versions of these libraries.
-
-- :envvar:`SAGE_PIL_NOTK` - used by the pil package.
-  If set to ``yes``, then disable building TK.
-  If this is not set, then this should be dealt with automatically: Sage tries
-  to build the pil package with TK support enabled, but if it runs into
-  problems, it tries building again with TK disabled.
-  So only use this variable to force TK to be disabled.
-  (Building the pil package is pretty fast -- less than a minute on many
-  systems -- so allowing it to build twice is not a serious issue.)
 
 Some standard environment variables which are used by Sage:
 

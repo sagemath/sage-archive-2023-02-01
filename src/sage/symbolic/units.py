@@ -1131,7 +1131,7 @@ class Units:
             True
 
         """
-        if self.__units.has_key(name):
+        if name in self.__units:
             return self.__units[name]
         if len(unit_to_type) == 0:
             evalunitdict()
@@ -1223,7 +1223,7 @@ def is_unit(s):
         sage: sage.symbolic.units.is_unit(var('meter'))
         True
     """
-    return unit_to_type.has_key(str(s))
+    return str(s) in unit_to_type
 
 def convert(expr, target):
     """
@@ -1352,13 +1352,13 @@ def base_units(unit):
         x
     """
     from sage.misc.all import sage_eval
-    if not unit_to_type.has_key(str(unit)):
+    if str(unit) not in unit_to_type:
         return unit
     elif unit_to_type[str(unit)] == 'si_prefixes' or unit_to_type[str(unit)] == 'unit_multipliers':
         return sage_eval(unitdict[unit_to_type[str(unit)]][str(unit)])
     else:
         v = SR.var(unit_to_type[str(unit)])
-        if unit_derivations.has_key(str(v)):
+        if str(v) in unit_derivations:
             base = unit_derivations_expr(v)
             for i in base.variables():
                 base = base.subs({i:SR.var(value_to_unit[str(i)]['1'])})

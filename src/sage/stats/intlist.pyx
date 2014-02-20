@@ -559,7 +559,7 @@ def unpickle_intlist_v1(v, Py_ssize_t n):
     INPUT:
         v -- a raw char buffer
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: v = stats.IntList([1,2,3])
         sage: s = v.__reduce__()[1][0]

@@ -876,7 +876,7 @@ class SimplicialComplex(GenericCellComplex):
             # build dictionary of generator names
             try:
                 gen_dict[v] = 'x%s'%int(v)
-            except StandardError:
+            except Exception:
                 gen_dict[v] = v
         # build set of facets
         good_faces = []
@@ -1264,6 +1264,84 @@ class SimplicialComplex(GenericCellComplex):
         for i in range(1, floor((d+1)/2) + 1):
             g.append(h[i] - h[i-1])
         return g
+
+    def flip_graph(self):
+        """
+        If ``self`` is pure, then it returns the the flip graph of ``self``,
+        otherwise, it returns ``None``.
+
+        The flip graph of a pure simplicial complex is the (undirected) graph
+        with vertices being the facets, such that two facets are joined by
+        an edge if they meet in a codimension `1` face.
+
+        The flip graph is used to detect if ``self`` is a pseudomanifold.
+
+        EXAMPLES::
+
+            sage: S0 = simplicial_complexes.Sphere(0)
+            sage: G = S0.flip_graph()
+            sage: G.vertices(); G.edges(labels=False)
+            [(0,), (1,)]
+            [((0,), (1,))]
+
+            sage: G = (S0.wedge(S0)).flip_graph()
+            sage: G.vertices(); G.edges(labels=False)
+            [(0,), ('L1',), ('R1',)]
+            [((0,), ('L1',)), ((0,), ('R1',)), (('L1',), ('R1',))]
+
+            sage: S1 = simplicial_complexes.Sphere(1)
+            sage: S2 = simplicial_complexes.Sphere(2)
+            sage: G = (S1.wedge(S1)).flip_graph()
+            sage: G.vertices(); G.edges(labels=False)
+            [(0, 'L1'), (0, 'L2'), (0, 'R1'), (0, 'R2'), ('L1', 'L2'), ('R1', 'R2')]
+            [((0, 'L1'), (0, 'L2')),
+             ((0, 'L1'), (0, 'R1')),
+             ((0, 'L1'), (0, 'R2')),
+             ((0, 'L1'), ('L1', 'L2')),
+             ((0, 'L2'), (0, 'R1')),
+             ((0, 'L2'), (0, 'R2')),
+             ((0, 'L2'), ('L1', 'L2')),
+             ((0, 'R1'), (0, 'R2')),
+             ((0, 'R1'), ('R1', 'R2')),
+             ((0, 'R2'), ('R1', 'R2'))]
+
+            sage: (S1.wedge(S2)).flip_graph() is None
+            True
+
+            sage: G = S2.flip_graph()
+            sage: G.vertices(); G.edges(labels=False)
+            [(0, 1, 2), (0, 1, 3), (0, 2, 3), (1, 2, 3)]
+            [((0, 1, 2), (0, 1, 3)),
+             ((0, 1, 2), (0, 2, 3)),
+             ((0, 1, 2), (1, 2, 3)),
+             ((0, 1, 3), (0, 2, 3)),
+             ((0, 1, 3), (1, 2, 3)),
+             ((0, 2, 3), (1, 2, 3))]
+
+            sage: T = simplicial_complexes.Torus()
+            sage: G = T.suspension(4).flip_graph()
+            sage: len(G.vertices()); len(G.edges(labels=False))
+            46
+            161
+        """
+        from collections import defaultdict
+        if not self.is_pure():
+            return None
+        d = self.dimension()
+        Fs = self.facets()
+        flipG = Graph()
+        flipG.add_vertices(Fs)
+        edges = defaultdict(list)
+        # go through all codim 1 faces to build the edge
+        for F in Fs:
+            F_tuple = sorted(F._Simplex__set)
+            for i in range(d+1):
+                coF = tuple(F_tuple[:i]+F_tuple[i+1:])
+                if coF in edges:
+                    for G in edges[coF]:
+                        flipG.add_edge((F,G))
+                edges[coF].append(F)
+        return flipG
 
     def is_pseudomanifold(self):
         """
@@ -1864,7 +1942,7 @@ class SimplicialComplex(GenericCellComplex):
             {0: 0, 1: 0, 2: Z}
         """
         from sage.modules.all import VectorSpace
-        from sage.homology.chain_complex import HomologyGroup
+        from sage.homology.homology_group import HomologyGroup
 
         base_ring = kwds.get('base_ring', ZZ)
         cohomology = kwds.get('cohomology', False)
@@ -1920,29 +1998,13 @@ class SimplicialComplex(GenericCellComplex):
         if 'subcomplex' in kwds:
             del kwds['subcomplex']
         answer = C.homology(**kwds)
-        if isinstance(answer, dict):
-            if cohomology:
-                too_big = self.dimension() + 1
-                if (not ((isinstance(dim, (list, tuple)) and too_big in dim)
-                        or too_big == dim)
-                    and too_big in answer):
-                    del answer[too_big]
-            if -2 in answer:
-                del answer[-2]
-            if -1 in answer:
-                del answer[-1]
-            if dim is not None:
-                if isinstance(dim, (list, tuple)):
-                    temp = {}
-                    for n in dim:
-                        temp[n] = answer[n]
-                    answer = temp
-                else:  # just a single dimension
-                    if base_ring == ZZ:
-                        answer = answer.get(dim, HomologyGroup(0))
-                    else:
-                        answer = answer.get(dim, VectorSpace(base_ring, 0))
-        return answer
+
+        if dim is None:
+            dim = range(self.dimension()+1)
+        zero = HomologyGroup(0, base_ring)
+        if isinstance(dim, (list, tuple)):
+            return dict([d, answer.get(d, zero)] for d in dim)
+        return answer.get(dim, zero)
 
     def add_face(self, face):
         """

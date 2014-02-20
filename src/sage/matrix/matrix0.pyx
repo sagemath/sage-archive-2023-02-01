@@ -1784,7 +1784,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             if callable(rep_mapping):
                 rep = rep_mapping(x)
             # avoid hashing entries, especially algebraic numbers
-            elif rep_mapping and rep_mapping.has_key(x):
+            elif rep_mapping and x in rep_mapping:
                 rep = rep_mapping.get(x)
             else:
                 rep = repr(x)
@@ -3761,7 +3761,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         This returns a tuple so it is immutable; see #10752.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: A = matrix(QQ, 2, 2, range(4))
             sage: A.pivots()

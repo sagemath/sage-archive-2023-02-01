@@ -984,7 +984,7 @@ cdef class Expression(CommutativeRingElement):
         else:
             raise TypeError, "Cannot evaluate symbolic expression to a numeric value."
 
-    cpdef _convert(self, kwds):
+    cpdef _convert(self, R):
         """
         Convert all the numeric coefficients and constants in this expression
         to the given ring `R`. This results in an expression which contains

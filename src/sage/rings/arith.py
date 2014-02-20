@@ -14,7 +14,7 @@ Miscellaneous arithmetic functions
 import math
 import sys
 import sage.misc.misc as misc
-from sage.libs.pari.gen import pari
+from sage.libs.pari.all import pari
 import sage.libs.flint.arith as flint_arith
 
 from sage.rings.rational_field import QQ
@@ -1884,7 +1884,7 @@ def xgcd(a, b):
         sage: 4*56 + (-5)*44
         4
         sage: g, a, b = xgcd(5/1, 7/1); g, a, b
-        (1, 3, -2)
+        (1, 1/5, 0)
         sage: a*(5/1) + b*(7/1) == g
         True
         sage: x = polygen(QQ)
@@ -2512,9 +2512,16 @@ def radical(n, *args, **kwds):
 
 def prime_divisors(n):
     """
-    The prime divisors of the integer n, sorted in increasing order. If
-    n is negative, we do *not* include -1 among the prime divisors,
-    since -1 is not a prime number.
+    The prime divisors of ``n``.
+
+    INPUT:
+
+    - ``n`` -- any object which can be factored
+
+    OUTPUT:
+
+    A list of prime factors of ``n``. For integers, this list is sorted
+    in increasing order.
 
     EXAMPLES::
 
@@ -2522,12 +2529,22 @@ def prime_divisors(n):
         []
         sage: prime_divisors(100)
         [2, 5]
-        sage: prime_divisors(-100)
-        [2, 5]
         sage: prime_divisors(2004)
         [2, 3, 167]
+
+    If ``n`` is negative, we do *not* include -1 among the prime
+    divisors, since -1 is not a prime number::
+
+        sage: prime_divisors(-100)
+        [2, 5]
+
+    For polynomials we get all irreducible factors::
+
+        sage: R.<x> = PolynomialRing(QQ)
+        sage: prime_divisors(x^12 - 1)
+        [x - 1, x + 1, x^2 - x + 1, x^2 + 1, x^2 + x + 1, x^4 - x^2 + 1]
     """
-    return [p for p,_ in factor(n) if p != -1]
+    return [p for p,_ in factor(n)]
 
 prime_factors = prime_divisors
 
@@ -4078,7 +4095,19 @@ def continued_fraction_list(x, partial_convergents=False, bits=None, nterms=None
         [1, 100000000000000000000, 2688, 8, 1]
         sage: continued_fraction_list(1 + 10^-20 - e^-100, bits=1000, nterms=5)
         [1, 100000000000000000000, 2688, 8, 1]
+
+    Check that :trac:`14858` is fixed::
+
+        sage: continued_fraction_list(3/4) == continued_fraction_list(SR(3/4))
+        True
+
     """
+    if isinstance(x, sage.symbolic.expression.Expression):
+        try:
+            x = x.pyobject()
+        except TypeError:
+            pass
+
     if isinstance(x, (integer.Integer, int, long)):
         if partial_convergents:
             return [x], [(x,1)]
@@ -4729,11 +4758,18 @@ def falling_factorial(x, a):
         sage: falling_factorial(x, 4)
         x^4 - 6*x^3 + 11*x^2 - 6*x
 
+    Check that :trac:`14858` is fixed::
+
+        sage: falling_factorial(-4, SR(2))
+        20
+
     AUTHORS:
 
     - Jaap Spies (2006-03-05)
     """
-    if isinstance(a, (integer.Integer, int, long)) and a >= 0:
+    if (isinstance(a, (integer.Integer, int, long)) or
+        (isinstance(a, sage.symbolic.expression.Expression) and
+         a.is_integer())) and a >= 0:
         return misc.prod([(x - i) for i in range(a)])
     from sage.functions.all import gamma
     return gamma(x+1) / gamma(x-a+1)
@@ -4800,11 +4836,20 @@ def rising_factorial(x, a):
         sage: rising_factorial(x, 4)
         x^4 + 6*x^3 + 11*x^2 + 6*x
 
+    Check that :trac:`14858` is fixed::
+
+        sage: bool(rising_factorial(-4, 2) ==
+        ....:      rising_factorial(-4, SR(2)) ==
+        ....:      rising_factorial(SR(-4), SR(2)))
+        True
+
     AUTHORS:
 
     - Jaap Spies (2006-03-05)
     """
-    if isinstance(a, (integer.Integer, int, long)) and a >= 0:
+    if (isinstance(a, (integer.Integer, int, long)) or
+        (isinstance(a, sage.symbolic.expression.Expression) and
+         a.is_integer())) and a >= 0:
         return misc.prod([(x + i) for i in range(a)])
     from sage.functions.all import gamma
     return gamma(x+a) / gamma(x)

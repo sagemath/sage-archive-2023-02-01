@@ -66,7 +66,7 @@ def EtaGroup(level):
         ...
         ValueError: Level (=0) must be a positive integer
     """
-    if _cache.has_key(level):
+    if level in _cache:
         G = _cache[level]()
         if not G is None:
             return G

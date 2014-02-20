@@ -19,7 +19,7 @@ def late_import():
        sage: sage.rings.finite_rings.finite_field_ntl_gf2e.GF2 is None # indirect doctest
        False
     """
-    if globals().has_key("GF2"):
+    if "GF2" in globals():
         return
     global ResidueField_generic, is_FiniteField, exists_conway_polynomial, conway_polynomial, Cache_ntl_gf2e, GF, GF2, is_Polynomial
     import sage.rings.residue_field

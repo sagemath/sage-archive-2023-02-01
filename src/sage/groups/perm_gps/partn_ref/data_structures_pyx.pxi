@@ -31,6 +31,7 @@ cdef extern from "math.h":
 
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.rings.integer cimport Integer
+from sage.groups.perm_gps.partn_ref2.refinement_generic cimport PartitionRefinement_generic
 
 # OrbitPartitions
 
@@ -55,6 +56,41 @@ cdef inline OrbitPartition *OP_new(int n):
     OP.size   = int_array + 3*n
     OP_clear(OP)
     return OP
+
+cdef inline int OP_copy_from_to(OrbitPartition *OP, OrbitPartition *OP2):
+    """
+    Copy all data from OP to OP2, we suppose that
+
+    -   OP2.degree == OP.degree
+    -   OP2.num_cells == OP.num_cells
+    """
+    memcpy(OP2.parent, OP.parent, 4*OP.degree * sizeof(int) )
+
+cdef inline OrbitPartition *OP_copy(OrbitPartition *OP):
+    """
+    Allocate and return a pointer to a copy of a OrbitPartition of degree n.
+
+    Returns a
+    null pointer in the case of an allocation failure.
+    """
+    cdef OrbitPartition *OP2 = OP_new(OP.degree)
+    if OP is NULL:
+        raise MemoryError, "MemoryError allocating OrbitPartition in copy method"
+
+    OP_copy_from_to(OP, OP2)
+    return OP2
+
+cdef inline OP_string(OrbitPartition *OP):
+    """
+    Return a string representation of the OrbitPartition.
+    """
+    cdef i,j
+    s = ""
+    for i from 0 <= i < OP.degree:
+        s += " "
+        j = OP_find(OP, i)
+        s += "%d -> %d"%(i, j)
+    return s
 
 cdef inline OP_clear(OrbitPartition *OP):
     cdef int i, n = OP.degree
@@ -435,16 +471,19 @@ cdef int PS_split_point(PartitionStack *PS, int v):
         PS.levels[i] = PS.depth
         return i
 
-cdef int PS_first_smallest(PartitionStack *PS, bitset_t b):
+cdef int PS_first_smallest(PartitionStack *PS, bitset_t b, int *second_pos=NULL,
+                           PartitionRefinement_generic partn_ref_alg=None):
     """
     Find the first occurrence of the smallest cell of size greater than one,
-    store its entries to b, and return its minimum element.
+    which is admissible (checked by the function ``test_allowance``).
+    Its entries are stored to b and its minimum element is returned.
     """
     cdef int i = 0, j = 0, location = 0, n = PS.degree
     bitset_zero(b)
     while 1:
         if PS.levels[i] <= PS.depth:
-            if i != j and n > i - j + 1:
+            if i != j and n > i - j + 1 and (partn_ref_alg==None or 
+                                partn_ref_alg._minimization_allowed_on_col(PS.entries[j])):
                 n = i - j + 1
                 location = j
             j = i + 1
@@ -457,7 +496,58 @@ cdef int PS_first_smallest(PartitionStack *PS, bitset_t b):
         bitset_flip(b, PS.entries[i])
         if PS.levels[i] <= PS.depth: break
         i += 1
+
+    if second_pos != NULL:
+        if n==2:
+            second_pos[0] = PS.entries[location+1]
+        else:
+            second_pos[0] = -1
+
+
     return PS.entries[location]
+
+
+cdef int PS_all_new_cells(PartitionStack *PS, bitset_t** nonsingletons_ptr):
+    """
+    Suppose a cell ``C`` was split into ``a`` components at ``PS.level``.
+    Set the rows of the matrix ``nonsingletons_ptr`` to the first
+    ``a-1`` components of ``C`` for all those ``C``.
+    Return the number of rows of ``nonsingletons_ptr``.
+    """
+    cdef int beg=0, end, n = PS.degree, count=0, i, n_1 = n-1
+    cdef bint non_unit_partition = False
+    cdef bitset_t scratch
+    bitset_init(scratch, n)
+    cdef bitset_t* nonsingletons = nonsingletons_ptr[0]
+
+    while beg < n_1:
+        end = beg
+        while end!=n and PS.levels[end] > PS.depth:
+            end+=1
+
+        if end != n:
+            if PS.levels[end] == PS.depth:
+                bitset_zero(scratch)
+                for i from beg <= i <= end:
+                    bitset_set(scratch, PS.entries[i])
+                count +=1
+                nonsingletons = <bitset_t*> sage_realloc(nonsingletons, count * sizeof(bitset_t))
+                if nonsingletons is NULL:
+                    raise MemoryError, "Memory error in PS_all_new_cells"
+                bitset_init(nonsingletons[count-1], n)
+                bitset_copy(nonsingletons[count-1], scratch)
+        else:
+            if beg==0:
+                nonsingletons = <bitset_t*> sage_realloc(nonsingletons, sizeof(bitset_t))
+                if nonsingletons is NULL:
+                    raise MemoryError, "Memory error in PS_all_new_cells"
+                bitset_init(nonsingletons[0], n)
+                bitset_zero(scratch)
+                bitset_complement(nonsingletons[0], scratch)
+                count = 1
+        beg = end+1
+    nonsingletons_ptr[0] = nonsingletons
+    return count
 
 cdef int PS_find_element(PartitionStack *PS, bitset_t b, int x):
     """
@@ -480,6 +570,7 @@ cdef int PS_find_element(PartitionStack *PS, bitset_t b, int x):
         i += 1
     return location
 
+
 cdef inline int PS_get_perm_from(PartitionStack *PS1, PartitionStack *PS2, int *gamma):
     """
     Store the permutation determined by PS2[i] -> PS1[i] for each i, where PS[i]
@@ -488,6 +579,22 @@ cdef inline int PS_get_perm_from(PartitionStack *PS1, PartitionStack *PS2, int *
     cdef int i
     for i from 0 <= i < PS1.degree:
         gamma[PS2.entries[i]] = PS1.entries[i]
+
+cdef list PS_singletons(PartitionStack * part):
+    """
+    Return the list of all singletons in the PartitionStack.
+    """
+    cdef list l = []
+    cdef int i
+
+    if part.levels[0] <= part.depth:
+        l.append(0)
+
+    for i in range(1, part.degree):
+        if part.levels[i] <= part.depth and part.levels[i - 1] <= part.depth:
+            l.append(i)
+
+    return l
 
 cdef inline bint stacks_are_equivalent(PartitionStack *PS1, PartitionStack *PS2):
     cdef int i, j, depth = min(PS1.depth, PS2.depth)

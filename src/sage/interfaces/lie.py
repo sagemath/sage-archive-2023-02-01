@@ -202,7 +202,7 @@ This can also be accessed with lie.functionname? .
 With the exception of groups, all LiE data types can be converted into
 native Sage data types by calling the .sage() method.
 
-Integers:
+Integers::
 
     sage: a = lie('1234') # optional - lie
     sage: b = a.sage(); b # optional - lie

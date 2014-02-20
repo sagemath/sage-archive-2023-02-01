@@ -60,8 +60,11 @@ from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
 
 #########################################################
 # PARI C library
-from sage.libs.pari.gen cimport gen, PariInstance
-from sage.libs.pari.gen import pari
+from sage.libs.pari.gen cimport gen
+from sage.libs.pari.pari_instance cimport PariInstance
+
+import sage.libs.pari.pari_instance
+cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
 include "sage/libs/pari/decl.pxi"
 include "sage/libs/pari/pari_err.pxi"
@@ -4888,8 +4891,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: type(pari(a))
             <type 'sage.libs.pari.gen.gen'>
         """
-        cdef PariInstance P = sage.libs.pari.gen.pari
-        return P.integer_matrix(self._matrix, self._nrows, self._ncols, 0)
+        return pari.integer_matrix(self._matrix, self._nrows, self._ncols, 0)
 
     def _det_pari(self, int flag=0):
         """
@@ -4907,13 +4909,12 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: matrix(ZZ,3,[1..9])._det_pari(1)
             0
         """
-        cdef PariInstance P = sage.libs.pari.gen.pari
         pari_catch_sig_on()
         cdef GEN d = det0(pari_GEN(self), flag)
         # now convert d to a Sage integer e
         cdef Integer e = Integer()
         t_INT_to_ZZ(e.value, d)
-        P.clear_stack()
+        pari.clear_stack()
         return e
 
     def _rank_pari(self):
@@ -4927,10 +4928,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: matrix(ZZ,3,[1..9])._rank_pari()
             2
         """
-        cdef PariInstance P = sage.libs.pari.gen.pari
         pari_catch_sig_on()
         cdef long r = rank(pari_GEN(self))
-        P.clear_stack()
+        pari.clear_stack()
         return r
 
     def _hnf_pari(self, int flag=0, bint include_zero_rows=True):
@@ -4994,13 +4994,12 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: pari('mathnf(Mat([0,1]), 4)')
             [Mat(1), [1, 0; 0, 1]]
         """
-        cdef PariInstance P = sage.libs.pari.gen.pari
         cdef GEN A
         pari_catch_sig_on()
-        A = P._new_GEN_from_mpz_t_matrix_rotate90(self._matrix, self._nrows, self._ncols)
+        A = pari._new_GEN_from_mpz_t_matrix_rotate90(self._matrix, self._nrows, self._ncols)
         cdef GEN H = mathnf0(A, flag)
         B = self.extract_hnf_from_pari_matrix(H, flag, include_zero_rows)
-        P.clear_stack()  # This calls pari_catch_sig_off()
+        pari.clear_stack()  # This calls pari_catch_sig_off()
         return B
 
 
@@ -5057,12 +5056,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [1 2 3]
             [0 3 6]
         """
-        cdef PariInstance P = sage.libs.pari.gen.pari
-        cdef gen H = P.integer_matrix(self._matrix, self._nrows, self._ncols, 1)
+        cdef gen H = pari.integer_matrix(self._matrix, self._nrows, self._ncols, 1)
         H = H.mathnf(flag)
         pari_catch_sig_on()
         B = self.extract_hnf_from_pari_matrix(H.g, flag, include_zero_rows)
-        P.clear_stack()  # This calls pari_catch_sig_off()
+        pari.clear_stack()  # This calls pari_catch_sig_off()
         return B
 
     cdef extract_hnf_from_pari_matrix(self, GEN H, int flag, bint include_zero_rows):
@@ -5093,9 +5091,7 @@ cdef inline GEN pari_GEN(Matrix_integer_dense B):
     For internal use only; this directly uses the PARI stack.
     One should call ``sig_on()`` before and ``sig_off()`` after.
     """
-    cdef PariInstance P = sage.libs.pari.gen.pari
-    cdef GEN A
-    A = P._new_GEN_from_mpz_t_matrix(B._matrix, B._nrows, B._ncols)
+    cdef GEN A = pari._new_GEN_from_mpz_t_matrix(B._matrix, B._nrows, B._ncols)
     return A
 
 

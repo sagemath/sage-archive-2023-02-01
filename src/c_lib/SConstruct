@@ -132,9 +132,9 @@ cFiles = Split( "convert.c  interrupt.c  memory.c  mpn_pylong.c  mpz_pylong.c") 
          Split( "mpz_longlong.c stdsage.c  gmp_globals.c" )
 cppFiles = Split( "ZZ_pylong.cpp  ntl_wrap.cpp" )
 srcFiles = cFiles + cppFiles
-incFiles = Split( "ccobject.h  convert.h  ginac_wrap.h  gmp_globals.h" ) + \
+incFiles = Split( "ccobject.h  convert.h  gmp_globals.h" ) + \
            Split( "interrupt.h  memory.h  mpn_pylong.h  mpz_longlong.h" ) + \
-           Split( "mpz_pylong.h  ntl_wrap.h  pb_wrap.h  stdsage.h  ZZ_pylong.h" )
+           Split( "mpz_pylong.h  ntl_wrap.h  stdsage.h  ZZ_pylong.h" )
 
 lib = env.SharedLibrary( "csage", [ "src/" + x for x in srcFiles ],
                          LIBS=['ntl', 'pari', 'gmp', 'python$PYV'],

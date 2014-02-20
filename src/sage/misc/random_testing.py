@@ -140,13 +140,13 @@ def random_testing(fn):
                 stdout.flush()
             try:
                 fn(*args, **kwargs)
-            except StandardError, e:
-                # We treat any sort of StandardError as a doctest
+            except Exception as e:
+                # We treat any sort of Exception as a doctest
                 # failure.  (We have to eat the exception, because if
                 # doctesting sees an exception, it doesn't display
                 # whatever was printed before the exception happened
                 # -- so the text we print here would be lost.)  Note
-                # that KeyboardInterrupt is not a StandardError, so
+                # that KeyboardInterrupt is not an Exception, so
                 # pressing Control-C doesn't print this message.
                 print "Random testing has revealed a problem in " + fn.__name__
                 print "Please report this bug!  You may be the first"

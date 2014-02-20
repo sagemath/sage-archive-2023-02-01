@@ -8,7 +8,6 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.misc.cachefunc import cached_method
 from paths import QuiverPath
 from representation import QuiverRep
-from sage.graphs.digraph import DiGraph
 
 class PathSemigroup(UniqueRepresentation, Parent):
     r"""
@@ -280,10 +279,10 @@ class PathSemigroup(UniqueRepresentation, Parent):
         """
         The tuple of generators.
 
-        NOTE:
+        .. NOTE:
 
-        This coincides with the sum of the output of :meth:`idempotents`
-        and :meth:`arrows`.
+            This coincides with the sum of the output of
+            :meth:`idempotents` and :meth:`arrows`.
 
         EXAMPLES::
 
@@ -363,7 +362,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
 
     def __iter__(self):
         """
-        Iterate over the elements of ``self``, i.e., over quiver paths
+        Iterate over the elements of ``self``, i.e., over quiver paths.
 
         EXAMPLES::
 
@@ -522,10 +521,10 @@ class PathSemigroup(UniqueRepresentation, Parent):
         """
         The underlying quiver (i.e., digraph) of this path semigroup.
 
-        NOTE:
+        .. NOTE:
 
-        The returned digraph always is an immutable copy of the originally
-        given digraph.
+            The returned digraph always is an immutable copy of the originally
+            given digraph.
 
         EXAMPLES::
 

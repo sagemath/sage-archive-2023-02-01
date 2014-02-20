@@ -20,10 +20,11 @@ from sage.misc.cachefunc import cached_method
 
 class QuiverHomSpace(Homset):
     """
-    A homomorphism of quiver representations is for each vertex of the quiver a
-    homomorphism of the spaces assigned to those vertices such that these
-    homomorphisms commute with the edge maps.  This class handles the set of all
-    such maps, Hom_Q(M, N).
+    A homomorphism of quiver representations (of one and the same quiver)
+    is given by specifying, for each vertex of the quiver, a homomorphism
+    of the spaces assigned to this vertex such that these homomorphisms
+    commute with the edge maps.  This class handles the set of all
+    such maps, `Hom_Q(M, N)`.
 
     INPUT:
 
@@ -33,12 +34,12 @@ class QuiverHomSpace(Homset):
 
     OUTPUT:
 
-    - QuiverHomSpace, the homomorphism space Hom_Q(domain, codomain)
+    - QuiverHomSpace, the homomorphism space ``Hom_Q(domain, codomain)``
 
-    .. NOTES::
+    .. NOTE::
 
-        The quivers of the domain and codomain must be equal or a ValueError is
-        raised.
+        The quivers of the domain and codomain must be equal or a
+        ``ValueError`` is raised.
 
     EXAMPLES::
 
@@ -116,8 +117,9 @@ class QuiverHomSpace(Homset):
         # correspond to which matrices.
 
         # eqs will count the number of equations in our system of equations,
-        # varstart will be a list whose ith entry is the number of the variable
-        # located at (0, 0) in the matrix assigned to the ith vertex.
+        # varstart will be a list whose ith entry is the number of the
+        # variable located at (0, 0) in the matrix assigned to the
+        # ith vertex. (So varstart[0] will be 0.)
         eqs = 0
         verts = domain._quiver.vertices()
         varstart = [0]*(len(verts) + 1)
@@ -130,7 +132,7 @@ class QuiverHomSpace(Homset):
             eqs += domain._spaces[e[0]].dimension()*codomain._spaces[e[1]].dimension()
 
         # After this cascading sum varstart[v] will be the sum of the
-        # dimensions of the matrixes assigned to vertices ordered before v.
+        # dimensions of the matrices assigned to vertices ordered before v.
         # This is equal to the number of the first variable assigned to v.
         for i in range(2, len(varstart)):
             varstart[i] += varstart[i-1]
@@ -143,13 +145,13 @@ class QuiverHomSpace(Homset):
         from sage.matrix.constructor import Matrix
         coef_mat = Matrix(codomain._base_ring, varstart[-1], eqs)
 
-        # row keeps track of what equation we are on.  If the maps X and Y are
+        # eqn keeps track of what equation we are on.  If the maps X and Y are
         # assigned to an edge e and A and B are the matrices of variables that
-        # describe the generic maps between the initial and final vertices of e
+        # describe the generic maps at the initial and final vertices of e
         # then commutativity of the edge diagram is described by the equation
         # AY = XB, or
         #
-        #          Sum_k A_ik*Y_kj - Sum_k X_ikB_kj == 0 for all i and j.
+        #          Sum_k A_ik*Y_kj - Sum_k X_ik*B_kj == 0 for all i and j.
         #
         # Below we loop through these values of i,j,k and write the
         # coefficients of the equation above into the coefficient matrix.
@@ -177,12 +179,12 @@ class QuiverHomSpace(Homset):
         """
         Return the zero morphism.
 
-        NOTE:
+        .. NOTE:
 
-        It is needed to override the method inherited from
-        the category of modules, because it would create
-        a morphism that is of the wrong type and does not
-        comply with :class:`~sage.quivers.morphism.QuiverRepHom`.
+            It is needed to override the method inherited from
+            the category of modules, because it would create
+            a morphism that is of the wrong type and does not
+            comply with :class:`~sage.quivers.morphism.QuiverRepHom`.
 
         EXAMPLES::
 
@@ -198,10 +200,10 @@ class QuiverHomSpace(Homset):
 
     def _coerce_map_from_(self, other):
         """
-        A coercion exists if and only if `other` is also a
-        QuiverHomSpace and there is a coercion from the domain of `self`
-        to the domain of `other` and from the codomain of `other` to the
-        domain of `self`.
+        A coercion exists if and only if ``other``` is also a
+        QuiverHomSpace and there is a coercion from the domain of ``self``
+        to the domain of ``other`` and from the codomain of ``other`` to
+        the codomain of ``self```.
 
         EXAMPLES::
 
@@ -225,37 +227,43 @@ class QuiverHomSpace(Homset):
         return True
 
     def __call__(self, *data, **kwds):
-        """
-        A homomorphism of quiver representations is for each vertex of the quiver a
-        homomorphism of the spaces assigned to those vertices such that these
-        homomorphisms commute with the edge maps.  The domain and codomain of the
-        homomorphism are required to be representations over the same quiver with
-        the same base ring.
+        r"""
+        A homomorphism of quiver representations (of one and the same
+        quiver) is given by specifying, for each vertex of the quiver, a
+        homomorphism of the spaces assigned to this vertex such that these
+        homomorphisms commute with the edge maps. The domain and codomain
+        of the homomorphism are required to be representations over the
+        same quiver with the same base ring.
 
         INPUT:
 
-        Usually, one would provide a single dict, list, QuiverRepElement or QuiverRepHom
-        as arguments. The semantics is as follows:
+        Usually, one would provide a single dict, list, QuiverRepElement
+        or QuiverRepHom as arguments. The semantics is as follows:
 
-          - list, data can be a list of images for the generators of the domain.  An
-            error will be generated if the map so defined is not equivariant with
-            respect to the action of the quiver.
-          - dictionary, data can be a dictionary associating to each vertex of the
-            quiver either a homomorphism with domain and codomain the spaces associated
-            to this vertex in the domain and codomain modules respectively, or a matrix
-            defining such a homomorphism, or an object that sage can construct such a
-            matrix from.  Not all vertices must be specified, unspecified vertices are
-            assigned the zero map, and keys not corresponding to vertices of the quiver
-            are ignored.  An error will be generated if these maps do not commute with
-            the edge maps of the domain and codomain.
-          - QuiverRepElement, if the domain is a QuiverRep_with_path_basis then data
-            can be a single QuiverRepElement belonging to the codomain.  The map is
-            then defined by sending each path, p, in the basis to data*p.  If data is
-            not an element of the codomain or the domain is not a
+          - list: ``data`` can be a list of images for the generators of
+            the domain.  "Generators" means the output of the ``gens()``
+            method.  An error will be generated if the map so defined
+            is not equivariant with respect to the action of the quiver.
+          - dictionary: ``data`` can be a dictionary associating to each
+            vertex of the quiver either a homomorphism with domain and
+            codomain the spaces associated to this vertex in the domain
+            and codomain modules respectively, or a matrix defining such
+            a homomorphism, or an object that sage can construct such a
+            matrix from.  Not all vertices must be specified, unspecified
+            vertices are assigned the zero map, and keys not corresponding
+            to vertices of the quiver are ignored.  An error will be
+            generated if these maps do not commute with the edge maps of
+            the domain and codomain.
+          - QuiverRepElement: if the domain is a QuiverRep_with_path_basis
+            then ``data`` can be a single QuiverRepElement belonging to
+            the codomain.  The map is then defined by sending each path,
+            ``p``, in the basis to ``data*p``.  If ``data`` is not an
+            element of the codomain or the domain is not a
             QuiverRep_with_path_basis then an error will be generated.
-          - QuiverRepHom, the input can also be a map ``f:D -> C`` such that there is a
-            coercion from the domain of self to ``D`` and from ``C`` to the codomain of
-            self.  The composition of these maps is the result.
+          - QuiverRepHom: the input can also be a map `f : D \to C` such
+            that there is a coercion from the domain of ``self`` to ``D``
+            and from ``C`` to the codomain of ``self``.  The composition
+            of these maps is the result.
 
         If there additionally are keyword arguments or if a QuiverRepHom can
         not be created from the data, then the default call method of
@@ -281,9 +289,10 @@ class QuiverHomSpace(Homset):
             sage: f.is_zero()
             True
 
-        We must specify maps at the vertices to get a nonzero homomorphism.  Note that
-        if the dimensions of the spaces assigned to the domain and codomain of a vertex
-        are equal then Sage will construct the identity matrix from ``1``::
+        We must specify maps at the vertices to get a nonzero
+        homomorphism.  Note that if the dimensions of the spaces assigned
+        to the domain and codomain of a vertex are equal then Sage will
+        construct the identity matrix from ``1``::
 
             sage: maps2 = {2:[1, -1], 3:1}
             sage: g = H(maps2) # indirect doctest
@@ -296,8 +305,22 @@ class QuiverHomSpace(Homset):
             sage: g == h
             True
 
-        If the domain is a module of type QuiverRep_with_path_basis (for example, the
-        indecomposable projectives) we can create maps by specifying a single image::
+        Here is an example of the same with a bigger identity matrix::
+
+            sage: spaces3 = {2: QQ^2, 3: QQ^2}
+            sage: maps3 = {(2, 3, 'c'): [[1, 0], [1, 0]]}
+            sage: S3 = Q.representation(QQ, spaces3, maps3)
+            sage: h3 = S3.Hom(M)({2: 1, 3: [[1], [0]]})
+            sage: h3.get_map(2)
+            Vector space morphism represented by the matrix:
+            [1 0]
+            [0 1]
+            Domain: Vector space of dimension 2 over Rational Field
+            Codomain: Vector space of dimension 2 over Rational Field
+
+        If the domain is a module of type QuiverRep_with_path_basis (for
+        example, the indecomposable projectives) we can create maps by
+        specifying a single image::
 
             sage: Proj = Q.P(GF(7), 3)
             sage: Simp = Q.S(GF(7), 3)
@@ -337,6 +360,8 @@ class QuiverHomSpace(Homset):
         """
         The natural map from domain to codomain.
 
+        This is the zero map.
+
         EXAMPLES::
 
             sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
@@ -355,7 +380,7 @@ class QuiverHomSpace(Homset):
 
     def _identity(self):
         """
-        Returns the identity map.
+        Return the identity map.
 
         OUTPUT:
 
@@ -373,7 +398,7 @@ class QuiverHomSpace(Homset):
 
         from sage.matrix.constructor import Matrix
         maps = dict((v, Matrix(self._domain._spaces[v].dimension(),
-                               self._domain._spaces[v].dimension(), self._base(1)))
+                               self._domain._spaces[v].dimension(), self._base.one()))
                                for v in self._quiver)
         return self.element_class(self._domain, self._codomain, maps)
 
@@ -386,7 +411,7 @@ class QuiverHomSpace(Homset):
 
     def base_ring(self):
         """
-        Returns the base ring of the representations.
+        Return the base ring of the representations.
 
         OUTPUT:
 
@@ -404,7 +429,7 @@ class QuiverHomSpace(Homset):
 
     def quiver(self):
         """
-        Returns the quiver of the representations.
+        Return the quiver of the representations.
 
         OUTPUT:
 
@@ -422,7 +447,7 @@ class QuiverHomSpace(Homset):
 
     def domain(self):
         """
-        Returns the domain of the hom space.
+        Return the domain of the hom space.
 
         OUTPUT:
 
@@ -441,7 +466,7 @@ class QuiverHomSpace(Homset):
 
     def codomain(self):
         """
-        Returns the codomain of the hom space.
+        Return the codomain of the hom space.
 
         OUTPUT:
 
@@ -467,7 +492,7 @@ class QuiverHomSpace(Homset):
 
     def dimension(self):
         """
-        Returns the dimension of the hom space.
+        Return the dimension of the hom space.
 
         OUTPUT:
 
@@ -485,7 +510,8 @@ class QuiverHomSpace(Homset):
 
     def gens(self):
         """
-        Returns a list of generators of the hom space
+        Return a list of generators of the hom space (as a `k`-vector
+        space).
 
         OUTPUT:
 
@@ -504,7 +530,9 @@ class QuiverHomSpace(Homset):
 
     def coordinates(self, hom):
         """
-        Returns the coordinates of the map when expressed in terms of gens.
+        Return the coordinates of the map when expressed in terms of the
+        generators (i. e., the output of the ``gens`` method) of the
+        hom space.
 
         INTPUT:
 
@@ -553,15 +581,17 @@ class QuiverHomSpace(Homset):
 
     def left_module(self, basis=False):
         """
-        Creates the QuiverRep of self as a module over the opposite quiver.
+        Create the QuiverRep of ``self`` as a module over the opposite
+        quiver.
 
         INPUT:
 
-        - ``basis`` - bool, if false then only the module is returned.  If true then a
-          tuple is returned.  The first element is the QuiverRep and the second element
-          is a dictionary which associates to each vertex a list.  The elements of this
-          list a the homomorphisms which correspond to the basis elements of that
-          vertex in the module.
+        - ``basis`` - bool. If ``False``, then only the module is
+          returned.  If ``True``, then a tuple is returned.  The first
+          element is the QuiverRep and the second element is a
+          dictionary which associates to each vertex a list.  The
+          elements of this list are the homomorphisms which correspond to
+          the basis elements of that vertex in the module.
 
         OUTPUT:
 
@@ -571,12 +601,13 @@ class QuiverHomSpace(Homset):
 
             The codomain of the Hom space must be a left module.
 
-        .. NOTES::
+        .. NOTE::
 
-            The left action of a path e on a map f is given by (ef)(m) = ef(m).  This
-            gives the Hom space its structure as a left module over the path algebra.
-            This is then converted to a right module over the path algebra of the
-            opposite quiver ``Q.reverse()`` and returned.
+            The left action of a path `e` on a map `f` is given by
+            `(ef)(m) = ef(m)`.  This gives the Hom space its structure as
+            a left module over the path algebra. This is then converted to
+            a right module over the path algebra of the opposite quiver
+            ``Q.reverse()`` and returned.
 
         EXAMPLES::
 
@@ -592,8 +623,8 @@ class QuiverHomSpace(Homset):
             sage: Q.reverse().P(GF(3), 3).dimension_vector()
             (4, 1, 1)
 
-        As lists start indexing at 0 the ith vertex corresponds to the (i-1)th entry of
-        the dimension vector::
+        As lists start indexing at 0 the `i`-th vertex corresponds to the
+        `(i-1)`-th entry of the dimension vector::
 
             sage: len(basis_dict[2]) == M.dimension_vector()[1]
             True
@@ -608,7 +639,7 @@ class QuiverHomSpace(Homset):
         for v in self._quiver:
             im_gens = [self([self._codomain.left_edge_action((v, v), f(x)) 
                              for x in self._domain.gens()])._vector
-                for f in self.gens()]
+                       for f in self.gens()]
             spaces[v] = self._space.submodule(im_gens)
 
         # Create the maps

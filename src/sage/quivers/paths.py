@@ -269,7 +269,7 @@ class QuiverPath(MonoidElement):
         - Length of the paths
         - Edge sequence of the paths.
 
-        .. NOTES::
+        .. NOTE::
 
             This code is used by CombinatorialFreeModule to order the monomials
             when printing elements of path algebras.

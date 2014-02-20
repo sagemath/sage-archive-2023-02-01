@@ -168,7 +168,8 @@ class PathAlgebra(CombinatorialFreeModule):
     @cached_method
     def idempotents(self):
         """
-        Idempotents of this algebra (corresponding to vertices of the underlying quiver).
+        Idempotents of this algebra (corresponding to vertices of the
+        underlying quiver).
 
         EXAMPLES::
 
@@ -184,6 +185,10 @@ class PathAlgebra(CombinatorialFreeModule):
     def gen(self, i):
         """
         `i`-th generator of this algebra.
+
+        This is an idempotent (corresponding to a trivial path at a
+        vertex) if `i < n` (where `n` is the number of vertices of the
+        quiver), and a single-edge path otherwise.
 
         EXAMPLES::
 
@@ -467,7 +472,7 @@ class PathAlgebra(CombinatorialFreeModule):
 
         The partial semigroup is formed by the paths of a quiver, multiplied
         by concatenation. If the quiver has more than a single vertex, then
-        multiplication in the path semigrop is not always defined.
+        multiplication in the path semigroup is not always defined.
 
         OUTPUT:
 

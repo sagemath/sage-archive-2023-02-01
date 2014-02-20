@@ -2,12 +2,13 @@ from sage.categories.morphism import CallMorphism
 from sage.matrix.constructor import Matrix
 
 class QuiverRepHom(CallMorphism):
-    """
-    A homomorphism of quiver representations is for each vertex of the quiver a
-    homomorphism of the spaces assigned to those vertices such that these
-    homomorphisms commute with the edge maps.  The domain and codomain of the
-    homomorphism are required to be representations of the same quiver with
-    the same base ring.
+    r"""
+    A homomorphism of quiver representations (of one and the same quiver)
+    is given by specifying, for each vertex of the quiver, a homomorphism
+    of the spaces assigned to this vertex such that these homomorphisms
+    commute with the edge maps.  The domain and codomain of the
+    homomorphism are required to be representations of the same quiver
+    over the same base ring.
 
     INPUT:
 
@@ -15,26 +16,32 @@ class QuiverRepHom(CallMorphism):
 
     - ``codomain`` - QuiverRep, the codomain of the homomorphism
 
-    - ``data`` - dict, list, or QuiverRepElement (default: empty dict) as follows
-      - list, data can be a list of images for the generators of the domain.  An
-        error will be generated if the map so defined is not equivariant with
-        respect to the action of the quiver.
-      - dictionary, data can be a dictionary associating to each vertex of the
-        quiver either a homomorphism with domain and codomain the spaces associated
-        to this vertex in the domain and codomain modules respectively, or a matrix
-        defining such a homomorphism, or an object that sage can construct such a
-        matrix from.  Not all vertices must be specified, unspecified vertices are
-        assigned the zero map, and keys not corresponding to vertices of the quiver
-        are ignored.  An error will be generated if these maps do not commute with
-        the edge maps of the domain and codomain.
-      - QuiverRepElement, if the domain is a QuiverRep_with_path_basis then data
-        can be a single QuiverRepElement belonging to the codomain.  The map is
-        then defined by sending each path, p, in the basis to data*p.  If data is
-        not an element of the codomain or the domain is not a
+    - ``data`` - dict, list, or QuiverRepElement (default: empty dict),
+      with the following meaning:
+      - list: ``data`` can be a list of images for the generators of
+        the domain.  "Generators" means the output of the ``gens()``
+        method.  An error will be generated if the map so defined
+        is not equivariant with respect to the action of the quiver.
+      - dictionary: ``data`` can be a dictionary associating to each
+        vertex of the quiver either a homomorphism with domain and
+        codomain the spaces associated to this vertex in the domain
+        and codomain modules respectively, or a matrix defining such
+        a homomorphism, or an object that sage can construct such a
+        matrix from.  Not all vertices must be specified, unspecified
+        vertices are assigned the zero map, and keys not corresponding
+        to vertices of the quiver are ignored.  An error will be
+        generated if these maps do not commute with the edge maps of
+        the domain and codomain.
+      - QuiverRepElement: if the domain is a QuiverRep_with_path_basis
+        then ``data`` can be a single QuiverRepElement belonging to
+        the codomain.  The map is then defined by sending each path,
+        ``p``, in the basis to ``data*p``.  If ``data`` is not an
+        element of the codomain or the domain is not a
         QuiverRep_with_path_basis then an error will be generated.
-      - QuiverRepHom, the input can also be a map ``f:D -> C`` such that there is a
-        coercion from the domain of self to ``D`` and from ``C`` to the codomain of
-        self.  The composition of these maps is the result.
+      - QuiverRepHom: the input can also be a map `f : D \to C` such
+        that there is a coercion from the domain of ``self`` to ``D``
+        and from ``C`` to the codomain of ``self``.  The composition
+        of these maps is the result.
 
     OUTPUT:
 
@@ -144,7 +151,6 @@ class QuiverRepHom(CallMorphism):
         # this is the case it will be loaded directly into _vector and then
         # _assert_valid_hom is called.
 
-        from sage.quivers.homspace import QuiverHomSpace
         from sage.quivers.representation import QuiverRepElement, QuiverRep_with_path_basis
 
         self._domain = domain
@@ -337,7 +343,6 @@ class QuiverRepHom(CallMorphism):
             True
         """
 
-        from sage.quivers.morphism import QuiverRepHom
         new_vector = left._vector + right._vector
         return left._domain.hom(new_vector, left._codomain)
 
@@ -392,7 +397,6 @@ class QuiverRepHom(CallMorphism):
             True
         """
 
-        from sage.quivers.morphism import QuiverRepHom
         new_vector = left._vector - right._vector
         return left._domain.hom(new_vector, left._codomain)
 
@@ -446,12 +450,11 @@ class QuiverRepHom(CallMorphism):
             True
         """
 
-        from sage.quivers.morphism import QuiverRepHom
         return self._domain.hom(-self._vector, self._codomain)
 
     def __pos__(self):
         """
-        This function overrides the unary - operator
+        This function overrides the unary + operator
 
         TESTS::
 
@@ -547,7 +550,6 @@ class QuiverRepHom(CallMorphism):
             True
         """
 
-        from sage.quivers.morphism import QuiverRepHom
         maps = dict((v, other.get_matrix(v)*self.get_matrix(v)) for v in self._quiver)
         return other._domain.hom(maps, self._codomain)
 
@@ -604,47 +606,52 @@ class QuiverRepHom(CallMorphism):
 
     def domain(self):
         """
-        Returns the domain of the homomorphism.
+        Return the domain of the homomorphism.
 
         OUTPUT:
 
         - QuiverRep, the domain
 
-        sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
-        sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
-        sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
-        sage: M = Q.representation(QQ, spaces, maps)
-        sage: S = Q.representation(QQ)
-        sage: g = M.hom(S)
-        sage: g.domain() is M
-        True
+        EXAMPLES::
+
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
+            sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
+            sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
+            sage: M = Q.representation(QQ, spaces, maps)
+            sage: S = Q.representation(QQ)
+            sage: g = M.hom(S)
+            sage: g.domain() is M
+            True
         """
 
         return self._domain
 
     def codomain(self):
         """
-        Returns the codomain of the homomorphism.
+        Return the codomain of the homomorphism.
 
         OUTPUT:
 
         - QuiverRep, the codomain
 
-        sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
-        sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
-        sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
-        sage: M = Q.representation(QQ, spaces, maps)
-        sage: S = Q.representation(QQ)
-        sage: g = S.hom(M)
-        sage: g.codomain() is M
-        True
+        EXAMPLES::
+
+            sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c']}}).path_semigroup()
+            sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
+            sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
+            sage: M = Q.representation(QQ, spaces, maps)
+            sage: S = Q.representation(QQ)
+            sage: g = S.hom(M)
+            sage: g.codomain() is M
+            True
         """
 
         return self._codomain
 
     def get_matrix(self, vertex):
         """
-        Returns the matrix of the homomorphism attached to vertex.
+        Return the matrix of the homomorphism attached to vertex
+        ``vertex``.
 
         INPUT:
 
@@ -680,7 +687,7 @@ class QuiverRepHom(CallMorphism):
 
     def get_map(self, vertex):
         """
-        Returns the homomorphism at the given vertex.
+        Return the homomorphism at the given vertex ``vertex``.
 
         INPUT:
 
@@ -749,7 +756,7 @@ class QuiverRepHom(CallMorphism):
 
     def is_injective(self):
         """
-        Tests whether the homomorphism is injective.
+        Test whether the homomorphism is injective.
 
         OUTPUT:
 
@@ -777,7 +784,7 @@ class QuiverRepHom(CallMorphism):
 
     def is_surjective(self):
         """
-        Tests whether the homomorphism is surjective.
+        Test whether the homomorphism is surjective.
 
         OUTPUT:
 
@@ -806,11 +813,12 @@ class QuiverRepHom(CallMorphism):
 
     def is_isomorphism(self):
         """
-        Tests whether the homomorphism is an isomorphism.
+        Test whether the homomorphism is an isomorphism.
 
         OUTPUT:
 
-        - bool, True if the homomorphism is bijective, False otherwise
+        - bool, ``True`` if the homomorphism is bijective, ``False``
+          otherwise
 
         EXAMPLES::
 
@@ -833,11 +841,11 @@ class QuiverRepHom(CallMorphism):
 
     def is_zero(self):
         """
-        Tests whether the homomorphism is the zero homomorphism.
+        Test whether the homomorphism is the zero homomorphism.
 
         OUTPUT:
 
-        - bool, True if the homomorphism is zero, False otherwise
+        - bool, ``True`` if the homomorphism is zero, ``False`` otherwise
 
         EXAMPLES::
 
@@ -860,11 +868,12 @@ class QuiverRepHom(CallMorphism):
 
     def is_endomorphism(self):
         """
-        Tests whether the homomorphism is an endomorphism.
+        Test whether the homomorphism is an endomorphism.
 
         OUTPUT:
 
-        - bool, True if the domain equals the codomain, False otherwise
+        - bool, ``True`` if the domain equals the codomain, ``False``
+          otherwise
 
         EXAMPLES::
 
@@ -883,7 +892,8 @@ class QuiverRepHom(CallMorphism):
 
     def rank(self):
         """
-        Returns the rank.
+        Return the rank of the homomorphism ``self`` (as a `k`-linear
+        map).
 
         OUTPUT:
 
@@ -915,16 +925,16 @@ class QuiverRepHom(CallMorphism):
 
     def kernel(self):
         """
-        Returns the kernel of self.
+        Return the kernel of ``self``.
 
         OUTPUT:
 
         - QuiverRep, the kernel
 
-        .. NOTES::
+        .. NOTE::
 
-            To get the inclusion map of the kernel, ``K``, into the domain, ``D``, use
-            ``D.coerce_map_from(K)``.
+            To get the inclusion map of the kernel, ``K``, into the
+            domain, ``D``, use ``D.coerce_map_from(K)``.
 
         EXAMPLES::
 
@@ -945,16 +955,16 @@ class QuiverRepHom(CallMorphism):
 
     def image(self):
         """
-        Returns the image of self.
+        Return the image of ``self``.
 
         OUTPUT:
 
         - QuiverRep, the image
 
-        .. NOTES::
+        .. NOTE::
 
-            To get the inclusion map of the image, ``I``, into the codomain, ``C``, use
-            ``C.coerce_map_from(I)``.
+            To get the inclusion map of the image, ``I``, into the
+            codomain, ``C``, use ``C.coerce_map_from(I)``.
 
         EXAMPLES::
 
@@ -975,16 +985,16 @@ class QuiverRepHom(CallMorphism):
 
     def cokernel(self):
         """
-        Returns the cokernel of self.
+        Return the cokernel of ``self``.
 
         OUTPUT:
 
         - QuiverRep, the cokernel
 
-        .. NOTES::
+        .. NOTE::
 
-            To get the factor map of the codomain, ``D``, onto the cokernel, ``C``, use
-            ``C.coerce_map_from(D)``.
+            To get the factor map of the codomain, ``D``, onto the
+            cokernel, ``C``, use ``C.coerce_map_from(D)``.
 
         EXAMPLES::
 
@@ -1003,19 +1013,21 @@ class QuiverRepHom(CallMorphism):
         return self._codomain.quotient(self.image())
 
     def linear_dual(self):
-        """
-        Computes the linear dual Df:DN->DM of self = f:M->N where D(-) = Hom_k(-, k).
+        r"""
+        Compute the linear dual `Df : DN \to DM` of
+        ``self`` = `f : M \to N` where `D(-) = Hom_k(-, k)`.
 
         OUTPUT:
 
-        - QuiverRepHom, the map Df:DN->DM
+        - QuiverRepHom, the map `Df : DN \to DM`
 
-        .. NOTES::
+        .. NOTE::
 
-            If e is an edge of the quiver Q and g is an element of Hom_k(N, k) then we
-            let (ga)(m) = g(ma).  This gives Hom_k(N, k) its structure as a module over
-            the opposite quiver Q.reverse().  The map Hom_k(N, k) -> Hom_k(M, k)
-            returned sends g to gf.
+            If `e` is an edge of the quiver `Q` and `g` is an element of
+            `Hom_k(N, k)` then we let `(ga)(m) = g(ma)`.  This gives
+            `Hom_k(N, k)` its structure as a module over the opposite
+            quiver ``Q.reverse()``.  The map `Hom_k(N, k) \to Hom_k(M, k)`
+            returned sends `g` to `gf`.
 
         EXAMPLES::
 
@@ -1044,26 +1056,27 @@ class QuiverRepHom(CallMorphism):
             True
         """
 
-        from sage.quivers.morphism import QuiverRepHom
         # The effect of the functor D is that it just transposes the matrix of
         # a hom
         maps = dict((v, self.get_matrix(v).transpose()) for v in self._quiver)
         return self._codomain.linear_dual().hom(maps, self._domain.linear_dual())
 
     def algebraic_dual(self):
-        """
-        Computes the algebraic dual f^t:N^t->M^t of self = f:M->N where (-)^t = Hom_Q(-, kQ).
+        r"""
+        Compute the algebraic dual `f^t : N^t \to M^t` of
+        ``self`` = `f : M \to N` where `(-)^t = Hom_Q(-, kQ)`.
 
         OUTPUT:
 
-        - QuiverRepHom, the map f^t:N^t->M^t
+        - QuiverRepHom, the map `f^t : N^t \to M^t`
 
-        .. NOTES::
+        .. NOTE::
 
-            If e is an edge of the quiver Q and g is an element of Hom_Q(N, kQ) then we
-            let (ge)(m) = eg(m).  This gives Hom_Q(N, kQ) its structure as a module over
-            the opposite quiver Q.reverse().  The map Hom_Q(N, kQ) -> Hom_Q(M, kQ)
-            returned sends g to gf.
+            If `e` is an edge of the quiver `Q` and `g` is an element of
+            `Hom_Q(N, kQ)` then we let `(ge)(m) = eg(m)`.  This gives
+            `Hom_Q(N, kQ)` its structure as a module over the opposite
+            quiver ``Q.reverse()``.  The map
+            `Hom_Q(N, kQ) \to Hom_Q(M, kQ)` returned sends `g` to `gf`.
 
         EXAMPLES::
 
@@ -1079,8 +1092,6 @@ class QuiverRepHom(CallMorphism):
             Representation with dimension vector (5, 2, 1, 1, 4)
         """
 
-        from sage.quivers.representation import QuiverRepElement
-        from sage.quivers.morphism import QuiverRepHom
         # Get the domain, its basis, and the codomain
         domain, domain_gens = self._codomain.algebraic_dual(True)
         codomain, co_domain_gens = self._domain.algebraic_dual(True)
@@ -1092,34 +1103,42 @@ class QuiverRepHom(CallMorphism):
         return domain.hom(im_gens, codomain)
 
     def direct_sum(self, maps, return_maps=False, pinch=None):
-        """
-        Returns the direct sum of self with the maps in the list ``maps``.
+        r"""
+        Return the direct sum of ``self`` with the maps in the list ``maps``.
 
         INPUT:
 
         - ``maps`` - QuiverRepHom or list of QuiverRepHoms
 
-        - ``return_maps`` - bool (default: False), if False then the return value is a
-          QuiverRepHom which is the direct sum of self with the QuiverRepHoms in ``maps``.
-          If True then the return value is a tuple of length either 3 or 5.  The first
-          entry of the tuple is the QuiverRepHom giving the direct sum.  If ``pinch`` is
-          either None or 'codomain' then the next two entries in the tuple are lists
-          giving respectively the inclusion and the projection maps for the factors of
-          the direct sum.  Summands are ordered as given in maps with self as the
-          zeroth summand.  If ``pinch`` is either None or 'domain' then the next two
-          entries in the tuple are the inclusion and projection maps for the codomain.
-          Thus if ``pinch`` is None then the tuple will have length 5.  If ``pinch`` is either
-          'domain' or 'codomain' then the tuple will have length 3.
+        - ``return_maps`` - bool (default: ``False``). If ``False``, then
+          the return value is a QuiverRepHom which is the direct sum of
+          ``self`` with the QuiverRepHoms in ``maps``.
+          If ``True``, then the return value is a tuple of length either 3
+          or 5.  The first entry of the tuple is the QuiverRepHom giving
+          the direct sum.  If ``pinch`` is either ``None`` or
+          ``'codomain'`` then the next two entries in the tuple are lists
+          giving respectively the inclusion and the projection maps for
+          the factors of the direct sum.  Summands are ordered as given
+          in maps with ``self`` as the zeroth summand.  If ``pinch`` is
+          either ``None`` or ``'domain'`` then the next two entries in the
+          tuple are the inclusion and projection maps for the codomain.
+          Thus if ``pinch`` is ``None`` then the tuple will have length 5.
+          If ``pinch`` is either ``'domain'`` or ``'codomain'`` then the
+          tuple will have length 3.
 
-        - ``pinch`` - string or None (default: None), if equal to 'domain' then the domains
-          of self and the given maps must be equal.  The direct sum of f: A -> B and
-          g: A -> C returned is the map A -> B (+) C defined by sending x to
-          (f(x), g(x)).  If ``pinch`` equals 'codomain' then the codomains of self and the
-          given maps must be equal.  The direct sum of f: A -> C and g: B -> C returned
-          is the map A (+) B -> C defined by sending (x, y) to f(x) + g(y).  Finally if
-          ``pinch`` is anything other than 'domain' or 'codomain' then the direct sum of
-          f: A -> B and g: C -> D returned is the map A (+) C -> B (+) D defined by
-          sending (x, y) to (f(x), f(y)).
+        - ``pinch`` - string or ``None`` (default: ``None``). If this is
+          equal to ``'domain'``, then the domains of ``self`` and the
+          given maps must be equal.  The direct sum of `f: A \to B` and
+          `g: A \to C` returned is then the map `A \to B \oplus C` defined
+          by sending `x` to `(f(x), g(x))`.  If ``pinch`` equals
+          ``'codomain'``, then the codomains of ``self`` and the given
+          maps must be equal.  The direct sum of `f: A \to C` and
+          `g: B \to C` returned is then the map `A \oplus B \to C` defined
+          by sending `(x, y)` to `f(x) + g(y)`.  Finally, if ``pinch`` is
+          anything other than ``'domain'`` or ``'codomain'``, then the
+          direct sum of `f: A \to B` and `g: C \to D` returned is the map
+          `A \oplus C \to B \oplus D` defined by sending `(x, y)` to
+          `(f(x), g(y))`.
 
         OUTPUT:
 
@@ -1201,8 +1220,8 @@ class QuiverRepHom(CallMorphism):
 
     def lift(self, x):
         """
-        Given an element of the image, return an element of the codomain that maps onto
-        it.
+        Given an element `x` of the image, return an element of the domain
+        that maps onto it under ``self``.
 
         INPUT:
 
@@ -1229,7 +1248,6 @@ class QuiverRepHom(CallMorphism):
             ValueError: element is not in the image
         """
 
-        from sage.quivers.representation import QuiverRepElement
         # Lift at each vertex
         elems = dict((v, self.get_map(v).lift(x._elems[v])) for v in self._quiver)
         return self._domain(elems)
@@ -1244,7 +1262,8 @@ class QuiverRepHom(CallMorphism):
 
     def scalar_mult(self, scalar):
         """
-        Returns the result of the scalar multiplcation scalar*self.
+        Return the result of the scalar multiplcation ``scalar*self``,
+        where ``scalar`` is an element of the base ring `k`.
 
         EXAMPLES::
 
@@ -1257,12 +1276,11 @@ class QuiverRepHom(CallMorphism):
             True
         """
 
-        from sage.quivers.morphism import QuiverRepHom
         return self._domain.hom(scalar*self._vector, self._codomain)
 
     def iscalar_mult(self, scalar):
         """
-        Multiplies self by scalar in place.
+        Multiply ``self`` by ``scalar`` in place.
 
         EXAMPLES::
 

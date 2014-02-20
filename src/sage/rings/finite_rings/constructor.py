@@ -410,15 +410,15 @@ class FiniteFieldFactory(UniqueFactory):
                 # is no good place to store a specific choice of
                 # pseudo-Conway polynomials.
                 if name is None:
-                    if not (kwds.has_key('conway') and kwds['conway']):
+                    if not ('conway' in kwds and kwds['conway']):
                         raise ValueError("parameter 'conway' is required if no name given")
-                    if not kwds.has_key('prefix'):
+                    if 'prefix' not in kwds:
                         raise ValueError("parameter 'prefix' is required if no name given")
                     name = kwds['prefix'] + str(n)
 
-                if kwds.has_key('conway') and kwds['conway']:
+                if 'conway' in kwds and kwds['conway']:
                     from conway_polynomials import conway_polynomial
-                    if not kwds.has_key('prefix'):
+                    if 'prefix' not in kwds:
                         raise ValueError("a prefix must be specified if conway=True")
                     if modulus is not None:
                         raise ValueError("no modulus may be specified if conway=True")
@@ -506,7 +506,7 @@ class FiniteFieldFactory(UniqueFactory):
                     else:
                         impl = 'pari_ffelt'
                 if impl == 'givaro':
-                    if kwds.has_key('repr'):
+                    if 'repr' in kwds:
                         repr = kwds['repr']
                     else:
                         repr = 'poly'
@@ -525,7 +525,7 @@ class FiniteFieldFactory(UniqueFactory):
                     raise ValueError("no such finite field implementation: %s" % impl)
 
             # Temporary; see create_key_and_extra_args() above.
-            if kwds.has_key('prefix'):
+            if 'prefix' in kwds:
                 K._prefix = kwds['prefix']
 
         return K

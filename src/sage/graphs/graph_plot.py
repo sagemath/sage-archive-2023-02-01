@@ -26,8 +26,8 @@ the spring-layout algorithm.
 
 **Plot options**
 
-Here is the list of options accepted by :meth:`GenericGraph.plot
-<sage.graphs.generic_graph.GenericGraph.plot>` and the constructor of
+Here is the list of options accepted by
+:meth:`~sage.graphs.generic_graph.GenericGraph.plot` and the constructor of
 :class:`GraphPlot`.
 
 .. csv-table::
@@ -94,16 +94,17 @@ __doc__ += """
 **Default options**
 
 This module defines two dictionaries containing default options for the
-:meth:`GenericGraph.plot` and :meth:`GenericGraph.show` methods. These two
-dictionaries are ``sage.graphs.graph_plot.DEFAULT_PLOT_OPTIONS`` and
+:meth:`~sage.graphs.generic_graph.GenericGraph.plot` and
+:meth:`~sage.graphs.generic_graph.GenericGraph.show` methods. These two dictionaries are
+``sage.graphs.graph_plot.DEFAULT_PLOT_OPTIONS`` and
 ``sage.graphs.graph_plot.DEFAULT_SHOW_OPTIONS``, respectively.
 
 
 Obviously, these values are overruled when arguments are given explicitly.
 
 Here is how to define the default size of a graph drawing to be ``[6,6]``. The
-first two calls to :meth:`~sage.graphs.generic_graph.show` use this option,
-while the third does not (a value for ``figsize`` is explicitly given)::
+first two calls to :meth:`~sage.graphs.generic_graph.GenericGraph.show` use this
+option, while the third does not (a value for ``figsize`` is explicitly given)::
 
     sage: sage.graphs.graph_plot.DEFAULT_SHOW_OPTIONS['figsize'] = [6,6]
     sage: graphs.PetersenGraph().show() # long time
@@ -696,7 +697,7 @@ class GraphPlot(SageObject):
               information on default values of this method.
 
             - Any options not used by plot will be passed on to the
-              :meth:`~sage.plot.plot.Graphics.show` method.
+              :meth:`~sage.plot.graphics.Graphics.show` method.
 
         EXAMPLE::
 
@@ -719,7 +720,7 @@ class GraphPlot(SageObject):
 
         The options accepted by this method are to be found in the documentation
         of the :mod:`sage.graphs.graph_plot` module, and the
-        :meth:`~sage.plot.plot.Graphics.show` method.
+        :meth:`~sage.plot.graphics.Graphics.show` method.
 
         .. NOTE::
 

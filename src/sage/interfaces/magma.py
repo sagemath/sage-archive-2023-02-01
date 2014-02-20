@@ -733,7 +733,7 @@ class Magma(Expect):
         # of the objects in the Magma interface to work correctly.
         has_cache = hasattr(x, '_magma_cache')
         try:
-            if has_cache and x._magma_cache.has_key(self):
+            if has_cache and self in x._magma_cache:
                 A = x._magma_cache[self]
                 if A._session_number == self._session_number:
                     return A
@@ -742,7 +742,7 @@ class Magma(Expect):
             x._magma_cache = {}
 
         try:
-            if self.__cache.has_key(x):
+            if x in self.__cache:
                 A = self.__cache[x]
                 if A._session_number == self._session_number:
                     return A
@@ -1036,7 +1036,7 @@ class Magma(Expect):
         else:
             try:
                 self.eval('Append(~_sage_, 0);')
-            except StandardError:
+            except Exception:
                 # this exception could happen if the Magma process
                 # was interrupted during startup / initialization.
                 self.eval('_sage_ := [* 0 : i in [1..%s] *];'%self.__seq)
@@ -1640,7 +1640,7 @@ class MagmaFunctionElement(FunctionElement):
         """
         nvals = 1
         if len(kwds) > 0:
-            if kwds.has_key('nvals'):
+            if 'nvals' in kwds:
                 nvals = kwds['nvals']
                 del kwds['nvals']
         M = self._obj.parent()
@@ -1751,7 +1751,7 @@ class MagmaFunction(ExpectFunction):
         """
         nvals = 1
         if len(kwds) > 0:
-            if kwds.has_key('nvals'):
+            if 'nvals' in kwds:
                 nvals = kwds['nvals']
                 del kwds['nvals']
         M = self._parent

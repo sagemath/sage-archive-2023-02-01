@@ -319,7 +319,7 @@ class NakajimaYMonomial(Element):
                 d = copy(dict)
                 K = max(x[1] for x in list(d) if x[0] ==i)
                 for a in range(K):
-                    if d.has_key((i,a)):
+                    if (i,a) in d:
                         continue
                     else:
                         d[(i,a)] = 0
@@ -351,7 +351,7 @@ class NakajimaYMonomial(Element):
             d = copy(dict)
             K = max(x[1] for x in list(d) if x[0] ==i)
             for a in range(K):
-                if d.has_key((i,a)):
+                if (i,a) in d:
                     continue
                 else:
                     d[(i,a)] = 0
@@ -387,7 +387,7 @@ class NakajimaYMonomial(Element):
         else:
             K = max(x[1] for x in list(d) if x[0] ==i)
             for a in range(K):
-                if d.has_key((i,a)):
+                if (i,a) in d:
                     continue
                 else:
                     d[(i,a)] = 0
@@ -455,7 +455,7 @@ class NakajimaYMonomial(Element):
             if cm[j-shift][i-shift] != 0:
                 Aik[(j, ke+c)] = cm[j-shift][i-shift]
         for key,value in Aik.iteritems():
-            if newdict.has_key(key):
+            if key in newdict:
                 newdict[key] +=value
             else:
                 newdict[key] = value
@@ -503,7 +503,7 @@ class NakajimaYMonomial(Element):
             if cm[j-shift][i-shift] != 0:
                 Aik[(j, kf+c)] = -cm[j-shift][i-shift]
         for key,value in Aik.iteritems():
-            if newdict.has_key(key):
+            if key in newdict:
                 newdict[key] +=value
             else:
                 newdict[key] = value

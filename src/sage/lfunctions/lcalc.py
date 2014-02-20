@@ -119,7 +119,6 @@ class LCalc(SageObject):
             sage: lcalc.zeros(5, L='--tau')                # long time
             [9.22237940, 13.9075499, 17.4427770, 19.6565131, 22.3361036]
             sage: lcalc.zeros(3, EllipticCurve('37a'))     # long time
-              ***   Warning:...new stack size = ...
             [0.000000000, 5.00317001, 6.87039122]
         """
         L = self._compute_L(L)
@@ -229,7 +228,6 @@ class LCalc(SageObject):
 
             sage: E = EllipticCurve('389a')
             sage: E.lseries().values_along_line(0.5, 3, 5)
-              ***   Warning:...new stack size = ...
             [(0.000000000, 0.209951303),
              (0.500000000, -...e-16),
              (1.00000000, 0.133768433),
@@ -345,7 +343,7 @@ class LCalc(SageObject):
             d, x = a.split()
             x = RR(x)
             d = Z(d)
-            if w.has_key(d):
+            if d in w:
                 w[d].append(x)
             else:
                 w[d] = [x]
@@ -375,7 +373,6 @@ class LCalc(SageObject):
 
             sage: E = EllipticCurve('37a')
             sage: lcalc.analytic_rank(E)
-              ***   Warning:...new stack size = ...
             1
         """
         L = self._compute_L(L)

@@ -967,7 +967,7 @@ cdef class Expression(CommutativeRingElement):
         """
         cdef GEx res
         try:
-            res = self._gobj.evalf(0, R)
+            res = self._gobj.evalf(0, {'parent':R})
         except TypeError as err:
             # try the evaluation again with the complex field
             # corresponding to the parent R
@@ -978,7 +978,7 @@ cdef class Expression(CommutativeRingElement):
                     R_complex = R.complex_field()
                 except (TypeError, AttributeError):
                     raise err
-            res = self._gobj.evalf(0, R_complex)
+            res = self._gobj.evalf(0, {'parent':R})
         if is_a_numeric(res):
             return R(py_object_from_numeric(res))
         else:
@@ -1027,7 +1027,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f._convert(int)
             -0.989992496600445*sqrt(2)
         """
-        cdef GEx res = self._gobj.evalf(0, R)
+        cdef GEx res = self._gobj.evalf(0, {'parent':R})
         return new_Expression_from_GEx(self._parent, res)
 
     def _mpfr_(self, R):

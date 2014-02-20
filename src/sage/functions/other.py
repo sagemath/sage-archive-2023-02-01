@@ -1785,7 +1785,7 @@ class Function_arg(BuiltinFunction):
             # or x involves an expression such as sqrt(2)
             return None
 
-    def _evalf_(self, x, parent_d=None, algorithm=None):
+    def _evalf_(self, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -1812,28 +1812,31 @@ class Function_arg(BuiltinFunction):
             sage: arg(2.0+3*i)
             0.982793723247329
 
-        TESTS::
+        TESTS:
 
-            sage: C = arg(5+I)
-            sage: C.n()
+        Make sure that the ``_evalf_`` method works when it receives a
+        keyword argument ``parent`` :trac:`12289`::
+
+            sage: arg(5+I, hold=True).n()
+            0.197395559849881
         """
         try:
             return x.arg()
         except AttributeError:
             pass
         # try to find a parent that support .arg()
-        if parent_d is None:
-            parent_d = s_parent(x)
+        if parent is None:
+            parent = s_parent(x)
         try:
-            parent_d = parent_d.complex_field()
+            parent = parent.complex_field()
         except AttributeError:
             from sage.rings.complex_field import ComplexField
             try:
-                parent_d = ComplexField(x.prec())
+                parent = ComplexField(x.prec())
             except AttributeError:
-                parent_d = ComplexField()
+                parent = ComplexField()
 
-        return parent_d(x).arg()
+        return parent(x).arg()
 
 arg=Function_arg()
 

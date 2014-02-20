@@ -206,7 +206,7 @@ def set_editor(editor_name,opts=''):
       'vi -c ${line} ${file}'
    """
 
-   if sage.misc.edit_module.template_defaults.has_key(editor_name):
+   if editor_name in sage.misc.edit_module.template_defaults:
       set_edit_template(Template(template_defaults[editor_name].safe_substitute(opts=opts)))
    else:
       raise ValueError, "editor_name not known. Try set_edit_template(<template_string>) instead."
@@ -301,9 +301,8 @@ def edit_devel(self, filename, linenum):
     editor supports it, also at the line in wich gcd is defined.
     """
     import IPython.core.hooks
-    sageroot = sage.misc.sageinspect.SAGE_ROOT+'/'
-    runpathpattern = '^'+sageroot+'local/lib/python[^/]*/site-packages'
-    develbranch = sageroot+'devel/sage'
+    runpathpattern = '^'+sage.env.SAGE_LIB
+    develbranch = sage.env.SAGE_SRC
     filename=re.sub(runpathpattern,develbranch,filename)
     IPython.core.hooks.editor(self, filename, linenum)
 

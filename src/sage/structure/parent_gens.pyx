@@ -366,7 +366,7 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
         return d
 
     def __setstate__(self, d):
-        if d.has_key('_element_constructor'):
+        if '_element_constructor' in d:
             return parent.Parent.__setstate__(self, d)
         try:
             self.__dict__.update(d)

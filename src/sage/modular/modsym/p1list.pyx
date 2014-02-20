@@ -880,7 +880,7 @@ cdef class P1List:
 
         ::
 
-            This operation is an involution:
+            This operation is an involution::
 
             sage: all([L.apply_I(L.apply_I(i))==i for i in xrange(len(L))])
             True
@@ -916,7 +916,7 @@ cdef class P1List:
 
         ::
 
-            This operation is an involution:
+            This operation is an involution::
 
             sage: all([L.apply_S(L.apply_S(i))==i for i in xrange(len(L))])
             True
@@ -952,7 +952,7 @@ cdef class P1List:
 
         ::
 
-            This operation has order three:
+            This operation has order three::
 
             sage: all([L.apply_T(L.apply_T(L.apply_T(i)))==i for i in xrange(len(L))])
             True

@@ -100,14 +100,11 @@ def base_field(x):
     try:
         return x.base_field()
     except AttributeError:
-        try:
-            y = x.base_ring()
-            if is_field(y):
-                return y
-            else:
-                raise AttributeError, "The base ring of %s is not a field"%x
-        except StandardError:
-            raise
+        y = x.base_ring()
+        if is_field(y):
+            return y
+        else:
+            raise AttributeError("The base ring of %s is not a field"%x)
 
 def basis(x):
     """
@@ -1391,8 +1388,8 @@ def numerical_approx(x, prec=None, digits=None):
         sage: all(check_str_length(k) and check_precision(k) for k in ks)
         True
 
-    Testing we have sufficient precision for the golden ratio (trac #12163), note
-    that the decimal point adds 1 to the string length:
+    Testing we have sufficient precision for the golden ratio (:trac:`12163`), note
+    that the decimal point adds 1 to the string length::
 
         sage: len(str(n(golden_ratio, digits=5000)))
         5001

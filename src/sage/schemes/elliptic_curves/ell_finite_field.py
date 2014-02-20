@@ -67,7 +67,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             Elliptic Curve defined by y^2  = x^3 + 2*x + 3 over Finite Field in a of size 101^2
 
         Elliptic curves over `\ZZ/N\ZZ` with `N` prime are of type
-        "elliptic curve over a finite field":
+        "elliptic curve over a finite field"::
 
             sage: F = Zmod(101)
             sage: EllipticCurve(F, [2, 3])
@@ -1417,7 +1417,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             N=self._order
             if debug:
                 print "Group order already known to be ",N
-        except StandardError:
+        except Exception:
             if (q<50):
                 if debug:
                     print "Computing group order naively"

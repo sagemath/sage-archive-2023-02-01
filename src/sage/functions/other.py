@@ -192,7 +192,7 @@ class Function_erf(BuiltinFunction):
             return x
         return None
 
-    def _evalf_(self, x, parent):
+    def _evalf_(self, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -953,7 +953,7 @@ class Function_gamma_inc(BuiltinFunction):
             return sqrt(pi)*(1-erf(sqrt(y)))
         return None
 
-    def _evalf_(self, x, y, parent=None):
+    def _evalf_(self, x, y, parent=None, algorithm=None):
         """
         EXAMPLES::
 

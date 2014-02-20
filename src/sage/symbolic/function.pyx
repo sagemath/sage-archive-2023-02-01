@@ -1084,7 +1084,7 @@ cdef class SymbolicFunction(Function):
             sage: u(y,x)
             2*y
 
-            sage: def evalf_f(self, x, parent=None): return int(6)
+            sage: def evalf_f(self, x, **kwds): return int(6)
             sage: foo = function("foo", nargs=1, evalf_func=evalf_f)
             sage: foo.__getstate__()
             (2, 'foo', 1, None, {}, True, [None, "...", None, None, None, None, None, None, None, None, None])

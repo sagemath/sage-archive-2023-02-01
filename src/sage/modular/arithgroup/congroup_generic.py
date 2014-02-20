@@ -396,7 +396,7 @@ class CongruenceSubgroup(CongruenceSubgroupFromGroup):
         r"""
         Raise an error: all derived subclasses should override this function.
 
-        EXAMPLE:
+        EXAMPLE::
 
             sage: sage.modular.arithgroup.congroup_generic.CongruenceSubgroup(5).image_mod_n()
             Traceback (most recent call last):

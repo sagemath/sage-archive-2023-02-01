@@ -150,7 +150,7 @@ def import_statements(*objects, **options):
         from sage.rings.arith import euler_phi
 
         sage: import_statements(x)
-          ** Warning **: several modules for that object: sage.all_cmdline, sage.calculus.predefined, sage.interacts.library
+          ** Warning **: several modules for that object: sage.all_cmdline, sage.calculus.predefined
         from sage.calculus.predefined import x
 
     If you don't like the warning you can disable them with the option ``verbose``::

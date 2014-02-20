@@ -133,7 +133,7 @@ class PerfectMatching(ElementWrapper):
 
         The function checks that the given list or permutation is a valid perfect
         matching (i.e. a list of pairs with pairwise disjoint elements  or a
-        fixpoint-free involution) and raises a ValueError otherwise:
+        fixpoint-free involution) and raises a ValueError otherwise::
 
             sage: PerfectMatching([(1, 2, 3), (4, 5)])
             Traceback (most recent call last):

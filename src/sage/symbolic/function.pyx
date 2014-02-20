@@ -718,7 +718,7 @@ cdef class GinacFunction(BuiltinFunction):
             raise ValueError, "cannot find GiNaC function with name %s and %s arguments"%(fname, self._nargs)
 
         global sfunction_serial_dict
-        return sfunction_serial_dict.has_key(self._serial)
+        return self._serial in sfunction_serial_dict
 
     cdef _register_function(self):
         # We don't need to add anything to GiNaC's function registry
@@ -898,7 +898,7 @@ cdef class BuiltinFunction(Function):
 
         # if match, get operator from function table
         global sfunction_serial_dict
-        if serial != -1 and sfunction_serial_dict.has_key(self._name) and \
+        if serial != -1 and self._name in sfunction_serial_dict and \
                 sfunction_serial_dict[self._name].__class__ == self.__class__:
                     # if the returned function is of the same type
                     self._serial = serial

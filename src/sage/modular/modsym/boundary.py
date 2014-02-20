@@ -204,7 +204,7 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
         """
         z = dict(other.__x)
         for i, c in self.__x.items():
-            if z.has_key(i):
+            if i in z:
                 z[i] += c
             else:
                 z[i] = c
@@ -225,7 +225,7 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
         """
         z = dict(self.__x)
         for i, c in other.__x.items():
-            if z.has_key(i):
+            if i in z:
                 z[i] -= c
             else:
                 z[i] = -c

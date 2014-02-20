@@ -436,7 +436,7 @@ class Decorator:
             sage: d = Decorator()
             sage: d.f = Integer.is_prime
             sage: print sage_getdoc(d)   # indirect doctest
-               Returns "True" if "self" is prime.
+               Test whether "self" is prime.
             ...
                IMPLEMENTATION: Calls the PARI "isprime" function.
             <BLANKLINE>

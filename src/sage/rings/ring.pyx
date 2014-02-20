@@ -500,7 +500,7 @@ cdef class Ring(ParentWithGens):
             sage: R.ideal()
             Principal ideal (0) of Univariate Polynomial Ring in x over Rational Field
         """
-        if kwds.has_key('coerce'):
+        if 'coerce' in kwds:
             coerce = kwds['coerce']
             del kwds['coerce']
         else:
@@ -548,7 +548,7 @@ cdef class Ring(ParentWithGens):
                 for h in gens[1:]:
                     g = g.gcd(h)
             gens = [g]
-        if kwds.has_key('ideal_class'):
+        if 'ideal_class' in kwds:
             C = kwds['ideal_class']
             del kwds['ideal_class']
         else:

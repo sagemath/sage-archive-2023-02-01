@@ -145,14 +145,14 @@ def plot(hyperplane_arrangement, **kwds):
     elif dim not in [1,2,3]: # revise to handle 4d
         return # silently
     # handle extra keywords
-    if kwds.has_key('hyperplane_colors'):
+    if 'hyperplane_colors' in kwds:
         hyp_colors = kwds.pop('hyperplane_colors')
         if not type(hyp_colors) == list: # we assume its a single color then
             hyp_colors = [hyp_colors] * N
     else:
         HSV_tuples = [(i*1.0/N, 0.8, 0.9) for i in range(N)]
         hyp_colors = map(lambda x: hsv_to_rgb(*x), HSV_tuples)
-    if kwds.has_key('hyperplane_labels'):
+    if 'hyperplane_labels' in kwds:
         hyp_labels = kwds.pop('hyperplane_labels')
         has_hyp_label = True
         if not type(hyp_labels) == list: # we assume its a boolean then
@@ -166,27 +166,27 @@ def plot(hyperplane_arrangement, **kwds):
         hyp_labels = relabeled
     else:
         has_hyp_label = False
-    if kwds.has_key('label_colors'):
+    if 'label_colors' in kwds:
         label_colors = kwds.pop('label_colors')
         has_label_color = True
         if not type(label_colors) == list: # we assume its a single color then
             label_colors = [label_colors] * N
     else:
         has_label_color = False
-    if kwds.has_key('label_fontsize'):
+    if 'label_fontsize' in kwds:
         label_fontsize = kwds.pop('label_fontsize')
         has_label_fontsize = True
         if not type(label_fontsize) == list: # we assume its a single size then
             label_fontsize = [label_fontsize] * N
     else:
         has_label_fontsize = False
-    if kwds.has_key('label_offsets'):
+    if 'label_offsets' in kwds:
         has_offsets = True
         offsets = kwds.pop('label_offsets')
     else:
         has_offsets = False # give default values below
     hyperplane_legend = kwds.pop('hyperplane_legend', 'long' if dim < 3 else False)
-    if kwds.has_key('hyperplane_opacities'):
+    if 'hyperplane_opacities' in kwds:
         hyperplane_opacities = kwds.pop('hyperplane_opacities')
         has_opacity = True
         if not type(hyperplane_opacities) == list: # we assume a single number then
@@ -196,7 +196,7 @@ def plot(hyperplane_arrangement, **kwds):
     point_sizes = kwds.pop('point_sizes', 50)
     if not type(point_sizes) == list:
         point_sizes = [point_sizes] * N
-    if kwds.has_key('ranges'):
+    if 'ranges' in kwds:
         ranges_set = True
         ranges = kwds.pop('ranges')
         if not type(ranges) in [list,tuple]: # ranges is a single number
@@ -344,7 +344,7 @@ def plot_hyperplane(hyperplane, **kwds):
     elif hyperplane.dimension() not in [0, 1, 2]: # dimension of hyperplane, not ambient space
         raise ValueError('can only plot hyperplanes in dimensions 1, 2, 3')
     # handle extra keywords
-    if kwds.has_key('hyperplane_label'):
+    if 'hyperplane_label' in kwds:
         hyp_label = kwds.pop('hyperplane_label')
         if hyp_label == False:
             has_hyp_label = False
@@ -361,24 +361,24 @@ def plot_hyperplane(hyperplane, **kwds):
                 label = hyperplane._latex_()
         else:
             label = hyp_label # a string
-    if kwds.has_key('label_color'):
+    if 'label_color' in kwds:
         label_color = kwds.pop('label_color')
     else:
         label_color = 'black'
-    if kwds.has_key('label_fontsize'):
+    if 'label_fontsize' in kwds:
         label_fontsize = kwds.pop('label_fontsize')
     else:
         label_fontsize = 14
-    if kwds.has_key('label_offset'):
+    if 'label_offset' in kwds:
         has_offset = True
         label_offset = kwds.pop('label_offset')
     else:
         has_offset = False # give default values below
-    if kwds.has_key('point_size'):
+    if 'point_size' in kwds:
         pt_size = kwds.pop('point_size')
     else:
         pt_size = 50
-    if kwds.has_key('ranges'):
+    if 'ranges' in kwds:
         ranges_set = True
         ranges = kwds.pop('ranges')
     else:
@@ -395,7 +395,7 @@ def plot_hyperplane(hyperplane, **kwds):
             p += text(label, (d/x,label_offset),
                     color=label_color,fontsize=label_fontsize)
             p += text('',(d/x,label_offset+0.4)) # add space at top
-        if not kwds.has_key('ymax'):
+        if 'ymax' not in kwds:
             kwds['ymax'] = 0.5
     elif hyperplane.dimension() == 1: # a line in the plane
         pnt = hyperplane.point()

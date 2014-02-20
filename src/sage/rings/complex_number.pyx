@@ -2249,7 +2249,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: CC(1+i).is_real()
             False
         """
-        return (mpfr_zero_p(self.__im) <> 0)
+        return (mpfr_zero_p(self.__im) != 0)
 
     def is_imaginary(self):
         """
@@ -2262,7 +2262,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: CC(1+i).is_imaginary()
             False
         """
-        return (mpfr_zero_p(self.__re) <> 0)
+        return (mpfr_zero_p(self.__re) != 0)
 
     def zeta(self):
         """

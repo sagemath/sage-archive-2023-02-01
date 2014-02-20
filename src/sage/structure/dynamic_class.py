@@ -372,7 +372,7 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
     if cls is not None:
         methods = dict(cls.__dict__)
         # Anything else that should not be kept?
-        if methods.has_key("__dict__"):
+        if "__dict__" in methods:
             methods.__delitem__("__dict__")
         if prepend_cls_bases:
             bases = cls.__bases__ + bases
@@ -385,7 +385,7 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
             assert bases != ()
             doccls = bases[0]
     methods['_reduction'] = reduction
-    if not methods.has_key("_sage_src_lines_"):
+    if "_sage_src_lines_" not in methods:
         from sage.misc.sageinspect import sage_getsourcelines
         @staticmethod
         def _sage_src_lines():
@@ -393,7 +393,7 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
         methods['_sage_src_lines_'] = _sage_src_lines
     methods['__doc__'] = doccls.__doc__
     methods['__module__'] = doccls.__module__
-    #if not methods.has_key("_sage_doc_"):
+    #if "_sage_doc_" not in methods:
     #    from sage.misc.sageinspect import sage_getdoc
     #    def _sage_getdoc(obj):
     #        return sage_getdoc(cls)

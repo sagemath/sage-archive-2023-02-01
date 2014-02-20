@@ -98,7 +98,7 @@ def AnemicHeckeAlgebra(M):
         k = (M, M.basis_matrix())
     except AttributeError:
         k = M
-    if _anemic_cache.has_key(k):
+    if k in _anemic_cache:
         T = _anemic_cache[k]()
         if not (T is None):
             return T
@@ -134,7 +134,7 @@ def HeckeAlgebra(M):
         k = (M, M.basis_matrix())
     except AttributeError:
         k = M
-    if _cache.has_key(k):
+    if k in _cache:
         T = _cache[k]()
         if not (T is None):
             return T

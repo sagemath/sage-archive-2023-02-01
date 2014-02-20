@@ -427,7 +427,7 @@ class MSymbol(SageObject):
             else:
                 return MSymbol(N, 1, N.reduce(self.d*cinv))
 
-        if _level_cache.has_key(N):
+        if N in _level_cache:
             Lfacs, Lxs = _level_cache[N]
         else:
             Lfacs = [p**e for p, e in N.factor()]

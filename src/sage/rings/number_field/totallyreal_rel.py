@@ -92,7 +92,7 @@ from sage.rings.number_field.totallyreal_data import ZZx, lagrange_degree_3, int
 from sage.rings.number_field.number_field import NumberField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.number_field.totallyreal import weed_fields, odlyzko_bound_totallyreal, enumerate_totallyreal_fields_prim
-from sage.libs.pari.gen import pari
+from sage.libs.pari.all import pari
 
 import math, bisect, sys
 
@@ -311,7 +311,7 @@ class tr_data_rel:
             # The value of k is the largest index of the coefficients of a which is
             # currently unknown; e.g., if k == -1, then we can iterate
             # over polynomials, and if k == n-1, then we have finished iterating.
-            if a[len(a)-1] <> 1:
+            if a[len(a)-1] != 1:
                 raise ValueError, "a[len(a)-1](=%s) must be 1 so polynomial is monic"%a[len(a)-1]
 
             raise NotImplementedError, "These have not been checked."
@@ -518,7 +518,7 @@ class tr_data_rel:
                             # the Python routine should be sufficiently fast...
                             f = self.Fx(self.gnk[k+1])
                             df = self.Fx(self.gnk[k+2])
-                            if gcd(f,df) <> 1:
+                            if gcd(f,df) != 1:
                                 if verbose:
                                     print "  gnk has multiple factor!"
                                 maxoutflag = True
@@ -594,9 +594,9 @@ class tr_data_rel:
                                   -sum([self.a[i]*(-2)**i for i in range(1,m+1)])]
                         for a0 in a0s:
                             try:
-                                ind = self.amaxvals[0].remove(a0)
-                            except StandardError:
-                                True
+                                self.amaxvals[0].remove(a0)
+                            except Exception:
+                                pass
 
                     if verbose:
                         print "  amaxvals[k]:", self.amaxvals[k]
@@ -725,7 +725,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
     nfF = pari(str(F.defining_polynomial()).replace('x', str(F.primitive_element()) ) )
     parit = pari(str(F.primitive_element()))
 
-    while f_out[m] <> 0:
+    while f_out[m] != 0:
         counts[0] += 1
         if verbose:
             print "==>", f_out,
@@ -865,6 +865,13 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False):
         [2000, x^4 - 5*x^2 + 5]]
 
     In practice most of these will be found by :func:`~sage.rings.number_field.totallyreal.enumerate_totallyreal_fields_prim`, which is guaranteed to return all primitive fields but often returns many non-primitive ones as well. For instance, only one of the five fields in the example above is primitive, but :func:`~sage.rings.number_field.totallyreal.enumerate_totallyreal_fields_prim` finds four out of the five (the exception being `x^4 - 6x^2 + 4`).
+
+    TESTS:
+
+    The following was fixed in :trac:`13101`::
+
+        sage: enumerate_totallyreal_fields_all(8, 10^6)  # long time (about 2 s)
+        []
     """
 
     S = []

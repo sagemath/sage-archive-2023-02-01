@@ -245,7 +245,8 @@ We can compute the `0-1` sequence and go back and forth::
 
     sage: Partitions().from_zero_one([1, 1, 1, 1, 0, 1, 0])
     [5, 4]
-    sage: all(Partitions().from_zero_one(mu.zero_one_sequence()) == mu for n in range(5) for mu in Partitions(n))
+    sage: all(Partitions().from_zero_one(mu.zero_one_sequence())
+    ....:     == mu for n in range(5) for mu in Partitions(n))
     True
 
 We can compute the Frobenius coordinates and go back and forth::
@@ -254,8 +255,8 @@ We can compute the Frobenius coordinates and go back and forth::
     ([6, 1], [2, 0])
     sage: Partition(frobenius_coordinates=([6,1],[2,0]))
     [7, 3, 1]
-    sage: all(mu == Partition(frobenius_coordinates=mu.frobenius_coordinates()) for n in range(30)\
-    for mu in Partitions(n))
+    sage: all(mu == Partition(frobenius_coordinates=mu.frobenius_coordinates())
+    ....:     for n in range(30) for mu in Partitions(n))
     True
 
 We use the lexicographic ordering::
@@ -480,10 +481,14 @@ class Partition(CombinatorialObject, Element):
     non-increasing list of positive integers (the *parts* of the
     partition) with total sum `n`.
 
-    A partition is often representation by a diagram consisting of **cells**,
-    or **boxes**, placed in rows on top of each other with the number of cells
-    in the `i^{th}` row, reading from  top to bottom, is the `i^{th}` part of
-    the partition.
+    A partition is often represented as a diagram consisting of **cells**,
+    or **boxes**, placed in rows on top of each other such that the number of
+    cells in the `i^{th}` row, reading from top to bottom, is the `i^{th}`
+    part of the partition. The rows are left-justified (and become shorter
+    and shorter the farther down one goes). This diagram is called the
+    **Young diagram** of the partition, or more precisely its Young diagram
+    in English notation. (French and Russian notations are variations on this
+    representation.)
 
     The coordinate system related to a partition applies from the top
     to the bottom and from left to right. So, the corners of the
@@ -1404,6 +1409,197 @@ class Partition(CombinatorialObject, Element):
         """
         return [p for p in self.down()]
 
+    def cell_poset(self, orientation="SE"):
+        """
+        Return the Young diagram of ``self`` as a poset. The optional
+        keyword variable ``orientation`` determines the order relation
+        of the poset.
+
+        The poset always uses the set of cells of the Young diagram
+        of ``self`` as its ground set. The order relation of the poset
+        depends on the ``orientation`` variable (which defaults to
+        ``"SE"``). Concretely, ``orientation`` has to be specified to
+        one of the strings ``"NW"``, ``"NE"``, ``"SW"``, and ``"SE"``,
+        standing for "northwest", "northeast", "southwest" and
+        "southeast", respectively. If ``orientation`` is ``"SE"``, then
+        the order relation of the poset is such that a cell `u` is
+        greater or equal to a cell `v` in the poset if and only if `u`
+        lies weakly southeast of `v` (this means that `u` can be
+        reached from `v` by a sequence of south and east steps; the
+        sequence is allowed to consist of south steps only, or of east
+        steps only, or even be empty). Similarly the order relation is
+        defined for the other three orientations. The Young diagram is
+        supposed to be drawn in English notation.
+
+        The elements of the poset are the cells of the Young diagram
+        of ``self``, written as tuples of zero-based coordinates (so
+        that `(3, 7)` stands for the `8`-th cell of the `4`-th row,
+        etc.).
+
+        EXAMPLES::
+
+            sage: p = Partition([3,3,1])
+            sage: Q = p.cell_poset(); Q
+            Finite poset containing 7 elements
+            sage: sorted(Q)
+            [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0)]
+            sage: sorted(Q.maximal_elements())
+            [(1, 2), (2, 0)]
+            sage: Q.minimal_elements()
+            [(0, 0)]
+            sage: sorted(Q.upper_covers((1, 0)))
+            [(1, 1), (2, 0)]
+            sage: Q.upper_covers((1, 1))
+            [(1, 2)]
+
+            sage: P = p.cell_poset(orientation="NW"); P
+            Finite poset containing 7 elements
+            sage: sorted(P)
+            [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0)]
+            sage: sorted(P.minimal_elements())
+            [(1, 2), (2, 0)]
+            sage: P.maximal_elements()
+            [(0, 0)]
+            sage: P.upper_covers((2, 0))
+            [(1, 0)]
+            sage: sorted(P.upper_covers((1, 2)))
+            [(0, 2), (1, 1)]
+            sage: sorted(P.upper_covers((1, 1)))
+            [(0, 1), (1, 0)]
+            sage: sorted([len(P.upper_covers(v)) for v in P])
+            [0, 1, 1, 1, 1, 2, 2]
+
+            sage: R = p.cell_poset(orientation="NE"); R
+            Finite poset containing 7 elements
+            sage: sorted(R)
+            [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0)]
+            sage: R.maximal_elements()
+            [(0, 2)]
+            sage: R.minimal_elements()
+            [(2, 0)]
+            sage: sorted([len(R.upper_covers(v)) for v in R])
+            [0, 1, 1, 1, 1, 2, 2]
+            sage: R.is_isomorphic(P)
+            False
+            sage: R.is_isomorphic(P.dual())
+            False
+
+        Linear extensions of ``p.cell_poset()`` are in 1-to-1 correspondence
+        with standard Young tableaux of shape `p`::
+
+            sage: all( len(p.cell_poset().linear_extensions())
+            ....:      == len(p.standard_tableaux())
+            ....:      for n in range(8) for p in Partitions(n) )
+            True
+
+        This is not the case for northeast orientation::
+
+            sage: q = Partition([3, 1])
+            sage: q.cell_poset(orientation="NE").is_chain()
+            True
+
+        TESTS:
+
+        We check that the posets are really what they should be for size
+        up to `7`::
+
+            sage: def check_NW(n):
+            ....:     for p in Partitions(n):
+            ....:         P = p.cell_poset(orientation="NW")
+            ....:         for c in p.cells():
+            ....:             for d in p.cells():
+            ....:                 if P.le(c, d) != (c[0] >= d[0]
+            ....:                                   and c[1] >= d[1]):
+            ....:                     return False
+            ....:     return True
+            sage: all( check_NW(n) for n in range(8) )
+            True
+
+            sage: def check_NE(n):
+            ....:     for p in Partitions(n):
+            ....:         P = p.cell_poset(orientation="NE")
+            ....:         for c in p.cells():
+            ....:             for d in p.cells():
+            ....:                 if P.le(c, d) != (c[0] >= d[0]
+            ....:                                   and c[1] <= d[1]):
+            ....:                     return False
+            ....:     return True
+            sage: all( check_NE(n) for n in range(8) )
+            True
+
+            sage: def test_duality(n, ori1, ori2):
+            ....:     for p in Partitions(n):
+            ....:         P = p.cell_poset(orientation=ori1)
+            ....:         Q = p.cell_poset(orientation=ori2)
+            ....:         for c in p.cells():
+            ....:             for d in p.cells():
+            ....:                 if P.lt(c, d) != Q.lt(d, c):
+            ....:                     return False
+            ....:     return True
+            sage: all( test_duality(n, "NW", "SE") for n in range(8) )
+            True
+            sage: all( test_duality(n, "NE", "SW") for n in range(8) )
+            True
+            sage: all( test_duality(n, "NE", "SE") for n in range(4) )
+            False
+        """
+        from sage.combinat.posets.posets import Poset
+        covers = {}
+        if orientation == "NW":
+            for i, row in enumerate(self):
+                if i == 0:
+                    covers[(0, 0)] = []
+                    for j in range(1, row):
+                        covers[(0, j)] = [(0, j - 1)]
+                else:
+                    covers[(i, 0)] = [(i - 1, 0)]
+                    for j in range(1, row):
+                        covers[(i, j)] = [(i - 1, j), (i, j - 1)]
+        elif orientation == "NE":
+            for i, row in enumerate(self):
+                if i == 0:
+                    covers[(0, row - 1)] = []
+                    for j in range(row - 1):
+                        covers[(0, j)] = [(0, j + 1)]
+                else:
+                    covers[(i, row - 1)] = [(i - 1, row - 1)]
+                    for j in range(row - 1):
+                        covers[(i, j)] = [(i - 1, j), (i, j + 1)]
+        elif orientation == "SE":
+            l = len(self) - 1
+            for i, row in enumerate(self):
+                if i == l:
+                    covers[(i, row - 1)] = []
+                    for j in range(row - 1):
+                        covers[(i, j)] = [(i, j + 1)]
+                else:
+                    next_row = self[i + 1]
+                    if row == next_row:
+                        covers[(i, row - 1)] = [(i + 1, row - 1)]
+                        for j in range(row - 1):
+                            covers[(i, j)] = [(i + 1, j), (i, j + 1)]
+                    else:
+                        covers[(i, row - 1)] = []
+                        for j in range(next_row):
+                            covers[(i, j)] = [(i + 1, j), (i, j + 1)]
+                        for j in range(next_row, row - 1):
+                            covers[(i, j)] = [(i, j + 1)]
+        elif orientation == "SW":
+            l = len(self) - 1
+            for i, row in enumerate(self):
+                if i == l:
+                    covers[(i, 0)] = []
+                    for j in range(1, row):
+                        covers[(i, j)] = [(i, j - 1)]
+                else:
+                    covers[(i, 0)] = [(i + 1, 0)]
+                    next_row = self[i + 1]
+                    for j in range(1, next_row):
+                        covers[(i, j)] = [(i + 1, j), (i, j - 1)]
+                    for j in range(next_row, row):
+                        covers[(i, j)] = [(i, j - 1)]
+        return Poset(covers)
+
     def frobenius_coordinates(self):
         """
         Return a pair of sequences of Frobenius coordinates aka beta numbers
@@ -1679,7 +1875,8 @@ class Partition(CombinatorialObject, Element):
 
     def get_part(self, i, default=Integer(0)):
         r"""
-        Return the `i^{th}` part of self, or ``default`` if it does not exist.
+        Return the `i^{th}` part of ``self``, or ``default`` if it does
+        not exist.
 
         EXAMPLES::
 
@@ -1789,12 +1986,6 @@ class Partition(CombinatorialObject, Element):
         act as `\sigma_n` and the reflection act as conjugation of
         partitions (:meth:`conjugate()`). This action is faithful if
         `n \geq 3`.
-
-        .. NOTE::
-
-            There are two *non-equivalent* definitions for `\sigma_n` in
-            [Sut2002]_. Here are using the formulaic one, not the one using
-            the four steps which actually defines `\sigma_n^{-1}` instead.
 
         INPUT:
 
@@ -2110,9 +2301,23 @@ class Partition(CombinatorialObject, Element):
 
     @cached_method
     def young_subgroup(self):
-        """
+        r"""
         Return the corresponding Young, or parabolic, subgroup of the symmetric
         group.
+
+        The Young subgroup of a partition
+        `\lambda = (\lambda_1, \lambda_2, \ldots, \lambda_{\ell})` of `n` is
+        the group:
+
+        .. MATH::
+
+            S_{\lambda_1} \times S_{\lambda_2} \times \cdots \times
+            S_{\lambda_{\ell}}
+
+        embedded into `S_n` in the standard way (i.e.,
+        the `S_{\lambda_i}` factor acts on the numbers from
+        `\lambda_1 + \lambda_2 + \cdots + \lambda_{i-1} + 1` to
+        `\lambda_1 + \lambda_2 + \cdots + \lambda_i`).
 
         EXAMPLES::
 
@@ -2130,17 +2335,26 @@ class Partition(CombinatorialObject, Element):
     def young_subgroup_generators(self):
         """
         Return an indexing set for the generators of the corresponding Young
-        subgroup.
+        subgroup. Here the generators correspond to the simple adjacent
+        transpositions `s_i = (i \; i+1)`.
 
         EXAMPLES::
 
             sage: Partition([4,2]).young_subgroup_generators()
             [1, 2, 3, 5]
+            sage: Partition([1,1,1]).young_subgroup_generators()
+            []
+            sage: Partition([2,2]).young_subgroup_generators()
+            [1, 3]
+
+        .. SEEALSO:
+
+            :meth:`young_subgroup`
         """
         gens=[]
         m=0
         for row in self:
-            gens.extend([c for c in range(m+1,m+row)])
+            gens.extend(range(m+1,m+row))
             m+=row
         return gens
 
@@ -2405,8 +2619,8 @@ class Partition(CombinatorialObject, Element):
     def dominated_partitions(self, rows=None):
         """
         Return a list of the partitions dominated by `n`. If ``rows`` is
-        specified, then it only returns the ones which has number of rows equal
-        to ``rows``.
+        specified, then it only returns the ones whose number of rows
+        is at most ``rows``.
 
         EXAMPLES::
 
@@ -3932,7 +4146,7 @@ class Partition(CombinatorialObject, Element):
         """
         Return the Jacobi-Trudi matrix of ``self`` thought of as a skew
         partition. See :meth:`SkewPartition.jacobi_trudi()
-        <sage.combinat.skew_partition.SkewPartition_class.jacobi_trudi>`.
+        <sage.combinat.skew_partition.SkewPartition.jacobi_trudi>`.
 
         EXAMPLES::
 
@@ -4013,15 +4227,16 @@ class Partition(CombinatorialObject, Element):
 
     def dimension(self, smaller = [], k = 1):
         r"""
-        This function computes the number of paths from the
-        ``smaller`` partition to the partition ``self``, where each step
-        consists of adding a `k`-ribbon while keeping a partition.
+        Return the number of paths from the ``smaller`` partition to
+        the partition ``self``, where each step consists of adding a
+        `k`-ribbon while keeping a partition.
 
-        Note that a 1-ribbon is just a single cell, so this gives path
-        lengths in the Young graph when `k = 1`.
+        Note that a 1-ribbon is just a single cell, so this counts paths
+        in the Young graph when `k = 1`.
 
-        Note also that the defaut case (`k = 1` and ``smaller = []``) gives the
-        dimension of characters of the symmetric groups.
+        Note also that the default case (`k = 1` and ``smaller = []``)
+        gives the dimension of the irreducible representation of the
+        symmetric group corresponding to ``self``.
 
         INPUT:
 
@@ -4069,13 +4284,16 @@ class Partition(CombinatorialObject, Element):
         A check coming from the theory of `k`-differentiable posets::
 
             sage: k=2; core = Partition([2,1])
-            sage: all(sum(mu.dimension(core,k=2)^2 for mu in Partitions(3+i*2) if mu.core(2) == core)==2^i*factorial(i) for i in range(10))
+            sage: all(sum(mu.dimension(core,k=2)^2
+            ....:         for mu in Partitions(3+i*2) if mu.core(2) == core)
+            ....:     == 2^i*factorial(i) for i in range(10))
             True
 
         Checks that the dimension satisfies the obvious recursion relation::
 
             sage: test = lambda larger, smaller: larger.dimension(smaller) == sum(mu.dimension(smaller) for mu in larger.down())
-            sage: all(test(larger,smaller) for l in xrange(1,10) for s in xrange(0,10) for larger in Partitions(l) for smaller in Partitions(s) if smaller!=larger)
+            sage: all(test(larger,smaller) for l in xrange(1,10) for s in xrange(0,10)
+            ....:     for larger in Partitions(l) for smaller in Partitions(s) if smaller != larger)
             True
 
         ALGORITHM:
@@ -4221,10 +4439,12 @@ class Partitions(UniqueRepresentation, Parent):
     ``parts_in``. They have the following meanings:
 
     - ``starting=p`` specifies that the partitions should all be less
-      than or equal to `p` in lex order.
+      than or equal to `p` in lex order. This argument cannot be combined
+      with any other (see :trac:`15467`).
 
     - ``ending=p`` specifies that the partitions should all be greater than
-      or equal to `p` in lex order.
+      or equal to `p` in lex order. This argument cannot be combined with any
+      other (see :trac:`15467`).
 
     - ``length=k`` specifies that the partitions have
       exactly `k` parts.
@@ -4246,16 +4466,8 @@ class Partitions(UniqueRepresentation, Parent):
 
     - ``parts_in=S`` specifies that the partitions have parts in the set
       `S`, which can be any sequence of pairwise distinct positive
-      integers.
-
-    The ``max_*`` versions, along with ``inner`` and ``ending``, work
-    analogously.
-
-    Right now, the ``parts_in``, ``starting``, and ``ending`` keyword
-    arguments are mutually exclusive, both of each other and of other
-    keyword arguments. If you specify, say, ``parts_in``, all other
-    keyword arguments will be ignored; ``starting`` and ``ending`` work
-    the same way.
+      integers. This argument cannot be combined with any other
+      (see :trac:`15467`).
 
     EXAMPLES:
 
@@ -4424,6 +4636,29 @@ class Partitions(UniqueRepresentation, Parent):
 
         sage: 1 in Partitions()
         False
+
+    Check :trac:`15467`::
+
+        sage: Partitions(5,parts_in=[1,2,3,4], length=4)
+        Traceback (most recent call last):
+        ...
+        ValueError: The parameters 'parts_in', 'starting' and 'ending' cannot be combined with anything else.
+        sage: Partitions(5,starting=[3,2], length=2)
+        Traceback (most recent call last):
+        ...
+        ValueError: The parameters 'parts_in', 'starting' and 'ending' cannot be combined with anything else.
+        sage: Partitions(5,ending=[3,2], length=2)
+        Traceback (most recent call last):
+        ...
+        ValueError: The parameters 'parts_in', 'starting' and 'ending' cannot be combined with anything else.
+        sage: Partitions(NN, length=2)
+        Traceback (most recent call last):
+        ...
+        ValueError: the size must be specified with any keyword argument
+        sage: Partitions(('la','la','laaaa'), max_part=8)
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be an integer or be equal to one of None, NN, NonNegativeIntegers()
     """
     @staticmethod
     def __classcall_private__(cls, n=None, **kwargs):
@@ -4443,54 +4678,54 @@ class Partitions(UniqueRepresentation, Parent):
             sage: P2 = Partitions(int(4))
             sage: P is P2
             True
-            sage: P = Partitions(4, length=2, parts_in=[3,1,1])
-            sage: P2 = Partitions(4, length=2, parts_in=(3,1,1))
-            sage: P is P2
-            True
         """
         if n == infinity:
             raise ValueError("n cannot be infinite")
         if n is None or n is NN or n is NonNegativeIntegers():
             if len(kwargs) > 0:
-                if len(kwargs) == 1:
-                    if 'max_part' in kwargs:
-                        return Partitions_all_bounded(kwargs['max_part'])
-                raise ValueError("the size must be specified with any keyword argument")
-            return Partitions_all()
-        else:
-            if len(kwargs) == 0:
-                if isinstance(n, (int,Integer)):
-                    return Partitions_n(n)
+                if len(kwargs) == 1 and 'max_part' in kwargs:
+                    return Partitions_all_bounded(kwargs['max_part'])
                 else:
-                    raise ValueError("n must be an integer")
+                    raise ValueError("the size must be specified with any keyword argument")
+            else:
+                return Partitions_all()
+        elif isinstance(n, (int,Integer)):
+            if len(kwargs) == 0:
+                return Partitions_n(n)
+
             if len(kwargs) == 1 and 'max_part' in kwargs:
                 return PartitionsGreatestLE(n, kwargs['max_part'])
 
-            # FIXME: should inherit from IntegerListLex, and implement repr, or _name as a lazy attribute
-            kwargs['name'] = "Partitions of the integer %s satisfying constraints %s"%(n, ", ".join( ["%s=%s"%(key, kwargs[key]) for key in sorted(kwargs.keys())] ))
+            if (len(kwargs) > 1 and
+                ('parts_in' in kwargs or
+                 'starting' in kwargs or
+                 'ending'   in kwargs)):
+                raise ValueError("The parameters 'parts_in', 'starting' and "+
+                                 "'ending' cannot be combined with anything else.")
+
             if 'parts_in' in kwargs:
-                return Partitions_parts_in(n, kwargs['parts_in'])
+                 return Partitions_parts_in(n, kwargs['parts_in'])
             elif 'starting' in kwargs:
                 return Partitions_starting(n, kwargs['starting'])
             elif 'ending' in kwargs:
                 return Partitions_ending(n, kwargs['ending'])
 
-            if 'min_part' not in kwargs:
-                kwargs['min_part'] = 1
-            elif kwargs['min_part'] <= 0:
-                kwargs['min_part'] = 1
+            # FIXME: should inherit from IntegerListLex, and implement repr, or _name as a lazy attribute
+            kwargs['name'] = "Partitions of the integer %s satisfying constraints %s"%(n, ", ".join( ["%s=%s"%(key, kwargs[key]) for key in sorted(kwargs.keys())] ))
 
-            if 'max_slope' not in kwargs:
-                kwargs['max_slope'] = 0
-            elif kwargs['max_slope'] > 0:
-                kwargs['max_slope'] = 0
+            # min_part is at least 1, and it is 1 by default
+            kwargs['min_part']  = max(1,kwargs.get('min_part',1))
+
+            # max_slope is at most 0, and it is 0 by default
+            kwargs['max_slope'] = min(0,kwargs.get('max_slope',0))
 
             if 'outer' in kwargs:
-                kwargs['ceiling'] = kwargs['outer']
                 if 'max_length' in kwargs:
                     kwargs['max_length'] = min(len(kwargs['outer']), kwargs['max_length'])
                 else:
                     kwargs['max_length'] = len(kwargs['outer'])
+
+                kwargs['ceiling'] = kwargs['outer']
                 del kwargs['outer']
 
             if 'inner' in kwargs:
@@ -4501,9 +4736,13 @@ class Partitions(UniqueRepresentation, Parent):
                 else:
                     kwargs['min_length'] = len(inner)
                 del kwargs['inner']
+
             kwargs['element_class'] = Partition
             kwargs['global_options'] = Partitions.global_options
             return IntegerListsLex(n, **kwargs)
+        else:
+            raise ValueError("n must be an integer or be equal to one of "+
+                             "None, NN, NonNegativeIntegers()")
 
     def __init__(self, is_infinite=False):
         """
@@ -5151,7 +5390,7 @@ class Partitions_n(Partitions):
         TESTS::
 
             sage: all(Part.random_element_uniform() in Part
-            ...       for Part in map(Partitions, range(10)))
+            ....:     for Part in map(Partitions, range(10)))
             True
 
         ALGORITHM:

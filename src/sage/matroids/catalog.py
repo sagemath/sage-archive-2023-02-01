@@ -897,9 +897,18 @@ def Uniform(r, n):
         False
         sage: M.is_valid()
         True
+
+    Check that bug #15292 was fixed::
+
+        sage: M = matroids.Uniform(4,4)
+        sage: len(M.circuit_closures())
+        0
     """
     E = range(n)
-    CC = {r: [E]}
+    if r < n:
+        CC = {r: [E]}
+    else:
+        CC = {}
     M = CircuitClosuresMatroid(groundset=E, circuit_closures=CC)
     M.rename('U(' + str(r) + ', ' + str(n) + '): ' + repr(M))
     return M
@@ -1390,7 +1399,7 @@ def ExtendedBinaryGolayCode():
 
         sage: M = matroids.named_matroids.ExtendedBinaryGolayCode()
         sage: C = LinearCode(M.representation())
-        sage: C.is_permutation_equivalent(ExtendedBinaryGolayCode()) # long time
+        sage: C.is_permutation_equivalent(codes.ExtendedBinaryGolayCode()) # long time
         True
         sage: M.is_valid()
         True
@@ -1426,7 +1435,7 @@ def ExtendedTernaryGolayCode():
 
         sage: M = matroids.named_matroids.ExtendedTernaryGolayCode()
         sage: C = LinearCode(M.representation())
-        sage: C.is_permutation_equivalent(ExtendedTernaryGolayCode()) # long time
+        sage: C.is_permutation_equivalent(codes.ExtendedTernaryGolayCode()) # long time
         True
         sage: M.is_valid()
         True

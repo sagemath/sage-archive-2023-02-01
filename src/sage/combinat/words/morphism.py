@@ -402,7 +402,7 @@ class WordMorphism(SageObject):
         for key,val in data.iteritems():
             try:
                 it = iter(val)
-            except StandardError:
+            except Exception:
                 it = [val]
             codom_alphabet.update(it)
         return Words(sorted(codom_alphabet))

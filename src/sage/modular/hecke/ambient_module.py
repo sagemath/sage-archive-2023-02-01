@@ -411,7 +411,7 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
         except AttributeError:
             self._degeneracy_maps = {}
 
-        if self._degeneracy_maps.has_key(key):
+        if key in self._degeneracy_maps:
             return self._degeneracy_maps[key]
 
         if M.rank() == 0:
@@ -655,7 +655,7 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             True
         """
         try:
-            if self.__is_new.has_key(p):
+            if p in self.__is_new:
                 return self.__is_new[p]
         except AttributeError:
             pass
@@ -674,7 +674,7 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             False
         """
         try:
-            if self.__is_old.has_key(p):
+            if p in self.__is_old:
                 return self.__is_old[p]
         except AttributeError:
             pass

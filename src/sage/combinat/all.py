@@ -3,7 +3,7 @@ from combinat import bell_number, catalan_number, euler_number, fibonacci, \
         CombinatorialObject, CombinatorialClass, FilteredCombinatorialClass, \
         UnionCombinatorialClass, MapCombinatorialClass, \
         InfiniteAbstractCombinatorialClass, \
-        hurwitz_zeta, combinations, combinations_iterator, \
+        combinations, combinations_iterator, \
         number_of_combinations, arrangements, number_of_arrangements, \
         derangements, number_of_derangements, tuples, number_of_tuples, \
         unordered_tuples, number_of_unordered_tuples, permutations, \

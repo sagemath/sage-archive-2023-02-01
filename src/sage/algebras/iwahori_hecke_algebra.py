@@ -1270,7 +1270,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 # avoids accidental coercion into a field of fractions.
                 i1 = normalized_laurent_polynomial(A._base, A._q1.__pow__(-1))
                 i2 = normalized_laurent_polynomial(A._base, A._q2.__pow__(-1))
-            except StandardError:
+            except Exception:
                 raise ValueError("%s and %s must be invertible."%(A._q1, A._q2))
             return (-i1*i2)*self.algebra_generator(i)+(i1+i2)
 

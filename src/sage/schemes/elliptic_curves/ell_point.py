@@ -3422,7 +3422,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             ord = self.order()
         try:
             return generic.discrete_log(Q, self, ord, operation='+')
-        except StandardError:
+        except Exception:
             raise ValueError("ECDLog problem has no solution")
 
     def order(self):

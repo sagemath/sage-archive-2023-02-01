@@ -723,7 +723,7 @@ class DiGraph(GenericGraph):
                 try:
                     e = int(e)
                     assert e >= 0
-                except StandardError:
+                except Exception:
                     if weighted is False:
                         raise ValueError("Non-weighted digraph's"+
                         " adjacency matrix must have only nonnegative"+
@@ -919,7 +919,6 @@ class DiGraph(GenericGraph):
                 self._weighted = weighted
                 self.allow_loops(loops, check=False)
                 self.allow_multiple_edges(multiedges, check=False)
-            self._backend.directed = True
         else:
             raise NotImplementedError("Supported implementations: networkx, c_graph.")
 
@@ -1937,16 +1936,16 @@ class DiGraph(GenericGraph):
             if v is None:
                 try:
                     u, v, label = u
-                except StandardError:
+                except Exception:
                     try:
                         u, v = u
-                    except StandardError:
+                    except Exception:
                         pass
         else:
             if v is None:
                 try:
                     u, v = u
-                except StandardError:
+                except Exception:
                     pass
 
         if not self.has_edge(u,v,label):

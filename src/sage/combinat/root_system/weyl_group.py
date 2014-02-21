@@ -348,7 +348,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
                 r = self(m)
                 ret[r] = alp
             return Family(ret)
-        except StandardError:
+        except Exception:
             raise NotImplementedError, "reflections are only implemented for finite Weyl groups"
 
     def _repr_(self):
@@ -566,7 +566,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
         ref = self.reflections()
         d = {}
         for x in g:
-            d[x] = [y for y in g if x.length() < y.length() and ref.has_key(x*y.inverse())]
+            d[x] = [y for y in g if x.length() < y.length() and x*y.inverse() in ref]
         return DiGraph(d)
 
 

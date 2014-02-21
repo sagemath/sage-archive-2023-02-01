@@ -53,6 +53,8 @@ TESTS::
     sage: K.<z> = CyclotomicField(7)
     sage: P = K.factor(17)[0][0]
     sage: ff = K.residue_field(P)
+    sage: loads(dumps(ff)) is ff
+    True
     sage: a = ff(z)
     sage: parent(a*a)
     Residue field in zbar of Fractional ideal (17)
@@ -69,6 +71,12 @@ Verify that :trac:`15192` has been resolved::
     #True
     #sage: parent(a*a)
     #Residue field in a of Principal ideal (t^3 + t + 4) of Univariate Polynomial Ring in t over Finite Field of size 11
+
+Verify that :trac:`7475` is fixed::
+
+    sage: K = ZZ.residue_field(2)
+    sage: loads(dumps(K)) is K
+    True
 
 Reducing a curve modulo a prime::
 
@@ -901,7 +909,8 @@ cdef class ReductionMap(Map):
 
         try:
             return self._F(self._to_vs(x) * self._PBinv)
-        except StandardError: pass
+        except Exception:
+            pass
 
         # Now we do have to work harder...below this point we handle
         # cases which failed before trac 1951 was fixed.

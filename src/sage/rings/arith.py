@@ -1884,7 +1884,7 @@ def xgcd(a, b):
         sage: 4*56 + (-5)*44
         4
         sage: g, a, b = xgcd(5/1, 7/1); g, a, b
-        (1, 3, -2)
+        (1, 1/5, 0)
         sage: a*(5/1) + b*(7/1) == g
         True
         sage: x = polygen(QQ)
@@ -2512,9 +2512,16 @@ def radical(n, *args, **kwds):
 
 def prime_divisors(n):
     """
-    The prime divisors of the integer n, sorted in increasing order. If
-    n is negative, we do *not* include -1 among the prime divisors,
-    since -1 is not a prime number.
+    The prime divisors of ``n``.
+
+    INPUT:
+
+    - ``n`` -- any object which can be factored
+
+    OUTPUT:
+
+    A list of prime factors of ``n``. For integers, this list is sorted
+    in increasing order.
 
     EXAMPLES::
 
@@ -2522,12 +2529,22 @@ def prime_divisors(n):
         []
         sage: prime_divisors(100)
         [2, 5]
-        sage: prime_divisors(-100)
-        [2, 5]
         sage: prime_divisors(2004)
         [2, 3, 167]
+
+    If ``n`` is negative, we do *not* include -1 among the prime
+    divisors, since -1 is not a prime number::
+
+        sage: prime_divisors(-100)
+        [2, 5]
+
+    For polynomials we get all irreducible factors::
+
+        sage: R.<x> = PolynomialRing(QQ)
+        sage: prime_divisors(x^12 - 1)
+        [x - 1, x + 1, x^2 - x + 1, x^2 + 1, x^2 + x + 1, x^4 - x^2 + 1]
     """
-    return [p for p,_ in factor(n) if p != -1]
+    return [p for p,_ in factor(n)]
 
 prime_factors = prime_divisors
 

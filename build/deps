@@ -143,12 +143,21 @@ SAGERUNTIME = $(SCRIPTS) $(INST)/sage $(INST)/$(SAGENB) $(INST)/$(IPYTHON)
 # an update of these packages will not trigger a rebuild of every other
 # package during an upgrade, see #13415.
 ###############################################################################
-base: $(INST)/$(PREREQ) $(INST)/$(BZIP2) $(INST)/$(PATCH)
+base: $(INST)/prereq $(INST)/$(BZIP2) $(INST)/$(PATCH)
 
-$(INST)/$(PREREQ):
-	$(PIPE) "base/$(PREREQ)-install 2>&1" "tee -a $(SAGE_LOGS)/$(PREREQ).log"
+$(INST)/prereq: ../configure
+	@cd ..; rm -f config.log; ln -s logs/pkgs/config.log config.log; \
+	./configure $$PREREQ_OPTIONS || ( \
+	    if [ "x$$SAGE_PORT" = x ]; then \
+	        echo "If you would like to try to build Sage anyway (to help porting),"; \
+	        echo "export the variable 'SAGE_PORT' to something non-empty."; \
+	        exit 1; \
+    	else \
+	        echo "Since 'SAGE_PORT' is set, we will try to build anyway."; \
+    	fi; )
+	touch $@
 
-$(INST)/$(BZIP2): $(INST)/$(PREREQ)
+$(INST)/$(BZIP2): $(INST)/prereq
 	+$(PIPE) "$(SAGE_SPKG) $(BZIP2) 2>&1" "tee -a $(SAGE_LOGS)/$(BZIP2).log"
 
 $(INST)/$(PATCH): $(INST)/$(BZIP2)
@@ -215,8 +224,15 @@ $(INST)/$(NTL): $(INST)/$(MPIR) $(INST)/$(GF2X)
 $(INST)/$(FPLLL): $(INST)/$(MPIR) $(INST)/$(MPFR)
 	+$(PIPE) "$(SAGE_SPKG) $(FPLLL) 2>&1" "tee -a $(SAGE_LOGS)/$(FPLLL).log"
 
-$(INST)/$(PARI): $(INST)/$(READLINE) $(INST)/$(MPIR)
+$(INST)/$(PARI): $(INST)/$(READLINE) $(INST)/$(MPIR) \
+    $(INST)/$(PARI_GALDATA) $(INST)/$(PARI_SEADATA_SMALL)
 	+$(PIPE) "$(SAGE_SPKG) $(PARI) 2>&1" "tee -a $(SAGE_LOGS)/$(PARI).log"
+
+$(INST)/$(PARI_GALDATA):
+	+$(PIPE) "$(SAGE_SPKG) $(PARI_GALDATA) 2>&1" "tee -a $(SAGE_LOGS)/$(PARI_GALDATA).log"
+
+$(INST)/$(PARI_SEADATA_SMALL):
+	+$(PIPE) "$(SAGE_SPKG) $(PARI_SEADATA_SMALL) 2>&1" "tee -a $(SAGE_LOGS)/$(PARI_SEADATA_SMALL).log"
 
 $(INST)/$(POLYBORI): $(INST)/$(PYTHON) $(INST)/$(IPYTHON) \
          $(INST)/$(SCONS) $(INST)/$(BOOST_CROPPED) \
@@ -255,9 +271,6 @@ $(INST)/$(LINBOX): $(INST)/$(MPIR) $(INST)/$(NTL) $(INST)/$(GIVARO) \
 
 $(INST)/$(IML): $(INST)/$(MPIR) $(INST)/$(GSL) $(INST)/$(ATLAS)
 	+$(PIPE) "$(SAGE_SPKG) $(IML) 2>&1" "tee -a $(SAGE_LOGS)/$(IML).log"
-
-$(INST)/$(ECLIB): $(INST)/$(MPIR) $(INST)/$(PARI) $(INST)/$(NTL)
-	+$(PIPE) "$(SAGE_SPKG) $(ECLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(ECLIB).log"
 
 $(INST)/$(GENUS2REDUCTION): $(INST)/$(PARI)
 	+$(PIPE) "$(SAGE_SPKG) $(GENUS2REDUCTION) 2>&1" "tee -a $(SAGE_LOGS)/$(GENUS2REDUCTION).log"
@@ -386,6 +399,9 @@ $(INST)/$(FLINTQS): $(INST)/$(MPIR)
 $(INST)/$(FLINT): $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(NTL)
 	+$(PIPE) "$(SAGE_SPKG) $(FLINT) 2>&1" "tee -a $(SAGE_LOGS)/$(FLINT).log"
 
+$(INST)/$(ECLIB): $(INST)/$(PARI) $(INST)/$(NTL) $(INST)/$(FLINT)
+	+$(PIPE) "$(SAGE_SPKG) $(ECLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(ECLIB).log"
+
 $(INST)/$(M4RI): $(INST)/$(LIBPNG)
 	+$(PIPE) "$(SAGE_SPKG) $(M4RI) 2>&1" "tee -a $(SAGE_LOGS)/$(M4RI).log"
 
@@ -467,8 +483,6 @@ $(INST)/csage: $(INST)/$(SCONS) \
        $(INST)/$(MPIR) \
        $(INST)/$(NTL) \
        $(INST)/$(PARI) \
-       $(INST)/$(POLYBORI) \
-       $(INST)/$(PYNAC) \
        $(INST)/$(PYTHON)
 	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
 		cd $(SAGE_SRC) && source bin/sage-env && cd c_lib && \

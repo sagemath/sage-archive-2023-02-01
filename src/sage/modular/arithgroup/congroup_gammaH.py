@@ -393,9 +393,9 @@ class GammaH_class(CongruenceSubgroup):
         EXAMPLES::
 
             sage: GammaH(5,[4])._latex_()
-            '\\Gamma_H(5)'
+            '\\Gamma_H(5, [4])'
         """
-        return "\\Gamma_H(%s)"%self.level()
+        return '\\Gamma_H(%s, %s)' % (self.level(), self.__H)
 
     def _list_of_elements_in_H(self):
         """

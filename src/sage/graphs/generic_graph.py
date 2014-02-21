@@ -315,8 +315,6 @@ from sage.misc.superseded import deprecation, deprecated_function_alias
 class GenericGraph(GenericGraph_pyx):
     """
     Base class for graphs and digraphs.
-
-    .. autofunction:: _scream_if_not_simple
     """
 
     # Nice defaults for plotting arrays of graphs (see sage.misc.functional.show)
@@ -1066,7 +1064,7 @@ class GenericGraph(GenericGraph_pyx):
                 return self._backend._nxg.copy()
             else:
                 return self._backend._nxg
-        except StandardError:
+        except Exception:
             import networkx
             if self._directed and self.allows_multiple_edges():
                 class_type = networkx.MultiDiGraph
@@ -2304,8 +2302,25 @@ class GenericGraph(GenericGraph_pyx):
             Graph on 10 vertices
             sage: G.name()
             ''
+
+        Name of an immutable graph :trac:`15681` ::
+
+            sage: g = graphs.PetersenGraph()
+            sage: gi = g.copy(immutable=True)
+            sage: gi.name()
+            'Petersen graph'
+            sage: gi.name("Hey")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: An immutable graph does not change name
         """
-        return self._backend.name(new)
+        if new is None:
+            return getattr(self, '_name', "")
+
+        if getattr(self, '_immutable', False):
+            raise NotImplementedError("An immutable graph does not change name")
+
+        self._name = str(new)
 
     def get_pos(self, dim = 2):
         """
@@ -3180,7 +3195,7 @@ class GenericGraph(GenericGraph_pyx):
             M[index,index]+=1
             return abs(M.determinant())
 
-    def cycle_basis(self):
+    def cycle_basis(self, output='vertex'):
         r"""
         Returns a list of cycles which form a basis of the cycle space
         of ``self``.
@@ -3190,14 +3205,22 @@ class GenericGraph(GenericGraph_pyx):
         cycle in the graph can be written as a `Z/2Z` sum of the
         cycles in the basis.
 
+        INPUT:
+
+        - ``output`` (``'vertex'`` (default) or ``'edge'``) -- whether
+          every cycle is given as a list of vertices or a list of
+          edges.
+
         OUTPUT:
 
-        A list of lists, each of them representing the vertices of a
-        cycle in a basis.
+        A list of lists, each of them representing the vertices (or
+        the edges) of a cycle in a basis.
 
         ALGORITHM:
 
-        Uses the NetworkX library.
+        Uses the NetworkX library for graphs without multiple edges.
+
+        Otherwise, by the standard algorithm using a spanning tree.
 
         EXAMPLE:
 
@@ -3206,6 +3229,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = graphs.PetersenGraph()
             sage: g.cycle_basis()
             [[1, 2, 7, 5, 0], [8, 3, 2, 7, 5], [4, 3, 2, 7, 5, 0], [4, 9, 7, 5, 0], [8, 6, 9, 7, 5], [1, 6, 9, 7, 5, 0]]
+
+        One can also get the result as a list of lists of edges::
+
+            sage: g.cycle_basis(output='edge')
+            [[(1, 2, None), (2, 7, None), (7, 5, None), (5, 0, None),
+            (0, 1, None)], [(8, 3, None), (3, 2, None), (2, 7, None),
+            (7, 5, None), (5, 8, None)], [(4, 3, None), (3, 2, None),
+            (2, 7, None), (7, 5, None), (5, 0, None), (0, 4, None)],
+            [(4, 9, None), (9, 7, None), (7, 5, None), (5, 0, None),
+            (0, 4, None)], [(8, 6, None), (6, 9, None), (9, 7, None),
+            (7, 5, None), (5, 8, None)], [(1, 6, None), (6, 9, None),
+            (9, 7, None), (7, 5, None), (5, 0, None), (0, 1, None)]]
 
         Checking the given cycles are algebraically free::
 
@@ -3233,10 +3268,70 @@ class GenericGraph(GenericGraph_pyx):
             sage: basis_as_vectors = map( cycle_to_vector, basis )
             sage: edge_space.span(basis_as_vectors).rank() == len(basis)
             True
-        """
 
+        For undirected graphs with multiple edges::
+
+            sage: G = Graph([(0,2,'a'),(0,2,'b'),(0,1,'c'),(1,2,'d')])
+            sage: G.cycle_basis()
+            [[0, 2], [2, 1, 0]]
+            sage: G.cycle_basis(output='edge')
+            [[(0, 2, 'a'), (2, 0, 'b')], [(2, 1, 'd'), (1, 0, 'c'),
+            (0, 2, 'a')]]
+
+        Disconnected graph::
+
+            sage: G.add_cycle(["Hey", "Wuuhuu", "Really ?"])
+            sage: G.cycle_basis()
+            [[0, 2], [2, 1, 0], ['Really ?', 'Hey', 'Wuuhuu']]
+            sage: G.cycle_basis(output='edge')
+            [[(0, 2, 'a'), (2, 0, 'b')], [(2, 1, 'd'), (1, 0, 'c'), (0, 2, 'a')],
+            [('Really ?', 'Hey', None), ('Hey', 'Wuuhuu', None), ('Wuuhuu', 'Really ?', None)]]
+
+        Graph that allows multiple edges but does not contain any::
+
+            sage: G = graphs.CycleGraph(3)
+            sage: G.allow_multiple_edges(True)
+            sage: G.cycle_basis()
+            [[2, 1, 0]]
+
+        Not yet implemented for directed graphs with multiple edges::
+
+            sage: G = DiGraph([(0,2,'a'),(0,2,'b'),(0,1,'c'),(1,2,'d')])
+            sage: G.cycle_basis()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: not implemented for directed graphs
+            with multiple edges
+        """
+        if not output in ['vertex', 'edge']:
+            raise ValueError('output must be either vertex or edge')
+
+        if self.allows_multiple_edges():
+            if self.is_directed():
+                raise NotImplementedError('not implemented for directed '
+                                          'graphs with multiple edges')
+
+            if not self.is_connected():
+                return sum([g.cycle_basis(output=output)
+                            for g in self.connected_components_subgraphs()],
+                           [])
+
+            T = self.min_spanning_tree()
+            return [self.subgraph(edges=T + [e]).is_forest(certificate=True,
+                                                           output=output)[1]
+                    for e in self.edges() if not e in T]
+
+        # second case: there are no multiple edges
         import networkx
-        return networkx.cycle_basis(self.networkx_graph(copy=False))
+        cycle_basis_v = networkx.cycle_basis(self.networkx_graph(copy=False))
+        if output == 'vertex':
+            return cycle_basis_v
+
+        def vertices_to_edges(x):
+            return [(u[0], u[1], self.edge_label(u[0], u[1]))
+                    for u in zip(x, x[1:] + [x[0]])]
+        return map(vertices_to_edges, cycle_basis_v)
+
 
     ### Planarity
 
@@ -3955,7 +4050,7 @@ class GenericGraph(GenericGraph_pyx):
                         g += genus.simple_connected_graph_genus(H, set_embedding = True, check = False, minimal = True)
                         emb = H.get_embedding()
                         for v in emb:
-                            if embedding.has_key(v):
+                            if v in embedding:
                                 embedding[v] += emb[v]
                             else:
                                 embedding[v] = emb[v]
@@ -5194,7 +5289,7 @@ class GenericGraph(GenericGraph_pyx):
                 l0 = []
                 l1 = []
                 for x in g.vertex_iterator():
-                    if v.has_key(x) and v[x] == 1:
+                    if x in v and v[x] == 1:
                         l1.append(x)
                     else:
                         l0.append(x)
@@ -5315,8 +5410,8 @@ class GenericGraph(GenericGraph_pyx):
                 l1 = []
                 for x in g.vertex_iterator():
                     # if the vertex is not in the cut
-                    if not (b.has_key(x) and b[x] == 1):
-                        if (v.has_key(x) and v[x] == 1):
+                    if not (x in b and b[x] == 1):
+                        if (x in v and v[x] == 1):
                             l1.append(x)
                         else:
                             l0.append(x)
@@ -6214,7 +6309,7 @@ class GenericGraph(GenericGraph_pyx):
                     # the weights of the parallel edges
 
                     #  new value *if* ( none other        *or*   new==None and last > 1     *else*  change nothing
-                    e[(u,v)] = l if (not e.has_key((u,v)) or ( (l is None or l == {}) and e[(u,v)] > 1 )) else e[(u,v)]
+                    e[(u,v)] = l if ((u,v) not in e or ( (l is None or l == {}) and e[(u,v)] > 1 )) else e[(u,v)]
 
                 g.add_edges([(u,v) for (u,v),l in e.iteritems()])
 
@@ -8282,7 +8377,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         try:
             hash(vertex)
-        except StandardError:
+        except Exception:
             return False
         return self._backend.has_vertex(vertex)
 
@@ -8591,11 +8686,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(D.neighbor_iterator(0))
             [1, 2, 3]
         """
-        if self._directed:
-            return iter(set(self.neighbor_out_iterator(vertex)) \
-                    | set(self.neighbor_in_iterator(vertex)))
-        else:
-            return self._backend.iterator_nbrs(vertex)
+        return self._backend.iterator_nbrs(vertex)
 
     def vertices(self, key=None, boundary_first=False):
         r"""
@@ -8843,16 +8934,16 @@ class GenericGraph(GenericGraph_pyx):
             if v is None:
                 try:
                     u, v, label = u
-                except StandardError:
+                except Exception:
                     try:
                         u, v = u
-                    except StandardError:
+                    except Exception:
                         pass
         else:
             if v is None:
                 try:
                     u, v = u
-                except StandardError:
+                except Exception:
                     pass
         if not self.allows_loops() and u==v:
             return
@@ -9128,7 +9219,7 @@ class GenericGraph(GenericGraph_pyx):
             if v is None:
                 try:
                     u, v, label = u
-                except StandardError:
+                except Exception:
                     u, v = u
                     label = None
         self._backend.del_edge(u, v, label, self._directed)
@@ -9307,7 +9398,7 @@ class GenericGraph(GenericGraph_pyx):
             if v is None:
                 try:
                     u, v, label = u
-                except StandardError:
+                except Exception:
                     u, v = u
                     label = None
         return self._backend.has_edge(u, v, label)
@@ -10956,15 +11047,12 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        This shouldn't fail (trac 10899)::
+        This shouldn't raise exceptions (:trac:`10899`)::
 
             sage: Graph(1).is_chordal()
             True
             sage: for g in graphs(5):
-            ...     try:
-            ...         forget = g.is_chordal()
-            ...     except StandardError:
-            ...         print("Oh no.")
+            ....:     _ = g.is_chordal()
 
         REFERENCES:
 
@@ -12060,7 +12148,7 @@ class GenericGraph(GenericGraph_pyx):
         e = self.eccentricity(with_labels=True)
         try:
             r = min(e.values())
-        except StandardError:
+        except Exception:
             return []
         return [v for v in e if e[v]==r]
 
@@ -12400,7 +12488,7 @@ class GenericGraph(GenericGraph_pyx):
         e = self.eccentricity(with_labels=True)
         try:
             r = max(e.values())
-        except StandardError:
+        except Exception:
             return []
         return [v for v in e if e[v]==r]
 
@@ -12704,7 +12792,7 @@ class GenericGraph(GenericGraph_pyx):
                 except AttributeError:
                     try:
                         L = networkx.bidirectional_dijkstra(self.networkx_graph(copy=False), u, v)[1]
-                    except StandardError:
+                    except Exception:
                         L = False
             else:
                 L = networkx.dijkstra_path(self.networkx_graph(copy=False), u, v)
@@ -12718,7 +12806,7 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 try:
                     L = networkx.single_source_shortest_path(self.networkx_graph(copy=False), u)[v]
-                except StandardError:
+                except Exception:
                     L = False
         if L:
             return L
@@ -13628,18 +13716,27 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             TypeError: complement not well defined for (di)graphs with multiple edges
+
+        TESTS:
+
+        We check that :trac:`15699` is fixed::
+
+            sage: G = graphs.PathGraph(5).copy(immutable=True)
+            sage: G.complement()
+            complement(Path Graph): Graph on 5 vertices
         """
         if self.has_multiple_edges():
             raise TypeError('complement not well defined for (di)graphs with multiple edges')
         self._scream_if_not_simple()
-        from copy import copy
-        G = copy(self)
+        G = self.copy(immutable=False) # Make sure it's a mutable copy
         G.delete_edges(G.edges())
         G.name('complement(%s)'%self.name())
         for u in self:
             for v in self:
                 if not self.has_edge(u,v):
                     G.add_edge(u,v)
+        if getattr(self, '_immutable', False):
+            return G.copy(immutable=True)
         return G
 
     def to_simple(self):
@@ -15457,10 +15554,10 @@ class GenericGraph(GenericGraph_pyx):
                 edge_colors = { (0,0,0) : self.edges() }
 
             # by default turn off the frame
-            if not kwds.has_key('frame'):
+            if 'frame' not in kwds:
                 kwds['frame'] = False
             # by default make the background given by bgcolor
-            if not kwds.has_key('background'):
+            if 'background' not in kwds:
                 kwds['background'] = bgcolor
             try:
                 graphic = 0
@@ -16542,7 +16639,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.get_pos()
             {0: (0, 0), 1: (2, 0), 2: (3, 0), 3: (4, 0)}
 
-        Check that #12477 is fixed::
+        Check that :trac:`12477` is fixed::
 
             sage: g = Graph({1:[2,3]})
             sage: rel = {1:'a', 2:'b'}
@@ -16551,21 +16648,33 @@ class GenericGraph(GenericGraph_pyx):
             [3, 'a', 'b']
             sage: rel
             {1: 'a', 2: 'b'}
+
+        Immutable graphs cannot be relabeled::
+
+            sage: Graph(graphs.PetersenGraph(), immutable=True).relabel({})
+            Traceback (most recent call last):
+            ...
+            ValueError: To relabel an immutable graph use inplace=False
         """
         from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 
         if not inplace:
-            from copy import copy
-            G = copy(self)
+            G = self.copy(immutable=False)
             perm2 = G.relabel(perm,
                               return_map= return_map,
                               check_input = check_input,
                               complete_partial_function = complete_partial_function)
 
+            if getattr(self, "_immutable", False):
+                G = self.__class__(G, immutable = True)
+
             if return_map:
                 return G, perm2
             else:
                 return G
+
+        if getattr(self, "_immutable", False):
+            raise ValueError("To relabel an immutable graph use inplace=False")
 
         # If perm is not a dictionary, we build one !
 
@@ -17013,6 +17122,16 @@ class GenericGraph(GenericGraph_pyx):
             Permutation Group with generators [()]
             sage: Graph({'a':['a'], 'b':[]}).automorphism_group().domain()
             {'a', 'b'}
+
+        We can check that the subgroups are labelled correctly
+        (:trac:`15656`)::
+
+            sage: G1 = Graph(':H`ECw@HGXGAGUG`e')
+            sage: G = G1.automorphism_group()
+            sage: G.subgroups()
+            [Subgroup of (Permutation Group with generators [(0,7)(1,4)(2,3)(6,8)]) generated by [()],
+            Subgroup of (Permutation Group with generators [(0,7)(1,4)(2,3)(6,8)]) generated by [(0,7)(1,4)(2,3)(6,8)]]
+
         """
         from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
         from sage.groups.perm_gps.permgroup import PermutationGroup

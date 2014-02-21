@@ -4149,17 +4149,17 @@ class FiniteStateMachine(SageObject):
 
         # Create new states and build state_mapping
         for c in classes:
-            new_state = new.add_state(tuple(c))
+            new_label = tuple(c)
+            new_state = deepcopy(c[0])
+            new_state._label_ = new_label
+            # TODO: Why does c[0].relabeled(new_label) not work?
+            new.add_state(new_state)
             for state in c:
                 state_mapping[state] = new_state
 
         # Copy data from old transducer
         for c in classes:
             new_state = state_mapping[c[0]]
-            # copy all data from first class member
-            new_state.is_initial = c[0].is_initial
-            new_state.is_final = c[0].is_final
-            new_state.word_out = c[0].word_out
             for transition in self.iter_transitions(c[0]):
                 new.add_transition(
                     from_state=new_state,

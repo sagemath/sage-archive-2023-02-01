@@ -4001,6 +4001,18 @@ class FiniteStateMachine(SageObject):
             sage: C.transitions()
             [Transition from 0 to 1: 0|-]
 
+        Currently, output labels have to be hashable::
+
+            sage: C = Transducer([(0, 1, 0, []),
+            ....:                 (1, 0, 0, [vector([0,0]), 0]),
+            ....:                 (1, 1, 1, [vector([0,0]), 1]),
+            ....:                 (0, 0, 1, 0)],
+            ....:                 determine_alphabets=False)
+            sage: C.prepone_output()
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable vectors are unhashable
+
         """
         def find_common_output(state):
             if len(filter(lambda transition: len(transition.word_out) == 0, self.transitions(state))) > 0:

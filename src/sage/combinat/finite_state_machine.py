@@ -2020,6 +2020,41 @@ class FiniteStateMachine(SageObject):
         """
         return ' '
 
+    def set_coordinates(self, d):
+        """
+        Set coordinates of the states for the LaTeX representation by a dictionary mapping
+        labels to coordinates.
+
+        INPUT:
+
+        - ``d`` -- dictionary mapping labels of states to pairs interpreted as coordinates.
+          States not listed in the dictionary get a default position on a circle of radius 3.
+
+        OUTPUT:
+
+        Nothing.
+
+        EXAMPLES::
+            sage: F = Automaton([[0,1,1], [1,2,2], [2,0,0]])
+            sage: F.set_coordinates({0: (0,0), 1:(2,0), 2:(1,1)})
+            sage: F.state(0).coordinates
+            (0, 0)
+
+        TODO::
+
+        It would be nice to alternatively allow a callable.
+        """
+        states_without_coordinates=[]
+        for state in self.states():
+            try:
+                state.coordinates=d[state.label()]
+            except KeyError:
+                states_without_coordinates.append(state)
+        n = len(states_without_coordinates)
+        for (j,state) in zip(range(len(states_without_coordinates)),states_without_coordinates):
+            state.coordinates = (3*cos(2*pi*j/n),
+                                 3*sin(2*pi*j/n))
+
 
     #*************************************************************************
     # other

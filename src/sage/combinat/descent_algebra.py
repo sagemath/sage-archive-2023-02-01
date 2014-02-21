@@ -168,6 +168,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
         This basis is indexed by `S \subseteq \{1, 2, \ldots, n-1\}`,
         and the basis vector indexed by `S` is the sum of all permutations,
         taken in the symmetric group algebra `R S_n`, whose descent set is `S`.
+        We denote a basis element by `D_S`.
 
         Occasionally this basis appears in literature but indexed by
         compositions of `n` rather than subsets of
@@ -175,9 +176,8 @@ class DescentAlgebra(Parent, UniqueRepresentation):
         indices is owed to the bijection from the power set of
         `\{1, 2, \ldots, n-1\}` to the set of all compositions of `n`
         which sends every subset `\{i_1, i_2, \ldots, i_k\}` of
-        `\{1, 2, \ldots, n-1\}` (with `i_1 < i_2 < \ldots < i_k`) to
-        the composition
-        `(i_1, i_2-i_1, \ldots, i_k-i_{k-1}, n-i_k)`.
+        `\{1, 2, \ldots, n-1\}` (with `i_1 < i_2 < \cdots < i_k`) to
+        the composition `(i_1, i_2-i_1, \ldots, i_k-i_{k-1}, n-i_k)`.
 
         The basis element corresponding to a composition `p` (or to
         the subset of `\{1, 2, \ldots, n-1\}`) is denoted `\Delta^p`
@@ -393,7 +393,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
         natural to index the subset basis by compositions
         of `n` under the bijection `\{i_1, i_2, \ldots, i_k\} \mapsto
         (i_1, i_2 - i_1, i_3 - i_2, \ldots, i_k - i_{k-1}, n - i_k)`
-        (where `i_1 < i_2 < \ldots < i_k`), which is what Sage uses to
+        (where `i_1 < i_2 < \cdots < i_k`), which is what Sage uses to
         index the basis.
 
         The basis element `B_p` is denoted `\Xi^p` in [Schocker2004]_.

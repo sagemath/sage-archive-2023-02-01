@@ -2397,7 +2397,7 @@ class Permutation(CombinatorialObject, Element):
         can then be written as a product `s_{i_1} s_{i_2} \cdots s_{i_k}`
         for some sequence `(i_1, i_2, \ldots, i_k)` of elements of
         `\{ 1, 2, \ldots, n-1 \}` (here `\{ 1, 2, \ldots, n-1 \}` denotes
-        the empty set when `n = 0`). Fixing a `p`, the sequences
+        the empty set when `n \leq 1`). Fixing a `p`, the sequences
         `(i_1, i_2, \ldots, i_k)` of smallest length satisfying
         `p = s_{i_1} s_{i_2} \cdots s_{i_k}` are called the reduced words
         of `p`. (Their length is the Coxeter length of `p`, and can be
@@ -2411,9 +2411,9 @@ class Permutation(CombinatorialObject, Element):
         Thus, for instance, `s_2 s_1` is the permutation obtained by
         first transposing `1` with `2` and then transposing `2` with `3`.
 
-        .. SEEALSO:
+        .. SEEALSO::
 
-            :meth:`reduced_word`, :meth:`reduced_word_lexmin`.
+            :meth:`reduced_word`, :meth:`reduced_word_lexmin`
 
         EXAMPLES::
 
@@ -2438,10 +2438,11 @@ class Permutation(CombinatorialObject, Element):
         if len(descents) == 0:
             return [[]]
 
+        P = Permutations()
         for d in descents:
             pp = p[:d] + [p[d+1], p[d]] + p[d+2:]
             z = lambda x: x + [d+1]
-            rws += (map(z, Permutations()(pp).reduced_words()))
+            rws += (map(z, P(pp).reduced_words()))
 
         return rws
 
@@ -2727,9 +2728,9 @@ class Permutation(CombinatorialObject, Element):
 
         REFERENCES:
 
-        .. [GarStan1984] A. M. Garsia, Dennis Stanton,
+        .. [GarStan1984] A. M. Garsia, Dennis Stanton.
            *Group actions on Stanley-Reisner rings and invariants of
-           permutation groups*, Adv. in Math. 51 (1984), 107-201.
+           permutation groups*. Adv. in Math. **51** (1984), 107-201.
            http://www.sciencedirect.com/science/article/pii/0001870884900057
 
         EXAMPLES::
@@ -2828,11 +2829,11 @@ class Permutation(CombinatorialObject, Element):
 
         REFERENCES:
 
-        - Carlitz, L. *q-Bernoulli and Eulerian Numbers*,
+        - Carlitz, L. *q-Bernoulli and Eulerian Numbers*.
           Trans. Amer. Math. Soc. 76 (1954) 332-350.
           http://www.ams.org/journals/tran/1954-076-02/S0002-9947-1954-0060538-2/
 
-        - Skandera, M. *An Eulerian Partner for Inversions*,
+        - Skandera, M. *An Eulerian Partner for Inversions*.
           Sem. Lothar. Combin. 46 (2001) B46d.
           http://www.lehigh.edu/~mas906/papers/partner.ps
 
@@ -2847,8 +2848,9 @@ class Permutation(CombinatorialObject, Element):
         n = len(p)
         major_indices = [0]*(n+1)
         smaller = p[:]
+        P = Permutations()
         for i in range(n):
-            major_indices[i] = Permutations()(smaller).major_index(final_descent)
+            major_indices[i] = P(smaller).major_index(final_descent)
             #Create the permutation that "erases" all the numbers
             #smaller than i+1
             smaller.remove(1)
@@ -3125,12 +3127,13 @@ class Permutation(CombinatorialObject, Element):
         """
         p = self
         n = len(p)
+        P = Permutations()
 
-        for z in Permutations()(map(lambda x: n+1-x, p)).bruhat_inversions_iterator():
+        for z in P(map(lambda x: n+1-x, p)).bruhat_inversions_iterator():
             pp = p[:]
             pp[z[0]] = p[z[1]]
             pp[z[1]] = p[z[0]]
-            yield Permutations()(pp)
+            yield P(pp)
 
 
 
@@ -3175,11 +3178,12 @@ class Permutation(CombinatorialObject, Element):
              [6, 1, 4, 3, 2, 5]]
         """
         p = self
+        P = Permutations()
         for z in p.bruhat_inversions_iterator():
             pp = p[:]
             pp[z[0]] = p[z[1]]
             pp[z[1]] = p[z[0]]
-            yield Permutations()(pp)
+            yield P(pp)
 
 
     def bruhat_smaller(self):
@@ -3223,7 +3227,6 @@ class Permutation(CombinatorialObject, Element):
              [4, 3, 1, 2],
              [4, 3, 2, 1]]
         """
-
         return StandardPermutations_bruhat_greater(self)
 
     ########################
@@ -3352,6 +3355,7 @@ class Permutation(CombinatorialObject, Element):
         """
         p = self
         n = len(p)
+        P = Permutations()
         succ = []
         if side == "right":
             rise = lambda perm: [i for i in range(0,n-1) if perm[i] < perm[i+1]]
@@ -3359,14 +3363,14 @@ class Permutation(CombinatorialObject, Element):
                 pp = p[:]
                 pp[i] = p[i+1]
                 pp[i+1] = p[i]
-                succ.append(Permutations()(pp))
+                succ.append(P(pp))
         else:
             advance = lambda perm: [i for i in range(1,n) if perm.index(i) < perm.index(i+1)]
             for i in advance(p):
                 pp = p[:]
                 pp[p.index(i)] = i+1
                 pp[p.index(i+1)] = i
-                succ.append(Permutations()(pp))
+                succ.append(P(pp))
         return succ
 
 
@@ -3393,20 +3397,21 @@ class Permutation(CombinatorialObject, Element):
         """
         p = self
         n = len(p)
+        P = Permutations()
         pred = []
         if side == "right":
             for d in p.descents():
                 pp = p[:]
                 pp[d] = p[d+1]
                 pp[d+1] = p[d]
-                pred.append(Permutations()(pp))
+                pred.append(P(pp))
         else:
             recoil = lambda perm: [i for i in range(1,n) if perm.index(i) > perm.index(i+1)]
             for i in recoil(p):
                 pp = p[:]
                 pp[p.index(i)] = i+1
                 pp[p.index(i+1)] = i
-                pred.append(Permutations()(pp))
+                pred.append(P(pp))
         return pred
 
 
@@ -3485,9 +3490,9 @@ class Permutation(CombinatorialObject, Element):
             [[2, 1, 4, 5, 3], [2, 1, 5, 4, 3], [2, 4, 1, 5, 3], [2, 4, 5, 1, 3], [2, 5, 1, 4, 3], [2, 5, 4, 1, 3]]
         """
         if len(self) != len(other) :
-            raise ValueError("len(%s) and len(%s) must be equal" %(self, other))
+            raise ValueError("len({}) and len({}) must be equal".format(self, other))
         if not self.permutohedron_lequal(other) :
-            raise ValueError("%s must be lower or equal than %s for the right permutohedron order" %(self, other))
+            raise ValueError("{} must be lower or equal than {} for the right permutohedron order".format(self, other))
         from sage.graphs.linearextensions import LinearExtensions
         d = DiGraph()
         d.add_vertices(xrange(1, len(self) + 1))
@@ -3529,7 +3534,8 @@ class Permutation(CombinatorialObject, Element):
             ...
             ValueError: len([2, 4, 1, 3]) and len([2, 1, 4, 5, 3]) must be equal
         """
-        return [Permutations()(p) for p in self.right_permutohedron_interval_iterator(other)]
+        P = Permutations()
+        return [P(p) for p in self.right_permutohedron_interval_iterator(other)]
 
     ############
     # Patterns #
@@ -3640,7 +3646,7 @@ class Permutation(CombinatorialObject, Element):
                 nonMinima.reverse()
 
         for i in xrange(1, len(list(self))):
-            if targetPermutation[i] == None:
+            if targetPermutation[i] is None:
                 targetPermutation[i] = nonMinima.pop()
         return Permutations()(targetPermutation)
 
@@ -3969,7 +3975,7 @@ class Permutation(CombinatorialObject, Element):
 
     def retract_plain(self, m):
         r"""
-        Return the plain retract of the permutation ``self`` `\in S_n`
+        Return the plain retract of the permutation ``self`` in `S_n`
         to `S_m`, where `m \leq n`. If this retract is undefined, then
         ``None`` is returned.
 
@@ -3984,12 +3990,10 @@ class Permutation(CombinatorialObject, Element):
             sage: Permutation([4,1,2,3,5]).retract_plain(4)
             [4, 1, 2, 3]
             sage: Permutation([4,1,2,3,5]).retract_plain(3)
-            <BLANKLINE>
 
             sage: Permutation([1,3,2,4,5,6]).retract_plain(3)
             [1, 3, 2]
             sage: Permutation([1,3,2,4,5,6]).retract_plain(2)
-            <BLANKLINE>
 
             sage: Permutation([1,2,3,4,5]).retract_plain(1)
             [1]
@@ -4029,16 +4033,12 @@ class Permutation(CombinatorialObject, Element):
             sage: Permutation([4,1,2,3,5]).retract_direct_product(4)
             [4, 1, 2, 3]
             sage: Permutation([4,1,2,3,5]).retract_direct_product(3)
-            <BLANKLINE>
 
             sage: Permutation([1,4,2,3,6,5]).retract_direct_product(5)
-            <BLANKLINE>
             sage: Permutation([1,4,2,3,6,5]).retract_direct_product(4)
             [1, 4, 2, 3]
             sage: Permutation([1,4,2,3,6,5]).retract_direct_product(3)
-            <BLANKLINE>
             sage: Permutation([1,4,2,3,6,5]).retract_direct_product(2)
-            <BLANKLINE>
             sage: Permutation([1,4,2,3,6,5]).retract_direct_product(1)
             [1]
             sage: Permutation([1,4,2,3,6,5]).retract_direct_product(0)
@@ -4071,9 +4071,9 @@ class Permutation(CombinatorialObject, Element):
         
         In other words, the Okounkov-Vershik retract of `p` is the
         permutation whose disjoint cycle decomposition is obtained by
-        removing all letters `> m` from the decomposition of `p` into
-        disjoint cycles (and removing all cycles which are emptied in
-        the process).
+        removing all letters strictly greater than `m` from the
+        decomposition of `p` into disjoint cycles (and removing all
+        cycles which are emptied in the process).
 
         When `m = n-1`, the Okounkov-Vershik retract (as a map
         `S_n \to S_{n-1}`) is the map `\widetilde{p}_n` introduced in
@@ -4086,15 +4086,15 @@ class Permutation(CombinatorialObject, Element):
 
         REFERENCES:
 
-        .. [OkounkovVershik2] A. M. Vershik, A. Yu. Okounkov,
+        .. [OkounkovVershik2] A. M. Vershik, A. Yu. Okounkov.
            *A New Approach to the Representation Thoery of the Symmetric
-           Groups. 2*. :arxiv:`http://uk.arxiv.org/abs/math/0503040v3`.
+           Groups. 2*. http://uk.arxiv.org/abs/math/0503040v3.
 
         .. [CST10] Tullio Ceccherini-Silberstein, Fabio Scarabotti,
-           Filippo Tolli,
+           Filippo Tolli.
            *Representation Theory of the Symmetric Groups: The
            Okounkov-Vershik Approach, Character Formulas, and Partition
-           Algebras*, CUP 2010.
+           Algebras*. CUP 2010.
 
         EXAMPLES::
 
@@ -4178,8 +4178,8 @@ class Permutation(CombinatorialObject, Element):
 
         REFERENCES:
 
-        .. [Mcd] I. G. Macdonald, Symmetric functions and Hall
-           polynomials, Oxford University Press, second edition, 1995.
+        .. [Mcd] I. G. Macdonald. Symmetric functions and Hall
+           polynomials. Oxford University Press, second edition, 1995.
         """
         from sage.combinat.perfect_matching import PerfectMatchings
         n = len(self)
@@ -4232,9 +4232,9 @@ class Permutation(CombinatorialObject, Element):
 
         REFERENCES:
 
-        .. [LodRon0102066] Jean-Louis Loday and Maria O. Ronco,
+        .. [LodRon0102066] Jean-Louis Loday and Maria O. Ronco.
            Order structure on the algebra of permutations
-           and of planar binary trees,
+           and of planar binary trees.
            :arXiv:`math/0102066v1`.
         """
         if side == "right" :
@@ -5792,7 +5792,7 @@ def bistochastic_as_sum_of_permutations(M, check = True):
 
         - The base ring of the matrix can be anything that can be coerced to ``RR``.
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         - :meth:`~sage.matrix.matrix2.as_sum_of_permutations`
           to use this method through the ``Matrix`` class.
@@ -5853,6 +5853,7 @@ def bistochastic_as_sum_of_permutations(M, check = True):
     value = 0
 
     G = BipartiteGraph(M, weighted=True)
+    P = Permutations()
 
     while G.size() > 0:
         matching = G.matching(use_edge_labels=True)
@@ -5867,7 +5868,7 @@ def bistochastic_as_sum_of_permutations(M, check = True):
                 G.set_edge_label(u,v,l-minimum)
 
         matching.sort(key=lambda x: x[0])
-        value += minimum * CFM(Permutations()([x[1]-n+1 for x in matching]))
+        value += minimum * CFM(P([x[1]-n+1 for x in matching]))
 
     return value
 
@@ -6309,7 +6310,7 @@ def from_major_code(mc, final_descent=False):
 
     REFERENCES:
 
-    - Skandera, M. 'An Eulerian Partner for Inversions', Sem.
+    - Skandera, M. *An Eulerian Partner for Inversions*. Sem.
       Lothar. Combin. 46 (2001) B46d.
 
     EXAMPLES::

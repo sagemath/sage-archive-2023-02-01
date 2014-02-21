@@ -11,8 +11,7 @@ from sage.misc.cachefunc import cached_method
 from combinatorial_algebra import CombinatorialAlgebra
 from free_module import CombinatorialFreeModule
 from sage.categories.all import FiniteDimensionalAlgebrasWithBasis
-import permutation
-from sage.combinat.permutation import Permutations
+from sage.combinat.permutation import Permutation, Permutations, Permutations_nk, PermutationOptions
 import partition
 from tableau import Tableau, StandardTableaux_size, StandardTableaux_shape, StandardTableaux
 from sage.interfaces.all import gap
@@ -22,7 +21,7 @@ from sage.modules.all import vector
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.categories.all import GroupAlgebras
 
-permutation_options = permutation.PermutationOptions
+permutation_options = PermutationOptions
 
 def SymmetricGroupAlgebra(R, n):
     """
@@ -118,7 +117,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         """
         self.n = n
         self._name = "Symmetric group algebra of order %s"%self.n
-        CombinatorialFreeModule.__init__(self, R, permutation.Permutations(n), prefix='', latex_prefix='', category = (GroupAlgebras(R),FiniteDimensionalAlgebrasWithBasis(R)))
+        CombinatorialFreeModule.__init__(self, R, Permutations(n), prefix='', latex_prefix='', category = (GroupAlgebras(R),FiniteDimensionalAlgebrasWithBasis(R)))
         # This is questionable, and won't be inherited properly
         if n > 0:
             S = SymmetricGroupAlgebra(R, n-1)
@@ -150,7 +149,8 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: QS3.one_basis()
             [1, 2, 3]
         """
-        return permutation.Permutations()(range(1,self.n+1))
+        P = self.basis().keys()
+        return P(range(1,self.n+1))
 
     def product_on_basis(self, left, right):
         """
@@ -209,9 +209,10 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         """
         a = self(left)
         b = self(right)
-        return self.sum_of_terms([(Permutations()([p[i-1] for i in q]), x * y)
+        P = self.basis().keys()
+        return self.sum_of_terms([(P([p[i-1] for i in q]), x * y)
                                   for (p, x) in a for (q, y) in b])
-        # Why did we use Permutations()([p[i-1] for i in q])
+        # Why did we use P([p[i-1] for i in q])
         # instead of p.left_action_product(q) ?
         # Because having cast a and b into self, we already know that
         # p and q are permutations of the same number of elements,
@@ -260,10 +261,10 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         """
         a = self(left)
         b = self(right)
-        from sage.combinat.permutation import Permutations
-        return self.sum_of_terms([(Permutations()([q[i-1] for i in p]), x * y)
+        P = self.basis().keys()
+        return self.sum_of_terms([(P([q[i-1] for i in p]), x * y)
                                   for (p, x) in a for (q, y) in b])
-        # Why did we use Permutations()([q[i-1] for i in p])
+        # Why did we use P([q[i-1] for i in p])
         # instead of p.right_action_product(q) ?
         # Because having cast a and b into self, we already know that
         # p and q are permutations of the same number of elements,
@@ -322,7 +323,8 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: QS5.monomial_from_smaller_permutation([5,3,4,1,2]).parent()
             Symmetric group algebra of order 5 over Rational Field
         """
-        return self.monomial( self.basis().keys()(permutation) )
+        P = self.basis().keys()
+        return self.monomial( P(permutation) )
 
     def antipode(self, x):
         r"""
@@ -405,7 +407,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         pairs = []
         for (p, coeff) in f.monomial_coefficients().iteritems():
             p_ret = p.retract_plain(m)
-            if not (p_ret is None):
+            if p_ret is not None:
                 pairs.append((p_ret, coeff))
         return RSm.sum_of_terms(pairs, distinct=True)
 
@@ -594,8 +596,8 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         big_coeff = character_table[p_index][0] / factorial(self.n)
 
         character_row = character_table[p_index]
-        dct = { g : big_coeff * character_row[np.index(g.cycle_type())]
-                for g in permutation.StandardPermutations_n(self.n) }
+        P = self.basis().keys()
+        dct = { g : big_coeff * character_row[np.index(g.cycle_type())] for g in P }
 
         return self._from_dict(dct)
 
@@ -650,7 +652,8 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: SG._conjugacy_classes_representatives_underlying_group()
             [[2, 3, 1], [2, 1, 3], [1, 2, 3]]
         """
-        return [permutation.Permutations(self.n).element_in_conjugacy_classes(nu) for nu in partition.Partitions(self.n)]
+        P = self.basis().keys()
+        return [P.element_in_conjugacy_classes(nu) for nu in partition.Partitions(self.n)]
 
     def rsw_shuffling_element(self, k):
         r"""
@@ -722,8 +725,8 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
             :meth:`semi_rsw_element`, :meth:`binary_unshuffle_sum`
         """
-        return self.sum_of_terms([(p, p.number_of_noninversions(k))
-                                  for p in permutation.Permutations(self.n)],
+        P = self.basis().keys()
+        return self.sum_of_terms([(p, p.number_of_noninversions(k)) for p in P],
                                  distinct=True)
 
     def semi_rsw_element(self, k):
@@ -808,8 +811,9 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             for x in xs:
                 res.remove(x)
             return res
-        return self.sum_of_monomials([permutation.Permutations()(complement(q) + list(q))
-                                      for q in permutation.Permutations_nk(n, n-k)])
+        P = Permutations()
+        return self.sum_of_monomials([P(complement(q) + list(q))
+                                      for q in Permutations_nk(n, n-k)])
 
     def binary_unshuffle_sum(self, k):
         r"""
@@ -899,8 +903,8 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
                 res.remove(x)
             return res
         from sage.combinat.subset import Subsets
-        return self.sum_of_monomials([permutation.Permutations()(sorted(q) + complement(q))
-                                      for q in Subsets(n, k)])
+        P = Permutations()
+        return self.sum_of_monomials([P(sorted(q) + complement(q)) for q in Subsets(n, k)])
 
     def jucys_murphy(self, k):
         r"""
@@ -1338,7 +1342,7 @@ def pi_ik(itab, ktab):
             p[ it[i][j] -1 ] = kt[i][j]
 
     QSn = SymmetricGroupAlgebra(QQ, it.size())
-    p = permutation.Permutation(p)
+    p = Permutation(p)
     return QSn(p)
 
 
@@ -1432,7 +1436,7 @@ def a(tableau, star=0, base_ring=QQ):
 
     sgalg = SymmetricGroupAlgebra(base_ring, n)
     one = base_ring.one()
-    P = permutation.Permutation
+    P = Permutation
 
     # Ugly hack for the case of an empty tableau, due to the
     # annoyance of Permutation(Tableau([]).row_stabilizer()[0])
@@ -1511,7 +1515,7 @@ def b(tableau, star=0, base_ring=QQ):
 
     sgalg = SymmetricGroupAlgebra(base_ring, n)
     one = base_ring.one()
-    P = permutation.Permutation
+    P = Permutation
 
     # Ugly hack for the case of an empty tableau, due to the
     # annoyance of Permutation(Tableau([]).row_stabilizer()[0])
@@ -1597,7 +1601,7 @@ def e(tableau, star=0):
 
         QSn = SymmetricGroupAlgebra(QQ, n)
         one = QQ.one()
-        P = permutation.Permutation
+        P = Permutation
 
         rd = dict((P(h), one) for h in rs)
         sym = QSn._from_dict(rd)
@@ -1856,17 +1860,17 @@ class HeckeAlgebraSymmetricGroup_generic(CombinatorialAlgebra):
             Hecke algebra of the symmetric group of order 3 with q=1 on the T basis over Rational Field
         """
         self.n = n
-        self._basis_keys = permutation.Permutations(n)
-        self._name = "Hecke algebra of the symmetric group of order %s"%self.n
-        self._one = permutation.Permutations()(range(1,n+1))
+        self._basis_keys = Permutations(n)
+        self._name = "Hecke algebra of the symmetric group of order {}".format(n)
+        self._one = self._basis_keys(range(1,n+1))
 
         if q is None:
             q = PolynomialRing(R, 'q').gen()
             R = q.parent()
         else:
             if q not in R:
-                raise ValueError("q must be in R (= %s)"%R)
-            self._name += " with q=%s"%q
+                raise ValueError("q must be in R (= {})".format(R))
+            self._name += " with q={}".format(q)
 
         self._q = q
 
@@ -1901,7 +1905,7 @@ class HeckeAlgebraSymmetricGroup_generic(CombinatorialAlgebra):
         ###################################################
         if x == []:
             return self.one()
-        if len(x) < self.n and x in permutation.Permutations():
+        if len(x) < self.n and x in Permutations():
             return self.monomial(self._basis_keys( list(x) + range(len(x)+1, self.n+1) ))
         raise TypeError
 
@@ -1940,7 +1944,7 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
         if i not in range(1, self.n):
             raise ValueError("i (= %(i)d) must be between 1 and n (= %(n)d)" % {'i': i, 'n': self.n})
 
-        t_i = permutation.Permutation( (i, i+1) )
+        t_i = Permutation( (i, i+1) )
         perm_i = t_i.right_action_product(perm)
         # This used to be perm_i = t_i * perm. I have changed it to
         # perm_i = t_i.right_action_product(perm) because it would
@@ -2012,7 +2016,8 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
         if i not in range(1, self.n):
             raise ValueError("i (= %(i)d) must be between 1 and n-1 (= %(nm)d)" % {'i': i, 'nm': self.n - 1})
 
-        return self.monomial(self.basis().keys()(permutation.Permutations()( range(1, i) + [i+1, i] + range(i+2, self.n+1) ) ))
+        P = self.basis().keys()
+        return self.monomial(P( range(1, i) + [i+1, i] + range(i+2, self.n+1) ))
         # The permutation here is simply the transposition (i, i+1).
 
     def algebra_generators(self):

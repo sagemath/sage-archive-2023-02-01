@@ -653,7 +653,8 @@ class Rings(Category_singleton):
                 :func:`~sage.rings.power_series_ring.PowerSeriesRing`,
                 :meth:`~sage.rings.ring.Ring.extension`,
                 :meth:`sage.rings.integer_ring.IntegerRing_class.__getitem__`,
-                TODO: matrices
+                :meth:`sage.rings.matrix_space.MatrixSpace.__getitem__`,
+                :meth:`sage.structure.parent.Parent.__getitem__`
 
             EXAMPLES:
 
@@ -682,9 +683,15 @@ class Rings(Category_singleton):
                 sage: ZZ[['x','T']]
                 Multivariate Power Series Ring in x, T over Integer Ring
 
-            Use ``Frac`` (for fraction field) to obtain a Laurent series ring::
+            Use :func:`~sage.rings.fraction_field.Frac` or
+            :meth:`sage.rings.ring.fraction_field` to obtain the fields of
+            rational functions and Laurent series::
 
+                sage: Frac(QQ['t'])
+                Fraction Field of Univariate Polynomial Ring in t over Rational Field
                 sage: Frac(QQ[['t']])
+                Laurent Series Ring in t over Rational Field
+                sage: QQ[['t']].fraction_field()
                 Laurent Series Ring in t over Rational Field
 
             Note that the same syntax can be used to create number fields::
@@ -841,7 +848,7 @@ from sage.structure.parent_gens import _certify_names
 def _gen_names(elts):
     r"""
     Used to find a name for a generator when rings are created using the
-    ``__getitem__`` syntax, e.g. ``ZZ['x']``.
+    ``__getitem__`` syntax, e.g. ``ZZ['x']``, ``ZZ[sqrt(2)]``.
 
     EXAMPLES::
 

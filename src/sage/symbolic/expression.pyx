@@ -6942,13 +6942,12 @@ cdef class Expression(CommutativeRingElement):
             sage: a = I.log(hold=True); a.simplify()
             1/2*I*pi
 
-        We do not currently support a ``hold`` parameter in functional
-        notation::
+        The ``hold`` parameter also works in functional notation::
 
-            sage: log(SR(-1),hold=True)
-            Traceback (most recent call last):
-            ...
-            TypeError: log() got an unexpected keyword argument 'hold'
+            sage: log(-1,hold=True)
+            log(-1)
+            sage: log(-1)
+            I*pi
 
         TESTS::
 

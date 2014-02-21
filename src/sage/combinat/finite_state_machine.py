@@ -3041,6 +3041,16 @@ class FiniteStateMachine(SageObject):
             ...
             ValueError: No input alphabet is given.
             Try calling determine_alphabets().
+
+        ::
+
+            sage: def transition(state, where):
+            ....:     return (vector([0,0]),1)
+            sage: Transducer(transition, input_alphabet=[0], initial_states=[0])
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable vectors are unhashable
+
         """
         if self.input_alphabet is None:
             raise ValueError, ("No input alphabet is given. "
@@ -3079,17 +3089,19 @@ class FiniteStateMachine(SageObject):
                     return_value = [return_value]
                 try:
                     for (st_label, word) in return_value:
-                        if not self.has_state(st_label):
-                            not_done.append(self.add_state(st_label))
-                        elif len(ignore_done) > 0:
-                            u = self.state(st_label)
-                            if u in ignore_done:
-                                not_done.append(u)
-                                ignore_done.remove(u)
-                        self.add_transition(s, st_label,
-                                            word_in=letter, word_out=word)
+                        pass
                 except TypeError:
                     raise ValueError("The callback function for add_from_transition is expected to return a pair (new_state, output_label) or a list of such pairs. For the state %s and the input letter %s, it however returned %s, which is not acceptable." % (s.label(), letter, return_value))
+                for (st_label, word) in return_value:
+                    if not self.has_state(st_label):
+                        not_done.append(self.add_state(st_label))
+                    elif len(ignore_done) > 0:
+                        u = self.state(st_label)
+                        if u in ignore_done:
+                            not_done.append(u)
+                            ignore_done.remove(u)
+                    self.add_transition(s, st_label,
+                                        word_in=letter, word_out=word)
 
 
     def add_transitions_from_function(self, function, labels_as_input=True):

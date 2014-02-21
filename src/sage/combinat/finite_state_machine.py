@@ -3438,6 +3438,9 @@ class FiniteStateMachine(SageObject):
         initial state to the state. If self has no initial states then
         a copy of the finite state machine self is returned.
 
+        The color of a new state is the tuple of colors of the
+        constituent states of ``self`` and ``other``.
+
         EXAMPLES::
 
             sage: F = Automaton([(0, 0, 0), (0, 1, 1), (1, 1, 0), (1, 0, 1)],
@@ -3629,6 +3632,7 @@ class FiniteStateMachine(SageObject):
                 state.is_initial = True
             if all(map(lambda s: s.is_final, state.label())):
                 state.is_final = True
+            state.color = map(lambda s: s.color, state.label())
 
         if only_accessible_components:
             if new_input_alphabet is None:
@@ -3729,8 +3733,10 @@ class FiniteStateMachine(SageObject):
 
         A new transducer.
 
-        The labels of the new finite state machine are pairs
-        of states of the original finite state machines.
+        The labels of the new finite state machine are pairs of states
+        of the original finite state machines. The color of a new
+        state is the tuple of colors of the constituent states.
+
 
         EXAMPLES::
 
@@ -3917,6 +3923,7 @@ class FiniteStateMachine(SageObject):
         for state in F.states():
             if all(map(lambda s: s.is_final, state.label())):
                 state.is_final = True
+            state.color = map(lambda s: s.color, state.label())
 
         return F
 
@@ -4318,6 +4325,9 @@ class FiniteStateMachine(SageObject):
 
         A finite state machine.
 
+        The labels of the new states are tuples of states of the
+        ``self``, corresponding to ``classes``.
+
         Assume that `c` is a class and `s`, `s'` are states in
         `c`. Then there is a bijection `\varphi` between the
         transitions from `s` and the transitions from `s'` such that
@@ -4658,8 +4668,9 @@ class Automaton(FiniteStateMachine):
 
         A new automaton, which is deterministic.
 
-        The labels of the states of the new automaton are frozensets of
-        states of ``self``.
+        The labels of the states of the new automaton are frozensets
+        of states of ``self``. The color of a new state is the
+        frozenset of colors of the constituent states of ``self``.
 
         The input alphabet must be specified. It is restricted to nice
         cases: input words have to have length at most `1`.
@@ -4752,7 +4763,7 @@ class Automaton(FiniteStateMachine):
         for state in result.states():
             if any(map(lambda s: s.is_final, state.label())):
                 state.is_final = True
-
+            state.color = frozenset(map(lambda s: s.color, state.label()))
 
         return result
 

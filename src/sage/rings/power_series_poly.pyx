@@ -1143,18 +1143,22 @@ cdef class PowerSeries_poly(PowerSeries):
             - 140*z + 70)
             sage: sqrt(1+z).pade(3, 2)
             (1/6*z^3 + 3*z^2 + 8*z + 16/3)/(z^2 + 16/3*z + 16/3)
+            sage: exp(2*z).pade(3, 3)
+            (-z^3 - 6*z^2 - 15*z - 15)/(z^3 - 6*z^2 + 15*z - 15)
 
         With real coefficients::
 
             sage: R.<z> = RR[[]]
             sage: f = exp(2*z)
-            sage: f.pade(3,3)
-            ???
+            sage: f.pade(3, 3)
+            (-0.99999999999...*z^3 - 5.9999999999...*z^2 - 14.999999999...*z
+            - 14.999999999...)/(z^3 - 5.9999999999...*z^2 + 14.999999999...*z
+            - 14.999999999...)
 
         When precision is too low::
 
-            sage: f = z+O(z**6)
-            sage: f.pade(4,4)
+            sage: f = z + O(z**6)
+            sage: f.pade(4, 4)
             Traceback (most recent call last):
             ...
             ValueError: the precision of the series is not large enough
@@ -1172,12 +1176,12 @@ cdef class PowerSeries_poly(PowerSeries):
                 mat[i, j] = c[m + i - j]
         for j in range(n + 1):
             mat[0, j] = z ** j
-        resu_v = mat.determinant()
+        resu_v = mat.determinant().truncate(n + 1)
         lead_v = resu_v.leading_coefficient()
         resu_v = resu_v / lead_v
         for j in range(n + 1):
             mat[0, j] = z ** j * (self.truncate(max(m - j + 1, 0)))
-        resu_u = mat.determinant()
+        resu_u = mat.determinant().truncate(m + 1)
         lead_u = resu_u.leading_coefficient()
         resu_u = resu_u / lead_u
         return lead_u / lead_v * resu_u / resu_v

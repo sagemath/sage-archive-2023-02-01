@@ -3997,7 +3997,7 @@ class FiniteStateMachine(SageObject):
 
 
     def equivalence_classes(self):
-        """
+        r"""
         Returns a list of equivalence classes of states.
 
         INPUT:
@@ -4008,14 +4008,15 @@ class FiniteStateMachine(SageObject):
 
         A list of equivalence classes of states.
 
-        Two states `a` and `b` are equivalent, if and only if for each
-        input label word_in the following holds:
+        Two states `a` and `b` are equivalent, if and only if the following holds:
 
-        For paths `p_a` from `a` to `a'` with input label ``word_in``
-        and output label ``word_out_a`` and `p_b` from `b` to `b'`
-        with input label ``word_in`` and output label ``word_out_b``,
-        we have ``word_out_a=word_out_b``, `a'` and `b'` have the same
-        output label and are both final or both non-final.
+        There is a bijection `\varphi` between paths starting at `a`
+        and paths starting at `b` such that if `\varphi(p_a)=p_b`,
+        then `p_a.\mathit{word}_{in}=p_b.\mathit{word}_{in}` and
+        `p_a.\mathit{word}_{out}=p_b.\mathit{word}_{out}` and `p_a`
+        and `p_b` lead to some states `a'` and `b'` such that `a'` and
+        `b'` have the same output label and are both final or both
+        non-final.
 
         The function :meth:`.equivalence_classes` returns a list of
         the equivalence classes to this equivalence relation.
@@ -4036,25 +4037,24 @@ class FiniteStateMachine(SageObject):
             [['A', 'C'], ['B', 'D']]
         """
 
-        # Two states a and b are said to be 0-equivalent, if their output
-        # labels agree and if they are both final or non-final.
+        # Two states a and b are said to be j-equivalent, if and only
+        # if the following holds:
         #
-        # For some j >= 1, two states a and b are said to be j-equivalent, if
-        # they are j-1 equivalent and if for each element letter letter_in of
-        # the input alphabet and transitions t_a from a with input label
-        # letter_in, output label word_out_a to a' and t_b from b with input
-        # label letter_in, output label word_out_b to b', we have
-        # word_out_a=word_out_b and a' and b' are j-1 equivalent.
+        # There is a bijection `\varphi` between paths of length <= j
+        # starting at `a` and paths of length <= j starting at `b`
+        # such that if `\varphi(p_a)=p_b`, then
+        # `p_a.word_in=p_b.word_in` and `p_a.word_out=p_b.word_out`
+        # and `p_a` and `p_b` lead to some states `a'` and `b'` such
+        # that `a'` and `b'` have the same output label and are both
+        # final or both non-final.
 
         # If for some j the relations j-1 equivalent and j-equivalent
-        # coincide, then they are equal to the equivalence relation described
-        # in the docstring.
+        # coincide, then they are equal to the equivalence relation
+        # described in the docstring.
 
-        # classes_current holds the equivalence classes of j-equivalence,
-        # classes_previous holds the equivalence classes of j-1 equivalence.
-
-        if not self.is_deterministic():
-            raise NotImplementedError, "Minimization via Moore's Algorithm is only implemented for deterministic finite state machines"
+        # classes_current holds the equivalence classes of
+        # j-equivalence, classes_previous holds the equivalence
+        # classes of j-1 equivalence.
 
         # initialize with 0-equivalence
         classes_previous = []
@@ -4087,7 +4087,7 @@ class FiniteStateMachine(SageObject):
 
 
     def quotient(self, classes):
-        """
+        r"""
         Constructs the quotient with respect to the equivalence
         classes.
 
@@ -4099,14 +4099,13 @@ class FiniteStateMachine(SageObject):
 
         A finite state machine.
 
-        Assume that `c` is a class and `s`, `s'` are states in `c`. If
-        there is a transition from `s` to some `t` with input label
-        ``word_in`` and output label ``word_out``, then there has to
-        be a transition from `s'` to some `t'` with input label
-        ``word_in`` and output label ``word_out`` such that `s'` and
-        `t'` are states of the same class `c'`. Then there is a
-        transition from `c` to `c'` in the quotient with input label
-        ``word_in`` and output label ``word_out``.
+        Assume that `c` is a class and `s`, `s'` are states in
+        `c`. Then there is a bijection `\varphi` between the
+        transitions from `s` and the transitions from `s'` such that
+        if `\varphi(t_a)=t_b`, then
+        `t_a.\mathit{word}_{in}=t_b.\mathit{word}_{in}` and
+        `t_a.\mathit{word}_{out}=t_b.\mathit{word}_{out}` and `t_a`
+        and `t_b` lead to some equivalent states `t` and `t'`.
 
         Non-initial states may be merged with initial states, the
         resulting state is an initial state.
@@ -4649,7 +4648,11 @@ class Automaton(FiniteStateMachine):
             NotImplementedError: Minimization via Moore's Algorithm is only
             implemented for deterministic finite state machines
         """
-        return self.quotient(self.equivalence_classes())
+        if self.is_deterministic():
+            return self.quotient(self.equivalence_classes())
+        else:
+            raise NotImplementedError("Minimization via Moore's Algorithm is only " \
+                                      "implemented for deterministic finite state machines")
 
 
 #*****************************************************************************
@@ -4810,10 +4813,13 @@ class Transducer(FiniteStateMachine):
             ....:                   ("B", "A", 2, 0),
             ....:                   ("C", "A", 2, 0)])
             sage: fsms = fsm.simplification()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Minimization via Moore's Algorithm is only implemented for deterministic finite state machines
-
+            sage: fsms
+            Transducer with 2 states
+            sage: fsms.transitions()
+            [Transition from ('A',) to ('A',): 0|0,
+             Transition from ('A',) to ('B', 'C'): 1|1,0,
+             Transition from ('A',) to ('B', 'C'): 1|-1,0,
+             Transition from ('B', 'C') to ('A',): 2|-]
 
         """
         fsm = deepcopy(self)

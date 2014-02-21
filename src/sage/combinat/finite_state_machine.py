@@ -4801,6 +4801,20 @@ class Transducer(FiniteStateMachine):
              Transition from 0 to 1: 1|0,
              Transition from 1 to 0: 0|0,
              Transition from 1 to 0: 1|1]
+
+        ::
+
+            sage: fsm = Transducer([("A", "A", 0, 0),
+            ....:                   ("A", "B", 1, 1),
+            ....:                   ("A", "C", 1, -1),
+            ....:                   ("B", "A", 2, 0),
+            ....:                   ("C", "A", 2, 0)])
+            sage: fsms = fsm.simplification()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Minimization via Moore's Algorithm is only implemented for deterministic finite state machines
+
+
         """
         fsm = deepcopy(self)
         fsm.prepone_output()

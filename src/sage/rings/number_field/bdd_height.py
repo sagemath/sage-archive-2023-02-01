@@ -9,7 +9,6 @@ from sage.functions.other import ceil
 from sage.geometry.polyhedron.constructor import *
 from sage.structure.proof.all import number_field
 
-
 def bdd_norm_pr_gens_iq(K, norm_list):
     r"""
     Compute generators for all principal ideals in an imaginary quadratic field
@@ -321,7 +320,7 @@ def integer_points_in_polytope(matrix, interval_radius):
     return list(Polyhedron(transformed_vertices, base_ring=QQ).integral_points())
 
 
-def bdd_height(K, height_bound, precision=53, GRH=False):
+def bdd_height(K, height_bound, precision=53, lll=False, GRH=False):
     r"""
     Computes all elements in the number number field ``K`` which have relative
     multiplicative height at most ``height_bound``.
@@ -329,6 +328,10 @@ def bdd_height(K, height_bound, precision=53, GRH=False):
     The algorithm requires arithmetic with floating point numbers;
     ``precision`` gives the user the option to set the precision for such
     computations.
+    
+    It might be helpful to work with an LLL-reduced system of fundamental 
+    units, so the user has the option to perform an LLL reduction for the 
+    fundamental units by setting ``lll`` to True.
     
     The algorithm may be made to run calculations assuming the Generalized
     Riemann Hypothesis by setting ``GRH`` equal to True.
@@ -346,6 +349,7 @@ def bdd_height(K, height_bound, precision=53, GRH=False):
 
     - ``height_bound`` - real number
     - ``precision`` - (default: 53) positive integer
+    - ``lll`` - (default: False) boolean value
     - ``GRH`` - (default: False) boolean value
 
     OUTPUT:
@@ -456,6 +460,28 @@ def bdd_height(K, height_bound, precision=53, GRH=False):
     # Get fundamental units and their images under the log map
     fund_units = UnitGroup(K).fundamental_units()
     fund_unit_logs = [log_map(fund_units[i]) for i in range(r)]
+    unit_prec_test = fund_unit_logs
+    try:
+        [l.change_ring(QQ) for l in unit_prec_test]
+    except ValueError:
+        raise ValueError('Precision too low.')
+    
+    # If lll is set to True, find an LLL-reduced system of fundamental units   
+    if lll:
+        cut_fund_unit_logs = column_matrix(fund_unit_logs).delete_rows([r])
+        lll_fund_units = []
+        for c in pari(cut_fund_unit_logs).qflll().python().columns():
+            new_unit = 1
+            for i in xrange(r):
+                new_unit *= fund_units[i]**c[i]
+            lll_fund_units.append(new_unit)
+        fund_units = lll_fund_units
+        fund_unit_logs = map(log_map, fund_units)
+        unit_prec_test = fund_unit_logs
+        try:
+            [l.change_ring(QQ) for l in unit_prec_test]
+        except ValueError:
+            raise ValueError('Precision too low.')
 
     # Find principal ideals of bounded norm
     possible_norm_set = set([])
@@ -502,16 +528,11 @@ def bdd_height(K, height_bound, precision=53, GRH=False):
         d = logB + max(gen_height_list)
 
     # Create the matrix whose columns are the logs of the fundamental units
-    S_columns = []
-    for k in xrange(r):
-        log_epsilon_k = list(fund_unit_logs[k])
-        trash = log_epsilon_k.pop()
-        S_columns.append(log_epsilon_k)
+    S = column_matrix(fund_unit_logs).delete_rows([r])
     try:
-        S = column_matrix(S_columns).change_ring(QQ)
-    except ValueError:
+        T = S.inverse()
+    except ZeroDivisionError:
         raise ValueError('Precision too low.')
-    T = S.inverse()
 
     # Find all integer lattice points in the unit polytope
     U = integer_points_in_polytope(T, ceil(d))
@@ -522,6 +543,7 @@ def bdd_height(K, height_bound, precision=53, GRH=False):
     unit_height_dictionary = dict()
     unit_log_dictionary = dict()
     Ucopy = copy.copy(U)
+
     for u in U:
         u_log = sum([u[j]*fund_unit_logs[j] for j in range(r)])
         unit_log_dictionary[u] = u_log
@@ -583,6 +605,4 @@ def bdd_height(K, height_bound, precision=53, GRH=False):
 
     # Stop assuming GRH
     number_field(True)
-
-
 

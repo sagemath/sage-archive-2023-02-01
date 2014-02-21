@@ -7770,13 +7770,17 @@ class NumberField_absolute(NumberField_generic):
                 d *= p
         return d
         
-    def elements_of_bounded_height(self, B, precision=53, GRH=False):
+    def elements_of_bounded_height(self,B,precision=53,lll=False,GRH=False):
         r"""
         Return an iterator over the elements of self with relative
         multiplicative height at most B.
         
         The algorithm requires floating point arithmetic, so the user is
         allowed to specify the precision for such calculations.
+        
+        It might be helpful to work with an LLL-reduced system of fundamental 
+        units, so the user has the option to perform an LLL reduction for the 
+        fundamental units by setting ``lll`` to True.
         
         Certain computations may be faster assuming GRH, so the user is allowed
         to decide whether to assume GRH (True) or not (False).
@@ -7788,17 +7792,26 @@ class NumberField_absolute(NumberField_generic):
         
         - ``B`` - a real number
         - ``precision`` - (default: 53) a positive integer
+        - ``lll`` - (default: False) a boolean value
         - ``GRH`` - (default: False) a boolean value
         
         OUTPUT:
         
         - an iterator
         
+        .. WARNING::
+        
+        In the current implementation, the output of the algorithm cannot be 
+        guaranteed to be correct due to the necessity of floating point
+        computations. In some cases, the default 53-bit precision is 
+        considerably lower than would be required for the algorithm to 
+        generate correct output.
+        
         .. TODO::
         
-        Current output cannot be guaranteed correct due to floating point
-        computations. Should implement version of algorithm that guarantees
-        correct output.
+        Should implement a version of the algorithm that guarantees correct 
+        output. See Algorithm 4 in :arxiv:`1111.4963` for details of an 
+        implementation that takes precision issues into account.
         
         EXAMPLES:
 

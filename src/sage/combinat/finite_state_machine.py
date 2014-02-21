@@ -492,6 +492,11 @@ class FSMState(SageObject):
     - ``hook`` -- (default: ``None``) A function which is called when
       the state is reached during processing input.
 
+    - ``color`` -- (default: ``None``) In order to distinguish states,
+      they can be given an arbitrary "color" (an arbitrary object).
+      This is used in :meth:`equivalence_classes`: states of different
+      colors are never considered to be equivalent.
+
     OUTPUT:
 
     Returns a state of a finite state machine.
@@ -511,7 +516,7 @@ class FSMState(SageObject):
     """
     def __init__(self, label, word_out=None,
                  is_initial=False, is_final=False,
-                 hook=None):
+                 hook=None, color=None):
         """
         See :class:`FSMState` for more information.
 
@@ -539,6 +544,8 @@ class FSMState(SageObject):
                 self.hook = hook
             else:
                 raise TypeError, 'Wrong argument for hook.'
+
+        self.color = color
 
     def __lt__(self,other):
         """
@@ -640,6 +647,7 @@ class FSMState(SageObject):
                        self.is_initial, self.is_final)
         if hasattr(self, 'hook'):
             new.hook = deepcopy(self.hook, memo)
+        new.color = deepcopy(self.color, memo)
         return new
 
 
@@ -4226,8 +4234,8 @@ class FiniteStateMachine(SageObject):
         then `p_a.\mathit{word}_{in}=p_b.\mathit{word}_{in}` and
         `p_a.\mathit{word}_{out}=p_b.\mathit{word}_{out}` and `p_a`
         and `p_b` lead to some states `a'` and `b'` such that `a'` and
-        `b'` have the same output label and are both final or both
-        non-final.
+        `b'` have the same output label, the same color, and are both
+        final or both non-final.
 
         The function :meth:`.equivalence_classes` returns a list of
         the equivalence classes to this equivalence relation.
@@ -4256,8 +4264,8 @@ class FiniteStateMachine(SageObject):
         # such that if `\varphi(p_a)=p_b`, then
         # `p_a.word_in=p_b.word_in` and `p_a.word_out=p_b.word_out`
         # and `p_a` and `p_b` lead to some states `a'` and `b'` such
-        # that `a'` and `b'` have the same output label and are both
-        # final or both non-final.
+        # that `a'` and `b'` have the same output label, the same
+        # color and are both final or both non-final.
 
         # If for some j the relations j-1 equivalent and j-equivalent
         # coincide, then they are equal to the equivalence relation
@@ -4269,7 +4277,7 @@ class FiniteStateMachine(SageObject):
 
         # initialize with 0-equivalence
         classes_previous = []
-        key_0 = lambda state: (state.is_final, state.word_out)
+        key_0 = lambda state: (state.is_final, state.color, state.word_out)
         states_grouped = full_group_by(self.states(), key=key_0)
         classes_current = [equivalence_class for
                            (key,equivalence_class) in states_grouped]
@@ -4383,6 +4391,7 @@ class FiniteStateMachine(SageObject):
                 new_state.is_initial = new_state.is_initial or state.is_initial
                 assert new_state.is_final == state.is_final, "Class %s mixes final and non-final states" % (c,)
                 assert new_state.word_out == state.word_out, "Class %s mixes different word_out" % (c,)
+                assert new_state.color == state.color, "Class %s mixes different colors" % (c,)
                 assert sorted_transitions == sorted([(state_mapping[t.to_state], t.word_in, t.word_out) for t in state.transitions ]), \
                     "Transitions of state %s and %s are incompatible."  % (c[0], state)
         return new
@@ -5042,6 +5051,23 @@ class Transducer(FiniteStateMachine):
             [Transition from ('A',) to ('A',): 1/2|0,
              Transition from ('A',) to ('B', 'C'): 1/2|1,
              Transition from ('B', 'C') to ('A',): 1|0]
+
+        Illustrating the use of colors in order to avoid identification of states::
+
+            sage: T = Transducer( [[0,0,0,0], [0,1,1,1],
+            ....:                  [1,0,0,0], [1,1,1,1]],
+            ....:                 initial_states=[0],
+            ....:                 final_states=[0,1])
+            sage: sorted(T.simplification().transitions())
+            [Transition from (0, 1) to (0, 1): 0|0,
+             Transition from (0, 1) to (0, 1): 1|1]
+            sage: T.state(0).color = 0
+            sage: T.state(0).color = 1
+            sage: sorted(T.simplification().transitions())
+            [Transition from (0,) to (0,): 0|0,
+             Transition from (0,) to (1,): 1|1,
+             Transition from (1,) to (0,): 0|0,
+             Transition from (1,) to (1,): 1|1]
         """
         fsm = deepcopy(self)
         fsm.prepone_output()

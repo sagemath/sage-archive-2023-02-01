@@ -4912,7 +4912,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f.coefficient(x, 0)
             sqrt(x)*sin(y) + z^z
 
-        TESTS::
+        TESTS:
 
         Check if :trac:`9505` is fixed::
 
@@ -4925,7 +4925,6 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             TypeError: n <> 1 only allowed for s being a variable
-
         """
         cdef Expression ss = self.coerce_in(s)
         if n <> 1 and not is_a_symbol(ss._gobj):

@@ -4304,7 +4304,7 @@ class FiniteStateMachine(SageObject):
             sage: fsm.quotient([[fsm.state("A"), fsm.state("B"), fsm.state("C"), fsm.state("D")]])
             Traceback (most recent call last):
                 ...
-            ValueError: There is a transition Transition from 'B' to 'C': 0|0 in the original transducer, but no corresponding transition in the new transducer.
+            AssertionError: Transitions of state 'A' and 'B' are incompatible.
         """
         new = self.empty_copy()
         state_mapping = {}
@@ -4322,6 +4322,7 @@ class FiniteStateMachine(SageObject):
         # Copy data from old transducer
         for c in classes:
             new_state = state_mapping[c[0]]
+            sorted_transitions = sorted([(state_mapping[t.to_state], t.word_in, t.word_out) for t in c[0].transitions ])
             for transition in self.iter_transitions(c[0]):
                 new.add_transition(
                     from_state=new_state,
@@ -4334,14 +4335,8 @@ class FiniteStateMachine(SageObject):
                 new_state.is_initial = new_state.is_initial or state.is_initial
                 assert new_state.is_final == state.is_final, "Class %s mixes final and non-final states" % (c,)
                 assert new_state.word_out == state.word_out, "Class %s mixes different word_out" % (c,)
-                assert len(self.transitions(state)) == len(new.transitions(new_state)), \
-                    "Class %s has %d outgoing transitions, but class member %s has %d outgoing transitions" %  \
-                    (c, len(new.transitions(new_state)), state, len(self.transitions(state)))
-                for transition in self.transitions(state):
-                    try:
-                        new.transition((new_state, state_mapping[transition.to_state], transition.word_in, transition.word_out))
-                    except LookupError:
-                        raise ValueError, "There is a transition %s in the original transducer, but no corresponding transition in the new transducer." % transition
+                assert sorted_transitions == sorted([(state_mapping[t.to_state], t.word_in, t.word_out) for t in state.transitions ]), \
+                    "Transitions of state %s and %s are incompatible."  % (c[0], state)
         return new
 
 
@@ -4996,6 +4991,9 @@ class Transducer(FiniteStateMachine):
             ....:                final_states=['A', 'B', 'C'],
             ....:                on_duplicate_transition=duplicate_transition_add_input)
             sage: T.simplification().transitions()
+            [Transition from ('B', 'C') to ('A',): 1|0,
+             Transition from ('A',) to ('A',): 1/2|0,
+             Transition from ('A',) to ('B', 'C'): 1/2|1]
         """
         fsm = deepcopy(self)
         fsm.prepone_output()

@@ -4984,6 +4984,18 @@ class Transducer(FiniteStateMachine):
              Transition from ('A',) to ('B', 'C'): 1|-1,0,
              Transition from ('B', 'C') to ('A',): 2|-]
 
+        :: 
+
+            sage: from sage.combinat.finite_state_machine import duplicate_transition_add_input
+            sage: T = Transducer([('A', 'A', 1/2, 0), 
+            ....:                 ('A', 'B', 1/4, 1), 
+            ....:                 ('A', 'C', 1/4, 1), 
+            ....:                 ('B', 'A', 1, 0),
+            ....:                 ('C', 'A', 1, 0)],
+            ....:                initial_states=[0],
+            ....:                final_states=['A', 'B', 'C'],
+            ....:                on_duplicate_transition=duplicate_transition_add_input)
+            sage: T.simplification().transitions()
         """
         fsm = deepcopy(self)
         fsm.prepone_output()

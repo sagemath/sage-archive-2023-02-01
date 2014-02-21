@@ -17,6 +17,7 @@ from sage.structure.factory import UniqueFactory
 from sage.modules.module import Module
 from sage.modules.module_element import ModuleElement
 from sage.misc.cachefunc import cached_method
+from sage.misc.fast_methods import WithEqualityById
 
 class QuiverRepFactory(UniqueFactory):
     """
@@ -500,30 +501,6 @@ class QuiverRepElement(ModuleElement):
 
         return left.parent()(elements)
 
-    def _iadd_(self, right):
-        """
-        This overrides the += operator.
-
-        TESTS::
-
-            sage: Q = DiGraph({1:{2:['a'], 3:['b']}, 2:{3:['c']}}).path_semigroup()
-            sage: spaces = dict((v, GF(3)^2) for v in Q.quiver())
-            sage: M = Q.representation(GF(3), spaces)
-            sage: elems = {1: (1, 0), 2: (0, 1), 3: (2, 1)}
-            sage: v = M(elems)
-            sage: w = M(elems)
-            sage: v += w # indirect doctest
-            sage: v == w
-            False
-            sage: v.is_zero()
-            False
-        """
-
-        for v in self._quiver:
-            self._elems[v] += right._elems[v]
-
-        return self
-
     def _sub_(left, right):
         """
         This overrides the - operator.
@@ -544,27 +521,6 @@ class QuiverRepElement(ModuleElement):
             elements[v] = left._elems[v] - right._elems[v]
 
         return left.parent()(elements)
-
-    def _isub_(self, right):
-        """
-        This overrides the -= operator.
-
-        TESTS::
-
-            sage: Q = DiGraph({1:{2:['a'], 3:['b']}, 2:{3:['c']}}).path_semigroup()
-            sage: spaces = dict((v, GF(3)^2) for v in Q.quiver())
-            sage: M = Q.representation(GF(3), spaces)
-            sage: elems = {1: (1, 0), 2: (0, 1), 3: (2, 1)}
-            sage: v = M(elems)
-            sage: v -= v # indirect doctest
-            sage: v.is_zero()
-            True
-        """
-
-        for v in self._quiver:
-            self._elems[v] -= right._elems[v]
-
-        return self
 
     def _neg_(self):
         """
@@ -754,7 +710,7 @@ class QuiverRepElement(ModuleElement):
 
         OUTPUT:
 
-        - vector, the vaector assigned to the given vertex
+        - vector, the vector assigned to the given vertex
 
         EXAMPLES::
 
@@ -914,7 +870,7 @@ class QuiverRepElement(ModuleElement):
 ####################################################################
 # The representations
 
-class QuiverRep_generic(Module):
+class QuiverRep_generic(WithEqualityById, Module):
     """
     This function should not be called by the user.
 

@@ -3094,7 +3094,7 @@ class FiniteStateMachine(SageObject):
 
     def add_transitions_from_function(self, function, labels_as_input=True):
         """
-        Adds a transition if ``function(state, state)`` says that there is one.
+        Adds one or more transitions if ``function(state, state)`` says that there are some.
 
         INPUT:
 
@@ -3105,7 +3105,9 @@ class FiniteStateMachine(SageObject):
           ``from_state`` to ``to_state`` with input and output labels
           ``word_in`` and ``word_out``, respectively. If no such
           addition is to be added, the transition function shall
-          return ``None``.
+          return ``None``. The transition function may also return
+          a list of such tuples in order to add multiple transitions
+          between the pair of states.
 
         - ``label_as_input`` -- (default: ``True``)
 
@@ -3124,14 +3126,64 @@ class FiniteStateMachine(SageObject):
             sage: F.add_transitions_from_function(f)
             sage: len(F.transitions())
             6
+
+        Multiple transitions are also possible::
+
+            sage: F = FiniteStateMachine()
+            sage: F.add_states([0,1])
+            sage: def f(state1, state2):
+            ....:     if state1 != state2:
+            ....:          return [ (0,1), (1,0) ]
+            ....:     else:
+            ....:          return None
+            sage: F.add_transitions_from_function(f)
+            sage: F.transitions()
+            [Transition from 0 to 1: 0|1,
+             Transition from 0 to 1: 1|0,
+             Transition from 1 to 0: 0|1,
+             Transition from 1 to 0: 1|0]
+
+        TESTS::
+
+            sage: F = FiniteStateMachine()
+            sage: F.add_state(0)
+            0
+            sage: def f(state1, state2):
+            ....:     return 1
+            sage: F.add_transitions_from_function(f)
+            Traceback (most recent call last):
+            ...
+            ValueError: The callback function for add_transitions_from_function
+            is expected to return a pair (word_in, word_out) or a list of such
+            pairs. For states 0 and 0 however, it returned 1,
+            which is not acceptable.
+
         """
         for s_from in self.iter_states():
             for s_to in self.iter_states():
-                if labels_as_input:
-                    t = function(s_from.label(), s_to.label())
+                try:
+                    if labels_as_input:
+                        return_value = function(s_from.label(), s_to.label())
+                    else:
+                        return_value = function(s_from, s_to)
+                except LookupError:
+                    continue
+                if return_value is None:
+                    continue
+                if not hasattr(return_value, "pop"):
+                    transitions = [return_value]
                 else:
-                    t = function(s_from, s_to)
-                if hasattr(t, '__getitem__'):
+                    transitions = return_value
+                for t in transitions:
+                    if not hasattr(t, '__getitem__'):
+                         raise ValueError("The callback function for "
+                                          "add_transitions_from_function "
+                                          "is expected to return a "
+                                          "pair (word_in, word_out) or a "
+                                          "list of such pairs. For "
+                                          "states %s and %s however, it "
+                                          "returned %s, which is not "
+                                          "acceptable." % (s_from, s_to, return_value))
                     label_in = t[0]
                     try:
                         label_out = t[1]

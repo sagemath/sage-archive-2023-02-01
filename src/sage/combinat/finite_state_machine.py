@@ -4163,9 +4163,9 @@ class FiniteStateMachine(SageObject):
             for transition in self.iter_transitions(c[0]):
                 new.add_transition(
                     from_state=new_state,
-                    to_state = state_mapping[transition.to_state],
-                    word_in  = transition.word_in,
-                    word_out = transition.word_out)
+                    to_state=state_mapping[transition.to_state],
+                    word_in=transition.word_in,
+                    word_out=transition.word_out)
 
             # check that all class members have the same information (modulo classes)
             for state in c:

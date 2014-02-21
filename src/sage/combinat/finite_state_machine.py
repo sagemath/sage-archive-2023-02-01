@@ -5038,10 +5038,10 @@ class Transducer(FiniteStateMachine):
             ....:                initial_states=[0],
             ....:                final_states=['A', 'B', 'C'],
             ....:                on_duplicate_transition=duplicate_transition_add_input)
-            sage: T.simplification().transitions()
-            [Transition from ('B', 'C') to ('A',): 1|0,
-             Transition from ('A',) to ('A',): 1/2|0,
-             Transition from ('A',) to ('B', 'C'): 1/2|1]
+            sage: sorted(T.simplification().transitions())
+            [Transition from ('A',) to ('A',): 1/2|0,
+             Transition from ('A',) to ('B', 'C'): 1/2|1,
+             Transition from ('B', 'C') to ('A',): 1|0]
         """
         fsm = deepcopy(self)
         fsm.prepone_output()

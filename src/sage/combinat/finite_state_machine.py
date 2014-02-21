@@ -3945,6 +3945,10 @@ class FiniteStateMachine(SageObject):
              Transition from 'B' to 'B': 0|-]
         """
         new = Automaton()
+        # TODO: use empty_copy() in order to
+        # preserve on_duplicate_transition and future extensions.
+        # for this, empty_copy would need a new optional argument
+        # use_class=None ?
 
         if what == 'input':
             new.input_alphabet = copy(self.input_alphabet)

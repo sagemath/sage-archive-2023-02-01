@@ -96,7 +96,7 @@ class FacadeSets(CategoryWithAxiom):
                 for parent in self.facade_for():
                     try:
                         return parent(element)
-                    except StandardError:
+                    except Exception:
                         pass
             raise ValueError, "Can't coerce `%s` in any parent `%s` is a facade for"%(element, self)
 

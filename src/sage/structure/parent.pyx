@@ -1286,7 +1286,7 @@ cdef class Parent(category_object.CategoryObject):
             if is_Integer(x) and not x:
                 try:
                     return self(0)
-                except StandardError:
+                except Exception:
                     _record_exception()
             raise TypeError("no canonical coercion from %s to %s" % (parent_c(x), self))
         else:
@@ -2737,19 +2737,19 @@ cdef class Parent(category_object.CategoryObject):
             return super(Parent, self)._an_element_()
         except EmptySetError:
             raise
-        except StandardError:
+        except Exception:
             _record_exception()
             pass
 
         try:
             return self.gen(0)
-        except StandardError:
+        except Exception:
             _record_exception()
             pass
 
         try:
             return self.gen()
-        except StandardError:
+        except Exception:
             _record_exception()
             pass
 

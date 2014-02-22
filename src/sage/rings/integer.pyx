@@ -5967,7 +5967,7 @@ cdef class int_to_Z(Morphism):
         sage: type(1 + 2r)
         <type 'sage.rings.integer.Integer'>
 
-    This is intented for internal use by the coersion system,
+    This is intented for internal use by the coercion system,
     to facilitate fast expressions mixing ints and more complex
     Python types.  Note that (as with all morphisms) the input
     is forcably coerced to the domain ``int`` if it is not
@@ -6340,8 +6340,8 @@ cdef Integer one = the_integer_ring._one_element
 
 # pool of small integer for fast sign computation
 # Use the same defaults as Python, documented at http://docs.python.org/2/c-api/int.html#PyInt_FromLong
-cdef long small_pool_min = -5
-cdef long small_pool_max = 256
+DEF small_pool_min = -5
+DEF small_pool_max = 256
 # we could use the above zero and one here
 cdef list small_pool = [Integer(k) for k in range(small_pool_min, small_pool_max+1)]
 

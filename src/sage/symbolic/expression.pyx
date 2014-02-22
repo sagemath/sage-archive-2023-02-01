@@ -3469,7 +3469,7 @@ cdef class Expression(CommutativeRingElement):
 
     def residue(self, x, a):
         """
-        Calculates the residue at `x=a`.
+        Calculates the residue of ``self`` at `x=a`.
 
         INPUT:
 
@@ -3493,15 +3493,25 @@ cdef class Expression(CommutativeRingElement):
             -1
             sage: (1/x^2).residue(x, 0)
             0
+            sage: (1/sin(x)).residue(x, 0)
+            1
             sage: var('q, n, z')
             (q, n, z)
             sage: (-z^(-n-1)/(1-z/q)^2).residue(z, q).simplify_full()
             (n + 1)/q^n
+            sage: var('s')
+            s
+            sage: zeta(s).residue(s, 1) # not tested - #15846
+            1
+
+        TESTS::
+
+            sage: (exp(x)/sin(x)^4).residue(x,0)
+            5/6
         """
         if a == infinity:
             return (-self.subs({x: 1/x}) / x**2).residue(x, 0)
-        s = self.parent().var('s')
-        return self.series(x == a, 1).subs({x: s + a}).coefficient(s, -1)
+        return self.subs({x: x+a}).series(x == 0, 0).coefficient(x, -1)
 
     def taylor(self, *args):
         r"""

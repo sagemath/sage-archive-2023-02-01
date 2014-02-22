@@ -547,7 +547,7 @@ cdef class CachedFunction(object):
             sage: g(5)
             7
             sage: g.cache
-            {((5, None, 'default'), ()): 7}
+            {((5, 'default'), ()): 7}
             sage: def f(t=1): print(t)
             sage: h = CachedFunction(f)
             sage: w = walltime()
@@ -735,7 +735,7 @@ cdef class CachedFunction(object):
             sage: g = CachedFunction(number_of_partitions)
             sage: a = g(5)
             sage: g.get_cache()
-            {((5, None, 'default'), ()): 7}
+            {((5, 'default'), ()): 7}
             sage: a = g(10^5)   # indirect doctest
             sage: a == number_of_partitions(10^5)
             True
@@ -774,7 +774,7 @@ cdef class CachedFunction(object):
             sage: g = CachedFunction(number_of_partitions)
             sage: a = g(5)
             sage: g.get_cache()
-            {((5, None, 'default'), ()): 7}
+            {((5, 'default'), ()): 7}
 
         """
         return self.cache
@@ -815,10 +815,10 @@ cdef class CachedFunction(object):
             sage: g = CachedFunction(number_of_partitions)
             sage: a = g(5)
             sage: g.get_cache()
-            {((5, None, 'default'), ()): 7}
+            {((5, 'default'), ()): 7}
             sage: g.set_cache(17, 5)
             sage: g.get_cache()
-            {((5, None, 'default'), ()): 17}
+            {((5, 'default'), ()): 17}
             sage: g(5)
             17
 
@@ -880,7 +880,7 @@ cdef class CachedFunction(object):
             sage: g = CachedFunction(number_of_partitions)
             sage: a = g(5)
             sage: g.get_cache()
-            {((5, None, 'default'), ()): 7}
+            {((5, 'default'), ()): 7}
             sage: g.clear_cache()
             sage: g.get_cache()
             {}

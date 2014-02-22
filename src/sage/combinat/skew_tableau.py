@@ -1803,8 +1803,7 @@ class SemistandardSkewTableaux_all(SemistandardSkewTableaux):
         """
         if self.max_entry == PlusInfinity():
             return "Semistandard skew tableaux"
-        else:
-            return "Semistandard skew tableaux with maximum entry %s"%(repr(self.max_entry))
+        return "Semistandard skew tableaux with maximum entry {}".format(self.max_entry)
 
     def __iter__(self):
         """
@@ -2166,72 +2165,6 @@ def from_shape_and_word(shape, word):
     from sage.misc.superseded import deprecation
     deprecation(14101, 'from_shape_and_word is deprecated. Use SkewTableaux().from_shape_and_word instead')
     return SkewTableaux().from_shape_and_word(shape, word)
-
-# Deprecation of internal classes seems to be unnecessarily painful...
-def SemistandardSkewTableaux_n(*args, **kargs):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.skew_tableau.SemistandardSkewTableaux_n(3)
-        doctest:...: DeprecationWarning: this class is deprecated. Use SemistandardSkewTableaux_size instead
-        See http://trac.sagemath.org/9265 for details.
-        Semistandard skew tableaux of size 3 and maximum entry 3
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(9265,'this class is deprecated. Use SemistandardSkewTableaux_size instead')
-    return SemistandardSkewTableaux(*args, **kargs)
-
-def SemistandardSkewTableaux_nmu(*args, **kargs):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.skew_tableau.SemistandardSkewTableaux_nmu(3,[2,1])
-        doctest:...: DeprecationWarning: this class is deprecated. Use SemistandardSkewTableaux_size_weight instead
-        See http://trac.sagemath.org/9265 for details.
-        Semistandard skew tableaux of size 3 and weight [2, 1]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(9265,'this class is deprecated. Use SemistandardSkewTableaux_size_weight instead')
-    return SemistandardSkewTableaux(*args, **kargs)
-
-def SemistandardSkewTableaux_p(*args, **kargs):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.skew_tableau.SemistandardSkewTableaux_p([[2,1],[]])
-        doctest:1: DeprecationWarning: this class is deprecated. Use SemistandardSkewTableaux_shape instead
-        See http://trac.sagemath.org/9265 for details.
-        Semistandard skew tableaux of shape [2, 1] / [] and maximum entry 3
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(9265,'this class is deprecated. Use SemistandardSkewTableaux_shape instead')
-    return SemistandardSkewTableaux_shape(*args, **kargs)
-
-def SemistandardSkewTableaux_pmu(*args, **kargs):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.skew_tableau.SemistandardSkewTableaux_pmu([[2,1],[]],[2,1])
-        doctest:...: DeprecationWarning: this class is deprecated. Use SemistandardSkewTableaux_shape_weight instead
-        See http://trac.sagemath.org/9265 for details.
-        Semistandard skew tableaux of shape [2, 1] / [] and weight [2, 1]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(9265,'this class is deprecated. Use SemistandardSkewTableaux_shape_weight instead')
-    return SemistandardSkewTableaux_shape_weight(*args, **kargs)
-
-def StandardSkewTableaux_n(*args, **kargs):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.skew_tableau.StandardSkewTableaux_n(2)
-        doctest:...: DeprecationWarning: this class is deprecated. Use StandardSkewTableaux_size instead
-        See http://trac.sagemath.org/9265 for details.
-        Standard skew tableaux of size 2
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(9265,'this class is deprecated. Use StandardSkewTableaux_size instead')
-    return StandardSkewTableaux(*args, **kargs)
 
 def StandardSkewTableaux_skewpartition(skp):
     """

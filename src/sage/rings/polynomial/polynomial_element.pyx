@@ -3369,49 +3369,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             n = pari.set_real_precision(int(3.5*R.prec()) + 1)
             G = list(self._pari_with_name().factor())
 
-        elif sage.rings.complex_double.is_ComplexDoubleField(R):
-            unit = self.leading_coefficient()
-            f = (~unit)*self
-            roots = f.roots(multiplicities=False)
-            assert len(roots) == self.degree() # all roots appear with multiplicity one
-            x = self.parent().gen()
-            v = [(x - a, 1) for a in roots]
-            return Factorization(v, unit)
-
-        elif sage.rings.real_double.is_RealDoubleField(R):
-            roots = self.roots(sage.rings.complex_double.CDF, multiplicities=False)
-            assert len(roots) == self.degree() # all roots appear with multiplicity one
-            G = [[],[]]
-            real_roots = []
-            non_real_roots = []
-            for r in roots:
-                if r.imag().is_zero():
-                    for i in xrange(len(real_roots)):
-                        if real_roots[i][0] == r:
-                            real_roots[i][1] += 1
-                            r = None
-                            break
-                    if r is not None:
-                        real_roots.append([r,1])
-                else:
-                    for i in xrange(len(non_real_roots)):
-                        if non_real_roots[i][0] == r or non_real_roots[i][0] == r.conj():
-                            non_real_roots[i][1] += 1
-                            r = None
-                            break
-                    if r is not None:
-                        non_real_roots.append([r,1])
-            x = self.parent().objgen()[1]
-            for r in real_roots:
-                G[0].append( x - r[0].real() )
-                G[1].append( r[1] )
-            for z in non_real_roots:
-                a = ( z[0] + z[0].conj() ).real()
-                b = ( z[0]*(z[0].conj()) ).real()
-                G[0].append( x**2 - a*x + b )
-                assert z[1] % 2 == 0, "Bug in root finding code over RDF"
-                G[1].append( z[1] // 2 )
-
         elif sage.rings.complex_field.is_ComplexField(R):
             # This is a hack to make the polynomial have complex coefficients, since
             # otherwise PARI will factor over RR.

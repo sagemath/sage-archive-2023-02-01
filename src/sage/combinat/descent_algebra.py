@@ -168,7 +168,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
         This basis is indexed by `S \subseteq \{1, 2, \ldots, n-1\}`,
         and the basis vector indexed by `S` is the sum of all permutations,
         taken in the symmetric group algebra `R S_n`, whose descent set is `S`.
-        We denote a basis element by `D_S`.
+        We denote this basis vector by `D_S`.
 
         Occasionally this basis appears in literature but indexed by
         compositions of `n` rather than subsets of

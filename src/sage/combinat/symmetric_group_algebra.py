@@ -2001,6 +2001,8 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
 
     def t(self, i):
         """
+        Return the element `T_i` of the Hecke algebra ``self``.
+
         EXAMPLES::
 
             sage: H3 = HeckeAlgebraSymmetricGroupT(QQ,3)
@@ -2033,9 +2035,30 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
 
     def jucys_murphy(self, k):
         """
-        Return the Jucys-Murphy element `J_k` of the Hecke algebra. The
-        Jucys-Murphy elements generate a maximal commutative sub-algebra
-        of the Hecke algebra.
+        Return the Jucys-Murphy element `J_k` of the Hecke algebra.
+
+        These Jucys-Murphy elements are defined by
+
+        .. MATH::
+
+            J_k = (T_{k-1} T_{k-2} \cdots T_1) (T_1 T_2 \cdots T_{k-1}).
+
+        More explicitly,
+
+        .. MATH::
+
+            J_k = q^{k-1} + \sum_{l=1}^{k-1} (q^l - q^{l-1}) T_{(l, k)}.
+
+        For generic `q`, the `J_k` generate a maximal commutative
+        sub-algebra of the Hecke algebra.
+
+        .. WARNING::
+
+            The specialization `q = 1` does *not* map these elements
+            `J_k` to the Young-Jucys-Murphy elements of the group
+            algebra `R S_n`. (Instead, it maps the "reduced"
+            Jucys-Murphy elements `(J_k - q^{k-1}) / (q - 1)` to the
+            Young-Jucys-Murphy elements of `R S_n`.)
 
         EXAMPLES::
 
@@ -2058,13 +2081,22 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
                 return self.one()
             raise ValueError("k (= %(k)d) must be between 1 and n (= %(n)d)" % {'k': k, 'n': self.n})
 
-        left = 1
-        right = 1
-        for j in range(1, k):
-            left *= self.t(k-j)
-            right *= self.t(j)
-
-        return left*right
+        q = self.q()
+        P = self._basis_keys
+        v = self.sum_of_terms( ( ( P(range(1, l) + [k] + range(l+1, k) + [l]),
+                                   q ** l - q ** (l-1) )
+                                 for l in range(1, k) ),
+                               distinct=True )
+        v += q ** (k-1) * self.one()
+        return v
+        
+        #old algorithm:
+        # left = 1
+        # right = 1
+        # for j in range(1, k):
+        #    left *= self.t(k-j)
+        #    right *= self.t(j)
+        # return left*right
 
 
 # For unpickling backward compatibility (Sage <= 4.1)

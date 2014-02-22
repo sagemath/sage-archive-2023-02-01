@@ -1097,7 +1097,7 @@ cdef class PowerSeries_poly(PowerSeries):
 
         The Padé approximant of index `(m, n)` of a formal power
         series `f` is the quotient `Q/P` of two polynomials `Q` and `P`
-        such that `deg(Q)\leq m`, `deg(P)\leq n` and
+        such that `\deg(Q)\leq m`, `\deg(P)\leq n` and
 
         .. MATH::
 
@@ -1126,8 +1126,8 @@ cdef class PowerSeries_poly(PowerSeries):
 
         .. SEEALSO::
 
-            :func:`sage.matrix.berlekamp_massey`,
-            :meth:`sage.rings.polynomial.polynomial_zmod_flint.Polynomial_zmod_flint.rational_reconstruct`
+            * :mod:`sage.matrix.berlekamp_massey`,
+            * :meth:`sage.rings.polynomial.polynomial_zmod_flint.Polynomial_zmod_flint.rational_reconstruct`
 
         EXAMPLES::
 
@@ -1146,14 +1146,14 @@ cdef class PowerSeries_poly(PowerSeries):
             sage: exp(2*z).pade(3, 3)
             (-z^3 - 6*z^2 - 15*z - 15)/(z^3 - 6*z^2 + 15*z - 15)
 
+        TESTS:
+
         With real coefficients::
 
             sage: R.<z> = RR[[]]
             sage: f = exp(2*z)
-            sage: f.pade(3, 3)
-            (-0.99999999999...*z^3 - 5.9999999999...*z^2 - 14.999999999...*z
-            - 14.999999999...)/(z^3 - 5.9999999999...*z^2 + 14.999999999...*z
-            - 14.999999999...)
+            sage: f.pade(3, 3) # abs tol 1e-10
+            (-1.0*z^3 - 6.0*z^2 - 15.0*z - 15.0)/(z^3 - 6.0*z^2 + 15.0*z - 15.0)
 
         When precision is too low::
 

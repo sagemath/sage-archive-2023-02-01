@@ -2035,12 +2035,13 @@ class FiniteStateMachine(SageObject):
         Nothing.
 
         EXAMPLES::
+
             sage: F = Automaton([[0,1,1], [1,2,2], [2,0,0]])
             sage: F.set_coordinates({0: (0,0), 1:(2,0), 2:(1,1)})
             sage: F.state(0).coordinates
             (0, 0)
 
-        TODO::
+        TODO:
 
         It would be nice to alternatively allow a callable.
         """

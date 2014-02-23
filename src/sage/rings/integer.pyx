@@ -4119,6 +4119,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
         """
         return True
+        
     def is_integer(self):
         """
         Returns ``True`` as they are integers

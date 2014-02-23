@@ -3290,9 +3290,11 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             return True
 
     def is_integer(self):
-        """Return True if this number is a integer
+        """
+        Return True if this number is a integer
 
         EXAMPLES::
+        
             sage: QQbar(2).is_integer()
             True
             sage: QQbar(1/2).is_integer()

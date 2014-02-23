@@ -3676,6 +3676,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         Return ``True`` if this number is a integer
 
         EXAMPLES::
+        
             sage: RR(1).is_integer()
             True
             sage: RR(0.1).is_integer()

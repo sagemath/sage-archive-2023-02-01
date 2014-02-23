@@ -535,29 +535,29 @@ class Minimog():
                 if list(L2)[0] == MINIMOG[2][1]:
                           L1 = LL - L2
                           H,WHAT = self.find_hexad3(L1,MINIMOG[0][0],MINIMOG[2][1])
-                          if H <> []:
+                          if H != []:
                               return list(H),WHAT
                           L1 = LL - L2
                           H,WHAT = self.find_hexad3(L1,MINIMOG[0][2],MINIMOG[2][1])
-                          if H <> []:
+                          if H != []:
                               return list(H),WHAT
                 if list(L2)[0] == MINIMOG[0][0]:
                           L1 = (LL - L2)
                           H,WHAT = self.find_hexad3(L1,MINIMOG[0][0],MINIMOG[2][1])
-                          if H <> []:
+                          if H != []:
                               return list(H),WHAT
                           L1 = (LL - L2)
                           H,WHAT = self.find_hexad3(L1,MINIMOG[0][0],MINIMOG[0][2])
-                          if H <> []:
+                          if H != []:
                               return list(H),WHAT
                 if list(L2)[0] == MINIMOG[0][2]:
                           L1 = (LL - L2)
                           H,WHAT = self.find_hexad3(L1,MINIMOG[0][0],MINIMOG[0][2])
-                          if H <> []:
+                          if H != []:
                               return list(H),WHAT
                           L1 = (LL - L2)
                           H,WHAT = self.find_hexad3(L1,MINIMOG[2][1],MINIMOG[0][2])
-                          if H <> []:
+                          if H != []:
                               return list(H),WHAT
             return list(H),WHAT
             ## a cross in a pic at infty

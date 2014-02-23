@@ -151,7 +151,7 @@ def FreeQuadraticModule(
 
     key = (base_ring, rank, inner_product_matrix, sparse)
 
-    if _cache.has_key(key):
+    if key in _cache:
         M = _cache[key]()
         if not (M is None):
             return M

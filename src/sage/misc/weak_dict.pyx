@@ -619,11 +619,11 @@ cdef class WeakValueDictionary(dict):
 
         For a non-existing key, the default value is stored and returned::
 
-            sage: D.has_key(4)
+            sage: 4 in D
             False
             sage: D.setdefault(4, ZZ)
             Integer Ring
-            sage: D.has_key(4)
+            sage: 4 in D
             True
             sage: D[4]
             Integer Ring
@@ -826,35 +826,6 @@ cdef class WeakValueDictionary(dict):
         if out == Py_None:
             raise KeyError(k)
         return <object>out
-
-    def has_key(self, k):
-        """
-        Returns True, if the key is known to the dictionary.
-
-        EXAMPLES::
-
-            sage: import sage.misc.weak_dict
-            sage: class Vals(object): pass
-            sage: L = [Vals() for _ in range(10)]
-            sage: D = sage.misc.weak_dict.WeakValueDictionary(enumerate(L))
-            sage: D.has_key(3)
-            True
-
-        As usual, keys are compared by equality and not by identity::
-
-            sage: D.has_key(int(3))
-            True
-
-        This is a weak value dictionary. Hence, the existence of the
-        dictionary does not prevent the values from garbage collection,
-        thereby removing the corresponding key-value pairs::
-
-            sage: del L[3]
-            sage: D.has_key(3)
-            False
-
-        """
-        return k in self
 
     def __contains__(self, k):
         """

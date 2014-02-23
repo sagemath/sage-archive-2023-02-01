@@ -1417,7 +1417,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             N=self._order
             if debug:
                 print "Group order already known to be ",N
-        except StandardError:
+        except Exception:
             if (q<50):
                 if debug:
                     print "Computing group order naively"

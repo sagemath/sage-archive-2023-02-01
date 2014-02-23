@@ -449,7 +449,7 @@ class CompositionTableaux(UniqueRepresentation, Parent):
             sage: CT = CompositionTableaux()
             sage: TestSuite(CT).run()
         """
-        if kwds.has_key('max_entry'):
+        if 'max_entry' in kwds:
             self.max_entry = kwds['max_entry']
             kwds.pop('max_entry')
         else:

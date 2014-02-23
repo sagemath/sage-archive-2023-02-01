@@ -440,7 +440,7 @@ class DocTestReporter(SageObject):
                     log("    [%s, %s%.2f s]" % (count_noun(ntests, "test"), "%s, "%(count_noun(f, "failure")) if f else "", wall))
             self.sources_completed += 1
 
-        except StandardError:
+        except Exception:
             import traceback
             log(traceback.format_exc(), end="")
 

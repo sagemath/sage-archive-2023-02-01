@@ -84,7 +84,7 @@ def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=20, sparse=
 
     global laurent_series
     key = (base_ring, name, default_prec, sparse)
-    if laurent_series.has_key(key):
+    if key in laurent_series:
         x = laurent_series[key]()
         if x != None: return x
 

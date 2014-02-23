@@ -76,10 +76,9 @@ Some challenges
       sage: m^8 == m*m*m*m*m*m*m*m == ((m^2)^2)^2
       True
 
-      sage: m=random_matrix(QQ, 4, algorithm='echelonizable', rank=3, upper_bound=60); m # randomm = GL(2,QQ).random_element(); m  # random
-
   ::
 
+      sage: m=random_matrix(QQ, 4, algorithm='echelonizable', rank=3, upper_bound=60)
       sage: m^8 == m*m*m*m*m*m*m*m == ((m^2)^2)^2
       True
 
@@ -114,11 +113,6 @@ That's our bookshelf! And it's used in many places::
     True
     sage: NN in Semigroups()
     True
-
-What else do we have on that bookshelf?::
-
-    sage: Semigroups
-    <class 'sage.categories.semigroups.Semigroups'>
 
 For a less trivial bookshelf we can consider euclidean rings: once we
 know how to do euclidean division in some set `R`, we can compute
@@ -353,7 +347,7 @@ How are the bookshelves implemented in practice?
 
 Sage uses the classical design paradigm of Object Oriented Programming
 (OOP). It's fundamental principle is that any object that a program is
-to manipulate should be modeled by an *instance* of a *class*. The
+to manipulate should be modelled by an *instance* of a *class*. The
 class implements:
 
  - a *data structure*: which describes how the object is stored
@@ -362,7 +356,7 @@ class implements:
 The instance itself contains the data for the given object, according
 to the specified data structure.
 
-Hence, all the objects mentionned above should be instances of some
+Hence, all the objects mentioned above should be instances of some
 classes. For example, an integer in Sage is an instance of the class
 Integer (and it knows about it!)::
 
@@ -451,7 +445,7 @@ for matrices and provide the operations that are tied to this data
 structure. Then follows abstract classes that are attached to the
 hierarchy of categories and provide generic algorithms.
 
-The full hierarchy is best viewed graphically:
+The full hierarchy is best viewed graphically::
 
     sage: g = class_graph(m.__class__)
     sage: g.set_latex_options(format="dot2tex")
@@ -485,7 +479,7 @@ kinds of sets:
 
 Hence, following the OOP fundamental principle, parents should also be
 modelled by instances of some (hierarchy of) classes. For example, our
-group `G` is an instance of the following class:
+group `G` is an instance of the following class::
 
     sage: G = GL(2,ZZ)
     sage: type(G)
@@ -503,7 +497,7 @@ Here is a piece of the hierarchy of classes above it::
 
 Note that the hierarchy of abstract classes is again attached to
 categories and parallel to that we had seen for the elements. This is
-best viewed graphically:
+best viewed graphically::
 
     sage: g = class_graph(m.__class__)
     sage: g.relabel(lambda x: x.replace("_","\_"))
@@ -583,7 +577,7 @@ bookshelf is structured into units with *nested classes*::
 
 With this syntax, the information that a group is a monoid is
 specified only once, in the :meth:`Category.super_categories`
-method. And indeed, when the category of unital inverse magmas was
+method. And indeed, when the category of inverse unital magmas was
 introduced, there was a *single point of truth* to update::
 
     sage: Groups().super_categories()
@@ -826,9 +820,10 @@ Wrap-up
 Case study
 ==========
 
-In this section, we study an existing parent in detail; a good
-followup is to go through the :mod:`sage.categories.tutorial` to learn
-how to implement a new one!
+In this section, we study an existing parent in detail; a good followup is to
+go through the :mod:`sage.categories.tutorial` or the thematic tutorial on
+coercion and categories ("How to implement new algebraic structures in Sage")
+to learn how to implement a new one!
 
 We consider the example of finite semigroup provided by the category::
 
@@ -855,7 +850,7 @@ to use Sage's introspection tools to recover where it's implemented::
     sage: x.__pow__.__module__
     'sage.categories.semigroups'
 
-``_mul_`` is a default implementation from the :class:`Magmas`
+``__mul__`` is a default implementation from the :class:`Magmas`
 category (a *magma* is a set with an inner law `*`, not necessarily
 associative)::
 
@@ -909,7 +904,7 @@ Documentation about those methods can be obtained with::
     sage: C = FiniteSemigroups().element_class
     sage: C._mul_?                                # not tested
 
-See also the :meth:`abstract_method` decorator.
+See also the :func:`~sage.misc.abstract_method.abstract_method` decorator.
 
 Here is the code for the finite semigroups category::
 
@@ -1028,7 +1023,7 @@ algebra, a coalgebra, a differential module, and be finite
 dimensional, or graded, or ...  This can only be decided at runtime,
 by introspection into the properties of `A` and `B`; furthermore, the
 number of possible combinations (e.g. finite dimensional differential
-algebra) grows exponnentially with the number of properties.
+algebra) grows exponentially with the number of properties.
 
 .. _category-primer-axioms:
 
@@ -1361,7 +1356,7 @@ categories <JoinCategory>`. Furthermore, one always should have::
 
       Cs()._cmp_key()  >  other._cmp_key()  for other in Cs().super_categories()
 
-This is checked by :meth:`Category._test_category`.
+This is checked by :meth:`~sage.categories.category.Category._test_category`.
 
 In several cases, the category `C` is directly provided with a generic
 implementation of ``super_categories``; a typical example is when `C`
@@ -1409,7 +1404,7 @@ On the order of super categories
 The generic method ``C.all_super_categories()`` determine recursively
 the list of *all* super categories of `C`.
 
-The order of the categories in this list does influences the
+The order of the categories in this list does influence the
 inheritance of methods for parents and elements. Namely, if `P` is an
 object in the category `C` and if `C_1` and `C_2` are both super
 categories of `C` defining some method ``foo`` in ``ParentMethods``,
@@ -1420,8 +1415,8 @@ However this must be considered as an *implementation detail*: if
 `C_1` and `C_2` are incomparable categories, then the order in which
 they appear must be mathematically irrelevant: in particular, the
 methods ``foo`` in `C_1` and `C_2` must have the same semantic. Code
-should not rely on any specific order, as it it subject to later
-change. In case one of the implementations is prefered in a common
+should not rely on any specific order, as it is subject to later
+change. In case one of the implementations is preferred in a common
 subcategory of `C_1` and `C_2`, for example for efficiency reasons,
 then the ambiguity should be resolved explicitly by definining a
 method ``foo`` in this category. See the method ``some_elements`` in

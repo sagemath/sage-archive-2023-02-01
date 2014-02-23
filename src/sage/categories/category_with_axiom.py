@@ -92,7 +92,7 @@ all the methods of finite sets and of finite `C`'s, as desired::
       <sage.categories.covariant_functorial_construction>`.
 
     - From an object oriented point of view, any subcategory ``Cs()``
-      of :class:`Sets`() inherits from a ``Finite`` method, and ``Cs``
+      of :class:`~sage.categories.sets_cat.Sets` inherits from a ``Finite`` method, and ``Cs``
       can complement this method with extra data (here a mixin class)
       in the form of a class attribute ``Cs.Finite``.
 

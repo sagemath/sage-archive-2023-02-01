@@ -4608,7 +4608,7 @@ class Automaton(FiniteStateMachine):
         """
         deterministic = self.is_deterministic()
 
-        if algorithm == "Moore" or (algorithm is None and deterministic) :
+        if algorithm == "Moore" or (algorithm is None and deterministic):
             return self._minimization_Moore_()
         elif algorithm == "Brzozowski" or (algorithm is None and not deterministic):
             return self._minimization_Brzozowski_()

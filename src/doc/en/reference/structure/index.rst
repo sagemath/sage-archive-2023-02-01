@@ -37,6 +37,7 @@ Basic Structures
    sage/sets/non_negative_integers
    sage/sets/primes
    sage/sets/totally_ordered_finite_set
+   sage/sets/real_set
 
    sage/structure/parent
 

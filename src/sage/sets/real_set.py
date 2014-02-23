@@ -43,7 +43,7 @@ AUTHORS:
 
 - Laurent Claessens (2010-12-10): Interval and ContinuousSet, posted
   to sage-devel at
-  http://www.mail-archive.com/sage-support@googlegroups.com/msg21326.html_.
+  http://www.mail-archive.com/sage-support@googlegroups.com/msg21326.html.
 
 - Ares Ribo (2011-10-24): Extended the previous work defining the
   class RealSet.
@@ -358,7 +358,7 @@ class RealInterval(UniqueRepresentation, Parent):
 
         The closure as a new :class:`RealInterval`
 
-        EXAMPLES:
+        EXAMPLES::
         
             sage: RealSet.open(0,1)[0].closure()
             [0, 1]
@@ -379,7 +379,7 @@ class RealInterval(UniqueRepresentation, Parent):
 
         The interior as a new :class:`RealInterval`
 
-        EXAMPLES:
+        EXAMPLES::
         
             sage: RealSet.closed(0, 1)[0].interior()
             (0, 1)
@@ -1285,9 +1285,7 @@ class RealSet(UniqueRepresentation, Parent):
         The set-theoretic difference of ``self`` with ``other``
         removed as a new :class:`RealSet`.
 
-        OUTPUT:
-
-        A new :class:`RealSet`
+        EXAMPLES::
 
             sage: s1 = RealSet(0,2) + RealSet.unbounded_above_closed(10);  s1
             (0, 2) + [10, +oo)
@@ -1371,9 +1369,9 @@ class RealSet(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        A real number. ``ValueError` if the set is empty.
+        A real number. ``ValueError`` if the set is empty.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: RealSet.open_closed(0, 1).an_element()
             1

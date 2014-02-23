@@ -678,10 +678,9 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
 
     OUTPUT:
 
-    - the list of fields with entries ``[d,fabs,f]``, where
-    ``d`` is the discriminant, ``fabs`` is an absolute defining polynomial,
-    and ``f`` is a defining polynomial relative to ``F``,
-    sorted by discriminant.
+    - the list of fields with entries ``[d,fabs,f]``, where ``d`` is the
+      discriminant, ``fabs`` is an absolute defining polynomial, and ``f``
+      is a defining polynomial relative to ``F``, sorted by discriminant.
 
     - if ``return_seqs`` is ``True``, then the first field of the list is
       a list containing the count of four items as explained below

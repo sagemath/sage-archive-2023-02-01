@@ -3438,9 +3438,6 @@ class FiniteStateMachine(SageObject):
         initial state to the state. If self has no initial states then
         a copy of the finite state machine self is returned.
 
-        The color of a new state is the tuple of colors of the
-        constituent states of ``self`` and ``other``.
-
         EXAMPLES::
 
             sage: F = Automaton([(0, 0, 0), (0, 1, 1), (1, 1, 0), (1, 0, 1)],
@@ -3566,6 +3563,9 @@ class FiniteStateMachine(SageObject):
         original finite state machines.
 
         The labels of the transitions are defined by ``function``.
+
+        The color of a new state is the tuple of colors of the
+        constituent states of ``self`` and ``other``.
 
         EXAMPLES::
 

@@ -1,5 +1,5 @@
 r"""
-Weak crystal
+Type A crystal on affine factorizations
 """
 #*****************************************************************************
 #  Copyright (C) 2014 Anne Schilling <anne at math.ucdavis.edu>
@@ -17,15 +17,15 @@ from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.k_tableau import WeakTableaux, WeakTableau
 
-class WeakCrystal(UniqueRepresentation, Parent):
+class AffineFactorizationCrystal(UniqueRepresentation, Parent):
     r"""
     This is an implementation of the weak crystal on affine factorizations
     with a cut-point, as introduced by Morse and Schilling.
 
     EXAMPLES::
 
-        sage: from sage.combinat.crystals.weak_crystal import WeakCrystal
-        sage: W = WeakCrystal([[3,1,1],[1]],3,3)
+        sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
+        sage: W = AffineFactorizationCrystal([[3,1,1],[1]],3,3)
         sage: W.list()
         [[1, s2, s3*s2*s1],
         [1, s3*s2, s3*s1],
@@ -100,22 +100,22 @@ class WeakCrystal(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: from sage.combinat.crystals.weak_crystal import WeakCrystal
-            sage: WeakCrystal([[3,1],[1]],3,4)
+            sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
+            sage: AffineFactorizationCrystal([[3,1],[1]],3,4)
             Weak crystal on affine factorizations of type A4 of shape [[3, 1], [1]]
         """
         skew_shape = tuple(tuple(l) for l in skew_shape)
-        return super(WeakCrystal, cls).__classcall__(cls, skew_shape, k, n, x)
+        return super(AffineFactorizationCrystal, cls).__classcall__(cls, skew_shape, k, n, x)
 
     def __init__(self, skew_shape, k, n, x=None):
         """
         EXAMPLES::
 
-            sage: from sage.combinat.crystals.weak_crystal import WeakCrystal
-            sage: W = WeakCrystal([[3,2],[2]],3,4,0)
+            sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
+            sage: W = AffineFactorizationCrystal([[3,2],[2]],3,4,0)
             sage: W.x
             0
-            sage: W = WeakCrystal([[3,2],[2]],3,4)
+            sage: W = AffineFactorizationCrystal([[3,2],[2]],3,4)
             sage: W.x
             1
         """
@@ -141,8 +141,8 @@ class WeakCrystal(UniqueRepresentation, Parent):
         """
         EXAMPLES::
 
-            sage: from sage.combinat.crystals.weak_crystal import WeakCrystal
-            sage: WeakCrystal([[3,1],[1]],3,4)
+            sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
+            sage: AffineFactorizationCrystal([[3,1],[1]],3,4)
             Weak crystal on affine factorizations of type A4 of shape [[3, 1], [1]]
         """
         return "Weak crystal on affine factorizations of type A%s of shape %s"%(self.n, [[i for i in w] for w in self.skew_shape])
@@ -158,8 +158,8 @@ class WeakCrystal(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: from sage.combinat.crystals.weak_crystal import WeakCrystal
-                sage: W = WeakCrystal(tuple([tuple([3,1]),tuple([1])]),3,4)
+                sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
+                sage: W = AffineFactorizationCrystal(tuple([tuple([3,1]),tuple([1])]),3,4)
                 sage: t = W(W.module_generators[1]); t
                 [1, 1, s3, s2*s1]
                 sage: t.e(1)
@@ -193,8 +193,8 @@ class WeakCrystal(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: from sage.combinat.crystals.weak_crystal import WeakCrystal
-                sage: W = WeakCrystal(tuple([tuple([3,1]),tuple([1])]),3,4)
+                sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
+                sage: W = AffineFactorizationCrystal(tuple([tuple([3,1]),tuple([1])]),3,4)
                 sage: t = W(W.module_generators[1]); t
                 [1, 1, s3, s2*s1]
                 sage: t.f(2)
@@ -230,8 +230,8 @@ class WeakCrystal(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: from sage.combinat.crystals.weak_crystal import WeakCrystal
-                sage: W = WeakCrystal(tuple([tuple([3,1]),tuple([1])]),3,4)
+                sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
+                sage: W = AffineFactorizationCrystal(tuple([tuple([3,1]),tuple([1])]),3,4)
                 sage: t = W(W.module_generators[1])
                 sage: t.bracketing(1)
                 [[3], [2, 1]]

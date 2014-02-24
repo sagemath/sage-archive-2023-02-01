@@ -62,8 +62,8 @@ from sage.rings.arith import binomial, integer_ceil as ceil
 from sage.misc.functional import log
 from sage.misc.misc import newton_method_sizes
 
-from ell_generic import is_EllipticCurve
-from constructor import EllipticCurve
+from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
+from sage.schemes.elliptic_curves.constructor import EllipticCurve
 
 
 class SpecialCubicQuotientRing(CommutativeAlgebra):

@@ -19,7 +19,7 @@ include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/ext/python.pxi"
 
-from sage.libs.ginac cimport *
+from ginac cimport *
 
 # for complex log and log gamma
 include "sage/gsl/gsl_complex.pxi"
@@ -923,10 +923,10 @@ def py_is_integer_for_doctests(x):
 cdef public bint py_is_even(object x) except +:
     try:
         return not(x%2)
-    except StandardError:
+    except Exception:
         try:
             return not(ZZ(x)%2)
-        except StandardError:
+        except Exception:
             pass
     return 0
 
@@ -969,11 +969,11 @@ import sage.rings.arith
 cdef public bint py_is_prime(object n) except +:
     try:
         return n.is_prime()
-    except StandardError:  # yes, I'm doing this on purpose.
+    except Exception:  # yes, I'm doing this on purpose.
         pass
     try:
         return sage.rings.arith.is_prime(n)
-    except StandardError:
+    except Exception:
         pass
     return False
 

@@ -1,6 +1,7 @@
 from sage.rings.rational import Rational
 from sage.rings.integer cimport Integer
 from sage.schemes import elliptic_curves
+from sage.modular.all import Cusp
 
 #*****************************************************************************
 #       Copyright (C) 2008 Tom Boothby <boothby@u.washington.edu>
@@ -43,9 +44,9 @@ cdef class ECModularSymbol:
 
         TESTS:
 
-        This one is from trac #8042 (note that Cremona's code is more limited
+        This one is from :trac: `8042` (note that Cremona's code is more limited
         when run on a 32-bit platform, but works fine on 64-bit in this
-        case; see trac #8114).
+        case; see :trac: `8114`).
 
         ::
             sage: from sage.libs.cremona.newforms import ECModularSymbol
@@ -118,6 +119,22 @@ cdef class ECModularSymbol:
             sage: M = ECModularSymbol(E)
             sage: [M(1/i) for i in range(1,10)]
             [0, 0, 0, 0, 4, 0, 2, 0, -2]
+
+        TESTS (see :trac: `11211`)::
+
+            sage: from sage.libs.cremona.newforms import ECModularSymbol
+            sage: E = EllipticCurve('11a')
+            sage: M = ECModularSymbol(E)
+            sage: M(oo)
+            2/5
+            sage: M(7/5)
+            3
+            sage: M("garbage")
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to convert garbage to a Cusp
+            sage: M(7/5)
+            3
         """
         cdef rational _r
         cdef rational _s
@@ -125,12 +142,13 @@ cdef class ECModularSymbol:
         cdef ZZ_c *Z_n, *Z_d
         cdef long n, d
 
+        r = Cusp(r)
+        d = r.denominator()
+        n = r.numerator()
+        if d != 0:
+            n = n % d
         sig_on()
-        r = Rational(r)
-        d = r.denom()
-        n = r.numer() % d
         _r = new_rational(n,d)
         _s = self.nfs.plus_modular_symbol(_r)
-        r = Rational((rational_num(_s), rational_den(_s)))
         sig_off()
-        return r
+        return Rational((rational_num(_s), rational_den(_s)))

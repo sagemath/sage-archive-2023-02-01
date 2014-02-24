@@ -694,7 +694,7 @@ cdef class RingHomomorphism(RingMap):
             sage: g(7)
             1
         """
-        if _slots.has_key('_lift'):
+        if '_lift' in _slots:
             self._lift = _slots['_lift']
         Morphism._update_slots(self, _slots)
 
@@ -1548,15 +1548,15 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
         P = self.codomain()
         try:
             return P(dict([(a, self.__underlying(b)) for a,b in x.dict().items()]))
-        except StandardError:
+        except Exception:
             pass
         try:
             return P([self.__underlying(b) for b in x])
-        except StandardError:
+        except Exception:
             pass
         try:
             return P(self.__underlying(x.numerator()))/P(self.__underlying(x.denominator()))
-        except StandardError:
+        except Exception:
             raise TypeError, "invalid argument %s"%repr(x)
 
 cdef class RingHomomorphism_cover(RingHomomorphism):

@@ -45,7 +45,7 @@ cdef class DefaultConvertMap(Map):
         cdef Parent C = self._codomain
         try:
             return C._element_constructor(C, x)
-        except StandardError:
+        except Exception:
             if print_warnings:
                 print type(C), C
                 print type(C._element_constructor), C._element_constructor
@@ -65,7 +65,7 @@ cdef class DefaultConvertMap(Map):
                     return C._element_constructor(C, x, *args)
                 else:
                     return C._element_constructor(C, x, *args, **kwds)
-        except StandardError:
+        except Exception:
             if print_warnings:
                 print type(C), C
                 print type(C._element_constructor), C._element_constructor
@@ -88,7 +88,7 @@ cdef class DefaultConvertMap_unique(DefaultConvertMap):
         cdef Parent C = self._codomain
         try:
             return C._element_constructor(x)
-        except StandardError:
+        except Exception:
             if print_warnings:
                 print type(C), C
                 print type(C._element_constructor), C._element_constructor
@@ -107,7 +107,7 @@ cdef class DefaultConvertMap_unique(DefaultConvertMap):
                     return C._element_constructor(x, *args)
                 else:
                     return C._element_constructor(x, *args, **kwds)
-        except StandardError:
+        except Exception:
             if print_warnings:
                 print type(C), C
                 print type(C._element_constructor), C._element_constructor
@@ -368,7 +368,7 @@ cdef class CallableConvertMap(Map):
                 y = self._func(C, x)
             else:
                 y = self._func(x)
-        except StandardError:
+        except Exception:
             if print_warnings:
                 print self._func
                 print C
@@ -404,7 +404,7 @@ cdef class CallableConvertMap(Map):
                 y = self._func(self._codomain, x, *args, **kwds)
             else:
                 y = self._func(x, *args, **kwds)
-        except StandardError:
+        except Exception:
             if print_warnings:
                 print self._func
                 print self._codomain

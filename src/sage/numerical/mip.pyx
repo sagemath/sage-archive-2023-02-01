@@ -1153,7 +1153,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
                     c = []
                     [c.append(self.get_values(ll)) for ll in l]
                     val.append(c)
-            elif self._variables.has_key(l):
+            elif l in self._variables:
                 #val.append(self._values[l])
                 val.append(self._backend.get_variable_value(self._variables[l]))
 
@@ -1568,7 +1568,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             else:
                 for v in e.keys():
                     self.set_binary(e[v])
-        elif self._variables.has_key(e):
+        elif e in self._variables:
             self._backend.set_variable_type(self._variables[e],self.__BINARY)
         else:
             raise ValueError("e must be an instance of MIPVariable or one of its elements.")
@@ -1637,7 +1637,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             else:
                 for v in e.keys():
                     self.set_integer(e[v])
-        elif self._variables.has_key(e):
+        elif e in self._variables:
             self._backend.set_variable_type(self._variables[e],self.__INTEGER)
         else:
             raise ValueError("e must be an instance of MIPVariable or one of its elements.")
@@ -1706,7 +1706,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             else:
                 for v in e.keys():
                     self.set_real(e[v])
-        elif self._variables.has_key(e):
+        elif e in self._variables:
             self._backend.set_variable_type(self._variables[e],self.__REAL)
         else:
             raise ValueError("e must be an instance of MIPVariable or one of its elements.")
@@ -2187,7 +2187,7 @@ cdef class MIPVariable(SageObject):
 
         cdef int j
 
-        if self._dict.has_key(i):
+        if i in self._dict:
             return self._dict[i]
         elif self._dim == 1:
             zero = self._p._backend.zero()

@@ -3398,7 +3398,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             ord = self.order()
         try:
             return generic.discrete_log(Q, self, ord, operation='+')
-        except StandardError:
+        except Exception:
             raise ValueError("ECDLog problem has no solution")
 
     def order(self):
@@ -3470,7 +3470,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
                 plist = M.prime_divisors()
                 E._prime_factors_of_order = plist
             N = generic.order_from_multiple(self, M, plist, operation='+')
-        except StandardError:
+        except Exception:
             if K.is_prime_field():
                 M = E.cardinality()  # computed and cached
                 plist = M.prime_divisors()

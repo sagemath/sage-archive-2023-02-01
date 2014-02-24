@@ -265,7 +265,7 @@ def __find_eisen_chars(character, k):
 
     for e in G:
         m = Integer(e.conductor())
-        if C.has_key(m):
+        if m in C:
             C[m].append(e)
         else:
             C[m] = [e]
@@ -275,11 +275,11 @@ def __find_eisen_chars(character, k):
     params = []
     for L in divisors(N):
         misc.verbose("divisor %s"%L)
-        if not C.has_key(L):
+        if L not in C:
             continue
         GL = C[L]
         for R in divisors(N/L):
-            if not C.has_key(R):
+            if R not in C:
                 continue
             GR = C[R]
             for chi in GL:

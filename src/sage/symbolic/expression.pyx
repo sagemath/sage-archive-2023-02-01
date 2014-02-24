@@ -3467,50 +3467,57 @@ cdef class Expression(CommutativeRingElement):
             sig_off()
         return new_Expression_from_GEx(self._parent, x)
 
-    def residue(self, x, a):
+    def residue(self, symbol):
         """
-        Calculates the residue of ``self`` at `x=a`.
+        Calculates the residue of ``self`` with respect to ``symbol``.
 
         INPUT:
 
-        - ``x`` - a symbolic variable
-
-        - ``a`` - a symbolic expression
+        - ``symbol`` - a symbolic variable or symbolic equality such
+          as ``x == 5``. If an equality is given, the expansion is
+          around the value on the right hand side of the equality,
+          otherwise at ``0``.
 
         OUTPUT:
 
         The residue of ``self``.
 
-        This function calculates the residue of ``self`` at `x=a`,
-        i.e., the coefficient of `1/(x-a)` of the series expansion of
-        ``self`` around `a`.
+        Say, ``symbol`` is ``x == a``, then this function calculates
+        the residue of ``self`` at `x=a`, i.e., the coefficient of
+        `1/(x-a)` of the series expansion of ``self`` around `a`.
 
         EXAMPLES::
 
-            sage: (1/x).residue(x, 0)
+            sage: (1/x).residue(x == 0)
             1
-            sage: (1/x).residue(x, oo)
+            sage: (1/x).residue(x == oo)
             -1
-            sage: (1/x^2).residue(x, 0)
+            sage: (1/x^2).residue(x == 0)
             0
-            sage: (1/sin(x)).residue(x, 0)
+            sage: (1/sin(x)).residue(x == 0)
             1
             sage: var('q, n, z')
             (q, n, z)
-            sage: (-z^(-n-1)/(1-z/q)^2).residue(z, q).simplify_full()
+            sage: (-z^(-n-1)/(1-z/q)^2).residue(z == q).simplify_full()
             (n + 1)/q^n
             sage: var('s')
             s
-            sage: zeta(s).residue(s, 1) # not tested - #15846
+            sage: zeta(s).residue(s == 1) # not tested - #15846
             1
 
         TESTS::
 
-            sage: (exp(x)/sin(x)^4).residue(x,0)
+            sage: (exp(x)/sin(x)^4).residue(x == 0)
             5/6
         """
+        if symbol.is_relational():
+            x = symbol.lhs()
+            a = symbol.rhs()
+        else:
+            x = symbol
+            a = 0
         if a == infinity:
-            return (-self.subs({x: 1/x}) / x**2).residue(x, 0)
+            return (-self.subs({x: 1/x}) / x**2).residue(x == 0)
         return self.subs({x: x+a}).series(x == 0, 0).coefficient(x, -1)
 
     def taylor(self, *args):

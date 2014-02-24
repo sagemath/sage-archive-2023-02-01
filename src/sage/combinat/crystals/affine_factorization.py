@@ -102,7 +102,7 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
 
             sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
             sage: AffineFactorizationCrystal([[3,1],[1]],3,4)
-            Weak crystal on affine factorizations of type A4 of shape [[3, 1], [1]]
+            Crystal on affine factorizations of type A4 of shape [[3, 1], [1]]
         """
         skew_shape = tuple(tuple(l) for l in skew_shape)
         return super(AffineFactorizationCrystal, cls).__classcall__(cls, skew_shape, k, n, x)
@@ -143,9 +143,9 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
 
             sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
             sage: AffineFactorizationCrystal([[3,1],[1]],3,4)
-            Weak crystal on affine factorizations of type A4 of shape [[3, 1], [1]]
+            Crystal on affine factorizations of type A4 of shape [[3, 1], [1]]
         """
-        return "Weak crystal on affine factorizations of type A%s of shape %s"%(self.n, [[i for i in w] for w in self.skew_shape])
+        return "Crystal on affine factorizations of type A%s of shape %s"%(self.n, [[i for i in w] for w in self.skew_shape])
 
     # temporary workaround while an_element is overriden by Parent
     _an_element_ = EnumeratedSets.ParentMethods._an_element_

@@ -684,8 +684,8 @@ class Rings(Category_singleton):
                 Multivariate Power Series Ring in x, T over Integer Ring
 
             Use :func:`~sage.rings.fraction_field.Frac` or
-            :meth:`sage.rings.ring.fraction_field` to obtain the fields of
-            rational functions and Laurent series::
+            :meth:`~sage.rings.ring.CommutativeRing.fraction_field` to obtain
+            the fields of rational functions and Laurent series::
 
                 sage: Frac(QQ['t'])
                 Fraction Field of Univariate Polynomial Ring in t over Rational Field

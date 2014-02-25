@@ -118,6 +118,7 @@ from subset import Subsets
 from necklace import Necklaces
 from lyndon_word import LyndonWord, LyndonWords, StandardBracketedLyndonWords
 from dyck_word import DyckWords, DyckWord
+from cfinite_sequence import CFiniteSequence
 from sloane_functions import sloane
 
 from root_system.all import *

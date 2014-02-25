@@ -445,9 +445,10 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
         key = (polynomial, polynomial.base_ring(), name, latex_name,
                embedding, embedding.parent() if embedding is not None else None,
                assume_disc_small, None if maximize_at_primes is None else tuple(maximize_at_primes))
-        if key in _nf_cache:
-            K = _nf_cache[key]()
-            if not K is None: return K
+        try:
+            return _nf_cache[key]
+        except KeyError:
+            pass
 
     if isinstance(R, NumberField_generic):
         S = R.extension(polynomial, name, check=check)

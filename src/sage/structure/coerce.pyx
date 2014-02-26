@@ -1104,11 +1104,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             ...
             RuntimeError: ('BUG in coercion model, codomains must be identical', Natural morphism:
               From: Integer Ring
-              To:   Rational Field
-            ..., Generic map:
+              To:   Rational Field, Generic map:
               From: Rational Field
-              To:   Real Field with 53 bits of precision
-            ...)
+              To:   Real Field with 53 bits of precision)
         """
         if homs is None:
             return None

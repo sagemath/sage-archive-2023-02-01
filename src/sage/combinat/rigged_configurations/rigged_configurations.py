@@ -682,7 +682,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
                     vac_num += min(row_len, len(tableau[0]))
         elif "L" in options:
             L = options["L"]
-            if L.has_key(a):
+            if a in L:
                 for kvp in L[a].items():
                     vac_num += min(kvp[0], row_len) * kvp[1]
         elif "dims" in options:
@@ -1008,7 +1008,7 @@ class RCNonSimplyLaced(RiggedConfigurations):
                     vac_num += min(row_len, len(tableau[0]))
         elif "L" in options:
             L = options["L"]
-            if L.has_key(a):
+            if a in L:
                 for kvp in L[a].items():
                     vac_num += min(kvp[0], row_len) * kvp[1]
         elif "dims" in options:
@@ -1350,7 +1350,7 @@ class RCTypeA2Even(RCNonSimplyLaced):
                     vac_num += min(row_len, len(tableau[0]))
         elif "L" in options:
             L = options["L"]
-            if L.has_key(a):
+            if a in L:
                 for kvp in L[a].items():
                     vac_num += min(kvp[0], row_len) * kvp[1]
         elif "dims" in options:
@@ -1505,7 +1505,7 @@ class RCTypeA2Dual(RCTypeA2Even):
                     vac_num += min(row_len, len(tableau[0]))
         elif "L" in options:
             L = options["L"]
-            if L.has_key(a):
+            if a in L:
                 for kvp in L[a].items():
                     vac_num += min(kvp[0], row_len) * kvp[1]
         elif "dims" in options:

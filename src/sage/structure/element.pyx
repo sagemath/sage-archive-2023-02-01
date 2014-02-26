@@ -620,9 +620,9 @@ cdef class Element(sage_object.SageObject):
         # required to have the latter
         for i in xrange(0,ngens):
             gen=parent.gen(i)
-            if kwds.has_key(str(gen)):
+            if str(gen) in kwds:
                 variables.append(kwds[str(gen)])
-            elif in_dict and in_dict.has_key(gen):
+            elif in_dict and gen in in_dict:
                 variables.append(in_dict[gen])
             else:
                 variables.append(gen)
@@ -2774,32 +2774,6 @@ cdef class PrincipalIdealDomainElement(DedekindDomainElement):
             return coercion_model.bin_op(self, right, lcm)
         return self._lcm(right)
 
-    def gcd(self, right):
-        """
-        Returns the gcd of self and right, or 0 if both are 0.
-        """
-        if not PY_TYPE_CHECK(right, Element) or not ((<Element>right)._parent is self._parent):
-            return coercion_model.bin_op(self, right, gcd)
-        return self._gcd(right)
-
-    def xgcd(self, right):
-        r"""
-        Return the extended gcd of self and other, i.e., elements `r, s, t` such that
-        .. math::
-
-           r = s \cdot self + t \cdot other.
-
-        .. note::
-
-           There is no guarantee on minimality of the cofactors.  In
-           the integer case, see documentation for Integer._xgcd() to
-           obtain minimal cofactors.
-        """
-        if not PY_TYPE_CHECK(right, Element) or not ((<Element>right)._parent is self._parent):
-            return coercion_model.bin_op(self, right, xgcd)
-        return self._xgcd(right)
-
-
 # This is pretty nasty low level stuff. The idea is to speed up construction
 # of EuclideanDomainElements (in particular Integers) by skipping some tp_new
 # calls up the inheritance tree.
@@ -2815,20 +2789,6 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
 
     def degree(self):
         raise NotImplementedError
-
-    def _gcd(self, other):
-        """
-        Return the greatest common divisor of self and other.
-
-        Algorithm 3.2.1 in Cohen, GTM 138.
-        """
-        A = self
-        B = other
-        while not B.is_zero():
-            Q, R = A.quo_rem(B)
-            A = B
-            B = R
-        return A
 
     def leading_coefficient(self):
         raise NotImplementedError
@@ -2914,15 +2874,6 @@ cdef class FieldElement(CommutativeRingElement):
         """
         return not not self
 
-    def _gcd(self, FieldElement other):
-        """
-        Return the greatest common divisor of self and other.
-        """
-        if self.is_zero() and other.is_zero():
-            return self
-        else:
-            return self._parent(1)
-
     def _lcm(self, FieldElement other):
         """
         Return the least common multiple of self and other.
@@ -2931,16 +2882,6 @@ cdef class FieldElement(CommutativeRingElement):
             return self
         else:
             return self._parent(1)
-
-    def _xgcd(self, FieldElement other):
-        R = self._parent
-        if not self.is_zero():
-            return R(1), ~self, R(0)
-        elif not other.is_zero():
-            return R(1), R(0), ~self
-        else: # both are 0
-            return self, self, self
-
 
     def quo_rem(self, right):
         r"""
@@ -3381,7 +3322,7 @@ cdef generic_power_c(a, nn, one):
                     return a.parent().one()
                 except AttributeError:
                     return type(a)(1)
-            except StandardError:
+            except Exception:
                 return 1 #oops, the one sucks
         else:
             return one

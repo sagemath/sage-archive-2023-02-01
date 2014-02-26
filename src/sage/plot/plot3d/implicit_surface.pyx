@@ -963,7 +963,7 @@ cdef class ImplicitSurface(IndexFaceSet):
                 gradient = (orig_f.diff(self.vars[0]),
                             orig_f.diff(self.vars[1]),
                             orig_f.diff(self.vars[2]))
-            except StandardError:
+            except Exception:
                 # Would be nice to have more nuanced error handling here.
 
                 # If anything goes wrong, we'll just use central differencing.

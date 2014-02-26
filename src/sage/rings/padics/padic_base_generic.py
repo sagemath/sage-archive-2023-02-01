@@ -356,7 +356,7 @@ class pAdicBaseGeneric(pAdicGeneric):
             sage: Zp(5).plot(max_points=625)
             sage: Zp(23).plot(rgbcolor=(1,0,0))
         """
-        if not args.has_key('pointsize'):
+        if 'pointsize' not in args:
             args['pointsize'] = 1
         from sage.misc.mrange import cartesian_product_iterator
         from sage.rings.real_double import RDF

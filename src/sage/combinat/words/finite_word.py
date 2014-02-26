@@ -296,11 +296,11 @@ class FiniteWord_class(Word_class):
             try:
                 other = self.parent()(other)
                 other.parent()._check(other, length=None)
-            except StandardError:
+            except Exception:
                 try:
                     self = other.parent()(self)
                     self.parent()._check(self, length=None)
-                except StandardError:
+                except Exception:
                     raise TypeError, "no coercion rule between %r and %r" % (self.parent(), other.parent())
         return self, other
 
@@ -6128,7 +6128,7 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         seen, res = {}, []
         for x in self:
-            if not seen.has_key(x):
+            if x not in seen:
                 res.append(x)
                 seen[x] = True
         return res

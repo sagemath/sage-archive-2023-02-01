@@ -1089,6 +1089,12 @@ class Graph(GenericGraph):
             sage: g = graphs.PetersenGraph()
             sage: g = Graph(g.edges(),immutable=False)
             sage: g.add_edge("Hey", "Heyyyyyyy")
+
+        And their name is set::
+
+            sage: g = graphs.PetersenGraph()
+            sage: Graph(g, immutable=True)
+            Petersen graph: Graph on 10 vertices
         """
         GenericGraph.__init__(self)
         msg = ''
@@ -1316,7 +1322,7 @@ class Graph(GenericGraph):
                 try:
                     e = int(e)
                     assert e >= 0
-                except StandardError:
+                except Exception:
                     if weighted is False:
                         raise ValueError("Non-weighted graph's"+
                         " adjacency matrix must have only nonnegative"+
@@ -1536,7 +1542,6 @@ class Graph(GenericGraph):
                 self._weighted = weighted
                 self.allow_loops(loops, check=False)
                 self.allow_multiple_edges(multiedges, check=False)
-            self._backend.directed = False
         else:
             raise NotImplementedError("Supported implementations: networkx, c_graph.")
 
@@ -4094,7 +4099,7 @@ class Graph(GenericGraph):
 
         try:
             p.solve(log=verbose)
-        except StandardError:
+        except Exception:
             return None
 
         classss=p.get_values(classss)

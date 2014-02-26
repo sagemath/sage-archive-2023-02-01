@@ -351,7 +351,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         if len(x) == 1 and isinstance(x[0], dict):
             g = self.parent().gen()
-            if x[0].has_key(g):
+            if g in x[0]:
                 return self(x[0][g])
             elif len(x[0]) > 0:
                 raise TypeError("keys do not match self's parent")
@@ -565,7 +565,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if kwds:
             P = self.parent()
             name = P.variable_name()
-            if kwds.has_key(name):
+            if name in kwds:
                 if len(x) > 0:
                     raise ValueError("must not specify both a keyword and positional argument")
                 a = self(kwds[name])

@@ -180,7 +180,7 @@ class GraphicPrimitive(SageObject):
                 s = "\nThe allowed options for %s are:\n"%self
                 K.sort()
                 for k in K:
-                    if A.has_key(k):
+                    if k in A:
                         s += "    %-15s%-60s\n"%(k,A[k])
                 verbose(s, level=0)
 

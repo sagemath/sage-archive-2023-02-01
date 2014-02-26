@@ -528,6 +528,64 @@ cdef class CyclotomicFieldEmbedding(NumberFieldEmbedding):
         self.ratio = L._log_gen(K.coerce_embedding()(K.gen()))
         self._gen_image = L.gen() ** self.ratio
 
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        A helper for pickling and copying.
+
+        INPUT:
+
+        ``_slots`` -- a dictionary
+
+        OUTPUT:
+
+        The given dictionary, with _gen_image and ratio added.
+
+        EXAMPLES::
+
+            sage: from sage.rings.number_field.number_field_morphisms import CyclotomicFieldEmbedding
+            sage: cf6 = CyclotomicField(6)
+            sage: cf12 = CyclotomicField(12)
+            sage: f = CyclotomicFieldEmbedding(cf6, cf12)
+            sage: g = copy(f) # indirect doctest
+            sage: g
+            Generic morphism:
+              From: Cyclotomic Field of order 6 and degree 2
+              To:   Cyclotomic Field of order 12 and degree 4
+              Defn: zeta6 -> zeta12^2
+            sage: g(cf6.0)
+            zeta12^2
+        """
+        _slots['_gen_image'] = self._gen_image
+        _slots['ratio'] = self.ratio
+        return Morphism._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        A helper for unpickling and copying.
+
+        INPUT:
+
+        ``_slots`` -- a dictionary providing values for the c(p)def slots of self.
+
+        EXAMPLES::
+
+            sage: from sage.rings.number_field.number_field_morphisms import CyclotomicFieldEmbedding
+            sage: cf6 = CyclotomicField(6)
+            sage: cf12 = CyclotomicField(12)
+            sage: f = CyclotomicFieldEmbedding(cf6, cf12)
+            sage: g = copy(f) # indirect doctest
+            sage: g
+            Generic morphism:
+              From: Cyclotomic Field of order 6 and degree 2
+              To:   Cyclotomic Field of order 12 and degree 4
+              Defn: zeta6 -> zeta12^2
+            sage: g(cf6.0)
+            zeta12^2
+        """
+        Morphism._update_slots(self, _slots)
+        self._gen_image = _slots['_gen_image']
+        self.ratio = _slots['ratio']
+
     cpdef Element _call_(self, x):
         """
         EXAMPLES::

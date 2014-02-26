@@ -403,13 +403,9 @@ class WeakTableau_abstract(ClonableList):
             [[2], [2, 1], [3, 1, 1], [4, 1, 1], [5, 2, 1]]
         """
         if self.parent()._representation in ['core', 'bounded']:
-            shapes = []
-            t = SkewTableau(list(self))
-            for i in range(len(self.weight())+1):
-                shapes += [ t.restrict(i).outer_shape()]
-            return shapes
+            return intermediate_shapes(self)
         else:
-            return self.to_core_tableau().intermediate_shapes()
+            return intermediate_shapes(self.to_core_tableau())
 
     def pp(self):
         r"""
@@ -802,10 +798,7 @@ class WeakTableau_core(WeakTableau_abstract):
             ValueError: The tableau is not semistandard!
         """
         if not self.parent()._weight == WeakTableau_bounded.from_core_tableau(self._list,self.k).weight():
-            w = WeakTableau_bounded.from_core_tableau(self._list,self.k).weight()
-            wp = self.parent()._weight
-            if not tuple([wp[i] for i in range(len(w))]) == w:
-                raise ValueError("The weight of the parent does not agree with the weight of the tableau!")
+            raise ValueError("The weight of the parent does not agree with the weight of the tableau!")
         t = SkewTableau(list(self))
         if not t in SemistandardSkewTableaux():
             raise ValueError("The tableau is not semistandard!")
@@ -1532,10 +1525,7 @@ class WeakTableau_bounded(WeakTableau_abstract):
         if not t in SemistandardSkewTableaux():
             raise ValueError("The tableaux is not semistandard!")
         if not self.parent()._weight == tuple(t.weight()):
-            w = tuple(t.weight())
-            wp = self.parent()._weight
-            if not tuple([wp[i] for i in range(len(w))]) == w:
-                raise ValueError("The weight of the parent does not agree with the weight of the tableau!")
+            raise ValueError("The weight of the parent does not agree with the weight of the tableau!")
         outer = t.outer_shape()
         inner = t.inner_shape()
         if self.parent()._outer_shape != outer:
@@ -1604,8 +1594,7 @@ class WeakTableau_bounded(WeakTableau_abstract):
             for j in range(len(l)):
                 l_new += [l[j] + [i]*(p[j]-len(l[j]))]
             l = l_new
-        return WeakTableaux_core(self.k, self.shape_core(), self.weight())(l)
-        #return WeakTableau_core(l, self.k)
+        return WeakTableau_core(l, self.k)
 
     @classmethod
     def from_core_tableau(cls, t, k):
@@ -2192,10 +2181,8 @@ class WeakTableaux_factorized_permutation(WeakTableaux_abstract):
             sage: T.list()
             [[s0, s4, s3, s4*s2], [s0, s3, s4, s3*s2], [s3, s0, s4, s3*s2]]
         """
-        for t in WeakTableaux_bounded(self.k, [self._outer_shape.to_bounded_partition(),self._inner_shape.to_bounded_partition()], self._weight):
-            yield t.to_core_tableau().to_factorized_permutation_tableau()
-        #for t in WeakTableaux_core(self.k, self.shape(), self._weight):
-        #    yield WeakTableau_factorized_permutation.from_core_tableau(t, self.k)
+        for t in WeakTableaux_core(self.k, self.shape(), self._weight):
+            yield WeakTableau_factorized_permutation.from_core_tableau(t, self.k)
 
     Element = WeakTableau_factorized_permutation
 

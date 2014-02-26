@@ -1997,12 +1997,12 @@ cdef class pAdicConvert_QQ_CR(Morphism):
 
         EXAMPLES::
 
-            sage: f = Zp(5).coerce_map_from(QQ)
+            sage: f = Zp(5).convert_map_from(QQ)
             sage: g = copy(f)   # indirect doctest
             sage: g == f
             True
             sage: g(1/6)
-            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20)
+            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20) 
             sage: g(1/6) == f(1/6)
             True
         """
@@ -2016,7 +2016,7 @@ cdef class pAdicConvert_QQ_CR(Morphism):
 
         EXAMPLES::
 
-            sage: f = Zp(5).coerce_map_from(QQ)
+            sage: f = Zp(5).convert_map_from(QQ)
             sage: g = copy(f)   # indirect doctest
             sage: g == f
             True

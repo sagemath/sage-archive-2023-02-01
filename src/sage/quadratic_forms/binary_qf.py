@@ -28,13 +28,18 @@ AUTHORS:
   - Appended to add the methods :func:`BinaryQF_reduced_representatives`,
     :meth:`~BinaryQF.is_reduced`, and ``__add__`` on 8-3-2006 for Coding Sprint
     #2.
+
   - Added Documentation and :meth:`~BinaryQF.complex_point` method on 8-8-2006.
 
 - Nick Alexander: add doctests and clean code for Doc Days 2
+
 - William Stein (2009-08-05): composition; some ReSTification.
+
 - William Stein (2009-09-18): make immutable.
+
 - Justin C. Walker (2011-02-06):
-  * Add support for indefinite forms.
+
+  - Add support for indefinite forms.
 """
 
 #*****************************************************************************
@@ -55,7 +60,7 @@ AUTHORS:
 from sage.libs.pari.all import pari
 from sage.rings.all import (is_fundamental_discriminant, ZZ, divisors, gcd)
 from sage.structure.sage_object import SageObject
-from sage.matrix.matrix_space import MatrixSpace_generic
+from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import Matrix
 from sage.misc.cachefunc import cached_method
 from sage.rings.arith import is_square, integer_ceil, integer_floor
@@ -68,7 +73,6 @@ class BinaryQF(SageObject):
 
     - `v` -- a list or tuple of 3 entries:  [a,b,c], or a quadratic homogeneous
       polynomial in two variables with integer coefficients
-
 
     OUTPUT:
 
@@ -184,9 +188,7 @@ class BinaryQF(SageObject):
         EXAMPLES:
 
         We explicitly compute in the group of classes of positive
-        definite binary quadratic forms of discriminant -23.
-
-        ::
+        definite binary quadratic forms of discriminant -23::
 
             sage: R = BinaryQF_reduced_representatives(-23, primitive_only=False); R
             [x^2 + x*y + 6*y^2, 2*x^2 - x*y + 3*y^2, 2*x^2 + x*y + 3*y^2]
@@ -220,7 +222,7 @@ class BinaryQF(SageObject):
                                             right._pari_init_())))
             return BinaryQF(v)
         # ...or a 2x2 matrix...
-        if isinstance(right.parent(), MatrixSpace_generic):
+        if isinstance(right.parent(), MatrixSpace):
             if not (right.is_square() and right.ncols() == 2):
                 raise ValueError, "Must be a 2 x 2 matrix"
             else:
@@ -245,7 +247,6 @@ class BinaryQF(SageObject):
         Indexing is like lists -- negative indices and slices are allowed.
 
         EXAMPLES::
-
 
             sage: Q = BinaryQF([2,3,4])
             sage: Q[0]
@@ -272,7 +273,6 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-
             sage: Q = BinaryQF([2, 3, 4])
             sage: Q(1, 2)
             24
@@ -297,7 +297,6 @@ class BinaryQF(SageObject):
         Returns True if self and right are identical: the same coefficients.
 
         EXAMPLES::
-
 
             sage: P = BinaryQF([2,2,3])
             sage: Q = BinaryQF([2,2,3])
@@ -332,7 +331,6 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-
             sage: P = BinaryQF([2,2,3]); P
             2*x^2 + 2*x*y + 3*y^2
             sage: Q = BinaryQF([-1,2,2]); Q
@@ -359,7 +357,6 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-
             sage: P = BinaryQF([2,2,3]); P
             2*x^2 + 2*x*y + 3*y^2
             sage: Q = BinaryQF([-1,2,2]); Q
@@ -383,7 +380,6 @@ class BinaryQF(SageObject):
         Display the quadratic form.
 
         EXAMPLES::
-
 
             sage: Q = BinaryQF([1,2,3]); Q # indirect doctest
             x^2 + 2*x*y + 3*y^2
@@ -412,13 +408,15 @@ class BinaryQF(SageObject):
     def content(self):
         """
         Return the content of the form, i.e., the gcd of the coefficients.
-        EXAMPLES:
-        sage: Q=BinaryQF(22,14,10)
-        sage: Q.content()
-         2
-        sage: Q=BinaryQF(4,4,-15)
-        sage: Q.content()
-         1
+
+        EXAMPLES::
+
+            sage: Q=BinaryQF(22,14,10)
+            sage: Q.content()
+            2
+            sage: Q=BinaryQF(4,4,-15)
+            sage: Q.content()
+            1
         """
         return gcd([self._a,self._b,self._c])
 
@@ -458,7 +456,6 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-
             sage: Q = BinaryQF([1,2,3])
             sage: Q.discriminant()
             -8
@@ -473,16 +470,19 @@ class BinaryQF(SageObject):
         integers).
 
         OUTPUT:
-            The determinant of the matrix [a,b/2;b/2,c] as a rational
+
+        The determinant of the matrix [a,b/2;b/2,c] as a rational
 
         REMARK:
-            This is just -D/4 where D is the discriminant.  The return
-            type is rational even if b (and hence D) is even.
 
-        EXAMPLE:
-        sage: q = BinaryQF(1,-1,67)
-        sage: q.determinant()
-        267/4
+        This is just -D/4 where D is the discriminant.  The return
+        type is rational even if b (and hence D) is even.
+
+        EXAMPLE::
+
+            sage: q = BinaryQF(1,-1,67)
+            sage: q.determinant()
+            267/4
         """
         return self._a*self._c-(self._b**2)/4
 
@@ -516,7 +516,6 @@ class BinaryQF(SageObject):
         `\gcd(a,b,c)=1`, i.e., is primitive.
 
         EXAMPLES::
-
 
             sage: Q = BinaryQF([6,3,9])
             sage: Q.is_primitive()
@@ -559,9 +558,11 @@ class BinaryQF(SageObject):
         Report whether this quadratic form is identically zero.
 
         OUTPUT:
-            True if the form is zero, else False.
 
-        EXAMPLES:
+        True if the form is zero, else False.
+
+        EXAMPLES::
+
             sage: Q=BinaryQF(195751,37615,1807)
             sage: Q.is_zero()
             False
@@ -578,7 +579,6 @@ class BinaryQF(SageObject):
         `|b| \leq a \leq c`, i.e., is weakly reduced.
 
         EXAMPLES::
-
 
             sage: Q = BinaryQF([1,2,3])
             sage: Q.is_weakly_reduced()
@@ -691,7 +691,8 @@ class BinaryQF(SageObject):
         and is either the same as, or twice the size of, the cycle.  In the
         latter case, the cycle has odd length.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Q=BinaryQF(14,17,-2)
             sage: Q.Cycle()
             [14*x^2 + 17*x*y - 2*y^2, 2*x^2 + 19*x*y - 5*y^2, 5*x^2 + 11*x*y - 14*y^2]
@@ -732,9 +733,12 @@ class BinaryQF(SageObject):
         Report whether the form is positive definite.
 
         OUTPUT:
-            True if this form is positive definite, i.e., has a
-            negative discriminant with self._a > 0.
-        EXAMPLES:
+
+        True if this form is positive definite, i.e., has a negative
+        discriminant with self._a > 0.
+
+        EXAMPLES::
+
             sage: Q=BinaryQF(195751,37615,1807)
             sage: Q.is_posdef()
             True
@@ -749,10 +753,12 @@ class BinaryQF(SageObject):
         Report whether the form is negative definite.
 
         OUTPUT:
-            True if this form is negative definite, i.e., has a
-            negative discriminant with self._a < 0.
 
-        EXAMPLES:
+        True if this form is negative definite, i.e., has a negative
+        discriminant with self._a < 0.
+
+        EXAMPLES::
+
             sage: Q=BinaryQF(-1,3,-5)
             sage: Q.is_posdef()
             False
@@ -766,9 +772,11 @@ class BinaryQF(SageObject):
         Report whether the form is indefinite.
 
         OUTPUT:
-            True if this form is indefinite, i.e., has discriminant > 0.
 
-        EXAMPLES:
+        True if this form is indefinite, i.e., has discriminant > 0.
+
+        EXAMPLES::
+
             sage: Q=BinaryQF(1,3,-5)
             sage: Q.is_indef()
             True
@@ -780,9 +788,11 @@ class BinaryQF(SageObject):
         Report whether the form is singular.
 
         OUTPUT:
-            True if this form is singular, i.e., has zero discriminant.
 
-        EXAMPLES:
+        True if this form is singular, i.e., has zero discriminant.
+
+        EXAMPLES::
+
             sage: Q=BinaryQF(1,3,-5)
             sage: Q.is_singular()
             False
@@ -797,9 +807,11 @@ class BinaryQF(SageObject):
         Report whether the form is nonsingular.
 
         OUTPUT:
-            True if this form is nonsingular, i.e., has non-zero discriminant.
 
-        EXAMPLES:
+        True if this form is nonsingular, i.e., has non-zero discriminant.
+
+        EXAMPLES::
+
             sage: Q=BinaryQF(1,3,-5)
             sage: Q.is_nonsingular()
             True
@@ -813,10 +825,12 @@ class BinaryQF(SageObject):
         """
         Returns whether self is properly equivalent to Q.
 
-        INPUT::
+        INPUT:
+
         - ``right`` -- a binary quadratic form
 
         EXAMPLES::
+
             sage: Q3 = BinaryQF(4,4,15)
             sage: Q2 = BinaryQF(4,-4,15)
             sage: Q2.is_equivalent(Q3)
@@ -958,7 +972,6 @@ def BinaryQF_reduced_representatives(D, primitive_only=True):
     r"""
     Compute representatives of the classes of (positive definite or
     indefinite) binary quadratic forms of discriminant D.
-
 
     INPUT:
 

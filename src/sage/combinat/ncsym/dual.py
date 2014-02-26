@@ -410,6 +410,10 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
                 ValueError: w{{1, 3}, {2}} is not in the image of Generic morphism:
                   From: Symmetric Functions over Rational Field in the homogeneous basis
                   To:   Dual symmetric functions in non-commuting variables over the Rational Field in the w basis
+                <BLANKLINE>
+                        WARNING: This morphism has apparently been used internally
+                        in the coercion system. It may become defunct in the next
+                        garbage collection. Please use a copy.
                 sage: h(w(h[2,1])) == w(h[2,1]).to_symmetric_function()
                 True
             """

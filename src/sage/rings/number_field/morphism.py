@@ -300,7 +300,7 @@ class NumberFieldHomomorphism_im_gens(RingHomomorphism_im_gens):
         # try to get the cached transformation matrix and vector space isomorphisms if they exist
         try:
             M,LtoV,VtoK = self._transformation_data
-        except StandardError:
+        except Exception:
             # get the identifications of K and L with vector spaces over Q
             V,VtoL,LtoV = self.codomain().absolute_vector_space()
             V,VtoK,KtoV = self.domain().absolute_vector_space()

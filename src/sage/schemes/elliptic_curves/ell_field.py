@@ -659,14 +659,14 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
                     jbase = g.preimage(j)
                     f = g
                     break
-                except StandardError:
+                except Exception:
                     pass
             if f == None:
                 return None
         else:
             try:
                 jbase = f.preimage(j)
-            except StandardError:
+            except Exception:
                 return None
         E = EllipticCurve(j=jbase)
         E2 = EllipticCurve(self.base_field(), [f(a) for a in E.a_invariants()])
@@ -694,7 +694,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         if Etwist.is_isomorphic(self):
             try:
                 Eout = EllipticCurve(K, [f.preimage(a) for a in Etwist.a_invariants()])
-            except StandardError:
+            except Exception:
                 return None
             else:
                 return Eout

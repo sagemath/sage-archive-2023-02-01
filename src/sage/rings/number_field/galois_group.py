@@ -313,7 +313,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
 
             sage: K = NumberField(x^3 - x + 1, 'a')
             sage: K.galois_group(names='b').splitting_field()
-            Number Field in b with defining polynomial x^6 - 14*x^4 - 20*x^3 + 49*x^2 + 140*x + 307
+            Number Field in b with defining polynomial x^6 - 6*x^4 + 9*x^2 + 23
             sage: L = QuadraticField(-23, 'c'); L.galois_group().splitting_field() is L
             True
         """
@@ -336,9 +336,9 @@ class GaloisGroup_v2(PermutationGroup_generic):
 
         EXAMPLE::
 
-            sage: G = NumberField(x^3 - x - 1,'a').galois_closure('b').galois_group()
-            sage: G.subgroup([ G(1), G([(1,5,2),(3,4,6)]), G([(1,2,5),(3,6,4)])])
-            Subgroup [(), (1,5,2)(3,4,6), (1,2,5)(3,6,4)] of Galois group of Number Field in b with defining polynomial x^6 - 14*x^4 + 20*x^3 + 49*x^2 - 140*x + 307
+            sage: G = NumberField(x^3 - x - 1, 'a').galois_closure('b').galois_group()
+            sage: G.subgroup([ G(1), G([(1,2,3),(4,5,6)]), G([(1,3,2),(4,6,5)]) ])
+            Subgroup [(), (1,2,3)(4,5,6), (1,3,2)(4,6,5)] of Galois group of Number Field in b with defining polynomial x^6 - 6*x^4 + 9*x^2 + 23
         """
         if len(elts) == self.order():
             return self
@@ -448,9 +448,9 @@ class GaloisGroup_v2(PermutationGroup_generic):
             sage: G=K.galois_group()
             sage: P = K.primes_above(3)[0]
             sage: G.ramification_group(P, 3)
-            Subgroup [(), (1,3,6)(2,4,5), (1,6,3)(2,5,4)] of Galois group of Number Field in b with defining polynomial x^6 + 60*x^3 + 3087
+            Subgroup [(), (1,2,4)(3,5,6), (1,4,2)(3,6,5)] of Galois group of Number Field in b with defining polynomial x^6 + 243
             sage: G.ramification_group(P, 5)
-            Subgroup [()] of Galois group of Number Field in b with defining polynomial x^6 + 60*x^3 + 3087
+            Subgroup [()] of Galois group of Number Field in b with defining polynomial x^6 + 243
         """
         if not self.is_galois():
             raise TypeError, "Ramification groups only defined for Galois extensions"
@@ -555,9 +555,9 @@ class GaloisGroup_subgroup(GaloisGroup_v2):
         EXAMPLE::
 
             sage: from sage.rings.number_field.galois_group import GaloisGroup_subgroup
-            sage: G = NumberField(x^3 - x - 1,'a').galois_closure('b').galois_group()
-            sage: GaloisGroup_subgroup( G, [ G(1), G([(1,5,2),(3,4,6)]), G([(1,2,5),(3,6,4)])])
-            Subgroup [(), (1,5,2)(3,4,6), (1,2,5)(3,6,4)] of Galois group of Number Field in b with defining polynomial x^6 - 14*x^4 + 20*x^3 + 49*x^2 - 140*x + 307
+            sage: G = NumberField(x^3 - x - 1, 'a').galois_closure('b').galois_group()
+            sage: GaloisGroup_subgroup( G, [ G(1), G([(1,2,3),(4,5,6)]), G([(1,3,2),(4,6,5)])])
+            Subgroup [(), (1,2,3)(4,5,6), (1,3,2)(4,6,5)] of Galois group of Number Field in b with defining polynomial x^6 - 6*x^4 + 9*x^2 + 23
         """
         #XXX: This should be fixed so that this can use GaloisGroup_v2.__init__
         PermutationGroup_generic.__init__(self, elts, canonicalize = True)
@@ -600,10 +600,10 @@ class GaloisGroup_subgroup(GaloisGroup_v2):
 
         EXAMPLE::
 
-            sage: G = NumberField(x^3 - x - 1,'a').galois_closure('b').galois_group()
-            sage: H = G.subgroup([ G(1), G([(1,5,2),(3,4,6)]), G([(1,2,5),(3,6,4)])])
+            sage: G = NumberField(x^3 - x - 1, 'a').galois_closure('b').galois_group()
+            sage: H = G.subgroup([ G(1), G([(1,2,3),(4,5,6)]), G([(1,3,2),(4,6,5)])])
             sage: H._repr_()
-            'Subgroup [(), (1,5,2)(3,4,6), (1,2,5)(3,6,4)] of Galois group of Number Field in b with defining polynomial x^6 - 14*x^4 + 20*x^3 + 49*x^2 - 140*x + 307'
+            'Subgroup [(), (1,2,3)(4,5,6), (1,3,2)(4,6,5)] of Galois group of Number Field in b with defining polynomial x^6 - 6*x^4 + 9*x^2 + 23'
         """
         return "Subgroup %s of %s" % (self._elts, self._ambient)
 
@@ -622,12 +622,14 @@ class GaloisGroupElement(PermutationGroupElement):
         -w + 2
 
         sage: L.<v> = NumberField(x^3 - 2); G = L.galois_group(names='y')
-        sage: G[1]
-        (1,2)(3,4)(5,6)
-        sage: G[1](v)
-        1/84*y^4 + 13/42*y
-        sage: G[1]( G[1](v) )
-        -1/252*y^4 - 55/126*y
+        sage: G[4]
+        (1,5)(2,4)(3,6)
+        sage: G[4](v)
+        1/18*y^4
+        sage: G[4](G[4](v))
+        -1/36*y^4 - 1/2*y
+        sage: G[4](G[4](G[4](v)))
+        1/18*y^4
     """
 
     @cached_method
@@ -671,10 +673,10 @@ class GaloisGroupElement(PermutationGroupElement):
 
         EXAMPLE::
 
-            sage: K.<b> = NumberField(x^3 - 3,'a').galois_closure()
-            sage: G=K.galois_group()
+            sage: K.<b> = NumberField(x^3 - 3, 'a').galois_closure()
+            sage: G = K.galois_group()
             sage: P = K.primes_above(3)[0]
-            sage: s = hom(K, K, 1/54*b^4 + 1/18*b)
+            sage: s = hom(K, K, 1/18*b^4 - 1/2*b)
             sage: G(s).ramification_degree(P)
             4
         """

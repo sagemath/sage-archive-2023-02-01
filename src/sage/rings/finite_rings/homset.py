@@ -270,6 +270,37 @@ class FiniteFieldHomset(RingHomset_generic):
         """
         return self.list().index(item)
 
+    def _an_element_(self):
+        """
+        Return an element of ``self``.
+
+        TESTS::
+
+            sage: Hom(GF(3^3, 'a'), GF(3^6, 'b')).an_element()
+            Ring morphism:
+              From: Finite Field in a of size 3^3
+              To:   Finite Field in b of size 3^6
+              Defn: a |--> 2*b^5 + 2*b^4
+
+            sage: Hom(GF(3^3, 'a'), GF(3^2, 'c')).an_element()
+            Traceback (most recent call last):
+            ...
+            EmptySetError: no homomorphisms from Finite Field in a of size 3^3 to Finite Field in c of size 3^2
+
+        .. TODO::
+
+            Use a more sophisticated algorithm; see also :trac:`8751`.
+
+        """
+        K = self.domain()
+        L = self.codomain()
+        if K.degree() == 1:
+            return L.coerce_map_from(K)
+        elif not K.degree().divides(L.degree()):
+            from sage.categories.sets_cat import EmptySetError
+            raise EmptySetError('no homomorphisms from %s to %s' % (K, L))
+        return K.hom([K.modulus().any_root(L)])
+
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.rings.finite_field_morphism', 'FiniteFieldHomset', FiniteFieldHomset)

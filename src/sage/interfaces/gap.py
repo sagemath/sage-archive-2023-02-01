@@ -1508,6 +1508,7 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
 
     # Create new workspace with filename WORKSPACE
     g = Gap(use_workspace_cache=False, max_workspace_size=None)
+    g.eval('SetUserPreference("HistoryMaxLines", 30)')
     for pkg in ['GAPDoc', 'ctbllib', 'sonata', 'guava', 'factint', \
                 'gapdoc', 'grape', 'design', \
                 'toric', 'laguna', 'braid']:

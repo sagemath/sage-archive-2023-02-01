@@ -1026,7 +1026,7 @@ class Qepcad:
             True
         """
         index_str = _format_cell_index(index)
-        if self._cell_cache.has_key(index_str):
+        if index_str in self._cell_cache:
             return self._cell_cache[index_str]
         else:
             c = self.make_cells(self.d_cell(index))[0]

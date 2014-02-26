@@ -66,13 +66,18 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.arith import is_square, integer_ceil, integer_floor
 
 class BinaryQF(SageObject):
-    """
+    r"""
     A binary quadratic form over `\ZZ`.
 
     INPUT:
 
-    - `v` -- a list or tuple of 3 entries:  [a,b,c], or a quadratic homogeneous
-      polynomial in two variables with integer coefficients
+    One of the following:
+
+    - ``a`` -- either a 3-tuple of integers, or a quadratic
+      homogeneous polynomial in two variables with integer
+      coefficients
+
+    - ``a``, ``b``, ``c`` -- three integers
 
     OUTPUT:
 
@@ -92,17 +97,19 @@ class BinaryQF(SageObject):
         sage: BinaryQF(1,0,1)
         x^2 + y^2
     """
-    # Initializes the form with a 3-element list
     def __init__(self, a, b=None, c=None):
         r"""
-        Creates the binary quadratic form `ax^2 + bxy + cy^2` from the
-        triple [a,b,c] over `\ZZ` or from a polynomial.
+        Create a binary quadratic form `ax^2 + bxy + cy^2`.
 
         INPUT:
 
-        - ``a`` -- 3-tuple of integers, or a quadratic homogeneous polynomial
-          in two variables with integer coefficients; or
-          ``a``,``b``,``c`` -- three integers
+        One of the following:
+
+        - ``a`` -- either a 3-tuple of integers, or a quadratic
+          homogeneous polynomial in two variables with integer
+          coefficients
+
+        - ``a``, ``b``, ``c`` -- three integers
 
         EXAMPLES::
 
@@ -111,7 +118,7 @@ class BinaryQF(SageObject):
             sage: Q = BinaryQF([1,2])
             Traceback (most recent call last):
             ...
-            TypeError: Binary quadratic form must be given by a list of three coefficients
+            TypeError: binary quadratic form must be given by a quadratic homogeneous bivariate integer polynomial or its coefficients
 
             sage: R.<x, y> = ZZ[]
             sage: f = x^2 + 2*x*y + 3*y^2
@@ -120,47 +127,33 @@ class BinaryQF(SageObject):
             sage: BinaryQF(f + x)
             Traceback (most recent call last):
             ...
-            TypeError: Binary quadratic form must be given by a quadratic homogeneous bivariate integer polynomial
+            TypeError: binary quadratic form must be given by a quadratic homogeneous bivariate integer polynomial or its coefficients
 
         TESTS::
 
             sage: BinaryQF(0)
             0
         """
-        if isinstance(a, (list, tuple)):
-            if len(a) == 3:
-                # Let the ZZ() cast catch type errors
-                try:
-                    self._a = ZZ(a[0])
-                    self._b = ZZ(a[1])
-                    self._c = ZZ(a[2])
-                except ValueError:
-                    raise TypeError, "Binary quadratic form must be given by a list of three integers"
-            else:
-                raise TypeError, "Binary quadratic form must be given by a list of three coefficients"
-        elif a in ZZ:
-            try:
-                self._a = ZZ(a)
-                self._b = ZZ(b)
-                self._c = ZZ(c)
-            except ValueError:
-                raise TypeError, "Binary quadratic form must be given by three integers"
-        else:
-            f = a
-            from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
-            if f.is_zero():
-                self._a, self._b, self._c = [ZZ(0), ZZ(0), ZZ(0)]
-            elif (is_MPolynomial(f) and f.is_homogeneous() and f.base_ring() == ZZ
-                    and f.degree() == 2 and f.parent().ngens() == 2):
-                x, y = f.parent().gens()
-                self._a, self._b, self._c = [f.monomial_coefficient(mon) for mon in [x**2, x*y, y**2]]
-            else:
-                raise TypeError, "Binary quadratic form must be given by a quadratic homogeneous bivariate integer polynomial"
+        from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
+        if (isinstance(a, (list, tuple))
+            and len(a) == 3 and b is None and c is None):
+            a, b, c = a
+        elif a == 0:
+            a = b = c = 0
+        elif (is_MPolynomial(a) and a.is_homogeneous() and a.base_ring() == ZZ
+              and a.degree() == 2 and a.parent().ngens() == 2):
+            x, y = a.parent().gens()
+            a, b, c = [a.monomial_coefficient(mon) for mon in [x**2, x*y, y**2]]
+        if not (a in ZZ and b in ZZ and c in ZZ):
+            raise TypeError('binary quadratic form must be given by a quadratic homogeneous bivariate integer polynomial or its coefficients')
+        self._a = ZZ(a)
+        self._b = ZZ(b)
+        self._c = ZZ(c)
         self._poly = None
 
     def _pari_init_(self):
         """
-        Used to convert this quadratic form to Pari.
+        Convert this quadratic form to PARI.
 
         EXAMPLES::
 
@@ -222,20 +215,18 @@ class BinaryQF(SageObject):
                                             right._pari_init_())))
             return BinaryQF(v)
         # ...or a 2x2 matrix...
-        if isinstance(right.parent(), MatrixSpace):
-            if not (right.is_square() and right.ncols() == 2):
-                raise ValueError, "Must be a 2 x 2 matrix"
-            else:
-                aa = right[0,0]
-                bb = right[0,1]
-                cc = right[1,0]
-                dd = right[1,1]
-                A = self.polynomial()(aa, cc)
-                C = self.polynomial()(bb, dd)
-                B = self.polynomial()(aa+bb,cc+dd) - A - C
-                qf = BinaryQF(A, B, C)
-                return qf
-        raise TypeError, "Right operand must be binary quadratic form or 2x2 matrix"
+        if (isinstance(right.parent(), MatrixSpace)
+            and right.nrows() == right.ncols() == 2):
+            aa = right[0, 0]
+            bb = right[0, 1]
+            cc = right[1, 0]
+            dd = right[1, 1]
+            A = self.polynomial()(aa, cc)
+            C = self.polynomial()(bb, dd)
+            B = self.polynomial()(aa + bb,cc + dd) - A - C
+            qf = BinaryQF(A, B, C)
+            return qf
+        raise TypeError("right operand must be a binary quadratic form or 2x2 matrix")
 
     def __getitem__(self, n):
         """
@@ -294,7 +285,8 @@ class BinaryQF(SageObject):
 
     def __cmp__(self, right):
         """
-        Returns True if self and right are identical: the same coefficients.
+        Return ``True`` if ``self`` and ``right`` have the same
+        coefficients.
 
         EXAMPLES::
 
@@ -323,11 +315,11 @@ class BinaryQF(SageObject):
 
     def __add__(self, Q):
         """
-        Returns the component-wise sum of two forms.
+        Return the component-wise sum of two forms.
 
-        That is, given `a_1 x^2 + b_1 x y + c_1 y^2` and `a_2 x^2 + b_2 x y +
-        c_2 y^2`, returns the form
-        `(a_1 + a_2) x^2 + (b_1 + b_2) x y + (c_1 + c_2) y^2.`
+        Given `a_1 x^2 + b_1 x y + c_1 y^2` and `a_2 x^2 + b_2 x y +
+        c_2 y^2`, this returns the form `(a_1 + a_2) x^2 + (b_1 + b_2)
+        x y + (c_1 + c_2) y^2.`
 
         EXAMPLES::
 
@@ -349,11 +341,11 @@ class BinaryQF(SageObject):
 
     def __sub__(self, Q):
         """
-        Returns the component-wise difference of two forms.
+        Return the component-wise difference of two forms.
 
-        That is, given `a_1 x^2 + b_1 x y + c_1 y^2` and `a_2 x^2 + b_2 x y +
-        c_2 y^2`, returns the form
-        `(a_1 - a_2) x^2 + (b_1 - b_2) x y + (c_1 - c_2) y^2.`
+        Given two forms `a_1 x^2 + b_1 x y + c_1 y^2` and `a_2 x^2 +
+        b_2 x y + c_2 y^2`, this returns the form `(a_1 - a_2) x^2 +
+        (b_1 - b_2) x y + (c_1 - c_2) y^2.`
 
         EXAMPLES::
 
@@ -423,8 +415,7 @@ class BinaryQF(SageObject):
     @cached_method
     def polynomial(self):
         """
-        Returns the binary quadratic form as a homogeneous 2-variable
-        polynomial.
+        Return ``self`` as a homogeneous 2-variable polynomial.
 
         EXAMPLES::
 
@@ -438,7 +429,7 @@ class BinaryQF(SageObject):
 
             sage: Q = BinaryQF([0,0,0])
             sage: Q.polynomial()
-             0
+            0
 
             Note: Cacheing in _poly seems to give a very slight
             improvement (~0.2 usec) in 'timeit()' runs.  Not sure it
@@ -451,8 +442,9 @@ class BinaryQF(SageObject):
     @cached_method
     def discriminant(self):
         """
-        Returns the discriminant `b^2 - 4ac` of this binary
-        form (`ax^2 + bxy + cy^2`).
+        Return the discriminant of ``self``.
+
+        Given a form `ax^2 + bxy + cy^2`, this returns `b^2 - 4ac`.
 
         EXAMPLES::
 
@@ -464,10 +456,11 @@ class BinaryQF(SageObject):
 
     def determinant(self):
         """
-        The determinant of the matrix associated to this quadratic form.
-        The determinant is used by Gauss and by Conway-Sloane (for whom
-        an integral quadratic form has coefficients (a,2b,c) with a,b,c
-        integers).
+        Return the determinant of the matrix associated to ``self``.
+
+        The determinant is used by Gauss and by Conway-Sloane, for
+        whom an integral quadratic form has coefficients `(a, 2b, c)`
+        with `a`, `b`, `c` integers.
 
         OUTPUT:
 
@@ -511,7 +504,7 @@ class BinaryQF(SageObject):
 
     @cached_method
     def is_primitive(self):
-        """
+        r"""
         Checks if the form `ax^2 + bxy + cy^2`  satisfies
         `\gcd(a,b,c)=1`, i.e., is primitive.
 
@@ -574,8 +567,8 @@ class BinaryQF(SageObject):
 
     @cached_method
     def is_weakly_reduced(self):
-        """
-        Checks if the form `ax^2 + bxy + cy^2`  satisfies
+        r"""
+        Check if the form `ax^2 + bxy + cy^2` satisfies
         `|b| \leq a \leq c`, i.e., is weakly reduced.
 
         EXAMPLES::
@@ -593,17 +586,18 @@ class BinaryQF(SageObject):
             True
         """
         if self.discriminant() >= 0:
-            raise NotImplementedError, "only implemented for negative discriminants"
+            raise ValueError("only defined for negative discriminant")
         return (abs(self._b) <= self._a) and (self._a <= self._c)
 
-    def _reduce_indef(self, DoMatrix=False):
+    def _reduce_indef(self, matrix=False):
         """
-        Reduce an indefinite, non-reduced form.  If 'Matrix' is true,
-        return both the reduced form and the matrix which produces the
-        latter from the input (right-action).
+        Reduce an indefinite, non-reduced form.
+
+        If ``matrix`` is True, return both the reduced form and a
+        matrix transforming ``self`` into the reduced form.
         """
         from sage.functions.generalized import sign
-        if DoMatrix:
+        if matrix:
             U = Matrix(ZZ,2,2,[1,0,0,1])
         d = self.discriminant().sqrt(prec=53)
         Q = self
@@ -616,22 +610,23 @@ class BinaryQF(SageObject):
                 s = sign(c)*integer_floor(((cabs+b)/(2*cabs)))
             else:
                 s = sign(c)*integer_floor(((d+b)/(2*cabs)))
-            if DoMatrix:
+            if matrix:
                 T = Matrix(ZZ,2,2,[0,-1,1,s])
                 U=U*T
             Q = BinaryQF(c, -b+2*s*c, c*s*s-b*s+a)
-#            print "(%s,%s,%s) -> %s"%(Q._a,Q._b,Q._c,Q.is_reduced())
-        if DoMatrix:
+        if matrix:
             return Q, U
         return Q
 
     @cached_method
-    def reduced_form(self, DoMatrix=False):
+    def reduced_form(self, matrix=False):
         """
-        Return the unique reduced form equivalent to ``self``. See also
-        :meth:`~is_reduced`.
-        Returns a reduced form equivalent to the input form.  If 'Matrix'
-        is True, also return the matrix creating the equivalent form.
+        Return a reduced form equivalent to the ``self``.
+
+        If ``matrix`` is ``True``, return both the reduced form and a
+        matrix transforming ``self`` into the reduced form.
+
+        See also :meth:`~is_reduced`.
 
         EXAMPLES::
 
@@ -652,15 +647,15 @@ class BinaryQF(SageObject):
             True
         """
         if self.is_reduced():
-            if DoMatrix:
-                return self,Matrix(ZZ,2,2,[1,0,0,1])
+            if matrix:
+                return self, Matrix(ZZ, 2, 2, [1, 0, 0, 1])
             else:
                 return self
         if self.discriminant() > 0:
-            return self._reduce_indef(DoMatrix)
+            return self._reduce_indef(matrix)
 
         v = list(pari('Vec(qfbred(Qfb(%s,%s,%s)))'%(self._a,self._b,self._c)))
-        return BinaryQF(v)
+        return BinaryQF(v[0:3])
 
     # Buchmann/Vollmer Cycle algorithm
     def _RhoTau(self, Proper):
@@ -684,12 +679,17 @@ class BinaryQF(SageObject):
 
     def Cycle(self, Proper=False):
         """
-        Produce the cycle of reduced forms to which this (reduced, indefinite)
-        form belongs.  This is used to test for equivalence between indefinite
-        forms.  The cycle of a form consists of all equivalent forms with
-        coefficient a>0.  The "proper" cycle consists of all equivalent forms,
-        and is either the same as, or twice the size of, the cycle.  In the
-        latter case, the cycle has odd length.
+        Return the cycle of reduced forms to which ``self`` belongs.
+
+        INPUT:
+
+        - ``self`` -- reduced, indefinite form
+
+        This is used to test for equivalence between indefinite forms.
+        The cycle of a form consists of all equivalent forms with
+        coefficient a>0.  The "proper" cycle consists of all
+        equivalent forms, and is either the same as, or twice the size
+        of, the cycle.  In the latter case, the cycle has odd length.
 
         EXAMPLES::
 
@@ -719,7 +719,7 @@ class BinaryQF(SageObject):
             6*x^2 + 7*x*y - y^2]
         """
         if not (self.is_indef() and self.is_reduced()):
-            raise ValueError, "%s must be indefinite and reduced"%self
+            raise ValueError("%s must be indefinite and reduced" % self)
         C = [self]
         Q1 = self._RhoTau(Proper)
         while not self == Q1:
@@ -730,12 +730,8 @@ class BinaryQF(SageObject):
 
     def is_posdef(self):
         """
-        Report whether the form is positive definite.
-
-        OUTPUT:
-
-        True if this form is positive definite, i.e., has a negative
-        discriminant with self._a > 0.
+        Return True if ``self`` is positive definite, i.e., has
+        negative discriminant with `a > 0`.
 
         EXAMPLES::
 
@@ -750,12 +746,8 @@ class BinaryQF(SageObject):
 
     def is_negdef(self):
         """
-        Report whether the form is negative definite.
-
-        OUTPUT:
-
-        True if this form is negative definite, i.e., has a negative
-        discriminant with self._a < 0.
+        Return True if ``self`` is negative definite, i.e., has
+        negative discriminant with `a < 0`.
 
         EXAMPLES::
 
@@ -769,11 +761,8 @@ class BinaryQF(SageObject):
 
     def is_indef(self):
         """
-        Report whether the form is indefinite.
-
-        OUTPUT:
-
-        True if this form is indefinite, i.e., has discriminant > 0.
+        Return True if ``self`` is indefinite, i.e., has positive
+        discriminant.
 
         EXAMPLES::
 
@@ -785,11 +774,8 @@ class BinaryQF(SageObject):
 
     def is_singular(self):
         """
-        Report whether the form is singular.
-
-        OUTPUT:
-
-        True if this form is singular, i.e., has zero discriminant.
+        Return True if ``self`` is singular, i.e., has zero
+        discriminant.
 
         EXAMPLES::
 
@@ -804,11 +790,8 @@ class BinaryQF(SageObject):
 
     def is_nonsingular(self):
         """
-        Report whether the form is nonsingular.
-
-        OUTPUT:
-
-        True if this form is nonsingular, i.e., has non-zero discriminant.
+        Return True if this form is nonsingular, i.e., has non-zero
+        discriminant.
 
         EXAMPLES::
 
@@ -823,7 +806,7 @@ class BinaryQF(SageObject):
 
     def is_equivalent(self, right):
         """
-        Returns whether self is properly equivalent to Q.
+        Return True if ``self`` is properly equivalent to ``right``.
 
         INPUT:
 
@@ -844,7 +827,7 @@ class BinaryQF(SageObject):
             False
         """
         if type(right) != type(self):
-            raise ValueError, "\'%s\' is not a BinaryQF."%right
+            raise TypeError("%s is not a BinaryQF" % right)
         if self.discriminant() != right.discriminant():
             return False
         if self.is_indef():
@@ -870,10 +853,28 @@ class BinaryQF(SageObject):
 
     @cached_method
     def is_reduced(self):
-        """
-        Checks if the quadratic form is reduced, i.e., if the form
-        `ax^2 + bxy + cy^2` satisfies `|b|\leq a \leq c`, and
-        that `b\geq 0` if either `a = b` or `a = c`.
+        r"""
+        Return True if ``self`` is reduced.
+
+        INPUT:
+
+        - ``self`` -- a binary quadratic form `f = ax^2 + bxy + cy^2`
+          of discriminant `D = b^2 - 4 a c`
+
+        OUTPUT:
+
+        True if `f` is reduced, False otherwise.
+
+        - If `f` is positive definite (`D < 0` and `a > 0`), then `f`
+          is reduced if and only if `|b|\leq a \leq c`, and `b\geq 0`
+          if either `a = b` or `a = c`.
+
+        - If `f` is negative definite (`D < 0` and `a < 0`), then `f`
+          is reduced if and only if the positive definite form with
+          coefficients `(-a, b, -c)` is reduced.
+
+        - If `f` is indefinite (`D > 0`), then `f` is reduced if and
+          only if `|\sqrt{D} - 2|a|| < b < \sqrt{D}`.
 
         EXAMPLES::
 
@@ -893,21 +894,31 @@ class BinaryQF(SageObject):
             sage: Q.is_reduced()
             True
         """
-        if self.discriminant() < 0:
-            return (-self._a < self._b <= self._a < self._c) or \
-                (ZZ(0) <= self._b <= self._a == self._c)
+        D = self.discriminant()
+        if D < 0 and self._a > 0:
+            return ((-self._a < self._b <= self._a < self._c)
+                    or (ZZ(0) <= self._b <= self._a == self._c))
+        elif D < 0 and self._a < 0:
+            return ((self._a < self._b <= -self._a < -self._c)
+                    or (ZZ(0) <= self._b <= -self._a == -self._c))
         else:
-            d = self.discriminant().sqrt(prec=53)
-            return (d-2*self._a.abs()).abs() < self._b < d
+            d = D.sqrt(prec=53)
+            return (d - 2*self._a.abs()).abs() < self._b < d
 
     def complex_point(self):
         r"""
-        Returns the point in the complex upper half-plane associated
-        to this (positive definite) quadratic form.
+        Return the point in the complex upper half-plane associated
+        to ``self``.
 
-        For positive definite forms with negative discriminants, this is a
-        root `\tau` of `a x^2 + b x + c` with the imaginary part of `\tau`
-        greater than 0.
+        INPUT:
+
+        - ``self`` -- binary quadratic form `a x^2 + b x y + c` with
+          discriminant `b^2 - 4 a c < 0`.
+
+        OUTPUT:
+
+        - the unique complex root of `a x^2 + b x + c` with positive
+          imaginary part
 
         EXAMPLES::
 
@@ -916,16 +927,14 @@ class BinaryQF(SageObject):
             1.00000000000000*I
         """
         if self.discriminant() >= 0:
-            raise NotImplementedError, "only implemented for negative discriminant"
-        R = ZZ['x']
-        x = R.gen()
-        Q1 = R(self.polynomial()(x,1))
-        return [z  for z in Q1.complex_roots()  if z.imag() > 0][0]
+            raise ValueError("only defined for negative discriminant")
+        Q1 = ZZ['x']([self._c, self._b, self._a])
+        return [z for z in Q1.complex_roots() if z.imag() > 0][0]
 
     def matrix_action_left(self, M):
         r"""
         Return the binary quadratic form resulting from the left action
-        of the 2-by-2 matrix ``M`` on the quadratic form ``self``.
+        of the 2-by-2 matrix `M` on ``self``.
 
         Here the action of the matrix `M = \begin{pmatrix} a & b \\ c & d
         \end{pmatrix}` on the form `Q(x, y)` produces the form `Q(ax+by,
@@ -948,7 +957,7 @@ class BinaryQF(SageObject):
     def matrix_action_right(self, M):
         r"""
         Return the binary quadratic form resulting from the right action
-        of the 2-by-2 matrix ``M`` on the quadratic form ``self``.
+        of the 2-by-2 matrix `M` on ``self``.
 
         Here the action of the matrix `M = \begin{pmatrix} a & b \\ c & d
         \end{pmatrix}` on the form `Q(x, y)` produces the form `Q(ax+cy,
@@ -970,15 +979,15 @@ class BinaryQF(SageObject):
 
 def BinaryQF_reduced_representatives(D, primitive_only=True):
     r"""
-    Compute representatives of the classes of (positive definite or
-    indefinite) binary quadratic forms of discriminant D.
+    Return representatives of the classes of binary quadratic forms
+    of discriminant `D`.
 
     INPUT:
 
-    - ``D`` -- (integer) A discriminant.
+    - ``D`` -- (integer) a discriminant
 
-    - ``primitive_only`` -- (bool, default False) flag controlling whether only
-      primitive forms are included.
+    - ``primitive_only`` -- (bool, default False) if True, only
+      return primitive forms.
 
     OUTPUT:
 
@@ -1007,7 +1016,7 @@ def BinaryQF_reduced_representatives(D, primitive_only=True):
 
     The number of inequivalent reduced binary forms with a fixed negative
     fundamental discriminant D is the class number of the quadratic field
-    `Q(\sqrt{D})`::
+    `\QQ(\sqrt{D})`::
 
         sage: len(BinaryQF_reduced_representatives(-13*4, primitive_only=False))
         2
@@ -1047,11 +1056,9 @@ def BinaryQF_reduced_representatives(D, primitive_only=True):
     """
     from sage.sets.set import Set
     if D not in ZZ:
-        print "%s not an Integer"%(D,)
-        return []
+        raise TypeError("%s is not an integer" % D)
     if is_square(D):
-        print "%s is a square.  Tsk tsk"%D
-        return []
+        raise ValueError("%s is a square" % D)
     D = ZZ(D)
 
     # For a fundamental discriminant all forms are primitive so we need not check:
@@ -1066,7 +1073,7 @@ def BinaryQF_reduced_representatives(D, primitive_only=True):
     # parity as D such that 4a^2 + D <= b^2 <= a^2
     D4 = D%4
     if D4 == 2 or D4 == 3:
-        raise ValueError, "%s is not a discriminant."%D
+        raise ValueError("%s is not a discriminant" % D)
     if D > 0:           # Indefinite
         sqrt_d = D.sqrt(prec=53)
         for b in xsrange(1, int(sqrt_d)+1):

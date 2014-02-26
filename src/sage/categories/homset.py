@@ -509,7 +509,7 @@ class Homset(Set_generic):
 
         A map (by default: a Call morphism) from ``S`` to ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
 
         By :trac:`14711`, conversion and coerce maps should be copied
         before using them outside of the coercion system::
@@ -518,10 +518,34 @@ class Homset(Set_generic):
             sage: P.<t> = ZZ[]
             sage: f = P.hom([2*t])
             sage: phi = H._generic_convert_map(f.parent()); phi
-            sage: phi = copy(phi); phi
             Call morphism:
               From: Set of Homomorphisms from Univariate Polynomial Ring in t over Integer Ring to Univariate Polynomial Ring in t over Integer Ring
               To:   Set of Morphisms from Integer Ring to Univariate Polynomial Ring in t over Rational Field in Category of commutative additive groups
+           sage: H._generic_convert_map(f.parent())(f)
+           Composite map:
+             From: Integer Ring
+             To:   Univariate Polynomial Ring in t over Rational Field
+             Defn:   Composite map:
+                     From: Integer Ring
+                     To:   Univariate Polynomial Ring in t over Integer Ring
+                     Defn:   Polynomial base injection morphism:
+                             From: Integer Ring
+                             To:   Univariate Polynomial Ring in t over Integer Ring
+           <BLANKLINE>
+                                   WARNING: This morphism has apparently been used internally
+                                   in the coercion system. It may become defunct in the next
+                                   garbage collection. Please use a copy.
+                           then
+                             Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
+                             Defn: t |--> 2*t
+                   then
+                     Conversion map:
+                     From: Univariate Polynomial Ring in t over Integer Ring
+                     To:   Univariate Polynomial Ring in t over Rational Field
+           <BLANKLINE>
+                           WARNING: This map has apparently been used internally
+                           in the coercion system. It may become defunct in the next
+                           garbage collection. Please use a copy.
             sage: copy(H._generic_convert_map(f.parent())(f))
             Composite map:
               From: Integer Ring

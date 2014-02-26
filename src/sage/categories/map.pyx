@@ -150,7 +150,7 @@ cdef class Map(Element):
 
         EXAMPLES::
 
-            sage: phi = QQ['x'].coerce_map_from(ZZ)
+            sage: phi = QQ['x']._internal_coerce_map_from(ZZ)
             sage: phi.domain
             <weakref at ...; to 'sage.rings.integer_ring.IntegerRing_class'
             at ... (EuclideanDomains.parent_class)>
@@ -196,7 +196,7 @@ cdef class Map(Element):
         EXAMPLES::
 
             sage: Q = QuadraticField(-5)
-            sage: phi = CDF.convert_map_from(Q)
+            sage: phi = CDF._internal_convert_map_from(Q)
             sage: print phi.parent()
             Set of field embeddings from Number Field in a with defining polynomial x^2 + 5 to Complex Double Field
 
@@ -210,6 +210,19 @@ cdef class Map(Element):
             Traceback (most recent call last):
             ...
             ValueError: This map is in an invalid state, the domain has been garbage collected
+
+        You can still obtain copies of the maps used by the coercion system with
+        strong references::
+
+            sage: Q = QuadraticField(-5)
+            sage: phi = CDF.convert_map_from(Q)
+            sage: print phi.parent()
+            Set of field embeddings from Number Field in a with defining polynomial x^2 + 5 to Complex Double Field
+            sage: import gc
+            sage: del Q
+            sage: _ = gc.collect()
+            sage: phi.parent()
+            Set of field embeddings from Number Field in a with defining polynomial x^2 + 5 to Complex Double Field
         """
         if self._parent is None:
             D = self.domain()
@@ -237,7 +250,7 @@ cdef class Map(Element):
         EXAMPLES::
 
             sage: Q = QuadraticField(-5)
-            sage: phi = CDF.convert_map_from(Q)
+            sage: phi = CDF._internal_convert_map_from(Q)
 
         By :trac:`14711`, maps used in the coercion and conversion system
         use *weak* references to domain and codomain, in contrast to other
@@ -297,7 +310,7 @@ cdef class Map(Element):
         EXAMPLES::
 
             sage: Q = QuadraticField(-5)
-            sage: phi = CDF.convert_map_from(Q)
+            sage: phi = CDF._internal_convert_map_from(Q)
 
         By :trac:`14711`, maps used in the coercion and conversion system
         use *weak* references to domain and codomain, in contrast to other
@@ -536,7 +549,7 @@ cdef class Map(Element):
         TESTS::
 
             sage: Q = QuadraticField(-5)
-            sage: phi = CDF.coerce_map_from(Q); phi   # indirect doctest
+            sage: phi = CDF._internal_coerce_map_from(Q); phi   # indirect doctest
             Composite map:
               From: Number Field in a with defining polynomial x^2 + 5
               To:   Complex Double Field

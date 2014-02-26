@@ -224,7 +224,7 @@ cdef class NamedConvertMap(Map):
         if e is None:
             raise RuntimeError("BUG in coercion model: {} method of {} returned None".format(self.method_name, type(x)))
         if e._parent is not C:
-            m = C.convert_map_from(e._parent)
+            m = C._internal_convert_map_from(e._parent)
             if m is None or m is self:
                 raise TypeError
             e = m._call_(e)

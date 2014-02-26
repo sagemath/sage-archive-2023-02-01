@@ -817,9 +817,15 @@ The four axioms requested for coercions
    In addition, if there is a *coercion* from `P_2` to `P_1`, then a
    *conversion* from `P_2` to `P_1` is defined for all elements of `P_2` and
    coincides with the coercion.
-   ::
+   Nonetheless, user-exposed maps are copies of the internally used maps whence
+   the lack of identity between different instantiations::
 
        sage: P1.coerce_map_from(P2) is P1.convert_map_from(P2)
+       False
+
+   For internally used maps, the maps are identical::
+
+       sage: P1._internal_coerce_map_from(P2) is P1._internal_convert_map_from(P2)
        True
 
    .. end of output

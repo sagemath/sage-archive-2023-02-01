@@ -1746,13 +1746,13 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
                       From: Finite Field of size 5
                       To:   Integer Ring
             sage: t = K.gen()
-            sage: h(f(1,3,reduce=False))
+            sage: g(f(1,3,reduce=False))
             2
-            sage: h(t)
+            sage: g(t)
             Traceback (most recent call last):
             ...
             ValueError: not constant
-            sage: h(1/t)
+            sage: g(1/t)
             Traceback (most recent call last):
             ...
             ValueError: not integral

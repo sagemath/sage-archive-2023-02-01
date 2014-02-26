@@ -43,6 +43,7 @@ cdef class Parent(category_object.CategoryObject):
 
     # returns a Map from S to self, or None
     cpdef convert_map_from(self, S)
+    cpdef _internal_convert_map_from(self, S)
     cpdef _convert_map_from_(self, S)
 
     # returns the Action by/on self on/by S

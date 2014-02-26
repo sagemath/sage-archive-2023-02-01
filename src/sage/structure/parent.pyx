@@ -1063,7 +1063,7 @@ cdef class Parent(category_object.CategoryObject):
         try:
             mor = <map.Map> self._convert_from_hash.get(R)
         except KeyError:
-            mor = <map.Map> self.convert_map_from(R)
+            mor = <map.Map> self._internal_convert_map_from(R)
 
         if mor is not None:
             if no_extra_args:
@@ -2058,7 +2058,7 @@ cdef class Parent(category_object.CategoryObject):
         Returns the default conversion map based on the data provided to
         :meth:`_populate_coercion_lists_`.
 
-        This called when :meth:`_coerce_map_from_` returns ``True``.
+        This is called when :meth:`_coerce_map_from_` returns ``True``.
 
         If a ``convert_method_name`` is provided, it creates a
         ``NamedConvertMap``, otherwise it creates a
@@ -2350,7 +2350,6 @@ cdef class Parent(category_object.CategoryObject):
         finally:
             _unregister_pair(self, S, "coerce")
 
-
     cdef discover_coerce_map_from(self, S):
         """
         Precedence for discovering a coercion S -> self goes as follows:
@@ -2477,21 +2476,56 @@ cdef class Parent(category_object.CategoryObject):
 
         return best_mor
 
-
     cpdef convert_map_from(self, S):
         """
-        This function returns a Map from S to self, which may or may not
-        succeed on all inputs. If a coercion map from S to self exists,
-        then the it will be returned. If a coercion from self to S exists,
+        This function returns a :class:`Map` from `S` to `self`,
+        which may or may not succeed on all inputs.
+        If a coercion map from S to self exists,
+        then the it will be returned. If a coercion from `self` to `S` exists,
         then it will attempt to return a section of that map.
 
         Under the new coercion model, this is the fastest way to convert
-        elements of S to elements of self (short of manually constructing
-        the elements) and is used by __call__.
+        elements of `S` to elements of `self` (short of manually constructing
+        the elements) and is used by :meth:`__call__`.
 
         EXAMPLES::
 
             sage: m = ZZ.convert_map_from(QQ)
+            sage: m
+            Generic map:
+              From: Rational Field
+              To:   Integer Ring
+            sage: m(-35/7)
+            -5
+            sage: parent(m(-35/7))
+            Integer Ring
+        """
+        return copy(self._internal_convert_map_from(S))
+
+
+    cpdef _internal_convert_map_from(self, S):
+        """
+        This function returns a :class:`Map` from `S` to `self`,
+        which may or may not succeed on all inputs.
+        If a coercion map from S to self exists,
+        then the it will be returned. If a coercion from `self` to `S` exists,
+        then it will attempt to return a section of that map.
+
+        Under the new coercion model, this is the fastest way to convert
+        elements of `S` to elements of `self` (short of manually constructing
+        the elements) and is used by :func:`__call__`.
+
+        EXAMPLES::
+
+            sage: m = ZZ._internal_convert_map_from(QQ)
+            sage: m
+            Generic map:
+              From: Rational Field
+              To:   Integer Ring
+            <BLANKLINE>
+                    WARNING: This map has apparently been used internally
+                    in the coercion system. It may become defunct in the next
+                    garbage collection. Please use a copy.
             sage: m(-35/7)
             -5
             sage: parent(m(-35/7))

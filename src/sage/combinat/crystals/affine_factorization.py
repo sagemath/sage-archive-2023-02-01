@@ -14,40 +14,55 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.classical_crystals import ClassicalCrystals
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.combinat.root_system.cartan_type import CartanType
-from sage.combinat.integer_vector import IntegerVectors
-from sage.combinat.k_tableau import WeakTableaux, WeakTableau
+from sage.combinat.root_system.weyl_group import WeylGroup
 
 class AffineFactorizationCrystal(UniqueRepresentation, Parent):
     r"""
-    This is an implementation of the weak crystal on affine factorizations
-    with a cut-point, as introduced by Morse and Schilling.
+    This is an implementation of the crystal on affine factorizations
+    with a cut-point, as introduced by Morse and Schilling,
+    ``Crystal operators and flag Gromov-Witten invariants".
+
+    INPUT:
+
+    - ``w`` -- an element in an (affine) Weyl group or a skew shape of `k`-bounded partitions (if `k` was specified)
+    - ``n`` -- the number of factors in the factorization
+    - ``x`` -- (default: None) the cut point; if not specified it is determined as the minimal missing residue in ``w``
+    - ``k`` -- (default: None) positive integer, specifies that ``w`` is `k`-bounded or a `k+1`-core when specified
 
     EXAMPLES::
 
         sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
-        sage: W = AffineFactorizationCrystal([[3,1,1],[1]],3,3)
-        sage: W.list()
-        [[1, s2, s3*s2*s1],
-        [1, s3*s2, s3*s1],
-        [1, s3*s2*s1, s3],
-        [s3, s2, s3*s1],
-        [s3, s2*s1, s3],
-        [s3*s2, s1, s3],
-        [s3*s2*s1, 1, s3],
-        [s3*s2*s1, s3, 1],
-        [s3*s2, 1, s3*s1],
-        [s3*s2, s3, s1],
-        [s3*s2, s3*s1, 1],
-        [s2, 1, s3*s2*s1],
-        [s2, s3, s2*s1],
-        [s2, s3*s2, s1],
-        [s2, s3*s2*s1, 1]]
+        sage: W = WeylGroup(['A',3,1], prefix='s')
+        sage: w = W.from_reduced_word([2,3,2,1])
+        sage: B = AffineFactorizationCrystal(w,3); B
+        Crystal on affine factorizations of type A3 associated to s2*s3*s2*s1
+        sage: B.list()
+        [(1, s2, s3*s2*s1),
+        (1, s3*s2, s3*s1),
+        (1, s3*s2*s1, s3),
+        (s3, s2, s3*s1),
+        (s3, s2*s1, s3),
+        (s3*s2, s1, s3),
+        (s3*s2*s1, 1, s3),
+        (s3*s2*s1, s3, 1),
+        (s3*s2, 1, s3*s1),
+        (s3*s2, s3, s1),
+        (s3*s2, s3*s1, 1),
+        (s2, 1, s3*s2*s1),
+        (s2, s3, s2*s1),
+        (s2, s3*s2, s1),
+        (s2, s3*s2*s1, 1)]
+
+    We can also access the crystal by specifying a skew shape in terms of `k`-bounded partitions::
+
+        sage: AffineFactorizationCrystal([[3,1,1],[1]], 3, k=3)
+        Crystal on affine factorizations of type A3 associated to s2*s3*s2*s1
 
     We can compute the highest weight elements::
 
-        sage: hw = [w for w in W if w.is_highest_weight()]
+        sage: hw = [w for w in B if w.is_highest_weight()]
         sage: hw
-        [[1, s2, s3*s2*s1]]
+        [(1, s2, s3*s2*s1)]
         sage: hw[0].weight()
         (3, 1, 0)
 
@@ -55,20 +70,20 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
 
         sage: C = CrystalOfTableaux(['A',2],shape=[3,1])
         sage: GC = C.digraph()
-        sage: GW = W.digraph()
-        sage: GC.is_isomorphic(GW, edge_labels=True)
+        sage: GB = B.digraph()
+        sage: GC.is_isomorphic(GB, edge_labels=True)
         True
 
     The crystal operators themselves move elements between adjacent factors::
 
         sage: b = hw[0];b
-        [1, s2, s3*s2*s1]
+        (1, s2, s3*s2*s1)
         sage: b.f(1)
-        [1, s3*s2, s3*s1]
+        (1, s3*s2, s3*s1)
 
     TESTS::
 
-        sage: TestSuite(W).run(verbose = True)
+        sage: TestSuite(B).run(verbose = True)
         running ._test_an_element() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
@@ -94,47 +109,68 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
         running ._test_stembridge_local_axioms() . . . pass
     """
     @staticmethod
-    def __classcall_private__(cls, skew_shape, k, n, x = None):
+    def __classcall_private__(cls, w, n, x = None, k = None):
         """
         Classcall to mend the input.
 
         TESTS::
 
             sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
-            sage: AffineFactorizationCrystal([[3,1],[1]],3,4)
-            Crystal on affine factorizations of type A4 of shape [[3, 1], [1]]
+            sage: A = AffineFactorizationCrystal([[3,1],[1]], 4, k=3); A
+            Crystal on affine factorizations of type A4 associated to s3*s2*s1
+            sage: AC = AffineFactorizationCrystal([Core([4,1],4),Core([1],4)], 4, k=3)
+            sage: AC == A
+            True
         """
-        skew_shape = tuple(tuple(l) for l in skew_shape)
-        return super(AffineFactorizationCrystal, cls).__classcall__(cls, skew_shape, k, n, x)
+        if k is not None:
+            from sage.combinat.core import Core
+            from sage.combinat.partition import Partition
+            W = WeylGroup(['A',k,1], prefix='s')
+            if isinstance(w[0], Core):
+                w = [w[0].to_bounded_partition(), w[1].to_bounded_partition()]
+            else:
+                w = [Partition(w[0]), Partition(w[1])]
+            w0 = W.from_reduced_word(w[0].from_kbounded_to_reduced_word(k))
+            w1 = W.from_reduced_word(w[1].from_kbounded_to_reduced_word(k))
+            w = w0*(w1.inverse())
+        return super(AffineFactorizationCrystal, cls).__classcall__(cls, w, n, x, k)
 
-    def __init__(self, skew_shape, k, n, x=None):
+    def __init__(self, w, n, x = None, k = None):
         """
         EXAMPLES::
 
             sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
-            sage: W = AffineFactorizationCrystal([[3,2],[2]],3,4,0)
-            sage: W.x
-            0
-            sage: W = AffineFactorizationCrystal([[3,2],[2]],3,4)
-            sage: W.x
+            sage: B = AffineFactorizationCrystal([[3,2],[2]],4,x=0,k=3)
+            Traceback (most recent call last):
+            ...
+            ValueError: x cannot be in reduced word of s0*s3*s2
+
+            sage: B = AffineFactorizationCrystal([[3,2],[2]],4,k=3)
+            sage: B.x
             1
+            sage: B.w
+            s0*s3*s2
+            sage: B.k
+            3
+            sage: B.n
+            4
         """
         Parent.__init__(self, category = ClassicalCrystals())
         self.n = n
-        self.k = k
-        self.skew_shape = skew_shape
+        self.k = w.parent().n-1
+        self.w = w
         cartan_type = CartanType(['A',n-1])
         self._cartan_type = cartan_type
-        generators = [ t.to_core_tableau().to_factorized_permutation_tableau()
-                      for mu in IntegerVectors(sum(skew_shape[0])-sum(skew_shape[1]), n)
-                      for t in WeakTableaux(k, skew_shape, mu, representation='bounded')]
+        generators = [tuple(p) for p in affine_factorizations(w, n)]
         self.module_generators = [self(t) for t in generators]
         if x is None:
             if generators != []:
-                x = min( set(range(k+1)).difference(set(
+                x = min( set(range(self.k+1)).difference(set(
                             sum([i.reduced_word() for i in generators[0]],[]))))
             else:
                 x = 0
+        if x in set(w.reduced_word()):
+            raise ValueError, "x cannot be in reduced word of %s"%w
         self.x = x
 
     def _repr_(self):
@@ -142,10 +178,15 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
-            sage: AffineFactorizationCrystal([[3,1],[1]],3,4)
-            Crystal on affine factorizations of type A4 of shape [[3, 1], [1]]
+            sage: W = WeylGroup(['A',3,1], prefix='s')
+            sage: w = W.from_reduced_word([3,2,1])
+            sage: AffineFactorizationCrystal(w,4)
+            Crystal on affine factorizations of type A4 associated to s3*s2*s1
+
+            sage: AffineFactorizationCrystal([[3,1],[1]], 4, k=3)
+            Crystal on affine factorizations of type A4 associated to s3*s2*s1
         """
-        return "Crystal on affine factorizations of type A%s of shape %s"%(self.n, [[i for i in w] for w in self.skew_shape])
+        return "Crystal on affine factorizations of type A%s associated to %s"%(self.n, self.w)
 
     # temporary workaround while an_element is overriden by Parent
     _an_element_ = EnumeratedSets.ParentMethods._an_element_
@@ -159,13 +200,14 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
-                sage: W = AffineFactorizationCrystal(tuple([tuple([3,1]),tuple([1])]),3,4)
-                sage: t = W(W.module_generators[1]); t
-                [1, 1, s3, s2*s1]
+                sage: B = AffineFactorizationCrystal([[3,1],[1]], 4, k=3)
+                sage: t = B(B.module_generators[1]); t
+                (1, 1, s3, s2*s1)
                 sage: t.e(1)
-                [1, 1, 1, s3*s2*s1]
+                (1, 1, 1, s3*s2*s1)
             """
             assert i in self.index_set()
+            W = self.parent().w.parent()
             x = self.parent().x
             k = self.parent().k
             n = self.parent().n
@@ -179,13 +221,8 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
             right += [m+1]
             right.sort(reverse=True)
             right = [(j+x)%(k+1) for j in right]
-            t = [self.value[j].reduced_word() for j in range(n-i-1)] + [left] + [right] + [self.value[j].reduced_word() for j in range(n-i+1,n)]
-            t = WeakTableau([self.value[j].reduced_word() for j in range(n-i-1)]
-                            + [left] + [right]
-                            + [self.value[j].reduced_word() for j in range(n-i+1,n)],
-                            self.parent().k, inner_shape = self.value._inner_shape,
-                            representation='factorized_permutation')
-            return self.parent()(t)
+            t = [self.value[j] for j in range(n-i-1)] + [W.from_reduced_word(left)] + [W.from_reduced_word(right)] + [self.value[j] for j in range(n-i+1,n)]
+            return self.parent()(tuple(t))
 
         def f(self, i):
             r"""
@@ -194,15 +231,16 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
-                sage: W = AffineFactorizationCrystal(tuple([tuple([3,1]),tuple([1])]),3,4)
-                sage: t = W(W.module_generators[1]); t
-                [1, 1, s3, s2*s1]
+                sage: B = AffineFactorizationCrystal([[3,1],[1]], 4, k=3)
+                sage: t = B(B.module_generators[1]); t
+                (1, 1, s3, s2*s1)
                 sage: t.f(2)
-                [1, s3, 1, s2*s1]
+                (1, s3, 1, s2*s1)
                 sage: t.f(1)
-                [1, 1, s3*s2, s1]
+                (1, 1, s3*s2, s1)
             """
             assert i in self.index_set()
+            W = self.parent().w.parent()
             x = self.parent().x
             k = self.parent().k
             n = self.parent().n
@@ -216,13 +254,8 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
             left += [m-1]
             left.sort(reverse=True)
             left = [(j+x)%(k+1) for j in left]
-            t = [self.value[j].reduced_word() for j in range(n-i-1)] + [left] + [right] + [self.value[j].reduced_word() for j in range(n-i+1,n)]
-            t = WeakTableau([self.value[j].reduced_word() for j in range(n-i-1)]
-                            + [left] + [right]
-                            + [self.value[j].reduced_word() for j in range(n-i+1,n)],
-                            self.parent().k, inner_shape = self.value._inner_shape,
-                            representation='factorized_permutation')
-            return self.parent()(t)
+            t = [self.value[j] for j in range(n-i-1)] + [W.from_reduced_word(left)] + [W.from_reduced_word(right)] + [self.value[j] for j in range(n-i+1,n)]
+            return self.parent()(tuple(t))
 
         def bracketing(self, i):
             r"""
@@ -231,8 +264,9 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
-                sage: W = AffineFactorizationCrystal(tuple([tuple([3,1]),tuple([1])]),3,4)
-                sage: t = W(W.module_generators[1])
+                sage: B = AffineFactorizationCrystal([[3,1],[1]], 3, k=3, x=4)
+                sage: t = B(B.module_generators[1]); t
+                (1, s3, s2*s1)
                 sage: t.bracketing(1)
                 [[3], [2, 1]]
             """
@@ -253,3 +287,39 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
                 else:
                     left_unbracketed += [m]
             return [[j for j in left_unbracketed],[j for j in right_n]]
+
+
+def affine_factorizations(w, l):
+    r"""
+    Return all factorizations of `w` into `l` factors.
+
+    INPUT:
+
+    - ``w` -- an (affine) permutation or element of the (affine) Weyl group
+    - ``l`` -- nonegative integer
+
+    EXAMPLES::
+
+       sage: W = WeylGroup(['A',3,1], prefix='s')
+       sage: w = W.from_reduced_word([3,2,3,1,0,1])
+       sage: from sage.combinat.crystals.affine_factorization import affine_factorizations
+       sage: affine_factorizations(w,4)
+       [[s2, s3, s0, s2*s1*s0],
+       [s2, s3, s2*s0, s1*s0],
+       [s2, s3, s2*s1*s0, s1],
+       [s2, s3*s2, s0, s1*s0],
+       [s2, s3*s2, s1*s0, s1],
+       [s2, s3*s2*s1, s0, s1],
+       [s3*s2, s3, s0, s1*s0],
+       [s3*s2, s3, s1*s0, s1],
+       [s3*s2, s3*s1, s0, s1],
+       [s3*s2*s1, s3, s0, s1]]
+    """
+    if l==0:
+        if w.is_one():
+            return [[]]
+        else:
+            return []
+    else:
+        return [[u]+p for (u,v) in w.left_pieri_factorizations() for p in affine_factorizations(v,l-1) ]
+

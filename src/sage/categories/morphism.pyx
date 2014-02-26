@@ -76,7 +76,7 @@ cdef class Morphism(Map):
 
             sage: K = CyclotomicField(12)
             sage: L = CyclotomicField(132)
-            sage: phi = L.coerce_map_from(K); phi
+            sage: phi = L._internal_coerce_map_from(K); phi
             Generic morphism:
               From: Cyclotomic Field of order 12 and degree 4
               To:   Cyclotomic Field of order 132 and degree 40
@@ -84,12 +84,20 @@ cdef class Morphism(Map):
                     WARNING: This morphism has apparently been used internally
                     in the coercion system. It may become defunct in the next
                     garbage collection. Please use a copy.
+
+            sage: psi = L.coerce_map_from(K); psi
+            Generic morphism:
+              From: Cyclotomic Field of order 12 and degree 4
+              To:   Cyclotomic Field of order 132 and degree 40
             sage: del K
             sage: import gc
             sage: _ = gc.collect()
             sage: phi
             Defunct morphism
-
+            sage: psi
+            Generic morphism:
+              From: Cyclotomic Field of order 12 and degree 4
+              To:   Cyclotomic Field of order 132 and degree 40
         """
         D = self.domain()
         if D is None:

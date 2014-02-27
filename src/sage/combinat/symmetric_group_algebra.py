@@ -791,7 +791,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             p = range(1, self.n+1)
             p[i-1] = k
             p[k-1] = i
-            res += self.monomial(self._basis_keys(p))
+            res += self.monomial(self._indices(p))
         return res
 
 
@@ -1488,7 +1488,7 @@ class HeckeAlgebraSymmetricGroup_generic(CombinatorialAlgebra):
         if x == []:
             return self.one()
         if len(x) < self.n and x in permutation.Permutations():
-            return self.monomial(self._basis_keys( list(x) + range(len(x)+1, self.n+1) ))
+            return self.monomial(self._indices( list(x) + range(len(x)+1, self.n+1) ))
         raise TypeError
 
 class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
@@ -1535,7 +1535,7 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
         # -- Darij, 19 Nov 2013
 
         if perm[i-1] < perm[i]:
-            return self.monomial(self._basis_keys(perm_i))
+            return self.monomial(self._indices(perm_i))
         else:
             #Ti^2 = (q - q^(-1))*Ti - q1*q2
             q = self.q()

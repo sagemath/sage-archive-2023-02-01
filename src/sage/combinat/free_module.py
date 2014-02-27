@@ -1564,28 +1564,21 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         """
         return self.element_class(self, {})
 
-    def combinatorial_class(self):
+    @lazy_attribute
+    def _basis_keys(self):
         """
-        Returns the combinatorial class that indexes the basis elements.
-
-        Deprecated: use self.basis().keys() instead.
+        Deprecated: use ``self._indices`` instead.
 
         EXAMPLES::
 
             sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'])
-            sage: F.combinatorial_class()
-            doctest:...: DeprecationWarning: "FM.combinatorial_class()" is deprecated. Use "F.basis().keys()" instead !
-            See http://trac.sagemath.org/6136 for details.
+            sage: F._basis_keys
+            doctest:...: DeprecationWarning: "FM._basis_keys" is deprecated. Use "F._indices" instead!
+            See http://trac.sagemath.org/15289 for details.
             {'a', 'b', 'c'}
-
-        ::
-
-            sage: s = SymmetricFunctions(QQ).schur()
-            sage: s.combinatorial_class()
-            Partitions
         """
         from sage.misc.superseded import deprecation
-        deprecation(6136, '"FM.combinatorial_class()" is deprecated. Use "F.basis().keys()" instead !')
+        deprecation(15289, '"FM._basis_keys" is deprecated. Use "F._indices" instead!')
         return self._indices
 
     def dimension(self):

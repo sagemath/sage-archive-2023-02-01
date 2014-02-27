@@ -20,13 +20,16 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
     r"""
     This is an implementation of the crystal on affine factorizations
     with a cut-point, as introduced by Morse and Schilling,
-    ``Crystal operators and flag Gromov-Witten invariants".
+    "Crystal operators and flag Gromov-Witten invariants".
 
     INPUT:
 
     - ``w`` -- an element in an (affine) Weyl group or a skew shape of `k`-bounded partitions (if `k` was specified)
+
     - ``n`` -- the number of factors in the factorization
+
     - ``x`` -- (default: None) the cut point; if not specified it is determined as the minimal missing residue in ``w``
+
     - ``k`` -- (default: None) positive integer, specifies that ``w`` is `k`-bounded or a `k+1`-core when specified
 
     EXAMPLES::
@@ -38,20 +41,20 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
         Crystal on affine factorizations of type A3 associated to s2*s3*s2*s1
         sage: B.list()
         [(1, s2, s3*s2*s1),
-        (1, s3*s2, s3*s1),
-        (1, s3*s2*s1, s3),
-        (s3, s2, s3*s1),
-        (s3, s2*s1, s3),
-        (s3*s2, s1, s3),
-        (s3*s2*s1, 1, s3),
-        (s3*s2*s1, s3, 1),
-        (s3*s2, 1, s3*s1),
-        (s3*s2, s3, s1),
-        (s3*s2, s3*s1, 1),
-        (s2, 1, s3*s2*s1),
-        (s2, s3, s2*s1),
-        (s2, s3*s2, s1),
-        (s2, s3*s2*s1, 1)]
+         (1, s3*s2, s3*s1),
+         (1, s3*s2*s1, s3),
+         (s3, s2, s3*s1),
+         (s3, s2*s1, s3),
+         (s3*s2, s1, s3),
+         (s3*s2*s1, 1, s3),
+         (s3*s2*s1, s3, 1),
+         (s3*s2, 1, s3*s1),
+         (s3*s2, s3, s1),
+         (s3*s2, s3*s1, 1),
+         (s2, 1, s3*s2*s1),
+         (s2, s3, s2*s1),
+         (s2, s3*s2, s1),
+         (s2, s3*s2*s1, 1)]
 
     We can also access the crystal by specifying a skew shape in terms of `k`-bounded partitions::
 
@@ -110,7 +113,7 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
     """
     @staticmethod
     def __classcall_private__(cls, w, n, x = None, k = None):
-        """
+        r"""
         Classcall to mend the input.
 
         TESTS::
@@ -136,7 +139,7 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
         return super(AffineFactorizationCrystal, cls).__classcall__(cls, w, n, x, k)
 
     def __init__(self, w, n, x = None, k = None):
-        """
+        r"""
         EXAMPLES::
 
             sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
@@ -174,7 +177,7 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
         self.x = x
 
     def _repr_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
@@ -195,7 +198,7 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
 
         def e(self, i):
             r"""
-            Returns the action of `e_i` on ``self``.
+            Return the action of `e_i` on ``self``.
 
             EXAMPLES::
 
@@ -226,7 +229,7 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
 
         def f(self, i):
             r"""
-            Returns the action of `f_i` on ``self``.
+            Return the action of `f_i` on ``self``.
 
             EXAMPLES::
 
@@ -295,7 +298,8 @@ def affine_factorizations(w, l):
 
     INPUT:
 
-    - ``w` -- an (affine) permutation or element of the (affine) Weyl group
+    - ``w`` -- an (affine) permutation or element of the (affine) Weyl group
+
     - ``l`` -- nonegative integer
 
     EXAMPLES::

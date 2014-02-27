@@ -101,8 +101,55 @@ class FreeAbelianMonoidFactory(UniqueFactory):
     def create_object(self, version, key):
         return FreeAbelianMonoid_class(*key)
 
-FreeAbelianMonoid = FreeAbelianMonoidFactory("FreeAbelianMonoid")
+FreeAbelianMonoid_factory = FreeAbelianMonoidFactory("sage.monoids.free_abelian_monoid.FreeAbelianMonoid_factory")
 
+def FreeAbelianMonoid(n=None, names=None, index_set=None, **kwds):
+    """
+    Return a free abelian monoid on `n` generators or with the generators
+    indexed by a set `I`.
+
+    We construct free abelian monoids by specifing either:
+
+    - the number of generators and/or the names of the generators
+    - the indexing set for the generators (this ignores the other two inputs)
+
+    INPUT:
+
+    -  ``n`` -- integer
+
+    -  ``names`` -- names of generators
+
+    - ``index_set`` -- an indexing set for the generators
+
+    OUTPUT:
+
+    A free abelian monoid.
+
+    EXAMPLES::
+
+        sage: F.<a,b,c,d,e> = FreeAbelianMonoid(); F
+        Free abelian monoid on 5 generators (a, b, c, d, e)
+        sage: FreeAbelianMonoid(index_set=ZZ)
+        Free abelian monoid indexed by Integer Ring
+    """
+    if isinstance(n, str): # Swap args (this works if names is None as well)
+        names, n = n, names
+
+    if n is None and names is not None:
+        if isinstance(names, str):
+            n = names.count(',')
+        else:
+            n = len(names)
+
+    if index_set is not None:
+        if names is not None:
+            names = normalize_names(int(n), names)
+        from sage.monoids.indexed_monoid import IndexedFreeAbelianMonoid
+        return IndexedFreeAbelianMonoid(index_set, names=names, **kwds)
+
+    if names is None:
+        raise ValueError("names must be specified")
+    return FreeAbelianMonoid_factory(n, names)
 
 def is_FreeAbelianMonoid(x):
     """

@@ -43,17 +43,15 @@ from sage.misc.cachefunc import cached_method
 
 class FreeMonoidFactory(UniqueFactory):
     """
-    Returns a free monoid on `n` generators.
+    Create the free monoid in `n` generators.
 
     INPUT:
-
 
     -  ``n`` - integer
 
     -  ``names`` - names of generators
 
-
-    OUTPUT: free abelian monoid
+    OUTPUT: free monoid
 
     EXAMPLES::
 
@@ -70,12 +68,58 @@ class FreeMonoidFactory(UniqueFactory):
         n = int(n)
         names = normalize_names(n, names)
         return (n, names)
-
-    def create_object(self, version, key):
+    def create_object(self, version, key, **kwds):
         return FreeMonoid_class(*key)
 
-FreeMonoid = FreeMonoidFactory("FreeMonoid")
+FreeMonoid_factory = FreeMonoidFactory("sage.monoids.free_monoid.FreeMonoid_factory")
 
+def FreeMonoid(n=None, names=None, index_set=None, **kwds):
+    r"""
+    Return a free monoid on `n` generators or with the generators indexed by
+    a set `I`.
+
+    We construct free monoids by specifing either:
+
+    - the number of generators and/or the names of the generators
+    - the indexing set for the generators
+
+    INPUT:
+
+    -  ``n`` -- integer
+
+    -  ``names`` -- names of generators
+
+    - ``index_set`` -- an indexing set for the generators
+
+    OUTPUT:
+
+    A free monoid.
+
+    EXAMPLES::
+
+        sage: F.<a,b,c,d,e> = FreeMonoid(); F
+        Free monoid on 5 generators (a, b, c, d, e)
+        sage: FreeMonoid(index_set=ZZ)
+        Free monoid indexed by Integer Ring
+    """
+    if isinstance(n, str): # Swap args (this works if names is None as well)
+        names, n = n, names
+
+    if n is None and names is not None:
+        if isinstance(names, str):
+            n = names.count(',')
+        else:
+            n = len(names)
+
+    if index_set is not None:
+        if names is not None:
+            names = normalize_names(n, names)
+        from sage.monoids.indexed_monoid import IndexedFreeMonoid
+        return IndexedFreeMonoid(index_set, names=names, **kwds)
+
+    if names is None:
+        raise ValueError("names must be specified")
+    return FreeMonoid_factory(n, names)
 
 def is_FreeMonoid(x):
     """

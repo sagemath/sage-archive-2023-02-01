@@ -1818,7 +1818,10 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
         G = self.codomain()
         basis_map = self._on_basis
         if not f in G:
-            raise ValueError("f(=%s) must be in the codomain of the morphism (=%s) to have a preimage under the latter"%(f, self))
+            # We make a copy of self in case self is an internal coercion morphism
+            #   because we don't want the WARNING message to be displayed
+            from copy import copy
+            raise ValueError("f(={}) must be in the codomain of the morphism (={}) to have a preimage under the latter".format(f, copy(self)))
 
         remainder = f
 
@@ -1831,10 +1834,12 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
             else:
                 j_preimage = self._inverse_on_support(j)
                 if j_preimage is None:
-                    raise ValueError("%s is not in the image of %s"%(f, self))
+                    # Make a copy of self for the same reason as before
+                    from copy import copy
+                    raise ValueError("{} is not in the image of {}".format(f, copy(self)))
             s = basis_map(j_preimage)
             if not j == self._dominant_item(s)[0]:
-                raise ValueError("The morphism (=%s) is not triangular at %s, and therefore a preimage cannot be computed"%(f, s))
+                raise ValueError("The morphism (={}) is not triangular at {}, and therefore a preimage cannot be computed".format(f, s))
 
             if not self._unitriangular:
                 c /= s[j]

@@ -11,7 +11,6 @@ Combinatorics
    sage/combinat/expnums
    sage/combinat/alternating_sign_matrix
    sage/combinat/cartesian_product
-   sage/combinat/cfinite_sequence
    sage/combinat/combination
    sage/combinat/composition_signed
    sage/combinat/composition

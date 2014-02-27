@@ -134,6 +134,9 @@ Frac = FractionField
 # continued fractions
 from contfrac import continued_fraction, CFF, ContinuedFractionField
 
+# c-finite sequences
+from cfinite_sequence import CFiniteSequence
+
 # Arithmetic
 from arith import *
 from fast_arith import prime_range

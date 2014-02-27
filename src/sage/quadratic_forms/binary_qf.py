@@ -58,12 +58,12 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.libs.pari.all import pari
-from sage.rings.all import (is_fundamental_discriminant, ZZ, divisors, gcd)
+from sage.rings.all import is_fundamental_discriminant, ZZ, gcd
 from sage.structure.sage_object import SageObject
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import Matrix
 from sage.misc.cachefunc import cached_method
-from sage.rings.arith import is_square, integer_ceil, integer_floor
+from sage.rings.arith import integer_ceil, integer_floor
 
 class BinaryQF(SageObject):
     r"""
@@ -135,20 +135,22 @@ class BinaryQF(SageObject):
             0
         """
         from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
-        if (isinstance(a, (list, tuple))
-            and len(a) == 3 and b is None and c is None):
-            a, b, c = a
-        elif a == 0:
-            a = b = c = 0
-        elif (is_MPolynomial(a) and a.is_homogeneous() and a.base_ring() == ZZ
-              and a.degree() == 2 and a.parent().ngens() == 2):
-            x, y = a.parent().gens()
-            a, b, c = [a.monomial_coefficient(mon) for mon in [x**2, x*y, y**2]]
-        if not (a in ZZ and b in ZZ and c in ZZ):
+        if b is None and c is None:
+            if (isinstance(a, (list, tuple))
+                and len(a) == 3):
+                a, b, c = a
+            elif a == 0:
+                a = b = c = 0
+            elif (is_MPolynomial(a) and a.is_homogeneous() and a.base_ring() == ZZ
+                  and a.degree() == 2 and a.parent().ngens() == 2):
+                x, y = a.parent().gens()
+                a, b, c = [a.monomial_coefficient(mon) for mon in [x**2, x*y, y**2]]
+        try:
+            self._a = ZZ(a)
+            self._b = ZZ(b)
+            self._c = ZZ(c)
+        except TypeError:
             raise TypeError('binary quadratic form must be given by a quadratic homogeneous bivariate integer polynomial or its coefficients')
-        self._a = ZZ(a)
-        self._b = ZZ(b)
-        self._c = ZZ(c)
         self._poly = None
 
     def _pari_init_(self):
@@ -595,6 +597,18 @@ class BinaryQF(SageObject):
 
         If ``matrix`` is True, return both the reduced form and a
         matrix transforming ``self`` into the reduced form.
+
+        TEST::
+
+            sage: f = BinaryQF(-1, 0, 3)
+            sage: f._reduce_indef(matrix=False)
+            -x^2 + 2*x*y + 2*y^2
+            sage: f._reduce_indef(matrix=True)
+            (
+                                  [-1  1]
+            -x^2 + 2*x*y + 2*y^2, [ 0 -1]
+            )
+
         """
         from sage.functions.generalized import sign
         if matrix:
@@ -619,14 +633,25 @@ class BinaryQF(SageObject):
         return Q
 
     @cached_method
-    def reduced_form(self, matrix=False):
+    def reduced_form(self, matrix=False, implementation=None):
         """
         Return a reduced form equivalent to the ``self``.
 
-        If ``matrix`` is ``True``, return both the reduced form and a
-        matrix transforming ``self`` into the reduced form.
+        INPUT:
 
-        See also :meth:`~is_reduced`.
+        - ``self`` -- binary quadratic form of non-square discriminant
+
+        - ``matrix`` -- boolean (default: False): if True, return both
+          the reduced form and a matrix transforming ``self`` into the
+          reduced form.  Currently only implemented for indefinite
+          forms.
+
+        - ``implementation`` -- either ``'pari'`` or ``'sage'``
+          (default: chosen automatically based on the input).
+
+        .. SEEALSO ::
+
+            - :meth:`~is_reduced`
 
         EXAMPLES::
 
@@ -645,23 +670,56 @@ class BinaryQF(SageObject):
             15*x^2 + 15*y^2
             sage: b.is_reduced()
             True
+
+        An example of reducing an indefinite form::
+
+            sage: f = BinaryQF(1, 0, -3)
+            sage: f.is_reduced()
+            False
+            sage: g = f.reduced_form(); g
+            x^2 + 2*x*y - 2*y^2
+            sage: g.is_reduced()
+            True
+
         """
         if self.is_reduced():
             if matrix:
                 return self, Matrix(ZZ, 2, 2, [1, 0, 0, 1])
             else:
                 return self
-        if self.discriminant() > 0:
+
+        if implementation is None:
+            if self.discriminant() > 0 and matrix:
+                implementation='sage'
+            elif not matrix:
+                implementation='pari'
+            else:
+                raise NotImplementedError('reduction of definite binary quadratic forms with matrix=True is not implemented')
+
+        if implementation == 'sage':
+            if self.discriminant() <= 0:
+                raise NotImplementedError('reduction of definite binary quadratic forms is not implemented in Sage')
             return self._reduce_indef(matrix)
+        elif implementation == 'pari':
+            if matrix:
+                raise NotImplementedError('matrix=True is not supported using PARI')
+            v = list(pari('Vec(qfbred(Qfb(%s,%s,%s)))'%(self._a,self._b,self._c)))
+            return BinaryQF(v[0], v[1], v[2])
+        else:
+            raise ValueError('unknown implementation for binary quadratic form reduction: %s' % implementation)
 
-        v = list(pari('Vec(qfbred(Qfb(%s,%s,%s)))'%(self._a,self._b,self._c)))
-        return BinaryQF(v[0:3])
-
-    # Buchmann/Vollmer Cycle algorithm
-    def _RhoTau(self, Proper):
+    # Buchmann/Vollmer cycle algorithm
+    def _RhoTau(self, proper=False):
         """
         Apply Rho and Tau operators to this form, returning
         a new form Q.
+
+        EXAMPLE::
+
+            sage: f = BinaryQF(1, 8, -3)
+            sage: f._RhoTau()
+            3*x^2 + 4*x*y - 5*y^2
+
         """
         d = self.discriminant().sqrt(prec=53)
         a = self._a
@@ -677,7 +735,7 @@ class BinaryQF(SageObject):
         Q=BinaryQF(-c,-b+2*s*c,-(a-b*s+c*s*s))
         return Q
 
-    def Cycle(self, Proper=False):
+    def cycle(self, proper=False):
         """
         Return the cycle of reduced forms to which ``self`` belongs.
 
@@ -685,20 +743,24 @@ class BinaryQF(SageObject):
 
         - ``self`` -- reduced, indefinite form
 
+        - ``proper`` -- boolean (default: False): if True, return the
+          proper cycle (not implemented)
+
         This is used to test for equivalence between indefinite forms.
-        The cycle of a form consists of all equivalent forms with
-        coefficient a>0.  The "proper" cycle consists of all
-        equivalent forms, and is either the same as, or twice the size
-        of, the cycle.  In the latter case, the cycle has odd length.
+        The cycle of a form `f` consists of all equivalent forms `g`
+        such that the `a`-coefficients of `f` and `g` have the same
+        sign.  The proper cycle consists of all equivalent forms, and
+        is either the same as, or twice the size of, the cycle.  In
+        the latter case, the cycle has odd length.
 
         EXAMPLES::
 
             sage: Q=BinaryQF(14,17,-2)
-            sage: Q.Cycle()
+            sage: Q.cycle()
             [14*x^2 + 17*x*y - 2*y^2, 2*x^2 + 19*x*y - 5*y^2, 5*x^2 + 11*x*y - 14*y^2]
 
             sage: Q=BinaryQF(1,8,-3)
-            sage: Q.Cycle()
+            sage: Q.cycle()
             [x^2 + 8*x*y - 3*y^2,
             3*x^2 + 4*x*y - 5*y^2,
             5*x^2 + 6*x*y - 2*y^2,
@@ -707,7 +769,7 @@ class BinaryQF(SageObject):
             3*x^2 + 8*x*y - y^2]
 
             sage: Q=BinaryQF(1,7,-6)
-            sage: Q.Cycle()
+            sage: Q.cycle()
             [x^2 + 7*x*y - 6*y^2,
             6*x^2 + 5*x*y - 2*y^2,
             2*x^2 + 7*x*y - 3*y^2,
@@ -720,11 +782,13 @@ class BinaryQF(SageObject):
         """
         if not (self.is_indef() and self.is_reduced()):
             raise ValueError("%s must be indefinite and reduced" % self)
+        if proper:
+            raise NotImplementedError('computation of the proper cycle is not implemented')
         C = [self]
-        Q1 = self._RhoTau(Proper)
+        Q1 = self._RhoTau(proper)
         while not self == Q1:
             C.append(Q1)
-            Q1 = Q1._RhoTau(Proper)
+            Q1 = Q1._RhoTau(proper)
         self._cycle_list = C
         return C
 
@@ -840,7 +904,7 @@ class BinaryQF(SageObject):
                 RedSelf = self.reduced_form()
             if RedSelf._a < 0:
                 RedSelf = BinaryQF(-RedSelf._a, RedSelf._b, -RedSelf._c)
-            _ = right.Cycle()                  # This caches the list
+            _ = right.cycle()                  # This caches the list
             return RedSelf in right._cycle_list
         # Else we're dealing with definite forms.
         if self.is_posdef() and not right.is_posdef():
@@ -859,7 +923,7 @@ class BinaryQF(SageObject):
         INPUT:
 
         - ``self`` -- a binary quadratic form `f = ax^2 + bxy + cy^2`
-          of discriminant `D = b^2 - 4 a c`
+          of non-square discriminant `D = b^2 - 4 a c`
 
         OUTPUT:
 
@@ -893,8 +957,17 @@ class BinaryQF(SageObject):
             sage: Q = BinaryQF([1,1,1])
             sage: Q.is_reduced()
             True
+
+        An example using an indefinite form::
+
+            sage: f = BinaryQF(-1, 2, 2)
+            sage: f.is_reduced()
+            True
+
         """
         D = self.discriminant()
+        if D.is_square():
+            return NotImplementedError('is_reduced() is not implemented for binary quadratic forms of square discriminant')
         if D < 0 and self._a > 0:
             return ((-self._a < self._b <= self._a < self._c)
                     or (ZZ(0) <= self._b <= self._a == self._c))
@@ -986,7 +1059,7 @@ def BinaryQF_reduced_representatives(D, primitive_only=True):
 
     - ``D`` -- (integer) a discriminant
 
-    - ``primitive_only`` -- (bool, default False) if True, only
+    - ``primitive_only`` -- (boolean, default True): if True, only
       return primitive forms.
 
     OUTPUT:
@@ -1055,11 +1128,9 @@ def BinaryQF_reduced_representatives(D, primitive_only=True):
         [-5*x^2 + 4*x*y + 3*y^2, -5*x^2 + 6*x*y + 2*y^2, -3*x^2 + 4*x*y + 5*y^2, -3*x^2 + 8*x*y + y^2, -2*x^2 + 6*x*y + 5*y^2, -x^2 + 8*x*y + 3*y^2, x^2 + 8*x*y - 3*y^2, 2*x^2 + 6*x*y - 5*y^2, 3*x^2 + 4*x*y - 5*y^2, 3*x^2 + 8*x*y - y^2, 5*x^2 + 4*x*y - 3*y^2, 5*x^2 + 6*x*y - 2*y^2]
     """
     from sage.sets.set import Set
-    if D not in ZZ:
-        raise TypeError("%s is not an integer" % D)
-    if is_square(D):
-        raise ValueError("%s is a square" % D)
     D = ZZ(D)
+    if D.is_square():
+        raise ValueError("%s is a square" % D)
 
     # For a fundamental discriminant all forms are primitive so we need not check:
     if primitive_only:

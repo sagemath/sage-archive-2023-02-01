@@ -28,9 +28,9 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
 
     - ``n`` -- the number of factors in the factorization
 
-    - ``x`` -- (default: None) the cut point; if not specified it is determined as the minimal missing residue in ``w``
+    - ``x`` -- (default: ``None``) the cut point; if not specified it is determined as the minimal missing residue in ``w``
 
-    - ``k`` -- (default: None) positive integer, specifies that ``w`` is `k`-bounded or a `k+1`-core when specified
+    - ``k`` -- (default: ``None``) positive integer, specifies that ``w`` is `k`-bounded or a `k+1`-core when specified
 
     EXAMPLES::
 
@@ -84,32 +84,12 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
         sage: b.f(1)
         (1, s3*s2, s3*s1)
 
-    TESTS::
+    The cut point `x` is not supposed to occur in the reduced words for `w`::
 
-        sage: TestSuite(B).run(verbose = True)
-        running ._test_an_element() . . . pass
-        running ._test_category() . . . pass
-        running ._test_elements() . . .
-          Running the test suite of self.an_element()
-          running ._test_category() . . . pass
-          running ._test_eq() . . . pass
-          running ._test_not_implemented_methods() . . . pass
-          running ._test_pickling() . . . pass
-          running ._test_stembridge_local_axioms() . . . pass
-          pass
-        running ._test_elements_eq_reflexive() . . . pass
-        running ._test_elements_eq_symmetric() . . . pass
-        running ._test_elements_eq_transitive() . . . pass
-        running ._test_elements_neq() . . . pass
-        running ._test_enumerated_set_contains() . . . pass
-        running ._test_enumerated_set_iter_cardinality() . . . pass
-        running ._test_enumerated_set_iter_list() . . . pass
-        running ._test_eq() . . . pass
-        running ._test_fast_iter() . . . pass
-        running ._test_not_implemented_methods() . . . pass
-        running ._test_pickling() . . . pass
-        running ._test_some_elements() . . . pass
-        running ._test_stembridge_local_axioms() . . . pass
+        sage: B = AffineFactorizationCrystal([[3,2],[2]],4,x=0,k=3)
+        Traceback (most recent call last):
+        ...
+        ValueError: x cannot be in reduced word of s0*s3*s2
     """
     @staticmethod
     def __classcall_private__(cls, w, n, x = None, k = None):
@@ -122,7 +102,7 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
             sage: A = AffineFactorizationCrystal([[3,1],[1]], 4, k=3); A
             Crystal on affine factorizations of type A4 associated to s3*s2*s1
             sage: AC = AffineFactorizationCrystal([Core([4,1],4),Core([1],4)], 4, k=3)
-            sage: AC == A
+            sage: AC is A
             True
         """
         if k is not None:
@@ -157,6 +137,14 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
             3
             sage: B.n
             4
+
+        TESTS::
+
+            sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
+            sage: W = WeylGroup(['A',3,1], prefix='s')
+            sage: w = W.from_reduced_word([2,3,2,1])
+            sage: B = AffineFactorizationCrystal(w,3)
+            sage: TestSuite(B).run()
         """
         Parent.__init__(self, category = ClassicalCrystals())
         self.n = n
@@ -173,7 +161,7 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
             else:
                 x = 0
         if x in set(w.reduced_word()):
-            raise ValueError, "x cannot be in reduced word of %s"%w
+            raise ValueError("x cannot be in reduced word of {}".format(w))
         self.x = x
 
     def _repr_(self):
@@ -189,7 +177,7 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
             sage: AffineFactorizationCrystal([[3,1],[1]], 4, k=3)
             Crystal on affine factorizations of type A4 associated to s3*s2*s1
         """
-        return "Crystal on affine factorizations of type A%s associated to %s"%(self.n, self.w)
+        return "Crystal on affine factorizations of type A{} associated to {}".format(self.n, self.w)
 
     # temporary workaround while an_element is overriden by Parent
     _an_element_ = EnumeratedSets.ParentMethods._an_element_
@@ -209,14 +197,15 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
                 sage: t.e(1)
                 (1, 1, 1, s3*s2*s1)
             """
-            assert i in self.index_set()
+            if i not in self.index_set():
+                raise ValueError("i must be in the index set")
+            b = self.bracketing(i)
+            if not b[0]:
+                return None
             W = self.parent().w.parent()
             x = self.parent().x
             k = self.parent().k
             n = self.parent().n
-            b = self.bracketing(i)
-            if b[0] == []:
-                return None
             a = min(b[0])
             left = [j for j in (self.value[n-i-1]).reduced_word() if j != (a+x)%(k+1)]
             right = [(j-x)%(k+1) for j in (self.value[n-i]).reduced_word()]
@@ -242,14 +231,15 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
                 sage: t.f(1)
                 (1, 1, s3*s2, s1)
             """
-            assert i in self.index_set()
+            if i not in self.index_set():
+                raise ValueError("i must be in the index set")
+            b = self.bracketing(i)
+            if not b[1]:
+                return None
             W = self.parent().w.parent()
             x = self.parent().x
             k = self.parent().k
             n = self.parent().n
-            b = self.bracketing(i)
-            if b[1] == []:
-                return None
             a = max(b[1])
             right = [j for j in (self.value[n-i]).reduced_word() if j != (a+x)%(k+1)]
             left = [(j-x)%(k+1) for j in (self.value[n-i-1]).reduced_word()]
@@ -281,11 +271,11 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
             right_n = [(j-x)%(k+1) for j in right]
             left_n = [(j-x)%(k+1) for j in left]
             left_unbracketed = []
-            while left_n != []:
+            while left_n:
                 m = max(left_n)
                 left_n.remove(m)
                 l = [j for j in right_n if j>m]
-                if l != []:
+                if l:
                     right_n.remove(min(l))
                 else:
                     left_unbracketed += [m]

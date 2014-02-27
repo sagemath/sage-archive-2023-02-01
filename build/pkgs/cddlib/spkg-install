@@ -26,12 +26,12 @@ export LDFLAGS="-L$SAGE_LOCAL/lib $LDFLAGS"
 cd src
 
 # A portable random number generator
-mv ../patches/random.{c,h} lib-src/
-ln -s ../lib-src/random.{c,h} lib-src-gmp/
+cp ../patches/random.{c,h} lib-src/
+cp ../patches/random.{c,h} lib-src-gmp/
 
 # Required by sage.geometry.polyhedra 
-mv ../patches/cdd_both_reps.c src/
-ln -s ../src/cdd_both_reps.c src-gmp/cdd_both_reps.c
+cp ../patches/cdd_both_reps.c src/
+cp ../patches/cdd_both_reps.c src-gmp/cdd_both_reps.c
 
 # apply patch files
 for patch in ../patches/*.patch; do

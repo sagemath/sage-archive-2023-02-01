@@ -40,11 +40,6 @@ The matplotlib mailing lists: see http://sourceforge.net/projects/matplotlib
 
 == Build Instructions/Changes ==
 
- * setupext.py.patch: if matplotlib's configuration fails to identify
-   the version of libpng, we explicitly tell it to use 'png12'. This
-   helps to avoid some name clashes on OS X and other platforms which
-   don't have 'pkg-config' installed.
-
  * NOTE: To drastically cut down on spkg size, we delete the internal
    testing images.  To do this, we repackage the tarball by removing
    the contents of lib/matplotlib/tests/baseline_images/*

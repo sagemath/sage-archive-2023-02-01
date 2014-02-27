@@ -59,4 +59,4 @@ autoconf --trace='AC_INIT:$2' src/cnf/configure.in > src/gap-version
 rm -rf autom4te.cache
 
 
-# tar cjf gap-`cat src/gap-version`.tar.bz2 src/  && rm -rf src/
+tar cjf gap-`cat src/gap-version`.tar.bz2 src/  && rm -rf src/

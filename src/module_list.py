@@ -1951,6 +1951,12 @@ ext_modules = [
     Extension('sage.stats.intlist',
               sources = ['sage/stats/intlist.pyx']),
 
+        Extension('sage.stats.discrete_gaussians',
+                  sources = ['sage/stats/discrete_gaussians.pyx', 'sage/stats/dgs.c'],
+                  libraries = ['gmp', 'mpfr'],
+                  extra_compile_args=["-std=c99"]
+              ),
+
     ################################
     ##
     ## sage.structure

@@ -82,8 +82,8 @@ void dgs_bern_exp_mp_clear(dgs_bern_exp_mp_t *self);
  */
 
 typedef enum {
-  DGS_DISC_GAUSS_TABLE   = 0x1,
-  DGS_DISC_GAUSS_UNIFORM = 0x2,
+  DGS_DISC_GAUSS_UNIFORM_ONLINE = 0x1,
+  DGS_DISC_GAUSS_UNIFORM_TABLE  = 0x2,
 } dgs_disc_gauss_alg_t;
 
 struct _dgs_disc_gauss_mp_t;
@@ -98,14 +98,19 @@ typedef struct _dgs_disc_gauss_mp_t {
   void (*call)(mpz_t rop, struct _dgs_disc_gauss_mp_t *self, gmp_randstate_t state);
 
   mpz_t upper_bound;
+  mpz_t two_upper_bound_plus_one;
   mpz_t x;
+  mpz_t x2;
   mpfr_t y;
+  mpfr_t z;
+  mpfr_t f;
   mpfr_t *rho;
   
 } dgs_disc_gauss_mp_t;
 
 dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, size_t tailcut, dgs_disc_gauss_alg_t algorithm);
 void dgs_disc_gauss_mp_call_uniform_table(mpz_t rop, dgs_disc_gauss_mp_t *self, gmp_randstate_t state);
+void dgs_disc_gauss_mp_call_uniform_online(mpz_t rop, dgs_disc_gauss_mp_t *self, gmp_randstate_t state);
 void dgs_disc_gauss_mp_clear(dgs_disc_gauss_mp_t *self);
 
 #endif //DGS__H

@@ -35,8 +35,8 @@ cdef extern from "dgs.h":
     void dgs_bern_exp_mp_clear(dgs_bern_exp_mp_t *self)
 
     ctypedef int dgs_disc_gauss_alg_t
-    cdef int DGS_DISC_GAUSS_TABLE
-    cdef int DGS_DISC_GAUSS_UNIFORM
+    cdef int DGS_DISC_GAUSS_UNIFORM_TABLE
+    cdef int DGS_DISC_GAUSS_UNIFORM_ONLINE
 
     ctypedef struct dgs_disc_gauss_mp_t:
         mpfr_t sigma

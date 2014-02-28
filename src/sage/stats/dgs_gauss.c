@@ -5,21 +5,17 @@
 dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, size_t tailcut, dgs_disc_gauss_alg_t algorithm) {
   assert(tailcut > 0);
 
-  dgs_disc_gauss_mp_t *self = (dgs_disc_gauss_mp_t*)malloc(sizeof(dgs_disc_gauss_mp_t));
+  dgs_disc_gauss_mp_t *self = (dgs_disc_gauss_mp_t*)calloc(sizeof(dgs_disc_gauss_mp_t),1);
   if (!self) abort();
   
   mpfr_init_set(self->sigma, sigma, MPFR_RNDN);
   self->tailcut = tailcut;
 
-  if(algorithm == (DGS_DISC_GAUSS_TABLE & DGS_DISC_GAUSS_UNIFORM)) {
+  switch(algorithm) {
+  case DGS_DISC_GAUSS_UNIFORM_TABLE: {
     self->call = dgs_disc_gauss_mp_call_uniform_table;
-  } else {
-    self->call = dgs_disc_gauss_mp_call_uniform_table;
-  }
 
-  self->B = dgs_bern_uniform_mp_init(0);
-  
-  if (self->call == dgs_disc_gauss_mp_call_uniform_table) {
+    self->B = dgs_bern_uniform_mp_init(0);
     mpfr_t f;
     mpfr_init_set(f, sigma, MPFR_RNDN); // f = σ
     mpfr_sqr(f, f, MPFR_RNDN); // f = σ^2
@@ -51,7 +47,35 @@ dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, size_t tailcut, dgs_di
 
     mpz_init(self->x);
     mpfr_init(self->y);
+    break;
   }
+ case DGS_DISC_GAUSS_UNIFORM_ONLINE: {
+   self->call = dgs_disc_gauss_mp_call_uniform_online;
+   mpfr_init_set(self->f, sigma, MPFR_RNDN); // f = σ
+   mpfr_sqr(self->f, self->f, MPFR_RNDN); // f = σ^2
+   mpfr_mul_ui(self->f, self->f, 2, MPFR_RNDN); // f = 2 σ^2
+   mpfr_ui_div(self->f, 1, self->f, MPFR_RNDN);  // f = 1/(2 σ^2)
+   mpfr_neg(self->f, self->f, MPFR_RNDN); // f = -1/(2 σ^2)
+
+   mpfr_t tmp;
+   mpfr_init(tmp);
+   mpz_init(self->upper_bound);
+   mpz_init(self->two_upper_bound_plus_one);
+   mpfr_mul_ui(tmp, sigma, tailcut, MPFR_RNDN);
+   mpfr_get_z(self->upper_bound, tmp, MPFR_RNDU);
+   mpz_mul_ui(self->two_upper_bound_plus_one, self->upper_bound, 2);
+   mpz_add_ui(self->two_upper_bound_plus_one, self->two_upper_bound_plus_one, 1);
+   mpfr_clear(tmp);
+
+   mpz_init(self->x);
+    mpz_init(self->x2);
+   mpfr_init(self->y);
+   mpfr_init(self->z);
+   break;
+ }
+  default:
+    abort();
+  }  
   return self;
 }
 
@@ -63,9 +87,22 @@ void dgs_disc_gauss_mp_call_uniform_table(mpz_t rop, dgs_disc_gauss_mp_t *self, 
     mpfr_urandomb(self->y, state);
   } while (mpfr_cmp(self->y, self->rho[x]) >= 0);
 
-  mpz_init_set_ui(rop, x);
+  mpz_set_ui(rop, x);
   if(dgs_bern_uniform_mp_call(self->B, state))
     mpz_neg(rop, rop);
+}
+
+void dgs_disc_gauss_mp_call_uniform_online(mpz_t rop, dgs_disc_gauss_mp_t *self, gmp_randstate_t state) {
+  do {
+    mpz_urandomm(self->x, state, self->two_upper_bound_plus_one);
+    mpz_sub(self->x, self->x, self->upper_bound);
+    mpz_mul(self->x2, self->x, self->x);
+    mpfr_mul_z(self->z, self->f, self->x2, MPFR_RNDN);
+    mpfr_exp(self->z, self->z, MPFR_RNDN);
+    mpfr_urandomb(self->y, state);
+  } while (mpfr_cmp(self->y, self->z) >= 0);
+
+  mpz_set(rop, self->x);
 }
 
 
@@ -74,6 +111,8 @@ void dgs_disc_gauss_mp_clear(dgs_disc_gauss_mp_t *self) {
   if (self->B) dgs_bern_uniform_mp_clear(self->B);
   if (self->x) mpz_clear(self->x);
   if (self->y) mpfr_clear(self->y);
+  if (self->f) mpfr_clear(self->f);
+  if (self->z) mpfr_clear(self->z);
   if (self->rho) {
     for(unsigned long x=0; x<mpz_get_ui(self->upper_bound); x++) {
       mpfr_clear(self->rho[x]);

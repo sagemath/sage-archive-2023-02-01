@@ -48,6 +48,10 @@ The matplotlib mailing lists: see http://sourceforge.net/projects/matplotlib
    raises an error because it can't find the deleted files
    from src/lib/matplotlib/tests/baseline_images/*
 
+ * reserved_identifiers.patch: taken from
+   https://github.com/matplotlib/matplotlib/pull/2464. This allows
+   matplotlib to build on Solaris.
+
  * NOTE: as of matplotlib-1.0.0 and Sage 4.6, Sage does not use
    $HOME/.matplotlib (or whatever the user has set in MPLCONFIGDIR).
    Instead, it sets MPLCONFIGDIR to $DOT_SAGE/matplotlib-VER, where

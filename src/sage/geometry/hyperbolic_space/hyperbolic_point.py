@@ -15,6 +15,7 @@ We can construct points in the upper half plane model, abbreviated
 UHP for convenience::
 
     sage: UHP.point(2 + I)
+    Point in UHP I + 2.
     sage: g = UHP.point(3 + I)
     sage: g.dist(UHP.point(I))
     arccosh(11/2)
@@ -245,7 +246,7 @@ class HyperbolicPoint(SageObject):
             sage: B*HM.point((0, 1, sqrt(2)))
             Point in HM (0, -1, sqrt(2)).
         """
-        from sage.matrix.all import is_Matrix
+        from sage.matrix.matrix import is_Matrix
         if is_Matrix(other):
             A = self.HFactory.get_isometry(other)
             return A*self
@@ -562,8 +563,8 @@ class HyperbolicPointUHP (HyperbolicPoint):
     EXAMPLES::
 
         sage: from sage.geometry.hyperbolic_space.hyperbolic_point import HyperbolicPointUHP
-        sage: HyperbolicPointUHP(0)
-        Point in UHP 0.
+        sage: HyperbolicPointUHP(2*I)
+        Point in UHP 2*I.
     """
     HFactory = HyperbolicFactoryUHP
     HMethods = HyperbolicMethodsUHP

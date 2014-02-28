@@ -420,7 +420,7 @@ class PD(HyperbolicUserInterface):
 
     EXAMPLES::
         sage: PD.point(I)
-        Point in PD I.
+        Boundary point in PD I.
     """
     HModel = HyperbolicModelPD
     HFactory = HyperbolicFactoryPD

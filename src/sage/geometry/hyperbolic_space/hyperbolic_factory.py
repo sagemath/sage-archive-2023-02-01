@@ -121,13 +121,6 @@ class HyperbolicAbstractFactory (UniqueRepresentation):
 
             sage: HyperbolicFactoryKM.get_bdry_point((0,-1))
             Boundary point in KM (0, -1).
-
-        Note that not every model is bounded::
-
-            sage: HyperbolicFactoryHM.get_bdry_point((0,1,-1))
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: HM is not a bounded model; boundarypoints not implemented.
         """
         return cls.HBdryPoint(coordinates, **graphics_options)
 
@@ -337,10 +330,9 @@ class HyperbolicFactoryKM (HyperbolicAbstractFactory, UniqueRepresentation):
 class HyperbolicFactoryHM (HyperbolicAbstractFactory, UniqueRepresentation):
     HModel = HyperbolicModelHM
     HPoint = HyperbolicPointHM
-    HBdryPoint = HyperbolicBdryPointHM
     HIsometry = HyperbolicIsometryHM
     HGeodesic = HyperbolicGeodesicHM
-
+    
     @classmethod
     def get_background_graphic(cls, **bdry_options):
         r"""

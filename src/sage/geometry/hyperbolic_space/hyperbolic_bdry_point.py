@@ -106,7 +106,7 @@ class HyperbolicBdryPoint(HyperbolicPoint):
         if not self.model().bounded:
             raise NotImplementedError(
                 "{0} is not a bounded model; boundary"
-                "points not implemented.".format(self.model_name()))
+                " points not implemented.".format(self.model_name()))
         elif self.model().bdry_point_in_model(coordinates):
             self._coordinates = coordinates
         else:
@@ -228,4 +228,21 @@ class HyperbolicBdryPointKM (HyperbolicBdryPoint):
         Boundary point in KM (1, 0).
     """
     HFactory = HyperbolicFactoryKM
+    HMethods = HyperbolicMethodsUHP
+
+class HyperbolicBdryPointHM (HyperbolicBdryPoint):
+    r"""
+    A dummy class for the boundary points of the hyperboloid model.  The model
+    is not bounded, so there are no boundary points.  The class is needed for
+    compatibility reasons.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.hyperbolic_space.hyperbolic_bdry_point import HyperbolicBdryPointHM
+        sage: q = HyperbolicBdryPointHM((1,0,0)); q
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: HM is not a bounded model; boundary points not implemented.
+    """
+    HFactory = HyperbolicFactoryHM
     HMethods = HyperbolicMethodsUHP

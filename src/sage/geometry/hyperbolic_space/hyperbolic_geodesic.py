@@ -44,7 +44,7 @@ from sage.misc.lazy_import import lazy_import
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.geometry.hyperbolic_space.hyperbolic_constants import EPSILON
 from sage.rings.infinity import infinity
-
+from sage.symbolic.constants import pi
 
 lazy_import('sage.rings.all', 'CC')
 lazy_import('sage.functions.other', 'real')
@@ -958,6 +958,7 @@ class HyperbolicGeodesicUHP (HyperbolicGeodesic):
 
     EXAMPLES::
 
+        sage: from sage.geometry.hyperbolic_space.hyperbolic_geodesic import *
         sage: g = HyperbolicGeodesicUHP(UHP.point(I), UHP.point(2 + I))
         sage: g = HyperbolicGeodesicUHP(I, 2 + I)
     """
@@ -1035,6 +1036,7 @@ class HyperbolicGeodesicPD (HyperbolicGeodesic):
 
     EXAMPLES::
 
+        sage: from sage.geometry.hyperbolic_space.hyperbolic_geodesic import *
         sage: g = HyperbolicGeodesicPD(PD.point(I), PD.point(I/2))
         sage: g = HyperbolicGeodesicPD(I, I/2)
     """
@@ -1066,15 +1068,22 @@ class HyperbolicGeodesicPD (HyperbolicGeodesic):
             # Now we calculate the angles for the parametric plot
             theta1 = CC(end_1- center).arg()
             theta2 = CC(end_2 - center).arg()
-            if theta1 < 0:
-                theta1 = theta1 + 2*3.14159265358979
-            if theta2 < 0:
-                theta2 = theta2 + 2*3.14159265358979
-            [theta1, theta2] = sorted([theta1,theta2])
+            if theta2 < theta1:
+                theta1, theta2 = theta2, theta1
             x = var('x')
-            # We use the parameterization (-cos(x), sin(x)) because
-            # arg returns an argument between -pi and pi.
-            pic = parametric_plot((radius*cos(x) + real(center),
+            mid = (theta1 + theta2)/2.0
+            if (radius*cos(mid) + real(center))**2 + \
+               (radius*sin(mid) + imag(center))**2 > 1.0:
+                # Swap theta1 and theta2
+                tmp = theta1 + 2*pi
+                theta1 = theta2
+                theta2 = tmp
+                pic = parametric_plot((radius*cos(x) + real(center),
+                                       radius*sin(x) + imag(center)),
+                                      (x, theta1, theta2), **opts)
+
+            else:
+                pic = parametric_plot((radius*cos(x) + real(center),
                                    radius*sin(x) + imag(center)),
                                   (x, theta1, theta2), **opts)
         if boundary:
@@ -1099,8 +1108,9 @@ class HyperbolicGeodesicKM (HyperbolicGeodesic):
 
     EXAMPLES::
 
-        sage: g = HyperbolicGeodesicKM(KM.point(I), KM.point(I/2))
-        sage: g = HyperbolicGeodesicKM(I, I/2)
+        sage: from sage.geometry.hyperbolic_space.hyperbolic_geodesic import *
+        sage: g = HyperbolicGeodesicKM(KM.point((0,1)), KM.point((0,1/2)))
+        sage: g = HyperbolicGeodesicKM((0,1), (0,1/2))
     """
     HFactory = HyperbolicFactoryKM
     HMethods = HyperbolicMethodsUHP
@@ -1139,8 +1149,9 @@ class HyperbolicGeodesicHM (HyperbolicGeodesic):
 
     EXAMPLES::
 
-        sage: g = HyperbolicGeodesicHM(HM.point((1,0,0)), HM.point((0,1,sqrt(2))))
-        sage: g = HyperbolicGeodesicHM((1, 0, 0), (0, 1, sqrt(2)))
+        sage: from sage.geometry.hyperbolic_space.hyperbolic_geodesic import *
+        sage: g = HyperbolicGeodesicHM(HM.point((0, 0, 1)), HM.point((0,1,sqrt(2))))
+        sage: g = HyperbolicGeodesicHM((0, 0, 1), (0, 1, sqrt(2)))
     """
     HFactory = HyperbolicFactoryHM
     HMethods = HyperbolicMethodsUHP

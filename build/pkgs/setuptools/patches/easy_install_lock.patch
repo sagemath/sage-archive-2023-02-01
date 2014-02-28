@@ -1,0 +1,53 @@
+diff -ur setuptools-2.0.1/setuptools/command/easy_install.py src/setuptools/command/easy_install.py
+--- setuptools-2.0.1/setuptools/command/easy_install.py	2013-12-13 17:31:51.000000000 +0100
++++ src/setuptools/command/easy_install.py	2014-02-28 15:56:19.150787109 +0100
+@@ -26,6 +26,7 @@
+ import warnings
+ import site
+ import struct
++import fcntl
+ from glob import glob
+ from distutils import log, dir_util
+ 
+@@ -1432,12 +1433,14 @@
+         for path in yield_lines(self.paths):
+             list(map(self.add, find_distributions(path, True)))
+ 
+-    def _load(self):
++    def _load(self, lock=True):
+         self.paths = []
+         saw_import = False
+         seen = dict.fromkeys(self.sitedirs)
+         if os.path.isfile(self.filename):
+             f = open(self.filename,'rt')
++            if lock:
++                fcntl.flock(f, fcntl.LOCK_SH)
+             for line in f:
+                 if line.startswith('import'):
+                     saw_import = True
+@@ -1465,8 +1468,9 @@
+ 
+     def save(self):
+         """Write changed .pth file back to disk"""
+-        if not self.dirty:
+-            return
++        lock = open(self.filename, 'a')
++        fcntl.flock(lock, fcntl.LOCK_EX)
++        self._load(lock=False)
+ 
+         data = '\n'.join(map(self.make_relative,self.paths))
+         if data:
+@@ -1486,11 +1490,12 @@
+             f.write(data)
+             f.close()
+ 
+-        elif os.path.exists(self.filename):
++        else:
+             log.debug("Deleting empty %s", self.filename)
+             os.unlink(self.filename)
+ 
+         self.dirty = False
++        lock.close()
+ 
+     def add(self, dist):
+         """Add `dist` to the distribution map"""

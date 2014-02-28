@@ -1,6 +1,6 @@
-diff -ur setuptools-2.0.1/setuptools/command/easy_install.py src/setuptools/command/easy_install.py
---- setuptools-2.0.1/setuptools/command/easy_install.py	2013-12-13 17:31:51.000000000 +0100
-+++ src/setuptools/command/easy_install.py	2014-02-28 15:56:19.150787109 +0100
+diff -ur setuptools-2.0.1-orig/setuptools/command/easy_install.py setuptools-2.0.1/setuptools/command/easy_install.py
+--- setuptools-2.0.1-orig/setuptools/command/easy_install.py	2013-12-13 17:31:51.000000000 +0100
++++ setuptools-2.0.1/setuptools/command/easy_install.py	2014-02-28 20:03:44.805017754 +0100
 @@ -26,6 +26,7 @@
  import warnings
  import site
@@ -14,8 +14,9 @@ diff -ur setuptools-2.0.1/setuptools/command/easy_install.py src/setuptools/comm
              list(map(self.add, find_distributions(path, True)))
  
 -    def _load(self):
-+    def _load(self, lock=True):
-         self.paths = []
+-        self.paths = []
++    def _load(self, lock=True, paths=[]):
++        self.paths = list(paths)
          saw_import = False
          seen = dict.fromkeys(self.sitedirs)
          if os.path.isfile(self.filename):
@@ -25,7 +26,7 @@ diff -ur setuptools-2.0.1/setuptools/command/easy_install.py src/setuptools/comm
              for line in f:
                  if line.startswith('import'):
                      saw_import = True
-@@ -1465,8 +1468,9 @@
+@@ -1465,10 +1468,12 @@
  
      def save(self):
          """Write changed .pth file back to disk"""
@@ -33,11 +34,15 @@ diff -ur setuptools-2.0.1/setuptools/command/easy_install.py src/setuptools/comm
 -            return
 +        lock = open(self.filename, 'a')
 +        fcntl.flock(lock, fcntl.LOCK_EX)
-+        self._load(lock=False)
++        self._load(lock=False, paths=self.paths)
  
-         data = '\n'.join(map(self.make_relative,self.paths))
+-        data = '\n'.join(map(self.make_relative,self.paths))
++        relative_paths = set(map(self.make_relative,self.paths))
++        data = '\n'.join(relative_paths)
          if data:
-@@ -1486,11 +1490,12 @@
+             log.debug("Saving %s", self.filename)
+             data = (
+@@ -1486,11 +1491,12 @@
              f.write(data)
              f.close()
  

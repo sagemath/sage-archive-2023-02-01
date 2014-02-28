@@ -1,5 +1,5 @@
 """
-Elementary Crystals
+Catalog of Elementary Crystals
 
 See :mod:`~sage.combinat.crystals.elementary_crystals`.
 """

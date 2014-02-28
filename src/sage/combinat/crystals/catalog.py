@@ -25,6 +25,6 @@ from sage.combinat.rigged_configurations.rigged_configurations import RiggedConf
 from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinTableaux
 from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux
 
-import infinity_crystals_catalog as infinity
-import elementary_crystals_catalog as elementary
+import catalog_infinity_crystals as infinity
+import catalog_elementary_crystals as elementary
 

@@ -168,8 +168,10 @@ class CFiniteSequence(FractionFieldElement):
             x = R.gen()
             alen = max(self._deg, num.degree() + 1)
             R.set_default_prec (alen)
-            p = R( num / den )
-            self._a = p.list()
+            if den <> 1:
+                self._a = R( num.quo_rem(den)[1] / den ).list()
+            else:
+                self._a = num.list()
             if len(self._a) < alen:
                 self._a.extend([0] * (alen - len(self._a)))
             self._c = [-den.list()[i] for i in range(1, self._deg + 1)]
@@ -270,15 +272,20 @@ class CFiniteSequence(FractionFieldElement):
     def _sub_(self, other):
         """
         Subtraction of C-finite sequences.
-        
-    EXAMPLES::
-
-        sage: R.<x> = ZZ[]
-        sage: r = CFiniteSequence(1/(1-2*x))
-        sage: r[0:5]                  # a(n) = 2^n
-        [1, 2, 4, 8, 16]
         """
         return CFiniteSequence(self.ogf() - other.numerator()/other.denominator())
+
+    def _mul_(self, other):
+        """
+        Multiplication of C-finite sequences.
+        """
+        return CFiniteSequence(self.ogf() * other.numerator()/other.denominator())
+
+    def _div_(self, other):
+        """
+        Division of C-finite sequences.
+        """
+        return CFiniteSequence(self.ogf() / (other.numerator()/other.denominator()))
 
     def coefficients(self):
         """
@@ -356,6 +363,9 @@ class CFiniteSequence(FractionFieldElement):
             [1, 2, 5, 8, 16]
             sage: r[-2]
             0
+            sage: r = CFiniteSequence((-2*x^3 + x^2 - x + 1)/(2*x^2 - 3*x + 1))
+            sage: r[0:5]
+            [1, 2, 5, 9, 17]
         """
 
         if isinstance(key, slice):
@@ -370,9 +380,10 @@ class CFiniteSequence(FractionFieldElement):
                     return self._a[key - self._off]
                 else: 
                     return 0
-            quo = self.numerator().quo_rem(self.denominator())[0]
-            wp = quo[key - self._off]
-
+            quorem = self.numerator().quo_rem(self.denominator())
+            wp = quorem[0][key - self._off]
+            if key < self._off:
+                return wp
             A = Matrix(QQ, 1, d, self._c)
             B = Matrix.identity(QQ, d - 1)
             C = Matrix(QQ, d - 1, 1, 0)
@@ -413,6 +424,9 @@ class CFiniteSequence(FractionFieldElement):
             'Homogenous linear recurrence with constant coefficients of degree 3: a(n+3) = 3*a(n) - 3*a(n+1) + 1*a(n+2), starting a(1...) = [1, 3, 6]'
             sage: CFiniteSequence(R(1)).recurrence_repr()
             'Finite sequence [1], offset 0'
+            sage: r = CFiniteSequence((-2*x^3 + x^2 - x + 1)/(2*x^2 - 3*x + 1))
+            sage: r.recurrence_repr()
+            'Homogenous linear recurrence with constant coefficients of degree 2: a(n+2) = 3*a(n) - 2*a(n+1), starting a(0...) = [1, 2, 5, 9]'
         """
         
         if self._deg == 0:
@@ -426,7 +440,11 @@ class CFiniteSequence(FractionFieldElement):
                     cstr = cstr + ' + ' + str(self._c[i]) + '*a(n+' + str(i) + ')'
                 else:
                     cstr = cstr + ' + ' + str(self._c[i]) + '*a(n+' + str(i) + ')'
-        astr = ', starting a(' + str(self._off) + '...) = ' + str(self._a)
+        astr = ', starting a(' + str(self._off) + '...) = ['
+        maxwexp = self.numerator().quo_rem(self.denominator())[0].degree() + 1
+        for i in range(maxwexp + self._deg):
+            astr = astr + str(self.__getitem__(self._off + i)) + ', '
+        astr = astr[:-2] + ']'
         return 'Homogenous linear recurrence with constant coefficients of degree ' + str(self._deg) + ': ' + cstr + astr
 
     def series(self, n):

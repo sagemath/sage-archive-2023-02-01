@@ -50,7 +50,7 @@ update GAP, please also update and use the spkg-src script.
    Since the (pre-)built HTML documentation is currently included, I've
    commented out some lines in that part of `spkg-install`. -leif
 
-The following patches need to be applied:
+=== Patches ===
 
  * writeandcheck.patch: fix infinite loop in writeandcheck() when
    writing an error message fails.

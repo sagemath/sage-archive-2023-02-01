@@ -31,34 +31,3 @@ Copy the following databases out the gap source tarball:
  * trans
 See also the spkg-src script.
 
-== Changelog ==
-
-=== gap_packages-4.6.5 (Volker Braun, 5 October 2013) ===
- * Update to latest upstream version
- * Added spkg-src
- * Moved to new git workflow.  
-
-=== gap_packages-4.6.4 (Volker Braun, 3 June 2013) ===
- * Update to latest upstream version
-
-=== database_gap-4.6.3 (Volker Braun, 25 April 2013) ===
- * Update to latest upstream version
-
-=== database_gap-4.5.7 (Volker Braun, 20 December 2012) ===
- * Update to latest upstream version
-
-=== database_gap-4.5.6 (Volker Braun, 22 September 2012) ===
- * Update to latest upstream version
-
-=== database_gap-4.5.5 (Volker Braun, 26 August 2012) ===
- * Update to latest upstream version
-
-=== 4.4.12.p1 (John Palmieri, 20 March 2012) ===
- * cleaned up spkg-install, made it work following the deletion of the
-   "newest_version" script (trac #10492).
-
-=== 4.4.12.p0 (2010.03.17 Dmitrii Pasechnik) ===
- * fixed this file
-
-=== 4.4.12.p0 (2010.03.15 Dmitrii Pasechnik) ===
- * made spkg-install Solaris-compatible

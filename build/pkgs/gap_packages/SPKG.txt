@@ -28,78 +28,7 @@ The crystallographic group packages are untested/untestable. They rely
 on polymake and the dependency "cryst" is missing. This needs to be
 cleaned up.
 
-== Changelog ==
-
-=== gap_packages-4.6.5 (Volker Braun, 5 October 2013) ===
- * Deleted the braid gap package, its not in upstream and we have our
-   own braid implementation.
- * Added spkg-src
- * Moved to new git workflow.
-
-=== gap_packages-4.6.4.p1 (Volker Braun, 19 July 2013) ===
- * Trac #14909: Add polycyclic, Alnuth-3.0.0, autpgrp as new
-   dependencies. Removed reference to HAPprime which isn't included.
-
-=== gap_packages-4.6.4 (Volker Braun, 3 June 2013) ===
- * No changes to the packages we ship
-
-=== gap_packages-4.6.3 (Volker Braun, 25 April 2013) ===
- * Update to latest gap version: ctbllib, Hap1.10, laguna, sonata
-
-=== gap_packages-4.5.7 (Volker Braun, 20 December 2012) ===
- * Update to latest gap version, none of the contained packages changed
-
-=== gap_packages-4.5.6 (Volker Braun, 22 September 2012) ===
- * Update to latest upstream version
-
-=== gap_packages-4.5.5 (Volker Braun, 26 August 2012) ===
- * Update to latest upstream version
- * Forked braid-1.2 to fix a function name clash
-
-=== gap_packages-4.4.12.p1 (Jeroen Demeyer, 27 March 2012) ===
- * Trac #12758: do not use "newest_version" in spkg-install.  This is
-   needed since "newest_version" was deleted in #10492.
- * Clean up spkg-install: use a for loop to copy packages.
-
-=== gap_packages-4.4.12.p0 (Dima Pasechnik, 17 March 2010) ===
- * fixed a GNU-ism in spkg-install, that made in break on Solaris 10
- * started proper version numbering.
-
-=== gap_packages-4.4.12_2 (Dima Pasechnik) ===
-bumped up design, toric and laguna packages to the latest stable revisions
-stripped package directory names in src/, and appropriate places in
-spkg-install, of package version numbers, to make it consistent,
-and avoid changing spkg-install in the future unnecessarily.
-
-=== gap_packages-4.4.10_3 (Michael Abshoff) ===
- * fix "implausibly old time stamp 1969-12-31 16:00:00"
-
-=== gap_packages-4.4.10_2 ===
-
-NOTES (Added by William Stein):
-
- grape -- it hardcodes cc as compiler, which of course doesn't work.
-I've changed to hardcode gcc as compiler, which is more likely to work.
-
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-Prepared by David Joyner (2008-24-07)
-
-This directory contains several "official" and "undeposited"
-GAP packages available from
-http://www.gap-system.org/Packages/packages.html. They are
-all released under the GPL with the following exception:
-(*) grape contains Brendon McKay's nauty program.
-
-To load a package, for example grape, into SAGE type
-
-sage: gap('LoadPackage("grape")')
-
-All these packages come with documentation in the
-doc or htm subdirectory (e.g., for grape, it would be in
-SAGEHOME/local/lib/gap-4.4.12/pkg/grape/htm). After loading all
-the packages, you can type gap_reset_workspace()
-so you don't have to reload them again.
+== Notes ==
 
 A brief description of each package follows:
 

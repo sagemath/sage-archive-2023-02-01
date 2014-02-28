@@ -2,7 +2,12 @@
 
 cd src
 
-./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"
+# Workaround for bugs with -D_FORTIFY_SOURCE=2 on antiques
+export CPPFLAGS='-U_FORTIFY_SOURCE'
+
+./configure \
+    --prefix="$SAGE_LOCAL" \
+    --libdir="$SAGE_LOCAL/lib"
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring pkgconf."
     exit 1

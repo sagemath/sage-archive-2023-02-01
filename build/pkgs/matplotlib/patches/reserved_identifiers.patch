@@ -13,7 +13,7 @@
  {
 -    _seed = (_seed*_A + _C) % _M;
 -    return (_seed*max_value) / _M;
-+    _seed = (_seed*_A + _C) % _m;
++    _seed = (_seed*_a + _c) % _m;
 +    return (_seed*max_value) / _m;
  }
  

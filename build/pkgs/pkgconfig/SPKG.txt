@@ -23,4 +23,6 @@ https://github.com/matze/pkgconfig
 
 == Special Update/Build Instructions ==
 
-None, standard setup.py
+Standard setup.py
+
+* remove_nose.patch: Remove the nose dependency (not actually used)

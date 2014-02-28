@@ -984,29 +984,36 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         permutation obtained by first transposing `1` with `2` and
         then transposing `2` with `3` (where `s_i = (i, i+1)`).
 
-        For every partition `\lambda` of `n`, let `\kappa_\lambda`
-        denote `n!` divided by the number of standard Young tableaux
-        of shape `\lambda`. Note that `\kappa_\lambda` is an integer,
-        namely the product of all hook lengths of `\lambda` (by the
-        hook length formula). In Sage, this integer can be computed by
-        using :function:`kappa`.
+        For every partition `\lambda` of `n`, let
+
+        .. MATH::
+
+            \kappa_{\lambda} = \frac{n!}{f^{\lambda}}
+
+        where `f^{\lambda}` is the number of standard Young tableaux
+        of shape `\lambda`. Note that `\kappa_{\lambda}` is an integer,
+        namely the product of all hook lengths of `\lambda` by the
+        hook length formula. In Sage, this integer can be computed by
+        using :func:`sage.combinat.symmetric_group_algebra.kappa()`.
 
         Let `T` be a standard tableau.
 
         Let `a(T)` denote the formal sum (in `R S_n`) of all
         permutations in `S_n` which stabilize the rows of `T` (as
         sets), i. e., which map each entry `i` of `T` to an entry in
-        the same row as `i`. (See :function:`a` for an implementation
-        of this.)
+        the same row as `i`. (See
+        :func:`sage.combinat.symmetric_group_algebra.a()` for
+        an implementation of this.)
 
         Let `b(T)` denote the signed formal sum (in `R S_n`) of all
         permutations in `S_n` which stabilize the columns of `T` (as
         sets). Here, "signed" means that each permutation is
         multiplied with its sign. (This is implemented in
-        :function:`b`.)
+        :func:`sage.combinat.symmetric_group_algebra.b()`.)
 
         Define an element `e(T)` of `R S_n` to be `a(T) b(T)`. (This
-        is implemented in :function:`e` for `R = \QQ`.)
+        is implemented in :func:`sage.combinat.symmetric_group_algebra.e()`
+        for `R = \QQ`.)
 
         Let `\mathrm{sh}(T)` denote the shape of `T`.
         (See :meth:`~sage.combinat.tableau.Tableau.shape`.)
@@ -1028,8 +1035,9 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
                           e(T) \epsilon(\overline{T}).
 
         This element `\epsilon(T)` is implemented as
-        :function:`epsilon` for `R = \QQ`, but it is also a particular
-        case of the elements `\epsilon(T, S)` defined below.
+        :func:`sage.combinat.symmetric_group_algebra.epsilon` for `R = \QQ`,
+        but it is also a particular case of the elements `\epsilon(T, S)`
+        defined below.
 
         Now let `S` be a further tableau of the same shape as `T`
         (possibly equal to `T`). Let `\pi_{T, S}` denote the
@@ -1072,7 +1080,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
         INPUT:
 
-        - ``mult`` -- string (default: `l2r`). If set to `r2l`,
+        - ``mult`` -- string (default: `'l2r'`). If set to `'r2l'`,
           this causes the method to return the list of the
           antipodes (:meth:`antipode`) of all `\epsilon(T, S)`
           instead of the `\epsilon(T, S)` themselves.

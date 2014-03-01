@@ -856,6 +856,50 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
 
         return out
 
+    def _derivative(self, var=None):
+        """
+        Computes formal derivative of this polynomial with respect to
+        the given variable.
+
+        If var is among the generators of this ring, the derivative
+        is with respect to the generator. Otherwise, _derivative(var) is called
+        recursively for each coefficient of this polynomial.
+
+        .. seealso:: :meth:`.derivative`
+
+        EXAMPLES::
+
+            sage: R = LaurentPolynomialRing(QQ['z'],'x')
+            sage: z = R.base_ring().gen()
+            sage: x = R.gen()
+            sage: t = 33*z*x**4+x**(-1)
+            sage: t._derivative(z)
+            33*x^4
+            sage: t._derivative(x)
+            132*z*x^3 - x^-2
+        """
+        if var is None:
+            raise ValueError("must specify which variable to differentiate "
+                             "with respect to")
+        P = self.parent()
+        gens = list(P.gens())
+
+        # check if var is one of the generators
+        try:
+            index = gens.index(var)
+        except ValueError:
+            # call _derivative() recursively on coefficients
+            return P({m: c._derivative(var)
+                      for (m, c) in self.dict().iteritems()})
+
+        # compute formal derivative with respect to generator
+        d = {}
+        for m, c in self.dict().iteritems():
+            if m[index] != 0:
+                new_m = [u for u in m]
+                new_m[index] += -1
+                d[ETuple(new_m)] = m[index] * c
+        return P(d)
 
     def factor(self):
         """

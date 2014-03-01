@@ -1496,6 +1496,11 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         - We have `T \leq S` in the Tamari order.
 
+        - There exist elements `t` and `s` of the Sylvester classes
+          (:meth:`sylvester_class`) of `T` and `S`, respectively,
+          such that `t \leq s` in the weak order on the symmetric
+          group.
+
         - The 132-avoiding permutation corresponding to `T` (see
           :meth:`to_132_avoiding_permutation`) is `\leq` to the
           132-avoiding permutation corresponding to `S` in the weak
@@ -2375,18 +2380,39 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         method computes if it is given the keyword
         ``left_to_right=False``.
 
-        If a left-to-right reading is to be employed instead, the
-        ``left_to_right`` optional keyword variable should be set to
-        ``True``.
+        Here are two more descriptions of the sylvester class of a binary
+        search tree:
+
+        - The sylvester class of a binary search tree `T` is the set of
+          all linear extensions of the poset corresponding to `T` (that
+          is, of the poset whose Hasse diagram is `T`, with the root on
+          top), provided that the nodes of `T` are labelled with
+          `1, 2, \ldots, n` in a binary-search-tree way (i.e., every left
+          descendant of a node has a label smaller than that of the node,
+          and every right descendant of a node has a label higher than
+          that of the node).
+
+        - The sylvester class of a binary search tree `T` (with vertex
+          labels `1, 2, \ldots, n`) is the interval `[u, v]` in the right
+          permutohedron order
+          (:meth:`~sage.combinat.permutation.Permutation.permutohedron_lequal`),
+          where `u` is the 312-avoiding permutation corresponding to `T`
+          (:meth:`to_312_avoiding_permutation`), and where `v` is the
+          132-avoiding permutation corresponding to `T`
+          (:meth:`to_132_avoiding_permutation`).
+
+        If the optional keyword variable ``left_to_right`` is set to
+        ``True``, then the *left* sylvester class of ``self`` is
+        returned instead. This is the set of permutations `\sigma` whose
+        left-to-right binary search tree (that is, the result of the
+        :meth:`~sage.combinat.permutation.Permutation.binary_search_tree`
+        with ``left_to_right`` set to ``True``) is ``self``. It is an
+        equivalence class of the left sylvester congruence.
 
         .. WARNING::
 
             This method yields the elements of the sylvester class as
             raw lists, not as permutations!
-
-        .. TODO::
-
-            Document left_to_right=True properly.
 
         EXAMPLES:
 
@@ -2416,6 +2442,14 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: test_bst_of_sc(5, True)   # long time
             True
             sage: test_bst_of_sc(6, True)   # long time
+            True
+
+        Checking that the sylvester class is the set of linear extensions
+        of the poset of the tree::
+
+            sage: all( sorted(t.canonical_labelling().sylvester_class())
+            ....:      == sorted(list(v) for v in t.canonical_labelling().to_poset().linear_extensions())
+            ....:      for t in BinaryTrees(4) )
             True
 
         TESTS::

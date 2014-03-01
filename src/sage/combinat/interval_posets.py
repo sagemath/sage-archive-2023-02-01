@@ -1150,7 +1150,7 @@ class TamariIntervalPoset(Element):
         r"""
         Return the interval-poset formed of relations from both ``self``
         and ``other``. It corresponds to the intersection of the two
-        corresponding intervals of Tamari.
+        corresponding intervals of the Tamari lattice.
 
         INPUT:
 
@@ -1962,13 +1962,15 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
     @staticmethod
     def from_binary_trees(tree1, tree2):
         r"""
-        Return the interval-poset corresponding to the interval [``tree1``,``tree2``]
-        in the Tamari lattice. Raise an exception if the two trees are not comparable.
+        Return the interval-poset corresponding to the interval
+        [``tree1``,``tree2``] in the Tamari lattice. Raise an exception if
+        ``tree1`` is not `\leq` ``tree2`` in the Tamari lattice.
 
         INPUT:
 
         - ``tree1`` -- a binary tree
-        - ``tree2`` -- a binary tree biger or equal than ``tree1`` for the Tamari lattice.
+        - ``tree2`` -- a binary tree greater or equal than ``tree1`` for
+          the Tamari lattice.
 
         EXAMPLES::
 
@@ -2006,13 +2008,15 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
     @staticmethod
     def from_dyck_words(dw1, dw2):
         r"""
-        Return the interval-poset corresponding to the interval [``dw1``,``dw2``]
-        in the Tamari lattice. Raise an exception if the two Dyck words are not comparable.
+        Return the interval-poset corresponding to the interval
+        [``dw1``,``dw2``] in the Tamari lattice. Raise an exception if the
+        two Dyck words ``dw1`` and ``dw2`` do not satisfy
+        ``dw1`` `\leq` ``dw2`` in the Tamari lattice.
 
         INPUT:
 
         - ``dw1`` -- a Dyck word
-        - ``dw2`` -- a Dyck word biger or equal than ``dw1`` for the Tamari lattice.
+        - ``dw2`` -- a Dyck word greater or equal than ``dw1`` for the Tamari lattice.
 
         EXAMPLES::
 
@@ -2077,7 +2081,8 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
 
     def le(self, el1, el2):
         r"""
-        Poset stucture on interval-poset through interval containment.
+        Poset stucture on the set of interval-posets through interval
+        containment.
 
         Return whether the interval represented by ``el1`` is contained in
         the interval represented by ``el2``.

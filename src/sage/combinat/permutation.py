@@ -112,6 +112,10 @@ Below are listed all methods and classes defined in this file.
     :meth:`~sage.combinat.permutation.Permutation.robinson_schensted` | Returns the pair of standard tableaux obtained by running the Robinson-Schensted Algorithm on ``self``.
     :meth:`~sage.combinat.permutation.Permutation.left_tableau` | Returns the left standard tableau after performing the RSK algorithm.
     :meth:`~sage.combinat.permutation.Permutation.right_tableau` | Returns the right standard tableau after performing the RSK algorithm.
+    :meth:`~sage.combinat.permutation.Permutation.increasing_tree` | Returns the increasing tree of ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.increasing_tree_shape` | Returns the shape of the increasing tree of ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.binary_search_tree` | Returns the binary search tree of ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.sylvester_class` | Iterates over the equivalence class of ``self`` under sylvester congruence
     :meth:`~sage.combinat.permutation.Permutation.RS_partition` | Returns the shape of the tableaux obtained by the RSK algorithm.
     :meth:`~sage.combinat.permutation.Permutation.remove_extra_fixed_points` | Returns the permutation obtained by removing any fixed points at the end of ``self``.
     :meth:`~sage.combinat.permutation.Permutation.hyperoctahedral_double_coset_type` | Returns the coset-type of ``self`` as a partition.
@@ -3869,7 +3873,7 @@ class Permutation(CombinatorialObject, Element):
     def sylvester_class(self, left_to_right=False):
         """
         Iterate over the equivalence class of the permutation ``self``
-        under Sylvester congruence.
+        under sylvester congruence.
 
         Sylvester congruence is an equivalence relation on the set `S_n`
         of all permutations of `n`. It is defined as the smallest
@@ -3881,22 +3885,30 @@ class Permutation(CombinatorialObject, Element):
         Definition 8, where it is more generally applied to arbitrary
         words.
 
+        The equivalence class of a permutation `p \in S_n` under sylvester
+        congruence is called the *sylvester class* of `p`. It is an
+        interval in the right permutohedron order (see
+        :meth:`permutohedron_lequal`) on `S_n`.
+
         This is related to the
         :meth:`~sage.combinat.binary_tree.LabelledBinaryTree.sylvester_class`
         method in that the equivalence class of a permutation `\pi` under
-        Sylvester congruence is the Sylvester class of the right-to-left
-        binary search tree of ``self``. However, the present method
+        sylvester congruence is the sylvester class of the right-to-left
+        binary search tree of `\pi`. However, the present method
         yields permutations, while the method on labelled binary trees
         yields plain lists.
 
-        If the variable ``left_to_right`` is set to ``True``,
-        left-to-right binary search trees are used instead.
+        If the variable ``left_to_right`` is set to ``True``, the method
+        instead iterates over the equivalence class of ``self`` with
+        respect to the *left* sylvester congruence. The left sylvester
+        congruence is easiest to define by saying that two permutations
+        are equivalent under it if and only if their reverses
+        (:meth:`reverse`) are equivalent under (standard) sylvester
+        congruence.
 
-        .. TODO::
+        EXAMPLES:
 
-            Explain the ltr/rtl story. Doctest ltr.
-
-        EXAMPLES::
+        The sylvester class of a permutation in `S_5`::
 
             sage: p = Permutation([3, 5, 1, 2, 4])
             sage: sorted(p.sylvester_class())
@@ -3909,14 +3921,20 @@ class Permutation(CombinatorialObject, Element):
              [5, 1, 3, 2, 4],
              [5, 3, 1, 2, 4]]
 
+        The sylvester class of a permutation `p` contains `p`::
+
             sage: all( p in p.sylvester_class() for p in Permutations(4) )
             True
+
+        Small cases::
 
             sage: list(Permutation([]).sylvester_class())
             [[]]
 
             sage: list(Permutation([1]).sylvester_class())
             [[1]]
+
+        The sylvester classes in `S_3`::
 
             sage: [sorted(p.sylvester_class()) for p in Permutations(3)]
             [[[1, 2, 3]],
@@ -3925,10 +3943,33 @@ class Permutation(CombinatorialObject, Element):
              [[2, 3, 1]],
              [[1, 3, 2], [3, 1, 2]],
              [[3, 2, 1]]]
+
+        The left sylvester classes in `S_3`::
+
+            sage: [sorted(p.sylvester_class(left_to_right=True)) for p in Permutations(3)]
+            [[[1, 2, 3]],
+             [[1, 3, 2]],
+             [[2, 1, 3], [2, 3, 1]],
+             [[2, 1, 3], [2, 3, 1]],
+             [[3, 1, 2]],
+             [[3, 2, 1]]]
+
+        A left sylvester class in `S_5`::
+
+            sage: p = Permutation([4, 2, 1, 5, 3])
+            sage: sorted(p.sylvester_class(left_to_right=True))
+            [[4, 2, 1, 3, 5],
+             [4, 2, 1, 5, 3],
+             [4, 2, 3, 1, 5],
+             [4, 2, 3, 5, 1],
+             [4, 2, 5, 1, 3],
+             [4, 2, 5, 3, 1],
+             [4, 5, 2, 1, 3],
+             [4, 5, 2, 3, 1]]
         """
         parself = self.parent()
         t = self.binary_search_tree(left_to_right=left_to_right)
-        for u in t.sylvester_class():
+        for u in t.sylvester_class(left_to_right=left_to_right):
             yield parself(u)
 
     @combinatorial_map(name='Robinson-Schensted tableau shape')

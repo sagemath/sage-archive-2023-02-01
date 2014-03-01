@@ -468,7 +468,7 @@ def is_distance_regular(G, parameters = False):
     INPUT:
 
     - ``parameters`` (boolean) -- if set to ``True``, the function returns the
-      pair ``(c,b)`` of lists of integers instead of ``True`` (see the definition
+      pair ``(b,c)`` of lists of integers instead of ``True`` (see the definition
       above). Set to ``False`` by default.
 
     .. SEEALSO::

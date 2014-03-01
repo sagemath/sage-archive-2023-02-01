@@ -1532,23 +1532,15 @@ cdef class gen(sage.structure.element.RingElement):
             sage: n.isprime(1)
             (True, [2, 3, 1; 3, 5, 1; 7, 3, 1; 11, 3, 1; 31, 2, 1; 151, 3, 1; 331, 3, 1])
         """
-        global mytop
-        cdef t
         cdef GEN x
-        cdef gen w
         pari_catch_sig_on()
         x = gisprime(self.g, flag)
         if typ(x) != t_INT:
             # case flag=1 with prime input: x is the certificate
-            w = PY_NEW(gen)
-            w.init(x,0)
-            t = True, w
-            mytop = avma
+            return True, P.new_gen(x)
         else:
-            t = (signe(x) != 0)
-        pari_catch_sig_on()
-        P.clear_stack()
-        return t
+            pari_catch_sig_off()
+            return bool(signe(x))
 
     def qfbhclassno(gen n):
         r"""

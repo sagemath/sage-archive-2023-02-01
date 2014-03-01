@@ -3073,12 +3073,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = QQbar[]
             sage: (x^8-1).factor()
             (x - 1) * (x - 0.7071067811865475? - 0.7071067811865475?*I) * (x - 0.7071067811865475? + 0.7071067811865475?*I) * (x - I) * (x + I) * (x + 0.7071067811865475? - 0.7071067811865475?*I) * (x + 0.7071067811865475? + 0.7071067811865475?*I) * (x + 1)
-            sage: (12*x^2-4).factor()
-            (12) * (x - 0.5773502691896258?) * (x + 0.5773502691896258?)
-            sage: R(-1).factor()
-            -1
-            sage: EllipticCurve('11a1').change_ring(QQbar).division_polynomial(5).factor()
-            (5) * (x - 16) * (x - 5) * (x - 1.959674775249769?) * (x - 1.427050983124843? - 3.665468789467727?*I) * (x - 1.427050983124843? + 3.665468789467727?*I) * (x + 0.9549150281252629? - 0.8652998037182486?*I) * (x + 0.9549150281252629? + 0.8652998037182486?*I) * (x + 1.927050983124843? - 1.677599044300515?*I) * (x + 1.927050983124843? + 1.677599044300515?*I) * (x + 2.959674775249769?) * (x + 6.545084971874737? - 7.106423590645660?*I) * (x + 6.545084971874737? + 7.106423590645660?*I)
 
         Factoring polynomials over the algebraic reals (see
         :trac:`8544`)::
@@ -3086,14 +3080,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = AA[]
             sage: (x^8+1).factor()
             (x^2 - 1.847759065022574?*x + 1.000000000000000?) * (x^2 - 0.7653668647301795?*x + 1.000000000000000?) * (x^2 + 0.7653668647301795?*x + 1.000000000000000?) * (x^2 + 1.847759065022574?*x + 1.000000000000000?)
-            sage: R(3).factor()
-            3
-            sage: (12*x^2-4).factor()
-            (12) * (x - 0.5773502691896258?) * (x + 0.5773502691896258?)
-            sage: (12*x^2+4).factor()
-            (12) * (x^2 + 0.3333333333333334?)
-            sage: EllipticCurve('11a1').change_ring(AA).division_polynomial(5).factor()
-            (5) * (x - 16.00000000000000?) * (x - 5.000000000000000?) * (x - 1.959674775249769?) * (x + 2.959674775249769?) * (x^2 - 2.854101966249685?*x + 15.47213595499958?) * (x^2 + 1.909830056250526?*x + 1.660606461254312?) * (x^2 + 3.854101966249685?*x + 6.527864045000421?) * (x^2 + 13.09016994374948?*x + 93.33939353874569?)
 
         TESTS:
 
@@ -3349,21 +3335,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             v = [x._pari_("a") for x in self.list()]
             f = pari(v).Polrev()
             G = list(f.factor())
-
-        elif is_AlgebraicField(R):
-            Rx = self.parent()
-            return Factorization([(Rx([-r,1]),e) for r,e in self.roots()],
-                                 unit=self.leading_coefficient())
-
-        elif is_AlgebraicRealField(R):
-            from sage.rings.qqbar import QQbar
-            Rx = self.parent()
-            rr = self.roots()
-            cr = [(r,e) for r,e in self.roots(QQbar) if r.imag()>0]
-            return Factorization(
-                [(Rx([-r,1]),e) for r,e in rr] +
-                [(Rx([r.norm(),-2*r.real(),1]),e) for r,e in cr],
-                unit=self.leading_coefficient())
 
         elif is_NumberField(R):
             if R.degree() == 1:

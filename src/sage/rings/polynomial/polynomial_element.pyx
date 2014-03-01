@@ -3326,12 +3326,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
         from sage.rings.finite_rings.constructor import is_FiniteField
         from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
         from sage.rings.integer_ring import is_IntegerRing
-        from sage.rings.rational_field import is_RationalField
 
         n = None
 
-        if is_IntegerModRing(R) or is_IntegerRing(R) or is_RationalField(R):
-
+        if is_IntegerModRing(R) or is_IntegerRing(R):
             try:
                 G = list(self._pari_with_name().factor())
             except PariError:

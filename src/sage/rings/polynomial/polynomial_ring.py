@@ -399,12 +399,6 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             elif P == self.base_ring():
                 return C(self, [x], check=True, is_gen=False,
                          construct=construct)
-            elif self.base_ring().has_coerce_map_from(P):
-                return C(self, [x], check=True, is_gen=False,
-                        construct=construct)
-            elif self.has_coerce_map_from(P):
-                return C(self, x, check=True, is_gen=False,
-                         construct=construct)
         if isinstance(x, SingularElement) and self._has_singular:
             self._singular_().set_ring()
             try:
@@ -595,7 +589,11 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                         # become useful.
                         if self._implementation_names == ('NTL',):
                             return False
-                    return base_ring.has_coerce_map_from(P.base_ring())
+                    f = base_ring.coerce_map_from(P.base_ring())
+                    if f is not None:
+                        from sage.rings.homset import RingHomset
+                        from sage.rings.polynomial.polynomial_ring_homomorphism import PolynomialRingHomomorphism_from_base
+                        return PolynomialRingHomomorphism_from_base(RingHomset(P, self), f)
         except AttributeError:
             pass
 

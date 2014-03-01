@@ -1282,8 +1282,6 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
 
         """
         RingHomomorphism.__init__(self, parent)
-        if not is_RingHomomorphism(underlying):
-            raise TypeError, "Homomorphism of the base ring expected"
         if underlying.domain() != parent.domain().base():
             raise ValueError, "The given homomorphism has to have the domain %s"%parent.domain().base()
         if underlying.codomain() != parent.codomain().base():

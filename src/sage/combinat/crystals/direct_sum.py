@@ -43,9 +43,9 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
 
     EXAMPLES::
 
-        sage: C = CrystalOfLetters(['A',2])
-        sage: C1 = CrystalOfTableaux(['A',2],shape=[1,1])
-        sage: B = DirectSumOfCrystals([C,C1])
+        sage: C = crystals.Letters(['A',2])
+        sage: C1 = crystals.Tableaux(['A',2],shape=[1,1])
+        sage: B = crystals.DirectSum([C,C1])
         sage: B.list()
         [1, 2, 3, [[1], [2]], [[1], [3]], [[2], [3]]]
         sage: [b.f(1) for b in B]
@@ -55,7 +55,7 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
 
     ::
 
-        sage: B = DirectSumOfCrystals([C,C], keepkey=True)
+        sage: B = crystals.DirectSum([C,C], keepkey=True)
         sage: B.list()
         [(0, 1), (0, 2), (0, 3), (1, 1), (1, 2), (1, 3)]
         sage: B.module_generators
@@ -72,8 +72,8 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
 
     TESTS::
 
-        sage: C = CrystalOfLetters(['A',2])
-        sage: B = DirectSumOfCrystals([C,C], keepkey=True)
+        sage: C = crystals.Letters(['A',2])
+        sage: B = crystals.DirectSum([C,C], keepkey=True)
         sage: B
         Direct sum of the crystals Family (The crystal of letters for type ['A', 2], The crystal of letters for type ['A', 2])
 
@@ -86,13 +86,14 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
         """
         TESTS::
 
-            sage: C = CrystalOfLetters(['A',2])
-            sage: B = DirectSumOfCrystals([C,C], keepkey=True)
+            sage: C = crystals.Letters(['A',2])
+            sage: B = crystals.DirectSum([C,C], keepkey=True)
             sage: B
             Direct sum of the crystals Family (The crystal of letters for type ['A', 2], The crystal of letters for type ['A', 2])
             sage: B.cartan_type()
             ['A', 2]
 
+            sage: from sage.combinat.crystals.direct_sum import DirectSumOfCrystals
             sage: isinstance(B, DirectSumOfCrystals)
             True
         """
@@ -134,8 +135,8 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',2])
-                sage: B = DirectSumOfCrystals([C,C], keepkey=True)
+                sage: C = crystals.Letters(['A',2])
+                sage: B = crystals.DirectSum([C,C], keepkey=True)
                 sage: [[b, b.e(2)] for b in B]
                 [[(0, 1), None], [(0, 2), None], [(0, 3), (0, 2)], [(1, 1), None], [(1, 2), None], [(1, 3), (1, 2)]]
             """
@@ -152,8 +153,8 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',2])
-                sage: B = DirectSumOfCrystals([C,C], keepkey=True)
+                sage: C = crystals.Letters(['A',2])
+                sage: B = crystals.DirectSum([C,C], keepkey=True)
                 sage: [[b,b.f(1)] for b in B]
                 [[(0, 1), (0, 2)], [(0, 2), None], [(0, 3), None], [(1, 1), (1, 2)], [(1, 2), None], [(1, 3), None]]
             """
@@ -170,8 +171,8 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',2])
-                sage: B = DirectSumOfCrystals([C,C], keepkey=True)
+                sage: C = crystals.Letters(['A',2])
+                sage: B = crystals.DirectSum([C,C], keepkey=True)
                 sage: b = B( tuple([0,C(2)]) )
                 sage: b
                 (0, 2)
@@ -184,8 +185,8 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
             r"""
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',2])
-                sage: B = DirectSumOfCrystals([C,C], keepkey=True)
+                sage: C = crystals.Letters(['A',2])
+                sage: B = crystals.DirectSum([C,C], keepkey=True)
                 sage: b = B( tuple([0,C(2)]) )
                 sage: b.phi(2)
                 1
@@ -196,8 +197,8 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
             r"""
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',2])
-                sage: B = DirectSumOfCrystals([C,C], keepkey=True)
+                sage: C = crystals.Letters(['A',2])
+                sage: B = crystals.DirectSum([C,C], keepkey=True)
                 sage: b = B( tuple([0,C(2)]) )
                 sage: b.epsilon(2)
                 0

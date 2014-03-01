@@ -43,7 +43,7 @@ We construct the type `A_5` crystal on letters (or in representation
 theoretic terms, the highest weight crystal of type `A_5`
 corresponding to the highest weight `\Lambda_1`)::
 
-    sage: C = CrystalOfLetters(['A',5]); C
+    sage: C = crystals.Letters(['A',5]); C
     The crystal of letters for type ['A', 5]
 
 It has a single highest weight element::
@@ -67,10 +67,10 @@ as well as use it in for loops::
 Here are some more elaborate crystals (see their respective
 documentations)::
 
-    sage: Tens = TensorProductOfCrystals(C, C)
-    sage: Spin = CrystalOfSpins(['B', 3])
-    sage: Tab  = CrystalOfTableaux(['A', 3], shape = [2,1,1])
-    sage: Fast = FastCrystal(['B', 2], shape = [3/2, 1/2])
+    sage: Tens = crystals.TensorProduct(C, C)
+    sage: Spin = crystals.Spins(['B', 3])
+    sage: Tab  = crystals.Tableaux(['A', 3], shape = [2,1,1])
+    sage: Fast = crystals.FastRankTwo(['B', 2], shape = [3/2, 1/2])
     sage: KR = KirillovReshetikhinCrystal(['A',2,1],1,1)
 
 One can get (currently) crude plotting via::

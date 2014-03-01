@@ -7094,7 +7094,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(5).binomial(SR(3))
             10
             sage: x.binomial(SR(3))
-            1/6*x^3 - 1/2*x^2 + 1/3*x
+            1/6*(x - 1)*(x - 2)*x
             sage: x.binomial(y)
             binomial(x, y)
 
@@ -7111,13 +7111,10 @@ cdef class Expression(CommutativeRingElement):
             sage: a = SR(5).binomial(3, hold=True); a.simplify()
             10
 
-        We do not currently support a ``hold`` parameter in functional
-        notation::
+        The ``hold`` parameter is also supported in functional notation::
 
             sage: binomial(5,3, hold=True)
-            Traceback (most recent call last):
-            ...
-            TypeError: binomial() got an unexpected keyword argument 'hold'
+            binomial(5, 3)
 
         TESTS:
 

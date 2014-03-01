@@ -1089,18 +1089,6 @@ Some standard environment variables which are used by Sage:
   The same comments apply to these: setting them may cause problems, because
   they are not universally respected among the Sage packages.
 
-The following Fortran-related environment variables are **deprecated** since
-Sage 5.3 and support for these will likely be removed.
-They are still recognized, but should not be used for new setups.
-
-- :envvar:`SAGE_FORTRAN` - the path to the Fortran compiler.
-  Deprecated, use :envvar:`FC` instead.
-
-- :envvar:`SAGE_FORTRAN_LIB` - the path to the Fortran runtime library.
-  Normally, you don't need to set this.
-  If you really need to, you can add the directory containing the library to
-  :envvar:`LIBRARY_PATH` and/or :envvar:`LD_LIBRARY_PATH`.
-
 Sage uses the following environment variables when it runs:
 
 - :envvar:`DOT_SAGE` - this is the directory, to which the user has read and

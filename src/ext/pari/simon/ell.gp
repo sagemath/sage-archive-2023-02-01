@@ -233,11 +233,11 @@ local(nf_roots,ay,prec0);
   prec0 = default(realprecision);
 
   ay = 0;
-  while( ay == 0 || precision(ay) < 10,
+  while( ay == 0 || precision(ay) < 38,
 
     ay = subst(a,variable(a),nf_roots[i]);
 
-    if( ay == 0 || precision(ay) < 10,
+    if( ay == 0 || precision(ay) < 38,
 if( DEBUGLEVEL_ell >= 3, 
   print(" **** Warning: doubling the real precision in nfrealsign **** ",
         2*default(realprecision)));

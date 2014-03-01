@@ -1540,7 +1540,7 @@ cdef class gen(sage.structure.element.RingElement):
             return True, P.new_gen(x)
         else:
             pari_catch_sig_off()
-            return bool(signe(x))
+            return signe(x) != 0
 
     def qfbhclassno(gen n):
         r"""

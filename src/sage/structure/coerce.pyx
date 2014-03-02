@@ -418,9 +418,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: cm.explain(ZZ['x'], QQ, operator.add)
             Coercion on left operand via
-                Conversion map:
+                Ring morphism:
                   From: Univariate Polynomial Ring in x over Integer Ring
                   To:   Univariate Polynomial Ring in x over Rational Field
+                  Defn: Induced from base ring by
+                        Natural morphism:
+                          From: Integer Ring
+                          To:   Rational Field
             Coercion on right operand via
                 Polynomial base injection morphism:
                   From: Rational Field
@@ -453,9 +457,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: cm.explain(ZZ['x'], QQ['x'], operator.div)
             Coercion on left operand via
-                Conversion map:
+                Ring morphism:
                   From: Univariate Polynomial Ring in x over Integer Ring
                   To:   Univariate Polynomial Ring in x over Rational Field
+                  Defn: Induced from base ring by
+                        Natural morphism:
+                          From: Integer Ring
+                          To:   Rational Field
             Arithmetic performed after coercions.
             Result lives in Fraction Field of Univariate Polynomial Ring in x over Rational Field
             Fraction Field of Univariate Polynomial Ring in x over Rational Field
@@ -1003,9 +1011,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: f, g = cm.coercion_maps(ZZ['x'], QQ)
             sage: print f
-            Conversion map:
+            Ring morphism:
               From: Univariate Polynomial Ring in x over Integer Ring
               To:   Univariate Polynomial Ring in x over Rational Field
+              Defn: Induced from base ring by
+                    Natural morphism:
+                      From: Integer Ring
+                      To:   Rational Field
             sage: print g
             Polynomial base injection morphism:
               From: Rational Field

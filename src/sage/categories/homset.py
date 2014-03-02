@@ -527,10 +527,13 @@ class Homset(Set_generic):
                               Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
                               Defn: t |--> 2*t
                     then
-                      Conversion map:
+                      Ring morphism:
                       From: Univariate Polynomial Ring in t over Integer Ring
                       To:   Univariate Polynomial Ring in t over Rational Field
-
+                      Defn: Induced from base ring by
+                            Natural morphism:
+                              From: Integer Ring
+                              To:   Rational Field
         """
         if self._element_constructor is None:
             from sage.categories.morphism import CallMorphism

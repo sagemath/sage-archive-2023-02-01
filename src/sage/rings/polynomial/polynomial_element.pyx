@@ -1666,13 +1666,30 @@ cdef class Polynomial(CommutativeAlgebraElement):
             3*x
             sage: f.parent()
             Univariate Polynomial Ring in x over Ring of integers modulo 5
+
+        TESTS:
+
+        Check that :trac:`12217` is fixed::
+
+            sage: P.<x> = GF(5)[]
+            sage: x/0
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Inverse does not exist.
+
+            sage: P.<x> = GF(25, 'a')[]
+            sage: x/5
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: division by zero in Finite Field in a of size 5^2
+
         """
         try:
             if not isinstance(right, Element) or right.parent() != self.parent():
                 R = self.parent().base_ring()
                 x = R._coerce_(right)
                 return self * ~x
-        except (TypeError, ValueError, ZeroDivisionError):
+        except (TypeError, ValueError):
             pass
         return RingElement.__div__(self, right)
 
@@ -5112,7 +5129,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             doctest... UserWarning: NumPy does not support arbitrary precision arithmetic.  The roots found will likely have less precision than you expect.
             [(-1.77245385090551..., 1), (1.77245385090551..., 1)]
 
-        We can also find roots over number fields:
+        We can also find roots over number fields::
 
             sage: K.<z> = CyclotomicField(15)
             sage: R.<x> = PolynomialRing(K)

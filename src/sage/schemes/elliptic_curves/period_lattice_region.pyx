@@ -1,7 +1,7 @@
 r"""
 This module is used to represent sub-regions of a fundamental parallelogram
-of the period lattice of an elliptic curve, used in computing minimum height 
-bounds. 
+of the period lattice of an elliptic curve, used in computing minimum height
+bounds.
 """
 
 ##############################################################################
@@ -27,18 +27,18 @@ from sage.rings.all import CIF
 from sage.rings.arith import gcd
 
 cdef class PeriodicRegion:
-    
+
     # The generators of the lattice, a complex numbers.
     cdef public w1
     cdef public w2
 
-    # The bitmap of this region. 
+    # The bitmap of this region.
     cdef public data
 
-    # Whether bitmap represents the whole fundamental parallelogram, 
+    # Whether bitmap represents the whole fundamental parallelogram,
     # or only half (in which case it is symmetric about the center).
     cdef public bint full
-    
+
     def __init__(self, w1, w2, data, full=True):
         if data.dtype is not np.int8:
             data = data.astype(np.int8)
@@ -47,10 +47,10 @@ cdef class PeriodicRegion:
         self.w2 = w2
         self.data = data
         self.full = full
-    
+
     def is_empty(self):
         return self.data.sum() == 0
-    
+
     def _ensure_full(self):
         if not self.full:
             rows, cols = self.data.shape
@@ -60,17 +60,17 @@ cdef class PeriodicRegion:
             self.data = new_data
             self.full = True
         return self
-    
+
     def ds(self):
         m, n = self.data.shape
         return self.w1/m, self.w2/(n * (2-self.full))
-    
+
     def verify(self, condition):
         for line in self.border(False):
             if not condition(line):
                 return False
         return True
-    
+
     def refine(self, condition=None, int times=1):
         if times <= 0:
             return self
@@ -98,7 +98,7 @@ cdef class PeriodicRegion:
                     elif fuzz[i/2, j/2]:
                         new_data[i,j] = condition(dw1*(i+.5) + dw2*(j+.5))
         return PeriodicRegion(self.w1, self.w2, new_data, self.full).refine(condition, times-1)
-        
+
     def expand(self, bint corners=True):
         cdef int i, j, m, n
         m, n = self.data.shape
@@ -119,10 +119,10 @@ cdef class PeriodicRegion:
                         new_data[i+1, j+1] = True
                         new_data[i-1, j+1] = True
         return PeriodicRegion(self.w1, self.w2, unframe_data(new_data, self.full), self.full)
-    
+
     def contract(self, corners=True):
         return ~(~self).expand(corners)
-    
+
     def __div__(self, int n):
         cdef int i, j, a, b, rows, cols, g
         cdef double d, e
@@ -155,10 +155,10 @@ cdef class PeriodicRegion:
                                 new_data[<int>((a*rows+i  )*d), <int>((b*cols+j+e)*d)] = True
             data = new_data
         return PeriodicRegion(self.w1, self.w2, data)
-    
+
     def __invert__(self):
         return PeriodicRegion(self.w1, self.w2, 1-self.data, self.full)
-    
+
     def __and__(left, right):
         assert isinstance(left, PeriodicRegion) and isinstance(right, PeriodicRegion)
         assert left.w1 == right.w1 and left.w2 == right.w2
@@ -166,7 +166,7 @@ cdef class PeriodicRegion:
             left._ensure_full()
             right._ensure_full()
         return PeriodicRegion(left.w1, left.w2, left.data & right.data, left.full)
-    
+
     def __xor__(left, right):
         assert isinstance(left, PeriodicRegion) and isinstance(right, PeriodicRegion)
         assert left.w1 == right.w1 and left.w2 == right.w2
@@ -174,7 +174,7 @@ cdef class PeriodicRegion:
             left._ensure_full()
             right._ensure_full()
         return PeriodicRegion(left.w1, left.w2, left.data ^ right.data, left.full)
-    
+
     def border(self, raw=True):
         cdef np.ndarray[np.npy_int8, ndim=2] framed = frame_data(self.data, self.full)
         cdef int m, n
@@ -197,7 +197,7 @@ cdef class PeriodicRegion:
             for ix, (i, j, dir) in enumerate(L):
                 L[ix] = CIF(i*dw1 + j*dw2).union(CIF((i+dir)*dw1 + (j+(1-dir))*dw2))
         return L
-    
+
     def innermost_point(self):
         if self.is_empty():
             raise ValueError, "empty"

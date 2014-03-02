@@ -16,7 +16,7 @@
 import numpy
 import math, bisect
 
-from sage.rings.all import (ZZ, QQ, RR, RDF, RIF, CC, CDF, CIF, 
+from sage.rings.all import (ZZ, QQ, RR, RDF, RIF, CC, CDF, CIF,
     infinity, RealField, ComplexField)
 
 from sage.misc.all import cached_method, cartesian_product_iterator
@@ -31,11 +31,11 @@ class UnionOfIntervals:
     r"""
     As per the name of this class, it represents a union of
     (closed) intervals in $R$ which can be scaled, shifted, etc.
-    
-    The are represented as a list of their endpoints. 
-    
+
+    The are represented as a list of their endpoints.
+
     EXAMPLES::
-    
+
         sage: from sage.schemes.elliptic_curves.height import UnionOfIntervals
         sage: R = UnionOfIntervals([1,2,3,infinity]); R
         ([1, 2] U [3, +Infinity])
@@ -49,11 +49,11 @@ class UnionOfIntervals:
     def __init__(self, endpoints):
         r"""
         An union of intervals is initialized by giving an increasing list
-        of endpoints, the first of which may be $-\infty$ and the last of 
+        of endpoints, the first of which may be $-\infty$ and the last of
         which may be $+\infty$.
-        
+
         EXAMPLES::
-        
+
             sage: from sage.schemes.elliptic_curves.height import UnionOfIntervals
             sage: UnionOfIntervals([0,1])
             ([0, 1])
@@ -76,13 +76,13 @@ class UnionOfIntervals:
         if endpoints != sorted(endpoints):
             raise ValueError, "endpoints must be given in order"
         self._endpoints = endpoints
-    
+
     def finite_endpoints(self):
         r"""
         Returns the endpoints of this interval contained in $\R$
-        
+
         EXAMPLES::
-        
+
             sage: from sage.schemes.elliptic_curves.height import UnionOfIntervals
             sage: UnionOfIntervals([0,1]).finite_endpoints()
             [0, 1]
@@ -90,13 +90,13 @@ class UnionOfIntervals:
             [0, 1]
         """
         return [e for e in self._endpoints if -infinity < e < infinity]
-    
+
     def intervals(self):
         """
-        Returns the intervals in self, as a list of 2-tuples. 
-        
+        Returns the intervals in self, as a list of 2-tuples.
+
         EXAMPLES::
-        
+
             sage: from sage.schemes.elliptic_curves.height import UnionOfIntervals
             sage: UnionOfIntervals(range(10)).intervals()
             [(0, 1), (2, 3), (4, 5), (6, 7), (8, 9)]
@@ -108,7 +108,7 @@ class UnionOfIntervals:
     def is_empty(self):
         """
         Returns whether self is empty.
-        
+
         EXAMPLES::
 
             sage: from sage.schemes.elliptic_curves.height import UnionOfIntervals
@@ -124,14 +124,14 @@ class UnionOfIntervals:
             True
         """
         return not self._endpoints
-    
+
     def __add__(left, right):
         """
-        If both left an right are unions of intervals, take their union, 
-        otherwise treat the non-union of intervals as a scalar and shift. 
-        
+        If both left an right are unions of intervals, take their union,
+        otherwise treat the non-union of intervals as a scalar and shift.
+
         EXAMPLES::
-        
+
             sage: from sage.schemes.elliptic_curves.height import UnionOfIntervals
             sage: A = UnionOfIntervals([0, 1/2, 2, infinity]); A
             ([0, 1/2] U [2, +Infinity])
@@ -148,13 +148,13 @@ class UnionOfIntervals:
             return UnionOfIntervals([right + e for e in left._endpoints])
         else:
             return left.union([left, right])
-    
+
     def __mul__(left, right):
         """
-        Scale a union of inervals on the left or right. 
-        
+        Scale a union of inervals on the left or right.
+
         EXAMPLES::
-        
+
             sage: from sage.schemes.elliptic_curves.height import UnionOfIntervals
             sage: A = UnionOfIntervals([0, 1/2, 2, infinity]); A
             ([0, 1/2] U [2, +Infinity])
@@ -171,13 +171,13 @@ class UnionOfIntervals:
             return UnionOfIntervals([left*e for e in right._endpoints])
         else:
             return NotImplemented
-    
+
     def __rmul__(self, other):
         """
         Scale by an operand on the left.
-        
+
         TESTS::
-        
+
             sage: from sage.schemes.elliptic_curves.height import UnionOfIntervals
             sage: A = UnionOfIntervals([0, 1/2, 2, infinity]); A
             ([0, 1/2] U [2, +Infinity])
@@ -185,13 +185,13 @@ class UnionOfIntervals:
             ([0, 1/2*pi] U [2*pi, +Infinity])
         """
         return self * other
-    
+
     def __radd__(self, other):
         """
         Add a scalar operand on the left.
-        
+
         TESTS::
-        
+
             sage: from sage.schemes.elliptic_curves.height import UnionOfIntervals
             sage: A = UnionOfIntervals([0, 1/2, 2, infinity]); A
             ([0, 1/2] U [2, +Infinity])
@@ -199,15 +199,15 @@ class UnionOfIntervals:
             ([100, 201/2] U [102, +Infinity])
         """
         return self + other
-    
+
     def __invert__(self):
         """
         Return the closure of the compliment of self.
-        
+
         (We take the closure because open intervals are not supported.)
-        
+
         EXAMPLES::
-        
+
             sage: from sage.schemes.elliptic_curves.height import UnionOfIntervals
             sage: A = UnionOfIntervals([0, 1/2, 2, infinity]); A
             ([0, 1/2] U [2, +Infinity])
@@ -228,11 +228,11 @@ class UnionOfIntervals:
         else:
             endpoints.append(infinity)
         return UnionOfIntervals(endpoints)
-    
+
     @staticmethod
     def join(L, condition):
         """
-        
+
         """
         all = []
         for ix, region in enumerate(L):
@@ -248,31 +248,31 @@ class UnionOfIntervals:
                 join.append(e)
                 in_join = not in_join
         return UnionOfIntervals(join)
-    
+
     @classmethod
     def union(cls, L):
         return cls.join(L, any)
-    
+
     @classmethod
     def intersection(cls, L):
         for R in L:
             if R.is_empty():
                 return R
         return cls.join(L, all)
-    
+
     def __or__(left, right):
         return left.union([left, right])
 
     def __and__(left, right):
         return left.intersection([left, right])
-    
+
     def __contains__(self, x):
         import bisect
         return x in self._endpoints or bisect.bisect_left(self._endpoints, x) % 2 == 1
-    
+
     def __str__(self):
         return repr(self)
-    
+
     def __repr__(self):
         return "(%s)" % " U ".join(str(list(I)) for I in self.intervals())
 
@@ -336,20 +336,20 @@ two_pi_i_CIF = CIF(0, 2*RIF.pi())
 i_CIF = CIF.gen()
 
 # Ideas: We know tau, so we know the direction of the diagonal.
-#        We can solve for x in p1, will this allow us to find the maxima exactly? 
+#        We can solve for x in p1, will this allow us to find the maxima exactly?
 
 def rat_term_CIF(z, try_strict=True):
     """
-    $rat_term(z) = u/(1-u)^2$ where $u=exp(2*pi*i*z)$. 
+    $rat_term(z) = u/(1-u)^2$ where $u=exp(2*pi*i*z)$.
     """
     two_pi_i_z = two_pi_i_CIF * z
     r = (two_pi_i_z.real()).exp() # = |u|
     x, y = two_pi_i_z.imag().cos(), two_pi_i_z.imag().sin()
-    
+
     real_part = imag_part = None
-    
+
     # If there are no local minima the intervals are
-    # strictly determined by their values at the endpoints. 
+    # strictly determined by their values at the endpoints.
     if try_strict:
 
         corner_reals = []
@@ -363,19 +363,19 @@ def rat_term_CIF(z, try_strict=True):
 
         p1 = (((((r+2*x)*r - 6)*r + 2*x) * r) + 1)  # r^4 + 2*r^3*x - 6*r^2 + 2*r*x + 1
         p2 = (r*(x*(r+2*x)-4)+x)                    # r^2*x + 2*r*x^2 - 4*r + x
-        
+
         df_dr = (r**2-1) * p2
         df_dx = p1 * r
-        
+
         dg_dr = p1 * y
         dg_dx = r * df_dr / y
-        
+
         if not dg_dr.contains_zero() or not dg_dx.contains_zero():
             real_part = RIF(min(corner_reals), max(corner_reals))
 
         if not dg_dr.contains_zero() or not dg_dx.contains_zero():
             imag_part = RIF(min(corner_imags), max(corner_imags))
-    
+
     if real_part is None or imag_part is None:
         denom = (1-r*(2*x-r))**2
     if real_part is None:
@@ -415,14 +415,14 @@ def prime_ideals_of_bounded_norm(K, B):
 ############ sage/schemes/elliptic_curves/height.py ###############
 
 class EllipticCurveCanonicalHeight:
-    
+
     def __init__(self, E):
         self.E = E
         self.K = E.base_ring()
-    
+
     def __call__(self, P):
         return self.E(P).height()
-    
+
     @cached_method
     def alpha(self, v, tol=0.01):
         b2, b4, b6, b8 = [v(b) for b in self.E.b_invariants()]
@@ -431,7 +431,7 @@ class EllipticCurveCanonicalHeight:
         g = x**4 - b4*x**2 - 2*b6*x - b8
         F = f.reverse() << (4-f.degree())
         G = g.reverse() << (4-g.degree())
-        
+
         if v(self.K.gen()) in RR:
             I = UnionOfIntervals([-1,1])
             min_fg = inf_max_abs(f, g, nonneg_region(f) & I)
@@ -464,7 +464,7 @@ class EllipticCurveCanonicalHeight:
             _, min_fg = min_on_disk(pair_max(f, g), tol)
             _, min_FG = min_on_disk(pair_max(F, G), tol)
             return min(min_fg, min_FG) ** (-1/QQ(3))
-        
+
     @cached_method
     def e_p(self, p):
         kp = self.K.residue_field(p)
@@ -476,9 +476,9 @@ class EllipticCurveCanonicalHeight:
             else:
                 ep = len(kp) + 1
         else:
-            ep = lcm(self.E.reduction(p).abelian_group()[0].invariants())
+            ep = self.E.reduction(p).abelian_group().exponent()
         return ZZ(ep)
-        
+
     @cached_method
     def DE(self, n):
         s = 0
@@ -510,7 +510,7 @@ class EllipticCurveCanonicalHeight:
         return B
 
     # Empty real intersection detection.
-    
+
     def psi(self, xi, v):
         if xi > 1e9:
             return 1
@@ -542,7 +542,7 @@ class EllipticCurveCanonicalHeight:
         return UnionOfIntervals.intersection([self.Sn(-B, B, k+1, v) for k,B in enumerate(Bk)]).is_empty()
 
     # Empty complex intersection detection.
-    
+
 #    @cached_method
     def tau(self, v):
         w1, w2 = self.E.period_lattice(v).basis()
@@ -550,12 +550,12 @@ class EllipticCurveCanonicalHeight:
 
     def wp_c(self, v):
         """
-        Given the recurance relations for the laurent series expansion of wp, 
+        Given the recurance relations for the laurent series expansion of wp,
         it is easy to see that there is a constant c such that
-        
+
             $$|\wp(z) - z^-2| \le \frac{c^2|z|^2}{1-c|z|^2}$$
-        
-        whenever $c|z|^2<1$. We return this constant. 
+
+        whenever $c|z|^2<1$. We return this constant.
         """
         K = self.E.base_ring()
         w1, w2 = self.E.period_lattice(v).basis()
@@ -566,7 +566,7 @@ class EllipticCurveCanonicalHeight:
     def fk_intervals(self, v=None, N=20, domain=CIF):
         """
         EXAMPLES::
-        
+
             sage: E = EllipticCurve('37a')
             sage: L = E.period_lattice()
             sage: w1, w2 = L.basis()
@@ -600,12 +600,12 @@ class EllipticCurveCanonicalHeight:
         neg_four_pi2 = -4 * domain.pi() ** 2
         const_term = domain(const_term)
         tau = domain(tau)
-        
+
         abs_q = abs(domain(q))
         abs_qN = abs(domain(qn))
         err_factor = abs(neg_four_pi2) / (1-abs_q)
         err_term = 2*abs_qN/(1-abs_qN) ** 2
-        
+
         # choose u/(1-u)^2 evaluation method
         if domain is CIF:
             rat_term = rat_term_CIF
@@ -613,7 +613,7 @@ class EllipticCurveCanonicalHeight:
             def rat_term(z):
                 u = (two_pi_i*z).exp()
                 return u/(1-u)**2
-        
+
         # the actual series
         def fk(z):
             s = const_term + rat_term(z)
@@ -621,27 +621,27 @@ class EllipticCurveCanonicalHeight:
                 s += rat_term(n*tau+z)
                 s += rat_term(n*tau-z)
             return s * neg_four_pi2
-        
+
         # the error function
         def err(z):
             alpha = z.imag() / tau.imag()
             qNa = abs_q**(N+alpha)
             qNai = abs_q**(N-alpha)
             return (err_factor * (qNa/(1-qNa) ** 2 + qNai/(1-qNai) ** 2 + err_term)).upper()
-        
+
         return fk, err
-        
+
     @cached_method
     def wp_intervals(self, v=None, N=20, abs_only=False):
         """
         EXAMPLES::
-        
+
             sage: E = EllipticCurve('37a')
             sage: wp = E.height_function().wp_intervals()
             sage: z = CDF(0.3, 0.4)
             sage: wp(CIF(z))
             -0.28451392679208? - 0.26969891350307?*I
-            
+
             sage: L = E.period_lattice()
             sage: w1, w2 = L.basis()
             sage: L.elliptic_exponential(z*w1, to_curve=False)[0] * w1^2
@@ -662,9 +662,9 @@ class EllipticCurveCanonicalHeight:
         tau = self.tau(v)
         fk, fk_err = self.fk_intervals(v, N)
         c = self.wp_c(v)
-        
+
         def wp(z):
-            
+
             # center around origin
             offset = (z.imag().lower() / tau.imag()).round()
             if offset:
@@ -672,7 +672,7 @@ class EllipticCurveCanonicalHeight:
             offset = z.real().lower().round()
             if offset:
                 z -= offset
-        
+
             # estimate using the series
             approx = fk(z)
             err = fk_err(z)
@@ -680,7 +680,7 @@ class EllipticCurveCanonicalHeight:
                 approx = abs(approx)
             approx += eps(err, abs_only)
     #        print "fk_approx", approx
-            
+
             # refine using an esitmate that's better near the pole
             z_bound = abs(z).upper()
             cz2 = c * z_bound ** 2
@@ -693,9 +693,9 @@ class EllipticCurveCanonicalHeight:
     #            print "pole approx", pole_approx + eps(err, abs_only)
     #            print approx in approx.intersection(pole_approx + eps(err, abs_only))
                 approx = approx.intersection(pole_approx + eps(err, abs_only))
-            
+
             return approx
-        
+
         return wp
 
     @cached_method
@@ -709,19 +709,19 @@ class EllipticCurveCanonicalHeight:
         for i in range(N):
             for j in range(N_or_half):
                 vals[i,j] = abs(ff((i+.5)/N + (j+.5)*tau/N))
-        return vals        
+        return vals
 
     def complex_intersection_is_empty(self, Bk, v, verbose=False, use_half=True):
 
         b2 = v(self.E.b2())
-        w1, w2 = self.E.period_lattice(v).basis()        
+        w1, w2 = self.E.period_lattice(v).basis()
         tau = w2/w1
         bounds = [RR((B.sqrt() + abs(b2)/12) * abs(w1) ** 2) for B in Bk]
         vals = self.wp_on_grid(v, 30, half=use_half)
         wp = self.wp_intervals(v, abs_only=True)
-        
+
         k = len(bounds)
-        
+
         # First try and prove a negative result (cheap).
         if verbose:
             print "trying to prove negative result..."
@@ -738,8 +738,8 @@ class EllipticCurveCanonicalHeight:
             z = CIF(intersection.innermost_point())
             if all(wp((k+1)*z) < B for k, B in enumerate(bounds)):
                 return False
-        
-        # Now try to prove a positive result. 
+
+        # Now try to prove a positive result.
         if verbose:
             print "trying to prove positive result..."
         intersection = None
@@ -797,10 +797,10 @@ class EllipticCurveCanonicalHeight:
     def min_gr(self, tol, n_max, verbose=False):
         """
         EXAMPLES::
-        
+
         Example from Cremona and Siksek "Computing a Lower Bound for the
         Canonical Height on Elliptic Curves over Q"::
-        
+
             sage: E = EllipticCurve([1, 0, 1, 421152067, 105484554028056]) # 60490d1
             sage: E.height_function().min_gr(.0001, 5)
             1.98684388147
@@ -824,11 +824,11 @@ class EllipticCurveCanonicalHeight:
             if test(mu*eps, n_max, False):
                 mu = mu*eps
         return RDF(mu)
-    
+
     def min(self, tol, n_max, verbose=False):
         """
         EXAMPLES::
-        
+
             sage: E = EllipticCurve('37a')
             sage: h = E.height_function()
             sage: h.min(.01, 5)
@@ -838,14 +838,14 @@ class EllipticCurveCanonicalHeight:
             sage: K.<a> = QuadraticField(-5)
             sage: E.change_ring(K).height_function().min(0.1, 5)
             0.0170391833229
-            
+
             sage: E = EllipticCurve('389a')
             sage: h = E.height_function()
             sage: h.min(0.1, 5)
             0.0573127527003
             sage: [P.height() for P in E.gens()]
             [0.686667083305587, 0.327000773651605]
-        
+
             sage: E = EllipticCurve([1, 0, 1, 421152067, 105484554028056]) # 60490d1
             sage: E.height_function().min(.01, 5)
             0.0011215737111

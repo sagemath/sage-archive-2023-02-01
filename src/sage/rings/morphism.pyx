@@ -953,18 +953,6 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
         """
         return hash((self._domain, self._codomain))
 
-    def __hash__(self):
-        """
-        TESTS::
-        
-            sage: hash(QQ.hom(RR)) in ZZ
-            True
-            sage: D = { ZZ.hom(QQ): oo, RR.hom(CC): 2 }
-            sage: D[ZZ.hom(QQ)]
-            +Infinity
-        """
-        return hash((self.domain(), self.codomain(), "coercion"))
-
     cpdef Element _call_(self, x):
         """
         Evaluate this coercion morphism at ``x``.
@@ -1035,7 +1023,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             import copy
             im_gens = copy.copy(im_gens)
             im_gens.set_immutable()
-        self.__im_gens = tuple(im_gens)
+        self.__im_gens = im_gens
 
     def __hash__(self):
         return Morphism.__hash__(self)
@@ -1065,30 +1053,12 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
         return list(self.__im_gens)
 
     cdef _update_slots(self, _slots):
-        # Used for pickling.
         self.__im_gens = _slots['__im_gens']
         RingHomomorphism._update_slots(self, _slots)
 
     cdef _extra_slots(self, _slots):
-        # Used for pickling.
         _slots['__im_gens'] = self.__im_gens
         return RingHomomorphism._extra_slots(self, _slots)
-
-    def __hash__(self):
-        """
-        TESTS::
-
-            sage: hash(QQ.places(RR)[0]) in ZZ
-            True
-
-            sage: R.<x> = QQ[]
-            sage: K.<a> = NumberField(x^3-2)
-            sage: is_real = dict((v, v(K.gen()) in RR) for v in K.places())
-            sage: for v in K.places(): print is_real[v]
-            True
-            False
-        """
-        return hash((self.domain(), self.codomain(), self.__im_gens))
 
     def __richcmp__(left, right, int op):
         """

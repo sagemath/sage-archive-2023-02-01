@@ -1920,10 +1920,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
         """
         from sage.schemes.elliptic_curves.period_lattice import PeriodLattice_ell
         return PeriodLattice_ell(self,embedding)
-    
+
     def height_function(self):
         """
-        
+
         """
         if not hasattr(self, '_height_function'):
             from height import EllipticCurveCanonicalHeight

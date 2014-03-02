@@ -1492,7 +1492,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         The Tamari order can equivalently be defined as follows:
 
         If `T` and `S` are two binary trees of size `n`, then the
-        following three statements are equivalent:
+        following four statements are equivalent:
 
         - We have `T \leq S` in the Tamari order.
 

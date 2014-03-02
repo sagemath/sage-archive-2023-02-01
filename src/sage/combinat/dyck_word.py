@@ -31,7 +31,7 @@ REFERENCES:
    Cambridge University Press, 2001.
 
 .. [StaCat98] R. Stanley, *Exercises on Catalan and Related Numbers
-   excerpted from Enumerative Combinatorics, vol. 2 (CUP 1999),
+   excerpted from Enumerative Combinatorics, vol. 2 (CUP 1999)*,
    version of 23 June 1998.
    http://www-math.mit.edu/~rstan/ec/catalan.pdf
 
@@ -1589,7 +1589,7 @@ class DyckWord(CombinatorialObject, Element):
         INPUT:
 
         - ``other`` -- a Dyck word greater or equal to ``self`` in the
-         Tamari order.
+          Tamari order.
 
         EXAMPLES::
 
@@ -1613,6 +1613,7 @@ class DyckWord(CombinatorialObject, Element):
             Traceback (most recent call last):
             ...
             ValueError: The two Dyck words are not comparable on the Tamari lattice.
+
         """
         from sage.combinat.interval_posets import TamariIntervalPosets
         return TamariIntervalPosets.from_dyck_words(self, other)

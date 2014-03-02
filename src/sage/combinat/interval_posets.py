@@ -4,7 +4,8 @@ Tamari Interval-posets
 This module implements Tamari interval-posets: combinatorial objects which
 represent intervals of the Tamari order. They have been introduced in [PCh2013]_
 and allow for many combinatorial operations on Tamari intervals. In particular,
-they are linked to :class:`DyckWords` and :class:`BinaryTrees`.
+they are linked to :class:`DyckWords` and :class:`BinaryTrees`. An introduction
+into Tamari interval-posets is given in Chapter 7 of [Pons2013]_.
 
 The Tamari lattice can be defined as a lattice structure on either of several
 classes of Catalan objects, especially binary trees and Dyck paths
@@ -17,6 +18,9 @@ REFERENCES:
 .. [PCh2013] Gregory Chatel, Viviane Pons,
    *Counting smaller trees in the Tamari order*,
    FPSAC, 2013, :arxiv:`1212.0751v1`.
+.. [Pons2013] Viviane Pons,
+   *Combinatoire algebrique liee aux ordres sur les permutations*,
+   thesis, :arxiv:`1310.1805v1`.
 .. [TamBrack1962] Dov Tamari,
    *The algebra of bracketings and their enumeration*,
    Nieuw Arch. Wisk., 1962.
@@ -119,7 +123,7 @@ class TamariIntervalPoset(Element):
     The class of Tamari interval-posets.
 
     An interval-poset is a labelled poset of size `n`, with labels
-    `1,\dots,n`, satisfying the following conditions:
+    `1, 2, \dots, n`, satisfying the following conditions:
 
     - if `a<c` (as integers) and `a` precedes `c` in the poset, then,
       for all `b` such that `a<b<c`, `b` precedes `c`,
@@ -127,9 +131,10 @@ class TamariIntervalPoset(Element):
     - if `a<c` (as integers) and `c` precedes `a` in the poset, then,
       for all `b` such that `a<b<c`, `b` precedes `a`.
 
-    We use the word "precedes" here to distinguish the poset order and 
-    the natural order on numbers. "Precedes" means "is smaller than with 
-    respect to the poset structure"; this does not imply a covering relation. 
+    We use the word "precedes" here to distinguish the poset order and
+    the natural order on numbers. "Precedes" means "is smaller than
+    with respect to the poset structure"; this does not imply a
+    covering relation. 
 
     Interval-posets of size `n` are in bijection with intervals of
     the Tamari lattice of binary trees of size `n`. Specifically, if
@@ -172,16 +177,25 @@ class TamariIntervalPoset(Element):
     `(a, b)` of elements of `P` such that `a < b` as integers and `a`
     precedes `b` in `P`. The *initial forest* of `P` is the poset
     obtained by imposing (only) the increasing relations on the ground
-    set of `P`.
+    set of `P`. It is a sub-interval poset of `P`, and is a forest with
+    its roots on top. This forest is usually given the structure of a
+    planar forest by ordering brother nodes by their labels; it then has
+    the property that if its nodes are traversed in post-order
+    (see :meth:~sage.combinat.abstract_tree.AbstractTree.post_order_traversal`,
+    and traverse the trees of the forest from left to right as well),
+    then the labels encountered are `1, 2, \ldots, n` in this order.
 
     The *decreasing relations* of an interval-poset `P` mean the pairs
     `(a, b)` of elements of `P` such that `b < a` as integers and `a`
     precedes `b` in `P`. The *final forest* of `P` is the poset
     obtained by imposing (only) the decreasing relations on the ground
-    set of `P`.
-
-    Both the initial forest and the final forest of `P` are sub-interval
-    posets of `P`, and are forests with their roots on top.
+    set of `P`. It is a sub-interval poset of `P`, and is a forest with
+    its roots on top. This forest is usually given the structure of a
+    planar forest by ordering brother nodes by their labels; it then has
+    the property that if its nodes are traversed in pre-order
+    (see :meth:~sage.combinat.abstract_tree.AbstractTree.pre_order_traversal`,
+    and traverse the trees of the forest from left to right as well),
+    then the labels encountered are `1, 2, \ldots, n` in this order.
 
     EXAMPLES::
 

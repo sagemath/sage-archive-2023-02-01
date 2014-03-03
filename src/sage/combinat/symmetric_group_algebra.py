@@ -1067,9 +1067,15 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
         .. MATH::
 
-            \epsilon(T, S) \epsilon(U, V) = 0 \ \mbox{ if } T \neq V;
-            \qquad
-            \epsilon(T, S) \epsilon(U, V) = \epsilon(U, S) \ \mbox{ if } T = V.
+            \epsilon(T, S) \epsilon(U, V) = \delta_{TV} \epsilon(U, S).
+
+        .. WARNING::
+
+            Because of our convention, we are multiplying our elements in
+            reverse of those given in some papers, for example [Ram1997]_.
+            Using the other convention of multiplying permutations, we would
+            instead have
+            `\epsilon(U, V) \epsilon(T, S) = \delta_{TV} \epsilon(U, S).`
 
         In other words, it consists of the matrix units in a
         (particular) Artin-Wedderburn decomposition of `R S_n` into
@@ -1095,6 +1101,13 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             1/4*[1, 3, 2] - 1/4*[2, 3, 1] + 1/4*[3, 1, 2] - 1/4*[3, 2, 1],
             1/3*[1, 2, 3] - 1/6*[1, 3, 2] + 1/3*[2, 1, 3] - 1/6*[2, 3, 1] - 1/6*[3, 1, 2] - 1/6*[3, 2, 1],
             1/6*[1, 2, 3] - 1/6*[1, 3, 2] - 1/6*[2, 1, 3] + 1/6*[2, 3, 1] + 1/6*[3, 1, 2] - 1/6*[3, 2, 1]]
+
+        REFERENCES:
+
+        .. [Ram1997] Arun Ram. *Seminormal representations of Weyl groups
+           and Iwahori-Hecke algebras*. Proc. London Math. Soc. (3)
+           **75** (1997). 99-133. :arxiv:`math/9511223`.
+           http://www.ms.unimelb.edu.au/~ram/Publications/1997PLMSv75p99.pdf
         """
         basis = []
         for part in partition.Partitions_n(self.n):

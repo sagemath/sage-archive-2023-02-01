@@ -43,12 +43,6 @@ EOF
     exit 2
 fi
 
-if [ "$SAGE_UPGRADING" = yes ]; then
-    # We're doing an upgrade. Let build/Makefile call sage-spkg with
-    # "-f" to force rebuilding dependent packages, too:
-    export SAGE_SPKG_OPTS="-f"
-fi
-
 ###############################################################################
 # Create basic directories needed for Sage
 ###############################################################################
@@ -60,6 +54,70 @@ mkdir -p "$SAGE_LOCAL/etc"
 mkdir -p "$SAGE_LOCAL/lib"
 mkdir -p "$SAGE_SPKG_INST"
 mkdir -p "$SAGE_SHARE"
+
+###############################################################################
+# Determine whether to use MPIR (default standard pkg) or GMP (optional pkg).
+###############################################################################
+
+if [ -z "$SAGE_MP_LIBRARY" ]; then
+    # Automatic detection of installed MP library.
+    if [ ! -f "$SAGE_LOCAL/share/mp_config" ]; then
+        echo "MPIR" > "$SAGE_LOCAL/share/mp_config"
+    fi
+    SAGE_MP_LIBRARY=`cat "$SAGE_LOCAL/share/mp_config"`
+fi
+
+SAGE_OLD_MP_LIBRARY=`cat "$SAGE_LOCAL/share/mp_config"`
+if [ "$SAGE_MP_LIBRARY" != "$SAGE_OLD_MP_LIBRARY" ]; then
+    SAGE_CHANGE_MP_LIBRARY=yes
+else
+    SAGE_CHANGE_MP_LIBRARY=no
+fi
+
+case "$SAGE_MP_LIBRARY" in
+    MPIR|GMP)
+        echo "Using $SAGE_MP_LIBRARY as default MP library."
+        echo $SAGE_MP_LIBRARY > "$SAGE_LOCAL/share/mp_config"
+        ;;
+    *)
+        echo "Allowed values for SAGE_MP_LIBRARY are \"MPIR\" and \"GMP\"."
+        echo "If you did not set this variable, check the content of"
+        echo "\"$SAGE_LOCAL/share/mp_config\"."
+        exit 1
+        ;;
+esac
+
+if [ "$SAGE_CHANGE_MP_LIBRARY" = "yes" ]; then
+    if [ -f "$SAGE_LOCAL/bin/gcc" ]; then
+        echo "Deleting old GCC install as the default MP library changes."
+        rm -f "$SAGE_LOCAL/bin/gcc"
+        rm -f "$SAGE_LOCAL/bin/cpp"
+        rm -f "$SAGE_LOCAL/bin/g++"
+        rm -f "$SAGE_LOCAL/bin/gfortran"
+    fi
+    if [ -z "$SAGE_UPGRADING" ]; then
+        echo "Setting SAGE_UPGRADING to yes as the default MP library changes."
+        SAGE_UPGRADING=yes
+    else
+        if [ "$SAGE_UPGRADING" != "yes" ]; then
+            echo "SAGE_UPGRADING is set to something different from yes"
+            echo "whereas the default MP library changes."
+            echo "You might end up with a broken Sage installation."
+        fi
+    fi
+fi
+
+export SAGE_MP_LIBRARY SAGE_CHANGE_MP_LIBRARY
+
+###############################################################################
+# Determine whether we should automatically rebuild dependencies.
+###############################################################################
+
+if [ "$SAGE_UPGRADING" = yes ]; then
+    # We're doing an upgrade. Let build/Makefile call sage-spkg with
+    # "-f" to force rebuilding dependent packages, too:
+    export SAGE_SPKG_OPTS="-f"
+fi
 
 ###############################################################################
 # Determine whether to install GCC (gcc, g++, gfortran).
@@ -401,7 +459,6 @@ MAXIMA=`newest_version maxima`
 MPC=`newest_version mpc`
 MPFI=`newest_version mpfi`
 MPFR=`newest_version mpfr`
-MPIR=`newest_version mpir`
 MPMATH=`newest_version mpmath`
 NETWORKX=`newest_version networkx`
 NTL=`newest_version ntl`
@@ -444,6 +501,15 @@ ZNPOLY=`newest_version zn_poly`
 
 # Directory to keep track of which packages are installed
 INST=`echo "$SAGE_SPKG_INST" | sed 's/ /\\\\ /g'`
+
+EOF
+
+# Sage MP library
+sage_mp_library=`echo "$SAGE_MP_LIBRARY" | tr '[A-Z]' '[a-z]'`
+cat >&5 << EOF
+# Sage MP library
+$(SAGE_MP_LIBRARY)=`newest_version $(sage_mp_library)`
+SAGE_MP_LIBRARY=$(SAGE_MP_LIBRARY)
 
 EOF
 

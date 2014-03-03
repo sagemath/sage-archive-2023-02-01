@@ -7,7 +7,6 @@ handling.
 AUTHORS:
 
 - Julian Rueth: initial version
-
 """
 #*****************************************************************************
 #       Copyright (C) 2013 Julian Rueth <julian.rueth@fsfe.org>
@@ -29,8 +28,8 @@ obsolete_commands = {
     "set_needs_info": "needs_info",
     "set_positive_review": "positive_review",
     "reset_to_clean_working_directory" : "clean",
-    "local-tickets" : "tickets",
-    "prune-closed-tickets" : "prune-tickets",
+    "local_tickets" : "tickets",
+    "prune_closed_tickets" : "prune_tickets",
 }
 
 class SageDevWrapper(object):
@@ -92,8 +91,8 @@ class SageDevWrapper(object):
 
         TESTS::
 
-            sage: type(dev)
-            <class 'sage.dev.sagedev_wrapper.SageDevWrapper'>
+            sage: type(dev._get_object())
+            <class 'sage.dev.test.sagedev.DoctestSageDevWrapper'>
         """
         self._sagedev = sagedev
 
@@ -105,7 +104,6 @@ class SageDevWrapper(object):
         self._wrap("pull")
         self._wrap("download_patch")
         self._wrap("edit_ticket")
-        self._wrap("gather")
         self._wrap("import_patch")
         self._wrap("tickets")
         self._wrap("merge")
@@ -139,7 +137,7 @@ class SageDevWrapper(object):
             sage: dev.obsolete
             Traceback (most recent call last):
             ...
-            AttributeError: 'SageDevWrapper' object has no attribute 'obsolete'
+            AttributeError: 'DoctestSageDevWrapper' object has no attribute 'obsolete'
             sage: dev._obsolete("obsolete", "not_obsolete")
             sage: dev.obsolete
             <function wrapped at 0x...>
@@ -164,7 +162,7 @@ class SageDevWrapper(object):
             sage: dev._local_branch_for_ticket
             Traceback (most recent call last):
             ...
-            AttributeError: 'SageDevWrapper' object has no attribute '_local_branch_for_ticket'
+            AttributeError: 'DoctestSageDevWrapper' object has no attribute '_local_branch_for_ticket'
             sage: dev._wrap("_local_branch_for_ticket")
             sage: dev._local_branch_for_ticket
             <function wrapped at 0x...>
@@ -213,8 +211,7 @@ class SageDevWrapper(object):
                 except DetachedHeadError as e:
                     UI.error("Unexpectedly your repository was found to be in a"
                              " detached head state. This is probably a bug in sagedev.")
-                    UI.info("You can try to restore your repository to a clean state by"
-                            " running {0} and {1}.",
+                    UI.info("Use {0} and {1} to restore your repository to a clean state.",
                             self._sagedev._format_command("clean"), 
                             self._sagedev._format_command("checkout", branch="master"))
                     raise
@@ -247,3 +244,4 @@ class SageDevWrapper(object):
             'SageDev()'
         """
         return repr(self._sagedev)
+

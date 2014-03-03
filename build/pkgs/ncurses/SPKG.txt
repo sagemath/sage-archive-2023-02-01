@@ -42,9 +42,8 @@ None
 
 == Special Update/Build Instructions ==
 
-None
+=== Patches ===
 
-== Changelog ==
+ * xopen_source.patch: remove harmful check from aclocal.m4 which may
+   reintroduce XOPEN_SOURCE on systems where it should not be used.
 
-=== ncurses-5.9 (Volker Braun, 3 April 2013) ===
- * Initial version

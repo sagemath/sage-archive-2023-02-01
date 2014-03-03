@@ -498,7 +498,7 @@ class TateCurve(SageObject):
         yy = t + s * C**2 * P[0] + C**3 * P[1]
         try:
             Pq = Eq([xx,yy])
-        except StandardError:
+        except Exception:
             raise RuntimeError, "Bug : Point %s does not lie on the curve "%[xx,yy]
 
         tt = -xx/yy

@@ -67,15 +67,14 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
         """
         return self
 
-    def _multiply(self, left, right): # TODO: factor out this code for all bases (as is done for coercions)
+    def _multiply_basis(self, left, right): # TODO: factor out this code for all bases (as is done for coercions)
         """
         Returns the product of ``left`` and ``right``.
 
         INPUT:
 
         - ``self`` -- a Schur symmetric function basis
-        - ``left``, ``right`` -- symmetric functions written in the Schur basis
-          ``self``.
+        - ``left``, ``right`` -- partitions
 
         OUPUT:
 
@@ -89,6 +88,15 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             sage: a^2   # indirect doctest
             s[] + 2*s[2, 1] + s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + 2*s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + s[4, 2]
 
+        Examples failing with three different messages in symmetrica::
+
+            sage: s[123,1]*s[1,1]
+            s[123, 1, 1, 1] + s[123, 2, 1] + s[124, 1, 1] + s[124, 2]
+            sage: s[123]*s[2,1]
+            s[123, 2, 1] + s[124, 1, 1] + s[124, 2] + s[125, 1]
+            sage: s[125]*s[3]
+            s[125, 3] + s[126, 2] + s[127, 1] + s[128]
+
         ::
 
             sage: QQx.<x> = QQ[]
@@ -100,32 +108,11 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
         ::
 
-        ::
-
             sage: 0*s([2,1])
             0
         """
-        #Use symmetrica to do the multiplication
-        A = left.parent()
-        R = A.base_ring()
-
-        if  R is ZZ or R is QQ:
-            if left and right:
-                return symmetrica.mult_schur_schur(left, right)
-            else:
-                return A._from_dict({})
-
-        z_elt = {}
-        for (left_m, left_c) in left._monomial_coefficients.iteritems():
-            for (right_m, right_c) in right._monomial_coefficients.iteritems():
-                c = left_c * right_c
-                d = symmetrica.mult_schur_schur({left_m:Integer(1)}, {right_m:Integer(1)})._monomial_coefficients
-                for m in d:
-                    if m in z_elt:
-                        z_elt[ m ] = z_elt[m] + c * d[m]
-                    else:
-                        z_elt[ m ] = c * d[m]
-        return A._from_dict(z_elt)
+        import sage.libs.lrcalc.lrcalc as lrcalc
+        return lrcalc.mult(left,right)
 
     def coproduct_on_basis(self, mu):
         r"""

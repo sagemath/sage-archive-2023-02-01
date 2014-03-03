@@ -42,7 +42,6 @@ include 'sage/misc/bitset.pxi'
 DEF BINT_EXCEPT = -2 ** 31 - 1
 
 from matroid cimport Matroid
-cimport basis_matroid
 from set_system cimport SetSystem
 from copy import copy
 from itertools import combinations, permutations
@@ -174,7 +173,10 @@ cdef class BasisExchangeMatroid(Matroid):
         bitset_init(self._temp, self._bitset_size)
 
         self._groundset = frozenset(groundset)
-        self._E = [e for e in groundset]
+        if not isinstance(groundset, tuple):
+            self._E = tuple(groundset)
+        else:
+            self._E = groundset
         self._idx = {}
         cdef long i
         for i in xrange(self._groundset_size):
@@ -216,7 +218,7 @@ cdef class BasisExchangeMatroid(Matroid):
                 E.append(l[self._E[i]])
             else:
                 E.append(self._E[i])
-        self._E = E
+        self._E = tuple(E)
         self._groundset = frozenset(E)
 
         self._idx = {}
@@ -503,8 +505,13 @@ cdef class BasisExchangeMatroid(Matroid):
             <type 'list'>
             sage: sorted(M.groundset_list())
             ['a', 'b', 'c', 'd', 'e', 'f', 'g']
+
+            sage: E = M.groundset_list()
+            sage: E.remove('a')
+            sage: sorted(M.groundset_list())
+            ['a', 'b', 'c', 'd', 'e', 'f', 'g']
         """
-        return self._E
+        return list(self._E)
 
     def __len__(self):
         """
@@ -1097,9 +1104,9 @@ cdef class BasisExchangeMatroid(Matroid):
         """
         cdef bitset_t *flats, *todo
         if r < 0 or r > self.full_rank():
-            return SetSystem(self.groundset_list())
+            return SetSystem(self._E)
         if r == self.full_rank():
-            return SetSystem(self.groundset_list(), subsets=[self.groundset()])
+            return SetSystem(self._E, subsets=[self.groundset()])
         flats = <bitset_t*>sage_malloc((r + 1) * sizeof(bitset_t))
         todo = <bitset_t*>sage_malloc((r + 1) * sizeof(bitset_t))
 
@@ -1171,9 +1178,9 @@ cdef class BasisExchangeMatroid(Matroid):
         """
         cdef bitset_t *coflats, *todo
         if r < 0 or r > self.full_corank():
-            return SetSystem(self.groundset_list())
+            return SetSystem(self._E)
         if r == self.full_corank():
-            return SetSystem(self.groundset_list(), subsets=[self.groundset()])
+            return SetSystem(self._E, subsets=[self.groundset()])
         coflats = <bitset_t*>sage_malloc((r + 1) * sizeof(bitset_t))
         todo = <bitset_t*>sage_malloc((r + 1) * sizeof(bitset_t))
 
@@ -1831,6 +1838,7 @@ cdef class BasisExchangeMatroid(Matroid):
             True
         """
         if not isinstance(other, BasisExchangeMatroid):
+            import basis_matroid
             ot = basis_matroid.BasisMatroid(other)
         else:
             ot = other

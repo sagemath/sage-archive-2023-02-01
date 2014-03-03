@@ -1117,17 +1117,26 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.variable_upper_bound(0, 5)
             sage: p.col_bounds(0)
             (0.0, 5.0)
+
+        TESTS:
+
+        :trac:`14581`::
+
+            sage: P = MixedIntegerLinearProgram(solver="GLPK")
+            sage: x = P["x"]
+            sage: P.set_max(x, 0)
+            sage: P.get_max(x)
+            0.0
         """
         cdef double x
         cdef double min
 
-        if value == False:
+        if value is False:
             x = glp_get_col_ub(self.lp, index +1)
             if x == DBL_MAX:
                 return None
             else:
                 return x
-
         else:
             min = glp_get_col_lb(self.lp, index + 1)
 
@@ -1145,7 +1154,6 @@ cdef class GLPKBackend(GenericBackend):
 
             else:
                 glp_set_col_bnds(self.lp, index + 1, GLP_DB, min, value)
-
 
     cpdef variable_lower_bound(self, int index, value = False):
         """
@@ -1170,11 +1178,22 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.variable_lower_bound(0, 5)
             sage: p.col_bounds(0)
             (5.0, None)
+
+        TESTS:
+
+        :trac:`14581`::
+
+            sage: P = MixedIntegerLinearProgram(solver="GLPK")
+            sage: x = P["x"]
+            sage: P.set_min(x, 5)
+            sage: P.set_min(x, 0)
+            sage: P.get_min(x)
+            0.0
         """
         cdef double x
         cdef double max
 
-        if value == False:
+        if value is False:
             x = glp_get_col_lb(self.lp, index +1)
             if x == -DBL_MAX:
                 return None
@@ -1536,175 +1555,175 @@ cdef class GLPKBackend(GenericBackend):
         if type(value) == str: value = solver_parameter_values[value]
 
         if name == timelimit_intopt:
-            if value == None: return self.iocp.tm_lim
+            if value is None: return self.iocp.tm_lim
             else: self.iocp.tm_lim = value
 
         if name == timelimit_seconds:
-            if value == None: return self.iocp.tm_lim / 1000.0
+            if value is None: return self.iocp.tm_lim / 1000.0
             else:
                 self.iocp.tm_lim = value * 1000.0
                 self.smcp.tm_lim = value * 1000.0
 
         elif name == timelimit_simplex:
-            if value == None: return self.smcp.tm_lim
+            if value is None: return self.smcp.tm_lim
             else: self.smcp.tm_lim = value
 
         elif name == simplex_or_intopt:
-            if value == None: return self.simplex_or_intopt
+            if value is None: return self.simplex_or_intopt
             if not value in (simplex_only,intopt_only,simplex_then_intopt):
                 raise MIPSolverException, "GLPK: invalid value for simplex_or_intopt; see documentation"
             self.simplex_or_intopt = value
 
         elif name == msg_lev_simplex:
-            if value == None: return self.smcp.msg_lev
+            if value is None: return self.smcp.msg_lev
             else: self.smcp.msg_lev = value
 
         elif name == msg_lev_intopt:
-            if value == None: return self.iocp.msg_lev
+            if value is None: return self.iocp.msg_lev
             else: self.iocp.msg_lev = value
 
         elif name == br_tech:
-            if value == None: return self.iocp.br_tech
+            if value is None: return self.iocp.br_tech
             else: self.iocp.br_tech = value
 
         elif name == bt_tech:
-            if value == None: return self.iocp.bt_tech
+            if value is None: return self.iocp.bt_tech
             else: self.iocp.bt_tech = value
 
         elif name == pp_tech:
-            if value == None: return self.iocp.pp_tech
+            if value is None: return self.iocp.pp_tech
             else: self.iocp.pp_tech = value
 
         elif name == fp_heur:
-            if value == None: return self.iocp.fp_heur
+            if value is None: return self.iocp.fp_heur
             else:
-              if value == True: value = GLP_ON
-              elif value == False: value = GLP_OFF
+              if value: value = GLP_ON
+              else: value = GLP_OFF
               self.iocp.fp_heur = value
 
         elif name == gmi_cuts:
-            if value == None: return self.iocp.gmi_cuts
+            if value is None: return self.iocp.gmi_cuts
             else:
-              if value == True: value = GLP_ON
-              elif value == False: value = GLP_OFF
+              if value: value = GLP_ON
+              else: value = GLP_OFF
               self.iocp.gmi_cuts = value
 
         elif name == mir_cuts:
-            if value == None: return self.iocp.mir_cuts
+            if value is None: return self.iocp.mir_cuts
             else:
-              if value == True: value = GLP_ON
-              elif value == False: value = GLP_OFF
+              if value: value = GLP_ON
+              else: value = GLP_OFF
               self.iocp.mir_cuts = value
 
         elif name == cov_cuts:
-            if value == None: return self.iocp.cov_cuts
+            if value is None: return self.iocp.cov_cuts
             else:
-              if value == True: value = GLP_ON
-              elif value == False: value = GLP_OFF
+              if value: value = GLP_ON
+              else: value = GLP_OFF
               self.iocp.cov_cuts = value
 
         elif name == clq_cuts:
-            if value == None: return self.iocp.clq_cuts
+            if value is None: return self.iocp.clq_cuts
             else:
-              if value == True: value = GLP_ON
-              elif value == False: value = GLP_OFF
+              if value: value = GLP_ON
+              else: value = GLP_OFF
               self.iocp.clq_cuts = value
 
         elif name == tol_int:
-            if value == None: return self.iocp.tol_int
+            if value is None: return self.iocp.tol_int
             else: self.iocp.tol_int = value
 
         elif name == tol_obj:
-            if value == None: return self.iocp.tol_obj
+            if value is None: return self.iocp.tol_obj
             else: self.iocp.tol_obj = value
 
         elif name == mip_gap:
-            if value == None: return self.iocp.mip_gap
+            if value is None: return self.iocp.mip_gap
             else: self.iocp.mip_gap = value
 
         elif name == tm_lim_intopt:
-            if value == None: return self.iocp.tm_lim
+            if value is None: return self.iocp.tm_lim
             else: self.iocp.tm_lim = value
 
         elif name == out_frq_intopt:
-            if value == None: return self.iocp.out_frq
+            if value is None: return self.iocp.out_frq
             else: self.iocp.out_frq = value
 
         elif name == out_dly_intopt:
-            if value == None: return self.iocp.out_dly
+            if value is None: return self.iocp.out_dly
             else: self.iocp.out_dly = value
 
         elif name == presolve_intopt:
-            if value == None: return self.iocp.presolve
+            if value is None: return self.iocp.presolve
             else:
-                if value == True: value = GLP_ON
-                elif value == False: value = GLP_OFF
+                if value: value = GLP_ON
+                else: value = GLP_OFF
                 self.iocp.presolve = value
 
         elif name == binarize:
-            if value == None: return self.iocp.binarize
+            if value is None: return self.iocp.binarize
             else:
-              if value == True: value = GLP_ON
-              elif value == False: value = GLP_OFF
+              if value: value = GLP_ON
+              else: value = GLP_OFF
               self.iocp.binarize = value
 
         elif name == msg_lev_simplex:
-            if value == None: return self.smcp.msg_lev
+            if value is None: return self.smcp.msg_lev
             else: self.smcp.msg_lev = value
 
         elif name == meth:
-            if value == None: return self.smcp.meth
+            if value is None: return self.smcp.meth
             else: self.smcp.meth = value
 
         elif name == pricing:
-            if value == None: return self.smcp.pricing
+            if value is None: return self.smcp.pricing
             else: self.smcp.pricing = value
 
         elif name == r_test:
-            if value == None: return self.smcp.r_test
+            if value is None: return self.smcp.r_test
             else: self.smcp.r_test = value
 
         elif name == tol_bnd:
-            if value == None: return self.smcp.tol_bnd
+            if value is None: return self.smcp.tol_bnd
             else: self.smcp.tol_bnd = value
 
         elif name == tol_dj:
-            if value == None: return self.smcp.tol_dj
+            if value is None: return self.smcp.tol_dj
             else: self.smcp.tol_dj = value
 
         elif name == tol_piv:
-            if value == None: return self.smcp.tol_piv
+            if value is None: return self.smcp.tol_piv
             else: self.smcp.tol_piv = value
 
         elif name == obj_ll:
-            if value == None: return self.smcp.obj_ll
+            if value is None: return self.smcp.obj_ll
             else: self.smcp.obj_ll = value
 
         elif name == obj_ul:
-            if value == None: return self.smcp.obj_ul
+            if value is None: return self.smcp.obj_ul
             else: self.smcp.obj_ul = value
 
         elif name == it_lim:
-            if value == None: return self.smcp.it_lim
+            if value is None: return self.smcp.it_lim
             else: self.smcp.it_lim = value
 
         elif name == tm_lim_simplex:
-            if value == None: return self.smcp.tm_lim
+            if value is None: return self.smcp.tm_lim
             else: self.smcp.tm_lim = value
 
         elif name == out_frq_simplex:
-            if value == None: return self.smcp.out_frq
+            if value is None: return self.smcp.out_frq
             else: self.smcp.out_frq = value
 
         elif name == out_dly_simplex:
-            if value == None: return self.smcp.out_dly
+            if value is None: return self.smcp.out_dly
             else: self.smcp.out_dly = value
 
         elif name == presolve_simplex:
-            if value == None: return self.smcp.presolve
+            if value is None: return self.smcp.presolve
             else:
-              if value == True: value = GLP_ON
-              elif value == False: value = GLP_OFF
+              if value: value = GLP_ON
+              else: value = GLP_OFF
               self.smcp.presolve = value
 
         else:

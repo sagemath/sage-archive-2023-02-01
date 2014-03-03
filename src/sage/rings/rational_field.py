@@ -62,7 +62,7 @@ import sage.rings.number_field.number_field_base as number_field_base
 _obj = {}
 class _uniq(object):
     def __new__(cls):
-        if _obj.has_key(0):
+        if 0 in _obj:
             return _obj[0]
         O = number_field_base.NumberField.__new__(cls)
         _obj[0] = O
@@ -126,7 +126,7 @@ class RationalField(_uniq, number_field_base.NumberField):
 
         sage: E = EllipticCurve('11a')
         sage: L = E.lseries().at1(300)[0]; L
-        0.253841860855911
+        0.2538418608559106843377589233...
         sage: O = E.period_lattice().omega(); O
         1.26920930427955
         sage: t = L/O; t

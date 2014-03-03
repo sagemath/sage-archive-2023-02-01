@@ -54,6 +54,8 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+# Avoid surprises with character ranges [a-z] in regular expressions
+export LC_ALL=C
 
 # error_msg(header, command)
 # This is for printing an error message if something went wrong.
@@ -98,17 +100,18 @@ verify_checksum()
 
     if command -v shasum > /dev/null; then
         expected=`lookup_param sha1 $checksums`
-        actual=`shasum -a 1 $file | sed 's/ .*//'`
+        actual=`shasum -a 1 $file | sed 's/[^0-9a-f].*//'`
     elif command -v md5sum > /dev/null; then
         expected=`lookup_param md5 $checksums`
-        actual=`md5sum $file | sed 's/ .*//'`
+        actual=`md5sum $file | sed 's/[^0-9a-f].*//'`
     elif command -v md5 > /dev/null; then
         expected=`lookup_param md5 $checksums`
-        actual=`md5 $file | sed 's/.*= *//'`
+        actual=`md5 $file | sed 's/[^0-9a-f].*//'`
     else
-        # POSIX
+        # POSIX; Note that Solaris is not compliant and its sed
+	# does not understand [[:space:]]
         expected=`lookup_param cksum $checksums`
-        actual=`cksum $file | sed 's/ .*//'`
+        actual=`cksum $file | sed 's/[^0-9].*//'`
     fi
 
     echo "Checksum: $expected vs $actual"
@@ -291,20 +294,17 @@ elif [ -z "$PKG_HAS_PATH" ]; then
             PKG_NAME="${PKG_BASE}-${PKG_VER}"
         fi
         USE_LOCAL_SCRIPTS=yes
-        PKG_NAME_UPSTREAM="${PKG_BASE}-`echo $PKG_VER | sed 's/\.p[0-9][0-9]*$//'`"
+        PKG_BASE_VER=`echo $PKG_VER | sed 's/\.p[0-9][0-9]*$//'`
+        PKG_NAME_UPSTREAM=`lookup_param tarball "$PKG_SCRIPTS/checksums.ini" | sed "s/VERSION/$PKG_BASE_VER/"`
         echo "Found local metadata for $PKG_NAME"
 
         if [ $INFO -eq 0 ]; then
             # see if we can the source tarball locally
-            cd "$SAGE_DISTFILES"
-            for tarball in `ls -1t ${PKG_NAME_UPSTREAM}.tar* 2>/dev/null`; do
-                if [ -f "$tarball" ]; then
-                    # Found a good tarball
-                    echo "Found local sources at $SAGE_DISTFILES/$tarball"
-                    PKG_SRC="`pwd`/$tarball"
-                    break
-                fi
-            done
+            if [ -f "$SAGE_DISTFILES/$PKG_NAME_UPSTREAM" ]; then
+                # Found a good tarball
+                PKG_SRC="$SAGE_DISTFILES/$PKG_NAME_UPSTREAM"
+                echo "Found local sources at $PKG_SRC"
+            fi
         fi
     else
         cd "$SAGE_DISTFILES"
@@ -448,28 +448,16 @@ if [ ! -f "$PKG_SRC" ]; then
     # Download to a temporary file (such that we don't end up with a
     # corrupted .spkg file).
     PKG_TMP="${PKG_URL##*/}.tmp"
-    if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
-        EXT_LIST=".tar.bz2 .tar.gz .tar"
-    else
-        EXT_LIST=".spkg"
-    fi
-    for EXT in $EXT_LIST; do
-        REAL_PKG_URL="$PKG_URL${EXT#.spkg}"
-        echo ">>> Trying to download $REAL_PKG_URL"
-        sage-download-file "$REAL_PKG_URL" >"$PKG_TMP"
-        if [ $? -eq 0 ]; then
-            DOWNLOAD_SUCCESS=yes
-            break
-        fi
-    done
-    if [ -z "$DOWNLOAD_SUCCESS" ]; then
+    echo ">>> Trying to download $PKG_URL"
+    sage-download-file "$PKG_URL" >"$PKG_TMP"
+    if [ $? -ne 0 ]; then
         # Delete failed download
         rm -f "$PKG_TMP"
         echo >&2 "Error: failed to download package $PKG_NAME"
         exit 1
     fi
 
-    PKG_SRC="`pwd`/${PKG_URL##*/}${EXT#.spkg}"
+    PKG_SRC="`pwd`/${PKG_URL##*/}"
     if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
         verify_checksum "$PKG_TMP" "$PKG_SCRIPTS/checksums.ini"
     fi
@@ -492,6 +480,15 @@ fi
 # up the system if we do something wrong.
 cd "$SAGE_ROOT" || exit $?
 
+# If SAGE_SPKG_COPY_UPSTREAM is set, it should be the name of a directory
+# to which all upstream files are copied. This is used in sage-sdist.
+if [ -n "$SAGE_SPKG_COPY_UPSTREAM" ]; then
+    mkdir -p "$SAGE_SPKG_COPY_UPSTREAM" && cp -p "$PKG_SRC" "$SAGE_SPKG_COPY_UPSTREAM"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Failed to copy upstream tarball to directory '$SAGE_SPKG_COPY_UPSTREAM'"
+        exit 1
+    fi
+fi
 if [ $DOWNLOAD_ONLY -ne 0 ]; then
     exit 0
 fi
@@ -576,7 +573,7 @@ fi
 if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
     echo "Setting up build directory for $PKG_NAME"
     cp -Rp "$PKG_SCRIPTS" "$PKG_NAME"
-    cd "$PKG_NAME"
+    cd "$PKG_NAME" || exit $?
 else
     echo "Extracting package $PKG_SRC"
     ls -l "$PKG_SRC"
@@ -589,22 +586,21 @@ if [ $? -ne 0 ]; then
 fi
 
 if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
-    mv "$PKG_NAME_UPSTREAM" src
-    cd ..
+    mv 2>/dev/null "${PKG_NAME_UPSTREAM%.tar*}" src
     echo "Finished set up"
 else
     echo "Finished extraction"
+
+    cd "$PKG_NAME"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error: after extracting, the directory $PKG_NAME does not exist"
+        exit 1
+    fi
 fi
 
 ##################################################################
 # The package has been extracted, prepare for installation
 ##################################################################
-
-cd "$PKG_NAME"
-if [ $? -ne 0 ]; then
-    echo >&2 "Error: after extracting, the directory $PKG_NAME does not exist"
-    exit 1
-fi
 
 # When there is no spkg-install, assume the "spkg" is a tarball not
 # specifically made for Sage.  Since we want it to be as easy as
@@ -661,6 +657,12 @@ echo "C compiler: $CC"
 echo "C compiler version:"
 $CC -v
 echo "****************************************************"
+
+##################################################################
+# Remove install markers for any other versions of this spkg.
+##################################################################
+
+rm -f "$SAGE_SPKG_INST/$PKG_BASE-"*
 
 ##################################################################
 # Actually install

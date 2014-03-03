@@ -27,10 +27,15 @@ AUTHORS:
 from sage.matrix.constructor import Matrix
 from sage.modules.free_module_element import vector
 from sage.quadratic_forms.all import is_QuadraticForm
-from sage.rings.all import (is_MPolynomial, PolynomialRing,
-                            is_IntegralDomain, is_FiniteField,
-                            is_PrimeFiniteField,
-                            is_RationalField)
+from sage.rings.all import (PolynomialRing,
+                            is_PrimeFiniteField
+                           )
+
+from sage.rings.integral_domain import is_IntegralDomain
+from sage.rings.rational_field import is_RationalField
+from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
+
 from sage.rings.number_field.number_field import is_NumberField
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.schemes.projective.projective_point import SchemeMorphism_point_projective_field

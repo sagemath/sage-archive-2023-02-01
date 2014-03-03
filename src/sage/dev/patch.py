@@ -19,6 +19,7 @@ AUTHORS:
 #                          R. Andrew Ohana <andrew.ohana@gmail.com>
 #                          Robert Bradshaw <robertwb@gmail.com>
 #                          Timo Kluck <tkluck@infty.nl>
+#                          Volker Braun <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -38,6 +39,7 @@ HG_PARENT_REGEX = re.compile(r"^# Parent +([0-9a-f]+)$")
 HG_DIFF_REGEX = re.compile(r"^diff (?:-r [0-9a-f]+ ){1,2}(.*)$")
 PM_DIFF_REGEX = re.compile(r"^(?:(?:\+\+\+)|(?:---)) [ab]/([^ ]*)(?: .*)?$")
 MV_DIFF_REGEX = re.compile(r"^rename (?:(?:to)|(?:from)) (.*)$")
+CP_DIFF_REGEX = re.compile(r"^copy (?:(?:to)|(?:from)) (.*)$")
 
 # regular expressions to parse git patches -- at least those created by us
 GIT_FROM_REGEX = re.compile(r"^From: (.*)$")
@@ -60,7 +62,7 @@ class MercurialPatchMixin(object):
     def import_patch(self, patchname=None, url=None, local_file=None,
                      diff_format=None, header_format=None, path_format=None):
         r"""
-        Import a patch into the current branch.
+        Legacy support: Import a patch into the current branch.
 
         If no arguments are given, then all patches from the ticket are
         downloaded and applied using :meth:`download_patch`.
@@ -156,22 +158,13 @@ class MercurialPatchMixin(object):
             sage: UI.append("y")
             sage: dev.import_patch(local_file=patchfile, path_format="new")
             Applying: No Subject. Modified: tracked, tracked2
-            error: patch failed: tracked:1
-            error: tracked: patch does not apply
             Patch failed at 0001 No Subject. Modified: tracked, tracked2
             The copy of the patch that failed is found in:
                .../rebase-apply/patch
             <BLANKLINE>
-            The patch does not apply cleanly. Would you like to apply it anyway and create
-            reject files for the parts that do not apply? [yes/No] y
-            Checking patch tracked...
-            error: while searching for:
-            foo
-            error: patch failed: tracked:1
-            Checking patch tracked2...
-            Applying patch tracked with 1 reject...
-            Rejected hunk #1.
-            Applied patch tracked2 cleanly.
+            The patch does not apply cleanly. Reject files will be created for the parts
+            that do not apply if you proceed.
+            Apply it anyway? [yes/No] y
             The patch did not apply cleanly. Please integrate the `.rej` files that were
             created and resolve conflicts. After you do, type `resolved`. If you want to
             abort this process, type `abort`. [resolved/abort] abort
@@ -183,22 +176,13 @@ class MercurialPatchMixin(object):
             sage: UI.append("y")
             sage: dev.import_patch(local_file=patchfile, path_format="new")
             Applying: No Subject. Modified: tracked, tracked2
-            error: patch failed: tracked:1
-            error: tracked: patch does not apply
             Patch failed at 0001 No Subject. Modified: tracked, tracked2
             The copy of the patch that failed is found in:
                .../rebase-apply/patch
             <BLANKLINE>
-            The patch does not apply cleanly. Would you like to apply it anyway and create
-            reject files for the parts that do not apply? [yes/No] y
-            Checking patch tracked...
-            error: while searching for:
-            foo
-            error: patch failed: tracked:1
-            Checking patch tracked2...
-            Applying patch tracked with 1 reject...
-            Rejected hunk #1.
-            Applied patch tracked2 cleanly.
+            The patch does not apply cleanly. Reject files will be created for the parts
+            that do not apply if you proceed.
+            Apply it anyway? [yes/No] y
             The patch did not apply cleanly. Please integrate the `.rej` files that were
             created and resolve conflicts. After you do, type `resolved`. If you want to
             abort this process, type `abort`. [resolved/abort] resolved
@@ -258,8 +242,11 @@ class MercurialPatchMixin(object):
             try:
                 try:
                     self.git.echo.am(outfile, "--resolvemsg= ", ignore_whitespace=True)
-                except GitError:
-                    if not self._UI.confirm("The patch does not apply cleanly. Would you like to apply it anyway and create reject files for the parts that do not apply?", default=False):
+                except GitError as err:
+                    self._UI.error([err.stdout, ''])
+                    self._UI.warning("The patch does not apply cleanly. Reject files will be"
+                                     " created for the parts that do not apply if you proceed.")
+                    if not self._UI.confirm("Apply it anyway?", default=False):
                         self._UI.debug("Not applying patch.")
                         self.git.reset_to_clean_state()
                         self.git.clean_wrapper(remove_untracked_files=True)
@@ -282,13 +269,13 @@ class MercurialPatchMixin(object):
                         self._UI.debug("A commit on the current branch has been created from the patch.")
                     finally:
                         self.git.reset_to_clean_state()
-                        self.git.clean_wrapper(remove_untracked_files=True)
+                        self.git.clean_wrapper(remove_untracked_files=True, remove_untracked_directories=True)
             finally:
                 os.chdir(curdir)
 
     def download_patch(self, ticket=None, patchname=None, url=None):
         r"""
-        Download a patch to a temporary directory.
+        Legacy support: Download a patch to a temporary directory.
 
         If only ``ticket`` is specified, then try to make sense of the
         ``apply`` statements in the comments on the ticket to download the
@@ -398,11 +385,11 @@ class MercurialPatchMixin(object):
             12415_rebase_58.patch
             Should I download these patches? [Yes/no] n
             Ticket #12415 has more than one attachment but you chose not to download
-            them in the proposed order. To use only one of these patches set the 
+            them in the proposed order. To use only one of these patches set the
             parameter `patchname` to one of: 12415_doc.patch, 12415_doctest_fixes.patch,
-            12415_doctest_review.patch, 12415_framework.patch, 12415_manifest.patch, 
-            12415_rebase_58.patch, 12415_review.patch, 12415_review3.patch,  
-            12415_review_review.patch, 12415_script.patch, 12415_script_review.patch, 
+            12415_doctest_review.patch, 12415_framework.patch, 12415_manifest.patch,
+            12415_rebase_58.patch, 12415_review.patch, 12415_review3.patch,
+            12415_review_review.patch, 12415_script.patch, 12415_script_review.patch,
             12415_spkg_bin_sage.patch, 12415_test.patch
         """
         if url is not None:
@@ -661,9 +648,9 @@ class MercurialPatchMixin(object):
         path_format = None
 
         if diff_format == "git":
-            diff_regexs = (GIT_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX)
+            diff_regexs = (GIT_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX, CP_DIFF_REGEX)
         elif diff_format == "hg":
-            diff_regexs = (HG_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX)
+            diff_regexs = (HG_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX, CP_DIFF_REGEX)
         else:
             raise NotImplementedError(diff_format)
 
@@ -839,9 +826,9 @@ class MercurialPatchMixin(object):
 
         diff_regex = None
         if diff_format == "hg":
-            diff_regex = (HG_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX)
+            diff_regex = (HG_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX, CP_DIFF_REGEX)
         elif diff_format == "git":
-            diff_regex = (GIT_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX)
+            diff_regex = (GIT_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX, CP_DIFF_REGEX)
         else:
             raise NotImplementedError(diff_format)
 

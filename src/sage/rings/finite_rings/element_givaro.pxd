@@ -91,4 +91,4 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
     cdef FiniteField_givaroElement _new_c(self, int value)
 
 
-
+cdef inline FiniteField_givaroElement make_FiniteField_givaroElement(Cache_givaro cache, int x)

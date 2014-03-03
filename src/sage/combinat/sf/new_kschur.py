@@ -1142,7 +1142,7 @@ class K_kSchur(CombinatorialFreeModule):
             sage: g = K_kSchur(kB)
             sage: g
             3-bounded Symmetric Functions over Rational Field with t=1 in the K-3-Schur basis
-            sage: g[2,1]*g[1]
+            sage: g[2,1]*g[1]  # takes a while but caches stuff
             -2*Kks3[2, 1] + Kks3[2, 1, 1] + Kks3[2, 2]
             sage: g([])
             Kks3[]
@@ -1214,14 +1214,14 @@ class K_kSchur(CombinatorialFreeModule):
 
             sage: g = SymmetricFunctions(QQ).kBoundedSubspace(3,1).K_kschur()
             sage: g._homogeneous_generators_noncommutative_variables_zero_Hecke(2)
-            T1*T0 + T2*T0 + T0*T3 + T3*T2 + T3*T1 + T2*T1
+            T[1,0] + T[2,0] + T[0,3] + T[3,2] + T[3,1] + T[2,1]
             sage: g._homogeneous_generators_noncommutative_variables_zero_Hecke(0)
             1
         """
         from sage.combinat.root_system.weyl_group import WeylGroup
-        from sage.algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebraT
+        from sage.algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra
         W = WeylGroup(['A',self.k,1])
-        H = IwahoriHeckeAlgebraT(W, 0, base_ring = self.base_ring())
+        H = IwahoriHeckeAlgebra(W, 0, base_ring = self.base_ring()).T()
         Hgens = H.algebra_generators()
         S = [w.reduced_word() for w in W.pieri_factors() if w.length() == r]
         return sum( (prod((Hgens[i] for i in w), 1) for w in S), 0 )
@@ -1244,7 +1244,7 @@ class K_kSchur(CombinatorialFreeModule):
 
             sage: g = SymmetricFunctions(QQ).kBoundedSubspace(3,1).K_kschur()
             sage: g._homogeneous_basis(Partition([2,1]))
-            T2*T1*T0 + T3*T1*T0 - T1*T0 + T1*T2*T0 + T3*T2*T0 - 2*T2*T0 + T0*T1*T0 + T2*T0*T1 + T1*T0*T3 + T0*T3*T0 - T0*T3 + T2*T0*T3 + T0*T3*T2 + T0*T3*T1 - T3*T2 + T2*T3*T2 - 2*T3*T1 - T2*T1 + T3*T2*T1 + T2*T3*T1 + T3*T1*T2 + T1*T2*T1
+            T[2,1,0] + T[3,1,0] + T[1,2,0] + T[3,2,0] + T[0,1,0] + T[2,0,1] + T[1,0,3] + T[0,3,0] + T[2,0,3] + T[0,3,2] + T[0,3,1] + T[2,3,2] + T[3,2,1] + T[2,3,1] + T[3,1,2] + T[1,2,1] - T[1,0] - 2*T[2,0] - T[0,3] - T[3,2] - 2*T[3,1] - T[2,1]
             sage: g._homogeneous_basis(Partition([]))
             1
         """
@@ -1267,7 +1267,7 @@ class K_kSchur(CombinatorialFreeModule):
 
             sage: g = SymmetricFunctions(QQ).kBoundedSubspace(3,1).K_kschur()
             sage: g.homogeneous_basis_noncommutative_variables_zero_Hecke([2,1])
-            T2*T1*T0 + T3*T1*T0 - T1*T0 + T1*T2*T0 + T3*T2*T0 - 2*T2*T0 + T0*T1*T0 + T2*T0*T1 + T1*T0*T3 + T0*T3*T0 - T0*T3 + T2*T0*T3 + T0*T3*T2 + T0*T3*T1 - T3*T2 + T2*T3*T2 - 2*T3*T1 - T2*T1 + T3*T2*T1 + T2*T3*T1 + T3*T1*T2 + T1*T2*T1
+            T[2,1,0] + T[3,1,0] + T[1,2,0] + T[3,2,0] + T[0,1,0] + T[2,0,1] + T[1,0,3] + T[0,3,0] + T[2,0,3] + T[0,3,2] + T[0,3,1] + T[2,3,2] + T[3,2,1] + T[2,3,1] + T[3,1,2] + T[1,2,1] - T[1,0] - 2*T[2,0] - T[0,3] - T[3,2] - 2*T[3,1] - T[2,1]
             sage: g.homogeneous_basis_noncommutative_variables_zero_Hecke([])
             1
         """
@@ -1339,7 +1339,7 @@ class K_kSchur(CombinatorialFreeModule):
             h[2] + h[2, 1] - h[3]
             sage: g._DualGrothendieck(Partition([]))
             h[]
-            sage: g._DualGrothendieck(Partition([4,1]))
+            sage: g._DualGrothendieck(Partition([4,1]))  # long time (5s on sage.math, 2013)
             0
         """
         m = la.size()
@@ -1407,7 +1407,7 @@ class K_kSchur(CombinatorialFreeModule):
 
             sage: g = SymmetricFunctions(QQ).kBoundedSubspace(3,1).K_kschur()
             sage: g.K_k_Schur_non_commutative_variables([2,1])
-            T3*T1*T0 + T1*T2*T0 + T3*T2*T0 - T2*T0 + T0*T1*T0 + T2*T0*T1 + T0*T3*T0 + T2*T0*T3 + T0*T3*T1 + T2*T3*T2 - T3*T1 + T2*T3*T1 + T3*T1*T2 + T1*T2*T1
+            T[3,1,0] + T[1,2,0] + T[3,2,0] + T[0,1,0] + T[2,0,1] + T[0,3,0] + T[2,0,3] + T[0,3,1] + T[2,3,2] + T[2,3,1] + T[3,1,2] + T[1,2,1] - T[2,0] - T[3,1]
             sage: g.K_k_Schur_non_commutative_variables([])
             1
             sage: g.K_k_Schur_non_commutative_variables([4,1])

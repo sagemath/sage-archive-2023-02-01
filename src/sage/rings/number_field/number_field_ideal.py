@@ -51,7 +51,6 @@ from sage.rings.finite_rings.constructor import FiniteField
 
 import number_field
 
-from sage.libs.all import pari_gen, PariError
 from sage.rings.ideal import (Ideal_generic, Ideal_fractional)
 from sage.misc.misc import prod
 from sage.misc.mrange import xmrange_iter
@@ -173,6 +172,7 @@ class NumberFieldIdeal(Ideal_generic):
 
         if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
             gens = gens[0]
+        from sage.libs.pari.all import pari_gen
         if len(gens) == 1 and isinstance(gens[0], pari_gen):
             # Init from PARI
             gens = gens[0]
@@ -2448,6 +2448,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             sage: bid.getattr('clgp')
             [2, [2]]
         """
+        from sage.libs.pari.all import PariError
         try:
             bid = self._bid
             if flag==2:
@@ -3062,6 +3063,27 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             [2, 2, 1]
         """
         return ZZ(self.pari_prime().pr_get_f())
+
+    def ray_class_number(self):
+        r"""
+        Return the order of the ray class group modulo this ideal. This is a
+        wrapper around Pari's ``bnrclassno()`` function.
+
+        EXAMPLE::
+
+            sage: K.<z> = QuadraticField(-23)
+            sage: p = K.primes_above(3)[0]
+            sage: p.ray_class_number()
+            3
+
+            sage: x = polygen(K)
+            sage: L.<w> = K.extension(x^3 - z)
+            sage: I = L.ideal(5)
+            sage: I.ray_class_number()
+            5184
+        """
+        bid = self._pari_bid_()
+        return ZZ(self.number_field().pari_bnf().bnrclassno(bid))
 
 def is_NumberFieldFractionalIdeal(x):
     """

@@ -181,6 +181,7 @@ from sage.rings.real_mpfr import is_RealField
 from polynomial_real_mpfr_dense import PolynomialRealDense
 from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
 from sage.rings.fraction_field_element import FractionFieldElement
+from sage.rings.finite_rings.element_base import FiniteRingElement
 
 from polynomial_element import PolynomialBaseringInjection
 
@@ -287,7 +288,14 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 #coerce_list = [base_inject],
                 #convert_list = [list, base_inject],
                 convert_method_name = '_polynomial_')
-
+        if is_PolynomialRing(base_ring):
+            self._Karatsuba_threshold = 0
+        else:
+            from sage.matrix.matrix_space import is_MatrixSpace
+            if is_MatrixSpace(base_ring):
+                self._Karatsuba_threshold = 0
+            else:
+                self._Karatsuba_threshold = 8
 
     def __reduce__(self):
         import sage.rings.polynomial.polynomial_ring_constructor
@@ -299,6 +307,12 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         r"""
         Convert ``x`` into this univariate polynomial ring,
         possibly non-canonically.
+
+        Conversion from power series::
+
+            sage: R.<x> = QQ[]
+            sage: R(1 + x + x^2 + O(x^3))
+            x^2 + x + 1
 
         Stacked polynomial rings coerce into constants if possible. First,
         the univariate case::
@@ -402,7 +416,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             self._singular_().set_ring()
             try:
                 return x.sage_poly(self)
-            except StandardError:
+            except Exception:
                 raise TypeError, "Unable to coerce singular object"
         elif isinstance(x , str):
             try:
@@ -417,12 +431,18 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 x = x.numerator() * x.denominator().inverse_of_unit()
             else:
                 raise TypeError, "denominator must be a unit"
-
         elif isinstance(x, pari_gen):
             if x.type() == 't_RFRAC':
                 raise TypeError, "denominator must be a unit"
             if x.type() != 't_POL':
                 x = x.Polrev()
+        elif isinstance(x, FiniteRingElement):
+            try:
+                return self(x.polynomial())
+            except AttributeError:
+                pass
+        elif isinstance(x, sage.rings.power_series_ring_element.PowerSeries):
+            x = x.truncate()
         return C(self, x, check, is_gen, construct=construct, **kwds)
 
     def is_integral_domain(self, proof = True):
@@ -1169,6 +1189,44 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             coeffs.reverse()
             yield self(coeffs)
 
+    def karatsuba_threshold(self):
+        """
+        Return the Karatsuba threshold used for this ring by the method
+        _mul_karatsuba to fall back to the schoolbook algorithm.
+
+        EXAMPLES::
+
+            sage: K = QQ['x']
+            sage: K.karatsuba_threshold()
+            8
+            sage: K = QQ['x']['y']
+            sage: K.karatsuba_threshold()
+            0
+        """
+        return self._Karatsuba_threshold
+
+    def set_karatsuba_threshold(self, Karatsuba_threshold):
+        """
+        Changes the default threshold for this ring in the method _mul_karatsuba
+        to fall back to the schoolbook algorithm.
+
+        .. warning::
+
+           This method may have a negative performance impact in polynomial
+           arithmetic. So use it at your own risk.
+
+        EXAMPLES::
+
+            sage: K = QQ['x']
+            sage: K.karatsuba_threshold()
+            8
+            sage: K.set_karatsuba_threshold(0)
+            sage: K.karatsuba_threshold()
+            0
+        """
+        self._Karatsuba_threshold = ZZ_sage(Karatsuba_threshold)
+
+
     def polynomials( self, of_degree = None, max_degree = None ):
         """
         Return an iterator over the polynomials of specified degree.
@@ -1358,7 +1416,8 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, integral_domain
     def __init__(self, base_ring, name="x", sparse=False, implementation=None,
             element_class=None):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_integral_domain as PRing
             sage: R = PRing(ZZ, 'x'); R
             Univariate Polynomial Ring in x over Integer Ring
@@ -1391,7 +1450,8 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, integral_domain
 
     def _repr_(self):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_integral_domain as PRing
             sage: R = PRing(ZZ, 'x', implementation='NTL'); R
             Univariate Polynomial Ring in x over Integer Ring (using NTL)
@@ -1406,7 +1466,8 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
                            ):
     def __init__(self, base_ring, name="x", sparse=False, element_class=None):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_field as PRing
             sage: R = PRing(QQ, 'x'); R
             Univariate Polynomial Ring in x over Rational Field
@@ -2172,9 +2233,10 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
         - Peter Bruin (June 2013)
         """
         from sage.libs.pari.all import pari
-        from sage.rings.finite_rings.constructor import (conway_polynomial,
-                                                         exists_conway_polynomial)
-        from polynomial_gf2x import (GF2X_BuildIrred_list, GF2X_BuildSparseIrred_list,
+        from sage.rings.finite_rings.conway_polynomials import (conway_polynomial,
+                                                                exists_conway_polynomial)
+        from polynomial_gf2x import (GF2X_BuildIrred_list,
+                                     GF2X_BuildSparseIrred_list,
                                      GF2X_BuildRandomIrred_list)
 
         p = self.characteristic()

@@ -33,8 +33,9 @@ from morphism                   import HeckeOperator, Morphism, DegeneracyMap
 from torsion_subgroup           import RationalTorsionSubgroup, QQbarTorsionSubgroup
 from finite_subgroup            import (FiniteSubgroup_lattice, FiniteSubgroup, TorsionPoint)
 from cuspidal_subgroup          import CuspidalSubgroup, RationalCuspidalSubgroup, RationalCuspSubgroup
-from sage.rings.all             import (ZZ, QQ, QQbar, is_Ring, LCM,
+from sage.rings.all             import (ZZ, QQ, QQbar, LCM,
                                         divisors, Integer, prime_range)
+from sage.rings.ring import is_Ring
 from sage.modules.all           import is_FreeModule
 from sage.modular.arithgroup.all import is_CongruenceSubgroup, is_Gamma0, is_Gamma1, is_GammaH
 from sage.modular.modsym.all    import ModularSymbols

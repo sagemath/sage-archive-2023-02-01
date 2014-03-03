@@ -391,7 +391,7 @@ class Minimog():
             ([], [])
 
         The above output indicates that there is no hexad of type 2
-        containing {2,3,4,5}. However, there is one containing {2,3,4,8}:
+        containing {2,3,4,5}. However, there is one containing {2,3,4,8}::
 
             sage: M.find_hexad2([2,3,4,8],0)
             ([0, 2, 3, 4, 8, 9], ['cross 12', 'picture 0'])
@@ -535,29 +535,29 @@ class Minimog():
                 if list(L2)[0] == MINIMOG[2][1]:
                           L1 = LL - L2
                           H,WHAT = self.find_hexad3(L1,MINIMOG[0][0],MINIMOG[2][1])
-                          if H <> []:
+                          if H != []:
                               return list(H),WHAT
                           L1 = LL - L2
                           H,WHAT = self.find_hexad3(L1,MINIMOG[0][2],MINIMOG[2][1])
-                          if H <> []:
+                          if H != []:
                               return list(H),WHAT
                 if list(L2)[0] == MINIMOG[0][0]:
                           L1 = (LL - L2)
                           H,WHAT = self.find_hexad3(L1,MINIMOG[0][0],MINIMOG[2][1])
-                          if H <> []:
+                          if H != []:
                               return list(H),WHAT
                           L1 = (LL - L2)
                           H,WHAT = self.find_hexad3(L1,MINIMOG[0][0],MINIMOG[0][2])
-                          if H <> []:
+                          if H != []:
                               return list(H),WHAT
                 if list(L2)[0] == MINIMOG[0][2]:
                           L1 = (LL - L2)
                           H,WHAT = self.find_hexad3(L1,MINIMOG[0][0],MINIMOG[0][2])
-                          if H <> []:
+                          if H != []:
                               return list(H),WHAT
                           L1 = (LL - L2)
                           H,WHAT = self.find_hexad3(L1,MINIMOG[2][1],MINIMOG[0][2])
-                          if H <> []:
+                          if H != []:
                               return list(H),WHAT
             return list(H),WHAT
             ## a cross in a pic at infty

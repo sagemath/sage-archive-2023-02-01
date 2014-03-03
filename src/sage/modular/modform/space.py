@@ -60,6 +60,7 @@ import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 
 import sage.rings.all as rings
+from sage.rings.power_series_ring_element import is_PowerSeries
 
 import defaults
 import element
@@ -1154,7 +1155,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
                 pass
             raise TypeError, "unable to coerce x (= %s) into %s"%(x, self)
 
-        elif rings.is_PowerSeries(x):
+        elif is_PowerSeries(x):
             if x.prec() == PlusInfinity():
                 if x == 0:
                     return element.ModularFormElement(self, self.free_module().zero_element())
@@ -1949,7 +1950,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
                 B = V.span_of_basis(w)
             else:
                 B = V.span(w)
-        if rings.is_PowerSeries(f) and f.prec() < n:
+        if is_PowerSeries(f) and f.prec() < n:
             raise ValueError, "you need at least %s terms of precision"%n
         x = V(f.padded_list(n))
         return B.coordinates(x)

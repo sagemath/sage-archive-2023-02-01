@@ -53,6 +53,29 @@ class TracConnectionError(TracError):
         """
         TracError.__init__(self, "Connection to trac server failed.")
 
+class TracAuthenticationError(TracError):
+    r"""
+    Trac authentication error.
+
+    EXAMPLES::
+
+        sage: from sage.dev.trac_error import TracAuthenticationError
+        sage: TracAuthenticationError()
+        TracAuthenticationError('Authentication with trac server failed.',)
+    """
+    def __init__(self):
+        r"""
+        Initialization.
+
+        TESTS::
+
+            sage: from sage.dev.trac_error import TracAuthenticationError
+            sage: type(TracAuthenticationError())
+            <class 'sage.dev.trac_error.TracAuthenticationError'>
+
+        """
+        TracError.__init__(self, "Authentication with trac server failed.")
+
 class TracInternalError(TracError):
     r"""
     Error to indicate that the XML-RPC interface of trac returned an error.

@@ -155,7 +155,7 @@ def list_of_representatives(N):
         Fractional ideal (37, a + 12),
         Fractional ideal (47, a - 9))
     """
-    if _list_reprs_cache.has_key(N):
+    if N in _list_reprs_cache:
         lreps = _list_reprs_cache[N]
         if not (lreps is None): return lreps
     lreps = NFCusps_ideal_reps_for_levelN(N)[0]
@@ -230,7 +230,7 @@ def NFCusps(number_field, use_cache=True):
     """
     if use_cache:
         key = number_field
-        if _nfcusps_cache.has_key(key):
+        if key in _nfcusps_cache:
             C = _nfcusps_cache[key]
             if not (C is None): return C
 

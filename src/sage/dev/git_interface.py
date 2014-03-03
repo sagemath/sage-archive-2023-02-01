@@ -25,7 +25,7 @@ AUTHORS:
 import os
 
 from sage.env import (
-    SAGE_DOT_GIT, SAGE_REPO_AUTHENTICATED, SAGE_ROOT, 
+    SAGE_DOT_GIT, SAGE_REPO_AUTHENTICATED, SAGE_ROOT,
     SAGE_REPO_ANONYMOUS
 )
 
@@ -75,7 +75,7 @@ class GitProxy(object):
         if not os.path.exists(self._dot_git):
             raise ValueError("`%s` does not point to an existing directory."%self._dot_git)
 
-    def _run_git(self, cmd, args, kwds, **ckwds):
+    def _run_git(self, cmd, args, git_kwds, popen_kwds=dict()):
         r"""
         Common implementation for :meth:`_execute`, :meth:`_execute_silent`,
         :meth:`_execute_supersilent`, and :meth:`_read_output`
@@ -86,13 +86,9 @@ class GitProxy(object):
 
         - ``args`` - extra arguments for git
 
-        - ``kwds`` - extra keywords for git
+        - ``git_kwds`` - extra keywords for git
 
-        - ``ckwds`` - Popen like keywords but with the following changes
-
-          - ``stdout`` - if set to ``False`` will supress stdout
-
-          - ``stderr`` - if set to ``False`` will supress stderr
+        - ``popen_kwds`` - extra keywords passed to Popen
 
         .. WARNING::
 
@@ -109,20 +105,21 @@ class GitProxy(object):
             sage: os.chdir(config['git']['src'])
 
             sage: git._run_git('status', (), {})
-            # On branch master
-            #
-            # Initial commit
-            #
-            nothing to commit (create/copy files and use "git add" to track)
-            (0, None, None, 'git -c user.email=doc@test.test -c user.name=doctest status')
-            sage: git._run_git('status', (), {}, stdout=False)
-            (0, None, None, 'git -c user.email=doc@test.test -c user.name=doctest status')
+            (0,
+             '# On branch master\n#\n# Initial commit\n#\nnothing to commit
+              (create/copy files and use "git add" to track)\n',
+             '',
+             'git -c user.email=doc@test.test -c user.name=doctest status')
 
         TESTS:
 
         Check that we refuse to touch the live source code in doctests::
 
-            sage: dev.git.status()
+            sage: git_config = config['git']
+            sage: git_config['dot_git'] = sage.env.DOT_SAGE
+            sage: git_config['src'] = sage.env.SAGE_ROOT
+            sage: git = GitInterface(git_config, DoctestUserInterface(config["UI"]))
+            sage: git.status()
             Traceback (most recent call last):
             ...
             AssertionError: working with the sage repository in a doctest
@@ -151,11 +148,11 @@ class GitProxy(object):
             s.insert(3, '-c')
             s.insert(4, 'user.email='+self._config['user.email'])
 
-        env = ckwds.setdefault('env', dict(os.environ))
-        env.update(kwds.pop('env', {}))
+        env = popen_kwds.setdefault('env', dict(os.environ))
+        env.update(git_kwds.pop('env', {}))
         env['LC_ALL'] = 'POSIX'   # do not translate git messages
 
-        for k, v in kwds.iteritems():
+        for k, v in git_kwds.iteritems():
             if len(k) == 1:
                 k = '-' + k
             else:
@@ -172,39 +169,15 @@ class GitProxy(object):
         complete_cmd = " ".join(s[0:1] + s[3:])
         self._UI.debug("[git] %s"%complete_cmd)
 
-        if ckwds.get('dryrun', False):
+        if popen_kwds.get('dryrun', False):
             return s
 
         import subprocess
-        drop_stdout = ckwds.get('stdout') is False
-        read_stdout = ckwds.get('stdout') is str
-        drop_stderr = ckwds.get('stderr') is False
-        read_stderr = ckwds.get('stderr') is str
-        if drop_stdout or read_stdout:
-            ckwds['stdout'] = subprocess.PIPE
-        if drop_stderr or read_stderr:
-            ckwds['stderr'] = subprocess.PIPE
-        process = subprocess.Popen(s, **ckwds)
+        popen_kwds['stdout'] = subprocess.PIPE
+        popen_kwds['stderr'] = subprocess.PIPE
+        process = subprocess.Popen(s, **popen_kwds)
         stdout, stderr = process.communicate()
         retcode = process.poll()
-
-        # recover stdout and stderr for debugging on non-zero exit code
-        if retcode:
-            if drop_stdout or read_stdout:
-                pass
-            else:
-                stdout = None
-
-            if drop_stderr or read_stderr:
-                pass
-            else:
-                stderr = None
-        else:
-            if not read_stdout:
-                stdout = None
-            if not read_stderr:
-                stderr = None
-
         return retcode, stdout, stderr, complete_cmd
 
     def _execute(self, cmd, *args, **kwds):
@@ -241,10 +214,22 @@ class GitProxy(object):
             ...
             GitError: git returned with non-zero exit code (129) for
             "git -c user.email=doc@test.test -c user.name=doctest status --foo".
+            output to stderr: error: unknown option `foo'
+             usage: git status [options] [--] ...
+            <BLANKLINE>
+                 -v, --verbose         be verbose
+                 -s, --short           show status concisely
+                 -b, --branch          show branch information
+                 --porcelain           machine-readable output
+            ...
         """
         exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds)
         if exit_code:
             raise GitError(exit_code, cmd, stdout, stderr)
+        if stdout:
+            print(stdout.strip())
+        if stderr:
+            print(stderr.strip())
 
     def _execute_silent(self, cmd, *args, **kwds):
         r"""
@@ -269,10 +254,20 @@ class GitProxy(object):
             ...
             GitError: git returned with non-zero exit code (129) for
             "git -c user.email=doc@test.test -c user.name=doctest status --foo".
+            output to stderr: error: unknown option `foo'
+             usage: git status [options] [--] ...
+            <BLANKLINE>
+                 -v, --verbose         be verbose
+                 -s, --short           show status concisely
+                 -b, --branch          show branch information
+                 --porcelain           machine-readable output
+            ...
         """
-        exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds, stdout=False)
+        exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds)
         if exit_code:
             raise GitError(exit_code, cmd, stdout, stderr)
+        if stderr:
+            print(stderr.strip())
 
     def _execute_supersilent(self, cmd, *args, **kwds):
         r"""
@@ -299,7 +294,7 @@ class GitProxy(object):
             "git -c user.email=doc@test.test -c user.name=doctest status --foo".
             ...
         """
-        exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds, stdout=False, stderr=False)
+        exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds)
         if exit_code:
             raise GitError(exit_code, cmd, stdout, stderr)
 
@@ -331,7 +326,7 @@ class GitProxy(object):
             "git -c user.email=doc@test.test -c user.name=doctest status --foo".
             ...
         """
-        exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds, stdout=str, stderr=False)
+        exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds)
         if exit_code:
             raise GitError(exit_code, cmd, stdout, stderr)
         return stdout
@@ -749,14 +744,12 @@ class GitInterface(ReadStdoutGitProxy):
 
             sage: git.clean_wrapper(remove_untracked_files=True)
             Removing untracked
-            Not removing untracked_dir/
             sage: git.clean_wrapper(
             ....:     remove_untracked_files=True, remove_untracked_directories=True)
             Removing untracked_dir/
             sage: git.clean_wrapper(
             ....:     remove_untracked_files=True, remove_ignored=True)
             Removing ignored
-            Not removing ignored_dir/
             sage: git.clean_wrapper(
             ....:     remove_untracked_files=True,
             ....:     remove_untracked_directories=True,
@@ -959,21 +952,22 @@ class GitInterface(ReadStdoutGitProxy):
         Create some branches::
 
             sage: os.chdir(config['git']['src'])
-            sage: git.silent.commit('-m','initial commit','--allow-empty')
+            sage: env = {'GIT_COMMITTER_DATE': time.strftime("%Y-%m-%dT%H:%M:10")}
+            sage: git.silent.commit('-m','initial commit','--allow-empty', env=env)
             sage: git.super_silent.checkout('-b', 'branch')
-            sage: time.sleep(1)
-            sage: git.silent.commit('-m','second commit','--allow-empty')
+            sage: env['GIT_COMMITTER_DATE'] = time.strftime("%Y-%m-%dT%H:%M:20")
+            sage: git.silent.commit('-m','second commit','--allow-empty', env=env)
             sage: git.super_silent.checkout('-b', 'other', 'master')
-            sage: time.sleep(1)
-            sage: git.silent.commit('-m','third commit','--allow-empty')
+            sage: env['GIT_COMMITTER_DATE'] = time.strftime("%Y-%m-%dT%H:%M:30")
+            sage: git.silent.commit('-m','third commit','--allow-empty', env=env)
 
         Use this repository as a remote repository::
 
             sage: config2 = DoctestConfig()
             sage: git2 = GitInterface(config2["git"], DoctestUserInterface(config["UI"]))
             sage: os.chdir(config2['git']['src'])
-            sage: time.sleep(1)
-            sage: git2.silent.commit('-m','initial commit','--allow-empty')
+            sage: env['GIT_COMMITTER_DATE'] = time.strftime("%Y-%m-%dT%H:%M:40")
+            sage: git2.silent.commit('-m','initial commit','--allow-empty', env=env)
             sage: git2.silent.remote('add', 'git', config['git']['src'])
             sage: git2.super_silent.fetch('git')
             sage: git2.super_silent.checkout("branch")

@@ -3118,6 +3118,7 @@ def binomial(x, m, **kwds):
 
     EXAMPLES::
 
+        sage: from sage.rings.arith import binomial
         sage: binomial(5,2)
         10
         sage: binomial(2,0)

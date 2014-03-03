@@ -546,6 +546,70 @@ cdef class RealDoubleField_class(Field):
 
     nan = NaN
 
+    def _factor_univariate_polynomial(self, f):
+        """
+        Factor the univariate polynomial ``f``.
+
+        INPUT:
+
+        - ``f`` -- a univariate polynomial defined over the double precision
+          real numbers
+
+        OUTPUT:
+
+        - A factorization of ``f`` over the double precision real numbers
+          into a unit and monic irreducible factors
+
+        .. NOTE::
+
+            This is a helper method for
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.factor`.
+
+        TESTS::
+
+            sage: R.<x> = RDF[]
+            sage: RDF._factor_univariate_polynomial(x)
+            x
+            sage: RDF._factor_univariate_polynomial(2*x)
+            (2.0) * x
+            sage: RDF._factor_univariate_polynomial(x^2)
+            x^2
+            sage: RDF._factor_univariate_polynomial(x^2 + 1)
+            x^2 + 1.0
+            sage: RDF._factor_univariate_polynomial(x^2 - 1)
+            (x - 1.0) * (x + 1.0)
+
+        The implementation relies on the ``roots()`` method which often reports
+        roots not to be real even though they are::
+
+            sage: f = (x-1)^3
+            sage: f.roots() # random output (unfortunately)
+            [1.00000859959, 0.999995700205 + 7.44736245561e-06*I, 0.999995700205 - 7.44736245561e-06*I]
+
+        This leads to the following incorrect factorization::
+
+            sage: f.factor() # random output (unfortunately)
+            (1.0*x - 1.00000859959) * (1.0*x^2 - 1.99999140041*x + 0.999991400484)
+
+        """
+        roots = f.roots(sage.rings.complex_double.CDF)
+
+        # collect real roots and conjugate pairs of non-real roots
+        real_roots = [(r, e) for r, e in roots if r.imag().is_zero()]
+        non_real_roots = {r: e for r, e in roots if not r.imag().is_zero()}
+        assert all([non_real_roots[r.conj()] == e for r, e in non_real_roots.items()]), "Bug in root finding code over RDF - roots must always come in conjugate pairs"
+        non_real_roots = [(r, e) for r, e in non_real_roots.items() if r.imag() > 0]
+
+        # turn the roots into irreducible factors
+        x = f.parent().gen()
+        real_factors = [(x - r.real(), e) for r, e in real_roots]
+        non_real_factors = [(x**2 - (r + r.conj()).real()*x + (r*r.conj()).real(), e) for r, e in non_real_roots]
+
+        # make the factors monic
+        from sage.structure.factorization import Factorization
+        return Factorization([(g.monic(), e) for g, e in real_factors + non_real_factors], f.leading_coefficient())
+
+
 cdef class RealDoubleElement(FieldElement):
     """
     An approximation to a real number using double precision floating

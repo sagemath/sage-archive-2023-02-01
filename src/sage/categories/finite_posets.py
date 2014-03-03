@@ -454,8 +454,8 @@ class FinitePosets(Category):
             `\widehat{P}` denote the poset obtained from `P` by adding a
             new element `1` which is greater than all existing elements
             of `P`, and a new element `0` which is smaller than all
-            existing elements of `P` and `1`. Now, a `\mathbf{K}`-*labelling
-            of* `P` will mean any function from `\widehat{P}` to `\mathbf{K}`.
+            existing elements of `P` and `1`. Now, a *`\mathbf{K}`-labelling
+            of `P`* will mean any function from `\widehat{P}` to `\mathbf{K}`.
             The image of an element `v` of `\widehat{P}` under this labelling
             will be called the *label* of this labelling at `v`. The set
             of all `\mathbf{K}`-labellings of `P` is clearly
@@ -500,7 +500,7 @@ class FinitePosets(Category):
             in which case birational rowmotion relates to classical
             constructions such as promotion of rectangular semistandard
             Young tableaux (page 5 of [EP13b]_ and future work, via the
-            related notion of birational *pro*motion) and rowmotion on
+            related notion of birational *promotion*) and rowmotion on
             order ideals of the poset ([EP13]_).
 
             The *birational free labelling* is a special labelling

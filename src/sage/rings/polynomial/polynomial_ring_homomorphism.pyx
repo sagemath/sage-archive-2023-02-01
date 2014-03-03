@@ -40,36 +40,57 @@ cdef class PolynomialRingHomomorphism_from_base(RingHomomorphism_from_base):
         """
         Evaluate the homomorphism ``self`` at ``x``.
 
-        EXAMPLE::
+        TESTS::
 
             sage: from sage.rings.polynomial.polynomial_ring_homomorphism import PolynomialRingHomomorphism_from_base
             sage: R.<x> = ZZ[]
-            sage: S.<x> = QQ[]
+            sage: S = QQ['x']
             sage: f = ZZ.hom(QQ)
             sage: F = PolynomialRingHomomorphism_from_base(R.Hom(S), f)
             sage: F(2*x)
             2*x
 
+            sage: A = PolynomialRing(QQ, 'x', sparse=True)
+            sage: B = PolynomialRing(RR, 'x', sparse=True)
+            sage: g = QQ.hom(RR)
+            sage: G = PolynomialRingHomomorphism_from_base(A.Hom(B), g)
+            sage: G(A.gen()^1000000)
+            1.00000000000000*x^1000000
+
         """
         P = self.codomain()
         f = self.underlying_map()
-        return P([f(b) for b in x])
+        if P.is_sparse():
+            return P({a: f(b) for a, b in x.dict().iteritems()})
+        else:
+            return P([f(b) for b in x])
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
         """
         Evaluate ``self`` at ``x`` with additional (keyword) arguments.
 
-        EXAMPLE::
+        TESTS::
 
             sage: from sage.rings.polynomial.polynomial_ring_homomorphism import PolynomialRingHomomorphism_from_base
             sage: R.<x> = ZZ[]
-            sage: S.<x> = GF(5)[]
+            sage: S = GF(5)['x']
             sage: f = ZZ.hom(GF(5))
             sage: F = PolynomialRingHomomorphism_from_base(R.Hom(S), f)
             sage: F(2*x, check=True)
             2*x
 
+            sage: k = GF(49, 'z')
+            sage: A = PolynomialRing(GF(7), 'x', sparse=True)
+            sage: B = PolynomialRing(k, 'x', sparse=True)
+            sage: g = GF(7).hom(k)
+            sage: G = PolynomialRingHomomorphism_from_base(A.Hom(B), g)
+            sage: G(A.gen()^1000000, True, construct=False)
+            x^1000000
+
         """
         P = self.codomain()
         f = self.underlying_map()
-        return P([f(b) for b in x], *args, **kwds)
+        if P.is_sparse():
+            return P({a: f(b) for a, b in x.dict().iteritems()}, *args, **kwds)
+        else:
+            return P([f(b) for b in x], *args, **kwds)

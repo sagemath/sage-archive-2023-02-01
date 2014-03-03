@@ -1576,7 +1576,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
             sage: p.set_real(x[3])
 
-        TESTS::
+        TESTS:
 
         When 'dim' will be removed, also remove all the ``is_*`` and ``set_*``
         functions the code that uses it::

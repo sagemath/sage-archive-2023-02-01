@@ -364,7 +364,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         For a map `f:\mathbb{P}^1 \to \mathbb{P}^1` this function computes the dynatomic polynomial.
 
         The dynatomic polynomial is the analog of the cyclotomic
-        polynomial and its roots are the points of formal period `n`.
+        polynomial and its roots are the points of formal period `period`.
 
         ALGORITHM:
 
@@ -503,6 +503,36 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([x^2+ c*y^2,y^2])
             sage: f.dynatomic_polynomial([1,2])
             x^2 - x*y + (c + 1)*y^2
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2+y^2,y^2])
+            sage: f.dynatomic_polynomial(2)
+            x^2 + x*y + 2*y^2
+            sage: R.<X> = PolynomialRing(QQ)
+            sage: K.<c> = NumberField(X^2 + X + 2)
+            sage: PP = P.change_ring(K)
+            sage: ff = f.change_ring(K)
+            sage: p = PP((c,1))
+            sage: ff(ff(p)) == p
+            True
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2+y^2,x*y])
+            sage: f.dynatomic_polynomial([2,2])
+            x^4 + 4*x^2*y^2 + y^4
+            sage: R.<X> = PolynomialRing(QQ)
+            sage: K.<c> = NumberField(X^4 + 4*X^2 + 1)
+            sage: PP = P.change_ring(K)
+            sage: ff = f.change_ring(K)
+            sage: p = PP((c,1))
+            sage: ff.nth_iterate(p,4) == ff.nth_iterate(p,2)
+            True
        """
         if self.domain() != self.codomain():
             raise TypeError("Must have same domain and codomain to iterate")

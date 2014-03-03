@@ -5,6 +5,7 @@ Crystals
    :maxdepth: 2
 
    ../sage/combinat/crystals/affine
+   ../sage/combinat/crystals/affine_factorization
    ../sage/combinat/crystals/crystals
    ../sage/combinat/crystals/direct_sum
    ../sage/combinat/crystals/letters

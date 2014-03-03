@@ -378,7 +378,7 @@ done from the right side.""")
             elif base_ring.is_field():
                 return FreeModule_ambient_field(base_ring, rank, sparse=sparse)
 
-            elif isinstance(base_ring, principal_ideal_domain.PrincipalIdealDomain):
+            elif base_ring in PrincipalIdealDomains():
                 return FreeModule_ambient_pid(base_ring, rank, sparse=sparse)
 
             elif isinstance(base_ring, sage.rings.number_field.order.Order) \
@@ -1941,6 +1941,35 @@ done from the right side.""")
         res = self._element_class(self, 0)
         res.set_immutable()
         return res
+
+    def are_linearly_dependent(self, vecs):
+        """
+        Return ``True`` if the vectors ``vecs`` are linearly dependent and
+        ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: M = QQ^3
+            sage: vecs = [M([1,2,3]), M([4,5,6])]
+            sage: M.are_linearly_dependent(vecs)
+            False
+            sage: vecs.append(M([3,3,3]))
+            sage: M.are_linearly_dependent(vecs)
+            True
+
+            sage: R.<x> = QQ[]
+            sage: M = FreeModule(R, 2)
+            sage: vecs = [M([x^2+1, x+1]), M([x+2, 2*x+1])]
+            sage: M.are_linearly_dependent(vecs)
+            False
+            sage: vecs.append(M([-2*x+1, -2*x^2+1]))
+            sage: M.are_linearly_dependent(vecs)
+            True
+        """
+        from sage.matrix.constructor import matrix
+        A = matrix(vecs)
+        A.echelonize()
+        return any(row.is_zero() for row in A.rows())
 
     def _magma_init_(self, magma):
         """

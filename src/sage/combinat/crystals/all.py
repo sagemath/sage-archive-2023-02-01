@@ -54,6 +54,60 @@ def HighestWeightCrystal(dominant_weight, model=None):
     deprecation(15882,'this being removed from the global namespace. Use crystals.HighestWeight instead')
     return HighestWeightCrystal(dominant_weight, model)
 
+def CrystalOfSpins(ct):
+    """
+    TESTS::
+
+        sage: C = CrystalOfSpins(['B',3])
+        doctest:...: DeprecationWarning: this being removed from the global namespace. Use crystals.Spins instead
+        See http://trac.sagemath.org/15882 for details.
+    """
+    from sage.misc.superseded import deprecation
+    from spins import CrystalOfSpins
+    deprecation(15882,'this being removed from the global namespace. Use crystals.Spins instead')
+    return CrystalOfSpins(ct)
+
+def CrystalOfSpinsPlus(ct):
+    """
+    TESTS::
+
+        sage: C = CrystalOfSpinsPlus(['D',4])
+        doctest:...: DeprecationWarning: this being removed from the global namespace. Use crystals.SpinsPlus instead
+        See http://trac.sagemath.org/15882 for details.
+    """
+    from sage.misc.superseded import deprecation
+    from spins import CrystalOfSpinsPlus
+    deprecation(15882,'this being removed from the global namespace. Use crystals.SpinsPlus instead')
+    return CrystalOfSpinsPlus(ct)
+
+def CrystalOfSpinsMinus(ct):
+    """
+    TESTS::
+
+        sage: C = CrystalOfSpinsMinus(['D',4])
+        doctest:...: DeprecationWarning: this being removed from the global namespace. Use crystals.SpinsMinus instead
+        See http://trac.sagemath.org/15882 for details.
+    """
+    from sage.misc.superseded import deprecation
+    from spins import CrystalOfSpinsMinus
+    deprecation(15882,'this being removed from the global namespace. Use crystals.SpinsMinus instead')
+    return CrystalOfSpinsMinus(ct)
+
+def KyotoPathModel(crystals, weight):
+    """
+    TESTS::
+
+        sage: B = crystals.kirillov_reshetikhin.KashiwaraNakashimaTableaux(['A',2,1], 1,1)
+        sage: L = RootSystem(['A',2,1]).weight_space()
+        sage: C = KyotoPathModel(B, L.fundamental_weight(0))
+        doctest:...: DeprecationWarning: this being removed from the global namespace. Use crystals.KyotoPathModel instead
+        See http://trac.sagemath.org/15882 for details.
+    """
+    from sage.misc.superseded import deprecation
+    from kyoto_path_model import KyotoPathModel
+    deprecation(15882,'this being removed from the global namespace. Use crystals.KyotoPathModel instead')
+    return KyotoPathModel(crystals, weight)
+
 def DirectSumOfCrystals(crystals, **options):
     """
     TESTS::
@@ -82,10 +136,6 @@ def TensorProductOfCrystals(*crystals, **options):
     deprecation(15882,'this being removed from the global namespace. Use crystals.TensorProduct instead')
     return TensorProductOfCrystals(*crystals, **options)
 
-from spins import CrystalOfSpins
-from spins import CrystalOfSpinsPlus
-from spins import CrystalOfSpinsMinus
-from kyoto_path_model import KyotoPathModel
 from affine import AffineCrystalFromClassical
 from affine import AffineCrystalFromClassicalAndPromotion
 from kirillov_reshetikhin import KirillovReshetikhinCrystal

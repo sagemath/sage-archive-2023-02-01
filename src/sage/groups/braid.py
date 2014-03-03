@@ -264,7 +264,7 @@ class Braid(FinitelyPresentedGroupElement):
             sage: B = BraidGroup(4)
             sage: b = B([1,1,1,3,3,2,-3,-1,-1,2,-1,-3,-2])
             sage: b.alexander_polynomial()  # The Kinoshita-Terasaka knot.
-            -1/t
+            (-1)/t
 
         REFERENCES:
 
@@ -272,11 +272,11 @@ class Braid(FinitelyPresentedGroupElement):
         """
         n = self.strands()
         p = (self.burau_matrix(reduced=True) - identity_matrix(n-1)).det()
-        K, t = PolynomialRing(QQ, var).objgen()
+        K, t = PolynomialRing(IntegerRing(), var).objgen()
         if p == 0:
             return K.zero()
-        qn = add(t**i for i in range(n))
-        return p // qn
+        qn = sum(t**i for i in range(n))
+        return p / qn
 
     def permutation(self):
         """

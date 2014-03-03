@@ -1086,7 +1086,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
         INPUT:
 
-        - ``mult`` -- string (default: `'l2r'`). If set to `'r2l'`,
+        - ``mult`` -- string (default: ``'l2r'``). If set to ``'r2l'``,
           this causes the method to return the list of the
           antipodes (:meth:`antipode`) of all `\epsilon(T, S)`
           instead of the `\epsilon(T, S)` themselves.

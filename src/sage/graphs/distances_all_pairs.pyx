@@ -482,7 +482,7 @@ def is_distance_regular(G, parameters = False):
         sage: g.is_distance_regular()
         True
         sage: g.is_distance_regular(parameters = True)
-        ([3, 2], [1, 1])
+        ([3, 2, None], [None, 1, 1])
 
     Cube graphs, which are not strongly regular, are a bit more interesting::
 
@@ -499,9 +499,9 @@ def is_distance_regular(G, parameters = False):
     TESTS::
 
         sage: graphs.PathGraph(2).is_distance_regular(parameters = True)
-        ([1], [1])
+        ([1, None], [None, 1])
         sage: graphs.Tutte12Cage().is_distance_regular(parameters=True)
-        ([3, 2, 2, 2, 2, 2], [1, 1, 1, 1, 1, 3])
+        ([3, 2, 2, 2, 2, 2, None], [None, 1, 1, 1, 1, 1, 3])
 
     """
     cdef int i,l,u,v,d,b,c,k
@@ -559,8 +559,8 @@ def is_distance_regular(G, parameters = False):
             b = 0
             c = 0
             for l in range(b_distance_matrix.width):
-                b += __builtin_popcountl(b_distance_matrix.rows[(d-1)*n+u][l] & b_distance_matrix.rows[1*n+v][l])
-                c += __builtin_popcountl(b_distance_matrix.rows[(d+1)*n+u][l] & b_distance_matrix.rows[1*n+v][l])
+                b += __builtin_popcountl(b_distance_matrix.rows[(d+1)*n+u][l] & b_distance_matrix.rows[1*n+v][l])
+                c += __builtin_popcountl(b_distance_matrix.rows[(d-1)*n+u][l] & b_distance_matrix.rows[1*n+v][l])
 
             # Consistency of b_d and c_d
             if bi[d] == -1:
@@ -576,8 +576,10 @@ def is_distance_regular(G, parameters = False):
     binary_matrix_free(b_distance_matrix)
 
     if parameters:
-        ci[0] = k
-        return ci[:diameter], bi[1:]
+        bi[0] = k
+        bi[diameter] = None
+        ci[0] = None
+        return bi, ci
     else:
         return  True
 

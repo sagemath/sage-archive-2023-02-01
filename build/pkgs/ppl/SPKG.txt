@@ -42,7 +42,14 @@ Enea Zaffanella (University of Parma)
 
 == Special Update/Build Instructions ==
 
+=== Patches ===
+ * None.
+
 == Changelog ==
+
+=== ppl-1.1 (Jean-Pierre Flori, 25 December 2013) ===
+ * #15589: Update to version 1.1.
+ * Reenable full testsuite by removing tests_Makefile.in.patch.
 
 === ppl-1.1pre9.p0 (Jean-Pierre Flori, 6 August 2013) ===
  * #15001: Update to prerelease 1.1pre9 version.
@@ -77,4 +84,3 @@ Enea Zaffanella (University of Parma)
 
 === ppl-0.11 (Volker Braun, Sept 20, 2010) ===
 * initial SPKG
-

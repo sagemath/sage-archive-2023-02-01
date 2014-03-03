@@ -5855,9 +5855,9 @@ cdef class Matrix(matrix1.Matrix):
         self.check_mutability()
         cdef Matrix d, a
         cdef Py_ssize_t r, c
-        cdef bint transformation = kwds.has_key('transformation') and kwds['transformation']
+        cdef bint transformation = 'transformation' in kwds and kwds['transformation']
         if self._base_ring == ZZ:
-            if kwds.has_key('include_zero_rows') and not kwds['include_zero_rows']:
+            if 'include_zero_rows' in kwds and not kwds['include_zero_rows']:
                 raise ValueError, "cannot echelonize in place and delete zero rows"
             if transformation:
                 d, a = self.dense_matrix().echelon_form(**kwds)
@@ -6098,7 +6098,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: T*D == E
             True
         """
-        cdef bint transformation = (kwds.has_key('transformation') and kwds['transformation'])
+        cdef bint transformation = ('transformation' in kwds and kwds['transformation'])
         x = self.fetch('echelon_form')
         if x is not None:
             if not transformation:
@@ -8175,7 +8175,7 @@ cdef class Matrix(matrix1.Matrix):
             raise NotImplementedError('QR decomposition is implemented over exact rings, try CDF for numerical results, not %s' % R)
         try:
             F = R.fraction_field()
-        except StandardError:
+        except Exception:
             raise ValueError("QR decomposition needs a fraction field of %s" % R)
         m = self.nrows()
         n = self.ncols()
@@ -8787,10 +8787,19 @@ cdef class Matrix(matrix1.Matrix):
             ...
             ValueError: Jordan normal form not implemented over inexact rings.
 
-        If you need the transformation matrix as well as the Jordan form of
-        ``self``, then pass the option ``transformation=True``.
+        Here we need to specify a field, since the eigenvalues are not defined
+        in the smallest ring containing the matrix entries (:trac:`14508`)::
 
-        ::
+            sage: c = matrix([[0,1,0],[0,0,1],[1,0,0]]);
+            sage: c.jordan_form(CyclotomicField(3))
+            [         1|         0|         0]
+            [----------+----------+----------]
+            [         0|     zeta3|         0]
+            [----------+----------+----------]
+            [         0|         0|-zeta3 - 1]
+
+        If you need the transformation matrix as well as the Jordan form of
+        ``self``, then pass the option ``transformation=True``. For example::
 
             sage: m = matrix([[5,4,2,1],[0,1,-1,-1],[-1,-1,3,0],[1,1,-1,2]]); m
             [ 5  4  2  1]
@@ -8811,11 +8820,9 @@ cdef class Matrix(matrix1.Matrix):
             [0 0 4 1]
             [0 0 0 4]
 
-        Note that for matrices over inexact rings and associated numerical
-        stability problems, we do not attempt to compute the Jordan normal
-        form.
-
-        ::
+        Note that for matrices over inexact rings, we do not attempt to
+        compute the Jordan normal form, since it is not numerically
+        stable::
 
             sage: b = matrix(ZZ,3,3,range(9))
             sage: jf, p = b.jordan_form(RealField(15), transformation=True)
@@ -9054,21 +9061,26 @@ cdef class Matrix(matrix1.Matrix):
             else:
                 return self, self.parent().identity_matrix()
 
-        if (base_ring is None and not self.base_ring().is_exact()) or \
-            (not base_ring is None and not base_ring.is_exact()):
-            raise ValueError("Jordan normal form not implemented over inexact rings.")
+        inferred_base_ring = base_ring
 
         if base_ring is None:
-            A = self
-            base_ring = self.base_ring()
+            inferred_base_ring = self.base_ring()
 
-        # make sure we're working with a field..
-        if not base_ring.is_field():
+        if not inferred_base_ring.is_exact():
+            raise ValueError("Jordan normal form not implemented over inexact rings.")
+
+        # Make sure we're working with a field.
+        if inferred_base_ring.is_field():
+            if base_ring is not None:
+                A = self.change_ring(inferred_base_ring)
+            else:
+                A = self
+        else:
             try:
-                base_field = base_ring.fraction_field()
+                base_field = inferred_base_ring.fraction_field()
             except (NotImplementedError, TypeError, AttributeError):
                 raise ValueError("Matrix entries must be from a field, not {0}".
-                                 format(base_ring))
+                                 format(inferred_base_ring))
             A = self.change_ring(base_field)
 
         # Compute the eigenvalues of the matrix, with multiplicities.  Here,
@@ -9610,14 +9622,14 @@ cdef class Matrix(matrix1.Matrix):
                 JA, SA = A.jordan_form(transformation=True)
             else:
                 JA = A.jordan_form(transformation=False)
-        except StandardError:
+        except Exception:
             raise ValueError('unable to compute Jordan canonical form for a matrix')
         try:
             if transformation:
                 JB, SB = B.jordan_form(transformation=True)
             else:
                 JB = B.jordan_form(transformation=False)
-        except StandardError:
+        except Exception:
             raise ValueError('unable to compute Jordan canonical form for a matrix')
         similar = (JA == JB)
         transform = None
@@ -11004,7 +11016,7 @@ cdef class Matrix(matrix1.Matrix):
         if not R.is_field():
             try:
                 F = R.fraction_field()
-            except StandardError:
+            except Exception:
                 msg = 'base ring of the matrix needs a field of fractions, not {0}'
                 raise TypeError(msg.format(R))
         else:
@@ -11017,7 +11029,7 @@ cdef class Matrix(matrix1.Matrix):
             try:
                 abs(F.an_element())
                 pivot = 'partial'
-            except StandardError:
+            except Exception:
                 if pivot == 'partial':
                     msg = "cannot take absolute value of matrix entries, try 'pivot=nonzero'"
                     raise TypeError(msg)

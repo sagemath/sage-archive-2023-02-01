@@ -114,10 +114,12 @@ if [ "$UNAME" = "Darwin" ]; then
         echo 'SAGE_APP_DMG=yes'
         echo '(or unset SAGE_APP_DMG since SAGE_APP_DMG=yes is the default)'
         echo "Creating $TARGET.tar.gz ..."
+        chmod -R go=rX "$TARGET"
         tar zcf "$TARGET".tar.gz "$TARGET"
     fi
 else
     echo "Creating $TARGET.tar.gz ..."
+    chmod -R go=rX "$TARGET"
     tar zcf "$TARGET".tar.gz "$TARGET"
 fi
 

@@ -84,21 +84,21 @@ def get_key_base(p, prec, type, print_mode, halt, names, ram_name, print_pos, pr
             raise ValueError, "p must be prime"
     print_ram_name = ram_name
     if isinstance(print_mode, dict):
-        if print_mode.has_key('pos'):
+        if 'pos' in print_mode:
             print_pos = print_mode['pos']
-        if print_mode.has_key('ram_name'):
+        if 'ram_name' in print_mode:
             print_ram_name = print_mode['ram_name']
-        if print_mode.has_key('unram_name'):
+        if 'unram_name' in print_mode:
             print_unram_name = print_mode['unram_name']
-        if print_mode.has_key('sep'):
+        if 'sep' in print_mode:
             print_sep = print_mode['sep']
-        if print_mode.has_key('alphabet'):
+        if 'alphabet' in print_mode:
             print_alphabet = print_mode['alphabet']
-        if print_mode.has_key('max_ram_terms'):
+        if 'max_ram_terms' in print_mode:
             print_max_terms = print_mode['max_ram_terms']
-        if print_mode.has_key('max_terms'):
+        if 'max_terms' in print_mode:
             print_max_terms = print_mode['max_terms']
-        if print_mode.has_key('mode'):
+        if 'mode' in print_mode:
             print_mode = print_mode['mode']
         else:
             print_mode = None

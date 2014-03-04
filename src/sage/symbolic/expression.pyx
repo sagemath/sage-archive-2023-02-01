@@ -152,8 +152,8 @@ from sage.misc.decorators import rename_keyword
 from sage.misc.superseded import deprecated_function_alias
 from sage.structure.dynamic_class import dynamic_class
 
-LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363
 # a small overestimate of log(10,2)
+LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363
 
 cpdef bint is_Expression(x):
     """

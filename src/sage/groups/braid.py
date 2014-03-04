@@ -65,7 +65,6 @@ from sage.rings.integer_ring import IntegerRing
 from sage.misc.cachefunc import cached_method
 from sage.groups.free_group import FreeGroup, is_FreeGroup
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.matrix.constructor import identity_matrix, matrix
 from sage.combinat.permutation import Permutation
 from sage.categories.action import Action
@@ -258,23 +257,23 @@ class Braid(FinitelyPresentedGroupElement):
             t^2 - t + 1
             sage: b = B([-1,2,-1,2])
             sage: b.alexander_polynomial()  # The figure 8 knot.
-            (-t^2 + 3*t - 1)/t^2
+            -1 + 3*t^-1 - t^-2
             sage: B = BraidGroup(4)
             sage: b = B([1,1,1,3,3,2,-3,-1,-1,2,-1,-3,-2])
             sage: b.alexander_polynomial()  # The Kinoshita-Terasaka knot.
-            (-1)/t
+            -t^-1
 
         REFERENCES:
 
         .. :wikipedia:`Burau_representation`
         """
         n = self.strands()
-        p = (self.burau_matrix(reduced=True) - identity_matrix(n-1)).det()
-        K, t = PolynomialRing(IntegerRing(), var).objgen()
+        p = (self.burau_matrix(reduced=True) - identity_matrix(n - 1)).det()
+        K, t = LaurentPolynomialRing(IntegerRing(), var).objgen()
         if p == 0:
             return K.zero()
         qn = sum(t**i for i in range(n))
-        return p / qn
+        return p // qn
 
     def permutation(self):
         """

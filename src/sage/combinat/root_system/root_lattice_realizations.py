@@ -2219,9 +2219,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 Line defined by 2 points: [(1.0, 0.0), (0.0, 0.0)]
                 Line defined by 2 points: [(1.0, 0.0), (1.0, -1.0)]
                 sage: [(line.options()['rgbcolor'], line.options()['thickness']) for line in p]
-                [('black', 2), ('blue', 1), ('red', 1), ('black', 2), ('blue', 1),
-                 ('black', 2), ('red', 1), ('black', 2), ('blue', 1),
-                 ('black', 2), ('red', 1), ('black', 2)]
+                [('black', 2), ('blue', 1), ('red', 1), ('black', 2), ('black', 2), ('blue', 1), ('black', 2), ('red', 1), ('black', 2), ('red', 1), ('black', 2), ('blue', 1)]
             """
             plot_options = self.plot_parse_options(**options)
             if not hasattr(self, "fundamental_weights"):

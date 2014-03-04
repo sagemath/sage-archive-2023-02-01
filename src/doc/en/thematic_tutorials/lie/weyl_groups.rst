@@ -212,7 +212,7 @@ this as follows::
     sage: def bi(u,v) : return [t for t in W if u.bruhat_le(t) and t.bruhat_le(v)]
     ...
     sage: bi(s1,s1*s2*s1)
-    [s1*s2*s1, s1*s2, s2*s1, s1]
+    [s1*s2*s1, s1*s2, s1, s2*s1]
 
 This would not be a good definition since it would fail if `W` is
 affine and be inefficient of `W` is large. Sage has a Bruhat interval

@@ -686,7 +686,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 # componentwise, then convert back.
                 parent = self.parent()
                 S = parent.realization_of().S()
-                C = parent._basis_keys
+                C = parent._indices
                 dct = {C(map(lambda i: i // n, I)): coeff
                        for (I, coeff) in S(self).monomial_coefficients().items()
                        if all(i % n == 0 for i in I)}
@@ -1132,7 +1132,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 """
                 from sage.sets.family import Family
                 from sage.sets.positive_integers import PositiveIntegers
-                return Family(PositiveIntegers(), lambda i: self.monomial(self._basis_keys([i])))
+                return Family(PositiveIntegers(), lambda i: self.monomial(self._indices([i])))
 
             def product_on_basis(self, composition1, composition2):
                 """
@@ -1377,7 +1377,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 """
                 if i<1:
                     return "Not a positive integer: %s" % `i`
-                def C(i): return self._basis_keys([i]) if i else self._basis_keys([])
+                def C(i): return self._indices([i]) if i else self._indices([])
                 T = self.tensor_square()
                 return T.sum_of_monomials( (C(j), C(i-j)) for j in range(0,i+1) )
 
@@ -1620,8 +1620,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             elif J == []:
                 return self.monomial(I)
             else:
-                return self.monomial(self._basis_keys(I[:] + J[:])) + \
-                       self.monomial(self._basis_keys(I[:-1] + [I[-1]+J[0]] + J[1:]))
+                return self.monomial(self._indices(I[:] + J[:])) + \
+                       self.monomial(self._indices(I[:-1] + [I[-1]+J[0]] + J[1:]))
 
         def antipode_on_basis(self, composition):
             """
@@ -1815,7 +1815,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     True
                 """
                 parent = self.parent()
-                C = parent._basis_keys
+                C = parent._indices
                 def ribbon_mapper(I, coeff):
                     # return \mathbf{V}_n ( coeff * R_I ) as pair
                     # (composition, coefficient)
@@ -2588,7 +2588,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             """
             # Equation (58) of NCSF I article
             one = self.base_ring().one()
-            I = self._basis_keys([n])
+            I = self._indices([n])
             # TODO: I being trivial, there is no refinement going on here, so
             # one can probably be a bit more explicit / fast
             return self.sum_of_terms((J, one/coeff_pi(J,I)) for J in Compositions(n))
@@ -2797,7 +2797,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     True
                 """
                 parent = self.parent()
-                C = parent._basis_keys
+                C = parent._indices
                 return parent.sum_of_terms([(C([i // n for i in I]),
                                             coeff * (n ** len(I)))
                                             for (I, coeff) in self
@@ -3068,7 +3068,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     True
                 """
                 parent = self.parent()
-                C = parent._basis_keys
+                C = parent._indices
                 return parent.sum_of_terms([(C([i // n for i in I]),
                                             coeff * (n ** len(I)))
                                             for (I, coeff) in self
@@ -3333,7 +3333,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             for J in Compositions(I.size()):
                 if I.is_finer(J):
                     len_of_J = len(J)
-                    p = [0] + self._basis_keys(I).refinement_splitting_lengths(J).partial_sums()
+                    p = [0] + self._indices(I).refinement_splitting_lengths(J).partial_sums()
                     sum_of_elements += prod( (len_of_J - k)**(p[k+1]-p[k]) for k in range(len_of_J) ) * M(J)
             return sum_of_elements
 

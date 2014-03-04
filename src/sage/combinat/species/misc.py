@@ -16,7 +16,7 @@ Miscellaneous Functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.groups.all import PermutationGroup, PermutationGroup_generic, PermutationGroupElement, SymmetricGroup
-from sage.rings.all import prod
+from sage.misc.misc import prod
 from functools import wraps
 
 def change_support(perm, support, change_perm=None):

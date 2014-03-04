@@ -194,7 +194,7 @@ class CombinatorialAlgebra(CombinatorialFreeModule):
         # for backward compatibility
         if cc is None:
             if hasattr(self, "_basis_keys"):
-                cc = self._basis_keys
+                cc = self._indices
             elif hasattr(self, "_indices"):
                 cc = self._indices
         assert(cc is not None)

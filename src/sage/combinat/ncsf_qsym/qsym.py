@@ -1093,7 +1093,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 # then convert back.
                 parent = self.parent()
                 M = parent.realization_of().M()
-                C = parent._basis_keys
+                C = parent._indices
                 dct = {C(map(lambda i: n * i, I)): coeff
                        for (I, coeff) in M(self).monomial_coefficients().items()}
                 result_in_M_basis = M._from_dict(dct)
@@ -1488,8 +1488,8 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: M.coproduct_on_basis(Composition([]))
                 M[] # M[]
             """
-            return self.tensor_square().sum_of_monomials((self._basis_keys(compo[:i]),
-                                                          self._basis_keys(compo[i:]))
+            return self.tensor_square().sum_of_monomials((self._indices(compo[:i]),
+                                                          self._indices(compo[i:]))
                                                          for i in range(0,len(compo)+1))
 
         def lambda_of_monomial(self, I, n):
@@ -1597,7 +1597,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             QQ_result = QQM.zero()
             for lam in Partitions(n):
                 coeff = QQ((-1) ** len(lam)) / lam.centralizer_size()
-                QQ_result += coeff * QQM.prod([QQM(self._basis_keys([k * i for i in I]))
+                QQ_result += coeff * QQM.prod([QQM(self._indices([k * i for i in I]))
                                                for k in lam])
             QQ_result *= (-1) ** n
             # QQ_result is now \lambda^n(M_I) over QQ.
@@ -2876,7 +2876,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             # Handle the n == 0 case separately
             if n == 0:
-                part = self._basis_keys([])
+                part = self._indices([])
                 to_self_cache[ part ] = { part: base_ring(1) }
                 from_self_cache[ part ] = { part: base_ring(1) }
                 transition_matrices[n] = matrix(base_ring, [[1]])
@@ -2904,7 +2904,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 # M_coeffs will be M(self[I])._monomial_coefficients
                 M_coeffs = {}
 
-                self_I_in_M_basis = M.prod([from_self_gen_function(self._basis_keys(list(J)))
+                self_I_in_M_basis = M.prod([from_self_gen_function(self._indices(list(J)))
                                             for J in Word(I).lyndon_factorization()])
 
                 j = 0
@@ -3128,5 +3128,5 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             # either some i satisfies a_i > b_i and (a_j == b_j for all
             # j < i), or we have n > m and all i <= m satisfy a_i == b_i.
             new_factors = sorted(I_factors + J_factors, reverse=True)
-            return self.monomial(self._basis_keys(flatten(new_factors)))
+            return self.monomial(self._indices(flatten(new_factors)))
 

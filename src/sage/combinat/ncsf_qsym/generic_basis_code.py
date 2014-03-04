@@ -114,9 +114,9 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 assert len(rest) == 0
             else:
                 if len(rest) > 0 or isinstance(c, (int, Integer)):
-                    c = self._basis_keys([c] + list(rest))
+                    c = self._indices([c] + list(rest))
                 else:
-                    c = self._basis_keys(list(c))
+                    c = self._indices(list(c))
             return self.monomial(c)
 
         # could go to Algebras(...).Graded().Connected() or Modules(...).Graded().Connected()
@@ -294,7 +294,7 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 sage: elementary.sum_of_partition_rearrangements(Partition([]))
                 L[]
             """
-            return self.sum_of_monomials( self._basis_keys(comp) for comp in Permutations(par) )
+            return self.sum_of_monomials( self._indices(comp) for comp in Permutations(par) )
 
         def _comp_to_par(self, comp):
             """

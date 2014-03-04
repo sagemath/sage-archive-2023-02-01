@@ -5,21 +5,19 @@ Rings
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
 #                2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
-#                2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2008-2011 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.rngs import Rngs
-from sage.categories.semirings import Semirings
-from sage.categories.category import Category
-from sage.categories.category_singleton import Category_singleton
-from category import HomCategory
 from sage.misc.cachefunc import cached_method
-import sage
+from sage.misc.lazy_import import LazyImport
+from sage.categories.category_with_axiom import CategoryWithAxiom
+from sage.categories.rngs import Rngs
+from category import HomCategory
 
-class Rings(Category_singleton):
+class Rings(CategoryWithAxiom):
     """
     The category of rings
 
@@ -29,8 +27,18 @@ class Rings(Category_singleton):
 
       sage: Rings()
       Category of rings
-      sage: Rings().super_categories()
+      sage: sorted(Rings().super_categories(), key=str)
       [Category of rngs, Category of semirings]
+
+      sage: sorted(Rings().axioms())
+      ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'Distributive', 'Unital']
+
+      sage: Rings() is (CommutativeAdditiveGroups() & Monoids()).Distributive()
+      True
+      sage: Rings() is Rngs().Unital()
+      True
+      sage: Rings() is Semirings().AdditiveInverse()
+      True
 
     TESTS::
 
@@ -44,14 +52,57 @@ class Rings(Category_singleton):
        in the category ``Algebras(P)``.
     """
 
-    def super_categories(self):
-        """
-        EXAMPLES::
+    _base_category_class_and_axiom = (Rngs, "Unital")
 
-            sage: Rings().super_categories()
-            [Category of rngs, Category of semirings]
-        """
-        return [Rngs(), Semirings()]
+    class SubcategoryMethods:
+
+        def NoZeroDivisors(self):
+            """
+            Returns the full subcategory of the objects of ``self`` having no zero divisors
+
+            EXAMPLES::
+
+                sage: Rings().NoZeroDivisors()
+                Category of domains
+
+            .. NOTE:: this could be generalized to MagmasAndAdditiveMagmas.Distributive.AdditiveUnital
+
+            TESTS::
+
+                sage: TestSuite(Rings().NoZeroDivisors()).run()
+                sage: Algebras(QQ).NoZeroDivisors.__module__
+                'sage.categories.rings'
+            """
+            return self._with_axiom('NoZeroDivisors')
+
+        def Division(self):
+            """
+            Returns the full subcategory of the *division* objects of ``self``
+
+            A ring satisfies the division axiom if all non-zero
+            elements have multiplicative inverse.
+
+            .. NOTE:: this could be generalized to MagmasAndAdditiveMagmas.Distributive.AdditiveUnital.Unital
+
+            EXAMPLES::
+
+                sage: Rings().Division()
+                Category of division rings
+                sage: Rings().Commutative().Division()
+                Category of fields
+
+            TESTS::
+
+                sage: TestSuite(Rings().Division()).run()
+                sage: Algebras(QQ).Division.__module__
+                'sage.categories.rings'
+            """
+            return self._with_axiom('Division')
+
+
+    NoZeroDivisors = LazyImport('sage.categories.domains', 'Domains', at_startup=True)
+    Division       = LazyImport('sage.categories.division_rings', 'DivisionRings', at_startup=True)
+    Commutative    = LazyImport('sage.categories.commutative_rings', 'CommutativeRings', at_startup=True)
 
     class ParentMethods:
         def is_ring(self):
@@ -297,7 +348,8 @@ class Rings(Category_singleton):
                 return
 
             # test that #12988 is fixed
-            tester.assertEqual(type(characteristic),sage.rings.integer.Integer)
+            from sage.rings.integer import Integer
+            tester.assertIsInstance(characteristic, Integer)
 
         def ideal(self, *args, **kwds):
             """

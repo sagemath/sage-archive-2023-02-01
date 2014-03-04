@@ -39,44 +39,10 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-from sage.misc.cachefunc import cached_method
+from sage.misc.cachefunc import cached_function, cached_method
+from sage.categories.category import Category
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.categories.category import Category
-
-from sage.misc.cachefunc import cached_function
-@cached_function
-def _category_of(cls, category, *args):
-    """
-    This is where we handle the cache for :meth:`CovariantFunctorialConstruction.category_of`.
-
-    INPUT:
-
-    - ``cls`` -- the category class for the functorial construction `F`
-    - ``category`` -- a category `Cat`
-    - ``*args`` -- further arguments for the functor
-
-    OUTPUT: the image category of the functor `F_{Cat}`
-
-    EXAMPLES::
-
-        sage: sage.categories.tensor.TensorProductsCategory.category_of(ModulesWithBasis(QQ)) #indirect doctest
-        Category of tensor products of modules with basis over Rational Field
-
-        sage: sage.categories.algebra_functor.AlgebrasCategory.category_of(FiniteMonoids(), QQ)
-        Category of monoid algebras over Rational Field
-    """
-    #assert cls is getattr(category.__class__, cls._functor_category)
-    # TODO: find a better test
-    # the purpose is to test whether ``category`` overrides the
-    # default functor category
-    # e.g. category.Subquotients != SubquotientsCategory
-    functor_category = getattr(category.__class__, cls._functor_category)
-    if isinstance(functor_category, type) and issubclass(functor_category, Category):
-        return functor_category(category, *args)
-    else:
-        return cls.default_super_categories(category, *args)
-
 
 class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
     r"""
@@ -257,8 +223,8 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
         r"""
         Special binding for covariant constructions
 
-        This implements a hack allowing ``category.Subquotients`` to
-        recover the default ``Subquotients`` method defined in
+        This implements a hack allowing e.g. ``category.Subquotients``
+        to recover the default ``Subquotients`` method defined in
         ``Category``, even if it has been overriden by a
         ``Subquotients`` class.
 
@@ -267,13 +233,14 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
             sage: Sets.Subquotients
             <class 'sage.categories.sets_cat.Sets.Subquotients'>
             sage: Sets().Subquotients
-            <bound method Sets_with_category.Subquotients of Category of sets>
+            Cached version of <function Subquotients at ...>
         """
         if category is None:
             return cls
         return getattr(super(category.__class__.__base__, category), cls._functor_category)
 
-    @classmethod #cached_function or cached_method are not available for a classmethod
+    @classmethod
+    @cached_function
     def category_of(cls, category, *args):
         """
         This is the main entry point for constructing the category `F_{Cat}`
@@ -293,9 +260,15 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
             Category of tensor products of modules with basis over Rational Field
 
             sage: sage.categories.algebra_functor.AlgebrasCategory.category_of(FiniteMonoids(), QQ)
-            Category of monoid algebras over Rational Field
+            Join of Category of finite dimensional algebras with basis over Rational Field and Category of monoid algebras over Rational Field and Category of finite set algebras over Rational Field
         """
-        return _category_of(cls,category,*args)
+        # TODO: find a better test
+        # the purpose is to test whether ``category`` implements that functor
+        functor_category = getattr(category.__class__, cls._functor_category)
+        if isinstance(functor_category, type) and issubclass(functor_category, Category):
+            return functor_category(category, *args)
+        else:
+            return cls.default_super_categories(category, *args)
 
     @classmethod
     def default_super_categories(cls, category, *args):
@@ -341,9 +314,11 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
         which takes a parameter `\QQ`::
 
             sage: FiniteMonoids().super_categories()
-            [Category of finite semigroups, Category of monoids]
-            sage: FiniteMonoids().Algebras(QQ).super_categories()
-            [Category of semigroup algebras over Rational Field]
+            [Category of monoids, Category of finite semigroups]
+            sage: sorted(FiniteMonoids().Algebras(QQ).super_categories(), key=str)
+            [Category of finite dimensional algebras with basis over Rational Field,
+             Category of finite set algebras over Rational Field,
+             Category of monoid algebras over Rational Field]
 
         Note that neither the category of *finite* semigroup algebras
         nor that of monoid algebras appear in the result; this is
@@ -352,9 +327,9 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
         Here is how :meth:`default_super_categories` was called internally::
 
             sage: sage.categories.algebra_functor.AlgebrasCategory.default_super_categories(FiniteMonoids(), QQ)
-            Category of monoid algebras over Rational Field
+            Join of Category of finite dimensional algebras with basis over Rational Field and Category of monoid algebras over Rational Field and Category of finite set algebras over Rational Field
         """
-        return Category.join([getattr(cat, cls._functor_category)(*args) for cat in category._super_categories])
+        return Category.join([getattr(cat, cls._functor_category)(*args) for cat in category._super_categories if hasattr(cat, cls._functor_category)])
 
     def __init__(self, category, *args):
         """
@@ -420,8 +395,8 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
             sage: Semigroups().Quotients().super_categories()
             [Category of subquotients of semigroups, Category of quotients of sets]
         """
-        return Category.join(self.extra_super_categories() +
-                             [self.__class__.default_super_categories(self.base_category(), *self._args)],
+        return Category.join([self.__class__.default_super_categories(self.base_category(), *self._args)] +
+                             self.extra_super_categories(),
                              as_list = True)
 
     def _repr_object_names(self):
@@ -446,7 +421,6 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
         """
         from sage.misc.latex import latex
         return "\\mathbf{%s}(%s)"%(self._short_name(), latex(self.base_category()))
-
 
 class RegressiveCovariantConstructionCategory(CovariantConstructionCategory):
     """
@@ -480,6 +454,6 @@ class RegressiveCovariantConstructionCategory(CovariantConstructionCategory):
 
             sage: C = Monoids().Subquotients()
             sage: C.__class__.default_super_categories(C.base_category(), *C._args)
-            Join of Category of monoids and Category of subquotients of semigroups
+            Category of unital subquotients of semigroups
         """
         return Category.join([category, super(RegressiveCovariantConstructionCategory, cls).default_super_categories(category, *args)])

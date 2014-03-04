@@ -1117,7 +1117,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
     the base ring::
 
         sage: CombinatorialFreeModule(GF(3), ((1,2), (3,4))).category()
-        Category of modules with basis over Finite Field of size 3
+        Category of vector spaces with basis over Finite Field of size 3
 
     See :mod:`sage.categories.examples.algebras_with_basis` and
     :mod:`sage.categories.examples.hopf_algebras_with_basis` for
@@ -1242,7 +1242,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
 
             sage: F.category()
-            Category of modules with basis over Rational Field
+            Category of vector spaces with basis over Rational Field
 
         One may specify the category this module belongs to::
 
@@ -1254,7 +1254,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             sage: F.basis()
             Finite family {'a': B['a'], 'c': B['c'], 'b': B['b']}
             sage: F.category()
-            Category of finite dimensional modules with basis over Rational Field
+            Category of finite dimensional vector spaces with basis over Rational Field
             sage: TestSuite(F).run()
 
         TESTS:
@@ -2852,9 +2852,10 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
         # TODO: make this overridable by setting _name
 
     @cached_method
-    def summand_embedding(self, i):
+    def cartesian_embedding(self, i):
         """
-        Returns the natural embedding morphism of the i-th summand of self into self
+        Return the natural embedding morphism of the ``i``-th
+        cartesian factor (summand) of ``self`` into ``self``.
 
         INPUTS:
 
@@ -2875,10 +2876,13 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
         assert i in self._sets_keys()
         return self._sets[i]._module_morphism(lambda t: self.monomial((i,t)), codomain = self)
 
+    summand_embedding = cartesian_embedding
+
     @cached_method
-    def summand_projection(self, i):
+    def cartesian_projection(self, i):
         """
-        Returns the natural projection onto the i-th summand of self
+        Return the natural projection onto the `i`-th cartesian factor
+        (summand) of ``self``.
 
         INPUTS:
 
@@ -2890,26 +2894,29 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
             sage: G = CombinatorialFreeModule(ZZ, [4,6]); G.__custom_name = "G"
             sage: S = cartesian_product([F, G])
             sage: x = S.monomial((0,4)) + 2 * S.monomial((0,5)) + 3 * S.monomial((1,6))
-            sage: S.summand_projection(0)(x)
+            sage: S.cartesian_projection(0)(x)
             B[4] + 2*B[5]
-            sage: S.summand_projection(1)(x)
+            sage: S.cartesian_projection(1)(x)
             3*B[6]
-            sage: S.summand_projection(0)(x).parent() == F
+            sage: S.cartesian_projection(0)(x).parent() == F
             True
-            sage: S.summand_projection(1)(x).parent() == G
+            sage: S.cartesian_projection(1)(x).parent() == G
             True
         """
         assert i in self._sets_keys()
         module = self._sets[i]
         return self._module_morphism(lambda (j,t): module.monomial(t) if i == j else module.zero(), codomain = module)
 
+    summand_projection = cartesian_projection
+
     def _cartesian_product_of_elements(self, elements):
         """
-        Returns the cartesian product of the elements
+        Return the cartesian product of the elements.
 
         INPUT:
 
-         - ``elements`` - a tuple with one element of each summand of self
+         - ``elements`` -- a tuple with one element of each cartesian
+           factor of ``self``
 
         EXAMPLES::
 

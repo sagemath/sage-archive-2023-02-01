@@ -117,8 +117,8 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: TestSuite(QS3).run()
         """
         self.n = n
-        self._name = "Symmetric group algebra of order %s"%self.n
         CombinatorialFreeModule.__init__(self, R, permutation.Permutations(n), prefix='', latex_prefix='', category = (GroupAlgebras(R),FiniteDimensionalAlgebrasWithBasis(R)))
+        self.rename("Symmetric group algebra of order %s over %s"%(self.n, self.base_ring()))
         # This is questionable, and won't be inherited properly
         if n > 0:
             S = SymmetricGroupAlgebra(R, n-1)

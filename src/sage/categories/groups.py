@@ -11,13 +11,12 @@ Groups
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.misc.cachefunc import cached_method
-from sage.categories.category import Category
-from sage.categories.category_singleton import Category_singleton
+from sage.misc.lazy_import import LazyImport
+from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.monoids import Monoids
 from sage.categories.algebra_functor import AlgebrasCategory
 
-class Groups(Category_singleton):
+class Groups(CategoryWithAxiom):
     """
     The category of (multiplicative) groups, i.e. monoids with
     inverses.
@@ -27,21 +26,13 @@ class Groups(Category_singleton):
         sage: Groups()
         Category of groups
         sage: Groups().super_categories()
-        [Category of monoids]
+        [Category of monoids, Category of inverse unital magmas]
 
     TESTS::
 
         sage: TestSuite(Groups()).run()
     """
-
-    def super_categories(self):
-        """
-        EXAMPLES::
-
-            sage: Groups().super_categories()
-            [Category of monoids]
-        """
-        return [Monoids()]
+    _base_category_class_and_axiom = (Monoids, "Inverse")
 
     def example(self):
         """
@@ -370,26 +361,177 @@ class Groups(Category_singleton):
         ## inv(x), x/y
         pass
 
+    Finite = LazyImport('sage.categories.finite_groups', 'FiniteGroups')
+    #Algebras = LazyImport('sage.categories.group_algebras', 'GroupAlgebras')
+
     class Algebras(AlgebrasCategory):
+        """
+        The category of group algebras over the base ring.
+
+        EXAMPLES::
+
+            sage: GroupAlgebras(IntegerRing())
+            Category of group algebras over Integer Ring
+            sage: GroupAlgebras(IntegerRing()).super_categories()
+            [Category of hopf algebras with basis over Integer Ring,
+             Category of monoid algebras over Integer Ring]
+
+        Here is how to create the group algebra of a group G (this has to
+        be changed if there are no bugs in this category)::
+
+            sage: G = DihedralGroup(5)
+            sage: QG = GroupAlgebras(QQ).example(G); QG
+            The group algebra of the Dihedral group of order 10 as a permutation group over Rational Field
+
+        and an example of computation::
+
+            sage: g=DihedralGroup(5).an_element(); g
+            (1,2,3,4,5)
+            sage: (QG.term(g) + 1)**3
+            B[()] + 3*B[(1,2,3,4,5)] + 3*B[(1,3,5,2,4)] + B[(1,4,2,5,3)]
+
+        .. TODO::
+
+            - Some methods can be transferred to MonoidAlgebras and some to a new category FiniteDimensionalGroupAlgebras
+            - The Hopf algebra structure has not yet been implemented
+
+        TESTS::
+
+            sage: A = GroupAlgebras(QQ).example(GL(3, GF(11)))
+            sage: A.one_basis()
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: A = SymmetricGroupAlgebra(QQ,4)
+            sage: x = Permutation([4,3,2,1])
+            sage: A.product_on_basis(x,x)
+            [1, 2, 3, 4]
+
+            sage: C = GroupAlgebras(ZZ)
+            sage: TestSuite(C).run()
+        """
 
         def extra_super_categories(self):
             """
+            Implement the fact that the algebra of a group is a Hopf algebra.
+
             EXAMPLES::
 
-                sage: Groups().Algebras(QQ).super_categories()
-                [Category of hopf algebras with basis over Rational Field, Category of monoid algebras over Rational Field]
+                sage: C = Groups().Algebras(QQ)
+                sage: C.extra_super_categories()
+                [Category of hopf algebras over Rational Field]
+                sage: sorted(C.super_categories(), key=str)
+                [Category of hopf algebras with basis over Rational Field,
+                 Category of monoid algebras over Rational Field]
             """
-            from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
-            return [HopfAlgebrasWithBasis(self.base_ring())]
+            from sage.categories.hopf_algebras import HopfAlgebras
+            return [HopfAlgebras(self.base_ring())]
+
+        def example(self, G = None):
+            """
+            Returns an example of group algebra
+
+            EXAMPLES::
+
+                sage: GroupAlgebras(QQ[x]).example()
+                The group algebra of the Dihedral group of order 8 as a permutation group over Univariate Polynomial Ring in x over Rational Field
+
+            An other group can be specified as optional argument::
+
+                sage: GroupAlgebras(QQ).example(SymmetricGroup(4))
+                The group algebra of the Symmetric group of order 4! as a permutation group over Rational Field
+
+            """
+            from sage.categories.examples.group_algebras import MyGroupAlgebra
+            from sage.groups.perm_gps.permgroup_named import DihedralGroup
+            if G is None:
+                G = DihedralGroup(4)
+            return MyGroupAlgebra(self.base_ring(), G)
 
         class ParentMethods:
 
             def _repr_(self):
                 r"""
-                Print the string representation of `self`. For the moment, this
-                function is not used because it is defined in a higher category.
+                Return the string representation of `self`.
+
+                EXAMPLES::
+
+                    sage: A = Groups().example().algebra(QQ); A
+                    Group algebra of General Linear Group of degree 4 over Rational Field over Rational Field
                 """
                 return 'Group algebra of %s over %s'%(self.basis().keys(),self.base_ring())
+
+            def group(self):
+                r"""
+                Returns the underlying group of the group algebra
+
+                EXAMPLES::
+
+                    sage: GroupAlgebras(QQ).example(GL(3, GF(11))).group()
+                    General Linear Group of degree 3 over Finite Field of size 11
+                    sage: SymmetricGroupAlgebra(QQ,10).group()
+                    Symmetric group of order 10! as a permutation group
+                """
+                return self.basis().keys()
+
+            def algebra_generators(self):
+                r"""
+                Returns generators of this group algebra (as an algebra).
+
+                EXAMPLES::
+
+                    sage: GroupAlgebras(QQ).example(SymmetricGroup(10)).algebra_generators()
+                    Finite family {(1,2): B[(1,2)], (1,2,3,4,5,6,7,8,9,10): B[(1,2,3,4,5,6,7,8,9,10)]}
+
+                .. NOTE::
+
+                    This function is overloaded for SymmetricGroupAlgebras to return Permutations and not Elements of the symmetric group
+                """
+                from sage.sets.family import Family
+                return Family(self.group().gens(), self.term)
+
+            def _conjugacy_classes_representatives_underlying_group(self):
+                r"""
+                Returns a complete list of representatives of conjugacy classes
+
+                This works only for permutations group. The ordering is that given by GAP.
+
+                EXAMPLES::
+
+                    sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3,4)]])
+                    sage: SG = GroupAlgebras(QQ).example(G)
+                    sage: SG._conjugacy_classes_representatives_underlying_group()
+                    [(), (2,4), (1,2)(3,4), (1,2,3,4), (1,3)(2,4)]
+
+                .. NOTE::
+
+                    This function is overloaded for SymmetricGroupAlgebras to return Permutations and not Elements of the symmetric group::
+
+                    sage: SymmetricGroupAlgebra(ZZ,3)._conjugacy_classes_representatives_underlying_group()
+                    [[2, 3, 1], [2, 1, 3], [1, 2, 3]]
+                """
+                return self.group().conjugacy_classes_representatives()
+
+            def center(self):
+                r"""
+                Returns the center of the group algebra.
+
+                The element of the canonical basis (sum of the elements of the group in the same conjugacy classes) are indexed by one element of the class.
+
+                EXAMPLES::
+
+                    sage: SymmetricGroupAlgebra(ZZ,3).center()
+                    Free module generated by {[2, 3, 1], [2, 1, 3], [1, 2, 3]} over Integer Ring
+
+                .. NOTE::
+
+                    The product has not been implemented yet.
+                """
+                from sage.categories.all import Algebras
+                from sage.combinat.free_module import CombinatorialFreeModule
+                return CombinatorialFreeModule(self.base_ring(),self._conjugacy_classes_representatives_underlying_group())
+
+            # Coalgebra structure
 
             def coproduct_on_basis(self, g):
                 r"""
@@ -431,7 +573,7 @@ class Groups(Category_singleton):
                     sage: a.antipode()
                     B[()] + 3*B[(1,5,3)(2,6,4)] + 3*B[(1,6,5,4,3,2)]
                 """
-                return self.term(g**(-1))
+                return self.term(~g)
 
             def counit_on_basis(self,g):
                 r"""
@@ -463,7 +605,57 @@ class Groups(Category_singleton):
                     sage: a.counit()
                     7
                 """
-                return sum(x.coefficients())
+                return self.base_ring().sum(x.coefficients())
 
         class ElementMethods:
-            pass
+            def is_central(self):
+                r"""
+                Returns True if the element is central and False otherwise.
+
+                EXAMPLES::
+
+                    sage: SG4=SymmetricGroupAlgebra(ZZ,4)
+                    sage: SG4(1).is_central()
+                    True
+                    sage: SG4(Permutation([1,3,2,4])).is_central()
+                    False
+                    sage: A=GroupAlgebras(QQ).example(); A
+                    The group algebra of the Dihedral group of order 8 as a permutation group over Rational Field
+                    sage: sum(i for i in A.basis()).is_central()
+                    True
+                """
+                return all([i*self == self*i for i in self.parent().algebra_generators()])
+
+            def central_form(self):
+                r"""
+                Returns ``self`` as an element of a center of the group algebra in the canonical basis of the center of the group algebra (family of sums of elements in a conjugacy class).
+
+                Note that the element of the canonical basis of the center (sum of the elements of the group in the same conjugacy classes) are indexed by one element of the class.
+
+                WARNINGS::
+
+                    - This function needs the underlying group to have a method conjugacy_classes_representatives (every permutation group has one, thanks GAP!).
+                    - It does not check that the element is indeed central. Use the method :meth:`.is_central` for this purpose.
+
+                EXAMPLES::
+
+                    sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
+                    sage: A=QS3([2,3,1])+QS3([3,1,2])
+                    sage: A.central_form()
+                    B[[2, 3, 1]]
+                    sage: QS4 = SymmetricGroupAlgebra(QQ, 4)
+                    sage: B=sum(len(s.cycle_type())*QS4(s) for s in Permutations(4))
+                    sage: B.central_form()
+                    4*B[[1, 2, 3, 4]] + 3*B[[2, 1, 3, 4]] + 2*B[[2, 1, 4, 3]] + 2*B[[2, 3, 1, 4]] + B[[2, 3, 4, 1]]
+                    sage: QG=GroupAlgebras(QQ).example(PermutationGroup([[(1,2,3),(4,5)],[(3,4)]]))
+                    sage: sum(i for i in QG.basis()).central_form()
+                    B[()] + B[(1,2)] + B[(1,2)(3,4)] + B[(1,2,3)] + B[(1,2,3)(4,5)] + B[(1,2,3,4)] + B[(1,2,3,4,5)]
+
+                .. NOTE::
+
+                    This function has a complexity linear in the number of conjugacy classes of the group. One could have done easily a function, whose complexity is linear in the size of the support of ``self``.
+                """
+                Z=self.parent().center()
+                return sum(self[i] * Z.basis()[i] for i in Z.basis().keys())
+
+

@@ -318,7 +318,7 @@ def LatticePoset(data, *args, **options):
 
         sage: L = LatticePoset([[1,2],[3],[3]], facade = True)
         sage: L.category()
-        Category of facade finite lattice posets
+        Join of Category of finite lattice posets and Category of finite enumerated sets and Category of facade sets
         sage: parent(L[0])
         Integer Ring
         sage: TestSuite(L).run(skip = ['_test_an_element']) # is_parent_of is not yet implemented

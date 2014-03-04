@@ -412,9 +412,7 @@ cdef class Ring(ParentWithGens):
             sage: I.base_ring() is I
             True
             sage: I.category()
-            Join of Category of commutative rings and Category of subquotients
-            of monoids and Category of quotients of semigroups and Category of
-            finite enumerated sets
+            Join of Category of commutative rings and Category of finite monoids and Category of subquotients of monoids and Category of quotients of semigroups
 
         """
         # Defining a category method is deprecated for parents.

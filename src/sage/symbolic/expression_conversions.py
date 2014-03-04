@@ -617,7 +617,7 @@ class SympyConverter(Converter):
         """
         import sympy
         operator = arithmetic_operators[operator]
-        ops = [sympy.sympify(self(a)) for a in ex.operands()]
+        ops = [sympy.sympify(self(a), evaluate=False) for a in ex.operands()]
         if operator == "+":
             return sympy.Add(*ops)
         elif operator == "*":
@@ -666,7 +666,7 @@ class SympyConverter(Converter):
 
         f_sympy = getattr(sympy, f, None)
         if f_sympy:
-            return f_sympy(*sympy.sympify(g))
+            return f_sympy(*sympy.sympify(g, evaluate=False))
         else:
             raise NotImplementedError("SymPy function '%s' doesn't exist" % f)
 

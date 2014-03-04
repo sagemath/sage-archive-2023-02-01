@@ -550,8 +550,8 @@ cdef class Expression(CommutativeRingElement):
         # from sage.misc.ascii_art import AsciiArt, MAX_LENGTH ## for import
         #            num_columns = MAX_LENGTH  ## option of pretty
         try:
-            s = pretty(sympify(self), use_unicode=False)
-        except Exception:
+            s = pretty(sympify(self, evaluate=False), use_unicode=False)
+        except StandardError:
             s = self
         return AsciiArt(str(s).splitlines())
 

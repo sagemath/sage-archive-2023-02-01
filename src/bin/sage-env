@@ -359,11 +359,9 @@ if [ "$SAGE_STARTUP_FILE" = "" ]; then
     export SAGE_STARTUP_FILE
 fi
 
-if [ -x "$SAGE_LOCAL/bin/ipython" ]; then
-    export IPYTHONDIR="$DOT_SAGE/ipython-"`ipython --version`
-else
-    # IPython is not yet installed
-    export IPYTHONDIR="$DOT_SAGE/ipython-"`sed 's+\.p[0-9]*$++' "$SAGE_ROOT"/build/pkgs/ipython/package-version.txt`
+IPYTHONDIR=`find "$SAGE_SPKG_INST" -name "ipython*"`
+if [ -n "$IPYTHONDIR" ]; then
+    export IPYTHONDIR="$DOT_SAGE/${IPYTHONDIR##*/}"
 fi
 
 if [ -d "$SAGE_ROOT/local/lib/python" ]; then

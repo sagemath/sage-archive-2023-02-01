@@ -21,21 +21,6 @@ dgs_bern_uniform_mp_t* dgs_bern_uniform_mp_init(size_t length) {
   return self;
 }
 
-unsigned long dgs_bern_uniform_mp_call(dgs_bern_uniform_mp_t *self, gmp_randstate_t state) {
-  assert(self != NULL);
-  assert(state != NULL);
-
-  if (__DGS_UNLIKELY(self->count == self->length)) {
-    mpz_urandomb(self->tmp, state, self->length);
-    self->pool = mpz_get_ui(self->tmp);
-    self->count = 0;
-  }
-
-  unsigned long b = self->pool & 1;
-  self->pool >>= 1;
-  self->count++;
-  return b;
-}
 
 void dgs_bern_uniform_mp_clear(dgs_bern_uniform_mp_t *self) {
   mpz_clear(self->tmp);
@@ -119,13 +104,15 @@ dgs_bern_exp_mp_t* dgs_bern_exp_mp_init(mpfr_t f, size_t l) {
 
     mpfr_mul_ui(tmp, tmp, 2, MPFR_RNDN);
   }
+  if (l < self->l)
+    self->l = l;
   mpfr_clear(tmp);
   mpfr_clear(tmp2);
   return self;
 }
 
 unsigned long dgs_bern_exp_mp_call(dgs_bern_exp_mp_t *self, mpz_t x, gmp_randstate_t state) {
-  assert(mpz_sgn(x) == 1);
+  assert(mpz_sgn(x) >= 0);
   long int start = (mpz_sizeinbase(x, 2) < self->l) ? mpz_sizeinbase(x, 2) : self->l;
 
   for(long int i=start-1; i>=0; i--) {

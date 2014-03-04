@@ -227,7 +227,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
         We test that in the real or complex double dense case,
         conversion from the base ring is done by a call morphism.
-        Note that by trac ticket #9138, other algebras usually
+        Note that by :trac:`9138`, other algebras usually
         get a conversion map by multiplication with the one element.
         ::
 
@@ -242,6 +242,21 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
               From: Complex Double Field
               To:   Full MatrixSpace of 2 by 2 dense matrices over Complex Double Field
 
+        We check that :trac:`10095` is fixed::
+
+            sage: M = Matrix(QQ, [[1 for dummy in range(125)]])
+            sage: V = M.right_kernel()
+            sage: V
+            Vector space of degree 125 and dimension 124 over Rational Field
+            Basis matrix:
+            124 x 125 dense matrix over Rational Field
+            sage: MatrixSpace(ZZ,20,20)(1) \ MatrixSpace(ZZ,20,1).random_element()
+            20 x 1 dense matrix over Rational Field
+            sage: MatrixSpace(ZZ,200,200)(1) \ MatrixSpace(ZZ,200,1).random_element()
+            200 x 1 dense matrix over Rational Field
+            sage: A = MatrixSpace(RDF,1000,1000).random_element()
+            sage: B = MatrixSpace(RDF,1000,1000).random_element()
+            sage: C = A * B
         """
         if ncols == None: ncols = nrows
         from sage.categories.all import Modules, Algebras

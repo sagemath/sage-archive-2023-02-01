@@ -3351,7 +3351,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 # Use generic special cased code.
                 return matrix_dense.Matrix_dense.determinant(self)
             else:
-                det4x4 = ZZ(0)
+                det4x4 = Integer()
                 four_dim_det(det4x4.value, self._entries)
                 return det4x4
 

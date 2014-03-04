@@ -32,6 +32,7 @@ See spkg-src.
 == Patches ==
  * NTL6_compatibility.patch  taken from commit
    ddb348e97a991972e5dfee690a66663ba0418f40
+   and further updated.
  * factory_template_instantiation.patch taken from commit
    561842a06ad4b44f3b85b28ac35e7946eaba9a30
  * assert.patch: logic seems to be broken on some platforms
@@ -71,6 +72,9 @@ Other notes
    for easier debugging of memory corruptions.
 
 == ChangeLog ==
+
+=== singular-3-1-6.p1 (Jean-Pierre Flori, 31 December 2013) ===
+ * #14876: update patch for NTL compatibility.
 
 === singular-3-1-6.p0 (Jeroen Demeyer, 26 August 2013) ===
  * Remove the following patches, which were fixed upstream:

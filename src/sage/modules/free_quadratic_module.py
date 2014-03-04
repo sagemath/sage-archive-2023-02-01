@@ -82,8 +82,7 @@ import sage.rings.field as field
 import sage.rings.integral_domain as integral_domain
 import sage.rings.integer
 import sage.structure.parent_gens as gens
-
-
+from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 import free_module
 
 ###############################################################################
@@ -169,7 +168,7 @@ def FreeQuadraticModule(
         M = FreeQuadraticModule_ambient_field(
             base_ring, rank, sparse=sparse, inner_product_matrix=inner_product_matrix)
 
-    elif isinstance(base_ring, principal_ideal_domain.PrincipalIdealDomain):
+    elif base_ring in PrincipalIdealDomains():
         M = FreeQuadraticModule_ambient_pid(
             base_ring, rank, sparse=sparse, inner_product_matrix=inner_product_matrix)
 

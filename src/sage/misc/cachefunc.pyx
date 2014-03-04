@@ -788,11 +788,11 @@ cdef class CachedFunction(object):
         EXAMPLES::
 
             sage: class Foo:
-            ....:       def __init__(self, x):
-            ....:           self._x = x
-            ....:       @cached_method
-            ....:       def f(self, z, y=0):
-            ....:           return self._x*z+y
+            ....:     def __init__(self, x):
+            ....:         self._x = x
+            ....:     @cached_method
+            ....:     def f(self, z, y=0):
+            ....:         return self._x*z+y
             sage: a = Foo(2)
             sage: a.f.is_in_cache(3)
             False
@@ -1380,11 +1380,11 @@ cdef class CachedMethodCaller(CachedFunction):
         EXAMPLES::
 
             sage: class Foo:
-            ....:       def __init__(self, x):
-            ....:           self._x = x
-            ....:       @cached_method
-            ....:       def f(self,*args):
-            ....:           return self._x^2
+            ....:     def __init__(self, x):
+            ....:         self._x = x
+            ....:     @cached_method
+            ....:     def f(self,*args):
+            ....:         return self._x^2
             sage: a = Foo(2)
             sage: a.f.get_cache()
             {}
@@ -1458,10 +1458,12 @@ cdef class CachedMethodCaller(CachedFunction):
 
         TESTS::
 
+            sage: from sage.misc.superseded import deprecated_function_alias
             sage: class Foo:
-            ....:       @cached_method
-            ....:       def f(self, x,y=1):
-            ....:           return x+y
+            ....:     @cached_method
+            ....:     def f(self, x,y=1):
+            ....:         return x+y
+            ....:     g = deprecated_function_alias(57, f)
             sage: a = Foo()
             sage: a.f(1)  #indirect doctest
             2
@@ -1476,19 +1478,48 @@ cdef class CachedMethodCaller(CachedFunction):
             sage: a.f(5) is a.f(y=1,x=5)
             True
 
+        The method can be called as a bound function using the same cache::
+
+            sage: a.f(5) is Foo.f(a, 5)
+            True
+            sage: a.f(5) is Foo.f(a,5,1)
+            True
+            sage: a.f(5) is Foo.f(a, 5,y=1)
+            True
+            sage: a.f(5) is Foo.f(a, y=1,x=5)
+            True
+
+        Cached methods are compatible with
+        :meth:`sage.misc.superseded.deprecated_function_alias`::
+
+            sage: a.g(5) is a.f(5)
+            doctest:1: DeprecationWarning: g is deprecated. Please use f instead.
+            See http://trac.sagemath.org/57 for details.
+            True
+            sage: Foo.g(a, 5) is a.f(5)
+            True
+            sage: Foo.g(a, y=1,x=5) is a.f(5)
+            True
+
         We test that #5843 is fixed::
 
             sage: class Foo:
-            ....:       def __init__(self, x):
-            ....:           self._x = x
-            ....:       @cached_method
-            ....:       def f(self, y):
-            ....:           return self._x
+            ....:     def __init__(self, x):
+            ....:         self._x = x
+            ....:     @cached_method
+            ....:     def f(self, y):
+            ....:         return self._x
             sage: a = Foo(2)
             sage: b = Foo(3)
             sage: a.f(b.f)
             2
         """
+        if self._instance is None:
+            # cached method bound to a class
+            instance = args[0]
+            args = args[1:]
+            return self._cachedmethod.__get__(instance)(*args, **kwds)
+
         # We shortcut a common case of no arguments
         # and we avoid calling another python function,
         # although that means to duplicate code.
@@ -1540,11 +1571,11 @@ cdef class CachedMethodCaller(CachedFunction):
         EXAMPLES::
 
             sage: class Foo:
-            ....:       def __init__(self, x):
-            ....:           self._x = x
-            ....:       @cached_method
-            ....:       def f(self, y, z=0):
-            ....:           return self._x * y + z
+            ....:     def __init__(self, x):
+            ....:         self._x = x
+            ....:     @cached_method
+            ....:     def f(self, y, z=0):
+            ....:         return self._x * y + z
             sage: a = Foo(2)
             sage: z = a.f(37)
             sage: k = a.f.get_key(37); k
@@ -1608,11 +1639,11 @@ cdef class CachedMethodCaller(CachedFunction):
         an attribute of another class. ::
 
             sage: class Foo:
-            ....:       @cached_method
-            ....:       def f(self, y):
-            ....:           return y - 1
+            ....:     @cached_method
+            ....:     def f(self, y):
+            ....:         return y - 1
             sage: class Bar:
-            ....:       f = Foo.f
+            ....:     f = Foo.f
             sage: b1 = Bar()
             sage: b2 = Bar()
 
@@ -1699,11 +1730,11 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
         EXAMPLES::
 
             sage: class Foo:
-            ....:       def __init__(self, x):
-            ....:           self._x = x
-            ....:       @cached_method
-            ....:       def f(self):
-            ....:           return self._x^2
+            ....:     def __init__(self, x):
+            ....:         self._x = x
+            ....:     @cached_method
+            ....:     def f(self):
+            ....:         return self._x^2
             sage: a = Foo(2)
             sage: print a.f.get_cache()
             None
@@ -1914,13 +1945,13 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
         an attribute of another class. ::
 
             sage: class Foo:
-            ....:       def __init__(self, n):
-            ....:           self.__n = n
-            ....:       @cached_method
-            ....:       def f(self):
-            ....:           return self.__n^2
+            ....:     def __init__(self, n):
+            ....:         self.__n = n
+            ....:     @cached_method
+            ....:     def f(self):
+            ....:         return self.__n^2
             sage: class Bar:
-            ....:       f = Foo.f
+            ....:     f = Foo.f
             sage: b1 = Bar()
             sage: b2 = Bar()
 
@@ -1984,10 +2015,10 @@ cdef class CachedMethod(object):
     EXAMPLES::
 
         sage: class Foo(object):
-        ....:       @cached_method
-        ....:       def f(self, t, x=2):
-        ....:           print 'computing'
-        ....:           return t**x
+        ....:     @cached_method
+        ....:     def f(self, t, x=2):
+        ....:         print 'computing'
+        ....:         return t**x
         sage: a = Foo()
 
     The example shows that the actual computation
@@ -2018,14 +2049,14 @@ cdef class CachedMethod(object):
         EXAMPLES::
 
             sage: class Foo:
-            ....:       def __init__(self, x):
-            ....:           self._x = x
-            ....:       @cached_method
-            ....:       def f(self,n):
-            ....:           return self._x^n
-            ....:       @cached_method
-            ....:       def f0(self):
-            ....:           return self._x^2
+            ....:     def __init__(self, x):
+            ....:         self._x = x
+            ....:     @cached_method
+            ....:     def f(self,n):
+            ....:         return self._x^n
+            ....:     @cached_method
+            ....:     def f0(self):
+            ....:         return self._x^2
             sage: a = Foo(2)
             sage: a.f(2)
             4
@@ -2066,9 +2097,18 @@ cdef class CachedMethod(object):
             sage: sorted(dir(a))
             ['__doc__', '__init__', '__module__', '_cache__f', '_x', 'f', 'f0']
 
+        The cached method has its name and module set::
+
+            sage: f = Foo.__dict__["f"]
+            sage: f.__name__
+            'f'
+            sage: f.__module__
+            '__main__'
         """
         self._cache_name = '_cache__' + (name or f.__name__)
         self._cachedfunc = CachedFunction(f, classmethod=True, name=name, key=key)
+        self.__name__ = self._cachedfunc.__name__
+        self.__module__ = self._cachedfunc.__module__
 
     def _instance_call(self, inst, *args, **kwds):
         """
@@ -2082,11 +2122,11 @@ cdef class CachedMethod(object):
         EXAMPLES::
 
             sage: class Foo(object):
-            ....:       def __init__(self, x):
-            ....:           self._x = x
-            ....:       @cached_method
-            ....:       def f(self,n=2):
-            ....:           return self._x^n
+            ....:     def __init__(self, x):
+            ....:         self._x = x
+            ....:     @cached_method
+            ....:     def f(self,n=2):
+            ....:         return self._x^n
             sage: a = Foo(2)
             sage: a.f()
             4
@@ -2110,6 +2150,47 @@ cdef class CachedMethod(object):
         """
         return self._cachedfunc.f(inst, *args, **kwds)
 
+    def __call__(self, inst, *args, **kwds):
+        """
+        Call the cached method as a function on an instance
+
+        INPUT:
+
+        - ``inst`` -- an instance on which the method is to be called
+        - Further positional or named arguments.
+
+        EXAMPLES::
+
+
+            sage: from sage.misc.superseded import deprecated_function_alias
+            sage: class Foo(object):
+            ...       def __init__(self, x):
+            ...           self._x = x
+            ...       @cached_method
+            ...       def f(self,n=2):
+            ...           return self._x^n
+            ...       g = deprecated_function_alias(57, f)
+            sage: a = Foo(2)
+            sage: Foo.__dict__['f'](a)
+            4
+
+        This uses the cache as usual::
+
+            sage: Foo.__dict__['f'](a) is a.f()
+            True
+
+        This feature makes cached methods compatible with
+        :meth:`sage.misc.superseded.deprecated_function_alias`::
+
+            sage: a.g() is a.f()
+            doctest:1: DeprecationWarning: g is deprecated. Please use f instead.
+            See http://trac.sagemath.org/57 for details.
+            True
+            sage: Foo.g(a) is a.f()
+            True
+        """
+        return self.__get__(inst)(*args, **kwds)
+
     cpdef dict _get_instance_cache(self, inst):
         """
         Return the cache dictionary.
@@ -2117,11 +2198,11 @@ cdef class CachedMethod(object):
         TESTS::
 
             sage: class Foo:
-            ....:       def __init__(self, x):
-            ....:           self._x = x
-            ....:       @cached_method
-            ....:       def f(self,n=2):
-            ....:           return self._x^n
+            ....:     def __init__(self, x):
+            ....:         self._x = x
+            ....:     @cached_method
+            ....:     def f(self,n=2):
+            ....:         return self._x^n
             sage: a = Foo(2)
             sage: a.f()
             4
@@ -2152,12 +2233,12 @@ cdef class CachedMethod(object):
         TESTS::
 
             sage: class Foo:
-            ....:       @cached_method
-            ....:       def f(self):
-            ....:           return 1
-            ....:       @cached_method
-            ....:       def g(self, x,n=3):
-            ....:           return x^n
+            ....:     @cached_method
+            ....:     def f(self):
+            ....:         return 1
+            ....:     @cached_method
+            ....:     def g(self, x,n=3):
+            ....:         return x^n
             sage: a = Foo()
             sage: type(a.f)
             <type 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
@@ -2282,7 +2363,6 @@ cdef class CachedSpecialMethod(CachedMethod):
             ....:     def __hash__(self):
             ....:         print "compute hash"
             ....:         return int(5)
-            ....:
             sage: c = C()
             sage: type(C.__hash__)
             <type 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
@@ -2433,16 +2513,16 @@ cdef class CachedInParentMethod(CachedMethod):
         EXAMPLES::
 
             sage: class MyParent(Parent):
-            ....:       pass
+            ....:     pass
             sage: class Foo:
-            ....:       def __init__(self, x):
-            ....:           self._x = x
-            ....:       _parent = MyParent()
-            ....:       def parent(self):
-            ....:           return self._parent
-            ....:       @cached_in_parent_method  #indirect doctest
-            ....:       def f(self):
-            ....:           return self._x^2
+            ....:     def __init__(self, x):
+            ....:         self._x = x
+            ....:     _parent = MyParent()
+            ....:     def parent(self):
+            ....:         return self._parent
+            ....:     @cached_in_parent_method  #indirect doctest
+            ....:     def f(self):
+            ....:         return self._x^2
             sage: a = Foo(2)
             sage: a.f()
             4
@@ -2466,22 +2546,22 @@ cdef class CachedInParentMethod(CachedMethod):
         EXAMPLES::
 
             sage: class MyParent(Parent):
-            ....:       pass
+            ....:     pass
             sage: class Foo:
-            ....:       def __init__(self, x):
-            ....:           self._x = x
-            ....:       _parent = MyParent()
-            ....:       def parent(self):
-            ....:           return self._parent
-            ....:       def __eq__(self, other):
-            ....:           return self._x^2 == other._x^2
-            ....:       def __hash__(self):
-            ....:           return hash(self._x^2)
-            ....:       def __repr__(self):
-            ....:           return 'My %s'%self._x
-            ....:       @cached_in_parent_method
-            ....:       def f(self):
-            ....:           return self._x^3
+            ....:     def __init__(self, x):
+            ....:         self._x = x
+            ....:     _parent = MyParent()
+            ....:     def parent(self):
+            ....:         return self._parent
+            ....:     def __eq__(self, other):
+            ....:         return self._x^2 == other._x^2
+            ....:     def __hash__(self):
+            ....:         return hash(self._x^2)
+            ....:     def __repr__(self):
+            ....:         return 'My %s'%self._x
+            ....:     @cached_in_parent_method
+            ....:     def f(self):
+            ....:         return self._x^3
             sage: a = Foo(2)
             sage: a.f()
             8
@@ -3035,13 +3115,13 @@ class ClearCacheOnPickle(object):
         ::
 
             sage: classdef = ['from sage.misc.cachefunc import ClearCacheOnPickle',
-            ....:    'from sage.all import QQ',
-            ....:    'from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal',
-            ....:    'class MyClass(ClearCacheOnPickle,MPolynomialIdeal):',
-            ....:    '    def __init__(self,ring,gens):',
-            ....:    '        MPolynomialIdeal.__init__(self,ring,gens)',
-            ....:    '    def __getnewargs__(self):',
-            ....:    '        return (self._Ideal_generic__ring,self._Ideal_generic__gens)']
+            ....:     'from sage.all import QQ',
+            ....:     'from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal',
+            ....:     'class MyClass(ClearCacheOnPickle,MPolynomialIdeal):',
+            ....:     '    def __init__(self,ring,gens):',
+            ....:     '        MPolynomialIdeal.__init__(self,ring,gens)',
+            ....:     '    def __getnewargs__(self):',
+            ....:     '        return (self._Ideal_generic__ring,self._Ideal_generic__gens)']
             sage: cython('\n'.join(classdef))
             sage: A = MyClass(P,[a,b])
             sage: A

@@ -1209,7 +1209,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             T[1,2,3,1,2,1]
             sage: T = H.T(prefix="s")
             sage: T.an_element()
-            s[1,2,3,1,2,1] + 2*s[1,2,3,1,2] + 3*s[1,2,3,2,1] + s[1,2,3]
+            2*s[1,2,3,2,1] + 3*s[1,2,3,1] + s[1,2,3] + 1
 
         TESTS::
 
@@ -2295,4 +2295,3 @@ def IwahoriHeckeAlgebraT(W, q1, q2=-1, base_ring=None, prefix="T"):
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.algebras.iwahori_hecke_algebra',
                            'IwahoriHeckeAlgebraT', IwahoriHeckeAlgebraT)
-

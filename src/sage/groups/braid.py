@@ -188,7 +188,7 @@ class Braid(FinitelyPresentedGroupElement):
 
         REFERENCES:
 
-        .. :wikipedia:`Burau_representation`
+        :wikipedia:`Burau_representation`
         """
         R = LaurentPolynomialRing(IntegerRing(), var)
         t = R.gen()
@@ -208,9 +208,9 @@ class Braid(FinitelyPresentedGroupElement):
                     A[-i, -1-i] = t**(-1)
                 M = M * A
         else:
-            M = identity_matrix(R, self.strands()-1)
+            M = identity_matrix(R, self.strands() - 1)
             for j in self.Tietze():
-                A = identity_matrix(R, self.strands()-1)
+                A = identity_matrix(R, self.strands() - 1)
                 if j > 1:
                     i = j-1
                     A[i-1, i-1] = 1-t
@@ -224,30 +224,33 @@ class Braid(FinitelyPresentedGroupElement):
                     A[-1-i, -i] = 1
                     A[-i, -1-i] = t**(-1)
                 if j == 1:
-                    for k in range(self.strands()-1):
+                    for k in range(self.strands() - 1):
                         A[k,0] = -t
                 if j == -1:
                     A[0,0] = -t**(-1)
-                    for k in range(1, self.strands()-1):
+                    for k in range(1, self.strands() - 1):
                         A[k,0] = -1
                 M = M * A
         return M
 
     def alexander_polynomial(self, var='t'):
         """
-        Return the Alexander polynomial of the closure of the braid.
+        Return the (unnormalized) Alexander polynomial of the closure of the braid.
 
         INPUT:
 
         - ``var`` -- string (default: ``'t'``). The name of the
-        variable in the entries of the matrix.
+          variable in the entries of the matrix.
 
         OUTPUT:
 
         The (unnormalized) Alexander polynomial of the braid closure
         of the braid.
 
-        This is computed using the reduced Burau representation.
+        This is computed using the reduced Burau representation. The
+        unnormalized Alexander polynomial is a Laurent polynomial,
+        which is only well-defined up to multiplication by plus or
+        minus times a power of t.
 
         EXAMPLES::
 
@@ -265,14 +268,14 @@ class Braid(FinitelyPresentedGroupElement):
 
         REFERENCES:
 
-        .. :wikipedia:`Burau_representation`
+        :wikipedia:`Alexander_polynomial`
         """
         n = self.strands()
         p = (self.burau_matrix(reduced=True) - identity_matrix(n - 1)).det()
         K, t = LaurentPolynomialRing(IntegerRing(), var).objgen()
         if p == 0:
             return K.zero()
-        qn = sum(t**i for i in range(n))
+        qn = sum(t ** i for i in range(n))
         return p // qn
 
     def permutation(self):

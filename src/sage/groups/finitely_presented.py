@@ -564,7 +564,7 @@ class RewritingSystem(object):
             sage: G=F/[a*a,b*b]
             sage: k=G.rewriting_system()
             sage: k.gap()
-            Knuth Bendix Rewriting System for Monoid( [ a, A, b, B ], ... ) with rules
+            Knuth Bendix Rewriting System for Monoid( [ a, A, b, B ] ) with rules
             [ [ a^2, <identity ...> ], [ a*A, <identity ...> ],
               [ A*a, <identity ...> ], [ b^2, <identity ...> ],
               [ b*B, <identity ...> ], [ B*b, <identity ...> ] ]
@@ -1215,19 +1215,11 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
         You can turn off the checks for the validity of the input morphisms.
         This check is expensive but behavior is unpredictable if inputs are
-        invalid and are not caught by these tests. Due to a failure in GAP
-        to list elements of an automorphism group in some cases, this check
-        may cause the method to timeout or raise a GAP error. For example,
-        if ``H`` is the cyclic group of order 6, then ``semidirect_product``
-        appears to fall into an infinite loop due to this failure.::
+        invalid and are not caught by these tests::
 
             sage: C5 = groups.presentation.Cyclic(5)
             sage: C12 = groups.presentation.Cyclic(12)
             sage: hom = (C5.gens(), [(C12.gens(), C12.gens())])
-            sage: C5.semidirect_product(C12, hom)
-            Traceback (most recent call last):
-            ...
-            ValueError: libGAP: Error, <elm> is not contained in the source group
             sage: sp = C5.semidirect_product(C12, hom, check=False); sp
             Finitely presented group < a, b, c, d |
              a^5, b^-1*a^-1*b*a, c^-1*a^-1*c*a, d^-1*a^-1*d*a, b^2*d^-1,
@@ -1235,7 +1227,14 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: sp.as_permutation_group().is_cyclic(), sp.order()
             (True, 60)
 
-        TESTS::
+        TESTS:
+
+        The following was fixed in Gap-4.7.2::
+
+            sage: C5.semidirect_product(C12, hom) == sp
+            True
+
+        A more complicated semidirect product::
 
             sage: C = groups.presentation.Cyclic(7)
             sage: D = groups.presentation.Dihedral(5)

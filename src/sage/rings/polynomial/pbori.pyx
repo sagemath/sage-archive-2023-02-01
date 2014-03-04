@@ -2358,7 +2358,7 @@ cdef class BooleanMonomial(MonoidElement):
             sage: {m:1} #indirect doctest
             {x*y: 1}
         """
-        return self._pbmonom.stableHash()
+        return <Py_ssize_t>(self._pbmonom.stableHash())
 
     def stable_hash(self):
         """
@@ -2377,7 +2377,7 @@ cdef class BooleanMonomial(MonoidElement):
            This function is part of the upstream PolyBoRi
            interface. In Sage all hashes are stable.
         """
-        return self._pbmonom.stableHash()
+        return <Py_ssize_t>(self._pbmonom.stableHash())
 
     def ring(self):
         """
@@ -3954,7 +3954,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: {x:1} # indirect doctest
             {x: 1}
         """
-        return self._pbpoly.stableHash()
+        return <Py_ssize_t>(self._pbpoly.stableHash())
 
     def __len__(self):
         r"""
@@ -4664,7 +4664,7 @@ cdef class BooleanPolynomial(MPolynomial):
            This function is part of the upstream PolyBoRi
            interface. In Sage all hashes are stable.
         """
-        return self._pbpoly.stableHash()
+        return <Py_ssize_t>(self._pbpoly.stableHash())
 
     def ring(self):
         """
@@ -5677,7 +5677,7 @@ cdef class BooleSet:
             sage: {s:1}
             {{{x1,x2}, {x2,x3}}: 1}
         """
-        return self._pbset.stableHash()
+        return <Py_ssize_t>(self._pbset.stableHash())
 
     def __mod__(self, BooleSet vs):
         """
@@ -5748,7 +5748,7 @@ cdef class BooleSet:
            This function is part of the upstream PolyBoRi
            interface. In Sage all hashes are stable.
         """
-        return self._pbset.stableHash()
+        return <Py_ssize_t>(self._pbset.stableHash())
 
     def divide(self, BooleanMonomial rhs):
         """

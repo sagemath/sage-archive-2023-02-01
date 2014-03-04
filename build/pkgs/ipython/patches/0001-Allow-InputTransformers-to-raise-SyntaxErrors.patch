@@ -1,0 +1,673 @@
+From 23df1eb24e9d217788dd89f19b4f1c49d8ce9adf Mon Sep 17 00:00:00 2001
+From: Volker Braun <vbraun.name@gmail.com>
+Date: Wed, 21 Aug 2013 22:03:39 +0100
+Subject: [PATCH] Allow InputTransformers to raise SyntaxErrors.
+
+---
+ IPython/core/inputsplitter.py                      |  33 ++-
+ IPython/core/inputtransformer.py                   |   3 +
+ IPython/core/interactiveshell.py                   | 308 +++++++++++----------
+ IPython/core/tests/test_inputsplitter.py           |  23 +-
+ IPython/core/tests/test_interactiveshell.py        | 160 +++++++----
+ IPython/qt/console/frontend_widget.py              |   5 +-
+ IPython/sphinxext/ipython_directive.py             |   2 +-
+ IPython/terminal/console/interactiveshell.py       |  13 +-
+ IPython/terminal/interactiveshell.py               |  13 +-
+ IPython/terminal/tests/test_interactivshell.py     |  92 ++++++
+ IPython/utils/io.py                                |   5 +
+ docs/source/config/inputtransforms.rst             |   8 +
+ .../pr/incompat-inputsplitter-source-raw-reset.rst |   6 +
+ .../whatsnew/pr/inputtransformer-syntaxerrors.rst  |   4 +
+ 14 files changed, 435 insertions(+), 240 deletions(-)
+ create mode 100644 docs/source/whatsnew/pr/incompat-inputsplitter-source-raw-reset.rst
+ create mode 100644 docs/source/whatsnew/pr/inputtransformer-syntaxerrors.rst
+
+diff --git a/IPython/core/inputsplitter.py b/IPython/core/inputsplitter.py
+index 97c199d..6885490 100644
+--- a/IPython/core/inputsplitter.py
++++ b/IPython/core/inputsplitter.py
+@@ -535,8 +535,14 @@ def reset(self):
+         self.source_raw = ''
+         self.transformer_accumulating = False
+         self.within_python_line = False
++
+         for t in self.transforms:
+-            t.reset()
++            try:
++                t.reset()
++            except SyntaxError:
++                # Nothing that calls reset() expects to handle transformer
++                # errors
++                pass
+     
+     def flush_transformers(self):
+         def _flush(transform, out):
+@@ -553,18 +559,19 @@ def _flush(transform, out):
+         if out is not None:
+             self._store(out)
+ 
+-    def source_raw_reset(self):
+-        """Return input and raw source and perform a full reset.
++    def raw_reset(self):
++        """Return raw input only and perform a full reset.
+         """
+-        self.flush_transformers()
+-        out = self.source
+-        out_r = self.source_raw
++        out = self.source_raw
+         self.reset()
+-        return out, out_r
++        return out
+     
+     def source_reset(self):
+-        self.flush_transformers()
+-        return super(IPythonInputSplitter, self).source_reset()
++        try:
++            self.flush_transformers()
++            return self.source
++        finally:
++            self.reset()
+ 
+     def push_accepts_more(self):
+         if self.transformer_accumulating:
+@@ -576,8 +583,12 @@ def transform_cell(self, cell):
+         """Process and translate a cell of input.
+         """
+         self.reset()
+-        self.push(cell)
+-        return self.source_reset()
++        try:
++            self.push(cell)
++            self.flush_transformers()
++            return self.source
++        finally:
++            self.reset()
+ 
+     def push(self, lines):
+         """Push one or more lines of IPython input.
+diff --git a/IPython/core/inputtransformer.py b/IPython/core/inputtransformer.py
+index 83edf48..eef71a4 100644
+--- a/IPython/core/inputtransformer.py
++++ b/IPython/core/inputtransformer.py
+@@ -43,6 +43,9 @@ def push(self, line):
+         input or None if the transformer is waiting for more input.
+         
+         Must be overridden by subclasses.
++
++        Implementations may raise ``SyntaxError`` if the input is invalid. No
++        other exceptions may be raised.
+         """
+         pass
+     
+diff --git a/IPython/core/interactiveshell.py b/IPython/core/interactiveshell.py
+index 2f96ac6..daa9a3c 100644
+--- a/IPython/core/interactiveshell.py
++++ b/IPython/core/interactiveshell.py
+@@ -2600,12 +2600,46 @@ def run_cell(self, raw_cell, store_history=False, silent=False, shell_futures=Tr
+         """
+         if (not raw_cell) or raw_cell.isspace():
+             return
+-        
++
+         if silent:
+             store_history = False
+ 
+-        self.input_transformer_manager.push(raw_cell)
+-        cell = self.input_transformer_manager.source_reset()
++        # If any of our input transformation (input_transformer_manager or
++        # prefilter_manager) raises an exception, we store it in this variable
++        # so that we can display the error after logging the input and storing
++        # it in the history.
++        preprocessing_exc_tuple = None
++        try:
++            # Static input transformations
++            cell = self.input_transformer_manager.transform_cell(raw_cell)
++        except SyntaxError:
++            preprocessing_exc_tuple = sys.exc_info()
++            cell = raw_cell  # cell has to exist so it can be stored/logged
++        else:
++            if len(cell.splitlines()) == 1:
++                # Dynamic transformations - only applied for single line commands
++                with self.builtin_trap:
++                    try:
++                        # use prefilter_lines to handle trailing newlines
++                        # restore trailing newline for ast.parse
++                        cell = self.prefilter_manager.prefilter_lines(cell) + '\n'
++                    except Exception:
++                        # don't allow prefilter errors to crash IPython
++                        preprocessing_exc_tuple = sys.exc_info()
++
++        # Store raw and processed history
++        if store_history:
++            self.history_manager.store_inputs(self.execution_count,
++                                              cell, raw_cell)
++        if not silent:
++            self.logger.log(cell, raw_cell)
++
++        # Display the exception if input processing failed.
++        if preprocessing_exc_tuple is not None:
++            self.showtraceback(preprocessing_exc_tuple)
++            if store_history:
++                self.execution_count += 1
++            return
+ 
+         # Our own compiler remembers the __future__ environment. If we want to
+         # run code with a separate __future__ environment, use the default
+@@ -2613,73 +2647,53 @@ def run_cell(self, raw_cell, store_history=False, silent=False, shell_futures=Tr
+         compiler = self.compile if shell_futures else CachingCompiler()
+ 
+         with self.builtin_trap:
+-            prefilter_failed = False
+-            if len(cell.splitlines()) == 1:
+-                try:
+-                    # use prefilter_lines to handle trailing newlines
+-                    # restore trailing newline for ast.parse
+-                    cell = self.prefilter_manager.prefilter_lines(cell) + '\n'
+-                except AliasError as e:
+-                    error(e)
+-                    prefilter_failed = True
+-                except Exception:
+-                    # don't allow prefilter errors to crash IPython
+-                    self.showtraceback()
+-                    prefilter_failed = True
+-
+-            # Store raw and processed history
+-            if store_history:
+-                self.history_manager.store_inputs(self.execution_count,
+-                                                  cell, raw_cell)
+-            if not silent:
+-                self.logger.log(cell, raw_cell)
+-
+-            if not prefilter_failed:
+-                # don't run if prefilter failed
+-                cell_name = self.compile.cache(cell, self.execution_count)
++            cell_name = self.compile.cache(cell, self.execution_count)
+ 
+-                with self.display_trap:
++            with self.display_trap:
++                # Compile to bytecode
++                try:
++                    code_ast = compiler.ast_parse(cell, filename=cell_name)
++                except IndentationError:
++                    self.showindentationerror()
++                    if store_history:
++                        self.execution_count += 1
++                    return None
++                except (OverflowError, SyntaxError, ValueError, TypeError,
++                        MemoryError):
++                    self.showsyntaxerror()
++                    if store_history:
++                        self.execution_count += 1
++                    return None
++
++                # Apply AST transformations
++                code_ast = self.transform_ast(code_ast)
++
++                # Execute the user code
++                interactivity = "none" if silent else self.ast_node_interactivity
++                self.run_ast_nodes(code_ast.body, cell_name,
++                                   interactivity=interactivity, compiler=compiler)
++
++                # Execute any registered post-execution functions.
++                # unless we are silent
++                post_exec = [] if silent else self._post_execute.iteritems()
++
++                for func, status in post_exec:
++                    if self.disable_failing_post_execute and not status:
++                        continue
+                     try:
+-                        code_ast = compiler.ast_parse(cell, filename=cell_name)
+-                    except IndentationError:
+-                        self.showindentationerror()
+-                        if store_history:
+-                            self.execution_count += 1
+-                        return None
+-                    except (OverflowError, SyntaxError, ValueError, TypeError,
+-                            MemoryError):
+-                        self.showsyntaxerror()
+-                        if store_history:
+-                            self.execution_count += 1
+-                        return None
+-                    
+-                    code_ast = self.transform_ast(code_ast)
+-                    
+-                    interactivity = "none" if silent else self.ast_node_interactivity
+-                    self.run_ast_nodes(code_ast.body, cell_name,
+-                                       interactivity=interactivity, compiler=compiler)
+-                    
+-                    # Execute any registered post-execution functions.
+-                    # unless we are silent
+-                    post_exec = [] if silent else self._post_execute.iteritems()
+-                    
+-                    for func, status in post_exec:
+-                        if self.disable_failing_post_execute and not status:
+-                            continue
+-                        try:
+-                            func()
+-                        except KeyboardInterrupt:
+-                            print("\nKeyboardInterrupt", file=io.stderr)
+-                        except Exception:
+-                            # register as failing:
+-                            self._post_execute[func] = False
+-                            self.showtraceback()
+-                            print('\n'.join([
+-                                "post-execution function %r produced an error." % func,
+-                                "If this problem persists, you can disable failing post-exec functions with:",
+-                                "",
+-                                "    get_ipython().disable_failing_post_execute = True"
+-                            ]), file=io.stderr)
++                        func()
++                    except KeyboardInterrupt:
++                        print("\nKeyboardInterrupt", file=io.stderr)
++                    except Exception:
++                        # register as failing:
++                        self._post_execute[func] = False
++                        self.showtraceback()
++                        print('\n'.join([
++                            "post-execution function %r produced an error." % func,
++                            "If this problem persists, you can disable failing post-exec functions with:",
++                            "",
++                            "    get_ipython().disable_failing_post_execute = True"
++                        ]), file=io.stderr)
+ 
+         if store_history:
+             # Write output to the database. Does nothing unless
+diff --git a/IPython/core/tests/test_inputsplitter.py b/IPython/core/tests/test_inputsplitter.py
+index 9508979..196384d 100644
+--- a/IPython/core/tests/test_inputsplitter.py
++++ b/IPython/core/tests/test_inputsplitter.py
+@@ -410,7 +410,8 @@ def test_syntax(self):
+                     continue
+ 
+                 isp.push(raw+'\n')
+-                out, out_raw = isp.source_raw_reset()
++                out_raw = isp.source_raw
++                out = isp.source_reset()
+                 self.assertEqual(out.rstrip(), out_t,
+                         tt.pair_fail_msg.format("inputsplitter",raw, out_t, out))
+                 self.assertEqual(out_raw.rstrip(), raw.rstrip())
+@@ -424,12 +425,13 @@ def test_syntax_multiline(self):
+                 for lraw, out_t_part in line_pairs:
+                     if out_t_part is not None:
+                         out_t_parts.append(out_t_part)
+-                    
++
+                     if lraw is not None:
+                         isp.push(lraw)
+                         raw_parts.append(lraw)
+ 
+-                out, out_raw = isp.source_raw_reset()
++                out_raw = isp.source_raw
++                out = isp.source_reset()
+                 out_t = '\n'.join(out_t_parts).rstrip()
+                 raw = '\n'.join(raw_parts).rstrip()
+                 self.assertEqual(out.rstrip(), out_t)
+@@ -496,7 +498,8 @@ def test_cellmagic_preempt(self):
+             # Here we just return input so we can use it in a test suite, but a
+             # real interpreter would instead send it for execution somewhere.
+             #src = isp.source; raise EOFError # dbg
+-            src, raw = isp.source_raw_reset()
++            raw = isp.source_raw
++            src = isp.source_reset()
+             print 'Input source was:\n', src
+             print 'Raw source was:\n', raw
+     except EOFError:
+@@ -543,12 +546,10 @@ class CellMagicsCommon(object):
+ 
+     def test_whole_cell(self):
+         src = "%%cellm line\nbody\n"
+-        sp = self.sp
+-        sp.push(src)
+-        out = sp.source_reset()
++        out = self.sp.transform_cell(src)
+         ref = u"get_ipython().run_cell_magic({u}'cellm', {u}'line', {u}'body')\n"
+         nt.assert_equal(out, py3compat.u_format(ref))
+-    
++
+     def test_cellmagic_help(self):
+         self.sp.push('%%cellm?')
+         nt.assert_false(self.sp.push_accepts_more())
+diff --git a/IPython/core/tests/test_interactiveshell.py b/IPython/core/tests/test_interactiveshell.py
+index 5176bd1..9e8a000 100644
+--- a/IPython/core/tests/test_interactiveshell.py
++++ b/IPython/core/tests/test_interactiveshell.py
+@@ -33,6 +33,7 @@
+ import nose.tools as nt
+ 
+ # Our own
++from IPython.core.inputtransformer import InputTransformer
+ from IPython.testing.decorators import skipif, onlyif_unicode_paths
+ from IPython.testing import tools as tt
+ from IPython.utils import io
+@@ -637,16 +638,53 @@ def test_user_expression():
+     data = a['data']
+     metadata = a['metadata']
+     nt.assert_equal(data.get('text/plain'), '3')
+-    
++
+     b = r['b']
+     nt.assert_equal(b['status'], 'error')
+     nt.assert_equal(b['ename'], 'ZeroDivisionError')
+-    
++
+     # back to text only
+     ip.display_formatter.active_types = ['text/plain']
+-    
+ 
+ 
+ 
+ 
+ 
++class TestSyntaxErrorTransformer(unittest.TestCase):
++    """Check that SyntaxError raised by an input transformer is handled by run_cell()"""
++
++    class SyntaxErrorTransformer(InputTransformer):
++
++        def push(self, line):
++            pos = line.find('syntaxerror')
++            if pos >= 0:
++                e = SyntaxError('input contains "syntaxerror"')
++                e.text = line
++                e.offset = pos + 1
++                raise e
++            return line
++
++        def reset(self):
++            pass
++
++    def setUp(self):
++        self.transformer = TestSyntaxErrorTransformer.SyntaxErrorTransformer()
++        ip.input_splitter.python_line_transforms.append(self.transformer)
++        ip.input_transformer_manager.python_line_transforms.append(self.transformer)
++
++    def tearDown(self):
++        ip.input_splitter.python_line_transforms.remove(self.transformer)
++        ip.input_transformer_manager.python_line_transforms.remove(self.transformer)
++
++    def test_syntaxerror_input_transformer(self):
++        with tt.AssertPrints('1234'):
++            ip.run_cell('1234')
++        with tt.AssertPrints('SyntaxError: invalid syntax'):
++            ip.run_cell('1 2 3')   # plain python syntax error
++        with tt.AssertPrints('SyntaxError: input contains "syntaxerror"'):
++            ip.run_cell('2345  # syntaxerror')  # input transformer syntax error
++        with tt.AssertPrints('3456'):
++            ip.run_cell('3456')
++
++
++
+diff --git a/IPython/qt/console/frontend_widget.py b/IPython/qt/console/frontend_widget.py
+index 524cf76..0dc598b 100644
+--- a/IPython/qt/console/frontend_widget.py
++++ b/IPython/qt/console/frontend_widget.py
+@@ -205,7 +205,10 @@ def _is_complete(self, source, interactive):
+             'interactive' is True; otherwise, it is False.
+         """
+         self._input_splitter.reset()
+-        complete = self._input_splitter.push(source)
++        try:
++            complete = self._input_splitter.push(source)
++        except SyntaxError:
++            return True
+         if interactive:
+             complete = not self._input_splitter.push_accepts_more()
+         return complete
+diff --git a/IPython/sphinxext/ipython_directive.py b/IPython/sphinxext/ipython_directive.py
+index c253448..7105603 100644
+--- a/IPython/sphinxext/ipython_directive.py
++++ b/IPython/sphinxext/ipython_directive.py
+@@ -252,7 +252,7 @@ def process_input_line(self, line, store_history=True):
+             splitter.push(line)
+             more = splitter.push_accepts_more()
+             if not more:
+-                source_raw = splitter.source_raw_reset()[1]
++                source_raw = splitter.raw_reset()
+                 self.IP.run_cell(source_raw, store_history=store_history)
+         finally:
+             sys.stdout = stdout
+diff --git a/IPython/terminal/console/interactiveshell.py b/IPython/terminal/console/interactiveshell.py
+index bd135cf..286dc6d 100644
+--- a/IPython/terminal/console/interactiveshell.py
++++ b/IPython/terminal/console/interactiveshell.py
+@@ -456,7 +456,7 @@ def interact(self, display_banner=None):
+                 #double-guard against keyboardinterrupts during kbdint handling
+                 try:
+                     self.write('\nKeyboardInterrupt\n')
+-                    source_raw = self.input_splitter.source_raw_reset()[1]
++                    source_raw = self.input_splitter.raw_reset()
+                     hlen_b4_cell = self._replace_rlhist_multiline(source_raw, hlen_b4_cell)
+                     more = False
+                 except KeyboardInterrupt:
+@@ -478,13 +478,18 @@ def interact(self, display_banner=None):
+                 # asynchronously by signal handlers, for example.
+                 self.showtraceback()
+             else:
+-                self.input_splitter.push(line)
+-                more = self.input_splitter.push_accepts_more()
++                try:
++                    self.input_splitter.push(line)
++                    more = self.input_splitter.push_accepts_more()
++                except SyntaxError:
++                    # Run the code directly - run_cell takes care of displaying
++                    # the exception.
++                    more = False
+                 if (self.SyntaxTB.last_syntax_error and
+                     self.autoedit_syntax):
+                     self.edit_syntax_error()
+                 if not more:
+-                    source_raw = self.input_splitter.source_raw_reset()[1]
++                    source_raw = self.input_splitter.raw_reset()
+                     hlen_b4_cell = self._replace_rlhist_multiline(source_raw, hlen_b4_cell)
+                     self.run_cell(source_raw)
+                 
+diff --git a/IPython/terminal/interactiveshell.py b/IPython/terminal/interactiveshell.py
+index 32a6c17..cd00e68 100644
+--- a/IPython/terminal/interactiveshell.py
++++ b/IPython/terminal/interactiveshell.py
+@@ -522,7 +522,7 @@ def interact(self, display_banner=None):
+                 #double-guard against keyboardinterrupts during kbdint handling
+                 try:
+                     self.write('\nKeyboardInterrupt\n')
+-                    source_raw = self.input_splitter.source_raw_reset()[1]
++                    source_raw = self.input_splitter.raw_reset()
+                     hlen_b4_cell = \
+                         self._replace_rlhist_multiline(source_raw, hlen_b4_cell)
+                     more = False
+@@ -545,13 +545,18 @@ def interact(self, display_banner=None):
+                 # asynchronously by signal handlers, for example.
+                 self.showtraceback()
+             else:
+-                self.input_splitter.push(line)
+-                more = self.input_splitter.push_accepts_more()
++                try:
++                    self.input_splitter.push(line)
++                    more = self.input_splitter.push_accepts_more()
++                except SyntaxError:
++                    # Run the code directly - run_cell takes care of displaying
++                    # the exception.
++                    more = False
+                 if (self.SyntaxTB.last_syntax_error and
+                     self.autoedit_syntax):
+                     self.edit_syntax_error()
+                 if not more:
+-                    source_raw = self.input_splitter.source_raw_reset()[1]
++                    source_raw = self.input_splitter.raw_reset()
+                     self.run_cell(source_raw, store_history=True)
+                     hlen_b4_cell = \
+                         self._replace_rlhist_multiline(source_raw, hlen_b4_cell)
+diff --git a/IPython/terminal/tests/test_interactivshell.py b/IPython/terminal/tests/test_interactivshell.py
+index 6ab4acb..9437aff 100644
+--- a/IPython/terminal/tests/test_interactivshell.py
++++ b/IPython/terminal/tests/test_interactivshell.py
+@@ -17,12 +17,68 @@
+ #-----------------------------------------------------------------------------
+ # stdlib
+ import sys
++import types
+ import unittest
+ 
++from IPython.core.inputtransformer import InputTransformer
+ from IPython.testing.decorators import skipif
+ from IPython.utils import py3compat
+ from IPython.testing import tools as tt
+ 
++# Decorator for interaction loop tests -----------------------------------------
++
++class mock_input_helper(object):
++    """Machinery for tests of the main interact loop.
++
++    Used by the mock_input decorator.
++    """
++    def __init__(self, testgen):
++        self.testgen = testgen
++        self.exception = None
++        self.ip = get_ipython()
++
++    def __enter__(self):
++        self.orig_raw_input = self.ip.raw_input
++        self.ip.raw_input = self.fake_input
++        return self
++
++    def __exit__(self, etype, value, tb):
++        self.ip.raw_input = self.orig_raw_input
++
++    def fake_input(self, prompt):
++        try:
++            return next(self.testgen)
++        except StopIteration:
++            self.ip.exit_now = True
++            return u''
++        except:
++            self.exception = sys.exc_info()
++            self.ip.exit_now = True
++            return u''
++
++def mock_input(testfunc):
++    """Decorator for tests of the main interact loop.
++
++    Write the test as a generator, yield-ing the input strings, which IPython
++    will see as if they were typed in at the prompt.
++    """
++    def test_method(self):
++        testgen = testfunc(self)
++        with mock_input_helper(testgen) as mih:
++            mih.ip.interact(display_banner=False)
++
++        if mih.exception is not None:
++            # Re-raise captured exception
++            etype, value, tb = mih.exception
++            import traceback
++            traceback.print_tb(tb, file=sys.stdout)
++            del tb  # Avoid reference loop
++            raise value
++
++    return test_method
++
++# Test classes -----------------------------------------------------------------
++
+ class InteractiveShellTestCase(unittest.TestCase):
+     def rl_hist_entries(self, rl, n):
+         """Get last n readline history entries as a list"""
+@@ -171,6 +227,42 @@ def test_replace_multiline_hist_replaces_empty_line(self):
+         expected = [ py3compat.unicode_to_str(e, enc) for e in expected ]
+         self.assertEqual(hist, expected)
+     
++    @mock_input
++    def test_inputtransformer_syntaxerror(self):
++        ip = get_ipython()
++        transformer = SyntaxErrorTransformer()
++        ip.input_splitter.python_line_transforms.append(transformer)
++        ip.input_transformer_manager.python_line_transforms.append(transformer)
++
++        try:
++            #raise Exception
++            with tt.AssertPrints('4', suppress=False):
++                yield u'print(2*2)'
++
++            with tt.AssertPrints('SyntaxError: input contains', suppress=False):
++                yield u'print(2345) # syntaxerror'
++
++            with tt.AssertPrints('16', suppress=False):
++                yield u'print(4*4)'
++
++        finally:
++            ip.input_splitter.python_line_transforms.remove(transformer)
++            ip.input_transformer_manager.python_line_transforms.remove(transformer)
++
++
++class SyntaxErrorTransformer(InputTransformer):
++    def push(self, line):
++        pos = line.find('syntaxerror')
++        if pos >= 0:
++            e = SyntaxError('input contains "syntaxerror"')
++            e.text = line
++            e.offset = pos + 1
++            raise e
++        return line
++
++    def reset(self):
++        pass
++
+ class TerminalMagicsTestCase(unittest.TestCase):
+     def test_paste_magics_message(self):
+         """Test that an IndentationError while using paste magics doesn't
+diff --git a/IPython/utils/io.py b/IPython/utils/io.py
+index 5cd2228..c86d2ae 100644
+--- a/IPython/utils/io.py
++++ b/IPython/utils/io.py
+@@ -43,6 +43,11 @@ def clone(meth):
+         for meth in filter(clone, dir(stream)):
+             setattr(self, meth, getattr(stream, meth))
+ 
++    def __repr__(self):
++        cls = self.__class__
++        tpl = '{mod}.{cls}({args})'
++        return tpl.format(mod=cls.__module__, cls=cls.__name__, args=self.stream)
++
+     def write(self,data):
+         try:
+             self._swrite(data)
+diff --git a/docs/source/config/inputtransforms.rst b/docs/source/config/inputtransforms.rst
+index a28c13d..1f9347f 100644
+--- a/docs/source/config/inputtransforms.rst
++++ b/docs/source/config/inputtransforms.rst
+@@ -43,6 +43,14 @@ to tell when a block of input is complete, and
+ to transform complete cells. If you add a transformer, you should make sure that
+ it gets added to both.
+ 
++These transformers may raise :exc:`SyntaxError` if the input code is invalid, but
++in most cases it is clearer to pass unrecognised code through unmodified and let
++Python's own parser decide whether it is valid.
++
++.. versionchanged:: 2.0
++
++   Added the option to raise :exc:`SyntaxError`.
++
+ Stateless transformations
+ -------------------------
+ 
+diff --git a/docs/source/whatsnew/pr/incompat-inputsplitter-source-raw-reset.rst b/docs/source/whatsnew/pr/incompat-inputsplitter-source-raw-reset.rst
+new file mode 100644
+index 0000000..7e9056f
+--- /dev/null
++++ b/docs/source/whatsnew/pr/incompat-inputsplitter-source-raw-reset.rst
+@@ -0,0 +1,6 @@
++* :class:`IPython.core.inputsplitter.IPythonInputSplitter` no longer has a method
++  ``source_raw_reset()``, but gains :meth:`~IPython.core.inputsplitter.IPythonInputSplitter.raw_reset`
++  instead. Use of ``source_raw_reset`` can be replaced with::
++  
++      raw = isp.source_raw
++      transformed = isp.source_reset()
+diff --git a/docs/source/whatsnew/pr/inputtransformer-syntaxerrors.rst b/docs/source/whatsnew/pr/inputtransformer-syntaxerrors.rst
+new file mode 100644
+index 0000000..74d3594
+--- /dev/null
++++ b/docs/source/whatsnew/pr/inputtransformer-syntaxerrors.rst
+@@ -0,0 +1,4 @@
++* Input transformers (see :doc:`/config/inputtransforms`) may now raise
++  :exc:`SyntaxError` if they determine that input is invalid. The input
++  transformation machinery in IPython will handle displaying the exception to
++  the user and resetting state.
+-- 
+1.8.5.3
+

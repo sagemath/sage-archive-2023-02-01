@@ -251,6 +251,7 @@ def SagePreparseTransformer(line):
     Check that syntax errors in the preparser do not crash IPython,
     see :trac:`14961`. ::
 
+        sage: preparser(True)
         sage: bad_syntax = "R.<t> = QQ{]"
         sage: preparse(bad_syntax)
         Traceback (most recent call last):
@@ -259,9 +260,9 @@ def SagePreparseTransformer(line):
         sage: from sage.misc.interpreter import get_test_shell
         sage: shell = get_test_shell()
         sage: shell.run_cell(bad_syntax)
-        Traceback (most recent call last):
-        ...
+          File "<string>", line unknown
         SyntaxError: Mismatched ']'
+        <BLANKLINE>
     """
     if do_preparse and not line.startswith('%'):
         l = preparse(line)

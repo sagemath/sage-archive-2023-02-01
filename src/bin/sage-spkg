@@ -665,6 +665,14 @@ echo "****************************************************"
 rm -f "$SAGE_SPKG_INST/$PKG_BASE-"*
 
 ##################################################################
+# Poison the proxy variable to forbid downloads in spkg-install
+##################################################################
+export http_proxy=http://192.0.2.0:5187/
+export https_proxy=$http_proxy
+export ftp_proxy=$http_proxy
+export rsync_proxy=$http_proxy
+
+##################################################################
 # Actually install
 ##################################################################
 if [ ! -x spkg-install ]; then

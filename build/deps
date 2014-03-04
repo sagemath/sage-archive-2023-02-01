@@ -81,6 +81,8 @@ all-sage: \
      $(INST)/$(PARI) \
      $(INST)/$(PEXPECT) \
      $(INST)/$(PILLOW) \
+     $(INST)/$(PKGCONF) \
+     $(INST)/$(PKGCONFIG) \
      $(INST)/$(POLYBORI) \
      $(INST)/$(POLYTOPES_DB) \
      $(INST)/$(PPL) \
@@ -501,6 +503,12 @@ $(INST)/$(GCC): $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(MPC) \
 $(INST)/$(PILLOW): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(PILLOW) 2>&1" "tee -a $(SAGE_LOGS)/$(PILLOW).log"
 
+$(INST)/$(PKGCONF): 
+	+$(PIPE) "$(SAGE_SPKG) $(PKGCONF) 2>&1" "tee -a $(SAGE_LOGS)/$(PKGCONF).log"
+
+$(INST)/$(PKGCONFIG): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
+	+$(PIPE) "$(SAGE_SPKG) $(PKGCONFIG) 2>&1" "tee -a $(SAGE_LOGS)/$(PKGCONFIG).log"
+
 $(INST)/$(NUMPY): $(INST)/$(PYTHON) $(INST)/$(ATLAS)
 	+$(PIPE) "$(SAGE_SPKG) $(NUMPY) 2>&1" "tee -a $(SAGE_LOGS)/$(NUMPY).log"
 
@@ -521,6 +529,7 @@ $(INST)/$(CEPHES):
 # setuptools forgets to update easy-install.pth during parallel
 # builds, so we build the relevant packages serially.
 
+$(INST)/$(PILLOW): $(INST)/$(PKGCONFIG)
 $(INST)/$(SQLALCHEMY): $(INST)/$(PILLOW)
 $(INST)/$(PYGMENTS): $(INST)/$(SQLALCHEMY)
 $(INST)/$(JINJA2): $(INST)/$(PYGMENTS)

@@ -88,6 +88,8 @@ pari                        GPLv2+
 patch                       GPLv2+
 pexpect                     Python License
 pil                         Similar to MIT and modified BSD (see below)
+pkgconf                     ISC License (equivalent to Simplified BSD)
+pkgconfig                   MIT License
 polybori                    GPLv2+
 polytopes_db                None (database)
 ppl                         GPLv3+

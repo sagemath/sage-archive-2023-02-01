@@ -5748,6 +5748,10 @@ cdef class Expression(CommutativeRingElement):
         This function does not perform a full factorization but only
         looks for factors which are already explicitly present.
 
+        Polynomials can often be brought into a more compact form by
+        collecting common factors from the terms of sums. This is
+        accomplished by this function.
+
         EXAMPLES::
 
             sage: var('x')
@@ -5756,6 +5760,7 @@ cdef class Expression(CommutativeRingElement):
             1/(x + 1)
 
             sage: var('a,b,c,x,y')
+            (a, b, c, x, y)
             sage: (a*x+a*y).collect_common_factors()
             a*(x + y)
             sage: (a*x^2+2*a*x*y+a*y^2).collect_common_factors()

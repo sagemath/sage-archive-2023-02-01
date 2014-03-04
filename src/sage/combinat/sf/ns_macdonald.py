@@ -5,7 +5,8 @@ from sage.combinat.combinat import CombinatorialObject, CombinatorialClass
 from sage.combinat.words.word import Word
 from sage.combinat.combination import Combinations
 from sage.combinat.permutation import Permutation
-from sage.rings.all import QQ, PolynomialRing, prod
+from sage.rings.all import QQ, PolynomialRing
+from sage.misc.misc import prod
 from sage.combinat.backtrack import GenericBacktracker
 import copy
 

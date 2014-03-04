@@ -6,7 +6,7 @@ from sage.symbolic.expression import Expression
 from sage.symbolic.pynac import register_symbol, symbol_table
 from sage.symbolic.pynac import py_factorial_py
 from sage.symbolic.all import SR
-from sage.rings.all import Integer, Rational, RealField, RR, ComplexField
+from sage.rings.all import Integer, Rational, RealField, RR, ZZ, ComplexField
 from sage.rings.complex_number import is_ComplexNumber
 from sage.misc.latex import latex
 import math
@@ -1424,8 +1424,7 @@ class Function_binomial(GinacFunction):
             sage: binomial(k,i)
             binomial(k, i)
 
-        We can use a ``hold`` parameter to prevent automatic evaluation,
-        but only using method notation::
+        We can use a ``hold`` parameter to prevent automatic evaluation::
 
             sage: SR(5).binomial(3, hold=True)
             binomial(5, 3)
@@ -1442,7 +1441,7 @@ class Function_binomial(GinacFunction):
             binomial(n,k)
             sage: _.sage()
             binomial(n, k)
-            sage: sage.functions.other.binomial._maxima_init_() # temporary workaround until we can get symbolic binomial to import in global namespace, if that's desired
+            sage: binomial._maxima_init_()
             'binomial'
 
         Test pickling::
@@ -1452,6 +1451,91 @@ class Function_binomial(GinacFunction):
         """
         GinacFunction.__init__(self, "binomial", nargs=2,
                 conversions=dict(maxima='binomial', mathematica='Binomial'))
+
+    def _binomial_sym(self, n, k):
+        """
+        Expand the binomial formula symbolically when the second argument
+        is an integer.
+
+        EXAMPLES::
+
+            sage: binomial._binomial_sym(x, 3)
+            1/6*(x - 1)*(x - 2)*x
+            sage: binomial._binomial_sym(x, x)
+            Traceback (most recent call last):
+            ...
+            ValueError: second argument must be an integer
+            sage: binomial._binomial_sym(x, SR(3))
+            1/6*(x - 1)*(x - 2)*x
+
+           sage: binomial._binomial_sym(x, 0r)
+           1
+           sage: binomial._binomial_sym(x, -1)
+           0
+        """
+        if isinstance(k, Expression):
+            if k.is_integer():
+                k = k.pyobject()
+            else:
+                raise ValueError("second argument must be an integer")
+
+        if k < 0:
+            return s_parent(k)(0)
+        if k == 0:
+            return s_parent(k)(1)
+        if k == 1:
+            return n
+
+        from sage.misc.misc import prod
+        return prod([n-i for i in xrange(k)])/factorial(k)
+
+    def _eval_(self, n, k):
+        """
+        EXAMPLES::
+
+            sage: binomial._eval_(5, 3)
+            10
+            sage: type(binomial._eval_(5, 3))
+            <type 'sage.rings.integer.Integer'>
+            sage: type(binomial._eval_(5., 3))
+            <type 'sage.rings.real_mpfr.RealNumber'>
+            sage: binomial._eval_(x, 3)
+            1/6*(x - 1)*(x - 2)*x
+            sage: binomial._eval_(x, x-2)
+            1/2*(x - 1)*x
+            sage: n = var('n')
+            sage: binomial._eval_(x, n) is None
+            True
+        """
+        if not isinstance(k, Expression):
+            if not isinstance(n, Expression):
+                n, k = coercion_model.canonical_coercion(n, k)
+                return self._evalf_(n, k, s_parent(n))
+            if k in ZZ:
+                return self._binomial_sym(n, k)
+        if (n - k) in ZZ:
+            return self._binomial_sym(n, n-k)
+
+        return None
+
+    def _evalf_(self, n, k, parent=None, algorithm=None):
+        """
+        EXAMPLES::
+
+            sage: binomial._evalf_(5.r, 3)
+            10.0
+            sage: type(binomial._evalf_(5.r, 3))
+            <type 'float'>
+            sage: binomial._evalf_(1/2,1/1)
+            1/2
+            sage: binomial._evalf_(10^20+1/1,10^20)
+            100000000000000000001
+            sage: binomial._evalf_(SR(10**7),10**7)
+            1
+            sage: binomial._evalf_(3/2,SR(1/1))
+            3/2
+        """
+        return sage.rings.arith.binomial(n, k)
 
 binomial = Function_binomial()
 

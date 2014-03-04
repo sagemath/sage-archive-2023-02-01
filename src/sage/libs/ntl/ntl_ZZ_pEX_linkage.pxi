@@ -254,7 +254,8 @@ cdef inline int celement_inv(ZZ_pEX_c* res, ZZ_pEX_c* a, cparent parent) except 
 
 cdef inline int celement_pow(ZZ_pEX_c* res, ZZ_pEX_c* x, long e, ZZ_pEX_c *modulus, cparent parent) except -2:
     """
-    EXAMPLE:
+    EXAMPLE::
+
         sage: K.<a> = GF(next_prime(2**60)**3)
         sage: P.<x> = PolynomialRing(K,implementation='NTL')
         sage: x^1000
@@ -266,10 +267,26 @@ cdef inline int celement_pow(ZZ_pEX_c* res, ZZ_pEX_c* x, long e, ZZ_pEX_c *modul
         sage: f = x+(a+1)
         sage: f**50 == sum(binomial(50,i)*(a+1)**i*x**(50-i) for i in range(51))
         True
+
+    TESTS:
+
+    Check that :trac:`15777` is fixed::
+
+        sage: k.<t> = GF(5**5)
+        sage: x = polygen(k)
+        sage: pow(x+1,100,x)
+        1
+        sage: pow(x+2,3,x)
+        3
+        sage: pow(x**3+1,2,x**2+2)
+        x + 3
+        sage: pow(x**3+1,10**7,x**2+2)
+        x + 2
     """
     if parent != NULL: parent[0].restore()
 
     cdef ZZ_pEX_Modulus_c mod
+    cdef ZZ_pEX_c y
     if modulus == NULL:
         if ZZ_pEX_IsX(x[0]):
             ZZ_pEX_LeftShift(res[0], x[0], e - 1)
@@ -278,10 +295,22 @@ cdef inline int celement_pow(ZZ_pEX_c* res, ZZ_pEX_c* x, long e, ZZ_pEX_c *modul
             ZZ_pEX_power(res[0], x[0], e)
             sig_off()
     else:
+        if ZZ_pEX_deg(modulus[0]) == 1:
+             ZZ_pEX_rem(y, x[0], modulus[0])
+             sig_on()
+             ZZ_pEX_power(res[0], y, e)
+             sig_off()
+             return 0
         ZZ_pEX_Modulus_build(mod, modulus[0])
-        sig_on()
-        ZZ_pEX_PowerMod_pre(res[0], x[0], e, mod)
-        sig_off()
+        if ZZ_pEX_deg(x[0]) < ZZ_pEX_deg(modulus[0]):
+            sig_on()
+            ZZ_pEX_PowerMod_pre(res[0], x[0], e, mod)
+            sig_off()
+        else:
+            ZZ_pEX_rem_pre(y, x[0], mod)
+            sig_on()
+            ZZ_pEX_PowerMod_pre(res[0], y, e, mod)
+            sig_off()
 
 cdef inline int celement_gcd(ZZ_pEX_c* res, ZZ_pEX_c* a, ZZ_pEX_c *b, cparent parent) except -2:
     """

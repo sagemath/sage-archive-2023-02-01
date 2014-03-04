@@ -572,6 +572,18 @@ class Gp(Expect):
             4
             sage: g._next_var_name()
             'sage[5]'
+
+        TESTS:
+
+        The vector of results is correctly resized when the stack has
+        to be enlarged during this operation::
+
+            sage: g = Gp(stacksize=10^4,init_list_length=12000)  # long time
+            sage: for n in [1..13000]:  # long time
+            ....:     a = g(n)          # long time
+            sage: g('length(sage)')     # long time
+            24000
+
         """
         self.__seq += 1
         if self.__seq >= self.__var_store_len:
@@ -579,7 +591,9 @@ class Gp(Expect):
                 self.eval('sage=vector(%s,k,0);'%self.__init_list_length)
                 self.__var_store_len = self.__init_list_length
             else:
-                self.eval('sage=concat(sage, vector(%s,k,0));'%self.__var_store_len)
+                self.eval('sage0=concat(sage, vector(%s,k,0));'%self.__var_store_len)
+                self.eval('sage=sage0;')
+                self.eval('kill(sage0);')
                 self.__var_store_len *= 2
                 verbose("doubling PARI/sage object vector: %s"%self.__var_store_len)
         return 'sage[%s]'%self.__seq

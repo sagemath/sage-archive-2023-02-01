@@ -3,7 +3,7 @@ diff --git a/Singular/claptmpl.cc b/Singular/claptmpl.cc
 index 0fa6109..553afa5 100644
 --- a/Singular/claptmpl.cc
 +++ b/Singular/claptmpl.cc
-@@ -123,3 +123,36 @@ template class std::list<PolyMinorValue>;
+@@ -123,3 +123,38 @@ template class std::list<PolyMinorValue>;
  template class Cache<MinorKey, IntMinorValue>;
  template class Cache<MinorKey, PolyMinorValue>;
  
@@ -14,6 +14,7 @@ index 0fa6109..553afa5 100644
 +#include<NTL/tools.h>
 +#include<NTL/lzz_pE.h>
 +#include<NTL/lzz_pEX.h>
++#include<NTL/lzz_pX.h>
 +#include<NTL/lzz_p.h>
 +#include<NTL/vector.h>
 +#include<NTL/pair.h>
@@ -30,6 +31,7 @@ index 0fa6109..553afa5 100644
 +template class Mat<zz_p>;
 +template class Mat<zz_pE>;
 +template class Mat<ZZ>;
++template class Vec<Pair<zz_pX, long> >;
 +template class Vec<Pair<zz_pEX, long> >;
 +template class Vec<Pair<GF2EX, long> >;
 +template class Vec<Pair<ZZX, long> >;

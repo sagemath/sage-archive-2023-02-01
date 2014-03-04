@@ -372,9 +372,25 @@ cdef class TropicalSemiringElement(RingElement):
             -4
             sage: elt**(3/7)
             6/7
+            sage: elt**0
+            0
+
+            sage: elt = T.infinity()
+            sage: elt**0
+            0
+            sage: elt**(1/2)
+            +infinity
+            sage: elt*33
+            +infinity
         """
         cdef TropicalSemiringElement self, x
         self = base
+        if self._val is None:
+            if exp > 0:
+                return self
+            elif exp == 0:
+                return self.parent().multiplicative_identity()
+            raise ZeroDivisionError("Tropical division by infinity")
         x = self._new()
         x._val = exp*self._val
         return x
@@ -386,15 +402,35 @@ cdef class TropicalSemiringElement(RingElement):
         EXAMPLES::
 
             sage: T = TropicalSemiring(QQ)
-            sage: T.one().multiplicative_order()
+            sage: T.multiplicative_identity().multiplicative_order()
             1
-            sage: T.zero().multiplicative_order()
+            sage: T.additive_identity().multiplicative_order()
             +Infinity
         """
         if self.is_one():
             return ZZ.one()
         from sage.rings.infinity import infinity
         return infinity
+
+    cpdef ModuleElement lift(self):
+        """
+        Return the value of ``self`` lifted to the base.
+
+        EXAMPLES::
+
+            sage: T = TropicalSemiring(QQ)
+            sage: elt = T(2)
+            sage: elt.lift()
+            2
+            sage: elt.lift().parent() is QQ
+            True
+            sage: T.additive_identity().lift().parent()
+            The Infinity Ring
+        """
+        if self._val is None:
+            from sage.rings.infinity import infinity
+            return infinity
+        return self._val
 
 class TropicalSemiring(Parent, UniqueRepresentation):
     r"""
@@ -430,7 +466,7 @@ class TropicalSemiring(Parent, UniqueRepresentation):
 
         Specifically do not use ``sum(...)`` as this converts `0` to `0` as
         a tropical element, which is not the same as :meth:`zero`. Instead
-        use the ``sum`` method::
+        use the ``sum`` method of the tropical semiring::
 
             sage: T = TropicalSemiring(QQ)
 
@@ -444,8 +480,8 @@ class TropicalSemiring(Parent, UniqueRepresentation):
 
     INPUT:
 
-    - ``base`` -- The base ordered additive semigroup `R`.
-    - ``use_min`` -- (Default: ``True``) If ``True``, then the semiring uses
+    - ``base`` -- the base ordered additive semigroup `R`
+    - ``use_min`` -- (default: ``True``) if ``True``, then the semiring uses
       `a \oplus b = \min(a, b)`; otherwise uses `a \oplus b = \max(a, b)`
 
     EXAMPLES::
@@ -474,15 +510,19 @@ class TropicalSemiring(Parent, UniqueRepresentation):
         -6/7
 
     Note that "zero" and "one" are the additive and multiplicative
-    identities of the tropical semiring. In other words,
-    they are **not** `0 \in R` and `1 \in R` respectively, but instead
-    the (tropical) additive and multiplicative identities `+\infty` and `0`
-    respectively::
+    identities of the tropical semiring. In general, they are **not**
+    the elements `0` and `1` of `R`, respectively, even if such elements
+    exist (e.g., for `R = \ZZ`), but instead the (tropical) additive and
+    multiplicative identities `+\infty` and `0` respectively::
 
         sage: T.zero() + T(3) == T(3)
         True
         sage: T.one() * T(3) == T(3)
         True
+        sage: T.zero() == T(0)
+        False
+        sage: T.one() == T(1)
+        False
     """
     def __init__(self, base, use_min=True):
         r"""
@@ -507,7 +547,7 @@ class TropicalSemiring(Parent, UniqueRepresentation):
             sage: TropicalSemiring(QQ)
             Tropical semiring over Rational Field
         """
-        return "Tropical semiring over %s"%self.base()
+        return "Tropical semiring over {}".format(self.base())
 
     def _latex_(self):
         r"""
@@ -522,7 +562,7 @@ class TropicalSemiring(Parent, UniqueRepresentation):
 
     def _coerce_map_from_(self, S):
         """
-        Canonical coercion of into ``self`` from ``S``.
+        Canonical coercion into ``self`` from ``S``.
 
         The only objects that canonically coerce to a tropical semiring are
         tropical semirings whose base rings have a coercion.

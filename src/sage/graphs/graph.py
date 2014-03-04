@@ -4716,7 +4716,7 @@ class Graph(GenericGraph):
         G = self
 
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
-        p = MixedIntegerLinearProgram()
+        p = MixedIntegerLinearProgram(solver=solver)
 
         # This is an existence problem
         p.set_objective(None)
@@ -4738,7 +4738,6 @@ class Graph(GenericGraph):
         for g in G:
             p.add_constraint( p.sum( v_repr[h][g] for h in H), max = 1)
 
-
         ###################
         # Is representent #
         ###################
@@ -4750,7 +4749,6 @@ class Graph(GenericGraph):
         for g in G:
             for h in H:
                 p.add_constraint( v_repr[h][g] - is_repr[g], max = 0)
-
 
         ###################################
         # paths between the representents #
@@ -4828,7 +4826,7 @@ class Graph(GenericGraph):
         # Now we can solve the problem itself !
 
         try:
-            p.solve(solver = solver, log = verbose)
+            p.solve(log = verbose)
 
         except MIPSolverException:
             return False

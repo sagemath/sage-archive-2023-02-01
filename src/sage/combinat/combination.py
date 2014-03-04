@@ -17,7 +17,8 @@ Combinations
 #*****************************************************************************
 
 from sage.interfaces.all import gap
-from sage.rings.all import ZZ, Integer, binomial
+from sage.rings.all import ZZ, Integer
+from sage.rings.arith import binomial
 from combinat import CombinatorialClass
 from choose_nk import rank, from_rank
 from integer_vector import IntegerVectors

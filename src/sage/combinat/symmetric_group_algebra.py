@@ -993,8 +993,8 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
         where `f^{\lambda}` is the number of standard Young tableaux
         of shape `\lambda`. Note that `\kappa_{\lambda}` is an integer,
-        namely the product of all hook lengths of `\lambda` by the
-        hook length formula. In Sage, this integer can be computed by
+        namely the product of all hook lengths of `\lambda` (by the
+        hook length formula). In Sage, this integer can be computed by
         using :func:`sage.combinat.symmetric_group_algebra.kappa()`.
 
         Let `T` be a standard tableau.
@@ -1036,9 +1036,9 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
                           e(T) \epsilon(\overline{T}).
 
         This element `\epsilon(T)` is implemented as
-        :func:`sage.combinat.symmetric_group_algebra.epsilon` for `R = \QQ`,
-        but it is also a particular case of the elements `\epsilon(T, S)`
-        defined below.
+        :func:`sage.combinat.symmetric_group_algebra.epsilon` for
+        `R = \QQ`, but it is also a particular case of the elements
+        `\epsilon(T, S)` defined below.
 
         Now let `S` be a further tableau of the same shape as `T`
         (possibly equal to `T`). Let `\pi_{T, S}` denote the
@@ -1068,7 +1068,9 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
         .. MATH::
 
-            \epsilon(T, S) \epsilon(U, V) = \delta_{TV} \epsilon(U, S).
+            \epsilon(T, S) \epsilon(U, V) = \delta_{T, V} \epsilon(U, S)
+
+        (where `\delta` stands for the Kronecker delta).
 
         .. WARNING::
 
@@ -1076,11 +1078,11 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             reverse of those given in some papers, for example [Ram1997]_.
             Using the other convention of multiplying permutations, we would
             instead have
-            `\epsilon(U, V) \epsilon(T, S) = \delta_{TV} \epsilon(U, S).`
+            `\epsilon(U, V) \epsilon(T, S) = \delta_{T, V} \epsilon(U, S).`
 
-        In other words, it consists of the matrix units in a
-        (particular) Artin-Wedderburn decomposition of `R S_n` into
-        a direct product of matrix algebras over `\QQ`.
+        In other words, Young's seminormal basis consists of the matrix
+        units in a (particular) Artin-Wedderburn decomposition of `R S_n`
+        into a direct product of matrix algebras over `\QQ`.
 
         The output of ``seminormal_basis`` is a list of all
         elements of the seminormal basis of ``self``.
@@ -1107,7 +1109,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
         .. [Ram1997] Arun Ram. *Seminormal representations of Weyl groups
            and Iwahori-Hecke algebras*. Proc. London Math. Soc. (3)
-           **75** (1997). 99-133. :arxiv:`math/9511223`.
+           **75** (1997). 99-133. :arxiv:`math/9511223v1`.
            http://www.ms.unimelb.edu.au/~ram/Publications/1997PLMSv75p99.pdf
         """
         basis = []

@@ -175,7 +175,7 @@ class DefiniteIntegral(BuiltinFunction):
                 pass
         return None
 
-    def _evalf_(self, f, x, a, b, parent=None):
+    def _evalf_(self, f, x, a, b, parent=None, algorithm=None):
         """
         Returns numerical approximation of the integral
 

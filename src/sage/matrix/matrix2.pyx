@@ -12067,7 +12067,7 @@ cdef class Matrix(matrix1.Matrix):
         if p == 'frob':
             return sum([i**2 for i in A.list()]).sqrt()
 
-    def _numerical_approx(self,prec=None,digits=None):
+    def _numerical_approx(self, prec=None, digits=None, algorithm=None):
         r"""
         Return a numerical approximation of ``self`` as either
         a real or complex number with at least the requested number of bits

@@ -483,10 +483,7 @@ if [ -z "$CXX" ]; then
     CXX=g++
 fi
 if [ -z "$FC" ]; then
-    if [ -n "$SAGE_FORTRAN" ]; then
-        # Deprecated, see #13349.
-        FC="$SAGE_FORTRAN"
-    elif command -v gfortran >/dev/null 2>/dev/null; then
+    if command -v gfortran >/dev/null 2>/dev/null; then
         FC=gfortran
     elif command -v g95 >/dev/null 2>/dev/null; then
         FC=g95

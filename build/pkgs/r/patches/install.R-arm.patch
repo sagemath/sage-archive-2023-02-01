@@ -1,0 +1,31 @@
+diff --git a/src/library/tools/R/install.R b/src/library/tools/R/install.R
+index 5d55ca8..b654cd6 100644
+--- a/src/library/tools/R/install.R
++++ b/src/library/tools/R/install.R
+@@ -110,7 +110,11 @@
+     SHLIB_EXT <- if (WINDOWS) ".dll" else {
+         ## can we do better?
+         mconf <- file.path(R.home(), paste0("etc", rarch), "Makeconf")
+-        sub(".*= ", "", grep("^SHLIB_EXT", readLines(mconf), value = TRUE))
++
++        if (substr( Sys.info()["machine"], 1, 3) == "arm") # arm has broken regexps in libc
++            sub(".*= ", "", grep("^SHLIB_EXT", readLines(mconf), value = TRUE), perl = TRUE)
++        else
++            sub(".*= ", "", grep("^SHLIB_EXT", readLines(mconf), value = TRUE))
+     }
+ 
+     options(warn = 1)
+@@ -1676,8 +1680,13 @@
+         mconf <- readLines(file.path(R.home(),
+                                      paste0("etc", Sys.getenv("R_ARCH")),
+                                      "Makeconf"))
++        if (substr( Sys.info()["machine"], 1, 3) == "arm") { 	# arm has broken regexps in libc
++            SHLIB_EXT <- sub(".*= ", "", grep("^SHLIB_EXT", mconf, value = TRUE), perl = TRUE)
++            SHLIB_LIBADD <- sub(".*= ", "", grep("^SHLIB_LIBADD", mconf, value = TRUE), perl = TRUE)
++        } else {
+         SHLIB_EXT <- sub(".*= ", "", grep("^SHLIB_EXT", mconf, value = TRUE))
+         SHLIB_LIBADD <- sub(".*= ", "", grep("^SHLIB_LIBADD", mconf, value = TRUE))
++        }
+         MAKE <- Sys.getenv("MAKE")
+         rarch <- Sys.getenv("R_ARCH")
+     } else {

@@ -36,6 +36,9 @@ Website: http://www.shoup.net/ntl/
 
 == Changelog ==
 
+=== ntl-6.0.0.p0 (Volker Braun, July 10 2013) ===
+ * #14876: Update to latest upstream
+
 === ntl-5.5.2.p3 (Volker Braun, July 10 2013) ===
  * #14692: Add spkg-src and track all files.
 

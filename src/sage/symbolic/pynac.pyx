@@ -120,7 +120,8 @@ def paramset_from_Expression(Expression e):
         sage: from sage.symbolic.pynac import paramset_from_Expression
         sage: f = function('f')
         sage: paramset_from_Expression(f(x).diff(x))
-        [0L]
+        [0L] # 32-bit
+        [0]  # 64-bit
     """
     return paramset_to_PyTuple(ex_to_fderivative(e._gobj).get_parameter_set())
 

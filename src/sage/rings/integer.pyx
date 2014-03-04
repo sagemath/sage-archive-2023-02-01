@@ -6033,17 +6033,91 @@ def make_integer(s):
     return r
 
 cdef class int_to_Z(Morphism):
+    """
+    Morphism from Python ints to Sage integers.
+
+    EXAMPLES::
+
+        sage: f = ZZ.coerce_map_from(int); type(f)
+        <type 'sage.rings.integer.int_to_Z'>
+        sage: f(5r)
+        5
+        sage: type(f(5r))
+        <type 'sage.rings.integer.Integer'>
+        sage: 1 + 2r
+        3
+        sage: type(1 + 2r)
+        <type 'sage.rings.integer.Integer'>
+
+    This is intented for internal use by the coercion system,
+    to facilitate fast expressions mixing ints and more complex
+    Python types.  Note that (as with all morphisms) the input
+    is forcably coerced to the domain ``int`` if it is not
+    already of the correct type which may have undesirable results::
+
+        sage: f.domain()
+        Set of Python objects of type 'int'
+        sage: f(1/3)
+        0
+        sage: f(1.7)
+        1
+        sage: f("10")
+        10
+
+    A pool is used for small integers::
+
+        sage: f(10) is f(10)
+        True
+        sage: f(-2) is f(-2)
+        True
+    """
+
     def __init__(self):
+        """
+        TESTS::
+
+            sage: f = ZZ.coerce_map_from(int)
+            sage: f.parent()
+            Set of Morphisms from Set of Python objects of type 'int' to Integer Ring in Category of sets
+        """
         import integer_ring
         import sage.categories.homset
         from sage.structure.parent import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), integer_ring.ZZ))
+
     cpdef Element _call_(self, a):
-        cdef Integer r
-        r = <Integer>PY_NEW(Integer)
-        mpz_set_si(r.value, PyInt_AS_LONG(a))
-        return r
+        """
+        Returns a new integer with the same value as a.
+
+        TESTS::
+
+            sage: f = ZZ.coerce_map_from(int)
+            sage: f(100r)
+            100
+
+        Note that, for performance reasons, the type of the input is not
+        verified; it is assumed to have the memory layout of a Python int::
+
+            sage: f._call_("abc")
+            3
+            sage: f._call_(5)    # random, the Integer 5
+            140031369085760
+
+        In practice, this precondition is verified by the caller (typically
+        the coercion system).
+        """
+        return smallInteger(PyInt_AS_LONG(a))
+
     def _repr_type(self):
+        """
+        TESTS::
+
+            sage: f = ZZ.coerce_map_from(int)
+            sage: print f
+            Native morphism:
+              From: Set of Python objects of type 'int'
+              To:   Integer Ring
+        """
         return "Native"
 
 cdef class long_to_Z(Morphism):
@@ -6347,11 +6421,16 @@ cdef Integer zero = the_integer_ring._zero_element
 cdef Integer one = the_integer_ring._one_element
 
 # pool of small integer for fast sign computation
-cdef long small_pool_min = -1
-cdef long small_pool_max = 1
+# Use the same defaults as Python, documented at http://docs.python.org/2/c-api/int.html#PyInt_FromLong
+DEF small_pool_min = -5
+DEF small_pool_max = 256
 # we could use the above zero and one here
 cdef list small_pool = [Integer(k) for k in range(small_pool_min, small_pool_max+1)]
+
 cdef inline Integer smallInteger(long value):
+    """
+    This is the fastest way to create a (likely) small Integer.
+    """
     cdef Integer z
     if small_pool_min <= value <= small_pool_max:
         return <Integer>small_pool[value - small_pool_min]

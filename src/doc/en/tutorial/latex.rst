@@ -73,7 +73,7 @@ Here we demonstrate some basic uses of the ``latex()`` function. ::
     \end{array}\right)
 
 Basic MathJax functionality is largely automatic in the notebook, but
-we can partially demonstrate this support with the ``MathJax`` class,
+we can partially demonstrate this support with the ``MathJax`` class.
 The ``eval`` function of this class converts a Sage object to its
 LaTeX representation and then wraps it in HTML that invokes the CSS
 "math" class, which then employs MathJax.  ::
@@ -122,16 +122,6 @@ instead, and the subsequent output converted to a graphic image
 for display in the worksheet.  Affecting and controlling this
 process is discussed below in the section
 :ref:`sec-custom-generation`.
-
-The internal ``pretty_print()`` command illustrates the
-conversion of Sage objects to HTML code that employs MathJax in
-the notebook.  ::
-
-    sage: from sage.misc.latex import pretty_print
-    sage: pretty_print(x^12)
-    <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}x^{12}</script></html>
-    sage: pretty_print(integrate(sin(x), x))
-    <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}-\cos\left(x\right)</script></html>
 
 The notebook has two other features for employing TeX.
 The first is the "Typeset" button just above the first cell of a
@@ -211,7 +201,7 @@ done in written work.  This is accomplished by redefining the
     sage: latex.blackboard_bold(False)
 
 It is possible to take advantage of the extensible nature of
-tex by adding in new macros and new packages.  First,
+TeX by adding in new macros and new packages.  First,
 individual macros can be added so that they are used when
 MathJax interprets a snippet of TeX in the notebook.  ::
 
@@ -483,7 +473,7 @@ http://sourceforge.net/projects/dvipng/ and as part of
 Rendering combinatorial graphs requires a recent version of the
 PGF library, and the files ``tkz-graph.sty``, ``tkz-arith.sty``
 and perhaps ``tkz-berge.sty``, all from the `Altermundus site
-<http://altermundus.com/pages/graph.html>`_.
+<http://altermundus.com/pages/tkz/graph/>`_.
 
 External Programs
 =================

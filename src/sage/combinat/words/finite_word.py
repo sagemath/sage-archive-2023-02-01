@@ -185,10 +185,10 @@ Left-special and bispecial factors::
 #                     2008-2012 Sébastien Labbé <slabqc@gmail.com>,
 #                     2008-2010 Franco Saliola <saliola@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License version 2 (GPLv2)
-#
-#  The full text of the GPLv2 is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from itertools import islice, izip, cycle
@@ -296,11 +296,11 @@ class FiniteWord_class(Word_class):
             try:
                 other = self.parent()(other)
                 other.parent()._check(other, length=None)
-            except StandardError:
+            except Exception:
                 try:
                     self = other.parent()(self)
                     self.parent()._check(self, length=None)
-                except StandardError:
+                except Exception:
                     raise TypeError, "no coercion rule between %r and %r" % (self.parent(), other.parent())
         return self, other
 
@@ -6128,7 +6128,7 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         seen, res = {}, []
         for x in self:
-            if not seen.has_key(x):
+            if x not in seen:
                 res.append(x)
                 seen[x] = True
         return res

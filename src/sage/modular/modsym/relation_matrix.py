@@ -29,6 +29,7 @@ import sage.matrix.matrix_space as matrix_space
 import sage.matrix.all
 import sage.rings.all as rings
 from   sage.misc.search import search
+from sage.rings.rational_field import is_RationalField
 
 
 import sage.misc.misc as misc
@@ -206,7 +207,7 @@ def T_relation_matrix_wtk_g0(syms, mod, field, sparse):
             if w==2: already_seen.add(j)
             j0, s0 = mod[j]
             s0 = s*s0
-            if v.has_key(j0):
+            if j0 in v:
                 v[j0] += s0
             else:
                 v[j0] = s0
@@ -259,10 +260,11 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
         sage: gens_to_basis_matrix(L, T_relation_matrix_wtk_g0(L, modS, GF(3), 24), modS, GF(3), True)
         (24 x 2 sparse matrix over Finite Field of size 3, [13, 23])
     """
-    if not sage.matrix.all.is_Matrix(relation_matrix):
-        raise TypeError, "relation_matrix must be a matrix"
+    from sage.matrix.matrix import is_Matrix
+    if not is_Matrix(relation_matrix):
+        raise TypeError("relation_matrix must be a matrix")
     if not isinstance(mod, list):
-        raise TypeError, "mod must be a list"
+        raise TypeError("mod must be a list")
 
     misc.verbose(str(relation_matrix.parent()))
 
@@ -458,7 +460,7 @@ def relation_matrix_wtk_g0(syms, sign, field, sparse):
         # Let rels = rels union I relations.
         rels.update(modI_relations(syms,sign))
 
-    if syms._apply_S_only_0pm1() and rings.is_RationalField(field):
+    if syms._apply_S_only_0pm1() and is_RationalField(field):
         import relation_matrix_pyx
         mod = relation_matrix_pyx.sparse_2term_quotient_only_pm1(rels, len(syms))
     else:
@@ -784,7 +786,7 @@ def sparse_2term_quotient(rels, n, F):
 ##         iT_plus_iTT = M.apply_T(i) + M.apply_TT(i)
 ##         v = {i:ONE}
 ##         for j, s in iT_plus_iTT:
-##             if v.has_key(j):
+##             if j in v:
 ##                 v[j] += field(s)
 ##             else:
 ##                 v[j] = field(s)

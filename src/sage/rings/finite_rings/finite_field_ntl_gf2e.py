@@ -19,7 +19,7 @@ def late_import():
        sage: sage.rings.finite_rings.finite_field_ntl_gf2e.GF2 is None # indirect doctest
        False
     """
-    if globals().has_key("GF2"):
+    if "GF2" in globals():
         return
     global ResidueField_generic, is_FiniteField, exists_conway_polynomial, conway_polynomial, Cache_ntl_gf2e, GF, GF2, is_Polynomial
     import sage.rings.residue_field
@@ -227,37 +227,6 @@ class FiniteField_ntl_gf2e(FiniteField):
             a^10 + a^9 + a^7 + a^6 + a^5 + a^4 + a + 1
         """
         return self._cache.import_data(e)
-
-    def _coerce_map_from_(self, R):
-        """
-        Coercion accepts elements of :meth:`parent`, ints, and prime subfield
-        elements.
-
-        EXAMPLES::
-
-            sage: k.<a> = GF(2^8)
-            sage: a + int(1) # indirect doctest
-            a + 1
-            sage: a + 1
-            a + 1
-            sage: a + GF(2)(1)
-            a + 1
-        """
-        if R is int or R is long or R is ZZ:
-            return True
-        if is_FiniteField(R):
-            if R is self:
-                return True
-            if isinstance(R, ResidueField_generic):
-                return False
-            if isinstance(R, IntegerModRing_generic) and R.characteristic() % 2 == 0:
-                return True
-            if R.characteristic() == 2:
-                if R.degree() == 1:
-                    return True
-                elif self.degree() % R.degree() == 0:
-                    # This is where we *would* do coercion from one nontrivial finite field to another...
-                    raise NotImplementedError
 
     def gen(self, ignored=None):
         r"""

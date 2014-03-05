@@ -259,7 +259,7 @@ cdef class Heilbronn:
                 b = u*self.list.v[4*i+1] + v*self.list.v[4*i+3]
                 export.c_p1_normalize_int(N, a, b, &c, &d, &s, 0)
                 X = (c,d)
-                if M.has_key(X):
+                if X in M:
                     M[X] = M[X] + 1
                 else:
                     M[X] = 1
@@ -269,7 +269,7 @@ cdef class Heilbronn:
                 b = (u * self.list.v[4*i+1])%N + (v * self.list.v[4*i+3])%N
                 export.c_p1_normalize_int(N, a, b, &c, &d, &s, 0)
                 X = (c,d)
-                if M.has_key(X):
+                if X in M:
                     M[X] = M[X] + 1
                 else:
                     M[X] = 1
@@ -279,7 +279,7 @@ cdef class Heilbronn:
                 b = llong_prod_mod(u,self.list.v[4*i+1],N) + llong_prod_mod(v,self.list.v[4*i+3], N)
                 export.c_p1_normalize_llong(N, a, b, &c, &d, &s, 0)
                 X = (c,d)
-                if M.has_key(X):
+                if X in M:
                     M[X] = M[X] + 1
                 else:
                     M[X] = 1

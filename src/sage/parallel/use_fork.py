@@ -11,6 +11,9 @@ Parallel iterator built using the ``fork()`` system call
 #                  http://www.gnu.org/licenses/
 ################################################################################
 
+from sage.ext.c_lib import AlarmInterrupt
+from sage.misc.misc import alarm, cancel_alarm
+
 class p_iter_fork:
     """
     A parallel iterator implemented using ``fork()``.
@@ -138,18 +141,15 @@ class p_iter_fork:
                     # Now wait for one subprocess to finish and report the result.
                     # However, wait at most the time since the oldest process started.
                     if timeout:
-                        def mysig(a,b):
-                            raise RuntimeError, "SIGALRM"
                         oldest = min([X[1] for X in workers.values()])
-                        signal.signal(signal.SIGALRM, mysig)
-                        signal.alarm(max(int(timeout - (walltime()-oldest)), 1))
+                        alarm(max(timeout - (walltime()-oldest), 0.1))
 
                     try:
                         pid = os.wait()[0]
-                        signal.signal(signal.SIGALRM, signal.SIG_IGN)
+                        cancel_alarm()
                         w = workers.pop(pid)
-                    except RuntimeError:
-                        signal.signal(signal.SIGALRM, signal.SIG_IGN)
+                    except AlarmInterrupt:
+                        cancel_alarm()
                         # Kill workers that are too old
                         for pid, X in workers.iteritems():
                             if walltime() - X[1] > timeout:

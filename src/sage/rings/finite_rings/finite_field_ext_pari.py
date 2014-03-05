@@ -570,55 +570,6 @@ class FiniteField_ext_pari(FiniteField_generic):
         except TypeError, msg:
             raise TypeError, "%s\nno coercion defined"%msg
 
-    def _coerce_map_from_(self, R):
-        r"""
-        Canonical coercion to ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
-            sage: FiniteField_ext_pari(4,'a')._coerce_(GF(2)(1)) # indirect doctest
-            1
-            sage: k = FiniteField_ext_pari(4,'a')
-            sage: k._coerce_(k.0)
-            a
-            sage: FiniteField_ext_pari(4,'a')._coerce_(3)
-            1
-            sage: FiniteField_ext_pari(4,'a')._coerce_(2/3)
-            Traceback (most recent call last):
-            ...
-            TypeError: no canonical coercion from Rational Field to Finite Field in a of size 2^2
-            sage: FiniteField_ext_pari(8,'a')._coerce_(FiniteField_ext_pari(4,'a').0)
-            Traceback (most recent call last):
-            ...
-            TypeError: no canonical coercion from Finite Field in a of size 2^2 to Finite Field in a of size 2^3
-            sage: FiniteField_ext_pari(16,'a')._coerce_(FiniteField_ext_pari(4,'a').0)
-            Traceback (most recent call last):
-            ...
-            TypeError: no canonical coercion from Finite Field in a of size 2^2 to Finite Field in a of size 2^4
-            sage: k = FiniteField_ext_pari(8,'a')
-            sage: k._coerce_(FiniteField(7,'a')(2))
-            Traceback (most recent call last):
-            ...
-            TypeError: no canonical coercion from Finite Field of size 7 to Finite Field in a of size 2^3
-        """
-        from sage.rings.integer_ring import ZZ
-        from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
-        if R is int or R is long or R is ZZ:
-            return True
-        if isinstance(R, FiniteField_ext_pari):
-            if R is self:
-                return True
-            if R.characteristic() == self.characteristic():
-                if R.degree() == 1:
-                    return True
-                elif self.degree() % R.degree() == 0:
-                    # TODO: This is where we *would* do coercion from one nontrivial finite field to another...
-                    return False
-        from sage.rings.residue_field import ResidueField_generic
-        if isinstance(R, IntegerModRing_generic) and R.characteristic() == self.characteristic() and not isinstance(R, ResidueField_generic):
-            return True
-
     def __len__(self):
         """
         The number of elements of the finite field.

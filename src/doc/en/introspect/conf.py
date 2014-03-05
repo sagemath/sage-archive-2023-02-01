@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Sage introspection build configuration file.
-# See sage.server.notebook.cell.set_introspect_html() for details.
+# See sagenb.notebook.cell.Cell.set_introspect_html() for details.
 
 import sys, os
 sys.path.append(os.environ['SAGE_DOC'])

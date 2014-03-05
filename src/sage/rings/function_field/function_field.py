@@ -1,4 +1,4 @@
-r"""
+"""
 Function Fields
 
 AUTHORS:
@@ -12,6 +12,8 @@ AUTHORS:
 - Maarten Derickx (2011-09-11): added doctests
 
 - Julian Rueth (2011-09-14): use @cached_method
+
+- Syed Ahmad Lavasani (2011-12-16): added genus(), is_RationalFunctionField()
 
 EXAMPLES:
 
@@ -78,6 +80,10 @@ from sage.rings.ring import Field
 from function_field_element import FunctionFieldElement, FunctionFieldElement_rational, FunctionFieldElement_polymod
 
 from sage.misc.cachefunc import cached_method
+
+#is needed for genus computation
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.interfaces.all import singular
 
 from sage.categories.function_fields import FunctionFields
 CAT = FunctionFields()
@@ -931,6 +937,55 @@ class FunctionField_polymod(FunctionField):
         from maps import FunctionFieldMorphism_polymod
         return FunctionFieldMorphism_polymod(self.Hom(codomain), im_gens[0], base_morphism)
 
+    @cached_method
+    def genus(self):
+        """
+        Return the genus of this function field
+        For now, the genus is computed using singular
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: L.<y> = K.extension(y^3 - (x^3 + 2*x*y + 1/x))
+            sage: L.genus()
+            3
+        """
+        # unfortunately singular can not compute the genus with the polynomial_ring()._singular_
+        # object because genus method only accepts a ring of transdental degree 2 over a prime field
+        # not a ring of transdental degree 1 over a rational function field of one variable
+
+        if is_RationalFunctionField(self._base_field) and self._base_field.constant_field().is_prime_field():
+
+            #Making the auxiliary ring which only has polynomials with integral coefficients.
+            tmpAuxRing = PolynomialRing(self._base_field.constant_field(), str(self._base_field.gen())+','+str(self._ring.gen()))
+            intMinPoly, d = self._make_monic_integral(self._polynomial)
+            curveIdeal = tmpAuxRing.ideal(intMinPoly)
+
+            singular.lib('normal.lib') #loading genus method in singular
+            return int(curveIdeal._singular_().genus())
+
+        else:
+            raise NotImplementedError, "Computation of genus over this rational function field not implemented yet"
+
+def is_RationalFunctionField(x):
+    """
+    Return True if ``x`` is of rational function field type.
+
+    EXAMPLES::
+
+        sage: from sage.rings.function_field.function_field import is_RationalFunctionField
+        sage: is_RationalFunctionField(QQ)
+        False
+        sage: is_RationalFunctionField(FunctionField(QQ,'t'))
+        True
+    """
+    if isinstance(x, RationalFunctionField):
+        return True
+#   if (x in FunctionFields()):
+#       return x == x.base_field()
+    else:
+        return False
+
 class RationalFunctionField(FunctionField):
     """
     A rational function field K(t) in one variable, over an arbitrary
@@ -1372,3 +1427,17 @@ class RationalFunctionField(FunctionField):
         return self._constant_field
 
     constant_field = constant_base_field
+
+    def genus(self):
+        """
+        Return the genus of this function field
+        This is always equal 0 for a rational function field
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ);
+            sage: K.genus()
+            0
+        """
+        return 0
+

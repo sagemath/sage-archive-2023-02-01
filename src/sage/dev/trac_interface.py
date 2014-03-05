@@ -231,7 +231,7 @@ class TracInterface(object):
             sage: trac._username # user is prompted for a username
             Trac username: doctest2
             #  Your trac username has been written to a configuration file for future
-            #  sessions. To reset your username, use "dev.trac.reset_username()".
+            sessions. To reset your username, use "dev.trac.reset_username()".
             'doctest2'
             sage: config['trac']['username']
             'doctest2'
@@ -263,7 +263,7 @@ class TracInterface(object):
             sage: trac._username
             Trac username: doctest2
             #  Your trac username has been written to a configuration file for future
-            #  sessions. To reset your username, use "dev.trac.reset_username()".
+            sessions. To reset your username, use "dev.trac.reset_username()".
             'doctest2'
         """
         self.__username = None
@@ -309,7 +309,7 @@ class TracInterface(object):
             readable by privileged users on this system.
             Save password in file? [yes/No] y
             #  Your trac password has been written to a configuration file. To reset your
-            #  password, use "dev.trac.reset_password()".
+            password, use "dev.trac.reset_password()".
             'secret'
             sage: config['trac']['password']
             'secret'
@@ -360,7 +360,7 @@ class TracInterface(object):
             readable by privileged users on this system.
             Save password in file? [yes/No] y
             #  Your trac password has been written to a configuration file. To reset your
-            #  password, use "dev.trac.reset_password()".
+            password, use "dev.trac.reset_password()".
             'secret'
             sage: config['trac']['password']
             'secret'
@@ -413,7 +413,7 @@ class TracInterface(object):
             readable by privileged users on this system.
             Save password in file? [yes/No] y
             #  Your trac password has been written to a configuration file. To reset your
-            #  password, use "dev.trac.reset_password()".
+            password, use "dev.trac.reset_password()".
             'secret'
 
         The timeout has no effect if the password can be read from the
@@ -496,28 +496,34 @@ class TracInterface(object):
         Get an XML-RPC proxy object that is authenticated using the users
         username and password.
 
-        .. NOTE::
-
-            To make sure that doctests do not tamper with the live trac server,
-            it is an error to access this property during a doctest.
-
         EXAMPLES::
 
-            sage: dev.trac._authenticated_server_proxy # not tested
+            sage: dev.trac._authenticated_server_proxy  # not tested
             Trac username: username
             Trac password:
             Should I store your password in a configuration file for future sessions? (This configuration file might be readable by privileged users on this system.) [yes/No]
             <ServerProxy for trac.sagemath.org/login/xmlrpc>
 
-        TESTS::
+        TESTS:
 
-            sage: dev.trac._authenticated_server_proxy
+        To make sure that doctests do not tamper with the live trac
+        server, it is an error to access this property during a
+        doctest (The ``dev`` object during doctests is also modified
+        to prevent this)::
+
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: from sage.dev.trac_interface import TracInterface
+            sage: config = DoctestConfig()
+            sage: trac = TracInterface(config['trac'], DoctestUserInterface(config['UI']))
+            sage: trac._authenticated_server_proxy
             Traceback (most recent call last):
             ...
             AssertionError: doctest tried to access an authenticated session to trac
         """
         import sage.doctest
-        assert not sage.doctest.DOCTEST_MODE, "doctest tried to access an authenticated session to trac"
+        assert not sage.doctest.DOCTEST_MODE, \
+            "doctest tried to access an authenticated session to trac"
 
         self._check_password_timeout()
 
@@ -531,19 +537,16 @@ class TracInterface(object):
             while True:
                 from xmlrpclib import ServerProxy
                 from digest_transport import DigestTransport
+                from trac_error import TracAuthenticationError
                 transport = DigestTransport()
                 transport.add_authentication(realm=realm, url=server, username=self._username, password=self._password)
                 proxy = ServerProxy(url, transport=transport)
                 try:
                     proxy.system.listMethods()
                     break
-                except urllib2.HTTPError as error:
-                    if error.code == 401:
-                        self._UI.show("Invalid username/password")
-                        self.reset_username()
-                    else:
-                        self._UI.show("Could not verify password, will try to proceed.")
-                        break
+                except TracAuthenticationError:
+                    self._UI.error("Invalid username/password")
+                    self.reset_username()
             self.__authenticated_server_proxy = proxy
         self._postpone_password_timeout()
         return self.__authenticated_server_proxy
@@ -717,7 +720,7 @@ class TracInterface(object):
         for time, author, field, oldvalue, newvalue, permanent in changelog:
             if field == 'comment' and newvalue and not (ignore_git_user and author == 'git'):
                 comments.append((_timerep(datetime.datetime(*(time.timetuple()[:6]))), author, newvalue))
-        self._UI.show('\n'.join(['====================\n{0} ({1})\n{2}'.format(author, time, comment) 
+        self._UI.show('\n'.join(['====================\n{0} ({1})\n{2}'.format(author, time, comment)
                                  for time, author, comment in reversed(comments)]))
 
     def query(self, qstr):
@@ -980,7 +983,7 @@ class TracInterface(object):
                 for k,v in attributes.items():
                     k = ALLOWED_FIELDS.get(k.lower())
                     if k is not None:
-                        F.write("%s: %s\n"%(k,v))
+                        F.write("%s: %s\n"%(k.encode('utf-8'),v.encode('utf-8')))
 
                 if description is None or not description.strip():
                     description = "\nADD DESCRIPTION\n"
@@ -1128,7 +1131,7 @@ class TracInterface(object):
                                             .format(display_field, i+1))
                 if field in fields:
                     raise TicketSyntaxError('only one value for "{0}" allowed on line {1}'
-                                            .format(display_field, i+1))                                            
+                                            .format(display_field, i+1))
                 else:
                     value = m.groups()[1].strip()
                     if field in RESTRICTED_FIELDS and not ALLOWED_VALUES[field].match(value):

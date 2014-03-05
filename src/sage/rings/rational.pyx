@@ -55,13 +55,14 @@ from sage.misc.mathml import mathml
 
 import sage.misc.misc as misc
 import sage.rings.rational_field
-import sage.libs.pari.all
 
 cimport integer
 import integer
 from integer cimport Integer
 
-from sage.libs.pari.gen cimport gen as pari_gen, PariInstance
+import sage.libs.pari.pari_instance
+from sage.libs.pari.gen cimport gen as pari_gen
+from sage.libs.pari.pari_instance cimport PariInstance
 
 from integer_ring import ZZ
 
@@ -528,7 +529,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                 raise ValueError, "denominator must not be 0"
             mpq_canonicalize(self.value)
 
-        elif isinstance(x, sage.libs.pari.all.pari_gen):
+        elif isinstance(x, pari_gen):
             x = x.simplify()
             if typ((<pari_gen>x).g) == t_FRAC:
                 t_FRAC_to_QQ(self.value, (<pari_gen>x).g)
@@ -900,28 +901,6 @@ cdef class Rational(sage.structure.element.FieldElement):
         denoms = [x.denominator() for x in seq]
         from sage.rings.arith import gcd, lcm
         return gcd(nums) / lcm(denoms)
-
-#    def gcd_rational(self, other, **kwds):
-#        """
-#        Return a gcd of the rational numbers self and other.
-#
-#        If self = other = 0, this is by convention 0.  In all other
-#        cases it can (mathematically) be any nonzero rational number,
-#        but for simplicity we choose to always return 1.
-#
-#        EXAMPLES::
-#
-#            sage: (1/3).gcd_rational(2/1)
-#            1
-#            sage: (1/1).gcd_rational(0/1)
-#            1
-#            sage: (0/1).gcd_rational(0/1)
-#            0
-#        """
-#        if self == 0 and other == 0:
-#            return Rational(0)
-#        else:
-#            return Rational(1)
 
     def valuation(self, p):
         r"""
@@ -2393,7 +2372,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             except AttributeError:
                 try:
                     return type(n)(self)**n
-                except StandardError:
+                except Exception:
                     raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
 
         except OverflowError:
@@ -2698,7 +2677,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         QQ = self.parent()
         return QQ[var]([-self,1])
 
-    def minpoly(self, var):
+    def minpoly(self, var='x'):
         """
         Return the minimal polynomial of this rational number. This will
         always be just ``x - self``; this is really here so that code written
@@ -2712,8 +2691,10 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: (1/3).minpoly('x')
-             x - 1/3
+            sage: (1/3).minpoly()
+            x - 1/3
+            sage: (1/3).minpoly('y')
+            y - 1/3
 
         AUTHORS:
 
@@ -3142,33 +3123,6 @@ cdef class Rational(sage.structure.element.FieldElement):
             return Rational(0)
         return Rational(1)
 
-    def _gcd(self, Rational other):
-        """
-        Returns the least common multiple, in the rational numbers, of ``self``
-        and ``other``. This function returns either 0 or 1 (as a rational
-        number).
-
-        INPUT:
-
-        -  ``other`` - Rational
-
-        OUTPUT:
-
-        -  ``Rational`` - 0 or 1
-
-        EXAMPLES::
-
-            sage: (2/3)._gcd(3/5)
-            1
-            sage: (0/1)._gcd(0/1)
-            0
-        """
-        if mpz_cmp_si(mpq_numref(self.value), 0) == 0 and \
-               mpz_cmp_si(mpq_numref(other.value), 0) == 0:
-            return Rational(0)
-        return Rational(1)
-
-
     def additive_order(self):
         """
         Return the additive order of ``self``.
@@ -3442,7 +3396,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: m.type()
             't_FRAC'
         """
-        cdef PariInstance P = sage.libs.pari.gen.pari
+        cdef PariInstance P = sage.libs.pari.pari_instance.pari
         return P.new_gen_from_mpq_t(self.value)
 
     def _interface_init_(self, I=None):

@@ -172,13 +172,16 @@ cdef extern from "mpz_longlong.h":
 cdef extern from "convert.h":
     cdef void t_INT_to_ZZ( mpz_t value, long *g )
 
-from sage.libs.pari.gen cimport gen as pari_gen, PariInstance
+from sage.libs.pari.gen cimport gen as pari_gen
+from sage.libs.pari.pari_instance cimport PariInstance
 from sage.libs.flint.ulong_extras cimport *
 
 import sage.rings.infinity
-import sage.libs.pari.all
 
-from sage.structure.element import canonical_coercion
+import sage.libs.pari.pari_instance
+cdef PariInstance pari = sage.libs.pari.pari_instance.pari
+
+from sage.structure.element import canonical_coercion, coerce_binop
 from sage.misc.superseded import deprecated_function_alias
 
 cdef object numpy_long_interface = {'typestr': '=i4' if sizeof(long) == 4 else '=i8' }
@@ -564,7 +567,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: ZZ(pari("1e100"))
             Traceback (most recent call last):
             ...
-            PariError: precision too low (10)
+            PariError: precision too low in truncr (precision loss in truncation)
             sage: ZZ(pari("10^50"))
             100000000000000000000000000000000000000000000000000
             sage: ZZ(pari("Pol(3)"))
@@ -618,7 +621,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef unsigned int ibase
 
         cdef Element lift
-        cdef PariInstance pari
 
         if x is None:
             if mpz_sgn(self.value) != 0:
@@ -675,7 +677,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     elif paritype == t_FFELT:
                         # x = (f modulo defining polynomial of finite field);
                         # we extract f.
-                        pari = sage.libs.pari.gen.pari
                         sig_on()
                         x = pari.new_gen(FF_to_FpXQ_i((<pari_gen>x).g))
                     else:
@@ -1947,9 +1948,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             <type 'sage.rings.integer.Integer'>
             sage: type(int(3)^int(2))
             <type 'int'>
+
+        Check that a ``MemoryError`` is thrown if the resulting number
+        would be ridiculously large, see :trac:`15363`::
+
+            sage: 2^(2^63-2)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: exponent must be at most 2147483647          # 32-bit
+            MemoryError: failed to allocate 1152921504606847008 bytes  # 64-bit
         """
         if modulus is not None:
-            #raise RuntimeError, "__pow__ dummy argument ignored"
             from sage.rings.finite_rings.integer_mod import Mod
             return Mod(self, modulus) ** n
 
@@ -1968,7 +1977,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         except TypeError:
             s = parent_c(n)(self)
             return s**n
-
         except OverflowError:
             if mpz_cmp_si(_self.value, 1) == 0:
                 return self
@@ -2225,7 +2233,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         # upper is *greater* than the answer
         try:
             upper = rif_log.upper().ceiling()
-        except StandardError:
+        except Exception:
             # ceiling is probably Infinity
             # I'm not sure what to do now
             upper = 0
@@ -3370,8 +3378,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
            - ``'kash'`` - use the KASH computer algebra system (requires
              the optional kash package)
 
-        -  ``proof`` - bool (default: True) whether or not to
-           prove primality of each factor (only applicable for PARI).
+           - ``'magma'`` - use the MAGMA computer algebra system (requires
+             an installation of MAGMA)
+
+           - ``'qsieve'`` - use Bill Hart's quadratic sieve code;
+             WARNING: this may not work as expected, see qsieve? for
+             more information
+
+           - ``'ecm'`` - use ECM-GMP, an implementation of Hendrik
+             Lenstra's elliptic curve method.
+
+        - ``proof`` - bool (default: True) whether or not to prove
+           primality of each factor (only applicable for ``'pari'``
+           and ``'ecm'``).
 
         -  ``limit`` - int or None (default: None) if limit is
            given it must fit in a signed int, and the factorization is done
@@ -3420,6 +3439,25 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: n.factor(limit=1000)
             2 * 11 * 41835640583745019265831379463815822381094652231
+
+        We factor using a quadratic sieve algorithm::
+
+            sage: p = next_prime(10^20)
+            sage: q = next_prime(10^21)
+            sage: n = p*q
+            sage: n.factor(algorithm='qsieve')
+            doctest:... RuntimeWarning: the factorization returned
+            by qsieve may be incomplete (the factors may not be prime)
+            or even wrong; see qsieve? for details
+            100000000000000000039 * 1000000000000000000117
+
+        We factor using the elliptic curve method::
+
+            sage: p = next_prime(10^15)
+            sage: q = next_prime(10^21)
+            sage: n = p*q
+            sage: n.factor(algorithm='ecm')
+            1000000000000037 * 1000000000000000000117
 
         TESTS::
 
@@ -3488,6 +3526,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             exp_type = int if int_ else Integer
             F = [(Integer(p), exp_type(e)) for p,e in zip(res[0::2], res[1::2])]
             return Factorization(F, unit)
+        elif algorithm == 'qsieve':
+            message = "the factorization returned by qsieve may be incomplete (the factors may not be prime) or even wrong; see qsieve? for details"
+            from warnings import warn
+            warn(message, RuntimeWarning, stacklevel=5)
+            from sage.interfaces.qsieve import qsieve
+            res = [(p, 1) for p in qsieve(n)[0]]
+            F = IntegerFactorization(res, unit)
+            return F
+        elif algorithm == 'ecm':
+            from sage.interfaces.ecm import ecm
+            res = [(p, 1) for p in ecm.factor(n, proof=proof)]
+            F = IntegerFactorization(res, unit)
+            return F
         else:
             raise ValueError, "Algorithm is not known"
 
@@ -4133,6 +4184,41 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         parians = self._pari_().ispower()
         return Integer(parians[1]), Integer(parians[0])
 
+    def global_height(self, prec=None):
+        r"""
+        Returns the absolute logarithmic height of this rational integer.
+
+        INPUT:
+
+        - ``prec`` (int) -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        (real) The absolute logarithmic height of this rational integer.
+
+        ALGORITHM:
+
+        The height of the integer `n` is `\log |n|`.
+
+        EXAMPLES::
+
+            sage: ZZ(5).global_height()
+            1.60943791243410
+            sage: ZZ(-2).global_height(prec=100)
+            0.69314718055994530941723212146
+            sage: exp(_)
+            2.0000000000000000000000000000
+        """
+        from sage.rings.real_mpfr import RealField
+        if prec is None:
+            R = RealField()
+        else:
+            R = RealField(prec)
+        if self.is_zero():
+            return R.zero_element()
+        return R(self).abs().log()
+
     cdef bint _is_power_of(Integer self, Integer n):
         r"""
         Returns a non-zero int if there is an integer b with
@@ -4403,11 +4489,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_prime(self, proof=None):
         r"""
-        Returns ``True`` if ``self`` is prime.
+        Test whether ``self`` is prime.
 
         INPUT:
 
-        - ``proof`` -- If False, use a strong pseudo-primality test.
+        - ``proof`` -- Boolean or ``None`` (default). If False, use a
+          strong pseudo-primality test (see :meth:`is_pseudoprime`).
           If True, use a provable primality test.  If unset, use the
           default arithmetic proof flag.
 
@@ -4441,6 +4528,20 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
             sage: z.is_prime(proof=True)
             True
+
+        When starting Sage the arithmetic proof flag is True. We can change
+        it to False as follows::
+
+            sage: proof.arithmetic()
+            True
+            sage: n = 10^100 + 267
+            sage: timeit("n.is_prime()") # random
+            5 loops, best of 3: 163 ms per loop
+            sage: proof.arithmetic(False)
+            sage: proof.arithmetic()
+            False
+            sage: timeit("n.is_prime()") # random
+            1000 loops, best of 3: 573 us per loop
 
         IMPLEMENTATION: Calls the PARI ``isprime`` function.
         """
@@ -4476,7 +4577,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_pseudoprime(self):
         r"""
-        Returns ``True`` if self is a pseudoprime
+        Test whether self is a pseudoprime
+
+        This uses PARI's Baillie-PSW probabilistic primality
+        test. Currently, there are no known pseudoprimes for
+        Baille-PSW that are not actually prime. However it is
+        conjectured that there are infinitely many.
 
         EXAMPLES::
 
@@ -4906,9 +5012,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return self._pari_c()
 
     cdef _pari_c(self):
-        cdef PariInstance P
-        P = sage.libs.pari.gen.pari
-        return P.new_gen_from_mpz_t(self.value)
+        return pari.new_gen_from_mpz_t(self.value)
 
     def _interface_init_(self, I=None):
         """
@@ -5200,100 +5304,120 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
            return [z, -z]
         return z
 
-    def _xgcd(self, Integer n, bint minimal=0):
+    @coerce_binop
+    def xgcd(self, Integer n):
         r"""
-        Computes extended gcd of self and `n`.
+        Return the extended gcd of this element and ``n``.
 
         INPUT:
 
-        -  ``self`` - integer
-
-        -  ``n`` - integer
-
-        -  ``minimal`` - boolean (default false), whether to
-           compute minimal cofactors (see below)
+        - ``n`` -- an integer
 
         OUTPUT:
 
-        A triple (g, s, t), where `g` is the non-negative gcd of self
-        and `n`, and `s` and `t` are cofactors satisfying the Bezout identity
+        A triple ``(g, s, t)`` such that ``g`` is the non-negative gcd of
+        ``self`` and ``n``, and ``s`` and ``t`` are cofactors satisfying the
+        Bezout identity
 
-        .. math::
+        .. MATH::
 
-             g = s \cdot \mbox{\rm self} + t \cdot n.
+            g = s \cdot \mathrm{self} + t \cdot n.
 
-        .. note::
+        .. NOTE::
 
-           If minimal is False, then there is no guarantee that the returned
-           cofactors will be minimal in any sense; the only guarantee is that
-           the Bezout identity will be satisfied (see examples below).
-
-           If minimal is True, the cofactors will satisfy the following
-           conditions. If either self or `n` are zero, the trivial solution
-           is returned. If both self and `n` are nonzero, the function returns
-           the unique solution such that `0 \leq s < |n|/g` (which then must
-           also satisfy `0 \leq |t| \leq |\mbox{\rm self}|/g`).
+            There is no guarantee that the cofactors will be minimal. If you
+            need the cofactors to be minimal use :meth:`_xgcd`. Also, using
+            :meth:`_xgcd` directly might be faster in some cases, see
+            :trac:`13628`.
 
         EXAMPLES::
 
-            sage: Integer(5)._xgcd(7)
+            sage: 6.xgcd(4)
+            (2, 1, -1)
+
+        """
+        return self._xgcd(n)
+
+    def _xgcd(self, Integer n, bint minimal=0):
+        r"""
+        Return the exteded gcd of ``self`` and ``n``.
+
+        INPUT:
+
+        - ``n`` -- an integer
+        - ``minimal`` -- a boolean (default: ``False``), whether to compute
+          minimal cofactors (see below)
+
+        OUTPUT:
+
+        A triple ``(g, s, t)`` such that ``g`` is the non-negative gcd of
+        ``self`` and ``n``, and ``s`` and ``t`` are cofactors satisfying the
+        Bezout identity
+
+        .. MATH::
+
+            g = s \cdot \mathrm{self} + t \cdot n.
+
+        .. NOTE::
+
+            If ``minimal`` is ``False``, then there is no guarantee that the
+            returned cofactors will be minimal in any sense; the only guarantee
+            is that the Bezout identity will be satisfied (see examples below).
+
+            If ``minimal`` is ``True``, the cofactors will satisfy the following
+            conditions. If either ``self`` or ``n`` are zero, the trivial
+            solution is returned. If both ``self`` and ``n`` are nonzero, the
+            function returns the unique solution such that `0 \leq s < |n|/g`
+            (which then must also satisfy
+            `0 \leq |t| \leq |\mbox{\rm self}|/g`).
+
+        EXAMPLES::
+
+            sage: 5._xgcd(7)
             (1, 3, -2)
             sage: 5*3 + 7*-2
             1
-            sage: g,s,t = Integer(58526524056)._xgcd(101294172798)
+            sage: g,s,t = 58526524056._xgcd(101294172798)
             sage: g
             22544886
             sage: 58526524056 * s + 101294172798 * t
             22544886
 
-        Without minimality guarantees, weird things can happen::
+        Try ``minimal`` option with various edge cases::
 
-            sage: Integer(3)._xgcd(21)
-            (3, 1, 0)
-            sage: Integer(3)._xgcd(24)
-            (3, 1, 0)
-            sage: Integer(3)._xgcd(48)
-            (3, 1, 0)
-
-        Weirdness disappears with minimal option::
-
-            sage: Integer(3)._xgcd(21, minimal=True)
-            (3, 1, 0)
-            sage: Integer(3)._xgcd(24, minimal=True)
-            (3, 1, 0)
-            sage: Integer(3)._xgcd(48, minimal=True)
-            (3, 1, 0)
-            sage: Integer(21)._xgcd(3, minimal=True)
-            (3, 0, 1)
-
-        Try minimal option with various edge cases::
-
-            sage: Integer(5)._xgcd(0, minimal=True)
+            sage: 5._xgcd(0, minimal=True)
             (5, 1, 0)
-            sage: Integer(-5)._xgcd(0, minimal=True)
+            sage: (-5)._xgcd(0, minimal=True)
             (5, -1, 0)
-            sage: Integer(0)._xgcd(5, minimal=True)
+            sage: 0._xgcd(5, minimal=True)
             (5, 0, 1)
-            sage: Integer(0)._xgcd(-5, minimal=True)
+            sage: 0._xgcd(-5, minimal=True)
             (5, 0, -1)
-            sage: Integer(0)._xgcd(0, minimal=True)
+            sage: 0._xgcd(0, minimal=True)
             (0, 1, 0)
+
+        Output may differ with and without the ``minimal`` option::
+
+            sage: 2._xgcd(-2)
+            (2, 1, 0)
+            sage: 2._xgcd(-2, minimal=True)
+            (2, 0, -1)
 
         Exhaustive tests, checking minimality conditions::
 
             sage: for a in srange(-20, 20):
-            ...     for b in srange(-20, 20):
-            ...       if a == 0 or b == 0: continue
-            ...       g, s, t = a._xgcd(b)
-            ...       assert g > 0
-            ...       assert a % g == 0 and b % g == 0
-            ...       assert a*s + b*t == g
-            ...       g, s, t = a._xgcd(b, minimal=True)
-            ...       assert g > 0
-            ...       assert a % g == 0 and b % g == 0
-            ...       assert a*s + b*t == g
-            ...       assert s >= 0 and s < abs(b)/g
-            ...       assert abs(t) <= abs(a)/g
+            ....:   for b in srange(-20, 20):
+            ....:     if a == 0 or b == 0: continue
+            ....:     g, s, t = a._xgcd(b)
+            ....:     assert g > 0
+            ....:     assert a % g == 0 and b % g == 0
+            ....:     assert a*s + b*t == g
+            ....:     g, s, t = a._xgcd(b, minimal=True)
+            ....:     assert g > 0
+            ....:     assert a % g == 0 and b % g == 0
+            ....:     assert a*s + b*t == g
+            ....:     assert s >= 0 and s < abs(b)/g
+            ....:     assert abs(t) <= abs(a)/g
 
         AUTHORS:
 
@@ -5909,17 +6033,91 @@ def make_integer(s):
     return r
 
 cdef class int_to_Z(Morphism):
+    """
+    Morphism from Python ints to Sage integers.
+
+    EXAMPLES::
+
+        sage: f = ZZ.coerce_map_from(int); type(f)
+        <type 'sage.rings.integer.int_to_Z'>
+        sage: f(5r)
+        5
+        sage: type(f(5r))
+        <type 'sage.rings.integer.Integer'>
+        sage: 1 + 2r
+        3
+        sage: type(1 + 2r)
+        <type 'sage.rings.integer.Integer'>
+
+    This is intented for internal use by the coercion system,
+    to facilitate fast expressions mixing ints and more complex
+    Python types.  Note that (as with all morphisms) the input
+    is forcably coerced to the domain ``int`` if it is not
+    already of the correct type which may have undesirable results::
+
+        sage: f.domain()
+        Set of Python objects of type 'int'
+        sage: f(1/3)
+        0
+        sage: f(1.7)
+        1
+        sage: f("10")
+        10
+
+    A pool is used for small integers::
+
+        sage: f(10) is f(10)
+        True
+        sage: f(-2) is f(-2)
+        True
+    """
+
     def __init__(self):
+        """
+        TESTS::
+
+            sage: f = ZZ.coerce_map_from(int)
+            sage: f.parent()
+            Set of Morphisms from Set of Python objects of type 'int' to Integer Ring in Category of sets
+        """
         import integer_ring
         import sage.categories.homset
         from sage.structure.parent import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), integer_ring.ZZ))
+
     cpdef Element _call_(self, a):
-        cdef Integer r
-        r = <Integer>PY_NEW(Integer)
-        mpz_set_si(r.value, PyInt_AS_LONG(a))
-        return r
+        """
+        Returns a new integer with the same value as a.
+
+        TESTS::
+
+            sage: f = ZZ.coerce_map_from(int)
+            sage: f(100r)
+            100
+
+        Note that, for performance reasons, the type of the input is not
+        verified; it is assumed to have the memory layout of a Python int::
+
+            sage: f._call_("abc")
+            3
+            sage: f._call_(5)    # random, the Integer 5
+            140031369085760
+
+        In practice, this precondition is verified by the caller (typically
+        the coercion system).
+        """
+        return smallInteger(PyInt_AS_LONG(a))
+
     def _repr_type(self):
+        """
+        TESTS::
+
+            sage: f = ZZ.coerce_map_from(int)
+            sage: print f
+            Native morphism:
+              From: Set of Python objects of type 'int'
+              To:   Integer Ring
+        """
         return "Native"
 
 cdef class long_to_Z(Morphism):
@@ -6223,11 +6421,16 @@ cdef Integer zero = the_integer_ring._zero_element
 cdef Integer one = the_integer_ring._one_element
 
 # pool of small integer for fast sign computation
-cdef long small_pool_min = -1
-cdef long small_pool_max = 1
+# Use the same defaults as Python, documented at http://docs.python.org/2/c-api/int.html#PyInt_FromLong
+DEF small_pool_min = -5
+DEF small_pool_max = 256
 # we could use the above zero and one here
 cdef list small_pool = [Integer(k) for k in range(small_pool_min, small_pool_max+1)]
+
 cdef inline Integer smallInteger(long value):
+    """
+    This is the fastest way to create a (likely) small Integer.
+    """
     cdef Integer z
     if small_pool_min <= value <= small_pool_max:
         return <Integer>small_pool[value - small_pool_min]

@@ -4,59 +4,68 @@ all.py -- much of sage is imported into this module, so you don't
 
 TESTS:
 
-    This is to test #10570. If the number of stackframes at startup
-    changes due to a patch you made, please check that this was an
-    intended effect of your patch.
+This is to test :trac:`10570`. If the number of stackframes at startup
+changes due to a patch you made, please check that this was an
+intended effect of your patch.
 
-    ::
+::
 
-        sage: import gc
-        sage: import inspect
-        sage: from sage import *
-        sage: frames=[x for x in gc.get_objects() if inspect.isframe(x)]
+    sage: import gc
+    sage: import inspect
+    sage: from sage import *
+    sage: frames = [x for x in gc.get_objects() if inspect.isframe(x)]
 
-    We exclude the known files and check to see that there are no others::
+We exclude the known files and check to see that there are no others::
 
-        sage: import os
-        sage: allowed = [os.path.join("lib","python","threading.py")]
-        sage: allowed.append(os.path.join("lib","python","multiprocessing"))
-        sage: allowed.append(os.path.join("sage","doctest"))
-        sage: allowed.append(os.path.join("bin","sage-runtests"))
-        sage: allowed.append(os.path.join("site-packages","IPython"))
-        sage: allowed.append(os.path.join("bin","sage-ipython"))
-        sage: allowed.append("<ipython console>")
-        sage: allowed.append("<doctest sage.all[3]>")
-        sage: allowed.append(os.path.join("sage","combinat","species","generating_series.py"))
-        sage: for i in frames:
-        ....:     filename, lineno, funcname, linelist, indx = inspect.getframeinfo(i)
-        ....:     for nm in allowed:
-        ....:         if nm in filename:
-        ....:             break
-        ....:     else:
-        ....:         print filename
-        ....:
+    sage: import os
+    sage: allowed = [os.path.join("lib","python","threading.py")]
+    sage: allowed.append(os.path.join("lib","python","multiprocessing"))
+    sage: allowed.append(os.path.join("sage","doctest"))
+    sage: allowed.append(os.path.join("bin","sage-runtests"))
+    sage: allowed.append(os.path.join("site-packages","IPython"))
+    sage: allowed.append(os.path.join("bin","sage-ipython"))
+    sage: allowed.append("<ipython console>")
+    sage: allowed.append("<doctest sage.all[3]>")
+    sage: allowed.append(os.path.join("sage","combinat","species","generating_series.py"))
+    sage: for i in frames:
+    ....:     filename, lineno, funcname, linelist, indx = inspect.getframeinfo(i)
+    ....:     for nm in allowed:
+    ....:         if nm in filename:
+    ....:             break
+    ....:     else:
+    ....:         print filename
+    ....:
+
+Check that the Sage Notebook is not imported at startup (see
+:trac:`15335`)::
+
+    sage: sagenb
+    Traceback (most recent call last):
+    ...
+    NameError: name 'sagenb' is not defined
+
+Check lazy import of ``interacts``::
+
+    sage: type(interacts)
+    <type 'sage.misc.lazy_import.LazyImport'>
+    sage: interacts
+    <module 'sage.interacts.all' from '...'>
 """
 
-###############################################################################
-#
-#   SAGE: System for Algebra and Geometry Experimentation
-#
-#       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2005-2012 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #
 #                  http://www.gnu.org/licenses/
-###############################################################################
+#
+#*****************************************************************************
 
 import os, sys
 import operator
+import math
 
 from sage.env import SAGE_ROOT, SAGE_DOC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
 
@@ -66,17 +75,13 @@ if sys.version_info[:2] < (2, 5):
 
 ###################################################################
 
-# We have to set this here so urllib, etc. can detect it.
-import sage.server.notebook.gnutls_socket_ssl
-sage.server.notebook.gnutls_socket_ssl.require_SSL()
-
-###################################################################
-
 import sage.ext.c_lib
 sage.ext.c_lib._init_csage()
 sig_on_count = sage.ext.c_lib._sig_on_reset
 
 from time                import sleep
+
+from sage.ext.c_lib import AlarmInterrupt, SignalError
 
 import sage.misc.lazy_import
 from sage.misc.all       import *         # takes a while
@@ -85,8 +90,10 @@ from sage.misc.sh import sh
 
 from sage.libs.all       import *
 from sage.doctest.all    import *
-if SAGE_ROOT is not None:
-    from sage.dev.all        import *
+try:
+    from sage.dev.all    import *
+except ImportError:
+    pass   # dev scripts are disabled
 
 from sage.rings.all      import *
 from sage.matrix.all     import *
@@ -129,6 +136,7 @@ from sage.lfunctions.all import *
 
 from sage.geometry.all   import *
 from sage.geometry.triangulation.all   import *
+from sage.geometry.riemannian_manifolds.all   import *
 
 from sage.dynamics.all   import *
 
@@ -151,9 +159,6 @@ import sage.stats.all as stats
 
 import sage.finance.all  as finance
 
-import sage.interacts.all as interacts
-from sage.interacts.debugger import debug
-
 from sage.parallel.all   import *
 
 from sage.ext.fast_callable  import fast_callable
@@ -164,6 +169,14 @@ sage.misc.lazy_import.lazy_import('sage.sandpiles.all', '*', globals())
 from sage.tensor.all     import *
 
 from sage.matroids.all   import *
+
+# Lazily import notebook functions and interacts (#15335)
+lazy_import('sagenb.notebook.notebook_object', 'notebook')
+lazy_import('sagenb.notebook.notebook_object', 'inotebook')
+lazy_import('sagenb.notebook.sage_email', 'email')
+lazy_import('sagenb.notebook.interact', 'interact')
+lazy_import('sage.interacts', 'all', 'interacts')
+from sage.interacts.debugger import debug
 
 from copy import copy, deepcopy
 
@@ -198,7 +211,7 @@ del message, name
 #try:
 #    import resource   # unix only...
 #    resource.setrlimit(resource.RLIMIT_AS, (-1,-1))
-#except StandardError:
+#except Exception:
 #    pass
 
 # very useful 2-letter shortcuts

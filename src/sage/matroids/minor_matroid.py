@@ -76,7 +76,6 @@ Methods
 #*****************************************************************************
 from matroid import Matroid
 from utilities import sanitize_contractions_deletions, setprint_s
-import sage.matroids.unpickling
 
 
 class MinorMatroid(Matroid):
@@ -527,6 +526,7 @@ class MinorMatroid(Matroid):
                  {'c', 'd', 'e', 'f'}},
              4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
         """
+        import sage.matroids.unpickling
         data = (self._matroid, self._contractions, self._deletions, getattr(self, '__custom_name'))
         version = 0
         return sage.matroids.unpickling.unpickle_minor_matroid, (version, data)

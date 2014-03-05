@@ -23,7 +23,8 @@ from sage.sets.set import Set, is_Set
 from sage.graphs.graph import Graph
 from sage.rings.arith import factorial, binomial
 from permutation import Permutations
-from sage.rings.all import Integer, is_RealNumber
+from sage.rings.all import Integer
+from sage.rings.real_mpfr import is_RealNumber
 from subset import Subsets
 from sage.functions.all import ceil
 import functools, math

@@ -116,8 +116,8 @@ This base class provides a lot more methods than a general parent::
      '_zero_element', '_zero_ideal', 'algebraic_closure',
      'base_extend', 'cardinality', 'class_group', 'coerce_map_from_c',
      'coerce_map_from_impl', 'content', 'divides', 'extension',
-     'fraction_field', 'gcd', 'gen', 'gens', 'get_action_c',
-     'get_action_impl', 'has_coerce_map_from_c',
+     'fraction_field', 'frobenius_endomorphism', 'gcd', 'gen', 'gens',
+     'get_action_c', 'get_action_impl', 'has_coerce_map_from_c',
      'has_coerce_map_from_impl', 'ideal', 'ideal_monoid',
      'integral_closure', 'is_commutative', 'is_field', 'is_finite',
      'is_integral_domain', 'is_integrally_closed', 'is_noetherian',
@@ -751,7 +751,7 @@ thus have::
     sage: P1.has_coerce_map_from(P2)
     True
     sage: P1.coerce_map_from(P2)
-    Call morphism:
+    Conversion map:
       From: Multivariate Polynomial Ring in w, v over Integer Ring
       To:   Multivariate Polynomial Ring in v, w over Rational Field
 
@@ -759,7 +759,7 @@ While there is a conversion from `P_1` to `P_2` (namely restricted to
 polynomials with integral coefficients), this conversion is not a coercion::
 
     sage: P2.convert_map_from(P1)
-    Call morphism:
+    Conversion map:
       From: Multivariate Polynomial Ring in v, w over Rational Field
       To:   Multivariate Polynomial Ring in w, v over Integer Ring
     sage: P2.has_coerce_map_from(P1)

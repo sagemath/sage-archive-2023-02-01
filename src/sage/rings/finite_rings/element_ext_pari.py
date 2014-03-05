@@ -712,7 +712,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
             sage: int(a)
             Traceback (most recent call last):
             ...
-            TypeError: gen must be of PARI type t_INT or t_POL of degree 0
+            TypeError: Unable to coerce PARI a to an Integer
         """
         try:
             return int(self.__value.lift().lift())

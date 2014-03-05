@@ -106,7 +106,8 @@ from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.dynamic_class import DynamicMetaclass, dynamic_class
 
-from weakref import WeakValueDictionary
+import sage.misc.weak_dict
+from sage.misc.weak_dict import WeakValueDictionary
 _join_cache = WeakValueDictionary()
 
 def _join(categories, as_list):
@@ -2190,7 +2191,7 @@ class JoinCategory(CategoryWithParameters):
         # Use __super_categories to not overwrite the lazy attribute Category._super_categories
         # Maybe this would not be needed if the flattening/sorting is does consistently?
         self.__super_categories = list(super_categories)
-        if kwds.has_key('name'):
+        if 'name' in kwds:
             Category.__init__(self, kwds['name'])
         else:
             Category.__init__(self)

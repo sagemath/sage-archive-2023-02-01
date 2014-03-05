@@ -16,6 +16,8 @@ This module defines the class ``EllipticCurve_field``, based on
 
 import ell_generic
 import sage.rings.all as rings
+from sage.rings.complex_field import is_ComplexField
+from sage.rings.real_mpfr import is_RealField
 from constructor import EllipticCurve
 
 from ell_curve_isogeny import EllipticCurveIsogeny, isogeny_codomain_from_kernel
@@ -657,14 +659,14 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
                     jbase = g.preimage(j)
                     f = g
                     break
-                except StandardError:
+                except Exception:
                     pass
             if f == None:
                 return None
         else:
             try:
                 jbase = f.preimage(j)
-            except StandardError:
+            except Exception:
                 return None
         E = EllipticCurve(j=jbase)
         E2 = EllipticCurve(self.base_field(), [f(a) for a in E.a_invariants()])
@@ -692,7 +694,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         if Etwist.is_isomorphic(self):
             try:
                 Eout = EllipticCurve(K, [f.preimage(a) for a in Etwist.a_invariants()])
-            except StandardError:
+            except Exception:
                 return None
             else:
                 return Eout
@@ -937,9 +939,9 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             [Isogeny of degree 3 from Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + (-6) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 + x*y + y = x^3 + (-128/3)*x + 5662/27 over Number Field in e with defining polynomial x^2 - 2, Isogeny of degree 3 from Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + (-6) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 + x*y + y = x^3 + (-171)*x + (-874) over Number Field in e with defining polynomial x^2 - 2]
         """
         F = self.base_ring()
-        if rings.is_RealField(F):
+        if is_RealField(F):
             raise NotImplementedError, "This code could be implemented for general real fields, but has not been yet."
-        if rings.is_ComplexField(F):
+        if is_ComplexField(F):
             raise NotImplementedError, "This code could be implemented for general complex fields, but has not been yet."
         if F == rings.QQbar:
             raise NotImplementedError, "This code could be implemented for QQbar, but has not been yet."

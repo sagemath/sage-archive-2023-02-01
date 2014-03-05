@@ -78,10 +78,10 @@ Many other functionalities...::
 #*****************************************************************************
 #       Copyright (C) 2008 Sebastien Labbe <slabqc@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License version 2 (GPLv2)
-#
-#  The full text of the GPLv2 is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 import itertools
@@ -402,7 +402,7 @@ class WordMorphism(SageObject):
         for key,val in data.iteritems():
             try:
                 it = iter(val)
-            except StandardError:
+            except Exception:
                 it = [val]
             codom_alphabet.update(it)
         return Words(sorted(codom_alphabet))

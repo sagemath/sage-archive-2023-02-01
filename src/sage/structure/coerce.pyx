@@ -176,8 +176,6 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: A = cm.get_action(ZZ, NumberField(x^2-2, 'a'), operator.mul)
             sage: f, g = cm.coercion_maps(QQ, int)
             sage: f, g = cm.coercion_maps(ZZ, int)
-            sage: cm.get_stats()  # random
-            ((0, 1.0, 4), (0, 0.0, 0))
 
         .. note::
 
@@ -198,11 +196,11 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         EXAMPLES::
 
             sage: cm = sage.structure.element.get_coercion_model()
-            sage: cm.get_stats()                # random
-            ((0, 0.3307086614173229, 3), (0, 0.1496062992125984, 2))
+            sage: len(cm.get_cache()[0])    # random
+            42
             sage: cm.reset_cache()
-            sage: cm.get_stats()
-            ((0, 0.0, 0), (0, 0.0, 0))
+            sage: cm.get_cache()
+            ({}, {})
         """
         # This MUST be a mapping of tuples, where each
         # tuple contains at least two elements that are either
@@ -258,25 +256,6 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         """
         return dict([((S, R), mors) for (S, R, op), mors in self._coercion_maps.iteritems()]), \
                dict(self._action_maps.iteritems())
-
-    def get_stats(self):
-        """
-        This returns the state of the cache of coercion maps and actions,
-        primarily useful for debugging and introspection.
-        If a class is not part of the coercion system, we should call the
-        __rmul__ method when it makes sense.
-
-        The coercion maps are stored in a specialized TripleDict hashtable,
-        and the stats returned are (min, avg, max) of the number of items
-        per bucket. The lower the better.
-
-        EXAMPLES::
-
-            sage: cm = sage.structure.element.get_coercion_model()
-            sage: cm.get_stats()                # random
-            ((0, 0.16058394160583941, 2), (0, 0.13138686131386862, 3))
-        """
-        return self._coercion_maps.stats(), self._action_maps.stats()
 
     def record_exceptions(self, bint value=True):
         r"""
@@ -700,7 +679,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             pass
         try:
             ret = parent_c(~parent.one_element())
-        except StandardError:
+        except Exception:
             self._record_exception()
             ret = parent_c(~parent.an_element())
         self._division_parents.set(parent, None, None, ret)
@@ -986,13 +965,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         if is_Integer(x) and not x and not PY_TYPE_CHECK_EXACT(yp, type):
             try:
                 return yp(0), y
-            except StandardError:
+            except Exception:
                 self._record_exception()
 
         if is_Integer(y) and not y and not PY_TYPE_CHECK_EXACT(xp, type):
             try:
                 return x, xp(0)
-            except StandardError:
+            except Exception:
                 self._record_exception()
 
         raise TypeError, "no common canonical parent for objects with parents: '%s' and '%s'"%(xp, yp)
@@ -1228,7 +1207,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 if coerce_S is None:
                     raise TypeError, "No coercion from %s to pushout %s" % (S, Z)
                 return coerce_R, coerce_S
-            except StandardError:
+            except Exception:
                 self._record_exception()
 
         return None

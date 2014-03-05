@@ -1,34 +1,53 @@
-"""
+r"""
 Quasisymmetric functions
 
 REFERENCES:
 
-.. [Ges] I. Gessel, Multipartite P-partitions and inner products of skew Schur
-   functions, Contemp. Math. 34 (1984), 289-301.
+.. [Ges] I. Gessel, *Multipartite P-partitions and inner products of skew Schur
+   functions*, Contemp. Math. **34** (1984), 289-301.
    http://people.brandeis.edu/~gessel/homepage/papers/multipartite.pdf
 
-.. [MR] C. Malvenuto and C. Reutenauer, Duality between quasi-symmetric
-   functions and the Solomon descent algebra, J. Algebra 177 (1995), no. 3, 967-982.
-   http://www.mat.uniroma1.it/people/malvenuto/Duality.pdf
+.. [MR] C. Malvenuto and C. Reutenauer, *Duality between quasi-symmetric
+   functions and the Solomon descent algebra*, J. Algebra **177** (1995),
+   no. 3, 967-982. http://www.mat.uniroma1.it/people/malvenuto/Duality.pdf
 
-.. [Reiner2013] Victor Reiner, Hopf algebras in combinatorics,
+.. [Reiner2013] Victor Reiner, *Hopf algebras in combinatorics*,
    17 January 2013.
    http://www.math.umn.edu/~reiner/Classes/HopfComb.pdf
 
-.. [Mal1993] Claudia Malvenuto, Produits et coproduits des fonctions
-   quasi-symetriques et de l'algebre des descentes,
+.. [Mal1993] Claudia Malvenuto, *Produits et coproduits des fonctions
+   quasi-symetriques et de l'algebre des descentes*,
    thesis, November 1993.
    http://www1.mat.uniroma1.it/people/malvenuto/Thesis.pdf
 
-.. [Haz2004] Michiel Hazewinkel, Explicit polynomial generators for the
-   ring of quasisymmetric functions over the integers.
+.. [Haz2004] Michiel Hazewinkel, *Explicit polynomial generators for the
+   ring of quasisymmetric functions over the integers*.
    :arXiv:`math/0410366v1`
+
+.. [Rad1979] David E. Radford, *A natural ring basis for the shuffle algebra
+   and an application to group schemes*, J. Algebra **58** (1979), 432-454.
+
+.. [NCSF1] Israel Gelfand, D. Krob, Alain Lascoux, B. Leclerc,
+   V. S. Retakh, J.-Y. Thibon,
+   *Noncommutative symmetric functions*.
+   :arxiv:`hep-th/9407124v1`
+
+.. [NCSF2] D. Krob, B. Leclerc, J.-Y. Thibon,
+   *Noncommutative symmetric functions II: Transformations of alphabets*.
+   http://www-igm.univ-mlv.fr/~jyt/ARTICLES/NCSF2.ps
+
+.. [LMvW13] Kurt Luoto, Stefan Mykytiuk and Stephanie van Willigenburg,
+   *An introduction to quasisymmetric Schur functions -- Hopf algebras,
+   quasisymmetric functions, and Young composition tableaux*,
+   May 23, 2013, Springer.
+   http://www.math.ubc.ca/%7Esteph/papers/QuasiSchurBook.pdf
 
 AUTHOR:
 
 - Jason Bandlow
 - Franco Saliola
 - Chris Berg
+- Darij Grinberg
 """
 #*****************************************************************************
 #       Copyright (C) 2010 Jason Bandlow <jbandlow@gmail.com>,
@@ -49,12 +68,13 @@ from sage.matrix.constructor import matrix
 from sage.combinat.permutation import Permutations
 from sage.combinat.composition import Composition, Compositions
 from sage.combinat.composition_tableau import CompositionTableaux
-from sage.combinat.partition import Partitions
+from sage.combinat.partition import Partitions, _Partitions
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.combinat.ncsf_qsym.generic_basis_code import BasesOfQSymOrNCSF
 from sage.combinat.ncsf_qsym.combinatorics import number_of_fCT, compositions_order
 from sage.combinat.ncsf_qsym.ncsf import NonCommutativeSymmetricFunctions
+from sage.combinat.words.word import Word
 from sage.misc.cachefunc import cached_method
 
 class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
@@ -479,6 +499,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         assert R in Rings()
         self._base = R # Won't be needed once CategoryObject won't override base_ring
         category = GradedHopfAlgebras(R)  # TODO: .Commutative()
+        self._category = category
         Parent.__init__(self, category = category.WithRealizations())
 
         # Bases
@@ -616,7 +637,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         exponent_coefficient = f.dict()
         z = {}
         for (e, c) in exponent_coefficient.iteritems():
-            I = Composition([ei for ei in e if ei > 0])
+            I = Compositions()([ei for ei in e if ei > 0])
             if I not in z:
                 z[I] = c
         out = self.Monomial()._from_dict(z)
@@ -728,6 +749,43 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 """
                 g = self.realization_of().from_polynomial(f, check=check)
                 return self(g)
+
+            def Eulerian(self, n, j, k=None):
+                """
+                Return the Eulerian (quasi)symmetric function `Q_{n,j}` in
+                terms of ``self``.
+
+                INPUT:
+
+                - ``n`` -- the value `n` or a partition
+                - ``j`` -- the number of excedances
+                - ``k`` -- (optional) if specified, determines the number of
+                  fixed points of the permtutation
+
+                EXAMPLES::
+
+                    sage: QSym = QuasiSymmetricFunctions(QQ)
+                    sage: M = QSym.M()
+                    sage: M.Eulerian(3, 1)
+                    4*M[1, 1, 1] + 3*M[1, 2] + 3*M[2, 1] + 2*M[3]
+                    sage: M.Eulerian(4, 1, 2)
+                    6*M[1, 1, 1, 1] + 4*M[1, 1, 2] + 4*M[1, 2, 1]
+                     + 2*M[1, 3] + 4*M[2, 1, 1] + 3*M[2, 2] + 2*M[3, 1] + M[4]
+                    sage: QS = QSym.QS()
+                    sage: QS.Eulerian(4, 2)
+                    2*QS[1, 3] + QS[2, 2] + 2*QS[3, 1] + 3*QS[4]
+                    sage: QS.Eulerian([2, 2, 1], 2)
+                    QS[1, 2, 2] + QS[1, 4] + QS[2, 1, 2] + QS[2, 2, 1]
+                     + QS[2, 3] + QS[3, 2] + QS[4, 1] + QS[5]
+                    sage: dI = QSym.dI()
+                    sage: dI.Eulerian(5, 2)
+                    -dI[1, 3, 1] - 5*dI[1, 4] + dI[2, 2, 1] + dI[3, 1, 1]
+                     + 5*dI[3, 2] + 6*dI[4, 1] + 6*dI[5]
+                """
+                F = self.realization_of().F()
+                if n in _Partitions:
+                    n = _Partitions(n)
+                return self(F.Eulerian(n, j, k))
 
         class ElementMethods:
             r"""
@@ -1035,12 +1093,158 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 # then convert back.
                 parent = self.parent()
                 M = parent.realization_of().M()
-                dct = {Composition(map(lambda i: n * i, I)): coeff
+                C = parent._basis_keys
+                dct = {C(map(lambda i: n * i, I)): coeff
                        for (I, coeff) in M(self).monomial_coefficients().items()}
                 result_in_M_basis = M._from_dict(dct)
                 return parent(result_in_M_basis)
 
             adams_operation = frobenius
+
+            def star_involution(self):
+                r"""
+                Return the image of the quasisymmetric function ``self`` under
+                the star involution.
+
+                The star involution is defined as the linear map
+                `QSym \to QSym` which, for every composition `I`, sends the
+                monomial quasisymmetric function `M_I` to `M_{I^r}`. Here, if
+                `I` is a composition, we denote by `I^r` the reversed
+                composition of `I`. Denoting by `f^{\ast}` the image of an
+                element `f \in QSym` under the star involution, it can be shown
+                that every composition `I` satisfies
+
+                .. MATH::
+
+                    (M_I)^{\ast} = M_{I^r}, \quad (F_I)^{\ast} = F_{I^r},
+
+                where `F_I` denotes the fundamental quasisymmetric function
+                corresponding to the composition `I`. The star involution is an
+                involution, an algebra automorphism and a coalgebra
+                anti-automorphism of `QSym`. It also is an automorphism of the
+                graded vector space `QSym`, and is the identity on the subspace
+                `Sym` of `QSym`. It is adjoint to the star involution on `NCSF`
+                by the standard adjunction between `NCSF` and `QSym`.
+
+                The star involution has been denoted by `\rho` in [LMvW13]_,
+                section 3.6.
+
+                .. SEEALSO::
+
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.star_involution`.
+
+                EXAMPLES::
+
+                    sage: QSym = QuasiSymmetricFunctions(ZZ)
+                    sage: M = QSym.M()
+                    sage: M[3,2].star_involution()
+                    M[2, 3]
+                    sage: M[6,3].star_involution()
+                    M[3, 6]
+                    sage: (M[9,1] - M[6,2] + 2*M[6,4] - 3*M[3] + 4*M[[]]).star_involution()
+                    4*M[] + M[1, 9] - M[2, 6] - 3*M[3] + 2*M[4, 6]
+                    sage: (M[3,3] - 2*M[2]).star_involution()
+                    -2*M[2] + M[3, 3]
+                    sage: M([4,2]).star_involution()
+                    M[2, 4]
+                    sage: dI = QSym.dI()
+                    sage: dI([1,2]).star_involution()
+                    -dI[1, 2] + dI[2, 1]
+                    sage: dI.zero().star_involution()
+                    0
+
+                The star involution commutes with the antipode::
+
+                    sage: all( M(I).star_involution().antipode()
+                    ....:      == M(I).antipode().star_involution()
+                    ....:      for I in Compositions(4) )
+                    True
+
+                The star involution is the identity on `Sym`::
+
+                    sage: Sym = SymmetricFunctions(ZZ)
+                    sage: e = Sym.e()
+                    sage: all( M(e(lam)).star_involution() == M(e(lam))
+                    ....:      for lam in Partitions(4) )
+                    True
+                """
+                # Convert to the homogeneous basis, there apply the star
+                # involution componentwise, then convert back.
+                parent = self.parent()
+                M = parent.realization_of().M()
+                dct = {I.reversed(): coeff
+                       for (I, coeff) in M(self).monomial_coefficients().items()}
+                return parent(M._from_dict(dct))
+
+            def psi_involution(self):
+                r"""
+                Return the image of the quasisymmetric function ``self``
+                under the involution `\psi`.
+
+                The involution `\psi` is defined as the linear map
+                `QSym \to QSym` which, for every composition `I`, sends the
+                fundamental quasisymmetric function `F_I` to `F_{I^c}`, where
+                `I^c` denotes the complement of the composition `I`.
+                The map `\psi` is an involution and a graded Hopf algebra
+                automorphism of `QSym`. Its restriction to the ring of
+                symmetric functions coincides with the omega automorphism of
+                the latter ring.
+
+                The involution `\psi` of `QSym` is adjoint to the involution
+                `\psi` of `NCSF` by the standard adjunction between `NCSF` and
+                `QSym`.
+
+                The involution `\psi` has been denoted by `\psi` in [LMvW13]_,
+                section 3.6.
+
+                .. SEEALSO::
+
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.psi_involution`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.QSym.Bases.ElementMethods.star_involution`.
+
+                EXAMPLES::
+
+                    sage: QSym = QuasiSymmetricFunctions(ZZ)
+                    sage: F = QSym.F()
+                    sage: F[3,2].psi_involution()
+                    F[1, 1, 2, 1]
+                    sage: F[6,3].psi_involution()
+                    F[1, 1, 1, 1, 1, 2, 1, 1]
+                    sage: (F[9,1] - F[8,2] + 2*F[2,4] - 3*F[3] + 4*F[[]]).psi_involution()
+                    4*F[] - 3*F[1, 1, 1] + F[1, 1, 1, 1, 1, 1, 1, 1, 2] - F[1, 1, 1, 1, 1, 1, 1, 2, 1] + 2*F[1, 2, 1, 1, 1]
+                    sage: (F[3,3] - 2*F[2]).psi_involution()
+                    -2*F[1, 1] + F[1, 1, 2, 1, 1]
+                    sage: F([2,1,1]).psi_involution()
+                    F[1, 3]
+                    sage: M = QSym.M()
+                    sage: M([2,1]).psi_involution()
+                    -M[2, 1] - M[3]
+                    sage: M.zero().psi_involution()
+                    0
+
+                The involution `\psi` commutes with the antipode::
+
+                    sage: all( F(I).psi_involution().antipode()
+                    ....:      == F(I).antipode().psi_involution()
+                    ....:      for I in Compositions(4) )
+                    True
+
+                Testing the fact that the restriction of `\psi` to `Sym`
+                is the omega automorphism of `Sym`::
+
+                    sage: Sym = SymmetricFunctions(ZZ)
+                    sage: e = Sym.e()
+                    sage: all( F(e[lam]).psi_involution() == F(e[lam].omega())
+                    ....:      for lam in Partitions(4) )
+                    True
+                """
+                # Convert to the fundamental basis, there apply the psi
+                # involution componentwise, then convert back.
+                parent = self.parent()
+                F = parent.realization_of().F()
+                dct = {I.complement(): coeff
+                       for (I, coeff) in F(self).monomial_coefficients().items()}
+                return parent(F._from_dict(dct))
 
             def expand(self, n, alphabet='x'):
                 r"""
@@ -1284,7 +1488,8 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: M.coproduct_on_basis(Composition([]))
                 M[] # M[]
             """
-            return self.tensor_square().sum_of_monomials((Composition(compo[:i]), Composition(compo[i:]))
+            return self.tensor_square().sum_of_monomials((self._basis_keys(compo[:i]),
+                                                          self._basis_keys(compo[i:]))
                                                          for i in range(0,len(compo)+1))
 
         def lambda_of_monomial(self, I, n):
@@ -1392,7 +1597,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             QQ_result = QQM.zero()
             for lam in Partitions(n):
                 coeff = QQ((-1) ** len(lam)) / lam.centralizer_size()
-                QQ_result += coeff * QQM.prod([QQM(Composition([k * i for i in I]))
+                QQ_result += coeff * QQM.prod([QQM(self._basis_keys([k * i for i in I]))
                                                for k in lam])
             QQ_result *= (-1) ** n
             # QQ_result is now \lambda^n(M_I) over QQ.
@@ -1405,6 +1610,72 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             r"""
             Element methods of the ``Monomial`` basis of ``QuasiSymmetricFunctions``.
             """
+
+            def psi_involution(self):
+                r"""
+                Return the image of the quasisymmetric function ``self``
+                under the involution `\psi`.
+
+                The involution `\psi` is defined as the linear map
+                `QSym \to QSym` which, for every composition `I`, sends the
+                fundamental quasisymmetric function `F_I` to `F_{I^c}`, where
+                `I^c` denotes the complement of the composition `I`.
+                The map `\psi` is an involution and a graded Hopf algebra
+                automorphism of `QSym`. Its restriction to the ring of
+                symmetric functions coincides with the omega automorphism of
+                the latter ring.
+
+                The involution `\psi` of `QSym` is adjoint to the involution
+                `\psi` of `NCSF` by the standard adjunction between `NCSF` and
+                `QSym`.
+
+                The involution `\psi` has been denoted by `\psi` in [LMvW13]_,
+                section 3.6.
+
+                .. SEEALSO::
+
+                    :meth:`sage.combinat.ncsf_qsym.qsym.QSym.Bases.ElementMethods.psi_involution`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.psi_involution`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.QSym.Bases.ElementMethods.star_involution`.
+
+                EXAMPLES::
+
+                    sage: QSym = QuasiSymmetricFunctions(ZZ)
+                    sage: M = QSym.M()
+                    sage: M[3,2].psi_involution()
+                    -M[3, 2] - M[5]
+                    sage: M[3,1].psi_involution()
+                    M[3, 1] + M[4]
+                    sage: M[3,1,1].psi_involution()
+                    M[3, 1, 1] + M[3, 2] + M[4, 1] + M[5]
+                    sage: M[1,1,1].psi_involution()
+                    M[1, 1, 1] + M[1, 2] + M[2, 1] + M[3]
+                    sage: M[[]].psi_involution()
+                    M[]
+                    sage: M(0).psi_involution()
+                    0
+                    sage: (2*M[[]] - M[3,1] + 4*M[2]).psi_involution()
+                    2*M[] - 4*M[2] - M[3, 1] - M[4]
+
+                This particular implementation is tailored to the monomial
+                basis. It is semantically equivalent to the generic
+                implementation it overshadows::
+
+                    sage: F = QSym.F()
+                    sage: all( F(M[I].psi_involution()) == F(M[I]).psi_involution()
+                    ....:      for I in Compositions(3) )
+                    True
+
+                    sage: F = QSym.F()
+                    sage: all( F(M[I].psi_involution()) == F(M[I]).psi_involution()
+                    ....:      for I in Compositions(4) )
+                    True
+                """
+                parent = self.parent()
+                return parent.sum( (-1) ** (I.size() - len(I)) * coeff
+                                   * parent.sum_of_fatter_compositions(I)
+                                   for I, coeff in
+                                   self._monomial_coefficients.items() )
 
             def expand(self, n, alphabet='x'):
                 r"""
@@ -1545,7 +1816,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 m = SymmetricFunctions(self.parent().base_ring()).monomial()
                 if self.is_symmetric():
                     return m.sum_of_terms([(I, coeff) for (I, coeff) in self
-                        if list(I) in Partitions()], distinct=True)
+                        if list(I) in _Partitions], distinct=True)
                 else:
                     raise ValueError, "%s is not a symmetric function"%self
 
@@ -1673,7 +1944,145 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                                        for i in range(len(compo))
                                        for j in range(1, compo[i]) )
 
+        @cached_method
+        def Eulerian(self, n, j, k=None):
+            r"""
+            Return the Eulerian (quasi)symmetric function `Q_{n,j}` (with
+            `n` either an integer or a partition) defined in [SW2010]_ in
+            terms of the fundamental quasisymmetric functions.
+            Or, if the optional argument ``k`` is specified, return the
+            function `Q_{n,j,k}` defined ibidem.
+
+            If `n` and `j` are nonnegative integers, then the Eulerian
+            quasisymmetric function `Q_{n,j}` is defined as
+
+            .. MATH::
+
+                Q_{n,j} := \sum_{\sigma} F_{\mathrm{Dex}(\sigma)},
+
+            where we sum over all permutations `\sigma \in S_n` such that
+            the number of excedances of `\sigma` is `j`, and where
+            `\mathrm{Dex}(\sigma)` is a composition of `n` defined as follows:
+            Let `S` be the set of all `i \in \{ 1, 2, \ldots, n-1 \}` such
+            that either `\sigma_i > \sigma_{i+1} > i+1` or
+            `i \geq \sigma_i > \sigma_{i+1}` or
+            `\sigma_{i+1} > i + 1 > \sigma_i`. Then,
+            `\mathrm{Dex}(\sigma)` is set to be the composition of `n` whose
+            descent set is `S`.
+
+            Here, an excedance of a permutation `\sigma \in S_n` means an
+            element `i \in \{ 1, 2, \ldots, n-1 \}` satisfying `\sigma_i > i`.
+
+            Similarly we can define a quasisymmetric function `Q_{\lambda, j}`
+            for every partition `\lambda` and every nonnegative integer `j`.
+            This differs from `Q_{n,j}` only in that the sum is restricted to
+            all permutations `\sigma \in S_n` whose cycle type is `\lambda`
+            (where `n = |\lambda|`, and where we still require the number of
+            excedances to be `j`). The method at hand allows computing these
+            functions by passing `\lambda` as the ``n`` parameter.
+
+            Analogously we can define a quasisymmetric function `Q_{n,j,k}` for
+            any nonnegative integers `n`, `j` and `k` by restricting the sum to
+            all permutations `\sigma \in S_n` that have exactly `k` fixed
+            points (and `j` excedances). This can be obtained by specifying the
+            optional ``k`` argument in this method.
+
+            All three versions of Eulerian quasisymmetric functions
+            (`Q_{n,j}`, `Q_{\lambda,j}` and `Q_{n,j,k}`) are actually
+            symmetric functions. See
+            :meth:`~sage.combinat.sf.SymmetricFunctionsBases.ParentMethods.Eulerian`.
+
+            INPUT:
+
+            - ``n`` -- the nonnegative integer `n` or a partition
+            - ``j`` -- the number of excedances
+            - ``k`` -- (optional) if specified, determines the number of fixed
+              points of the permutations which are being summed over
+
+            REFERENCES:
+
+            .. [SW2010] John Shareshian and Michelle Wachs.
+               *Eulerian quasisymmetric functions*. (2010).
+               :arxiv:`0812.0764v2`
+
+            EXAMPLES::
+
+                sage: F = QuasiSymmetricFunctions(QQ).F()
+                sage: F.Eulerian(3, 1)
+                F[1, 2] + F[2, 1] + 2*F[3]
+                sage: F.Eulerian(4, 2)
+                F[1, 2, 1] + 2*F[1, 3] + 3*F[2, 2] + 2*F[3, 1] + 3*F[4]
+                sage: F.Eulerian(5, 2)
+                F[1, 1, 2, 1] + F[1, 1, 3] + F[1, 2, 1, 1] + 7*F[1, 2, 2] + 6*F[1, 3, 1] + 6*F[1, 4] + 2*F[2, 1, 2] + 7*F[2, 2, 1] + 11*F[2, 3] + F[3, 1, 1] + 11*F[3, 2] + 6*F[4, 1] + 6*F[5]
+                sage: F.Eulerian(4, 0)
+                F[4]
+                sage: F.Eulerian(4, 3)
+                F[4]
+                sage: F.Eulerian(4, 1, 2)
+                F[1, 2, 1] + F[1, 3] + 2*F[2, 2] + F[3, 1] + F[4]
+                sage: F.Eulerian(Partition([2, 2, 1]), 2)
+                F[1, 1, 2, 1] + F[1, 2, 1, 1] + 2*F[1, 2, 2] + F[1, 3, 1]
+                 + F[1, 4] + F[2, 1, 2] + 2*F[2, 2, 1] + 2*F[2, 3]
+                 + 2*F[3, 2] + F[4, 1] + F[5]
+                sage: F.Eulerian(0, 0)
+                F[]
+                sage: F.Eulerian(0, 1)
+                0
+                sage: F.Eulerian(1, 0)
+                F[1]
+                sage: F.Eulerian(1, 1)
+                0
+
+            TESTS::
+
+                sage: F = QuasiSymmetricFunctions(QQ).F()
+                sage: F.Eulerian(Partition([3, 1]), 1, 1)
+                Traceback (most recent call last):
+                ...
+                ValueError: invalid input, k cannot be specified
+            """
+            from sage.combinat.partition import _Partitions
+            if n in _Partitions:
+                if k is not None:
+                    raise ValueError("invalid input, k cannot be specified")
+                la = _Partitions(n)
+                n = sum(la)
+            else:
+                la = None
+
+            if n == 0:
+                if k is not None and k != 0:
+                    return self.zero()
+                if j != 0:
+                    return self.zero()
+                return self.one()
+
+            monomials = []
+            for p in Permutations(n):
+                dex = []
+                exc = 0
+                for i in range(n-1):
+                    if p[i] > i + 1:
+                        exc += 1
+                    if (p[i] > p[i+1] or (p[i] <= i+1 and p[i+1] > i+2)) \
+                            and not (p[i] > i+1 and p[i+1] <= i+2):
+                        dex.append(i)
+
+                if exc != j:
+                    continue
+                if k is not None and p.number_of_fixed_points() != k:
+                    continue
+                if la is not None and p.cycle_type() != la:
+                    continue
+
+                # Converting to a composition
+                d = [-1] + dex + [n-1]
+                monomials.append(Compositions()( [d[i+1]-d[i] for i in range(len(d)-1)] ))
+
+            return self.sum_of_monomials(monomials)
+
         class Element(CombinatorialFreeModule.Element):
+
             def internal_coproduct(self):
                 r"""
                 Return the inner coproduct of ``self`` in the Fundamental basis.
@@ -1795,6 +2204,64 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             kronecker_coproduct = internal_coproduct
 
+            def star_involution(self):
+                r"""
+                Return the image of the quasisymmetric function ``self`` under
+                the star involution.
+
+                The star involution is defined as the linear map
+                `QSym \to QSym` which, for every composition `I`, sends the
+                monomial quasisymmetric function `M_I` to `M_{I^r}`. Here, if
+                `I` is a composition, we denote by `I^r` the reversed
+                composition of `I`. Denoting by `f^{\ast}` the image of an
+                element `f \in QSym` under the star involution, it can be shown
+                that every composition `I` satisfies
+
+                .. MATH::
+
+                    (M_I)^{\ast} = M_{I^r}, \quad (F_I)^{\ast} = F_{I^r},
+
+                where `F_I` denotes the fundamental quasisymmetric function
+                corresponding to the composition `I`. The star involution is an
+                involution, an algebra automorphism and a coalgebra
+                anti-automorphism of `QSym`. It also is an automorphism of the
+                graded vector space `QSym`, and is the identity on the subspace
+                `Sym` of `QSym`. It is adjoint to the star involution on `NCSF`
+                by the standard adjunction between `NCSF` and `QSym`.
+
+                The star involution has been denoted by `\rho` in [LMvW13]_,
+                section 3.6.
+
+                .. SEEALSO::
+
+                    :meth:`sage.combinat.ncsf_qsym.qsym.QSym.Bases.ElementMethods.star_involution`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.star_involution`.
+
+                EXAMPLES::
+
+                    sage: QSym = QuasiSymmetricFunctions(ZZ)
+                    sage: F = QSym.F()
+                    sage: F[3,1].star_involution()
+                    F[1, 3]
+                    sage: F[5,3].star_involution()
+                    F[3, 5]
+                    sage: (F[9,1] - F[6,2] + 2*F[6,4] - 3*F[3] + 4*F[[]]).star_involution()
+                    4*F[] + F[1, 9] - F[2, 6] - 3*F[3] + 2*F[4, 6]
+                    sage: (F[3,3] - 2*F[2]).star_involution()
+                    -2*F[2] + F[3, 3]
+                    sage: F([4,2]).star_involution()
+                    F[2, 4]
+                    sage: dI = QSym.dI()
+                    sage: dI([1,2]).star_involution()
+                    -dI[1, 2] + dI[2, 1]
+                    sage: dI.zero().star_involution()
+                    0
+                """
+                parent = self.parent()
+                dct = {I.reversed(): coeff
+                       for (I, coeff) in self.monomial_coefficients().items()}
+                return parent._from_dict(dct)
+
     F = Fundamental
 
     class Quasisymmetric_Schur(CombinatorialFreeModule, BindableClass):
@@ -1802,7 +2269,10 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         The Hopf algebra of quasi-symmetric function in the Quasisymmetric
         Schur basis.
 
-        The basis of Quasisymmetric Schur functions is defined in [QSCHUR]_.
+        The basis of Quasisymmetric Schur functions is defined in [QSCHUR]_
+        and in Definition 5.1.1 of [LMvW13]_.
+        Don't mistake them for the completely unrelated quasi-Schur
+        functions of [NCSF1]_!
 
         EXAMPLES::
 
@@ -2081,10 +2551,11 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             S = N.S()
             mat = []
             C = Compositions()
-            for alp in Compositions(n):
+            C_n = Compositions(n)
+            for alp in C_n:
                 row = []
                 expansion = S(I(C(alp)))
-                for bet in Compositions(n):
+                for bet in C_n:
                     row.append(expansion.coefficient(C(bet)))
                 mat.append(row)
             return mat
@@ -2121,3 +2592,541 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                                       for I in C_n )
 
     dI = dualImmaculate
+
+    class HazewinkelLambda(CombinatorialFreeModule, BindableClass):
+        r"""
+        The Hazewinkel lambda basis of the quasi-symmetric functions.
+
+        This basis goes back to [Haz2004]_, albeit it is indexed in a
+        different way here. It is a multiplicative basis in a weak
+        sense of this word (the product of any two basis elements is a
+        basis element, but of course not the one obtained by
+        concatenating the indexing compositions).
+
+        In [Haz2004]_, Hazewinkel showed that the `\mathbf{k}`-algebra
+        `\mathrm{QSym}` is a polynomial algebra. (The proof is correct
+        but rests upon an unproven claim that the lexicographically
+        largest term of the `n`-th shuffle power of a Lyndon word is
+        the `n`-fold concatenatenation of this Lyndon word with
+        itself, occuring `n!` times in that shuffle power. But this
+        can be deduced from Section 2 of [Rad1979]_.) More precisely,
+        he showed that `\mathrm{QSym}` is generated, as a free
+        commutative `\mathbf{k}`-algebra, by the elements
+        `\lambda^n(M_I)`, where `n` ranges over the positive integers,
+        and `I` ranges over all compositions which are Lyndon words
+        and whose entries have gcd `1`. Here, `\lambda^n` denotes the
+        `n`-th lambda operation as explained in
+        :meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Monomial.lambda_of_monomial`.
+
+        Thus, products of these generators form a `\mathbf{k}`-module
+        basis of `\mathrm{QSym}`. We index this basis by compositions
+        here. More precisely, we define the Hazewinkel lambda basis
+        `(\mathrm{HWL}_I)_I` (with `I` ranging over all compositions)
+        as follows:
+
+        Let `I` be a composition. Let `I = I_1 I_2 \ldots I_k` be the
+        Chen-Fox-Lyndon factorization of `I` (see
+        :meth:`~sage.combinat.words.finite_word.FiniteWord_class.lyndon_factorization`
+        ). For every `j \in \{1, 2, \ldots , k\}`, let `g_j` be the
+        gcd of the entries of the Lyndon word `I_j`, and let `J_j` be
+        the result of dividing the entries of `I_j` by this gcd. Then,
+        `\mathrm{HWL}_I` is defined to be
+        `\prod_{j=1}^{k} \lambda^{g_j} (M_{J_j})`.
+
+        .. TODO::
+
+            The conversion from the M basis to the HWL basis is
+            currently implemented in the naive way (inverting the
+            base-change matrix in the other direction). This matrix
+            is not triangular (not even after any permutations of
+            the bases), and there could very well be a faster method
+            (the one given by Hazewinkel?).
+
+        EXAMPLES::
+
+            sage: QSym = QuasiSymmetricFunctions(ZZ)
+            sage: HWL = QSym.HazewinkelLambda()
+            sage: M = QSym.M()
+            sage: M(HWL([2]))
+            M[1, 1]
+            sage: M(HWL([1,1]))
+            2*M[1, 1] + M[2]
+            sage: M(HWL([1,2]))
+            M[1, 2]
+            sage: M(HWL([2,1]))
+            3*M[1, 1, 1] + M[1, 2] + M[2, 1]
+            sage: M(HWL(Composition([])))
+            M[]
+            sage: HWL(M([1,1]))
+            HWL[2]
+            sage: HWL(M(Composition([2])))
+            HWL[1, 1] - 2*HWL[2]
+            sage: HWL(M([1]))
+            HWL[1]
+
+        TESTS:
+
+        Transforming from the M-basis into the HWL-basis and back
+        returns us to where we started::
+
+            sage: all( M(HWL(M[I])) == M[I] for I in Compositions(3) )
+            True
+            sage: all( HWL(M(HWL[I])) == HWL[I] for I in Compositions(4) )
+            True
+
+        Checking the HWL basis elements corresponding to Lyndon
+        words::
+
+            sage: all( M(HWL[Composition(I)])
+            ....:      == M.lambda_of_monomial([i // gcd(I) for i in I], gcd(I))
+            ....:      for I in LyndonWords(e=3, k=2) )
+            True
+        """
+
+        def __init__(self, QSym):
+            r"""
+            TESTS::
+
+                sage: HWL = QuasiSymmetricFunctions(QQ).HazewinkelLambda()
+                sage: TestSuite(HWL).run()
+            """
+            CombinatorialFreeModule.__init__(self, QSym.base_ring(), Compositions(),
+                                             prefix='HWL', bracket=False,
+                                             category=QSym.Bases())
+
+        def __init_extra__(self):
+            """
+            Set up caches for the transition maps to and from the monomial
+            basis, and register them as coercions.
+
+            TESTS::
+
+                sage: HWL = QuasiSymmetricFunctions(QQ).HazewinkelLambda()
+                sage: M = QuasiSymmetricFunctions(QQ).Monomial()
+                sage: HWL.coerce_map_from(M)
+                Generic morphism:
+                  From: Quasisymmetric functions over the Rational Field in the Monomial basis
+                  To:   Quasisymmetric functions over the Rational Field in the HazewinkelLambda basis
+                sage: M.coerce_map_from(HWL)
+                Generic morphism:
+                  From: Quasisymmetric functions over the Rational Field in the HazewinkelLambda basis
+                  To:   Quasisymmetric functions over the Rational Field in the Monomial basis
+                sage: M.coerce_map_from(HWL)(HWL[2])
+                M[1, 1]
+                sage: HWL.coerce_map_from(M)(M[2])
+                HWL[1, 1] - 2*HWL[2]
+            """
+            M = self.realization_of().M()
+            category = self.realization_of()._category
+            # This changes Monomial into Hazewinkel Lambda
+            M.module_morphism(self._from_Monomial_on_basis,
+                                              codomain = self, category = category
+                                              ).register_as_coercion()
+            # This changes Hazewinkel Lambda into Monomial
+            self.module_morphism(self._to_Monomial_on_basis,
+                                              codomain = M, category = category
+                                              ).register_as_coercion()
+
+            # cache for the coordinates of the elements
+            # of the monomial basis with respect to the HWL basis
+            self._M_to_self_cache = {}
+            # cache for the coordinates of the elements
+            # of the HWL basis with respect to the monomial basis
+            self._M_from_self_cache = {}
+            # cache for transition matrices which contain the coordinates of
+            # the elements of the monomial basis with respect to the HWL basis
+            self._M_transition_matrices = {}
+            # cache for transition matrices which contain the coordinates of
+            # the elements of the HWL basis with respect to the monomial basis
+            self._M_inverse_transition_matrices = {}
+
+        def _precompute_cache(self, n, to_self_cache, from_self_cache, transition_matrices, inverse_transition_matrices, from_self_gen_function):
+            """
+            Compute the transition matrices between ``self`` and the
+            monomial basis in the homogeneous components of degree `n`.
+            The results are not returned, but rather stored in the caches.
+
+            This assumes that the transition matrices in all degrees smaller
+            than `n` have already been computed and cached!
+
+            INPUT:
+
+            - ``n`` -- nonnegative integer
+            - ``to_self_cache`` -- a cache which stores the coordinates of
+              the elements of the monomial basis with respect to the
+              basis ``self``
+            - ``from_self_cache`` -- a cache which stores the coordinates
+              of the elements of ``self`` with respect to the monomial
+              basis
+            - ``transition_matrices`` -- a cache for transition matrices
+              which contain the coordinates of the elements of the monomial
+              basis with respect to ``self``
+            - ``inverse_transition_matrices`` -- a cache for transition
+              matrices which contain the coordinates of the elements of
+              ``self`` with respect to the monomial basis
+            - ``from_self_gen_function`` -- a function which takes a
+              Lyndon word `I` and returns the Hazewinkel Lambda basis
+              element indexed by `I` expanded with respect to the
+              monomial basis (as an element of the monomial basis, not as
+              a dictionary)
+
+            EXAMPLES:
+
+            The examples below demonstrate how the caches are built
+            step by step using the ``_precompute_cache`` method. In order
+            not to influence the outcome of other doctests, we make sure
+            not to use the caches internally used by this class, but
+            rather to create new caches. This allows us to compute the
+            transition matrices for a slight variation of the Hazewinkel
+            Lambda basis, namely the basis whose `I`-th element is given
+            by the simple formula `\prod_{j=1}^{k} M_{I_j}` instead of
+            `\prod_{j=1}^{k} \lambda^{g_j} (M_{J_j})`. We will see that
+            this is only a `\QQ`-basis rather than a `\ZZ`-basis (a
+            reason why the Ditters conjecture took so long to prove)::
+
+                sage: QSym = QuasiSymmetricFunctions(QQ)
+                sage: HWL = QSym.HazewinkelLambda()
+                sage: M = QSym.M()
+                sage: toy_to_self_cache = {}
+                sage: toy_from_self_cache = {}
+                sage: toy_transition_matrices = {}
+                sage: toy_inverse_transition_matrices = {}
+                sage: l = lambda c: [ (i[0],[j for j in sorted(i[1].items())]) for i in sorted(c.items())]
+                sage: l(toy_to_self_cache)
+                []
+                sage: def toy_gen_function(I):
+                ....:     return M[I]
+                sage: HWL._precompute_cache(0, toy_to_self_cache,
+                ....:                          toy_from_self_cache,
+                ....:                          toy_transition_matrices,
+                ....:                          toy_inverse_transition_matrices,
+                ....:                          toy_gen_function)
+                sage: l(toy_to_self_cache)
+                [([], [([], 1)])]
+                sage: HWL._precompute_cache(1, toy_to_self_cache,
+                ....:                          toy_from_self_cache,
+                ....:                          toy_transition_matrices,
+                ....:                          toy_inverse_transition_matrices,
+                ....:                          toy_gen_function)
+                sage: l(toy_to_self_cache)
+                [([], [([], 1)]), ([1], [([1], 1)])]
+                sage: HWL._precompute_cache(2, toy_to_self_cache,
+                ....:                          toy_from_self_cache,
+                ....:                          toy_transition_matrices,
+                ....:                          toy_inverse_transition_matrices,
+                ....:                          toy_gen_function)
+                sage: l(toy_to_self_cache)
+                [([], [([], 1)]), ([1], [([1], 1)]), ([1, 1], [([1, 1], 1/2), ([2], -1/2)]), ([2], [([2], 1)])]
+                sage: toy_transition_matrices[2]
+                [ 1/2 -1/2]
+                [   0    1]
+                sage: toy_inverse_transition_matrices[2]
+                [2 1]
+                [0 1]
+                sage: toy_transition_matrices.keys()
+                [0, 1, 2]
+
+            As we see from the fractions in the transition matrices, this
+            is only a basis over `\QQ`, not over `\ZZ`.
+
+            Let us try another variation on the definition of the basis:
+            `\prod_{j=1}^{k} \lambda^{g_j} (M_{J_j})` will now be replaced
+            by `\prod_{j=1}^{k} M_{J_j^{g_j}}`, where `J_g` means the
+            `g`-fold concatenation of the composition `J` with itself::
+
+                sage: toy_to_self_cache = {}
+                sage: toy_from_self_cache = {}
+                sage: toy_transition_matrices = {}
+                sage: toy_inverse_transition_matrices = {}
+                sage: l = lambda c: [ (i[0],[j for j in sorted(i[1].items())]) for i in sorted(c.items())]
+                sage: l(toy_to_self_cache)
+                []
+                sage: def toy_gen_function(I):
+                ....:     xs = flatten([i // gcd(I) for i in I] * gcd(I))
+                ....:     return M[xs]
+                sage: HWL._precompute_cache(0, toy_to_self_cache,
+                ....:                          toy_from_self_cache,
+                ....:                          toy_transition_matrices,
+                ....:                          toy_inverse_transition_matrices,
+                ....:                          toy_gen_function)
+                sage: l(toy_to_self_cache)
+                [([], [([], 1)])]
+                sage: HWL._precompute_cache(1, toy_to_self_cache,
+                ....:                          toy_from_self_cache,
+                ....:                          toy_transition_matrices,
+                ....:                          toy_inverse_transition_matrices,
+                ....:                          toy_gen_function)
+                sage: l(toy_to_self_cache)
+                [([], [([], 1)]), ([1], [([1], 1)])]
+                sage: HWL._precompute_cache(2, toy_to_self_cache,
+                ....:                          toy_from_self_cache,
+                ....:                          toy_transition_matrices,
+                ....:                          toy_inverse_transition_matrices,
+                ....:                          toy_gen_function)
+                sage: l(toy_to_self_cache)
+                [([], [([], 1)]), ([1], [([1], 1)]), ([1, 1], [([2], 1)]), ([2], [([1, 1], 1), ([2], -2)])]
+
+            This can be seen to form another `\ZZ`-basis of
+            `\mathrm{QSym}`, although it is not clear whether it has
+            any better properties than Hazewinkel's Lambda one.
+            """
+            # Much of this code is adapted from sage/combinat/sf/dual.py
+            base_ring = self.base_ring()
+            zero = base_ring(0)
+
+            # Handle the n == 0 case separately
+            if n == 0:
+                part = self._basis_keys([])
+                to_self_cache[ part ] = { part: base_ring(1) }
+                from_self_cache[ part ] = { part: base_ring(1) }
+                transition_matrices[n] = matrix(base_ring, [[1]])
+                inverse_transition_matrices[n] = matrix(base_ring, [[1]])
+                return
+
+            compositions_n = Compositions(n).list()
+            len_compositions_n = 2 ** (n-1)     # since n > 0 by now.
+            M = self.realization_of().M()
+
+            # The monomial basis will be called M from now on.
+
+            # This contains the data for the transition matrix from the
+            # monomial basis M to the Hazewinkel lambda basis self.
+            transition_matrix_n = matrix(base_ring, len_compositions_n, len_compositions_n)
+
+            # This first section calculates how the basis elements of the
+            # Hazewinkel lambda basis self decompose in the monomial
+            # basis M.
+
+            # For every composition I of size n, expand self[I] in terms
+            # of the monomial basis M.
+            i = 0
+            for I in compositions_n:
+                # M_coeffs will be M(self[I])._monomial_coefficients
+                M_coeffs = {}
+
+                self_I_in_M_basis = M.prod([from_self_gen_function(self._basis_keys(list(J)))
+                                            for J in Word(I).lyndon_factorization()])
+
+                j = 0
+
+                for J in compositions_n:
+                    if J in self_I_in_M_basis._monomial_coefficients:
+                        sp = self_I_in_M_basis._monomial_coefficients[J]
+                        M_coeffs[J] = sp
+                        transition_matrix_n[i,j] = sp
+
+                    j += 1
+
+                from_self_cache[I] = M_coeffs
+                i += 1
+
+            # Save the transition matrix
+            inverse_transition_matrices[n] = transition_matrix_n
+
+            # This second section calculates how the basis elements of the
+            # monomial basis M expand in terms of the basis B. We do this
+            # by inverting the above transition matrix.
+            #
+            # TODO: The way given in Hazewinkel's [Haz2004]_ paper might
+            # be faster.
+            inverse_transition = ~transition_matrix_n
+
+            for i in range(len_compositions_n):
+                self_coeffs = {}
+                for j in range(len_compositions_n):
+                    if inverse_transition[i,j] != zero:
+                        self_coeffs[ compositions_n[j] ] = inverse_transition[i,j]
+
+                to_self_cache[ compositions_n[i] ] = self_coeffs
+
+            transition_matrices[n] = inverse_transition
+
+        def _precompute_M(self, n):
+            """
+            Compute the transition matrices between ``self`` and the
+            monomial basis in the homogeneous components of degree `n`
+            (and in those of smaller degree, if not already computed).
+            The result is not returned, but rather stored in the cache.
+
+            INPUT:
+
+            - ``n`` -- nonnegative integer
+
+            EXAMPLES:
+
+            The examples below demonstrate how the caches of ``self`` are
+            built step by step using the ``_precompute_M`` method. This
+            demonstration relies on an untouched Hazewinkel Lambda basis
+            (because any computations might have filled the cache already).
+            We obtain such a basis by choosing a ground ring unlikely to
+            appear elsewhere::
+
+                sage: QSym = QuasiSymmetricFunctions(ZZ['hell', 'yeah'])
+                sage: HWL = QSym.HazewinkelLambda()
+                sage: M = QSym.M()
+                sage: l = lambda c: [ (i[0],[j for j in sorted(i[1].items())]) for i in sorted(c.items())]
+                sage: l(HWL._M_to_self_cache)
+                []
+                sage: HWL._precompute_M(0)
+                sage: l(HWL._M_to_self_cache)
+                [([], [([], 1)])]
+                sage: HWL._precompute_M(1)
+                sage: l(HWL._M_to_self_cache)
+                [([], [([], 1)]), ([1], [([1], 1)])]
+                sage: HWL._precompute_M(2)
+                sage: l(HWL._M_to_self_cache)
+                [([], [([], 1)]),
+                 ([1], [([1], 1)]),
+                 ([1, 1], [([2], 1)]),
+                 ([2], [([1, 1], 1), ([2], -2)])]
+                sage: HWL._M_transition_matrices[2]
+                [ 0  1]
+                [ 1 -2]
+                sage: HWL._M_inverse_transition_matrices[2]
+                [2 1]
+                [1 0]
+                sage: HWL._M_transition_matrices.keys()
+                [0, 1, 2]
+
+            We did not have to call ``HWL._precompute_M(0)``,
+            ``HWL._precompute_M(1)`` and ``HWL._precompute_M(2)``
+            in this order; it would be enough to just call
+            ``HWL._precompute_M(2)``::
+
+                sage: QSym = QuasiSymmetricFunctions(ZZ['lol', 'wut'])
+                sage: HWL = QSym.HazewinkelLambda()
+                sage: M = QSym.M()
+                sage: l = lambda c: [ (i[0],[j for j in sorted(i[1].items())]) for i in sorted(c.items())]
+                sage: l(HWL._M_to_self_cache)
+                []
+                sage: HWL._precompute_M(2)
+                sage: l(HWL._M_to_self_cache)
+                [([], [([], 1)]),
+                 ([1], [([1], 1)]),
+                 ([1, 1], [([2], 1)]),
+                 ([2], [([1, 1], 1), ([2], -2)])]
+                sage: HWL._precompute_M(1)
+                sage: l(HWL._M_to_self_cache)
+                [([], [([], 1)]),
+                 ([1], [([1], 1)]),
+                 ([1, 1], [([2], 1)]),
+                 ([2], [([1, 1], 1), ([2], -2)])]
+            """
+            l = len(self._M_transition_matrices)
+            M = self.realization_of().M()
+            if l <= n:
+                from sage.misc.cachefunc import cached_function
+                from sage.rings.arith import gcd
+                @cached_function
+                def monolambda(I):
+                    # expansion of self[I] in monomial basis,
+                    # where I is a composition which is a Lyndon word
+                    g = gcd(I)
+                    I_reduced = [i // g for i in I]
+                    return M.lambda_of_monomial(I_reduced, g)
+                for i in range(l, n + 1):
+                    self._precompute_cache(i, self._M_to_self_cache,
+                                           self._M_from_self_cache,
+                                           self._M_transition_matrices,
+                                           self._M_inverse_transition_matrices,
+                                           monolambda)
+
+        def _to_Monomial_on_basis(self, J):
+            r"""
+            Expand the Hazewinkel Lambda basis element labelled by a
+            composition ``J`` in the quasi-symmetric Monomial basis.
+
+            INPUT:
+
+            - ``J`` -- a composition
+
+            OUTPUT:
+
+            - A quasi-symmetric function in the Monomial basis.
+
+            EXAMPLES::
+
+                sage: HWL = QuasiSymmetricFunctions(QQ).HazewinkelLambda()
+                sage: J = Composition([1, 2, 1])
+                sage: HWL._to_Monomial_on_basis(J)
+                2*M[1, 1, 2] + M[1, 2, 1] + M[1, 3] + M[2, 2]
+            """
+            n = sum(J)
+            self._precompute_M(n)
+            return self.realization_of().M()._from_dict(self._M_from_self_cache[J])
+
+        def _from_Monomial_on_basis(self, J):
+            r"""
+            Expand the Monomial quasi-symmetric function labelled by the
+            composition ``J`` in the Hazewinkel Lambda basis.
+
+            INPUT:
+
+            - ``J`` -- a composition
+
+            OUTPUT:
+
+            - A quasi-symmetric function in the Hazewinkel lambda basis.
+
+            EXAMPLES::
+
+                sage: HWL = QuasiSymmetricFunctions(QQ).HazewinkelLambda()
+                sage: J = Composition([1, 2, 1])
+                sage: HWL._from_Monomial_on_basis(J)
+                -2*HWL[1, 1, 2] + HWL[1, 2, 1] - HWL[1, 3] - HWL[2, 2] + 2*HWL[3, 1] - 2*HWL[4]
+            """
+            n = sum(J)
+            self._precompute_M(n)
+            return self._from_dict(self._M_to_self_cache[J])
+
+        def product_on_basis(self, I, J):
+            """
+            The product on Hazewinkel Lambda basis elements.
+
+            The product of the basis elements indexed by two compositions
+            `I` and `J` is the basis element obtained by concatenating the
+            Lyndon factorizations of the words `I` and `J`, then reordering
+            the Lyndon factors in nonincreasing order, and finally
+            concatenating them in this order (giving a new composition).
+
+            INPUT:
+
+            - ``I``, ``J`` -- compositions
+
+            OUTPUT:
+
+            - The product of the Hazewinkel Lambda quasi-symmetric
+              functions indexed by ``I`` and ``J``, expressed in the
+              Hazewinkel Lambda basis.
+
+            EXAMPLES::
+
+                sage: HWL = QuasiSymmetricFunctions(QQ).HazewinkelLambda()
+                sage: c1 = Composition([1, 2, 1])
+                sage: c2 = Composition([2, 1, 3, 2])
+                sage: HWL.product_on_basis(c1, c2)
+                HWL[2, 1, 3, 2, 1, 2, 1]
+                sage: HWL.product_on_basis(c1, Composition([]))
+                HWL[1, 2, 1]
+                sage: HWL.product_on_basis(Composition([]), Composition([]))
+                HWL[]
+
+            TESTS::
+
+                sage: M = QuasiSymmetricFunctions(QQ).M()
+                sage: all( all( M(HWL[I] * HWL[J]) == M(HWL[I]) * M(HWL[J])
+                ....:           for I in Compositions(3) )
+                ....:      for J in Compositions(3) )
+                True
+            """
+            from sage.misc.flatten import flatten
+            I_factors = [list(i) for i in Word(I).lyndon_factorization()]
+            J_factors = [list(j) for j in Word(J).lyndon_factorization()]
+            # This uses the convenient fact that comparison of lists in
+            # Python works exactly as one wants in Lyndon word theory:
+            # [a_1, a_2, ..., a_n] > [b_1, b_2, ..., b_m] if and only if
+            # either some i satisfies a_i > b_i and (a_j == b_j for all
+            # j < i), or we have n > m and all i <= m satisfy a_i == b_i.
+            new_factors = sorted(I_factors + J_factors, reverse=True)
+            return self.monomial(self._basis_keys(flatten(new_factors)))
+

@@ -31,6 +31,7 @@ Groups
    sage/groups/matrix_gps/finitely_generated
    sage/groups/matrix_gps/morphism
    sage/groups/matrix_gps/homset
+   sage/groups/matrix_gps/coxeter_group
    sage/groups/matrix_gps/linear
    sage/groups/matrix_gps/orthogonal
    sage/groups/matrix_gps/symplectic
@@ -39,6 +40,8 @@ Groups
    sage/groups/affine_gps/euclidean_group
    sage/groups/affine_gps/group_element
    sage/groups/misc_gps/misc_groups
+   sage/groups/semimonomial_transformations/semimonomial_transformation_group
+   sage/groups/semimonomial_transformations/semimonomial_transformation
 
    sage/groups/conjugacy_classes
 

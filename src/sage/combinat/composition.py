@@ -195,17 +195,34 @@ class Composition(CombinatorialObject, Element):
             self._set_parent(state[0])
             self.__dict__ = state[1]
 
-    @combinatorial_map(name='conjugate')
+    @combinatorial_map(order=2, name='conjugate')
     def conjugate(self):
         r"""
         Return the conjugate of the composition ``self``.
 
-        Algorithm from mupad-combinat.
+        The conjugate of a composition `I` is defined as the
+        complement (see :meth:`complement`) of the reverse composition
+        (see :meth:`reversed`) of `I`.
+
+        An equivalent definition of the conjugate goes by saying that
+        the ribbon shape of the conjugate of a composition `I` is the
+        conjugate of the ribbon shape of `I`. (The ribbon shape of a
+        composition is returned by :meth:`to_skew_partition`.)
+
+        This implementation uses the algorithm from mupad-combinat.
 
         EXAMPLES::
 
             sage: Composition([1, 1, 3, 1, 2, 1, 3]).conjugate()
             [1, 1, 3, 3, 1, 3]
+
+        The ribbon shape of the conjugate of `I` is the conjugate of
+        the ribbon shape of `I`::
+
+            sage: all( I.conjugate().to_skew_partition()
+            ....:      == I.to_skew_partition().conjugate()
+            ....:      for I in Compositions(4) )
+            True
 
         TESTS::
 
@@ -227,10 +244,13 @@ class Composition(CombinatorialObject, Element):
 
         return self.parent()([cocjg[0]] + [cocjg[i]-cocjg[i-1]+1 for i in range(1,len(cocjg))])
 
-    @combinatorial_map(name='reversed')
+    @combinatorial_map(order=2, name='reversed')
     def reversed(self):
-        """
+        r"""
         Return the reverse composition of ``self``.
+
+        The reverse composition of a composition `(i_1, i_2, \ldots, i_k)`
+        is defined as the composition `(i_k, i_{k-1}, \ldots, i_1)`.
 
         EXAMPLES::
 
@@ -239,11 +259,25 @@ class Composition(CombinatorialObject, Element):
         """
         return self.parent()(reversed(self))
 
-    @combinatorial_map(name = 'complement')
+    @combinatorial_map(order=2, name='complement')
     def complement(self):
-        """
-        Return the complement composition of ``self``. The complement is the
-        reverse of the conjugate composition of ``self``.
+        r"""
+        Return the complement of the composition ``self``.
+
+        The complement of a composition `I` is defined as follows:
+
+        If `I` is the empty composition, then the complement is the empty
+        composition as well. Otherwise, let `S` be the descent set of `I`
+        (that is, the subset
+        `\{ i_1, i_1 + i_2, \ldots, i_1 + i_2 + \cdots + i_{k-1} \}`
+        of `\{ 1, 2, \ldots, |I|-1 \}`, where `I` is written as
+        `(i_1, i_2, \ldots, i_k)`). Then, the complement of `I` is
+        defined as the composition of size `|I|` whose descent set is
+        `\{ 1, 2, \ldots, |I|-1 \} \setminus S`.
+
+        The complement of a composition `I` also is the reverse
+        composition (:meth:`reversed`) of the conjugate
+        (:meth:`conjugate`) of `I`.
 
         EXAMPLES::
 
@@ -268,7 +302,7 @@ class Composition(CombinatorialObject, Element):
             sage: Composition([]) + Composition([]) == Composition([])
             True
         """
-        return Composition(list(self)+list(other))
+        return Compositions()(list(self)+list(other))
 
     def size(self):
         """
@@ -305,7 +339,7 @@ class Composition(CombinatorialObject, Element):
             sage: Composition.sum([]) == Composition([])
             True
         """
-        return sum(compositions, Composition([]))
+        return sum(compositions, Compositions()([]))
 
     def near_concatenation(self, other):
         r"""
@@ -341,7 +375,7 @@ class Composition(CombinatorialObject, Element):
         """
         if len(self) == 0 or len(other) == 0:
             return None
-        return Composition(list(self)[:-1] + [self[-1] + other[0]] + list(other)[1:])
+        return Compositions()(list(self)[:-1] + [self[-1] + other[0]] + list(other)[1:])
 
     def ribbon_decomposition(self, other, check=True):
         r"""
@@ -422,24 +456,18 @@ class Composition(CombinatorialObject, Element):
             ...
             ValueError: [3, 1, 1, 3, 1] is not the same size as [4, 3, 1]
 
-        REFERENCES:
-
-        .. [NCSF1] Israel Gelfand, D. Krob, Alain Lascoux, B. Leclerc,
-           V. S. Retakh, J.-Y. Thibon,
-           *Noncommutative symmetric functions*.
-           :arxiv:`hep-th/9407124v1`
-
         AUTHORS:
 
         - Darij Grinberg (2013-08-29)
         """
         # Speaking in terms of the definition in the docstring, we have
         # I = self and J = other.
-        factors = []
-        signs = []
 
         if check and (sum(self) != sum(other)):
             raise ValueError("{} is not the same size as {}".format(self, other))
+
+        factors = []
+        signs = []
 
         I_iter = iter(self)
         i = 0
@@ -451,7 +479,7 @@ class Composition(CombinatorialObject, Element):
                     try:
                         i = I_iter.next()
                     except StopIteration:
-                        factors.append(Composition(current_factor))
+                        factors.append(Compositions()(current_factor))
                         return (tuple(factors), tuple(signs))
                 if current_factor_size + i <= j:
                     current_factor.append(i)
@@ -464,10 +492,263 @@ class Composition(CombinatorialObject, Element):
                         current_factor.append(j - current_factor_size)
                         i -= j - current_factor_size
                         signs.append(1)
-                    factors.append(Composition(current_factor))
+                    factors.append(Compositions()(current_factor))
                     break
 
         return (tuple(factors), tuple(signs))
+
+    def join(self, other, check=True):
+        r"""
+        Return the join of ``self`` with a composition ``other`` of the
+        same size.
+
+        The join of two compositions `I` and `J` of size `n` is the
+        coarsest composition of `n` which refines each of `I` and `J`. It
+        can be described as the composition whose descent set is the
+        union of the descent sets of `I` and `J`. It is also the
+        concatenation of `I_1, I_2, \cdots , I_m`, where
+        `I = I_1 \bullet I_2 \bullet \ldots \bullet I_m` is the ribbon
+        decomposition of `I` with respect to `J` (see
+        :meth:`ribbon_decomposition`).
+
+        INPUT:
+
+        - ``other`` -- composition of same size as ``self``
+
+        - ``check`` -- (default: ``True``) a Boolean determining whether
+          to check the input compositions for having the same size
+
+        OUTPUT:
+
+        - the join of the compositions ``self`` and ``other``
+
+        EXAMPLES::
+
+            sage: Composition([3, 1, 1, 3, 1]).join([4, 3, 2])
+            [3, 1, 1, 2, 1, 1]
+            sage: Composition([9, 6]).join([1, 3, 6, 3, 2])
+            [1, 3, 5, 1, 3, 2]
+            sage: Composition([9, 6]).join([1, 3, 5, 1, 3, 2])
+            [1, 3, 5, 1, 3, 2]
+            sage: Composition([1, 1, 1, 1, 1]).join([3, 2])
+            [1, 1, 1, 1, 1]
+            sage: Composition([4, 2]).join([3, 3])
+            [3, 1, 2]
+            sage: Composition([]).join([])
+            []
+
+        Let us verify on small examples that the join
+        of `I` and `J` refines both of `I` and `J`::
+
+            sage: all( all( I.join(J).is_finer(I) and
+            ....:           I.join(J).is_finer(J)
+            ....:           for J in Compositions(4) )
+            ....:      for I in Compositions(4) )
+            True
+
+        and is the coarsest composition to do so::
+
+            sage: all( all( all( K.is_finer(I.join(J))
+            ....:                for K in I.finer()
+            ....:                if K.is_finer(J) )
+            ....:           for J in Compositions(3) )
+            ....:      for I in Compositions(3) )
+            True
+
+        Let us check that the join of `I` and `J` is indeed the
+        conctenation of `I_1, I_2, \cdots , I_m`, where
+        `I = I_1 \bullet I_2 \bullet \ldots \bullet I_m` is the ribbon
+        decomposition of `I` with respect to `J`::
+
+            sage: all( all( Composition.sum(I.ribbon_decomposition(J)[0])
+            ....:           == I.join(J) for J in Compositions(4) )
+            ....:      for I in Compositions(4) )
+            True
+
+        Also, the descent set of the join of `I` and `J` is the
+        union of the descent sets of `I` and `J`::
+
+            sage: all( all( I.to_subset().union(J.to_subset())
+            ....:           == I.join(J).to_subset()
+            ....:           for J in Compositions(4) )
+            ....:      for I in Compositions(4) )
+            True
+
+        TESTS::
+
+            sage: Composition([3, 1, 1, 3, 1]).join([4, 3, 1])
+            Traceback (most recent call last):
+            ...
+            ValueError: [3, 1, 1, 3, 1] is not the same size as [4, 3, 1]
+
+        .. SEEALSO::
+
+            :meth:`meet`, :meth:`ribbon_decomposition`
+
+        AUTHORS:
+
+        - Darij Grinberg (2013-09-05)
+        """
+        # The following code is a slimmed down version of the
+        # ribbon_decomposition method. It is a lot faster than
+        # using to_subset() and from_subset, and also a lot
+        # faster than ribbon_decomposition.
+
+        # Speaking in terms of the definition in the docstring, we have
+        # I = self and J = other.
+
+        if check and (sum(self) != sum(other)):
+            raise ValueError("{} is not the same size as {}".format(self, other))
+
+        factors = []
+
+        I_iter = iter(self)
+        i = 0
+        for j in other:
+            current_factor_size = 0
+            while True:
+                if i == 0:
+                    try:
+                        i = I_iter.next()
+                    except StopIteration:
+                        return Compositions()(factors)
+                if current_factor_size + i <= j:
+                    factors.append(i)
+                    current_factor_size += i
+                    i = 0
+                else:
+                    if not j == current_factor_size:
+                        factors.append(j - current_factor_size)
+                        i -= j - current_factor_size
+                    break
+
+        return Compositions()(factors)
+
+    sup = join
+
+    def meet(self, other, check=True):
+        r"""
+        Return the meet of ``self`` with a composition ``other`` of the
+        same size.
+
+        The meet of two compositions `I` and `J` of size `n` is the
+        finest composition of `n` which is coarser than each of `I` and
+        `J`. It can be described as the composition whose descent set is
+        the intersection of the descent sets of `I` and `J`.
+
+        INPUT:
+
+        - ``other`` -- composition of same size as ``self``
+
+        - ``check`` -- (default: ``True``) a Boolean determining whether
+          to check the input compositions for having the same size
+
+        OUTPUT:
+
+        - the meet of the compositions ``self`` and ``other``
+
+        EXAMPLES::
+
+            sage: Composition([3, 1, 1, 3, 1]).meet([4, 3, 2])
+            [4, 5]
+            sage: Composition([9, 6]).meet([1, 3, 6, 3, 2])
+            [15]
+            sage: Composition([9, 6]).meet([1, 3, 5, 1, 3, 2])
+            [9, 6]
+            sage: Composition([1, 1, 1, 1, 1]).meet([3, 2])
+            [3, 2]
+            sage: Composition([4, 2]).meet([3, 3])
+            [6]
+            sage: Composition([]).meet([])
+            []
+            sage: Composition([1]).meet([1])
+            [1]
+
+        Let us verify on small examples that the meet
+        of `I` and `J` is coarser than both of `I` and `J`::
+
+            sage: all( all( I.is_finer(I.meet(J)) and
+            ....:           J.is_finer(I.meet(J))
+            ....:           for J in Compositions(4) )
+            ....:      for I in Compositions(4) )
+            True
+
+        and is the finest composition to do so::
+
+            sage: all( all( all( I.meet(J).is_finer(K)
+            ....:                for K in I.fatter()
+            ....:                if J.is_finer(K) )
+            ....:           for J in Compositions(3) )
+            ....:      for I in Compositions(3) )
+            True
+
+        The descent set of the meet of `I` and `J` is the
+        intersection of the descent sets of `I` and `J`::
+
+            sage: def test_meet(n):
+            ....:     return all( all( I.to_subset().intersection(J.to_subset())
+            ....:                      == I.meet(J).to_subset()
+            ....:                      for J in Compositions(n) )
+            ....:                 for I in Compositions(n) )
+            sage: all( test_meet(n) for n in range(1, 5) )
+            True
+            sage: all( test_meet(n) for n in range(5, 9) )  # long time
+            True
+
+        TESTS::
+
+            sage: Composition([3, 1, 1, 3, 1]).meet([4, 3, 1])
+            Traceback (most recent call last):
+            ...
+            ValueError: [3, 1, 1, 3, 1] is not the same size as [4, 3, 1]
+
+        .. SEEALSO::
+
+            :meth:`join`
+
+        AUTHORS:
+
+        - Darij Grinberg (2013-09-05)
+        """
+        # The following code is much faster than using to_subset()
+        # and from_subset.
+
+        # Speaking in terms of the definition in the docstring, we have
+        # I = self and J = other.
+
+        if check and (sum(self) != sum(other)):
+            raise ValueError("{} is not the same size as {}".format(self, other))
+
+        factors = []
+        current_part = 0
+
+        I_iter = iter(self)
+        i = 0
+        for j in other:
+            current_factor_size = 0
+            while True:
+                if i == 0:
+                    try:
+                        i = I_iter.next()
+                    except StopIteration:
+                        factors.append(current_part)
+                        return Compositions()(factors)
+                if current_factor_size + i <= j:
+                    current_part += i
+                    current_factor_size += i
+                    i = 0
+                else:
+                    if j == current_factor_size:
+                        factors.append(current_part)
+                        current_part = 0
+                    else:
+                        i -= j - current_factor_size
+                        current_part += j - current_factor_size
+                    break
+
+        return Compositions()(factors)
+
+    inf = meet
 
     def finer(self):
         """
@@ -562,7 +843,7 @@ class Composition(CombinatorialObject, Element):
         for i in range(len(grouping)):
             result[i] = sum(self[j:j+grouping[i]])
             j += grouping[i]
-        return Composition(result)
+        return Compositions()(result)
 
     def fatter(self):
         """
@@ -640,7 +921,7 @@ class Composition(CombinatorialObject, Element):
                 sum1 += new_comp[-1]
             if sum1 > sum2:
                 raise ValueError("composition J (= %s) does not refine self (= %s)"%(I, J))
-            decomp.append(Composition(new_comp))
+            decomp.append(Compositions()(new_comp))
         return decomp
 
     def refinement_splitting_lengths(self, J):
@@ -667,7 +948,7 @@ class Composition(CombinatorialObject, Element):
             ...
             ValueError: composition J (= [2, 1]) does not refine self (= [1, 2])
         """
-        return Composition(map(len,self.refinement_splitting(J)))
+        return Compositions()(map(len,self.refinement_splitting(J)))
 
     refinement = deprecated_function_alias(13243, refinement_splitting_lengths)
 
@@ -1430,6 +1711,11 @@ class Compositions(Parent, UniqueRepresentation):
             [1, 1, 3, 4, 3]
             sage: Compositions().from_subset({2,1,5,9}, 12)
             [1, 1, 3, 4, 3]
+
+            sage: Compositions().from_subset([], 12)
+            [12]
+            sage: Compositions().from_subset([], 0)
+            []
 
         TESTS::
 

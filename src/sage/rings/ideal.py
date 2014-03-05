@@ -821,7 +821,7 @@ class Ideal_generic(MonoidElement):
             ass = self.associated_primes()
         except (NotImplementedError, ValueError):
             raise NotImplementedError
-        if len(ass) <> 1:
+        if len(ass) != 1:
             return False
         if self == ass[0]:
             return True

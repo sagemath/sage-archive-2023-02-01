@@ -100,7 +100,6 @@ from sage.rings.finite_rings.integer_mod import mod
 from sage.misc.functional import is_odd
 from sage.misc.misc_c import prod
 from sage.categories.homset import End
-from sage.categories.pushout import pushout
 
 import sage.rings.ring
 from sage.misc.latex import latex_variable_name

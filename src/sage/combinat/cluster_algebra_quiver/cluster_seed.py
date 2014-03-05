@@ -920,21 +920,24 @@ class ClusterSeed(SageObject):
 
     def universal_extension(self):
         r"""
-        Returns the universal extension of self, i.e. the initial seed of the
-        associated cluster algebra with universal coefficients as defined in
-        section 12 of :arxiv:0602259
+        Returns the universal extension of ``self``.
 
-        This method works only if self is a bipartite, finite-type seed.
+        This is the initial seed of the associated cluster algebra
+        with universal coefficients, as defined in section 12 of
+        :arxiv:`0602259`.
 
-        Due to some limitations in the current implementation of CartanType we
-        need to construct the set of almost positive coroots by hand. As a
-        consequence their ordering is not the standard one (the rows of the
-        bottom part of the exchange matrix might be a shuffling of those you
-        would expect).
+        This method works only if ``self`` is a bipartite, finite-type seed.
+
+        Due to some limitations in the current implementation of
+        ``CartanType``, we need to construct the set of almost positive
+        coroots by hand. As a consequence their ordering is not the
+        standard one (the rows of the bottom part of the exchange
+        matrix might be a shuffling of those you would expect).
 
         EXAMPLES::
-            sage: S=ClusterSeed(['A',2])
-            sage: T=S.universal_extension()
+
+            sage: S = ClusterSeed(['A',2])
+            sage: T = S.universal_extension()
             sage: T.b_matrix()
             [ 0  1]
             [-1  0]
@@ -943,48 +946,56 @@ class ClusterSeed(SageObject):
             [ 1  0]
             [ 1 -1]
             [-1  0]
-            """
-        if self._m !=0:
-            raise ValueError("To have universal coefficients we need to start from a coefficient-free seed")
+        """
+        if self._m != 0:
+            raise ValueError("To have universal coefficients we need "
+                             "to start from a coefficient-free seed")
         if not self.is_bipartite() or not self.is_finite():
-            raise ValueError("Universal coefficients are defined only for finite type cluster algebras at a bipartite initial cluster")
+            raise ValueError("Universal coefficients are defined only "
+                             "for finite type cluster algebras at a "
+                             "bipartite initial cluster")
 
-        # QuiverMutationType and CartanType are not compatible; moreover
-        # CartanType allows only the standard ordering of simple roots.
-        # We build the list of all positive roots for the dual root system by
-        # hand.
-        # Ideally this should be replaced by something more efficient
+        # QuiverMutationType and CartanType are not compatible;
+        # moreover CartanType allows only the standard ordering of
+        # simple roots. We build the list of all positive roots for
+        # the dual root system by hand. Ideally this should be
+        # replaced by something more efficient
+
         from sage.matrix.all import identity_matrix
-        A=2*identity_matrix(self._n)-self.b_matrix().apply_map(abs)
-        A=A.transpose()
         from sage.modules.free_module import VectorSpace
         from sage.modules.free_module_element import vector
-        V=VectorSpace(QQ,self._n)
-        simple_coroots=V.basis()
-        positive_coroots=set()
-        growing=True
+        from sage.matrix.all import matrix
+
+        A = 2 * identity_matrix(self._n) - self.b_matrix().apply_map(abs)
+        A = A.transpose()
+        V = VectorSpace(QQ, self._n)
+        simple_coroots = V.basis()
+        positive_coroots = set()
+        growing = True
         while growing:
-            positive_coroots=positive_coroots.union(set(simple_coroots))
-            new_coroots=set()
+            positive_coroots = positive_coroots.union(set(simple_coroots))
+            new_coroots = set()
             for i in range(self._n):
                 for alpha in positive_coroots:
-                    beta=copy(alpha)
-                    beta[i]=alpha[i]-sum([alpha[j]*A[i][j] for j in range(self._n)])
+                    beta = copy(alpha)
+                    beta[i] = alpha[i] - sum([alpha[j] * A[i][j]
+                                              for j in range(self._n)])
                     beta.set_immutable()
-                    if all(x >=0 for x in beta):
+                    if all(x >= 0 for x in beta):
                         new_coroots.add(beta)
-            growing = positive_coroots != new_coroots
-            positive_coroots=copy(new_coroots)
-        negative_simple_coroots=[-x for x in simple_coroots]
-        map(lambda x: x.set_immutable(),negative_simple_coroots)
-        almost_positive_coroots=positive_coroots.union(set(negative_simple_coroots))
+            growing = (positive_coroots != new_coroots)
+            positive_coroots = copy(new_coroots)
+        negative_simple_coroots = [-x for x in simple_coroots]
+        map(lambda x: x.set_immutable(), negative_simple_coroots)
+        almost_positive_coroots = positive_coroots.union(set(negative_simple_coroots))
 
-        sign=[ -1 if all( x <=0 for x in self.b_matrix()[i]) else 1 for i in range(self._n)]
-        from sage.matrix.all import matrix
-        C=matrix([[sign[j]*alpha[j] for j in range(self._n)] for alpha in almost_positive_coroots])
+        sign = [-1 if all(x <= 0 for x in self.b_matrix()[i]) else 1
+                for i in range(self._n)]
+        C = matrix([[sign[j] * alpha[j] for j in range(self._n)]
+                    for alpha in almost_positive_coroots])
 
         M = self._M.stack(C)
-        seed = ClusterSeed( M, is_principal=False )
+        seed = ClusterSeed(M, is_principal=False)
         seed._mutation_type = self._mutation_type
         return seed
 

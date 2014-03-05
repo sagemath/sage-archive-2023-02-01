@@ -3228,12 +3228,12 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
 
         sage: from sage.matrix.constructor import random_echelonizable_matrix
         sage: matrix_space = sage.matrix.matrix_space.MatrixSpace(QQ, 5, 6)
-        sage: A=random_echelonizable_matrix(matrix_space, rank=4, upper_bound=40); A # random
-        [  1  -1   1  -3  -4   6]
-        [  5  -4   0   8   4  19]
-        [ -3   3  -2   4   7 -16]
-        [ -4   5  -7  26  31 -31]
-        [  2  -3   4 -11 -14  17]
+        sage: A=random_echelonizable_matrix(matrix_space, rank=4, upper_bound=40); A
+        [  1   1   3  11  17  33]
+        [ -1   0  -1  -4  -6 -13]
+        [ -1   0   0   0  -1  -2]
+        [  0  -3  -4 -12 -22 -35]
+        [ -1   2   1   1   5   2]
         sage: A.rank()
         4
         sage: max(map(abs,A.list()))<40
@@ -3243,13 +3243,13 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
 
     An example with default settings (i.e. no entry size control). ::
 
-        sage: C=random_matrix(QQ, 6, 7, algorithm='echelonizable', rank=5); C # random
-        [  1   0   5  -2 -26 -16   0]
-        [ -3   1 -19   6  97  61   1]
-        [  0   4 -15  -1  71  50   3]
-        [  2   4  -9   0  39  25   8]
-        [  2   2   3  -3 -18  -9   3]
-        [ -3  -4  -2  14  14  -6   4]
+        sage: C=random_matrix(QQ, 6, 7, algorithm='echelonizable', rank=5); C
+        [   5   -2  -33  150  450 -643  349]
+        [  -2    1   14  -63 -190  272 -147]
+        [   3   -5  -34  142  446 -648  339]
+        [   4   -2  -29  132  396 -565  307]
+        [  -4    1   27 -131 -381  535 -300]
+        [   5   -1  -29  138  401 -565  318]
         sage: C.rank()
         5
         sage: C.rref()==C.rref().change_ring(ZZ)
@@ -3257,36 +3257,36 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
 
     A matrix without size control may have very large entry sizes. ::
 
-        sage: D=random_matrix(ZZ, 7, 8, algorithm='echelonizable', rank=6); D # random
-        [    9   -53  -255    45 -1519  4043  9819  3324]
-        [    3   -14   -64     8  -369   972  2350   810]
-        [    2   -14   -65     9  -377  1000  2420   829]
-        [    4   -24  -116    21  -693  1846  4485  1516]
-        [   -3    14    68   -16   426 -1134 -2767  -919]
-        [   -5    21    92   -13   548 -1432 -3466 -1183]
-        [    1    -9   -42     7  -254   670  1624   547]
+        sage: D=random_matrix(ZZ, 7, 8, algorithm='echelonizable', rank=6); D
+        [    1     1     9    25   -17  -125    -7    83]
+        [    0     1     5    11    -9   -54     0    28]
+        [   -1    -3   -18   -44    33   217     6  -128]
+        [   -3   -10   -66  -163   123   815    18  -473]
+        [   -5   -19  -111  -271   200  1328    54  -818]
+        [    5    17   109   272  -202 -1355   -39   805]
+        [   -3   -14   -83  -199   147   970    46  -611]
 
     Matrices can be generated over any exact ring. ::
 
         sage: F.<a>=GF(2^3)
-        sage: B=random_matrix(F, 4, 5, algorithm='echelonizable', rank=4, upper_bound=None); B # random
-        [      a + 1 a^2 + a + 1         a^2           0           1]
-        [          1           a       a + 1         a^2     a^2 + a]
-        [          a         a^2 a^2 + a + 1       a + 1           1]
-        [          1           0 a^2 + a + 1           0     a^2 + 1]
+        sage: B=random_matrix(F, 4, 5, algorithm='echelonizable', rank=4, upper_bound=None); B
+        [          1       a + 1           0 a^2 + a + 1           1]
+        [          a a^2 + a + 1     a^2 + 1     a^2 + a           0]
+        [    a^2 + a           1           1     a^2 + a       a + 1]
+        [a^2 + a + 1 a^2 + a + 1         a^2           0     a^2 + a]
         sage: B.rank()
         4
 
     Square matrices over ZZ or QQ with full rank are always unimodular. ::
 
-        sage: E=random_matrix(QQ, 7, 7, algorithm='echelonizable', rank=7); E # random
-        [  1  -1   5  12 -24 -41  47]
-        [  0   1  -1   3   0 -11  40]
-        [  1  -1   6   6 -19 -20 -11]
-        [ -2   1 -10 -12  35  44  -4]
-        [  3  -1   9   7 -35 -40 -18]
-        [  0   0   0  -4   4  13 -32]
-        [  3  -3  11   6 -33 -31 -35]
+        sage: E=random_matrix(QQ, 7, 7, algorithm='echelonizable', rank=7); E
+        [   1   10   36 -107  -47  658  120]
+        [  -3    1   -2   -9    9  -12   66]
+        [  -3   -4  -21   49   36 -378    2]
+        [  -3    3    9  -38  -13  217   73]
+        [   0    5   17  -53  -21  314   69]
+        [  -1   -5  -21   56   39 -418  -23]
+        [  -3    0   -2   -7    6    2   51]
         sage: det(E)
         1
 
@@ -3446,13 +3446,13 @@ def random_subspaces_matrix(parent, rank=None):
 
         sage: from sage.matrix.constructor import random_subspaces_matrix
         sage: matrix_space = sage.matrix.matrix_space.MatrixSpace(QQ, 6, 8)
-        sage: B=random_subspaces_matrix(matrix_space, rank=3); B # random
-        [ 113  339  -46  218 -243  641 -269 -306]
-        [ -33  -99   13  -63   69 -185   77   90]
-        [  35  105  -14   67  -74  197  -82  -95]
-        [ -18  -54    7  -34   37 -100   41   49]
-        [ -26  -78   10  -49   53 -144   59   71]
-        [  -8  -24    3  -15   16  -44   18   22]
+        sage: B=random_subspaces_matrix(matrix_space, rank=3); B
+        [    5     0    15    18    18   -59    64   -26]
+        [   -5    -1   -19   -16   -15    50   -56    21]
+        [  216    57   876   663   606 -2034  2307  -837]
+        [  216    57   876   663   606 -2034  2307  -837]
+        [  -72   -19  -292  -221  -202   678  -769   279]
+        [   15     4    61    46    42  -141   160   -58]
         sage: B.rank()
         3
         sage: B.nullity()
@@ -3464,13 +3464,13 @@ def random_subspaces_matrix(parent, rank=None):
         sage: B_expanded=B.augment(identity_matrix(6)).rref()
         sage: all([x in ZZ for x in B_expanded.list()])
         True
-        sage: B_expanded # random
-        [  1   3   0   0   1   1   3  -2   0   0  -3   0  -9  16]
-        [  0   0   1   0   3  -2  -1  -3   0   0   2   0  11 -27]
-        [  0   0   0   1  -1   2  -3  -1   0   0   2   0   7 -14]
-        [  0   0   0   0   0   0   0   0   1   0  -5   0  -3   2]
-        [  0   0   0   0   0   0   0   0   0   1   1   0   1  -3]
-        [  0   0   0   0   0   0   0   0   0   0   0   1  -1   1]
+        sage: B_expanded
+        [  1   0   3   0   0  -1   2   2   0  10   0   0 -18 -83]
+        [  0   1   4   0  -1   3  -2   1   0  -3   0   0  10  47]
+        [  0   0   0   1   1  -3   3  -2   0  -3   0   0   5  23]
+        [  0   0   0   0   0   0   0   0   1   4   0   0   0   1]
+        [  0   0   0   0   0   0   0   0   0   0   1   0   3   0]
+        [  0   0   0   0   0   0   0   0   0   0   0   1   3   0]
 
     Check that we fixed Trac #10543 (echelon forms should be immutable)::
 
@@ -3480,24 +3480,24 @@ def random_subspaces_matrix(parent, rank=None):
     We want to modify B_expanded, so replace it with a copy::
 
         sage: B_expanded = copy(B_expanded)
-        sage: B_expanded.subdivide(B.nrows()-B.nullity(),B.ncols());B_expanded # random
-        [  1   3   0   0   1   1   3  -2|  0   0  -3   0  -9  16]
-        [  0   0   1   0   3  -2  -1  -3|  0   0   2   0  11 -27]
-        [  0   0   0   1  -1   2  -3  -1|  0   0   2   0   7 -14]
+        sage: B_expanded.subdivide(B.nrows()-B.nullity(),B.ncols());B_expanded
+        [  1   0   3   0   0  -1   2   2|  0  10   0   0 -18 -83]
+        [  0   1   4   0  -1   3  -2   1|  0  -3   0   0  10  47]
+        [  0   0   0   1   1  -3   3  -2|  0  -3   0   0   5  23]
         [-------------------------------+-----------------------]
-        [  0   0   0   0   0   0   0   0|  1   0  -5   0  -3   2]
-        [  0   0   0   0   0   0   0   0|  0   1   1   0   1  -3]
-        [  0   0   0   0   0   0   0   0|  0   0   0   1  -1   1]
+        [  0   0   0   0   0   0   0   0|  1   4   0   0   0   1]
+        [  0   0   0   0   0   0   0   0|  0   0   1   0   3   0]
+        [  0   0   0   0   0   0   0   0|  0   0   0   1   3   0]
         sage: C=B_expanded.subdivision(0,0)
-        sage: C # random
-        [ 1  3  0  0  1  1  3 -2]
-        [ 0  0  1  0  3 -2 -1 -3]
-        [ 0  0  0  1 -1  2 -3 -1]
+        sage: C
+        [ 1  0  3  0  0 -1  2  2]
+        [ 0  1  4  0 -1  3 -2  1]
+        [ 0  0  0  1  1 -3  3 -2]
         sage: L=B_expanded.subdivision(1,1)
-        sage: L # random
-        [ 1  0 -5  0 -3  2]
-        [ 0  1  1  0  1 -3]
-        [ 0  0  0  1 -1  1]
+        sage: L
+        [1 4 0 0 0 1]
+        [0 0 1 0 3 0]
+        [0 0 0 1 3 0]
         sage: B.right_kernel()==C.right_kernel()
         True
         sage: B.row_space()==C.row_space()
@@ -3509,25 +3509,25 @@ def random_subspaces_matrix(parent, rank=None):
 
     A matrix to show that the null space of the L matrix is the column space of the starting matrix. ::
 
-        sage: A=random_matrix(QQ, 5, 7, algorithm='subspaces', rank=None); A # random
-        [-31  12  -9 -27  21   2 -15]
-        [105 -24   6 103 -30 -34  79]
-        [ 29  -9   5  26 -14  -5  17]
-        [233 -55  16 228 -71 -73 173]
-        [-42  10  -3 -41  13  13 -31]
+        sage: A=random_matrix(QQ, 5, 7, algorithm='subspaces', rank=None); A
+        [  14   54  -54   26  -28 -134 -108]
+        [  -3  -11   11   -5    6   27   22]
+        [   7   27  -27   13  -14  -67  -54]
+        [   6   23  -23   11  -12  -57  -46]
+        [   1    4   -4    2   -2  -10   -8]
         sage: (A.nrows(), A.ncols())
         (5, 7)
         sage: all([x in ZZ for x in A.list()])
         True
-        sage: A.nullity() # random
-        1
+        sage: A.nullity()
+        3
         sage: A_expanded=A.augment(identity_matrix(5)).rref()
-        sage: A_expanded # random
-        [  1   0   0   0   0   1   0   0   3   7  25 151]
-        [  0   1   0   0   1   2   1   0   5  21  84 493]
-        [  0   0   1   0  -1   2   0   0   2  13  53 308]
-        [  0   0   0   1   0  -1   1   0  -2  -3  -9 -57]
-        [  0   0   0   0   0   0   0   1  -3   1   1  -2]
+        sage: A_expanded
+        [  1   0   0  -2  -2   2   0   0   0   0   4 -23]
+        [  0   1  -1   1   0  -3  -2   0   0   0  -1   6]
+        [  0   0   0   0   0   0   0   1   0   0  -2  -2]
+        [  0   0   0   0   0   0   0   0   1   0   1  -3]
+        [  0   0   0   0   0   0   0   0   0   1  -1  -1]
         sage: all([x in ZZ for x in A_expanded.list()])
         True
         sage: C=A_expanded.submatrix(0,0,A.nrows()-A.nullity(),A.ncols())
@@ -3648,25 +3648,25 @@ def random_unimodular_matrix(parent, upper_bound=None, max_tries=100):
 
         sage: from sage.matrix.constructor import random_unimodular_matrix
         sage: matrix_space = sage.matrix.matrix_space.MatrixSpace(QQ, 5)
-        sage: A=random_unimodular_matrix(matrix_space); A # random
-        [  -8   31   85  148 -419]
-        [   2   -9  -25  -45  127]
-        [  -1   10   30   65 -176]
-        [  -3   12   33   58 -164]
-        [   5  -21  -59 -109  304]
+        sage: A=random_unimodular_matrix(matrix_space); A
+        [  5   0  19  -5 -77]
+        [  4   1   8  -8 -48]
+        [ -1   3 -14   3  50]
+        [  4   0  16  -3 -62]
+        [  1  -1  11   6 -22]
         sage: det(A)
         1
 
     A matrix size 6 with entries no larger than 50. ::
 
-        sage: B=random_matrix(ZZ, 7, algorithm='unimodular', upper_bound=50);B # random
-        [ -1   0   3   1  -2   2   9]
-        [  1   2  -5   0  14  19 -49]
-        [ -3  -2  12   5  -6  -4  24]
-        [  1   2  -9  -3   3   4  -7]
-        [ -2  -1   7   2  -8  -5  31]
-        [  2   2  -6  -3   8  16 -32]
-        [  1   2  -9  -2   5   6 -12]
+        sage: B=random_matrix(ZZ, 7, algorithm='unimodular', upper_bound=50);B
+        [  4   3  -7   4   4  -3   7]
+        [ -3   1   2  -4  -5  -4 -37]
+        [ -4   0   5  -4  -1   6  20]
+        [  4   1  -5   4   5   2  29]
+        [ -1  -1   2  -1  -1   1  -1]
+        [  0  -1   0   1   1   5  26]
+        [  1   0  -2   3   3  -2   4]
         sage: det(B)
         1
 
@@ -3674,10 +3674,10 @@ def random_unimodular_matrix(parent, upper_bound=None, max_tries=100):
 
         sage: y = var('y')
         sage: K=NumberField(y^2-2*y-2,'y')
-        sage: C=random_matrix(K, 3, algorithm='unimodular');C # random
-        [   2*y - 33 681*y - 787   31*y - 37]
-        [      y + 6 -155*y + 83    -7*y + 4]
-        [         -y   24*y + 51       y + 3]
+        sage: C=random_matrix(K, 3, algorithm='unimodular');C
+        [    -5*y + 11     10*y - 30 -695*y + 2366]
+        [            5       5*y - 9  -535*y + 588]
+        [        y - 1       3*y - 1   -35*y - 273]
         sage: det(C)
         1
 
@@ -3756,51 +3756,51 @@ def random_diagonalizable_matrix(parent,eigenvalues=None,dimensions=None):
 
         sage: from sage.matrix.constructor import random_diagonalizable_matrix
         sage: matrix_space = sage.matrix.matrix_space.MatrixSpace(QQ, 5)
-        sage: A=random_diagonalizable_matrix(matrix_space); A # random
-        [ 10  18   8   4 -18]
-        [ 20  10   8   4 -16]
-        [-60 -54 -22 -12  18]
-        [-60 -54 -24  -6   6]
-        [-20 -18  -8  -4   8]
-        sage: A.eigenvalues() # random
-        [10,6,2,-8,-10]
-        sage: S=A.right_eigenmatrix()[1]; S # random
-        [ 1  1  1  1  0]
-        [ 1  1  1  0  1]
-        [-3 -3 -4 -3 -3]
-        [-3 -4 -3 -3 -3]
-        [-1 -1 -1 -1 -1]
-        sage: S_inverse=S.inverse(); S_inverse # random
-        [ 1  1  1  1 -5]
-        [ 0  0  0 -1  3]
-        [ 0  0 -1  0  3]
-        [ 0 -1  0  0 -1]
-        [-1  0  0  0 -1]
-        sage: S_inverse*A*S # random
-        [ 10   0   0   0   0]
-        [  0   6   0   0   0]
-        [  0   0   2   0   0]
-        [  0   0   0  -8   0]
-        [  0   0   0   0 -10]
+        sage: A=random_diagonalizable_matrix(matrix_space); A
+        [  90  -80   56 -448 -588]
+        [  60    0   28 -324 -204]
+        [  60  -72   32 -264 -432]
+        [  30  -16   16 -152 -156]
+        [ -10   -8   -4   60    8]
+        sage: sorted(A.eigenvalues())
+        [-10, -8, -4, 0, 0]
+        sage: S=A.right_eigenmatrix()[1]; S
+        [    1     1     1     1     0]
+        [  1/2     0   2/3     0     1]
+        [  4/7  9/10   2/3   6/7  -3/7]
+        [  2/7   1/5   1/3  3/14   1/7]
+        [-1/14  1/10  -1/9  1/14  -2/7]
+        sage: S_inverse=S.inverse(); S_inverse
+        [  0   0 -14  42  42]
+        [  0  10   0 -10  30]
+        [ -9   0   0  36  18]
+        [ 10 -10  14 -68 -90]
+        [  6   1   7 -45 -33]
+        sage: S_inverse*A*S
+        [ -4   0   0   0   0]
+        [  0  -8   0   0   0]
+        [  0   0 -10   0   0]
+        [  0   0   0   0   0]
+        [  0   0   0   0   0]
 
     A diagonalizable matrix with eigenvalues and dimensions designated,
     with a check that if eigenvectors were calculated by hand
     entries would all be integers. ::
 
-        sage: B=random_matrix(QQ, 6, algorithm='diagonalizable', eigenvalues=[-12,4,6],dimensions=[2,3,1]); B # random
-        [ -52   32  240 -464  -96 -520]
-        [   6    4  -48   72   36   90]
-        [  46  -32 -108  296  -12  274]
-        [  24  -16  -64  164    0  152]
-        [  18  -16    0   72  -48   30]
-        [   2    0  -16   24   12   34]
+        sage: B=random_matrix(QQ, 6, algorithm='diagonalizable', eigenvalues=[-12,4,6],dimensions=[2,3,1]); B
+        [   2  -64   16  206   56 -142]
+        [  14  -28  -64   46   40  -14]
+        [  -4  -16    4   44   32  -28]
+        [   6    0  -32  -22    8   26]
+        [   0  -16    0   48   20  -32]
+        [   2    0  -16  -14    8   18]
         sage: all([x in ZZ for x in (B-(-12*identity_matrix(6))).rref().list()])
         True
         sage: all([x in ZZ for x in (B-(4*identity_matrix(6))).rref().list()])
         True
         sage: all([x in ZZ for x in (B-(6*identity_matrix(6))).rref().list()])
         True
-        sage: S=B.right_eigenmatrix()[1]; S_inverse=S.inverse(); S_inverse*B*S # random
+        sage: S=B.right_eigenmatrix()[1]; S_inverse=S.inverse(); S_inverse*B*S
         [  6   0   0   0   0   0]
         [  0 -12   0   0   0   0]
         [  0   0 -12   0   0   0]

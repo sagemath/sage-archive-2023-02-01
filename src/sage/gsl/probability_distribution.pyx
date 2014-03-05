@@ -43,7 +43,8 @@ include 'sage/ext/stdsage.pxi'
 include 'gsl.pxi'
 #cimport sage.rings.real_double
 #import sage.rings.real_double
-import random, sys
+import sage.misc.prandom as random
+import sys
 import integration
 from sage.modules.free_module_element import vector
 
@@ -116,9 +117,9 @@ cdef class ProbabilityDistribution:
             sage: P = [0.3, 0.4, 0.3]
             sage: X = GeneralDiscreteDistribution(P)
             sage: h, b = X.generate_histogram_data(bins = 10)
-            sage: h # random
-            [1.5249999999999995, 0.0, 0.0, 0.0, 0.0, 1.8649999999999995, 0.0, 0.0, 0.0, 1.6099999999999994]
-            sage: b # random
+            sage: h
+            [1.47, 0.0, 0.0, 0.0, 0.0, 1.9799999999999982, 0.0, 0.0, 0.0, 1.5500000000000005]
+            sage: b
             [0.0, 0.20000000000000001, 0.40000000000000002, 0.60000000000000009, 0.80000000000000004, 1.0, 1.2000000000000002, 1.4000000000000001, 1.6000000000000001, 1.8, 2.0]
         """
 
@@ -175,11 +176,11 @@ cdef class SphericalDistribution(ProbabilityDistribution):
     EXAMPLES::
 
         sage: T = SphericalDistribution()
-        sage: T.get_random_element() # random
-        (-0.872578667429, -0.29632873418, -0.388324285164)
+        sage: T.get_random_element()
+        (-0.0867933063273, -0.602759063582, 0.79318877529)
         sage: T = SphericalDistribution(dimension = 4, rng = 'luxury')
-        sage: T.get_random_element() # random
-        (-0.196597969334, -0.536955365418, -0.672242159448, -0.470232552109)
+        sage: T.get_random_element()
+        (-0.514418791612, -0.00583949235244, -0.249301758031, 0.82048024998)
 
     TESTS:
 
@@ -202,8 +203,8 @@ cdef class SphericalDistribution(ProbabilityDistribution):
         EXAMPLES::
 
             sage: T = SphericalDistribution()
-            sage: T.get_random_element() # random
-            (-0.872578667429, -0.29632873418, -0.388324285164)
+            sage: T.get_random_element()
+            (-0.0867933063273, -0.602759063582, 0.79318877529)
 
         TESTS:
 
@@ -328,8 +329,8 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: a = 0
         sage: b = 2
         sage: T = RealDistribution('uniform', [a, b])
-        sage: T.get_random_element() # random
-        0.416921074037
+        sage: T.get_random_element()
+        0.231722731143
         sage: T.distribution_function(0)
         0.5
         sage: T.cum_distribution_function(1)
@@ -342,8 +343,8 @@ cdef class RealDistribution(ProbabilityDistribution):
 
         sage: sigma = 1
         sage: T = RealDistribution('gaussian', sigma)
-        sage: T.get_random_element() # random
-        0.818610064197
+        sage: T.get_random_element()
+        0.554424554733
         sage: T.distribution_function(0)
         0.398942280401
         sage: T.cum_distribution_function(1)
@@ -355,8 +356,8 @@ cdef class RealDistribution(ProbabilityDistribution):
 
         sage: sigma = 3
         sage: T = RealDistribution('rayleigh', sigma)
-        sage: T.get_random_element() # random
-        1.65471291529
+        sage: T.get_random_element()
+        3.36776673803
         sage: T.distribution_function(0)
         0.0
         sage: T.cum_distribution_function(1)
@@ -370,8 +371,8 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: zeta = 0
         sage: sigma = 1
         sage: T = RealDistribution('lognormal', [zeta, sigma])
-        sage: T.get_random_element() # random
-        1.23541716538
+        sage: T.get_random_element()
+        0.231649555198
         sage: T.distribution_function(0)
         0.0
         sage: T.cum_distribution_function(1)
@@ -384,8 +385,8 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: a = 1
         sage: b = 1
         sage: T = RealDistribution('pareto', [a, b])
-        sage: T.get_random_element() # random
-        1.16429443511
+        sage: T.get_random_element()
+        1.48118711011
         sage: T.distribution_function(0)
         0.0
         sage: T.cum_distribution_function(1)
@@ -397,8 +398,8 @@ cdef class RealDistribution(ProbabilityDistribution):
 
         sage: nu = 1
         sage: T = RealDistribution('t', nu)
-        sage: T.get_random_element() # random
-        -0.994514581164
+        sage: T.get_random_element()
+        -2.37178046247
         sage: T.distribution_function(0)
         0.318309886184
         sage: T.cum_distribution_function(1)
@@ -410,8 +411,8 @@ cdef class RealDistribution(ProbabilityDistribution):
 
         sage: nu1 = 9; nu2 = 17
         sage: F = RealDistribution('F', [nu1,nu2])
-        sage: F.get_random_element() # random
-        1.65211335491
+        sage: F.get_random_element()
+        1.09017163946
         sage: F.distribution_function(1)
         0.669502550519
         sage: F.cum_distribution_function(3.68)
@@ -423,8 +424,8 @@ cdef class RealDistribution(ProbabilityDistribution):
 
         sage: nu = 1
         sage: T = RealDistribution('chisquared', nu)
-        sage: T.get_random_element() # random
-        0.103230507883
+        sage: T.get_random_element()
+        0.0484400390191
         sage: T.distribution_function(0)
         +infinity
         sage: T.cum_distribution_function(1)
@@ -438,8 +439,8 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: a = 1
         sage: b = 2.5
         sage: T = RealDistribution('exppow', [a, b])
-        sage: T.get_random_element() # random
-        0.570108609774
+        sage: T.get_random_element()
+        -1.21699202901
         sage: T.distribution_function(0)
         0.563530248993
         sage: T.cum_distribution_function(1)
@@ -450,8 +451,8 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: a = 2
         sage: b = 2
         sage: T = RealDistribution('beta', [a, b])
-        sage: T.get_random_element() # random
-        0.518139435862
+        sage: T.get_random_element()
+        0.327993228576
         sage: T.distribution_function(0)
         0.0
         sage: T.cum_distribution_function(1)
@@ -462,8 +463,8 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: a = 1
         sage: b = 1
         sage: T = RealDistribution('weibull', [a, b])
-        sage: T.get_random_element() # random
-        1.86974582214
+        sage: T.get_random_element()
+        0.406575022154
         sage: T.distribution_function(0)
         1.0
         sage: T.cum_distribution_function(1)
@@ -958,8 +959,8 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
 
         sage: P = [0.3, 0.4, 0.3]
         sage: X = GeneralDiscreteDistribution(P)
-        sage: X.get_random_element() # random
-        2
+        sage: X.get_random_element()
+        0
 
     Checking the distribution of samples::
 
@@ -969,8 +970,9 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
         sage: nr_samples = 10000
         sage: for _ in range(nr_samples):
         ...       counts[X.get_random_element()] += 1
-        sage: [1.0*x/nr_samples for x in counts] # random
-        [0.295400000000000, 0.400200000000000, 0.304400000000000]
+        sage: [1.0*x/nr_samples for x in counts]
+        [0.309500000000000, 0.392000000000000, 0.298500000000000]
+
 
     The distribution probabilities will automatically be normalised::
 
@@ -1068,7 +1070,7 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
 
             sage: X = GeneralDiscreteDistribution([0.3, 0.4, 0.3])
             sage: X.set_seed(1)
-            sage: X.get_random_element() # random
+            sage: X.get_random_element()
             1
         """
 
@@ -1109,8 +1111,8 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
 
             sage: P = [0.3, 0.4, 0.3]
             sage: X = GeneralDiscreteDistribution(P)
-            sage: [X.get_random_element() for _ in range(10)] # random
-            [1, 0, 1, 1, 2, 0, 0, 2, 2, 0]
+            sage: [X.get_random_element() for _ in range(10)]
+            [0, 1, 0, 0, 0, 2, 0, 0, 0, 2]
             sage: isinstance(X.get_random_element(), sage.rings.integer.Integer)
             True
 

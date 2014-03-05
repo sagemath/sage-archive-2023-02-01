@@ -805,6 +805,8 @@ cdef class GLPKBackend(GenericBackend):
         The user can ask sage to solve via ``simplex`` or ``intopt``.
         The default solver is ``intopt``, so we get integer solutions.
 
+        EXAMPLE::
+
             sage: lp = MixedIntegerLinearProgram(solver = 'GLPK', maximization = False)
             sage: x, y = lp[0], lp[1]
             sage: lp.add_constraint(-2*x + y <= 1)
@@ -819,6 +821,8 @@ cdef class GLPKBackend(GenericBackend):
             [1.0, 1.0]
 
         If we switch to ``simplex``, we get continuous solutions.
+
+        EXAMPLE::
 
             sage: lp.solver_parameter("simplex_or_intopt", "simplex_only") # use simplex only
             sage: lp.solve()

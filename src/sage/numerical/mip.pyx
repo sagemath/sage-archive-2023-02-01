@@ -27,21 +27,21 @@ and this additional inequality:
 
  - `w_0 - w_1 - w_2 \geq 0`
 
-where all `w_i \in \mathbb{Z}`. You know that the trivial solution is
-`w_i = 0 \; \forall i`, but what is the first non-trivial one with
-`w_3 \geq 1`?
+where all `w_i \in \mathbb{Z}^+`. You know that the trivial solution is `w_i=0`,
+but what is the first non-trivial one with `w_3 \geq 1`?
 
 A mixed integer linear program can give you an answer:
 
   #. You have to create an instance of :class:`MixedIntegerLinearProgram` and
      -- in our case -- specify that it is a minimization.
-  #. Create a variable vector ``w`` via ``w = p.new_variable(integer=True)`` and
-     tell the system that it is over the integers.
+  #. Create an dictionary ``w`` of integer variables ``w`` via ``w =
+     p.new_variable(integer=True)`` (note that **by default all variables are
+     non-negative**, cf :meth:`~MixedIntegerLinearProgram.new_variable`).
   #. Add those three equations as equality constraints via
      :meth:`add_constraint <sage.numerical.mip.MixedIntegerLinearProgram.add_constraint>`.
   #. Also add the inequality constraint.
   #. Add an inequality constraint `w_3 \geq 1` to exclude the trivial solution.
-  #. By default, all variables have a minimum of `0`. We remove that constraint
+  #. By default, all variables are non-negative. We remove that constraint
      via ``p.set_min(variable, None)``, see :meth:`set_min <sage.numerical.mip.MixedIntegerLinearProgram.set_min>`.
   #. Specify the objective function via :meth:`set_objective <sage.numerical.mip.MixedIntegerLinearProgram.set_objective>`.
      In our case that is just `w_3`. If it
@@ -53,7 +53,7 @@ A mixed integer linear program can give you an answer:
 The following example shows all these steps::
 
     sage: p = MixedIntegerLinearProgram(maximization=False, solver = "GLPK")
-    sage: w = p.new_variable(integer=True)
+    sage: w = p.new_variable(integer=True) # all variables are non-negative by default
     sage: p.add_constraint(w[0] + w[1] + w[2] - 14*w[3] == 0)
     sage: p.add_constraint(w[1] + 2*w[2] - 8*w[3] == 0)
     sage: p.add_constraint(2*w[2] - 3*w[3] == 0)
@@ -170,25 +170,22 @@ from sage.structure.sage_object cimport SageObject
 from sage.misc.cachefunc import cached_method
 from sage.numerical.linear_functions import is_LinearFunction, is_LinearConstraint
 
-
 cdef class MixedIntegerLinearProgram(SageObject):
     r"""
     The ``MixedIntegerLinearProgram`` class is the link between Sage, linear
     programming (LP) and mixed integer programming (MIP) solvers.
 
-    See the Wikipedia article on `linear programming
-    <http://en.wikipedia.org/wiki/Linear_programming>`_ for further information
-    on linear programming and the documentation of the :mod:`MILP module
-    <sage.numerical.mip>` for its use in Sage.
+    A Mixed Integer Linear Program (MILP) consists of variables, linear
+    constraints on these variables, and an objective function which is to be
+    maximised or minimised under these constraints.
 
-    A mixed integer program consists of variables, linear constraints on these
-    variables, and an objective function which is to be maximised or minimised
-    under these constraints. An instance of ``MixedIntegerLinearProgram`` also
-    requires the information on the direction of the optimization.
+    See the :wikipedia:`Linear_programming` for further information on linear
+    programming, and the :mod:`MILP module <sage.numerical.mip>` for its use in
+    Sage.
 
     INPUT:
 
-    - ``solver`` -- the following solvers should be available through this class:
+    - ``solver`` -- selects a solver:
 
       - GLPK (``solver="GLPK"``). See the `GLPK
         <http://www.gnu.org/software/glpk/>`_ web site.
@@ -202,11 +199,11 @@ cdef class MixedIntegerLinearProgram(SageObject):
       - Gurobi (``solver="Gurobi"``). See the `Gurobi <http://www.gurobi.com/>`_
           web site.
 
-      - PPL (``solver="PPL"``). See the 'PPL<http://bugseng.com/products/ppl>'_
+      - PPL (``solver="PPL"``). See the `PPL <http://bugseng.com/products/ppl>`_
           web site.
 
       - If ``solver=None`` (default), the default solver is used (see
-        ``default_mip_solver`` method.
+        :func:`default_mip_solver`)
 
     - ``maximization``
 
@@ -216,8 +213,19 @@ cdef class MixedIntegerLinearProgram(SageObject):
       - When set to ``False``, the ``MixedIntegerLinearProgram`` is
         defined as a minimization.
 
-    - ``constraint_generation`` -- whether to require the returned solver to
-      support constraint generation (excludes Coin). ``False by default``.
+    - ``constraint_generation`` -- Only used when ``solver=None``.
+
+      - When set to ``True``, after solving the ``MixedIntegerLinearProgram``,
+        it is possible to add a constraint, and then solve it again.
+        The effect is that solvers that do not support this feature will not be
+        used.
+
+      - Defaults to ``False``.
+
+    .. WARNING::
+
+        All LP variables are non-negative by default (see :meth:`new_variable`
+        and :meth:`set_min`).
 
     .. SEEALSO::
 
@@ -273,8 +281,14 @@ cdef class MixedIntegerLinearProgram(SageObject):
           - When set to ``False``, the ``MixedIntegerLinearProgram`` is
             defined as a minimization.
 
-        - ``constraint_generation`` -- whether to require the returned solver to
-          support constraint generation (excludes Coin). ``False by default``.
+        - ``constraint_generation`` -- Only used when ``solver=None``.
+
+          - When set to ``True``, after solving the 
+            ``MixedIntegerLinearProgram``, it is possible to add a constraint,
+            and then solve it again. The effect is that solvers that do not
+            support this feature will not be used.
+
+          - Defaults to ``False``.
 
         - ``check_redundant`` -- whether to check that constraints added to the
           program are redundant with constraints already in the program.
@@ -527,14 +541,10 @@ cdef class MixedIntegerLinearProgram(SageObject):
         argument you may like, as ``x[5]`` or ``x["b"]``, and has methods
         ``items()`` and ``keys()``.
 
-        Any of its fields exists, and is uniquely defined.
+        .. WARNING::
 
-        By default, all ``x[i]`` are assumed to be non-negative
-        reals. They can be defined as binary through the parameter
-        ``binary=True`` (or integer with ``integer=True``). Lower and
-        upper bounds can be defined or re-defined (for instance when you want
-        some variables to be negative) using ``MixedIntegerLinearProgram`` methods
-        ``set_min`` and ``set_max``.
+            By default, all ``x[i]`` are assumed to be non-negative. See
+            :meth:`set_min` to set a different lower bound.
 
         INPUT:
 
@@ -549,6 +559,14 @@ cdef class MixedIntegerLinearProgram(SageObject):
         - ``name`` (string) -- Associates a name to the variable. This is
           only useful when exporting the linear program to a file using
           ``write_mps`` or ``write_lp``, and has no other effect.
+
+        .. SEEALSO::
+
+            - :meth:`set_min`,:meth:`get_min` -- set/get the lower bound of a
+              variable. Note that by default, all variables are non-negative.
+
+            - :meth:`set_max`,:meth:`get_max` -- set/get the upper bound of a
+              variable.
 
         EXAMPLE::
 
@@ -1739,14 +1757,11 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         return self._backend.is_variable_continuous(self._variables[e])
 
-    def solve(self, solver=None, log=None, objective_only=False):
+    def solve(self, log=None, objective_only=False):
         r"""
         Solves the ``MixedIntegerLinearProgram``.
 
         INPUT:
-
-        - ``solver`` -- DEPRECATED -- the solver now has to be set
-          when calling the class' constructor
 
         - ``log`` -- integer (default: ``None``) The verbosity level. Indicates
           whether progress should be printed during computation. The solver is
@@ -1761,6 +1776,11 @@ cdef class MixedIntegerLinearProgram(SageObject):
         OUTPUT:
 
         The optimal value taken by the objective function.
+
+        .. WARNING::
+
+            By default, all variables of a LP are assumed to be
+            non-negative. See :meth:`set_min` to change it.
 
         EXAMPLES:
 
@@ -1813,9 +1833,6 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.solve()
             9.0
         """
-        if solver != None:
-            raise ValueError("Solver argument deprecated. This parameter now has to be set when calling the class' constructor")
-
         if log != None: self._backend.set_verbosity(log)
 
         self._backend.solve()
@@ -1826,12 +1843,20 @@ cdef class MixedIntegerLinearProgram(SageObject):
         r"""
         Sets the minimum value of a variable.
 
+        .. WARNING::
+
+            By default, all variables are defined to be non-negative.
+
         INPUT:
 
         - ``v`` -- a variable (not a ``MIPVariable``, but one of its
           elements).
         - ``min`` -- the minimum value the variable can take.
           When ``min=None``, the variable has no lower bound.
+
+        .. SEEALSO::
+
+            - :meth:`get_min` -- get the minimum value of a variable.
 
         EXAMPLE::
 
@@ -2025,7 +2050,6 @@ cdef class MixedIntegerLinearProgram(SageObject):
             for id,coeff  in v.iteritems():
                 d[id] = coeff + d.get(id,0)
         return self.linear_functions_parent()(d)
-
 
     def get_backend(self):
         r"""

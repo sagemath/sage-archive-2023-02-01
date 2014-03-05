@@ -1,4 +1,16 @@
-from combinat import *
+from combinat import bell_number, catalan_number, euler_number, fibonacci, \
+        lucas_number1, lucas_number2, stirling_number1, stirling_number2, \
+        CombinatorialObject, CombinatorialClass, FilteredCombinatorialClass, \
+        UnionCombinatorialClass, MapCombinatorialClass, \
+        InfiniteAbstractCombinatorialClass, \
+        combinations, combinations_iterator, \
+        number_of_combinations, arrangements, number_of_arrangements, \
+        derangements, number_of_derangements, tuples, number_of_tuples, \
+        unordered_tuples, number_of_unordered_tuples, permutations, \
+        permutations_iterator, number_of_permutations, cyclic_permutations, \
+        cyclic_permutations_iterator, bell_polynomial, fibonacci_sequence, \
+        fibonacci_xrange, bernoulli_polynomial
+
 from expnums import expnums
 
 from sage.combinat.crystals.all import *

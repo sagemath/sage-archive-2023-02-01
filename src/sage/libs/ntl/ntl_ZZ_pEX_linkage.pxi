@@ -28,8 +28,8 @@ cdef ZZ_pEX_c *celement_new(cparent parent):
         sage: P.<x> = PolynomialRing(GF(next_prime(2**60)**3,'a'),implementation='NTL')
     """
     if parent != NULL:
-        (parent[0].zzpc)[0].restore()
-        (parent[0].zzpec)[0].restore()
+        parent[0].zzpc[0].restore()
+        parent[0].zzpec[0].restore()
     cdef ZZ_pEX_c *e = ZZ_pEX_new()
     return e
 
@@ -40,8 +40,8 @@ cdef int celement_delete(ZZ_pEX_c *e, cparent parent):
         sage: del x
     """
     if parent != NULL:
-        (parent[0].zzpc)[0].restore()
-        (parent[0].zzpec)[0].restore()
+        parent[0].zzpc[0].restore()
+        parent[0].zzpec[0].restore()
     ZZ_pEX_delete(e)
 
 cdef int celement_construct(ZZ_pEX_c *e, cparent parent):
@@ -50,8 +50,8 @@ cdef int celement_construct(ZZ_pEX_c *e, cparent parent):
         sage: P.<x> = PolynomialRing(GF(next_prime(2**60)**3,'a'),implementation='NTL')
     """
     if parent != NULL:
-        (parent[0].zzpc)[0].restore()
-        (parent[0].zzpec)[0].restore()
+        parent[0].zzpc[0].restore()
+        parent[0].zzpec[0].restore()
     ZZ_pEX_construct(e)
 
 cdef int celement_destruct(ZZ_pEX_c *e, cparent parent):
@@ -61,8 +61,8 @@ cdef int celement_destruct(ZZ_pEX_c *e, cparent parent):
         sage: del x
     """
     if parent != NULL:
-        (parent[0].zzpc)[0].restore()
-        (parent[0].zzpec)[0].restore()
+        parent[0].zzpc[0].restore()
+        parent[0].zzpec[0].restore()
     ZZ_pEX_destruct(e)
 
 cdef int celement_gen(ZZ_pEX_c *e, long i, cparent parent) except -2:
@@ -71,8 +71,8 @@ cdef int celement_gen(ZZ_pEX_c *e, long i, cparent parent) except -2:
         sage: P.<x> = PolynomialRing(GF(next_prime(2**60)**3,'a'),implementation='NTL')
     """
     if parent != NULL:
-        (parent[0].zzpc)[0].restore()
-        (parent[0].zzpec)[0].restore()
+        parent[0].zzpc[0].restore()
+        parent[0].zzpec[0].restore()
     ZZ_pEX_SetX(e[0])
 
 cdef object celement_repr(ZZ_pEX_c *e, cparent parent):
@@ -108,8 +108,8 @@ cdef inline int celement_set_si(ZZ_pEX_c* res, long i, cparent parent) except -2
         0
     """
     if parent != NULL:
-        (parent[0].zzpc)[0].restore()
-        (parent[0].zzpec)[0].restore()
+        parent[0].zzpc[0].restore()
+        parent[0].zzpec[0].restore()
     ZZ_pEX_SetCoeff_long(res[0], 0, i)
 
 cdef inline long celement_get_si(ZZ_pEX_c* res, cparent parent) except -2:
@@ -125,8 +125,8 @@ cdef inline bint celement_is_zero(ZZ_pEX_c* a, cparent parent) except -2:
         (False, True)
     """
 #    if parent != NULL:
-#        (parent[0].zzpc)[0].restore()
-#        (parent[0].zzpec)[0].restore()
+#        parent[0].zzpc[0].restore()
+#        parent[0].zzpec[0].restore()
     return ZZ_pEX_IsZero(a[0])
 
 cdef inline bint celement_is_one(ZZ_pEX_c *a, cparent parent) except -2:
@@ -139,8 +139,8 @@ cdef inline bint celement_is_one(ZZ_pEX_c *a, cparent parent) except -2:
         True
     """
     if parent != NULL:
-        (parent[0].zzpc)[0].restore()
-        (parent[0].zzpec)[0].restore()
+        parent[0].zzpc[0].restore()
+        parent[0].zzpec[0].restore()
     return ZZ_pEX_IsOne(a[0])
 
 cdef inline bint celement_equal(ZZ_pEX_c *a, ZZ_pEX_c *b, cparent parent) except -2:
@@ -155,8 +155,8 @@ cdef inline bint celement_equal(ZZ_pEX_c *a, ZZ_pEX_c *b, cparent parent) except
         False
     """
     if parent != NULL:
-        (parent[0].zzpc)[0].restore()
-        (parent[0].zzpec)[0].restore()
+        parent[0].zzpc[0].restore()
+        parent[0].zzpec[0].restore()
     return ZZ_pEX_equal(a[0], b[0])
 
 cdef inline int celement_cmp(ZZ_pEX_c *a, ZZ_pEX_c *b, cparent parent) except -2:
@@ -175,8 +175,8 @@ cdef long celement_len(ZZ_pEX_c *a, cparent parent) except -2:
         1
     """
     if parent != NULL:
-        (parent[0].zzpc)[0].restore()
-        (parent[0].zzpec)[0].restore()
+        parent[0].zzpc[0].restore()
+        parent[0].zzpec[0].restore()
     return int(ZZ_pEX_deg(a[0]))+1
 
 cdef inline int celement_add(ZZ_pEX_c *res, ZZ_pEX_c *a, ZZ_pEX_c *b, cparent parent) except -2:
@@ -188,8 +188,8 @@ cdef inline int celement_add(ZZ_pEX_c *res, ZZ_pEX_c *a, ZZ_pEX_c *b, cparent pa
         x^2 + (a^2 + a + 2)*x + 1
     """
     if parent != NULL:
-        (parent[0].zzpc)[0].restore()
-        (parent[0].zzpec)[0].restore()
+        parent[0].zzpc[0].restore()
+        parent[0].zzpec[0].restore()
     ZZ_pEX_add(res[0], a[0], b[0])
 
 cdef inline int celement_sub(ZZ_pEX_c* res, ZZ_pEX_c* a, ZZ_pEX_c* b, cparent parent) except -2:
@@ -201,8 +201,8 @@ cdef inline int celement_sub(ZZ_pEX_c* res, ZZ_pEX_c* a, ZZ_pEX_c* b, cparent pa
         1152921504606847008*x^2 + (a^2 + a)*x + 1152921504606847008
     """
     if parent != NULL:
-        (parent[0].zzpc)[0].restore()
-        (parent[0].zzpec)[0].restore()
+        parent[0].zzpc[0].restore()
+        parent[0].zzpec[0].restore()
     ZZ_pEX_sub(res[0], a[0], b[0])
 
 cdef inline int celement_neg(ZZ_pEX_c* res, ZZ_pEX_c* a, cparent parent) except -2:
@@ -214,8 +214,8 @@ cdef inline int celement_neg(ZZ_pEX_c* res, ZZ_pEX_c* a, cparent parent) except 
         1152921504606847008*x
     """
     if parent != NULL:
-        (parent[0].zzpc)[0].restore()
-        (parent[0].zzpec)[0].restore()
+        parent[0].zzpc[0].restore()
+        parent[0].zzpec[0].restore()
     ZZ_pEX_negate(res[0], a[0])
 
 cdef inline int celement_mul_scalar(ZZ_pEX_c* res, ZZ_pEX_c* p, object c, cparent parent) except -1:
@@ -230,14 +230,14 @@ cdef inline int celement_mul(ZZ_pEX_c* res, ZZ_pEX_c* a, ZZ_pEX_c* b, cparent pa
         (a^2 + a + 1)*x^3 + (a^2 + a + 1)*x^2 + (a^2 + a + 1)*x
     """
     if parent != NULL:
-        (parent[0].zzpc)[0].restore()
-        (parent[0].zzpec)[0].restore()
+        parent[0].zzpc[0].restore()
+        parent[0].zzpec[0].restore()
     ZZ_pEX_mul(res[0], a[0], b[0])
 
 cdef inline int celement_div(ZZ_pEX_c* res, ZZ_pEX_c* a, ZZ_pEX_c* b, cparent parent) except -2:
     if parent != NULL:
-        (parent[0].zzpc)[0].restore()
-        (parent[0].zzpec)[0].restore()
+        parent[0].zzpc[0].restore()
+        parent[0].zzpec[0].restore()
     return ZZ_pEX_divide(res[0], a[0], b[0])
 
 cdef inline int celement_floordiv(ZZ_pEX_c* res, ZZ_pEX_c* a, ZZ_pEX_c* b, cparent parent) except -2:
@@ -255,8 +255,8 @@ cdef inline int celement_floordiv(ZZ_pEX_c* res, ZZ_pEX_c* a, ZZ_pEX_c* b, cpare
         1
     """
     if parent != NULL:
-        (parent[0].zzpc)[0].restore()
-        (parent[0].zzpec)[0].restore()
+        parent[0].zzpc[0].restore()
+        parent[0].zzpec[0].restore()
     ZZ_pEX_div_ZZ_pEX(res[0], a[0], b[0])
 
 cdef inline int celement_mod(ZZ_pEX_c* res, ZZ_pEX_c* a, ZZ_pEX_c* b, cparent parent) except -2:
@@ -268,8 +268,8 @@ cdef inline int celement_mod(ZZ_pEX_c* res, ZZ_pEX_c* a, ZZ_pEX_c* b, cparent pa
         3*a^2
     """
     if parent != NULL:
-        (parent[0].zzpc)[0].restore()
-        (parent[0].zzpec)[0].restore()
+        parent[0].zzpc[0].restore()
+        parent[0].zzpec[0].restore()
     ZZ_pEX_rem(res[0], a[0], b[0])
 
 cdef inline int celement_quorem(ZZ_pEX_c* q, ZZ_pEX_c* r, ZZ_pEX_c* a, ZZ_pEX_c* b, cparent parent) except -2:
@@ -281,8 +281,8 @@ cdef inline int celement_quorem(ZZ_pEX_c* q, ZZ_pEX_c* r, ZZ_pEX_c* a, ZZ_pEX_c*
         (x + 3*a, 3*a^2)
     """
     if parent != NULL:
-        (parent[0].zzpc)[0].restore()
-        (parent[0].zzpec)[0].restore()
+        parent[0].zzpc[0].restore()
+        parent[0].zzpec[0].restore()
     ZZ_pEX_DivRem(q[0], r[0], a[0], b[0])
 
 cdef inline int celement_inv(ZZ_pEX_c* res, ZZ_pEX_c* a, cparent parent) except -2:
@@ -320,8 +320,8 @@ cdef inline int celement_pow(ZZ_pEX_c* res, ZZ_pEX_c* x, long e, ZZ_pEX_c *modul
         x + 2
     """
     if parent != NULL:
-        (parent[0].zzpc)[0].restore()
-        (parent[0].zzpec)[0].restore()
+        parent[0].zzpc[0].restore()
+        parent[0].zzpec[0].restore()
 
     cdef ZZ_pEX_Modulus_c mod
     cdef ZZ_pEX_c y
@@ -362,8 +362,8 @@ cdef inline int celement_gcd(ZZ_pEX_c* res, ZZ_pEX_c* a, ZZ_pEX_c *b, cparent pa
         1
     """
     if parent != NULL:
-        (parent[0].zzpc)[0].restore()
-        (parent[0].zzpec)[0].restore()
+        parent[0].zzpc[0].restore()
+        parent[0].zzpec[0].restore()
     ZZ_pEX_GCD(res[0], a[0], b[0])
 
 cdef inline int celement_xgcd(ZZ_pEX_c* res, ZZ_pEX_c* s, ZZ_pEX_c *t, ZZ_pEX_c* a, ZZ_pEX_c *b, cparent parent) except -2:
@@ -378,6 +378,6 @@ cdef inline int celement_xgcd(ZZ_pEX_c* res, ZZ_pEX_c* s, ZZ_pEX_c *t, ZZ_pEX_c*
         (1, 1, 1152921504606847008)
     """
     if parent != NULL:
-        (parent[0].zzpc)[0].restore()
-        (parent[0].zzpec)[0].restore()
+        parent[0].zzpc[0].restore()
+        parent[0].zzpec[0].restore()
     ZZ_pEX_XGCD(res[0], s[0], t[0], a[0], b[0])

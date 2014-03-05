@@ -43,7 +43,7 @@ cdef inline Polynomial_template element_shift(self, int n):
      cdef Polynomial_template r = <Polynomial_template>PY_NEW(self.__class__)
      celement_construct(&r.x, (<Polynomial_template>self)._cparent)
      r._parent = (<Polynomial_template>self)._parent
-     r._cparent = get_cparent((<Polynomial_template>self)._parent)
+     r._cparent = (<Polynomial_template>self)._cparent
 
      if n > 0:
          celement_mul(&r.x, &(<Polynomial_template>self).x, gen, (<Polynomial_template>self)._cparent)
@@ -230,7 +230,7 @@ cdef class Polynomial_template(Polynomial):
 
         celement_construct(&r.x, (<Polynomial_template>self)._cparent)
         r._parent = (<Polynomial_template>self)._parent
-        r._cparent = get_cparent((<Polynomial_template>self)._parent)
+        r._cparent = (<Polynomial_template>self)._cparent
         celement_add(&r.x, &(<Polynomial_template>self).x, &(<Polynomial_template>right).x, (<Polynomial_template>self)._cparent)
         #assert(r._parent(pari(self) + pari(right)) == r)
         return r
@@ -246,7 +246,7 @@ cdef class Polynomial_template(Polynomial):
         cdef Polynomial_template r = <Polynomial_template>PY_NEW(self.__class__)
         celement_construct(&r.x, (<Polynomial_template>self)._cparent)
         r._parent = (<Polynomial_template>self)._parent
-        r._cparent = get_cparent((<Polynomial_template>self)._parent)
+        r._cparent = (<Polynomial_template>self)._cparent
         celement_sub(&r.x, &(<Polynomial_template>self).x, &(<Polynomial_template>right).x, (<Polynomial_template>self)._cparent)
         #assert(r._parent(pari(self) - pari(right)) == r)
         return r
@@ -262,7 +262,7 @@ cdef class Polynomial_template(Polynomial):
         cdef Polynomial_template r = <Polynomial_template>PY_NEW(self.__class__)
         celement_construct(&r.x, (<Polynomial_template>self)._cparent)
         r._parent = (<Polynomial_template>self)._parent
-        r._cparent = get_cparent((<Polynomial_template>self)._parent)
+        r._cparent = (<Polynomial_template>self)._cparent
         celement_neg(&r.x, &self.x, (<Polynomial_template>self)._cparent)
         #assert(r._parent(-pari(self)) == r)
         return r
@@ -292,7 +292,7 @@ cdef class Polynomial_template(Polynomial):
         cdef Polynomial_template r = <Polynomial_template>PY_NEW(self.__class__)
         celement_construct(&r.x, (<Polynomial_template>self)._cparent)
         r._parent = (<Polynomial_template>self)._parent
-        r._cparent = get_cparent((<Polynomial_template>self)._parent)
+        r._cparent = (<Polynomial_template>self)._cparent
         celement_mul_scalar(&r.x, &(<Polynomial_template>self).x, left, (<Polynomial_template>self)._cparent)
         return r
 
@@ -328,7 +328,7 @@ cdef class Polynomial_template(Polynomial):
         cdef Polynomial_template r = <Polynomial_template>PY_NEW(self.__class__)
         celement_construct(&r.x, (<Polynomial_template>self)._cparent)
         r._parent = (<Polynomial_template>self)._parent
-        r._cparent = get_cparent((<Polynomial_template>self)._parent)
+        r._cparent = (<Polynomial_template>self)._cparent
         celement_mul(&r.x, &(<Polynomial_template>self).x, &(<Polynomial_template>right).x, (<Polynomial_template>self)._cparent)
         #assert(r._parent(pari(self) * pari(right)) == r)
         return r
@@ -355,7 +355,7 @@ cdef class Polynomial_template(Polynomial):
         cdef Polynomial_template r = <Polynomial_template>PY_NEW(self.__class__)
         celement_construct(&r.x, (<Polynomial_template>self)._cparent)
         r._parent = (<Polynomial_template>self)._parent
-        r._cparent = get_cparent((<Polynomial_template>self)._parent)
+        r._cparent = (<Polynomial_template>self)._cparent
         celement_gcd(&r.x, &(<Polynomial_template>self).x, &(<Polynomial_template>other).x, (<Polynomial_template>self)._cparent)
         #assert(r._parent(pari(self).gcd(pari(other))) == r)
         return r
@@ -382,17 +382,17 @@ cdef class Polynomial_template(Polynomial):
         cdef Polynomial_template r = <Polynomial_template>PY_NEW(self.__class__)
         celement_construct(&r.x, (<Polynomial_template>self)._cparent)
         r._parent = (<Polynomial_template>self)._parent
-        r._cparent = get_cparent((<Polynomial_template>self)._parent)
+        r._cparent = (<Polynomial_template>self)._cparent
 
         cdef Polynomial_template s = <Polynomial_template>PY_NEW(self.__class__)
         celement_construct(&s.x, (<Polynomial_template>self)._cparent)
         s._parent = (<Polynomial_template>self)._parent
-        s._cparent = get_cparent((<Polynomial_template>self)._parent)
+        s._cparent = (<Polynomial_template>self)._cparent
 
         cdef Polynomial_template t = <Polynomial_template>PY_NEW(self.__class__)
         celement_construct(&t.x, (<Polynomial_template>self)._cparent)
         t._parent = (<Polynomial_template>self)._parent
-        t._cparent = get_cparent((<Polynomial_template>self)._parent)
+        t._cparent = (<Polynomial_template>self)._cparent
 
         celement_xgcd(&r.x, &s.x, &t.x, &(<Polynomial_template>self).x, &(<Polynomial_template>other).x, (<Polynomial_template>self)._cparent)
         #rp, sp, tp = pari(self).xgcd(pari(other))
@@ -423,7 +423,7 @@ cdef class Polynomial_template(Polynomial):
         cdef Polynomial_template r = <Polynomial_template>PY_NEW(self.__class__)
         celement_construct(&r.x, (<Polynomial_template>self)._cparent)
         r._parent = (<Polynomial_template>self)._parent
-        r._cparent = get_cparent((<Polynomial_template>self)._parent)
+        r._cparent = (<Polynomial_template>self)._cparent
         #assert(r._parent(pari(self) // pari(right)) == r)
         celement_floordiv(&r.x, &(<Polynomial_template>self).x, &(<Polynomial_template>right).x, (<Polynomial_template>self)._cparent)
         return r
@@ -459,7 +459,7 @@ cdef class Polynomial_template(Polynomial):
         cdef Polynomial_template r = <Polynomial_template>PY_NEW(self.__class__)
         celement_construct(&r.x, (<Polynomial_template>self)._cparent)
         r._parent = (<Polynomial_template>self)._parent
-        r._cparent = get_cparent((<Polynomial_template>self)._parent)
+        r._cparent = (<Polynomial_template>self)._cparent
         celement_mod(&r.x, &(<Polynomial_template>self).x, &_other.x, (<Polynomial_template>self)._cparent)
         #assert(r._parent(pari(self) % pari(other)) == r)
         return r
@@ -480,12 +480,12 @@ cdef class Polynomial_template(Polynomial):
         cdef Polynomial_template q = <Polynomial_template>PY_NEW(self.__class__)
         celement_construct(&q.x, (<Polynomial_template>self)._cparent)
         q._parent = (<Polynomial_template>self)._parent
-        q._cparent = get_cparent((<Polynomial_template>self)._parent)
+        q._cparent = (<Polynomial_template>self)._cparent
 
         cdef Polynomial_template r = <Polynomial_template>PY_NEW(self.__class__)
         celement_construct(&r.x, (<Polynomial_template>self)._cparent)
         r._parent = (<Polynomial_template>self)._parent
-        r._cparent = get_cparent((<Polynomial_template>self)._parent)
+        r._cparent = (<Polynomial_template>self)._cparent
 
         celement_quorem(&q.x, &r.x, &(<Polynomial_template>self).x, &right.x, (<Polynomial_template>self)._cparent)
         return q,r
@@ -618,7 +618,7 @@ cdef class Polynomial_template(Polynomial):
         celement_construct(&r.x, (<Polynomial_template>self)._cparent)
         parent = (<Polynomial_template>self)._parent
         r._parent = parent
-        r._cparent = get_cparent((<Polynomial_template>self)._parent)
+        r._cparent = (<Polynomial_template>self)._cparent
 
         if modulus is None:
             celement_pow(&r.x, &(<Polynomial_template>self).x, e, NULL, (<Polynomial_template>self)._cparent)
@@ -646,7 +646,7 @@ cdef class Polynomial_template(Polynomial):
         cdef Polynomial_template r = <Polynomial_template>PY_NEW(self.__class__)
         celement_construct(&r.x, (<Polynomial_template>self)._cparent)
         r._parent = (<Polynomial_template>self)._parent
-        r._cparent = get_cparent((<Polynomial_template>self)._parent)
+        r._cparent = (<Polynomial_template>self)._cparent
         celement_set(&r.x, &self.x, (<Polynomial_template>self)._cparent)
         return r
 
@@ -755,7 +755,7 @@ cdef class Polynomial_template(Polynomial):
         cdef Polynomial_template r = <Polynomial_template>PY_NEW(self.__class__)
         celement_construct(&r.x, (<Polynomial_template>self)._cparent)
         r._parent = (<Polynomial_template>self)._parent
-        r._cparent = get_cparent((<Polynomial_template>self)._parent)
+        r._cparent = (<Polynomial_template>self)._cparent
 
         if n <= 0:
             return r

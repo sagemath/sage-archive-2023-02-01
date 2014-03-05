@@ -1,8 +1,8 @@
 from sage.libs.ntl.ntl_ZZ_pEX_decl cimport ZZ_pEX_c
-from sage.libs.ntl.ntl_ZZ_pEContext cimport ZZ_pEContext_ptr
+from sage.libs.ntl.ntl_ZZ_pEContext cimport ZZ_pEContext_ptrs
 
 ctypedef ZZ_pEX_c celement
-ctypedef ZZ_pEContext_ptr *cparent
+ctypedef ZZ_pEContext_ptrs *cparent
 
 include "polynomial_template_header.pxi"
 

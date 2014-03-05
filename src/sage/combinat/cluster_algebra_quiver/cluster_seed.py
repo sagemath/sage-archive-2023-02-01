@@ -961,15 +961,11 @@ class ClusterSeed(SageObject):
         # the dual root system by hand. Ideally this should be
         # replaced by something more efficient
 
-        from sage.matrix.all import identity_matrix
-        from sage.modules.free_module import VectorSpace
-        from sage.modules.free_module_element import vector
-        from sage.matrix.all import matrix
+        from sage.matrix.all import identity_matrix, matrix
 
         A = 2 * identity_matrix(self._n) - self.b_matrix().apply_map(abs)
         A = A.transpose()
-        V = VectorSpace(QQ, self._n)
-        simple_coroots = V.basis()
+        simple_coroots = identity_matrix(self._n).rows()
         positive_coroots = set()
         growing = True
         while growing:
@@ -980,8 +976,8 @@ class ClusterSeed(SageObject):
                     beta = copy(alpha)
                     beta[i] = alpha[i] - sum([alpha[j] * A[i][j]
                                               for j in range(self._n)])
-                    beta.set_immutable()
-                    if all(x >= 0 for x in beta):
+                    if beta[i] >= 0:
+                        beta.set_immutable()
                         new_coroots.add(beta)
             growing = (positive_coroots != new_coroots)
             positive_coroots = copy(new_coroots)

@@ -17,6 +17,7 @@ from sage.libs.ntl.ntl_ZZ_pX_decl cimport ZZ_pX_deg, ZZ_pX_coeff
 from sage.libs.ntl.ntl_ZZ_pX cimport ntl_ZZ_pX
 from sage.libs.ntl.ntl_ZZ_p_decl cimport ZZ_p_to_PyString
 from sage.libs.ntl.ntl_ZZ_p_decl cimport ZZ_p_rep
+from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
 
 # We need to define this stuff before including the templating stuff
 # to make sure the function get_cparent is found since it is used in
@@ -25,12 +26,21 @@ from sage.libs.ntl.ntl_ZZ_p_decl cimport ZZ_p_rep
 cdef cparent get_cparent(parent) except? NULL:
     if parent is None:
         return NULL
-    cdef ntl_ZZ_pEContext_class c
+    cdef ZZ_pEContext_ptr *ptr
+    cdef ntl_ZZ_pContext_class pc
+    cdef ntl_ZZ_pEContext_class pec
     try:
-        c = parent._modulus
+        pec = parent._modulus
     except AttributeError:
         return NULL
-    return &(c.x)
+    try:
+        pc = pec.get_pc()
+    except AttributeError:
+        return NULL
+    ptr = <ZZ_pEContext_ptr *>sage_malloc(sizeof(ZZ_pEContext_ptr))
+    ptr.zzpc = &(pc.x)
+    ptr.zzpec = &(pec.x)
+    return ptr
 
 # first we include the definitions
 include "sage/libs/ntl/ntl_ZZ_pEX_linkage.pxi"
@@ -133,6 +143,32 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
 
         Polynomial_template.__init__(self, parent, x, check, is_gen, construct)
 
+    def __dealloc__(self):
+        """
+        EXAMPLE::
+
+            sage: P.<x> = GF(2)[]
+            sage: del x
+
+        TEST:
+
+        The following has been a problem in a preliminary version of
+        :trac:`12313`::
+
+            sage: K.<z> = GF(4)
+            sage: P.<x> = K[]
+            sage: del P
+            sage: del x
+            sage: import gc
+            sage: _ = gc.collect()
+        """
+        # highly hackish as the Polynomial_template __dealloc__ will be called
+        # and uses _cparent
+        if self._cparent != NULL:
+        #     pass
+            sage_free(self._cparent)
+            self._cparent = NULL
+
     def __getitem__(self,i):
         """
         EXAMPLES::
@@ -166,7 +202,8 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             Polynomial_template.__init__(r, (<Polynomial_template>self)._parent, v)
             return r << start
         else:
-            (<Polynomial_template>self)._cparent[0].restore()
+            (<Polynomial_template>self)._cparent[0].zzpc[0].restore()
+            (<Polynomial_template>self)._cparent[0].zzpec[0].restore()
             c_pE = ZZ_pEX_coeff(self.x, i)
 
             K = self._parent.base_ring()
@@ -189,7 +226,8 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         """
         cdef Py_ssize_t i
 
-        (<Polynomial_template>self)._cparent[0].restore()
+        (<Polynomial_template>self)._cparent[0].zzpc[0].restore()
+        (<Polynomial_template>self)._cparent[0].zzpec[0].restore()
 
         K = self._parent.base_ring()
         return [K(ZZ_pE_c_to_list(ZZ_pEX_coeff(self.x, i))) for i in range(celement_len(&self.x, (<Polynomial_template>self)._cparent))]
@@ -207,7 +245,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         r = PY_NEW(Polynomial_ZZ_pEX)
         celement_construct(&r.x, (<Polynomial_template>self)._cparent)
         r._parent = (<Polynomial_template>self)._parent
-        r._cparent = (<Polynomial_template>self)._cparent
+        r._cparent = get_cparent((<Polynomial_template>self)._parent)
         d = self._parent._modulus.ZZ_pE(list(left.polynomial()))
         ZZ_pEX_mul_ZZ_pE(r.x, self.x, d.x)
         return r
@@ -419,7 +457,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         r = PY_NEW(Polynomial_ZZ_pEX)
         celement_construct(&r.x, (<Polynomial_template>self)._cparent)
         r._parent = (<Polynomial_template>self)._parent
-        r._cparent = (<Polynomial_template>self)._cparent
+        r._cparent = get_cparent((<Polynomial_template>self)._parent)
         ZZ_pEX_LeftShift(r.x, self.x, n)
         return r
 

@@ -1033,10 +1033,24 @@ Axioms
 First examples
 ^^^^^^^^^^^^^^
 
-We have seen that several categories can be defined by specifying the
-axioms that are satisfied by the operations of its super
+We have seen that Sage is aware of the axioms satisfied by, for
+example, groups::
+
+    sage: Groups().axioms()
+    frozenset(['Inverse', 'Associative', 'Unital'])
+
+In fact, the category of groups can be *defined* by stating that a
+group is a magma, that is a set endowed with an internal binary
+multiplication, which satisfies the above axioms. Accordingly, we can
+construct the category of groups from the category of magmas::
+
+    sage: Magmas().Associative().Unital().Inverse()
+    Category of groups
+
+In general, we can construct new categories in Sage by specifying the
+axioms that are satisfied by the operations of the super
 categories. For example, starting from the category of magmas, we can
-build all the following categories just by specifying the axioms
+construct all the following categories just by specifying the axioms
 satisfied by the multiplication::
 
     sage: Magmas()
@@ -1066,6 +1080,12 @@ satisfied by the multiplication::
     sage: Magmas().Associative().Unital().Commutative()
     Category of commutative monoids
 
+::
+
+    sage: Magmas().Associative().Unital().Inverse()
+    Category of groups
+
+
 Axioms and categories with axioms
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -1077,13 +1097,20 @@ in fact a *full subcategory* (see :wikipedia:`Subcategory`). Moreover,
 for every subcategory ``Ds`` of ``Cs``, ``Ds.A()`` models the full
 subcategory of the objects of ``Ds`` satisfying the axiom ``A``.
 
-For example, the category of modules defines the ``FiniteDimensional``
-axiom, and this axiom is available in the subcategory of algebras::
+For example, the category of sets defines the ``Finite`` axiom, and
+this axiom is available in the subcategory of groups::
 
-    sage: Modules(QQ).FiniteDimensional()
-    Category of finite dimensional vector spaces over Rational Field
-    sage: Algebras(QQ).FiniteDimensional()
-    Category of finite dimensional algebras over Rational Field
+    sage: Sets().Finite()
+    Category of finite sets
+    sage: Groups().Finite()
+    Category of finite groups
+
+The meaning of each axiom is described in the documentation of the
+corresponding method, which can be obtained as usual by
+instrospection::
+
+    sage: C = Groups()
+    sage: C.Finite?              # not tested
 
 The purpose of categories with axioms is no different from other
 categories: to provide bookshelves of code, documentation,
@@ -1096,9 +1123,9 @@ together::
     sage: sorted(C.axioms())
     ['Associative', 'Finite', 'Inverse', 'Unital']
 
-For a more advanced example, Sage knows that a set `C` endowed with a
-multiplication which distributes over addition, such that `(C,+)` is
-a commutative additive group and `(C,*)` is a monoid is a ring::
+For a more advanced example, Sage knows that a ring is a set `C`
+endowed with a multiplication which distributes over addition, such
+that `(C,+)` is a commutative additive group and `(C,*)` is a monoid::
 
     sage: C = (CommutativeAdditiveGroups() & Monoids()).Distributive(); C
     Category of rings

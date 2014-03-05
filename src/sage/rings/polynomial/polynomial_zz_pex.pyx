@@ -80,9 +80,9 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             sage: x^2+a
             x^2 + a
 
-        TEST:
+        TESTS:
 
-        The following tests against a bug that was fixed in trac ticket #9944.
+        The following tests against a bug that was fixed in :trac:`9944`.
         With the ring definition above, we now have::
 
             sage: R([3,'1234'])
@@ -96,6 +96,15 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             ...
             TypeError: unable to convert x into the base ring
 
+        Check that NTL contexts are correctly resored and that
+        :trac:`9524` has been fixed::
+
+            sage: x = polygen(GF(9, 'a'))
+            sage: x = polygen(GF(49, 'a'))
+            sage: -x
+            6*x
+            sage: 5*x
+            5*x
         """
         cdef ntl_ZZ_pE d
         try:

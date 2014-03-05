@@ -111,6 +111,15 @@ cdef class EmbeddedNumberFieldMorphism(NumberFieldEmbedding):
     This allows one to go from one number field in another consistently,
     assuming they both have specified embeddings into an ambient field.
 
+    If no ambient field is supplied, then the following ambient fields are
+    tried:
+
+    * the pushout of the fields where the number fields are embedded;
+
+    * the algebraic closure of the previous pushout;
+
+    * `\CC`.
+
     EXAMPLES::
 
         sage: K.<i> = NumberField(x^2+1,embedding=QQbar(I))

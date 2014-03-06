@@ -51,7 +51,7 @@ class FiniteCoxeterGroups(Category):
         EXAMPLES::
 
             sage: FiniteCoxeterGroups().super_categories()
-            [Category of Coxeter groups, Category of finite groups]
+            [Category of coxeter groups, Category of finite groups]
         """
         return [CoxeterGroups(), FiniteGroups()]
 

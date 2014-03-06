@@ -580,7 +580,7 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
         sage: G
         Parabolic Subgroup of the Weyl Group of type ['A', 3, 1] (as a matrix group acting on the root space)
         sage: G.category()
-        Category of finite Weyl groups
+        Category of finite weyl groups
         sage: G.cardinality()
         24
         sage: G.index_set()

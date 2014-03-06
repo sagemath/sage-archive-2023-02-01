@@ -30,7 +30,7 @@ class AffineWeylGroups(Category_singleton):
         sage: C = AffineWeylGroups(); C
         Category of affine Weyl groups
         sage: C.super_categories()
-        [Category of Weyl groups, Category of infinite enumerated sets]
+        [Category of weyl groups, Category of infinite enumerated sets]
 
         sage: C.example()
         NotImplemented
@@ -49,7 +49,7 @@ class AffineWeylGroups(Category_singleton):
         EXAMPLES::
 
             sage: AffineWeylGroups().super_categories()
-            [Category of Weyl groups, Category of infinite enumerated sets]
+            [Category of weyl groups, Category of infinite enumerated sets]
         """
         return [WeylGroups(), InfiniteEnumeratedSets()]
 

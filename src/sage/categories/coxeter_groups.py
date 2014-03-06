@@ -38,7 +38,7 @@ class CoxeterGroups(Category_singleton):
     EXAMPLES::
 
         sage: C = CoxeterGroups(); C
-        Category of Coxeter groups
+        Category of coxeter groups
         sage: C.super_categories()
         [Category of groups, Category of enumerated sets]
 

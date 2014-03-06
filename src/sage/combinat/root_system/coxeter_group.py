@@ -78,7 +78,7 @@ def CoxeterGroup(data, implementation=None, base_ring=None, index_set=None):
         sage: W                                                         # optional - chevie
         Permutation Group with generators [(1,3)(2,5)(4,6), (1,4)(2,3)(5,6)]
         sage: W.category()                       # optional - chevie
-        Join of Category of finite permutation groups and Category of finite Coxeter groups
+        Join of Category of finite permutation groups and Category of finite coxeter groups
 
         sage: W = CoxeterGroup(["A",2], implementation = "matrix")
         sage: W

@@ -38,7 +38,7 @@ Let's request the category of some objects::
     Category of vector spaces over Rational Field
     sage: G = SymmetricGroup(9)
     sage: G.category()
-    Join of Category of finite permutation groups and Category of finite Weyl groups
+    Join of Category of finite permutation groups and Category of finite weyl groups
     sage: P = PerfectMatchings(3)
     sage: P.category()
     Category of finite enumerated sets
@@ -1770,7 +1770,7 @@ def category_sample():
          Category of modular abelian varieties over Rational Field, ...,
          Category of simplicial complexes, ...,
          Category of vector spaces over Rational Field, ...,
-         Category of Weyl groups,...
+         Category of weyl groups,...
     """
     import sage.categories.all
     abstract_classes_for_categories = [Category, HomCategory]

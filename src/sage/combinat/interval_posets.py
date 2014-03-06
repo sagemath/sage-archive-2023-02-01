@@ -155,8 +155,8 @@ class TamariIntervalPoset(Element):
       vertices)
 
     - ``relations`` -- a list (or tuple) of pairs ``(a,b)`` (themselves
-      lists, tuples or other iterables), each representing a relation of
-      the form '`a` precedes `b`' in the poset.
+      lists or tuples), each representing a relation of the form
+      '`a` precedes `b`' in the poset.
 
     - ``check`` -- (default: ``True``) whether to check the interval-poset
       condition or not.
@@ -164,7 +164,7 @@ class TamariIntervalPoset(Element):
     .. WARNING::
 
         The ``relations`` input can be a list or tuple, but not an
-        iterator.
+        iterator (nor should its entries be iterators).
 
     NOTATION:
 
@@ -213,6 +213,8 @@ class TamariIntervalPoset(Element):
         The tamari interval of size 3 induced by relations [(1, 2), (3, 2)]
         sage: TamariIntervalPoset(3,[[1,2],[2,3]])
         The tamari interval of size 3 induced by relations [(1, 2), (2, 3)]
+        sage: TamariIntervalPoset(3,[[1,2],[2,3],[1,2],[1,3]])
+        The tamari interval of size 3 induced by relations [(1, 2), (2, 3)]
 
         sage: TamariIntervalPoset(3,[(3,4)])
         Traceback (most recent call last):
@@ -246,7 +248,7 @@ class TamariIntervalPoset(Element):
     def __classcall_private__(cls, *args, **opts):
         r"""
         Ensure that interval-posets created by the enumerated sets and directly
-        are the same and that they are instances of :class:`TamariIntervalPoset`
+        are the same and that they are instances of :class:`TamariIntervalPoset`.
 
         TESTS::
 
@@ -324,6 +326,9 @@ class TamariIntervalPoset(Element):
             sage: ip.set_latex_options({"color_decreasing":'green'})
             sage: ip.latex_options()["color_decreasing"]
             'green'
+            sage: ip.set_latex_options({"color_increasing":'black'})
+            sage: ip.latex_options()["color_increasing"]
+            'black'
 
         To change the options for all interval-posets, use the parent's
         global latex options::
@@ -377,7 +382,7 @@ class TamariIntervalPoset(Element):
             d["line_width"] = self.parent().global_options["latex_line_width_scalar"] * d["tikz_scale"]
         if "color_decreasing" not in d:
             d["color_decreasing"] = self.parent().global_options["latex_color_decreasing"]
-        if "color_increasinf" not in d:
+        if "color_increasing" not in d:
             d["color_increasing"] = self.parent().global_options["latex_color_increasing"]
         if "hspace" not in d:
             d["hspace"] = self.parent().global_options["latex_hspace"]
@@ -466,7 +471,7 @@ class TamariIntervalPoset(Element):
                     nodes += draw_node(n[0], x, n[1])
                 if i != current_parent[-1]:
                     #i is not the current increasing parent
-                    if(not self.le(i, i - 1) and decreasing_parent is not None):
+                    if (not self.le(i, i - 1) and decreasing_parent is not None):
                         # there is no decreasing relation between i and i-1
                         #they share a decreasing parent and are placed alongside horizontally
                         x += hspace
@@ -522,17 +527,17 @@ class TamariIntervalPoset(Element):
     @cached_method
     def increasing_cover_relations(self):
         r"""
-        Return the cover relations of the increasing poset of ``self``
+        Return the cover relations of the initial forest of ``self``
         (the poset formed by keeping only the relations of the form
         `a` precedes `b` with `a<b`).
 
-        The increasing poset of ``self`` is a forest with its roots
-        being on top. It is also called the initial forest of ``self``.
+        The initial forest of ``self`` is a forest with its roots
+        being on top. It is also called the increasing poset of ``self``.
 
         .. WARNING::
 
-            This method computes the cover relations of the increasing
-            poset. This is not identical with the cover relations of
+            This method computes the cover relations of the initial
+            forest. This is not identical with the cover relations of
             ``self`` which happen to be increasing!
 
         .. SEEALSO::
@@ -561,6 +566,11 @@ class TamariIntervalPoset(Element):
         i.e., the vertices `a` of ``self`` such that there is no
         `b>a` with `a` precedes `b`.
 
+        OUTPUT:
+
+        The list of all roots of the initial forest of ``self``, in
+        decreasing order.
+
         EXAMPLES::
 
             sage: ip = TamariIntervalPoset(6,[(3,2),(4,3),(5,2),(6,5),(1,2),(3,5),(4,5)]); ip
@@ -588,6 +598,11 @@ class TamariIntervalPoset(Element):
         INPUT:
 
         - ``v`` -- an integer representing a vertex of ``self`` (between 1 and ``size``)
+
+        OUTPUT:
+
+        The list of all children of ``v`` in the initial forest of
+        ``self``, in decreasing order.
 
         EXAMPLES::
 
@@ -644,17 +659,17 @@ class TamariIntervalPoset(Element):
     @cached_method
     def decreasing_cover_relations(self):
         r"""
-        Return the cover relations of the decreasing poset of ``self``
+        Return the cover relations of the final forest of ``self``
         (the poset formed by keeping only the relations of the form
         `a` precedes `b` with `a>b`).
 
-        The decreasing poset of ``self`` is a forest with its roots
-        being on top. It is also called the final forest of ``self``.
+        The final forest of ``self`` is a forest with its roots
+        being on top. It is also called the decreasing poset of ``self``.
 
         .. WARNING::
 
-            This method computes the cover relations of the decreasing
-            poset. This is not identical with the cover relations of
+            This method computes the cover relations of the final
+            forest. This is not identical with the cover relations of
             ``self`` which happen to be decreasing!
 
         .. SEEALSO::
@@ -684,6 +699,11 @@ class TamariIntervalPoset(Element):
         i.e., the vertices `b` such that there is no `a<b` with `b`
         preceding `a`.
 
+        OUTPUT:
+
+        The list of all roots of the final forest of ``self``, in
+        increasing order.
+
         EXAMPLES::
 
             sage: ip = TamariIntervalPoset(6,[(3,2),(4,3),(5,2),(6,5),(1,2),(3,5),(4,5)]); ip
@@ -710,6 +730,11 @@ class TamariIntervalPoset(Element):
         INPUT:
 
         - ``v`` -- an integer representing a vertex of ``self`` (between 1 and ``size``)
+
+        OUTPUT:
+
+        The list of all children of ``v`` in the final forest of ``self``,
+        in increasing order.
 
         EXAMPLES::
 
@@ -741,7 +766,8 @@ class TamariIntervalPoset(Element):
 
         INPUT:
 
-        - ``v`` -- an integer representing a vertex of ``self`` (between 1 and ``size``)
+        - ``v`` -- an integer representing a vertex of ``self`` (between
+          1 and ``size``)
 
         EXAMPLES::
 
@@ -864,10 +890,12 @@ class TamariIntervalPoset(Element):
         `n + 1 - a` precedes `n + 1 - b` in `P`.
 
         In terms of the Tamari lattice, the *complement* is the symmetric
-        of ``self``. It is formed from the left-right symmeterized of 
-        the binary trees of the interval (switching left and right subtrees,
-        see :meth:`~sage.combinat.binary_tree.BinaryTree.left_right_symmetry`).
-        In particular, initial intervals are sent to final intervals and vice-versa.
+        of ``self``. It is formed from the left-right symmeterized of
+        the binary trees of the interval (switching left and right
+        subtrees, see
+        :meth:`~sage.combinat.binary_tree.BinaryTree.left_right_symmetry`).
+        In particular, initial intervals are sent to final intervals and
+        vice-versa.
 
         EXAMPLES::
 
@@ -917,7 +945,7 @@ class TamariIntervalPoset(Element):
             sage: TamariIntervalPoset(3,[(1,2),(3,2)]) == TamariIntervalPoset(3,[(1,2)])
             False
         """
-        if(not isinstance(other, TamariIntervalPoset)):
+        if (not isinstance(other, TamariIntervalPoset)):
             return False
         return self.size() == other.size() and self._cover_relations == other._cover_relations
 
@@ -1087,11 +1115,12 @@ class TamariIntervalPoset(Element):
 
     def is_linear_extension(self, perm):
         r"""
-        Return whether ``perm`` is a linear extension of ``self``.
+        Return whether the permutation ``perm`` is a linear extension
+        of ``self``.
 
         INPUT:
 
-        - ``perm`` -- a permutation
+        - ``perm`` -- a permutation of the size of ``self``
 
         EXAMPLES::
 
@@ -1162,9 +1191,9 @@ class TamariIntervalPoset(Element):
 
     def intersection(self, other):
         r"""
-        Return the interval-poset formed of relations from both ``self``
-        and ``other``. It corresponds to the intersection of the two
-        corresponding intervals of the Tamari lattice.
+        Return the interval-poset formed by combining the relations from
+        both ``self`` and ``other``. It corresponds to the intersection
+        of the two corresponding intervals of the Tamari lattice.
 
         INPUT:
 
@@ -1227,7 +1256,7 @@ class TamariIntervalPoset(Element):
     def is_initial_interval(self):
         r"""
         Return if ``self`` corresponds to an initial interval of the Tamari
-        lattice, i.e. if its lower end is the initial element of the lattice.
+        lattice, i.e. if its lower end is the smallest element of the lattice.
         It consists of checking that ``self`` does not contain any decreasing
         relations.
 
@@ -1250,8 +1279,8 @@ class TamariIntervalPoset(Element):
 
     def is_final_interval(self):
         r"""
-        Return if ``self`` corresponds to an initial interval of the Tamari
-        lattice, i.e. if its upper end is the final element of the lattice.
+        Return if ``self`` corresponds to a final interval of the Tamari
+        lattice, i.e. if its upper end is the largest element of the lattice.
         It consists of checking that ``self`` does not contain any increasing
         relations.
 
@@ -1274,7 +1303,14 @@ class TamariIntervalPoset(Element):
 
     def lower_binary_tree(self):
         r"""
-        Return the lower binary tree of the interval represented by ``self``.
+        Return the lowest binary tree in the interval of the Tamari
+        lattice represented by ``self``.
+
+        This is a binary tree. It is the shape of the unique binary
+        search tree whose left-branch ordered forest (i.e., the result
+        of applying
+        :meth:`~sage.combinat.binary_tree.BinaryTree.to_ordered_tree_left_branch`
+        and cutting off the root) is the final forest of ``self``.
 
         EXAMPLES::
 
@@ -1291,7 +1327,8 @@ class TamariIntervalPoset(Element):
 
     def lower_dyck_word(self):
         r"""
-        Return the lower Dyck word of the interval represented by ``self``.
+        Return the lowest Dyck word in the interval of the Tamari lattice
+        represented by ``self``.
 
         EXAMPLES::
 
@@ -1308,7 +1345,14 @@ class TamariIntervalPoset(Element):
 
     def upper_binary_tree(self):
         r"""
-        Return the upper binary tree of the interval represented by ``self``.
+        Return the highest binary tree in the interval of the Tamari
+        lattice represented by ``self``.
+
+        This is a binary tree. It is the shape of the unique binary
+        search tree whose right-branch ordered forest (i.e., the result
+        of applying
+        :meth:`~sage.combinat.binary_tree.BinaryTree.to_ordered_tree_right_branch`
+        and cutting off the root) is the initial forest of ``self``.
 
         EXAMPLES::
 
@@ -1325,7 +1369,8 @@ class TamariIntervalPoset(Element):
 
     def upper_dyck_word(self):
         r"""
-        Return the upper Dyck word of the interval represented by ``self``.
+        Return the highest Dyck word in the interval of the Tamari lattice
+        represented by ``self``.
 
         EXAMPLES::
 
@@ -1342,8 +1387,12 @@ class TamariIntervalPoset(Element):
 
     def sub_poset(self, start, end):
         r"""
-        Return the renormalized sub-poset of ``self`` from ``start`` (inclusive)
-        to ``end`` (not inclusive).
+        Return the renormalized sub-poset of ``self`` consisting solely
+        of integers from ``start`` (inclusive) to ``end`` (not inclusive).
+
+        "Renormalized" means that these integers are relabelled
+        `1,2,\ldots,k` in the obvious way (i.e., by subtracting
+        ``start - 1``).
 
         INPUT:
 
@@ -1378,9 +1427,14 @@ class TamariIntervalPoset(Element):
         Return the minimal permutation for the right weak order which is
         a linear extension of ``self``.
 
-        It corresponds to the minimal permutation of the sylvester
+        This is also the minimal permutation in the sylvester
         class of ``self.lower_binary_tree()`` and is a 312-avoiding
         permutation.
+
+        The right weak order is also known as the right permutohedron
+        order. See
+        :meth:`~sage.combinat.permutation.Permutation.permutohedron_lequal`
+        for its definition.
 
         EXAMPLES::
 
@@ -1393,8 +1447,14 @@ class TamariIntervalPoset(Element):
             sage: ip = TamariIntervalPoset(0,[])
             sage: ip.min_linear_extension()
             []
+            sage: ip = TamariIntervalPoset(5, [(1, 4), (2, 4), (3, 4), (5, 4)]); ip
+            The tamari interval of size 5 induced by relations [(1, 4), (2, 4), (3, 4), (5, 4)]
+            sage: ip.min_linear_extension()
+            [1, 2, 3, 5, 4]
 
         """
+        # The min linear extension is build by postfix-reading the
+        # final forest of ``self``.
         def add(perm, i):
             r"""
             Internal recursive method to compute the min linear extension.
@@ -1412,9 +1472,14 @@ class TamariIntervalPoset(Element):
         Return the maximal permutation for the right weak order which is
         a linear extension of ``self``.
 
-        It corresponds to the maximal permutation of the sylvester
+        This is also the maximal permutation in the sylvester
         class of ``self.upper_binary_tree()`` and is a 132-avoiding
         permutation.
+
+        The right weak order is also known as the right permutohedron
+        order. See
+        :meth:`~sage.combinat.permutation.Permutation.permutohedron_lequal`
+        for its definition.
 
         EXAMPLES::
 
@@ -1429,7 +1494,17 @@ class TamariIntervalPoset(Element):
             The tamari interval of size 0 induced by relations []
             sage: ip.max_linear_extension()
             []
+            sage: ip = TamariIntervalPoset(5, [(1, 4), (2, 4), (3, 4), (5, 4)]); ip
+            The tamari interval of size 5 induced by relations [(1, 4), (2, 4), (3, 4), (5, 4)]
+            sage: ip.max_linear_extension()
+            [5, 3, 2, 1, 4]
+
         """
+        # The max linear extension is build by right-to-left
+        # postfix-reading the initial forest of ``self``. The
+        # right-to-leftness here is ensured by the fact that
+        # :meth:`increasing_children` and :meth:`increasing_roots`
+        # output their results in decreasing order.
         def add(perm, i):
             r"""
             Internal recursive method to compute the max linear extension.
@@ -1447,7 +1522,10 @@ class TamariIntervalPoset(Element):
         Return an iterator on the permutations which are linear
         extensions of ``self``.
 
-        They correspond to an interval of the right weak order.
+        They form an interval of the right weak order (also called the
+        right permutohedron order -- see
+        :meth:`~sage.combinat.permutation.Permutation.permutohedron_lequal`
+        for a definition).
 
         EXAMPLES::
 
@@ -1459,15 +1537,16 @@ class TamariIntervalPoset(Element):
             [[4, 1, 2, 3], [1, 4, 2, 3], [1, 2, 4, 3]]
         """
         for ext in self._poset.linear_extensions():
-            yield(Permutation(ext))
+            yield Permutation(ext)
 
     def lower_contained_intervals(self):
         r"""
-        If ``self`` represents the interval `[t_1, t_2]`,
-        return an interator on all intervals `[t_1,t]` with `t \leq t_2` for the Tamari lattice.
+        If ``self`` represents the interval `[t_1, t_2]` of the Tamari
+        lattice, return an iterator on all intervals `[t_1,t]` with
+        `t \leq t_2` for the Tamari lattice.
 
-        In terms of interval-posets, it corresponds to add all possible relations
-        `n` precedes `m` with `n<m`.
+        In terms of interval-posets, it corresponds to adding all possible
+        relations of the form `n` precedes `m` with `n<m`.
 
         EXAMPLES::
 
@@ -1482,7 +1561,7 @@ class TamariIntervalPoset(Element):
             14
         """
         size = self._size
-        yield(self)
+        yield self
         r"""
         we try to add links recursively in this order :
         1 -> 2
@@ -1492,14 +1571,17 @@ class TamariIntervalPoset(Element):
         2 -> 4
         1 -> 4
         ...
+        ("Link" means "relation of the poset".)
         """
         def add_relations(poset, n, m):
             r"""
-            Internal recursive method to generate all possible intervals
-            we always have n < m
+            Internal recursive method to generate all possible intervals.
+            At every step during the iteration, we have n < m and every
+            i satisfying n < i < m satisfies that i precedes m in the
+            poset ``poset`` (except when m > size).
             """
             if n <= 0:
-                #if n<= 0, then we go to the next m
+                #if n<=0, then we go to the next m
                 n = m
                 m += 1
             if m > size:
@@ -1507,20 +1589,24 @@ class TamariIntervalPoset(Element):
                 return
 
             if poset.le(n, m):
-                #there is a already a link n->m, so we go to the next n
+                #there is already a link n->m, so we go to the next n
                 for pos in add_relations(poset, n - 1, m):
                     yield pos
-            elif(poset.le(m, n)):
+            elif poset.le(m, n):
                 #there is an inverse link m->n, we know we won't be able
-                #to create a link i-> m with i<n, so we go to the next m
+                #to create a link i->m with i<=n, so we go to the next m
                 for pos in add_relations(poset, m, m + 1):
                     yield pos
             else:
-                # there is no link n->m
-                # first option : we don't create the link and go to the next m
+                #there is no link n->m
+                #first option : we don't create the link and go to the next m
+                #(since the lack of a link n->m forbids any links i->m
+                #with i<n)
                 for pos in add_relations(poset, m, m + 1):
                     yield pos
                 #second option : we create the link
+                #(this is allowed because links i->m already exist for all
+                #n<i<m, or else we wouldn't be here)
                 poset = TamariIntervalPoset(poset.size(), poset._cover_relations + ((n, m),))
                 yield poset
                 #and then, we go to the next n
@@ -1551,7 +1637,7 @@ class TamariIntervalPoset(Element):
 
     def binary_trees(self):
         r"""
-        Return an iterator on all the binary trees of the interval
+        Return an iterator on all the binary trees in the interval
         represented by ``self``.
 
         EXAMPLES::
@@ -1569,7 +1655,7 @@ class TamariIntervalPoset(Element):
 
     def dyck_words(self):
         r"""
-        Return an iterator on all the Dyck words of the interval
+        Return an iterator on all the Dyck words in the interval
         represented by ``self``.
 
         EXAMPLES::
@@ -1587,10 +1673,14 @@ class TamariIntervalPoset(Element):
 
     def maximal_chain_intervals(self):
         r"""
-        Return an iterator on the upper contained intervals of one maximal chain of ``self``
+        Return an iterator on the upper contained intervals of one
+        maximal chain of ``self``.
 
-        If ``self`` represents the interval `[T_1,T_2]`, it returns intervals
-        `[T',T_2]` with `T'` following one maximal chain between `T_1` and `T_2`.
+        If ``self`` represents the interval `[T_1,T_2]` of the Tamari
+        lattice, this returns intervals `[T',T_2]` with `T'` following
+        one maximal chain between `T_1` and `T_2`. This chain actually
+        has the property that the number of decreasing relations
+        increases by `1` at each step.
 
         EXAMPLES::
 
@@ -1609,7 +1699,8 @@ class TamariIntervalPoset(Element):
              The tamari interval of size 4 induced by relations [(4, 2), (3, 2), (2, 1)],
              The tamari interval of size 4 induced by relations [(4, 3), (3, 2), (2, 1)]]
         """
-        yield(self)
+        yield self
+        size = self.size()
         rel = list(self._cover_relations)
         ti = self
         # we add relations in this order
@@ -1619,23 +1710,27 @@ class TamariIntervalPoset(Element):
         # 3 -> 2
         # 4 -> 2
         # 4 -> 3
-        for i in xrange(1, self.size()):
-            for j in xrange(i + 1, self.size() + 1):
+        for i in xrange(1, size):
+            for j in xrange(i + 1, size + 1):
+                # Loop invariant: the poset ti has a relation k->i
+                # for every k satisfying i < k < j.
                 if ti.le(j, i):
                     #the relation j->i is already there, we go to the next j
                     continue
                 if ti.le(i, j):
-                    #there is a relation i->j which forbid any (>j)->i
+                    #there is a relation i->j which forbids any (>=j)->i
                     # we go to the next i
                     break
                 # there is no j->i or i->j, so we add j->i
                 rel.append((j, i))
-                ti = TamariIntervalPoset(self.size(), rel)
+                ti = TamariIntervalPoset(size, rel)
                 yield ti
 
     def maximal_chain_binary_trees(self):
         r"""
-        Return an iterator on the binary trees forming a maximal chain of ``self``.
+        Return an iterator on the binary trees forming a maximal chain of
+        ``self`` (regarding ``self`` as an interval of the Tamari
+        lattice).
 
         EXAMPLES::
 
@@ -1657,7 +1752,9 @@ class TamariIntervalPoset(Element):
 
     def maximal_chain_dyck_words(self):
         r"""
-        Return an iterator on the Dyck words forming a maximal chain of ``self``.
+        Return an iterator on the Dyck words forming a maximal chain of
+        ``self`` (regarding ``self`` as an interval of the Tamari
+        lattice).
 
         EXAMPLES::
 
@@ -1679,7 +1776,8 @@ class TamariIntervalPoset(Element):
 
     def length_of_maximal_chain(self):
         r"""
-        Return the length of a maximal chain of ``self``.
+        Return the length of a maximal chain of ``self`` (regarding
+        ``self`` as an interval of the Tamari lattice).
 
         EXAMPLES::
 
@@ -1745,10 +1843,10 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
     @staticmethod
     def check_poset(poset):
         r"""
-        Checks if the given poset is a interval-poset, that is, if it
-        satisfies the following properties:
+        Check if the given poset ``poset`` is a interval-poset, that is,
+        if it satisfies the following properties:
 
-        - Its labels are exactly `1,\dots,n`.
+        - Its labels are exactly `1,\dots,n` where `n` is its size.
         - If `a<c` (as numbers) and `a` precedes `c`, then `b` precedes
           `c` for all `b` such that `a<b<c`.
         - If `a<c` (as numbers) and `c` precedes `a`, then `b` precedes
@@ -1779,13 +1877,13 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         for i in xrange(1, poset.cardinality() + 1):
             stop = False
             for j in xrange(i - 1, 0, -1):
-                if (not poset.le(j, i)):
+                if not poset.le(j, i):
                     stop = True  # j does not precede i so no j'<j should
                 elif stop:
                     return False
             stop = False
             for j in xrange(i + 1, poset.cardinality() + 1):
-                if (not poset.le(j, i)):
+                if not poset.le(j, i):
                     stop = True  # j does not precede i so no j'>j should
                 elif stop:
                     return False
@@ -1794,7 +1892,8 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
     @staticmethod
     def final_forest(element):
         r"""
-        Return the final forest of a binary tree, an interval-poset or a Dyck word.
+        Return the final forest of a binary tree, an interval-poset or a
+        Dyck word.
 
         A final forest is an interval-poset corresponding to a final
         interval of the Tamari lattice, i.e., containing only decreasing
@@ -1802,7 +1901,8 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
 
         It can be constructed from a binary tree by its binary
         search tree labeling with the rule: `b` precedes
-        `a` in the final forest iff `b` is in the right subtree of `a`.
+        `a` in the final forest iff `b` is in the right subtree of `a`
+        in the binary search tree.
 
         INPUT:
 
@@ -1864,11 +1964,16 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
             Recursive method to get the binary tree final forest relations
             with only one recursive reading of the tree.
 
+            The vertices are being labelled with integers starting with
+            ``start``.
+
             OUTPUT:
 
             - the indexes of the nodes on the left border of the tree
+              (these become the roots of the forest)
             - the relations of the final forest (as a list of tuples)
-            - the next available index for a node (size of tree +1)
+            - the next available index for a node (size of tree +
+              ``start``)
             """
             if not bt:
                 return [], [], start  # leaf
@@ -1885,15 +1990,17 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
     @staticmethod
     def initial_forest(element):
         r"""
-        Return the inital forest of a binary tree, an interval-poset or a Dyck word.
+        Return the inital forest of a binary tree, an interval-poset or
+        a Dyck word.
 
         An initial forest is an interval-poset corresponding to an initial
         interval of the Tamari lattice, i.e., containing only increasing
         relations.
 
         It can be constructed from a binary tree by its binary
-        search tree labeling with the rule: `a` precedes
-        `b` in the initial forest iff `a` is in the left subtree of `b`.
+        search tree labeling with the rule: `a` precedes `b` in the
+        initial forest iff `a` is in the left subtree of `b` in the
+        binary search tree.
 
         INPUT:
 
@@ -1952,14 +2059,19 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
 
         def get_relations(bt, start=1):
             r"""
-            Recursive method to get the binary tree final forest relations
-            with only one recursive reading of the tree.
+            Recursive method to get the binary tree initial forest
+            relations with only one recursive reading of the tree.
+
+            The vertices are being labelled with integers starting with
+            ``start``.
 
             OUTPUT:
 
             - the indexes of the nodes on the right border of the tree
+              (these become the roots of the forest)
             - the relations of the initial forest (as a list of tuples)
-            - the next available index for a node (size of tree +1)
+            - the next available index for a node (size of tree +
+              ``start``)
             """
             if not bt:
                 return [], [], start  # leaf
@@ -1977,7 +2089,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
     def from_binary_trees(tree1, tree2):
         r"""
         Return the interval-poset corresponding to the interval
-        [``tree1``,``tree2``] in the Tamari lattice. Raise an exception if
+        [``tree1``,``tree2``] of the Tamari lattice. Raise an exception if
         ``tree1`` is not `\leq` ``tree2`` in the Tamari lattice.
 
         INPUT:
@@ -2023,7 +2135,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
     def from_dyck_words(dw1, dw2):
         r"""
         Return the interval-poset corresponding to the interval
-        [``dw1``,``dw2``] in the Tamari lattice. Raise an exception if the
+        [``dw1``,``dw2``] of the Tamari lattice. Raise an exception if the
         two Dyck words ``dw1`` and ``dw2`` do not satisfy
         ``dw1`` `\leq` ``dw2`` in the Tamari lattice.
 
@@ -2077,6 +2189,8 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
             sage: TIP = TamariIntervalPosets()
             sage: p = Poset( ([1,2,3], [(1,2)]))
             sage: TIP(p)
+            The tamari interval of size 3 induced by relations [(1, 2)]
+            sage: TIP(TIP(p))
             The tamari interval of size 3 induced by relations [(1, 2)]
             sage: TIP(3,[(1,2)])
             The tamari interval of size 3 induced by relations [(1, 2)]

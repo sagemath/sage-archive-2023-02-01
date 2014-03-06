@@ -608,23 +608,6 @@ class Groups(CategoryWithAxiom):
                 return self.base_ring().sum(x.coefficients())
 
         class ElementMethods:
-            def is_central(self):
-                r"""
-                Returns True if the element is central and False otherwise.
-
-                EXAMPLES::
-
-                    sage: SG4=SymmetricGroupAlgebra(ZZ,4)
-                    sage: SG4(1).is_central()
-                    True
-                    sage: SG4(Permutation([1,3,2,4])).is_central()
-                    False
-                    sage: A=GroupAlgebras(QQ).example(); A
-                    The group algebra of the Dihedral group of order 8 as a permutation group over Rational Field
-                    sage: sum(i for i in A.basis()).is_central()
-                    True
-                """
-                return all([i*self == self*i for i in self.parent().algebra_generators()])
 
             def central_form(self):
                 r"""
@@ -649,7 +632,7 @@ class Groups(CategoryWithAxiom):
                     4*B[[1, 2, 3, 4]] + 3*B[[2, 1, 3, 4]] + 2*B[[2, 1, 4, 3]] + 2*B[[2, 3, 1, 4]] + B[[2, 3, 4, 1]]
                     sage: QG=GroupAlgebras(QQ).example(PermutationGroup([[(1,2,3),(4,5)],[(3,4)]]))
                     sage: sum(i for i in QG.basis()).central_form()
-                    B[()] + B[(1,2)] + B[(1,2)(3,4)] + B[(1,2,3)] + B[(1,2,3)(4,5)] + B[(1,2,3,4)] + B[(1,2,3,4,5)]
+                    B[()] + B[(4,5)] + B[(3,4,5)] + B[(2,3)(4,5)] + B[(2,3,4,5)] + B[(1,2)(3,4,5)] + B[(1,2,3,4,5)]
 
                 .. NOTE::
 

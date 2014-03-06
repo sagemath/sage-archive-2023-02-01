@@ -4549,10 +4549,11 @@ class Automaton(FiniteStateMachine):
 
         INPUT:
 
-        - ``algorithm`` -- Either Moore's algorithm is used (default
-          for deterministic automata or ``algorithm='Moore'``), or
-          Brzozowski's algorithm when ``algorithm='Brzozowski'`` or
-          automaton is not deterministic.
+        - ``algorithm`` -- Either Moore's algorithm (by
+          ``algorithm='Moore'`` or as default for deterministic
+          automata) or Brzozowski's algorithm (when
+          ``algorithm='Brzozowski'`` or when automaton is not
+          deterministic) is used.
 
         OUTPUT:
 

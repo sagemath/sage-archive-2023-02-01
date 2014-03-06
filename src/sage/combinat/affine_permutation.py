@@ -2152,20 +2152,6 @@ class AffinePermutationGroupGeneric(UniqueRepresentation, Parent):
         """
         return self.from_reduced_word(self.index_set())
 
-    def elements_of_length(self, n):
-        r"""
-        Returns all elements of length `n`.
-
-        EXAMPLES::
-
-            sage: A=AffinePermutationGroup(['A',2,1])
-            sage: [len(list(A.elements_of_length(i))) for i in [0..5]]
-            [1, 3, 6, 9, 12, 15]
-        """
-        #Note: This is type-free, and should probably be included in Coxeter Groups.
-        I=self.weak_order_ideal(ConstantFunction(True), side='right')
-        return I.elements_of_depth_iterator(n)
-
 
 class AffinePermutationGroupTypeA(AffinePermutationGroupGeneric):
     #------------------------

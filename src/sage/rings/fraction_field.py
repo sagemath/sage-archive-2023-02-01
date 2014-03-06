@@ -265,10 +265,20 @@ class FractionField_generic(field.Field):
             sage: F2(R22(F2('a')))
             a
 
+        Coercion from Laurent polynomials now works (:trac:`15345`)::
+
+            sage: R = LaurentPolynomialRing(ZZ, 'x')
+            sage: T = PolynomialRing(ZZ, 'x')
+            sage: R.gen() + FractionField(T).gen()
+            2*x
+            sage: 1/R.gen()
+            1/x
         """
         from sage.rings.integer_ring import ZZ
         from sage.rings.rational_field import QQ
         from sage.rings.number_field.number_field_base import NumberField
+        from sage.rings.polynomial.laurent_polynomial_ring import \
+            LaurentPolynomialRing_generic
 
         # The case ``S`` being `\QQ` requires special handling since `\QQ` is
         # not implemented as a ``FractionField_generic``.
@@ -282,6 +292,16 @@ class FractionField_generic(field.Field):
             return CallableConvertMap(S, self, \
                 self._number_field_to_frac_of_ring_of_integers, \
                 parent_as_first_arg=False)
+
+        # special treatment for LaurentPolynomialRings
+        if isinstance(S, LaurentPolynomialRing_generic):
+            def converter(x,y=None):
+                if y is None:
+                    return self._element_class(self, *x._fraction_pair())
+                xnum, xden = x._fraction_pair()
+                ynum, yden = y._fraction_pair()
+                return self._element_class(self, xnum*yden, xden*ynum)
+            return CallableConvertMap(S, self, converter, parent_as_first_arg=False)
 
         if isinstance(S, FractionField_generic) and \
             self._R.has_coerce_map_from(S.ring()):

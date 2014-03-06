@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Power Series Methods
 
@@ -1089,6 +1090,101 @@ cdef class PowerSeries_poly(PowerSeries):
             g += R(k.padded_list(i)[i - 1]/i)*t**i
         g = g.add_bigoh(out_prec)
         return PowerSeries_poly(out_parent, g, out_prec, check=False)
+
+    def pade(self, m, n):
+        r"""
+        Returns the Padé approximant of ``self`` of index `(m, n)`.
+
+        The Padé approximant of index `(m, n)` of a formal power
+        series `f` is the quotient `Q/P` of two polynomials `Q` and `P`
+        such that `\deg(Q)\leq m`, `\deg(P)\leq n` and
+
+        .. MATH::
+
+            f(z) - Q(z)/P(z) = O(z^{m+n+1}).
+
+        The formal power series `f` must be known up to order `n + m + 1`.
+
+        See :wikipedia:`Padé\_approximant`
+
+        INPUT:
+
+        - ``m``, ``n`` -- integers, describing the degrees of the polynomials
+
+        OUTPUT:
+
+        a ratio of two polynomials
+
+        .. WARNING::
+
+            The current implementation uses a very slow algorithm and is not
+            suitable for high orders.
+
+        ALGORITHM:
+
+        This method uses the formula as a quotient of two determinants.
+
+        .. SEEALSO::
+
+            * :mod:`sage.matrix.berlekamp_massey`,
+            * :meth:`sage.rings.polynomial.polynomial_zmod_flint.Polynomial_zmod_flint.rational_reconstruct`
+
+        EXAMPLES::
+
+            sage: z = PowerSeriesRing(QQ, 'z').gen()
+            sage: exp(z).pade(4, 0)
+            1/24*z^4 + 1/6*z^3 + 1/2*z^2 + z + 1
+            sage: exp(z).pade(1, 1)
+            (-z - 2)/(z - 2)
+            sage: exp(z).pade(3, 3)
+            (-z^3 - 12*z^2 - 60*z - 120)/(z^3 - 12*z^2 + 60*z - 120)
+            sage: log(1-z).pade(4, 4)
+            (25/6*z^4 - 130/3*z^3 + 105*z^2 - 70*z)/(z^4 - 20*z^3 + 90*z^2
+            - 140*z + 70)
+            sage: sqrt(1+z).pade(3, 2)
+            (1/6*z^3 + 3*z^2 + 8*z + 16/3)/(z^2 + 16/3*z + 16/3)
+            sage: exp(2*z).pade(3, 3)
+            (-z^3 - 6*z^2 - 15*z - 15)/(z^3 - 6*z^2 + 15*z - 15)
+
+        TESTS:
+
+        With real coefficients::
+
+            sage: R.<z> = RR[[]]
+            sage: f = exp(2*z)
+            sage: f.pade(3, 3) # abs tol 1e-10
+            (-1.0*z^3 - 6.0*z^2 - 15.0*z - 15.0)/(z^3 - 6.0*z^2 + 15.0*z - 15.0)
+
+        When precision is too low::
+
+            sage: f = z + O(z**6)
+            sage: f.pade(4, 4)
+            Traceback (most recent call last):
+            ...
+            ValueError: the precision of the series is not large enough
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.matrix.constructor import Matrix
+        if self.precision_absolute() < n + m + 2:
+            raise ValueError("the precision of the series is not large enough")
+        polyring = self.parent()._poly_ring()
+        z = polyring.gen()
+        c = self.list()
+        mat = Matrix(polyring, n + 1, n + 1)
+        for i in range(1, n + 1):
+            for j in range(n + 1):
+                mat[i, j] = c[m + i - j]
+        for j in range(n + 1):
+            mat[0, j] = z ** j
+        resu_v = mat.determinant().truncate(n + 1)
+        lead_v = resu_v.leading_coefficient()
+        resu_v = resu_v / lead_v
+        for j in range(n + 1):
+            mat[0, j] = z ** j * (self.truncate(max(m - j + 1, 0)))
+        resu_u = mat.determinant().truncate(m + 1)
+        lead_u = resu_u.leading_coefficient()
+        resu_u = resu_u / lead_u
+        return lead_u / lead_v * resu_u / resu_v
 
 
 def make_powerseries_poly_v0(parent,  f, prec, is_gen):

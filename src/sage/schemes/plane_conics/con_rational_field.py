@@ -96,7 +96,7 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
         The parameter ``algorithm``
         specifies the algorithm to be used:
 
-         - ``'qfsolve'`` -- Use Denis Simon's pari script Qfsolve
+         - ``'qfsolve'`` -- Use Denis Simon's GP script ``qfsolve``
            (see ``sage.quadratic_forms.qfsolve.qfsolve``)
 
          - ``'rnfisnorm'`` -- Use PARI's function rnfisnorm
@@ -314,7 +314,7 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
 
         ALGORITHM:
 
-        Uses Denis Simon's pari script Qfparam.
+        Uses Denis Simon's GP script ``qfparam``.
         See ``sage.quadratic_forms.qfsolve.qfparam``.
 
         EXAMPLES ::
@@ -325,12 +325,12 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
               From: Projective Space of dimension 1 over Rational Field
               To:   Projective Conic Curve over Rational Field defined by x^2 + y^2 - z^2
               Defn: Defined on coordinates by sending (x : y) to
-                    (2*x*y : x^2 - y^2 : x^2 + y^2),
+                    (2*x*y : -x^2 + y^2 : x^2 + y^2),
              Scheme morphism:
-               From: Projective Conic Curve over Rational Field defined by x^2 + y^2 - z^2
-               To:   Projective Space of dimension 1 over Rational Field
-               Defn: Defined on coordinates by sending (x : y : z) to
-                     (1/2*x : -1/2*y + 1/2*z))
+              From: Projective Conic Curve over Rational Field defined by x^2 + y^2 - z^2
+              To:   Projective Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (1/2*x : 1/2*y + 1/2*z))
 
         An example with ``morphism = False`` ::
 

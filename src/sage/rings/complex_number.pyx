@@ -567,10 +567,13 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             3.14159265358979
             sage: pari(a).type()
             't_REAL'
+            sage: a = CC(-2).sqrt()
+            sage: pari(a)
+            1.41421356237310*I
         """
         if self.is_real():
             return self.real()._pari_()
-        return sage.libs.pari.all.pari.complex(self.real()._pari_(), self.imag()._pari_())
+        return sage.libs.pari.all.pari.complex(self.real() or 0, self.imag())
 
     def _mpmath_(self, prec=None, rounding=None):
         """

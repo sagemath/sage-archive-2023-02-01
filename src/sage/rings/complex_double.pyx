@@ -1060,7 +1060,10 @@ cdef class ComplexDoubleElement(FieldElement):
         else:
             # Return t_COMPLEX
             y = cgetg(3, t_COMPLEX)
-            set_gel(y, 1, pari.double_to_GEN(self._complex.dat[0]))
+            if self._complex.dat[0] == 0:
+                set_gel(y, 1, gen_0)
+            else:
+                set_gel(y, 1, pari.double_to_GEN(self._complex.dat[0]))
             set_gel(y, 2, pari.double_to_GEN(self._complex.dat[1]))
         return y
 
@@ -1076,6 +1079,8 @@ cdef class ComplexDoubleElement(FieldElement):
             1.00000000000000 + 2.00000000000000*I
             sage: pari(CDF(2.0))
             2.00000000000000
+            sage: pari(CDF(I))
+            1.00000000000000*I
         """
         pari_catch_sig_on()
         return pari.new_gen(self._gen())

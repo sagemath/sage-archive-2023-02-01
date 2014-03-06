@@ -51,7 +51,7 @@ class FiniteCoxeterGroups(Category):
         EXAMPLES::
 
             sage: FiniteCoxeterGroups().super_categories()
-            [Category of coxeter groups, Category of finite groups]
+            [Category of Coxeter groups, Category of finite groups]
         """
         return [CoxeterGroups(), FiniteGroups()]
 
@@ -105,7 +105,7 @@ class FiniteCoxeterGroups(Category):
             INPUT:
 
             - ``index_set`` - a subset (as a list or iterable) of the
-              nodes of the dynkin diagram; (default: all of them)
+              nodes of the Dynkin diagram; (default: all of them)
 
             Returns the longest element of ``self``, or of the
             parabolic subgroup corresponding to the given index_set.

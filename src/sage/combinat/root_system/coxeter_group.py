@@ -29,7 +29,7 @@ def CoxeterGroup(data, implementation=None, base_ring=None, index_set=None):
 
     INPUT:
 
-    - ``data`` -- a cartan type (or coercible into; see :class:`CartanType`)
+    - ``data`` -- a Cartan type (or coercible into; see :class:`CartanType`)
       or a Coxeter matrix or graph
 
     - ``implementation`` -- (default: ``None``) can be one of the following:
@@ -78,7 +78,7 @@ def CoxeterGroup(data, implementation=None, base_ring=None, index_set=None):
         sage: W                                                         # optional - chevie
         Permutation Group with generators [(1,3)(2,5)(4,6), (1,4)(2,3)(5,6)]
         sage: W.category()                       # optional - chevie
-        Join of Category of finite permutation groups and Category of finite coxeter groups
+        Join of Category of finite permutation groups and Category of finite Coxeter groups
 
         sage: W = CoxeterGroup(["A",2], implementation = "matrix")
         sage: W

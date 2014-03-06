@@ -31,7 +31,7 @@ class SymmetricGroup(UniqueRepresentation, Parent):
         sage: S
         The symmetric group on {0, ..., 3}
         sage: S.category()
-        Category of finite weyl groups
+        Category of finite Weyl groups
 
     The elements of this group are permutations of the set `\{0,\ldots,3\}`::
 

@@ -23,10 +23,10 @@ class WeylGroups(Category_singleton):
 
     EXAMPLES::
 
-        sage: WeylGroups()                      # todo: uppercase for Weyl
-        Category of weyl groups
+        sage: WeylGroups()
+        Category of Weyl groups
         sage: WeylGroups().super_categories()
-        [Category of coxeter groups]
+        [Category of Coxeter groups]
 
     Here are some examples::
 
@@ -53,7 +53,7 @@ class WeylGroups(Category_singleton):
         EXAMPLES::
 
             sage: WeylGroups().super_categories()
-            [Category of coxeter groups]
+            [Category of Coxeter groups]
         """
         return [CoxeterGroups()]
 
@@ -94,7 +94,7 @@ class WeylGroups(Category_singleton):
                 True
             """
             # Do not remove this line which makes sure the pieri factor
-            # code is properly inserted inside the cartan types
+            # code is properly inserted inside the Cartan Types
             import sage.combinat.root_system.pieri_factors
             ct = self.cartan_type()
             if hasattr(ct, "PieriFactors"):

@@ -21,9 +21,9 @@ class FiniteWeylGroups(Category):
 
         sage: C = FiniteWeylGroups()
         sage: C
-        Category of finite weyl groups
+        Category of finite Weyl groups
         sage: C.super_categories()
-        [Category of weyl groups, Category of finite coxeter groups]
+        [Category of Weyl groups, Category of finite Coxeter groups]
         sage: C.example()
         The symmetric group on {0, ..., 3}
 
@@ -66,7 +66,7 @@ class FiniteWeylGroups(Category):
         EXAMPLES::
 
             sage: FiniteWeylGroups().super_categories()
-            [Category of weyl groups, Category of finite coxeter groups]
+            [Category of Weyl groups, Category of finite Coxeter groups]
         """
         return [WeylGroups(), FiniteCoxeterGroups()]
 

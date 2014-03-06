@@ -28,16 +28,16 @@ class AffineWeylGroups(Category_singleton):
     EXAMPLES::
 
         sage: C = AffineWeylGroups(); C
-        Category of affine weyl groups
+        Category of affine Weyl groups
         sage: C.super_categories()
-        [Category of weyl groups, Category of infinite enumerated sets]
+        [Category of Weyl groups, Category of infinite enumerated sets]
 
         sage: C.example()
         NotImplemented
         sage: W = WeylGroup(["A",4,1]); W
         Weyl Group of type ['A', 4, 1] (as a matrix group acting on the root space)
         sage: W.category()
-        Category of affine weyl groups
+        Category of affine Weyl groups
 
     TESTS::
 
@@ -49,7 +49,7 @@ class AffineWeylGroups(Category_singleton):
         EXAMPLES::
 
             sage: AffineWeylGroups().super_categories()
-            [Category of weyl groups, Category of infinite enumerated sets]
+            [Category of Weyl groups, Category of infinite enumerated sets]
         """
         return [WeylGroups(), InfiniteEnumeratedSets()]
 

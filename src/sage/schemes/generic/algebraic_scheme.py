@@ -135,15 +135,15 @@ from sage.rings.all import ZZ
 
 from sage.rings.ideal import is_Ideal
 from sage.rings.rational_field import is_RationalField
-from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.finite_rings.constructor import is_FiniteField
+
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.misc.latex import latex
 from sage.misc.misc import is_iterator
 from sage.structure.all import Sequence
 from sage.calculus.functions import jacobian
 
-import sage.schemes.projective
 import sage.schemes.affine
 import ambient_space
 import scheme
@@ -2114,41 +2114,43 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             sage: X.Jacobian().radical()
             Ideal (z^2 - 3*y*w, y*z - 9*x*w, y^2 - 3*x*z) of Multivariate Polynomial Ring in x, y, z, w over Rational Field
         """
+        import sage.libs.singular
         K = self.base_ring()
-        if not (K == QQ):
+        if not is_RationalField(K):
             raise NotImplementedError("In the present implementation, the base"
                                       " ring (=%s) must be the field of"
                                       " rational numbers." % K)
         I = self.defining_ideal()
         m = I.ngens()
         n = I.ring().ngens() - 1
-        if (not m == 1) or (n < 1) or (I.is_zero()) or (I.is_trivial()) or (not I.is_prime()):
+        if (m != 1 or (n < 1) or I.is_zero()
+            or I.is_trivial() or not I.is_prime()):
             raise NotImplementedError("At the present, the method is only"
                                       " implemented for irreducible and"
                                       " reduced hypersurfaces and the given"
                                       " list of generators for the ideal must"
                                       " have exactly one element.")
-        R = PolynomialRing(K, 'x', n+1)
-        Pd = projective_space.ProjectiveSpace(n, K, 'y')
+        R = PolynomialRing(K, 'x', n + 1)
+        Pd = sage.schemes.projective.projective_space.ProjectiveSpace(n, K, 'y')
         Rd = Pd.coordinate_ring()
         x = R.gens()
         y = Rd.gens()
-        S = PolynomialRing(K, x+y+('t',))
+        S = PolynomialRing(K, x + y + ('t',))
         if S.has_coerce_map_from(I.ring()):
-            T = PolynomialRing(K, 'w', n+1)
+            T = PolynomialRing(K, 'w', n + 1)
             I_S = (I.change_ring(T)).change_ring(S)
         else:
             I_S = I.change_ring(S)
-        f_S = (I_S.gens())[0]
+        f_S = I_S.gens()[0]
         z = S.gens()
         J = I_S
-        for i in range(n+1):
-            J = J + S.ideal(z[-1]*f_S.derivative(z[i]) - z[i+n+1])
+        for i in range(n + 1):
+            J = J + S.ideal(z[-1] * f_S.derivative(z[i]) - z[i + n + 1])
         sat = sage.libs.singular.ff.elim__lib.sat
-        max_ideal = S.ideal(z[n+1:2*n+2])
+        max_ideal = S.ideal(z[n + 1: 2 * n + 2])
         J_sat_gens = sat(J, max_ideal)[0]
         J_sat = S.ideal(J_sat_gens)
-        L = J_sat.elimination_ideal(z[0:n+1] + (z[-1],))
+        L = J_sat.elimination_ideal(z[0: n + 1] + (z[-1],))
         return Pd.subscheme(L.change_ring(Rd))
 
 

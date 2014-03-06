@@ -464,6 +464,12 @@ look.  If you think there are issues with the patch, explain them in
 the comment box and change the status to "needs work". Browse the
 tickets on the trac server to see how things are done.
 
+If you change the patch yourself, you must make a commit in your own
+name and mark the commit as a reviewer's patch. This must be reviewed
+itself, for example by the author of the original patch.
+
+For more advice on reviewing, please see [WSblog].
+
 .. note::
 
     "The perfect is the enemy of the good"
@@ -475,6 +481,13 @@ tickets on the trac server to see how things are done.
     want the patch written differently, your suggestion should be a
     clear and actionable request.
 
+.. SEEALSO::
+
+    :ref:`Review Walkthrough <section-walkthrough-review>`
+
+REFERENCES:
+
+.. [WSblog] William Stein, How to Referee Sage Trac Tickets, http://sagemath.blogspot.com/2010/10/how-to-referee-sage-trac-tickets.html (Caveat: mercurial was replaced with git)
 
 
 Closing Tickets

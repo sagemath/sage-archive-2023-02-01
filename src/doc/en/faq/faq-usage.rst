@@ -125,7 +125,7 @@ You can load a Python script in a Sage session with the command **load**. For ex
 
     load("simple.py")
 
-and repeat this command every time that we change the fiel simple.py. However, if we type::
+and repeat this command every time that we change the file simple.py. However, if we type::
 
     attach("simple.py")
 

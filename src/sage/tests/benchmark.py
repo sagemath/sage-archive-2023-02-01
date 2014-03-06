@@ -1956,6 +1956,17 @@ def mpoly_all(include_maple=False):
        * Singular (i.e., Sage) does shockingly well.
        * mathematica is sometimes amazing.
        * macaulay2 is also quite bad (though not as bad as maple).
+
+    EXAMPLE::
+
+        sage: from sage.tests.benchmark import mpoly_all
+        sage: mpoly_all() # not tested
+        <BLANKLINE>
+        ...
+        ...System      min         avg         max         trials          cpu or wall
+        ...
+        * sage...
+
     """
     systems = ['sage', 'magma', 'mathematica', 'macaulay2']
     if include_maple:

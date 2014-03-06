@@ -153,10 +153,10 @@ class Braid(FinitelyPresentedGroupElement):
 
         INPUT:
 
-        - ``var`` -- string (default: ``'t'``). The name of the
-          variable in the entries of the matrix.
-        - ``reduced`` -- boolean (default: ``False``). Whether to
-          return the reduced or unreduced Burau representation.
+        - ``var`` -- string (default: ``'t'``); the name of the
+          variable in the entries of the matrix
+        - ``reduced`` -- boolean (default: ``False``); whether to
+          return the reduced or unreduced Burau representation
 
         OUTPUT:
 
@@ -188,14 +188,15 @@ class Braid(FinitelyPresentedGroupElement):
 
         REFERENCES:
 
-        :wikipedia:`Burau_representation`
+        - :wikipedia:`Burau_representation`
         """
         R = LaurentPolynomialRing(IntegerRing(), var)
         t = R.gen()
+        n = self.strands()
         if not reduced:
-            M = identity_matrix(R, self.strands())
+            M = identity_matrix(R, n)
             for i in self.Tietze():
-                A = identity_matrix(R, self.strands())
+                A = identity_matrix(R, n)
                 if i > 0:
                     A[i-1, i-1] = 1-t
                     A[i, i] = 0
@@ -208,9 +209,9 @@ class Braid(FinitelyPresentedGroupElement):
                     A[-i, -1-i] = t**(-1)
                 M = M * A
         else:
-            M = identity_matrix(R, self.strands() - 1)
+            M = identity_matrix(R, n - 1)
             for j in self.Tietze():
-                A = identity_matrix(R, self.strands() - 1)
+                A = identity_matrix(R, n - 1)
                 if j > 1:
                     i = j-1
                     A[i-1, i-1] = 1-t
@@ -224,11 +225,11 @@ class Braid(FinitelyPresentedGroupElement):
                     A[-1-i, -i] = 1
                     A[-i, -1-i] = t**(-1)
                 if j == 1:
-                    for k in range(self.strands() - 1):
+                    for k in range(n - 1):
                         A[k,0] = -t
                 if j == -1:
                     A[0,0] = -t**(-1)
-                    for k in range(1, self.strands() - 1):
+                    for k in range(1, n - 1):
                         A[k,0] = -1
                 M = M * A
         return M
@@ -241,7 +242,7 @@ class Braid(FinitelyPresentedGroupElement):
 
         - ``var`` -- string (default: ``'t'``); the name of the
           variable in the entries of the matrix
-        - ``normalized`` -- boolean (default: ``True``); if ``True`` then
+        - ``normalized`` -- boolean (default: ``True``); whether to
           return the normalized Alexander polynomial
 
         OUTPUT:

@@ -185,10 +185,10 @@ Left-special and bispecial factors::
 #                     2008-2012 Sébastien Labbé <slabqc@gmail.com>,
 #                     2008-2010 Franco Saliola <saliola@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License version 2 (GPLv2)
-#
-#  The full text of the GPLv2 is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from itertools import islice, izip, cycle
@@ -296,11 +296,11 @@ class FiniteWord_class(Word_class):
             try:
                 other = self.parent()(other)
                 other.parent()._check(other, length=None)
-            except StandardError:
+            except Exception:
                 try:
                     self = other.parent()(self)
                     self.parent()._check(self, length=None)
-                except StandardError:
+                except Exception:
                     raise TypeError, "no coercion rule between %r and %r" % (self.parent(), other.parent())
         return self, other
 
@@ -5672,6 +5672,43 @@ exponent %s: the length of the word (%s) times the exponent \
 
     evaluation = parikh_vector
 
+    def robinson_schensted(self):
+        """
+        Return the semistandard tableau and standard tableau pair
+        obtained by running the Robinson-Schensted algorithm on ``self``.
+
+        This can also be done by running
+        :func:`~sage.combinat.rsk.RSK` on ``self``.
+
+        EXAMPLES::
+
+            sage: Word([1,1,3,1,2,3,1]).robinson_schensted()
+            [[[1, 1, 1, 1, 3], [2], [3]], [[1, 2, 3, 5, 6], [4], [7]]]
+        """
+        from sage.combinat.rsk import RSK
+        return RSK(self)
+
+    def _rsk_iter(self):
+        r"""
+        An iterator for :func:`~sage.combinat.rsk.RSK`.
+
+        Yields pairs `(i, w_i)` for a word `w = w_1 w_2 \cdots w_k`.
+
+        EXAMPLES::
+
+            sage: for x in Word([1,1,3,1,2,3,1])._rsk_iter(): x
+            ...
+            (1, 1)
+            (2, 1)
+            (3, 3)
+            (4, 1)
+            (5, 2)
+            (6, 3)
+            (7, 1)
+        """
+        from itertools import izip
+        return izip(xrange(1, len(self)+1), self)
+
     def shuffle(self, other, overlap=0):
         r"""
         Returns the combinatorial class representing the shuffle product
@@ -6091,7 +6128,7 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         seen, res = {}, []
         for x in self:
-            if not seen.has_key(x):
+            if x not in seen:
                 res.append(x)
                 seen[x] = True
         return res
@@ -6491,6 +6528,36 @@ exponent %s: the length of the word (%s) times the exponent \
                 if self[start:end].is_cube():
                     return False
         return True
+
+    def to_monoid_element(self):
+        """
+        Return ``self`` as an element the free monoid with the same alphabet
+        as ``self``.
+
+        EXAMPLES::
+
+            sage: w = Word('aabb')
+            sage: w.to_monoid_element()
+            a^2*b^2
+            sage: W = Words('abc')
+            sage: w = W(w)
+            sage: w.to_monoid_element()
+            a^2*b^2
+
+        TESTS:
+
+        Check that ``w == w.to_monoid_element().to_word()``::
+
+            sage: all(w.to_monoid_element().to_word() == w for i in range(6) for w in Words('abc', i))
+            True
+        """
+        from sage.monoids.free_monoid import FreeMonoid
+        try:
+            l = list(self.parent().alphabet())
+        except AttributeError:
+            l = list(set(self))
+        M = FreeMonoid(len(l), l)
+        return M(self)
 
 #######################################################################
 

@@ -87,6 +87,7 @@ _add_variable_or_fallback('LOCAL_IDENTIFIER','$HOSTNAME.%s'%os.getpid())
 # bunch of sage directories and files
 _add_variable_or_fallback('SAGE_ROOT',       None)
 _add_variable_or_fallback('SAGE_LOCAL',      opj('$SAGE_ROOT', 'local'))
+_add_variable_or_fallback('SAGE_ETC',        opj('$SAGE_LOCAL', 'etc'))
 _add_variable_or_fallback('SAGE_SHARE',      opj('$SAGE_LOCAL', 'share'))
 
 # SAGE_LIB is the site-packages directory if the sage library
@@ -99,6 +100,7 @@ _add_variable_or_fallback('SAGE_LOGS',       opj('$SAGE_ROOT', 'logs', 'pkgs'))
 _add_variable_or_fallback('SAGE_SPKG_INST',  opj('$SAGE_LOCAL', 'var', 'lib', 'sage', 'installed'))
 _add_variable_or_fallback('SAGE_DOC',        opj('$SAGE_SRC', 'doc'))
 _add_variable_or_fallback('DOT_SAGE',        opj(os.environ.get('HOME','$SAGE_ROOT'), '.sage'))
+_add_variable_or_fallback('PYTHON_EGG_CACHE',opj('$DOT_SAGE','.python-eggs'))
 _add_variable_or_fallback('SAGE_DOT_GIT',    opj('$SAGE_ROOT', '.git'))
 
 # misc

@@ -48,7 +48,7 @@ r'''\textwidth=1.1\textwidth
 \textheight=2\textheight
 ''')
 
-
+import sys
 import shutil, re
 import os.path
 import random
@@ -605,6 +605,7 @@ def latex_extra_preamble():
         sage: from sage.misc.latex import latex_extra_preamble
         sage: print latex_extra_preamble()
         ...
+        <BLANKLINE>
         \newcommand{\ZZ}{\Bold{Z}}
         \newcommand{\NN}{\Bold{N}}
         \newcommand{\RR}{\Bold{R}}
@@ -2341,7 +2342,7 @@ def repr_lincomb(symbols, coeffs):
                 try:
                     if bv in CC:
                         s += "%s\cdot %s"%(coeff, b)
-                except StandardError:
+                except Exception:
                     s += "%s%s"%(coeff, b)
             first = False
         i += 1
@@ -2383,8 +2384,8 @@ def print_or_typeset(object):
 
 def pretty_print (*args):
     r"""
-    Try to pretty print the arguments in an intelligent way.  For graphics
-    objects, this returns their default representation.  For other
+    Try to pretty print the arguments in an intelligent way. For graphics
+    objects, this returns their default representation. For other
     objects, in the notebook, this calls the :func:`view` command,
     while from the command line, this produces an html string suitable
     for processing by MathJax.
@@ -2444,6 +2445,9 @@ def pretty_print_default(enable=True):
     rendering things so that MathJax or some other latex-aware front end
     can render real math.
 
+    This function is pretty useless without the notebook, it shoudn't
+    be in the global namespace.
+
     INPUT:
 
     -  ``enable`` -- bool (optional, default ``True``).  If ``True``, turn on
@@ -2452,17 +2456,15 @@ def pretty_print_default(enable=True):
     EXAMPLES::
 
         sage: pretty_print_default(True)
-        sage: sys.displayhook
-        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\verb|<function|\phantom{\verb!x!}\verb|pretty_print|\phantom{\verb!x!}\verb|at|\phantom{\verb!x!}\verb|...|</script></html>
+        sage: 'foo'
+        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\verb|foo|</script></html>
         sage: pretty_print_default(False)
-        sage: sys.displayhook == sys.__displayhook__
-        True
+        sage: 'foo'
+        'foo'
     """
     import sys
-    if enable:
-        sys.displayhook = pretty_print
-    else:
-        sys.displayhook = sys.__displayhook__
+    sys.displayhook.set_display('typeset' if enable else 'simple')
+
 
 common_varnames = ['alpha',
                    'beta',
@@ -2669,7 +2671,7 @@ class LatexExamples():
             """
             String representation
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: from sage.misc.latex import latex_examples
                 sage: G = latex_examples.graph()
@@ -2944,4 +2946,3 @@ H_{p+q-1}(K^{p}/K^{p-1}) \ar[r]^{k} & H_{p+q-2}(K^{p-1}) \ar[r] \ar[d]^{i} &
 }"""
 
 latex_examples = LatexExamples()
-

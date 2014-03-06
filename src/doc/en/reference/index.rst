@@ -91,6 +91,7 @@ Geometry and Topology
 * :doc:`Combinatorial Geometry <geometry/index>`
 * :doc:`Cell Complexes and their Homology <homology/index>`
 * :doc:`Differential Forms <tensor/index>`
+* :doc:`Parametrized Surfaces <riemannian_geometry/index>`
 
 Number Theory, Algebraic Geometry
 ---------------------------------
@@ -123,6 +124,7 @@ Doctesting, Interfaces, Databases, Miscellany
 ---------------------------------------------
 
 * :doc:`Doctesting <doctest/index>`
+* :doc:`Development Scripts <dev/index>`
 * :doc:`Interpreter Interfaces <interfaces/index>`
 * :doc:`C/C++ Library Interfaces <libs/index>`
 * :doc:`Databases <databases/index>`

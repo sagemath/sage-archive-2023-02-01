@@ -292,7 +292,7 @@ class ManinSymbolList(SageObject):
             sage: all([i == m.index(m[i]) for i in xrange(len(m))])
             True
         """
-        if self._index.has_key(x):
+        if x in self._index:
             return self._index[x]
         x = self.normalize(x)
         try:
@@ -1266,7 +1266,7 @@ class ManinSymbolList_character(ManinSymbolList):
             (16, 1),
             (17, 1)]
         """
-        if self._index.has_key(x):
+        if x in self._index:
             return self._index[x], 1
         x, s= self.normalize(x)
         try:
@@ -1691,18 +1691,20 @@ class ManinSymbol(SageObject):
             Traceback (most recent call last):
             ...
             NotImplementedError: ModSym * Matrix only implemented in weight 2
-
         """
         if self.weight() > 2:
-            raise NotImplementedError, "ModSym * Matrix only implemented in weight 2"
-        if sage.matrix.all.is_Matrix(matrix):
-            assert matrix.nrows() == 2 and matrix.ncols()==2, "matrix must be 2x2"
+            raise NotImplementedError("ModSym * Matrix only implemented "
+                                      "in weight 2")
+        from sage.matrix.matrix import is_Matrix
+        if is_Matrix(matrix):
+            if (not matrix.nrows() == 2) or (not matrix.ncols() == 2):
+                raise ValueError("matrix(=%s) must be 2x2" % matrix)
             matrix = matrix.list()
         return ManinSymbol(self.parent(), \
                            (self.i,
                            matrix[0]*self.u + matrix[2]*self.v,\
                            matrix[1]*self.u + matrix[3]*self.v))
-        raise ArithmeticError, "Multiplication of %s by %s not defined."%(self, matrix)
+        raise ArithmeticError("Multiplication of %s by %s not defined." % (self, matrix))
 
 
     def apply(self, a,b,c,d):

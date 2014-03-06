@@ -82,8 +82,7 @@ import sage.rings.field as field
 import sage.rings.integral_domain as integral_domain
 import sage.rings.integer
 import sage.structure.parent_gens as gens
-
-
+from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 import free_module
 
 ###############################################################################
@@ -151,7 +150,7 @@ def FreeQuadraticModule(
 
     key = (base_ring, rank, inner_product_matrix, sparse)
 
-    if _cache.has_key(key):
+    if key in _cache:
         M = _cache[key]()
         if not (M is None):
             return M
@@ -169,7 +168,7 @@ def FreeQuadraticModule(
         M = FreeQuadraticModule_ambient_field(
             base_ring, rank, sparse=sparse, inner_product_matrix=inner_product_matrix)
 
-    elif isinstance(base_ring, principal_ideal_domain.PrincipalIdealDomain):
+    elif base_ring in PrincipalIdealDomains():
         M = FreeQuadraticModule_ambient_pid(
             base_ring, rank, sparse=sparse, inner_product_matrix=inner_product_matrix)
 
@@ -1120,7 +1119,7 @@ class FreeQuadraticModule_submodule_with_basis_pid(
         """
         Create a free module with basis over a PID.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: A = diagonal_matrix([1,2,2])
             sage: M = FreeQuadraticModule(ZZ,3,inner_product_matrix=A)
@@ -1402,7 +1401,7 @@ class FreeQuadraticModule_submodule_with_basis_field(
         sage: vector(QQ, W.coordinates(v)) * W.basis_matrix()
         (1, 5, 9)
 
-    We can load and save submodules:
+    We can load and save submodules::
 
         sage: loads(W.dumps()) == W
         True
@@ -1498,7 +1497,7 @@ class FreeQuadraticModule_submodule_field(
     EXAMPLES:
 
         Since this is an embedded vector subspace with echelonized basis,
-        the echelon_coordinates() and user coordinates() agree:
+        the echelon_coordinates() and user coordinates() agree::
 
         sage: V = QQ^3
         sage: W = V.span([[1,2,3],[4,5,6]])

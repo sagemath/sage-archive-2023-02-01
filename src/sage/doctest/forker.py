@@ -90,8 +90,9 @@ def init_sage():
           + x
     """
     # Do this once before forking.
-    import sage.all_cmdline
+    import sage.doctest
     sage.doctest.DOCTEST_MODE=True
+    import sage.all_cmdline
     sage.interfaces.quit.invalidate_all()
     import sage.misc.displayhook
     sys.displayhook = sage.misc.displayhook.DisplayHook(sys.displayhook)
@@ -790,7 +791,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','forker.py')
             sage: FDS = FileDocTestSource(filename,DD)
             sage: globs = RecordingDict(globals())
-            sage: globs.has_key('doctest_var')
+            sage: 'doctest_var' in globs
             False
             sage: doctests, extras = FDS.create_doctests(globs)
             sage: ex0 = doctests[0].examples[0]
@@ -1284,7 +1285,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             [('cputime', [...]), ('err', None), ('failures', 0), ('walltime', [...])]
         """
         for key in ["cputime","walltime"]:
-            if not D.has_key(key):
+            if key not in D:
                 D[key] = []
             if hasattr(self, key):
                 D[key].append(self.__dict__[key])
@@ -2067,7 +2068,6 @@ class DocTestTask(object):
         try:
             file = self.source.path
             basename = self.source.basename
-            import sage.all_cmdline
             runner = SageDocTestRunner(
                     SageOutputChecker(),
                     verbose=options.verbose,
@@ -2079,7 +2079,12 @@ class DocTestTask(object):
             N = options.file_iterations
             results = DictAsObject(dict(walltime=[],cputime=[],err=None))
             for it in range(N):
-                sage_namespace = RecordingDict(dict(sage.all_cmdline.__dict__))
+                # Make the right set of globals available to doctests
+                if basename.startswith("sagenb."):
+                    import sage.all_notebook as sage_all
+                else:
+                    import sage.all_cmdline as sage_all
+                sage_namespace = RecordingDict(sage_all.__dict__)
                 sage_namespace['__name__'] = '__main__'
                 sage_namespace['__package__'] = None
                 doctests, extras = self.source.create_doctests(sage_namespace)

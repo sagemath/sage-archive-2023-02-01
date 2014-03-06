@@ -43,7 +43,13 @@ class FreeAlgebraElement(AlgebraElement):
     """
     def __init__(self, A, x):
         """
-        Create the element x of the FreeAlgebra A.
+        Create the element ``x`` of the FreeAlgebra ``A``.
+
+        TESTS::
+
+            sage: F.<x,y,z> = FreeAlgebra(QQ, 3)
+            sage: elt = x^3 * y - z^2*x
+            sage: TestSuite(elt).run()
         """
         if isinstance(x, FreeAlgebraElement):
             x = x.__monomial_coefficients
@@ -204,7 +210,7 @@ class FreeAlgebraElement(AlgebraElement):
 ##         if isinstance(y, (int, long, Integer)):
 ##             z_elt = dict(self.__monomial_coefficients)
 ##             e = A.monoid()(1)
-##             if z_elt.has_key(e):
+##             if e in z_elt:
 ##                 z_elt[e] += A.base_ring()(y)
 ##             else:
 ##                 z_elt[e] = A.base_ring()(y)
@@ -259,7 +265,7 @@ class FreeAlgebraElement(AlgebraElement):
 ##         if isinstance(y, (int, long, Integer)):
 ##             z_elt = dict(self.__monomial_coefficients)
 ##             e = A.monoid()(1)
-##             if z_elt.has_key(e):
+##             if e in z_elt:
 ##                 z_elt[e] += A.base_ring()(-y)
 ##             else:
 ##                 z_elt[e] = A.base_ring()(-y)
@@ -305,3 +311,17 @@ class FreeAlgebraElement(AlgebraElement):
         z = A(0)
         z.__monomial_coefficients = z_elt
         return z
+
+    def to_pbw_basis(self):
+        """
+        Return ``self`` in the Poincare-Birkhoff-Witt (PBW) basis.
+
+        EXAMPLES::
+
+            sage: F.<x,y,z> = FreeAlgebra(ZZ, 3)
+            sage: p = x^2*y + 3*y*x + 2
+            sage: p.to_pbw_basis()
+            2*PBW[1] + 3*PBW[y]*PBW[x] + PBW[x^2*y] + PBW[x*y]*PBW[x] + PBW[y]*PBW[x]^2
+        """
+        return self.parent().pbw_element(self)
+

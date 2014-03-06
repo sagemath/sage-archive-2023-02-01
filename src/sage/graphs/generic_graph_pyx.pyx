@@ -25,8 +25,6 @@ from sage.misc.prandom import random
 # import from third-party library
 from sage.graphs.base.sparse_graph cimport SparseGraph
 
-cdef extern from *:
-    double sqrt(double)
 
 cdef class GenericGraph_pyx(SageObject):
     pass
@@ -510,6 +508,9 @@ cdef class SubgraphSearch:
 
         if sum([G.is_directed(), H.is_directed()]) == 1:
             raise ValueError("One graph can not be directed while the other is not.")
+
+        G._scream_if_not_simple(allow_loops=True)
+        H._scream_if_not_simple(allow_loops=True)
 
         self._initialization()
 

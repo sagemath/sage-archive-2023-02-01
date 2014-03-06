@@ -456,7 +456,7 @@ def matrix_plot(mat, **options):
     import numpy as np
     import scipy.sparse as scipysparse
     from sage.plot.all import Graphics
-    from sage.matrix.all import is_Matrix
+    from sage.matrix.matrix import is_Matrix
     from sage.rings.all import RDF
     orig_mat=mat
     if is_Matrix(mat):
@@ -465,7 +465,7 @@ def matrix_plot(mat, **options):
             entries = list(mat._dict().items())
             try:
                 data = np.asarray([d for _,d in entries], dtype=float)
-            except StandardError:
+            except Exception:
                 raise ValueError, "can not convert entries to floating point numbers"
             positions = np.asarray([[row for (row,col),_ in entries],
                                     [col for (row,col),_ in entries]], dtype=int)

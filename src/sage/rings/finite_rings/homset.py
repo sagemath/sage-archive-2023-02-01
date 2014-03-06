@@ -36,7 +36,7 @@ We can also create endomorphisms::
 """
 
 from sage.rings.homset import RingHomset_generic
-from sage.rings.morphism import RingHomomorphism_im_gens
+from sage.rings.finite_rings.hom_finite_field import FiniteFieldHomomorphism_generic
 from sage.rings.integer import Integer
 from sage.structure.sequence import Sequence
 
@@ -44,6 +44,12 @@ class FiniteFieldHomset(RingHomset_generic):
     """
     Set of homomorphisms with domain a given finite field.
     """
+#     def __init__(self, R, S, category=None):
+#         if category is None:
+#             from sage.categories.finite_fields import FiniteFields
+#             category = FiniteFields()
+#         RingHomset_generic.__init__(self, R, S, category)
+
     def __call__(self, im_gens, check=True):
         """
         Construct the homomorphism defined by ``im_gens``.
@@ -80,10 +86,10 @@ class FiniteFieldHomset(RingHomset_generic):
             sage: H == loads(dumps(H))
             True
         """
-        if isinstance(im_gens, FiniteFieldHomomorphism_im_gens):
+        if isinstance(im_gens, FiniteFieldHomomorphism_generic):
             return self._coerce_impl(im_gens)
         try:
-            return FiniteFieldHomomorphism_im_gens(self, im_gens, check=check)
+            return FiniteFieldHomomorphism_generic(self, im_gens, check=check)
         except (NotImplementedError, ValueError), err:
             try:
                 return self._coerce_impl(im_gens)
@@ -110,12 +116,12 @@ class FiniteFieldHomset(RingHomset_generic):
               To:   Finite Field in b of size 5^4
               Defn: a |--> 4*b^3 + 4*b^2 + 4*b + 3
         """
-        if not isinstance(x, FiniteFieldHomomorphism_im_gens):
+        if not isinstance(x, FiniteFieldHomomorphism_generic):
             raise TypeError
         if x.parent() is self:
             return x
         if x.parent() == self:
-            return FiniteFieldHomomorphism_im_gens(self, x.im_gens())
+            return FiniteFieldHomomorphism_generic(self, x.im_gens())
         raise TypeError
 
     def _repr_(self):
@@ -264,10 +270,37 @@ class FiniteFieldHomset(RingHomset_generic):
         """
         return self.list().index(item)
 
-class FiniteFieldHomomorphism_im_gens(RingHomomorphism_im_gens):
-    pass
+    def _an_element_(self):
+        """
+        Return an element of ``self``.
+
+        TESTS::
+
+            sage: Hom(GF(3^3, 'a'), GF(3^6, 'b')).an_element()
+            Ring morphism:
+              From: Finite Field in a of size 3^3
+              To:   Finite Field in b of size 3^6
+              Defn: a |--> 2*b^5 + 2*b^4
+
+            sage: Hom(GF(3^3, 'a'), GF(3^2, 'c')).an_element()
+            Traceback (most recent call last):
+            ...
+            EmptySetError: no homomorphisms from Finite Field in a of size 3^3 to Finite Field in c of size 3^2
+
+        .. TODO::
+
+            Use a more sophisticated algorithm; see also :trac:`8751`.
+
+        """
+        K = self.domain()
+        L = self.codomain()
+        if K.degree() == 1:
+            return L.coerce_map_from(K)
+        elif not K.degree().divides(L.degree()):
+            from sage.categories.sets_cat import EmptySetError
+            raise EmptySetError('no homomorphisms from %s to %s' % (K, L))
+        return K.hom([K.modulus().any_root(L)])
+
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.rings.finite_field_morphism', 'FiniteFieldHomset', FiniteFieldHomset)
-register_unpickle_override('sage.rings.finite_field_morphism', 'FiniteFieldHomomorphism_im_gens', FiniteFieldHomomorphism_im_gens)
-

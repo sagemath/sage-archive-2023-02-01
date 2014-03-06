@@ -81,9 +81,11 @@ cimport sage.rings.integer
 from sage.structure.element cimport RingElement, Element, ModuleElement, FieldElement
 from sage.structure.parent  cimport Parent
 
-cimport sage.libs.pari.gen
-import sage.libs.pari.gen
+from sage.libs.pari.gen cimport gen as pari_gen
+from sage.libs.pari.pari_instance cimport PariInstance
 
+import sage.libs.pari.pari_instance
+cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
 import complex_number
 
@@ -341,7 +343,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: CDF((1,2)) # indirect doctest
             1.0 + 2.0*I
         """
-        cdef sage.libs.pari.gen.gen g
+        cdef pari_gen g
         if PY_TYPE_CHECK(x, ComplexDoubleElement):
             return x
         elif PY_TYPE_CHECK(x, tuple):
@@ -352,7 +354,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             return ComplexDoubleElement(x.real, x.imag)
         elif isinstance(x, complex_number.ComplexNumber):
             return ComplexDoubleElement(x.real(), x.imag())
-        elif isinstance(x, sage.libs.pari.gen.gen):
+        elif isinstance(x, pari_gen):
             g = x
             if typ(g.g) == t_COMPLEX:
                 return ComplexDoubleElement(gtodouble(gel(g.g, 1)), gtodouble(gel(g.g, 2)))
@@ -609,6 +611,53 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 #         x._set_multiplicative_order( n ) # not implemented for CDF
         return x
 
+    def _factor_univariate_polynomial(self, f):
+        """
+        Factor the univariate polynomial ``f``.
+
+        INPUT:
+
+        - ``f`` -- a univariate polynomial defined over the double precision
+          complex numbers
+
+        OUTPUT:
+
+        - A factorization of ``f`` over the double precision complex numbers
+          into a unit and monic irreducible factors
+
+        .. NOTE::
+
+            This is a helper method for
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.factor`.
+
+        TESTS::
+
+            sage: R.<x> = CDF[]
+            sage: CDF._factor_univariate_polynomial(x)
+            x
+            sage: CDF._factor_univariate_polynomial(2*x)
+            (2.0) * x
+            sage: CDF._factor_univariate_polynomial(x^2)
+            x^2
+            sage: f = x^2 + 1
+            sage: F = CDF._factor_univariate_polynomial(f)
+            sage: [f(t[0][0]).abs() for t in F] # abs tol 1e-9
+            [5.55111512313e-17, 6.66133814775e-16]
+            sage: f = (x^2 + 2*R(I))^3
+            sage: F = f.factor()
+            sage: [f(t[0][0]).abs() for t in F] # abs tol 1e-9
+            [1.979365054e-14, 1.97936298566e-14, 1.97936990747e-14, 3.6812407475e-14, 3.65211563729e-14, 3.65220890052e-14]
+
+        """
+        unit = f.leading_coefficient()
+        f *= ~unit
+        roots = f.roots()
+        from sage.misc.flatten import flatten
+        roots = flatten([[r]*m for r, m in roots])
+        from sage.structure.factorization import Factorization
+        x = f.parent().gen()
+        return Factorization([(x - a, 1) for a in roots], unit)
+
 
 cdef ComplexDoubleElement new_ComplexDoubleElement():
     """
@@ -688,7 +737,7 @@ cdef class ComplexDoubleElement(FieldElement):
         z._complex = x
         return z
 
-    cdef _new_from_gen(self, sage.libs.pari.gen.gen g):
+    cdef _new_from_gen(self, pari_gen g):
         """
         C-level code for creating a :class:`ComplexDoubleElement` from a
         PARI gen.
@@ -1006,9 +1055,8 @@ cdef class ComplexDoubleElement(FieldElement):
     cdef GEN _gen(self):
         cdef GEN y
         y = cgetg(3, t_COMPLEX)    # allocate space for a complex number
-        cdef sage.libs.pari.gen.PariInstance P = sage.libs.pari.gen.pari
-        set_gel(y,1,P.double_to_GEN(self._complex.dat[0]))
-        set_gel(y,2,P.double_to_GEN(self._complex.dat[1]))
+        set_gel(y, 1, pari.double_to_GEN(self._complex.dat[0]))
+        set_gel(y, 2, pari.double_to_GEN(self._complex.dat[1]))
         return y
 
     def _pari_(self):
@@ -1022,10 +1070,8 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: pari(CDF(1,2))
             1.00000000000000 + 2.00000000000000*I
         """
-        cdef sage.libs.pari.gen.PariInstance P
-        P = sage.libs.pari.gen.pari
         pari_catch_sig_on()
-        return P.new_gen(self._gen())
+        return pari.new_gen(self._gen())
 
     #######################################################################
     # Arithmetic
@@ -2222,10 +2268,8 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(1,5).algdep(2)
             x^2 - 2*x + 26
         """
-        cdef sage.libs.pari.gen.PariInstance P
-        P = sage.libs.pari.gen.pari
         pari_catch_sig_on()
-        f = P.new_gen(algdep0(self._gen(), n, 0))
+        f = pari.new_gen(algdep0(self._gen(), n, 0))
         from polynomial.polynomial_ring_constructor import PolynomialRing
         from integer_ring import ZZ
         R = PolynomialRing(ZZ ,'x')

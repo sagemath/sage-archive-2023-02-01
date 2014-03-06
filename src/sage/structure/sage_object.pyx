@@ -443,7 +443,7 @@ cdef class SageObject:
             except NotImplementedError:
                 # It would be best to make sure that this NotImplementedError was triggered by AbstractMethod
                 tester.fail("Not implemented method: %s"%name)
-            except StandardError:
+            except Exception:
                 pass
 
     def _test_pickling(self, **options):
@@ -509,7 +509,7 @@ cdef class SageObject:
         else:
             try:
                 s = self._interface_init_(I)
-            except StandardError:
+            except Exception:
                 raise NotImplementedError, "coercion of object %s to %s not implemented:\n%s\n%s"%\
                   (repr(self), I)
         X = I(s)
@@ -1236,7 +1236,7 @@ def loads(s, compress=True):
     return unpickler.load()
 
 
-cdef bint make_pickle_jar = os.environ.has_key('SAGE_PICKLE_JAR')
+cdef bint make_pickle_jar = 'SAGE_PICKLE_JAR' in os.environ
 
 def picklejar(obj, dir=None):
     """
@@ -1381,7 +1381,7 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
 
         Create a custom-made ``SourPickle`` for the last example.
 
-    If you want to find *lots* of little issues in Sage then try the following:
+    If you want to find *lots* of little issues in Sage then try the following::
 
         sage: print "x"; sage.structure.sage_object.unpickle_all(run_test_suite = True) # todo: not tested
 

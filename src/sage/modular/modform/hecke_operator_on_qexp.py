@@ -11,7 +11,11 @@ Hecke Operators on `q`-expansions
 #########################################################################
 
 from sage.modular.dirichlet import DirichletGroup, is_DirichletCharacter
-from sage.rings.all import (divisors, gcd, ZZ, Integer, is_PowerSeries, Infinity, CyclotomicField)
+from sage.rings.all import (divisors, gcd, ZZ, Integer,
+                            Infinity, CyclotomicField)
+
+from sage.rings.power_series_ring_element import is_PowerSeries
+
 from sage.matrix.all import matrix, MatrixSpace
 from element import is_ModularFormElement
 

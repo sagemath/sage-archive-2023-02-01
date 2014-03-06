@@ -96,7 +96,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             ...
             TypeError: unable to convert x into the base ring
 
-        Check that NTL contexts are correctly resored and that
+        Check that NTL contexts are correctly restored and that
         :trac:`9524` has been fixed::
 
             sage: x = polygen(GF(9, 'a'))
@@ -217,7 +217,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         r = PY_NEW(Polynomial_ZZ_pEX)
         celement_construct(&r.x, (<Polynomial_template>self)._cparent)
         r._parent = (<Polynomial_template>self)._parent
-        r._cparent = get_cparent((<Polynomial_template>self)._parent)
+        r._cparent = (<Polynomial_template>self)._cparent
         d = self._parent._modulus.ZZ_pE(list(left.polynomial()))
         ZZ_pEX_mul_ZZ_pE(r.x, self.x, d.x)
         return r
@@ -429,7 +429,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         r = PY_NEW(Polynomial_ZZ_pEX)
         celement_construct(&r.x, (<Polynomial_template>self)._cparent)
         r._parent = (<Polynomial_template>self)._parent
-        r._cparent = get_cparent((<Polynomial_template>self)._parent)
+        r._cparent = (<Polynomial_template>self)._cparent
         ZZ_pEX_LeftShift(r.x, self.x, n)
         return r
 

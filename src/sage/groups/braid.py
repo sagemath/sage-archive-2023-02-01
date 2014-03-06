@@ -269,7 +269,7 @@ class Braid(FinitelyPresentedGroupElement):
             sage: b.alexander_polynomial()
             1 - t^-1 + t^-2
 
-        Next we construct the figure 8 know::
+        Next we construct the figure 8 knot::
 
             sage: b = B([-1,2,-1,2])
             sage: b.alexander_polynomial(normalized=False)
@@ -298,7 +298,7 @@ class Braid(FinitelyPresentedGroupElement):
         qn = sum(t ** i for i in range(n))
         p //= qn
         if normalized:
-            p *= t**-p.degree()
+            p *= t ** (-p.degree())
             if p.constant_coefficient() < 0:
                 p = -p
         return p

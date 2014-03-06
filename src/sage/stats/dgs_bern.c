@@ -1,18 +1,19 @@
 #include "dgs.h"
 #include <assert.h>
 #include <stdlib.h>
+#include <math.h>
 
 /*
  * balanced Bernoulli distribution, machine-precision version
  */
 
-dgs_bern_uniform_mp_t* dgs_bern_uniform_mp_init(size_t length) {
+dgs_bern_uniform_t* dgs_bern_uniform_init(size_t length) {
   if (length == 0) {
     length = DGS_BERN_UNIFORM_DEFAULT_LENGTH;
   }
   assert(length <= DGS_BERN_UNIFORM_MAX_LENGTH);
 
-  dgs_bern_uniform_mp_t *self = (dgs_bern_uniform_mp_t *)malloc(sizeof(dgs_bern_uniform_mp_t));
+  dgs_bern_uniform_t *self = (dgs_bern_uniform_t *)malloc(sizeof(dgs_bern_uniform_t));
   if (!self) abort();
   self->length = length;
 
@@ -22,7 +23,7 @@ dgs_bern_uniform_mp_t* dgs_bern_uniform_mp_init(size_t length) {
 }
 
 
-void dgs_bern_uniform_mp_clear(dgs_bern_uniform_mp_t *self) {
+void dgs_bern_uniform_clear(dgs_bern_uniform_t *self) {
   mpz_clear(self->tmp);
   free(self);
 }
@@ -43,9 +44,8 @@ dgs_bern_mp_t* dgs_bern_mp_init(mpfr_t p) {
   return self;
 }
 
-unsigned long dgs_bern_mp_call(dgs_bern_mp_t *self, gmp_randstate_t state) {
-  int r = mpfr_urandomb(self->tmp, state);
-  assert(r == 0);
+long dgs_bern_mp_call(dgs_bern_mp_t *self, gmp_randstate_t state) {
+  mpfr_urandomb(self->tmp, state);
 
   if (mpfr_cmp(self->tmp, self->p)<0) {
     return 1;
@@ -111,7 +111,7 @@ dgs_bern_exp_mp_t* dgs_bern_exp_mp_init(mpfr_t f, size_t l) {
   return self;
 }
 
-unsigned long dgs_bern_exp_mp_call(dgs_bern_exp_mp_t *self, mpz_t x, gmp_randstate_t state) {
+long dgs_bern_exp_mp_call(dgs_bern_exp_mp_t *self, mpz_t x, gmp_randstate_t state) {
   assert(mpz_sgn(x) >= 0);
   long int start = (mpz_sizeinbase(x, 2) < self->l) ? mpz_sizeinbase(x, 2) : self->l;
 
@@ -140,4 +140,111 @@ void dgs_bern_exp_mp_clear(dgs_bern_exp_mp_t *self) {
   free(self);
 }
 
+/*
+ * Bernoulli distribution, double-precision version
+ */
 
+dgs_bern_dp_t* dgs_bern_dp_init(double p) {
+  /* we allow 0 here for low precision */
+  assert((p >= 0) && (p < 1));
+
+  dgs_bern_dp_t *self = malloc(sizeof(dgs_bern_dp_t));
+  if (!self) abort();
+
+  self->p = p;
+  mpfr_init2(self->tmp, 53);
+  return self;
+}
+
+long dgs_bern_dp_call(dgs_bern_dp_t *self, gmp_randstate_t state) {
+  mpfr_urandomb(self->tmp, state);
+  double c = mpfr_get_d(self->tmp, MPFR_RNDN);
+  if (c<self->p)
+    return 1;
+  else 
+    return 0;
+}
+
+void dgs_bern_dp_clear(dgs_bern_dp_t *self) {
+  mpfr_clear(self->tmp);
+  free(self);
+}
+
+/*
+ * Bernoulli with p = exp(-x/f) for integers x, multi-precision version
+ */
+
+dgs_bern_exp_dp_t* dgs_bern_exp_dp_init(double f, size_t l) {
+  dgs_bern_exp_dp_t *self = (dgs_bern_exp_dp_t *)malloc(sizeof(dgs_bern_exp_dp_t));
+  if (!self) abort();
+
+  /* l == 0, means we use the precision of f to decide l */
+  if (l == 0)
+    l = SIZE_MAX;
+ 
+  self->l = DGS_BERN_EXP_ALLOC_BLOCK_SIZE;
+  self->p = (double*)malloc(sizeof(double)*self->l); 
+  if (!self->p) abort();
+  self->B = (dgs_bern_dp_t**)malloc(sizeof(dgs_bern_dp_t)*self->l);
+  if (!self->B) abort();
+
+  double tmp = -1.0/f;
+  double tmp2; 
+  
+  for(size_t i=0; i<l; i++) {
+    tmp2 = exp(tmp);
+    if (tmp2 == 0.0) {
+      self->l = i+1;
+      break;
+    }
+    if (i%DGS_BERN_EXP_ALLOC_BLOCK_SIZE == 0 && i!=0) {
+      self->l += DGS_BERN_EXP_ALLOC_BLOCK_SIZE;
+      self->l = (l>self->l) ? self->l : l;
+      self->p = realloc(self->p, sizeof(double)*self->l);
+      if(!self->p) abort();
+      self->B = realloc(self->B, sizeof(dgs_bern_exp_dp_t)*self->l);
+      if(!self->B) abort();
+    }
+    
+    self->p[i] = tmp2;
+    self->B[i] = dgs_bern_dp_init(self->p[i]);
+
+    tmp = 2*tmp;
+  }
+  if (l < self->l)
+    self->l = l;
+  return self;
+}
+
+long dgs_bern_exp_dp_call(dgs_bern_exp_dp_t *self, long x, gmp_randstate_t state) {
+  if (x == 0)
+    return 1;
+  assert(x >= 0);
+  long start = self->l;
+  long alt_start = ceil(log2(x)) + 1;
+  if  (alt_start < start)
+    start = alt_start;
+  
+  for(long i=start-1; i>=0; i--) {
+    if (x & (1L<<i)) {
+      if (dgs_bern_dp_call(self->B[i], state) == 0) {
+        return 0;
+      }
+    }
+  }
+  return 1;
+}
+
+void dgs_bern_exp_dp_clear(dgs_bern_exp_dp_t *self) {
+  if(!self)
+    return;
+  
+  for(size_t i=0; i<self->l; i++) {
+    dgs_bern_dp_clear(self->B[i]);
+  }
+  if(self->p)
+    free(self->p);
+  if(self->B)
+    free(self->B);
+  free(self);
+}

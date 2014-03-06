@@ -1,5 +1,5 @@
 /**
- * \file dgs.h
+ * \file dgs_misc.h
  *
  * \author Martin Albrecht <martinralbrecht+dgs@googlemail.com>
  */
@@ -35,12 +35,19 @@
 * those of the authors and should not be interpreted as representing official
 * policies, either expressed or implied, of the FreeBSD Project.
 ******************************************************************************/
+#ifndef DGS_MISC__H
+#define DGS_MISC__H
 
-#ifndef DGS__H
-#define DGS__H
+/**
+ * \brief Macro to help with branch prediction.
+ */
 
-#include "dgs_misc.h"
-#include "dgs_bern.h"
-#include "dgs_gauss.h"
+#define __DGS_LIKELY(cond)    __builtin_expect ((cond) != 0, 1)
 
-#endif //DGS__H
+/**
+ * \brief Macro to help with branch prediction.
+ */
+
+#define __DGS_UNLIKELY(cond)  __builtin_expect ((cond) != 0, 0)
+
+#endif //DGS_MISC__H

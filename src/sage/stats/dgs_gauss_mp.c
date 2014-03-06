@@ -2,6 +2,67 @@
 #include <assert.h>
 #include <stdlib.h>
 
+dgs_disc_gauss_sigma2p_t *dgs_disc_gauss_sigma2p_init() {
+  dgs_disc_gauss_sigma2p_t *self = (dgs_disc_gauss_sigma2p_t*)calloc(sizeof(dgs_disc_gauss_sigma2p_t),1);
+  if (!self) abort();
+  self->B = dgs_bern_uniform_init(0);
+  return self;
+}
+
+void dgs_disc_gauss_sigma2p_mp_call(mpz_t rop, dgs_disc_gauss_sigma2p_t *self, gmp_randstate_t state) {
+  while(1) {
+    if (!dgs_bern_uniform_call(self->B, state)) {
+      mpz_set_ui(rop, 0);
+      return;
+    }
+    int dobreak = 0;
+    for(unsigned long i=1; ;i++) {
+      for(size_t j=0; j<2*i-2; j++) {
+        if(dgs_bern_uniform_call(self->B, state)) {
+          dobreak = 1;
+          break;
+        }
+      }
+      if (__DGS_LIKELY(dobreak))
+        break;
+      if (!dgs_bern_uniform_call(self->B, state)) {
+        mpz_set_ui(rop, i);
+        return;
+      }
+    }
+  }
+}
+
+long dgs_disc_gauss_sigma2p_dp_call(dgs_disc_gauss_sigma2p_t *self, gmp_randstate_t state) {
+  while(1) {
+    if (!dgs_bern_uniform_call(self->B, state)) {
+      return 0;
+    }
+    int dobreak = 0;
+    for(unsigned long i=1; ;i++) {
+      for(size_t j=0; j<2*i-2; j++) {
+        if(dgs_bern_uniform_call(self->B, state)) {
+          dobreak = 1;
+          break;
+        }
+      }
+      if (__DGS_LIKELY(dobreak))
+        break;
+      if (!dgs_bern_uniform_call(self->B, state)) {
+        return i;
+      }
+    }
+  }
+}
+
+
+void dgs_disc_gauss_sigma2p_clear(dgs_disc_gauss_sigma2p_t *self) {
+  assert(self != NULL);
+  if (self->B) dgs_bern_uniform_clear(self->B);
+  free(self);
+}
+
+
 static inline void _dgs_disc_gauss_mp_init_f(mpfr_t f, const mpfr_t sigma) {
   mpfr_init2(f, mpfr_get_prec(sigma));
   mpfr_set(f, sigma, MPFR_RNDN);
@@ -56,7 +117,7 @@ dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, size_t tailcut, dgs_di
                                         self->sigma, self->tailcut);
 
     self->call = dgs_disc_gauss_mp_call_uniform_table;
-    self->B = dgs_bern_uniform_mp_init(0);
+    self->B = dgs_bern_uniform_init(0);
     _dgs_disc_gauss_mp_init_f(self->f, sigma);
     
     self->rho = (mpfr_t*)malloc(sizeof(mpfr_t)*mpz_get_ui(self->upper_bound));
@@ -115,8 +176,8 @@ dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, size_t tailcut, dgs_di
     _dgs_disc_gauss_mp_init_upper_bound(self->upper_bound, self->two_upper_bound_plus_one,
                                         self->sigma, self->tailcut);
     _dgs_disc_gauss_mp_init_bexp(self, self->sigma, self->upper_bound);
-    self->B = dgs_bern_uniform_mp_init(0);
-    self->D2 = dgs_disc_gauss_sigma2p_mp_init();
+    self->B = dgs_bern_uniform_init(0);
+    self->D2 = dgs_disc_gauss_sigma2p_init();
     break;
   }
     
@@ -140,13 +201,13 @@ void dgs_disc_gauss_mp_call_sigma2_logtable(mpz_t rop, dgs_disc_gauss_mp_t *self
     mpz_mul(rop, self->k, self->x);
     mpz_add(rop, rop, self->y_z);
     if (mpz_sgn(rop) == 0) {
-      if (dgs_bern_uniform_mp_call(self->B, state))
+      if (dgs_bern_uniform_call(self->B, state))
         break;
     } else {
       break;
     }
   } while (1);
-  if(dgs_bern_uniform_mp_call(self->B, state))
+  if(dgs_bern_uniform_call(self->B, state))
     mpz_neg(rop, rop);
 }
 
@@ -168,7 +229,7 @@ void dgs_disc_gauss_mp_call_uniform_table(mpz_t rop, dgs_disc_gauss_mp_t *self, 
   } while (mpfr_cmp(self->y, self->rho[x]) >= 0);
 
   mpz_set_ui(rop, x);
-  if(dgs_bern_uniform_mp_call(self->B, state))
+  if(dgs_bern_uniform_call(self->B, state))
     mpz_neg(rop, rop);
 }
 
@@ -188,7 +249,7 @@ void dgs_disc_gauss_mp_call_uniform_online(mpz_t rop, dgs_disc_gauss_mp_t *self,
 
 void dgs_disc_gauss_mp_clear(dgs_disc_gauss_mp_t *self) {
   mpfr_clear(self->sigma);
-  if (self->B) dgs_bern_uniform_mp_clear(self->B);
+  if (self->B) dgs_bern_uniform_clear(self->B);
   if (self->Bexp) dgs_bern_exp_mp_clear(self->Bexp);
   mpz_clear(self->x);
   mpfr_clear(self->y);
@@ -204,41 +265,4 @@ void dgs_disc_gauss_mp_clear(dgs_disc_gauss_mp_t *self) {
 }
 
 
-dgs_disc_gauss_sigma2p_mp_t *dgs_disc_gauss_sigma2p_mp_init() {
-  dgs_disc_gauss_sigma2p_mp_t *self = (dgs_disc_gauss_sigma2p_mp_t*)calloc(sizeof(dgs_disc_gauss_sigma2p_mp_t),1);
-  if (!self) abort();
-  self->B = dgs_bern_uniform_mp_init(0);
-  return self;
-}
-
-
-void dgs_disc_gauss_sigma2p_mp_call(mpz_t rop, dgs_disc_gauss_sigma2p_mp_t *self, gmp_randstate_t state) {
-  while(1) {
-    if (!dgs_bern_uniform_mp_call(self->B, state)) {
-      mpz_set_ui(rop, 0);
-      return;
-    }
-    int dobreak = 0;
-    for(unsigned long i=1; ;i++) {
-      for(size_t j=0; j<2*i-2; j++) {
-        if(dgs_bern_uniform_mp_call(self->B, state)) {
-          dobreak = 1;
-          break;
-        }
-      }
-      if (__DGS_LIKELY(dobreak))
-        break;
-      if (!dgs_bern_uniform_mp_call(self->B, state)) {
-        mpz_set_ui(rop, i);
-        return;
-      }
-    }
-  }
-}
-
-void dgs_disc_gauss_sigma2p_mp_clear(dgs_disc_gauss_sigma2p_mp_t *self) {
-  assert(self != NULL);
-  if (self->B) dgs_bern_uniform_mp_clear(self->B);
-  free(self);
-}
 

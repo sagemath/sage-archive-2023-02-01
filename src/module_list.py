@@ -1958,7 +1958,7 @@ ext_modules = [
           ),
 
     Extension('sage.stats.discrete_gaussians',
-              sources = ['sage/stats/discrete_gaussians.pyx', 'sage/stats/dgs_gauss.c', 'sage/stats/dgs_bern.c'],
+              sources = ['sage/stats/discrete_gaussians.pyx', 'sage/stats/dgs_gauss_mp.c', 'sage/stats/dgs_bern.c'],
               libraries = ['gmp', 'mpfr'],
               extra_compile_args=["-std=c99"]
           ),

@@ -4,7 +4,7 @@ from sage.misc.randstate cimport randstate, current_randstate
 
 from dgs cimport dgs_bern_exp_mp_init, dgs_bern_exp_mp_call, dgs_bern_exp_mp_clear
 from dgs cimport dgs_bern_mp_init, dgs_bern_mp_call, dgs_bern_mp_clear
-from dgs cimport DGS_BERN_UNIFORM_MAX_LENGTH, dgs_bern_uniform_mp_init, dgs_bern_uniform_mp_call, dgs_bern_uniform_mp_clear
+from dgs cimport DGS_BERN_UNIFORM_MAX_LENGTH, dgs_bern_uniform_init, dgs_bern_uniform_call, dgs_bern_uniform_clear
 
 cdef class BernoulliBase(SageObject):
     def __init__(self):
@@ -25,15 +25,15 @@ cdef class BernoulliUniformSampler(BernoulliBase):
             raise ValueError("sample_length must be larger than zero and smaller than or equal to %d"%DGS_BERN_UNIFORM_MAX_LENGTH)
 
         BernoulliBase.__init__(self)
-        self._gen = dgs_bern_uniform_mp_init(sample_length)
+        self._gen = dgs_bern_uniform_init(sample_length)
 
     def __clear__(self):
         if self._gen:
-            dgs_bern_uniform_mp_clear(self._gen)
+            dgs_bern_uniform_clear(self._gen)
 
     cpdef int raw_call(self):
         cdef randstate rstate = current_randstate()
-        return dgs_bern_uniform_mp_call(self._gen, rstate.gmp_state)
+        return dgs_bern_uniform_call(self._gen, rstate.gmp_state)
 
 cdef class BernoulliSampler(BernoulliBase):
     def __init__(self, c):

@@ -3152,7 +3152,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             sage: E = EllipticCurve('37a'); P = E.heegner_point(-40); P
             Heegner point of discriminant -40 on elliptic curve of conductor 37
             sage: P.numerical_approx()
-            (-6.68...e-16 + 1.41421356237310*I : 1.00000000000000 - 1.41421356237309*I : 1.00000000000000)
+            (-6.6...e-16 + 1.41421356237310*I : 1.00000000000000 - 1.41421356237309*I : 1.00000000000000)
 
         A rank 2 curve, where all Heegner points of conductor 1 are 0::
 

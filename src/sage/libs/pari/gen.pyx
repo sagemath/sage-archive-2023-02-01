@@ -4833,7 +4833,7 @@ cdef class gen(sage.structure.element.RingElement):
             -2.18503986326152
             sage: C.<i> = ComplexField()
             sage: pari(i).tan()
-            0.E-19 + 0.761594155955765*I
+            0.761594155955765*I
         """
         pari_catch_sig_on()
         return P.new_gen(gtan(x.g, prec_bits_to_words(precision)))
@@ -4853,7 +4853,7 @@ cdef class gen(sage.structure.element.RingElement):
             0.761594155955765
             sage: C.<i> = ComplexField()
             sage: z = pari(i); z
-            0.E-19 + 1.00000000000000*I
+            1.00000000000000*I
             sage: result = z.tanh()
             sage: result.real() <= 1e-18
             True
@@ -4938,7 +4938,7 @@ cdef class gen(sage.structure.element.RingElement):
             1.18920711500272 + 0.E-19*I                 # 32-bit
             1.18920711500272 + 2.71050543121376 E-20*I  # 64-bit
             sage: pari(i).weber(1)
-            1.09050773266526 + 0.E-19*I
+            1.09050773266526
             sage: pari(i).weber(2)
             1.09050773266526
         """

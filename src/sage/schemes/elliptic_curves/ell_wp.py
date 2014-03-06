@@ -34,9 +34,8 @@ AUTHORS:
 
 - Chris Wuthrich 11/09: major restructuring
 
-- Jeroen Demeyer (2014-02-24): code clean up, fix characteristic bound
-  for quadratic algorithm, remove PARI algorithm in positive
-  characteristic (:trac:`15855`)
+- Jeroen Demeyer (2014-03-06): code clean up, fix characteristic bound
+  for quadratic algorithm (see :trac:`15855`)
 
 """
 

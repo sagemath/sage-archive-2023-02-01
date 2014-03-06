@@ -3094,12 +3094,13 @@ class FiniteStateMachine(SageObject):
 
     def add_transitions_from_function(self, function, labels_as_input=True):
         """
-        Adds one or more transitions if ``function(state, state)`` says that there are some.
+        Adds one or more transitions if ``function(state, state)``
+        says that there are some.
 
         INPUT:
 
         - ``function`` -- a transition function. Given two states
-          ``from_state`` and ``to_state`` (or their labels, if
+          ``from_state`` and ``to_state`` (or their labels if
           ``label_as_input`` is true), this function shall return a
           tuple ``(word_in, word_out)`` to add a transition from
           ``from_state`` to ``to_state`` with input and output labels
@@ -3130,10 +3131,10 @@ class FiniteStateMachine(SageObject):
         Multiple transitions are also possible::
 
             sage: F = FiniteStateMachine()
-            sage: F.add_states([0,1])
+            sage: F.add_states([0, 1])
             sage: def f(state1, state2):
             ....:     if state1 != state2:
-            ....:          return [ (0,1), (1,0) ]
+            ....:          return [(0, 1), (1, 0)]
             ....:     else:
             ....:          return None
             sage: F.add_transitions_from_function(f)

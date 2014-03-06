@@ -1712,9 +1712,7 @@ class FiniteStateMachine(SageObject):
         TESTS::
 
             sage: FiniteStateMachine() * FiniteStateMachine([('A', 'B')])
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            Finite state machine with 0 states
         """
         if is_FiniteStateMachine(other):
             return self.intersection(other)
@@ -3304,17 +3302,51 @@ class FiniteStateMachine(SageObject):
         raise NotImplementedError
 
 
-    def intersection(self, other):
+    def intersection(self, other, only_accessible_components=True):
         """
-        TESTS::
+        Returns a new finite state machine, which accepcts an input if it 
+        is accepted by both given finite state machines producing the same output.
 
-            sage: F = FiniteStateMachine([('A', 'A')])
-            sage: FiniteStateMachine().intersection(F)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+        INPUT:
+
+        - ``other`` -- a finite state machine.
+
+        - ``only_accessible_components``
+
+        OUTPUT:
+
+        A new finite state machine, which computes the intersection of the 
+        languages of self and other:
+
+        The set of states of the new finite state machine is the cartesian
+        product of the set of states of both given finites state machines. There is
+        a transition `((A, B), (C, D), a, b)` in the new finite state machine if
+        there are transitions `(A, C, a, b)` and `(B, C, a, b)` in the old
+        finite state machines.
+
+        EXAMPLES::
+
+            sage: aut1 = Automaton([('1', '2', 1), ('2', '2', 1), ('2', '2', 0)],
+            ....:                initial_states=['1'], final_states=['2'],
+            ....:                determine_alphabets=True)
+            sage: aut2 = Automaton([('A', 'A', 1), ('A', 'B', 0),
+            ....:                 ('B', 'B', 0), ('B', 'A', 1)],
+            ....:                initial_states=['A'], final_states=['B'],
+            ....:                determine_alphabets=True)
+            sage: res = aut1.intersection(aut2)
+            sage: (aut1([1, 1])[0], aut2([1, 1])[0], res([1, 1])[0])
+            (True, False, False)
+            sage: (aut1([1, 0])[0], aut2([1, 0])[0], res([1, 0])[0])
+            (True, True, True)
         """
-        raise NotImplementedError
+        def function(transition1, transition2):
+            if transition1.word_in == transition2.word_in \
+                    and transition1.word_out == transition2.word_out:
+                return (transition1.word_in, transition1.word_out)
+            else:
+                raise LookupError
+
+        return self.product_FiniteStateMachine(other, function, only_accessible_components=only_accessible_components)
 
 
     def product_FiniteStateMachine(self, other, function,
@@ -3416,63 +3448,11 @@ class FiniteStateMachine(SageObject):
                 state.is_final = True
 
         if only_accessible_components:
-            if new_input_alphabet is None:
+            if result.input_alphabet is None:
                 result.determine_alphabets()
             return result.accessible_components()
         else:
             return result
-
-
-    def cartesian_product(self, other, only_accessible_components=True):
-        """
-        Returns a new finite state machine, which is the cartesian
-        product of self and other.
-
-        INPUT:
-
-        - ``other`` -- a finite state machine.
-
-        - ``only_accessible_components``
-
-        OUTPUT:
-
-        A new finite state machine, which is the cartesian product of
-        self and other.
-
-        The set of states of the new automaton is the cartesian
-        product of the set of states of both given automata. There is
-        a transition `((A, B), (C, D), a)` in the new automaton if
-        there are transitions `(A, C, a)` and `(B, C, a)` in the old
-        automata.
-
-        EXAMPLES::
-
-            sage: aut1 = Automaton([('1', '2', 1), ('2', '2', 1), ('2', '2', 0)],
-            ....:                initial_states=['1'], final_states=['2'],
-            ....:                determine_alphabets=True)
-            sage: aut2 = Automaton([('A', 'A', 1), ('A', 'B', 1),
-            ....:                 ('B', 'B', 0), ('B', 'A', 0)],
-            ....:                initial_states=['A'], final_states=['B'],
-            ....:                determine_alphabets=True)
-            sage: res = aut1.cartesian_product(aut2)
-            sage: res.transitions()
-            [Transition from ('1', 'A') to ('2', 'A'): 1|-,
-             Transition from ('1', 'A') to ('2', 'B'): 1|-,
-             Transition from ('2', 'A') to ('2', 'A'): 1|-,
-             Transition from ('2', 'A') to ('2', 'B'): 1|-,
-             Transition from ('2', 'B') to ('2', 'B'): 0|-,
-             Transition from ('2', 'B') to ('2', 'A'): 0|-]
-        """
-        def function(transition1, transition2):
-            if transition1.word_in == transition2.word_in \
-                    and transition1.word_out == transition2.word_out:
-                return (transition1.word_in, transition1.word_out)
-            else:
-                raise LookupError
-
-        return self.product_FiniteStateMachine(
-            other, function,
-            only_accessible_components = only_accessible_components)
 
 
     def composition(self, other, algorithm=None,
@@ -4431,6 +4411,44 @@ class Automaton(FiniteStateMachine):
         """
         return format_function(transition.word_in)
 
+    def cartesian_product(self, other, only_accessible_components=True):
+        """
+        Returns the cartesian product of self and other. The new automaton accepts 
+        the intersection of the languages of self and other. 
+        See :meth:``.intersection()`` for more information.
+
+        If ``other`` is a transducer, ``other.cartesian_product(self)`` may be more useful.
+
+        INPUT:
+        
+        - ``other`` - a finite state machine
+        - ``only_accessible_components``
+
+        OUTPUT:
+
+        An automaton.
+
+        EXAMPLES::
+
+            sage: aut1 = Automaton([('1', '2', 1), ('2', '2', 1), ('2', '2', 0)],
+            ....:                initial_states=['1'], final_states=['2'],
+            ....:                determine_alphabets=True)
+            sage: aut2 = Automaton([('A', 'A', 1), ('A', 'B', 1),
+            ....:                 ('B', 'B', 0), ('B', 'A', 0)],
+            ....:                initial_states=['A'], final_states=['B'],
+            ....:                determine_alphabets=True)
+            sage: res = aut1.cartesian_product(aut2)
+            sage: res.transitions()
+            [Transition from ('1', 'A') to ('2', 'A'): 1|-,
+             Transition from ('1', 'A') to ('2', 'B'): 1|-,
+             Transition from ('2', 'A') to ('2', 'A'): 1|-,
+             Transition from ('2', 'A') to ('2', 'B'): 1|-,
+             Transition from ('2', 'B') to ('2', 'B'): 0|-,
+             Transition from ('2', 'B') to ('2', 'A'): 0|-]
+        """
+        return self.intersection(other, only_accessible_components)
+        
+
     def determinisation(self):
         """
         Returns a deterministic automaton which accepts the same input
@@ -4730,7 +4748,7 @@ class Transducer(FiniteStateMachine):
         return "Transducer with %s states" % len(self._states_)
 
     def _latex_transition_label_(self, transition, format_function=latex):
-        r"""
+        """
         Returns the proper transition label.
 
         INPUT:
@@ -4757,6 +4775,44 @@ class Transducer(FiniteStateMachine):
         return (format_function(transition.word_in) + "\\mid"
                 + format_function(transition.word_out))
 
+
+    def cartesian_product(self, other, only_accessible_components=True):
+        """
+        Returns a new transducer whose output labels are pairs of the output labels of self and other.
+
+        The set of states of the new transducer is the cartesian product of the set of states of self 
+        and other.
+
+        Let `(A, B, a, b)` be a transition of self and `(C, D, c, d)` be a transition of other. Then 
+        there is a transition `((A, C), (B, D), a, (b, d))` in the new transducer if `a = c`.
+
+        INPUT:
+        
+        - ``other`` - a finite state machine
+        - ``only_accessible_components``
+
+        OUTPUT:
+
+        A transducer.
+
+        EXAMPLES::
+
+            sage: transducer1 = Transducer([('A', 'A', 0, 0), ('A', 'A', 1, 1)], 
+            ....:   initial_states = ['A'], final_states = ['A'], determine_alphabets = True)
+            sage: transducer2 = Transducer([(0, 1, 'a', 'b'), (0, 0, 'b', 'b'), (1, 1, 'a', 'a')],
+            ....:   initial_states = [0], final_states = [1], determine_alphabets = True)
+            sage: result = transducer1.cartesian_product(transducer2)
+        """
+        def function(transition1, transition2):
+            if transition1.word_in == transition2.word_in:
+                return (transition1.word_in, (tuple(transition1.word_out), tuple(transition2.word_out)))
+            else:
+                raise LookupError
+
+        return self.product_FiniteStateMachine(
+            other, function,
+            only_accessible_components = only_accessible_components)
+        
 
     def simplification(self):
         """

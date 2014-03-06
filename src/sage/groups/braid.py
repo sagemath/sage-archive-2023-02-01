@@ -233,42 +233,61 @@ class Braid(FinitelyPresentedGroupElement):
                 M = M * A
         return M
 
-    def alexander_polynomial(self, var='t'):
-        """
-        Return the (unnormalized) Alexander polynomial of the closure of the braid.
+    def alexander_polynomial(self, var='t', normalized=True):
+        r"""
+        Return the Alexander polynomial of the closure of the braid.
 
         INPUT:
 
-        - ``var`` -- string (default: ``'t'``). The name of the
-          variable in the entries of the matrix.
+        - ``var`` -- string (default: ``'t'``); the name of the
+          variable in the entries of the matrix
+        - ``normalized`` -- boolean (default: ``True``); if ``True`` then
+          return the normalized Alexander polynomial
 
         OUTPUT:
 
-        The (unnormalized) Alexander polynomial of the braid closure
-        of the braid.
+        The Alexander polynomial of the braid closure of the braid.
 
         This is computed using the reduced Burau representation. The
         unnormalized Alexander polynomial is a Laurent polynomial,
         which is only well-defined up to multiplication by plus or
-        minus times a power of t.
+        minus times a power of `t`.
 
-        EXAMPLES::
+        We normalize the polynomial by dividing by the largest power
+        of `t` and then if the resulting constant coefficient
+        is negative, we multiply by `-1`.
+
+        EXAMPLES:
+
+        We first construct the trefoil::
 
             sage: B = BraidGroup(3)
             sage: b = B([1,2,1,2])
-            sage: b.alexander_polynomial()  # The trefoil.
+            sage: b.alexander_polynomial(normalized=False)
             t^2 - t + 1
+            sage: b.alexander_polynomial()
+            1 - t^-1 + t^-2
+
+        Next we construct the figure 8 know::
+
             sage: b = B([-1,2,-1,2])
-            sage: b.alexander_polynomial()  # The figure 8 knot.
+            sage: b.alexander_polynomial(normalized=False)
             -1 + 3*t^-1 - t^-2
+            sage: b.alexander_polynomial()
+            1 - 3*t^-1 + t^-2
+
+        Our last example is the Kinoshita-Terasaka knot::
+
             sage: B = BraidGroup(4)
             sage: b = B([1,1,1,3,3,2,-3,-1,-1,2,-1,-3,-2])
-            sage: b.alexander_polynomial()  # The Kinoshita-Terasaka knot.
+            sage: b.alexander_polynomial(normalized=False)
             -t^-1
+            sage: b.alexander_polynomial()
+            1
 
         REFERENCES:
 
-        :wikipedia:`Alexander_polynomial`
+        - :wikipedia:`Alexander_polynomial`
         """
         n = self.strands()
         p = (self.burau_matrix(reduced=True) - identity_matrix(n - 1)).det()
@@ -276,7 +295,12 @@ class Braid(FinitelyPresentedGroupElement):
         if p == 0:
             return K.zero()
         qn = sum(t ** i for i in range(n))
-        return p // qn
+        p //= qn
+        if normalized:
+            p *= t**-p.degree()
+            if p.constant_coefficient() < 0:
+                p = -p
+        return p
 
     def permutation(self):
         """

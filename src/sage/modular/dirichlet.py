@@ -47,10 +47,14 @@ AUTHORS:
 
 -  Craig Citro (2008-02-16): speed up __call__ method for
    Dirichlet characters, miscellaneous fixes
+
+-  Julian Rueth (2014-03-06): use UniqueFactory to cache DirichletGroups
+
 """
 
 ########################################################################
 #       Copyright (C) 2004,2005,2006 William Stein <wstein@gmail.com>
+#                     2014 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -78,6 +82,7 @@ from sage.misc.cachefunc                    import cached_method
 from sage.rings.arith                       import binomial, bernoulli
 from sage.structure.element                 import MultiplicativeGroupElement
 from sage.structure.sequence                import Sequence
+from sage.structure.factory                 import UniqueFactory
 
 def trivial_character(N, base_ring=rings.RationalField()):
     r"""
@@ -1581,9 +1586,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             return v
 
 
-_cache = {}
-def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None,
-                   names=None, integral=False):
+class DirichletGroupFactory(UniqueFactory):
     r"""
     The group of Dirichlet characters modulo `N` with values in
     the subgroup `\langle \zeta_n\rangle` of the
@@ -1734,41 +1737,61 @@ def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None,
         sage: parent(DirichletGroup(60, integral=True).gens()[2].values_on_gens()[2])
         Maximal Order in Cyclotomic Field of order 4 and degree 2
     """
-    modulus = rings.Integer(modulus)
+    def create_key(self, modulus, base_ring=None, zeta=None, zeta_order=None, names=None, integral=False):
+        """
+        Create a key that uniquely determines a Dirichlet group.
 
-    if base_ring is None:
-        if not (zeta is None and zeta_order is None):
-            raise ValueError, "zeta and zeta_order must be None if base_ring not specified."
-        e = rings.IntegerModRing(modulus).unit_group_exponent()
-        base_ring = rings.CyclotomicField(e)
-        if integral:
-            base_ring = base_ring.ring_of_integers()
+        TESTS::
 
-    if not is_Ring(base_ring):
-        raise TypeError, "base_ring (=%s) must be a ring"%base_ring
+            sage: DirichletGroup.create_key(60)
+            (Cyclotomic Field of order 4 and degree 2, 60, zeta4, 4)
 
-    if zeta is None:
-        e = rings.IntegerModRing(modulus).unit_group_exponent()
-        try:
-            zeta = base_ring.zeta(e)
+        """
+        modulus = rings.Integer(modulus)
+
+        if base_ring is None:
+            if not (zeta is None and zeta_order is None):
+                raise ValueError, "zeta and zeta_order must be None if base_ring not specified."
+            e = rings.IntegerModRing(modulus).unit_group_exponent()
+            base_ring = rings.CyclotomicField(e)
+            if integral:
+                base_ring = base_ring.ring_of_integers()
+
+        if not is_Ring(base_ring):
+            raise TypeError, "base_ring (=%s) must be a ring"%base_ring
+
+        if zeta is None:
+            e = rings.IntegerModRing(modulus).unit_group_exponent()
+            try:
+                zeta = base_ring.zeta(e)
+                zeta_order = zeta.multiplicative_order()
+            except (TypeError, ValueError, ArithmeticError):
+                zeta = base_ring.zeta(base_ring.zeta_order())
+                n = zeta.multiplicative_order()
+                zeta_order = arith.GCD(e,n)
+                zeta = zeta**(n//zeta_order)
+
+        elif zeta_order is None:
             zeta_order = zeta.multiplicative_order()
-        except (TypeError, ValueError, ArithmeticError):
-            zeta = base_ring.zeta(base_ring.zeta_order())
-            n = zeta.multiplicative_order()
-            zeta_order = arith.GCD(e,n)
-            zeta = zeta**(n//zeta_order)
 
-    elif zeta_order is None:
-        zeta_order = zeta.multiplicative_order()
+        return (base_ring, modulus, zeta, zeta_order)
 
-    key = (base_ring, modulus, zeta, zeta_order)
-    if key in _cache:
-        x = _cache[key]()
-        if not x is None: return x
+    def create_object(self, version, key, **extra_args):
+        """
+        Create the object from the key (extra arguments are ignored). This is
+        only called if the object was not found in the cache.
 
-    R = DirichletGroup_class(modulus, zeta, zeta_order)
-    _cache[key] = weakref.ref(R)
-    return R
+        TESTS::
+
+            sage: K = CyclotomicField(4)
+            sage: DirichletGroup.create_object(None, (K, 60, K.gen(), 4))
+            Group of Dirichlet characters of modulus 60 over Cyclotomic Field of order 4 and degree 2
+
+        """
+        base_ring, modulus, zeta, zeta_order = key
+        return DirichletGroup_class(modulus, zeta, zeta_order)
+
+DirichletGroup = DirichletGroupFactory("DirichletGroup")
 
 def is_DirichletGroup(x):
     """

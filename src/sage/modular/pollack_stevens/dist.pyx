@@ -12,7 +12,6 @@
 from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.arith import binomial, bernoulli
@@ -72,6 +71,7 @@ def get_dist_classes(p, prec_cap, base, symk):
         sage: from sage.modular.pollack_stevens.dist import get_dist_classes
         sage: pass
     """
+    #return Dist_vector, WeightKAction_vector # The long versions have bugs as of now.
     if symk or p is None or base.is_field() or (isinstance(base, pAdicGeneric) and base.degree() > 1):
         return Dist_vector, WeightKAction_vector
     if 7*p**(prec_cap) < ZZ(2)**(4*sizeof(long)-1):
@@ -429,7 +429,7 @@ cdef class Dist(ModuleElement):
             sage: D = Distributions(8, 7, 15)
             sage: v = D([7^(5-i) for i in range(1,5)])
             sage: v
-            (O(7^4), O(7^3), O(7^2), O(7))
+            7^4 * ()
             sage: v.diagonal_valuation(7)
             4
         """
@@ -464,9 +464,9 @@ cdef class Dist(ModuleElement):
             sage: D = Distributions(8, 7, 15)
             sage: v = D([7^(5-i) for i in range(1,5)])
             sage: v
-            (O(7^4), O(7^3), O(7^2), O(7))
+            7^4 * ()
             sage: v.valuation(7)
-            1
+            4
         """
         if p is None:
             p = self.parent()._p
@@ -496,7 +496,7 @@ cdef class Dist(ModuleElement):
 
             sage: D = Distributions(4, 13)
             sage: d = D([0,2,4,6,8,10,12])
-            sage: d.specialize()          
+            sage: d.specialize()
             (O(13^7), 2 + O(13^6), 4 + O(13^5), 6 + O(13^4), 8 + O(13^3))
 
         """
@@ -638,6 +638,9 @@ cdef class Dist_vector(Dist):
             (0, 0, 0, 0, 0)
             
         """
+        # if not hasattr(parent,'Element'):
+        #     parent, moments = moments, parent
+
         Dist.__init__(self, parent)
         if check:
             # case 1: input is a distribution already
@@ -770,20 +773,11 @@ cdef class Dist_vector(Dist):
         rmoments = right._moments
         # we truncate if the moments are too long; extend by zero if too short
         if smoments.parent() is not V:
-            #vv = smoments.list(copy=False)
-            #print len(vv), len(vv[:rprec]), rprec
-            #xx = [R(0)] * (rprec - len(smoments)) if rprec > len(smoments) else []
-            #print len(xx)
-            #ww = vv[:rprec] + xx
-            #print len(ww)
-            #smoments = V(ww)
-            smoments = V(smoments.list(copy=False)[:rprec] + ([R(0)] * (rprec - len(smoments)) if rprec > len(smoments) else []))
+            vec = smoments.list(copy=False)[:rprec] + ([R(0)] * (rprec - len(smoments)) if rprec > len(smoments) else [])
+            smoments = V(vec)
         if rmoments.parent() is not V:
-            #vv = rmoments.list(copy=False)
-            #xx = [R(0)] * (rprec - len(rmoments)) if rprec > len(rmoments) else []
-            #ww = vv[:rprec] + xx
-            #rmoments = V(ww)
-            rmoments = V(rmoments.list(copy=False)[:rprec] + ([R(0)] * (rprec - len(rmoments)) if rprec > len(rmoments) else []))
+            vec = rmoments.list(copy=False)[:rprec] + ([R(0)] * (rprec - len(rmoments)) if rprec > len(rmoments) else [])
+            rmoments = V(vec)
         # We multiply by the relative power of p
         if self.ordp > right.ordp:
             smoments *= self.parent().prime()**(self.ordp - right.ordp)
@@ -898,7 +892,6 @@ cdef class Dist_vector(Dist):
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
         """
-        return self # DEBUG
         if not self.parent().is_symk(): # non-classical
             V = self._moments.parent()
             R = V.base_ring()
@@ -1039,6 +1032,9 @@ cdef class Dist_long(Dist):
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
         """
+        # if not hasattr(parent,'Element'):
+        #     parent, moments = moments, parent
+
         Dist.__init__(self, parent)
         p = parent._p
         cdef int i
@@ -1102,7 +1098,6 @@ cdef class Dist_long(Dist):
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
         """
-        self.normalize()
         valstr = ""
         if self.ordp == 1:
             valstr = "%s * "%(self.prime_pow.prime)
@@ -1128,10 +1123,10 @@ cdef class Dist_long(Dist):
         cdef int i
         for i in range(self.relprec):
             if self._moments[i] > overflow:
-                self._moments[i] = self._moments[i] % self.prime_pow.small_powers[self.relprec-i]
+                self._moments[i] = self._moments[i] % self.prime_pow(self.relprec-i)
             elif self._moments[i] < underflow:
-                self._moments[i] = self._moments[i] % self.prime_pow.small_powers[self.relprec-i]
-                self._moments[i] += self.prime_pow.small_powers[self.relprec-i]
+                self._moments[i] = self._moments[i] % self.prime_pow(self.relprec-i)
+                self._moments[i] += self.prime_pow(self.relprec-i)
 
     cpdef normalize(self):
         r"""
@@ -1148,10 +1143,10 @@ cdef class Dist_long(Dist):
         cdef int i
         for i in range(self.relprec):
             if self._moments[i] < 0:
-                self._moments[i] = self._moments[i] % self.prime_pow.small_powers[self.relprec-i]
-                self._moments[i] += self.prime_pow.small_powers[self.relprec-i]
-            elif self._moments[i] >= self.prime_pow.small_powers[self.relprec-i]:
-                self._moments[i] = self._moments[i] % self.prime_pow.small_powers[self.relprec-i]
+                self._moments[i] = self._moments[i] % self.prime_pow(self.relprec-i)
+                self._moments[i] += self.prime_pow(self.relprec-i)
+            elif self._moments[i] >= self.prime_pow(self.relprec-i):
+                self._moments[i] = self._moments[i] % self.prime_pow(self.relprec-i)
         return self
 
     cdef long _relprec(self):
@@ -1212,7 +1207,7 @@ cdef class Dist_long(Dist):
             diff = right.ordp - self.ordp
             n = min(right.relprec, ans.relprec - diff)
             for i in range(n):
-                ans._moments[i] = self.prime_pow.small_powers[diff] * (right._moments[i] % self.prime_pow.small_powers[ans.relprec - diff - i])
+                ans._moments[i] = self.prime_pow(diff) * (right._moments[i] % self.prime_pow(ans.relprec - diff - i))
                 ans._moments[i] = self._moments[i] - ans._moments[i] if negate else self._moments[i] + ans._moments[i]
             if n < ans.relprec:
                 for i in range(n, ans.relprec):
@@ -1221,7 +1216,7 @@ cdef class Dist_long(Dist):
             diff = self.ordp - right.ordp
             n = min(self.relprec, ans.relprec - diff)
             for i in range(n):
-                ans._moments[i] = self.prime_pow.small_powers[diff] * (self._moments[i] % self.prime_pow.small_powers[ans.relprec - diff - i])
+                ans._moments[i] = self.prime_pow(diff) * (self._moments[i] % self.prime_pow(ans.relprec - diff - i))
                 ans._moments[i] += -right._moments[i] if negate else right._moments[i]
             if n < ans.relprec:
                 for i in range(n, ans.relprec):
@@ -1274,9 +1269,9 @@ cdef class Dist_long(Dist):
             unit = PY_NEW(Integer)
             ordp = mpz_remove(unit.value, iright.value, p.value)
             if mpz_fits_slong_p(unit.value):
-                scalar = mpz_get_si(iright.value) % self.prime_pow.small_powers[self.relprec]
+                scalar = mpz_get_si(iright.value) % self.prime_pow(self.relprec)
             else:
-                scalar = mpz_fdiv_ui(iright.value, self.prime_pow.small_powers[self.relprec])
+                scalar = mpz_fdiv_ui(iright.value, self.prime_pow(self.relprec))
         elif PY_TYPE_CHECK(_right, Rational):
             qright = <Rational>_right
             if mpq_sgn(qright.value) == 0:
@@ -1290,11 +1285,11 @@ cdef class Dist_long(Dist):
             else:
                 mpz_set(mpq_denref(qunit.value), mpq_denref(qright.value))
             ppow = PY_NEW(Integer)
-            mpz_set_ui(ppow.value, self.prime_pow.small_powers[self.relprec])
+            mpz_set_ui(ppow.value, self.prime_pow(self.relprec))
             # We reuse the pointers inside qunit, since we're going to discard it.
             mpz_invert(mpq_denref(qunit.value), mpq_denref(qunit.value), ppow.value)
             mpz_mul(mpq_numref(qunit.value), mpq_numref(qunit.value), mpq_denref(qunit.value))
-            scalar = mpz_fdiv_ui(mpq_numref(qunit.value), self.prime_pow.small_powers[self.relprec])
+            scalar = mpz_fdiv_ui(mpq_numref(qunit.value), self.prime_pow(self.relprec))
             # qunit should not be used now (it's unnormalized)
         elif PY_TYPE_CHECK(_right, pAdicCappedAbsoluteElement):
             pcaright = <pAdicCappedAbsoluteElement>_right
@@ -1304,7 +1299,7 @@ cdef class Dist_long(Dist):
                 ans.relprec = pcaright.absprec - ordp
                 scalar = mpz_get_si(unit.value)
             else:
-                scalar = mpz_fdiv_ui(unit.value, self.prime_pow.small_powers[self.relprec])
+                scalar = mpz_fdiv_ui(unit.value, self.prime_pow(self.relprec))
         elif PY_TYPE_CHECK(_right, pAdicCappedRelativeElement):
             pcrright = <pAdicCappedRelativeElement>_right
             ordp = pcrright.ordp
@@ -1312,7 +1307,7 @@ cdef class Dist_long(Dist):
                 ans.relprec = pcrright.relprec
                 scalar = mpz_get_si(pcrright.unit)
             else:
-                scalar = mpz_fdiv_ui(pcrright.unit, self.prime_pow.small_powers[self.relprec])
+                scalar = mpz_fdiv_ui(pcrright.unit, self.prime_pow(self.relprec))
         elif PY_TYPE_CHECK(_right, pAdicFixedModElement):
             pfmright = <pAdicFixedModElement>_right
             scalar = mpz_get_si(pfmright.value)
@@ -1526,28 +1521,6 @@ cdef class WeightKAction(Action):
             mats[M] = A
             return A
 
-#    cpdef _check_mat(self, a, b, c, d):
-#        r"""
-#        
-#
-#        INPUT:
-#
-#        - ``a``, ``b``, ``c``, ``d`` -- integers, playing the role of
-#          the corresponding entries of the `2 \times 2` matrix that is
-#          acting.
-#
-#        EXAMPLES::
-#
-#            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-#        """
-#        if a*d == b*c:
-#            raise ValueError("zero determinant")
-#        if not self._symk:
-#            if self._p.divides(a):
-#                raise ValueError("p divides a")
-#            if not self._Np.divides(c):
-#                raise ValueError("Np does not divide c")
-
     cpdef _compute_acting_matrix(self, g, M):
         r"""
         
@@ -1631,9 +1604,10 @@ cdef class WeightKAction_vector(WeightKAction):
             B *= self._character(a)
         if self._dettwist is not None:
             B *= (a*d - b*c)**(self._dettwist)
-        try:
-            B = B.apply_map(operator.methodcaller('lift'))
-        except AttributeError: pass
+        if not base_ring.is_exact():
+            try:
+                B = B.apply_map(operator.methodcaller('lift'))
+            except AttributeError: pass
         return B
 
     cpdef _call_(self, _v, g):
@@ -1669,12 +1643,16 @@ cdef class WeightKAction_vector(WeightKAction):
         #    g.set_immutable()
         #except AttributeError:
         #    pass
-        try:
-            v_moments = v._moments.apply_map(operator.methodcaller('lift'))
-        except AttributeError:
+        if not v._moments.parent().base_ring().is_exact():
+            try:
+                v_moments = v._moments.apply_map(operator.methodcaller('lift'))
+            except AttributeError:
+                v_moments = v._moments
+        else:
             v_moments = v._moments
         ans._moments = v_moments * self.acting_matrix(g, len(v_moments))
         ans.ordp = v.ordp
+        ans.normalize()
         return ans
 
 cdef inline long mymod(long a, unsigned long pM):
@@ -1807,10 +1785,10 @@ cdef class WeightKAction_long(WeightKAction):
         b = mymod(ZZ(_b), pM)
         c = mymod(ZZ(_c), pM)
         d = mymod(ZZ(_d), pM)
-        cdef mp_limb_t pMinv = pM #n_preinvert_limb(pM) DEBUG!!!
+        cdef mp_limb_t pMinv = pM # n_preinvert_limb(pM) # DEBUG!!!
         nmod_poly_init2_preinv(t, pM, pMinv, M)
         nmod_poly_init2_preinv(scale, pM, pMinv, M)
-        nmod_poly_init2_preinv(xM, pM, pMinv, M+1)
+        nmod_poly_init2_preinv(xM, pM, pMinv, M) # was M + 1!
         nmod_poly_init2_preinv(bdy, pM, pMinv, 2)
         nmod_poly_set_coeff_ui(xM, M, 1)
         nmod_poly_set_coeff_ui(t, 0, a)
@@ -1864,9 +1842,13 @@ cdef class WeightKAction_long(WeightKAction):
         for col in range(ans.relprec):
             ans._moments[col] = 0
             for row in range(ans.relprec):
-                try:
-                    ans._moments[col] += mymod(B._mat[entry] * v._moments[row].apply_map(operator.methodcaller('lift')), pM)
-                except AttributeError:
-                    ans._moments[col] += mymod(B._mat[entry] * v._moments[row], pM)
+                mom = v._moments[row]
+                if not mom.parent().base_ring().is_exact():
+                    try:
+                        mom = mom.apply_map(operator.methodcaller('lift'))
+                    except AttributeError:
+                        pass
+                ans._moments[col] += mymod(B._mat[entry] * mom, pM)
                 entry += 1
+        ans.normalize()
         return ans

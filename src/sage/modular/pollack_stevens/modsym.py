@@ -599,7 +599,8 @@ class PSModularSymbolElement(ModuleElement):
             sage: f = Newforms(32, 8, names='a')[1]
             sage: K = f.hecke_eigenvalue_field()
             sage: a = f[3]
-            sage: phi = f.PS_modular_symbol()
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
+            sage: phi = ps_modsym_from_simple_modsym_space(f.modular_symbols(1))
             sage: phi.is_ordinary(K.ideal(3, 1/16*a + 3/2))
             False
             sage: phi.is_ordinary(K.ideal(3, 1/16*a + 5/2))
@@ -750,7 +751,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             sage: k = 0
             sage: phi = ps_modsym_from_elliptic_curve(E)
             sage: phi._find_alpha(p,k,M)
-            (1 + 4*5 + 3*5^2 + 2*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 3*5^7 + 2*5^8 + 3*5^9 + 3*5^10 + 3*5^12 + O(5^13), 5-adic Field with capped relative precision 13, 12, 1, 2, -2)
+            (1 + 4*5 + 3*5^2 + 2*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 3*5^7 + 2*5^8 + 3*5^9 + 3*5^10 + 3*5^12 + 2*5^13 + O(5^14), 5-adic Field with capped relative precision 14, 13, 1, 2, -2)
         """
         if ap is None:
             ap = self.Tq_eigenvalue(p, check=check)
@@ -868,7 +869,8 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
             sage: chi = DirichletGroup(24)([-1, -1, -1])
             sage: f = Newforms(chi,names='a')[0]
-            sage: phi = f.PS_modular_symbol()
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
+            sage: phi = ps_modsym_from_simple_modsym_space(f.modular_symbols(1))
             sage: phi11, h11 = phi.completions(11,5)[0]
             sage: phi11s = phi11.p_stabilize()
             sage: phi11s.is_Tq_eigensymbol(11)         
@@ -1050,7 +1052,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             raise ValueError("algorithm %s not recognized" % algorithm)
 
     
-    def _lift_greenberg(self, p, M, new_base_ring=None, check=False):
+    def _lift_greenberg(self, p, M, new_base_ring=None, check=False, parallel = False):
         """
         This is the Greenberg algorithm for lifting a modular eigensymbol to
         an overconvergent modular symbol. One first lifts to any set of numbers
@@ -1073,16 +1075,16 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         - an overconvergent modular symbol lifting the symbol that was input
         
         EXAMPLES:: 
-
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
             sage: E = EllipticCurve('11a')
-            sage: phi = E.PS_modular_symbol()
+            sage: phi = ps_modsym_from_elliptic_curve(E)
             sage: Phi = phi.lift(11,5,algorithm='greenberg')
             sage: Phi2 = phi.lift(11,5,algorithm='stevens',eigensymbol=True)
             sage: Phi == Phi2
             True
             sage: set_verbose(1)
             sage: E = EllipticCurve('105a1')
-            sage: phi = E.PS_modular_symbol().minus_part()
+            sage: phi = ps_modsym_from_elliptic_curve(E)
             sage: Phi = phi.lift(7,8,algorithm='greenberg')
             sage: Phi2 = phi.lift(7,8,algorithm='stevens',eigensymbol=True)
             sage: Phi == Phi2
@@ -1090,7 +1092,8 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
         An example in higher weight::
 
-            sage: f = Newforms(7, 4)[0].PS_modular_symbol()
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
+            sage: f = ps_modsym_from_simple_modsym_space(Newforms(7, 4)[0].modular_symbols(1))
             sage: fs = f.p_stabilize(5)
             sage: FsG = fs.lift(M=6, eigensymbol=True,algorithm='greenberg') 
             sage: FsG.values()[0]
@@ -1400,7 +1403,6 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         eta = (t_end * (newM + 1))/(60*60)
         verbose("Estimated time to complete (second estimate): %s hours"%eta)
 
-
         attempts = 0
         while (Phi != Psi) and (attempts < 2*newM):
             verbose("%s attempt"%(attempts+1))
@@ -1533,14 +1535,15 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
         return self.__class__(self._map.specialize(new_base_ring),
                               self.parent()._specialize_parent_space(new_base_ring), construct=True)
 
-    def padic_lseries(self,*args, **kwds):
-        r"""
-        Return the p-adic L-series of this modular symbol.
-
-        EXAMPLE::
-
-            sage: f = Newform("37a")
-            sage: f.PS_modular_symbol().lift(37, M=6, algorithm="stevens").padic_lseries()
-            37-adic L-series of Modular symbol of level 37 with values in Space of 37-adic distributions with k=0 action and precision cap 6
-        """
-        return pAdicLseries(self, *args, **kwds)
+    # def padic_lseries(self,*args, **kwds):
+    #     r"""
+    #     Return the p-adic L-series of this modular symbol.
+    # 
+    #     EXAMPLE::
+    # 
+    #         sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
+    #         sage: f = Newform("37a")
+    #         sage: ps_modsym_from_simple_modsym_space(f).lift(37, M=6, algorithm="stevens").padic_lseries()
+    #         37-adic L-series of Modular symbol of level 37 with values in Space of 37-adic distributions with k=0 action and precision cap 6
+    #     """
+    #     return pAdicLseries(self, *args, **kwds)

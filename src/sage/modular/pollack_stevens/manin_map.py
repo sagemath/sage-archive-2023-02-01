@@ -6,8 +6,9 @@ and right action of matrices.
 
 EXAMPLES::
 
+sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
 sage: E = EllipticCurve('11a')
-sage: phi = E.PS_modular_symbol()
+sage: phi = ps_modsym_from_elliptic_curve(E)
 sage: phi
 Modular symbol of level 11 with values in Sym^0 Q^2
 sage: phi.values()
@@ -62,7 +63,7 @@ def fast_dist_act(v,g,acting_matrix = None):
             ans = v._moments.apply_map(methodcaller('lift')) * acting_matrix
     except AttributeError, TypeError:
         ans = (v * g)._moments
-    assert len(ans) > 0
+    #assert len(ans) > 0
     return ans
 
 @parallel
@@ -349,7 +350,7 @@ class ManinMap(object):
             sage: f.__getitem__(MR.gens()[1])
             1 + O(37)
             sage: f.__getitem__(MR.gens()[3])
-            0
+            37 * ()
             sage: f.__getitem__(MR.gens()[5])
             36 + O(37)
             sage: f[MR.gens()[5]]
@@ -389,11 +390,9 @@ class ManinMap(object):
             sage: len(f._dict)
             38
         """
-        verbose('Computing full data...')
         for B in self._manin.reps():
             if not self._dict.has_key(B):
                 self._dict[B] = self._compute_image_from_gens(B)
-        verbose('Done')
 
     def __add__(self, right):
         r"""
@@ -459,7 +458,7 @@ class ManinMap(object):
             sage: f-f
             Map from the set of right cosets of Gamma0(11) in SL_2(Z) to Space of 11-adic distributions with k=0 action and precision cap 10
             sage: (f-f)(M2Z([1,0,0,1]))
-            (0, 0)
+            11^2 * ()
         
         """
         D = {}
@@ -549,8 +548,7 @@ class ManinMap(object):
             sage: f = ManinMap(D, MR, data)
             sage: A = MR.reps()[1]
             sage: f._eval_sl2(A)
-            (10 + 10*11 + O(11^2), 8 + O(11))
-            
+            (120, 8)
         """
         SN = Sigma0(self._manin._N)
         A = M2Z(A)
@@ -686,11 +684,12 @@ class ManinMap(object):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import ManinMap, M2Z, Sigma0
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
             sage: S01 = Sigma0(1)
             sage: f = Newforms(7, 4)[0]
             sage: f.modular_symbols(1)
             Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(7) of weight 4 with sign 1 over Rational Field
-            sage: phi = f.PS_modular_symbol()._map
+            sage: phi = ps_modsym_from_simple_modsym_space(f.modular_symbols(1))._map
             sage: psi = phi._right_action(S01([2,3,4,5])); psi
             Map from the set of right cosets of Gamma0(7) in SL_2(Z) to Sym^2 Q^2
 
@@ -824,7 +823,6 @@ class ManinMap(object):
             sage: phi.Tq_eigenvalue(7,7,10)
             -2
         """
-        verbose('parallel = %s'%_parallel)
         self.compute_full_data() # Why?
         self.normalize() # Why?
         M = self._manin

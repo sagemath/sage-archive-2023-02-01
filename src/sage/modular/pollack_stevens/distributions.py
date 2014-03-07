@@ -48,16 +48,19 @@ class Distributions_factory(UniqueFactory):
 
     EXAMPLES::
 
-        sage: D = Distributions(3, 11, 20)                                  
-        sage: D                     
+        sage: D = Distributions(3, 11, 20)
+        sage: D
         Space of 11-adic distributions with k=3 action and precision cap 20
         sage: v = D([1,0,0,0,0])
         sage: v.act_right([2,1,0,1])
-        (8 + O(11^5), 4 + O(11^4), 2 + O(11^3), 1 + O(11^2), 6 + O(11))
+        (8, 4, 2, 1, 6)
+
+    Note that we would expect something more p-adic, but fine...
+
         sage: D = Distributions(3, 11, 20, dettwist=1)
-        sage: v = D([1,0,0,0,0])                      
-        sage: v.act_right([2,1,0,1])                  
-        (5 + 11 + O(11^5), 8 + O(11^4), 4 + O(11^3), 2 + O(11^2), 1 + O(11))
+        sage: v = D([1,0,0,0,0])
+        sage: v.act_right([2,1,0,1])
+        (16, 8, 4, 2, 1)
     """
     def create_key(self, k, p=None, prec_cap=None, base=None, character=None, adjuster=None, act_on_left=False, dettwist=None):
         """
@@ -228,12 +231,12 @@ class Distributions_abstract(Module):
         """
         if not isinstance(base, ring.Ring):
             raise TypeError("base must be a ring")
-        from sage.rings.padics.pow_computer import PowComputer_long
+        from sage.rings.padics.pow_computer import PowComputer
         # should eventually be the PowComputer on ZpCA once that uses longs.
         Dist, WeightKAction = get_dist_classes(p, prec_cap, base, self.is_symk())
         self.Element = Dist
         if Dist is Dist_long:
-            self.prime_pow = PowComputer_long(p, prec_cap, prec_cap, prec_cap, 0)
+            self.prime_pow = PowComputer(p, prec_cap, prec_cap, prec_cap)#, 0)
         Parent.__init__(self, base, category=Modules(base))
         self._k = k
         self._p = p
@@ -248,6 +251,9 @@ class Distributions_abstract(Module):
             self._act = WeightKAction(self, character, adjuster, act_on_left, dettwist, padic=True)
 
         self._populate_coercion_lists_(action_list=[self._act])
+
+    def _element_constructor_(self,val):
+        return self.Element(val,self)
 
     def _coerce_map_from_(self, other):
         """
@@ -443,7 +449,7 @@ class Distributions_abstract(Module):
             sage: D.approx_module(11)
             Traceback (most recent call last):
             ...
-            ValueError: M must be less than or equal to the precision cap
+            ValueError: M (=11) must be less than or equal to the precision cap (=10)
             sage: D.approx_module(-1)
             Traceback (most recent call last):
             ...
@@ -454,7 +460,7 @@ class Distributions_abstract(Module):
         if M is None:
             M = self._prec_cap
         elif M > self._prec_cap:
-            raise ValueError("M(=%s) must be less than or equal to the precision cap (=%s)"%(M,self._prec_cap))
+            raise ValueError("M (=%s) must be less than or equal to the precision cap (=%s)"%(M,self._prec_cap))
         elif M < self._prec_cap and self.is_symk():
             raise ValueError("Sym^k objects do not support approximation modules")
         return self.base_ring()**M
@@ -484,7 +490,7 @@ class Distributions_abstract(Module):
             sage: D.random_element(11)
             Traceback (most recent call last):
             ...
-            ValueError: M must be less than or equal to the precision cap
+            ValueError: M (=11) must be less than or equal to the precision cap (=10)
         """
         if M == None:
             M = self.precision_cap()

@@ -774,7 +774,7 @@ def cusps_from_mat(g):
     You can also just give the matrix of g::
 
         sage: type(g)
-        <class 'sage.modular.arithgroup.arithgroup_element.ArithmeticSubgroupElement'>
+        <type 'sage.modular.arithgroup.arithgroup_element.ArithmeticSubgroupElement'>
         sage: cusps_from_mat(g.matrix())
         (+Infinity, 0)
 
@@ -977,10 +977,11 @@ def ps_modsym_from_simple_modsym_space(A, name="alpha"):
 
     We check that forms of nontrivial character are getting handled correctly::
 
-        sage: f = Newforms(Gamma1(13), names='a')[0]                 
-        sage: phi = f.PS_modular_symbol()
+        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
+        sage: f = Newforms(Gamma1(13), names='a')[0]
+        sage: phi = ps_modsym_from_simple_modsym_space(f.modular_symbols(1))
         sage: phi.hecke(7)
-        Modular symbol of level 13 with values in Sym^0 (Number Field in alpha with defining polynomial x^2 + 3*x + 3)^2
+        Modular symbol of level 13 with values in Sym^0 (Number Field in alpha with defining polynomial x^2 + 3*x + 3)^2 twisted by Dirichlet character modulo 13 of conductor 13 mapping 2 |--> -alpha - 1
         sage: phi.hecke(7).values()
         [0, 0, 0, 0, 0]
     """

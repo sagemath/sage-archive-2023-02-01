@@ -78,7 +78,7 @@ typedef struct {
   size_t   length; //< number of bits we sample in each go
   size_t   count;  //< number of bits we have consumed yet
   mpz_t    tmp;    //< we sample to this mpz_t
-  uint64_t pool;   //< we store the pool of random bits here
+  unsigned long pool;   //< we store the pool of random bits here
 } dgs_bern_uniform_t;
 
 /**
@@ -109,6 +109,27 @@ static inline unsigned long dgs_bern_uniform_call(dgs_bern_uniform_t *self, gmp_
   if (__DGS_UNLIKELY(self->count == self->length)) {
     mpz_urandomb(self->tmp, state, self->length);
     self->pool = mpz_get_ui(self->tmp);
+    self->count = 0;
+  }
+
+  unsigned long b = self->pool & 1;
+  self->pool >>= 1;
+  self->count++;
+  return b;
+}
+
+/**
+ * Sample a new uniformly random bit using libc random()
+ *
+ * \param self Bernoulli state
+ *
+ * \ingroup Bernoulli
+ */
+
+static inline unsigned long dgs_bern_uniform_call_libc(dgs_bern_uniform_t *self) {
+  assert(self != NULL);
+  if (__DGS_UNLIKELY(self->count == self->length)) {
+    self->pool = _dgs_randomb_libc(self->length);
     self->count = 0;
   }
 
@@ -174,7 +195,6 @@ void dgs_bern_mp_clear(dgs_bern_mp_t *self);
 
 typedef struct {
   double p; //< probability of 1
-  mpfr_t tmp; //< used internally
 } dgs_bern_dp_t;
 
 /**
@@ -200,7 +220,7 @@ dgs_bern_dp_t *dgs_bern_dp_init(double p);
  * \ingroup
  */
 
-long dgs_bern_dp_call(dgs_bern_dp_t *self, gmp_randstate_t state);
+long dgs_bern_dp_call(dgs_bern_dp_t *self);
 
 /**
  * \brief
@@ -223,7 +243,7 @@ void dgs_bern_dp_clear(dgs_bern_dp_t *self);
  */
 
 typedef struct {
-  size_t l; //< we support positive x up to 2^l
+  size_t l; //< we support positive x up to 2^l-1
   mpfr_t *p; //< probabilities for sub Bernoulli samplers
   dgs_bern_mp_t **B; //< sub Bernoulli samplers
 } dgs_bern_exp_mp_t;
@@ -232,7 +252,7 @@ typedef struct {
  * \brief Create new family of Bernoulli samples
  *
  * \param f samplers return 1 with probability exp(-x/f)
- * \param x we support x up to 2^l
+ * \param x we support x up to 2^l-1
  *
  * \note clear dgs_bern_exp_mp_clear
  * 
@@ -270,7 +290,7 @@ void dgs_bern_exp_mp_clear(dgs_bern_exp_mp_t *self);
  */
 
 typedef struct {
-  size_t l; //< we support positive x up to 2^l
+  size_t l; //< we support positive x up to 2^l-1
   double *p; //< probabilities for sub Bernoulli samplers
   dgs_bern_dp_t **B; //< sub Bernoulli samplers
 } dgs_bern_exp_dp_t;
@@ -279,7 +299,7 @@ typedef struct {
  * \brief Create new family of Bernoulli samples
  *
  * \param f samplers return 1 with probability exp(-x/f)
- * \param x we support x up to 2^l
+ * \param x we support x up to 2^l-1
  *
  * \note clear dgs_bern_exp_mp_clear
  * 
@@ -293,12 +313,11 @@ dgs_bern_exp_dp_t* dgs_bern_exp_dp_init(double f, size_t l);
  *
  * \param self Bernoulli state
  * \param x integer > 0
- * \param state GMP randstate used as randomness source
  *
  * \ingroup Bernoulli
  */
 
-long dgs_bern_exp_dp_call(dgs_bern_exp_dp_t *self, long x, gmp_randstate_t state);
+long dgs_bern_exp_dp_call(dgs_bern_exp_dp_t *self, long x);
 
 /**
  * \brief Clear Bernoulli sampler family

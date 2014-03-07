@@ -33,22 +33,22 @@ void dgs_disc_gauss_sigma2p_mp_call(mpz_t rop, dgs_disc_gauss_sigma2p_t *self, g
   }
 }
 
-long dgs_disc_gauss_sigma2p_dp_call(dgs_disc_gauss_sigma2p_t *self, gmp_randstate_t state) {
+long dgs_disc_gauss_sigma2p_dp_call(dgs_disc_gauss_sigma2p_t *self) {
   while(1) {
-    if (!dgs_bern_uniform_call(self->B, state)) {
+    if (!dgs_bern_uniform_call_libc(self->B)) {
       return 0;
     }
     int dobreak = 0;
     for(unsigned long i=1; ;i++) {
       for(size_t j=0; j<2*i-2; j++) {
-        if(dgs_bern_uniform_call(self->B, state)) {
+        if(dgs_bern_uniform_call_libc(self->B)) {
           dobreak = 1;
           break;
         }
       }
       if (__DGS_LIKELY(dobreak))
         break;
-      if (!dgs_bern_uniform_call(self->B, state)) {
+      if (!dgs_bern_uniform_call_libc(self->B)) {
         return i;
       }
     }

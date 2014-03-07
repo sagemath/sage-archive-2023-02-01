@@ -152,13 +152,11 @@ dgs_bern_dp_t* dgs_bern_dp_init(double p) {
   if (!self) abort();
 
   self->p = p;
-  mpfr_init2(self->tmp, 53);
   return self;
 }
 
-long dgs_bern_dp_call(dgs_bern_dp_t *self, gmp_randstate_t state) {
-  mpfr_urandomb(self->tmp, state);
-  double c = mpfr_get_d(self->tmp, MPFR_RNDN);
+long dgs_bern_dp_call(dgs_bern_dp_t *self) {
+  double c = drand48();
   if (c<self->p)
     return 1;
   else 
@@ -166,7 +164,6 @@ long dgs_bern_dp_call(dgs_bern_dp_t *self, gmp_randstate_t state) {
 }
 
 void dgs_bern_dp_clear(dgs_bern_dp_t *self) {
-  mpfr_clear(self->tmp);
   free(self);
 }
 
@@ -216,18 +213,14 @@ dgs_bern_exp_dp_t* dgs_bern_exp_dp_init(double f, size_t l) {
   return self;
 }
 
-long dgs_bern_exp_dp_call(dgs_bern_exp_dp_t *self, long x, gmp_randstate_t state) {
+long dgs_bern_exp_dp_call(dgs_bern_exp_dp_t *self, long x) {
   if (x == 0)
     return 1;
   assert(x >= 0);
   long start = self->l;
-  long alt_start = ceil(log2(x)) + 1;
-  if  (alt_start < start)
-    start = alt_start;
-  
   for(long i=start-1; i>=0; i--) {
     if (x & (1L<<i)) {
-      if (dgs_bern_dp_call(self->B[i], state) == 0) {
+      if (dgs_bern_dp_call(self->B[i]) == 0) {
         return 0;
       }
     }

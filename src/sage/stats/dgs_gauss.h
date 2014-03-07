@@ -58,7 +58,7 @@ typedef struct {
 
 dgs_disc_gauss_sigma2p_t *dgs_disc_gauss_sigma2p_init();
 void dgs_disc_gauss_sigma2p_mp_call(mpz_t rop, dgs_disc_gauss_sigma2p_t *self, gmp_randstate_t state);
-long dgs_disc_gauss_sigma2p_dp_call(dgs_disc_gauss_sigma2p_t *self, gmp_randstate_t state);
+long dgs_disc_gauss_sigma2p_dp_call(dgs_disc_gauss_sigma2p_t *self);
 void dgs_disc_gauss_sigma2p_clear(dgs_disc_gauss_sigma2p_t *self);
 
 /**
@@ -114,22 +114,20 @@ typedef struct _dgs_disc_gauss_dp_t {
   dgs_bern_exp_dp_t *Bexp;
   dgs_disc_gauss_sigma2p_t *D2;
   
-  long (*call)(struct _dgs_disc_gauss_dp_t *self, gmp_randstate_t state);
+  long (*call)(struct _dgs_disc_gauss_dp_t *self);
 
   double f;
-  mpfr_t y;
-  mpz_t upper_bound;
-  mpz_t two_upper_bound_plus_one;
-  mpz_t k;
-  mpz_t tmp;
+  long upper_bound;
+  long two_upper_bound_plus_one;
+  long k;
   double *rho;  
 } dgs_disc_gauss_dp_t;
 
 dgs_disc_gauss_dp_t *dgs_disc_gauss_dp_init(double sigma, size_t tailcut, dgs_disc_gauss_alg_t algorithm);
-long dgs_disc_gauss_dp_call_uniform_table(dgs_disc_gauss_dp_t *self, gmp_randstate_t state);
-long dgs_disc_gauss_dp_call_uniform_logtable(dgs_disc_gauss_dp_t *self, gmp_randstate_t state);
-long dgs_disc_gauss_dp_call_uniform_online(dgs_disc_gauss_dp_t *self, gmp_randstate_t state);
-long dgs_disc_gauss_dp_call_sigma2_logtable(dgs_disc_gauss_dp_t *self, gmp_randstate_t state);
+long dgs_disc_gauss_dp_call_uniform_table(dgs_disc_gauss_dp_t *self);
+long dgs_disc_gauss_dp_call_uniform_logtable(dgs_disc_gauss_dp_t *self);
+long dgs_disc_gauss_dp_call_uniform_online(dgs_disc_gauss_dp_t *self);
+long dgs_disc_gauss_dp_call_sigma2_logtable(dgs_disc_gauss_dp_t *self);
 void dgs_disc_gauss_dp_clear(dgs_disc_gauss_dp_t *self);
 
 

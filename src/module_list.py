@@ -1951,14 +1951,8 @@ ext_modules = [
     Extension('sage.stats.intlist',
               sources = ['sage/stats/intlist.pyx']),
 
-    Extension('sage.stats.bernoulli',
-              sources = ['sage/stats/bernoulli.pyx', 'sage/stats/dgs_bern.c'],
-              libraries = ['gmp', 'mpfr'],
-              extra_compile_args=["-std=c99"]
-          ),
-
     Extension('sage.stats.discrete_gaussians',
-              sources = ['sage/stats/discrete_gaussians.pyx', 'sage/stats/dgs_gauss_mp.c', 'sage/stats/dgs_bern.c'],
+              sources = ['sage/stats/discrete_gaussians.pyx', 'sage/stats/dgs_gauss_mp.c', 'sage/stats/dgs_gauss_dp.c', 'sage/stats/dgs_bern.c'],
               libraries = ['gmp', 'mpfr'],
               extra_compile_args=["-std=c99"]
           ),

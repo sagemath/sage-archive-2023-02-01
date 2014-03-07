@@ -1810,6 +1810,7 @@ def line_graph_forbidden_subgraphs():
 
     return graphs
 
+
 def petersen_family(generate=False):
     r"""
     Returns the Petersen family
@@ -1845,53 +1846,55 @@ def petersen_family(generate=False):
         True
     """
     from sage.graphs.generators.smallgraphs import PetersenGraph
-    if generate == False:
-        from sage.graphs.generators.basic import CompleteGraph, CompleteBipartiteGraph,CompleteMultipartiteGraph
+    if not generate:
+        from sage.graphs.generators.basic import CompleteGraph, \
+             CompleteBipartiteGraph, CompleteMultipartiteGraph
         from sage.graphs.graph_plot import _circle_embedding
-        l = [PetersenGraph(), CompleteGraph(6),CompleteMultipartiteGraph([3,3,1])]
-        g = CompleteBipartiteGraph(4,4)
-        g.delete_edge(0,4)
+        l = [PetersenGraph(), CompleteGraph(6),
+             CompleteMultipartiteGraph([3, 3, 1])]
+        g = CompleteBipartiteGraph(4, 4)
+        g.delete_edge(0, 4)
         g.name("")
         l.append(g)
         g = Graph('HKN?Yeb')
-        _circle_embedding(g, [1,2,4,3,0,5])
-        _circle_embedding(g, [6,7,8],radius=.6,shift=1.25)
+        _circle_embedding(g, [1, 2, 4, 3, 0, 5])
+        _circle_embedding(g, [6, 7, 8], radius=.6, shift=1.25)
         l.append(g)
         g = Graph('Fs\\zw')
-        _circle_embedding(g, [1,2,3])
-        _circle_embedding(g, [4,5,6],radius=.7)
-        g.get_pos()[0] = (0,0)
+        _circle_embedding(g, [1, 2, 3])
+        _circle_embedding(g, [4, 5, 6], radius=.7)
+        g.get_pos()[0] = (0, 0)
         l.append(g)
         g = Graph('GYQ[p{')
-        _circle_embedding(g, [1,4,6,0,5,7,3], shift=0.25)
-        g.get_pos()[2] = (0,0)
+        _circle_embedding(g, [1, 4, 6, 0, 5, 7, 3], shift=0.25)
+        g.get_pos()[2] = (0, 0)
         l.append(g)
         return l
 
-    def DeltaTrans(G,triangle):
+    def DeltaYTrans(G, triangle):
         """
-        Apply a Delta-transformation to a given triangle of G.
+        Apply a Delta-Y transformation to a given triangle of G.
         """
-        a,b,c = triangle
-        G=G.copy()
-        G.delete_edges([(a,b),(b,c),(c,a)])
+        a, b, c = triangle
+        G = G.copy()
+        G.delete_edges([(a, b), (b, c), (c, a)])
         v = G.order()
-        G.add_edges([(a,v),(b,v),(c,v)])
+        G.add_edges([(a, v), (b, v), (c, v)])
         return G.canonical_label()
 
-    def YTrans(G,v):
+    def YDeltaTrans(G, v):
         """
-        Apply a Y-transformation to a given vertexof G.
+        Apply a Y-Delta transformation to a given vertex v of G.
         """
         G = G.copy()
-        a,b,c = G.neighbors(v)
+        a, b, c = G.neighbors(v)
         G.delete_vertex(v)
-        G.add_cycle([a,b,c])
+        G.add_cycle([a, b, c])
         return G.canonical_label()
 
-    # We start from the Petersen Graph, and apply Y-Delta transform for as long
-    # as we generate new graphs.
-    P=PetersenGraph()
+    # We start from the Petersen Graph, and apply Y-Delta transform
+    # for as long as we generate new graphs.
+    P = PetersenGraph()
 
     l = set([])
     l_new = [P.canonical_label().graph6_string()]
@@ -1902,16 +1905,15 @@ def petersen_family(generate=False):
             continue
         l.add(g)
         g = Graph(g)
-        # All possible Delta-transforms
-        for t in g.subgraph_search_iterator(Graph({1:[2,3],2:[3]})):
-            l_new.append(DeltaTrans(g,t).graph6_string())
-        # All possible Y-transforms
+        # All possible Delta-Y transforms
+        for t in g.subgraph_search_iterator(Graph({1: [2, 3], 2: [3]})):
+            l_new.append(DeltaYTrans(g, t).graph6_string())
+        # All possible Y-Delta transforms
         for v in g:
             if g.degree(v) == 3:
-                l_new.append(YTrans(g,v).graph6_string())
+                l_new.append(YDeltaTrans(g, v).graph6_string())
 
     return [Graph(x) for x in l]
-
 
 
 def WheelGraph(n):

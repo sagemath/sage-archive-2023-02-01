@@ -2027,8 +2027,8 @@ class FiniteStateMachine(SageObject):
 
         INPUT:
 
-        - ``coordinates`` -- dictionary mapping labels of states to pairs
-          interpreted as coordinates.
+        - ``coordinates`` -- a dictionary or a function mapping labels
+          of states to pairs interpreted as coordinates.
 
         - ``default`` -- If ``True``, then states not given by
           ``coordinates`` get a default position on a circle of
@@ -2045,16 +2045,28 @@ class FiniteStateMachine(SageObject):
             sage: F.state(0).coordinates
             (0, 0)
 
-        TODO:
+        We can also use a function to determine the coordinates::
 
-        It would be nice to alternatively allow a callable.
+            sage: F = Automaton([[0, 1, 1], [1, 2, 2], [2, 0, 0]])
+            sage: F.set_coordinates(lambda l: (l, 3/(l+1)))
+            sage: F.state(2).coordinates
+            (2, 1)
         """
         states_without_coordinates = []
         for state in self.iter_states():
             try:
                 state.coordinates = coordinates[state.label()]
-            except KeyError:
-                states_without_coordinates.append(state)
+                continue
+            except (KeyError, TypeError):
+                pass
+
+            try:
+                state.coordinates = coordinates(state.label())
+                continue
+            except TypeError:
+                pass
+
+            states_without_coordinates.append(state)
 
         if default:
             n = len(states_without_coordinates)

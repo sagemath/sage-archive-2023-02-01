@@ -853,7 +853,7 @@ class InfinityCrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
 
 class InfinityCrystalOfVirtualRC(InfinityCrystalOfRiggedConfigurations):
     r"""
-    Virtual rigged configurations for `\mathcal{B}(\infty)`.
+    Rrigged configurations for `\mathcal{B}(\infty)` in non-simply-laced types.
     """
     def __init__(self, vct):
         """
@@ -861,10 +861,10 @@ class InfinityCrystalOfVirtualRC(InfinityCrystalOfRiggedConfigurations):
 
         EXAMPLES::
 
-            sage: RC = RiggedConfigurations(['C',2], [[1,2],[1,1],[2,1]]); RC
+            sage: RC = InfinityCrystalOfRiggedConfigurations(['C',2,1]); RC
             Rigged configurations of type ['C', 2, 1]
          """
-        self._virtual_ct = vct
+        self._folded_ct = vct
         InfinityCrystalOfRiggedConfigurations.__init__(self, vct._cartan_type)
 
     @lazy_attribute
@@ -880,7 +880,7 @@ class InfinityCrystalOfVirtualRC(InfinityCrystalOfRiggedConfigurations):
             sage: RC.virtual
             B infinity rigged configurations of type ['A', 3]
         """
-        return InfinityCrystalOfRiggedConfigurations(self._virtual_ct._folding)
+        return InfinityCrystalOfRiggedConfigurations(self._folded_ct._folding)
 
     def to_virtual(self, rc):
         """
@@ -908,10 +908,10 @@ class InfinityCrystalOfVirtualRC(InfinityCrystalOfRiggedConfigurations):
             sage: velt.parent()
             B infinity rigged configurations of type ['A', 3]
         """
-        gamma = map(int, self._virtual_ct.scaling_factors())
-        sigma = self._virtual_ct._orbit
-        n = self._virtual_ct._folding.rank()
-        vindex = self._virtual_ct._folding.index_set()
+        gamma = map(int, self._folded_ct.scaling_factors())
+        sigma = self._folded_ct._orbit
+        n = self._folded_ct._folding.rank()
+        vindex = self._folded_ct._folding.index_set()
         partitions = [None] * n
         riggings = [None] * n
         vac_nums = [None] * n
@@ -948,13 +948,13 @@ class InfinityCrystalOfVirtualRC(InfinityCrystalOfRiggedConfigurations):
             sage: ret == elt
             True
         """
-        gamma = list(self._virtual_ct.scaling_factors()) #map(int, self._virtual_ct.scaling_factors())
-        sigma = self._virtual_ct._orbit
+        gamma = list(self._folded_ct.scaling_factors()) #map(int, self._folded_ct.scaling_factors())
+        sigma = self._folded_ct._orbit
         n = self._cartan_type.rank()
         partitions = [None] * n
         riggings = [None] * n
         vac_nums = [None] * n
-        vindex = self._virtual_ct._folding.index_set()
+        vindex = self._folded_ct._folding.index_set()
         # TODO: Handle special cases for A^{(2)} even and its dual?
         for a in range(n):
             index = vindex.index(sigma[a][0])
@@ -992,7 +992,7 @@ class InfinityCrystalOfVirtualRC(InfinityCrystalOfRiggedConfigurations):
 
             EXAMPLES::
             """
-            vct = self.parent()._virtual_ct
+            vct = self.parent()._folded_ct
             gamma = vct.scaling_factors()
             L = []
             for i in vct.folding_orbit()[a]:
@@ -1016,7 +1016,7 @@ class InfinityCrystalOfVirtualRC(InfinityCrystalOfRiggedConfigurations):
 
             EXAMPLES::
             """
-            vct = self.parent()._virtual_ct
+            vct = self.parent()._folded_ct
             gamma = vct.scaling_factors()
             L = []
             for i in vct.folding_orbit()[a]:
@@ -1038,8 +1038,8 @@ class InfinityCrystalOfVirtualRC(InfinityCrystalOfRiggedConfigurations):
 
             EXAMPLES::
             """
-            #return self.to_virtual_configuration().cocharge() / self.parent()._virtual_ct.gamma[0]
-            vct = self.parent()._virtual_ct
+            #return self.to_virtual_configuration().cocharge() / self.parent()._folded_ct.gamma[0]
+            vct = self.parent()._folded_ct
             gamma = vct.scaling_factors()
             sigma = vct.folding_orbit()
             cc = 0
@@ -1056,4 +1056,92 @@ class InfinityCrystalOfVirtualRC(InfinityCrystalOfRiggedConfigurations):
             return cc / 2 + rigging_sum
 
         cc = cocharge
+
+class InfinityCrystalOfRCA2Even(InfinityCrystalOfVirtualRC):
+    """
+    Infinity crystal of rigged configurations for type `A_{2n}^{(2)}`.
+    """
+    def to_virtual(self, rc):
+        """
+        Convert ``rc`` into a rigged configuration in the virtual crystal.
+
+        INPUT:
+
+        - ``rc`` -- a rigged configuration element
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rigged_configurations.rc_infinity import InfinityCrystalOfRCA2Even
+            sage: RC = InfinityCrystalOfRCA2Even(CartanType(['A',4,2]).as_folding())
+            sage: elt = RC(partition_list=[[1],[1]]); elt
+            <BLANKLINE>
+            -1[ ]-1
+            <BLANKLINE>
+            1[ ]1
+            <BLANKLINE>
+            sage: velt = RC.to_virtual(elt); velt
+            <BLANKLINE>
+            -1[ ]-1
+            <BLANKLINE>
+            2[ ]2
+            <BLANKLINE>
+            -1[ ]-1
+            <BLANKLINE>
+            sage: velt.parent()
+            Rigged configurations of type ['A', 3, 1] and factor(s) ((2, 2), (2, 2))
+        """
+        gamma = self._folded_ct.scaling_factors()
+        sigma = self._folded_ct.folding_orbit()
+        n = self._folded_ct._folding.rank()
+        partitions = [None] * n
+        riggings = [None] * n
+        vac_nums = [None] * n
+        # +/- 1 for indexing
+        for a in range(len(rc)):
+            for i in sigma[a]:
+                partitions[i] = [row_len for row_len in rc[a]._list]
+                riggings[i] = [rig_val*gamma[a] for rig_val in rc[a].rigging]
+                vac_nums[i] = [vac_num*gamma[a] for vac_num in rc[a].vacancy_numbers]
+        return self.virtual.element_class(self.virtual, partition_list=partitions,
+                            rigging_list=riggings,
+                            vacancy_numbers_list=vac_nums)
+
+    def from_virtual(self, vrc):
+        """
+        Convert ``vrc`` in the virtual crystal into a rigged configution of
+        the original Cartan type.
+
+        INPUT:
+
+        - ``vrc`` -- a virtual rigged configuration element
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rigged_configurations.rc_infinity import InfinityCrystalOfRCA2Even
+            sage: RC = InfinityCrystalOfRCA2Even(CartanType(['A',4,2]).as_folding())
+            sage: elt = RC(partition_list=[[1],[1]])
+            sage: velt = RC.to_virtual(elt)
+            sage: ret = RC.from_virtual(velt); ret
+            <BLANKLINE>
+            -1[ ]-1
+            <BLANKLINE>
+            1[ ]1
+            <BLANKLINE>
+            sage: ret == elt
+            True
+        """
+        gamma = self._folded_ct.scaling_factors()
+        sigma = self._folded_ct.folding_orbit()
+        n = self._cartan_type.rank()
+        partitions = [None] * n
+        riggings = [None] * n
+        vac_nums = [None] * n
+        # +/- 1 for indexing
+        for a in range(n):
+            index = sigma[a][0]
+            partitions[index] = [row_len for row_len in vrc[index]._list]
+            riggings[index] = [rig_val//gamma[a] for rig_val in vrc[index].rigging]
+            vac_nums[a] = [vac_val//gamma[a] for vac_val in vrc[index].vacancy_numbers]
+        return self.element_class(self, partition_list=partitions,
+                                  rigging_list=riggings, vacancy_numbers_list=vac_nums)
 

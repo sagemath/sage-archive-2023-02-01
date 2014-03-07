@@ -1771,7 +1771,7 @@ cdef class PowerSeries(AlgebraElement):
 
             sage: R.<t> = PowerSeriesRing(QQ)
             sage: f = t + t^2/factorial(2) + 2*t^3/factorial(3)
-            sage: f.ogf()
+            sage: f.egf_to_ogf()
             t + t^2 + 2*t^3
         """
         return self.parent()([self[i] * arith.factorial(i) for i in range(self.degree()+1)])
@@ -1787,9 +1787,19 @@ cdef class PowerSeries(AlgebraElement):
 
             sage: R.<t> = PowerSeriesRing(QQ)
             sage: f = t + t^2 + 2*t^3
-            sage: f.egf()
+            sage: f.ogf_to_egf()
             t + 1/2*t^2 + 1/3*t^3
         """
+        return self.parent()([self[i] / arith.factorial(i) for i in range(self.degree()+1)])
+
+    def ogf(self):
+        from sage.misc.superseded import deprecation, deprecated_function_alias
+        deprecation(15705,'You can just call egf_to_ogf() instead')
+        return self.parent()([self[i] * arith.factorial(i) for i in range(self.degree()+1)])
+
+    def egf(self):
+        from sage.misc.superseded import deprecation, deprecated_function_alias
+        deprecation(15705,'You can just call ogf_to_egf() instead')
         return self.parent()([self[i] / arith.factorial(i) for i in range(self.degree()+1)])
 
     def _pari_(self):

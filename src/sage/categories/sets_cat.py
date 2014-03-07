@@ -17,6 +17,7 @@ from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.lazy_import import lazy_import, LazyImport
 from sage.misc.lazy_format import LazyFormat
+from sage.misc.superseded import deprecated_function_alias
 from sage.categories.category import HomCategory
 from sage.categories.category_singleton import Category_singleton
 # Do not use sage.categories.all here to avoid initialization loop
@@ -961,7 +962,7 @@ class Sets(Category_singleton):
                   running ._test_pickling() . . . pass
                 <BLANKLINE>
 
-            Debugging tip: in case of failure of this test, run instead:
+            Debugging tip: in case of failure of this test, run instead::
 
                 sage: TestSuite(C.an_element()).run()
 
@@ -1682,7 +1683,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
             @abstract_method
             def _sets_keys(self):
                 """
-                Returns the indices of the summands of ``self``.
+                Return the indices of the cartesian factors of ``self``.
 
                 EXAMPLES::
 
@@ -1691,24 +1692,25 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
                 """
 
             @abstract_method
-            def summands(self):
+            def cartesian_factors(self):
                 """
-                Return the summands of ``self``
+                Return the cartesian factors of ``self``.
 
                 EXAMPLES::
 
-                    sage: cartesian_product([QQ, ZZ, ZZ]).summands()
+                    sage: cartesian_product([QQ, ZZ, ZZ]).cartesian_factors()
                     (Rational Field, Integer Ring, Integer Ring)
                 """
 
             @abstract_method
-            def summand_projection(self, i):
+            def cartesian_projection(self, i):
                 """
-                Returns the natural projection onto the `i`-th summand of self
+                Return the natural projection onto the `i`-th
+                cartesian factor of ``self``.
 
                 INPUTS:
 
-                 - ``i`` -- the index of a summand of ``self``
+                 - ``i`` -- the index of a cartesian factor of ``self``
 
                 EXAMPLES::
 
@@ -1716,7 +1718,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
                     The cartesian product of (Set of prime numbers (basic implementation), An example of an infinite enumerated set: the non negative integers, An example of a finite enumerated set: {1,2,3})
                     sage: x = C.an_element(); x
                     (47, 42, 1)
-                    sage: pi = C.summand_projection(1)
+                    sage: pi = C.cartesian_projection(1)
                     sage: pi(x)
                     42
                 """
@@ -1724,11 +1726,12 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
             @abstract_method
             def _cartesian_product_of_elements(self, elements):
                 """
-                Returns the cartesian product of the given ``elements``
+                Return the cartesian product of the given ``elements``.
 
                 INPUT:
 
-                 - ``elements`` - a tuple with one element of each summand of ``self``
+                 - ``elements`` -- a tuple with one element of each
+                   cartesian factor of ``self``
 
                 EXAMPLES::
 
@@ -1741,14 +1744,14 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
 
         class ElementMethods:
 
-            def summand_projection(self, i):
+            def cartesian_projection(self, i):
                 """
-                Returns the projection of ``self`` on the `i`-th
-                summand of the cartesian product.
+                Return the projection of ``self`` onto the `i`-th
+                factor of the cartesian product.
 
                 INPUTS:
 
-                 - ``i`` -- the index of a summand of the cartesian product
+                 - ``i`` -- the index of a factor of the cartesian product
 
                 EXAMPLES::
 
@@ -1756,16 +1759,18 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
                     sage: G = CombinatorialFreeModule(ZZ, [4,6]); G.__custom_name = "G"
                     sage: S = cartesian_product([F, G])
                     sage: x = S.monomial((0,4)) + 2 * S.monomial((0,5)) + 3 * S.monomial((1,6))
-                    sage: x.summand_projection(0)
+                    sage: x.cartesian_projection(0)
                     B[4] + 2*B[5]
-                    sage: x.summand_projection(1)
+                    sage: x.cartesian_projection(1)
                     3*B[6]
                 """
-                return self.parent().summand_projection(i)(self)
+                return self.parent().cartesian_projection(i)(self)
 
-            def summand_split(self):
+            summand_projection = deprecated_function_alias(10963, cartesian_projection)
+
+            def cartesian_factors(self):
                 """
-                Splits ``self`` into its summands
+                Return the cartesian factors of ``self``.
 
                 EXAMPLES::
 
@@ -1774,19 +1779,20 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
                     sage: H = CombinatorialFreeModule(ZZ, [4,7]); H.__custom_name = "H"
                     sage: S = cartesian_product([F, G, H])
                     sage: x = S.monomial((0,4)) + 2 * S.monomial((0,5)) + 3 * S.monomial((1,6)) + 4 * S.monomial((2,4)) + 5 * S.monomial((2,7))
-                    sage: x.summand_split()
+                    sage: x.cartesian_factors()
                     (B[4] + 2*B[5], 3*B[6], 4*B[4] + 5*B[7])
-                    sage: [s.parent() for s in x.summand_split()]
+                    sage: [s.parent() for s in x.cartesian_factors()]
                     [F, G, H]
-                    sage: S.zero().summand_split()
+                    sage: S.zero().cartesian_factors()
                     (0, 0, 0)
-                    sage: [s.parent() for s in S.zero().summand_split()]
+                    sage: [s.parent() for s in S.zero().cartesian_factors()]
                     [F, G, H]
                 """
                 # TODO: optimize
-                return tuple(self.summand_projection(i) for i in self.parent()._sets_keys())
+                return tuple(self.cartesian_projection(i) for i in self.parent()._sets_keys())
                 #return Family(self._sets.keys(), self.projection)
 
+            summand_split = deprecated_function_alias(10963, cartesian_factors)
 
     class Algebras(AlgebrasCategory):
 

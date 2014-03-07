@@ -28,7 +28,6 @@ Miscellaneous
    sage/misc/sage_timeit_class
    sage/misc/mrange
    sage/misc/dist
-   sage/misc/hg
    sage/misc/preparser
    sage/misc/interpreter
    sage/misc/functional

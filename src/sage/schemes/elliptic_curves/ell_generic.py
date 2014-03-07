@@ -48,6 +48,7 @@ AUTHORS:
 import math
 
 from sage.rings.all import PolynomialRing
+from sage.rings.polynomial.polynomial_ring import polygen, polygens
 import sage.groups.additive_abelian.additive_abelian_group as groups
 import sage.groups.generic as generic
 import sage.plot.all as plot
@@ -1608,16 +1609,16 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             The point of order 2 and the identity do not appear.
             The points with `x=-1/3` and `x=-5` are not rational.
          """
+         if x is None:
+             x = rings.PolynomialRing(self.base_ring(), 'x').gen()
+
          if cache is None:
              cache = {}
          else:
              try:
-                 return cache[n]
+                 return cache[(n,x)]
              except KeyError:
                  pass
-
-         if x is None:
-             x = rings.PolynomialRing(self.base_ring(), 'x').gen()
 
          b2, b4, b6, b8 = self.b_invariants()
 
@@ -1661,7 +1662,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
                      answer = g_mplus2 * g_m**3 - \
                               B6_sqr * g_mless1 * g_mplus1**3
 
-         cache[n] = answer
+         cache[(n,x)] = answer
          return answer
 
     def two_division_polynomial(self, x = None):
@@ -1906,8 +1907,11 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
              sage: 11*P
              (310 : -5458 : 1)
          """
+         if x is None:
+             x = rings.PolynomialRing(self.base_ring(), 'x').gen()
+
          try:
-             return self._mul_x_num_cache[n]
+             return self._mul_x_num_cache[(n,x)]
          except AttributeError:
              self._mul_x_num_cache = {}
          except KeyError:
@@ -1915,9 +1919,6 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
          if cache is None:
              cache = {}
-
-         if x is None:
-             x = rings.PolynomialRing(self.base_ring(), 'x').gen()
 
          n = int(n)
          if n < 2:
@@ -1929,10 +1930,10 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
          self.division_polynomial_0(n+1, x, cache)
 
          if n % 2 == 0:
-             self._mul_x_num_cache[n] = x * cache[-1] * cache[n]**2 - cache[n-1] * cache[n+1]
+             self._mul_x_num_cache[(n,x)] = x * cache[(-1,x)] * cache[(n,x)]**2 - cache[(n-1,x)] * cache[(n+1,x)]
          else:
-             self._mul_x_num_cache[n] = x * cache[n]**2 - cache[-1] * cache[n-1] * cache[n+1]
-         return self._mul_x_num_cache[n]
+             self._mul_x_num_cache[(n,x)] = x * cache[(n,x)]**2 - cache[(-1,x)] * cache[(n-1,x)] * cache[(n+1,x)]
+         return self._mul_x_num_cache[(n,x)]
 
 
     def _multiple_x_denominator(self, n, x=None, cache=None):
@@ -1973,8 +1974,11 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
          - David Harvey (2006-09-24)
          """
+         if x is None:
+             x = rings.PolynomialRing(self.base_ring(), 'x').gen()
+
          try:
-             return self._mul_x_den_cache[n]
+             return self._mul_x_den_cache[(n,x)]
          except AttributeError:
              self._mul_x_den_cache = {}
          except KeyError:
@@ -1982,9 +1986,6 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
          if cache is None:
              cache = {}
-
-         if x is None:
-             x = rings.PolynomialRing(self.base_ring(), 'x').gen()
 
          n = int(n)
          if n < 2:
@@ -1994,36 +1995,40 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
          self.division_polynomial_0(n , x, cache)
 
          if n % 2 == 0:
-             self._mul_x_den_cache[n] = cache[-1] * cache[n]**2
+             self._mul_x_den_cache[(n,x)] = cache[(-1,x)] * cache[(n,x)]**2
          else:
-             self._mul_x_den_cache[n] = cache[n]**2
-         return self._mul_x_den_cache[n]
+             self._mul_x_den_cache[(n,x)] = cache[(n,x)]**2
+         return self._mul_x_den_cache[(n,x)]
 
 
     def multiplication_by_m(self, m, x_only=False):
         r"""
-        Return the multiplication-by-`m` map from self to self as a pair of
-        rational functions in two variables `x`,`y`.
+        Return the multiplication-by-`m` map from ``self`` to ``self``
+
+        The result is a pair of rational functions in two variables
+        `x`, `y` (or a rational function in one variable `x` if
+        ``x_only`` is ``True``).
 
         INPUT:
 
         -  ``m`` - a nonzero integer
 
-        -  ``x_only`` - bool (default: False) if True, return
-           only the `x`-coordinate of the map.
-
+        -  ``x_only`` - boolean (default: ``False``) if ``True``, return
+           only the `x`-coordinate of the map (as a rational function
+           in one variable).
 
         OUTPUT:
 
-        (2-tuple) `(f(x), g(x,y))`, where `f` and `g` are rational
-        functions with the degree of `y` in `g(x,y)` exactly 1.
+        - a pair `(f(x), g(x,y))`, where `f` and `g` are rational
+          functions with the degree of `y` in `g(x,y)` exactly 1,
 
+        - or just `f(x)` if ``x_only`` is ``True``
 
-        .. note:
+        .. NOTE::
 
-           The result is not cached.
+            - The result is not cached.
 
-           ``m`` is allowed to be negative (but not 0).
+            - ``m`` is allowed to be negative (but not 0).
 
         EXAMPLES::
 
@@ -2042,8 +2047,10 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
         Grab only the x-coordinate (less work)::
 
-            sage: E.multiplication_by_m(2, x_only=True)
+            sage: mx = E.multiplication_by_m(2, x_only=True); mx
             (x^4 + 2*x^2 - 24*x + 1)/(4*x^3 - 4*x + 12)
+            sage: mx.parent()
+            Fraction Field of Univariate Polynomial Ring in x over Rational Field
 
         We check that it works on a point::
 
@@ -2064,8 +2071,8 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         And the same with multiplication by -1,-2,-3,-4::
 
             sage: for m in [-1,-2,-3,-4]:
-            ...       f = E.multiplication_by_m(m)
-            ...       assert E(eval(f,P)) == m*P
+            ....:     f = E.multiplication_by_m(m)
+            ....:     assert E(eval(f,P)) == m*P
 
         TESTS:
 
@@ -2076,14 +2083,14 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E = EllipticCurve([23,-105])
             sage: P = E([129/4, 1479/8])
             sage: for n in [1..10]:
-            ...       f = E.multiplication_by_m(n)
-            ...       Q = n*P
-            ...       assert Q == E(eval(f,P))
-            ...       f = E.multiplication_by_m(-n)
-            ...       Q = -n*P
-            ...       assert Q == E(eval(f,P))
+            ....:     f = E.multiplication_by_m(n)
+            ....:     Q = n*P
+            ....:     assert Q == E(eval(f,P))
+            ....:     f = E.multiplication_by_m(-n)
+            ....:     Q = -n*P
+            ....:     assert Q == E(eval(f,P))
 
-        The following test shows that \#4364 is indeed fixed::
+        The following test shows that :trac:`4364` is indeed fixed::
 
             sage: p = next_prime(2^30-41)
             sage: a = GF(p)(1)
@@ -2096,30 +2103,35 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         # Coerce the input m to be an integer
         m = rings.Integer(m)
+        if m == 0:
+            raise ValueError("m must be a non-zero integer")
 
-        if m==0:
-            raise ValueError, "m must be a non-zero integer"
-
-        R = PolynomialRing(self.base_ring(), 2, 'x,y')
-
-        # Kxy is the function field, containing the full division polynomial.
-        Kxy = R.fraction_field()
-        x,y = Kxy.gens()
+        if x_only:
+            x = polygen(self.base_ring(), 'x')
+        else:
+            x, y = polygens(self.base_ring(), 'x,y')
 
         # Special case of multiplication by 1 is easy.
         if m == 1:
-            return (x, y)
+            if not x_only:
+                return (x, y)
+            else:
+                return x
 
         # Grab curve invariants
-        a1,a2,a3,a4,a6 = self.a_invariants()
+        a1, a2, a3, a4, a6 = self.a_invariants()
 
         if m == -1:
-            return (x, -y-a1*x-a3)
+            if not x_only:
+                return (x, -y-a1*x-a3)
+            else:
+                return x
 
         # the x-coordinate does not depend on the sign of m.  The work
         # here is done by functions defined earlier:
 
-        mx = self._multiple_x_numerator(m.abs(),x) / self._multiple_x_denominator(m.abs(),x)
+        mx = (x.parent()(self._multiple_x_numerator(m.abs(), x))
+            / x.parent()(self._multiple_x_denominator(m.abs(), x)))
 
         if x_only:
             # Return it if the optional parameter x_only is set.
@@ -2744,7 +2756,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         p = rings.Integer(p)
         if not p.is_prime():
-            raise ValueError, "p (=%s) should be prime"%p
+            raise ValueError("p (=%s) should be prime" % p)
 
         if m is None:
             from sage.rings.infinity import Infinity
@@ -2922,7 +2934,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E.pari_curve()
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: valuation of j must be negative in p-adic ellinit
         """
         try:
             return self._pari_curve

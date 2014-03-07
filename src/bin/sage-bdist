@@ -17,34 +17,35 @@ die () {
 }
 
 usage () {
-    echo "usage: $CMD <SAGE_VERSION> [TMP_DIR]"
+    echo "usage: $CMD [TMP_DIR]"
 }
 
-[ $# -ge 1 -a $# -le 2 ] || die `usage`
+if [ $# -gt 1 ]; then
+    usage
+    die
+fi
 
-[ -n "$SAGE_ROOT" ] || die "must be run from within a Sage enviroment, or with SAGE_ROOT provided"
+if [ -z "$SAGE_ROOT" ]; then
+    die "must be run from within a Sage enviroment, or with SAGE_ROOT provided"
+fi
 
-if [ "$#" -gt 1 ]; then
-    TMP_DIR="$2"
+if [ -z "$SAGE_SRC" ]; then
+    die "must be run from within a Sage enviroment, or with SAGE_SRC provided"
+fi
+
+if [ "$#" -gt 0 ]; then
+    TMP_DIR="$1"
 else
     TMP_DIR="$SAGE_ROOT/tmp"
 fi
 
-# If $1 starts with "sage-", remove this prefix
-export SAGE_VERSION=`echo "$1" | sed 's/^sage-//'`
+source "$SAGE_SRC/bin/sage-version.sh"
+echo "Sage version $SAGE_VERSION, release date $SAGE_RELEASE_DATE"
 
 TARGET=sage-"$SAGE_VERSION"-`uname -m`-`uname`
 TARGET=`echo $TARGET | sed 's/ //g'`   # Remove spaces
 
-rm -rf "$TMP_DIR/$TARGET"
-mkdir -p "$TMP_DIR/$TARGET"
-
-# Clone Sage repository
-echo "Cloning Sage repository..."
-git clone "$SAGE_ROOT" "$TMP_DIR/$TARGET"
-( cd "$TMP_DIR/$TARGET" && git remote set-url origin "$SAGE_REPO_ANONYMOUS" )
-
-echo "Done cloning Sage repository."
+sage-clone-source "$SAGE_ROOT" "$TMP_DIR/$TARGET"
 
 echo "Copying files over to tmp directory"
 # We use "tar" to copy files for portability,
@@ -113,10 +114,12 @@ if [ "$UNAME" = "Darwin" ]; then
         echo 'SAGE_APP_DMG=yes'
         echo '(or unset SAGE_APP_DMG since SAGE_APP_DMG=yes is the default)'
         echo "Creating $TARGET.tar.gz ..."
+        chmod -R go=rX "$TARGET"
         tar zcf "$TARGET".tar.gz "$TARGET"
     fi
 else
     echo "Creating $TARGET.tar.gz ..."
+    chmod -R go=rX "$TARGET"
     tar zcf "$TARGET".tar.gz "$TARGET"
 fi
 

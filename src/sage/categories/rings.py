@@ -29,8 +29,12 @@ class Rings(CategoryWithAxiom):
       Category of rings
       sage: sorted(Rings().super_categories(), key=str)
       [Category of rngs, Category of semirings]
+
       sage: sorted(Rings().axioms())
-      ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'Unital']
+      ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'Distributive', 'Unital']
+
+      sage: Rings() is (CommutativeAdditiveGroups() & Monoids()).Distributive()
+      True
       sage: Rings() is Rngs().Unital()
       True
       sage: Rings() is Semirings().AdditiveInverse()
@@ -48,7 +52,7 @@ class Rings(CategoryWithAxiom):
        in the category ``Algebras(P)``.
     """
 
-    _base_category_class_and_axiom = [Rngs, "Unital"]
+    _base_category_class_and_axiom = (Rngs, "Unital")
 
     class SubcategoryMethods:
 
@@ -61,7 +65,7 @@ class Rings(CategoryWithAxiom):
                 sage: Rings().NoZeroDivisors()
                 Category of domains
 
-            .. NOTE:: this could be generalized to DistributiveMagmasAndAdditiveMagmas.AdditiveUnital.Unital
+            .. NOTE:: this could be generalized to MagmasAndAdditiveMagmas.Distributive.AdditiveUnital
 
             TESTS::
 
@@ -78,7 +82,7 @@ class Rings(CategoryWithAxiom):
             A ring satisfies the division axiom if all non-zero
             elements have multiplicative inverse.
 
-            .. NOTE:: this could be generalized to DistributiveMagmasAndAdditiveMagmas.AdditiveUnital.Unital
+            .. NOTE:: this could be generalized to MagmasAndAdditiveMagmas.Distributive.AdditiveUnital.Unital
 
             EXAMPLES::
 
@@ -395,7 +399,7 @@ class Rings(CategoryWithAxiom):
                  of Full MatrixSpace of 2 by 2 dense matrices over Rational Field
 
             """
-            if kwds.has_key('coerce'):
+            if 'coerce' in kwds:
                 coerce = kwds['coerce']
                 del kwds['coerce']
             else:
@@ -450,7 +454,7 @@ class Rings(CategoryWithAxiom):
                     for h in gens[1:]:
                         g = g.gcd(h)
                 gens = [g]
-            if kwds.has_key('ideal_class'):
+            if 'ideal_class' in kwds:
                 C = kwds['ideal_class']
                 del kwds['ideal_class']
             else:
@@ -664,8 +668,35 @@ class Rings(CategoryWithAxiom):
             raise TypeError, "Use self.quo(I) or self.quotient(I) to construct the quotient ring."
 
     class ElementMethods:
-        pass
+        def is_unit(self):
+            r"""
+            Return whether this element is a unit in the ring.
 
+            .. NOTE::
+
+                This is a generic implementation for (non-commutative) rings
+                which only works for the one element, its additive inverse, and
+                the zero element.  Most rings should provide a more specialized
+                implementation.
+
+            EXAMPLES::
+
+                sage: MS = MatrixSpace(ZZ, 2)
+                sage: MS.one().is_unit()
+                True
+                sage: MS.zero().is_unit()
+                False
+                sage: MS([1,2,3,4]).is_unit()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError
+
+            """
+            if self == 1 or self == -1:
+                return True
+            if self == 0: # now 0 != 1
+                return False
+            raise NotImplementedError
 
     class HomCategory(HomCategory):
         pass

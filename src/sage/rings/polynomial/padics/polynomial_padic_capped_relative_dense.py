@@ -2,8 +2,16 @@
 p-adic Capped Relative Dense Polynomials
 """
 
+#*****************************************************************************
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 import sage.rings.polynomial.polynomial_element_generic
 from sage.rings.polynomial.polynomial_element import Polynomial
+from sage.rings.polynomial.padics.polynomial_padic import Polynomial_padic
 import sage.rings.polynomial.polynomial_integer_dense_ntl
 import sage.rings.integer
 import sage.rings.integer_ring
@@ -11,10 +19,10 @@ import sage.rings.padics.misc as misc
 import sage.rings.padics.precision_error as precision_error
 import sage.rings.fraction_field_element as fraction_field_element
 import copy
+from sage.structure.element import coerce_binop
 
 from sage.libs.all import pari, pari_gen
 from sage.libs.ntl.all import ZZX
-from sage.structure.factorization import Factorization
 from sage.rings.infinity import infinity
 
 min = misc.min
@@ -24,7 +32,7 @@ Integer = sage.rings.integer.Integer
 Polynomial_generic_domain = sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_domain
 Polynomial_integer_dense = sage.rings.polynomial.polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl
 
-class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
+class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomial_padic):
     def __init__(self, parent, x=None, check=True, is_gen=False, construct = False, absprec = infinity, relprec = infinity):
         """
         TESTS::
@@ -302,43 +310,6 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         if self._list is None:
             self._comp_list()
         return list(self._list)
-
-    def _repr(self, name=None):
-        """
-        TESTS::
-
-            sage: k = Qp(5,10)
-            sage: R.<x> = k[]
-            sage: f = R([k(0,-3), 0, k(0,-1)]); f
-            (O(5^-1))*x^2 + (O(5^-3))
-            sage: f + f
-            (O(5^-1))*x^2 + (O(5^-3))
-        """
-        # TODO: what is new here (that doesn't come from parent class)?
-        s = " "
-        coeffs = self.list()
-        m = len(coeffs)
-        while m > 0 and coeffs[m-1].valuation() == infinity:
-            m -= 1
-        r = reversed(xrange(m))
-        if name is None:
-            name = self.parent().variable_name()
-        for n in r:
-            x = coeffs[n]
-            if x.valuation() < infinity:
-                if n != m-1:
-                    s += " + "
-                x = "(%s)"%x
-                if n > 1:
-                    var = "*%s^%s"%(name,n)
-                elif n==1:
-                    var = "*%s"%name
-                else:
-                    var = ""
-                s += "%s%s"%(x,var)
-        if s==" ":
-            return "0"
-        return s[1:]
 
     def content(self):
         """
@@ -987,12 +958,52 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
     #def lcm(self, right):
     #    raise NotImplementedError
 
+    @coerce_binop
     def xgcd(self, right):
+        """
+        Extended gcd of ``self`` and ``other``.
+
+        INPUT:
+
+        - ``other`` -- an element with the same parent as ``self``
+
+        OUTPUT:
+
+        Polynomials ``g``, ``u``, and ``v`` such that ``g = u*self + v*other``
+
+        .. WARNING::
+
+            The computations are performed using the standard Euclidean
+            algorithm which might produce mathematically incorrect results in
+            some cases. See :trac:`13439`.
+
+        EXAMPLES::
+
+            sage: R.<x> = Qp(3,3)[]
+            sage: f = x + 1
+            sage: f.xgcd(f^2)
+            ((1 + O(3^3))*x + (1 + O(3^3)), (1 + O(3^3)), 0)
+
+        In these examples the results are incorrect, see :trac:`13439`::
+
+            sage: R.<x> = Qp(3,3)[]
+            sage: f = 3*x + 7
+            sage: g = 5*x + 9
+            sage: f.xgcd(f*g) # not tested - currently we get the incorrect result ((O(3^2))*x^2 + (O(3))*x + (1 + O(3^3)), (3^-2 + 2*3^-1 + O(3))*x, (3^-2 + 3^-1 + O(3)))
+            ((3 + O(3^4))*x + (1 + 2*3 + O(3^3)), (1 + O(3^3)), 0)
+
+            sage: R.<x> = Qp(3)[]
+            sage: f = 490473657*x + 257392844/729
+            sage: g = 225227399/59049*x - 8669753175
+            sage: f.xgcd(f*g) # not tested - currently we get the incorrect result ((O(3^18))*x^2 + (O(3^9))*x + (1 + O(3^20)), (3^-5 + 2*3^-1 + 3 + 2*3^2 + 3^4 + 2*3^6 + 3^7 + 3^8 + 2*3^9 + 2*3^11 + 3^13 + O(3^15))*x, (3^5 + 2*3^6 + 2*3^7 + 3^8 + 3^9 + 3^13 + 2*3^14 + 3^17 + 3^18 + 3^20 + 3^21 + 3^23 + 2*3^24 + O(3^25)))
+            ((3^3 + 3^5 + 2*3^6 + 2*3^7 + 3^8 + 2*3^10 + 2*3^11 + 3^12 + 3^13 + 3^15 + 2*3^16 + 3^18 + O(3^23))*x + (2*3^-6 + 2*3^-5 + 3^-3 + 2*3^-2 + 3^-1 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 3^11 + O(3^14)), (1 + O(3^20)), 0)
+
+        """
         from sage.misc.stopgap import stopgap
         stopgap("Extended gcd computations over p-adic fields are performed using the standard Euclidean algorithm which might produce mathematically incorrect results in some cases.", 13439)
 
         from sage.rings.polynomial.polynomial_element_generic import Polynomial_generic_field
-        return Polynomial_generic_field._xgcd.im_func(self,right)
+        return Polynomial_generic_field.xgcd(self,right)
 
     #def discriminant(self):
     #    raise NotImplementedError
@@ -1123,21 +1134,6 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         elif min(self._relprecs) <= 0:
             raise PrecisionError, "Polynomial is not known to high enough precision"
         return self._poly.factor_mod(self.base_ring().prime())
-
-    def factor(self):
-        # This will eventually be improved.
-        if self == 0:
-            raise ValueError, "Factorization of the zero polynomial not defined"
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.rings.padics.factory import ZpCA
-        base = self.base_ring()
-        #print self.list()
-        m = min([x.precision_absolute() for x in self.list()])
-        #print m
-        R = ZpCA(base.prime(), prec = m)
-        S = PolynomialRing(R, self.parent().variable_name())
-        F = S(self).factor()
-        return Factorization([(self.parent()(a), b) for (a, b) in F], base(F.unit()))
 
 def _extend_by_infinity(L, n):
     return L + [infinity] * (n - len(L))

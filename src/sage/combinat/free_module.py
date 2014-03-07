@@ -157,7 +157,7 @@ class CombinatorialFreeModuleElement(Element):
         try:
             v.sort(cmp = print_options['monomial_cmp'],
                    key = lambda (monomial,coeff): monomial)
-        except StandardError: # Sorting the output is a plus, but if we can't, no big deal
+        except Exception: # Sorting the output is a plus, but if we can't, no big deal
             pass
         return v
 
@@ -1369,13 +1369,13 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         R = self.base_ring()
         try:
             x = x + self.monomial(I.an_element())
-        except StandardError:
+        except Exception:
             pass
         try:
             g = iter(self.basis().keys())
             for c in range(1,4):
                 x = x + self.term(g.next(), R(c))
-        except (StandardError, StopIteration):
+        except Exception:
             pass
         return x
 
@@ -1478,11 +1478,15 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             sage: S = SymmetricFunctions(QQ)
             sage: s = S.s(); p = S.p()
             sage: ss = tensor([s,s]); pp = tensor([p,p])
-            sage: a = tensor((s[5],s[5]))
-            sage: pp(a) # used to yield p[[5]] # p[[5]]
-            Traceback (most recent call last):
-               ...
-            NotImplementedError
+            sage: a = tensor((s[2],s[2]))
+
+        The following originally used to yield ``p[[2]] # p[[2]]``, and if
+        there was no natural coercion between ``s`` and ``p``, this would
+        raise a ``NotImplementedError``. Since :trac:`15305`, this takes the
+        coercion between ``s`` and ``p`` and lifts it to the tensor product. ::
+
+            sage: pp(a)
+            1/4*p[1, 1] # p[1, 1] + 1/4*p[1, 1] # p[2] + 1/4*p[2] # p[1, 1] + 1/4*p[2] # p[2]
 
         Extensions of the ground ring should probably be reintroduced
         at some point, but via coercions, and with stronger sanity
@@ -1881,7 +1885,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         try:
             if el == self.one_basis():
                 return AsciiArt(["1"])
-        except StandardError:
+        except Exception:
             pass
         pref = AsciiArt([self.prefix()])
         r = pref * (AsciiArt([" "**Integer(len(pref))]) + ascii_art(el))
@@ -2655,6 +2659,69 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             """
             return self.tensor_constructor(tuple(element.parent() for element in elements))(*elements)
 
+        def _coerce_map_from_(self, R):
+            """
+            Return ``True`` if there is a coercion from ``R`` into ``self`` and
+            ``False`` otherwise.  The things that coerce into ``self`` are:
+
+            - Anything with a coercion into ``self.base_ring()``.
+
+            - A tensor algebra whose factors have a coercion into the
+              corresponding factors of ``self``.
+
+            TESTS::
+
+                sage: C = CombinatorialFreeModule(ZZ, ZZ)
+                sage: C2 = CombinatorialFreeModule(ZZ, NN)
+                sage: M = C.module_morphism(lambda x: C2.monomial(abs(x)), codomain=C2)
+                sage: M.register_as_coercion()
+                sage: C2(C.basis()[3])
+                B[3]
+                sage: C2(C.basis()[3] + C.basis()[-3])
+                2*B[3]
+                sage: S = C.tensor(C)
+                sage: S2 = C2.tensor(C2)
+                sage: S2.has_coerce_map_from(S)
+                True
+                sage: S.has_coerce_map_from(S2)
+                False
+                sage: S.an_element()
+                3*B[0] # B[-1] + 2*B[0] # B[0] + 2*B[0] # B[1]
+                sage: S2(S.an_element())
+                2*B[0] # B[0] + 5*B[0] # B[1]
+
+            ::
+
+                sage: C = CombinatorialFreeModule(ZZ, Set([1,2]))
+                sage: D = CombinatorialFreeModule(ZZ, Set([2,4]))
+                sage: f = C.module_morphism(on_basis=lambda x: D.monomial(2*x), codomain=D)
+                sage: f.register_as_coercion()
+                sage: T = tensor((C,C))
+                sage: p = D.an_element()
+                sage: T(tensor((p,p)))
+                Traceback (most recent call last):
+                ...
+                NotImplementedError
+                sage: T = tensor((D,D))
+                sage: p = C.an_element()
+                sage: T(tensor((p,p)))
+                4*B[2] # B[2] + 4*B[2] # B[4] + 4*B[4] # B[2] + 4*B[4] # B[4]
+            """
+            if R in ModulesWithBasis(self.base_ring()).TensorProducts() \
+                    and isinstance(R, CombinatorialFreeModule_Tensor) \
+                    and len(R._sets) == len(self._sets) \
+                    and all(self._sets[i].has_coerce_map_from(M)
+                            for i,M in enumerate(R._sets)):
+                modules = R._sets
+                vector_map = [self._sets[i].coerce_map_from(M)
+                              for i,M in enumerate(modules)]
+                return R.module_morphism(lambda x: self._tensor_of_elements(
+                        [vector_map[i](M.monomial(x[i]))
+                         for i,M in enumerate(modules)]),
+                                         codomain=self)
+
+            return super(CombinatorialFreeModule_Tensor, self)._coerce_map_from_(R)
+
 class CartesianProductWithFlattening(object):
     """
     A class for cartesian product constructor, with partial flattening
@@ -2785,9 +2852,10 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
         # TODO: make this overridable by setting _name
 
     @cached_method
-    def summand_embedding(self, i):
+    def cartesian_embedding(self, i):
         """
-        Returns the natural embedding morphism of the i-th summand of self into self
+        Return the natural embedding morphism of the ``i``-th
+        cartesian factor (summand) of ``self`` into ``self``.
 
         INPUTS:
 
@@ -2808,10 +2876,13 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
         assert i in self._sets_keys()
         return self._sets[i]._module_morphism(lambda t: self.monomial((i,t)), codomain = self)
 
+    summand_embedding = cartesian_embedding
+
     @cached_method
-    def summand_projection(self, i):
+    def cartesian_projection(self, i):
         """
-        Returns the natural projection onto the i-th summand of self
+        Return the natural projection onto the `i`-th cartesian factor
+        (summand) of ``self``.
 
         INPUTS:
 
@@ -2823,26 +2894,29 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
             sage: G = CombinatorialFreeModule(ZZ, [4,6]); G.__custom_name = "G"
             sage: S = cartesian_product([F, G])
             sage: x = S.monomial((0,4)) + 2 * S.monomial((0,5)) + 3 * S.monomial((1,6))
-            sage: S.summand_projection(0)(x)
+            sage: S.cartesian_projection(0)(x)
             B[4] + 2*B[5]
-            sage: S.summand_projection(1)(x)
+            sage: S.cartesian_projection(1)(x)
             3*B[6]
-            sage: S.summand_projection(0)(x).parent() == F
+            sage: S.cartesian_projection(0)(x).parent() == F
             True
-            sage: S.summand_projection(1)(x).parent() == G
+            sage: S.cartesian_projection(1)(x).parent() == G
             True
         """
         assert i in self._sets_keys()
         module = self._sets[i]
         return self._module_morphism(lambda (j,t): module.monomial(t) if i == j else module.zero(), codomain = module)
 
+    summand_projection = cartesian_projection
+
     def _cartesian_product_of_elements(self, elements):
         """
-        Returns the cartesian product of the elements
+        Return the cartesian product of the elements.
 
         INPUT:
 
-         - ``elements`` - a tuple with one element of each summand of self
+         - ``elements`` -- a tuple with one element of each cartesian
+           factor of ``self``
 
         EXAMPLES::
 

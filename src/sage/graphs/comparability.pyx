@@ -528,6 +528,7 @@ def is_comparability(g, algorithm = "greedy", certificate = False, check = True)
         sage: [len([g for g in graphs(i) if is_comparability(g, certificate = True)[0]]) for i in range(7)]
         [1, 1, 2, 4, 11, 33, 144]
     """
+    g._scream_if_not_simple()
     if g.size() == 0:
         if certificate:
             from sage.graphs.digraph import DiGraph

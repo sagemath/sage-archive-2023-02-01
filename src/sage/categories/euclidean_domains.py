@@ -8,8 +8,11 @@ Euclidean domains
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
+from sage.misc.cachefunc import cached_method
+from sage.structure.element import coerce_binop
 
 class EuclideanDomains(Category_singleton):
     """
@@ -52,4 +55,34 @@ class EuclideanDomains(Category_singleton):
             return True
 
     class ElementMethods:
-        pass
+        @coerce_binop
+        def gcd(self, other):
+            """
+            Return the greatest common divisor of this element and ``other``.
+
+            INPUT:
+
+            - ``other`` -- an element in the same ring as ``self``
+
+            ALGORITHM:
+
+            Algorithm 3.2.1 in [Coh1996]_.
+
+            REFERENCES:
+
+            .. [Coh1996] Henri Cohen. *A Course in Computational Algebraic
+               Number Theory*. Springer, 1996.
+
+            EXAMPLES::
+
+                sage: EuclideanDomains().ElementMethods().gcd(6,4)
+                2
+            """
+            A = self
+            B = other
+            while not B.is_zero():
+                Q, R = A.quo_rem(B)
+                A = B
+                B = R
+            return A
+

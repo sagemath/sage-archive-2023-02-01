@@ -20,7 +20,6 @@ Regular Crystals
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.crystals import Crystals
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 class RegularCrystals(Category_singleton):
     r"""

@@ -441,12 +441,12 @@ class Crystals(Category_singleton):
                 # - images contains all known morphism(x)
                 # - known contains all elements x for which we know morphism(x)
                 # - todo  contains all elements x for which we haven't propagated to each child
-                while todo <> set( [] ):
+                while todo != set( [] ):
                     x = todo.pop()
                     for i in index_set:
                         eix  = getattr(x, f_string)([i for k in range(similarity_factor_domain[i])])
                         eigx = getattr(morphism[x], f_string)([automorphism(i) for k in range(similarity_factor[i])])
-                        if bool(eix is None) <> bool(eigx is None):
+                        if bool(eix is None) != bool(eigx is None):
                             # This is not a crystal morphism!
                             raise ValueError, "This is not a morphism!" #, print("x="x,"g(x)="g(x),"i="i)
                         if (eix is not None) and (eix not in known):

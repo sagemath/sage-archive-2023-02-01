@@ -20,7 +20,6 @@ from sage.rings.all import Integer
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.realizations import Realizations, Category_realization_of_parent
-from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
 from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
 from sage.categories.graded_coalgebras import GradedCoalgebras
@@ -127,7 +126,7 @@ class KBoundedSubspace(UniqueRepresentation, Parent):
 
     def retract(self, sym):
         r"""
-        Retracts ``sym`` from ``self`` to the ring of symmetric functions.
+        Return the retract of ``sym`` from the ring of symmetric functions to ``self``.
 
         INPUT:
 
@@ -135,7 +134,8 @@ class KBoundedSubspace(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        - the analogue of the symmetric function in the `k`-bounded subspace (if possible)
+        - the analogue of the symmetric function in the `k`-bounded
+          subspace (if possible)
 
         EXAMPLES::
 
@@ -587,12 +587,14 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
 
         def _mul_(self, other):
             r"""
-            Method for multiplying two elements.
+            Return the product of two elements ``self`` and ``other``.
 
-            When `t=1`, the `k`-bounded subspace is an algebra, so the product of two
-            elements is always in the space. For generic `t`, the `k`-bounded subspace is
-            not closed under multiplication, so the result is returned in the `k`-bounded
-            subspace if possible and else in the ring of symmetric functions.
+            When `t=1`, the `k`-bounded subspace is an algebra, so the
+            product of two elements is always in the space. For generic
+            `t`, the `k`-bounded subspace is not closed under
+            multiplication, so the result is returned in the `k`-bounded
+            subspace if possible and else in the ring of symmetric
+            functions.
 
             EXAMPLES::
 
@@ -626,6 +628,15 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 sage: ks5 = Sym.kschur(5)
                 sage: ks5(ks3[2]) * ks5(ks2[2,1])
                 ks5[2, 2, 1] + ks5[3, 1, 1] + (t+1)*ks5[3, 2] + (t+1)*ks5[4, 1] + t*ks5[5]
+
+                sage: ks3([1]) * ks3([1]) # indirect doctest
+                ks3[1, 1] + ks3[2]
+                sage: ks3([2,1]) * ks3([2,1])
+                s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + 2*s[3, 2, 1] +
+                s[3, 3] + s[4, 1, 1] + s[4, 2]
+                sage: ks3 = SymmetricFunctions(QQ).kschur(3, t=1)
+                sage: ks3([2,1])^2
+                ks3[2, 2, 1, 1] + ks3[2, 2, 2] + ks3[3, 1, 1, 1]
             """
             if self.parent().realization_of().t == 1:
                 return self.parent()(self.lift()*other.lift())
@@ -839,6 +850,115 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
 class kSchur(CombinatorialFreeModule):
     """
     Space of `k`-Schur functions.
+
+    EXAMPLES::
+
+        sage: Sym = SymmetricFunctions(QQ['t'])
+        sage: KB = Sym.kBoundedSubspace(3); KB
+        3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field
+
+    The `k`-Schur function basis can be constructed as follows::
+
+        sage: ks3 = KB.kschur(); ks3
+        3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the 3-Schur basis
+
+    We can convert to any basis of the ring of symmetric functions and,
+    whenever it makes sense, also the other way round::
+
+        sage: s = Sym.schur()
+        sage: s(ks3([3,2,1]))
+        s[3, 2, 1] + t*s[4, 1, 1] + t*s[4, 2] + t^2*s[5, 1]
+        sage: t = Sym.base_ring().gen()
+        sage: ks3(s([3, 2, 1]) + t*s([4, 1, 1]) + t*s([4, 2]) + t^2*s([5, 1]))
+        ks3[3, 2, 1]
+        sage: s(ks3[2, 1, 1])
+        s[2, 1, 1] + t*s[3, 1]
+        sage: ks3(s[2, 1, 1] + t*s[3, 1])
+        ks3[2, 1, 1]
+
+    `k`-Schur functions are indexed by partitions with first part `\le k`. Constructing a
+    `k`-Schur function for a larger partition raises an error::
+
+        sage: ks3([4,3,2,1]) #
+        Traceback (most recent call last):
+        ...
+        TypeError: do not know how to make x (= [4, 3, 2, 1]) an element of self (=3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the 3-Schur basis)
+
+    Similarly, attempting to convert a function that is not in the
+    linear span of the `k`-Schur functions raises an error::
+
+        sage: ks3(s([4]))
+        Traceback (most recent call last):
+        ...
+        ValueError: s[4] is not in the image of Generic morphism:
+          From: 3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the 3-Schur basis
+          To:   Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the Schur basis
+
+    Note that the product of `k`-Schur functions is not guaranteed to be in the
+    space spanned by the `k`-Schurs. In general, we only have that a
+    `k`-Schur times a `j`-Schur function is in the `(k+j)`-bounded subspace. The
+    multiplication of two `k`-Schur functions thus generally returns the product of
+    the lift of the functions to the ambient symmetric function space.  If the result
+    happens to lie in the `k`-bounded subspace, then the result is cast into the
+    `k`-Schur basis::
+
+        sage: ks2 = Sym.kBoundedSubspace(2).kschur()
+        sage: ks2[1] * ks2[1]
+        ks2[1, 1] + ks2[2]
+        sage: ks2[1] * ks2[2]
+        s[2, 1] + s[3]
+
+    Because the target space of the product of a `k`-Schur and a `j`-Schur has several
+    possibilities, the product of a `k`-Schur and `j`-Schur function is not
+    implemented for distinct `k` and `j`. Let us show how to get around
+    this 'manually'::
+
+        sage: ks3 = Sym.kBoundedSubspace(3).kschur()
+        sage: ks2([2,1]) * ks3([3,1])
+        Traceback (most recent call last):
+        ...
+        TypeError: unsupported operand parent(s) for '*': '2-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the 2-Schur basis' and '3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the 3-Schur basis'
+
+    The workaround::
+
+        sage: f = s(ks2([2,1])) * s(ks3([3,1])); f # Convert to Schur functions first and multiply there.
+        s[3, 2, 1, 1] + s[3, 2, 2] + (t+1)*s[3, 3, 1] + s[4, 1, 1, 1]
+        + (2*t+2)*s[4, 2, 1] + (t^2+t+1)*s[4, 3] + (2*t+1)*s[5, 1, 1]
+        + (t^2+2*t+1)*s[5, 2] + (t^2+2*t)*s[6, 1] + t^2*s[7]
+
+    or::
+
+        sage: f = ks2[2,1].lift() * ks3[3,1].lift()
+        sage: ks5 = Sym.kBoundedSubspace(5).kschur()
+        sage: ks5(f) # The product of a 'ks2' with a 'ks3' is a 'ks5'.
+        ks5[3, 2, 1, 1] + ks5[3, 2, 2] + (t+1)*ks5[3, 3, 1] + ks5[4, 1, 1, 1]
+        + (t+2)*ks5[4, 2, 1] + (t^2+t+1)*ks5[4, 3] + (t+1)*ks5[5, 1, 1] + ks5[5, 2]
+
+    For other technical reasons, taking powers of `k`-Schur functions
+    is not implemented, even when the answer is still in the `k`-bounded
+    subspace::
+
+        sage: ks2([1])^2
+        Traceback (most recent call last):
+        ...
+        TypeError: unsupported operand type(s) for ** or pow(): 'kSchur_with_category.element_class' and 'int'
+
+    .. TODO::
+
+        Get rid of said technical "reasons".
+
+    However, at `t=1`, the product of `k`-Schur functions is in the span of the
+    `k`-Schur functions always. Below are some examples at `t=1` ::
+
+        sage: ks3 = Sym.kBoundedSubspace(3, t=1).kschur(); ks3
+        3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field with t=1 in the 3-Schur basis also with t=1
+        sage: s = SymmetricFunctions(ks3.base_ring()).schur()
+        sage: ks3(s([3]))
+        ks3[3]
+        sage: s(ks3([3,2,1]))
+        s[3, 2, 1] + s[4, 1, 1] + s[4, 2] + s[5, 1]
+        sage: ks3([2,1])^2    # taking powers works for t=1
+        ks3[2, 2, 1, 1] + ks3[2, 2, 2] + ks3[3, 1, 1, 1]
 
     TESTS:
 

@@ -1223,7 +1223,7 @@ class CartanType_abstract(object):
         try:
             self.coxeter_diagram()
             return True
-        except StandardError:
+        except Exception:
             return False
 
     def root_system(self):

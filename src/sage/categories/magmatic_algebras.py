@@ -15,7 +15,8 @@ from sage.misc.lazy_import import LazyImport
 from sage.categories.category import Category
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
-from sage.categories.distributive_magmas_and_additive_magmas import DistributiveMagmasAndAdditiveMagmas
+from sage.categories.magmas import Magmas
+from sage.categories.additive_magmas import AdditiveMagmas
 from sage.categories.modules import Modules
 
 class MagmaticAlgebras(Category_over_base_ring):
@@ -38,7 +39,7 @@ class MagmaticAlgebras(Category_over_base_ring):
         sage: C = MagmaticAlgebras(ZZ); C
         Category of magmatic algebras over Integer Ring
         sage: C.super_categories()
-        [Category of additive commutative additive associative additive inverse additive unital distributive magmas and additive magmas,
+        [Category of additive commutative additive associative additive unital distributive magmas and additive magmas,
          Category of modules over Integer Ring]
 
     TESTS::
@@ -53,16 +54,20 @@ class MagmaticAlgebras(Category_over_base_ring):
 
             sage: from sage.categories.magmatic_algebras import MagmaticAlgebras
             sage: MagmaticAlgebras(ZZ).super_categories()
-            [Category of additive commutative additive associative additive inverse additive unital distributive magmas and additive magmas, Category of modules over Integer Ring]
+            [Category of additive commutative additive associative additive unital distributive magmas and additive magmas, Category of modules over Integer Ring]
 
-            sage: MagmaticAlgebras(ZZ).is_subcategory(DistributiveMagmasAndAdditiveMagmas().AdditiveAssociative())
+            sage: from sage.categories.additive_semigroups import AdditiveSemigroups
+            sage: MagmaticAlgebras(ZZ).is_subcategory((AdditiveSemigroups() & Magmas()).Distributive())
             True
 
         """
         R = self.base_ring()
-        # TODO: We would want not to have to do the join:
-        #return [DistributiveMagmasAndAdditiveMagmas(), Modules(R)]
-        return Category.join([DistributiveMagmasAndAdditiveMagmas(), Modules(R)], as_list=True)
+        # Note: The specifications impose `self` to be a subcategory
+        # of the join of its super categories. Here the join is non
+        # trivial, since some of the axioms of Modules (like the
+        # commutativity of '+') are added to the left hand side.  We
+        # might want the infrastructure to take this join for us.
+        return Category.join([(Magmas() & AdditiveMagmas()).Distributive(), Modules(R)], as_list=True)
 
     Associative = LazyImport('sage.categories.associative_algebras', 'AssociativeAlgebras', at_startup=True)
     Unital = LazyImport('sage.categories.unital_algebras', 'UnitalAlgebras', at_startup=True)

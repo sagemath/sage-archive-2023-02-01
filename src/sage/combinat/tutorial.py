@@ -1189,16 +1189,13 @@ Alternatively, we could construct an interator on the counter-examples::
     ::
 
         sage: for p in GL(2, 2): print p; print
+        [1 0]
+        [0 1]
+        <BLANKLINE>
         [0 1]
         [1 0]
         <BLANKLINE>
         [0 1]
-        [1 1]
-        <BLANKLINE>
-        [1 0]
-        [0 1]
-        <BLANKLINE>
-        [1 0]
         [1 1]
         <BLANKLINE>
         [1 1]
@@ -1206,6 +1203,9 @@ Alternatively, we could construct an interator on the counter-examples::
         <BLANKLINE>
         [1 1]
         [1 0]
+        <BLANKLINE>
+        [1 0]
+        [1 1]
         <BLANKLINE>
 
     ::

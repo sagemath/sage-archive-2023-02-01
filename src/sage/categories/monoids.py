@@ -50,7 +50,7 @@ class Monoids(CategoryWithAxiom):
 
     """
 
-    _base_category_class_and_axiom = [Semigroups, "Unital"]
+    _base_category_class_and_axiom = (Semigroups, "Unital")
 
     Finite = LazyImport('sage.categories.finite_monoids', 'FiniteMonoids', at_startup=True)
     Inverse = LazyImport('sage.categories.groups', 'Groups', at_startup=True)
@@ -362,18 +362,20 @@ class Monoids(CategoryWithAxiom):
 
             def is_central(self):
                 r"""
-                Returns True if the element is central and False otherwise.
+                Return whether the element is central.
 
                 EXAMPLES::
 
-                    sage: A=DihedralGroup(5).algebra(QQ)
+                    sage: SG4=SymmetricGroupAlgebra(ZZ,4)
+                    sage: SG4(1).is_central()
+                    True
+                    sage: SG4(Permutation([1,3,2,4])).is_central()
+                    False
+                    sage: A=GroupAlgebras(QQ).example(); A
+                    The group algebra of the Dihedral group of order 8 as a permutation group over Rational Field
                     sage: sum(i for i in A.basis()).is_central()
                     True
                 """
-                gen=self.parent().algebra_generators()
-                for i in gen:
-                    if i*self != self*i:
-                        return False
-                return True
+                return all([i*self == self*i for i in self.parent().algebra_generators()])
 
 

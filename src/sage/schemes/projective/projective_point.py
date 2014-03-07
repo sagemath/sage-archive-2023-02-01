@@ -390,7 +390,9 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
     def normalize_coordinates(self):
         """
-        Removes common factors from the coordinates of ``self`` (including `-1`).
+        Removes the gcd from the coordinates of ``self`` (including `-1`).
+
+        .. WARNING:: The gcd will depend on the base ring.
 
         OUTPUT:
 
@@ -398,43 +400,60 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         EXAMPLES::
 
-            sage: P=ProjectiveSpace(ZZ,2,'x')
-            sage: p=P([-5,-15,-20])
+            sage: P = ProjectiveSpace(ZZ,2,'x')
+            sage: p = P([-5,-15,-20])
             sage: p.normalize_coordinates(); p
             (1 : 3 : 4)
 
         ::
 
-            sage: P=ProjectiveSpace(Zp(7),2,'x')
-            sage: p=P([-5,-15,-2])
+            sage: P = ProjectiveSpace(Zp(7),2,'x')
+            sage: p = P([-5,-15,-2])
             sage: p.normalize_coordinates(); p
             (5 + O(7^20) : 1 + 2*7 + O(7^20) : 2 + O(7^20))
 
         ::
 
-            sage: R.<t>=PolynomialRing(QQ)
-            sage: P=ProjectiveSpace(R,2,'x')
-            sage: p=P([3/5*t^3,6*t, t])
+            sage: R.<t> = PolynomialRing(QQ)
+            sage: P = ProjectiveSpace(R,2,'x')
+            sage: p = P([3/5*t^3,6*t, t])
             sage: p.normalize_coordinates(); p
             (3/5*t^2 : 6 : 1)
 
         ::
 
-            sage: P.<x,y>=ProjectiveSpace(Zmod(20),1)
-            sage: Q=P(4,8)
+            sage: P.<x,y> = ProjectiveSpace(Zmod(20),1)
+            sage: Q = P(4,8)
             sage: Q.normalize_coordinates()
             sage: Q
             (1 : 2)
 
         ::
 
-            sage: R.<t>=PolynomialRing(QQ,1)
-            sage: S=R.quotient_ring(R.ideal(t^3))
-            sage: P.<x,y>=ProjectiveSpace(S,1)
-            sage: Q=P(t,t^2)
+            sage: R.<t> = PolynomialRing(QQ,1)
+            sage: S = R.quotient_ring(R.ideal(t^3))
+            sage: P.<x,y> = ProjectiveSpace(S,1)
+            sage: Q = P(t,t^2)
             sage: Q.normalize_coordinates()
             sage: Q
             (1 : t)
+
+        Since the base ring is a polynomial ring over a field, only the
+        gcd `c` is removed. ::
+
+            sage: R.<c> = PolynomialRing(QQ)
+            sage: P = ProjectiveSpace(R,1)
+            sage: Q = P(2*c,4*c)
+            sage: Q.normalize_coordinates();Q
+            (2 : 4)
+
+        A polynomial ring over a ring gives the more intuitive result. ::
+
+            sage: R.<c> = PolynomialRing(ZZ)
+            sage: P = ProjectiveSpace(R,1)
+            sage: Q = P(2*c,4*c)
+            sage: Q.normalize_coordinates();Q
+            (1 : 2)
         """
         R=self.codomain().base_ring()
         GCD = R(gcd(self[0],self[1]))
@@ -910,20 +929,42 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
             p-adic heights
 
-            add heights to integer.pyx and remove special case
         """
-        if self.domain().base_ring() == ZZ:
-            if prec is None:
-                R = RealField()
-            else:
-                R = RealField(prec)
-            H=R(0)
-            return(R(max([self[i].abs() for i in range(self.codomain().ambient_space().dimension_relative()+1)])).log())
         if self.domain().base_ring() in _NumberFields or is_NumberFieldOrder(self.domain().base_ring()):
             return(max([self[i].global_height(prec) for i in range(self.codomain().ambient_space().dimension_relative()+1)]))
         else:
             raise NotImplementedError("Must be over a Numberfield or a Numberfield Order")
 
+
+    def multiplier(self,f,n,check=True):
+        r"""
+        Returns the multiplier of the projective point ``self`` of period `n` by the function `f`.
+        `f` must be an endomorphism of projective space
+
+        INPUT:
+
+        - ``f`` - a endomorphism of ``self.codomain()``
+
+        - ``n`` - a positive integer, the period of ``self``
+
+        - ``check`` -- check if ``P`` is periodic of period ``n``, Default:True
+
+        OUTPUT:
+
+        - a square matrix of size ``self.codomain().dimension_relative()`` in the ``base_ring`` of ``self``
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w>=ProjectiveSpace(QQ,3)
+            sage: H=Hom(P,P)
+            sage: f=H([x^2,y^2,4*w^2,4*z^2]);
+            sage: Q=P.point([4,4,1,1],False);
+            sage: Q.multiplier(f,1)
+            [ 2  0 -8]
+            [ 0  2 -8]
+            [ 0  0 -2]
+        """
+        return(f.multiplier(self,n,check))
 
 class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring):
     """

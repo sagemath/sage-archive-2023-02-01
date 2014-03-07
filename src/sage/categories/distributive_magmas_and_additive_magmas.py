@@ -1,5 +1,5 @@
 r"""
-Semirngs
+Distributive Magmas and Additive Magmas
 """
 #*****************************************************************************
 #  Copyright (C) 2010 Nicolas Borie <nicolas.borie@math.u-psud.fr>
@@ -10,11 +10,10 @@ Semirngs
 
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom
-from sage.categories.category_singleton import Category_singleton
 from sage.categories.additive_magmas import AdditiveMagmas
 from sage.categories.magmas import Magmas
 
-class DistributiveMagmasAndAdditiveMagmas(Category_singleton):
+class DistributiveMagmasAndAdditiveMagmas(CategoryWithAxiom):
     """
     The category of sets `(S,+,*)` with `*` distributing on `+`
 
@@ -23,38 +22,27 @@ class DistributiveMagmasAndAdditiveMagmas(Category_singleton):
 
     EXAMPLES::
 
-        sage: DistributiveMagmasAndAdditiveMagmas()
+        sage: from sage.categories.distributive_magmas_and_additive_magmas import DistributiveMagmasAndAdditiveMagmas
+        sage: C = DistributiveMagmasAndAdditiveMagmas(); C
         Category of distributive magmas and additive magmas
-        sage: DistributiveMagmasAndAdditiveMagmas().super_categories()
-        [Category of magmas, Category of additive magmas]
-
-        sage: DistributiveMagmasAndAdditiveMagmas().Associative().AdditiveAssociative().AdditiveCommutative().AdditiveUnital().AdditiveInverse()
-        Category of rngs
-        sage: DistributiveMagmasAndAdditiveMagmas().Associative().AdditiveAssociative().AdditiveCommutative().AdditiveUnital().Unital()
-        Category of semirings
-        sage: DistributiveMagmasAndAdditiveMagmas().Associative().AdditiveAssociative().AdditiveCommutative().AdditiveUnital().AdditiveInverse().Unital()
-        Category of rings
+        sage: C.super_categories()
+        [Category of magmas and additive magmas]
 
     TESTS::
 
-        sage: TestSuite(DistributiveMagmasAndAdditiveMagmas()).run()
+        sage: from sage.categories.magmas_and_additive_magmas import MagmasAndAdditiveMagmas
+        sage: C is MagmasAndAdditiveMagmas().Distributive()
+        True
+        sage: C is (Magmas() & AdditiveMagmas()).Distributive()
+        True
+        sage: TestSuite(C).run()
     """
-
-    def super_categories(self):
-        """
-        EXAMPLES::
-
-            sage: DistributiveMagmasAndAdditiveMagmas().super_categories()
-            [Category of magmas, Category of additive magmas]
-        """
-        return [Magmas(), AdditiveMagmas()]
 
     class AdditiveAssociative(CategoryWithAxiom):
         class AdditiveCommutative(CategoryWithAxiom):
             class AdditiveUnital(CategoryWithAxiom):
-                class AdditiveInverse(CategoryWithAxiom):
-                    Associative = LazyImport('sage.categories.rngs', 'Rngs', at_startup=True)
                 class Associative(CategoryWithAxiom):
+                    AdditiveInverse = LazyImport('sage.categories.rngs', 'Rngs', at_startup=True)
                     Unital          = LazyImport('sage.categories.semirings', 'Semirings', at_startup=True)
 
     class ParentMethods:

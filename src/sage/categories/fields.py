@@ -6,6 +6,7 @@ Fields
 #                          William Stein <wstein@math.ucsd.edu>
 #                2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #                2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2012      Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -19,6 +20,7 @@ from sage.categories.euclidean_domains import EuclideanDomains
 from sage.categories.division_rings import DivisionRings
 
 import sage.rings.ring
+from sage.structure.element import coerce_binop
 
 class Fields(CategoryWithAxiom):
     """
@@ -104,7 +106,7 @@ class Fields(CategoryWithAxiom):
         """
         try:
             return self._contains_helper(x) or sage.rings.ring._is_Field(x)
-        except StandardError:
+        except Exception:
             return False
 
     @lazy_class_attribute
@@ -378,3 +380,42 @@ class Fields(CategoryWithAxiom):
             if self==0 or other==0:
                 return P.zero()
             return P.one()
+
+        @coerce_binop
+        def xgcd(self, other):
+            """
+            Compute the extended gcd of ``self`` and ``other``.
+
+            INPUT:
+
+            - ``other`` -- an element with the same parent as ``self``
+
+            OUTPUT:
+
+            A tuple ``(r, s, t)`` of elements in the parent of ``self`` such
+            that ``r = s * self + t * other``. Since the computations are done
+            over a field, ``r`` is zero if ``self`` and ``other`` are zero,
+            and one otherwise.
+
+            AUTHORS:
+
+            - Julian Rueth (2012-10-19): moved here from
+              :class:`sage.structure.element.FieldElement`
+
+            EXAMPLES::
+
+                sage: (1/2).xgcd(2)
+                (1, 2, 0)
+                sage: (0/2).xgcd(2)
+                (1, 0, 1/2)
+                sage: (0/2).xgcd(0)
+                (0, 0, 0)
+            """
+            R = self.parent()
+            if not self.is_zero():
+                return (R.one(), ~self, R.zero())
+            if not other.is_zero():
+                return (R.one(), R.zero(), ~other)
+            # else both are 0
+            return (R.zero(), R.zero(), R.zero())
+

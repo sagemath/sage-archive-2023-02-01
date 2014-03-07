@@ -1128,7 +1128,7 @@ def error_fcn(t):
         from sage.rings.real_mpfr import RR
         try:
             return RR(t).erfc()
-        except StandardError:
+        except Exception:
             raise NotImplementedError
 
 

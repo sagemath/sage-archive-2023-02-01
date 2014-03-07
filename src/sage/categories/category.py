@@ -102,11 +102,64 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.c3_controlled import C3_sorted_merge, category_sort_key, _cmp_key, _cmp_key_named
 from sage.misc.unknown import Unknown
-from sage.misc.weak_dict import WeakValueDictionary
 
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.dynamic_class import DynamicMetaclass, dynamic_class
+
+import sage.misc.weak_dict
+from sage.misc.weak_dict import WeakValueDictionary
+_join_cache = WeakValueDictionary()
+
+def _join(categories, as_list):
+    """
+    This is an auxiliary function for :meth:`Category.join`
+
+    INPUT:
+
+    - ``categories``: A tuple (no list) of categories.
+    - ``as_list`` (boolean): Whether or not the result should be represented as a list.
+
+    EXAMPLES::
+
+        sage: Category.join((Groups(), CommutativeAdditiveMonoids()))  # indirect doctest
+        Join of Category of groups and Category of commutative additive monoids
+        sage: Category.join((Modules(ZZ), FiniteFields()), as_list=True)
+        [Category of finite fields, Category of modules over Integer Ring]
+
+    """
+    # Since Objects() is the top category, it is the neutral element of join
+    if len(categories) == 0:
+        from objects import Objects
+        return Objects()
+
+    if not as_list:
+        try:
+            return _join_cache[categories]
+        except KeyError:
+            pass
+
+    # Ensure associativity by flattening JoinCategory's
+    # Invariant: the super categories of a JoinCategory are not JoinCategories themselves
+    categories = sum( (tuple(category._super_categories) if isinstance(category, JoinCategory) else (category,)
+                       for category in categories), ())
+
+    # canonicalize, by removing redundant categories which are super
+    # categories of others, and by sorting
+    result = ()
+    for category in categories:
+        if any(cat.is_subcategory(category) for cat in result):
+            continue
+        result = tuple( cat for cat in result if not category.is_subcategory(cat) ) + (category,)
+    result = tuple(sorted(result, key = category_sort_key, reverse=True))
+    if as_list:
+        return list(result)
+    if len(result) == 1:
+        out = _join_cache[categories] = result[0]
+    else:
+        out = _join_cache[categories] = JoinCategory(result)
+    return out
+
 
 class Category(UniqueRepresentation, SageObject):
     r"""
@@ -114,11 +167,12 @@ class Category(UniqueRepresentation, SageObject):
 
     - ``Groups()``: the category of groups
     - ``EuclideanDomains()``: the category of euclidean rings
-    - ``VectorSpaces(QQ)``: the category of vector spaces over the field of rational
+    - ``VectorSpaces(QQ)``: the category of vector spaces over the field of
+      rationals
 
     See :mod:`sage.categories.primer` for an introduction to
-    categories in Sage, their relevance, purpose and usage. The
-    documentation below focus on their implementation.
+    categories in Sage, their relevance, purpose, and usage. The
+    documentation below will focus on their implementation.
 
     Technically, a category is an instance of the class
     :class:`Category` or some of its subclasses. Some categories, like
@@ -127,7 +181,7 @@ class Category(UniqueRepresentation, SageObject):
     hand, ``EuclideanDomains()`` is the single instance of the class
     :class:`EuclideanDomains`.
 
-    Recall that an algebraic structure (say the ring `QQ[x]`) is
+    Recall that an algebraic structure (say, the ring `\QQ[x]`) is
     modelled in Sage by an object which is called a parent. This
     object belongs to certain categories (here ``EuclideanDomains()`` and
     ``Algebras()``). The elements of the ring are themselves objects.
@@ -136,8 +190,9 @@ class Category(UniqueRepresentation, SageObject):
 
     - Operations on the category itself (what is its super categories?
       its category of morphisms? its dual category?)
-    - Generic operations on parents in this category, like the ring `QQ[x]`
-    - Generic operations on elements of this ring (Euclid algorithm for computing gcds)
+    - Generic operations on parents in this category, like the ring `\QQ[x]`
+    - Generic operations on elements of this ring (e. g., the Euclidean
+      algorithm for computing gcds)
 
     This is achieved as follows::
 
@@ -164,10 +219,10 @@ class Category(UniqueRepresentation, SageObject):
     operations. The hierarchy between the different categories is
     defined once at the level of the categories. Behind the scene, a
     parallel hierarchy of classes is built automatically from all the
-    .ParentMethods classes. Then, a parent in a category receives the
-    appropriate operations from all the super categories by usual
+    ``.ParentMethods`` classes. Then, a parent in a category receives
+    the appropriate operations from all the super categories by usual
     class inheritance. Similarly, a third hierarchy of classes is
-    built for elements from the .Elements.
+    built for elements from the ``.Elements``.
 
     EXAMPLES:
 
@@ -234,8 +289,8 @@ class Category(UniqueRepresentation, SageObject):
         sage: As().parent_class == As().parent_class
         True
 
-    We construct a parent in the category Ds() (that is an instance of
-    Ds().parent_class), and check that it has access to all the
+    We construct a parent in the category Ds() (that, is an instance of
+    ``Ds().parent_class``), and check that it has access to all the
     methods provided by all the categories, with the appropriate
     inheritance order::
 
@@ -291,11 +346,11 @@ class Category(UniqueRepresentation, SageObject):
         [<class '__main__.Ds.parent_class'>, <class '__main__.Cs.parent_class'>, <class '__main__.Bs.parent_class'>, <class '__main__.As.parent_class'>, <type 'object'>]
 
     Note that that two categories in the same class need not have the
-    same super_categories. For example, Algebras(QQ) has
-    VectorSpaces(QQ) as super category, whereas Algebras(ZZ) only has
-    Modules(ZZ) as super category. In particular, the constructed
-    parent class and element class will differ (inheriting, or not,
-    methods specific for vector spaces)::
+    same ``super_categories``. For example, ``Algebras(QQ)`` has
+    ``VectorSpaces(QQ)`` as super category, whereas ``Algebras(ZZ)``
+    only has ``Modules(ZZ)`` as super category. In particular, the
+    constructed parent class and element class will differ (inheriting,
+    or not, methods specific for vector spaces)::
 
         sage: Algebras(QQ).parent_class is Algebras(ZZ).parent_class
         False
@@ -1059,7 +1114,7 @@ class Category(UniqueRepresentation, SageObject):
         tester.assert_(all(not isinstance(cat, JoinCategory) for cat in self._super_categories))
         if not isinstance(self, JoinCategory):
             tester.assert_(all(self._cmp_key > cat._cmp_key      for cat in self._super_categories))
-        tester.assert_(self.is_subcategory( Category.join(self.super_categories()) )) # Not obvious with axioms
+        tester.assert_(self.is_subcategory( Category.join(self.super_categories()) )) # Not an obviously passing test with axioms
         if self.is_subcategory(Sets()):
             tester.assert_(isinstance(self.parent_class, type))
             tester.assert_(isinstance(self.element_class, type))
@@ -1523,64 +1578,89 @@ class Category(UniqueRepresentation, SageObject):
     @cached_method
     def axioms(self):
         """
+        Return the axioms known to be satisfied by all the objects of ``self``.
+
+        Technically, this the set of all the axioms ``A`` such that,
+        if ``Cs`` is the category defining ``A``, then ``self`` is a
+        subcategory of ``Cs().A()``. Any additional axiom ``A`` would
+        yield a strict subcategory of ``self``, at the very least
+        ``self & Cs().A()`` where ``Cs`` is the category defining
+        ``A``.
+
         EXAMPLES::
 
-            sage: Category.join([EnumeratedSets().Infinite(), Sets().Facade()]).axioms()
+            sage: Monoids().axioms()
+            frozenset(['Associative', 'Unital'])
+            sage: (EnumeratedSets().Infinite() & Sets().Facade()).axioms()
             frozenset(['Infinite', 'Facade'])
         """
         return frozenset(axiom
-                         for category in self.super_categories()
+                         for category in self._super_categories
                          for axiom in category.axioms())
 
     @cached_method
-    def _with_axiom_categories(self, axiom):
+    def _with_axiom_as_tuple(self, axiom):
         """
-        Return the categories to be added to ``self`` to get ``self._with_axiom(axiom)``.
+        Return a tuple of categories whose join is ``self._with_axiom()``.
 
         INPUT:
 
-        - ``axiom`` -- an axiom (``Finite`` in the example above)
+        - ``axiom`` -- a string, the name of an axiom
 
-        OUTPUT: a tuple
+        This is a lazy version of :meth:`_with_axiom` which is used to
+        avoid recursion loops during join calculations
 
         .. WARNING:: the order in the result is irrelevant
 
         EXAMPLES::
 
-            sage: Sets()._with_axiom_categories('Finite')
+            sage: Sets()._with_axiom_as_tuple('Finite')
             (Category of finite sets,)
-            sage: Magmas()._with_axiom_categories('Finite')
-            (Category of finite sets,)
-            sage: Sets().Finite()._with_axiom_categories('Infinite')
-            (Category of infinite sets,)
-            sage: HopfAlgebras(QQ)._with_axiom_categories('FiniteDimensional')
-            (Category of finite dimensional modules over Rational Field,)
+            sage: Magmas()._with_axiom_as_tuple('Finite')
+            (Category of magmas, Category of finite sets)
+            sage: Rings().Division()._with_axiom_as_tuple('Finite')
+            (Category of division rings,
+             Category of finite monoids,
+             Category of commutative magmas)
+            sage: HopfAlgebras(QQ)._with_axiom_as_tuple('FiniteDimensional')
+            (Category of hopf algebras over Rational Field,
+             Category of finite dimensional modules over Rational Field)
         """
+        if axiom in self.axioms():
+            return (self, )
         axiom_attribute = getattr(self.__class__, axiom, None)
         if axiom_attribute is None:
-            # If the axiom is not defined for this category
+            # If the axiom is not defined for this category, ignore it
             # This uses the following invariant: the categories for
             # which a given axiom is defined form a lower set
-            return ()
+            return (self,)
         if axiom in self.__class__.__base__.__dict__:
+            # self implements this axiom
             from category_with_axiom import CategoryWithAxiom
             if inspect.isclass(axiom_attribute) and issubclass(axiom_attribute, CategoryWithAxiom):
                 return (axiom_attribute(self),)
             warn("Expecting %s.%s to be a subclass of CategoryWithAxiom to implement a category with axiom; got %s; ignoring"%(self.__class__.__base__.__name__,axiom,axiom_attribute))
 
-        # This category does not implement this axiom
-        result = set(cat
-                     for category in self.super_categories()
-                     for cat in category._with_axiom_categories(axiom))
+        # self does not implement this axiom
+        result = (self, ) + \
+                 tuple(cat
+                       for category in self._super_categories
+                       for cat in category._with_axiom_as_tuple(axiom))
         hook = getattr(self, axiom+"_extra_super_categories", None)
         if hook is not None:
             assert inspect.ismethod(hook)
-            result = result.union(hook())
-        return tuple(result)
+            result += tuple(hook())
+        return Category._sort_uniq(result)
 
     @cached_method
     def _with_axiom(self, axiom):
         """
+        Return the subcategory of the objects of ``self`` satisfying the given ``axiom``.
+
+        INPUT:
+
+        - ``axiom`` -- a string, the name of an axiom
+
         EXAMPLES::
 
             sage: Sets()._with_axiom("Finite")
@@ -1593,14 +1673,22 @@ class Category(UniqueRepresentation, SageObject):
             sage: Algebras(QQ).WithBasis().Commutative() is Algebras(QQ).Commutative().WithBasis()
             True
 
+        When ``axiom`` is not defined for ``self``, ``self`` is returned::
+
+            sage: Sets()._with_axiom("Associative")
+            Category of sets
+
+        .. WARNING:: This may be changed in the future to raising an error.
         """
-        if axiom in self.axioms():
-            return self
-        return Category.join((self,) + self._with_axiom_categories(axiom))
+        return Category.join(self._with_axiom_as_tuple(axiom))
 
     def _with_axioms(self, axioms):
         """
-        Return the category obtained by adding an axiom to ``self``.
+        Return the subcategory of the objects of ``self`` satisfying the given ``axioms``.
+
+        INPUT:
+
+        - ``axioms`` -- a list of strings, the names of the axiomso
 
         EXAMPLES::
 
@@ -1611,11 +1699,12 @@ class Category(UniqueRepresentation, SageObject):
             sage: FiniteSets()._with_axioms(["Finite"])
             Category of finite sets
 
-        When the category does not define the axiom, the category
-        itself is returned::
+        Axioms that are not defined for the ``self`` are ignored::
 
             sage: Sets()._with_axioms(["FooBar"])
             Category of sets
+            sage: Magmas()._with_axioms(["FooBar", "Unital"])
+            Category of unital magmas
 
         Note that adding several axioms at once can do more than
         adding them one by one. This is because the availability of an
@@ -1829,7 +1918,7 @@ class Category(UniqueRepresentation, SageObject):
     _join_cache = WeakValueDictionary()
 
     @staticmethod
-    def join(categories, as_list = False, merge_axioms = True, ignore_axioms=(), axioms=(), uniq=True):
+    def join(categories, as_list = False, ignore_axioms=(), axioms=()):
         """
         Return the join of the input categories in the lattice of categories.
 
@@ -1843,7 +1932,7 @@ class Category(UniqueRepresentation, SageObject):
         - ``categories`` -- a list (or iterable) of categories
         - ``as_list`` -- a boolean (default: False);
             whether the result should be returned as a list
-        - ``merge_axioms`` -- a boolean (default: False); for internal recursive use
+        - ``axioms`` -- a tuple of strings; the names of some supplementary axioms
 
         .. SEEALSO:: :meth:`__and__` for a shortcut
 
@@ -2005,77 +2094,73 @@ class Category(UniqueRepresentation, SageObject):
         # TODO:
         # - Do we want to store the cache after or before the mangling of the categories?
         # - Caching with ignore_axioms?
-        # - Caching with merge_axioms?
 
         # Ensure associativity and commutativity by flattening
-        # JoinCategory's and sorting
+        # JoinCategory's sorting, and removing duplicates
         categories = Category._flatten_categories(categories)
-        if uniq:
-            categories = Category._sort_uniq(categories)
-        else:
-            categories = Category._sort(categories)
+        categories = Category._sort_uniq(categories)
 
-        if merge_axioms and not as_list and not ignore_axioms:
+        if not as_list and not ignore_axioms:
             try:
                 return Category._join_cache[categories]
             except KeyError:
                 pass
+
         # Handle axioms
-        if merge_axioms:
-            axioms = {axiom
-                      for category in categories
-                      for axiom in category.axioms()}.union(axioms)
-            # Invariants:
-            # - the current list of categories is stored in the keys of ``done``
-            # - todo contains the ``complement`` of done; i.e.
-            #   for category in the keys of done,
-            #   (category, axiom) is in todo iff axiom is not in done[category]
-            done = dict()
-            todo = set()
-            def add_category(category):
-                axs = category.axioms()
-                for (cat, axiom) in ignore_axioms:
-                    if category.is_subcategory(cat):
-                        axs = axs | {axiom}
-                done[category] = axs
-                todo.update( (category, axiom)
-                             for axiom in axioms.difference(axs) )
-            for category in categories:
-                add_category(category)
-            while todo:
-                (category, axiom) = todo.pop()
-                # It's easier to remove categories from done than from todo
-                # So we check that ``category`` had not been removed
-                if category not in done:
-                    continue
-                new_cats = category._with_axiom_categories(axiom)
-                # Removes redundant categories in this join
-                new_cats = [new_cat for new_cat in new_cats
-                            if not any(cat.is_subcategory(new_cat) for cat in done.keys())]
-                for cat in done.keys():
-                    if any(new_cat.is_subcategory(cat) for new_cat in new_cats):
-                        del done[cat]
-                new_axioms = set(axiom
-                                 for new_cat in new_cats
-                                 for axiom in new_cat.axioms()
-                                 if axiom not in axioms)
-                # Mark old categories with new axioms as todo
-                todo.update( (category, axiom)
-                             for axiom in new_axioms
-                             for category in done.keys()
-                             )
-                for cat in new_cats:
-                    add_category(cat)
-            result = Category._sort_uniq(done.keys())
-        else:
-            result = categories
+        axioms = {axiom
+                  for category in categories
+                  for axiom in category.axioms()}.union(axioms)
+        # Invariants:
+        # - the current list of categories is stored in the keys of ``done``
+        # - todo contains the ``complement`` of done; i.e.
+        #   for category in the keys of done,
+        #   (category, axiom) is in todo iff axiom is not in done[category]
+        done = dict()
+        todo = set()
+        def add_category(category):
+            axs = category.axioms()
+            for (cat, axiom) in ignore_axioms:
+                if category.is_subcategory(cat):
+                    axs = axs | {axiom}
+            done[category] = axs
+            todo.update( (category, axiom)
+                         for axiom in axioms.difference(axs) )
+        for category in categories:
+            add_category(category)
+        while todo:
+            (category, axiom) = todo.pop()
+            # It's easier to remove categories from done than from todo
+            # So we check that ``category`` had not been removed
+            if category not in done:
+                continue
+            new_cats = category._with_axiom_as_tuple(axiom)
+
+            # Removes redundant categories
+            new_cats = [new_cat for new_cat in new_cats
+                        if not any(cat.is_subcategory(new_cat) for cat in done.keys())]
+            for cat in done.keys():
+                if any(new_cat.is_subcategory(cat) for new_cat in new_cats):
+                    del done[cat]
+
+            new_axioms = set(axiom
+                             for new_cat in new_cats
+                             for axiom in new_cat.axioms()
+                             if axiom not in axioms)
+            # Mark old categories with new axioms as todo
+            todo.update( (category, axiom)
+                         for axiom in new_axioms
+                         for category in done.keys()
+                         )
+            for cat in new_cats:
+                add_category(cat)
+        result = Category._sort_uniq(done.keys())
         if as_list:
             return list(result)
         if len(result) == 1:
             result = result[0]
         else:
             result = JoinCategory(result)
-        if merge_axioms and not ignore_axioms:
+        if not ignore_axioms:
             Category._join_cache[categories] = result
         return result
 
@@ -2625,7 +2710,7 @@ class JoinCategory(CategoryWithParameters):
         # Use __super_categories to not overwrite the lazy attribute Category._super_categories
         # Maybe this would not be needed if the flattening/sorting is does consistently?
         self.__super_categories = list(super_categories)
-        if kwds.has_key('name'):
+        if 'name' in kwds:
             Category.__init__(self, kwds['name'])
         else:
             Category.__init__(self)
@@ -2736,7 +2821,7 @@ class JoinCategory(CategoryWithParameters):
             sage: Monoids().Finite().Commutative() is Monoids().Commutative().Finite()
             True
         """
-        return Category.join([cat._with_axiom(axiom) for cat in self.super_categories()])
+        return Category.join([cat._with_axiom(axiom) for cat in self._super_categories])
 
     @cached_method
     def _without_axiom(self, axiom):
@@ -2808,7 +2893,7 @@ class JoinCategory(CategoryWithParameters):
             True
         """
         axioms = self.axioms()
-        for category in self.super_categories():
+        for category in self._super_categories:
             if category._with_axioms(axioms) is self:
                 return category._without_axioms(named=named)
         raise ValueError, "This join category isn't built by adding axioms to a single category"
@@ -2847,7 +2932,6 @@ class JoinCategory(CategoryWithParameters):
         This uses :meth:`._without_axioms` which may fail if this
         category is not obtained by adjoining axioms to some super
         categories::
-
 
             sage: Category.join((Groups(), CommutativeAdditiveMonoids()))._repr_object_names()
             Traceback (most recent call last):

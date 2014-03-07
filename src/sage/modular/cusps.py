@@ -34,7 +34,7 @@ from sage.rings.infinity import is_Infinite
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element, is_InfinityElement
 from sage.modular.modsym.p1list import lift_to_sl2z_llong
-from sage.matrix.all import is_Matrix
+from sage.matrix.matrix import is_Matrix
 from sage.misc.cachefunc import cached_method
 
 class Cusps_class(ParentWithBase):

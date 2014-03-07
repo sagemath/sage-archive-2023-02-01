@@ -32,7 +32,7 @@ class Groups(CategoryWithAxiom):
 
         sage: TestSuite(Groups()).run()
     """
-    _base_category_class_and_axiom = [Monoids, "Inverse"]
+    _base_category_class_and_axiom = (Monoids, "Inverse")
 
     def example(self):
         """
@@ -198,12 +198,13 @@ class Groups(CategoryWithAxiom):
                 sage: M.cayley_table()
                 *  a b c d e f
                  +------------
-                a| c e a f b d
-                b| d f b e a c
-                c| a b c d e f
-                d| b a d c f e
-                e| f d e b c a
-                f| e c f a d b
+                a| a b c d e f
+                b| b a d c f e
+                c| c f e b a d
+                d| d e f a b c
+                e| e d a f c b
+                f| f c b e d a
+                <BLANKLINE>
 
             ::
 
@@ -607,23 +608,6 @@ class Groups(CategoryWithAxiom):
                 return self.base_ring().sum(x.coefficients())
 
         class ElementMethods:
-            def is_central(self):
-                r"""
-                Returns True if the element is central and False otherwise.
-
-                EXAMPLES::
-
-                    sage: SG4=SymmetricGroupAlgebra(ZZ,4)
-                    sage: SG4(1).is_central()
-                    True
-                    sage: SG4(Permutation([1,3,2,4])).is_central()
-                    False
-                    sage: A=GroupAlgebras(QQ).example(); A
-                    The group algebra of the Dihedral group of order 8 as a permutation group over Rational Field
-                    sage: sum(i for i in A.basis()).is_central()
-                    True
-                """
-                return all([i*self == self*i for i in self.parent().algebra_generators()])
 
             def central_form(self):
                 r"""
@@ -648,7 +632,7 @@ class Groups(CategoryWithAxiom):
                     4*B[[1, 2, 3, 4]] + 3*B[[2, 1, 3, 4]] + 2*B[[2, 1, 4, 3]] + 2*B[[2, 3, 1, 4]] + B[[2, 3, 4, 1]]
                     sage: QG=GroupAlgebras(QQ).example(PermutationGroup([[(1,2,3),(4,5)],[(3,4)]]))
                     sage: sum(i for i in QG.basis()).central_form()
-                    B[()] + B[(1,2)] + B[(1,2)(3,4)] + B[(1,2,3)] + B[(1,2,3)(4,5)] + B[(1,2,3,4)] + B[(1,2,3,4,5)]
+                    B[()] + B[(4,5)] + B[(3,4,5)] + B[(2,3)(4,5)] + B[(2,3,4,5)] + B[(1,2)(3,4,5)] + B[(1,2,3,4,5)]
 
                 .. NOTE::
 

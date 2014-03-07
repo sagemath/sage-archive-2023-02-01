@@ -16,7 +16,7 @@ from sage.structure.sage_object import have_same_parent
 class AdditiveGroups(CategoryWithAxiom_singleton):
     """
 
-    The category of additive groups, i.e. sets with an associative
+    The category of additive groups, i.e. sets with an internal binary
     operation + which is associative, admits a zero, and where every
     element can be negated.
 
@@ -41,7 +41,7 @@ class AdditiveGroups(CategoryWithAxiom_singleton):
         sage: C = AdditiveGroups()
         sage: TestSuite(C).run()
     """
-    _base_category_class_and_axiom = [AdditiveMonoids, "AdditiveInverse"]
+    _base_category_class_and_axiom = (AdditiveMonoids, "AdditiveInverse")
 
     AdditiveCommutative = LazyImport('sage.categories.commutative_additive_groups', 'CommutativeAdditiveGroups', at_startup=True)
 

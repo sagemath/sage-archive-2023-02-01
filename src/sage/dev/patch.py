@@ -269,7 +269,7 @@ class MercurialPatchMixin(object):
                         self._UI.debug("A commit on the current branch has been created from the patch.")
                     finally:
                         self.git.reset_to_clean_state()
-                        self.git.clean_wrapper(remove_untracked_files=True)
+                        self.git.clean_wrapper(remove_untracked_files=True, remove_untracked_directories=True)
             finally:
                 os.chdir(curdir)
 

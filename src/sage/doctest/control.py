@@ -23,6 +23,7 @@ import random, os, sys, time, json, re, types
 import sage.misc.flatten
 from sage.structure.sage_object import SageObject
 from sage.env import DOT_SAGE, SAGE_LIB, SAGE_SRC
+from sage.ext.c_lib import AlarmInterrupt, _init_csage
 
 from sources import FileDocTestSource, DictAsObject
 from forker import DocTestDispatcher
@@ -308,7 +309,7 @@ class DocTestController(SageObject):
         try:
             with open(filename) as stats_file:
                 self.stats.update(json.load(stats_file))
-        except StandardError:
+        except Exception:
             self.log("Error loading stats from %s"%filename)
 
     def save_stats(self, filename):
@@ -444,7 +445,7 @@ class DocTestController(SageObject):
             sage: DD = DocTestDefaults(new = True)
             sage: DC = DocTestController(DD, [])
             sage: DC.add_files()
-            Doctesting files ...
+            Doctesting ...
 
         ::
 
@@ -457,22 +458,26 @@ class DocTestController(SageObject):
         """
         opj = os.path.join
         from sage.env import SAGE_SRC, SAGE_ROOT
-        if self.options.all:
-            self.log("Doctesting entire Sage library.")
+        def all_files():
             from glob import glob
             self.files.append(opj(SAGE_SRC, 'sage'))
             self.files.append(opj(SAGE_SRC, 'doc', 'common'))
             self.files.extend(glob(opj(SAGE_SRC, 'doc', '[a-z][a-z]')))
             self.options.sagenb = True
-        elif self.options.new:
+        DOT_GIT= opj(SAGE_ROOT, '.git')
+        have_git = os.path.exists(DOT_GIT)
+        if self.options.all or (self.options.new and not have_git):
+            self.log("Doctesting entire Sage library.")
+            all_files()
+        elif self.options.new and have_git:
             # Get all files changed in the working repo.
+            self.log("Doctesting files changed since last git commit")
             import subprocess
             change = subprocess.check_output(["git",
-                                              "--git-dir=" + SAGE_ROOT + "/.git",
+                                              "--git-dir=" + DOT_GIT,
                                               "--work-tree=" + SAGE_ROOT,
                                               "status",
                                               "--porcelain"])
-            self.log("Doctesting files changed since last git commit")
             for line in change.split("\n"):
                 if not line:
                     continue
@@ -481,7 +486,7 @@ class DocTestController(SageObject):
                 if (set(status).issubset("MARCU")
                     and filename.startswith("src/sage")
                     and (filename.endswith(".py") or filename.endswith(".pyx"))):
-                    self.files.append(filename)
+                    self.files.append(os.path.relpath(opj(SAGE_ROOT,filename)))
         if self.options.sagenb:
             if not self.options.all:
                 self.log("Doctesting the Sage notebook.")
@@ -836,23 +841,23 @@ class DocTestController(SageObject):
         if testing:
             return
 
+        # Setup Sage signal handler
+        _init_csage()
+
         import signal, subprocess
-        def handle_alrm(sig, frame):
-            raise RuntimeError
-        signal.signal(signal.SIGALRM, handle_alrm)
         p = subprocess.Popen(cmd, shell=True)
         if opt.timeout > 0:
             signal.alarm(opt.timeout)
         try:
             return p.wait()
-        except RuntimeError:
-            self.log("    Time out")
+        except AlarmInterrupt:
+            self.log("    Timed out")
             return 4
         except KeyboardInterrupt:
             self.log("    Interrupted")
             return 128
         finally:
-            signal.signal(signal.SIGALRM, signal.SIG_IGN)
+            signal.alarm(0)
             if p.returncode is None:
                 p.terminate()
 

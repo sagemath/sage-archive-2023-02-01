@@ -70,7 +70,7 @@ An eisenstein extension::
     sage: S.<x> = ZZ[]
     sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
     sage: W.<w> = R.ext(f); W
-    Eisenstein Extension of 5-adic Ring with capped absolute precision 5 in w defined by (1 + O(5^5))*x^5 + (3*5^2 + O(5^5))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5))*x^2 + (5^3 + O(5^5))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5))
+    Eisenstein Extension of 5-adic Ring with capped absolute precision 5 in w defined by (1 + O(5^5))*x^5 + (O(5^5))*x^4 + (3*5^2 + O(5^5))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5))*x^2 + (5^3 + O(5^5))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5))
     sage: z = (1+w)^5; z
     1 + w^5 + w^6 + 2*w^7 + 4*w^8 + 3*w^10 + w^12 + 4*w^13 + 4*w^14 + 4*w^15 + 4*w^16 + 4*w^17 + 4*w^20 + w^21 + 4*w^24 + O(w^25)
     sage: y = z >> 1; y
@@ -149,11 +149,13 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2008 David Roe <roed@math.harvard.edu>
+#       Copyright (C) 2008 David Roe <roed.math@gmail.com>
 #                          William Stein <wstein@gmail.com>
 #                     2012 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
@@ -168,9 +170,8 @@ from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZ_p cimport ntl_ZZ_p
 from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
 from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext
-from sage.rings.padics.padic_base_generic_element cimport pAdicBaseGenericElement
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
-from sage.libs.pari.gen import gen as pari_gen
+from sage.libs.pari.all import pari_gen
 from sage.interfaces.gp import GpElement
 from sage.rings.finite_rings.integer_mod import is_IntegerMod
 from sage.rings.all import IntegerModRing
@@ -276,28 +277,26 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         cdef ZZ_c tmp_z
         cdef Py_ssize_t i
         cdef Integer tmp_Int
+        cdef Integer xlift
         if PY_TYPE_CHECK(x, pAdicGenericElement):
-            if parent.prime() != x.parent().prime():
-                raise TypeError, "Cannot coerce between p-adic parents with different primes."
             if x.valuation() < 0:
                 raise ValueError, "element has negative valuation"
-        if PY_TYPE_CHECK(x, pAdicBaseGenericElement):
-            mpz_init(tmp)
-            (<pAdicBaseGenericElement>x)._set_mpz_into(tmp)
-            if mpz_sgn(tmp) == 0:
-                if (<pAdicBaseGenericElement>x)._is_exact_zero():
-                    self._set_inexact_zero(aprec)
-                    mpz_clear(tmp)
-                    return
-            ltmp = mpz_get_si((<Integer>x.precision_absolute()).value) * self.prime_pow.e
-            if ltmp < aprec:
-                aprec = ltmp
-            if relprec is infinity:
-                self._set_from_mpz_abs(tmp, aprec)
-            else:
-                self._set_from_mpz_both(tmp, aprec, rprec)
-            mpz_clear(tmp)
-            return
+            if x._is_base_elt(self.prime_pow.prime):
+                xlift = <Integer>x.lift()
+                if mpz_sgn(xlift.value) == 0:
+                    if (<pAdicGenericElement>x)._is_exact_zero():
+                        self._set_inexact_zero(aprec)
+                        return
+                ltmp = mpz_get_si((<Integer>x.precision_absolute()).value) * self.prime_pow.e
+                if ltmp < aprec:
+                    aprec = ltmp
+                if relprec is infinity:
+                    self._set_from_mpz_abs(xlift.value, aprec)
+                else:
+                    self._set_from_mpz_both(xlift.value, aprec, rprec)
+                return
+            if parent.prime() != x.parent().prime():
+                raise TypeError, "Cannot coerce between p-adic parents with different primes."
         if isinstance(x, pari_gen) or isinstance(x, GpElement):
             if isinstance(x, GpElement):
                 x = x._pari_()
@@ -765,9 +764,11 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             self._set_prec_abs(new_abs_prec)
             ZZ_pX_conv_modulus(self.value, tmp, self.prime_pow.get_context_capdiv(self.absprec).x)
 
-        You may be able to just set ``self.absprec`` and
-        ``ZZ_pX_conv_modulus`` if you're decreasing precision.  I'm not
-        sure.
+        If you want to speed up this process and you're decreasing
+        precision, you may be able to just set ``self.absprec`` and
+        ``ZZ_pX_conv_modulus``.  I haven't looked into how NTL will be
+        have in this case well enough to know if your program will
+        segfault in this case or not.
 
         TESTS::
 
@@ -1290,7 +1291,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
                     ans = self._new_c(mpz_get_si(tmp))
                 mpz_clear(tmp)
                 return ans
-            elif PY_TYPE_CHECK(_right, Rational) or (PY_TYPE_CHECK(_right, pAdicBaseGenericElement) and _right.parent().prime() == self.prime_pow.prime):
+            elif PY_TYPE_CHECK(_right, Rational) or (PY_TYPE_CHECK(_right, pAdicGenericElement) and _right._is_base_elt(self.prime_pow.prime)):
                 raise ValueError, "Need more precision"
             else:
                 raise TypeError, "exponent must be an integer, rational or base p-adic with the same prime"
@@ -1308,7 +1309,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
                 return ans
             padic_exp = False
             exp_val = _right.valuation(self.prime_pow.prime) ##
-        elif PY_TYPE_CHECK(_right, pAdicBaseGenericElement) and _right.parent().prime() == self.prime_pow.prime:
+        elif PY_TYPE_CHECK(_right, pAdicGenericElement) and _right._is_base_elt(self.prime_pow.prime):
             if self_ordp != 0:
                 raise ValueError, "in order to raise to a p-adic exponent, base must be a unit"
             right = Integer(_right)
@@ -1752,15 +1753,6 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         # Should be sped up later
         return (self - right).is_zero(absprec)
 
-#     def lift(self):
-#         """
-#         Returns an element of a number field defined by the same polynomial as self's parent that is congruent to self modulo an appropriate ideal.
-
-#         Not currently implemented.
-#         """
-
-#         raise NotImplementedError
-
     cpdef pAdicZZpXCAElement lift_to_precision(self, absprec=None):
         """
         Returns a ``pAdicZZpXCAElement`` congruent to ``self`` but with
@@ -1945,7 +1937,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
 #         multiplication by self on the power basis, where we view the
 #         parent field as a field over base.
 
-#         INPUT::
+#         INPUT:
 
 #             - base -- field or morphism
 #         """
@@ -1962,12 +1954,12 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
 #         only if (p-1) divides the ramification index (see the
 #         documentation on __pow__).
 
-#         INPUT::
+#         INPUT:
 
 #             - self -- a p-adic element
 #             - prec -- an integer
 
-#         OUTPUT::
+#         OUTPUT:
 
 #             - integer -- the multiplicative order of self
 #         """
@@ -2029,13 +2021,15 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         return L
 
 
-    def _teichmuller_set(self):
+    def _teichmuller_set_unsafe(self):
         """
-        Sets self to the teichmuller representative congruent to self
-        modulo `\pi`, with the same relative precision as ``self``.
+        Sets this element to the Teichmuller representative with the
+        same residue.
 
-        This function should not be used externally: elements are
-        supposed to be immutable.
+        .. WARNING::
+
+            This function modifies the element, which is not safe.
+            Elements are supposed to be immutable.
 
         EXAMPLES::
 

@@ -47,6 +47,15 @@ cdef extern from 'pari/pari.h':
     ctypedef unsigned long pari_sp
     extern pari_sp avma, bot, top
 
+    # parierr.h
+
+    int syntaxer, bugparier, alarmer, openfiler, talker, flagerr, \
+        impl, archer, notfuncer, precer, typeer, consister, user, \
+        errpile, overflower, matinv1, mattype1, arither1, primer1, \
+        invmoder, constpoler, notpoler, redpoler, zeropoler, operi, \
+        operf, gdiver, memer, negexper, sqrter5, noer
+
+    int warner, warnprec, warnfile, warnmem
 
     # parigen.h
 
@@ -112,6 +121,10 @@ cdef extern from 'pari/pari.h':
     GEN     gnil
     extern int INIT_JMPm, INIT_SIGm, INIT_DFTm
     extern int new_galois_format, precdl
+    # The "except 0" here is to ensure compatibility with
+    # _pari_handle_exception() in handle_error.pyx
+    extern int (*cb_pari_handle_exception)(long) except 0
+    extern void (*cb_pari_err_recover)(long)
 
     # level1.h
 
@@ -975,6 +988,10 @@ cdef extern from 'pari/pari.h':
     long    nfhilbert(GEN bnf,GEN a,GEN b)
     long    nfhilbert0(GEN bnf,GEN a,GEN b,GEN p)
 
+    # compile.c
+
+    GEN     strtofunction(const char *s)
+
     # default.c
 
     extern int d_SILENT, d_ACKNOWLEDGE, d_INITRC, d_RETURN
@@ -1087,6 +1104,8 @@ cdef extern from 'pari/pari.h':
     void    pari_flush()
     void    pari_putc(char c)
     void    pari_puts(char *s)
+    int     pari_last_was_newline()
+    void    pari_set_last_newline(int last)
     #void    print(GEN g)   # syntax error
     void    print1(GEN g)
     void    printtex(GEN g)
@@ -1098,6 +1117,11 @@ cdef extern from 'pari/pari.h':
     void    write0(char *s, GEN g)
     void    write1(char *s, GEN g)
     void    writetex(char *s, GEN g)
+
+    # eval.c
+
+    GEN     closure_callgen1(GEN C, GEN x)
+    GEN     closure_callgenvec(GEN C, GEN args)
 
     # FF.c
 
@@ -1803,6 +1827,8 @@ cdef extern from 'pari/pari.h':
     GEN     Pi2n(long n, long prec)
     GEN     PiI2(long prec)
     GEN     PiI2n(long n, long prec)
+    long    Zn_issquare(GEN x, GEN n)
+    GEN     Zn_sqrt(GEN x, GEN n)
     void    consteuler(long prec)
     void    constpi(long prec)
     GEN     exp_Ir(GEN x)
@@ -1909,9 +1935,12 @@ cdef extern from *:   # paristio.h
         void (*puts)(char*)
         void (*flush)()
     extern PariOUT* pariOut
+    extern PariOUT* pariErr
 
 
 cdef extern from 'pari/paripriv.h':
+    int gpd_QUIET, gpd_TEST, gpd_EMACS, gpd_TEXMACS
+
     struct pariout_t:
         char format  # e,f,g
         long fieldw  # 0 (ignored) or field width
@@ -1921,6 +1950,7 @@ cdef extern from 'pari/paripriv.h':
         int TeXstyle
 
     struct gp_data:
-        jmp_buf env
         pariout_t *fmt
+        unsigned long flags
+    
     extern gp_data* GP_DATA

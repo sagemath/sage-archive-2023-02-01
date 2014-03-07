@@ -335,7 +335,7 @@ class InfinitePolynomial_sparse(RingElement):
         try:
             from sage.misc.sage_eval import sage_eval
             return sage_eval(repr(res), self.parent()._gens_dict)
-        except StandardError:
+        except Exception:
             return res
 
     def _getAttributeNames(self):
@@ -510,7 +510,7 @@ class InfinitePolynomial_sparse(RingElement):
         # One may need a new parent for  self._p and x._p
         try:
             return InfinitePolynomial_sparse(self.parent(),self._p+x._p)
-        except StandardError:
+        except Exception:
             pass
         ## We can now assume that self._p and x._p actually are polynomials,
         ## hence, their parent is not simply the underlying ring.
@@ -534,7 +534,7 @@ class InfinitePolynomial_sparse(RingElement):
         """
         try:
             return InfinitePolynomial_sparse(self.parent(),self._p*x._p)
-        except StandardError:
+        except Exception:
             pass
         ## We can now assume that self._p and x._p actually are polynomials,
         ## hence, their parent is not just the underlying ring.
@@ -649,7 +649,7 @@ class InfinitePolynomial_sparse(RingElement):
         """
         try:
             return InfinitePolynomial_sparse(self.parent(),self._p-x._p)
-        except StandardError:
+        except Exception:
             pass
         ## We can now assume that self._p and x._p actually are polynomials,
         ## hence, their parent is not just the underlying ring.
@@ -952,7 +952,7 @@ class InfinitePolynomial_sparse(RingElement):
             for t in L:
                 n = t[0][0]       # the variable *n*ame
                 s = int(t[0][1])  # the variable *s*hift
-                if not self._footprint.has_key(s):
+                if s not in self._footprint:
                     self._footprint[s] = [0]*l
                 self._footprint[s][self.parent()._name_dict[n]] = t[1]   # the exponent
             self._has_footprint = True
@@ -1035,7 +1035,7 @@ class InfinitePolynomial_sparse(RingElement):
         P = range(Lbig[-1]+1)
         gens = xrange(PARENT.ngens())
         if Lsmall[0]==0:
-            if not Fbig.has_key(0):
+            if 0 not in Fbig:
                 return (None,1,1)
             Lsmall.pop(0)
             Lbig.pop(0)
@@ -1363,11 +1363,11 @@ class InfinitePolynomial_dense(InfinitePolynomial_sparse):
         # But, to be on the safe side...
         try:
             self._p = self.parent()._P(self._p)
-        except StandardError:
+        except Exception:
             pass
         try:
             x._p = x.parent()._P(x._p)
-        except StandardError:
+        except Exception:
             pass
         return cmp(self._p,x._p)
 

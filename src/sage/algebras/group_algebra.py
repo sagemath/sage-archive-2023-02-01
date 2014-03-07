@@ -222,7 +222,7 @@ class GroupAlgebra(Algebra):
                 (self.base_ring().random_element(), self.group().random_element()),
                 (self.base_ring().random_element(), self.group().random_element()),
                 ]))
-        except StandardError: # base ring or group might not implement .random_element()
+        except Exception: # base ring or group might not implement .random_element()
             return self(self._formal_sum_module([ (self.base_ring().an_element(), self.group().an_element()) ]))
 
     def __call__(self, x, check=True):

@@ -4,6 +4,11 @@ Algebras
 .. toctree::
    :maxdepth: 2
 
+   sage/algebras/finite_dimensional_algebras/finite_dimensional_algebra
+   sage/algebras/finite_dimensional_algebras/finite_dimensional_algebra_element
+   sage/algebras/finite_dimensional_algebras/finite_dimensional_algebra_ideal
+   sage/algebras/finite_dimensional_algebras/finite_dimensional_algebra_morphism
+
    sage/algebras/free_algebra
    sage/algebras/free_algebra_element
 
@@ -17,6 +22,8 @@ Algebras
    sage/algebras/group_algebra_new
 
    sage/algebras/iwahori_hecke_algebra
+
+   sage/algebras/hall_algebra
 
    sage/algebras/shuffle_algebra
 

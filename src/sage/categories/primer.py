@@ -76,10 +76,9 @@ Some challenges
       sage: m^8 == m*m*m*m*m*m*m*m == ((m^2)^2)^2
       True
 
-      sage: m=random_matrix(QQ, 4, algorithm='echelonizable', rank=3, upper_bound=60); m # randomm = GL(2,QQ).random_element(); m  # random
-
   ::
 
+      sage: m=random_matrix(QQ, 4, algorithm='echelonizable', rank=3, upper_bound=60)
       sage: m^8 == m*m*m*m*m*m*m*m == ((m^2)^2)^2
       True
 
@@ -114,11 +113,6 @@ That's our bookshelf! And it's used in many places::
     True
     sage: NN in Semigroups()
     True
-
-What else do we have on that bookshelf?::
-
-    sage: Semigroups
-    <class 'sage.categories.semigroups.Semigroups'>
 
 For a less trivial bookshelf we can consider euclidean rings: once we
 know how to do euclidean division in some set `R`, we can compute
@@ -182,7 +176,7 @@ In case ``dot2tex`` is not available, you can use instead::
 
     sage: g.show(vertex_shape=None, figsize=20)
 
-And here is an overview of all categories in Sage::
+Here is an overview of all categories in Sage::
 
     sage: g = sage.categories.category.category_graph()
     sage: g.set_latex_options(format="dot2tex")
@@ -331,7 +325,7 @@ categories and their super categories::
      Category of unique factorization domains, Category of gcd domains,
      Category of integral domains, Category of domains,
      Category of commutative rings, Category of rings, ...
-     Category of distributive magmas and additive magmas,
+     Category of magmas and additive magmas,
      Category of monoids, Category of semigroups,
      Category of commutative magmas, Category of unital magmas, Category of magmas,
      Category of commutative additive groups, ..., Category of additive magmas,
@@ -353,7 +347,7 @@ How are the bookshelves implemented in practice?
 
 Sage uses the classical design paradigm of Object Oriented Programming
 (OOP). It's fundamental principle is that any object that a program is
-to manipulate should be modeled by an *instance* of a *class*. The
+to manipulate should be modelled by an *instance* of a *class*. The
 class implements:
 
  - a *data structure*: which describes how the object is stored
@@ -362,7 +356,7 @@ class implements:
 The instance itself contains the data for the given object, according
 to the specified data structure.
 
-Hence, all the objects mentionned above should be instances of some
+Hence, all the objects mentioned above should be instances of some
 classes. For example, an integer in Sage is an instance of the class
 Integer (and it knows about it!)::
 
@@ -451,7 +445,7 @@ for matrices and provide the operations that are tied to this data
 structure. Then follows abstract classes that are attached to the
 hierarchy of categories and provide generic algorithms.
 
-The full hierarchy is best viewed graphically:
+The full hierarchy is best viewed graphically::
 
     sage: g = class_graph(m.__class__)
     sage: g.set_latex_options(format="dot2tex")
@@ -485,7 +479,7 @@ kinds of sets:
 
 Hence, following the OOP fundamental principle, parents should also be
 modelled by instances of some (hierarchy of) classes. For example, our
-group `G` is an instance of the following class:
+group `G` is an instance of the following class::
 
     sage: G = GL(2,ZZ)
     sage: type(G)
@@ -503,7 +497,7 @@ Here is a piece of the hierarchy of classes above it::
 
 Note that the hierarchy of abstract classes is again attached to
 categories and parallel to that we had seen for the elements. This is
-best viewed graphically:
+best viewed graphically::
 
     sage: g = class_graph(m.__class__)
     sage: g.relabel(lambda x: x.replace("_","\_"))
@@ -583,7 +577,7 @@ bookshelf is structured into units with *nested classes*::
 
 With this syntax, the information that a group is a monoid is
 specified only once, in the :meth:`Category.super_categories`
-method. And indeed, when the category of unital inverse magmas was
+method. And indeed, when the category of inverse unital magmas was
 introduced, there was a *single point of truth* to update::
 
     sage: Groups().super_categories()
@@ -641,6 +635,15 @@ but not an algebra over `\ZZ` which is just a `\ZZ`-module!
     overdesigning, right? We felt like this too! But we will see later
     that, once one gets used to it, this approach scales very
     naturally.
+
+    From a computer science point of view, this infrastructure
+    implements, on top of standard multiple inheritance, a dynamic
+    composition mechanism of mixin classes (:wikipedia:`Mixin`),
+    governed by mathematical properties.
+
+    For implementation details on how the hierarchy of classes for
+    parents and elements is constructed, see :class:`Category`.
+
 
 Categories are instances and have operations
 --------------------------------------------
@@ -817,9 +820,10 @@ Wrap-up
 Case study
 ==========
 
-In this section, we study an existing parent in detail; a good
-followup is to go through the :mod:`sage.categories.tutorial` to learn
-how to implement a new one!
+In this section, we study an existing parent in detail; a good followup is to
+go through the :mod:`sage.categories.tutorial` or the thematic tutorial on
+coercion and categories ("How to implement new algebraic structures in Sage")
+to learn how to implement a new one!
 
 We consider the example of finite semigroup provided by the category::
 
@@ -846,7 +850,7 @@ to use Sage's introspection tools to recover where it's implemented::
     sage: x.__pow__.__module__
     'sage.categories.semigroups'
 
-``_mul_`` is a default implementation from the :class:`Magmas`
+``__mul__`` is a default implementation from the :class:`Magmas`
 category (a *magma* is a set with an inner law `*`, not necessarily
 associative)::
 
@@ -900,7 +904,7 @@ Documentation about those methods can be obtained with::
     sage: C = FiniteSemigroups().element_class
     sage: C._mul_?                                # not tested
 
-See also the :meth:`abstract_method` decorator.
+See also the :func:`~sage.misc.abstract_method.abstract_method` decorator.
 
 Here is the code for the finite semigroups category::
 
@@ -1019,15 +1023,34 @@ algebra, a coalgebra, a differential module, and be finite
 dimensional, or graded, or ...  This can only be decided at runtime,
 by introspection into the properties of `A` and `B`; furthermore, the
 number of possible combinations (e.g. finite dimensional differential
-algebra) grows exponnentially with the number of properties.
+algebra) grows exponentially with the number of properties.
+
+.. _category-primer-axioms:
 
 Axioms
 ------
 
-We have seen that several categories can be defined by specifying the
-axioms that are satisfied by the operations of its super
-categories. For example, starting from the category of magmas we can
-build all the following categories just by specifying the axioms
+First examples
+^^^^^^^^^^^^^^
+
+We have seen that Sage is aware of the axioms satisfied by, for
+example, groups::
+
+    sage: Groups().axioms()
+    frozenset(['Inverse', 'Associative', 'Unital'])
+
+In fact, the category of groups can be *defined* by stating that a
+group is a magma, that is a set endowed with an internal binary
+multiplication, which satisfies the above axioms. Accordingly, we can
+construct the category of groups from the category of magmas::
+
+    sage: Magmas().Associative().Unital().Inverse()
+    Category of groups
+
+In general, we can construct new categories in Sage by specifying the
+axioms that are satisfied by the operations of the super
+categories. For example, starting from the category of magmas, we can
+construct all the following categories just by specifying the axioms
 satisfied by the multiplication::
 
     sage: Magmas()
@@ -1057,25 +1080,118 @@ satisfied by the multiplication::
     sage: Magmas().Associative().Unital().Commutative()
     Category of commutative monoids
 
-Note by the way that intersecting categories plays nicely::
+::
 
-    sage: Magmas().Associative() & Magmas().Unital().Inverse() & Sets().Finite()
+    sage: Magmas().Associative().Unital().Inverse()
+    Category of groups
+
+
+Axioms and categories with axioms
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Here, ``Associative``, ``Unital``, ``Commutative`` are axioms. In
+general, any category ``Cs`` in Sage can declare a new axiom
+``A``. Then, the *category with axiom* ``Cs.A()`` models the
+subcategory of the objects of ``Cs`` satisfying the axiom ``A``. It's
+in fact a *full subcategory* (see :wikipedia:`Subcategory`). Moreover,
+for every subcategory ``Ds`` of ``Cs``, ``Ds.A()`` models the full
+subcategory of the objects of ``Ds`` satisfying the axiom ``A``.
+
+For example, the category of sets defines the ``Finite`` axiom, and
+this axiom is available in the subcategory of groups::
+
+    sage: Sets().Finite()
+    Category of finite sets
+    sage: Groups().Finite()
     Category of finite groups
+
+The meaning of each axiom is described in the documentation of the
+corresponding method, which can be obtained as usual by
+instrospection::
+
+    sage: C = Groups()
+    sage: C.Finite?              # not tested
+
+The purpose of categories with axioms is no different from other
+categories: to provide bookshelves of code, documentation,
+mathematical knowledge, tests, for their objects. The extra feature is
+that, when intersecting categories, axioms are automatically combined
+together::
+
+    sage: C = Magmas().Associative() & Magmas().Unital().Inverse() & Sets().Finite(); C
+    Category of finite groups
+    sage: sorted(C.axioms())
+    ['Associative', 'Finite', 'Inverse', 'Unital']
+
+For a more advanced example, Sage knows that a ring is a set `C`
+endowed with a multiplication which distributes over addition, such
+that `(C,+)` is a commutative additive group and `(C,*)` is a monoid::
+
+    sage: C = (CommutativeAdditiveGroups() & Monoids()).Distributive(); C
+    Category of rings
+
+    sage: sorted(C.axioms())
+    ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'Distributive', 'Unital']
+
+Note by the way that the axiom "Associative" is about the property of
+the multiplication `*` whereas the axiom "AdditiveAssociative" is
+about the properties of the addition `+`.
+
+The infrastructure allows for specifying further deduction rules, in
+order to encode mathematical facts like Wedderburn's theorem::
+
+    sage: DivisionRings() & Sets().Finite()
+    Category of finite fields
+
+.. _category-primer-axioms-single-entry-point:
+
+Single entry point and name space usage
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A nice feature of the notation ``Cs.A()`` is that, from a single entry
+point (say the category :class:`Magmas` as above) one can explore a
+whole range of related categories, typically with the help of
+introspection to discover which axioms are available, and without
+having to import new Python modules. This feature will be used in
+:trac:`15741` to unclutter the global name space from, for example,
+the many variants of the category of algebras like::
+
+    sage: FiniteDimensionalAlgebrasWithBasis(QQ)
+    Category of finite dimensional algebras with basis over Rational Field
+
+There will of course be a deprecation step, but it's recommended to
+prefer right away the more flexible notation::
+
+    sage: Algebras(QQ).WithBasis().FiniteDimensional()
+    Category of finite dimensional algebras with basis over Rational Field
+
+.. TOPIC:: Design discussion
+
+    How far should this be pushed? :class:`Fields` should definitely
+    stay, but should :class:`FiniteGroups` or :class:`DivisionRings`
+    be removed from the global namespace? Do we want to further
+    completely deprecate the notation ``FiniteGroups()` in favor of
+    ``Groups().Finite()``?
+
+.. _category-primer-axioms-explosion:
+
+On the potential combinatorial explosion of categories with axioms
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Even for a very simple category like ``Magmas``, there are about `2^5`
 potential combinations of the axioms! Think about what this becomes
 for a category with two operations ``+`` and ``*``::
 
-    sage: DistributiveMagmasAndAdditiveMagmas()
+    sage: C = (Magmas() & AdditiveMagmas()).Distributive(); C
     Category of distributive magmas and additive magmas
 
-    sage: DistributiveMagmasAndAdditiveMagmas().Associative().AdditiveAssociative().AdditiveCommutative().AdditiveUnital().AdditiveInverse()
+    sage: C.Associative().AdditiveAssociative().AdditiveCommutative().AdditiveUnital().AdditiveInverse()
     Category of rngs
 
-    sage: DistributiveMagmasAndAdditiveMagmas().Associative().AdditiveAssociative().AdditiveCommutative().AdditiveUnital().Unital()
+    sage: C.Associative().AdditiveAssociative().AdditiveCommutative().AdditiveUnital().Unital()
     Category of semirings
 
-    sage: DistributiveMagmasAndAdditiveMagmas().Associative().AdditiveAssociative().AdditiveCommutative().AdditiveUnital().AdditiveInverse().Unital()
+    sage: C.Associative().AdditiveAssociative().AdditiveCommutative().AdditiveUnital().AdditiveInverse().Unital()
     Category of rings
 
     sage: Rings().Division()
@@ -1084,16 +1200,122 @@ for a category with two operations ``+`` and ``*``::
     sage: Rings().Division().Commutative()
     Category of fields
 
-    sage: Rings().Division() & Sets().Finite()    # Wedderburn theorem!
+    sage: Rings().Division().Finite()
     Category of finite fields
 
 or for more advanced categories::
 
-    sage: g = GradedHopfAlgebrasWithBasis(QQ).category_graph()
+    sage: g = HopfAlgebras(QQ).WithBasis().Graded().Connected().category_graph()
     sage: g.set_latex_options(format="dot2tex")
     sage: view(g, tightpage=True)                 # not tested
 
-For more about axioms, see :mod:`sage.categories.category_with_axiom`.
+Difference between axioms and regressive covariant functorial constructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Our running examples here will be the axiom ``FiniteDimensional`` and
+the regressive covariant functorial construction ``Graded``. Let
+``Cs`` be some subcategory of ``Modules``, say the category of modules
+itself::
+
+    sage: Cs = Modules(QQ)
+
+Then, ``Cs.FiniteDimensional()`` (respectively ``Cs.Graded()``) is the
+subcategory of the objects ``O`` of ``Cs`` which are finite
+dimensional (respectively graded).
+
+Let also ``Ds`` be a subcategory of ``Cs``, say::
+
+    sage: Ds = Algebras(QQ)
+
+A finite dimensional algebra is also a finite dimensional module::
+
+    sage: Algebras(QQ).FiniteDimensional().is_subcategory( Modules(QQ).FiniteDimensional() )
+    True
+
+Similarly a graded algebra is also a graded module::
+
+    sage: Algebras(QQ).Graded().is_subcategory( Modules(QQ).Graded() )
+    True
+
+This is the *covariance* property: for ``A`` an axiom or a covariant
+functorial construction, if ``Ds`` is a subcategory of ``Cs``, then
+``Ds.A()`` is a subcategory of ``Cs.A()``.
+
+What happens if we consider reciprocally an object of ``Cs.A()`` which
+is also in ``Ds``? A finite dimensional module which is also an
+algebra is a finite dimensional algebra::
+
+    sage: Modules(QQ).FiniteDimensional() & Algebras(QQ)
+    Category of finite dimensional algebras over Rational Field
+
+On the other hand, a graded module `O` which is also an algebra is not
+necessarily a graded algebra! Indeed, the grading on `O` may not be
+compatible with the product on `O`::
+
+    sage: Modules(QQ).Graded() & Algebras(QQ)
+    Join of Category of algebras over Rational Field and Category of graded modules over Rational Field
+
+The relevant difference between ``FiniteDimensional`` and ``Graded``
+is that ``FiniteDimensional`` is a statement about the properties of
+``O`` seen as a module (and thus does not depend on the given
+category), whereas ``Graded`` is a statement about the properties of
+``O`` and all its operations in the given category.
+
+In general, if a category satisfies a given axiom, any subcategory
+also satisfies that axiom. Another formulation is that, for an axiom
+``A`` defined in a super category ``Cs`` of ``Ds``, ``Ds.A()`` is the
+intersection of the categories ``Ds`` and ``Cs.A()``::
+
+    sage: As = Algebras(QQ).FiniteDimensional(); As
+    Category of finite dimensional algebras over Rational Field
+    sage: Bs = Algebras(QQ) & Modules(QQ).FiniteDimensional(); As
+    Category of finite dimensional algebras over Rational Field
+    sage: As is Bs
+    True
+
+An immediate consequence is that, as we have already noticed, axioms
+commute::
+
+    sage: As = Algebras(QQ).FiniteDimensional().WithBasis(); As
+    Category of finite dimensional algebras with basis over Rational Field
+    sage: Bs = Algebras(QQ).WithBasis().FiniteDimensional(); Bs
+    Category of finite dimensional algebras with basis over Rational Field
+    sage: As is Bs
+    True
+
+On the other hand, axioms do not necessarily commute with functorial
+constructions, even if the current printout may missuggest so::
+
+    sage: As = Algebras(QQ).Graded().WithBasis(); As
+    Category of graded algebras with basis over Rational Field
+    sage: Bs = Algebras(QQ).WithBasis().Graded(); Bs
+    Category of graded algebras with basis over Rational Field
+    sage: As is Bs
+    False
+
+This is because ``Bs`` is the category of algebras endowed with basis,
+which are further graded; in particular the basis must respect the
+grading (i.e. be made of homogeneous elements). On the other hand,
+``As`` is the category of graded algebras, which are further endowed
+with some basis; that basis need not respect the grading. In fact
+``As`` is really a join category::
+
+    sage: type(As)
+    <class 'sage.categories.category.JoinCategory_with_category'>
+    sage: As._repr_(as_join=True)
+    'Join of Category of algebras with basis over Rational Field and Category of graded algebras over Rational Field'
+
+.. TODO::
+
+    Improve the printing of functorial constructions and joins to
+    raise this potentially dangerous ambiguity.
+
+
+Further reading on axioms
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+We refer to :mod:`sage.categories.category_with_axiom` for how to
+implement axioms.
 
 Wrap-up
 -------
@@ -1122,7 +1344,7 @@ combinations, an unpredictable large subset of which being potentially
 of interest; at the same time, only a small -- but moving -- subset
 has code naturally attached to it.
 
-This has led to the current design where one focuses on writing the
+This has led to the current design, where one focuses on writing the
 relatively few classes for which there is actual code or mathematical
 information, and let Sage *compose dynamically and lazily* those
 building blocks to construct the minimal hierarchy of classes needed
@@ -1148,11 +1370,20 @@ Each category *should* come with a good example, in
 Inserting the new category into the category graph
 --------------------------------------------------
 
-``C.super_categories()`` must return a list of categories, namely the
-*immediate* super categories of `C`.  Of course, if you know that your
-new category `C` is an immediate super category of some existing
-category `D`, then you should also update `D`'s ``super_categories``
-to include `C`.
+``C.super_categories()`` *must* return a list of categories, namely
+the *immediate* super categories of `C`.  Of course, if you know that
+your new category `C` is an immediate super category of some existing
+category `D`, then you should also update the method
+``D.super_categories`` to include `C`.
+
+The immediate super categories of `C` *should not* be :class:`join
+categories <JoinCategory>`. Furthermore, one always should have::
+
+      Cs().is_subcategory( Category.join(Cs().super_categories()) )
+
+      Cs()._cmp_key()  >  other._cmp_key()  for other in Cs().super_categories()
+
+This is checked by :meth:`~sage.categories.category.Category._test_category`.
 
 In several cases, the category `C` is directly provided with a generic
 implementation of ``super_categories``; a typical example is when `C`
@@ -1200,7 +1431,7 @@ On the order of super categories
 The generic method ``C.all_super_categories()`` determine recursively
 the list of *all* super categories of `C`.
 
-The order of the categories in this list does influences the
+The order of the categories in this list does influence the
 inheritance of methods for parents and elements. Namely, if `P` is an
 object in the category `C` and if `C_1` and `C_2` are both super
 categories of `C` defining some method ``foo`` in ``ParentMethods``,
@@ -1211,8 +1442,8 @@ However this must be considered as an *implementation detail*: if
 `C_1` and `C_2` are incomparable categories, then the order in which
 they appear must be mathematically irrelevant: in particular, the
 methods ``foo`` in `C_1` and `C_2` must have the same semantic. Code
-should not rely on any specific order, as it it subject to later
-change. In case one of the implementations is prefered in a common
+should not rely on any specific order, as it is subject to later
+change. In case one of the implementations is preferred in a common
 subcategory of `C_1` and `C_2`, for example for efficiency reasons,
 then the ambiguity should be resolved explicitly by definining a
 method ``foo`` in this category. See the method ``some_elements`` in

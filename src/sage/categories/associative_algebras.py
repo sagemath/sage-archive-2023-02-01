@@ -42,7 +42,7 @@ class AssociativeAlgebras(CategoryWithAxiom_over_base_ring):
         True
         sage: TestSuite(C).run()
     """
-    _base_category_class_and_axiom = [MagmaticAlgebras, "Associative"]
+    _base_category_class_and_axiom = (MagmaticAlgebras, "Associative")
 
     class ElementMethods:
 

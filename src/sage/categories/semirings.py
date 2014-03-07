@@ -9,7 +9,7 @@ Semirngs
 #******************************************************************************
 
 from sage.categories.category_with_axiom import CategoryWithAxiom
-from distributive_magmas_and_additive_magmas import DistributiveMagmasAndAdditiveMagmas
+from magmas_and_additive_magmas import MagmasAndAdditiveMagmas
 
 class Semirings(CategoryWithAxiom):
     """
@@ -28,12 +28,13 @@ class Semirings(CategoryWithAxiom):
         sage: Semirings()
         Category of semirings
         sage: Semirings().super_categories()
-        [Category of associative additive commutative additive associative additive unital distributive magmas and additive magmas, Category of monoids]
+        [Category of associative additive commutative additive associative additive unital distributive magmas and additive magmas,
+         Category of monoids]
 
         sage: sorted(Semirings().axioms())
-        ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveUnital', 'Associative', 'Unital']
+        ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveUnital', 'Associative', 'Distributive', 'Unital']
 
-        sage: Semirings() is DistributiveMagmasAndAdditiveMagmas().Associative().AdditiveAssociative().AdditiveCommutative().AdditiveUnital().Unital()
+        sage: Semirings() is (CommutativeAdditiveMonoids() & Monoids()).Distributive()
         True
 
         sage: Semirings().AdditiveInverse()
@@ -44,5 +45,5 @@ class Semirings(CategoryWithAxiom):
 
         sage: TestSuite(Semirings()).run()
     """
-    _base_category_class_and_axiom = [DistributiveMagmasAndAdditiveMagmas.AdditiveAssociative.AdditiveCommutative.AdditiveUnital.Associative, "Unital"]
+    _base_category_class_and_axiom = (MagmasAndAdditiveMagmas.Distributive.AdditiveAssociative.AdditiveCommutative.AdditiveUnital.Associative, "Unital")
 

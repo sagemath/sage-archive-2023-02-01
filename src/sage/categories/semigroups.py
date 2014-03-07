@@ -46,7 +46,7 @@ class Semigroups(CategoryWithAxiom):
 
         sage: TestSuite(C).run()
     """
-    _base_category_class_and_axiom = [Magmas, "Associative"]
+    _base_category_class_and_axiom = (Magmas, "Associative")
 
     def example(self, choice="leftzero", **kwds):
         r"""

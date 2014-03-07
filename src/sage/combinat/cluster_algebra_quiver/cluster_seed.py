@@ -924,7 +924,7 @@ class ClusterSeed(SageObject):
 
         This is the initial seed of the associated cluster algebra
         with universal coefficients, as defined in section 12 of
-        :arxiv:`0602259`.
+        :arxiv:`math/0602259`.
 
         This method works only if ``self`` is a bipartite, finite-type seed.
 
@@ -941,11 +941,27 @@ class ClusterSeed(SageObject):
             sage: T.b_matrix()
             [ 0  1]
             [-1  0]
-            [ 0 -1]
-            [ 0  1]
             [ 1  0]
+            [ 0 -1]
             [ 1 -1]
             [-1  0]
+            [ 0  1]
+
+            sage: S = ClusterSeed(['A',3])
+            sage: T = S.universal_extension()
+            sage: T.b_matrix()
+            [ 0  1  0]
+            [-1  0 -1]
+            [ 0  1  0]
+            [ 1  0  0]
+            [ 0 -1  0]
+            [ 0  0  1]
+            [ 1 -1  0]
+            [ 0 -1  1]
+            [ 1 -1  1]
+            [-1  0  0]
+            [ 0  1  0]
+            [ 0  0 -1]
         """
         if self._m != 0:
             raise ValueError("To have universal coefficients we need "
@@ -961,33 +977,20 @@ class ClusterSeed(SageObject):
         # the dual root system by hand. Ideally this should be
         # replaced by something more efficient
 
-        from sage.matrix.all import identity_matrix, matrix
+        from sage.matrix.all import matrix
+        from sage.combinat.root_system.cartan_matrix import CartanMatrix
 
-        A = 2 * identity_matrix(self._n) - self.b_matrix().apply_map(abs)
-        A = A.transpose()
-        simple_coroots = identity_matrix(self._n).rows()
-        positive_coroots = set()
-        growing = True
-        while growing:
-            positive_coroots = positive_coroots.union(set(simple_coroots))
-            new_coroots = set()
-            for i in range(self._n):
-                for alpha in positive_coroots:
-                    beta = copy(alpha)
-                    beta[i] = alpha[i] - sum([alpha[j] * A[i][j]
-                                              for j in range(self._n)])
-                    if beta[i] >= 0:
-                        beta.set_immutable()
-                        new_coroots.add(beta)
-            growing = (positive_coroots != new_coroots)
-            positive_coroots = copy(new_coroots)
-        negative_simple_coroots = [-x for x in simple_coroots]
-        map(lambda x: x.set_immutable(), negative_simple_coroots)
-        almost_positive_coroots = positive_coroots.union(set(negative_simple_coroots))
+        A = 2 - self.b_matrix().apply_map(abs).transpose()
+
+        rs = CartanMatrix(A).root_space()
+        negative_simple_coroots = [-u for u in rs.simple_coroots()]
+        positive_coroots = [v.associated_coroot() for v in rs.positive_roots()]
+
+        almost_positive_coroots = positive_coroots + negative_simple_coroots
 
         sign = [-1 if all(x <= 0 for x in self.b_matrix()[i]) else 1
                 for i in range(self._n)]
-        C = matrix([[sign[j] * alpha[j] for j in range(self._n)]
+        C = matrix([[sign[j] * alpha[j + 1] for j in range(self._n)]
                     for alpha in almost_positive_coroots])
 
         M = self._M.stack(C)

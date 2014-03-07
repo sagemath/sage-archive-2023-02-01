@@ -202,7 +202,7 @@ def sage_timeit(stmt, globals_dict=None, preparse=None, number=0, repeat=3, prec
     repeat=int(repeat)
     precision=int(precision)
     if preparse is None:
-        preparse = interpreter.do_preparse
+        preparse = interpreter._do_preparse
     if preparse:
         stmt = preparser.preparse(stmt)
     if stmt == "":

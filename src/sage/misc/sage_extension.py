@@ -255,7 +255,6 @@ class SageMagics(Magics):
 import displayhook
 class SageCustomizations(object):
     startup_code = """from sage.all_cmdline import *
-from sage.misc.interpreter import sage_prompt
 """
 
     def __init__(self, shell=None):
@@ -365,12 +364,10 @@ from sage.misc.interpreter import sage_prompt
         import sage
         import sage.all
         from interpreter import (SagePreparseTransformer,
-                                 sage_prompt_transformer,
-                                 magic_transformer)
+                                 SagePromptTransformer)
         for s in (self.shell.input_splitter, self.shell.input_transformer_manager):
-            s.physical_line_transforms.extend([sage_prompt_transformer()])
-            s.logical_line_transforms.insert(0, magic_transformer())
-            s.python_line_transforms.extend([SagePreparseTransformer()])
+            s.physical_line_transforms.append(SagePromptTransformer())
+            s.python_line_transforms.append(SagePreparseTransformer())
         preparser(True)
 
 

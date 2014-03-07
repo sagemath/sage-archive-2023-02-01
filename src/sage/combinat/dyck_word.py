@@ -1587,7 +1587,7 @@ class DyckWord(CombinatorialObject, Element):
         Tamari order on the set of Dyck words of size `n` is the
         partial order obtained from the Tamari order on the set of
         binary trees of size `n` (see
-        :meth:`~sage.combinat.binary_tree.BinaryTree.tamari_greater`)
+        :meth:`~sage.combinat.binary_tree.BinaryTree.tamari_lequal`)
         by means of the Tamari bijection between Dyck words and binary
         trees
         (:meth:`~sage.combinat.binary_tree.BinaryTree.to_dyck_word_tamari`).

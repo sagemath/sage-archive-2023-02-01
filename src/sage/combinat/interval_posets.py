@@ -919,6 +919,72 @@ class TamariIntervalPoset(Element):
         new_covers = [[N - i[0], N - i[1]] for i in self._poset.cover_relations_iterator()]
         return TamariIntervalPoset(N - 1, new_covers)
 
+    def insertion(self, i):
+        """
+        Return the Tamari insertion of an integer `i` into the
+        interval-poset ``self``.
+
+        If `P` is a Tamari interval-poset of size `n` and `i` is an
+        integer with `1 \leq i \leq n+1`, then the Tamari insertion of
+        `i` into `P` is defined as the Tamari interval-poset of size
+        `n+1` which corresponds to the interval `[C_1, C_2]` on the
+        Tamari lattice, where the binary trees `C_1` and `C_2` are
+        defined as follows: We write the interval-poset `P` as
+        `[B_1, B_2]` for two binary trees `B_1` and `B_2`. We label
+        the vertices of each of these two trees with the integers
+        `1, 2, \ldots, i-1, i+1, i+2, \ldots, n+1` in such a way that
+        the trees are binary search trees (this labelling is unique).
+        Then, we insert `i` into each of these trees (in the way as
+        explained in
+        :meth:`~sage.combinat.binary_tree.LabelledBinaryTree.binary_search_insert`).
+        The shapes of the resulting two trees are denoted `C_1` and
+        `C_2`.
+
+        .. TODO::
+
+            To study this, it would be more natural to define
+            interval-posets on arbitrary ordered sets rather than just
+            on `\{1, 2, \ldots, n\}`.
+
+        EXAMPLES::
+
+            sage: ip = TamariIntervalPoset(4, [(2, 3), (4, 3)]); ip
+            The tamari interval of size 4 induced by relations [(2, 3), (4, 3)]
+            sage: ip.insertion(1)
+            The tamari interval of size 5 induced by relations [(1, 2), (3, 4), (5, 4)]
+            sage: ip.insertion(2)
+            The tamari interval of size 5 induced by relations [(2, 3), (3, 4), (5, 4), (2, 1)]
+            sage: ip.insertion(3)
+            The tamari interval of size 5 induced by relations [(2, 4), (3, 4), (5, 4), (3, 2)]
+            sage: ip.insertion(4)
+            The tamari interval of size 5 induced by relations [(2, 3), (4, 5), (5, 3), (4, 3)]
+            sage: ip.insertion(5)
+            The tamari interval of size 5 induced by relations [(2, 3), (5, 4), (4, 3)]
+
+            sage: ip = TamariIntervalPoset(0, [])
+            sage: ip.insertion(1)
+            The tamari interval of size 1 induced by relations []
+
+            sage: ip = TamariIntervalPoset(1, [])
+            sage: ip.insertion(1)
+            The tamari interval of size 2 induced by relations [(1, 2)]
+            sage: ip.insertion(2)
+            The tamari interval of size 2 induced by relations [(2, 1)]
+        """
+        if not 0 < i <= self._size + 1:
+            raise ValueError("integer to be inserted not in the appropriate interval")
+        from sage.combinat.binary_tree import LabelledBinaryTree
+        B1 = self.lower_binary_tree().canonical_labelling()
+        B2 = self.upper_binary_tree().canonical_labelling()
+        # We should relabel the trees to "make space" for a label i,
+        # but we don't, because it doesn't make a difference: The
+        # binary search insertion will go precisely the same, because
+        # an integer equal to the label of the root gets sent onto
+        # the left branch.
+        C1 = B1.binary_search_insert(i)
+        C2 = B2.binary_search_insert(i)
+        return TamariIntervalPosets.from_binary_trees(C1, C2)
+
     def _repr_(self):
         r"""
         TESTS::

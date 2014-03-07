@@ -721,9 +721,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         Return the Tamari interval between ``self`` and ``other`` as a
         :class:`TamariIntervalPoset`.
 
-        A "Tamari interval" is an interval in the Tamari order
-        (:meth:`tamari_greater`).
-
+        A "Tamari interval" is an interval in the Tamari poset.
         See :meth:`tamari_lequal` for the definition of the Tamari poset.
         
         INPUT:

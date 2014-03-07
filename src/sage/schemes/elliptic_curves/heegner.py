@@ -454,7 +454,7 @@ class RingClassField(SageObject):
                 else:
                     # inert case
                     n *= p**e + p**(e-1)
-        return n
+        return n * (ZZ(2) // K.number_of_roots_of_unity())
 
     @cached_method
     def absolute_degree(self):

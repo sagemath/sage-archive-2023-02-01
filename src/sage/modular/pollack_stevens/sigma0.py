@@ -33,6 +33,10 @@ EXAMPLES::
     [0 3]
     sage: matrix(ZZ, 2, [1,0,0,1]) in S1
     True
+
+AUTHORS:
+
+    - David Pollack (2012): initial version
 """
 
 # Warning to developers: when working with Sigma0 elements it is generally a
@@ -201,7 +205,6 @@ class Sigma0Element(MonoidElement):
 
         EXAMPLE::
 
-
             sage: from sage.modular.pollack_stevens.sigma0 import Sigma0
             sage: s = Sigma0(3)([1,4,3,3])
             sage: t = Sigma0(15)([4,0,0,1])
@@ -231,7 +234,7 @@ class Sigma0Element(MonoidElement):
 
         This uses the coercion model to find a common parent, with occasionally surprising results:
 
-            sage: t == Sigma0(5)([4, 0, 0, 1]) # should be True
+            sage: t == Sigma0(5)([4, 0, 0, 1])
             False
         """
         return cmp(self._mat, other._mat)
@@ -380,8 +383,6 @@ class Sigma0_class(Parent):
         """
         return self([1,0,0,1])
 
-# I removed __cmp__ because this class has unique representation anyway
-
     def level(self):
         r"""
         If this monoid is `\Sigma_0(N)`, return `N`.
@@ -411,7 +412,7 @@ class Sigma0_class(Parent):
     def _coerce_map_from_(self, other):
         r"""
         Find out wheter other coerces into self.
-        
+
         The *only* thing that coerces canonically into `\Sigma_0` is another
         `\Sigma_0`. It is *very bad* if integers are allowed to coerce in, as
         this leads to a noncommutative coercion diagram whenever we let
@@ -482,7 +483,7 @@ class Sigma0_class(Parent):
         r"""
         String representation of self.
 
-        EXAMPLE::   
+        EXAMPLE::
 
             sage: from sage.modular.pollack_stevens.sigma0 import Sigma0
             sage: S = Sigma0(3)

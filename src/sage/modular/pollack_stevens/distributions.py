@@ -253,6 +253,16 @@ class Distributions_abstract(Module):
         self._populate_coercion_lists_(action_list=[self._act])
 
     def _element_constructor_(self,val):
+        """
+        Construct a distribution from data in ``val``
+
+        EXAMPLES::
+
+            sage: V = Symk(6)
+            sage: v = V([1,2,3,4,5,6,7]); v
+            (1, 2, 3, 4, 5, 6, 7)
+
+        """
         return self.Element(val,self)
 
     def _coerce_map_from_(self, other):

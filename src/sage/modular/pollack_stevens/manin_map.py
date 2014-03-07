@@ -54,6 +54,28 @@ from operator import methodcaller
 from sage.structure.sage_object import load
 
 def fast_dist_act(v,g,acting_matrix = None):
+    r"""
+    Return the result of the distribution v acted upon by a matrix.
+
+    INPUT:
+
+    - ``v`` -- a distribution
+    - ``g`` -- a matrix in sigma0
+    - ``acting_matrix`` (optional) -- the matrix representing the action, if known
+
+    OUTPUT:
+
+    - The distribution ``v * g``
+
+    EXAMPLES::
+
+        sage: from sage.modular.pollack_stevens.manin_map import fast_dist_act
+        sage: from sage.modular.pollack_stevens.sigma0 import Sigma0
+        sage: D = Distributions(0, 11, 10)
+        sage: v = D([2,1])
+        sage: w = fast_dist_act(v,Sigma0(11)([1,2,11,4])); print w
+        (2, 25937424587)
+    """
     if g is not None and g == 1:
         ans = v._moments
     try:
@@ -65,14 +87,6 @@ def fast_dist_act(v,g,acting_matrix = None):
         ans = (v * g)._moments
     #assert len(ans) > 0
     return ans
-
-@parallel
-def f_par(mmap,v,g):
-    try:
-        return sum((fast_dist_act(mmap[h],A) for h,A in v))
-    except TypeError:
-        return sum((mmap[h] * A for h,A in v))
-
 
 def unimod_matrices_to_infty(r, s):
     r"""
@@ -832,6 +846,12 @@ class ManinMap(object):
             psi = {}
             if _parallel:
                 input_vector = [(self,list(M.prep_hecke_on_gen_list(ell,g)),g) for g in M.gens()]
+                def f0(mmap,v,g):
+                    try:
+                        return sum((fast_dist_act(mmap[h],A) for h,A in v))
+                    except TypeError:
+                        return sum((mmap[h] * A for h,A in v))
+                f_par = parallel(f0)
                 par_vector = f_par(input_vector)
                 for inp,outp in par_vector:
                     psi[inp[0][2]] = self._codomain(outp)

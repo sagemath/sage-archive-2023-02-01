@@ -47,6 +47,14 @@ M2ZSpace = MatrixSpace_ZZ_2x2()
 def M2Z(x):
     r"""
     Create an immutable 2x2 integer matrix from x.
+
+    EXAMPLES::
+
+        sage: from sage.modular.pollack_stevens.fund_domain import M2Z
+        sage: print M2Z([1,2,3,4])
+        [1 2]
+        [3 4]
+
     """
     x = M2ZSpace(x)
     x.set_immutable()

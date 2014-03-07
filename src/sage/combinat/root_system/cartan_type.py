@@ -540,6 +540,9 @@ class CartanTypeFactory(SageObject):
             sage: CT = CartanType([['A',2]])
             sage: CT.is_irreducible()
             True
+            sage: CT.cartan_matrix()
+            [ 2 -1]
+            [-1  2]
             sage: CT = CartanType(['A2'])   
             sage: CT.is_irreducible()
             True
@@ -555,7 +558,7 @@ class CartanTypeFactory(SageObject):
         if hasattr(t, "cartan_type"):
             return  t.cartan_type()
 
-        if len(t) == 1: # trac #13774
+        if len(t) == 1: # Fix for trac #13774
             t = t[0]
 
         if type(t)==str:

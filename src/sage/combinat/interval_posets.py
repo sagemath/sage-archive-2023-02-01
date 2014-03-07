@@ -940,6 +940,11 @@ class TamariIntervalPoset(Element):
         The shapes of the resulting two trees are denoted `C_1` and
         `C_2`.
 
+        An alternative way to construct the insertion of `i` into
+        `P` is by relabeling each vertex `u` of `P` satisfying
+        `u \geq i` (as integers) as `u+1`, and then adding a vertex
+        `i` which should precede `i-1` and `i+1`.
+
         .. TODO::
 
             To study this, it would be more natural to define
@@ -970,20 +975,48 @@ class TamariIntervalPoset(Element):
             The tamari interval of size 2 induced by relations [(1, 2)]
             sage: ip.insertion(2)
             The tamari interval of size 2 induced by relations [(2, 1)]
+
+        TESTS:
+
+        Verifying that the two ways of computing insertion are
+        equivalent::
+
+            sage: def insert_alternative(T, i):
+            ....:     # Just another way to compute the insertion of i into T.
+            ....:     from sage.combinat.binary_tree import LabelledBinaryTree
+            ....:     B1 = T.lower_binary_tree().canonical_labelling()
+            ....:     B2 = T.upper_binary_tree().canonical_labelling()
+            ....:     # We should relabel the trees to "make space" for a label i,
+            ....:     # but we don't, because it doesn't make a difference: The
+            ....:     # binary search insertion will go precisely the same, because
+            ....:     # an integer equal to the label of the root gets sent onto
+            ....:     # the left branch.
+            ....:     C1 = B1.binary_search_insert(i)
+            ....:     C2 = B2.binary_search_insert(i)
+            ....:     return TamariIntervalPosets.from_binary_trees(C1, C2)
+            sage: def test_equivalence(n):
+            ....:     for T in TamariIntervalPosets(n):
+            ....:         for i in range(1, n + 2):
+            ....:             if not (insert_alternative(T, i) == T.insertion(i)):
+            ....:                 print T, i
+            ....:                 return False
+            ....:     return True
+            sage: test_equivalence(3)
+            True
+
         """
-        if not 0 < i <= self._size + 1:
+        n = self._size
+        if not 0 < i <= n + 1:
             raise ValueError("integer to be inserted not in the appropriate interval")
-        from sage.combinat.binary_tree import LabelledBinaryTree
-        B1 = self.lower_binary_tree().canonical_labelling()
-        B2 = self.upper_binary_tree().canonical_labelling()
-        # We should relabel the trees to "make space" for a label i,
-        # but we don't, because it doesn't make a difference: The
-        # binary search insertion will go precisely the same, because
-        # an integer equal to the label of the root gets sent onto
-        # the left branch.
-        C1 = B1.binary_search_insert(i)
-        C2 = B2.binary_search_insert(i)
-        return TamariIntervalPosets.from_binary_trees(C1, C2)
+        def add1(u):
+            if u >= i:
+                return u + 1
+            return u
+        rels = [(add1(a), add1(b)) for (a, b) in self.decreasing_cover_relations()] \
+               + [(add1(a), add1(b)) for (a, b) in self.increasing_cover_relations()] \
+               + [(k, k - 1) for k in [i] if i > 1] \
+               + [(k, k + 1) for k in [i] if i <= n]
+        return TamariIntervalPoset(n + 1, rels)
 
     def _repr_(self):
         r"""
@@ -1014,6 +1047,21 @@ class TamariIntervalPoset(Element):
         if (not isinstance(other, TamariIntervalPoset)):
             return False
         return self.size() == other.size() and self._cover_relations == other._cover_relations
+
+    def __ne__(self, other):
+        r"""
+        TESTS::
+
+            sage: TamariIntervalPoset(0,[]) != TamariIntervalPoset(0,[])
+            False
+            sage: TamariIntervalPoset(1,[]) != TamariIntervalPoset(0,[])
+            True
+            sage: TamariIntervalPoset(3,[(1,2),(3,2)]) != TamariIntervalPoset(3,[(3,2),(1,2)])
+            False
+            sage: TamariIntervalPoset(3,[(1,2),(3,2)]) != TamariIntervalPoset(3,[(1,2)])
+            True
+        """
+        return not (self == other)
 
     def __le__(self, el2):
         r"""

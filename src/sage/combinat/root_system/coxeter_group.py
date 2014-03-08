@@ -60,17 +60,25 @@ def CoxeterGroup(data, implementation=None, base_ring=None, index_set=None):
         sage: W                                   # optional - chevie
         Permutation Group with generators [(1,3)(2,5)(4,6), (1,4)(2,3)(5,6)]
 
-    Otherwise, a matrix representation is returned::
+    Otherwise, a matrix representation is returned if Chevie or coxeter3 is
+    not installed::
 
         sage: W = CoxeterGroup(["A",3,1])
         sage: W
         Weyl Group of type ['A', 3, 1] (as a matrix group acting on the root space)
+
         sage: W = CoxeterGroup(['H',3])
-        sage: W
+        sage: from sage.combinat.root_system.coxeter_group import is_chevie_available
+        sage: if not is_chevie_available(): W
         Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
         [1 3 2]
         [3 1 5]
         [2 5 1]
+        sage: W # optional - chevie
+        Permutation Group with generators
+         [(2,6)(3,18)(4,8)(5,9)(7,10)(11,12)(13,14)(17,21)(19,23)(20,24)(22,25)(26,27)(28,29),
+          (1,4)(2,17)(3,6)(5,7)(9,11)(10,12)(14,15)(16,19)(18,21)(20,22)(24,26)(25,27)(29,30),
+          (1,16)(2,5)(4,7)(6,9)(8,10)(11,13)(12,14)(17,20)(19,22)(21,24)(23,25)(26,28)(27,29)]
 
     We now use the ``implementation`` option::
 

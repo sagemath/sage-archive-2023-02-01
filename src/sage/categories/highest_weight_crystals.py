@@ -257,7 +257,7 @@ class HighestWeightCrystalMorphism(CrystalMorphismByGenerators):
 
             sage: B = InfinityCrystalOfTableaux(['B',2])
             sage: C = InfinityCrystalOfNakajimaMonomials(['B',2])
-            sage: psi = B.morphism(C.module_generators)
+            sage: psi = B.crystal_morphism(C.module_generators)
         """
         if gens is None:
             gens = parent.domain().highest_weight_vectors()
@@ -272,7 +272,7 @@ class HighestWeightCrystalMorphism(CrystalMorphismByGenerators):
 
             sage: B = InfinityCrystalOfTableaux(['B',2])
             sage: C = InfinityCrystalOfNakajimaMonomials(['B',2])
-            sage: psi = B.morphism(C.module_generators)
+            sage: psi = B.crystal_morphism(C.module_generators)
             sage: b = B.highest_weight_vector()
             sage: psi(b)
             1

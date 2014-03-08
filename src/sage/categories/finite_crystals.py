@@ -98,10 +98,10 @@ class FiniteCrystals(Category):
 
                     sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
                     sage: C = CrystalOfTableaux(['A',2], ([2,1], [1,1]))
-                    sage: psi = B.morphism(C.module_generators[:1], codomain=C)
+                    sage: psi = B.crystal_morphism(C.module_generators[:1], codomain=C)
                     sage: psi.is_embedding()
                     True
-                    sage: psi = C.morphism([B.module_generators[0], None], codomain=B)
+                    sage: psi = C.crystal_morphism([B.module_generators[0], None], codomain=B)
                     sage: psi.is_embedding()
                     False
                 """
@@ -123,10 +123,10 @@ class FiniteCrystals(Category):
 
                     sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
                     sage: C = CrystalOfTableaux(['A',2], ([2,1], [1,1]))
-                    sage: psi = B.morphism(C.module_generators[:1], codomain=C)
+                    sage: psi = B.crystal_morphism(C.module_generators[:1], codomain=C)
                     sage: psi.is_strict()
                     True
-                    sage: psi = C.morphism([B.module_generators[0], None], codomain=B)
+                    sage: psi = C.crystal_morphism([B.module_generators[0], None], codomain=B)
                     sage: psi.is_strict()
                     False
                 """
@@ -148,11 +148,11 @@ class FiniteCrystals(Category):
 
                     sage: B = CrystalOfTableaux(['A',2], shape=[1,1])
                     sage: C = CrystalOfTableaux(['A',2], ([2,1], [1,1]))
-                    sage: psi = B.morphism(C.module_generators[1:], codomain=C)
+                    sage: psi = B.crystal_morphism(C.module_generators[1:], codomain=C)
                     sage: psi.is_isomorphism()
                     False
                     sage: K = KirillovReshetikhinCrystal(['A',2,1], 2,1)
-                    sage: psi = K.morphism(B.module_generators, codomain=B, cartan_type=['A',2])
+                    sage: psi = K.crystal_morphism(B.module_generators, codomain=B, cartan_type=['A',2])
                     sage: psi.is_isomorphism()
                     True
                 """
@@ -166,7 +166,7 @@ class FiniteCrystals(Category):
 
                     sage: B = CrystalOfTableaux(['D',4], shape=[])
                     sage: K = KirillovReshetikhinTableaux(['D',4,1], 2,1)
-                    sage: psi = B.morphism(K.module_generators[:1], codomain=K, category=FiniteCrystals())
+                    sage: psi = B.crystal_morphism(K.module_generators[:1], codomain=K, category=FiniteCrystals())
                     sage: S = psi.image()
                     sage: S
                     Subcrystal of Kirillov-Reshetikhin tableaux of type ['D', 4, 1] and shape (2, 1)
@@ -180,8 +180,8 @@ class FiniteCrystals(Category):
                         image.add(y)
                 gens = filter(lambda x: x is not None, self.im_gens())
                 from sage.combinat.crystals.subcrystal import Subcrystal
-                return Subcrystal(self.codomain(), image, gens, self.cartan_type(),
-                                  self.index_set(), category=self.domain().category())
+                return Subcrystal(self.codomain(), image, gens, cartan_type=self.cartan_type(),
+                                  index_set=self.index_set(), category=self.domain().category())
 
     class ParentMethods:
         @cached_method

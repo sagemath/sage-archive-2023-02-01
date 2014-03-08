@@ -20,7 +20,7 @@ Kirillov-Reshetikhin Crystals
 # library is heavily inspired from MuPAD-Combinat.
 #****************************************************************************
 
-from sage.misc.cachefunc import cached_method
+from sage.misc.cachefunc import cached_method, CachedFunction
 from sage.misc.abstract_method import abstract_method
 from sage.misc.functional import is_even, is_odd
 from sage.functions.other import floor, ceil
@@ -28,6 +28,7 @@ from sage.combinat.combinat import CombinatorialObject
 from sage.structure.parent import Parent
 from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.finite_crystals import FiniteCrystals
+from sage.categories.map import Map
 from sage.rings.integer import Integer
 from sage.rings.all import QQ
 from sage.combinat.crystals.affine import AffineCrystalFromClassical, \
@@ -552,7 +553,7 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
         INPUT:
 
         - ``self`` -- a crystal `L`
-        - ``K`` -- a Kirillov-Reshetikhin crystal of the same type as `L`.
+        - ``K`` -- a Kirillov-Reshetikhin crystal of the same type as `L`
 
         Returns the *combinatorial `R`-matrix* from `L \otimes K \to K
         \otimes L`, where the combinatorial `R`-matrix is the affine
@@ -612,7 +613,7 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
         gen1 = T1( self.module_generator(), K.module_generator() )
         gen2 = T2( K.module_generator(), self.module_generator() )
         g = { gen1 : gen2 }
-        return T1.crystal_morphism(g, acyclic = False)
+        return T1.crystal_morphism(g, check=False)
 
     @cached_method
     def kirillov_reshetikhin_tableaux(self):
@@ -848,7 +849,8 @@ class KR_type_vertical(KirillovReshetikhinCrystalFromPromotion):
         T = self.classical_decomposition()
         ind = list(T.index_set())
         ind.remove(1)
-        return T.crystal_morphism( self.promotion_on_highest_weight_vectors(), index_set = ind)
+        return T.crystal_morphism(self.promotion_on_highest_weight_vectors(),
+                                  codomain=T, index_set=ind, check=False)
 
     def promotion_inverse(self):
         """
@@ -1015,16 +1017,21 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
 
     def classical_decomposition(self):
         """
-        Specifies the classical crystal underlying the KR crystal of type `E_6^{(1)}`.
+        Specifies the classical crystal underlying the KR crystal
+        of type `E_6^{(1)}`.
 
         EXAMPLES::
 
             sage: K = KirillovReshetikhinCrystal(['E',6,1], 2,2)
             sage: K.classical_decomposition()
-            Direct sum of the crystals Family (Finite dimensional highest weight crystal of type ['E', 6] and highest weight 0, Finite dimensional highest weight crystal of type ['E', 6] and highest weight Lambda[2], Finite dimensional highest weight crystal of type ['E', 6] and highest weight 2*Lambda[2])
+            Direct sum of the crystals Family
+             (Finite dimensional highest weight crystal of type ['E', 6] and highest weight 0,
+              Finite dimensional highest weight crystal of type ['E', 6] and highest weight Lambda[2],
+              Finite dimensional highest weight crystal of type ['E', 6] and highest weight 2*Lambda[2])
             sage: K = KirillovReshetikhinCrystal(['E',6,1], 1,2)
             sage: K.classical_decomposition()
-            Direct sum of the crystals Family (Finite dimensional highest weight crystal of type ['E', 6] and highest weight 2*Lambda[1],)
+            Direct sum of the crystals Family
+             (Finite dimensional highest weight crystal of type ['E', 6] and highest weight 2*Lambda[1],)
         """
         La = self.cartan_type().classical().root_system().weight_lattice().fundamental_weights()
         if self.r() in [1,6]:
@@ -1216,7 +1223,11 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
         """
         T = self.classical_decomposition()
         ind = [1,2,3,4,5]
-        return T.crystal_morphism( self.promotion_on_highest_weight_vectors_function(), automorphism = lambda i : self.dynkin_diagram_automorphism(i), index_set = ind)
+        return T.crystal_morphism(self.promotion_on_highest_weight_vectors(),
+                                  codomain=T,
+                                  automorphism=self.dynkin_diagram_automorphism,
+                                  index_set=ind,
+                                  check=False)
 
     @cached_method
     def promotion_inverse(self):
@@ -1360,8 +1371,10 @@ class KR_type_C(KirillovReshetikhinGenericCrystal):
         """
         keys = self.highest_weight_dict().keys()
         pdict = dict( (self.highest_weight_dict()[key], self.ambient_highest_weight_dict()[key]) for key in keys )
-        return self.crystal_morphism( pdict, index_set = self.cartan_type().classical().index_set(),
-                                      automorphism = lambda i : i+1 )
+        classical = self.cartan_type().classical()
+        return self.crystal_morphism( pdict, index_set=classical.index_set(),
+                                      automorphism=lambda i: i+1,
+                                      cartan_type=classical, check=False )
 
     @cached_method
     def from_ambient_crystal(self):
@@ -1380,9 +1393,11 @@ class KR_type_C(KirillovReshetikhinGenericCrystal):
             [[1, 1], [2, 2]]
         """
         keys = self.highest_weight_dict().keys()
-        pdict_inv = dict( (self.ambient_highest_weight_dict()[key], self.highest_weight_dict()[key]) for key in keys )
-        return self.crystal_morphism( pdict_inv, index_set = [j+1 for j in self.cartan_type().classical().index_set()],
-                                      automorphism = lambda i : i-1 )
+        pdict_inv = dict( (self.ambient_highest_weight_dict()[key], self.highest_weight_dict()[key])
+                          for key in keys )
+        ind = [j+1 for j in self.cartan_type().classical().index_set()]
+        return AmbientRetractMap( self, self.ambient_crystal(), pdict_inv, index_set=ind,
+                                  automorphism=lambda i : i-1 )
 
 class KR_type_CElement(KirillovReshetikhinGenericCrystalElement):
     r"""
@@ -1615,8 +1630,10 @@ class KR_type_A2(KirillovReshetikhinGenericCrystal):
         """
         keys = self.highest_weight_dict().keys()
         pdict = dict( (self.highest_weight_dict()[key], self.ambient_highest_weight_dict()[key]) for key in keys )
-        return self.crystal_morphism( pdict, index_set = self.cartan_type().classical().index_set(),
-                                      automorphism = lambda i : i+1 )
+        classical = self.cartan_type().classical()
+        return self.crystal_morphism( pdict, index_set=classical.index_set(),
+                                      automorphism=lambda i: i+1,
+                                      cartan_type=classical, check=False )
 
     @cached_method
     def from_ambient_crystal(self):
@@ -1636,9 +1653,11 @@ class KR_type_A2(KirillovReshetikhinGenericCrystal):
             [[1, 1]]
         """
         keys = self.highest_weight_dict().keys()
-        pdict_inv = dict( (self.ambient_highest_weight_dict()[key], self.highest_weight_dict()[key]) for key in keys )
-        return self.crystal_morphism( pdict_inv, index_set = [j+1 for j in self.cartan_type().classical().index_set()],
-                                      automorphism = lambda i : i-1 )
+        pdict_inv = dict( (self.ambient_highest_weight_dict()[key], self.highest_weight_dict()[key])
+                          for key in keys )
+        ind = [j+1 for j in self.cartan_type().classical().index_set()]
+        return AmbientRetractMap( self, self.ambient_crystal(), pdict_inv, index_set=ind,
+                                  automorphism=lambda i : i-1 )
 
 class KR_type_A2Element(KirillovReshetikhinGenericCrystalElement):
     r"""
@@ -1858,9 +1877,13 @@ class KR_type_box(KirillovReshetikhinGenericCrystal, AffineCrystalFromClassical)
             [[], [[1, 1]], [[2, 2]], [[-2, -2]], [[-1, -1]]]
         """
         keys = self.highest_weight_dict().keys()
-        pdict = dict( (self.highest_weight_dict()[key], self.ambient_highest_weight_dict()[key]) for key in keys )
-        return self.crystal_morphism( pdict, index_set = self.cartan_type().classical().index_set(),
-                                      similarity_factor = self.similarity_factor() )
+        pdict = dict( (self.highest_weight_dict()[key], self.ambient_highest_weight_dict()[key])
+                      for key in keys )
+        classical = self.cartan_type().classical()
+        return self.crystal_morphism( pdict, codomain=self.ambient_crystal(),
+                                      index_set=classical.index_set(),
+                                      scaling_factors=self.similarity_factor(),
+                                      cartan_type=classical, check=False )
 
     @cached_method
     def from_ambient_crystal(self):
@@ -1884,8 +1907,9 @@ class KR_type_box(KirillovReshetikhinGenericCrystal, AffineCrystalFromClassical)
         """
         keys = self.highest_weight_dict().keys()
         pdict_inv = dict( (self.ambient_highest_weight_dict()[key], self.highest_weight_dict()[key]) for key in keys )
-        return self.crystal_morphism( pdict_inv, index_set = self.cartan_type().classical().index_set(),
-                                      similarity_factor_domain = self.similarity_factor() )
+        return AmbientRetractMap( self, self.ambient_crystal(), pdict_inv,
+                                  index_set=self.cartan_type().classical().index_set(),
+                                  similarity_factor_domain=self.similarity_factor() )
 
 
 class KR_type_boxElement(KirillovReshetikhinGenericCrystalElement):
@@ -2124,9 +2148,13 @@ class KR_type_Bn(KirillovReshetikhinGenericCrystal):
             [[2], [-3], [-1]], [[3], [-2], [-1]], [[-3], [-2], [-1]]]
         """
         keys = self.highest_weight_dict().keys()
-        pdict = dict( (self.highest_weight_dict()[key], self.ambient_highest_weight_dict()[key]) for key in keys )
-        return self.crystal_morphism( pdict, index_set = self.cartan_type().classical().index_set(),
-                                      similarity_factor = self.similarity_factor() )
+        pdict = dict( (self.highest_weight_dict()[key], self.ambient_highest_weight_dict()[key])
+                      for key in keys )
+        classical = self.cartan_type().classical()
+        return self.crystal_morphism( pdict, codomain=self.ambient_crystal(),
+                                      index_set=classical.index_set(),
+                                      scaling_factors=self.similarity_factor(),
+                                      cartan_type=classical, check=False )
 
     @cached_method
     def from_ambient_crystal(self):
@@ -2148,8 +2176,9 @@ class KR_type_Bn(KirillovReshetikhinGenericCrystal):
         """
         keys = self.highest_weight_dict().keys()
         pdict_inv = dict( (self.ambient_highest_weight_dict()[key], self.highest_weight_dict()[key]) for key in keys )
-        return self.crystal_morphism( pdict_inv, index_set = self.cartan_type().classical().index_set(),
-                                      similarity_factor_domain = self.similarity_factor() )
+        return AmbientRetractMap( self, self.ambient_crystal(), pdict_inv,
+                                  index_set=self.cartan_type().classical().index_set(),
+                                  similarity_factor_domain=self.similarity_factor() )
 
 
 class KR_type_BnElement(KirillovReshetikhinGenericCrystalElement):
@@ -2646,7 +2675,6 @@ class KR_type_Dn_twistedElement(KirillovReshetikhinGenericCrystalElement):
             1
         """
         n = self.parent().cartan_type().rank()-1
-        s = self.parent().s()
         [b,l] = self.lift().to_highest_weight(index_set=range(2,n+1))
         pm = self.parent().from_highest_weight_vector_to_pm_diagram(b)
         l1 = pm.pm_diagram[n-1][0]
@@ -2665,7 +2693,6 @@ class KR_type_Dn_twistedElement(KirillovReshetikhinGenericCrystalElement):
             0
         """
         n = self.parent().cartan_type().rank()-1
-        s = self.parent().s()
         [b,l] = self.lift().to_highest_weight(index_set=range(2,n+1))
         pm = self.parent().from_highest_weight_vector_to_pm_diagram(b)
         l2 = pm.pm_diagram[n-1][1]
@@ -2906,7 +2933,8 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             elif i==n-1:
                 return n
             return i
-        return T.crystal_morphism( self.promotion_on_highest_weight_vectors(), index_set = ind)
+        return T.crystal_morphism(self.promotion_on_highest_weight_vectors(),
+                                  codomain=T, index_set=ind, check=False)
 
     @cached_method
     def promotion_inverse(self):
@@ -2934,7 +2962,8 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             elif i==n-1:
                 return n
             return i
-        return T.crystal_morphism( self.promotion_on_highest_weight_vectors_inverse(), index_set = ind)
+        return T.crystal_morphism(self.promotion_on_highest_weight_vectors_inverse(),
+                                  codomain=T, index_set=ind, check=False)
 
 #####################################################################
 
@@ -3212,3 +3241,210 @@ def horizontal_dominoes_removed(r, s):
     list = [ [y for y in x] + [0 for i in range(r-x.length())] for x in partitions_in_box(r, int(s/2)) ]
     two = lambda x : 2*(x-int(s/2)) + s
     return [Partition([two(y) for y in x]) for x in list]
+
+
+class AmbientRetractMap(Map):
+    r"""
+    The retraction map from the ambient crystal.
+    """
+    def __init__(self, base, ambient, pdict_inv, index_set,
+                 similarity_factor_domain=None, automorphism=None):
+        """
+        Initialize ``self``.
+        """
+        from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
+        from sage.categories.homset import Hom
+        Map.__init__(self, Hom(ambient, base, SetsWithPartialMaps()))
+
+        if similarity_factor_domain is None:
+            similarity_factor_domain = dict( (i,1) for i in index_set )
+        if automorphism is None:
+            automorphism = lambda i: i
+
+        self._pdict_inv = pdict_inv
+        self._automorphism = automorphism
+        self._similarity_factor_domain = similarity_factor_domain
+        self._index_set = index_set
+
+    def _repr_type(self):
+        """
+        Return a string describing ``self``.
+
+        EXAMPLES::
+        """
+        return "ambient retract"
+
+    def _call_(self, x):
+        """
+        A fast map from the virtual image to the base crystal.
+        """
+        automorphism = self._automorphism
+        sfd = self._similarity_factor_domain
+        for i in self._index_set:
+            c = x.e_string([i for k in range(sfd[i])])
+            if c is not None:
+                d = self(c).f(automorphism(i))
+                assert d is not None
+                #now we know that x is hw
+                return d
+        return self._pdict_inv[x]
+
+
+# I'm keeping this here in case this is faster for constructing KR crystals
+#   than using the CrystalMorphism class
+def crystal_morphism(C, g, index_set=None, automorphism=lambda i: i,
+                     direction='down', direction_image='down',
+                     similarity_factor=None, similarity_factor_domain=None,
+                     cached=False, acyclic=True):
+    r"""
+    Constructs a morphism from the crystal ``C`` to another crystal.
+
+    The input ``g`` can either be a function of a (sub)set of elements of
+    ``C`` to element in another crystal or a dictionary between certain
+    elements. Usually one would map highest weight elements or crystal
+    generators to each other using ``g``.
+
+    Specifying index_set gives the opportunity to define the morphism as
+    `I`-crystals where `I` is ``index_set``. If ``index_set`` is not
+    specified, the index set of ``C`` is used. It is also possible to define
+    twisted-morphisms by specifying an automorphism on the nodes in
+    the Dynkin diagram (i.e. the ``index_set``).
+
+    The option direction and direction_image indicate whether to use
+    `f_i` or `e_i` in ``C`` or the image crystal to construct the morphism,
+    depending on whether the direction is set to ``'down'`` or ``'up'``.
+
+    It is also possible to set a ``similarity_factor``. This should be a
+    dictionary between the elements in the index set and positive integers.
+    The crystal operator `f_i` then gets mapped to `f_i^{m_i}` where `m_i`
+    is ``similarity_factor[i]``. Setting ``similarity_factor_domain`` to a
+    dictionary between the index set and positive integers has the effect
+    that `f_i^{m_i}` gets mapped to `f_i` where `m_i` is
+    ``similarity_factor_domain[i]``.
+
+    Finally, it is possible to set the option ``acyclic = False``. This
+    calculates an isomorphism for cyclic crystals (for example finite
+    affine crystals). In this case the input function ``g`` is supposed
+    to be given as a dictionary.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.crystals.kirillov_reshetikhin import crystal_morphism
+        sage: C2 = CrystalOfLetters(['A',2])
+        sage: C3 = CrystalOfLetters(['A',3])
+        sage: g = {C2.module_generators[0] : C3.module_generators[0]}
+        sage: g_full = crystal_morphism(C2, g)
+        sage: g_full(C2(1))
+        1
+        sage: g_full(C2(2))
+        2
+        sage: g = {C2(1) : C2(3)}
+        sage: g_full = crystal_morphism(C2, g, automorphism=lambda i: 3-i, direction_image='up')
+        sage: [g_full(b) for b in C2]
+        [3, 2, 1]
+        sage: T = CrystalOfTableaux(['A',2], shape = [2])
+        sage: g = {C2(1) : T(rows=[[1,1]])}
+        sage: g_full = crystal_morphism(C2, g, similarity_factor={1:2, 2:2})
+        sage: [g_full(b) for b in C2]
+        [[[1, 1]], [[2, 2]], [[3, 3]]]
+        sage: g = {T(rows=[[1,1]]) : C2(1)}
+        sage: g_full = crystal_morphism(T, g, similarity_factor_domain={1:2, 2:2})
+        sage: g_full(T(rows=[[2,2]]))
+        2
+
+        sage: B1 = KirillovReshetikhinCrystal(['A',2,1],1,1)
+        sage: B2 = KirillovReshetikhinCrystal(['A',2,1],1,2)
+        sage: T = TensorProductOfCrystals(B1, B2)
+        sage: T1 = TensorProductOfCrystals(B2, B1)
+        sage: La = T.weight_lattice_realization().fundamental_weights()
+        sage: t = [b for b in T if b.weight() == -3*La[0] + 3*La[1]][0]
+        sage: t1 = [b for b in T1 if b.weight() == -3*La[0] + 3*La[1]][0]
+        sage: g = {t:t1}
+        sage: f = crystal_morphism(T, g, acyclic=False)
+        sage: [[b,f(b)] for b in T]
+        [[[[[1]], [[1, 1]]], [[[1, 1]], [[1]]]],
+        [[[[1]], [[1, 2]]], [[[1, 1]], [[2]]]],
+        [[[[1]], [[2, 2]]], [[[1, 2]], [[2]]]],
+        [[[[1]], [[1, 3]]], [[[1, 1]], [[3]]]],
+        [[[[1]], [[2, 3]]], [[[1, 2]], [[3]]]],
+        [[[[1]], [[3, 3]]], [[[1, 3]], [[3]]]],
+        [[[[2]], [[1, 1]]], [[[1, 2]], [[1]]]],
+        [[[[2]], [[1, 2]]], [[[2, 2]], [[1]]]],
+        [[[[2]], [[2, 2]]], [[[2, 2]], [[2]]]],
+        [[[[2]], [[1, 3]]], [[[2, 3]], [[1]]]],
+        [[[[2]], [[2, 3]]], [[[2, 2]], [[3]]]],
+        [[[[2]], [[3, 3]]], [[[2, 3]], [[3]]]],
+        [[[[3]], [[1, 1]]], [[[1, 3]], [[1]]]],
+        [[[[3]], [[1, 2]]], [[[1, 3]], [[2]]]],
+        [[[[3]], [[2, 2]]], [[[2, 3]], [[2]]]],
+        [[[[3]], [[1, 3]]], [[[3, 3]], [[1]]]],
+        [[[[3]], [[2, 3]]], [[[3, 3]], [[2]]]],
+        [[[[3]], [[3, 3]]], [[[3, 3]], [[3]]]]]
+    """
+    if index_set is None:
+        index_set = C.index_set()
+    if similarity_factor is None:
+        similarity_factor = dict( (i,1) for i in index_set )
+    if similarity_factor_domain is None:
+        similarity_factor_domain = dict( (i,1) for i in index_set )
+    if direction == 'down':
+        e_string = 'e_string'
+    else:
+        e_string = 'f_string'
+    if direction_image == 'down':
+        f_string = 'f_string'
+    else:
+        f_string = 'e_string'
+
+    if acyclic:
+        if type(g) == dict:
+            g = g.__getitem__
+
+        def morphism(b):
+            for i in index_set:
+                c = getattr(b, e_string)([i for k in range(similarity_factor_domain[i])])
+                if c is not None:
+                    d = getattr(morphism(c), f_string)([automorphism(i) for k in range(similarity_factor[i])])
+                    if d is not None:
+                        return d
+                    else:
+                        raise ValueError("This is not a morphism!")
+                    #now we know that b is hw
+            return g(b)
+
+    else:
+        import copy
+        morphism = copy.copy(g)
+        known = set( g.keys() )
+        todo = copy.copy(known)
+        images = set( [g[x] for x in known] )
+        # Invariants:
+        # - images contains all known morphism(x)
+        # - known contains all elements x for which we know morphism(x)
+        # - todo  contains all elements x for which we haven't propagated to each child
+        while todo != set( [] ):
+            x = todo.pop()
+            for i in index_set:
+                eix  = getattr(x, f_string)([i for k in range(similarity_factor_domain[i])])
+                eigx = getattr(morphism[x], f_string)([automorphism(i) for k in range(similarity_factor[i])])
+                if bool(eix is None) != bool(eigx is None):
+                    # This is not a crystal morphism!
+                    raise ValueError("This is not a morphism!") #, print("x="x,"g(x)="g(x),"i="i)
+                if (eix is not None) and (eix not in known):
+                    todo.add(eix)
+                    known.add(eix)
+                    morphism[eix] = eigx
+                    images.add(eigx)
+        # Check that the module generators are indeed module generators
+        assert(len(known) == C.cardinality())
+        # We may not want to systematically run those tests,
+        # to allow for non bijective crystal morphism
+        # Add an option CheckBijective?
+        if not ( len(known) == len(images) and len(images) == images.pop().parent().cardinality() ):
+            return(None)
+        return morphism.__getitem__
+
+    if cached:
+        return morphism
+    return CachedFunction(morphism)
+

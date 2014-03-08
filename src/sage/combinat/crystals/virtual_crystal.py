@@ -74,18 +74,28 @@ class VirtualCrystal(Subcrystal):
       to the set `\sigma_i`
     - ``scaling_factors`` -- a dictionary whose key `i` corresponds to
       the scaling factor `\gamma_i`
-    - ``cartan_type`` -- (optional) the Cartan type for the virtual crystal;
-      the default is the Cartan type for the ambient crystal
+    - ``contained`` -- (optional) a set (or function) which specifies when an
+      element is contained in the subcrystal; the default is everything
+      possible is included
     - ``generators`` -- (optional) the generators for the virtual crystal; the
       default is the generators for the ambient crystal
+    - ``cartan_type`` -- (optional) the Cartan type for the virtual crystal;
+      the default is the Cartan type for the ambient crystal
     - ``index_set`` -- (optional) the index set for the virtual crystal; the
       default is the index set for the Cartan type
     - ``category`` -- (optional) the category for the virtual crystal; the
       default is the :class:`~sage.categories.crystals.Crystals` category
+
+    REFERENCES:
+
+    - [FOS09]_
+    - [OSS03]_
+    - [OSS2003]_
     """
     @staticmethod
     def __classcall_private__(cls, ambient, virtualization, scaling_factors,
-                              generators=None, cartan_type=None, index_set=None, category=None):
+                              contained=None, generators=None,
+                              cartan_type=None, index_set=None, category=None):
         """
         Normalize arguments to ensure a unique representation.
 
@@ -93,9 +103,9 @@ class VirtualCrystal(Subcrystal):
 
             sage: B = CrystalOfTableaux(['B',3], shape=[1])
             sage: C = CrystalOfTableaux(['D',4], shape=[2])
-            sage: psi1 = B.morphism(C.module_generators)
+            sage: psi1 = B.crystal_morphism(C.module_generators)
             sage: V1 = psi1.image()
-            sage: psi2 = B.morphism(C.module_generators, index_set=[1,2,3])
+            sage: psi2 = B.crystal_morphism(C.module_generators, index_set=[1,2,3])
             sage: V2 = psi2.image()
             sage: V1 is V2
             True
@@ -114,11 +124,11 @@ class VirtualCrystal(Subcrystal):
         category = Crystals().or_subcategory(category)
 
         return super(Subcrystal, cls).__classcall__(cls, ambient, virtualization, scaling_factors,
-                                                    tuple(generators), cartan_type, tuple(index_set),
-                                                    category)
+                                                    contained, tuple(generators), cartan_type,
+                                                    tuple(index_set), category)
 
     def __init__(self, ambient, virtualization, scaling_factors,
-                 generators, cartan_type, index_set, category):
+                 contained, generators, cartan_type, index_set, category):
         """
         Initialize ``self``.
 
@@ -126,13 +136,14 @@ class VirtualCrystal(Subcrystal):
 
             sage: B = CrystalOfTableaux(['B',3], shape=[1])
             sage: C = CrystalOfTableaux(['D',4], shape=[2])
-            sage: psi = B.morphism(C.module_generators)
+            sage: psi = B.crystal_morphism(C.module_generators)
             sage: V = psi.image()
             sage: TestSuite(V).run()
         """
         self._virtualization = virtualization
         self._scaling_factors = scaling_factors
-        Subcrystal.__init__(self, ambient, None, generators, cartan_type, index_set, category)
+        Subcrystal.__init__(self, ambient, contained, generators,
+                            cartan_type, index_set, category)
 
     def _repr_(self):
         """
@@ -142,7 +153,7 @@ class VirtualCrystal(Subcrystal):
 
             sage: B = CrystalOfTableaux(['B',3], shape=[1])
             sage: C = CrystalOfTableaux(['D',4], shape=[2])
-            sage: psi = B.morphism(C.module_generators)
+            sage: psi = B.crystal_morphism(C.module_generators)
             sage: psi.image()
             Virtual crystal of The crystal of tableaux of type ['D', 4] and shape(s) [[2]] of type ['B', 3]
         """
@@ -156,7 +167,7 @@ class VirtualCrystal(Subcrystal):
 
             sage: B = CrystalOfTableaux(['B',3], shape=[1])
             sage: C = CrystalOfTableaux(['D',4], shape=[2])
-            sage: psi = B.morphism(C.module_generators)
+            sage: psi = B.crystal_morphism(C.module_generators)
             sage: V = psi.image()
             sage: mg = C.module_generators[0]
             sage: mg in V
@@ -187,7 +198,7 @@ class VirtualCrystal(Subcrystal):
 
             sage: B = CrystalOfTableaux(['B',3], shape=[1])
             sage: C = CrystalOfTableaux(['D',4], shape=[2])
-            sage: psi = B.morphism(C.module_generators)
+            sage: psi = B.crystal_morphism(C.module_generators)
             sage: V = psi.image()
             sage: V.virtualization()
             Finite family {1: (1,), 2: (2,), 3: (3, 4)}
@@ -202,7 +213,7 @@ class VirtualCrystal(Subcrystal):
 
             sage: B = CrystalOfTableaux(['B',3], shape=[1])
             sage: C = CrystalOfTableaux(['D',4], shape=[2])
-            sage: psi = B.morphism(C.module_generators)
+            sage: psi = B.crystal_morphism(C.module_generators)
             sage: V = psi.image()
             sage: V.scaling_factors()
             Finite family {1: 2, 2: 2, 3: 1}
@@ -222,7 +233,7 @@ class VirtualCrystal(Subcrystal):
 
                 sage: B = CrystalOfTableaux(['B',3], shape=[1])
                 sage: C = CrystalOfTableaux(['D',4], shape=[2])
-                sage: psi = B.morphism(C.module_generators)
+                sage: psi = B.crystal_morphism(C.module_generators)
                 sage: V = psi.image()
                 sage: mg = V.module_generators[0]
                 sage: mg.e(1)
@@ -248,7 +259,7 @@ class VirtualCrystal(Subcrystal):
 
                 sage: B = CrystalOfTableaux(['B',3], shape=[1])
                 sage: C = CrystalOfTableaux(['D',4], shape=[2])
-                sage: psi = B.morphism(C.module_generators)
+                sage: psi = B.crystal_morphism(C.module_generators)
                 sage: V = psi.image()
                 sage: mg = V.module_generators[0]
                 sage: mg.f(1)
@@ -273,7 +284,7 @@ class VirtualCrystal(Subcrystal):
 
                 sage: B = CrystalOfTableaux(['B',3], shape=[1])
                 sage: C = CrystalOfTableaux(['D',4], shape=[2])
-                sage: psi = B.morphism(C.module_generators)
+                sage: psi = B.crystal_morphism(C.module_generators)
                 sage: V = psi.image()
                 sage: mg = V.module_generators[0]
                 sage: mg.epsilon(2)
@@ -292,7 +303,7 @@ class VirtualCrystal(Subcrystal):
 
                 sage: B = CrystalOfTableaux(['B',3], shape=[1])
                 sage: C = CrystalOfTableaux(['D',4], shape=[2])
-                sage: psi = B.morphism(C.module_generators)
+                sage: psi = B.crystal_morphism(C.module_generators)
                 sage: V = psi.image()
                 sage: mg = V.module_generators[0]
                 sage: mg.phi(1)
@@ -311,7 +322,7 @@ class VirtualCrystal(Subcrystal):
 
                 sage: B = CrystalOfTableaux(['B',3], shape=[1])
                 sage: C = CrystalOfTableaux(['D',4], shape=[2])
-                sage: psi = B.morphism(C.module_generators)
+                sage: psi = B.crystal_morphism(C.module_generators)
                 sage: V = psi.image()
                 sage: mg = V.module_generators[0]
                 sage: mg.weight()
@@ -327,4 +338,6 @@ class VirtualCrystal(Subcrystal):
             v = P._virtualization
             sf = P._scaling_factors
             return WLR.sum(wt.scalar(ac[v[i][0]]) / sf[i] * La[i] for i in self.index_set())
+
+# TODO: implement a devirtualization map
 

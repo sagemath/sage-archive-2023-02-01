@@ -47,6 +47,10 @@ class Subcrystal(Parent, UniqueRepresentation):
       possible is included
     - ``generators`` -- (optional) the generators for the subcrystal; the
       default is the generators for the ambient crystal
+    - ``virtualization``, ``scaling_factors`` -- (optional)
+      dictionaries whose key `i` corresponds to the sets `\sigma_i`
+      and `\gamma_i` respectively used to define virtual crystals; see
+      :class:`~sage.combinat.crystals.virtual_crystal.VirtualCrystal`
     - ``cartan_type`` -- (optional) the Cartan type for the subcrystal; the
       default is the Cartan type for the ambient crystal
     - ``index_set`` -- (optional) the index set for the subcrystal; the
@@ -56,6 +60,7 @@ class Subcrystal(Parent, UniqueRepresentation):
     """
     @staticmethod
     def __classcall_private__(cls, ambient, contained=None, generators=None,
+                              virtualization=None, scaling_factors=None,
                               cartan_type=None, index_set=None, category=None):
         """
         Normalize arguments to ensure a unique representation.
@@ -83,8 +88,22 @@ class Subcrystal(Parent, UniqueRepresentation):
 
         category = Crystals().or_subcategory(category)
 
+        if virtualization is not None:
+            if scaling_factors is None:
+                scaling_factors = {i:1 for i in index_set}
+            from sage.combinat.crystals.virtual_crystal import VirtualCrystal
+            return VirtualCrystal(ambient, virtualization, scaling_factors, contained,
+                                  generators, cartan_type, index_set, category)
+        if scaling_factors is not None:
+            # virtualization must be None
+            virtualization = {i:(i,) for i in index_set}
+            from sage.combinat.crystals.virtual_crystal import VirtualCrystal
+
+        # We need to give these as optional arguments so it unpickles correctly
         return super(Subcrystal, cls).__classcall__(cls, ambient, contained, tuple(generators),
-                                                    cartan_type, tuple(index_set), category)
+                                                    cartan_type=cartan_type,
+                                                    index_set=tuple(index_set),
+                                                    category=category)
 
     def __init__(self, ambient, contained, generators, cartan_type, index_set, category):
         """
@@ -96,10 +115,9 @@ class Subcrystal(Parent, UniqueRepresentation):
             sage: S = B.subcrystal(generators=(B(2,1,1), B(5,2,4)), index_set=[1,2])
             sage: TestSuite(S).run()
         """
-
         self._ambient = ambient
         self._contained = contained
-        self._cardinality = None # None = currently unknown
+        self._cardinality = None # ``None`` means currently unknown
         self._cartan_type = cartan_type
         self._index_set = tuple(index_set)
         Parent.__init__(self, category=category)
@@ -165,7 +183,7 @@ class Subcrystal(Parent, UniqueRepresentation):
 
         # TODO: make this work for infinite crystals
         import warnings
-        warnings.warn("Testing containment in an infinite virtual crystal will default to returning True")
+        warnings.warn("Testing containment in an infinite virtual crystal defaults to returning True")
         return True
 
     def cardinality(self):

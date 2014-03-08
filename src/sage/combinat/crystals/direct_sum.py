@@ -133,13 +133,16 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
             sage: isinstance(B, DirectSumOfCrystals)
             True
         """
-        Parent.__init__(self, category = category)
-        DisjointUnionEnumeratedSets.__init__(self, crystals, keepkey = keepkey, facade = facade)
-        self.rename("Direct sum of the crystals %s"%(crystals,))
+        if facade:
+            Parent.__init__(self, facade=tuple(crystals), category=category)
+        else:
+            Parent.__init__(self, category=category)
+        DisjointUnionEnumeratedSets.__init__(self, crystals, keepkey=keepkey, facade=facade)
+        self.rename("Direct sum of the crystals {}".format(crystals))
         self._keepkey = keepkey
         self.crystals = crystals
         if len(crystals) == 0:
-            raise ValueError, "The direct sum is empty"
+            raise ValueError("The direct sum is empty")
         else:
             assert(crystal.cartan_type() == crystals[0].cartan_type() for crystal in crystals)
             self._cartan_type = crystals[0].cartan_type()

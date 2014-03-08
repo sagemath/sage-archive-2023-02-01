@@ -1757,7 +1757,14 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         sage: solve([2*x==3, x != 5], x)
         [[x == (3/2), (-7/2) != 0]]
 
-    """
+    Make sure that we don't accidentally pick up variables in the maxima namespace (trac #8734)::
+
+        sage: sage.calculus.calculus.maxima('my_new_var : 2')
+        2
+        sage: var('my_new_var').full_simplify()
+        my_new_var
+
+     """
     syms = sage.symbolic.pynac.symbol_table.get('maxima', {}).copy()
 
     if len(x) == 0:
@@ -1768,6 +1775,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     #r = maxima._eval_line('listofvars(_tmp_);')[1:-1]
 
     s = maxima._eval_line('_tmp_;')
+    s = s.replace("_SAGE_VAR_","")
 
     formal_functions = maxima_tick.findall(s)
     if len(formal_functions) > 0:

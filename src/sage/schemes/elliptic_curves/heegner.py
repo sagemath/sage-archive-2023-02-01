@@ -408,6 +408,13 @@ class RingClassField(SageObject):
             7
             sage: heegner_point(37,-7,7^2).ring_class_field().degree_over_H()
             49
+
+        Check that :trac:`15218` is solved::
+
+            sage: E = EllipticCurve("19a");
+            sage: s = E.heegner_point(-3,2).ring_class_field().galois_group().complex_conjugation()
+            sage: H = s.domain(); H.absolute_degree()
+            2
         """
         c = self.__c
         if c == 1:
@@ -454,7 +461,7 @@ class RingClassField(SageObject):
                 else:
                     # inert case
                     n *= p**e + p**(e-1)
-        return n * (ZZ(2) // K.number_of_roots_of_unity())
+        return (n * ZZ(2)) // K.number_of_roots_of_unity()
 
     @cached_method
     def absolute_degree(self):

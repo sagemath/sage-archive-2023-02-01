@@ -257,9 +257,10 @@ cdef class LazyImport(object):
                     trac_number = self._deprecation
                     message = None
                 if message is None:
-                    message = '\nImporting %(name)s from here is deprecated. ' + \
-                        'If you need to use it, please import it directly from %(module_name)s'
-                deprecation(trac_number, message%{'name': alias, 'module_name': self._module})
+                    message = ('\nImporting {name} from here is deprecated. ' + 
+                        'If you need to use it, please import it directly from' + 
+                        ' {module_name}').format(name=alias, module_name=self._module)
+                deprecation(trac_number, message)
             if owner is None:
                 if self._namespace and self._namespace[alias] is self:
                     self._namespace[alias] = self._object
@@ -918,7 +919,7 @@ cdef class LazyImport(object):
         return self._get_object()
 
 
-def lazy_import(module, names, _as=None, namespace=None, bint overwrite=True, at_startup=False, deprecation=False):
+def lazy_import(module, names, _as=None, namespace=None, bint overwrite=True, at_startup=False, deprecation=None):
     """
     Create a lazy import object and inject it into the caller's global
     namespace. For the purposes of introspection and calling, this is
@@ -997,7 +998,7 @@ def lazy_import(module, names, _as=None, namespace=None, bint overwrite=True, at
 
     If deprecated then a deprecation warning is issued::
 
-        sage: lazy_import('sage.all', 'Qp', 'my_Qp', deprecation=12345)
+        sage: lazy_import('sage.all', 'Qp', 'my_Qp', deprecation=14275)
         sage: my_Qp(5)
         doctest:...: DeprecationWarning:
         Importing my_Qp from here is deprecated. If you need to use it, please import it directly from sage.all
@@ -1006,10 +1007,9 @@ def lazy_import(module, names, _as=None, namespace=None, bint overwrite=True, at
 
     An example of deprecation with a message::
 
-        sage: lazy_import('sage.all', 'Qp', 'my_Qp_msg', deprecation=(12345, "This is an example.")
+        sage: lazy_import('sage.all', 'Qp', 'my_Qp_msg', deprecation=(14275, "This is an example."))
         sage: my_Qp_msg(5)
         doctest:...: DeprecationWarning: This is an example.
-        Importing my_Qp_msg from here is deprecated. If you need to use it, please import it directly from sage.all
         See http://trac.sagemath.org/14275 for details.
         5-adic Field with capped relative precision 20
     """

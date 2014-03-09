@@ -643,7 +643,7 @@ class KirillovReshetikhinGenericCrystalElement(AffineCrystalFromClassicalElement
               1
               2
         """
-        return self.to_tableau()._repr_diagram()
+        return self.lift()._repr_diagram()
 
     def pp(self):
         """
@@ -655,6 +655,11 @@ class KirillovReshetikhinGenericCrystalElement(AffineCrystalFromClassicalElement
             sage: C(2,1).pp()
               1
               2
+            sage: C = KirillovReshetikhinCrystal(['B',3,1], 3,3)
+            sage: C.module_generators[0].pp()
+            + (X)   1
+            +
+            +
         """
         print(self._repr_diagram())
 

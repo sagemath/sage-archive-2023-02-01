@@ -3029,7 +3029,7 @@ class PMDiagram(CombinatorialObject):
         TESTS::
 
             sage: from sage.combinat.crystals.kirillov_reshetikhin import PMDiagram
-            sage: pm = PMDiagram([[0,1],[1,2],[1]])
+            sage: pm = PMDiagram([[0,1],[1,2],[1]]); pm
             [[0, 1], [1, 2], [1]]
             sage: PMDiagram([2,5,[4,4],[4,2],[4,1]], from_shapes=True)
             [[0, 1], [1, 2], [1]]
@@ -3076,6 +3076,8 @@ class PMDiagram(CombinatorialObject):
 
             sage: pm = sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[1,0],[0,1],[2,0],[0,0],[0]])
             sage: pm.__repr__(pretty_printing=True)
+            doctest:1: DeprecationWarning: pretty_printing is deprecated. Use instead pp()
+            See http://trac.sagemath.org/15913 for details.
             .  .  .  +
             .  .  -  -
             +  +
@@ -3085,7 +3087,7 @@ class PMDiagram(CombinatorialObject):
             from sage.misc.superseded import deprecation
             deprecation(15913, 'pretty_printing is deprecated. Use instead pp()')
             if pretty_printing is True:
-                return self._repr_diagram()
+                return self.pp()
         return super(PMDiagram, self).__repr__()
 
     def _repr_diagram(self):

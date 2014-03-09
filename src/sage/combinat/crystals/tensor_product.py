@@ -1263,7 +1263,6 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             sage: hw = [b for b in T if all(b.epsilon(i)==0 for i in [1,2])]
             sage: for b in hw:
             ....:    print b, b.energy_function()
-            ...
             [[[1]], [[1]], [[1]]] 0
             [[[1]], [[2]], [[1]]] 2
             [[[2]], [[1]], [[1]]] 1
@@ -1274,7 +1273,6 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             sage: hw = [b for b in T if all(b.epsilon(i)==0 for i in [1,2])]
             sage: for b in hw:  # long time (5s on sage.math, 2011)
             ....:     print b, b.energy_function()
-            ...
             [[], []] 4
             [[], [[1, 1]]] 1
             [[[1, 1]], []] 3
@@ -1328,7 +1326,6 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             sage: hw = [b for b in T if all(b.epsilon(i)==0 for i in [1,2])]
             sage: for b in hw:
             ....:    print b, b.affine_grading()
-            ...
             [[[1]], [[1]], [[1]]] 3
             [[[1]], [[2]], [[1]]] 1
             [[[2]], [[1]], [[1]]] 2
@@ -1339,7 +1336,6 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             sage: hw = [b for b in T if all(b.epsilon(i)==0 for i in [1,2])]
             sage: for b in hw:
             ....:     print b, b.affine_grading()
-            ...
             [[[1]], [[1]], [[1]]] 2
             [[[1]], [[2]], [[1]]] 1
             [[[1]], [[-1]], [[1]]] 0

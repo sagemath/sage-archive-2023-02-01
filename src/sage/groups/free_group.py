@@ -69,6 +69,7 @@ from sage.libs.gap.element import GapElement
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.misc.cachefunc import cached_method
+from sage.structure.sequence import Sequence
 
 
 def is_FreeGroup(x):
@@ -308,17 +309,22 @@ class FreeGroupElement(ElementLibGAP):
         tl = self.gap().TietzeWordAbstractWord()
         return tuple(tl.sage())
 
-    def fox_derivative(self, gen):
+    def fox_derivative(self, gen, im_gens=None):
         """
         Return the Fox derivative of self with respect to a given generator.
 
         INPUT:
 
         - ``gen`` : the generator with respect to which the derivative will be computed.
+        
+        - ``im_gens`` (optional) : the images of the generators.
 
         OUTPUT:
 
-        An element of the group algebra with integer coefficients.
+        The fox derivative of self with respect to gen.
+        By default, it is an element of the group algebra with integer coefficients.
+        If ``im_gens`` are provided, the result lives in the algebra where im_gens live,
+        and is given by the map determined by them.
 
         EXAMPLES::
 
@@ -333,21 +339,53 @@ class FreeGroupElement(ElementLibGAP):
             B[x0^-1*x1*x0]
             sage: (~x0*x1*x0*x2*~x0).fox_derivative(x3)
             0
+            
+        If ``im_gens`` is given, the images of the generators are mapped to them.
+        
+        ::
+        
+            sage: F=FreeGroup(3)
+            sage: a=F([2,1,3,-1,2])
+            sage: a.fox_derivative(F([1]))
+            B[x1] - B[x1*x0*x2*x0^-1]
+            sage: R.<t>=LaurentPolynomialRing(ZZ)
+            sage: a.fox_derivative(F([1]),[t,t,t])
+            -t^2 + t
+            sage: S.<t1,t2,t3>=LaurentPolynomialRing(ZZ)
+            sage: a.fox_derivative(F([1]),[t1,t2,t3])
+            -t2*t3 + t2
+            sage: R.<x,y,z>=QQ[]
+            sage: a.fox_derivative(F([1]),[x,y,z])
+            -y*z + y
+            sage: a.inverse().fox_derivative(F([1]),[x,y,z])
+            (z - 1)/(y*z)
         """
         if not gen in self.parent().generators():
             raise ValueError("Fox derivative can only be computed with respect to generators of the group")
         l = list(self.Tietze())
-        R = self.parent().algebra(IntegerRing())
+        if im_gens == None:
+            R = self.parent().algebra(IntegerRing())
+            symb = [R(a) for a in self.parent().gens()]
+            symb += reversed([R(a.inverse()) for a in self.parent().gens()])
+        else:
+            R = Sequence(im_gens).universe()
+            symb = list(im_gens)
+            symb += reversed([a**(-1) for a in im_gens])
         i = gen.Tietze()[0]
         a = R.zero()
+        coef = R.one()
         while len(l)>0:
-            b = l.pop(-1)
+            b = l.pop(0)
             if b == i:
-                p = R(self.parent()(l))
-                a += p
+                a += coef * R.one()
+                coef *= symb[b-1]
             elif b == -i:
-                p = R(self.parent()(l+[b]))
-                a -= p
+                a -= coef*symb[b]
+                coef *= symb[b]
+            elif b>0:
+                coef *= symb[b-1]
+            else:
+                coef *= symb[b]
         return a
 
     @cached_method

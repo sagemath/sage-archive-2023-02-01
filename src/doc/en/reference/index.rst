@@ -84,6 +84,7 @@ Groups, Monoids, Matrices, Modules
 * :doc:`Monoids <monoids/index>`
 * :doc:`Matrices and Spaces of Matrices <matrices/index>`
 * :doc:`Modules <modules/index>`
+* :doc:`Tensors on free modules of finite rank <modules/tensors_free_modules>`
 
 Geometry and Topology
 ---------------------

@@ -1422,12 +1422,15 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         """
         return self.simplification_isomorphism().codomain()
 
-    def alexander_matrix(self):
+    def alexander_matrix(self, im_gens = None):
         """
         Return the Alexander matrix of the group.
 
         This matrix is given by the fox derivatives of the relations
         with respect to the generators.
+        
+        If ``im_gens`` is given, the result is given, the images of the
+        generators are mapped to the given elements.
 
         OUTPUT:
 
@@ -1451,11 +1454,18 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             [              B[1] - B[a*d*a^-1]                                0                                0          B[a] - B[a*d*a^-1*d^-1]                                0]
             [                               0             B[1] - B[b*c*d*b^-1]   B[b] - B[b*c*d*b^-1*d^-1*c^-1]      B[b*c] - B[b*c*d*b^-1*d^-1]                                0]
             [                               0        B[1] - B[b*c*d*c^-1*b^-1]             B[b] - B[b*c*d*c^-1] B[b*c] - B[b*c*d*c^-1*b^-1*d^-1]                                0]
+            sage: R.<t1,t2,t3,t4> = LaurentPolynomialRing(ZZ)
+            sage: H.alexander_matrix([t1,t2,t3,t4])
+            [    -t2 + 1      t1 - 1           0           0           0]
+            [    -t3 + 1           0      t1 - 1           0           0]
+            [    -t4 + 1           0           0      t1 - 1           0]
+            [          0  -t3*t4 + 1      t2 - 1  t2*t3 - t3           0]
+            [          0     -t4 + 1 -t2*t4 + t2   t2*t3 - 1           0]
         """
         rel = self.relations()
         gen = self._free_group.gens()
         return matrix(len(rel), len(gen),
-                      lambda i,j: rel[i].fox_derivative(gen[j]))
+                      lambda i,j: rel[i].fox_derivative(gen[j], im_gens))
 
     def rewriting_system(self):
         """

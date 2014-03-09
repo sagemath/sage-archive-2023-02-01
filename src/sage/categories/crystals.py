@@ -267,8 +267,8 @@ class Crystals(Category_singleton):
         def subcrystal(self, index_set=None, generators=None, max_depth=float("inf"),
                        direction="both"):
             r"""
-            Construct the subcrystal from ``generators`` using `e_i` and `f_i`
-            for all `i` in ``index_set``.
+            Construct the subcrystal from ``generators`` using `e_i` and/or
+            `f_i` for all `i` in ``index_set``.
 
             INPUT:
 

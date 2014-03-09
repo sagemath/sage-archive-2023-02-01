@@ -492,7 +492,7 @@ cdef class EmptyLetter(Element):
 
     def __init__(self, parent):
         """
-        Initialize ``xelf``.
+        Initialize ``self``.
 
         EXAMPLES::
 

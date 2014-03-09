@@ -326,6 +326,36 @@ class Spin(LetterTuple):
         """
         return self.signature()
 
+    def _repr_diagram(self):
+        """
+        Return a representation of ``self`` as a diagram.
+
+        EXAMPLES::
+
+            sage: C = CrystalOfSpins(['B',3])
+            sage: b = C([1,1,-1])
+            sage: print b._repr_diagram()
+            +
+            +
+            -
+        """
+        return '\n'.join(self.signature())
+
+    def pp(self):
+        """
+        Pretty print ``self`` as a column.
+
+        EXAMPLES::
+
+            sage: C = CrystalOfSpins(['B',3])
+            sage: b = C([1,1,-1])
+            sage: b.pp()
+            +
+            +
+            -
+        """
+        print self._repr_diagram()
+
     def _latex_(self):
         r"""
         Gives the latex output of a spin column.

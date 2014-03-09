@@ -39,11 +39,11 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
 
     EXAMPLES::
 
-        sage: n=2
-        sage: C=CrystalOfTableaux(['A',n],shape=[1])
+        sage: n = 2
+        sage: C = crystals.Tableaux(['A',n],shape=[1])
         sage: pr = attrcall("promotion")
         sage: pr_inverse = attrcall("promotion_inverse")
-        sage: A=AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
+        sage: A = crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
         sage: A.list()
         [[[1]], [[2]], [[3]]]
         sage: A.cartan_type()
@@ -67,11 +67,11 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
         TESTS::
 
             sage: n = 1
-            sage: C = CrystalOfTableaux(['A',n],shape=[1])
+            sage: C = crystals.Tableaux(['A',n],shape=[1])
             sage: pr = attrcall("promotion")
             sage: pr_inverse = attrcall("promotion_inverse")
-            sage: A = AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1) # indirect doctest
-            sage: B = AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1) # indirect doctest
+            sage: A = crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1) # indirect doctest
+            sage: B = crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1) # indirect doctest
             sage: A is B
             True
         """
@@ -86,10 +86,10 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: n = 1
-            sage: C = CrystalOfTableaux(['A',n],shape=[1])
+            sage: C = crystals.Tableaux(['A',n],shape=[1])
             sage: pr = attrcall("promotion")
             sage: pr_inverse = attrcall("promotion_inverse")
-            sage: A = AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1) # indirect doctest
+            sage: A = crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1) # indirect doctest
             sage: A.list()
             [[[1]], [[2]]]
             sage: A.cartan_type()
@@ -117,10 +117,10 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: n=1
-            sage: C=CrystalOfTableaux(['A',n],shape=[1])
+            sage: C=crystals.Tableaux(['A',n],shape=[1])
             sage: pr = attrcall("promotion")
             sage: pr_inverse = attrcall("promotion_inverse")
-            sage: AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1) # indirect doctest
+            sage: crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1) # indirect doctest
             An affine crystal for type ['A', 1, 1]
         """
         return "An affine crystal for type %s"%self.cartan_type()
@@ -133,10 +133,10 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
         TESTS::
 
             sage: n=1
-            sage: C=CrystalOfTableaux(['A',n],shape=[1])
+            sage: C=crystals.Tableaux(['A',n],shape=[1])
             sage: pr = attrcall("promotion")
             sage: pr_inverse = attrcall("promotion_inverse")
-            sage: A=AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1) # indirect doctest
+            sage: A=crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1) # indirect doctest
             sage: A.list() # indirect doctest
             [[[1]], [[2]]]
         """
@@ -151,10 +151,10 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: n=2
-            sage: C=CrystalOfTableaux(['A',n],shape=[1])
+            sage: C=crystals.Tableaux(['A',n],shape=[1])
             sage: pr = attrcall("promotion")
             sage: pr_inverse = attrcall("promotion_inverse")
-            sage: A=AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
+            sage: A=crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
             sage: A.list()
             [[[1]], [[2]], [[3]]]
         """
@@ -167,10 +167,10 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: n=2
-            sage: C=CrystalOfTableaux(['A',n],shape=[1])
+            sage: C=crystals.Tableaux(['A',n],shape=[1])
             sage: pr = attrcall("promotion")
             sage: pr_inverse = attrcall("promotion_inverse")
-            sage: A=AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
+            sage: A=crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
             sage: b=A.list()[0]
             sage: A.lift(b)
             [[1]]
@@ -186,10 +186,10 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: n=2
-            sage: C=CrystalOfTableaux(['A',n],shape=[1])
+            sage: C=crystals.Tableaux(['A',n],shape=[1])
             sage: pr = attrcall("promotion")
             sage: pr_inverse = attrcall("promotion_inverse")
-            sage: A=AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
+            sage: A=crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
             sage: t=C(rows=[[1]])
             sage: t.parent()
             The crystal of tableaux of type ['A', 2] and shape(s) [[1]]
@@ -207,10 +207,10 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
         EXAMPLES:
 
             sage: n=2
-            sage: C=CrystalOfTableaux(['A',n],shape=[1])
+            sage: C=crystals.Tableaux(['A',n],shape=[1])
             sage: pr = attrcall("promotion")
             sage: pr_inverse = attrcall("promotion_inverse")
-            sage: A=AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
+            sage: A=crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
             sage: b=A(rows=[[1]]) # indirect doctest
             sage: b
             [[1]]
@@ -231,10 +231,10 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
         EXAMPLES:
 
             sage: n=2
-            sage: C=CrystalOfTableaux(['A',n],shape=[1])
+            sage: C=crystals.Tableaux(['A',n],shape=[1])
             sage: pr = attrcall("promotion")
             sage: pr_inverse = attrcall("promotion_inverse")
-            sage: A=AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
+            sage: A=crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
             sage: b=A(rows=[[1]])
             sage: A.__contains__(b)
             True
@@ -250,15 +250,15 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
 
     This class is not instantiated directly but rather __call__ed from
     AffineCrystalFromClassical.  The syntax of this is governed by the
-    (classical) CrystalOfTableaux.
+    (classical) crystals.Tableaux.
 
     EXAMPLES::
 
         sage: n=2
-        sage: C=CrystalOfTableaux(['A',n],shape=[1])
+        sage: C=crystals.Tableaux(['A',n],shape=[1])
         sage: pr = attrcall("promotion")
         sage: pr_inverse = attrcall("promotion_inverse")
-        sage: A=AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
+        sage: A=crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
         sage: b=A(rows=[[1]])
         sage: b._repr_()
         '[[1]]'
@@ -271,10 +271,10 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
         EXAMPLES::
 
             sage: n=2
-            sage: C=CrystalOfTableaux(['A',n],shape=[1])
+            sage: C=crystals.Tableaux(['A',n],shape=[1])
             sage: pr = attrcall("promotion")
             sage: pr_inverse = attrcall("promotion_inverse")
-            sage: A=AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
+            sage: A=crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
             sage: b=A(rows=[[1]])
             sage: b.classical_weight()
             (1, 0, 0)
@@ -288,10 +288,10 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
         EXAMPLES::
 
             sage: n=2
-            sage: C=CrystalOfTableaux(['A',n],shape=[1])
+            sage: C=crystals.Tableaux(['A',n],shape=[1])
             sage: pr = attrcall("promotion")
             sage: pr_inverse = attrcall("promotion_inverse")
-            sage: A=AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
+            sage: A=crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
             sage: b=A.list()[0]
             sage: b.lift()
             [[1]]
@@ -332,10 +332,10 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
         EXAMPLES::
 
             sage: n=2
-            sage: C=CrystalOfTableaux(['A',n],shape=[1])
+            sage: C=crystals.Tableaux(['A',n],shape=[1])
             sage: pr = attrcall("promotion")
             sage: pr_inverse = attrcall("promotion_inverse")
-            sage: A=AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
+            sage: A=crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
             sage: b=A(rows=[[1]])
             sage: b.e(0)
             [[3]]
@@ -357,10 +357,10 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
         EXAMPLES::
 
             sage: n=2
-            sage: C=CrystalOfTableaux(['A',n],shape=[1])
+            sage: C=crystals.Tableaux(['A',n],shape=[1])
             sage: pr = attrcall("promotion")
             sage: pr_inverse = attrcall("promotion_inverse")
-            sage: A=AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
+            sage: A=crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
             sage: b=A(rows=[[3]])
             sage: b.f(0)
             [[1]]
@@ -388,10 +388,10 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
         EXAMPLES::
 
             sage: n=2
-            sage: C=CrystalOfTableaux(['A',n],shape=[1])
+            sage: C=crystals.Tableaux(['A',n],shape=[1])
             sage: pr = attrcall("promotion")
             sage: pr_inverse = attrcall("promotion_inverse")
-            sage: A=AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
+            sage: A=crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
             sage: [x.epsilon(0) for x in A.list()]
             [1, 0, 0]
             sage: [x.epsilon(1) for x in A.list()]
@@ -415,10 +415,10 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
         EXAMPLES::
 
             sage: n=2
-            sage: C=CrystalOfTableaux(['A',n],shape=[1])
+            sage: C=crystals.Tableaux(['A',n],shape=[1])
             sage: pr = attrcall("promotion")
             sage: pr_inverse = attrcall("promotion_inverse")
-            sage: A=AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
+            sage: A=crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
             sage: [x.phi(0) for x in A.list()]
             [0, 0, 1]
             sage: [x.phi(1) for x in A.list()]
@@ -478,10 +478,10 @@ class AffineCrystalFromClassicalAndPromotion(AffineCrystalFromClassical):
     EXAMPLES::
 
         sage: n=2
-        sage: C=CrystalOfTableaux(['A',n],shape=[1])
+        sage: C=crystals.Tableaux(['A',n],shape=[1])
         sage: pr = attrcall("promotion")
         sage: pr_inverse = attrcall("promotion_inverse")
-        sage: A=AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
+        sage: A=crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
         sage: A.list()
         [[[1]], [[2]], [[3]]]
         sage: A.cartan_type()
@@ -507,10 +507,10 @@ class AffineCrystalFromClassicalAndPromotion(AffineCrystalFromClassical):
         EXAMPLES::
 
             sage: n=1
-            sage: C=CrystalOfTableaux(['A',n],shape=[1])
+            sage: C=crystals.Tableaux(['A',n],shape=[1])
             sage: pr = attrcall("promotion")
             sage: pr_inverse = attrcall("promotion_inverse")
-            sage: A=AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
+            sage: A=crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
             sage: A.list()
             [[[1]], [[2]]]
             sage: A.cartan_type()
@@ -534,10 +534,10 @@ class AffineCrystalFromClassicalAndPromotion(AffineCrystalFromClassical):
         EXAMPLES::
 
             sage: n=2
-            sage: C=CrystalOfTableaux(['A',n],shape=[1])
+            sage: C=crystals.Tableaux(['A',n],shape=[1])
             sage: pr = attrcall("promotion")
             sage: pr_inverse = attrcall("promotion_inverse")
-            sage: A=AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
+            sage: A=crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
             sage: b=A.list()[0]
             sage: A.automorphism(b)
             [[2]]
@@ -551,10 +551,10 @@ class AffineCrystalFromClassicalAndPromotion(AffineCrystalFromClassical):
         EXAMPLES::
 
             sage: n=2
-            sage: C=CrystalOfTableaux(['A',n],shape=[1])
+            sage: C=crystals.Tableaux(['A',n],shape=[1])
             sage: pr = attrcall("promotion")
             sage: pr_inverse = attrcall("promotion_inverse")
-            sage: A=AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
+            sage: A=crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
             sage: b=A.list()[0]
             sage: A.inverse_automorphism(b)
             [[3]]
@@ -568,8 +568,8 @@ class AffineCrystalFromClassicalAndPromotionElement(AffineCrystalFromClassicalEl
     the promotion operation on tableaux.
 
     This class is not instantiated directly but rather __call__ed from
-    AffineCrystalFromClassicalAndPromotion.  The syntax of this is governed by the
-    (classical) CrystalOfTableaux.
+    crystals.AffineFromClassicalAndPromotion.  The syntax of this is governed by the
+    (classical) crystals.Tableaux.
 
     Since this class inherits from AffineClassicalFromClassicalElement, the methods
     that need to be implemented are e0, f0 and possibly epsilon0 and phi0 if more efficient
@@ -578,10 +578,10 @@ class AffineCrystalFromClassicalAndPromotionElement(AffineCrystalFromClassicalEl
     EXAMPLES::
 
         sage: n=2
-        sage: C=CrystalOfTableaux(['A',n],shape=[1])
+        sage: C=crystals.Tableaux(['A',n],shape=[1])
         sage: pr = attrcall("promotion")
         sage: pr_inverse = attrcall("promotion_inverse")
-        sage: A=AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
+        sage: A=crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
         sage: b=A(rows=[[1]])
         sage: b._repr_()
         '[[1]]'
@@ -595,10 +595,10 @@ class AffineCrystalFromClassicalAndPromotionElement(AffineCrystalFromClassicalEl
         EXAMPLES::
 
             sage: n=2
-            sage: C=CrystalOfTableaux(['A',n],shape=[1])
+            sage: C=crystals.Tableaux(['A',n],shape=[1])
             sage: pr = attrcall("promotion")
             sage: pr_inverse = attrcall("promotion_inverse")
-            sage: A=AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
+            sage: A=crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
             sage: b=A(rows=[[1]])
             sage: b.e0()
             [[3]]
@@ -617,10 +617,10 @@ class AffineCrystalFromClassicalAndPromotionElement(AffineCrystalFromClassicalEl
         EXAMPLES::
 
             sage: n=2
-            sage: C=CrystalOfTableaux(['A',n],shape=[1])
+            sage: C=crystals.Tableaux(['A',n],shape=[1])
             sage: pr = attrcall("promotion")
             sage: pr_inverse = attrcall("promotion_inverse")
-            sage: A=AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
+            sage: A=crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
             sage: b=A(rows=[[3]])
             sage: b.f0()
             [[1]]
@@ -638,10 +638,10 @@ class AffineCrystalFromClassicalAndPromotionElement(AffineCrystalFromClassicalEl
         EXAMPLES::
 
             sage: n=2
-            sage: C=CrystalOfTableaux(['A',n],shape=[1])
+            sage: C=crystals.Tableaux(['A',n],shape=[1])
             sage: pr = attrcall("promotion")
             sage: pr_inverse = attrcall("promotion_inverse")
-            sage: A=AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
+            sage: A=crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
             sage: [x.epsilon0() for x in A.list()]
             [1, 0, 0]
         """
@@ -655,10 +655,10 @@ class AffineCrystalFromClassicalAndPromotionElement(AffineCrystalFromClassicalEl
         EXAMPLES::
 
             sage: n=2
-            sage: C=CrystalOfTableaux(['A',n],shape=[1])
+            sage: C=crystals.Tableaux(['A',n],shape=[1])
             sage: pr = attrcall("promotion")
             sage: pr_inverse = attrcall("promotion_inverse")
-            sage: A=AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
+            sage: A=crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
             sage: [x.phi0() for x in A.list()]
             [0, 0, 1]
         """

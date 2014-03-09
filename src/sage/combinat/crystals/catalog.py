@@ -33,8 +33,8 @@ from spins import CrystalOfSpinsPlus as SpinsPlus
 from spins import CrystalOfSpinsMinus as SpinsMinus
 from tensor_product import CrystalOfTableaux as Tableaux
 from fast_crystals import FastCrystal as FastRankTwo
-from affine import AffineCrystalFromClassical
-from affine import AffineCrystalFromClassicalAndPromotion
+from affine import AffineCrystalFromClassical as AffineFromClassical
+from affine import AffineCrystalFromClassicalAndPromotion as AffineFromClassicalAndPromotion
 from highest_weight_crystals import HighestWeightCrystal as HighestWeight
 from alcove_path import CrystalOfAlcovePaths as AlcovePaths
 from littelmann_path import CrystalOfLSPaths as LSPaths

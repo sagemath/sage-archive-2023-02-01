@@ -108,6 +108,37 @@ def KyotoPathModel(crystals, weight):
     deprecation(15882,'this being removed from the global namespace. Use crystals.KyotoPathModel instead')
     return KyotoPathModel(crystals, weight)
 
+def AffineCrystalFromClassical(cartan_type, *args, **options):
+    """
+    TESTS::
+
+        sage: B = crystals.Tableaux(['A',2],shape=[1])
+        sage: C = AffineCrystalFromClassical(['A',2,1], B)
+        doctest:...: DeprecationWarning: this being removed from the global namespace. Use crystals.AffineFromClassical instead
+        See http://trac.sagemath.org/15882 for details.
+    """
+    from sage.misc.superseded import deprecation
+    from affine import AffineCrystalFromClassical
+    deprecation(15882,'this being removed from the global namespace. Use crystals.AffineFromClassical instead')
+    return AffineCrystalFromClassical(cartan_type, *args, **options)
+
+def AffineCrystalFromClassicalAndPromotion(cartan_type, *args, **options):
+    """
+    TESTS::
+
+        sage: n = 2
+        sage: B = crystals.Tableaux(['A',n],shape=[1])
+        sage: pr = attrcall("promotion")
+        sage: pr_inverse = attrcall("promotion_inverse")
+        sage: C = AffineCrystalFromClassicalAndPromotion(['A',n,1],B,pr,pr_inverse,1)
+        doctest:...: DeprecationWarning: this being removed from the global namespace. Use crystals.AffineFromClassicalAndPromotion instead
+        See http://trac.sagemath.org/15882 for details.
+    """
+    from sage.misc.superseded import deprecation
+    from affine import AffineCrystalFromClassicalAndPromotion
+    deprecation(15882,'this being removed from the global namespace. Use crystals.AffineFromClassicalAndPromotion instead')
+    return AffineCrystalFromClassicalAndPromotion(cartan_type, *args, **options)
+
 def DirectSumOfCrystals(crystals, **options):
     """
     TESTS::
@@ -136,8 +167,7 @@ def TensorProductOfCrystals(*crystals, **options):
     deprecation(15882,'this being removed from the global namespace. Use crystals.TensorProduct instead')
     return TensorProductOfCrystals(*crystals, **options)
 
-from affine import AffineCrystalFromClassical
-from affine import AffineCrystalFromClassicalAndPromotion
+
 from kirillov_reshetikhin import KirillovReshetikhinCrystal
 from alcove_path import CrystalOfAlcovePaths
 from alcove_path import ClassicalCrystalOfAlcovePaths

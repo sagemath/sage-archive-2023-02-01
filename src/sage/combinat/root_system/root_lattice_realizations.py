@@ -571,7 +571,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: [x for x in PhiP]
                 [alpha[1], alpha[2], alpha[3], alpha[1] + alpha[2], alpha[2] + alpha[3], alpha[1] + alpha[2] + alpha[3]]
 
-            warning::
+            .. warning::
 
                 This returns an error if the Cartan type is not finite.
 
@@ -608,7 +608,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: lattice.positive_roots_nonparabolic((1,2,3))
                 []
 
-            warning::
+            .. warning::
 
                 This returns an error if the Cartan type is not finite.
 

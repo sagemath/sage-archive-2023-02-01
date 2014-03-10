@@ -962,6 +962,18 @@ class ClusterSeed(SageObject):
             [-1  0  0]
             [ 0  1  0]
             [ 0  0 -1]
+
+            sage: S = ClusterSeed(['B',2])
+            sage: T = S.universal_extension()
+            sage: T.b_matrix()
+            [ 0  1]
+            [-2  0]
+            [ 1  0]
+            [ 0 -1]
+            [ 2 -1]
+            [ 1 -1]
+            [-1  0]
+            [ 0  1]
         """
         if self._m != 0:
             raise ValueError("To have universal coefficients we need "
@@ -971,16 +983,10 @@ class ClusterSeed(SageObject):
                              "for finite type cluster algebras at a "
                              "bipartite initial cluster")
 
-        # QuiverMutationType and CartanType are not compatible;
-        # moreover CartanType allows only the standard ordering of
-        # simple roots. We build the list of all positive roots for
-        # the dual root system by hand. Ideally this should be
-        # replaced by something more efficient
-
         from sage.matrix.all import matrix
         from sage.combinat.root_system.cartan_matrix import CartanMatrix
 
-        A = 2 - self.b_matrix().apply_map(abs).transpose()
+        A = 2 - self.b_matrix().apply_map(abs)
 
         rs = CartanMatrix(A).root_space()
         negative_simple_coroots = [-u for u in rs.simple_coroots()]

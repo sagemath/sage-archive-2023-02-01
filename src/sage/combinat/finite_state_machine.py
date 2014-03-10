@@ -4100,13 +4100,14 @@ class FiniteStateMachine(SageObject):
 
         A finite state machine.
 
-        Assume that `c` is a class and `s`, `s'` are states in
+        Assume that `c` is a class, and `a` and `b` are states in
         `c`. Then there is a bijection `\varphi` between the
-        transitions from `s` and the transitions from `s'` such that
-        if `\varphi(t_a)=t_b`, then
-        `t_a.\mathit{word}_{in}=t_b.\mathit{word}_{in}` and
-        `t_a.\mathit{word}_{out}=t_b.\mathit{word}_{out}` and `t_a`
-        and `t_b` lead to some equivalent states `t` and `t'`.
+        transitions from `a` and the transitions from `b` with the
+        following properties: if `\varphi(t_a)=t_b`, then
+
+        - `t_a.\mathit{word}_\mathit{in}=t_b.\mathit{word}_\mathit{in}`,
+        - `t_a.\mathit{word}_\mathit{out}=t_b.\mathit{word}_\mathit{out}`, and
+        - `t_a` and `t_b` lead to some equivalent states `a'` and `b'`.
 
         Non-initial states may be merged with initial states, the
         resulting state is an initial state.

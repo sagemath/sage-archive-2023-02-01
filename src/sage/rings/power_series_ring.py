@@ -837,6 +837,16 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
         """
         return PowerSeriesRing(R, name = self.variable_name(), default_prec = self.default_prec())
 
+    def change_var(self, var):
+        """
+        EXAMPLES::
+            sage: R.<T> = QQ[[]]; R
+            Power Series Ring in T over Rational Field
+            sage: R.change_var('D')
+            Power Series Ring in D over Rational Field
+        """
+        return PowerSeriesRing(self.base_ring(), names = var, sparse=self.is_sparse())
+
     def is_exact(self):
         return False
 

@@ -784,7 +784,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 return self._find_alpha(p=p, k=k, M=M, ap=ap, new_base_ring=new_base_ring, ordinary=ordinary, check=False, find_extraprec=find_extraprec)
         return alpha, new_base_ring, newM, eisenloss, q, aq
 
-    def p_stabilize(self, p, M, alpha=None, ap=None, new_base_ring=None, ordinary=True, check=True):
+    def p_stabilize(self, p=None, M=None, alpha=None, ap=None, new_base_ring=None, ordinary=True, check=True):
         r"""
 
         Returns the `p`-stablization of self to level `N*p` on which `U_p` acts by `alpha`.
@@ -853,7 +853,10 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         if check:
             p = self._get_prime(p, alpha)
         k = self.parent().weight()
-        M = ZZ(M)
+        if M is None:
+            M = ZZ(20)
+        else:
+            M = ZZ(M)
         verbose("p stabilizing: M = %s"%M, level=2)
         if alpha is None:
             alpha, new_base_ring, newM, eisenloss, q, aq = self._find_alpha(p, k, M, ap, new_base_ring, ordinary, check, find_extraprec = False)

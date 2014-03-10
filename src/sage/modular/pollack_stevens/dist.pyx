@@ -429,7 +429,7 @@ cdef class Dist(ModuleElement):
             sage: D = Distributions(8, 7, 15)
             sage: v = D([7^(5-i) for i in range(1,5)])
             sage: v
-            7^4 * ()
+            (O(7^4), O(7^3), O(7^2), O(7))
             sage: v.diagonal_valuation(7)
             4
         """
@@ -464,7 +464,7 @@ cdef class Dist(ModuleElement):
             sage: D = Distributions(8, 7, 15)
             sage: v = D([7^(5-i) for i in range(1,5)])
             sage: v
-            7^4 * ()
+            (O(7^4), O(7^3), O(7^2), O(7))
             sage: v.valuation(7)
             4
         """
@@ -660,15 +660,9 @@ cdef class Dist_vector(Dist):
             if ordp != 0 and parent.prime() == 0:
                 raise ValueError("can not specify a valuation shift for an exact ring")
 
-        ## RP: if the input has negative valuations everything was crashing so I added
-        ##     this code, but I don't feel good about it.  DOESN'T WORK!!!!
-#        if self.parent().prime() != 0:
-#            p = self.parent().prime()
-#            ordp = min([m.valuation(p) for m in moments])
-#            moments = [p**(-ordp) * moments[a] for a in range(len(moments))]
-
         self._moments = moments
         self.ordp = ordp
+        self.normalize()
 
     def __reduce__(self):
         r"""
@@ -713,7 +707,7 @@ cdef class Dist_vector(Dist):
         r"""
         Displays the moments of the distribution
         """
-        self.normalize()
+        # self.normalize() # Should normalize only when absolutely needed.
         valstr = ""
         if self.ordp == 1:
             valstr = "%s * "%(self.parent().prime())
@@ -901,11 +895,11 @@ cdef class Dist_vector(Dist):
                 self._moments = V([self._moments[i].add_bigoh(n-i) for i in range(n)])
             else:
                 self._moments = V([self._moments[i]%(p**(n-i)) for i in range(n)])
-            shift = self.valuation() - self.ordp
-            if shift != 0:
-                V = self.parent().approx_module(n-shift)
-                self.ordp += shift
-                self._moments = V([self._moments[i] // p**shift for i in range(n-shift)])
+            # shift = self.valuation() - self.ordp
+            # if shift != 0:
+            #     V = self.parent().approx_module(n-shift)
+            #     self.ordp += shift
+            #     self._moments = V([self._moments[i] // p**shift for i in range(n-shift)])
         return self
 
     def reduce_precision(self, M):
@@ -1059,7 +1053,7 @@ cdef class Dist_long(Dist):
                 raise ValueError("moments too long")
         else:
             M = len(moments)
-            
+
         for i in range(len(moments)):
             self._moments[i] = moments[i]
         self.relprec = M
@@ -1068,6 +1062,7 @@ cdef class Dist_long(Dist):
         #if gather >= len(moments):
         #    gather = 0
         #self._gather = gather
+        self.normalize()
 
     cdef Dist_long _new_c(self):
         r"""
@@ -1785,7 +1780,7 @@ cdef class WeightKAction_long(WeightKAction):
         b = mymod(ZZ(_b), pM)
         c = mymod(ZZ(_c), pM)
         d = mymod(ZZ(_d), pM)
-        cdef mp_limb_t pMinv = pM # n_preinvert_limb(pM) # DEBUG!!!
+        cdef mp_limb_t pMinv = 1/pM #n_preinvert_limb(pM) # DEBUG!!! was pM...
         nmod_poly_init2_preinv(t, pM, pMinv, M)
         nmod_poly_init2_preinv(scale, pM, pMinv, M)
         nmod_poly_init2_preinv(xM, pM, pMinv, M) # was M + 1!

@@ -677,32 +677,6 @@ class PSModularSymbolElement(ModuleElement):
         print "This modular symbol satisfies the manin relations"
 
 class PSModularSymbolElement_symk(PSModularSymbolElement):
-    def _find_M(self, M):
-        """
-        Determines `M` from user input. ?????
-
-        INPUT:
-
-        - ``M`` -- an integer at least 2 or None.  If None, sets `M` to
-          be one more than the precision cap of the parent (the
-          minimum amount of lifting).
-
-        OUTPUT:
-
-        - An updated ``M``.
-
-        EXAMPLES::
-
-            sage: pass
-        """
-        if M is None:
-            M = ZZ(20)
-        elif M <= 1:
-            raise ValueError("M must be at least 2")
-        else:
-            M = ZZ(M)
-        return M
-
     def _find_alpha(self, p, k, M=None, ap=None, new_base_ring=None, ordinary=True, check=True, find_extraprec=True):
         r"""
         Finds `alpha`, a `U_p` eigenvalue, which is found as a root of
@@ -810,7 +784,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 return self._find_alpha(p=p, k=k, M=M, ap=ap, new_base_ring=new_base_ring, ordinary=ordinary, check=False, find_extraprec=find_extraprec)
         return alpha, new_base_ring, newM, eisenloss, q, aq
 
-    def p_stabilize(self, p=None, M=None, alpha=None, ap=None, new_base_ring=None, ordinary=True, check=True):
+    def p_stabilize(self, p, M, alpha=None, ap=None, new_base_ring=None, ordinary=True, check=True):
         r"""
 
         Returns the `p`-stablization of self to level `N*p` on which `U_p` acts by `alpha`.
@@ -879,10 +853,11 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         if check:
             p = self._get_prime(p, alpha)
         k = self.parent().weight()
-        M = self._find_M(M)
+        M = ZZ(M)
         verbose("p stabilizing: M = %s"%M, level=2)
         if alpha is None:
-            alpha, new_base_ring, newM, eisenloss, q, aq = self._find_alpha(p, k, M, ap, new_base_ring, ordinary, check, False)
+            alpha, new_base_ring, newM, eisenloss, q, aq = self._find_alpha(p, k, M, ap, new_base_ring, ordinary, check, find_extraprec = False)
+            new_base_ring = Qp(p,newM) if p != 2 else Qp(p,newM+1)
         else:
             if new_base_ring is None:
                 new_base_ring = alpha.parent()
@@ -894,6 +869,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 if self.hecke(p) != ap * self:
                     raise ValueError("alpha must be a root of x^2 - a_p*x + p^(k+1)")
         verbose("found alpha = %s"%(alpha))
+
         V = self.parent()._p_stabilize_parent_space(p, new_base_ring)
         return self.__class__(self._map.p_stabilize(p, alpha, V), V, construct=True)
 
@@ -1075,16 +1051,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         - an overconvergent modular symbol lifting the symbol that was input
         
         EXAMPLES:: 
-            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
-            sage: E = EllipticCurve('11a')
-            sage: phi = ps_modsym_from_elliptic_curve(E)
-            sage: Phi = phi.lift(11,5,algorithm='greenberg')
-            sage: Phi2 = phi.lift(11,5,algorithm='stevens',eigensymbol=True)
-            sage: Phi == Phi2
-            True
-            sage: set_verbose(1)
-            sage: E = EllipticCurve('105a1')
-            sage: phi = ps_modsym_from_elliptic_curve(E)
+
             sage: Phi = phi.lift(7,8,algorithm='greenberg')
             sage: Phi2 = phi.lift(7,8,algorithm='stevens',eigensymbol=True)
             sage: Phi == Phi2
@@ -1415,16 +1382,16 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
         return Phi.reduce_precision(M)
         
-    def p_stabilize_and_lift(self, p=None, M=None, alpha=None, ap=None, new_base_ring=None, \
+    def p_stabilize_and_lift(self, p, M, alpha=None, ap=None, new_base_ring=None, \
                                ordinary=True, algorithm=None, eigensymbol=False, check=True, parallel = False):
         """
         `p`-stabilizes and lifts self
 
         INPUT:
 
-        - ``p`` -- (default: None)
+        - ``p`` -- prime
 
-        - ``M`` -- (default: None)
+        - ``M`` -- precision
 
         - ``alpha`` -- (default: None)
 
@@ -1460,7 +1427,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         if check:
             p = self._get_prime(p, alpha)
         k = self.parent().weight()
-        M = self._find_M(M)
+        M = ZZ(M)
         # alpha will be the eigenvalue of Up
         if alpha is None:
             alpha, new_base_ring, newM, eisenloss, q, aq = self._find_alpha(p, k, M, ap, new_base_ring, ordinary, check)

@@ -74,7 +74,7 @@ def fast_dist_act(v,g,acting_matrix = None):
         sage: D = Distributions(0, 11, 10)
         sage: v = D([2,1])
         sage: w = fast_dist_act(v,Sigma0(11)([1,2,11,4])); print w
-        (2, 25937424587)
+        (2 + O(11^2), 8 + 9*11 + O(11^2))
     """
     if g is not None and g == 1:
         ans = v._moments
@@ -330,7 +330,7 @@ class ManinMap(object):
                 except TypeError:
                     g1 = self._dict[self._manin.reps(g)] * A
                 t += g1 * c
-        return t
+        return t.normalize()
 
     def __getitem__(self, B):
         r"""
@@ -364,7 +364,7 @@ class ManinMap(object):
             sage: f.__getitem__(MR.gens()[1])
             1 + O(37)
             sage: f.__getitem__(MR.gens()[3])
-            37 * ()
+            O(37)
             sage: f.__getitem__(MR.gens()[5])
             36 + O(37)
             sage: f[MR.gens()[5]]
@@ -472,7 +472,7 @@ class ManinMap(object):
             sage: f-f
             Map from the set of right cosets of Gamma0(11) in SL_2(Z) to Space of 11-adic distributions with k=0 action and precision cap 10
             sage: (f-f)(M2Z([1,0,0,1]))
-            11^2 * ()
+            (O(11^2), O(11))
         
         """
         D = {}
@@ -511,7 +511,6 @@ class ManinMap(object):
             sage: (f*2)(M2Z([1,0,0,1]))
             (2 + O(11^2), 4 + O(11))
         """
-#        if isinstance(right, Matrix_integer_2x2):
         if isinstance(right, type(Sigma0(self._manin.level())(MatrixSpace(ZZ,2,2)([1,0,0,1])))):
             return self._right_action(right)
 
@@ -568,7 +567,7 @@ class ManinMap(object):
         A = M2Z(A)
         B = self._manin.equivalent_rep(A)
         gaminv = SN(B * M2Z(A).inverse())
-        return self[B] * gaminv
+        return (self[B] * gaminv).normalize()
 
     def __call__(self, A):
         """
@@ -620,7 +619,7 @@ class ManinMap(object):
         # and so in the end ans becomes self({b/d}-{a/c}) = self({A(0)} - {A(infty)}
         for B in v2:
             ans = ans - self._eval_sl2(B)
-        return ans
+        return ans.normalize()
 
     def apply(self, f, codomain=None, to_moments=False):
         r"""
@@ -714,7 +713,6 @@ class ManinMap(object):
             sage: g = f._right_action(S01([1,2,0,1]))
             sage: g
             Map from the set of right cosets of Gamma0(17) in SL_2(Z) to Sym^2 Q^2
-
             sage: x = sage.modular.pollack_stevens.fund_domain.M2Z([2,3,1,0])
             sage: g(x)
             (17, -34, 69)
@@ -774,7 +772,8 @@ class ManinMap(object):
             (1 + O(11^2), 2 + O(11))
             sage: g = f.reduce_precision(1)
             sage: g._dict[M2Z([1,0,0,1])]
-            1 + O(11)            
+            1 + O(11^2)
+
         """
         D = {}
         sd = self._dict
@@ -837,8 +836,8 @@ class ManinMap(object):
             sage: phi.Tq_eigenvalue(7,7,10)
             -2
         """
-        self.compute_full_data() # Why?
-        self.normalize() # Why?
+        self.compute_full_data()
+        # self.normalize()
         M = self._manin
 
         if algorithm == 'prep':
@@ -855,7 +854,7 @@ class ManinMap(object):
                 par_vector = f_par(input_vector)
                 for inp,outp in par_vector:
                     psi[inp[0][2]] = self._codomain(outp)
-                    psi[inp[0][2]].normalize()
+                    # psi[inp[0][2]].normalize()
             elif fname is not None:
                 import cPickle as pickle
                 for i in range(ell):
@@ -874,21 +873,21 @@ class ManinMap(object):
                         for h,actmat in mprep[1:]:
                             psi_g += fast_dist_act( self[h], None,actmat )
                         psi_g = self._codomain(psi_g)
-                        #psi_g = self._codomain(sum((fast_dist_act(self[h], A,actmat) for h,A,actmat in mprep),self._codomain(0)._moments))
                         try:
                             psi[g] += psi_g
                         except KeyError:
                             psi[g] = psi_g
-                        psi[g].normalize()
+                        # psi[g].normalize()
             else: # The default, which should be used for most settings which do not strain memory.
                 for g in M.gens():
                     try:
                         psi_g = self._codomain(sum((fast_dist_act(self[h], A) for h,A in M.prep_hecke_on_gen_list(ell,g)),self._codomain(0)._moments))
                     except TypeError:
                         psi_g = sum((self[h] * A for h,A in M.prep_hecke_on_gen_list(ell,g)),self._codomain(0))
-                    psi_g.normalize()
+                    # psi_g.normalize()
                     psi[g] = psi_g
-            return self.__class__(self._codomain, self._manin, psi, check=False)
+            
+            return self.__class__(self._codomain, self._manin, psi, check=False).normalize()
         elif algorithm == 'naive':
             S0N = Sigma0(self._manin.level())
             psi = self._right_action(S0N([1,0,0,ell]))
@@ -934,9 +933,13 @@ class ManinMap(object):
         D = {}
         scalar = 1/alpha
         one = scalar.parent()(1)
+        W = self._codomain.change_ring(scalar.parent())
         for g in map(M2Z, manin.gens()):
             # we use scale here so that we don't need to define a
             # construction functor in order to scale by something
             # outside the base ring.
-            D[g] = self._eval_sl2(g).scale(one) - (self(pmat * g) * pmat).scale(1/alpha)
-        return self.__class__(self._codomain.change_ring(scalar.parent()), manin, D, check=False)
+            D[g] = W(self._eval_sl2(g) - (self(pmat * g) * pmat).scale(scalar))
+        ans = self.__class__(W, manin, D, check=False)
+        for g,val in ans._dict.iteritems():
+            ans._dict[g] = V.coefficient_module()(val)
+        return ans

@@ -94,8 +94,8 @@ static inline void _dgs_disc_gauss_mp_init_bexp(dgs_disc_gauss_mp_t *self, mpfr_
   self->Bexp = dgs_bern_exp_mp_init(self->f, l);
 }
 
-dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, size_t tailcut, dgs_disc_gauss_alg_t algorithm) {
-  assert(tailcut > 0);
+dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, mpz_t c, size_t tau, dgs_disc_gauss_alg_t algorithm) {
+  assert(tau > 0);
 
   mpfr_prec_t prec = mpfr_get_prec(sigma);
   
@@ -109,12 +109,14 @@ dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, size_t tailcut, dgs_di
   
   mpfr_init2(self->sigma, prec);
   mpfr_set(self->sigma, sigma, MPFR_RNDN);
-  self->tailcut = tailcut;
+  mpz_init_set(self->c, c);
+
+  self->tau = tau;
   
   switch(algorithm) {
   case DGS_DISC_GAUSS_UNIFORM_TABLE: {
     _dgs_disc_gauss_mp_init_upper_bound(self->upper_bound, self->two_upper_bound_plus_one,
-                                        self->sigma, self->tailcut);
+                                        self->sigma, self->tau);
 
     self->call = dgs_disc_gauss_mp_call_uniform_table;
     self->B = dgs_bern_uniform_init(0);
@@ -139,7 +141,7 @@ dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, size_t tailcut, dgs_di
 
   case DGS_DISC_GAUSS_UNIFORM_ONLINE: {
     _dgs_disc_gauss_mp_init_upper_bound(self->upper_bound, self->two_upper_bound_plus_one,
-                                        self->sigma, self->tailcut);
+                                        self->sigma, self->tau);
 
     self->call = dgs_disc_gauss_mp_call_uniform_online;
     _dgs_disc_gauss_mp_init_f(self->f, self->sigma);
@@ -149,7 +151,7 @@ dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, size_t tailcut, dgs_di
 
   case DGS_DISC_GAUSS_UNIFORM_LOGTABLE: {
     _dgs_disc_gauss_mp_init_upper_bound(self->upper_bound, self->two_upper_bound_plus_one,
-                                        self->sigma, self->tailcut);
+                                        self->sigma, self->tau);
     self->call = dgs_disc_gauss_mp_call_uniform_logtable;
     _dgs_disc_gauss_mp_init_bexp(self, self->sigma, self->upper_bound);
    break;
@@ -174,7 +176,7 @@ dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, size_t tailcut, dgs_di
     mpfr_clear(sigma2);
 
     _dgs_disc_gauss_mp_init_upper_bound(self->upper_bound, self->two_upper_bound_plus_one,
-                                        self->sigma, self->tailcut);
+                                        self->sigma, self->tau);
     _dgs_disc_gauss_mp_init_bexp(self, self->sigma, self->upper_bound);
     self->B = dgs_bern_uniform_init(0);
     self->D2 = dgs_disc_gauss_sigma2p_init();
@@ -209,6 +211,7 @@ void dgs_disc_gauss_mp_call_sigma2_logtable(mpz_t rop, dgs_disc_gauss_mp_t *self
   } while (1);
   if(dgs_bern_uniform_call(self->B, state))
     mpz_neg(rop, rop);
+  mpz_add(rop, rop, self->c);
 }
 
 void dgs_disc_gauss_mp_call_uniform_logtable(mpz_t rop, dgs_disc_gauss_mp_t *self, gmp_randstate_t state) {
@@ -218,6 +221,7 @@ void dgs_disc_gauss_mp_call_uniform_logtable(mpz_t rop, dgs_disc_gauss_mp_t *sel
     mpz_mul(self->x2, self->x, self->x);
   } while (dgs_bern_exp_mp_call(self->Bexp, self->x2, state) == 0);
   mpz_set(rop, self->x);
+  mpz_add(rop, rop, self->c);
 }
 
 void dgs_disc_gauss_mp_call_uniform_table(mpz_t rop, dgs_disc_gauss_mp_t *self, gmp_randstate_t state) {
@@ -231,6 +235,7 @@ void dgs_disc_gauss_mp_call_uniform_table(mpz_t rop, dgs_disc_gauss_mp_t *self, 
   mpz_set_ui(rop, x);
   if(dgs_bern_uniform_call(self->B, state))
     mpz_neg(rop, rop);
+  mpz_add(rop, rop, self->c);
 }
 
 void dgs_disc_gauss_mp_call_uniform_online(mpz_t rop, dgs_disc_gauss_mp_t *self, gmp_randstate_t state) {
@@ -242,8 +247,9 @@ void dgs_disc_gauss_mp_call_uniform_online(mpz_t rop, dgs_disc_gauss_mp_t *self,
     mpfr_exp(self->z, self->z, MPFR_RNDN);
     mpfr_urandomb(self->y, state);
   } while (mpfr_cmp(self->y, self->z) >= 0);
-
+  
   mpz_set(rop, self->x);
+  mpz_add(rop, rop, self->c);
 }
 
 
@@ -255,6 +261,7 @@ void dgs_disc_gauss_mp_clear(dgs_disc_gauss_mp_t *self) {
   mpfr_clear(self->y);
   mpfr_clear(self->f);
   mpfr_clear(self->z);
+  mpz_clear(self->c);
   if (self->rho) {
     for(unsigned long x=0; x<mpz_get_ui(self->upper_bound); x++) {
       mpfr_clear(self->rho[x]);

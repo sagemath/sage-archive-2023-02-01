@@ -69,7 +69,8 @@ struct _dgs_disc_gauss_mp_t;
 
 typedef struct _dgs_disc_gauss_mp_t {
   mpfr_t sigma;
-  size_t tailcut;
+  mpz_t c;
+  size_t tau;
   dgs_disc_gauss_alg_t algorithm;
 
   dgs_bern_uniform_t *B;
@@ -91,7 +92,7 @@ typedef struct _dgs_disc_gauss_mp_t {
   
 } dgs_disc_gauss_mp_t;
 
-dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, size_t tailcut, dgs_disc_gauss_alg_t algorithm);
+dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, mpz_t c, size_t tau, dgs_disc_gauss_alg_t algorithm);
 void dgs_disc_gauss_mp_call_uniform_table(mpz_t rop, dgs_disc_gauss_mp_t *self, gmp_randstate_t state);
 void dgs_disc_gauss_mp_call_uniform_logtable(mpz_t rop, dgs_disc_gauss_mp_t *self, gmp_randstate_t state);
 void dgs_disc_gauss_mp_call_uniform_online(mpz_t rop, dgs_disc_gauss_mp_t *self, gmp_randstate_t state);
@@ -99,35 +100,74 @@ void dgs_disc_gauss_mp_call_sigma2_logtable(mpz_t rop, dgs_disc_gauss_mp_t *self
 void dgs_disc_gauss_mp_clear(dgs_disc_gauss_mp_t *self);
 
 /**
- * Discrete Gaussians, double-precision version
+ * \brief Discrete Gaussians, double-precision version
  *
- * \todo these are not necessarily sufficiently faster than the mult-precision
- * versions at present
+ * Return integer x with probability
+ *
+ *    $ρ_{σ,c}(x) = exp(-(x-c)^2/(2σ^2))/exp(-(ZZ-c)^2/(2σ^2))$
+ *
+ * where $exp(-(ZZ-c)^2/(2σ^2)) ≈ \sum_{i=-τσ}^{τσ} exp(-(i-c)^2/(2σ^2))$ is the
+ * probability for all of the integers.
  */
 
 typedef struct _dgs_disc_gauss_dp_t {
-  double sigma;
-  size_t tailcut;
-  dgs_disc_gauss_alg_t algorithm;
+  double sigma; //< width parameter σ
+  long c; //< center parameter c
+  size_t tau; //< samples outside of (c-τσ,...,c+τσ) are considered to have probability 0
+  dgs_disc_gauss_alg_t algorithm; //< algorithm to use
 
-  dgs_bern_uniform_t *B;
-  dgs_bern_exp_dp_t *Bexp;
-  dgs_disc_gauss_sigma2p_t *D2;
+  dgs_bern_uniform_t *B; //< source of uniform bits
+  dgs_bern_exp_dp_t *Bexp; //< source of exponentially biased bits
+  dgs_disc_gauss_sigma2p_t *D2; //< source of integers from disc. gaussian with σ = sqrt(1/(2log(2))) ≈ 0.849
   
-  long (*call)(struct _dgs_disc_gauss_dp_t *self);
+  long (*call)(struct _dgs_disc_gauss_dp_t *self); //< call this function to sample
 
-  double f;
-  long upper_bound;
-  long two_upper_bound_plus_one;
-  long k;
-  double *rho;  
+  double f; //< typically -1/(2σ^2)
+  long upper_bound; //< τσ
+  long two_upper_bound_plus_one;  //< 2τσ+1
+  long k;  //< used in dgs_disc_gauss_dp_call_sigma2_logtable
+  double *rho; //< used in dgs_disc_gauss_dp_call_uniform_table
 } dgs_disc_gauss_dp_t;
 
-dgs_disc_gauss_dp_t *dgs_disc_gauss_dp_init(double sigma, size_t tailcut, dgs_disc_gauss_alg_t algorithm);
-long dgs_disc_gauss_dp_call_uniform_table(dgs_disc_gauss_dp_t *self);
-long dgs_disc_gauss_dp_call_uniform_logtable(dgs_disc_gauss_dp_t *self);
+dgs_disc_gauss_dp_t *dgs_disc_gauss_dp_init(double sigma, long c, size_t tau, dgs_disc_gauss_alg_t algorithm);
+
+/**
+ * \brief Sample from dgs_disc_gauss_dp_t by rejection sampling using the uniform
+ * distribution
+ *
+ * \param self Discrete Gaussian sampler
+ */
+
 long dgs_disc_gauss_dp_call_uniform_online(dgs_disc_gauss_dp_t *self);
+
+/**
+ * \brief Sample from dgs_disc_gauss_dp_t by rejection sampling using the uniform
+ * distribution and tabulated exp() evaluations.
+ *
+ * \param self Discrete Gaussian sampler
+ */
+
+long dgs_disc_gauss_dp_call_uniform_table(dgs_disc_gauss_dp_t *self);
+
+/**
+ * \brief Sample from dgs_disc_gauss_dp_t by rejection sampling using the
+ * uniform distribution avoiding all exp() calls
+ *
+ * \param self Discrete Gaussian sampler
+ */
+
+long dgs_disc_gauss_dp_call_uniform_logtable(dgs_disc_gauss_dp_t *self);
+
+/**
+ * \brief Sample from dgs_disc_gauss_dp_t by rejection sampling using the
+ * D_{k,σ2} distribution avoiding all exp() calls
+ *
+ * \param self Discrete Gaussian sampler
+ */
+
+
 long dgs_disc_gauss_dp_call_sigma2_logtable(dgs_disc_gauss_dp_t *self);
+
 void dgs_disc_gauss_dp_clear(dgs_disc_gauss_dp_t *self);
 
 

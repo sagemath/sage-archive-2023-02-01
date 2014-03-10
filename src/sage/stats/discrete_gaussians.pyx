@@ -44,7 +44,7 @@ from dgs cimport DGS_DISC_GAUSS_UNIFORM_TABLE, DGS_DISC_GAUSS_UNIFORM_ONLINE, DG
 
 cdef class DiscreteGaussianSampler(SageObject):
     """A Discrete Gaussian Sampler using rejection sampling."""
-    def __init__(self, sigma, tailcut=6, algorithm="uniform+table", precision="mp"):
+    def __init__(self, sigma, c=0, tau=6, algorithm="uniform+table", precision="mp"):
         """Construct a new sampler for a discrete Gaussian distribution.
 
         ALGORITHMS:
@@ -76,8 +76,8 @@ cdef class DiscreteGaussianSampler(SageObject):
         - ``sigma`` - samples are sampled with probability proportional to
           $exp(x^2/(2sigma^2))$
 
-        - ``tailcut`` - samples outside the range
-          (-sigma*tailcut,...,sigma*tailcut) are considered to have probability
+        - ``tau`` - samples outside the range
+          (-sigma*tau,...,sigma*tau) are considered to have probability
           zero (default: 6)
 
         - ``algorithm`` - see list above.
@@ -91,16 +91,16 @@ cdef class DiscreteGaussianSampler(SageObject):
 
             sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
             sage: DiscreteGaussianSampler(3.0, algorithm="uniform+online")
-            Discrete Gaussian sampler with sigma = 3.000000
+            Discrete Gaussian sampler with sigma = 3.000000 and c = 0
             sage: DiscreteGaussianSampler(3.0, algorithm="uniform+table")
-            Discrete Gaussian sampler with sigma = 3.000000
+            Discrete Gaussian sampler with sigma = 3.000000 and c = 0
             sage: DiscreteGaussianSampler(3.0, algorithm="uniform+logtable")
-            Discrete Gaussian sampler with sigma = 3.000000
+            Discrete Gaussian sampler with sigma = 3.000000 and c = 0
 
         Note that "sigma2+logtable" adjusts sigma::
         
             sage: DiscreteGaussianSampler(3.0, algorithm="sigma2+logtable")
-            Discrete Gaussian sampler with sigma = 3.397287
+            Discrete Gaussian sampler with sigma = 3.397287 and c = 0
 
         TESTS::
 
@@ -110,12 +110,12 @@ cdef class DiscreteGaussianSampler(SageObject):
             ...
             ValueError: sigma must be > 0.0 but got -3.000000
 
-            sage: DiscreteGaussianSampler(3.0, tailcut=-1)
+            sage: DiscreteGaussianSampler(3.0, tau=-1)
             Traceback (most recent call last):
             ...
-            ValueError: tailcut must be >= 1 but got -1
+            ValueError: tau must be >= 1 but got -1
 
-            sage: DiscreteGaussianSampler(3.0, tailcut=2, algorithm="superfastalgorithmyouneverheardof")        
+            sage: DiscreteGaussianSampler(3.0, tau=2, algorithm="superfastalgorithmyouneverheardof")        
             Traceback (most recent call last):
             ...
             ValueError: Algorithm 'superfastalgorithmyouneverheardof' not supported by class 'DiscreteGaussianSampler'
@@ -125,8 +125,8 @@ cdef class DiscreteGaussianSampler(SageObject):
         if sigma <= 0.0:
             raise ValueError("sigma must be > 0.0 but got %f"%sigma)
 
-        if tailcut < 1:
-            raise ValueError("tailcut must be >= 1 but got %d"%tailcut)
+        if tau < 1:
+            raise ValueError("tau must be >= 1 but got %d"%tau)
             
         if algorithm == "uniform+table":
             algorithm = DGS_DISC_GAUSS_UNIFORM_TABLE
@@ -142,22 +142,27 @@ cdef class DiscreteGaussianSampler(SageObject):
         if precision == "mp":
             if not isinstance(sigma, RealNumber):
                 RR = RealField()
-                sigma = RR(sigma)            
-            self._gen_mp = dgs_disc_gauss_mp_init((<RealNumber>sigma).value, tailcut, algorithm)
+                sigma = RR(sigma)
+
+            if not isinstance(c, Integer):
+                c = Integer(c)
+            self._gen_mp = dgs_disc_gauss_mp_init((<RealNumber>sigma).value, (<Integer>c).value, tau, algorithm)
             self._gen_dp = NULL
             self.sigma = sigma.parent()(0)
             mpfr_set(self.sigma.value, self._gen_mp.sigma, GMP_RNDN)
+            self.c = c
         elif precision == "dp":
             RR = RealField()
             if not isinstance(sigma, RealNumber):
                 sigma = RR(sigma)            
-            self._gen_dp = dgs_disc_gauss_dp_init(sigma, tailcut, algorithm)
+            self._gen_dp = dgs_disc_gauss_dp_init(sigma, c, tau, algorithm)
             self._gen_mp = NULL
             self.sigma = RR(sigma)
+            self.c = Integer(c)
         else:
             raise ValueError("Parameter precision '%s' not supported."%precision)
             
-        self.tailcut = Integer(tailcut)
+        self.tau = Integer(tau)
         self.algorithm = algorithm
 
     def __clear__(self):
@@ -207,8 +212,8 @@ cdef class DiscreteGaussianSampler(SageObject):
         TESTS::
         
             sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
-            sage: repr(DiscreteGaussianSampler(3.0))
-            'Discrete Gaussian sampler with sigma = 3.000000'
+            sage: repr(DiscreteGaussianSampler(3.0, 2))
+            'Discrete Gaussian sampler with sigma = 3.000000  and c = 2'
         """
-        return "Discrete Gaussian sampler with sigma = %f"%self.sigma
+        return "Discrete Gaussian sampler with sigma = %f and c = %d"%(self.sigma, self.c)
 

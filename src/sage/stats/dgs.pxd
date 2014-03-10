@@ -69,6 +69,7 @@ cdef extern from "dgs.h":
 
     ctypedef struct dgs_disc_gauss_mp_t:
         mpfr_t sigma
+        mpz_t c
         size_t tailcut
         dgs_disc_gauss_alg_t algorithm
         dgs_bern_mp_t *B
@@ -79,12 +80,13 @@ cdef extern from "dgs.h":
         mpfr_t y
         mpfr_t *rho
   
-    dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, size_t tailcut, dgs_disc_gauss_alg_t algorithm)
+    dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, mpz_t c, size_t tailcut, dgs_disc_gauss_alg_t algorithm)
     void dgs_disc_gauss_mp_call_uniform_table(mpz_t rop, dgs_disc_gauss_mp_t *self, gmp_randstate_t state)
     void dgs_disc_gauss_mp_clear(dgs_disc_gauss_mp_t *self)
 
     ctypedef struct dgs_disc_gauss_dp_t:
         double sigma
+        long c
         size_t tailcut
         dgs_disc_gauss_alg_t algorithm        
         dgs_bern_uniform_t *B
@@ -98,7 +100,7 @@ cdef extern from "dgs.h":
         long k
         double *rho
 
-    dgs_disc_gauss_dp_t *dgs_disc_gauss_dp_init(double sigma, size_t tailcut, dgs_disc_gauss_alg_t algorithm)
+    dgs_disc_gauss_dp_t *dgs_disc_gauss_dp_init(double sigma, long c, size_t tailcut, dgs_disc_gauss_alg_t algorithm)
     long dgs_disc_gauss_dp_call_uniform_table(dgs_disc_gauss_dp_t *self)
     long dgs_disc_gauss_dp_call_uniform_logtable(dgs_disc_gauss_dp_t *self)
     long dgs_disc_gauss_dp_call_uniform_online(dgs_disc_gauss_dp_t *self)

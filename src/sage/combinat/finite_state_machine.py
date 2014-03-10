@@ -4634,7 +4634,7 @@ class Automaton(FiniteStateMachine):
 
     def _minimization_Moore_(self):
         """
-        Returns a minimized automaton by using Brzozowski's algorithm.
+        Returns a minimized automaton by using Moore's algorithm.
 
         See also :meth:`.minimization`.
 
@@ -4814,15 +4814,14 @@ class Transducer(FiniteStateMachine):
             ....:                   ("A", "C", 1, -1),
             ....:                   ("B", "A", 2, 0),
             ....:                   ("C", "A", 2, 0)])
-            sage: fsms = fsm.simplification()
-            sage: fsms
+            sage: fsm_simplified = fsm.simplification()
+            sage: fsm_simplified
             Transducer with 2 states
-            sage: fsms.transitions()
+            sage: fsm_simplified.transitions()
             [Transition from ('A',) to ('A',): 0|0,
              Transition from ('A',) to ('B', 'C'): 1|1,0,
              Transition from ('A',) to ('B', 'C'): 1|-1,0,
              Transition from ('B', 'C') to ('A',): 2|-]
-
         """
         fsm = deepcopy(self)
         fsm.prepone_output()

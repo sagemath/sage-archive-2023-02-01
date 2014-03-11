@@ -1139,68 +1139,73 @@ def is_FiniteStateMachine(FSM):
     """
     return isinstance(FSM, FiniteStateMachine)
 
+
 def duplicate_transition_ignore(old_transition, new_transition):
     """
-    Default function for handling duplicate transitions in finite state machines.
-    This implementation ignores the occurrence. See the documentation of the 
-    ``on_duplicate_transition`` of :class:`FiniteStateMachine`.
+    Default function for handling duplicate transitions in finite
+    state machines. This implementation ignores the occurrence.
+
+    See the documentation of the ``on_duplicate_transition`` of
+    :class:`FiniteStateMachine`.
 
     INPUT:
 
-    - ``old_transition``: A transition in a finite state machine.
-    
-    - ``new_transition``: A transition, identical to old_transition, which
-      is to be inserted into the finite state machine.
+    - ``old_transition`` -- A transition in a finite state machine.
+
+    - ``new_transition`` -- A transition, identical to ``old_transition``,
+      which is to be inserted into the finite state machine.
 
     OUTPUT:
 
-    - The same transition, unchanged.
+    The same transition, unchanged.
 
     EXAMPLES::
 
         sage: from sage.combinat.finite_state_machine import duplicate_transition_ignore
         sage: from sage.combinat.finite_state_machine import FSMTransition
-        sage: duplicate_transition_ignore(FSMTransition(0,0,1),
-        ....:                             FSMTransition(0,0,1))
+        sage: duplicate_transition_ignore(FSMTransition(0, 0, 1),
+        ....:                             FSMTransition(0, 0, 1))
         Transition from 0 to 0: 1|-
     """
     return old_transition
 
+
 def duplicate_transition_raise_error(old_transition, new_transition):
     """
-    Alternative function for handling duplicate transitions in finite state machines.
-    This implementation raises a ValueError. 
+    Alternative function for handling duplicate transitions in finite
+    state machines. This implementation raises a ``ValueError``.
 
-    See the documentation of the 
-    ``on_duplicate_transition`` of :class:`FiniteStateMachine`.
+    See the documentation of the ``on_duplicate_transition`` of
+    :class:`FiniteStateMachine`.
 
     INPUT:
 
-    - ``old_transition``: A transition in a finite state machine.
-    
-    - ``new_transition``: A transition, identical to old_transition, which
-      is to be inserted into the finite state machine.
+    - ``old_transition`` -- A transition in a finite state machine.
+
+    - ``new_transition`` -- A transition, identical to ``old_transition``,
+      which is to be inserted into the finite state machine.
 
     OUTPUT:
 
-    Nothing. A ValueError is raised.
+    Nothing. A ``ValueError`` is raised.
 
     EXAMPLES::
 
         sage: from sage.combinat.finite_state_machine import duplicate_transition_raise_error
         sage: from sage.combinat.finite_state_machine import FSMTransition
-        sage: duplicate_transition_raise_error(FSMTransition(0,0,1),
-        ....:                                  FSMTransition(0,0,1))
+        sage: duplicate_transition_raise_error(FSMTransition(0, 0, 1),
+        ....:                                  FSMTransition(0, 0, 1))
         Traceback (most recent call last):
         ...
         ValueError: Attempting to re-insert transition Transition from 0 to 0: 1|-
     """
     raise ValueError("Attempting to re-insert transition %s" % old_transition)
 
+
 def duplicate_transition_add_input(old_transition, new_transition):
     """
     Alternative function for handling duplicate transitions in finite
-    state machines.  This implementation adds the input label of the
+    state machines. This implementation adds the input label of the
     new transition to the input label of the old transition.  This is
     intended for the case where a Markov chain is modelled by a finite
     state machine using the input labels as transition probabilities.
@@ -1210,44 +1215,47 @@ def duplicate_transition_add_input(old_transition, new_transition):
 
     INPUT:
 
-    - ``old_transition``: A transition in a finite state machine.
-    
-    - ``new_transition``: A transition, identical to old_transition, which
-      is to be inserted into the finite state machine.
+    - ``old_transition`` -- A transition in a finite state machine.
+
+    - ``new_transition`` -- A transition, identical to ``old_transition``,
+      which is to be inserted into the finite state machine.
 
     OUTPUT:
 
-    - Transition whose input weight is the sum of the input
-      weights of ``old_transition`` and ``new_transition``.
+    A transition whose input weight is the sum of the input
+    weights of ``old_transition`` and ``new_transition``.
 
     EXAMPLES::
 
         sage: from sage.combinat.finite_state_machine import duplicate_transition_add_input
         sage: from sage.combinat.finite_state_machine import FSMTransition
-        sage: duplicate_transition_add_input(FSMTransition('a','a',1/2),
-        ....:                                FSMTransition('a','a',1/2))
+        sage: duplicate_transition_add_input(FSMTransition('a', 'a', 1/2),
+        ....:                                FSMTransition('a', 'a', 1/2))
         Transition from 'a' to 'a': 1|-
 
     Input labels must be lists of length 1::
 
-        sage: duplicate_transition_add_input(FSMTransition('a','a',[1,1]),
-        ....:                                FSMTransition('a','a',[1,1]))
+        sage: duplicate_transition_add_input(FSMTransition('a', 'a', [1, 1]),
+        ....:                                FSMTransition('a', 'a', [1, 1]))
         Traceback (most recent call last):
         ...
-        TypeError: Trying to use duplicate_transition_add_input on 
-        "Transition from 'a' to 'a': 1,1|-" and 
-        "Transition from 'a' to 'a': 1,1|-", 
+        TypeError: Trying to use duplicate_transition_add_input on
+        "Transition from 'a' to 'a': 1,1|-" and
+        "Transition from 'a' to 'a': 1,1|-",
         but input words are assumed to be lists of length 1
-
     """
-    if hasattr(old_transition.word_in, '__iter__') and len(old_transition.word_in)==1 \
-            and hasattr(new_transition.word_in, '__iter__') and len(new_transition.word_in)==1:
-        old_transition.word_in = [ old_transition.word_in[0] + new_transition.word_in[0] ]
+    if (hasattr(old_transition.word_in, '__iter__')
+        and len(old_transition.word_in) == 1
+        and hasattr(new_transition.word_in, '__iter__')
+        and len(new_transition.word_in) == 1):
+        old_transition.word_in = [old_transition.word_in[0]
+                                  + new_transition.word_in[0]]
     else:
-        raise TypeError('Trying to use duplicate_transition_add_input on '  + \
-                            '"%s" and "%s", '% (old_transition, new_transition) + \
-                            'but input words are assumed to be lists of length 1' )
+        raise TypeError('Trying to use duplicate_transition_add_input on ' +
+                        '"%s" and "%s", ' % (old_transition, new_transition) +
+                        'but input words are assumed to be lists of length 1')
     return old_transition
+
 
 class FiniteStateMachine(SageObject):
     """
@@ -1286,13 +1294,13 @@ class FiniteStateMachine(SageObject):
       are stored in an interal dictionary for speed up.
 
     - ``on_duplicate_transition`` -- A function which is called when a
-      transition is inserted into self which already existed (same
-      ``from_state``, same ``to_state``, same ``word_in``, same ``word_out``). 
+      transition is inserted into ``self`` which already existed (same
+      ``from_state``, same ``to_state``, same ``word_in``, same ``word_out``).
 
-      This function is assumed to take two arguments, the first beeing
-      the already existing transition, the second beeing the new
+      This function is assumed to take two arguments, the first being
+      the already existing transition, the second being the new
       transition (as an ``FSMTransition``). The function must return the
-      (possibly modified) original transition. 
+      (possibly modified) original transition.
 
       By default, ``on_duplicate_transition=duplicate_transition_ignore``,
       where ``duplicate_transition_ignore`` is a predefined function
@@ -1463,14 +1471,14 @@ class FiniteStateMachine(SageObject):
 
     The following examples demonstrate the use of ``on_duplicate_transition``::
 
-        sage: F = FiniteStateMachine([['a','a', 1/2], ['a','a', 1/2]])
+        sage: F = FiniteStateMachine([['a', 'a', 1/2], ['a', 'a', 1/2]])
         sage: F.transitions()
         [Transition from 'a' to 'a': 1/2|-]
 
     ::
 
         sage: from sage.combinat.finite_state_machine import duplicate_transition_raise_error
-        sage: F1 = FiniteStateMachine([['a','a', 1/2], ['a','a', 1/2]],
+        sage: F1 = FiniteStateMachine([['a', 'a', 1/2], ['a', 'a', 1/2]],
         ....:                         on_duplicate_transition=duplicate_transition_raise_error)
         Traceback (most recent call last):
         ...
@@ -1480,7 +1488,7 @@ class FiniteStateMachine(SageObject):
     the input labels are considered as transition probabilities::
 
         sage: from sage.combinat.finite_state_machine import duplicate_transition_add_input
-        sage: F = FiniteStateMachine([['a','a', 1/2], ['a','a', 1/2]],
+        sage: F = FiniteStateMachine([['a', 'a', 1/2], ['a', 'a', 1/2]],
         ....:                        on_duplicate_transition=duplicate_transition_add_input)
         sage: F.transitions()
         [Transition from 'a' to 'a': 1|-]
@@ -1679,11 +1687,12 @@ class FiniteStateMachine(SageObject):
 
     copy = __copy__
 
+
     def empty_copy(self, memo=None):
         """
         Returns an empty deep copy of the finite state machine, i.e.,
-        input_alphabet, output_alphabet, on_duplicate_transition are preserved, but states and
-        transitions are not.
+        ``input_alphabet``, ``output_alphabet``, ``on_duplicate_transition``
+        are preserved, but states and transitions are not.
 
         INPUT:
 
@@ -1697,8 +1706,8 @@ class FiniteStateMachine(SageObject):
 
             sage: from sage.combinat.finite_state_machine import duplicate_transition_raise_error
             sage: F = FiniteStateMachine([('A', 'A', 0, 2), ('A', 'A', 1, 3)],
-            ....:                        input_alphabet=[0,1],
-            ....:                        output_alphabet=[2,3],
+            ....:                        input_alphabet=[0, 1],
+            ....:                        output_alphabet=[2, 3],
             ....:                        on_duplicate_transition=duplicate_transition_raise_error)
             sage: FE = F.empty_copy(); FE
             Finite state machine with 0 states
@@ -1706,7 +1715,7 @@ class FiniteStateMachine(SageObject):
             [0, 1]
             sage: FE.output_alphabet
             [2, 3]
-            sage: FE.on_duplicate_transition==duplicate_transition_raise_error
+            sage: FE.on_duplicate_transition == duplicate_transition_raise_error
             True
         """
         new = self.__class__()
@@ -1714,6 +1723,7 @@ class FiniteStateMachine(SageObject):
         new.output_alphabet = deepcopy(self.output_alphabet, memo)
         new.on_duplicate_transition = self.on_duplicate_transition
         return new
+
 
     def __deepcopy__(self, memo):
         """
@@ -3003,11 +3013,11 @@ class FiniteStateMachine(SageObject):
     def add_transition(self, *args, **kwargs):
         """
         Adds a transition to the finite state machine and returns the
-        new transition. 
+        new transition.
 
         If the transition already exists, the return value of
         ``self.on_duplicate_transition`` is returned. See the
-        documentation of :class:`FiniteStateMachine`. 
+        documentation of :class:`FiniteStateMachine`.
 
         INPUT:
 
@@ -3110,9 +3120,10 @@ class FiniteStateMachine(SageObject):
         """
         try:
             existing_transition = self.transition(t)
-            return self.on_duplicate_transition(existing_transition, t)
         except LookupError:
             pass
+        else:
+            return self.on_duplicate_transition(existing_transition, t)
         from_state = self.add_state(t.from_state)
         self.add_state(t.to_state)
         from_state.transitions.append(t)
@@ -4989,12 +5000,12 @@ class Transducer(FiniteStateMachine):
              Transition from ('A',) to ('B', 'C'): 1|-1,0,
              Transition from ('B', 'C') to ('A',): 2|-]
 
-        :: 
+        ::
 
             sage: from sage.combinat.finite_state_machine import duplicate_transition_add_input
-            sage: T = Transducer([('A', 'A', 1/2, 0), 
-            ....:                 ('A', 'B', 1/4, 1), 
-            ....:                 ('A', 'C', 1/4, 1), 
+            sage: T = Transducer([('A', 'A', 1/2, 0),
+            ....:                 ('A', 'B', 1/4, 1),
+            ....:                 ('A', 'C', 1/4, 1),
             ....:                 ('B', 'A', 1, 0),
             ....:                 ('C', 'A', 1, 0)],
             ....:                initial_states=[0],

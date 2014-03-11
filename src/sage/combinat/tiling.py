@@ -292,7 +292,7 @@ def orthogonal_transformation(n, orientation_preserving=True):
         sage: orthogonal_transformation(0)
         Traceback (most recent call last):
         ...
-        ValueError: ['B', 0] is not a valid cartan type
+        ValueError: ['B', 0] is not a valid Cartan type
     """
     if orientation_preserving:
         return [w.matrix() for w in WeylGroup(['B', n])

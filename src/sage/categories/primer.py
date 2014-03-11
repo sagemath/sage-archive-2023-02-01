@@ -358,7 +358,7 @@ to the specified data structure.
 
 Hence, all the objects mentioned above should be instances of some
 classes. For example, an integer in Sage is an instance of the class
-``Integer`` (and it knows about it!)::
+:class:`Integer` (and it knows about it!)::
 
     sage: i = 12
     sage: type(i)
@@ -418,14 +418,14 @@ other hand, as we have seen above, they share the same powering method
 because the set `\ZZ` of integers, and the set `\QQ[x]` of
 polynomials are both semigroups. Namely, the class for integers and
 the class for polynomials both derive from an *abstract class* for
-elements of a semigroup, which factors out the *generic* methods like
+semigroup elements, which factors out the *generic* methods like
 ``_pow_``. This illustrates the use of *hierarchy of classes* to share
 common code between classes having common behaviour.
 
 OOP design is all about isolating the objects that one wants to model
-from their operations, and designing an appropriate hierarchy of
-classes for organizing the code. As we have seen above, the design of
-the class hierarchy is easy since it can be modelled upon the
+together with their operations, and designing an appropriate hierarchy
+of classes for organizing the code. As we have seen above, the design
+of the class hierarchy is easy since it can be modelled upon the
 hierarchy of categories (bookshelves). Here is for example a piece of
 the hierarchy of classes for an element of a group of matrices::
 
@@ -581,8 +581,8 @@ bookshelf is structured into units with *nested classes*::
 With this syntax, the information that a group is a monoid is
 specified only once, in the :meth:`Category.super_categories`
 method. And indeed, when the category of inverse unital magmas was
-introduced, there was a *single point of truth* to update in order
-to reflect the fact that groups are inverse unital magmas::
+introduced, there was a *single point of truth* to update in order to
+reflect the fact that a group is an inverse unital magma::
 
     sage: Groups().super_categories()
     [Category of monoids, Category of inverse unital magmas]
@@ -757,7 +757,7 @@ Tests can be run individually::
 
     sage: S._test_associativity()
 
-Here is how to see the code of this test::
+Here is how to access the code of this test::
 
     sage: S._test_associativity?? # not tested
 
@@ -1184,7 +1184,7 @@ On the potential combinatorial explosion of categories with axioms
 
 Even for a very simple category like ``Magmas``, there are about `2^5`
 potential combinations of the axioms! Think about what this becomes
-for a category with two operations ``+`` and ``*``::
+for a category with two operations `+` and `*`::
 
     sage: C = (Magmas() & AdditiveMagmas()).Distributive(); C
     Category of distributive magmas and additive magmas
@@ -1447,7 +1447,7 @@ However this must be considered as an *implementation detail*: if
 they appear must be mathematically irrelevant: in particular, the
 methods ``foo`` in `C_1` and `C_2` must have the same semantic. Code
 should not rely on any specific order, as it is subject to later
-change. In case one of the implementations is preferred in a common
+change. Whenever one of the implementations is preferred in some common
 subcategory of `C_1` and `C_2`, for example for efficiency reasons,
 the ambiguity should be resolved explicitly by definining a
 method ``foo`` in this category. See the method ``some_elements`` in

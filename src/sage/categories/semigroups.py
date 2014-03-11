@@ -6,7 +6,7 @@ Semigroups
 #                          William Stein <wstein@math.ucsd.edu>
 #                2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #                2008-2009 Florent Hivert <florent.hivert at univ-rouen.fr>
-#                2008-2010 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2008-2014 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -25,8 +25,15 @@ from sage.structure.element import generic_power
 
 class Semigroups(CategoryWithAxiom):
     """
-    The category of (multiplicative) semigroups, i.e. sets with an
-    associative operation ``*``.
+    The category of (multiplicative) semigroups
+
+    A *semigroup* is an associative :class:`magma <Magmas>`, that is a
+    set endowed with a multiplicative binary operation `*` which is
+    associative (see :wikipedia:`Semigroup`).
+
+    The operation `*` is not required to have a neutral element. A
+    semigroup for which such an element exists is a :class:`monoid
+    <sage.categories.monoids.Monoids>`.
 
     EXAMPLES::
 

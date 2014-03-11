@@ -2,7 +2,7 @@ r"""
 Additive monoids
 """
 #*****************************************************************************
-#  Copyright (C) 2013 Nicolas M. Thiery <nthiery at users.sf.net>
+#  Copyright (C) 2013-2014 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -14,8 +14,9 @@ from sage.categories.additive_semigroups import AdditiveSemigroups
 
 class AdditiveMonoids(CategoryWithAxiom_singleton):
     """
-    The category of additive monoids, i.e. sets with an associative
-    operation ``+`` which is associative and admits a zero.
+    The category of additive monoids,
+    i.e. sets endowed with an operation `+` which is associative and
+    admits a zero.
 
     EXAMPLES::
 

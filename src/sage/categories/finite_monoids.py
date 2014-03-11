@@ -12,11 +12,9 @@ from sage.categories.category_with_axiom import CategoryWithAxiom
 
 class FiniteMonoids(CategoryWithAxiom):
     """
-    The category of finite monoids.
-
-    A finite monoid is an enumerated set with a semigroup structure
-    (see :class:`~sage.categories.finite_semigroups.FiniteSemigroups`)
-    and a neutral element for the group composition.
+    The category of finite (multiplicative) :class:`monoids <Monoids>`,
+    i.e., :class:`finite sets <FiniteSets>` endowed with an
+    associative unital binary operation `*`.
 
     EXAMPLES::
 

@@ -2,7 +2,7 @@ r"""
 Additive Magmas
 """
 #*****************************************************************************
-#  Copyright (C) 2010-2012 Nicolas M. Thiery <nthiery at users.sf.net>
+#  Copyright (C) 2010-2014 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -20,8 +20,9 @@ from sage.structure.sage_object import have_same_parent
 
 class AdditiveMagmas(Category_singleton):
     """
-    The category of additive magmas, i.e. sets with an binary
-    operation ``+``.
+    The category of additive magmas.
+
+    An additive magma is a set endowed with a binary operation `+`.
 
     EXAMPLES::
 

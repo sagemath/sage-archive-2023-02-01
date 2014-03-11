@@ -23,7 +23,7 @@ from sage.structure.sage_object import have_same_parent
 class Magmas(Category_singleton):
     """
     The category of (multiplicative) magmas, i.e. sets with a binary
-    operation ``*``.
+    operation `*`.
 
     EXAMPLES::
 

@@ -2857,7 +2857,7 @@ class JoinCategory(CategoryWithParameters):
     def _without_axioms(self, named=False):
         """
         When adjoining axioms to a category, one often gets a join
-        categories; this methods tries to recover the original
+        category; this method tries to recover the original
         category from this join category.
 
         INPUT:

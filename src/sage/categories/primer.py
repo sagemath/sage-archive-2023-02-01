@@ -205,8 +205,8 @@ Elements, Parents, Categories
     modelling the same set of elements.  For example, one might want
     to consider the ring of integers, or the poset of integers under
     their standard order, or the poset of integers under divisibility,
-    or the semiring of integers under the operations of addition and
-    maximum.  Each of these would be a different instance, belonging
+    or the semiring of integers under the operations of maximum and
+    addition.  Each of these would be a different instance, belonging
     to different categories.
 
     For a given model, there should be a unique instance in Sage
@@ -303,7 +303,7 @@ Elements, Parents, Categories
     sense to talk about schemes as parents.
 
 **Morphisms, Homsets**
-    As category theorist will expect, *Morphisms* and *Homsets* will
+    As category theorists will expect, *Morphisms* and *Homsets* will
     play an ever more important role, as support for them will
     improve.
 
@@ -346,19 +346,19 @@ Hierarchy of classes
 How are the bookshelves implemented in practice?
 
 Sage uses the classical design paradigm of Object Oriented Programming
-(OOP). It's fundamental principle is that any object that a program is
+(OOP). Its fundamental principle is that any object that a program is
 to manipulate should be modelled by an *instance* of a *class*. The
 class implements:
 
- - a *data structure*: which describes how the object is stored
- - *methods*: which describe the operations on the object
+ - a *data structure*: which describes how the object is stored,
+ - *methods*: which describe the operations on the object.
 
 The instance itself contains the data for the given object, according
 to the specified data structure.
 
 Hence, all the objects mentioned above should be instances of some
 classes. For example, an integer in Sage is an instance of the class
-Integer (and it knows about it!)::
+``Integer`` (and it knows about it!)::
 
     sage: i = 12
     sage: type(i)
@@ -415,15 +415,15 @@ We see that integers and polynomials have each their own
 multiplication method: the multiplication algorithms are indeed
 unrelated and deeply tied to their respective datastructures. On the
 other hand, as we have seen above, they share the same powering method
-because the sets `\ZZ` of integers, and the set `\QQ[x]` of
+because the set `\ZZ` of integers, and the set `\QQ[x]` of
 polynomials are both semigroups. Namely, the class for integers and
 the class for polynomials both derive from an *abstract class* for
-elements of a semigroups, which factors out the *generic* methods like
+elements of a semigroup, which factors out the *generic* methods like
 ``_pow_``. This illustrates the use of *hierarchy of classes* to share
 common code between classes having common behaviour.
 
 OOP design is all about isolating the objects that one wants to model
-and their operations, and designing an appropriate hierarchy of
+from their operations, and designing an appropriate hierarchy of
 classes for organizing the code. As we have seen above, the design of
 the class hierarchy is easy since it can be modelled upon the
 hierarchy of categories (bookshelves). Here is for example a piece of
@@ -442,7 +442,7 @@ the hierarchy of classes for an element of a group of matrices::
 
 On the top, we see concrete classes that describe the data structure
 for matrices and provide the operations that are tied to this data
-structure. Then follows abstract classes that are attached to the
+structure. Then follow abstract classes that are attached to the
 hierarchy of categories and provide generic algorithms.
 
 The full hierarchy is best viewed graphically::
@@ -469,9 +469,11 @@ mathematical sets, but with the sets themselves::
 Here are some typical operations that one may want to carry on various
 kinds of sets:
 
-    - The permutations of 5, the rational points of an elliptic curve: counting, listing, random generation
+    - The set of permutations of 5, the set of rational points of an
+      elliptic curve: counting, listing, random generation
 
-    - A language (set of words): rationality testing, counting elements, generating series
+    - A language (set of words): rationality testing, counting elements,
+      generating series
 
     - A finite semigroup: left/right ideals, center, representation theory
 
@@ -516,7 +518,8 @@ Sage categories
 ===============
 
 Why this business of categories? And to start with, why don't we just
-have a good old hierarchy of classes Group, Semigroup, Magma, ... ?
+have a good old hierarchy of classes ``Group``, ``Semigroup``,
+``Magma``, ... ?
 
 Dynamic hierarchy of classes
 ----------------------------
@@ -578,7 +581,8 @@ bookshelf is structured into units with *nested classes*::
 With this syntax, the information that a group is a monoid is
 specified only once, in the :meth:`Category.super_categories`
 method. And indeed, when the category of inverse unital magmas was
-introduced, there was a *single point of truth* to update::
+introduced, there was a *single point of truth* to update in order
+to reflect the fact that groups are inverse unital magmas::
 
     sage: Groups().super_categories()
     [Category of monoids, Category of inverse unital magmas]
@@ -627,7 +631,7 @@ parallel to the hierarchy of categories::
 Another advantage of building the hierarchy of classes dynamically is
 that, for parametrized categories, the hierarchy may depend on the
 parameters. For example an algebra over `\QQ` is a `\QQ`-vector space,
-but not an algebra over `\ZZ` which is just a `\ZZ`-module!
+but an algebra over `\ZZ` is not (it is just a `\ZZ`-module)!
 
 .. NOTE::
 
@@ -718,7 +722,7 @@ See also the :meth:`abstract_method` decorator.
 Generic tests
 -------------
 
-Another feature that parents and elements receives from categories is
+Another feature that parents and elements receive from categories is
 generic tests; their purpose is to check (at least to some extent)
 that the parent satisfies the required mathematical properties (is my
 semigroup indeed associative?) and is implemented according to the
@@ -753,7 +757,7 @@ Tests can be run individually::
 
     sage: S._test_associativity()
 
-Here is the code of this test::
+Here is how to see the code of this test::
 
     sage: S._test_associativity?? # not tested
 
@@ -779,8 +783,8 @@ And rerun the test::
     ...
     AssertionError: False is not true
 
-We can recover instantly the actual values of x,y,z, that is a counter
-example to the associativity of our broken semigroup, using post
+We can recover instantly the actual values of x,y,z, that is, a
+counterexample to the associativity of our broken semigroup, using post
 mortem introspection with the Python debugger ``pdb`` (this does not
 work yet in the notebook)::
 
@@ -807,11 +811,11 @@ Wrap-up
 - Everything about, say, algebras with a distinguished basis is
   gathered in :class:`AlgebrasWithBasis` or its super categories.
   This includes properties and algorithms for elements, parents,
-  morphisms, but also, as we will see about constructions like
+  morphisms, but also, as we will see, for constructions like
   cartesian products or quotients.
 
 - The mathematical relations between elements, parents, and categories
-  translates dynamically into a traditional hierarchy of classes.
+  translate dynamically into a traditional hierarchy of classes.
 
 - This design enforces robustness and consistency, which is
   particularly welcome given that Python is an interpreted language
@@ -885,12 +889,12 @@ Consider now the implementation of the semigroup::
 
 This implementation specifies a data structure for the parents and the
 elements, and makes a promise: the implemented parent is a
-semigroup. Then it fullfills the promise by implementing the basic
-operations ``product`` and ``semigroup_generators``. In exchange of
+semigroup. Then it fulfills the promise by implementing the basic
+operations ``product`` and ``semigroup_generators``. In exchange for
 this promise, `S` and its elements receive generic implementations of
 all the other operations. `S` may override any of the operations by
-more efficient ones. It could typically implement ``is_idempotent`` to
-always return ``True``.
+more efficient ones. It could typically implement the element method
+``is_idempotent`` to always return ``True``.
 
 A (not yet complete) list of mandatory and optional methods to be
 implemented can be found by introspection with::
@@ -928,8 +932,8 @@ Functorial constructions
 ------------------------
 
 Sage has support for a certain number of so-called *covariant
-functorial constructions* which can be used to construct new sets from
-existing ones while carrying over as much as possible of their
+functorial constructions* which can be used to construct new parents
+from existing ones while carrying over as much as possible of their
 algebraic structure. This includes:
 
  - Cartesian products
@@ -939,11 +943,11 @@ algebraic structure. This includes:
  - Subquotients / quotients / subobjects / isomorphic objects
    (see ``Sets().Subquotients()``, ``Sets().Quotients()``,
    ``Sets().Subobjects()``, ``Sets().IsomorphicObjects()``)
- - Dual
+ - Dual objects
  - Algebras, as in group algebras, monoid algebras, ...
    (see e.g. ``Sets().Algebras(QQ)``)
 
-Let for example `A` and `B` be two parents, and let us construct their
+Let for example `A` and `B` be two parents, and let us construct the
 cartesian product `A\times B\times B`::
 
     sage: A = AlgebrasWithBasis(QQ).example();     A.rename("A")
@@ -998,7 +1002,7 @@ code, the product method is put in the nested class
     recent. Their intensive use for the category infrastructure did
     reveal some glitches in their implementation, in particular around
     class naming and introspection. Sage currently works around the
-    more anoying ones but some remain visible. See
+    more annoying ones but some remain visible. See
     e.g. :mod:`sage.misc.nested_class_test`.
 
 
@@ -1149,7 +1153,7 @@ Single entry point and name space usage
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A nice feature of the notation ``Cs.A()`` is that, from a single entry
-point (say the category :class:`Magmas` as above) one can explore a
+point (say the category :class:`Magmas` as above), one can explore a
 whole range of related categories, typically with the help of
 introspection to discover which axioms are available, and without
 having to import new Python modules. This feature will be used in
@@ -1324,7 +1328,7 @@ As we have seen, there is a combinatorial explosion of possible
 classes. Constructing by hand the full class hierarchy would not scale
 unless one would restrict to a very rigid subset. Even if it was
 possible to construct automatically the full hierarchy, this would not
-scale with respect to system ressources.
+scale with respect to system resources.
 
 When designing software systems with large hierarchies of abstract
 classes for business objects, the difficulty is usually to identify a
@@ -1346,7 +1350,7 @@ has code naturally attached to it.
 
 This has led to the current design, where one focuses on writing the
 relatively few classes for which there is actual code or mathematical
-information, and let Sage *compose dynamically and lazily* those
+information, and lets Sage *compose dynamically and lazily* those
 building blocks to construct the minimal hierarchy of classes needed
 for the computation at hand. This allows for the infrastructure to
 scale smoothly as bookshelves are added, extended, or reorganized.
@@ -1381,7 +1385,7 @@ categories <JoinCategory>`. Furthermore, one always should have::
 
       Cs().is_subcategory( Category.join(Cs().super_categories()) )
 
-      Cs()._cmp_key()  >  other._cmp_key()  for other in Cs().super_categories()
+      Cs()._cmp_key  >  other._cmp_key  for other in Cs().super_categories()
 
 This is checked by :meth:`~sage.categories.category.Category._test_category`.
 
@@ -1428,7 +1432,7 @@ We recommend to study the code of one example::
 On the order of super categories
 --------------------------------
 
-The generic method ``C.all_super_categories()`` determine recursively
+The generic method ``C.all_super_categories()`` determines recursively
 the list of *all* super categories of `C`.
 
 The order of the categories in this list does influence the
@@ -1445,7 +1449,7 @@ methods ``foo`` in `C_1` and `C_2` must have the same semantic. Code
 should not rely on any specific order, as it is subject to later
 change. In case one of the implementations is preferred in a common
 subcategory of `C_1` and `C_2`, for example for efficiency reasons,
-then the ambiguity should be resolved explicitly by definining a
+the ambiguity should be resolved explicitly by definining a
 method ``foo`` in this category. See the method ``some_elements`` in
 the code of the category :class:`FiniteCoxeterGroups` for an example.
 

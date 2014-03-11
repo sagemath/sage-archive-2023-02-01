@@ -18,7 +18,11 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 class FiniteSemigroups(CategoryWithAxiom):
     r"""
     The category of (multiplicative) finite semigroups,
-    i.e. enumerated sets with an associative operation ``*``.
+    i.e., enumerated sets with an associative operation ``*``.
+
+    The operation `*` is not required to have a neutral element.
+    Semigroups for which such an element exists are known as monoids
+    (see :class:`~sage.categories.finite_monoids.FiniteMonoids`).
 
     EXAMPLES::
 

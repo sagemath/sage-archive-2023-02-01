@@ -908,7 +908,7 @@ class FSMTransition(SageObject):
                 raise TypeError, 'Wrong argument for hook.'
 
 
-    def __lt__(self,other):
+    def __lt__(self, other):
         """
         Returns True if ``self`` is less than ``other`` with respect to the 
         key ``(self.from_state, self.word_in, self.to_state, self.word_out)``.

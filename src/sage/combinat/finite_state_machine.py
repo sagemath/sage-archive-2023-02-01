@@ -4329,16 +4329,18 @@ class FiniteStateMachine(SageObject):
             sorted_transitions = sorted([(state_mapping[t.to_state], t.word_in, t.word_out) for t in c[0].transitions ])
             for transition in self.iter_transitions(c[0]):
                 new.add_transition(
-                    from_state=new_state,
-                    to_state=state_mapping[transition.to_state],
-                    word_in=transition.word_in,
-                    word_out=transition.word_out)
+                    from_state = new_state,
+                    to_state = state_mapping[transition.to_state],
+                    word_in = transition.word_in,
+                    word_out = transition.word_out)
 
             # check that all class members have the same information (modulo classes)
             for state in c:
                 new_state.is_initial = new_state.is_initial or state.is_initial
-                assert new_state.is_final == state.is_final, "Class %s mixes final and non-final states" % (c,)
-                assert new_state.word_out == state.word_out, "Class %s mixes different word_out" % (c,)
+                assert new_state.is_final == state.is_final, \
+                    "Class %s mixes final and non-final states" % (c,)
+                assert new_state.word_out == state.word_out, \
+                    "Class %s mixes different word_out" % (c,)
                 assert sorted_transitions == sorted([(state_mapping[t.to_state], t.word_in, t.word_out) for t in state.transitions ]), \
                     "Transitions of state %s and %s are incompatible."  % (c[0], state)
         return new

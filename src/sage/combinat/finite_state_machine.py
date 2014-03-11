@@ -2062,6 +2062,7 @@ class FiniteStateMachine(SageObject):
             return self.has_transition(item)
         return False
 
+
     def is_Markov_chain(self):
         """
         Checks whether ``self`` is a Markov chain where the transition
@@ -2083,33 +2084,33 @@ class FiniteStateMachine(SageObject):
 
             sage: from sage.combinat.finite_state_machine import duplicate_transition_add_input
             sage: F = Transducer([[0, 0, 1/4, 0], [0, 1, 3/4, 1],
-            ....:               [1, 0, 1/2, 0], [1, 1, 1/2, 1]],
-            ....:              on_duplicate_transition=duplicate_transition_add_input)
+            ....:                 [1, 0, 1/2, 0], [1, 1, 1/2, 1]],
+            ....:                on_duplicate_transition=duplicate_transition_add_input)
             sage: F.is_Markov_chain()
             True
 
         ``on_duplicate_transition`` must be ``duplicate_transition_add_input``::
 
             sage: F = Transducer([[0, 0, 1/4, 0], [0, 1, 3/4, 1],
-            ....:               [1, 0, 1/2, 0], [1, 1, 1/2, 1]])
+            ....:                 [1, 0, 1/2, 0], [1, 1, 1/2, 1]])
             sage: F.is_Markov_chain()
             False
 
         Sum of input labels of the transitions leaving states must be 1::
 
             sage: F = Transducer([[0, 0, 1/4, 0], [0, 1, 3/4, 1],
-            ....:               [1, 0, 1/2, 0]],
-            ....:              on_duplicate_transition=duplicate_transition_add_input)
+            ....:                 [1, 0, 1/2, 0]],
+            ....:                on_duplicate_transition=duplicate_transition_add_input)
             sage: F.is_Markov_chain()
             False
-
         """
 
-        if self.on_duplicate_transition!=duplicate_transition_add_input:
+        if self.on_duplicate_transition != duplicate_transition_add_input:
             return False
 
-        return all([  (sum([t.word_in[0] for t in state.transitions])-1).is_zero()
-                      for state in self.states() ])
+        return all((sum(t.word_in[0] for t in state.transitions) - 1).is_zero()
+                   for state in self.states())
+
 
     #*************************************************************************
     # representations / LaTeX

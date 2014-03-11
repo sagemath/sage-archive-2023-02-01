@@ -547,6 +547,7 @@ class FSMState(SageObject):
 
         self.color = color
 
+
     def __lt__(self, other):
         """
         Returns True if label of ``self`` is less than label of
@@ -4340,6 +4341,9 @@ class FiniteStateMachine(SageObject):
         OUTPUT:
 
         A finite state machine.
+
+        The labels of the new states are tuples of states of the
+        ``self``, corresponding to ``classes``.
 
         Assume that `c` is a class, and `a` and `b` are states in
         `c`. Then there is a bijection `\varphi` between the

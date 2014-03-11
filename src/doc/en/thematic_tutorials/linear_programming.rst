@@ -81,8 +81,9 @@ Let us ask Sage to solve the following LP:
     \text{Such that: } & x + 2y \leq 4\\
     \text{} & 5z - y \leq 8\\
 
-To achieve it, we need to define a corresponding ``MILP`` object,
-along with the 3 variables we need::
+To achieve it, we need to define a corresponding ``MILP`` object, along with 3
+variables ``x,y`` and ``z`` (which by default can only take **non-negative
+values**, see next section)::
 
     sage: p = MixedIntegerLinearProgram()
     sage: x, y, z = p['x'], p['y'], p['z']
@@ -132,19 +133,15 @@ We can read the optimal assignation found by the solver for `x, y` and
 Variables
 ^^^^^^^^^
 
-The variables associated with an instance of ``MILP`` belong to the
-``MIPVariable`` class, though we should not be concerned with this. In
-the previous example, we obtained these variables through the
-"shortcut" ``p['x']``, which is easy enough when our LP is defined
-over a small number of variables. This being said, the LP/MILP we will
-present afterwards very often require us to associate one -- or many
--- variables to each member of a list of objects, which can be
-integers, or the vertices or edges of a graph, among plenty of other
-alternatives. This means we will very soon need to talk about vectors
-of variables or even dictionaries of variables.
+In the previous example, we obtained variables through ``p['x'], p['y']`` and
+``p['z']``, which is a convenient shortcut when our LP is defined over a small
+number of variables. This being said, larger LP/MILP will require us to
+associate a LP variable to many Sage objects, which can be integers, strings, or
+even the vertices and edges of a graph. We use in this case an alternative
+syntax.
 
-If an LP requires us to define variables named `x_1, \dots, x_{15}`, we
-will this time make use of the ``new_variable`` method
+If we need 15 variables `x_1, \dots, x_{15}`, we will first define a dictionary
+of variables with the ``new_variable`` method
 
 .. link
 
@@ -152,7 +149,8 @@ will this time make use of the ``new_variable`` method
 
     sage: x = p.new_variable()
 
-It is now very easy to define constraints using our `15` variables
+With this new object ``x`` we can now write constraints using
+``x[1],...,x[15]``.
 
 .. link
 
@@ -160,9 +158,9 @@ It is now very easy to define constraints using our `15` variables
 
     sage: p.add_constraint(x[1] + x[12] - x[14] >= 8)
 
-Notice that we did not need to define the length of our
-vector. Actually, ``x`` would accept any immutable object as a key, as
-a dictionary would. We can now write
+Notice that we did not need to define the "length" of ``x``. Actually, ``x``
+would accept any immutable object as a key, as a dictionary would. We can now
+write
 
 .. link
 
@@ -171,33 +169,31 @@ a dictionary would. We can now write
     sage: p.add_constraint(x["I am a valid key"]
     ...                    + x[("a",pi)] <= 3)
 
-Other LPs may require variables indexed several times. Of course, it is
-already possible to emulate it by using tuples like `x[(2,3)]`, though
-to keep the code understandable the method ``new_variable`` accepts as
-a parameter the integer ``dim``, which lets us define the dimension of
-the variable. We can now write
+
+And because any immutable object can be used as a key, doubly indexed variables
+`x^{1,1}, ..., x^{1,15}, x^{2,1}, ..., x^{15,15}` can be referenced by
+``x[1,1],...,x[1,15],x[2,1],...,x[15,15]``
 
 .. link
 
 ::
 
-    sage: y = p.new_variable(dim=2)
-    sage: p.add_constraint(y[3][2] + x[5] == 6)
+    sage: p.add_constraint(x[3,2] + x[5] == 6)
 
 
-Typed variables
-"""""""""""""""
+Typed variables and bounds
+""""""""""""""""""""""""""
 
-By default, all the LP variables are assumed to be non-negative
-reals. They can be defined as binary through the parameter
-``binary=True`` (or integer with ``integer=True``). Lower and
-upper bounds can be defined or re-defined (for instance when you want
-some variables to be negative) using the methods ``set_min`` and
-``set_max``.
+By default, all the LP variables represent **non-negative reals**.
 
-It is also possible to change the type of a variable after it has been
-created with the methods ``set_binary`` and ``set_integer``.
+**Types :** If you want a variable to assume only integer or binary values, use
+the ``integer=True`` or ``binary=True`` arguments of the ``new_variable``
+method. Alternatively, call the ``set_integer`` and ``set_binary`` methods.
 
+**Bounds :** By default all variables represent **non-negative reals**. If you
+want a variable to represent arbitrary reals (or arbitrary integers), you should
+redefine its lower bound using the ``set_min`` method. If you want to set an
+upper bound on a variable, use the ``set_max`` method.
 
 Basic linear programs
 ---------------------

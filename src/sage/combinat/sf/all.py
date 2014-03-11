@@ -11,6 +11,4 @@ lazy_import('sage.combinat.sf.sfa', ['SymmetricFunctionAlgebra'])
 
 lazy_import('sage.combinat.sf.kfpoly', 'KostkaFoulkesPolynomial')
 
-lazy_import('sage.combinat.sf.kschur', 'kSchurFunctions')
-
 from ns_macdonald import NonattackingFillings, AugmentedLatticeDiagramFilling, LatticeDiagram

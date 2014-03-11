@@ -30,7 +30,8 @@ http://www.risc.uni-linz.ac.at/people/hemmecke/AldorCombinat/combinatse9.html.
 #*****************************************************************************
 from stream import Stream, Stream_class
 from series_order import  bounded_decrement, increment, inf, unk
-from sage.rings.all import Integer, prod
+from sage.rings.all import Integer
+from sage.misc.misc import prod
 from functools import partial
 from sage.misc.misc import repr_lincomb, is_iterator
 

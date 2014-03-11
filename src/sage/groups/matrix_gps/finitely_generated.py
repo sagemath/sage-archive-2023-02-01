@@ -11,8 +11,8 @@ EXAMPLES::
     sage: G = MatrixGroup(gens)
     sage: G.conjugacy_class_representatives()
     (
-    [1 0]  [0 1]  [0 1]  [0 2]  [0 2]  [0 1]  [2 0]
-    [0 1], [2 1], [2 2], [1 1], [1 2], [2 0], [0 2]
+    [1 0]  [0 2]  [0 1]  [2 0]  [0 2]  [0 1]  [0 2]
+    [0 1], [1 1], [2 1], [0 2], [1 2], [2 2], [1 0]
     )
 
 The finitely generated matrix groups can also be constructed as
@@ -798,4 +798,3 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
                 singular.eval(SName+'[1,%d]'%(j)) for j in range(2,1+singular('ncols('+SName+')'))
                 ]
             return [PR(gen) for gen in OUT]
-

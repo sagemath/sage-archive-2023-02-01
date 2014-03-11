@@ -2,7 +2,8 @@
 Saturation over ZZ
 """
 
-from sage.rings.all import ZZ, gcd, binomial, GF
+from sage.rings.all import ZZ, gcd, GF
+from sage.rings.arith import binomial
 from sage.matrix.constructor import identity_matrix, random_matrix
 from sage.misc.misc import verbose
 from sage.misc.randstate import current_randstate

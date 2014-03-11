@@ -533,7 +533,6 @@ class Distributions_abstract(Module):
             Space of 7-adic distributions with k=0 action and precision cap 4
             sage: D.basis()
             [(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)]
-
             sage: D = Symk(3, base=QQ); D
             Sym^3 Q^2
             sage: D.basis()

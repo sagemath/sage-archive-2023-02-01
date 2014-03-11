@@ -71,7 +71,6 @@ def get_dist_classes(p, prec_cap, base, symk):
         sage: from sage.modular.pollack_stevens.dist import get_dist_classes
         sage: pass
     """
-    #return Dist_vector, WeightKAction_vector # The long versions have bugs as of now.
     if symk or p is None or base.is_field() or (isinstance(base, pAdicGeneric) and base.degree() > 1):
         return Dist_vector, WeightKAction_vector
     if 7*p**(prec_cap) < ZZ(2)**(4*sizeof(long)-1):
@@ -102,10 +101,7 @@ cdef class Dist(ModuleElement):
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
         """
-        if self.ordp == 0:
-            return self._unscaled_moment(n)
-        else:
-            return self.parent().prime()**(self.ordp) * self._unscaled_moment(n)
+        return self.parent().prime()**(self.ordp) * self._unscaled_moment(n)
 
     cpdef normalize(self):
         r"""
@@ -218,18 +214,23 @@ cdef class Dist(ModuleElement):
             return True
         else:
             try:
-                z = self.moment(0).is_zero(M)
+                z = self._unscaled_moment(0).is_zero(M)
             except TypeError:
-                z = self.moment(0).is_zero()
+                z = self._unscaled_moment(0).is_zero()
                 use_arg = False
             if not z: return False
             for a in xrange(1, n):
                 if usearg:
-                    z = self._unscaled_moment(a).is_zero(M-a)
+                    try:
+                        z = self._unscaled_moment(a).is_zero(M-a)
+                    except TypeError:
+                        z = self._unscaled_moment(a).is_zero()
+                        use_arg = False
                 else:
                     z = self._unscaled_moment(a).is_zero()
                 if not z: return False
             return True
+
 
     def find_scalar(self, _other, p, M = None, check=True):
         r"""
@@ -378,6 +379,14 @@ cdef class Dist(ModuleElement):
             True
             sage: D([1]) == D([1, 2])
             True
+            sage: v = D([1+O(5^3),2+O(5^2),3+O(5)])
+            sage: w = D([1+O(5^2),2+O(5)])
+            sage: v == w
+            True
+            sage: D = Symk(0,Qp(5,5))
+            sage: v = 5 * D([4*5^-1+3+O(5^2)])
+            sage: w = D([4+3*5+O(5^2)])
+            sage: v == w
 
         Equality of two :class:`Dist_vector`::
 
@@ -391,22 +400,23 @@ cdef class Dist(ModuleElement):
         cdef Dist right = _right
         left.normalize()
         right.normalize()
+        # print 'Comparing two distributions...'
         cdef long rprec = min(left._relprec(), right._relprec())
         cdef long i
         p = left.parent().prime()
-        if left.ordp > right.ordp:
+        if False: #left.ordp > right.ordp:
             shift = p ** (left.ordp - right.ordp)
             for i in range(rprec):
                 c = cmp(shift * left._unscaled_moment(i), right._unscaled_moment(i))
                 if c: return c
-        elif left.ordp < right.ordp:
+        elif False: #left.ordp < right.ordp:
             shift = p ** (right.ordp - left.ordp)
             for i in range(rprec):
                 c = cmp(left._unscaled_moment(i), shift * right._unscaled_moment(i))
                 if c: return c
         else:
             for i in range(rprec):
-                c = cmp(left._unscaled_moment(i), right._unscaled_moment(i))
+                c = cmp(left.moment(i), right.moment(i))
                 if c: return c
         return 0
 
@@ -549,7 +559,7 @@ cdef class Dist(ModuleElement):
         p = V.prime()
         M = V.precision_cap()
         R = V.base_ring()
-        moments = [R.coerce(self.moment(j)) for j in range(k+1)]
+        moments = [R(self.moment(j)) for j in range(k+1)]
         zero = R(0)
         moments.extend([zero] * (M - k - 1))
         mu = V(moments)
@@ -818,15 +828,6 @@ cdef class Dist_vector(Dist):
         elif right.valuation(p) == Infinity:
             ans._moments = self.parent().approx_module(0)([])
             ans.ordp += self.precision_relative()
-## RP: I don't understand this is_exact_zero command
-## This changes makes the function work when scaling by 0 -- it might
-## cause other problems...
-#        elif right.is_zero():
-#            ans._moments = self.parent().approx_module(0)([])
-#            if right.is_exact_zero():
-#                ans.ordp = maxordp
-#            else:
-#                ans.ordp = self.ordp + right.valuation(p)
         else:
             #print right, right.parent()
             try:

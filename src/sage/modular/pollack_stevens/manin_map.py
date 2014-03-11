@@ -837,7 +837,7 @@ class ManinMap(object):
             -2
         """
         self.compute_full_data()
-        # self.normalize()
+        self.normalize()
         M = self._manin
 
         if algorithm == 'prep':
@@ -854,7 +854,7 @@ class ManinMap(object):
                 par_vector = f_par(input_vector)
                 for inp,outp in par_vector:
                     psi[inp[0][2]] = self._codomain(outp)
-                    # psi[inp[0][2]].normalize()
+                    psi[inp[0][2]].normalize()
             elif fname is not None:
                 import cPickle as pickle
                 for i in range(ell):
@@ -877,16 +877,15 @@ class ManinMap(object):
                             psi[g] += psi_g
                         except KeyError:
                             psi[g] = psi_g
-                        # psi[g].normalize()
+                        psi[g].normalize()
             else: # The default, which should be used for most settings which do not strain memory.
                 for g in M.gens():
                     try:
                         psi_g = self._codomain(sum((fast_dist_act(self[h], A) for h,A in M.prep_hecke_on_gen_list(ell,g)),self._codomain(0)._moments))
                     except TypeError:
                         psi_g = sum((self[h] * A for h,A in M.prep_hecke_on_gen_list(ell,g)),self._codomain(0))
-                    # psi_g.normalize()
+                    psi_g.normalize()
                     psi[g] = psi_g
-            
             return self.__class__(self._codomain, self._manin, psi, check=False).normalize()
         elif algorithm == 'naive':
             S0N = Sigma0(self._manin.level())
@@ -927,6 +926,7 @@ class ManinMap(object):
             sage: f.p_stabilize(5,1,V)
             Map from the set of right cosets of Gamma0(11) in SL_2(Z) to Sym^0 Q^2            
         """
+
         manin = V.source()
         S0 = Sigma0(self._codomain._act._Np)
         pmat = S0([p,0,0,1])
@@ -940,6 +940,4 @@ class ManinMap(object):
             # outside the base ring.
             D[g] = W(self._eval_sl2(g) - (self(pmat * g) * pmat).scale(scalar))
         ans = self.__class__(W, manin, D, check=False)
-        for g,val in ans._dict.iteritems():
-            ans._dict[g] = V.coefficient_module()(val)
         return ans

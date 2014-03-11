@@ -4326,7 +4326,9 @@ class FiniteStateMachine(SageObject):
         # Copy data from old transducer
         for c in classes:
             new_state = state_mapping[c[0]]
-            sorted_transitions = sorted([(state_mapping[t.to_state], t.word_in, t.word_out) for t in c[0].transitions ])
+            sorted_transitions = sorted(
+                [(state_mapping[t.to_state], t.word_in, t.word_out)
+                 for t in c[0].transitions])
             for transition in self.iter_transitions(c[0]):
                 new.add_transition(
                     from_state = new_state,
@@ -4341,8 +4343,10 @@ class FiniteStateMachine(SageObject):
                     "Class %s mixes final and non-final states" % (c,)
                 assert new_state.word_out == state.word_out, \
                     "Class %s mixes different word_out" % (c,)
-                assert sorted_transitions == sorted([(state_mapping[t.to_state], t.word_in, t.word_out) for t in state.transitions ]), \
-                    "Transitions of state %s and %s are incompatible."  % (c[0], state)
+                assert sorted_transitions == sorted(
+                    [(state_mapping[t.to_state], t.word_in, t.word_out)
+                     for t in state.transitions]), \
+                    "Transitions of state %s and %s are incompatible." % (c[0], state)
         return new
 
 

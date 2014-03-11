@@ -1219,12 +1219,6 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             ...
             TypeError: codomain (=a) must be an instance of Words_over_OrderedAlphabet
 
-        The argument ``l`` is now deprecated::
-
-            sage: W = Words('ab')
-            sage: it = W.iter_morphisms(l=None)
-            doctest:...: DeprecationWarning: use the option 'arg' instead of 'l'
-            See http://trac.sagemath.org/10134 for details.
         """
         n = self.size_of_alphabet()
         # create an iterable of compositions (all "compositions" if arg is
@@ -1485,27 +1479,4 @@ class FiniteWords_length_k_over_OrderedAlphabet(FiniteWords_over_OrderedAlphabet
             return iter(self)
         else:
             return iter([])
-
-###########################################################################
-##### DEPRECATION WARNINGS ################################################
-##### Added July 2009 #####################################################
-###########################################################################
-
-def is_Words(obj):
-    r"""
-    Returns True if obj is a word set and False otherwise.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.words.words import is_Words
-        sage: is_Words(33)
-        doctest:1: DeprecationWarning: is_Words is deprecated, use isinstance(your_object, Words_all) instead!
-        See http://trac.sagemath.org/6519 for details.
-        False
-        sage: is_Words(Words('ab'))
-        True
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(6519, "is_Words is deprecated, use isinstance(your_object, Words_all) instead!")
-    return isinstance(obj, Words_all)
 

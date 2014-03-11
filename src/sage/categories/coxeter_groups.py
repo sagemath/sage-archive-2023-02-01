@@ -37,8 +37,7 @@ class CoxeterGroups(Category_singleton):
 
     EXAMPLES::
 
-        sage: C = CoxeterGroups()
-        sage: C                            # todo: uppercase for Coxeter
+        sage: C = CoxeterGroups(); C
         Category of coxeter groups
         sage: C.super_categories()
         [Category of groups, Category of enumerated sets]
@@ -65,9 +64,9 @@ class CoxeterGroups(Category_singleton):
         sage: DihedralGroup(5)
         Dihedral group of order 10 as a permutation group
 
-    TODO: add a demo of usual computations on Coxeter groups.
+    .. TODO:: add a demo of usual computations on Coxeter groups.
 
-    SEE ALSO: :class:`WeylGroups`, :mod:`sage.combinat.root_system`
+    .. SEEALSO:: :class:`WeylGroups`, :mod:`sage.combinat.root_system`
 
     TESTS::
 
@@ -797,7 +796,7 @@ class CoxeterGroups(Category_singleton):
             """
             INPUT:
 
-            - ``index_set`` - a subset (as a list or iterable) of the nodes of the dynkin diagram;
+            - ``index_set`` - a subset (as a list or iterable) of the nodes of the Dynkin diagram;
               (default: all of them)
             - ``side`` - 'left' or 'right' (default: 'right')
             - ``positive`` - a boolean (default: ``False``)
@@ -989,10 +988,10 @@ v            EXAMPLES::
             r"""
             INPUT:
 
-            - ``index_set`` - a subset (or iterable) of the nodes of the dynkin diagram
+            - ``index_set`` - a subset (or iterable) of the nodes of the Dynkin diagram
             - ``side`` - 'left' or 'right'
 
-            Returns the unique shortest element of the coxeter group
+            Returns the unique shortest element of the Coxeter group
             $W$ which is in the same left (resp. right) coset as
             ``self``, with respect to the parabolic subgroup $W_I$.
 
@@ -1085,7 +1084,7 @@ v            EXAMPLES::
             that `l(self) = l(u) + l(v)`.
 
             Iterating through this set is Constant Amortized Time
-            (counting arithmetic operations in the coxeter group as
+            (counting arithmetic operations in the Coxeter group as
             constant time) complexity, and memory linear in the length
             of `self`.
 
@@ -1366,7 +1365,7 @@ v            EXAMPLES::
 
                 sage: P = W.bruhat_poset()
 
-            The algorithm is taken from Stembridge's coxeter/weyl package for Maple.
+            The algorithm is taken from Stembridge's 'coxeter/weyl' package for Maple.
             """
             desc = self.first_descent()
             if desc is not None:

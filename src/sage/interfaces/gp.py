@@ -93,7 +93,7 @@ robust manner, as long as you are creating a new object.
     sage: a = gp.eval(t)
     sage: a = gp(t)
 
-In Sage, the PARI large galois groups datafiles should be installed
+In Sage, the PARI large Galois groups datafiles should be installed
 by default::
 
     sage: f = gp('x^9 - x - 2')

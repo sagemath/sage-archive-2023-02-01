@@ -11,7 +11,6 @@ Rings
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-import re
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom
@@ -895,8 +894,6 @@ class Rings(CategoryWithAxiom):
     class HomCategory(HomCategory):
         pass
 
-from sage.structure.parent_gens import _certify_names
-
 def _gen_names(elts):
     r"""
     Used to find a name for a generator when rings are created using the
@@ -912,6 +909,8 @@ def _gen_names(elts):
         sage: list(_gen_names((1..27)))[-1]
         'aa'
     """
+    import re
+    from sage.structure.parent_gens import _certify_names
     from sage.symbolic.ring import is_SymbolicVariable
     from sage.combinat.words.words import Words
     it = iter(Words("abcdefghijklmnopqrstuvwxyz"))

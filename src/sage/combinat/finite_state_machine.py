@@ -4415,7 +4415,7 @@ class Automaton(FiniteStateMachine):
         """
         Returns the cartesian product of self and other. The new automaton accepts 
         the intersection of the languages of self and other. 
-        See :meth:``.intersection()`` for more information.
+        See :meth:`.intersection` for more information. 
 
         If ``other`` is a transducer, ``other.cartesian_product(self)`` may be more useful.
 

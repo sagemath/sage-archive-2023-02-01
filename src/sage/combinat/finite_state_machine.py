@@ -549,16 +549,16 @@ class FSMState(SageObject):
 
     def __lt__(self,other):
         """
-        Return True, if label of ``self`` is less than label of ``other``.
+        Returns True if label of ``self`` is less than label of
+        ``other``.
 
         INPUT:
 
-        - `self`
-        - `other` -- two FSMStates
+        - `other` -- a state.
 
         OUTPUT:
 
-        True or False
+        True or False.
 
         EXAMPLE::
 
@@ -566,7 +566,7 @@ class FSMState(SageObject):
             sage: FSMState(0) < FSMState(1)
             True
         """
-        return self.label()<other.label()
+        return self.label() < other.label()
 
 
     def label(self):
@@ -914,20 +914,19 @@ class FSMTransition(SageObject):
             else:
                 raise TypeError, 'Wrong argument for hook.'
 
+
     def __lt__(self,other):
         """
-        Return True, if ``self`` is less than ``other``, w.r.t. the
-        key (``self.from_state``, ``self.word_in``, ``self.to_state``,
-        ``self.word_out``).
+        Returns True if ``self`` is less than ``other`` with respect to the 
+        key ``(self.from_state, self.word_in, self.to_state, self.word_out)``.
 
         INPUT:
 
-        - `self`
-        - `other` -- two FSMTransitions
+        - `other` -- a transition.
 
         OUTPUT:
 
-        True or False
+        True or False.
 
         EXAMPLE::
 
@@ -937,6 +936,7 @@ class FSMTransition(SageObject):
         """
         return (self.from_state, self.word_in, self.to_state, self.word_out) < \
             (other.from_state, other.word_in, other.to_state, other.word_out)
+
 
     def __copy__(self):
         """

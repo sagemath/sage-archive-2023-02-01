@@ -13825,7 +13825,7 @@ class GenericGraph(GenericGraph_pyx):
             r_other = dict([[v,(1,v)] for v in other])
             G = self.relabel(r_self, inplace=False).union(other.relabel(r_other, inplace=False))
 
-        G.name('%s disjoint_union %s'%(self.name(), other.name()))
+        G._name = '%s disjoint_union %s'%(self.name(), other.name())
         return G
 
     def union(self, other):
@@ -13859,7 +13859,7 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        Multiple edges and loops::
+        Multiple edges and loops (:trac:`15627`)::
 
             sage: g = Graph(multiedges=True, loops=True)
             sage: g.add_edges(graphs.PetersenGraph().edges())
@@ -13872,7 +13872,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: (2*g.size()) == (2*g).size()
             True
 
-        Immutable input ? Immutable output::
+        Immutable input ? Immutable output (:trac:`15627`)::
 
             sage: g = g.copy(immutable=True)
             sage: (2*g)._backend

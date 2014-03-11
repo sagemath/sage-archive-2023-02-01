@@ -4175,15 +4175,16 @@ class FiniteStateMachine(SageObject):
 
         A list of equivalence classes of states.
 
-        Two states `a` and `b` are equivalent, if and only if the following holds:
+        Two states `a` and `b` are equivalent if and only if there is
+        a bijection `\varphi` between paths starting at `a` and paths
+        starting at `b` with the following properties: Let `p_a` be a
+        path from `a` to `a'` and `p_b` a path from `b` to `b'` such
+        that `\varphi(p_a)=p_b`, then
 
-        There is a bijection `\varphi` between paths starting at `a`
-        and paths starting at `b` such that if `\varphi(p_a)=p_b`,
-        then `p_a.\mathit{word}_{in}=p_b.\mathit{word}_{in}` and
-        `p_a.\mathit{word}_{out}=p_b.\mathit{word}_{out}` and `p_a`
-        and `p_b` lead to some states `a'` and `b'` such that `a'` and
-        `b'` have the same output label and are both final or both
-        non-final.
+        - `p_a.\mathit{word}_\mathit{in}=p_b.\mathit{word}_\mathit{in}`,
+        - `p_a.\mathit{word}_\mathit{out}=p_b.\mathit{word}_\mathit{out}`,
+        - `a'` and `b'` have the same output label, and
+        - `a'` and `b'` are both final or both non-final.
 
         The function :meth:`.equivalence_classes` returns a list of
         the equivalence classes to this equivalence relation.
@@ -4204,16 +4205,16 @@ class FiniteStateMachine(SageObject):
             [['A', 'C'], ['B', 'D']]
         """
 
-        # Two states a and b are said to be j-equivalent, if and only
-        # if the following holds:
+        # Two states `a` and `b` are j-equivalent if and only if there
+        # is a bijection `\varphi` between paths of length <= j
+        # starting at `a` and paths starting at `b` with the following
+        # properties: Let `p_a` be a path from `a` to `a'` and `p_b` a
+        # path from `b` to `b'` such that `\varphi(p_a)=p_b`, then
         #
-        # There is a bijection `\varphi` between paths of length <= j
-        # starting at `a` and paths of length <= j starting at `b`
-        # such that if `\varphi(p_a)=p_b`, then
-        # `p_a.word_in=p_b.word_in` and `p_a.word_out=p_b.word_out`
-        # and `p_a` and `p_b` lead to some states `a'` and `b'` such
-        # that `a'` and `b'` have the same output label and are both
-        # final or both non-final.
+        # - `p_a.\mathit{word}_{in}=p_b.\mathit{word}_{in}`,
+        # - `p_a.\mathit{word}_{out}=p_b.\mathit{word}_{out}`,
+        # - `a'` and `b'` have the same output label, and
+        # - `a'` and `b'` are both final or both non-final.
 
         # If for some j the relations j-1 equivalent and j-equivalent
         # coincide, then they are equal to the equivalence relation
@@ -4266,13 +4267,14 @@ class FiniteStateMachine(SageObject):
 
         A finite state machine.
 
-        Assume that `c` is a class and `s`, `s'` are states in
+        Assume that `c` is a class, and `a` and `b` are states in
         `c`. Then there is a bijection `\varphi` between the
-        transitions from `s` and the transitions from `s'` such that
-        if `\varphi(t_a)=t_b`, then
-        `t_a.\mathit{word}_{in}=t_b.\mathit{word}_{in}` and
-        `t_a.\mathit{word}_{out}=t_b.\mathit{word}_{out}` and `t_a`
-        and `t_b` lead to some equivalent states `t` and `t'`.
+        transitions from `a` and the transitions from `b` with the
+        following properties: if `\varphi(t_a)=t_b`, then
+
+        - `t_a.\mathit{word}_\mathit{in}=t_b.\mathit{word}_\mathit{in}`,
+        - `t_a.\mathit{word}_\mathit{out}=t_b.\mathit{word}_\mathit{out}`, and
+        - `t_a` and `t_b` lead to some equivalent states `a'` and `b'`.
 
         Non-initial states may be merged with initial states, the
         resulting state is an initial state.
@@ -4800,7 +4802,7 @@ class Automaton(FiniteStateMachine):
 
     def _minimization_Moore_(self):
         """
-        Returns a minimized automaton by using Brzozowski's algorithm.
+        Returns a minimized automaton by using Moore's algorithm.
 
         See also :meth:`.minimization`.
 
@@ -4980,10 +4982,10 @@ class Transducer(FiniteStateMachine):
             ....:                   ("A", "C", 1, -1),
             ....:                   ("B", "A", 2, 0),
             ....:                   ("C", "A", 2, 0)])
-            sage: fsms = fsm.simplification()
-            sage: fsms
+            sage: fsm_simplified = fsm.simplification()
+            sage: fsm_simplified
             Transducer with 2 states
-            sage: fsms.transitions()
+            sage: fsm_simplified.transitions()
             [Transition from ('A',) to ('A',): 0|0,
              Transition from ('A',) to ('B', 'C'): 1|1,0,
              Transition from ('A',) to ('B', 'C'): 1|-1,0,

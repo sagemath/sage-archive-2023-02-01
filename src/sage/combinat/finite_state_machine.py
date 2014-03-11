@@ -4150,9 +4150,7 @@ class FiniteStateMachine(SageObject):
         # Create new states and build state_mapping
         for c in classes:
             new_label = tuple(c)
-            new_state = deepcopy(c[0])
-            new_state._label_ = new_label
-            # TODO: Why does c[0].relabeled(new_label) not work?
+            new_state = c[0].relabeled(new_label)
             new.add_state(new_state)
             for state in c:
                 state_mapping[state] = new_state

@@ -33,6 +33,8 @@ REFERENCES:
 
 """
 
+include '../ext/interrupt.pxi' 
+
 from sage.rings.real_mpfr cimport RealNumber, RealField
 from sage.libs.mpfr cimport mpfr_set, GMP_RNDN
 from sage.rings.integer cimport Integer
@@ -144,9 +146,11 @@ cdef class DiscreteGaussianSampler(SageObject):
                 RR = RealField()
                 sigma = RR(sigma)
 
-            if not isinstance(c, Integer):
-                c = Integer(c)
-            self._gen_mp = dgs_disc_gauss_mp_init((<RealNumber>sigma).value, (<Integer>c).value, tau, algorithm)
+            if not isinstance(c, RealNumber):
+                c = sigma.parent()(c)
+            sig_on()
+            self._gen_mp = dgs_disc_gauss_mp_init((<RealNumber>sigma).value, (<RealNumber>c).value, tau, algorithm)
+            sig_off()
             self._gen_dp = NULL
             self.sigma = sigma.parent()(0)
             mpfr_set(self.sigma.value, self._gen_mp.sigma, GMP_RNDN)
@@ -154,11 +158,13 @@ cdef class DiscreteGaussianSampler(SageObject):
         elif precision == "dp":
             RR = RealField()
             if not isinstance(sigma, RealNumber):
-                sigma = RR(sigma)            
+                sigma = RR(sigma)
+            sig_on()
             self._gen_dp = dgs_disc_gauss_dp_init(sigma, c, tau, algorithm)
+            sig_off()
             self._gen_mp = NULL
             self.sigma = RR(sigma)
-            self.c = Integer(c)
+            self.c = RR(c)
         else:
             raise ValueError("Parameter precision '%s' not supported."%precision)
             
@@ -204,7 +210,8 @@ cdef class DiscreteGaussianSampler(SageObject):
             self._gen_mp.call(rop.value, self._gen_mp, rstate.gmp_state)
             return rop
         else:
-            return Integer(self._gen_dp.call(self._gen_dp))
+            r = self._gen_dp.call(self._gen_dp)
+            return Integer(r)
             
 
     def _repr_(self):

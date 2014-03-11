@@ -42,14 +42,32 @@
 #include "dgs_bern.h"
 
 /**
+ * We consider a double x an integer if fmod(x,1.0) <= DGS_DISC_GAUSS_INTEGER_CUTOFF
+ *
+ * \note it is okay put 0.0 here as for typical inputs the above inequality
+ * holds exactly
+ */
+
+#define DGS_DISC_GAUSS_INTEGER_CUTOFF 0.0
+
+/**
+ * We consider doubles x and y equal if abs(x-y) <= DGS_DISC_GAUSS_EQUAL_DIFF
+ *
+ * \note the value picked here is somewhat arbitrary
+ */
+
+#define DGS_DISC_GAUSS_EQUAL_DIFF 0.001
+
+
+/**
  * Discrete Gaussians, shared definitions
  */
 
 typedef enum {
-  DGS_DISC_GAUSS_UNIFORM_ONLINE    = 0x1,
-  DGS_DISC_GAUSS_UNIFORM_TABLE     = 0x2,
-  DGS_DISC_GAUSS_UNIFORM_LOGTABLE  = 0x3,
-  DGS_DISC_GAUSS_SIGMA2_LOGTABLE   = 0x7,
+  DGS_DISC_GAUSS_UNIFORM_ONLINE    = 0x1, //<call dgs_disc_gauss_mp_call_uniform_online
+  DGS_DISC_GAUSS_UNIFORM_TABLE     = 0x2, //<call dgs_disc_gauss_mp_call_uniform_table
+  DGS_DISC_GAUSS_UNIFORM_LOGTABLE  = 0x3, //<call dgs_disc_gauss_mp_call_uniform_logtable
+  DGS_DISC_GAUSS_SIGMA2_LOGTABLE   = 0x7, //<call dgs_disc_gauss_mp_call_sigma2_logtable
 } dgs_disc_gauss_alg_t;
 
 typedef struct {
@@ -69,7 +87,9 @@ struct _dgs_disc_gauss_mp_t;
 
 typedef struct _dgs_disc_gauss_mp_t {
   mpfr_t sigma;
-  mpz_t c;
+  mpfr_t c;
+  mpz_t c_z;
+  mpfr_t c_r;
   size_t tau;
   dgs_disc_gauss_alg_t algorithm;
 
@@ -79,8 +99,9 @@ typedef struct _dgs_disc_gauss_mp_t {
   
   void (*call)(mpz_t rop, struct _dgs_disc_gauss_mp_t *self, gmp_randstate_t state);
 
-  mpz_t upper_bound;
-  mpz_t two_upper_bound_plus_one;
+  mpz_t upper_bound; //< we sample x with abs(x) < upper_bound
+  mpz_t upper_bound_minus_one; //< we sample x with abs(x) <= upper_bound
+  mpz_t two_upper_bound_minus_one; //< there are 2*upper_bound -1 elements in the range -upper_bound+1,...,upper_bound-1
   mpz_t x;
   mpz_t y_z;
   mpz_t k;
@@ -92,8 +113,9 @@ typedef struct _dgs_disc_gauss_mp_t {
   
 } dgs_disc_gauss_mp_t;
 
-dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, mpz_t c, size_t tau, dgs_disc_gauss_alg_t algorithm);
+dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, mpfr_t c, size_t tau, dgs_disc_gauss_alg_t algorithm);
 void dgs_disc_gauss_mp_call_uniform_table(mpz_t rop, dgs_disc_gauss_mp_t *self, gmp_randstate_t state);
+void dgs_disc_gauss_mp_call_uniform_table_offset(mpz_t rop, dgs_disc_gauss_mp_t *self, gmp_randstate_t state);
 void dgs_disc_gauss_mp_call_uniform_logtable(mpz_t rop, dgs_disc_gauss_mp_t *self, gmp_randstate_t state);
 void dgs_disc_gauss_mp_call_uniform_online(mpz_t rop, dgs_disc_gauss_mp_t *self, gmp_randstate_t state);
 void dgs_disc_gauss_mp_call_sigma2_logtable(mpz_t rop, dgs_disc_gauss_mp_t *self, gmp_randstate_t state);
@@ -112,7 +134,9 @@ void dgs_disc_gauss_mp_clear(dgs_disc_gauss_mp_t *self);
 
 typedef struct _dgs_disc_gauss_dp_t {
   double sigma; //< width parameter σ
-  long c; //< center parameter c
+  double c; //< center parameter c
+  double c_r; //< fmod(c,1.0)
+  long   c_z; //< c - c_r
   size_t tau; //< samples outside of (c-τσ,...,c+τσ) are considered to have probability 0
   dgs_disc_gauss_alg_t algorithm; //< algorithm to use
 
@@ -129,13 +153,14 @@ typedef struct _dgs_disc_gauss_dp_t {
   double *rho; //< used in dgs_disc_gauss_dp_call_uniform_table
 } dgs_disc_gauss_dp_t;
 
-dgs_disc_gauss_dp_t *dgs_disc_gauss_dp_init(double sigma, long c, size_t tau, dgs_disc_gauss_alg_t algorithm);
+dgs_disc_gauss_dp_t *dgs_disc_gauss_dp_init(double sigma, double c, size_t tau, dgs_disc_gauss_alg_t algorithm);
 
 /**
- * \brief Sample from dgs_disc_gauss_dp_t by rejection sampling using the uniform
- * distribution
+ * \brief Sample from dgs_disc_gauss_dp_t by rejection sampling using the
+ * uniform distribution
  *
  * \param self Discrete Gaussian sampler
+ *
  */
 
 long dgs_disc_gauss_dp_call_uniform_online(dgs_disc_gauss_dp_t *self);
@@ -154,6 +179,8 @@ long dgs_disc_gauss_dp_call_uniform_table(dgs_disc_gauss_dp_t *self);
  * uniform distribution avoiding all exp() calls
  *
  * \param self Discrete Gaussian sampler
+ *
+ * \note c must be an integer in this algorithm
  */
 
 long dgs_disc_gauss_dp_call_uniform_logtable(dgs_disc_gauss_dp_t *self);
@@ -163,6 +190,8 @@ long dgs_disc_gauss_dp_call_uniform_logtable(dgs_disc_gauss_dp_t *self);
  * D_{k,σ2} distribution avoiding all exp() calls
  *
  * \param self Discrete Gaussian sampler
+ *
+ * \note c must be an integer in this algorithm
  */
 
 

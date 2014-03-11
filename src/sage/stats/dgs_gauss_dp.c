@@ -9,21 +9,28 @@ static inline void _dgs_disc_gauss_dp_init_bexp(dgs_disc_gauss_dp_t *self, doubl
   self->Bexp = dgs_bern_exp_dp_init(self->f, l);
 }
 
-dgs_disc_gauss_dp_t *dgs_disc_gauss_dp_init(double sigma, long c, size_t tau, dgs_disc_gauss_alg_t algorithm) {
-  assert(tau > 0); 
+dgs_disc_gauss_dp_t *dgs_disc_gauss_dp_init(double sigma, double c, size_t tau, dgs_disc_gauss_alg_t algorithm) {
+  if (sigma <= 0.0)
+    dgs_die("σ must be > 0");
+  if (tau == 0)
+    dgs_die("τ must be > 0");
+  
   size_t upper_bound;
   
   dgs_disc_gauss_dp_t *self = (dgs_disc_gauss_dp_t*)calloc(sizeof(dgs_disc_gauss_dp_t),1);
-  if (!self) abort();
+  if (!self) dgs_die("out of memory");
 
   self->sigma = sigma;
-  self->c = c;  
+  self->c   = c;
+  self->c_r = fmod(c,1.0);
+  self->c_z = c - self->c_r;
   self->tau = tau;
   
   switch(algorithm) {
 
   case DGS_DISC_GAUSS_UNIFORM_ONLINE:
     self->call = dgs_disc_gauss_dp_call_uniform_online;
+
     upper_bound = ceil(self->sigma*tau);
     self->upper_bound = upper_bound;
     self->two_upper_bound_plus_one = 2*upper_bound + 1;
@@ -32,6 +39,7 @@ dgs_disc_gauss_dp_t *dgs_disc_gauss_dp_init(double sigma, long c, size_t tau, dg
 
   case DGS_DISC_GAUSS_UNIFORM_TABLE:
     self->call = dgs_disc_gauss_dp_call_uniform_table;
+
     upper_bound = ceil(self->sigma*tau);
     self->upper_bound = upper_bound;
     self->two_upper_bound_plus_one = 2*upper_bound + 1;
@@ -41,13 +49,19 @@ dgs_disc_gauss_dp_t *dgs_disc_gauss_dp_init(double sigma, long c, size_t tau, dg
     self->rho = (double*)malloc(sizeof(double)*self->upper_bound);
     if (!self->rho) abort();
     for(unsigned long x=0; x<self->upper_bound; x++) {
-      self->rho[x] = exp(((double)(x*x))*self->f);
+      self->rho[x] = exp( (((double)x) - self->c_r) * (((double)x) - self->c_r) * self->f);
     }
     self->rho[0]/= 2.0;
     break;
 
   case DGS_DISC_GAUSS_UNIFORM_LOGTABLE:
     self->call = dgs_disc_gauss_dp_call_uniform_logtable;
+
+    if (fabs(self->c_r) > DGS_DISC_GAUSS_INTEGER_CUTOFF) {
+      dgs_disc_gauss_dp_clear(self);
+      dgs_die("algorithm DGS_DISC_GAUSS_UNIFORM_LOGTABLE requires c%1 == 0");
+      self->c_r = 0.0;
+    }
     upper_bound = ceil(self->sigma*tau);
     self->upper_bound = upper_bound;
     self->two_upper_bound_plus_one = 2*upper_bound + 1;
@@ -56,10 +70,23 @@ dgs_disc_gauss_dp_t *dgs_disc_gauss_dp_init(double sigma, long c, size_t tau, dg
  
   case DGS_DISC_GAUSS_SIGMA2_LOGTABLE: {
     self->call = dgs_disc_gauss_dp_call_sigma2_logtable;
+
+    if (fabs(self->c_r) > DGS_DISC_GAUSS_INTEGER_CUTOFF) {
+      dgs_disc_gauss_dp_clear(self);
+      dgs_die("algorithm DGS_DISC_GAUSS_SIGMA2_LOGTABLE requires c%1 == 0");
+      self->c_r = 0.0;
+    }
+
     double sigma2 = sqrt(1.0/(2*log(2.0)));
     double k = sigma/sigma2;
     self->k = round(k);
     self->sigma = self->k * sigma2;
+
+    if (abs(self->sigma - sigma) > DGS_DISC_GAUSS_EQUAL_DIFF) {
+      dgs_disc_gauss_dp_clear(self);
+      dgs_die("algorithm DGS_DISC_GAUSS_SIGMA2_LOGTABLE only supports σ = k·sqrt(1/(2log(2)))");
+    }
+    
     upper_bound = ceil(self->sigma*tau);
     self->upper_bound = upper_bound;
     self->two_upper_bound_plus_one = 2*upper_bound + 1;
@@ -70,18 +97,19 @@ dgs_disc_gauss_dp_t *dgs_disc_gauss_dp_init(double sigma, long c, size_t tau, dg
   }
     
   default:
-    abort();
-  }  
+    dgs_disc_gauss_dp_clear(self);
+    dgs_die("unknown algorithm %d", algorithm);
+  }
   return self;
 }
 
 long dgs_disc_gauss_dp_call_uniform_online(dgs_disc_gauss_dp_t *self) {
   long x;
   double y, z;
-  long c = self->c;
+  double c = self->c;
   do {
-    x = _dgs_randomm_libc(self->two_upper_bound_plus_one) - self->upper_bound + c;
-    z = exp(((double)(x-c)*(x-c))*self->f);
+    x = self->c_z + _dgs_randomm_libc(self->two_upper_bound_plus_one) - self->upper_bound;
+    z = exp(((double)x-c)*((double)x-c)*self->f);
     y = drand48();
   } while (y >= z);
 
@@ -98,7 +126,7 @@ long dgs_disc_gauss_dp_call_uniform_table(dgs_disc_gauss_dp_t *self) {
 
   if(dgs_bern_uniform_call_libc(self->B))
     x = -x;
-  return x + self->c;
+  return x + self->c_z;
 }
 
 long dgs_disc_gauss_dp_call_uniform_logtable(dgs_disc_gauss_dp_t *self) {
@@ -106,7 +134,7 @@ long dgs_disc_gauss_dp_call_uniform_logtable(dgs_disc_gauss_dp_t *self) {
   do {
     x = _dgs_randomm_libc(self->two_upper_bound_plus_one) - self->upper_bound;
   } while (dgs_bern_exp_dp_call(self->Bexp, x*x) == 0);
-  return x + self->c;
+  return x + self->c_z;
 }
 
 // TODO
@@ -129,7 +157,7 @@ long dgs_disc_gauss_dp_call_sigma2_logtable(dgs_disc_gauss_dp_t *self) {
   } while (1);
   if(dgs_bern_uniform_call_libc(self->B))
     z = -z;
-  return z + self->c;
+  return z + self->c_z;
 }
 
 

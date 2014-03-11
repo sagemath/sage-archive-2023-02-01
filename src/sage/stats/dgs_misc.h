@@ -42,6 +42,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 /**
  * \brief Macro to help with branch prediction.
@@ -80,6 +81,14 @@ static inline unsigned long _dgs_randomm_libc(unsigned long n) {
     r = random();
   } while (r >= k*n);
   return r%n;
+}
+static inline void dgs_die(const char *msg, ...) {
+  va_list lst;
+  va_start(lst, msg);
+  vfprintf(stderr, msg, lst);
+  fprintf(stderr, "\n");
+  va_end(lst);
+  abort();
 }
 
 #endif //DGS_MISC__H

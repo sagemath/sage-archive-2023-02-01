@@ -941,11 +941,11 @@ class ClusterSeed(SageObject):
             sage: T.b_matrix()
             [ 0  1]
             [-1  0]
-            [ 1  0]
-            [ 0 -1]
-            [ 1 -1]
             [-1  0]
+            [ 1  0]
+            [ 1 -1]
             [ 0  1]
+            [ 0 -1]
 
             sage: S = ClusterSeed(['A',3])
             sage: T = S.universal_extension()
@@ -953,27 +953,28 @@ class ClusterSeed(SageObject):
             [ 0  1  0]
             [-1  0 -1]
             [ 0  1  0]
-            [ 1  0  0]
-            [ 0 -1  0]
-            [ 0  0  1]
-            [ 1 -1  0]
-            [ 0 -1  1]
-            [ 1 -1  1]
             [-1  0  0]
+            [ 1  0  0]
+            [ 1 -1  0]
+            [ 1 -1  1]
             [ 0  1  0]
+            [ 0 -1  0]
+            [ 0 -1  1]
             [ 0  0 -1]
+            [ 0  0  1]
 
             sage: S = ClusterSeed(['B',2])
             sage: T = S.universal_extension()
             sage: T.b_matrix()
             [ 0  1]
             [-2  0]
-            [ 1  0]
-            [ 0 -1]
-            [ 2 -1]
-            [ 1 -1]
             [-1  0]
+            [ 1  0]
+            [ 1 -1]
+            [ 2 -1]
             [ 0  1]
+            [ 0 -1]
+
         """
         if self._m != 0:
             raise ValueError("To have universal coefficients we need "
@@ -986,13 +987,10 @@ class ClusterSeed(SageObject):
         from sage.matrix.all import matrix
         from sage.combinat.root_system.cartan_matrix import CartanMatrix
 
-        A = 2 - self.b_matrix().apply_map(abs)
+        A = 2 - self.b_matrix().apply_map(abs).transpose()
 
         rs = CartanMatrix(A).root_space()
-        negative_simple_coroots = [-u for u in rs.simple_coroots()]
-        positive_coroots = [v.associated_coroot() for v in rs.positive_roots()]
-
-        almost_positive_coroots = positive_coroots + negative_simple_coroots
+        almost_positive_coroots = rs.almost_positive_roots()
 
         sign = [-1 if all(x <= 0 for x in self.b_matrix()[i]) else 1
                 for i in range(self._n)]

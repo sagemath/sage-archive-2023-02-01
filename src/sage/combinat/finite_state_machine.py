@@ -1302,8 +1302,10 @@ class FiniteStateMachine(SageObject):
       transition (as an ``FSMTransition``). The function must return the
       (possibly modified) original transition.
 
-      By default, ``on_duplicate_transition=duplicate_transition_ignore``,
-      where ``duplicate_transition_ignore`` is a predefined function
+      By default, we have ``on_duplicate_transition=None``, which is
+      interpreted as
+      ``on_duplicate_transition=duplicate_transition_ignore``, where
+      ``duplicate_transition_ignore`` is a predefined function
       ignoring the occurrence. Other such predefined functions are
       ``duplicate_transition_raise_error`` and
       ``duplicate_transition_add_input``.
@@ -1560,7 +1562,7 @@ class FiniteStateMachine(SageObject):
                  input_alphabet=None, output_alphabet=None,
                  determine_alphabets=None,
                  store_states_dict=True,
-                 on_duplicate_transition=duplicate_transition_ignore):
+                 on_duplicate_transition=None):
         """
         See :class:`FiniteStateMachine` for more information.
 
@@ -1594,6 +1596,8 @@ class FiniteStateMachine(SageObject):
         self.input_alphabet = input_alphabet
         self.output_alphabet = output_alphabet
 
+        if on_duplicate_transition is None:
+            on_duplicate_transition = duplicate_transition_ignore
         if hasattr(on_duplicate_transition, '__call__'):
             self.on_duplicate_transition=on_duplicate_transition
         else:

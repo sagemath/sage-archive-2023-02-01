@@ -8,22 +8,22 @@ and optional package Octave.
 
 Commands:
 
-- ``desolve`` - Computes the "general solution" to a 1st or 2nd order
+- ``desolve`` - Compute the "general solution" to a 1st or 2nd order
   ODE via Maxima.
 
-- ``desolve_laplace`` - Solves an ODE using laplace transforms via
+- ``desolve_laplace`` - Solve an ODE using laplace transforms via
   Maxima. Initials conditions are optional.
 
-- ``desolve_rk4`` - Solves numerically IVP for one first order
-  equation, returns list of points or plot.
+- ``desolve_rk4`` - Solve numerically IVP for one first order
+  equation, return list of points or plot.
 
-- ``desolve_system_rk4`` - Solves numerically IVP for system of first
-  order equations, returns list of points.
+- ``desolve_system_rk4`` - Solve numerically IVP for system of first
+  order equations, return list of points.
 
-- ``desolve_odeint`` - Solves numerically a system of first-order ordinary
+- ``desolve_odeint`` - Solve numerically a system of first-order ordinary
   differential equations using ``odeint`` from scipy.integrate module.
 
-- ``desolve_system`` - Solves any size system of 1st order odes using
+- ``desolve_system`` - Solve any size system of 1st order odes using
   Maxima. Initials conditions are optional.
 
 - ``eulers_method`` - Approximate solution to a 1st order DE,
@@ -32,7 +32,7 @@ Commands:
 - ``eulers_method_2x2`` - Approximate solution to a 1st order system
   of DEs, presented as a table.
 
-- ``eulers_method_2x2_plot`` - Plots the sequence of points obtained
+- ``eulers_method_2x2_plot`` - Plot the sequence of points obtained
   from Euler's method.
 
 AUTHORS:
@@ -554,7 +554,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
 
 def desolve_laplace(de, dvar, ics=None, ivar=None):
     """
-    Solves an ODE using laplace transforms. Initials conditions are optional.
+    Solve an ODE using laplace transforms. Initials conditions are optional.
 
     INPUT:
 
@@ -678,7 +678,7 @@ def desolve_laplace(de, dvar, ics=None, ivar=None):
 
 def desolve_system(des, vars, ics=None, ivar=None):
     """
-    Solves any size system of 1st order ODE's. Initials conditions are optional.
+    Solve any size system of 1st order ODE's. Initials conditions are optional.
 
     Onedimensional systems are passed to :meth:`desolve_laplace`.
 
@@ -762,7 +762,7 @@ def desolve_system(des, vars, ics=None, ivar=None):
 
 def desolve_system_strings(des,vars,ics=None):
     r"""
-    Solves any size system of 1st order ODE's. Initials conditions are optional.
+    Solve any size system of 1st order ODE's. Initials conditions are optional.
 
     This function is obsolete, use desolve_system.
 
@@ -1030,7 +1030,7 @@ def eulers_method_2x2(f,g, t0, x0, y0, h, t1,algorithm="table"):
 
 def eulers_method_2x2_plot(f,g, t0, x0, y0, h, t1):
     r"""
-    Plots solution of ODE
+    Plot solution of ODE.
 
     This plots the soln in the rectangle ``(xrange[0],xrange[1])
     x (yrange[0],yrange[1])`` and plots using Euler's method the
@@ -1112,7 +1112,7 @@ def desolve_rk4_determine_bounds(ics,end_points=None):
 
 def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output='list', **kwds):
     """
-    Solves numerically one first-order ordinary differential
+    Solve numerically one first-order ordinary differential
     equation. See also ``ode_solver``.
 
     INPUT:
@@ -1152,7 +1152,7 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
 
     OUTPUT:
 
-    Returns a list of points, or plot produced by list_plot,
+    Return a list of points, or plot produced by list_plot,
     optionally with slope field.
 
 
@@ -1259,7 +1259,7 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
 
 def desolve_system_rk4(des, vars, ics=None, ivar=None, end_points=None, step=0.1):
     r"""
-    Solves numerically system of first-order ordinary differential
+    Solve numerically a system of first-order ordinary differential
     equations using the 4th order Runge-Kutta method. Wrapper for
     Maxima command ``rk``. See also ``ode_solver``.
 
@@ -1288,7 +1288,7 @@ def desolve_system_rk4(des, vars, ics=None, ivar=None, end_points=None, step=0.1
 
     OUTPUT:
 
-    Returns a list of points.
+    Return a list of points.
 
     EXAMPLES::
 
@@ -1362,7 +1362,7 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
 , rtol=None, atol=None, tcrit=None, h0=0.0, hmax=0.0, hmin=0.0, ixpr=0
 , mxstep=0, mxhnil=0, mxordn=12, mxords=5, printmessg=0):
     r"""
-    Solves numerically a system of first-order ordinary differential equations
+    Solve numerically a system of first-order ordinary differential equations
     using ``odeint`` from scipy.integrate module.
 
     INPUT:
@@ -1429,7 +1429,7 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
 
     OUTPUT:
 
-    Returns a list with the solution of the system at each time in times.
+    Return a list with the solution of the system at each time in times.
 
     EXAMPLES:
 

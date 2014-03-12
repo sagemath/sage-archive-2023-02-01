@@ -3304,7 +3304,7 @@ class FiniteStateMachine(SageObject):
 
     def intersection(self, other, only_accessible_components=True):
         """
-        Returns a new finite state machine, which accepcts an input if it 
+        Returns a new finite state machine, which accepcts an input if it
         is accepted by both given finite state machines producing the same output.
 
         INPUT:
@@ -3315,7 +3315,7 @@ class FiniteStateMachine(SageObject):
 
         OUTPUT:
 
-        A new finite state machine, which computes the intersection of the 
+        A new finite state machine, which computes the intersection of the
         languages of self and other:
 
         The set of states of the new finite state machine is the cartesian
@@ -4413,14 +4413,14 @@ class Automaton(FiniteStateMachine):
 
     def cartesian_product(self, other, only_accessible_components=True):
         """
-        Returns the cartesian product of self and other. The new automaton accepts 
-        the intersection of the languages of self and other. 
-        See :meth:`.intersection` for more information. 
+        Returns the cartesian product of self and other. The new automaton accepts
+        the intersection of the languages of self and other.
+        See :meth:`.intersection` for more information.
 
         If ``other`` is a transducer, ``other.cartesian_product(self)`` may be more useful.
 
         INPUT:
-        
+
         - ``other`` - a finite state machine
         - ``only_accessible_components``
 
@@ -4447,7 +4447,7 @@ class Automaton(FiniteStateMachine):
              Transition from ('2', 'B') to ('2', 'A'): 0|-]
         """
         return self.intersection(other, only_accessible_components)
-        
+
 
     def determinisation(self):
         """
@@ -4780,14 +4780,14 @@ class Transducer(FiniteStateMachine):
         """
         Returns a new transducer whose output labels are pairs of the output labels of self and other.
 
-        The set of states of the new transducer is the cartesian product of the set of states of self 
+        The set of states of the new transducer is the cartesian product of the set of states of self
         and other.
 
-        Let `(A, B, a, b)` be a transition of self and `(C, D, c, d)` be a transition of other. Then 
+        Let `(A, B, a, b)` be a transition of self and `(C, D, c, d)` be a transition of other. Then
         there is a transition `((A, C), (B, D), a, (b, d))` in the new transducer if `a = c`.
 
         INPUT:
-        
+
         - ``other`` - a finite state machine
         - ``only_accessible_components``
 
@@ -4797,7 +4797,7 @@ class Transducer(FiniteStateMachine):
 
         EXAMPLES::
 
-            sage: transducer1 = Transducer([('A', 'A', 0, 0), ('A', 'A', 1, 1)], 
+            sage: transducer1 = Transducer([('A', 'A', 0, 0), ('A', 'A', 1, 1)],
             ....:   initial_states = ['A'], final_states = ['A'], determine_alphabets = True)
             sage: transducer2 = Transducer([(0, 1, 'a', 'b'), (0, 0, 'b', 'b'), (1, 1, 'a', 'a')],
             ....:   initial_states = [0], final_states = [1], determine_alphabets = True)
@@ -4812,7 +4812,7 @@ class Transducer(FiniteStateMachine):
         return self.product_FiniteStateMachine(
             other, function,
             only_accessible_components = only_accessible_components)
-        
+
 
     def simplification(self):
         """

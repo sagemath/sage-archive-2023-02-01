@@ -2196,7 +2196,7 @@ def lift_centered(p):
 
     - An integer `r` such that  `-n/2 < r \leq n/2`
 
-    For specific classes, check the `p.lift_centered` attribute.
+    For specific classes, check the ``p.lift_centered`` attribute.
 
     EXAMPLES::
 
@@ -2249,7 +2249,7 @@ def lift_centered(p):
     """
     try:
         return p.lift_centered()
-    except(AttributeError):
+    except AttributeError:
         return p.lift()
 
 def _rational_reconstruction_python(a,m):

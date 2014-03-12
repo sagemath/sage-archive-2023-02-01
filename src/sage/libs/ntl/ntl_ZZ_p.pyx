@@ -421,7 +421,7 @@ cdef class ntl_ZZ_p:
 
         OUTPUT:
 
-        - An ``ntl.ZZ`` object `r` such that  `-n/2 < r <= n/2` and `Mod(r, n) == self`.
+        - A ``ntl.ZZ`` object `r` such that  `-n/2 < r <= n/2` and `Mod(r, n) == self`.
 
         EXAMPLES::
 

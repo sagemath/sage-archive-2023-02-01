@@ -608,9 +608,11 @@ cdef class Matrix(matrix0.Matrix):
 
         Apply the lift_centered method to every entry of self.
 
-        If self is a matrix over `Integers(n)`, this method returns the unique
-        matrix `m` such that `m` is congruent to `self` mod `n` and for every
-        i, j we have `-n/2 < m[i,j] \leq n/2`.
+        OUTPUT:
+
+            If self is a matrix over `Integers(n)`, this method returns the unique
+            matrix `m` such that `m` is congruent to self mod `n` and for every
+            i, j we have `-n/2 < m[i,j] \leq n/2`.
 
         EXAMPLES::
 
@@ -639,10 +641,12 @@ cdef class Matrix(matrix0.Matrix):
             sage: B.lift_centered() is B
             True
         """
-        if hasattr(self._base_ring, 'cover_ring'):
+        try:
             S = self._base_ring.cover_ring()
             if S is not self._base_ring:
                 return self.parent().change_ring(S)([v.lift_centered() for v in self])
+        except AttributeError:
+            pass
         return self
 
     #############################################################################################

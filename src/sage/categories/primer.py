@@ -889,7 +889,7 @@ Consider now the implementation of the semigroup::
 
 This implementation specifies a data structure for the parents and the
 elements, and makes a promise: the implemented parent is a
-semigroup. Then it fulfills the promise by implementing the basic
+finite semigroup. Then it fulfills the promise by implementing the basic
 operations ``product`` and ``semigroup_generators``. In exchange for
 this promise, `S` and its elements receive generic implementations of
 all the other operations. `S` may override any of the operations by

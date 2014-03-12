@@ -251,7 +251,7 @@ Hence, for whatever this notation is worth, one can currently do::
 We don't recommend using this syntax which may eventually be
 deprecated.
 
-As a second step, Sage tries some obvious heuristics to guess the link
+As a second step, Sage tries some obvious heuristics to deduce the link
 from the name of the category with axiom (see
 :func:`base_category_class_and_axiom` for the details). This typically
 covers the following examples::
@@ -261,18 +261,18 @@ covers the following examples::
     sage: FiniteGroups() is Groups().Finite()
     True
     sage: FiniteGroups._base_category_class_and_axiom_origin
-    'guessed by base_category_class_and_axiom'
+    'deduced by base_category_class_and_axiom'
 
     sage: FiniteDimensionalAlgebrasWithBasis(QQ)
     Category of finite dimensional algebras with basis over Rational Field
     sage: FiniteDimensionalAlgebrasWithBasis(QQ) is Algebras(QQ).FiniteDimensional().WithBasis()
     True
 
-When this guessing fails, typically because the category has a name of
-its own like :class:`Fields`, the attribute
-``_base_category_class_and_axiom`` should be set explicitly. For more
-examples, see the code of the classes :class:`Semigroups` or
-:class:`Fields`.
+If the heuristic succeeds, the result is guaranteed to be correct. If
+it fails, typically because the category has a name of its own like
+:class:`Fields`, the attribute ``_base_category_class_and_axiom``
+should be set explicitly. For more examples, see the code of the
+classes :class:`Semigroups` or :class:`Fields`.
 
 .. NOTE::
 
@@ -286,16 +286,17 @@ examples, see the code of the classes :class:`Semigroups` or
     See :meth:`CategoryWithAxiom._without_axioms`,
     :meth:`CategoryWithAxiom._repr_object_names_static`.
 
-In our running example ``FiniteCs``, Sage failed to guess
+In our running example ``FiniteCs``, Sage failed to deduce
 automatically the base category class and axiom because the class
 ``Cs`` is not in the standard location ``sage.categories.cs``.
 
 .. TOPIC:: Design discussion
 
-    The above guessing based on names is undoubtedly inelegant and
-    somewhat brittle. However it saves on some redundant information
-    and is only used for the simple shorthands like ``FiniteGroups()``
-    for ``Groups().Finite()``; furthermore most if not all of these
+    The above deduction, based on names, is undoubtedly inelegant. But
+    it's safe (either the result is guaranteed to be correct, or an
+    error is raised), it saves on some redundant information, and it
+    is only used for the simple shorthands like ``FiniteGroups()`` for
+    ``Groups().Finite()``. Finally, most if not all of these
     shorthands are likely to eventually disappear (see :trac:`15741`
     and the :ref:`related discussion in the primer
     <category-primer-axioms-single-entry-point>`).
@@ -379,9 +380,9 @@ It is therefore the natural spot for the documentation of the axiom.
 .. NOTE::
 
     ``all_axioms`` is only used marginally, for sanity checks and when
-    trying to guess the base category class. The order of the axioms
-    in this tuple also controls the order in which they appear when
-    printing out categories with axioms (see
+    trying to derive automatically the base category class. The order
+    of the axioms in this tuple also controls the order in which they
+    appear when printing out categories with axioms (see
     :meth:`CategoryWithAxiom._repr_object_names_static`).
 
     During a Sage session, new axioms should only be added at the *end*
@@ -1671,13 +1672,16 @@ def uncamelcase(s,separator=" "):
 
 def base_category_class_and_axiom(cls):
     """
-    Try to guess the base category and the axiom from the name of ``cls``.
+    Try to deduce the base category and the axiom from the name of ``cls``.
 
     The heuristic is to try to decompose the name as the concatenation
     of the name of a category and the name of an axiom, and looking up
     that category in the standard location (i.e. in
     :mod:`sage.categories.hopf_algebras` for :class:`HopfAlgebras`,
     and in :mod:`sage.categories.sets_cat` as a special case for :class:`Sets`).
+
+    If the heuristic succeeds, the result is guaranteed to be
+    correct. Otherwise, an error is raised.
 
     EXAMPLES::
 
@@ -1800,7 +1804,7 @@ def axiom_of_nested_class(cls, nested_cls):
             else:
                 raise ValueError, "could not infer axiom for the nested class %s of %s"%(nested_cls, cls)
     assert axiom in all_axioms, \
-        "Incorrect guess (%s) for the name of the axiom for the nested class %s of %s"%(axiom, nested_cls, cls)
+        "Incorrect deduction (%s) for the name of the axiom for the nested class %s of %s"%(axiom, nested_cls, cls)
     assert axiom in cls.__dict__ and cls.__dict__[axiom] == nested_cls, \
         "%s not a nested axiom class of %s for axiom %s"%(nested_cls, cls, axiom)
     return axiom
@@ -1821,15 +1825,16 @@ class CategoryWithAxiom(Category):
         r"""
         The class of the base category and the axiom for this class.
 
-        By default, this attribute is guessed from the name of this
-        class (see :func:`base_category_class_and_axiom`). For a
-        nested class, when the category is first created from its base
-        category, as in e.g. ``Sets().Infinite()``, this attribute is
-        instead set explicitly by :meth:``__classget__``.
+        By default, and when possible, this attribute is deduced from
+        the name of this class (see
+        :func:`base_category_class_and_axiom`). For a nested class,
+        when the category is first created from its base category as
+        in e.g. ``Sets().Infinite()``, this attribute is instead set
+        explicitly by :meth:``__classget__``.
 
         When this is not sufficient, that is when ``cls`` is not
         implemented as a nested class and the base category and the
-        axiom cannot be guessed from the name of ``cls``, this
+        axiom cannot be deduced from the name of ``cls``, this
         attribute should be set explicitly by ``cls``.
 
         The origin of the attribute is stored in the attribute
@@ -1840,12 +1845,12 @@ class CategoryWithAxiom(Category):
         EXAMPLES:
 
         ``CommutativeRings`` is not a nested class, but the name of
-        the base category and the axiom can be guessed::
+        the base category and the axiom can be deduced::
 
             sage: CommutativeRings()._base_category_class_and_axiom
             (<class 'sage.categories.rings.Rings'>, 'Commutative')
             sage: CommutativeRings()._base_category_class_and_axiom_origin
-            'guessed by base_category_class_and_axiom'
+            'deduced by base_category_class_and_axiom'
 
         ``Sets.Infinite`` is a nested class, so the attribute is set
         by :meth:`CategoryWithAxiom.__classget__` the first time
@@ -1859,8 +1864,9 @@ class CategoryWithAxiom(Category):
             'set by __classget__'
 
         ``Fields`` is not a nested class, and the name of the base
-        category and axioms cannot be guessed; so this attributes
-        needs to be set explicitly in the ``Fields`` class::
+        category and axioms cannot be deduced from the name
+        ``Fields``; so this attributes needs to be set explicitly in
+        the ``Fields`` class::
 
             sage: Fields()._base_category_class_and_axiom
             (<class 'sage.categories.division_rings.DivisionRings'>, 'Commutative')
@@ -1878,7 +1884,7 @@ class CategoryWithAxiom(Category):
             ``Monoids._base_category_class``.
         """
         base_category_class, axiom = base_category_class_and_axiom(cls)
-        cls._base_category_class_and_axiom_origin = "guessed by base_category_class_and_axiom"
+        cls._base_category_class_and_axiom_origin = "deduced by base_category_class_and_axiom"
         return (base_category_class, axiom)
 
     _base_category_class_and_axiom_origin = "hardcoded"

@@ -31,9 +31,9 @@ class DivisionRings(CategoryWithAxiom):
         sage: TestSuite(DivisionRings()).run()
     """
 
-    # This information could be guessed. It's set here just to get
-    # ``division rings`` for the name of the objects of this category
-    # and not ``no zero divisors division rings``. See
+    # This information could be deduced from the name. It's set here
+    # just to get ``division rings`` for the name of the objects of
+    # this category and not ``no zero divisors division rings``. See
     # :meth:`Category_with_axiom._repr_object_names` and the ``named``
     # option of :meth:`Category_with_axiom._without_axioms
     _base_category_class_and_axiom = (Rings, "Division")

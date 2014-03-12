@@ -7,7 +7,7 @@ AUTHOR:
 
 EXAMPLES:
 
-Define a polynomial over an absolute number field and compute basic operations with them::
+Define a polynomial over an absolute number field and perform basic operations with them::
 
     sage: N.<a> = NumberField(x^2-2)
     sage: K.<x> = N[]
@@ -71,6 +71,7 @@ We can also construct polynomials over relative number fields::
 from polynomial_element_generic import Polynomial_generic_dense_field
 from sage.rings.rational_field import QQ
 from sage.structure.element import coerce_binop
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
     """
@@ -193,12 +194,11 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
         #If the extension is of degree one, use the gcd from QQ[x]
 
         if self.base_ring().degree().is_one():
-            R = self.parent()
-            x = self.variable_name()
-            a = QQ[x](self)
-            b = QQ[x](other)
+            R = self.base_ring()
+            a = self.change_ring(QQ)
+            b = other.change_ring(QQ)
             g = a.gcd(b)
-            return R(g)
+            return g.change_ring(R)
 
         h1 = self._pari_with_name('x')
         h2 = other._pari_with_name('x')
@@ -320,15 +320,15 @@ class Polynomial_relative_number_field_dense(Polynomial_generic_dense_field):
             return other.parent().one_element()
 
         L = self.parent()
-        x = L.gen()
+        x = L.variable_name()
         N = self.base_ring()
         c = ''.join(map(str,N.variable_names()))
         M = N.absolute_field(c)
         M_to_N, N_to_M = M.structure()
-        R = M[x]
-        first = R(([N_to_M(foo) for foo in self.list()]))
-        second = R(([N_to_M(foo) for foo in other.list()]))
+        R = PolynomialRing(M, x)
+        first = R([N_to_M(foo) for foo in self.list()])
+        second = R([N_to_M(foo) for foo in other.list()])
         result = first.gcd(second)
-        result = L(([M_to_N(foo) for foo in result.list()]))
+        result = L([M_to_N(foo) for foo in result.list()])
         #the result is already monic
         return result

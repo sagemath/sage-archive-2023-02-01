@@ -59,7 +59,8 @@ cdef class DiscreteGaussianSampler(SageObject):
           ``c`` (default: 0)
         
         - ``tau`` - samples outside the range (round(c)-ceil(στ),...,round(c)+ceil(στ)) are
-          considered to have probability zero (default: 6)
+          considered to have probability zero. This bound is not strictly enforced when
+          "sigma2+logtable" is chosen as an algorithm (default: 6)
 
         - ``algorithm`` - see list below (default: "uniform+table")
 
@@ -153,6 +154,27 @@ cdef class DiscreteGaussianSampler(SageObject):
             sage: l = [D() for _ in xrange(2^18)]
             sage: min(l), max(l), abs(mean(l)-2.5) < 0.01
             (-2, 7, True)
+
+        We are testing correctness::
+
+            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
+            sage: D = DiscreteGaussianSampler(1.0, c=0, tau=2, precision="dp")
+            sage: l = [D() for _ in xrange(2^16)]
+            sage: min(l) == 0-2*1.0, max(l) == 0+2*1.0, abs(mean(l)) < 0.01
+            (True, True, True)
+
+            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
+            sage: D = DiscreteGaussianSampler(1.0, c=2.5, tau=2, precision="dp")
+            sage: l = [D() for _ in xrange(2^18)]
+            sage: min(l)==2-2*1.0, max(l)==2+2*1.0, mean(l).n()
+            (True, True, 2.45...)  
+
+            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
+            sage: D = DiscreteGaussianSampler(1.0, c=2.5, tau=6, precision="dp")
+            sage: l = [D() for _ in xrange(2^18)]
+            sage: min(l), max(l), abs(mean(l)-2.5) < 0.01
+            (-2, 7, True)
+
         """
 
         if sigma <= 0.0:

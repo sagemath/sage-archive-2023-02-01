@@ -114,11 +114,61 @@ typedef struct _dgs_disc_gauss_mp_t {
 } dgs_disc_gauss_mp_t;
 
 dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, mpfr_t c, size_t tau, dgs_disc_gauss_alg_t algorithm);
+
+/**
+ * \brief Sample from dgs_disc_gauss_mp_t by rejection sampling using the uniform
+ * distribution and tabulated exp() evaluations.
+ * 
+ * \note c must be an integer in this algorithm
+ *
+ * \param self Discrete Gaussian sampler
+ */
+
 void dgs_disc_gauss_mp_call_uniform_table(mpz_t rop, dgs_disc_gauss_mp_t *self, gmp_randstate_t state);
+
+/**
+ * \brief Sample from dgs_disc_gauss_mp_t by rejection sampling using the uniform
+ * distribution and tabulated exp() evaluations.
+ *
+ * \param self Discrete Gaussian sampler
+ */
+
 void dgs_disc_gauss_mp_call_uniform_table_offset(mpz_t rop, dgs_disc_gauss_mp_t *self, gmp_randstate_t state);
+
+/**
+ * \brief Sample from dgs_disc_gauss_mp_t by rejection sampling using the
+ * uniform distribution avoiding all exp() calls
+ *
+ * \param self Discrete Gaussian sampler
+ *
+ * \note c must be an integer in this algorithm
+ */
+
 void dgs_disc_gauss_mp_call_uniform_logtable(mpz_t rop, dgs_disc_gauss_mp_t *self, gmp_randstate_t state);
+
+/**
+ * \brief Sample from dgs_disc_gauss_mp_t by rejection sampling using the
+ * uniform distribution
+ *
+ * \param self Discrete Gaussian sampler
+ *
+ */
+
 void dgs_disc_gauss_mp_call_uniform_online(mpz_t rop, dgs_disc_gauss_mp_t *self, gmp_randstate_t state);
+
+/**
+ * \brief Sample from dgs_disc_gauss_mp_t by rejection sampling using the
+ * D_{k,σ2} distribution avoiding all exp() calls
+ *
+ * \param self Discrete Gaussian sampler
+ *
+ * \note c must be an integer in this algorithm
+ */
+
 void dgs_disc_gauss_mp_call_sigma2_logtable(mpz_t rop, dgs_disc_gauss_mp_t *self, gmp_randstate_t state);
+
+
+
 void dgs_disc_gauss_mp_clear(dgs_disc_gauss_mp_t *self);
 
 /**
@@ -147,8 +197,9 @@ typedef struct _dgs_disc_gauss_dp_t {
   long (*call)(struct _dgs_disc_gauss_dp_t *self); //< call this function to sample
 
   double f; //< typically -1/(2σ^2)
-  long upper_bound; //< τσ
-  long two_upper_bound_plus_one;  //< 2τσ+1
+  long upper_bound; //< ceil(τσ)
+  long upper_bound_minus_one; //< maximal reachable value
+  long two_upper_bound_minus_one;  //< 2ceil(τσ)-1
   long k;  //< used in dgs_disc_gauss_dp_call_sigma2_logtable
   double *rho; //< used in dgs_disc_gauss_dp_call_uniform_table
 } dgs_disc_gauss_dp_t;
@@ -168,11 +219,23 @@ long dgs_disc_gauss_dp_call_uniform_online(dgs_disc_gauss_dp_t *self);
 /**
  * \brief Sample from dgs_disc_gauss_dp_t by rejection sampling using the uniform
  * distribution and tabulated exp() evaluations.
+ * 
+ * \warning assumed self->c_r == 0
  *
  * \param self Discrete Gaussian sampler
  */
 
 long dgs_disc_gauss_dp_call_uniform_table(dgs_disc_gauss_dp_t *self);
+
+/**
+ * \brief Sample from dgs_disc_gauss_dp_t by rejection sampling using the uniform
+ * distribution and tabulated exp() evaluations.
+ *
+ * \param self Discrete Gaussian sampler
+ */
+
+long dgs_disc_gauss_dp_call_uniform_table_offset(dgs_disc_gauss_dp_t *self);
+
 
 /**
  * \brief Sample from dgs_disc_gauss_dp_t by rejection sampling using the
@@ -193,7 +256,6 @@ long dgs_disc_gauss_dp_call_uniform_logtable(dgs_disc_gauss_dp_t *self);
  *
  * \note c must be an integer in this algorithm
  */
-
 
 long dgs_disc_gauss_dp_call_sigma2_logtable(dgs_disc_gauss_dp_t *self);
 

@@ -36,7 +36,10 @@ do
     cp -p "$GAP/pkg/README.$pkg_lower" src/
 done
 
-rm -rf "$GAP"
+# Delete unnecessary crap
+rm -rf src/grape/bin
 
+# Delete GAP sources that we untarred above
+rm -rf "$GAP"
 
 tar cjf gap_packages-`cat package-version.txt`.tar.bz2 src/  && rm -rf src/

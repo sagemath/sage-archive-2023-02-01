@@ -35,7 +35,7 @@ def function_factory(name, nargs=0, latex_name=None, conversions=None,
         sage: f._mathematica_init_()
         'Foo'
 
-        sage: def evalf_f(self, x, parent=None): return x*.5r
+        sage: def evalf_f(self, x, parent=None, algorithm=None): return x*.5r
         sage: g = function_factory('g',1,evalf_func=evalf_f)
         sage: g(2)
         g(2)
@@ -112,7 +112,7 @@ def unpickle_function(name, nargs, latex_name, conversions, evalf_params_first,
         'Foo'
 
         sage: from sage.symbolic.function import pickle_wrapper
-        sage: def evalf_f(self, x, parent=None): return 2r*x + 5r
+        sage: def evalf_f(self, x, parent=None, algorithm=None): return 2r*x + 5r
         sage: def conjugate_f(self, x): return x/2r
         sage: nf = unpickle_function('g', 1, None, None, True, [None, pickle_wrapper(evalf_f), pickle_wrapper(conjugate_f)] + [None]*8)
         sage: nf
@@ -238,7 +238,7 @@ def function(s, *args, **kwds):
         sage: bar(x)
         bar(x)
 
-        sage: def evalf_f(self, x, parent=None): return 6
+        sage: def evalf_f(self, x, parent=None, algorithm=None): return 6
         sage: foo = function("foo", nargs=1, evalf_func=evalf_f)
         sage: foo(x)
         foo(x)

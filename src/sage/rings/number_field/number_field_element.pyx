@@ -1224,7 +1224,7 @@ cdef class NumberFieldElement(FieldElement):
         if L.is_galois_relative():
             return False, None
 
-        # The following gives the galois closure of K/QQ, but the galois
+        # The following gives the Galois closure of K/QQ, but the Galois
         # closure of K/self.parent() would suffice.
         M = L.galois_closure('a')
         from sage.functions.log import log

@@ -2217,8 +2217,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: t._derivative(z)
             33*x^4
             sage: t._derivative(x)
-            132*z*x^3 - x^-2
-
+            -x^-2 + 132*z*x^3
         """
         if var is None:
             raise ValueError("must specify which variable to differentiate "

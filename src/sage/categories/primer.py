@@ -888,13 +888,13 @@ Consider now the implementation of the semigroup::
     sage: S??                                     # not tested
 
 This implementation specifies a data structure for the parents and the
-elements, and makes a promise: the implemented parent is a
-finite semigroup. Then it fulfills the promise by implementing the basic
-operations ``product`` and ``semigroup_generators``. In exchange for
-this promise, `S` and its elements receive generic implementations of
-all the other operations. `S` may override any of the operations by
-more efficient ones. It could typically implement the element method
-``is_idempotent`` to always return ``True``.
+elements, and makes a promise: the implemented parent is a finite
+semigroup. Then it fulfills the promise by implementing the basic
+operation ``product``.  It also implements the optional method
+``semigroup_generators``. In exchange,`S` and its elements receive
+generic implementations of all the other operations. `S` may override
+any of those by more efficient ones. It may typically implement the
+element method ``is_idempotent`` to always return ``True``.
 
 A (not yet complete) list of mandatory and optional methods to be
 implemented can be found by introspection with::
@@ -902,6 +902,11 @@ implemented can be found by introspection with::
     sage: FiniteSemigroups().required_methods()
     {'parent': {'required': ['__contains__'], 'optional': []},
      'element': {'required': [], 'optional': ['_mul_']}}
+
+`product` does not appear in the list because a default implementation
+is provided in term of the method `_mul_` on elements. Of course, at
+least one of them should be implemented. On the other hand, a default
+implementation for `__contains__` is provided by :class:`Parent`.
 
 Documentation about those methods can be obtained with::
 
@@ -914,10 +919,56 @@ Here is the code for the finite semigroups category::
 
     sage: FiniteSemigroups??                      # not tested
 
-.. TODO::
 
-    - Specifying the category of a parent
-    - Adding code to an existing parent
+Specifying the category of a parent
+===================================
+
+Some parent constructors (not enough!) allow to specify the desired
+category for the parent. This can typically be used to specify
+additional properties of the parent that we know to hold a priori. For
+example, permutation groups are by default in the category of finite
+permutation groups (no surprise)::
+
+    sage: P = PermutationGroup([[(1,2,3)]]); P
+    Permutation Group with generators [(1,2,3)]
+    sage: P.category()
+    Category of finite permutation groups
+
+In this case, the group is commutative, so we can specify this::
+
+    sage: P = PermutationGroup([[(1,2,3)]], category=PermutationGroups().Finite().Commutative()); P
+    Permutation Group with generators [(1,2,3)]
+    sage: P.category()
+    Category of finite commutative permutation groups
+
+This feature can even be used, typically in experimental code, to add
+more structure to existing parents, and in particular to add methods
+for the parents or the elements, without touching the code base::
+
+    sage: class Foos(Category):
+    ....:     def super_categories(self):
+    ....:          return [PermutationGroups().Finite().Commutative()]
+    ....:     class ParentMethods:
+    ....:         def foo(self): print "foo"
+    ....:     class ElementMethods:
+    ....:         def bar(self): print "bar"
+
+    sage: P = PermutationGroup([[(1,2,3)]], category=Foos())
+    sage: P.foo()
+    foo
+    sage: p = P.an_element()
+    sage: p.bar()
+    bar
+
+In the long run, it would be thinkable to use this idiom to implement
+forgetfull functors; for example the above group could be constructed
+as a plain set with::
+
+    sage: P = PermutationGroup([[(1,2,3)]], category=Sets()) # todo: not implemented
+
+At this stage though, this is still to be explorated for robustness
+and practicality. For now, most parent that accept a category argument
+only accept a subcategory of the default one.
 
 Scaling further: functorial constructions, axioms, ...
 ======================================================

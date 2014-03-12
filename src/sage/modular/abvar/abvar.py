@@ -605,7 +605,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                 raise ValueError, "please specify a category"
             cat = ModularAbelianVarieties(F)
         if self is B:
-            return self.endomorphism_ring()
+            return self.endomorphism_ring(cat)
         else:
             return homspace.Homspace(self, B, cat)
 
@@ -1565,7 +1565,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         """
         return self._ambient_dimension()
 
-    def endomorphism_ring(self):
+    def endomorphism_ring(self, category=None):
         """
         Return the endomorphism ring of self.
 
@@ -1590,7 +1590,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         except AttributeError:
             pass
 
-        self.__endomorphism_ring = homspace.EndomorphismSubring(self)
+        self.__endomorphism_ring = homspace.EndomorphismSubring(self, category=category)
         return self.__endomorphism_ring
 
     def sturm_bound(self):

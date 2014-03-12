@@ -1583,7 +1583,7 @@ class CrystalOfTableaux(CrystalOfWords):
 
         INPUT:
 
-        - ``cartan_type`` - (data coercible into) a cartan type
+        - ``cartan_type`` - (data coercible into) a Cartan type
         - ``shapes``      - a list (or iterable) of shapes
         - ``shape` `      - a shape
 

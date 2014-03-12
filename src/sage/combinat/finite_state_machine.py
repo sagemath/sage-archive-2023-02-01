@@ -4764,7 +4764,7 @@ class Transducer(FiniteStateMachine):
         return "Transducer with %s states" % len(self._states_)
 
     def _latex_transition_label_(self, transition, format_function=latex):
-        """
+        r"""
         Returns the proper transition label.
 
         INPUT:

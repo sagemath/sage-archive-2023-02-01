@@ -1417,7 +1417,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             N=self._order
             if debug:
                 print "Group order already known to be ",N
-        except StandardError:
+        except Exception:
             if (q<50):
                 if debug:
                     print "Computing group order naively"
@@ -1944,7 +1944,7 @@ def supersingular_j_polynomial(p):
     J = polygen(GF(p),'j')
     if p<13:
         return J.parent().one()
-    from sage.rings.all import binomial
+    from sage.rings.arith import binomial
     from sage.misc.all import prod
     m=(p-1)//2
     X,T = PolynomialRing(GF(p),2,names=['X','T']).gens()

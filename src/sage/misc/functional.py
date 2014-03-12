@@ -100,14 +100,11 @@ def base_field(x):
     try:
         return x.base_field()
     except AttributeError:
-        try:
-            y = x.base_ring()
-            if is_field(y):
-                return y
-            else:
-                raise AttributeError, "The base ring of %s is not a field"%x
-        except StandardError:
-            raise
+        y = x.base_ring()
+        if is_field(y):
+            return y
+        else:
+            raise AttributeError("The base ring of %s is not a field"%x)
 
 def basis(x):
     """

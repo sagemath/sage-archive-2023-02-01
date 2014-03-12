@@ -293,7 +293,7 @@ def _get_from_cache(key):
         True
     """
     try:
-        if _cache.has_key(key):
+        if key in _cache:
             return _cache[key]   # put () here to re-enable weakrefs
     except TypeError, msg:
         raise TypeError, 'key = %s\n%s'%(key,msg)
@@ -561,18 +561,26 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
                       Call morphism:
                       From: Multivariate Polynomial Ring in x, y over Rational Field
                       To:   Multivariate Laurent Polynomial Ring in x, y over Rational Field
-        """
 
-        if R is self._R:
+        Let us check that coercion between Laurent Polynomials over
+        different base rings works (:trac:`15345`)::
+
+            sage: R = LaurentPolynomialRing(ZZ, 'x')
+            sage: T = LaurentPolynomialRing(QQ, 'x')
+            sage: R.gen() + 3*T.gen()
+            4*x
+        """
+        if R is self._R or (isinstance(R, LaurentPolynomialRing_generic)
+            and self._R.has_coerce_map_from(R._R)):
             from sage.structure.coerce_maps import CallableConvertMap
             return CallableConvertMap(R, self, self._element_constructor_,
                                       parent_as_first_arg=False)
-        else:
-            f = self._R.coerce_map_from(R)
-            if f is not None:
-                from sage.categories.homset import Hom
-                from sage.categories.morphism import CallMorphism
-                return CallMorphism(Hom(self._R, self)) * f
+
+        f = self._R.coerce_map_from(R)
+        if f is not None:
+            from sage.categories.homset import Hom
+            from sage.categories.morphism import CallMorphism
+            return CallMorphism(Hom(self._R, self)) * f
 
     def __cmp__(left, right):
         """
@@ -759,6 +767,20 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
         else:
             return LaurentPolynomialRing(base_ring, self._n, names, order = order)
 
+    def fraction_field(self):
+        """
+        The fraction field is the same as the fraction field of the
+        polynomial ring.
+
+        EXAMPLES::
+
+            sage: L.<x> = LaurentPolynomialRing(QQ)
+            sage: L.fraction_field()
+            Fraction Field of Multivariate Polynomial Ring in x over Rational Field
+            sage: (x^-1 + 2) / (x - 1)
+            (2*x + 1)/(x^2 - x)
+        """
+        return self.polynomial_ring().fraction_field()
 
 class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
     def __init__(self, R, prepend_string, names):

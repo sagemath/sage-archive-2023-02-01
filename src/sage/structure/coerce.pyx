@@ -679,7 +679,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             pass
         try:
             ret = parent_c(~parent.one_element())
-        except StandardError:
+        except Exception:
             self._record_exception()
             ret = parent_c(~parent.an_element())
         self._division_parents.set(parent, None, None, ret)
@@ -965,13 +965,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         if is_Integer(x) and not x and not PY_TYPE_CHECK_EXACT(yp, type):
             try:
                 return yp(0), y
-            except StandardError:
+            except Exception:
                 self._record_exception()
 
         if is_Integer(y) and not y and not PY_TYPE_CHECK_EXACT(xp, type):
             try:
                 return x, xp(0)
-            except StandardError:
+            except Exception:
                 self._record_exception()
 
         raise TypeError, "no common canonical parent for objects with parents: '%s' and '%s'"%(xp, yp)
@@ -1207,7 +1207,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 if coerce_S is None:
                     raise TypeError, "No coercion from %s to pushout %s" % (S, Z)
                 return coerce_R, coerce_S
-            except StandardError:
+            except Exception:
                 self._record_exception()
 
         return None

@@ -313,7 +313,7 @@ if [ "$SAGE_SERVER" = "" ]; then
 fi
 
 if [ "$SAGE_UPSTREAM" = "" ]; then
-    SAGE_UPSTREAM="http://www.sagemath.org/packages/upstream/"
+    SAGE_UPSTREAM="${SAGE_SERVER}packages/upstream"
     export SAGE_UPSTREAM
 fi
 if [ -z "$SAGE_REPO_ANONYMOUS" ]; then
@@ -353,13 +353,17 @@ if [ "$DOT_SAGE" = "" ]; then
     export DOT_SAGE
 fi
 
-
 if [ "$SAGE_STARTUP_FILE" = "" ]; then
     SAGE_STARTUP_FILE="$DOT_SAGE/init.sage"
     export SAGE_STARTUP_FILE
 fi
 
 export IPYTHONDIR="$DOT_SAGE/ipython-0.12"
+
+if [ "$PYTHON_EGG_CACHE" = "" ]; then
+    PYTHON_EGG_CACHE="$DOT_SAGE/.python-eggs"
+    export PYTHON_EGG_CACHE
+fi
 
 if [ -d "$SAGE_ROOT/local/lib/python" ]; then
     PYTHONPATH="$SAGE_ROOT/local/lib/python"
@@ -479,10 +483,7 @@ if [ -z "$CXX" ]; then
     CXX=g++
 fi
 if [ -z "$FC" ]; then
-    if [ -n "$SAGE_FORTRAN" ]; then
-        # Deprecated, see #13349.
-        FC="$SAGE_FORTRAN"
-    elif command -v gfortran >/dev/null 2>/dev/null; then
+    if command -v gfortran >/dev/null 2>/dev/null; then
         FC=gfortran
     elif command -v g95 >/dev/null 2>/dev/null; then
         FC=g95

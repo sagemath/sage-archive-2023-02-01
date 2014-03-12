@@ -157,7 +157,7 @@ class CombinatorialFreeModuleElement(Element):
         try:
             v.sort(cmp = print_options['monomial_cmp'],
                    key = lambda (monomial,coeff): monomial)
-        except StandardError: # Sorting the output is a plus, but if we can't, no big deal
+        except Exception: # Sorting the output is a plus, but if we can't, no big deal
             pass
         return v
 
@@ -1369,13 +1369,13 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         R = self.base_ring()
         try:
             x = x + self.monomial(I.an_element())
-        except StandardError:
+        except Exception:
             pass
         try:
             g = iter(self.basis().keys())
             for c in range(1,4):
                 x = x + self.term(g.next(), R(c))
-        except (StandardError, StopIteration):
+        except Exception:
             pass
         return x
 
@@ -1885,7 +1885,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         try:
             if el == self.one_basis():
                 return AsciiArt(["1"])
-        except StandardError:
+        except Exception:
             pass
         pref = AsciiArt([self.prefix()])
         r = pref * (AsciiArt([" "**Integer(len(pref))]) + ascii_art(el))

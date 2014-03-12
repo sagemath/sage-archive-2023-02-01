@@ -46,11 +46,6 @@ class HasseDiagram(DiGraph):
         Hasse diagram of a poset containing 4 elements
         sage: TestSuite(H).run()
     """
-
-    # Hasse diagrams are immutable. This temporary hack enables the
-    # __hash__ method of DiGraph
-    _immutable = True
-
     def _repr_(self):
         r"""
         TESTS::
@@ -468,9 +463,9 @@ class HasseDiagram(DiGraph):
             sage: H.is_isomorphic( H.dual() )
             False
         """
-        H = HasseDiagram(self.reverse())
+        H = self.reverse()
         H.relabel(perm=range(H.num_verts()-1,-1,-1), inplace=True)
-        return H
+        return HasseDiagram(H)
 
     def interval(self, x, y):
         """

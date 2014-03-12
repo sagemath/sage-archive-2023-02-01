@@ -8,6 +8,17 @@ AUTHORS:
 - David Roe
 """
 
+#*****************************************************************************
+#       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
+#                               William Stein <wstein@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from padic_generic import pAdicGeneric
 from padic_base_generic import pAdicBaseGeneric
 
@@ -257,12 +268,12 @@ class pAdicExtensionGeneric(pAdicGeneric):
         extension of base.integer_ring() determined by the same
         polynomial.
 
-        INPUT::
+        INPUT:
 
             - print_mode -- a dictionary containing print options.
               Defaults to the same options as this ring.
 
-        OUTPUT::
+        OUTPUT:
 
             - the ring of elements of self with nonnegative valuation.
 

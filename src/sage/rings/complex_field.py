@@ -106,7 +106,7 @@ def ComplexField(prec=53, names=None):
         -1.0000000000000000000000000000000000000000000000000000000000
     """
     global cache
-    if cache.has_key(prec):
+    if prec in cache:
         X = cache[prec]
         C = X()
         if not C is None:

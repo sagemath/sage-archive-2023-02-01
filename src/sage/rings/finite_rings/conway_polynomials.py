@@ -195,7 +195,7 @@ class PseudoConwayLattice(SageObject):
             sage: PCL.polynomial(60)
             x^60 + x^59 + x^58 + x^55 + x^54 + x^53 + x^52 + x^51 + x^48 + x^46 + x^45 + x^42 + x^41 + x^39 + x^38 + x^37 + x^35 + x^32 + x^31 + x^30 + x^28 + x^24 + x^22 + x^21 + x^18 + x^17 + x^16 + x^15 + x^14 + x^10 + x^8 + x^7 + x^5 + x^3 + x^2 + x + 1
         """
-        if self.nodes.has_key(n):
+        if n in self.nodes:
             return self.nodes[n]
 
         p = self.p
@@ -444,7 +444,7 @@ def _frobenius_shift(K, generators, check_only=False):
             if crt[(i,j)][qindex][1] >= level:
                 if xleveled[j]:
                     return [j]
-                elif not searched.has_key(j):
+                elif j not in searched:
                     crt_possibles.append(j)
         for j in crt_possibles:
             path = find_leveller(qindex, level, x, xleveled, searched, j)

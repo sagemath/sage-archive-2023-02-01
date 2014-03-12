@@ -43,7 +43,8 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import ZZ, QQ, RR, GF, binomial
+from sage.rings.all import ZZ, RR, QQ, GF
+from sage.rings.arith import binomial
 from sage.rings.power_series_ring import PowerSeriesRing
 import hyperelliptic_generic
 from sage.schemes.hyperelliptic_curves.hypellfrob import hypellfrob

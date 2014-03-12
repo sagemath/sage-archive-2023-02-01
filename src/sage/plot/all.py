@@ -23,7 +23,7 @@ lazy_import("sage.plot.complex_plot",["complex_plot"])
 
 from arc import arc
 
-from animate import Animation as animate
+from animate import animate
 
 from plot3d.tachyon import Tachyon
 

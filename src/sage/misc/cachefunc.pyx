@@ -1440,10 +1440,12 @@ cdef class CachedMethodCaller(CachedFunction):
 
         TESTS::
 
+            sage: from sage.misc.superseded import deprecated_function_alias
             sage: class Foo:
             ...       @cached_method
             ...       def f(self, x,y=1):
             ...           return x+y
+            ...       g = deprecated_function_alias(57, f)
             ...
             sage: a = Foo()
             sage: a.f(1)  #indirect doctest
@@ -1459,6 +1461,29 @@ cdef class CachedMethodCaller(CachedFunction):
             sage: a.f(5) is a.f(y=1,x=5)
             True
 
+        The method can be called as a bound function using the same cache::
+
+            sage: a.f(5) is Foo.f(a, 5)
+            True
+            sage: a.f(5) is Foo.f(a,5,1)
+            True
+            sage: a.f(5) is Foo.f(a, 5,y=1)
+            True
+            sage: a.f(5) is Foo.f(a, y=1,x=5)
+            True
+
+        Cached methods are compatible with
+        :meth:`sage.misc.superseded.deprecated_function_alias`::
+
+            sage: a.g(5) is a.f(5)
+            doctest:1: DeprecationWarning: g is deprecated. Please use f instead.
+            See http://trac.sagemath.org/57 for details.
+            True
+            sage: Foo.g(a, 5) is a.f(5)
+            True
+            sage: Foo.g(a, y=1,x=5) is a.f(5)
+            True
+
         We test that #5843 is fixed::
 
             sage: class Foo:
@@ -1472,7 +1497,14 @@ cdef class CachedMethodCaller(CachedFunction):
             sage: b = Foo(3)
             sage: a.f(b.f)
             2
+
         """
+        if self._instance is None:
+            # cached method bound to a class
+            instance = args[0]
+            args = args[1:]
+            return self._cachedmethod.__get__(instance)(*args, **kwds)
+
         # We shortcut a common case of no arguments
         # and we avoid calling another python function,
         # although that means to duplicate code.
@@ -2054,9 +2086,18 @@ cdef class CachedMethod(object):
             sage: sorted(dir(a))
             ['__doc__', '__init__', '__module__', '_cache__f', '_x', 'f', 'f0']
 
+        The cached method has its name and module set::
+
+            sage: f = Foo.__dict__["f"]
+            sage: f.__name__
+            'f'
+            sage: f.__module__
+            '__main__'
         """
         self._cache_name = '_cache__' + (name or f.__name__)
         self._cachedfunc = CachedFunction(f, classmethod=True, name=name)
+        self.__name__ = self._cachedfunc.__name__
+        self.__module__ = self._cachedfunc.__module__
 
     def _instance_call(self, inst, *args, **kwds):
         """
@@ -2098,6 +2139,47 @@ cdef class CachedMethod(object):
 
         """
         return self._cachedfunc.f(inst, *args, **kwds)
+
+    def __call__(self, inst, *args, **kwds):
+        """
+        Call the cached method as a function on an instance
+
+        INPUT:
+
+        - ``inst`` -- an instance on which the method is to be called
+        - Further positional or named arguments.
+
+        EXAMPLES::
+
+
+            sage: from sage.misc.superseded import deprecated_function_alias
+            sage: class Foo(object):
+            ...       def __init__(self, x):
+            ...           self._x = x
+            ...       @cached_method
+            ...       def f(self,n=2):
+            ...           return self._x^n
+            ...       g = deprecated_function_alias(57, f)
+            sage: a = Foo(2)
+            sage: Foo.__dict__['f'](a)
+            4
+
+        This uses the cache as usual::
+
+            sage: Foo.__dict__['f'](a) is a.f()
+            True
+
+        This feature makes cached methods compatible with
+        :meth:`sage.misc.superseded.deprecated_function_alias`::
+
+            sage: a.g() is a.f()
+            doctest:1: DeprecationWarning: g is deprecated. Please use f instead.
+            See http://trac.sagemath.org/57 for details.
+            True
+            sage: Foo.g(a) is a.f()
+            True
+        """
+        return self.__get__(inst)(*args, **kwds)
 
     cpdef dict _get_instance_cache(self, inst):
         """
@@ -2727,7 +2809,7 @@ class FileCache:
             keystr = kwdstr + argstr
         return self._dir + self._prefix + keystr
 
-    def has_key(self, key):
+    def __contains__(self, key):
         """
         Returns ``True`` if ``self[key]`` is defined and False otherwise.
 
@@ -2738,9 +2820,9 @@ class FileCache:
             sage: FC = FileCache(dir, memory_cache = False, prefix='foo')
             sage: k = ((),(('a',1),))
             sage: FC[k] = True
-            sage: FC.has_key(k)
+            sage: k in FC
             True
-            sage: FC.has_key(((),()))
+            sage: ((),()) in FC
             False
         """
         return os.path.exists(self._filename(key) + '.key.sobj')
@@ -2771,7 +2853,7 @@ class FileCache:
 
         cache = self._cache
         if cache is not None:
-            if cache.has_key(key):
+            if key in cache:
                 return cache[key]
 
         f = self._filename(key) + '.sobj'
@@ -2830,12 +2912,12 @@ class FileCache:
             sage: t = randint(0, 1000)
             sage: FC1[k] = t
             sage: del FC2[k]
-            sage: FC1.has_key(k)
+            sage: k in FC1
             False
        """
         f = self._filename(key)
         cache = self._cache
-        if cache is not None and cache.has_key(key):
+        if cache is not None and key in cache:
             del self._cache[key]
         if os.path.exists(f + '.sobj'):
             os.remove(f + '.sobj')

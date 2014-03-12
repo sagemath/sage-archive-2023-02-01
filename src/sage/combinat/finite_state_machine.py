@@ -2023,7 +2023,7 @@ class FiniteStateMachine(SageObject):
     def set_coordinates(self, coordinates, default=True):
         """
         Set coordinates of the states for the LaTeX representation by
-        a dictionary mapping labels to coordinates.
+        a dictionary or a function mapping labels to coordinates.
 
         INPUT:
 

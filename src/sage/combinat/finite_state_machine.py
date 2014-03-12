@@ -1198,8 +1198,8 @@ def duplicate_transition_ignore(old_transition, new_transition):
     Default function for handling duplicate transitions in finite
     state machines. This implementation ignores the occurrence.
 
-    See the documentation of the ``on_duplicate_transition`` of
-    :class:`FiniteStateMachine`.
+    See the documentation of the ``on_duplicate_transition`` parameter
+    of :class:`FiniteStateMachine`.
 
     INPUT:
 
@@ -1228,8 +1228,8 @@ def duplicate_transition_raise_error(old_transition, new_transition):
     Alternative function for handling duplicate transitions in finite
     state machines. This implementation raises a ``ValueError``.
 
-    See the documentation of the ``on_duplicate_transition`` of
-    :class:`FiniteStateMachine`.
+    See the documentation of the ``on_duplicate_transition`` parameter
+    of :class:`FiniteStateMachine`.
 
     INPUT:
 
@@ -1263,8 +1263,8 @@ def duplicate_transition_add_input(old_transition, new_transition):
     intended for the case where a Markov chain is modelled by a finite
     state machine using the input labels as transition probabilities.
 
-    See the documentation of the ``on_duplicate_transition`` of
-    :class:`FiniteStateMachine`.
+    See the documentation of the ``on_duplicate_transition`` parameter
+    of :class:`FiniteStateMachine`.
 
     INPUT:
 

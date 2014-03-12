@@ -194,11 +194,11 @@ cdef class EmbeddedNumberFieldMorphism(NumberFieldEmbedding):
             while Lemb.coerce_embedding() is not None:
                 Lemb = Lemb.coerce_embedding().codomain()
             ambient_field = pushout(Kemb, Lemb)
-            candidate_ambient_fields = [ambient_field, sage.rings.complex_double.CDF]
             try:
                 candidate_ambient_fields.append(ambient_field.algebraic_closure())
             except NotImplementedError:
                 pass
+            candidate_ambient_fields.append(sage.rings.complex_double.CDF)
         else:
             candidate_ambient_fields = [ambient_field]
 

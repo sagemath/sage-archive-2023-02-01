@@ -1009,7 +1009,7 @@ class Cusp(Element):
         where `[\alpha]` is the equivalence class of `\alpha` modulo `G`.
 
         This code only needs as input the level and not the group since the
-        action of galois for a congruence group `G` of level `N` is compatible
+        action of Galois for a congruence group `G` of level `N` is compatible
         with the action of the full congruence group `\Gamma(N)`.
 
 
@@ -1032,14 +1032,14 @@ class Cusp(Element):
         .. NOTE::
 
             Modular curves can have multiple non-isomorphic models over `\QQ`.
-            The action of galois depends on such a model. The model over `\QQ`
+            The action of Galois depends on such a model. The model over `\QQ`
             of `X(G)` used here is the model where the function field
             `\QQ(X(G))` is given by the functions whose fourier expansion at
             `\infty` have their coefficients in `\QQ`. For `X(N):=X(\Gamma(N))`
             the corresponding moduli interpretation over `\ZZ[1/N]` is that
             `X(N)` parametrizes pairs `(E,a)` where `E` is a (generalized)
             elliptic curve and `a: \ZZ / N\ZZ \times \mu_N \to E` is a closed
-            immersion such that the weil pairing of `a(1,1)` and `a(0,\zeta_N)`
+            immersion such that the Weil pairing of `a(1,1)` and `a(0,\zeta_N)`
             is `\zeta_N`. In this parameterisation the point `z \in H`
             corresponds to the pair `(E_z,a_z)` with `E_z=\CC/(z \ZZ+\ZZ)` and
             `a_z: \ZZ / N\ZZ \times \mu_N \to E` given by `a_z(1,1) = z/N` and
@@ -1072,7 +1072,7 @@ class Cusp(Element):
 
         TESTS:
 
-        Here we check that the galois action is indeed a permutation on the
+        Here we check that the Galois action is indeed a permutation on the
         cusps of Gamma1(48) and check that :trac:`13253` is fixed. ::
 
             sage: G=Gamma1(48)

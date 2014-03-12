@@ -1483,12 +1483,6 @@ cdef class Parent(category_object.CategoryObject):
 
         EXAMPLES::
 
-            sage: MatrixSpace(GF(3), 2, 2)[9]
-            [0 2]
-            [0 0]
-            sage: MatrixSpace(GF(3), 2, 2)[0]
-            [0 0]
-            [0 0]
             sage: VectorSpace(GF(7), 3)[:10]
             [(0, 0, 0),
              (1, 0, 0),
@@ -1519,8 +1513,17 @@ cdef class Parent(category_object.CategoryObject):
             'coucou'
         """
         try:
-            return super(Parent, self).__getitem__(n)
+            meth = super(Parent, self).__getitem__
         except AttributeError:
+            pass
+        # needed when self is a Cython object (super() does not call getattr())
+        try:
+            meth = getattr_from_other_class(self, self._category.parent_class, '__getitem__')
+        except AttributeError:
+            pass
+        try:
+            return meth(n)
+        except NameError:
             return self.list()[n]
 
 

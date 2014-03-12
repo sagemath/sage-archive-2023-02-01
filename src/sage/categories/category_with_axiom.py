@@ -30,7 +30,7 @@ exists a class for the category of finite semigroups::
 In this case, we say that the category of semigroups *implements* the
 axiom ``Finite``, and code about finite semigroups should go in the
 class :class:`FiniteSemigroups` (or, as usual, in its nested classes
-ParentMethods, ElementsMethods, and so on).
+``ParentMethods``, ``ElementMethods``, and so on).
 
 On the other hand, there is no class for the category of infinite
 semigroups::
@@ -111,7 +111,7 @@ all the methods of finite sets and of finite `C`'s, as desired::
 
       An alternative would have been to give another name to the mixin
       class, like ``FiniteCategory``. However this would have resulted
-      in more namespace polution, whereas using ``Finite`` is already
+      in more namespace pollution, whereas using ``Finite`` is already
       clear, explicit, and easier to remember.
 
     - Under the hood, the category ``Cs().Finite()`` is aware that it
@@ -124,8 +124,8 @@ all the methods of finite sets and of finite `C`'s, as desired::
         'Finite'
 
 Over time, the nested class ``Cs.Finite`` may become large and too
-cumbersome to keep as a nested class of ``Cs``. Or the category with
-axiom may have a name of its own in the litterature, like *semigroups*
+cumbersome to keep as a nested subclass of ``Cs``. Or the category with
+axiom may have a name of its own in the literature, like *semigroups*
 rather than *associative magmas*, or *fields* rather than *commutative
 division rings*. In this case, the category with axiom can be put
 elsewhere, typically in a separate file, with just a link from
@@ -157,7 +157,7 @@ importing :class:`FiniteGroups`.
     :class:`LazyImport`, in order to quiet the warning about that lazy
     import being resolved upon startup. See for example ``Sets.Finite``.
 
-    This is undoubtly a code smell. Nethertheless it should be kept as
+    This is undoubtedly a code smell. Nethertheless it should be kept as
     is, first to resolve the import order properly, and more
     importantly as a reminder that the category would be best not
     constructed upon Sage's startup. This to entice developpers to
@@ -341,7 +341,7 @@ We can now use the axiom as usual::
 Compared with our first example, the only newcomer is the method
 ``.Green()`` that can be used by any subcategory ``Ds()`` of ``Cs()``
 to add the axiom ``Green``. Note that the expression ``Ds().Green``
-always evaluate to this method, regardless of whether ``Ds`` has a
+always evaluates to this method, regardless of whether ``Ds`` has a
 nested class ``Ds.Green`` or not (an implementation detail)::
 
     sage: Cs().Green
@@ -394,7 +394,7 @@ It is therefore the natural spot for the documentation of the axiom.
 .. TOPIC:: Design note
 
     Let us state again that, unlike what the existence of
-    ``all_axioms`` might suggests, the definition of an axiom is local
+    ``all_axioms`` might suggest, the definition of an axiom is local
     to a category and its subcategories. In particular, two
     independent categories ``Cs()`` and ``Ds()`` can very well define
     axioms with the same name and different semantics. As long as the
@@ -419,7 +419,7 @@ Special case: defining an axiom depending on several categories
 
 In some cases, the largest category where the axiom makes sense is the
 intersection of two categories. This is typically the case for axioms
-specify compatibility conditions between two otherwise unrelated
+specifying compatibility conditions between two otherwise unrelated
 operations, like ``Distributive`` which specifies a compatibility
 between `*` and `+`. Ideally, we would want the ``Distributive`` axiom
 to be defined by::
@@ -464,7 +464,7 @@ The downsides of this workaround are:
   ``Groups()``) with a method that is irrelevant (but safely complains
   if called).
 
-- ``C._with_axiom('Distributive`)`` is not strictly equivalent to
+- ``C._with_axiom('Distributive')`` is not strictly equivalent to
   ``C.Distributive()``, which can be unpleasantly surprising::
 
     sage: (Monoids() & CommutativeAdditiveGroups()).Distributive()
@@ -549,14 +549,15 @@ Abstract model
 As we have seen in the :ref:`Primer <category-primer-axioms-explosion>`,
 the objects of a category ``Cs()`` can usually satisfy, or not, many
 different axioms. Out of all combinations of axioms, only a small
-number are relevant in practice; in the sense that we actually want to
+number are relevant in practice, in the sense that we actually want to
 provide features for the objects satisfying these axioms.
 
-Therefore, in the context of the category class `Cs`, we want to
-provide the system with a collection `(D_S)_{S\in \mathcal S}` were
-`S` is a subset of the axioms and `D_S` is a class for the subcategory
-of the object of ``Cs()`` satisfying the axioms in `S`. For example,
-if ``Cs()`` is the category of magmas, the pairs would include::
+Therefore, in the context of the category class ``Cs``, we want to
+provide the system with a collection `(D_S)_{S\in \mathcal S}` where
+each `S` is a subset of the axioms and the corresponding `D_S` is a
+class for the subcategory of the objects of ``Cs()`` satisfying the
+axioms in `S`. For example, if ``Cs()`` is the category of magmas, the
+pairs `(S, D_S)` would include::
 
     {Associative}                 : Semigroups
     {Associative, Unital}         : Monoids
@@ -569,8 +570,8 @@ select automatically the relevant classes
 `(D_S)_{S\in \mathcal S, S\subset T}`,
 and build from them a category for the objects of ``Cs`` satisfying
 the axioms in `T`, together with its hierarchy of super categories. If
-`T` is in `\mathcal S`, then the class of the resulting category is
-directly `D_T`::
+`T` is in the indexing set `\mathcal S`, then the class of the
+resulting category is directly `D_T`::
 
     sage: C = Magmas().Unital().Inverse().Associative(); C
     Category of groups
@@ -590,7 +591,7 @@ Concrete model as an arborescence of nested classes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 We further want the construction to be efficient and amenable to
-lazyness. This led us to the following design decision: the collection
+laziness. This led us to the following design decision: the collection
 `(D_S)_{S\in \mathcal S}` of classes should be structured as an
 arborescence. The root is ``Cs``, corresponding to `S=\emptyset`. Any
 other class `D_S` should be the child of a single class `D_{S'}` where
@@ -633,8 +634,8 @@ on other axioms and deduction rules. See below.
 Asymmetry
 ~~~~~~~~~
 
-As we have seen at the beginning of this section this design
-introduces an asymmetry. It's not so bad in practice as in most
+As we have seen at the beginning of this section, this design
+introduces an asymmetry. It's not so bad in practice, since in most
 practical cases, we want to work incrementally. It's for example more
 natural to describe :class:`FiniteFields` as :class:`Fields` with the
 axiom ``Finite`` rather than :class:`Magmas` and
@@ -685,7 +686,7 @@ Mismatch between the arborescence of nested classes and the hierarchy of categor
 
 The fact that the hierarchy relation between categories is not
 reflected directly as a relation between the classes may sound
-suspicious at first! However, as mentionned in the primer, this is
+suspicious at first! However, as mentioned in the primer, this is
 actually a big selling point of the axioms infrastructure: by
 calculating automatically the hierarchy relation between categories
 with axioms one avoids the nightmare of maintaining it by hand.

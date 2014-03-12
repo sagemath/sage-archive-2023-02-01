@@ -121,7 +121,7 @@ This base class provides a lot more methods than a general parent::
      'has_coerce_map_from_impl', 'ideal', 'ideal_monoid',
      'integral_closure', 'is_commutative', 'is_field', 'is_finite',
      'is_integral_domain', 'is_integrally_closed', 'is_noetherian',
-     'is_prime_field', 'is_ring', 'is_subring', 'is_zero',
+     'is_prime_field', 'is_ring', 'is_subring',
      'krull_dimension', 'list', 'ngens', 'one', 'one_element',
      'order', 'prime_subfield', 'principal_ideal', 'quo', 'quotient',
      'quotient_ring', 'random_element', 'unit_ideal', 'zero',
@@ -404,9 +404,9 @@ coincide::
 
     sage: import inspect
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
-    56
+    57
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    79
+    81
     sage: MS1.__class__ is MS2.__class__
     True
 

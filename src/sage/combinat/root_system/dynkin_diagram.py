@@ -290,7 +290,7 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
 
     def _latex_(self, scale=0.5):
         r"""
-        Return a latex representation of this dynkin diagram
+        Return a latex representation of this Dynkin diagram
 
         EXAMPLES::
 
@@ -596,7 +596,7 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
 
         Otherwise, behaves as the usual DiGraph.__getitem__
 
-        EXAMPLES: We use the `C_4` dynkin diagram as a cartan
+        EXAMPLES: We use the `C_4` Dynkin diagram as a cartan
         matrix::
 
             sage: g = DynkinDiagram(['C',4])

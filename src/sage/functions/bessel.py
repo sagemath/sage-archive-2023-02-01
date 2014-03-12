@@ -339,7 +339,7 @@ class Function_Bessel_J(BuiltinFunction):
 
         return None
 
-    def _evalf_(self, n, x, parent=None):
+    def _evalf_(self, n, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -508,7 +508,7 @@ class Function_Bessel_Y(BuiltinFunction):
 
         return None  # leaves the expression unevaluated
 
-    def _evalf_(self, n, x, parent=None):
+    def _evalf_(self, n, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -690,7 +690,7 @@ class Function_Bessel_I(BuiltinFunction):
 
         return None  # leaves the expression unevaluated
 
-    def _evalf_(self, n, x, parent=None):
+    def _evalf_(self, n, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -882,7 +882,7 @@ class Function_Bessel_K(BuiltinFunction):
 
         return None  # leaves the expression unevaluated
 
-    def _evalf_(self, n, x, parent=None):
+    def _evalf_(self, n, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 

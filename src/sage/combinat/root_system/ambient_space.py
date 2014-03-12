@@ -19,7 +19,7 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
     Abstract class for ambient spaces
 
     All subclasses should implement a class method
-    ``smallest_base_ring`` taking a cartan type as input, and a method
+    ``smallest_base_ring`` taking a Cartan type as input, and a method
     ``dimension`` working on a partially initialized instance with
     just ``root_system`` as attribute. There is no safe default
     implementation for the later, so none is provided.
@@ -129,7 +129,7 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
         """
         Returns the smallest ground ring over which the ambient space can be realized.
 
-        This class method will get called with the cartan type as
+        This class method will get called with the Cartan type as
         input. This default implementation returns `\QQ`; subclasses
         should override it as appropriate.
 

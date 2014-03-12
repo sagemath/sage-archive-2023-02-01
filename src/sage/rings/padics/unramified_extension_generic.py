@@ -163,7 +163,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
 
     #def galois_group(self):
     #    r"""
-    #    Returns the galois group of self's fraction field over Qp.
+    #    Returns the Galois group of self's fraction field over Qp.
     #    """
     #    ##
     #    ## If K is a number field, then K.galois_group() can return

@@ -852,7 +852,7 @@ class Crystals(Category_singleton):
 
         def cartan_type(self):
             """
-            Returns the cartan type associated to ``self``
+            Returns the Cartan type associated to ``self``
 
             EXAMPLES::
 

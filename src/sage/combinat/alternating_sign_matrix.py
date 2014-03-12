@@ -1417,49 +1417,6 @@ register_unpickle_override('sage.combinat.alternating_sign_matrix', 'Alternating
 register_unpickle_override('sage.combinat.alternating_sign_matrix', 'MonotoneTriangles_n', MonotoneTriangles)
 register_unpickle_override('sage.combinat.alternating_sign_matrix', 'MonotoneTriangles_n', MonotoneTriangles_n)
 
-# Here are the previous implementations of the combinatorial structure
-# of the alternating sign matrices. Please, consider it obsolete and
-# tend to use the monotone triangles instead.
-
-def from_contre_tableau(comps):
-    r"""
-    Returns an alternating sign matrix from a contre-tableau.
-
-    EXAMPLES::
-
-        sage: import sage.combinat.alternating_sign_matrix as asm
-        sage: asm.from_contre_tableau([[1, 2, 3], [1, 2], [1]])
-        doctest:...: DeprecationWarning: You can use from_monotone_triangle instead.
-        See http://trac.sagemath.org/12930 for details.
-        [0 0 1]
-        [0 1 0]
-        [1 0 0]
-        sage: asm.from_contre_tableau([[1, 2, 3], [2, 3], [3]])
-        [1 0 0]
-        [0 1 0]
-        [0 0 1]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(12930, 'You can use from_monotone_triangle instead.')
-    n = len(comps)
-    MS = MatrixSpace(ZZ, n)
-    M = [ [0 for _ in range(n)] for _ in range(n) ]
-
-    previous_set = Set([])
-
-    for col in range(n-1, -1, -1):
-        s = Set( comps[col] )
-        for x in s - previous_set:
-            M[x-1][col] = 1
-
-        for x in previous_set - s:
-            M[x-1][col] = -1
-
-        previous_set = s
-
-    return MS(M)
-
-
 class ContreTableaux(Parent):
     """
     Factory class for the combinatorial class of contre tableaux of size `n`.

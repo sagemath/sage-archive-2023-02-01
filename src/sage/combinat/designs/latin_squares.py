@@ -29,10 +29,68 @@ REFERENCES:
   Volume 95, Issues 1-2, Pages 9-48,
   Journal of Statistical Planning and Inference,
   Springer, 1 May 2001.
-
-Functions
----------
 """
+
+def are_mutually_orthogonal_latin_squares(l, verbose=False):
+    r"""
+    Check wether the list of matrices in ``l`` form mutually orthogonal latin
+    squares.
+
+    INPUT:
+
+    - ``verbose`` - if ``True`` then print why the list of matrices provided are
+      not mutually orthogonal latin squares
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.latin_squares import are_mutually_orthogonal_latin_squares
+        sage: m1 = matrix([[0,1,2],[2,0,1],[1,2,0]])
+        sage: m2 = matrix([[0,1,2],[1,2,0],[2,0,1]])
+        sage: m3 = matrix([[0,1,2],[2,0,1],[1,2,0]])
+        sage: are_mutually_orthogonal_latin_squares([m1,m2])
+        True
+        sage: are_mutually_orthogonal_latin_squares([m1,m3])
+        False
+        sage: are_mutually_orthogonal_latin_squares([m2,m3])
+        True
+        sage: are_mutually_orthogonal_latin_squares([m1,m2,m3], verbose=True)
+        matrices 0 and 2 are not orthogonal
+        False
+
+        sage: m = designs.mutually_orthogonal_latin_squares(8)
+        sage: are_mutually_orthogonal_latin_squares(m)
+        True
+    """
+    if not l:
+        raise ValueError("the list must be non empty")
+
+    n = l[0].nrows()
+    if any(M.nrows() != n and M.ncols() != n for M in l):
+        if verbose:
+            print "some matrix has wrong dimension"
+        return False
+
+    # check that the matrices in l are actually latin
+    for i,M in enumerate(l):
+        if (any(sorted(r) != range(n) for r in M.rows()) or
+            any(sorted(c) != range(n) for c in M.columns())):
+            if verbose:
+                print "matrix %d is not latin"%i
+            return False
+
+    # check orthogonality of each pair
+    for k1 in xrange(len(l)):
+        M1 = l[k1]
+        for k2 in xrange(k1):
+            M2 = l[k2]
+            L = [(M1[i,j],M2[i,j]) for i in xrange(n) for j in xrange(n)]
+            if len(set(L)) != len(L):
+                if verbose:
+                    print "matrices %d and %d are not orthogonal"%(k2,k1)
+                return False
+
+    return True
+
 
 def mutually_orthogonal_latin_squares(n,k=None, partitions = False):
     r"""

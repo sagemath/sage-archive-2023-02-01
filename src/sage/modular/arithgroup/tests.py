@@ -376,7 +376,7 @@ class Test:
 
     def test_todd_coxeter(self):
         r"""
-        Test representatives of todd coxeter algorithm
+        Test representatives of Todd-Coxeter algorithm
 
         EXAMPLES::
 

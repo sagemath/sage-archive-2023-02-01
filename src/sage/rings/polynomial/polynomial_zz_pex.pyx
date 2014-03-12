@@ -90,11 +90,11 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             sage: R([3,'12e34'])
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert '12e34' into the base ring
+            TypeError: unable to convert x (=12e34) to an integer
             sage: R([3,x])
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert x into the base ring
+            TypeError: not a constant polynomial
 
         Check that NTL contexts are correctly restored and that
         :trac:`9524` has been fixed::
@@ -105,6 +105,16 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             6*x
             sage: 5*x
             5*x
+
+        Check that :trac:`11239` is fixed::
+
+            sage: Fq.<a> = GF(2^4); Fqq.<b> = GF(3^7)
+            sage: PFq.<x> = Fq[]; PFqq.<y> = Fqq[]
+            sage: f = x^3 + (a^3 + 1)*x
+            sage: sage.rings.polynomial.polynomial_zz_pex.Polynomial_ZZ_pEX(PFqq, f)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to coerce from a finite field other than the prime subfield
         """
         cdef ntl_ZZ_pE d
         try:
@@ -118,26 +128,20 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         except AttributeError:
             pass
 
+        if isinstance(x, Polynomial):
+            x = x.list()
+
         if PY_TYPE_CHECK(x, list) or PY_TYPE_CHECK(x, tuple):
             Polynomial.__init__(self, parent, is_gen=is_gen)
             (<Polynomial_template>self)._cparent = get_cparent(parent)
             celement_construct(&self.x, (<Polynomial_template>self)._cparent)
             K = parent.base_ring()
             for i,e in enumerate(x):
-                try:
-                    e_polynomial = e.polynomial()
-                except (AttributeError, TypeError):
-                    # A type error may occur, since sometimes
-                    # e.polynomial expects an additional argument
-                    try:
-                        # self(x) is supposed to be a conversion,
-                        # not necessarily a coercion. So, we must
-                        # not do K.coerce(e) but K(e).
-                        e = K(e) # K.coerce(e)
-                        e_polynomial = e.polynomial()
-                    except TypeError:
-                        raise TypeError("unable to convert %s into the base ring"%repr(e))
-                d = parent._modulus.ZZ_pE(list(e_polynomial))
+                # self(x) is supposed to be a conversion,
+                # not necessarily a coercion. So, we must
+                # not do K.coerce(e) but K(e).
+                e = K(e)
+                d = parent._modulus.ZZ_pE(list(e.polynomial()))
                 ZZ_pEX_SetCoeff(self.x, i, d.x)
             return
 

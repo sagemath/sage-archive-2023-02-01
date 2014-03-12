@@ -2,14 +2,14 @@
 """Discrete Gaussian Samplers.
 
 This class realizes oracles which returns integers proportionally to
-$exp(-x/(2*sigma^2))$. All oracles are implemented using rejection sampling. See
-DiscreteGaussianSampler.__init__ to see which strategies are available.
+$exp(-x/(2σ^2))$. All oracles are implemented using rejection sampling. See
+DiscreteGaussianSampler.__init__ for which algorithms are available.
 
 AUTHOR: Martin Albrecht <martinralbrecht+dgs@googlemail.com>
 
 EXAMPLE:
 
-We sample proportionally to exp(-x^2/(2*sigma^2))::
+We sample proportionally to exp(-x^2/(2σ^2))::
 
     sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
     sage: sigma = 3.0; n=100000
@@ -18,11 +18,11 @@ We sample proportionally to exp(-x^2/(2*sigma^2))::
     sage: c = sum([exp(-x^2/(2*sigma^2)) for x in xrange(-6*sigma,sigma*6+1)]); c
     7.519...
     sage: x=0; l.count(x), ZZ(round(n*exp(-x^2/(2*sigma^2))/c))
-    (13363, 13298)
+    (13350, 13298)
     sage: x=4; l.count(x), ZZ(round(n*exp(-x^2/(2*sigma^2))/c))
-    (5415, 5467)
+    (5543, 5467)
     sage: x=-10; l.count(x), ZZ(round(n*exp(-x^2/(2*sigma^2))/c))
-    (40, 51)
+    (46, 51)
 
 REFERENCES:
 
@@ -48,46 +48,51 @@ cdef class DiscreteGaussianSampler(SageObject):
     """A Discrete Gaussian Sampler using rejection sampling."""
     def __init__(self, sigma, c=0, tau=6, algorithm="uniform+table", precision="mp"):
         """Construct a new sampler for a discrete Gaussian distribution.
+        
+        INPUT:
+
+        - ``sigma`` - samples x are accepted with probability proportional to
+          $exp((x-c)^2/(2σ^2))$
+
+        - ``c`` - the mean of the distribution. The value of ``c`` does not have
+          to be an integer. However, some algorithms only support integer-valued
+          ``c`` (default: 0)
+        
+        - ``tau`` - samples outside the range (round(c)-ceil(στ),...,round(c)+ceil(στ)) are
+          considered to have probability zero (default: 6)
+
+        - ``algorithm`` - see list below (default: "uniform+table")
+
+        - ``precision`` - either "mp" for multi-precision where the actual
+          precision used is taken from sigma or "dp" for double precision. In
+          the latter case results are not reproducible across
+          plattforms. (default: "mp")
 
         ALGORITHMS:
 
         - "uniform+table" - classical rejection sampling, sampling from the
           uniform distribution and accepted with probability
-          $exp(-x^2/(2*sigma^2))$ where $exp(-x^2/(2*sigma^2))$ is precomputed
-          and stored in a table.
+          $exp(-(x-c)^2/(2σ^2))$ where $exp(-(x-c)^2/(2σ^2))$ is precomputed and
+          stored in a table. Any real-valued ``c`` is supported.
 
         - "uniform+logtable" - samples are drawn from a uniform distribution and
-          accepted with probability $exp(-x^2/(2*sigma^2))$ where
-          $exp(-x^2/(2*sigma^2))$ is computed using logarithmically many calls
-          to Bernoulli distributions. See [DDLL23]_ for details.
+          accepted with probability $exp(-(x-c)^2/(2σ^2))$ where
+          $exp(-(x-c)^2/(2σ^2))$ is computed using logarithmically many calls to
+          Bernoulli distributions. See [DDLL23]_ for details.  Only
+          integer-valued ``c`` are supported.
 
         - "uniform+online" - samples are drawn from a uniform distribution and
-          accepted with probability $exp(-x^2/(2*sigma^2))$ where
-          $exp(-x^2/(2*sigma^2))$ is computed in each invocation. Typically this
-          is very slow.  See [DDLL23]_ for details.
+          accepted with probability $exp(-(x-c)^2/(2σ^2))$ where
+          $exp(-(x-c)^2/(2σ^2))$ is computed in each invocation. Typically this
+          is very slow.  See [DDLL23]_ for details.  Any real-valued ``c`` is
+          accepted.
 
         - "sigma2+logtable" - samples are drawn from an easily samplable
-          distribution k*sigma2 and accepted with probability
-          $exp(-x^2/(2*sigma^2))$ where $exp(-x^2/(2*sigma^2))$ is computed
-          using logarithmically many calls to Bernoulli distributions.  See
-          [DDLL23]_ for details. Note that this sampler adjusts sigma to match
-          sigma2*k for some integer k.
-        
-        INPUT:
-
-        - ``sigma`` - samples are sampled with probability proportional to
-          $exp(x^2/(2sigma^2))$
-
-        - ``tau`` - samples outside the range
-          (-sigma*tau,...,sigma*tau) are considered to have probability
-          zero (default: 6)
-
-        - ``algorithm`` - see list above.
-
-        - ``precision`` - either "mp" for multi-precision where the actual
-          precision is taken from sigma or "dp" for double precision. In the
-          latter case results are not reproducible across plattforms. (default:
-          "mp").
+          distribution k·σ2 and accepted with probability $exp(-(x-c)^2/(2σ^2))$
+          where $exp(-(x-c)^2/(2σ^2))$ is computed using logarithmically many
+          calls to Bernoulli distributions.  See [DDLL23]_ for details. Note
+          that this sampler adjusts sigma to match σ2·k for some integer k. Only
+          integer-valued ``c`` are supported.
 
         EXAMPLES::
 
@@ -104,7 +109,9 @@ cdef class DiscreteGaussianSampler(SageObject):
             sage: DiscreteGaussianSampler(3.0, algorithm="sigma2+logtable")
             Discrete Gaussian sampler with sigma = 3.397287 and c = 0
 
-        TESTS::
+        TESTS:
+
+        We are testing invalid inputs::
 
             sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
             sage: DiscreteGaussianSampler(-3.0)
@@ -122,6 +129,30 @@ cdef class DiscreteGaussianSampler(SageObject):
             ...
             ValueError: Algorithm 'superfastalgorithmyouneverheardof' not supported by class 'DiscreteGaussianSampler'
 
+            sage: DiscreteGaussianSampler(3.0, c=1.5, algorithm="sigma2+logtable")
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm 'uniform+logtable' requires c%1 == 0
+
+        We are testing correctness::
+
+            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
+            sage: D = DiscreteGaussianSampler(1.0, c=0, tau=2)
+            sage: l = [D() for _ in xrange(2^16)]
+            sage: min(l) == 0-2*1.0, max(l) == 0+2*1.0, abs(mean(l)) < 0.01
+            (True, True, True)
+
+            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
+            sage: D = DiscreteGaussianSampler(1.0, c=2.5, tau=2)
+            sage: l = [D() for _ in xrange(2^18)]
+            sage: min(l)==2-2*1.0, max(l)==2+2*1.0, mean(l).n()
+            (True, True, 2.45...)  
+
+            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
+            sage: D = DiscreteGaussianSampler(1.0, c=2.5, tau=6)
+            sage: l = [D() for _ in xrange(2^18)]
+            sage: min(l), max(l), abs(mean(l)-2.5) < 0.01
+            (-2, 7, True)
         """
 
         if sigma <= 0.0:
@@ -129,14 +160,20 @@ cdef class DiscreteGaussianSampler(SageObject):
 
         if tau < 1:
             raise ValueError("tau must be >= 1 but got %d"%tau)
+
+        algorithm_str = algorithm
             
         if algorithm == "uniform+table":
             algorithm = DGS_DISC_GAUSS_UNIFORM_TABLE
         elif algorithm == "uniform+online":
             algorithm = DGS_DISC_GAUSS_UNIFORM_ONLINE
         elif algorithm == "uniform+logtable":
+            if (c%1):
+                raise ValueError("algorithm 'uniform+logtable' requires c%1 == 0")
             algorithm = DGS_DISC_GAUSS_UNIFORM_LOGTABLE
         elif algorithm == "sigma2+logtable":
+            if (c%1):
+                raise ValueError("algorithm 'uniform+logtable' requires c%1 == 0")
             algorithm = DGS_DISC_GAUSS_SIGMA2_LOGTABLE
         else:
             raise ValueError("Algorithm '%s' not supported by class 'DiscreteGaussianSampler'"%(algorithm))
@@ -152,9 +189,9 @@ cdef class DiscreteGaussianSampler(SageObject):
             self._gen_mp = dgs_disc_gauss_mp_init((<RealNumber>sigma).value, (<RealNumber>c).value, tau, algorithm)
             sig_off()
             self._gen_dp = NULL
-            self.sigma = sigma.parent()(0)
-            mpfr_set(self.sigma.value, self._gen_mp.sigma, GMP_RNDN)
-            self.c = c
+            self._sigma = sigma.parent()(0)
+            mpfr_set(self._sigma.value, self._gen_mp.sigma, GMP_RNDN)
+            self._c = c
         elif precision == "dp":
             RR = RealField()
             if not isinstance(sigma, RealNumber):
@@ -163,13 +200,13 @@ cdef class DiscreteGaussianSampler(SageObject):
             self._gen_dp = dgs_disc_gauss_dp_init(sigma, c, tau, algorithm)
             sig_off()
             self._gen_mp = NULL
-            self.sigma = RR(sigma)
-            self.c = RR(c)
+            self._sigma = RR(sigma)
+            self._c = RR(c)
         else:
             raise ValueError("Parameter precision '%s' not supported."%precision)
             
-        self.tau = Integer(tau)
-        self.algorithm = algorithm
+        self._tau = Integer(tau)
+        self._algorithm = algorithm_str
 
     def __clear__(self):
         """
@@ -220,7 +257,58 @@ cdef class DiscreteGaussianSampler(SageObject):
         
             sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
             sage: repr(DiscreteGaussianSampler(3.0, 2))
-            'Discrete Gaussian sampler with sigma = 3.000000  and c = 2'
+            'Discrete Gaussian sampler with sigma = 3.000000 and c = 2'
         """
-        return "Discrete Gaussian sampler with sigma = %f and c = %d"%(self.sigma, self.c)
+        return "Discrete Gaussian sampler with sigma = %f and c = %d"%(self._sigma, self._c)
 
+    @property
+    def sigma(self):
+        """
+        Gaussian parameter sigma.
+        
+        EXAMPLE::
+
+            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
+            sage: D = DiscreteGaussianSampler(3.0, 2); D.sigma
+            3.0...
+        """
+        return self._sigma
+
+    @property
+    def c(self):
+        """
+        Center of Gaussian distribution
+        
+        EXAMPLE::
+
+            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
+            sage: D = DiscreteGaussianSampler(3.0, 2); D.c
+            2.0...
+        """
+        return self._c
+
+    @property
+    def tau(self):
+        """
+        tails are cut at ceil(στ) (inclusive)
+        
+        EXAMPLE::
+
+            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
+            sage: D = DiscreteGaussianSampler(3.0, c=2); D.tau
+            6
+        """
+        return self._tau
+
+    @property
+    def algorithm(self):
+        """
+        Algorithm used ot sample elements.
+        
+        EXAMPLE::
+
+            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
+            sage: D = DiscreteGaussianSampler(3.0, 2); D.algorithm
+            'uniform+table'
+        """
+        return self._algorithm

@@ -82,6 +82,7 @@ static inline void _dgs_disc_gauss_mp_init_upper_bound(mpz_t upper_bound,
   mpz_init(upper_bound_minus_one);
   mpz_init(two_upper_bound_minus_one);
   mpfr_mul_ui(tmp, sigma, tailcut, MPFR_RNDN);
+  mpfr_add_ui(tmp, tmp, 1, MPFR_RNDN);
   mpfr_get_z(upper_bound, tmp, MPFR_RNDU);
   mpz_sub_ui(upper_bound_minus_one, upper_bound, 1);
   mpz_mul_ui(two_upper_bound_minus_one, upper_bound, 2);
@@ -128,8 +129,6 @@ dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, mpfr_t c, size_t tau, 
 
   self->tau = tau;
 
-  printf("c: %f, c_z: %ld, c_r: %f\n",mpfr_get_d(self->c, MPFR_RNDN), mpz_get_si(self->c_z), mpfr_get_d(self->c_r, MPFR_RNDN));
-  
   switch(algorithm) {
 
   case DGS_DISC_GAUSS_UNIFORM_ONLINE: {
@@ -138,6 +137,9 @@ dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, mpfr_t c, size_t tau, 
                                         self->two_upper_bound_minus_one,
                                         self->sigma, self->tau);
 
+    //printf("upper_bound: %ld, 2*upper_bound-1: %ld\n",mpz_get_si(self->upper_bound), mpz_get_si(self->two_upper_bound_minus_one));
+    //printf("c: %f, c_z: %ld, c_r: %f\n",mpfr_get_d(self->c, MPFR_RNDN), mpz_get_si(self->c_z), mpfr_get_d(self->c_r, MPFR_RNDN));
+    
     self->call = dgs_disc_gauss_mp_call_uniform_online;
     _dgs_disc_gauss_mp_init_f(self->f, self->sigma);
 
@@ -281,7 +283,7 @@ void dgs_disc_gauss_mp_call_uniform_table(mpz_t rop, dgs_disc_gauss_mp_t *self, 
 void dgs_disc_gauss_mp_call_uniform_online(mpz_t rop, dgs_disc_gauss_mp_t *self, gmp_randstate_t state) {
   do {
     mpz_urandomm(self->x, state, self->two_upper_bound_minus_one);
-    mpz_sub(self->x, self->x, self->upper_bound);
+    mpz_sub(self->x, self->x, self->upper_bound_minus_one);
     mpfr_set_z(self->z, self->x, MPFR_RNDN);
     mpfr_sub(self->z, self->z, self->c_r, MPFR_RNDN);
     mpfr_mul(self->z, self->z, self->z, MPFR_RNDN);

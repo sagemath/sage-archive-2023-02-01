@@ -2005,7 +2005,7 @@ class FiniteStateMachine(SageObject):
 
         - ``transition`` - a transition
 
-        - ``format_function'' - a function formatting the labels
+        - ``format_function`` - a function formatting the labels
 
         OUTPUT:
 
@@ -4410,7 +4410,7 @@ class Automaton(FiniteStateMachine):
 
         - ``transition`` - a transition
 
-        - ``format_function'' - a function formatting the labels
+        - ``format_function`` - a function formatting the labels
 
         OUTPUT:
 
@@ -4737,11 +4737,13 @@ class Transducer(FiniteStateMachine):
 
         - ``transition`` - a transition
 
-        - ``format_function'' - a function formatting the labels
+        - ``format_function`` - a function formatting the labels
 
         OUTPUT:
 
         A string.
+
+        EXAMPLES::
 
             sage: F = Transducer([('A', 'B', 1, 2)])
             sage: F._latex_()

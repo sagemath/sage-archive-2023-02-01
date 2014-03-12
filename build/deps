@@ -524,14 +524,3 @@ $(INST)/$(CVXOPT): $(INST)/$(NUMPY) \
 $(INST)/$(CEPHES):
 	+$(PIPE) "$(SAGE_SPKG) $(CEPHES) 2>&1" "tee -a $(SAGE_LOGS)/$(CEPHES).log"
 
-###############################################################################
-
-# setuptools forgets to update easy-install.pth during parallel
-# builds, so we build the relevant packages serially.
-
-$(INST)/$(PILLOW): $(INST)/$(PKGCONFIG)
-$(INST)/$(SQLALCHEMY): $(INST)/$(PILLOW)
-$(INST)/$(PYGMENTS): $(INST)/$(SQLALCHEMY)
-$(INST)/$(JINJA2): $(INST)/$(PYGMENTS)
-$(INST)/$(SPHINX): $(INST)/$(JINJA2)
-$(INST)/$(SAGENB): $(INST)/$(SPHINX)

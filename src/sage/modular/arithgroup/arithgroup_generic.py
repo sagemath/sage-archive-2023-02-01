@@ -1268,7 +1268,7 @@ class ArithmeticSubgroup(group.Group):
         Return self as an arithmetic subgroup defined in terms of the
         permutation action of `SL(2,\ZZ)` on its right cosets.
 
-        This method uses Todd-coxeter enumeration (via the method
+        This method uses Todd-Coxeter enumeration (via the method
         :meth:`~todd_coxeter`) which can be extremely slow for arithmetic
         subgroups with relatively large index in `SL(2,\ZZ)`.
 

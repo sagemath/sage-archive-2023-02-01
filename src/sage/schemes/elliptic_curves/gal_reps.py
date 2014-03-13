@@ -918,7 +918,7 @@ class GaloisRepresentation(SageObject):
         # if we find both an element of order 3 and one of order 4, we know that we have a S_4 in PGL_2
 
         if p == 5:
-            # we filter here a few cases and leave the rest to the computation of the galois group later
+            # we filter here a few cases and leave the rest to the computation of the Galois group later
             ell = 1
             k = GF(p)
             Np = self._E.conductor()*p
@@ -1078,7 +1078,7 @@ class GaloisRepresentation(SageObject):
             K = self._E.division_field(p, 'z')
             d = K.absolute_degree()
 
-            misc.verbose("field of degree %s.  try to compute galois group"%(d),2)
+            misc.verbose("field of degree %s.  try to compute Galois group"%(d),2)
             try:
                 G = K.galois_group()
             except Exception:

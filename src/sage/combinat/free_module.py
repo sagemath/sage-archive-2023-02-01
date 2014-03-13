@@ -95,9 +95,12 @@ class CombinatorialFreeModuleElement(Element):
         """
         return x in self._monomial_coefficients and self._monomial_coefficients[x] != 0
 
+    @cached_method
     def __hash__(self):
         """
-        Return a hash value for ``self``.
+        Return the hash value for ``self``.
+
+        The result is cached.
 
         EXAMPLES::
 

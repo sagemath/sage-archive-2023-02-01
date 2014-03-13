@@ -137,9 +137,9 @@ class Magmas(Category_singleton):
 
             INPUT:
 
-            - ``self`` -- a subcategory of :class:`Magmas`() and :class:`AdditiveMagmas`()
+            - ``self`` -- a subcategory of :class:`Magmas` and :class:`AdditiveMagmas`
 
-            Given that `Sage` does not know that
+            Given that Sage does not know that
             :class:`MagmasAndAdditiveMagmas` is the intersection of
             :class:`Magmas` and :class:`AdditiveMagmas`, the method
             :meth:`MagmasAndAdditiveMagmas.SubcategoryMethods.Distributive`

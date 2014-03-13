@@ -111,7 +111,7 @@ cdef class IndependentSets:
     It is also possible to define an an iterator over all independent sets of a
     given cardinality. Note, however, that Sage will generate them *all*, to
     return only those that satisfy the cardinality constraints. Getting the list
-    of independent sets of size 0 in this way can thus take a very long time::
+    of independent sets of size 4 in this way can thus take a very long time::
 
         sage: is4 = (x for x in IndependentSets(g) if len(x) == 4)
         sage: list(is4)
@@ -165,7 +165,7 @@ cdef class IndependentSets:
             ...       omega = max(map(len,IS))
             ...       IS2 = [Set([x]) for x in range(G.order())] + [Set([])]
             ...       for n in range(2,omega+1):
-            ...           IS2.extend(map(Set,list(G.subgraph_search_iterator(G.__class__(n), induced = True))))
+            ...           IS2.extend(map(Set,list(G.subgraph_search_iterator(Graph(n), induced = True))))
             ...       if len(IS) != len(set(IS2)):
             ...          print "Oops"
             ...          print len(IS), len(set(IS2))

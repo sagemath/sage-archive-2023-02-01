@@ -58,6 +58,7 @@ from sage.rings.real_mpfr          import RealField
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.symbolic.constants       import e
 from copy import copy
+from sage.parallel.multiprocessing_sage import parallel_iter
 
 
 class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
@@ -2432,13 +2433,20 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         PS=self.domain()
         RPS=PS.base_ring()
         all_preimages=set()
-        while points!=[]:
-            P=points.pop()
-            preimages=self.rational_preimages(P)
+        
+        parallelData = []
+        for P in points:
+            parallelData.append(((self,P,),{}))
+
+        parallelResults=list(parallel_iter(len(parallelData), self.rational_preimages, parallelData))
+
+        for result in parallelResults:
+            preimages = result[1]
             for i in range(len(preimages)):
                 if not preimages[i] in all_preimages:
                     points.append(preimages[i])
                     all_preimages.add(preimages[i])
+
         return(list(all_preimages))
 
     def rational_preperiodic_points(self,**kwds):

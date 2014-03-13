@@ -236,7 +236,7 @@ class ClassicalCrystals(Category_singleton):
                 sage: chiT in R
                 True
 
-            It should have the same cartan type and use the same
+            It should have the same Cartan type and use the same
             realization of the weight lattice as ``self``::
 
                 sage: R = WeylCharacterRing("A3", style="coroots")

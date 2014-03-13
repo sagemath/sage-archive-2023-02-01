@@ -129,7 +129,7 @@ def print_import_statement(module, name, lazy, answer=None):
         print_or_update("from %s import %s"%(module, name), answer)
 
 def import_statements(*objects, **options):
-    """
+    r"""
     Print import statements for the given objects.
 
     INPUT:
@@ -176,12 +176,16 @@ def import_statements(*objects, **options):
         from sage.rings.arith import euler_phi
 
         sage: import_statements(x)
+          **Warning**: x is affected as = _var('x')
         from sage.calculus.predefined import x
 
     If you don't like the warning you can disable them with the option ``verbose``::
 
         sage: import_statements(ZZ, verbose=False)
         from sage.rings.integer_ring import Z
+
+        sage: import_statements(x, verbose=False)
+        from sage.calculus.predefined import x
 
     If the object has several names, an other way to get the import
     statement you expect is to use a string instead of the object::
@@ -208,19 +212,35 @@ def import_statements(*objects, **options):
         sage: import_statements("print_import_statement")
         from sage.misc.dev_tools import print_import_statement
 
-    Sometimes objects are imported as an alias (from XXX import YYY as ZZZ) and
-    the function might dectect it::
+    Sometimes objects are imported as an alias (from XXX import YYY as ZZZ) or
+    are affected (XXX = YYY) and the function might dectect it::
 
         sage: import_statements('FareySymbol')
-          **Warning** : "FareySymbol" seems to be an alias for "Farey" defined in sage.modular.arithgroup.all
+          **Warning** : "FareySymbol" is an alias for "Farey"
         from sage.modular.arithgroup.all import FareySymbol
 
-    And one can actually check that FareySymbol is an alias::
+        sage: import_statements('sum')
+          **Warning** : "sum" is an alias for "symbolic_sum"
+        from sage.misc.all import sum
+
+        sage: import_statements('power')
+          **Warning** : "power" is an alias for "generic_power"
+        from sage.groups.generic import power
+
+        sage: import_statements('python_help')
+          **Warning**: python_help is affected as = pydoc.help
+        from sage.misc.sagedoc import python_help
+
+    And one can actually check that FareySymbol and sum are aliases::
 
         sage: from sage.misc import sageinspect
         sage: src = sageinspect.sage_getsource(sage.modular.arithgroup.all)
         sage: src.split('\n')[16]
         'from farey_symbol import Farey as FareySymbol'
+
+        sage: src = sageinspect.sage_getsource(sage.misc.all)
+        sage: src.split('\n')[150]
+        '                        symbolic_sum as sum,'
 
     We test different object which have no appropriate answer::
 
@@ -233,7 +253,6 @@ def import_statements(*objects, **options):
         ...
         ValueError: no import statement for 5
 
-
     We test that it behaves well with lazy imported objects (:trac:`14767`)::
 
         sage: import_statements(NN)
@@ -241,12 +260,20 @@ def import_statements(*objects, **options):
         sage: import_statements('NN')
         from sage.rings.semirings.non_negative_integer_semiring import NN
 
+    The following were fixed with :trac:`15351`::
+
+        sage: import_statements('Rationals')
+          **Warning**: Rationals is affected as = RationalField
+        from sage.rings.all import Rationals
+
+
     .. NOTE::
 
         The programmers try to made this function as smart as possible.
         Nevertheless it is far from being perfect (for example it does not
         detect deprecated stuff). So, if you use it, double check the answer and
         report weirdness behavior.
+
     """
     import inspect, sys, re
     import sage.all
@@ -311,6 +338,7 @@ def import_statements(*objects, **options):
             if names:
                 if verbose and len(names) > 1:
                     print "  ** Warning **: several names for that object: %s"%', '.join(names)
+
                 print_import_statement(module, names[0], lazy, answer)
                 continue
 
@@ -339,43 +367,46 @@ def import_statements(*objects, **options):
         not_all_modules = filter(lambda x: not x.endswith('all') and not x.endswith('all_cmdline'),
                 modules)
 
-        # Case 3: if the object is a class instance, we look for a
-        # module where it is instanciated
+        # Case 3: find a place where the object is instanciated/defined with "="
         module = None
         name = None
-        if sageinspect.isclassinstance(obj):
-            names_pattern = dict((name,re.compile("^%s\ *="%name, re.MULTILINE)) for name in all_names)
 
-            # if obj has a module we try to put the .all of that object at the beginig
-            if hasattr(obj, '__module__'):
-                module = obj.__module__
-                try:
-                    i = module.rindex('.')
-                    new_module = module[:i] + '.all'
-                except ValueError:
-                    new_module = module
+        names_pattern = dict((name, re.compile("^%s\ *=\ *([^\s]+)"%name, re.MULTILINE)) for name in all_names)
+        # if obj has a module we try to put the .all of that object at the beginig
+        if hasattr(obj, '__module__'):
+            module = obj.__module__
+            try:
+                i = module.rindex('.')
+                new_module = module[:i] + '.all'
+            except ValueError:
+                new_module = module
 
-                if new_module in modules:
-                    i = modules.index(new_module)
-                    del modules[i]
-                    modules.insert(0,new_module)
+            if new_module in modules:
+                i = modules.index(new_module)
+                del modules[i]
+                modules.insert(0,new_module)
 
-            for module in modules:
-                sources = sageinspect.sage_getsource(sys.modules[module])
-                for name in names[module]:
-                    if names_pattern[name].search(sources):
-                        break
-                else:
-                    continue
-                break
+        for module in modules:
+            sources = sageinspect.sage_getsource(sys.modules[module])
+            for name in names[module]:
+                m = names_pattern[name].search(sources)
+                if m:
+                    if verbose:
+                        print "  **Warning**: %s is affected as = %s"%(
+                                name,m.group(1))
+                    break
             else:
-                # we found nothing !!!
-                name = None
-                module = None
+                continue
+            break
+        else:
+            # we found nothing !!!
+            name = None
+            module = None
 
-        if name is None and len(not_all_modules) == 0:
-            # we suspect the name to be an alias
-            names_pattern = dict((name,re.compile("import\s+(\w+)\ +as\ +%s\s"%name, re.MULTILINE)) for name in all_names)
+        # Case 4: find a place where the object is instanciated/defined with "as"
+        if name is None:
+            # we check if the name is an alias (defined with as)
+            names_pattern = dict((name,re.compile("\s*(\w+)\ +as\ +%s[,\s\)]"%name, re.MULTILINE)) for name in all_names)
 
             for module in modules:
                 sources = sageinspect.sage_getsource(sys.modules[module])
@@ -383,8 +414,8 @@ def import_statements(*objects, **options):
                     m = names_pattern[name].search(sources)
                     if m:
                         if verbose:
-                            print "  **Warning** : \"%s\" seems to be an alias for \"%s\" defined in %s"%(
-                                    name,m.group(1),module)
+                            print "  **Warning** : \"%s\" is an alias for \"%s\""%(
+                                    name,m.group(1))
                         break
                 else:
                     continue
@@ -396,7 +427,6 @@ def import_statements(*objects, **options):
 
         # otherwise we pick the first guy
         if module is None or name is None:
-
             if not_all_modules:
                 module = not_all_modules[0]
             else:

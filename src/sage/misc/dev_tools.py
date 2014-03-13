@@ -5,7 +5,7 @@ AUTHORS:
 
 - Nicolas M. Thiery: initial version
 
-- Vincent Delecroix (2012): improve import_statements
+- Vincent Delecroix (2012 and 2013): improve import_statements
 """
 #*****************************************************************************
 #  Copyright (C) 2011 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -81,7 +81,17 @@ def runsnake(command):
     cProfile.runctx(preparse(command.lstrip().rstrip()), get_main_globals(), locals(), filename=tmpfile)
     os.system("/usr/bin/python -E `which runsnake` %s &"%tmpfile)
 
-def print_import_statement(module, name, lazy):
+def print_or_update(string, data):
+    r"""
+    if ``data`` is ``None`` then print the string otherwise append ``string`` to
+    the data.
+    """
+    if data is None:
+        print string
+    else:
+        data.append(string)
+
+def print_import_statement(module, name, lazy, answer=None):
     r"""
     Print an import statement.
 
@@ -101,9 +111,9 @@ def print_import_statement(module, name, lazy):
         lazy_import('sage.misc.dev_tools', 'print_import_statement')
     """
     if lazy:
-        print "lazy_import('%s', '%s')"%(module, name)
+        print_or_update("lazy_import('%s', '%s')"%(module, name), answer)
     else:
-        print "from %s import %s"%(module, name)
+        print_or_update("from %s import %s"%(module, name), answer)
 
 def import_statements(*objects, **options):
     """
@@ -118,6 +128,9 @@ def import_statements(*objects, **options):
 
     - ``verbose`` -- a boolean (default: ``True``)
       Whether to print information in case of ambiguity.
+
+    - ``answer_as_str`` -- a boolean (default: ``False``)
+      If ``True`` return a string instead of printing the statement.
 
     EXAMPLES::
 
@@ -211,26 +224,35 @@ def import_statements(*objects, **options):
     from sage.misc.flatten import flatten
     from sage.misc.lazy_import import LazyImport
 
+    answer_as_str = options.get("answer_as_str",False)
+    if answer_as_str:
+        answer = []
+    else:
+        answer = None
+
     lazy = options.get("lazy", False)
     verbose = options.get("verbose", True)
     if lazy:
-        print "from sage.misc.lazy_import import lazy_import"
+        print_or_update("from sage.misc.lazy_import import lazy_import", answer)
 
     for obj in objects:
         # if obj is a string use it has a name and look for an object
         if isinstance(obj, str):
             name = obj
-            if name in sage.all.__dict__:
-                obj = sage.all.__dict__[name]
-            else:
+            obj = sage.all.__dict__.get(name)
+            if obj is None:
                 # Look for the first module which contains that name.
                 # TODO: improve this heuristic.
                 for module in sys.modules.values():
                     if hasattr(module, '__dict__') and name in module.__dict__:
                         obj = module.__dict__[name]
                         break
+                else:
+                    raise ValueError("no import statement for %s"%name)
+
         else:
             name = None
+
 
         if isinstance(obj, LazyImport):
             obj = obj._get_object()
@@ -238,9 +260,9 @@ def import_statements(*objects, **options):
         # Case 1: the object is a module
         if inspect.ismodule(obj):
             if lazy:
-                print "lazy_import('%s')"%obj.__name__
+                print_or_update("lazy_import('%s')"%obj.__name__, answer)
             else:
-                print "import %s"%obj.__name__
+                print_or_update("import %s"%obj.__name__, answer)
             continue
 
         # Case 2: the object is defined in its module
@@ -252,14 +274,15 @@ def import_statements(*objects, **options):
 
         if module:
             d = sys.modules[module].__dict__
+            names = None
             if name is None:
                 names = sorted(key for key in d if d[key] is obj)
-            else:
+            elif name in d:
                 names = [name]
             if names:
                 if verbose and len(names) > 1:
                     print "  ** Warning **: several names for that object: %s"%', '.join(names)
-                print_import_statement(module, names[0], lazy)
+                print_import_statement(module, names[0], lazy, answer)
                 continue
 
 
@@ -271,7 +294,7 @@ def import_statements(*objects, **options):
 
                 if name is not None:
                     if name in d and d[name] is obj:
-                        names[module] = name
+                        names[module] = [name]
                 else:
                     n = [key for key in d if d[key] is obj]
                     if n:
@@ -298,6 +321,21 @@ def import_statements(*objects, **options):
         if sageinspect.isclassinstance(obj):
             names_pattern = dict((name,re.compile("^%s\ *="%name, re.MULTILINE)) for name in all_names)
 
+            # if obj has a module we try to put the .all of that object at the beginig
+            # (it at least solves the problem for CC and CIF)
+            if hasattr(obj, '__module__'):
+                module = obj.__module__
+                try:
+                    i = module.rindex('.')
+                    new_module = module[:i] + '.all'
+                except ValueError:
+                    new_module = module
+
+                if new_module in modules:
+                    i = modules.index(new_module)
+                    del modules[i]
+                    modules.insert(0,new_module)
+
             for module in modules:
                 sources = sageinspect.sage_getsource(sys.modules[module])
                 for name in names[module]:
@@ -311,6 +349,48 @@ def import_statements(*objects, **options):
             name = names[module][0]
 
         if name is not None:
-            print_import_statement(module, name, lazy)
+            print_import_statement(module, name, lazy, answer)
         else:
             raise ValueError("no import statement for %s"%obj)
+
+    if answer is not None:
+        return '\n'.join(answer)
+
+def which_import_statements_fail():
+    r"""
+    Run import statements on *all* objects and print the one for which the
+    import fails or return "from sage.all import my_object".
+
+    The returne value is a couple of lists. The first one corresponds to the
+    import_statements that answer "from sage.all import XXX" and the second
+    corresponds to the list of import_statements that fail.
+
+    TESTS::
+
+        sage: from sage.misc.dev_tools import which_import_statements_fail
+        sage: sage_all, errors = which_import_statements_fail() # long time
+        ** Warning **: several modules for that object: sage.all, sage.all_cmdline
+        ...
+        sage: errors          # long time
+        ['maxima_calculus']
+        sage: len(sage_all)   # long time
+        62
+    """
+    import sage.all
+    errors = []
+    sage_all = []
+    for name in sage.all.__dict__.iterkeys():
+        try:
+            to_test = import_statements(name, answer_as_str=True)
+        except ValueError:
+            errors.append(name)
+            continue
+
+        if to_test.startswith('from sage.all import'):
+            sage_all.append(name)
+            continue
+        try:
+            exec import_statements(name, answer_as_str=True)
+        except ImportError:
+            errors.append(name)
+    return sage_all, errors

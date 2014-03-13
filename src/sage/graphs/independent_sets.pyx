@@ -72,6 +72,13 @@ cdef class IndependentSets:
         sligthly different from this one, and that would be a good thing to
         explore if one wants to improve the implementation.
 
+    .. TODO::
+
+        - Improve the implementation (see the above note).
+
+        - Allow iteration through independent set with given size bounds
+          (min_nb_vertices, max_nb_vertices)
+
     EXAMPLES:
 
     Listing all independent sets of the Claw graph::

@@ -638,6 +638,27 @@ class PolynomialFunctor(ConstructionFunctor):
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         return PolynomialRing(R, self.var, sparse=self.sparse)
 
+    def _apply_functor_to_morphism(self, f):
+        """
+        Apply the functor ``self`` to the morphism `f`.
+
+        TEST::
+
+            sage: P = ZZ['x'].construction()[0]
+            sage: P(ZZ.hom(GF(3)))
+            Ring morphism:
+              From: Univariate Polynomial Ring in x over Integer Ring
+              To:   Univariate Polynomial Ring in x over Finite Field of size 3
+              Defn: Induced from base ring by
+                    Ring Coercion morphism:
+                      From: Integer Ring
+                      To:   Finite Field of size 3
+        """
+        from sage.rings.polynomial.polynomial_ring_homomorphism import PolynomialRingHomomorphism_from_base
+        R = self._apply_functor(f.domain())
+        S = self._apply_functor(f.codomain())
+        return PolynomialRingHomomorphism_from_base(R.Hom(S), f)
+
     def __cmp__(self, other):
         """
         TESTS::

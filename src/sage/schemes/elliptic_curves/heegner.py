@@ -3124,7 +3124,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         return self.__x.quadratic_form()
 
     @cached_method
-    def numerical_approx(self, prec=53):
+    def numerical_approx(self, prec=53, algorithm=None):
         """
         Return a numerical approximation to this Heegner point
         computed using a working precision of prec bits.

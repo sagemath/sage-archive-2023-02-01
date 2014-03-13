@@ -923,6 +923,47 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 for iv in sage.combinat.integer_vector.IntegerVectors(weight, number_of_entries, max_part=(order-1)):
                    yield self(entries=[base_elements[i] for i in iv])
 
+    def __getitem__(self, x):
+        """
+        Return a polynomial ring over this ring or the `n`-th element of this ring.
+
+        This method implements the syntax ``R['x']`` to define polynomial rings
+        over matrix rings, while still allowing to get the `n`-th element of a
+        finite matrix ring with ``R[n]`` for backward compatibility.
+
+        (If this behaviour proves desirable for all finite enumerated rings, it
+        should eventually be implemented in the corresponding category rather
+        than here.)
+
+        ..SEEALSO::
+
+            :meth:`sage.categories.rings.Rings.ParentMethod.__getitem__`,
+            :meth:`sage.structure.parent.Parent.__getitem__`
+
+        EXAMPLES::
+
+            sage: MS = MatrixSpace(GF(3), 2, 2)
+            sage: MS['x']
+            Univariate Polynomial Ring in x over Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 3
+            sage: MS[0]
+            [0 0]
+            [0 0]
+            sage: MS[9]
+            [0 2]
+            [0 0]
+
+            sage: MS = MatrixSpace(QQ, 7)
+            sage: MS['x']
+            Univariate Polynomial Ring in x over Full MatrixSpace of 7 by 7 dense matrices over Rational Field
+            sage: MS[2]
+            Traceback (most recent call last):
+            ...
+            ValueError: since it is infinite, cannot list Full MatrixSpace of 7 by 7 dense matrices over Rational Field
+        """
+        if isinstance(x, (int, long, integer.Integer)):
+            return self.list()[x]
+        return Rings.ParentMethods.__getitem__.__func__(self, x)
+
     def _get_matrix_class(self):
         r"""
         Returns the class of self

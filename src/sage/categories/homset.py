@@ -67,6 +67,9 @@ AUTHORS:
 from sage.categories.category import Category
 import morphism
 from sage.structure.parent import Parent, Set_generic
+from sage.misc.fast_methods import WithEqualityById
+from sage.structure.dynamic_class import dynamic_class
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.constant_function import ConstantFunction
 from sage.misc.lazy_attribute import lazy_attribute
 import types
@@ -285,15 +288,51 @@ def Hom(X, Y, category=None):
             return H
 
     # Determines the category
-    cat_X = X.category()
-    cat_Y = Y.category()
     if category is None:
-        category = cat_X._meet_(cat_Y)
+        category = X.category()._meet_(Y.category())
         # Recurse to make sure that Hom(X, Y) and Hom(X, Y, category) are identical
         H = Hom(X, Y, category)
     else:
         if not isinstance(category, Category):
             raise TypeError, "Argument category (= %s) must be a category."%category
+        # See trac #14793: It can happen, that Hom(X,X) is called during
+        # unpickling of an instance X of a Python class at a time when
+        # X.__dict__ is empty.  In some of these cases, X.category() would
+        # raise a error or would return a too large category (Sets(), for
+        # example) and (worse!) would assign this larger category to the
+        # X._category cdef attribute, so that it would subsequently seem that
+        # X's category was properly initialised.
+
+        # However, if the above scenario happens, then *before* calling
+        # X.category(), X._is_category_initialised() will correctly say that
+        # it is not initialised. Moreover, since X.__class__ is a Python
+        # class, we will find that `isinstance(X, category.parent_class)`. If
+        # this is the case, then we trust that we indeed are in the process of
+        # unpickling X.  Hence, we will trust that `category` has the correct
+        # value, and we will thus skip the test whether `X in category`.
+        try:
+            unpickle_X = (not X._is_category_initialized()) and isinstance(X,category.parent_class)
+        except AttributeError: # this happens for simplicial complexes
+            unpickle_X = False
+        try:
+            unpickle_Y = (not Y._is_category_initialized()) and isinstance(Y,category.parent_class)
+        except AttributeError:
+            unpickle_Y = False
+        if unpickle_X:
+            cat_X = category
+        else:
+            try:
+                cat_X = X.category()
+            except BaseException:
+                raise TypeError, "%s is not in %s"%(X, category)
+        if unpickle_Y:
+            cat_Y = category
+        else:
+            try:
+                cat_Y = Y.category()
+            except BaseException:
+                raise TypeError, "%s is not in %s"%(Y, category)
+
         if not cat_X.is_subcategory(category):
             raise TypeError, "%s is not in %s"%(X, category)
         if not cat_Y.is_subcategory(category):
@@ -316,6 +355,12 @@ def Hom(X, Y, category=None):
                 # By default, construct a plain homset.
                 H = Homset(X, Y, category = category)
     _cache[key] = H
+    if isinstance(X, UniqueRepresentation) and isinstance(Y, UniqueRepresentation):
+        if not isinstance(H, WithEqualityById):
+            try:
+                H.__class__ = dynamic_class(H.__class__.__name__+"_with_equality_by_id", (WithEqualityById, H.__class__), doccls=H.__class__)
+            except BaseException:
+                pass
     return H
 
 def hom(X, Y, f):
@@ -401,11 +446,21 @@ class Homset(Set_generic):
     EXAMPLES::
 
         sage: H = Hom(QQ^2, QQ^3)
-        sage: loads(H.dumps()) == H
+        sage: loads(H.dumps()) is H
         True
-        sage: E = End(AffineSpace(2, names='x,y'))
-        sage: loads(E.dumps()) == E
+
+    Homsets of non-unique parents are non-unique as well::
+
+        sage: H = End(AffineSpace(2, names='x,y'))
+        sage: loads(dumps(AffineSpace(2, names='x,y'))) is AffineSpace(2, names='x,y')
+        False
+        sage: loads(dumps(AffineSpace(2, names='x,y'))) == AffineSpace(2, names='x,y')
         True
+        sage: loads(dumps(H)) is H
+        False
+        sage: loads(dumps(H)) == H
+        True
+
     """
     def __init__(self, X, Y, category=None, base = None, check=True):
         r"""
@@ -452,6 +507,30 @@ class Homset(Set_generic):
             #    raise TypeError, "Y (=%s) must be in category (=%s)"%(Y, category)
 
         Parent.__init__(self, base = base, category = category.hom_category())
+
+    def __reduce__(self):
+        """
+        Pickling, using the cache of the :func:`~sage.categories.homset.Hom` function.
+
+        TESTS::
+
+            sage: H = Hom(QQ^2, QQ^3)
+            sage: loads(H.dumps()) is H
+            True
+
+        Homsets of non-unique parents are non-unique as well::
+
+            sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
+            sage: G is loads(dumps(G))
+            False
+            sage: H = Hom(G,G)
+            sage: H is loads(dumps(H))
+            False
+            sage: H == loads(dumps(H))
+            True
+
+        """
+        return Hom, (self._domain, self._codomain, self.__category)
 
     def _repr_(self):
         """
@@ -527,10 +606,13 @@ class Homset(Set_generic):
                               Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
                               Defn: t |--> 2*t
                     then
-                      Conversion map:
+                      Ring morphism:
                       From: Univariate Polynomial Ring in t over Integer Ring
                       To:   Univariate Polynomial Ring in t over Rational Field
-
+                      Defn: Induced from base ring by
+                            Natural morphism:
+                              From: Integer Ring
+                              To:   Rational Field
         """
         if self._element_constructor is None:
             from sage.categories.morphism import CallMorphism

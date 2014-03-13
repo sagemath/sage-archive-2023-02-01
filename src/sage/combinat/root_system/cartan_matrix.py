@@ -224,7 +224,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             sage: cm.index_set()
             ('a', 'b')
         """
-        # Special case with 0 args and kwds has cartan type
+        # Special case with 0 args and kwds has Cartan type
         if "cartan_type" in kwds and len(args) == 0:
             args = (CartanType(kwds["cartan_type"]),)
         if len(args) == 0:

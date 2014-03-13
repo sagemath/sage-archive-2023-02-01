@@ -85,6 +85,19 @@ def print_or_update(string, data):
     r"""
     if ``data`` is ``None`` then print the string otherwise append ``string`` to
     the data.
+
+    TESTS::
+
+        sage: from sage.misc.dev_tools import print_or_update
+        sage: my_list = []
+        sage: print_or_update("hello", None)
+        hello
+        sage: print_or_update("hello", my_list)
+        sage: print_or_update(" ", my_list)
+        sage: print_or_update("world", my_list)
+        sage: print_or_update("!", my_list)
+        sage: print ''.join(my_list)
+        hello world!
     """
     if data is None:
         print string
@@ -170,9 +183,6 @@ def import_statements(*objects, **options):
         sage: import_statements(ZZ, verbose=False)
         from sage.rings.integer_ring import Z
 
-        sage: import_statements(x, verbose=False)
-        from sage.calculus.predefined import x
-
     If the object has several names, an other way to get the import
     statement you expect is to use a string instead of the object::
 
@@ -184,20 +194,6 @@ def import_statements(*objects, **options):
         from sage.misc.cachefunc import cached_function
         sage: import_statements('Z')
         from sage.rings.integer_ring import Z
-
-    Sometimes objects are imported as an alias (from XXX import YYY as ZZZ), the
-    function tries to detect this and print a Warning if it is::
-
-        sage: import_statements('FareySymbol')
-          **Warning** : "FareySymbol" seems to be an alias for "Farey" defined in sage.modular.arithgroup.all
-        from sage.modular.arithgroup.all import FareySymbol
-
-    And one can actually check that FareySymbol is an alias::
-
-        sage: from sage.misc import sageinspect
-        sage: src = sageinspect.sage_getsource(sage.modular.arithgroup.all)
-        sage: src.split('\n')[16]
-        'from farey_symbol import Farey as FareySymbol'
 
     Specifying a string is also useful for objects that are not
     imported in the Sage interpreter namespace by default. In this
@@ -212,6 +208,20 @@ def import_statements(*objects, **options):
         sage: import_statements("print_import_statement")
         from sage.misc.dev_tools import print_import_statement
 
+    Sometimes objects are imported as an alias (from XXX import YYY as ZZZ) and
+    the function might dectect it::
+
+        sage: import_statements('FareySymbol')
+          **Warning** : "FareySymbol" seems to be an alias for "Farey" defined in sage.modular.arithgroup.all
+        from sage.modular.arithgroup.all import FareySymbol
+
+    And one can actually check that FareySymbol is an alias::
+
+        sage: from sage.misc import sageinspect
+        sage: src = sageinspect.sage_getsource(sage.modular.arithgroup.all)
+        sage: src.split('\n')[16]
+        'from farey_symbol import Farey as FareySymbol'
+
     We test different object which have no appropriate answer::
 
         sage: import_statements('my_tailor_is_rich')
@@ -224,13 +234,19 @@ def import_statements(*objects, **options):
         ValueError: no import statement for 5
 
 
-
     We test that it behaves well with lazy imported objects (:trac:`14767`)::
 
         sage: import_statements(NN)
         from sage.rings.semirings.non_negative_integer_semiring import NN
         sage: import_statements('NN')
         from sage.rings.semirings.non_negative_integer_semiring import NN
+
+    .. NOTE::
+
+        The programmers try to made this function as smart as possible.
+        Nevertheless it is far from being perfect (for example it does not
+        detect deprecated stuff). So, if you use it, double check the answer and
+        report weirdness behavior.
     """
     import inspect, sys, re
     import sage.all
@@ -238,8 +254,7 @@ def import_statements(*objects, **options):
     from sage.misc.flatten import flatten
     from sage.misc.lazy_import import LazyImport
 
-    answer_as_str = options.get("answer_as_str",False)
-    if answer_as_str:
+    if options.get("answer_as_str", False):
         answer = []
     else:
         answer = None
@@ -332,7 +347,6 @@ def import_statements(*objects, **options):
             names_pattern = dict((name,re.compile("^%s\ *="%name, re.MULTILINE)) for name in all_names)
 
             # if obj has a module we try to put the .all of that object at the beginig
-            # (it at least solves the problem for CC and CIF)
             if hasattr(obj, '__module__'):
                 module = obj.__module__
                 try:
@@ -404,43 +418,3 @@ def import_statements(*objects, **options):
 
     if answer is not None:
         return '\n'.join(answer)
-
-def which_import_statements_fail():
-    r"""
-    Run import statements on the objects available from the global namespace and
-    print the ones for which the import fails or return "from sage.all import my_object".
-
-    The returne value is a couple of lists. The first one corresponds to the
-    import_statements that answer "from sage.all import XXX" and the second
-    corresponds to the list of import_statements that fail.
-
-    TESTS::
-
-        sage: from sage.misc.dev_tools import which_import_statements_fail
-        sage: sage_all, errors = which_import_statements_fail()
-          ** Warning **: __builtins__ does not exist outside all.py files
-        ...
-        sage: errors
-        []
-        sage: sage_all
-        ['__file__', '__package__', '__name__', '__doc__']
-    """
-    import sage.all
-    errors = []
-    sage_all = []
-    for name in globals():
-        try:
-            to_test = import_statements(name, answer_as_str=True)
-        except ValueError:
-            errors.append(name)
-            continue
-
-        if to_test.startswith('from sage.all import'):
-            sage_all.append(name)
-            continue
-        try:
-            #TODO: this potentially modifies the namespace !!
-            exec import_statements(name, answer_as_str=True)
-        except ImportError:
-            errors.append(name)
-    return sage_all, errors

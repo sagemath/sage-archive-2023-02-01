@@ -72,12 +72,9 @@ cdef class IndependentSets:
         sligthly different from this one, and that would be a good thing to
         explore if one wants to improve the implementation.
 
-    .. TODO::
-
-        - Improve the implementation (see the above note).
-
-        - Allow iteration through independent set with given size bounds
-          (min_nb_vertices, max_nb_vertices)
+        A simple generalization can also be done without too much modifications:
+        iteration through independent sets with given size bounds
+        (minimum and maximum number of vertices allowed).
 
     EXAMPLES:
 

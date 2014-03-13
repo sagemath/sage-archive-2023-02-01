@@ -10,8 +10,6 @@ Distributive Magmas and Additive Magmas
 
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom
-from sage.categories.additive_magmas import AdditiveMagmas
-from sage.categories.magmas import Magmas
 
 class DistributiveMagmasAndAdditiveMagmas(CategoryWithAxiom):
     """

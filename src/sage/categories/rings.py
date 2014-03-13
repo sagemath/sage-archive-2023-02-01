@@ -911,7 +911,6 @@ def _gen_names(elts):
     """
     import re
     from sage.structure.parent_gens import _certify_names
-    from sage.symbolic.ring import is_SymbolicVariable
     from sage.combinat.words.words import Words
     it = iter(Words("abcdefghijklmnopqrstuvwxyz"))
     it.next() # skip empty word

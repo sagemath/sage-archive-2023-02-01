@@ -402,6 +402,11 @@ class GenericCombinatorialSpecies(SageObject):
 
             sage: One = species.EmptySetSpecies()
             sage: X = species.SingletonSpecies()
+            sage: X^2
+            Product of (Singleton species) and (Singleton species)
+            sage: X^5
+            Product of (Singleton species) and (Product of (Product of (Singleton species) and (Singleton species)) and (Product of (Singleton species) and (Singleton species)))
+
             sage: (X^2).generating_series().coefficients(4)
             [0, 0, 1, 0]
             sage: (X^3).generating_series().coefficients(4)

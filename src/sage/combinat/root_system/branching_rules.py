@@ -1081,7 +1081,7 @@ class BranchingRule(SageObject):
             composite branching rule A3 => (isomorphic) D3 => (symmetric) B2 => (levi) A1
             sage: d == e
             False
-            sage: b1 = BranchingRule("A2","A2",lambda x : [x[2], x[1], x[0]], "long weyl element conjugation")
+            sage: b1 = BranchingRule("A2","A2",lambda x : [x[2], x[1], x[0]], "long Weyl element conjugation")
             sage: b2 = BranchingRule("A2","A2",lambda x : x, "identity map")
             sage: b1 == b2
             False

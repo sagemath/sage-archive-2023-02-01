@@ -69,7 +69,6 @@ AUTHORS:
 include "sage/ext/stdsage.pxi"
 from cpython.bool cimport *
 
-import re
 from types import GeneratorType
 
 from sage.misc.lazy_attribute import lazy_class_attribute
@@ -208,155 +207,6 @@ cdef class Ring(ParentWithGens):
         if self.is_finite():
             return self.cardinality()
         raise TypeError, 'len() of unsized object'
-
-    def __getitem__(self, x):
-        """
-        Create a polynomial or power series ring over ``self`` and inject
-        the variables into the global module scope.
-
-        If ``x`` is an algebraic element, this will return an extension of
-        ``self`` that contains ``x``.
-
-        EXAMPLES:
-
-        We create several polynomial rings::
-
-            sage: ZZ['x']
-            Univariate Polynomial Ring in x over Integer Ring
-            sage: QQ['x']
-            Univariate Polynomial Ring in x over Rational Field
-            sage: GF(17)['abc']
-            Univariate Polynomial Ring in abc over Finite Field of size 17
-            sage: GF(17)['a,b,c']
-            Multivariate Polynomial Ring in a, b, c over Finite Field of size 17
-
-        We can also create power series rings by using double brackets::
-
-            sage: QQ[['t']]
-            Power Series Ring in t over Rational Field
-            sage: ZZ[['W']]
-            Power Series Ring in W over Integer Ring
-
-            sage: ZZ[['x,y,z']]
-            Multivariate Power Series Ring in x, y, z over Integer Ring
-            sage: ZZ[['x','T']]
-            Multivariate Power Series Ring in x, T over Integer Ring
-
-        Use ``Frac`` (for fraction field) to obtain a Laurent series ring::
-
-            sage: Frac(QQ[['t']])
-            Laurent Series Ring in t over Rational Field
-
-        This can be used to create number fields too::
-
-            sage: QQ[I]
-            Number Field in I with defining polynomial x^2 + 1
-            sage: QQ[sqrt(2)]
-            Number Field in sqrt2 with defining polynomial x^2 - 2
-            sage: QQ[sqrt(2),sqrt(3)]
-            Number Field in sqrt2 with defining polynomial x^2 - 2 over its base field
-
-        and orders in number fields::
-
-            sage: ZZ[I]
-            Order in Number Field in I with defining polynomial x^2 + 1
-            sage: ZZ[sqrt(5)]
-            Order in Number Field in sqrt5 with defining polynomial x^2 - 5
-            sage: ZZ[sqrt(2)+sqrt(3)]
-            Order in Number Field in a with defining polynomial x^4 - 10*x^2 + 1
-        """
-
-        from sage.rings.polynomial.polynomial_element import is_Polynomial
-        if is_Polynomial(x):
-            x = str(x)
-
-        if not isinstance(x, str):
-            if isinstance(x, tuple):
-                v = x
-            else:
-                v = (x,)
-
-            minpolys = None
-            try:
-                minpolys = [a.minpoly() for a in v]
-            except (AttributeError, NotImplementedError, ValueError, TypeError), err:
-                pass
-
-            if minpolys:
-                R = self
-                # how to pass in names?
-                # TODO: set up embeddings
-                name_chr = 97 # a
-
-                if len(minpolys) > 1:
-                    w = []
-                    names = []
-                    for poly, var in zip(minpolys, v):
-                        w.append(poly)
-                        n, name_chr = gen_name(repr(var), name_chr)
-                        names.append(n)
-                else:
-                    w = minpolys
-                    name, name_chr = gen_name(repr(v[0]), name_chr)
-                    names = [name]
-
-                names = tuple(names)
-                if len(w) > 1:
-                    try:
-                        # Doing the extension all at once is best, if possible.
-                        return R.extension(w, names)
-                    except (TypeError, ValueError):
-                        pass
-                for poly, var in zip(w, names):
-                    R = R.extension(poly, var)
-                return R
-
-        if not isinstance(x, list):
-            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-            P = PolynomialRing(self, x)
-            return P
-
-        P = None
-        if isinstance(x, list):
-            if len(x) == 1:
-                if isinstance(x[0], str):
-                    x = x[0].split(',')
-            x = tuple([str(j) for j in x])
-
-            from sage.rings.power_series_ring import PowerSeriesRing
-            P = PowerSeriesRing
-
-
-        # TODO: is this code ever used? Should it be?
-
-        elif isinstance(x, (tuple, str)):
-            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-            P = PolynomialRing
-            if isinstance(x, tuple):
-                y = []
-                for w in x:
-                    y.append(str(w))
-                x = tuple(y)
-
-        else:
-            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-            P = PolynomialRing
-            x = (str(x),)
-
-        if P is None:
-            raise NotImplementedError
-
-        if isinstance(x, tuple):
-            v = x
-        else:
-            v = x.split(',')
-
-        if len(v) > 1:
-            R = P(self, len(v), names=v)
-        else:
-            R = P(self, x)
-
-        return R
 
     def __xor__(self, n):
         r"""
@@ -867,29 +717,6 @@ cdef class Ring(ParentWithGens):
         return self._one_element
 
     one = one_element # Transitional
-
-    def is_zero(self):
-        """
-        Return ``True`` if this is the zero ring.
-
-        EXAMPLES::
-
-            sage: Integers(1).is_zero()
-            True
-            sage: Integers(2).is_zero()
-            False
-            sage: QQ.is_zero()
-            False
-            sage: R.<x> = ZZ[]
-            sage: R.quo(1).is_zero()
-            True
-            sage: R.<x> = GF(101)[]
-            sage: R.quo(77).is_zero()
-            True
-            sage: R.quo(x^2+1).is_zero()
-            False
-        """
-        return self.one_element() == self.zero_element()
 
     def is_commutative(self):
         """
@@ -2472,37 +2299,3 @@ def is_Ring(x):
     # TODO: use the idiom `x in _Rings` as soon as all rings will be
     # in the category Rings()
     return isinstance(x, Ring) or x in _Rings
-
-from sage.structure.parent_gens import _certify_names
-
-def gen_name(x, name_chr):
-    r"""
-    Used to find a name for a generator when rings are created using the
-    ``__getitem__`` syntax, e.g. ``ZZ['x']``. If ``x`` is a symbolic variable,
-    return the name of ``x``; if ``x`` is the symbolic square root of a
-    positive integer `d`, return "sqrtd"; else, return a letter of the
-    alphabet and increment a counter to avoid that letter being used again.
-
-    EXAMPLES::
-
-        sage: from sage.rings.ring import gen_name
-        sage: gen_name(sqrt(5), 1)
-        ('sqrt5', 1)
-        sage: gen_name(sqrt(-17), 88)
-        ('X', 89)
-        sage: gen_name(x, 1)
-        ('x', 1)
-    """
-    from sage.symbolic.ring import is_SymbolicVariable
-    if is_SymbolicVariable(x):
-        return repr(x), name_chr
-    name = str(x)
-    m = re.match('^sqrt\((\d+)\)$', name)
-    if m:
-        name = "sqrt%s" % m.groups()[0]
-    try:
-        _certify_names([name])
-    except ValueError, msg:
-        name = chr(name_chr)
-        name_chr += 1
-    return name, name_chr

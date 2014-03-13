@@ -138,7 +138,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pol = pari("x^3 + 5/3*x"); pol.list()
             [0, 5/3, 0, 1]
 
-        For power series or laurent series, we get all coefficients starting
+        For power series or Laurent series, we get all coefficients starting
         from the lowest degree term.  This includes trailing zeros::
 
             sage: R.<x> = LaurentSeriesRing(QQ)
@@ -1528,11 +1528,19 @@ cdef class gen(sage.structure.element.RingElement):
             False
             sage: n.isprime(2)
             False
+            sage: n = pari(2^31-1)
+            sage: n.isprime(1)
+            (True, [2, 3, 1; 3, 5, 1; 7, 3, 1; 11, 3, 1; 31, 2, 1; 151, 3, 1; 331, 3, 1])
         """
+        cdef GEN x
         pari_catch_sig_on()
-        cdef long t = signe(gisprime(self.g, flag))
-        P.clear_stack()
-        return t != 0
+        x = gisprime(self.g, flag)
+        if typ(x) != t_INT:
+            # case flag=1 with prime input: x is the certificate
+            return True, P.new_gen(x)
+        else:
+            pari_catch_sig_off()
+            return signe(x) != 0
 
     def qfbhclassno(gen n):
         r"""
@@ -1595,7 +1603,8 @@ cdef class gen(sage.structure.element.RingElement):
         OUTPUT:
 
 
-        -  ``bool`` - True or False
+        -  ``bool`` - True or False, or when flag=1, either False or a tuple
+           (True, cert) where ``cert`` is a primality certificate.
 
 
         EXAMPLES::
@@ -3718,7 +3727,7 @@ cdef class gen(sage.structure.element.RingElement):
     def _valp(gen x):
         """
         Return the valuation of x where x is a p-adic number (t_PADIC)
-        or a laurent series (t_SER).  If x is a different type, this
+        or a Laurent series (t_SER).  If x is a different type, this
         will give a bogus number.
 
         EXAMPLES::

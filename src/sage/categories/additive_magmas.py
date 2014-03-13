@@ -2,7 +2,7 @@ r"""
 Additive Magmas
 """
 #*****************************************************************************
-#  Copyright (C) 2010-2012 Nicolas M. Thiery <nthiery at users.sf.net>
+#  Copyright (C) 2010-2014 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -20,8 +20,9 @@ from sage.structure.sage_object import have_same_parent
 
 class AdditiveMagmas(Category_singleton):
     """
-    The category of additive magmas, i.e. sets with an binary
-    operation ``+``.
+    The category of additive magmas.
+
+    An additive magma is a set endowed with a binary operation `+`.
 
     EXAMPLES::
 
@@ -70,7 +71,7 @@ class AdditiveMagmas(Category_singleton):
         @cached_method
         def AdditiveAssociative(self):
             """
-            Returns the full subcategory of the additive associative objects of ``self``.
+            Return the full subcategory of the additive associative objects of ``self``.
 
             EXAMPLES::
 
@@ -88,7 +89,7 @@ class AdditiveMagmas(Category_singleton):
         @cached_method
         def AdditiveCommutative(self):
             """
-            Returns the full subcategory of the commutative objects of ``self``.
+            Return the full subcategory of the commutative objects of ``self``.
 
             EXAMPLES::
 
@@ -110,7 +111,7 @@ class AdditiveMagmas(Category_singleton):
         @cached_method
         def AdditiveUnital(self):
             r"""
-            Returns the full subcategory of the unital objects of ``self``.
+            Return the subcategory of the unital objects of ``self``.
 
             EXAMPLES::
 
@@ -195,7 +196,7 @@ class AdditiveMagmas(Category_singleton):
 
         def addition_table(self, names='letters', elements=None):
             r"""
-            Returns a table describing the addition operation.
+            Return a table describing the addition operation.
 
             .. note:: The order of the elements in the row and column
               headings is equal to the order given by the table's
@@ -420,7 +421,7 @@ class AdditiveMagmas(Category_singleton):
 
         def _add_parent(self, other):
             r"""
-            Returns the sum of the two elements, calculated using
+            Return the sum of the two elements, calculated using
             the ``summation`` method of the parent.
 
             This is the default implementation of _add_ if
@@ -522,7 +523,15 @@ class AdditiveMagmas(Category_singleton):
             @cached_method
             def AdditiveInverse(self):
                 r"""
-                Returns the full subcategory of the unital objects of ``self``.
+                Return the full subcategory of the additive inverse objects of ``self``.
+
+                An inverse :class:`additive magma <AdditiveMagmas>` is
+                a :class:`unital additive magma <AdditiveMagmas.Unital>`
+                such that every element admits both an additive
+                inverse on the left and on the right. Such an additive
+                magma is also called an *additive loop*.
+
+                .. SEEALSO:: :wikipedia:`Inverse_element`, :wikipedia:`Quasigroup`
 
                 EXAMPLES::
 
@@ -584,7 +593,7 @@ class AdditiveMagmas(Category_singleton):
             @cached_method
             def zero(self):
                 """
-                Returns the zero of the abelian monoid, that is the unique neutral element for `+`.
+                Return the zero of the abelian monoid, that is the unique neutral element for `+`.
 
                 The default implementation is to coerce 0 into self.
 
@@ -639,7 +648,7 @@ class AdditiveMagmas(Category_singleton):
             @abstract_method
             def __nonzero__(self):
                 """
-                Returns whether ``self`` is not zero
+                Return whether ``self`` is not zero
 
                 All parents in the category ``CommutativeAdditiveMonoids()``
                 should implement this method.
@@ -691,7 +700,7 @@ class AdditiveMagmas(Category_singleton):
                 @cached_method
                 def one_basis(self):
                     """
-                    Returns the zero of this additive monoid, which index the one of this algebra,
+                    Return the zero of this additive monoid, which index the one of this algebra,
                     as per
                     :meth:`AlgebrasWithBasis.ParentMethods.one_basis()
                     <sage.categories.algebras_with_basis.AlgebrasWithBasis.ParentMethods.one_basis>`.
@@ -716,7 +725,7 @@ class AdditiveMagmas(Category_singleton):
 
                 def zero(self):
                     r"""
-                    Returns the zero of this unital additive magma
+                    Return the zero of this unital additive magma
 
                     This default implementation returns the zero of the
                     realization of ``self`` given by :meth:`~Sets.WithRealizations.ParentMethods.a_realization`.

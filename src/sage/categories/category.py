@@ -107,7 +107,6 @@ from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.dynamic_class import DynamicMetaclass, dynamic_class
 
-import sage.misc.weak_dict
 from sage.misc.weak_dict import WeakValueDictionary
 _join_cache = WeakValueDictionary()
 
@@ -2857,7 +2856,7 @@ class JoinCategory(CategoryWithParameters):
     def _without_axioms(self, named=False):
         """
         When adjoining axioms to a category, one often gets a join
-        categories; this methods tries to recover the original
+        category; this method tries to recover the original
         category from this join category.
 
         INPUT:

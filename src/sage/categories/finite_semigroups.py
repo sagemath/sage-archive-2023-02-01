@@ -4,7 +4,7 @@ Finite semigroups
 #*****************************************************************************
 #  Copyright (C) 2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #                2008-2009 Florent Hivert <florent.hivert at univ-rouen.fr>
-#                2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2008-2014 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -17,8 +17,22 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 class FiniteSemigroups(CategoryWithAxiom):
     r"""
-    The category of (multiplicative) finite semigroups,
-    i.e. enumerated sets with an associative operation ``*``.
+    The category of finite (multiplicative) :class:`semigroups <Semigroups>`,
+    i.e., :class:`finite sets <FiniteSets>` endowed with an
+    associative binary operation `*`.
+
+    .. NOTE::
+
+        A finite semigroup in Sage is currently automatically endowed
+        with an :class:`enumerated set EnumeratedSets` structure, with
+        the default enumeration being obtained by iteratively
+        multiplying the semigroup generators (see
+        :meth:`FiniteSemigroups.super_categories` and
+        :meth:`FiniteSemigroups.ParentMethods.__iter__`). Therefore a
+        finite semigroup must at this point either implement an
+        enumeration or provide semigroup generators.
+
+        .. TODO:: make this optional
 
     EXAMPLES::
 

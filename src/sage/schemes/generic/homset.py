@@ -89,18 +89,22 @@ class SchemeHomsetFactory(UniqueFactory):
         sage: A3 = AffineSpace(QQ,3)
         sage: Hom = A3.Hom(A2)
 
-    The Hom-sets are unique::
+    The Hom-sets are uniquely determined by domain and codomain::
 
         sage: Hom is copy(Hom)
         True
         sage: Hom is A3.Hom(A2)
         True
-        sage: loads(Hom.dumps()) is Hom
-        True
 
     Here is a tricky point. The Hom-sets are not identical if
-    domains/codomains are isomorphic but not identiacal::
+    domains/codomains are isomorphic but not identiacal. Affine spaces are not
+    unique, and hence, when pickling and unpickling the homset together with
+    domain and codomain, we obtain non-unique behaviour::
 
+        sage: loads(Hom.dumps()) is Hom
+        False
+        sage: loads(Hom.dumps()) == Hom
+        True
         sage: A3_iso = AffineSpace(QQ,3)
         sage: [ A3_iso is A3, A3_iso == A3 ]
         [False, True]
@@ -249,6 +253,21 @@ class SchemeHomset_generic(HomsetWithBase):
         Category of hom sets in Category of schemes
     """
     Element = SchemeMorphism
+
+    def __reduce__(self):
+        """
+        Used in pickling.
+
+        EXAMPLES::
+
+            sage: A2 = AffineSpace(QQ,2)
+            sage: A3 = AffineSpace(QQ,3)
+            sage: Hom = A3.Hom(A2)
+            sage: loads(Hom.dumps()) == Hom
+            True
+        """
+        #return SchemeHomset.reduce_data(self)
+        return SchemeHomset, (self.domain(), self.codomain(), self.homset_category())
 
     def __call__(self, *args, **kwds):
         r"""

@@ -37,7 +37,7 @@ class AlgebraFunctor(CovariantFunctorialConstruction):
 
     def base_ring(self):
         """
-        Returns the base ring for this functor
+        Return the base ring for this functor.
 
         EXAMPLES::
 
@@ -49,17 +49,13 @@ class AlgebraFunctor(CovariantFunctorialConstruction):
 
 class AlgebrasCategory(CovariantConstructionCategory, Category_over_base_ring):
     """
-    Returns the category of ``base_ring``-algebras over ``self``
+    An abstract base class for categories of monoid algebras, groups algebras, and the like.
 
-    A category with algebra functor is a category endowed with an
-    algebra functor from itself to the category of modules, mapping a
-    set `S` and a field `C` to a `C`-free module with basis indexed by
-    `S`, more often than not endowed with an algebra
-    structure. Typical examples are the functor from monoids to monoid
-    algebras, groups to group algebras, etc.
+    .. SEEALSO::
 
-    See also
-    :class:`~sage.categories.covariant_functorial_construction.CovariantFunctorialConstruction`.
+        - :meth:`Sets.ParentMethods.algebra`
+        - :meth:`Sets.SubcategoryMethods.Algebras`
+        - :class:`~sage.categories.covariant_functorial_construction.CovariantFunctorialConstruction`.
 
     INPUT:
 
@@ -69,6 +65,8 @@ class AlgebrasCategory(CovariantConstructionCategory, Category_over_base_ring):
 
         sage: C = Monoids().Algebras(QQ); C
         Category of monoid algebras over Rational Field
+        sage: C = Group().Algebras(QQ); C
+        Category of group algebras over Rational Field
 
         sage: C._short_name()
         'Algebras'

@@ -10,7 +10,6 @@ Graded modules with basis
 #******************************************************************************
 
 from sage.categories.graded_modules import GradedModulesCategory
-from sage.misc.cachefunc import cached_method
 
 class GradedModulesWithBasis(GradedModulesCategory):
     """

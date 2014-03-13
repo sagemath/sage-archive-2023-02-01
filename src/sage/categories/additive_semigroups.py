@@ -16,8 +16,8 @@ from sage.categories.additive_magmas import AdditiveMagmas
 
 class AdditiveSemigroups(CategoryWithAxiom_singleton):
     """
-    The category of additive semigroups, i.e. sets with an
-    associative operation +.
+    The category of additive semigroups,
+    i.e. sets endowed with an associative operation `+`.
 
     EXAMPLES::
 

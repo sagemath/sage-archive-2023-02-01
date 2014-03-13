@@ -23,7 +23,7 @@ from sage.structure.sage_object import have_same_parent
 class Magmas(Category_singleton):
     """
     The category of (multiplicative) magmas, i.e. sets with a binary
-    operation ``*``.
+    operation `*`.
 
     EXAMPLES::
 
@@ -70,7 +70,7 @@ class Magmas(Category_singleton):
         @cached_method
         def Associative(self):
             """
-            Returns the full subcategory of the associative objects of ``self``.
+            Return the full subcategory of the associative objects of ``self``.
 
             EXAMPLES::
 
@@ -88,7 +88,7 @@ class Magmas(Category_singleton):
         @cached_method
         def Commutative(self):
             """
-            Returns the full subcategory of the commutative objects of ``self``.
+            Return the full subcategory of the commutative objects of ``self``.
 
             EXAMPLES::
 
@@ -108,7 +108,7 @@ class Magmas(Category_singleton):
         @cached_method
         def Unital(self):
             r"""
-            Returns the full subcategory of the unital objects of ``self``.
+            Return the subcategory of the unital objects of ``self``.
 
             EXAMPLES::
 
@@ -135,16 +135,20 @@ class Magmas(Category_singleton):
             """
             Return the full subcategory of the objects of ``self`` where `*` is distributive on `+`.
 
+            INPUT:
+
+            - ``self`` -- a subcategory of :class:`Magmas`() and :class:`AdditiveMagmas`()
+
             Given that `Sage` does not know that
             :class:`MagmasAndAdditiveMagmas` is the intersection of
             :class:`Magmas` and :class:`AdditiveMagmas`, the method
             :meth:`MagmasAndAdditiveMagmas.SubcategoryMethods.Distributive`
-            is not available as would be desirable for this intersection.
+            is not available, as would be desirable, for this intersection.
 
             As a workaround, this method checks that ``self`` is a
-            subcategory of both :class:`Magmas` and
-            :class:`AdditiveMagmas` and upgrades it to a subcategory
-            of :class:`MagmasAndAdditiveMagmas` before applying the
+            subcategory of both :class:`Magmas`() and
+            :class:`AdditiveMagmas`() and upgrades it to a subcategory
+            of :class:`MagmasAndAdditiveMagmas`() before applying the
             axiom. It complains overwise, since the ``Distributive``
             axiom does not make sense for a plain magma.
 
@@ -243,12 +247,12 @@ class Magmas(Category_singleton):
             @cached_method
             def Inverse(self):
                 r"""
-                Returns the full subcategory of the inverse objects of ``self``.
+                Return the full subcategory of the inverse objects of ``self``.
 
-                An inverse (multiplicative) magma is a unital magma
-                such that every element admits both an inverse on the
-                left and on the right. Such a magma is also called a
-                *loop*.
+                An inverse :class:` (multiplicative) magma <Magmas>`
+                is a :class:`unital magma <Magmas.Unital>` such that
+                every element admits both an inverse on the left and
+                on the right. Such a magma is also called a *loop*.
 
                 .. SEEALSO:: :wikipedia:`Inverse_element`, :wikipedia:`Quasigroup`
 

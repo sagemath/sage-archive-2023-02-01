@@ -277,7 +277,7 @@ Therefore, the Cartan types are considered as distinct::
 
 For affine types, we use the usual conventions for affine Coxeter groups: each affine type
 is either untwisted (that is arise from the natural affinisation
-of a finite cartan type)::
+of a finite Cartan type)::
 
     sage: CartanType(["A", 4, 1]).dynkin_diagram()
     0
@@ -407,7 +407,7 @@ from sage.misc.decorators import rename_keyword
 
 # TODO:
 # Implement the Kac conventions by relabeling/dual/... of the above
-# Implement coxeter diagrams for non crystallographic
+# Implement Coxeter diagrams for non crystallographic
 
 
 # Intention: we want simultaneously CartanType to be a factory for
@@ -510,7 +510,7 @@ class CartanTypeFactory(SageObject):
 
         - ``str`` -- a string
 
-        - ``object`` -- a cartan type, or an object with a cartan type method
+        - ``object`` -- a Cartan type, or an object with a Cartan type method
 
         EXAMPLES:
 
@@ -650,7 +650,7 @@ class CartanTypeFactory(SageObject):
                         return CartanType(["G", 2, 1]).dual().relabel([0,2,1])
                     if letter == "E" and t[2] == 2 and n == 6:
                         return CartanType(["F", 4, 1]).dual()
-            raise ValueError("%s is not a valid cartan type"%t)
+            raise ValueError("%s is not a valid Cartan type"%t)
         import type_reducible
         return type_reducible.CartanType([ CartanType(subtype) for subtype in t ])
 
@@ -780,7 +780,7 @@ class CartanTypeFactory(SageObject):
     @classmethod
     def color(cls, i):
         """
-        Default color scheme for the vertices of a dynkin diagram (and associated objects)
+        Default color scheme for the vertices of a Dynkin diagram (and associated objects)
 
         EXAMPLES::
 
@@ -997,7 +997,7 @@ class CartanType_abstract(object):
 
     def dual(self):
         """
-        Return the dual cartan type, possibly just as a formal dual.
+        Return the dual Cartan type, possibly just as a formal dual.
 
         EXAMPLES::
 
@@ -1307,7 +1307,7 @@ class CartanType_abstract(object):
 
 class CartanType_crystallographic(CartanType_abstract):
     """
-    An abstract class for crystallographic cartan types.
+    An abstract class for crystallographic Cartan types.
     """
     # The default value should really be lambda x:x, but sphinx does
     # not like it currently (see #14553); since this is an abstract method
@@ -1536,7 +1536,7 @@ class CartanType_crystallographic(CartanType_abstract):
             return None
         assert kern.dimension() == c
         # Now the basis contains one vector v per connected component
-        # C of the dynkin diagram, or equivalently diagonal block of
+        # C of the Dynkin diagram, or equivalently diagonal block of
         # the Cartan matrix. The support of v is exactly that
         # connected component, and it symmetrizes the corresponding
         # diagonal block of the Cartan matrix. We sum all those vectors.
@@ -1575,7 +1575,7 @@ class CartanType_crystallographic(CartanType_abstract):
 
 class CartanType_simply_laced(CartanType_crystallographic):
     """
-    An abstract class for simply laced cartan types.
+    An abstract class for simply laced Cartan types.
     """
     def is_simply_laced(self):
         """
@@ -1592,7 +1592,7 @@ class CartanType_simply_laced(CartanType_crystallographic):
 
     def dual(self):
         """
-        Simply laced cartan types are self-dual, so return ``self``.
+        Simply laced Cartan types are self-dual, so return ``self``.
 
         EXAMPLES::
 

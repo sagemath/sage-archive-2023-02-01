@@ -172,7 +172,7 @@ class GradedModules(GradedModulesCategory):
         @cached_method
         def Connected(self):
             r"""
-            Returns the full subcategory of the finite dimensional objects of ``self``.
+            Return the full subcategory of the connected objects of ``self``.
 
             EXAMPLES::
 

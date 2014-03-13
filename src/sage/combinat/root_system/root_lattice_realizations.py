@@ -673,6 +673,111 @@ class RootLatticeRealizations(Category_over_base_ring):
                 roots += x
             return [x.element for x in roots]
 
+        @cached_method
+        def positive_roots_parabolic(self, index_set = None):
+            r"""
+            Returns the set of positive roots for the parabolic subsystem with Dynkin node set ``index_set``.
+
+            INPUT:
+
+            - ``index_set`` -- (default:None) the Dynkin node set of the parabolic subsystem. It should be a tuple. The default value implies the entire Dynkin node set
+
+            EXAMPLES::
+
+                sage: lattice =  RootSystem(['A',3]).root_lattice()
+                sage: PhiP = lattice.positive_roots_parabolic((1,3))
+                sage: [x for x in PhiP]
+                [alpha[1], alpha[3]]
+                sage: PhiP = lattice.positive_roots_parabolic((2,3))
+                sage: [x for x in PhiP]
+                [alpha[2], alpha[3], alpha[2] + alpha[3]]
+                sage: PhiP = lattice.positive_roots_parabolic()
+                sage: [x for x in PhiP]
+                [alpha[1], alpha[2], alpha[3], alpha[1] + alpha[2], alpha[2] + alpha[3], alpha[1] + alpha[2] + alpha[3]]
+
+            .. warning::
+
+                This returns an error if the Cartan type is not finite.
+
+            """
+            if not self.cartan_type().is_finite():
+                raise NotImplementedError, "Only implemented for finite Cartan type"
+            if index_set is None:
+                index_set = tuple(self.cartan_type().index_set())
+
+            def parabolic_covers(alpha):
+                return [x for x in alpha.pred() if x.is_parabolic_root(index_set)]
+
+            generators = [x for x in self.simple_roots() if x.is_parabolic_root(index_set)]
+            return TransitiveIdealGraded(parabolic_covers, generators)
+
+        @cached_method
+        def positive_roots_nonparabolic(self, index_set = None):
+            r"""
+            Returns the set of positive roots outside the parabolic subsystem with Dynkin node set ``index_set``.
+
+            INPUT:
+
+            - ``index_set`` -- (default:None) the Dynkin node set of the parabolic subsystem. It should be a tuple. The default value implies the entire Dynkin node set
+
+            EXAMPLES::
+
+                sage: lattice =  RootSystem(['A',3]).root_lattice()
+                sage: lattice.positive_roots_nonparabolic((1,3))
+                [alpha[2], alpha[1] + alpha[2], alpha[2] + alpha[3], alpha[1] + alpha[2] + alpha[3]]
+                sage: lattice.positive_roots_nonparabolic((2,3))
+                [alpha[1], alpha[1] + alpha[2], alpha[1] + alpha[2] + alpha[3]]
+                sage: lattice.positive_roots_nonparabolic()
+                []
+                sage: lattice.positive_roots_nonparabolic((1,2,3))
+                []
+
+            .. warning::
+
+                This returns an error if the Cartan type is not finite.
+
+            """
+            if not self.cartan_type().is_finite():
+                raise NotImplementedError, "Only implemented for finite Cartan type"
+            if index_set is None:
+                index_set = tuple(self.cartan_type().index_set())
+            return [x for x in self.positive_roots() if not x.is_parabolic_root(index_set)]
+
+        @cached_method
+        def positive_roots_nonparabolic_sum(self, index_set = None):
+            r"""
+            Returns the sum of positive roots outside the parabolic subsystem with Dynkin node set ``index_set``.
+
+            INPUT:
+
+            - ``index_set`` -- (default:None) the Dynkin node set of the parabolic subsystem. It should be a tuple. The default value implies the entire Dynkin node set
+
+            EXAMPLES::
+
+                sage: lattice =  RootSystem(['A',3]).root_lattice()
+                sage: lattice.positive_roots_nonparabolic_sum((1,3))
+                2*alpha[1] + 4*alpha[2] + 2*alpha[3]
+                sage: lattice.positive_roots_nonparabolic_sum((2,3))
+                3*alpha[1] + 2*alpha[2] + alpha[3]
+                sage: lattice.positive_roots_nonparabolic_sum(())
+                3*alpha[1] + 4*alpha[2] + 3*alpha[3]
+                sage: lattice.positive_roots_nonparabolic_sum()
+                0
+                sage: lattice.positive_roots_nonparabolic_sum((1,2,3))
+                0
+
+            .. warning::
+
+                This returns an error if the Cartan type is not finite.
+
+            """
+
+            if not self.cartan_type().is_finite():
+                raise ValueError, "Cartan type %s is not finite"%(self.cartan_type())
+            if index_set is None or index_set == tuple(self.cartan_type().index_set()):
+                return self.zero()
+            return sum(self.positive_roots_nonparabolic(index_set))
+
         def root_poset(self, restricted=False, facade=False):
             r"""
             Returns the (restricted) root poset associated to ``self``.
@@ -2300,7 +2405,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 simple_roots = self.simple_roots()
                 translation_vectors = Family({i: translation_factors[i]*simple_roots[i]
                                           for i in cartan_type.classical().index_set()})
-                # The elements of the classical weyl group, as elements of W
+                # The elements of the classical Weyl group, as elements of W
                 W0 = [W.from_reduced_word(w.reduced_word()) for w in self.weyl_group().classical()]
                 for alcove in alcoves:
                     # The translation mapping the center of the

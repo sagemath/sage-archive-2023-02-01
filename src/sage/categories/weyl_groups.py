@@ -24,7 +24,7 @@ class WeylGroups(Category_singleton):
 
     EXAMPLES::
 
-        sage: WeylGroups()                      # todo: uppercase for Weyl
+        sage: WeylGroups()
         Category of weyl groups
         sage: WeylGroups().super_categories()
         [Category of coxeter groups]
@@ -97,7 +97,7 @@ class WeylGroups(Category_singleton):
                 True
             """
             # Do not remove this line which makes sure the pieri factor
-            # code is properly inserted inside the cartan types
+            # code is properly inserted inside the Cartan Types
             import sage.combinat.root_system.pieri_factors
             ct = self.cartan_type()
             if hasattr(ct, "PieriFactors"):
@@ -311,13 +311,16 @@ class WeylGroups(Category_singleton):
 
             return R(sum(2**(pieri_factors.stanley_symm_poly_weight(u))*x[u.length()-1] * v.stanley_symmetric_function_as_polynomial(max_length = u.length())
                            for (u,v) in self.left_pieri_factorizations(max_length)
-                           if u != W.unit()))
+                           if u != W.one()))
 
 
         def stanley_symmetric_function(self):
             r"""
+            Return the affine Stanley symmetric function indexed by ``self``.
+
             INPUT:
-                - ``self`` -- an element `w` of a Weyl group
+
+            - ``self`` -- an element `w` of a Weyl group
 
             Returns the affine Stanley symmetric function indexed by
             `w`. Stanley symmetric functions are defined as generating
@@ -328,6 +331,9 @@ class WeylGroups(Category_singleton):
 
                 sage: W = WeylGroup(['A', 3, 1])
                 sage: W.from_reduced_word([3,1,2,0,3,1,0]).stanley_symmetric_function()
+                8*m[1, 1, 1, 1, 1, 1, 1] + 4*m[2, 1, 1, 1, 1, 1] + 2*m[2, 2, 1, 1, 1] + m[2, 2, 2, 1]
+                sage: A = AffinePermutationGroup(['A',3,1])
+                sage: A.from_reduced_word([3,1,2,0,3,1,0]).stanley_symmetric_function()
                 8*m[1, 1, 1, 1, 1, 1, 1] + 4*m[2, 1, 1, 1, 1, 1] + 2*m[2, 2, 1, 1, 1] + m[2, 2, 2, 1]
 
                 sage: W = WeylGroup(['C',3,1])
@@ -342,6 +348,14 @@ class WeylGroups(Category_singleton):
                 sage: w = W.from_reduced_word([3,2,3,1])
                 sage: w.stanley_symmetric_function()  # long time (6s on sage.math, 2011)
                 48*m[1, 1, 1, 1] + 24*m[2, 1, 1] + 12*m[2, 2] + 8*m[3, 1] + 2*m[4]
+
+                sage: A = AffinePermutationGroup(['A',4,1])
+                sage: a = A([-2,0,1,4,12])
+                sage: a.stanley_symmetric_function()
+                6*m[1, 1, 1, 1, 1, 1, 1, 1] + 5*m[2, 1, 1, 1, 1, 1, 1] + 4*m[2, 2, 1, 1, 1, 1]
+                + 3*m[2, 2, 2, 1, 1] + 2*m[2, 2, 2, 2] + 4*m[3, 1, 1, 1, 1, 1] + 3*m[3, 2, 1, 1, 1]
+                + 2*m[3, 2, 2, 1] + 2*m[3, 3, 1, 1] + m[3, 3, 2] + 3*m[4, 1, 1, 1, 1] + 2*m[4, 2, 1, 1]
+                + m[4, 2, 2] + m[4, 3, 1]
 
              * :meth:stanley_symmetric_function_as_polynomial`
              * :meth:`WeylGroups.ParentMethods.pieri_factors`

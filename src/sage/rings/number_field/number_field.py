@@ -6737,7 +6737,7 @@ class NumberField_absolute(NumberField_generic):
 
         EXAMPLES:
 
-        For medium-sized galois groups of fields with small discriminants,
+        For medium-sized Galois groups of fields with small discriminants,
         this computation is feasible::
 
             sage: K.<a> = NumberField(x^6 + 4*x^2 + 2)
@@ -6764,7 +6764,7 @@ class NumberField_absolute(NumberField_generic):
         except AttributeError:
             pass
 
-        # Compute degree of galois closure if possible
+        # Compute degree of Galois closure if possible
         try:
             deg = self.galois_group(type='pari').order()
         except NotImplementedError:

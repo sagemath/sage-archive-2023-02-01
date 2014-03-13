@@ -395,8 +395,10 @@ class GenericCombinatorialSpecies(SageObject):
 
     def __pow__(self, n):
         """
-        Returns this species to the power n. This uses a binary
-        exponentiation algorithm to perform the powering.
+        Returns this species to the power n.
+
+        This uses a binary exponentiation algorithm to perform the
+        powering.
 
         EXAMPLES::
 
@@ -405,7 +407,9 @@ class GenericCombinatorialSpecies(SageObject):
             sage: X^2
             Product of (Singleton species) and (Singleton species)
             sage: X^5
-            Product of (Singleton species) and (Product of (Product of (Singleton species) and (Singleton species)) and (Product of (Singleton species) and (Singleton species)))
+            Product of (Singleton species) and (Product of (Product of
+            (Singleton species) and (Singleton species)) and (Product
+            of (Singleton species) and (Singleton species)))
 
             sage: (X^2).generating_series().coefficients(4)
             [0, 0, 1, 0]
@@ -416,8 +420,10 @@ class GenericCombinatorialSpecies(SageObject):
             sage: ((One+X)^7).generating_series().coefficients(8)
             [1, 7, 21, 35, 35, 21, 7, 1]
 
-            sage: coeffs = [((1+x+x+x^2)^25).expand().coefficient(x,i) for i in range(10)]
-            sage: ((One+X+X+X^2)^25).generating_series().coefficients(10) == coeffs
+            sage: x = QQ[['x']].gen()
+            sage: coeffs = ((1+x+x+x**2)**25+O(x**10)).padded_list()
+            sage: T = ((One+X+X+X^2)^25)
+            sage: T.generating_series().coefficients(10) == coeffs
             True
             sage: X^1 is X
             True
@@ -429,12 +435,13 @@ class GenericCombinatorialSpecies(SageObject):
         import operator
         n = Integer(n)
         if n <= 0:
-            raise ValueError, "only positive exponents are currently supported"
+            raise ValueError("only positive exponents are currently supported")
         digits = n.digits(2)
         squares = [self]
-        for i in range(len(digits)-1):
-            squares.append(squares[-1]*squares[-1])
-        return reduce(operator.mul, (s for i,s in zip(digits, squares) if i != 0))
+        for i in range(len(digits) - 1):
+            squares.append(squares[-1] * squares[-1])
+        return reduce(operator.mul, (s for i, s in zip(digits, squares)
+                                     if i != 0))
 
     def _get_series(self, series_ring_class, prefix, base_ring=None):
         """

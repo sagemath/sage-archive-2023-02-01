@@ -155,7 +155,7 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced):
             sage: ct.affine()
             Traceback (most recent call last):
             ...
-            ValueError: ['D', 2, 1] is not a valid cartan type
+            ValueError: ['D', 2, 1] is not a valid Cartan type
 
 
         TESTS::

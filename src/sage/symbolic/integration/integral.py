@@ -58,7 +58,7 @@ class IndefiniteIntegral(BuiltinFunction):
         # creating a subclasses which define a different set of integrators
         self.integrators = [external.maxima_integrator]
 
-        BuiltinFunction.__init__(self, "integrate", nargs=2)
+        BuiltinFunction.__init__(self, "integrate", nargs=2, conversions={'sympy': 'Integral'})
 
     def _eval_(self, f, x):
         """
@@ -144,7 +144,7 @@ class DefiniteIntegral(BuiltinFunction):
         # creating a subclasses which define a different set of integrators
         self.integrators = [external.maxima_integrator]
 
-        BuiltinFunction.__init__(self, "integrate", nargs=4)
+        BuiltinFunction.__init__(self, "integrate", nargs=4, conversions={'sympy': 'Integral'})
 
     def _eval_(self, f, x, a, b):
         """
@@ -175,7 +175,7 @@ class DefiniteIntegral(BuiltinFunction):
                 pass
         return None
 
-    def _evalf_(self, f, x, a, b, parent=None):
+    def _evalf_(self, f, x, a, b, parent=None, algorithm=None):
         """
         Returns numerical approximation of the integral
 

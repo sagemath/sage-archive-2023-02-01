@@ -478,7 +478,20 @@ def FGP_Homset(X, Y):
 
 
 class FGP_Homset_class(Homset):
-    def __init__(self, X, Y):
+    """
+    Homsets of :class:`~sage.modules.fg_pid.fgp_module.FGP_Module`
+
+    TESTS::
+
+        sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ); W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2]); Q = V/W
+        sage: H = Hom(Q,Q); H    # indirect doctest
+        Set of Morphisms from Finitely generated module V/W over Integer Ring with invariants (4, 12) to Finitely generated module V/W over Integer Ring with invariants (4, 12) in Category of modules over Integer Ring
+        sage: type(H)
+        <class 'sage.modules.fg_pid.fgp_morphism.FGP_Homset_class_with_category'>
+
+    """
+    Element = FGP_Morphism
+    def __init__(self, X, Y, category=None):
         """
         EXAMPLES::
 
@@ -486,7 +499,7 @@ class FGP_Homset_class(Homset):
             sage: type(Q.Hom(Q))
             <class 'sage.modules.fg_pid.fgp_morphism.FGP_Homset_class_with_category'>
         """
-        Homset.__init__(self, X, Y)
+        Homset.__init__(self, X, Y, category)
         self._populate_coercion_lists_(element_constructor = FGP_Morphism,
                                        coerce_list = [])
 
@@ -521,5 +534,4 @@ class FGP_Homset_class(Homset):
             sage: H(3)
             Morphism from module over Integer Ring with invariants (4, 16) to module with invariants (4, 16) that sends the generators to [(3, 0), (0, 3)]
         """
-        return FGP_Morphism(self, x)
-
+        return self.element_class(self, x)

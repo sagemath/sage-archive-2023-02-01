@@ -3120,7 +3120,7 @@ class Graph(GenericGraph):
         # and indicates whether the edge uv
         # with u<v goes from u to v ( equal to 0 )
         # or from v to u ( equal to 1)
-        orientation = p.new_variable(dim=2)
+        orientation = p.new_variable(binary = True)
 
         degree = p.new_variable()
 
@@ -3129,11 +3129,9 @@ class Graph(GenericGraph):
         outgoing = lambda u,v,variable : (1-variable) if u>v else variable
 
         for u in self:
-            p.add_constraint(p.sum([weight(u,v)*outgoing(u,v,orientation[min(u,v)][max(u,v)]) for v in self.neighbors(u)])-degree['max'],max=0)
+            p.add_constraint(p.sum([weight(u,v)*outgoing(u,v,orientation[min(u,v),max(u,v)]) for v in self.neighbors(u)])-degree['max'],max=0)
 
         p.set_objective(degree['max'])
-
-        p.set_binary(orientation)
 
         p.solve(log=verbose)
 
@@ -3152,7 +3150,7 @@ class Graph(GenericGraph):
             if u>v:
                 u,v=v,u
 
-            if orientation[min(u,v)][max(u,v)] == 1:
+            if orientation[min(u,v),max(u,v)] == 1:
                 edges.append((max(u,v),min(u,v)))
             else:
                 edges.append((min(u,v),max(u,v)))
@@ -3642,17 +3640,16 @@ class Graph(GenericGraph):
             # returns the weight of an edge considering it may not be
             # weighted ...
             p = MixedIntegerLinearProgram(maximization=True, solver=solver)
-            b = p.new_variable(dim=2)
+            b = p.new_variable(binary = True)
             p.set_objective(
-                p.sum([weight(w) * b[min(u, v)][max(u, v)]
+                p.sum([weight(w) * b[min(u, v),max(u, v)]
                      for u, v, w in g.edges()]))
             # for any vertex v, there is at most one edge incident to v in
             # the maximum matching
             for v in g.vertex_iterator():
                 p.add_constraint(
-                    p.sum([b[min(u, v)][max(u, v)]
+                    p.sum([b[min(u, v),max(u, v)]
                          for u in g.neighbors(v)]), max=1)
-            p.set_binary(b)
             if value_only:
                 if use_edge_labels:
                     return p.solve(objective_only=True, log=verbose)
@@ -3662,7 +3659,7 @@ class Graph(GenericGraph):
                 p.solve(log=verbose)
                 b = p.get_values(b)
                 return [(u, v, w) for u, v, w in g.edges()
-                        if b[min(u, v)][max(u, v)] == 1]
+                        if b[min(u, v),max(u, v)] == 1]
 
         else:
             raise ValueError('algorithm must be set to either "Edmonds" or "LP"')
@@ -3836,8 +3833,8 @@ class Graph(GenericGraph):
         p = MixedIntegerLinearProgram(constraint_generation = True)
 
         # One variable per edge
-        r = p.new_variable(dim = 2)
-        R = lambda x,y : r[x][y] if x<y else r[y][x]
+        r = p.new_variable()
+        R = lambda x,y : r[x,y] if x<y else r[y,x]
 
         # We want to maximize the sum of weights on the edges
         p.set_objective( p.sum( R(u,v) for u,v in g.edges(labels = False)))
@@ -4070,7 +4067,7 @@ class Graph(GenericGraph):
         # When true, indicated that the vertex is the representant
         # of the corresponding set
 
-        classss=p.new_variable(dim=2)
+        classss=p.new_variable(binary = True)
 
         # Associates to the vertices the classes
         # to which they belong
@@ -4080,12 +4077,12 @@ class Graph(GenericGraph):
             [lists[v].append(i) for v in f]
 
             # a classss has exactly one representant
-            p.add_constraint(p.sum([classss[v][i] for v in f]),max=1,min=1)
+            p.add_constraint(p.sum([classss[v,i] for v in f]),max=1,min=1)
 
         # A vertex represents at most one classss (vertex_taken is binary), and
         # vertex_taken[v]==1 if v is the representative of some classss
 
-        [p.add_constraint(p.sum([classss[v][i] for i in lists[v]])-vertex_taken[v],max=0) for v in self.vertex_iterator()]
+        [p.add_constraint(p.sum([classss[v,i] for i in lists[v]])-vertex_taken[v],max=0) for v in self.vertex_iterator()]
 
         # Two adjacent vertices can not both be representants of a set
 
@@ -4095,7 +4092,6 @@ class Graph(GenericGraph):
         p.set_objective(None)
 
         p.set_binary(vertex_taken)
-        p.set_binary(classss)
 
         try:
             p.solve(log=verbose)
@@ -4107,7 +4103,7 @@ class Graph(GenericGraph):
         repr=[]
         for i,f in enumerate(family):
             for v in f:
-                if classss[v][i]==1:
+                if classss[v,i]==1:
                     repr.append(v)
                     break
 
@@ -4208,61 +4204,58 @@ class Graph(GenericGraph):
         S = lambda (x,y) : (x,y) if x<y else (y,x)
 
         # rs = Representative set of a vertex
-        # for h in H, v in G is such that rs[h][v] == 1 if and only if v
+        # for h in H, v in G is such that rs[h,v] == 1 if and only if v
         # is a representant of h in self
-        rs = p.new_variable(dim=2)
+        rs = p.new_variable(binary = True)
 
         for v in self:
-            p.add_constraint(p.sum([rs[h][v] for h in H]), max = 1)
+            p.add_constraint(p.sum([rs[h,v] for h in H]), max = 1)
 
         # We ensure that the set of representatives of a
         # vertex h contains a tree, and thus is connected
 
         # edges represents the edges of the tree
-        edges = p.new_variable(dim = 2)
+        edges = p.new_variable(binary = True)
 
         # there can be a edge for h between two vertices
         # only if those vertices represent h
         for u,v in self.edges(labels=None):
             for h in H:
-                p.add_constraint(edges[h][S((u,v))] - rs[h][u], max = 0 )
-                p.add_constraint(edges[h][S((u,v))] - rs[h][v], max = 0 )
+                p.add_constraint(edges[h,S((u,v))] - rs[h,u], max = 0 )
+                p.add_constraint(edges[h,S((u,v))] - rs[h,v], max = 0 )
 
         # The number of edges of the tree in h is exactly the cardinal
         # of its representative set minus 1
 
         for h in H:
-            p.add_constraint(p.sum([edges[h][S(e)] for e in self.edges(labels=None)])-p.sum([rs[h][v] for v in self]), min=-1, max=-1)
+            p.add_constraint(p.sum([edges[h,S(e)] for e in self.edges(labels=None)])-p.sum([rs[h,v] for v in self]), min=-1, max=-1)
 
         # a tree  has no cycle
         epsilon = 1/(5*Integer(self.order()))
-        r_edges = p.new_variable(dim=2)
+        r_edges = p.new_variable()
 
         for h in H:
             for u,v in self.edges(labels=None):
-                p.add_constraint(r_edges[h][(u,v)] + r_edges[h][(v,u)] - edges[h][S((u,v))], min = 0)
+                p.add_constraint(r_edges[h,(u,v)] + r_edges[h,(v,u)] - edges[h,S((u,v))], min = 0)
 
             for v in self:
-                p.add_constraint(p.sum([r_edges[h][(u,v)] for u in self.neighbors(v)]), max = 1-epsilon)
+                p.add_constraint(p.sum([r_edges[h,(u,v)] for u in self.neighbors(v)]), max = 1-epsilon)
 
         # Once the representative sets are described, we must ensure
         # there are arcs corresponding to those of H between them
-        h_edges = p.new_variable(dim=2)
+        h_edges = p.new_variable()
 
         for h1, h2 in H.edges(labels=None):
 
             for v1, v2 in self.edges(labels=None):
 
-                p.add_constraint(h_edges[(h1,h2)][S((v1,v2))] - rs[h2][v2], max = 0)
-                p.add_constraint(h_edges[(h1,h2)][S((v1,v2))] - rs[h1][v1], max = 0)
+                p.add_constraint(h_edges[(h1,h2),S((v1,v2))] - rs[h2,v2], max = 0)
+                p.add_constraint(h_edges[(h1,h2),S((v1,v2))] - rs[h1,v1], max = 0)
 
-                p.add_constraint(h_edges[(h2,h1)][S((v1,v2))] - rs[h1][v2], max = 0)
-                p.add_constraint(h_edges[(h2,h1)][S((v1,v2))] - rs[h2][v1], max = 0)
+                p.add_constraint(h_edges[(h2,h1),S((v1,v2))] - rs[h1,v2], max = 0)
+                p.add_constraint(h_edges[(h2,h1),S((v1,v2))] - rs[h2,v1], max = 0)
 
-            p.add_constraint(p.sum([h_edges[(h1,h2)][S(e)] + h_edges[(h2,h1)][S(e)] for e in self.edges(labels=None) ]), min = 1)
-
-        p.set_binary(rs)
-        p.set_binary(edges)
+            p.add_constraint(p.sum([h_edges[(h1,h2),S(e)] + h_edges[(h2,h1),S(e)] for e in self.edges(labels=None) ]), min = 1)
 
         p.set_objective(None)
 
@@ -4275,7 +4268,7 @@ class Graph(GenericGraph):
 
         rs_dict = {}
         for h in H:
-            rs_dict[h] = [v for v in self if rs[h][v]==1]
+            rs_dict[h] = [v for v in self if rs[h,v]==1]
 
         return rs_dict
 
@@ -4725,18 +4718,18 @@ class Graph(GenericGraph):
         # Vertex representant #
         #######################
         #
-        # v_repr[h][g] = 1 if vertex h from H is represented by vertex
+        # v_repr[h,g] = 1 if vertex h from H is represented by vertex
         # g from G, 0 otherwise
 
-        v_repr = p.new_variable(binary = True, dim = 2)
+        v_repr = p.new_variable(binary = True)
 
         # Exactly one representant per vertex of H
         for h in H:
-            p.add_constraint( p.sum( v_repr[h][g] for g in G), min = 1, max = 1)
+            p.add_constraint( p.sum( v_repr[h,g] for g in G), min = 1, max = 1)
 
         # A vertex of G can only represent one vertex of H
         for g in G:
-            p.add_constraint( p.sum( v_repr[h][g] for h in H), max = 1)
+            p.add_constraint( p.sum( v_repr[h,g] for h in H), max = 1)
 
         ###################
         # Is representent #
@@ -4748,7 +4741,7 @@ class Graph(GenericGraph):
 
         for g in G:
             for h in H:
-                p.add_constraint( v_repr[h][g] - is_repr[g], max = 0)
+                p.add_constraint( v_repr[h,g] - is_repr[g], max = 0)
 
         ###################################
         # paths between the representents #
@@ -4759,16 +4752,16 @@ class Graph(GenericGraph):
         # a flow of intensity 1 from one to the other.
         # We are then writing a flow problem for each edge of H.
         #
-        # The variable flow[(h1,h2)][(g1,g2)] indicates the amount of
+        # The variable flow[(h1,h2),(g1,g2)] indicates the amount of
         # flow on the edge (g1,g2) representing the edge (h1,h2).
 
-        flow = p.new_variable(binary = True, dim = 2)
+        flow = p.new_variable(binary = True)
 
         # This lambda function returns the balance of flow
         # corresponding to commodity C at vertex v v
 
-        flow_in = lambda C, v : p.sum( flow[C][(v,u)] for u in G.neighbors(v) )
-        flow_out = lambda C, v : p.sum( flow[C][(u,v)] for u in G.neighbors(v) )
+        flow_in = lambda C, v : p.sum( flow[C,(v,u)] for u in G.neighbors(v) )
+        flow_out = lambda C, v : p.sum( flow[C,(u,v)] for u in G.neighbors(v) )
 
         flow_balance = lambda C, v : flow_in(C,v) - flow_out(C,v)
 
@@ -4780,7 +4773,7 @@ class Graph(GenericGraph):
                 # a representant of h1 or h2 in G, or a reprensentant
                 # of none
 
-                p.add_constraint( flow_balance((h1,h2),v) == v_repr[h1][v] - v_repr[h2][v] )
+                p.add_constraint( flow_balance((h1,h2),v) == v_repr[h1,v] - v_repr[h2,v] )
 
         #############################
         # Internal vertex of a path #
@@ -4789,13 +4782,12 @@ class Graph(GenericGraph):
         # is_internal[C][g] = 1 if a vertex v from G is located on the
         # path representing the edge (=commodity) C
 
-        is_internal = p.new_variable(dim = 2, binary = True)
+        is_internal = p.new_variable(binary = True)
 
         # When is a vertex internal for a commodity ?
         for C in H.edges(labels = False):
             for g in G:
-                p.add_constraint( flow_in(C,g) + flow_out(C,g) - is_internal[C][g], max = 1)
-
+                p.add_constraint( flow_in(C,g) + flow_out(C,g) - is_internal[C,g], max = 1)
 
         ############################
         # Two paths do not cross ! #
@@ -4805,7 +4797,7 @@ class Graph(GenericGraph):
         # the vertex is a representent
 
         for g in G:
-            p.add_constraint( p.sum( is_internal[C][g] for C in H.edges(labels = False))
+            p.add_constraint( p.sum( is_internal[C,g] for C in H.edges(labels = False))
                               + is_repr[g], max = 1 )
 
         # (The following inequalities are not necessary, but they seem
@@ -4818,8 +4810,8 @@ class Graph(GenericGraph):
 
         for g1,g2 in G.edges(labels = None):
 
-            p.add_constraint(   p.sum( flow[C][(g1,g2)] for C in H.edges(labels = False) )
-                              + p.sum( flow[C][(g2,g1)] for C in H.edges(labels = False) ),
+            p.add_constraint(   p.sum( flow[C,(g1,g2)] for C in H.edges(labels = False) )
+                              + p.sum( flow[C,(g2,g1)] for C in H.edges(labels = False) ),
                                 max = 1)
 
 
@@ -4843,7 +4835,7 @@ class Graph(GenericGraph):
             used = False
             for C in H.edges(labels = False):
 
-                if flow[C][(u,v)] + flow[C][(v,u)] > .5:
+                if flow[C,(u,v)] + flow[C,(v,u)] > .5:
                     used = True
                     minor.set_edge_label(u,v,C)
                     break
@@ -4856,7 +4848,7 @@ class Graph(GenericGraph):
         for g in minor:
             if is_repr[g] > .5:
                 for h in H:
-                    if v_repr[h][v] > .5:
+                    if v_repr[h,v] > .5:
                         minor.set_vertex(g,h)
                         break
 

@@ -504,7 +504,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             raise TypeError, "x must be one of the generators of the parent."
         return self.element().degree(x.element())
 
-
     def total_degree(self):
         """
         Return the total degree of self, which is the maximum degree of any

@@ -234,7 +234,7 @@ class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_crysta
         """
         Return an ascii art representation of this Cartan type
 
-        (by hacking the ascii art representation of the dual cartan type)
+        (by hacking the ascii art representation of the dual Cartan type)
 
         EXAMPLES::
 
@@ -406,7 +406,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
             sage: L.dimension()
             4
         """
-        # Can't yet use _dual_space for the base ring (and the cartan type?) is not yet initialized
+        # Can't yet use _dual_space for the base ring (and the Cartan type?) is not yet initialized
         return self.root_system.dual.ambient_space().dimension()
 
     @cached_method

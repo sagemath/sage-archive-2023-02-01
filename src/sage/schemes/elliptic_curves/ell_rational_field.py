@@ -5094,12 +5094,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     matrix_of_frobenius = padics.matrix_of_frobenius
 
-    # def weierstrass_p(self):
-    #         # TODO: add allowing negative valuations for power series
-    #         return 1/t**2 + a1/t + rings.frac(1,12)*(a1-8*a2) -a3*t \
-    #                - (a4+a1*a3)*t**2  + O(t**3)
-
-
     def mod5family(self):
         """
         Return the family of all elliptic curves with the same mod-5

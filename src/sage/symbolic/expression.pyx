@@ -550,8 +550,8 @@ cdef class Expression(CommutativeRingElement):
         # from sage.misc.ascii_art import AsciiArt, MAX_LENGTH ## for import
         #            num_columns = MAX_LENGTH  ## option of pretty
         try:
-            s = pretty(sympify(self), use_unicode=False)
-        except Exception:
+            s = pretty(sympify(self, evaluate=False), use_unicode=False)
+        except StandardError:
             s = self
         return AsciiArt(str(s).splitlines())
 
@@ -691,10 +691,15 @@ cdef class Expression(CommutativeRingElement):
             sage: latex(x*(1/(x^2)+sqrt(x^7)))
             x {\left(\sqrt{x^{7}} + \frac{1}{x^{2}}\right)}
 
-        Check spacing of coefficients of mul expressions (#3202)::
+        Check spacing of coefficients of mul expressions (:trac:`3202` and
+        :trac:`13356`)::
 
             sage: latex(2*3^x)
-            2 \, 3^{x}
+            2 \cdot 3^{x}
+            sage: latex(1/2/3^x)
+            \frac{1}{2 \cdot 3^{x}}
+            sage: latex(1/2*3^x)
+            \frac{1}{2} \cdot 3^{x}
 
         Powers::
 
@@ -968,7 +973,7 @@ cdef class Expression(CommutativeRingElement):
         """
         cdef GEx res
         try:
-            res = self._gobj.evalf(0, R)
+            res = self._gobj.evalf(0, {'parent':R})
         except TypeError as err:
             # try the evaluation again with the complex field
             # corresponding to the parent R
@@ -979,13 +984,13 @@ cdef class Expression(CommutativeRingElement):
                     R_complex = R.complex_field()
                 except (TypeError, AttributeError):
                     raise err
-            res = self._gobj.evalf(0, R_complex)
+            res = self._gobj.evalf(0, {'parent':R_complex})
         if is_a_numeric(res):
             return R(py_object_from_numeric(res))
         else:
             raise TypeError, "Cannot evaluate symbolic expression to a numeric value."
 
-    cpdef _convert(self, R):
+    cpdef _convert(self, kwds):
         """
         Convert all the numeric coefficients and constants in this expression
         to the given ring `R`. This results in an expression which contains
@@ -995,14 +1000,14 @@ cdef class Expression(CommutativeRingElement):
 
             sage: f = sqrt(2) * cos(3); f
             sqrt(2)*cos(3)
-            sage: f._convert(RDF)
+            sage: f._convert({'parent':RDF})
             -1.40006081534
-            sage: f._convert(float)
+            sage: f._convert({'parent':float})
             -1.40006081533995
 
         There is nothing to convert for variables::
 
-            sage: x._convert(CC)
+            sage: x._convert({'parent':CC})
             x
 
         Note that the output is not meant to be in the in the given ring `R`.
@@ -1011,24 +1016,24 @@ cdef class Expression(CommutativeRingElement):
 
             sage: t = log(10); t
             log(10)
-            sage: t._convert(QQ)
+            sage: t._convert({'parent':QQ})
             2.30258509299405
 
         ::
 
-            sage: (0.25 / (log(5.74 /x^0.9, 10))^2 / 4)._convert(QQ)
+            sage: (0.25 / (log(5.74 /x^0.9, 10))^2 / 4)._convert({'parent':QQ})
             0.331368631904900/log(287/50/x^0.900000000000000)^2
-            sage: (0.25 / (log(5.74 /x^0.9, 10))^2 / 4)._convert(CC)
+            sage: (0.25 / (log(5.74 /x^0.9, 10))^2 / 4)._convert({'parent':CC})
             0.331368631904900/log(5.74000000000000/x^0.900000000000000)^2
 
         When converting to an exact domain, powers remain unevaluated::
 
             sage: f = sqrt(2) * cos(3); f
             sqrt(2)*cos(3)
-            sage: f._convert(int)
+            sage: f._convert({'parent':int})
             -0.989992496600445*sqrt(2)
         """
-        cdef GEx res = self._gobj.evalf(0, R)
+        cdef GEx res = self._gobj.evalf(0, kwds)
         return new_Expression_from_GEx(self._parent, res)
 
     def _mpfr_(self, R):
@@ -4617,7 +4622,7 @@ cdef class Expression(CommutativeRingElement):
             res._expr = self
             return res
 
-    def _numerical_approx(self, prec=None, digits=None):
+    def _numerical_approx(self, prec=None, digits=None, algorithm=None):
         """
         Return a numerical approximation this symbolic expression as
         either a real or complex number with at least the requested
@@ -4689,13 +4694,14 @@ cdef class Expression(CommutativeRingElement):
                 prec = int((digits+1) * LOG_TEN_TWO_PLUS_EPSILON) + 1
         from sage.rings.real_mpfr import RealField
         R = RealField(prec)
+        kwds = {'parent': R, 'algorithm': algorithm}
         cdef Expression x
         try:
-            x = self._convert(R)
+            x = self._convert(kwds)
         except TypeError: # numerical approximation for real number failed
             pass          # try again with complex
-            R = R.complex_field()
-            x = self._convert(R)
+            kwds['parent'] = R.complex_field()
+            x = self._convert(kwds)
 
         # we have to consider constants as well, since infinity is a constant
         # in pynac
@@ -4988,17 +4994,17 @@ cdef class Expression(CommutativeRingElement):
             sage: f.coeff(x*y, 2)
             Traceback (most recent call last):
             ...
-            TypeError: n <> 1 only allowed for s being a variable
+            TypeError: n != 1 only allowed for s being a variable
         """
         cdef Expression ss = self.coerce_in(s)
-        if n <> 1 and not is_a_symbol(ss._gobj):
-           raise TypeError, "n <> 1 only allowed for s being a variable"
+        if n != 1 and not is_a_symbol(ss._gobj):
+            raise TypeError("n != 1 only allowed for s being a variable")
         # the following is a temporary fix for GiNaC bug #9505
         if is_a_mul(ss._gobj): # necessarily n=1 here
-           res = self
-           for i from 0 <= i < ss._gobj.nops():
-              res = res.coeff(new_Expression_from_GEx(self._parent, ss._gobj.op(i)))
-           return res
+            res = self
+            for i from 0 <= i < ss._gobj.nops():
+                res = res.coeff(new_Expression_from_GEx(self._parent, ss._gobj.op(i)))
+            return res
         return new_Expression_from_GEx(self._parent, self._gobj.coeff(ss._gobj, n))
 
     coeff = coefficient

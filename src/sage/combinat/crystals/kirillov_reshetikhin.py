@@ -1467,7 +1467,7 @@ KR_type_C.Element = KR_type_CElement
 class KR_type_A2(KirillovReshetikhinGenericCrystal):
     r"""
     Class of Kirillov-Reshetikhin crystals `B^{r,s}` of type `A_{2n}^{(2)}` for `1\le r \le n`
-    in the realization with classical subalgebra `B_n`. The cartan type in this case is inputted as
+    in the realization with classical subalgebra `B_n`. The Cartan type in this case is inputted as
     the dual of `A_{2n}^{(2)}`.
 
     This is an alternative implementation to :class:`KR_type_box` which uses

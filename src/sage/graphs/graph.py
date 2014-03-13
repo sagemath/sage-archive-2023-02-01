@@ -4855,7 +4855,7 @@ class Graph(GenericGraph):
 
     ### Cliques
 
-    def def cliques_maximal(self, algorithm = "native"):
+    def cliques_maximal(self, algorithm = "native"):
         """
         Returns the list of all maximal cliques, with each clique represented
         by a list of vertices. A clique is an induced complete subgraph, and a

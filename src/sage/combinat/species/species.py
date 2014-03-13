@@ -400,9 +400,20 @@ class GenericCombinatorialSpecies(SageObject):
 
         EXAMPLES::
 
+            sage: One = species.EmptySetSpecies()
             sage: X = species.SingletonSpecies()
             sage: (X^2).generating_series().coefficients(4)
             [0, 0, 1, 0]
+            sage: (X^3).generating_series().coefficients(4)
+            [0, 0, 0, 1]
+            sage: ((One+X)^3).generating_series().coefficients(4)
+            [1, 3, 3, 1]
+            sage: ((One+X)^7).generating_series().coefficients(8)
+            [1, 7, 21, 35, 35, 21, 7, 1]
+
+            sage: coeffs = [((1+x+x+x^2)^25).expand().coefficient(x,i) for i in range(10)]
+            sage: ((One+X+X+X^2)^25).generating_series().coefficients(10) == coeffs
+            True
             sage: X^1 is X
             True
             sage: A = X^32
@@ -418,7 +429,7 @@ class GenericCombinatorialSpecies(SageObject):
         squares = [self]
         for i in range(len(digits)-1):
             squares.append(squares[-1]*squares[-1])
-        return reduce(operator.add, (s for i,s in zip(digits, squares) if i != 0))
+        return reduce(operator.mul, (s for i,s in zip(digits, squares) if i != 0))
 
     def _get_series(self, series_ring_class, prefix, base_ring=None):
         """

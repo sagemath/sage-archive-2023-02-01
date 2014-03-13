@@ -58,7 +58,7 @@ class Rings(CategoryWithAxiom):
 
         def NoZeroDivisors(self):
             """
-            Returns the full subcategory of the objects of ``self`` having no zero divisors
+            Return the full subcategory of the objects of ``self`` having no zero divisors.
 
             EXAMPLES::
 
@@ -77,10 +77,10 @@ class Rings(CategoryWithAxiom):
 
         def Division(self):
             """
-            Returns the full subcategory of the *division* objects of ``self``
+            Return the full subcategory of the division objects of ``self``.
 
-            A ring satisfies the division axiom if all non-zero
-            elements have multiplicative inverse.
+            A ring satisfies the *division axiom* if all non-zero
+            elements have multiplicative inverses.
 
             .. NOTE:: this could be generalized to MagmasAndAdditiveMagmas.Distributive.AdditiveUnital.Unital
 

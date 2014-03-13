@@ -1327,8 +1327,12 @@ Upcoming features
           A.CartesianProducts() & B.CartesianProducts()) = (A&B).CartesianProducts()
 
     - Once full subcategories are implemented (see :trac:`10668`),
-      make category with axioms be such. Should all full subcategories
-      be implemented in term of axioms?
+      make the relevant categories with axioms be such. This can be
+      done systematically for, e.g., the axioms ``Associative`` or
+      ``Commutative``, but not for the axiom ``Unital``: a semigroup
+      morphism between two monoids need not preserve the unit.
+
+      Should all full subcategories be implemented in term of axioms?
 
 .. _axioms-algorithmic:
 

@@ -274,7 +274,7 @@ class Modules(Category_module):
         @cached_method
         def Graded(self, base_ring=None):
             r"""
-            Return the full subcategory of the graded objects of ``self``.
+            Return the subcategory of the graded objects of ``self``.
 
             INPUT::
 

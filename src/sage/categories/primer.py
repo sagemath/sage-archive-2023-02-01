@@ -987,16 +987,20 @@ functorial constructions* which can be used to construct new parents
 from existing ones while carrying over as much as possible of their
 algebraic structure. This includes:
 
- - Cartesian products
-   (see :const:`~sage.categories.cartesian_product.cartesian_product`)
- - Tensor products
-   (see :const:`~sage.categories.tensor.tensor`)
- - Subquotients / quotients / subobjects / isomorphic objects
-   (see ``Sets().Subquotients()``, ``Sets().Quotients()``,
-   ``Sets().Subobjects()``, ``Sets().IsomorphicObjects()``)
- - Dual objects
- - Algebras, as in group algebras, monoid algebras, ...
-   (see e.g. ``Sets().Algebras(QQ)``)
+ - Cartesian products:
+   See :const:`~sage.categories.cartesian_product.cartesian_product`.
+ - Tensor products:
+   See :const:`~sage.categories.tensor.tensor`.
+ - Subquotients / quotients / subobjects / isomorphic objects:
+   See:
+   - :meth:`<Sets().Subquotients Sets.SubcategoryMethods.Subquotients>`,
+   - :meth:`<Sets().Quotients Sets.SubcategoryMethods.Quotients>`,
+   - :meth:`<Sets().Subobjects Sets.SubcategoryMethods.Subobjects>`,
+   - :meth:`<Sets().IsomorphicObjects Sets.SubcategoryMethods.IsomorphicObjects>`
+ - Dual objects:
+   See :meth:`Modules().DualObjects <Modules.SubcategoryMethods.DualObjects>`.
+ - Algebras, as in group algebras, monoid algebras, ...:
+   See: :meth:`Sets.ParentMethods.algebras`.
 
 Let for example `A` and `B` be two parents, and let us construct the
 cartesian product `A\times B\times B`::
@@ -1147,10 +1151,11 @@ Axioms and categories with axioms
 Here, ``Associative``, ``Unital``, ``Commutative`` are axioms. In
 general, any category ``Cs`` in Sage can declare a new axiom
 ``A``. Then, the *category with axiom* ``Cs.A()`` models the
-subcategory of the objects of ``Cs`` satisfying the axiom ``A``. It's
-in fact a *full subcategory* (see :wikipedia:`Subcategory`). Moreover,
-for every subcategory ``Ds`` of ``Cs``, ``Ds.A()`` models the full
-subcategory of the objects of ``Ds`` satisfying the axiom ``A``.
+subcategory of the objects of ``Cs`` satisfying the axiom
+``A``. Similarly, for any subcategory ``Ds`` of ``Cs``, ``Ds.A()``
+models the subcategory of the objects of ``Ds`` satisfying the axiom
+``A``. In most cases, it's a *full subcategory* (see
+:wikipedia:`Subcategory`).
 
 For example, the category of sets defines the ``Finite`` axiom, and
 this axiom is available in the subcategory of groups::
@@ -1188,15 +1193,42 @@ that `(C,+)` is a commutative additive group and `(C,*)` is a monoid::
     sage: sorted(C.axioms())
     ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'Distributive', 'Unital']
 
-Note by the way that the axiom "Associative" is about the property of
-the multiplication `*` whereas the axiom "AdditiveAssociative" is
-about the properties of the addition `+`.
-
 The infrastructure allows for specifying further deduction rules, in
 order to encode mathematical facts like Wedderburn's theorem::
 
     sage: DivisionRings() & Sets().Finite()
     Category of finite fields
+
+.. NOTE::
+
+    When an axiom specifies the properties of some operations in Sage,
+    the notations for those operations are tied to this axiom. For
+    example, as we have seen above, we need two distinct axioms for
+    associativity: the axiom "AdditiveAssociative" is about the
+    properties of the addition `+`, whereas the axiom "Associative" is
+    about the properties of the multiplication `*`.
+
+    We are touching here an inherent limitation of the current
+    infrastructure. There is indeed no support for providing generic
+    code that is independent of the notations. In particular, the
+    category hierarchy about additive structures (additive monoids,
+    additive, groups, ...) is completely duplicated with that for
+    multiplicative structures (monoids, groups, ...).
+
+    As far as we know, none of the existing computer algebra systems
+    has a good solution for this problem. The difficulty is that this
+    is not only about a single notation but a bunch of operators and
+    methods: ``+, -, zero, summation, sum,...`` in one case, ``*, /,
+    one, product, prod, factor, ...`` in the other. Sharing something
+    between the two hierarchies of categories would only be useful if
+    one could write generic code that applies in both cases; for that
+    one needs to somehow automatically substitute the right operations
+    in the right spots in the code. That's kind of what we are doing
+    manually between
+    e.g. :meth:`AdditiveMagmas.ParentMethods.addition_table` and
+    :meth:`Magmas.ParentMethods.multiplication_table`, but doing this
+    systematically is a different beast from what we have been doing
+    so far with just usual inheritance.
 
 .. _category-primer-axioms-single-entry-point:
 

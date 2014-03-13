@@ -411,29 +411,28 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
         if len(p2) != n:
             A0 = A0.transpose().stack(matrix([[0]*len(p1)]*(len(p2)-n))).transpose()
             
-        # Applying the permutations to get a matrix satisfying the
-        # order given by the input
-        A0 = A0.matrix_from_rows_and_columns(r_permutation, s_permutation)
-        return A0    
+            # Applying the permutations to get a matrix satisfying the
+            # order given by the input
+            A0 = A0.matrix_from_rows_and_columns(r_permutation, s_permutation)
+            return A0
 
-    if algorithm == "gale":
-        from sage.numerical.mip import MixedIntegerLinearProgram
-        k1, k2=len(p1), len(p2)
-        p = MixedIntegerLinearProgram()
-        b = p.new_variable(dim=2)
-        for (i,c) in enumerate(p1):
-            p.add_constraint(p.sum([b[i][j] for j in xrange(k2)]),min=c,max=c)
-        for (i,c) in enumerate(p2):
-            p.add_constraint(p.sum([b[j][i] for j in xrange(k1)]),min=c,max=c)
-        p.set_objective(None)
-        p.set_binary(b)
-        p.solve()
-        b = p.get_values(b)
-        M = [[0]*k2 for i in xrange(k1)]
-        for i in xrange(k1):
-          for j in xrange(k2):
-              M[i][j] = int(b[i][j])
-        return matrix(M)
+        elif algorithm == "gale":
+          from sage.numerical.mip import MixedIntegerLinearProgram
+          k1, k2=len(p1), len(p2)
+          p = MixedIntegerLinearProgram()
+          b = p.new_variable(binary = True)
+          for (i,c) in enumerate(p1):
+              p.add_constraint(p.sum([b[i,j] for j in xrange(k2)]) ==c)
+          for (i,c) in enumerate(p2):
+              p.add_constraint(p.sum([b[j,i] for j in xrange(k1)]) ==c)
+          p.set_objective(None)
+          p.solve()
+          b = p.get_values(b)
+          M = [[0]*k2 for i in xrange(k1)]
+          for i in xrange(k1):
+              for j in xrange(k2):
+                  M[i][j] = int(b[i,j])
+          return matrix(M)
 
     raise ValueError("The only two algorithms available are \"gale\" and \"ryser\"")
 

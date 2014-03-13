@@ -139,7 +139,7 @@ class Function_HurwitzZeta(BuiltinFunction):
         else:
             return
 
-    def _evalf_(self, s, x, parent):
+    def _evalf_(self, s, x, parent=None, algorithm=None):
         r"""
         TESTS::
 
@@ -254,7 +254,7 @@ class Function_zetaderiv(GinacFunction):
         """
         GinacFunction.__init__(self, "zetaderiv", nargs=2)
 
-    def _evalf_(self, n, x, parent):
+    def _evalf_(self, n, x, parent=None, algorithm=None):
         from mpmath import zeta
         return mpmath_utils.call(zeta, x, 1, n, parent=parent)
 

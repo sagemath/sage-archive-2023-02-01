@@ -117,7 +117,7 @@ class Associahedron_class(Polyhedron_QQ_ppl):
     The Python class of an associahedron
 
     You should use the :func:`Associahedron` convenience function to
-    construct associahedra from the cartan type.
+    construct associahedra from the Cartan type.
 
     TESTS::
 

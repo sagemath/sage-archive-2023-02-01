@@ -651,7 +651,7 @@ class Function_lambert_w(BuiltinFunction):
                 return sage_structure_coerce_parent(z)(Integer(-1))
         return None
 
-    def _evalf_(self, n, z, parent=None):
+    def _evalf_(self, n, z, parent=None, algorithm=None):
         """
         EXAMPLES::
 

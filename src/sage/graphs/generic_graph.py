@@ -9011,22 +9011,32 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
-        - :meth:`subdivide_edges` -- subdivides multiples edges at a time
+            - :meth:`subdivide_edges` -- subdivides multiples edges at a time
 
+        TESTS:
+
+        :trac:`15895` is fixed::
+
+            sage: F = graphs.PathGraph(3)
+            sage: S = 'S'; F.add_vertex(S)
+            sage: F.add_edge(S,0)
+            sage: F2 = Graph(F)
+            sage: F2.subdivide_edges(list(F2.edges(labels=False)),2)
+            sage: 0 in F2.degree()
+            False
         """
-
         if len(args) == 2:
             edge, k = args
 
             if len(edge) == 2:
-                u,v = edge
-                l = self.edge_label(u,v)
+                u, v = edge
+                l = self.edge_label(u, v)
             elif len(edge) == 3:
-                u,v,l = edge
+                u, v, l = edge
 
         elif len(args) == 3:
             u, v, k = args
-            l = self.edge_label(u,v)
+            l = self.edge_label(u, v)
 
         elif len(args) == 4:
             u, v, l, k = args
@@ -9034,17 +9044,16 @@ class GenericGraph(GenericGraph_pyx):
         else:
             raise ValueError("This method takes at most 4 arguments !")
 
-        if not self.has_edge(u,v,l):
+        if not self.has_edge(u, v, l):
             raise ValueError("The given edge does not exist.")
 
-        for i in xrange(k):
-            self.add_vertex()
+        new_verts = [self.add_vertex() for i in xrange(k)]
 
-        self.delete_edge(u,v,l)
+        self.delete_edge(u, v, l)
 
         edges = []
-        for uu in self.vertices()[-k:] + [v]:
-            edges.append((u,uu,l))
+        for uu in new_verts + [v]:
+            edges.append((u, uu, l))
             u = uu
 
         self.add_edges(edges)

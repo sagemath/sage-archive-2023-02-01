@@ -163,7 +163,6 @@ def import_statements(*objects, **options):
         from sage.rings.arith import euler_phi
 
         sage: import_statements(x)
-          ** Warning **: several modules for that object: sage.all_cmdline, sage.calculus.predefined
         from sage.calculus.predefined import x
 
     If you don't like the warning you can disable them with the option ``verbose``::
@@ -186,6 +185,19 @@ def import_statements(*objects, **options):
         sage: import_statements('Z')
         from sage.rings.integer_ring import Z
 
+    Sometimes objects are imported as an alias (from XXX import YYY as ZZZ), the
+    function tries to detect this and print a Warning if it is::
+
+        sage: import_statements('FareySymbol')
+          **Warning** : "FareySymbol" seems to be an alias for "Farey" defined in sage.modular.arithgroup.all
+        from sage.modular.arithgroup.all import FareySymbol
+
+    And one can actually check that FareySymbol is an alias::
+
+        sage: from sage.misc import sageinspect
+        sage: src = sageinspect.sage_getsource(sage.modular.arithgroup.all)
+        sage: src.split('\n')[16]
+        'from farey_symbol import Farey as FareySymbol'
 
     Specifying a string is also useful for objects that are not
     imported in the Sage interpreter namespace by default. In this
@@ -210,6 +222,8 @@ def import_statements(*objects, **options):
         Traceback (most recent call last):
         ...
         ValueError: no import statement for 5
+
+
 
     We test that it behaves well with lazy imported objects (:trac:`14767`)::
 
@@ -285,8 +299,7 @@ def import_statements(*objects, **options):
                 print_import_statement(module, names[0], lazy, answer)
                 continue
 
-
-        # Case 3: search for this object in all modules
+        # Here we search for this object in all modules
         names = {} # dictionnary: module -> names of the object in that module
         for module in sys.modules:
             if module != '__main__' and hasattr(sys.modules[module],'__dict__'):
@@ -307,17 +320,14 @@ def import_statements(*objects, **options):
             print "  ** Warning **: several names for that object:",
             print ", ".join(sorted(all_names))
 
-        modules = sorted(flatten(names),cmp=module_names_cmp)
-        if verbose and len(modules) > 1:
-            print "  ** Warning **: several modules for that object:",
-            print ", ".join(modules[:4]),
-            if len(modules) > 4:
-                print "..."
-            else:
-                print
+        modules = sorted(flatten(names),cmp=module_names_cmp,reverse=True)
+        not_all_modules = filter(lambda x: not x.endswith('all') and not x.endswith('all_cmdline'),
+                modules)
 
-        # Case 4: if the object is a class instance, we look for a
+        # Case 3: if the object is a class instance, we look for a
         # module where it is instanciated
+        module = None
+        name = None
         if sageinspect.isclassinstance(obj):
             names_pattern = dict((name,re.compile("^%s\ *="%name, re.MULTILINE)) for name in all_names)
 
@@ -344,22 +354,61 @@ def import_statements(*objects, **options):
                 else:
                     continue
                 break
-        else:
-            module = modules[0]
+            else:
+                # we found nothing !!!
+                name = None
+                module = None
+
+        if name is None and len(not_all_modules) == 0:
+            # we suspect the name to be an alias
+            names_pattern = dict((name,re.compile("import\s+(\w+)\ +as\ +%s\s"%name, re.MULTILINE)) for name in all_names)
+
+            for module in modules:
+                sources = sageinspect.sage_getsource(sys.modules[module])
+                for name in names[module]:
+                    m = names_pattern[name].search(sources)
+                    if m:
+                        if verbose:
+                            print "  **Warning** : \"%s\" seems to be an alias for \"%s\" defined in %s"%(
+                                    name,m.group(1),module)
+                        break
+                else:
+                    continue
+                break
+            else:
+                # we found nothing !!!
+                name = None
+                module = None
+
+        # otherwise we pick the first guy
+        if module is None or name is None:
+
+            if not_all_modules:
+                module = not_all_modules[0]
+            else:
+                module = modules[0]
             name = names[module][0]
 
-        if name is not None:
-            print_import_statement(module, name, lazy, answer)
-        else:
-            raise ValueError("no import statement for %s"%obj)
+            if verbose and not_all_modules:
+                print "  ** Warning **: %s does not exist outside all.py files"%name
+
+            if verbose and len(modules) > 1:
+                print "  ** Warning **: several modules for that object:",
+                print ", ".join(modules[:4]),
+                if len(modules) > 4:
+                    print "..."
+                else:
+                    print
+
+        print_import_statement(module, name, lazy, answer)
 
     if answer is not None:
         return '\n'.join(answer)
 
 def which_import_statements_fail():
     r"""
-    Run import statements on *all* objects and print the one for which the
-    import fails or return "from sage.all import my_object".
+    Run import statements on the objects available from the global namespace and
+    print the ones for which the import fails or return "from sage.all import my_object".
 
     The returne value is a couple of lists. The first one corresponds to the
     import_statements that answer "from sage.all import XXX" and the second
@@ -368,18 +417,18 @@ def which_import_statements_fail():
     TESTS::
 
         sage: from sage.misc.dev_tools import which_import_statements_fail
-        sage: sage_all, errors = which_import_statements_fail() # long time
-        ** Warning **: several modules for that object: sage.all, sage.all_cmdline
+        sage: sage_all, errors = which_import_statements_fail()
+          ** Warning **: __builtins__ does not exist outside all.py files
         ...
-        sage: errors          # long time
-        ['maxima_calculus']
-        sage: len(sage_all)   # long time
-        62
+        sage: errors
+        []
+        sage: sage_all
+        ['__file__', '__package__', '__name__', '__doc__']
     """
     import sage.all
     errors = []
     sage_all = []
-    for name in sage.all.__dict__.iterkeys():
+    for name in globals():
         try:
             to_test = import_statements(name, answer_as_str=True)
         except ValueError:
@@ -390,6 +439,7 @@ def which_import_statements_fail():
             sage_all.append(name)
             continue
         try:
+            #TODO: this potentially modifies the namespace !!
             exec import_statements(name, answer_as_str=True)
         except ImportError:
             errors.append(name)

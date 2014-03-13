@@ -8,7 +8,7 @@ Quickref
 - ``T.dynkin_diagram(), DynkinDiagram(["G",2])``  -- Dynkin diagrams
 - ``T.cartan_matrix(),  CartanMatrix(["F",4])``   -- Cartan matrices
 - ``RootSystem(T).weight_lattice()``              -- Root systems
-- ``WeylGroup(["B", 6, 1]).simple_reflections()`` -- Affine weyl groups
+- ``WeylGroup(["B", 6, 1]).simple_reflections()`` -- Affine Weyl groups
 - ``WeylCharacterRing(["D", 4])``                 -- Weyl character rings
 
 Documentation

@@ -9,6 +9,7 @@ from sage.structure.element import is_Element
 from sage.misc.latex import latex
 from sage.misc.misc import union
 from sage.structure.factorization import Factorization
+from sage.misc.derivative import multi_derivative
 
 
 cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
@@ -883,6 +884,87 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
 
         return out
 
+    def derivative(self, *args):
+        r"""
+        The formal derivative of this Laurent polynomial, with respect
+        to variables supplied in args.
+
+        Multiple variables and iteration counts may be supplied; see
+        documentation for the global derivative() function for more
+        details.
+
+        .. seealso::
+
+           :meth:`_derivative`
+
+        EXAMPLES::
+
+            sage: R = LaurentPolynomialRing(ZZ,'x, y')
+            sage: x, y = R.gens()
+            sage: t = x**4*y+x*y+y+x**(-1)+y**(-3)
+            sage: t.derivative(x, x)
+            12*x^2*y + 2*x^-3
+            sage: t.derivative(y, 2)
+            12*y^-5
+        """
+        return multi_derivative(self, args)
+
+    # add .diff(), .differentiate() as aliases for .derivative()
+    diff = differentiate = derivative
+
+    def _derivative(self, var=None):
+        """
+        Computes formal derivative of this Laurent polynomial with
+        respect to the given variable.
+
+        If var is among the generators of this ring, the derivative
+        is with respect to the generator. Otherwise, _derivative(var) is called
+        recursively for each coefficient of this polynomial.
+
+        .. seealso:: :meth:`derivative`
+
+        EXAMPLES::
+
+            sage: R = LaurentPolynomialRing(ZZ,'x, y')
+            sage: x, y = R.gens()
+            sage: t = x**4*y+x*y+y+x**(-1)+y**(-3)
+            sage: t._derivative(x)
+            4*x^3*y + y - x^-2
+            sage: t._derivative(y)
+            x^4 + x + 1 - 3*y^-4
+
+            sage: R = LaurentPolynomialRing(QQ['z'],'x')
+            sage: z = R.base_ring().gen()
+            sage: x = R.gen()
+            sage: t = 33*z*x**4+x**(-1)
+            sage: t._derivative(z)
+            33*x^4
+            sage: t._derivative(x)
+            132*z*x^3 - x^-2
+
+        """
+        if var is None:
+            raise ValueError("must specify which variable to differentiate "
+                             "with respect to")
+        P = self.parent()
+        gens = list(P.gens())
+
+        # check if var is one of the generators
+        try:
+            index = gens.index(var)
+        except ValueError:
+            # call _derivative() recursively on coefficients
+            return P({m: c._derivative(var)
+                      for (m, c) in self.dict().iteritems()})
+
+        # compute formal derivative with respect to generator
+        d = {}
+        for m, c in self.dict().iteritems():
+            if m[index] != 0:
+                new_m = [u for u in m]
+                new_m[index] += -1
+                d[ETuple(new_m)] = m[index] * c
+        return P(d)
 
     def factor(self):
         """

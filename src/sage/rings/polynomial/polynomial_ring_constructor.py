@@ -79,7 +79,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
 
     INPUT:
 
-    - ``base_ring`` -- a commutative ring
+    - ``base_ring`` -- a ring
     - ``name`` -- a string
     - ``names`` -- a list or tuple of names, or a comma separated string
     - ``var_array`` -- a list or tuple of names, or a comma separated string

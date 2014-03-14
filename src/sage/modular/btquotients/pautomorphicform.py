@@ -32,9 +32,44 @@ from operator import mul
 from sage.rings.real_mpfr import RR
 from sage.modular.pollack_stevens.sigma0 import Sigma0,Sigma0ActionAdjuster
 from sage.modular.pollack_stevens.distributions import Distributions, Symk
-from sage.modular.btquotients.ocmodule import OCVn,OCVnElement,_btquot_adjuster
 
-use_ps_dists = True
+# Need this to be pickleable
+class _btquot_adjuster(Sigma0ActionAdjuster):
+    """
+    Callable object that turns matrices into 4-tuples.
+
+    Since the modular symbol and harmonic cocycle code use different
+    conventions for group actions, this function is used to make sure
+    that actions are correct for harmonic cocycle computations.
+
+    EXAMPLES::
+
+        sage: from sage.modular.btquotients.pautomorphicform import _btquot_adjuster
+        sage: adj = _btquot_adjuster()
+        sage: adj(matrix(ZZ,2,2,[1..4]))
+        (4, 2, 3, 1)
+    """
+    def __call__(self, g):
+        """
+        Turns matrices into 4-tuples.
+
+        INPUT:
+
+        - ``g`` - a 2x2 matrix
+
+        OUTPUT:
+
+        A 4-tuple encoding the entries of ``g``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.btquotients.pautomorphicform import _btquot_adjuster
+            sage: adj = _btquot_adjuster()
+            sage: adj(matrix(ZZ,2,2,[1..4]))
+            (4, 2, 3, 1)
+        """
+        a,b,c,d = g.list()
+        return tuple([d, b, c, a])
 
 
 def eval_dist_at_powseries(phi,f):
@@ -67,11 +102,6 @@ def eval_dist_at_powseries(phi,f):
         sage: phi = D(range(1,11))
         sage: eval_dist_at_powseries(phi,f)
         180470298
-
-        sage: D = OCVn(0,Qp(7,10),10)
-        sage: phi = D(range(1,11))
-        sage: eval_dist_at_powseries(phi,f)
-        1 + 2*7 + 3*7^2 + 4*7^3 + 5*7^4 + 6*7^5 + 2*7^7 + 3*7^8 + 4*7^9 + O(7^10)
 
         Even though it only makes sense to evaluate a distribution on
         a Tate series, this function will output a (possibly
@@ -649,10 +679,7 @@ class HarmonicCocycles(AmbientHeckeModule,UniqueRepresentation):
             else:
                 self._R = base_field
 
-        if use_ps_dists:
-            self._U = Symk(self._k-2,base = self._R,act_on_left = True,adjuster = _btquot_adjuster(),dettwist = -ZZ((self._k-2)/2),act_padic = True)
-        else:
-            self._U = OCVn(self._k-2,self._R)
+        self._U = Symk(self._k-2,base = self._R,act_on_left = True,adjuster = _btquot_adjuster(),dettwist = -ZZ((self._k-2)/2),act_padic = True)
 
         if basis_matrix is None:
             self.__rank = self._X.dimension_harmonic_cocycles(self._k)
@@ -2123,13 +2150,10 @@ class pAutomorphicForms(Module,UniqueRepresentation):
                     t = prec-U+1
                 else:
                     t = 0
-            if use_ps_dists:
-                if overconvergent:
-                    self._U = Distributions(U-2,base = self._R,prec_cap = U - 1 + t ,act_on_left = True,adjuster = _btquot_adjuster(), dettwist = -ZZ((U-2)/2),act_padic = True)
-                else:
-                    self._U = Symk(U-2,base = self._R,act_on_left = True,adjuster = _btquot_adjuster(), dettwist = -ZZ((U-2)/2),act_padic = True)
+            if overconvergent:
+                self._U = Distributions(U-2,base = self._R,prec_cap = U - 1 + t ,act_on_left = True,adjuster = _btquot_adjuster(), dettwist = -ZZ((U-2)/2),act_padic = True)
             else:
-                self._U = OCVn(U-2,self._R,U-1+t)
+                self._U = Symk(U-2,base = self._R,act_on_left = True,adjuster = _btquot_adjuster(), dettwist = -ZZ((U-2)/2),act_padic = True)
         else:
             self._U = U
         self._source = domain

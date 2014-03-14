@@ -788,8 +788,8 @@ class WeightLatticeRealizations(Category_over_base_ring):
             return signs
 
         def rho_classical(self):
-            """
-            Return the embeding at level 0 of `\rho` of the classical lattice.
+            r"""
+            Return the embedding at level 0 of `\rho` of the classical lattice.
 
             EXAMPLES::
 

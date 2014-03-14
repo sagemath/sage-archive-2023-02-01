@@ -560,6 +560,119 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 codomain = SymmetricFunctionsNonCommutingVariables(self.base_ring()).monomial()
                 return self.module_morphism(self.to_ncsym_on_basis, codomain=codomain)
 
+            def immaculate_function(self, xs):
+                r"""
+                Return the immaculate function corresponding to the
+                integer vector ``xs``, written in the basis ``self``.
+
+                If `\alpha` is any integer vector -- i.e., an element of
+                `\ZZ^m` for some `m \in \NN` --, the *immaculate function
+                corresponding to `\alpha`* is a non-commutative symmetric
+                function denoted by `\mathfrak{S}_{\alpha}`. One way to
+                define this function is by setting
+
+                .. MATH::
+
+                    \mathfrak{S}_{\alpha}
+                    = \sum_{\sigma \in S_m} (-1)^{\sigma}
+                    S_{\alpha_1 + \sigma(1) - 1}
+                    S_{\alpha_2 + \sigma(2) - 2}
+                    \cdots
+                    S_{\alpha_m + \sigma(m) - m},
+
+                where `\alpha` is written in the form
+                `(\alpha_1, \alpha_2, \ldots, \alpha_m)`, and where `S`
+                stands for the complete basis
+                (:class:`sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.S`).
+
+                The immaculate function `\mathfrak{S}_{\alpha}` first
+                appeared in [BBSSZ2012]_ (where it was defined
+                differently, but the definition we gave above appeared as
+                Theorem 3.27).
+
+                The immaculate functions `\mathfrak{S}_{\alpha}` for
+                `\alpha` running over all compositions (i.e., finite
+                sequences of positive integers) form a basis of `NCSF`.
+                This is the *immaculate basis*
+                (:class:`sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.I`).
+
+                INPUT:
+
+                - ``xs`` -- list (or tuple or any iterable -- possibly a
+                  composition) of integers.
+
+                OUTPUT:
+
+                The immaculate function `\mathfrak{S}_{\alpha}`, where
+                `\alpha = ` ``xs``, written in the basis ``self``.
+
+                EXAMPLES:
+
+                Let us first check that, for ``xs`` a composition, we get
+                the same as the result of
+                ``self.realization_of().I()[xs]``::
+
+                    sage: def test_comp(xs):
+                    ....:     NSym = NonCommutativeSymmetricFunctions(QQ)
+                    ....:     I = NSym.I()
+                    ....:     return I[xs] == I.immaculate_function(xs)
+                    sage: def test_allcomp(n):
+                    ....:     return all( test_comp(c) for c in Compositions(n) )
+                    sage: test_allcomp(1)
+                    True
+                    sage: test_allcomp(2)
+                    True
+                    sage: test_allcomp(3)
+                    True
+
+                Now some examples of non-composition immaculate
+                functions::
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(QQ)
+                    sage: I = NSym.I()
+                    sage: I.immaculate_function([0, 1])
+                    0
+                    sage: I.immaculate_function([0, 2])
+                    -I[1, 1]
+                    sage: I.immaculate_function([-1, 1])
+                    -I[]
+                    sage: I.immaculate_function([2, -1])
+                    0
+                    sage: I.immaculate_function([2, 0])
+                    I[2]
+                    sage: I.immaculate_function([2, 0, 1])
+                    0
+                    sage: I.immaculate_function([1, 0, 2])
+                    -I[1, 1, 1]
+                    sage: I.immaculate_function([2, 0, 2])
+                    -I[2, 1, 1]
+                    sage: I.immaculate_function([0, 2, 0, 2])
+                    I[1, 1, 1, 1] + I[1, 2, 1]
+                    sage: I.immaculate_function([2, 0, 2, 0, 2])
+                    I[2, 1, 1, 1, 1] + I[2, 1, 2, 1]
+
+                TESTS:
+
+                Basis-independence::
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(QQ)
+                    sage: L = NSym.L()
+                    sage: S = NSym.S()
+                    sage: L(S.immaculate_function([0, 2, 0, 2])) == L.immaculate_function([0, 2, 0, 2])
+                    True
+                """
+                S = self.realization_of().S()
+                res = S.zero()
+                m = len(xs)
+                for s in Permutations(m):
+                    psco = [xs[i] + s[i] - i - 1 for i in range(m)]
+                    if not all(j >= 0 for j in psco):
+                        continue
+                    psco2 = [j for j in psco if j != 0]
+                    pr = s.sign() * S[psco2]
+                    res += pr
+                return self(res)
+
         class ElementMethods:
 
             def verschiebung(self, n):
@@ -2533,6 +2646,15 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         (quasi-)idempotents in the descent algebras of the symmetric
         groups (see [NCSF1]_, 5.2 for details).
 
+        Another (equivalent) definition of `\Psi_n` is
+
+        .. MATH::
+
+            \Psi_n = \sum_{i=0}^{n-1} (-1)^i R_{1^i, n-i},
+
+        where `R` denotes the ribbon basis of `NCSF`, and where `1^i`
+        stands for `i` repetitions of the integer `1`.
+
         EXAMPLES::
 
             sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
@@ -2540,6 +2662,22 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             Non-Commutative Symmetric Functions over the Rational Field in the Psi basis
             sage: Psi.an_element()
             2*Psi[] + 2*Psi[1] + 3*Psi[1, 1]
+
+        Checking the equivalent definition of `\Psi_n`::
+
+            sage: def test_psi(n):
+            ....:     NCSF = NonCommutativeSymmetricFunctions(ZZ)
+            ....:     R = NCSF.R()
+            ....:     Psi = NCSF.Psi()
+            ....:     a = R.sum([(-1) ** i * R[[1]*i + [n-i]]
+            ....:                for i in range(n)])
+            ....:     return Psi(a) == Psi[n]
+            sage: test_psi(2)
+            True
+            sage: test_psi(3)
+            True
+            sage: test_psi(4)
+            True
         """
         def __init__(self, NCSF):
             r"""
@@ -3344,7 +3482,23 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             r"""
             The immaculate basis of the non-commutative symmetric
             functions. This basis first appears in Berg, Bergeron,
-            Saliola, Serrano and Zabrocki's [BBSSZ2012]_.
+            Saliola, Serrano and Zabrocki's [BBSSZ2012]_. It can be
+            described as the family `(\mathfrak{S}_{\alpha})`, where
+            `\alpha` runs over all compositions, and
+            `\mathfrak{S}_{\alpha}` denotes the immaculate function
+            corresponding to `\alpha` (see
+            :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ParentMethods.immaculate_function`).
+
+            .. WARNING::
+
+                This *basis* contains only the immaculate functions
+                indexed by compositions (i.e., finite sequences of
+                positive integers). To obtain the remaining immaculate
+                functions (sensu lato), use the
+                :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ParentMethods.immaculate_function`
+                method. Calling the immaculate *basis* with a list
+                which is not a composition will currently return
+                garbage!
 
             EXAMPLES::
 

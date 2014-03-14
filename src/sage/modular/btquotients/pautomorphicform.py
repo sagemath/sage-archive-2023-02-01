@@ -109,7 +109,7 @@ def eval_dist_at_powseries(phi,f):
 
         sage: g = (1-X)^(-1)
         sage: eval_dist_at_powseries(phi,g)
-        6 + 7^2 + O(7^10)
+        48
     """
     nmoments = phi.parent().precision_cap()
     return sum(a*phi.moment(i) for a,i in izip(f.coefficients(),f.exponents()) if i >= 0 and i < nmoments)

@@ -143,6 +143,7 @@ import sage.rings.integer
 import sage.rings.rational
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.symbolic.getitem cimport OperandsWrapper
+from sage.symbolic.complexity_measures import string_length
 from sage.symbolic.function import get_sfunction_from_serial, SymbolicFunction
 from sage.rings.rational import Rational  # Used for sqrt.
 from sage.misc.derivative import multi_derivative
@@ -549,8 +550,8 @@ cdef class Expression(CommutativeRingElement):
         # from sage.misc.ascii_art import AsciiArt, MAX_LENGTH ## for import
         #            num_columns = MAX_LENGTH  ## option of pretty
         try:
-            s = pretty(sympify(self), use_unicode=False)
-        except Exception:
+            s = pretty(sympify(self, evaluate=False), use_unicode=False)
+        except StandardError:
             s = self
         return AsciiArt(str(s).splitlines())
 
@@ -690,10 +691,15 @@ cdef class Expression(CommutativeRingElement):
             sage: latex(x*(1/(x^2)+sqrt(x^7)))
             x {\left(\sqrt{x^{7}} + \frac{1}{x^{2}}\right)}
 
-        Check spacing of coefficients of mul expressions (#3202)::
+        Check spacing of coefficients of mul expressions (:trac:`3202` and
+        :trac:`13356`)::
 
             sage: latex(2*3^x)
-            2 \, 3^{x}
+            2 \cdot 3^{x}
+            sage: latex(1/2/3^x)
+            \frac{1}{2 \cdot 3^{x}}
+            sage: latex(1/2*3^x)
+            \frac{1}{2} \cdot 3^{x}
 
         Powers::
 
@@ -967,7 +973,7 @@ cdef class Expression(CommutativeRingElement):
         """
         cdef GEx res
         try:
-            res = self._gobj.evalf(0, R)
+            res = self._gobj.evalf(0, {'parent':R})
         except TypeError as err:
             # try the evaluation again with the complex field
             # corresponding to the parent R
@@ -978,13 +984,13 @@ cdef class Expression(CommutativeRingElement):
                     R_complex = R.complex_field()
                 except (TypeError, AttributeError):
                     raise err
-            res = self._gobj.evalf(0, R_complex)
+            res = self._gobj.evalf(0, {'parent':R_complex})
         if is_a_numeric(res):
             return R(py_object_from_numeric(res))
         else:
             raise TypeError, "Cannot evaluate symbolic expression to a numeric value."
 
-    cpdef _convert(self, R):
+    cpdef _convert(self, kwds):
         """
         Convert all the numeric coefficients and constants in this expression
         to the given ring `R`. This results in an expression which contains
@@ -994,14 +1000,14 @@ cdef class Expression(CommutativeRingElement):
 
             sage: f = sqrt(2) * cos(3); f
             sqrt(2)*cos(3)
-            sage: f._convert(RDF)
+            sage: f._convert({'parent':RDF})
             -1.40006081534
-            sage: f._convert(float)
+            sage: f._convert({'parent':float})
             -1.40006081533995
 
         There is nothing to convert for variables::
 
-            sage: x._convert(CC)
+            sage: x._convert({'parent':CC})
             x
 
         Note that the output is not meant to be in the in the given ring `R`.
@@ -1010,24 +1016,24 @@ cdef class Expression(CommutativeRingElement):
 
             sage: t = log(10); t
             log(10)
-            sage: t._convert(QQ)
+            sage: t._convert({'parent':QQ})
             2.30258509299405
 
         ::
 
-            sage: (0.25 / (log(5.74 /x^0.9, 10))^2 / 4)._convert(QQ)
+            sage: (0.25 / (log(5.74 /x^0.9, 10))^2 / 4)._convert({'parent':QQ})
             0.331368631904900/log(287/50/x^0.900000000000000)^2
-            sage: (0.25 / (log(5.74 /x^0.9, 10))^2 / 4)._convert(CC)
+            sage: (0.25 / (log(5.74 /x^0.9, 10))^2 / 4)._convert({'parent':CC})
             0.331368631904900/log(5.74000000000000/x^0.900000000000000)^2
 
         When converting to an exact domain, powers remain unevaluated::
 
             sage: f = sqrt(2) * cos(3); f
             sqrt(2)*cos(3)
-            sage: f._convert(int)
+            sage: f._convert({'parent':int})
             -0.989992496600445*sqrt(2)
         """
-        cdef GEx res = self._gobj.evalf(0, R)
+        cdef GEx res = self._gobj.evalf(0, kwds)
         return new_Expression_from_GEx(self._parent, res)
 
     def _mpfr_(self, R):
@@ -2956,6 +2962,16 @@ cdef class Expression(CommutativeRingElement):
             sage: g = expand(iterkate(7))
             sage: g.nops()
             480
+
+        Check if :trac:`10849` is fixed::
+
+            sage: t = I.pyobject().parent()(-1/2)
+            sage: t > 0
+            False
+            sage: t = I*x-1/2; t
+            I*x - 1/2
+            sage: t.subs(x=I*x).subs(x=0).is_positive()
+            False
         """
         return (<Element>left)._cmp(right)
 
@@ -3466,6 +3482,59 @@ cdef class Expression(CommutativeRingElement):
         finally:
             sig_off()
         return new_Expression_from_GEx(self._parent, x)
+
+    def residue(self, symbol):
+        """
+        Calculates the residue of ``self`` with respect to ``symbol``.
+
+        INPUT:
+
+        - ``symbol`` - a symbolic variable or symbolic equality such
+          as ``x == 5``. If an equality is given, the expansion is
+          around the value on the right hand side of the equality,
+          otherwise at ``0``.
+
+        OUTPUT:
+
+        The residue of ``self``.
+
+        Say, ``symbol`` is ``x == a``, then this function calculates
+        the residue of ``self`` at `x=a`, i.e., the coefficient of
+        `1/(x-a)` of the series expansion of ``self`` around `a`.
+
+        EXAMPLES::
+
+            sage: (1/x).residue(x == 0)
+            1
+            sage: (1/x).residue(x == oo)
+            -1
+            sage: (1/x^2).residue(x == 0)
+            0
+            sage: (1/sin(x)).residue(x == 0)
+            1
+            sage: var('q, n, z')
+            (q, n, z)
+            sage: (-z^(-n-1)/(1-z/q)^2).residue(z == q).simplify_full()
+            (n + 1)/q^n
+            sage: var('s')
+            s
+            sage: zeta(s).residue(s == 1) # not tested - #15846
+            1
+
+        TESTS::
+
+            sage: (exp(x)/sin(x)^4).residue(x == 0)
+            5/6
+        """
+        if symbol.is_relational():
+            x = symbol.lhs()
+            a = symbol.rhs()
+        else:
+            x = symbol
+            a = 0
+        if a == infinity:
+            return (-self.subs({x: 1/x}) / x**2).residue(x == 0)
+        return self.subs({x: x+a}).series(x == 0, 0).coefficient(x, -1)
 
     def taylor(self, *args):
         r"""
@@ -4553,7 +4622,7 @@ cdef class Expression(CommutativeRingElement):
             res._expr = self
             return res
 
-    def _numerical_approx(self, prec=None, digits=None):
+    def _numerical_approx(self, prec=None, digits=None, algorithm=None):
         """
         Return a numerical approximation this symbolic expression as
         either a real or complex number with at least the requested
@@ -4625,13 +4694,14 @@ cdef class Expression(CommutativeRingElement):
                 prec = int((digits+1) * LOG_TEN_TWO_PLUS_EPSILON) + 1
         from sage.rings.real_mpfr import RealField
         R = RealField(prec)
+        kwds = {'parent': R, 'algorithm': algorithm}
         cdef Expression x
         try:
-            x = self._convert(R)
+            x = self._convert(kwds)
         except TypeError: # numerical approximation for real number failed
             pass          # try again with complex
-            R = R.complex_field()
-            x = self._convert(R)
+            kwds['parent'] = R.complex_field()
+            x = self._convert(kwds)
 
         # we have to consider constants as well, since infinity is a constant
         # in pynac
@@ -4912,8 +4982,29 @@ cdef class Expression(CommutativeRingElement):
             sage: f.coefficient(x, 0)
             sqrt(x)*sin(y) + z^z
 
+        TESTS:
+
+        Check if :trac:`9505` is fixed::
+
+            sage: var('x,y,z')
+            (x, y, z)
+            sage: f = x*y*z^2
+            sage: f.coeff(x*y)
+            z^2
+            sage: f.coeff(x*y, 2)
+            Traceback (most recent call last):
+            ...
+            TypeError: n != 1 only allowed for s being a variable
         """
         cdef Expression ss = self.coerce_in(s)
+        if n != 1 and not is_a_symbol(ss._gobj):
+            raise TypeError("n != 1 only allowed for s being a variable")
+        # the following is a temporary fix for GiNaC bug #9505
+        if is_a_mul(ss._gobj): # necessarily n=1 here
+            res = self
+            for i from 0 <= i < ss._gobj.nops():
+                res = res.coeff(new_Expression_from_GEx(self._parent, ss._gobj.op(i)))
+            return res
         return new_Expression_from_GEx(self._parent, self._gobj.coeff(ss._gobj, n))
 
     coeff = coefficient
@@ -6931,13 +7022,12 @@ cdef class Expression(CommutativeRingElement):
             sage: a = I.log(hold=True); a.simplify()
             1/2*I*pi
 
-        We do not currently support a ``hold`` parameter in functional
-        notation::
+        The ``hold`` parameter also works in functional notation::
 
-            sage: log(SR(-1),hold=True)
-            Traceback (most recent call last):
-            ...
-            TypeError: log() got an unexpected keyword argument 'hold'
+            sage: log(-1,hold=True)
+            log(-1)
+            sage: log(-1)
+            I*pi
 
         TESTS::
 
@@ -7063,7 +7153,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(5).binomial(SR(3))
             10
             sage: x.binomial(SR(3))
-            1/6*x^3 - 1/2*x^2 + 1/3*x
+            1/6*(x - 1)*(x - 2)*x
             sage: x.binomial(y)
             binomial(x, y)
 
@@ -7080,13 +7170,10 @@ cdef class Expression(CommutativeRingElement):
             sage: a = SR(5).binomial(3, hold=True); a.simplify()
             10
 
-        We do not currently support a ``hold`` parameter in functional
-        notation::
+        The ``hold`` parameter is also supported in functional notation::
 
             sage: binomial(5,3, hold=True)
-            Traceback (most recent call last):
-            ...
-            TypeError: binomial() got an unexpected keyword argument 'hold'
+            binomial(5, 3)
 
         TESTS:
 
@@ -7838,6 +7925,86 @@ cdef class Expression(CommutativeRingElement):
         return x
 
     full_simplify = simplify_full
+
+
+    def simplify_rectform(self, complexity_measure = string_length):
+        r"""
+        Attempt to simplify this expression by expressing it in the
+        form `a + bi` where both `a` and `b` are real. This
+        transformation is generally not a simplification, so we use
+        the given ``complexity_measure`` to discard
+        non-simplifications.
+
+        INPUT:
+
+        - ``self`` -- the expression to simplify.
+
+        - ``complexity_measure`` -- (default:
+          ``sage.symbolic.complexity_measures.string_length``) a
+          function taking a symbolic expression as an argument and
+          returning a measure of that expressions complexity. If
+          ``None`` is supplied, the simplification will be performed
+          regardless of the result.
+
+        OUTPUT:
+
+        If the transformation produces a simpler expression (according
+        to ``complexity_measure``) then that simpler expression is
+        returned. Otherwise, the original expression is returned.
+
+        ALGORITHM:
+
+        We first call :meth:`rectform()` on the given
+        expression. Then, the supplied complexity measure is used to
+        determine whether or not the result is simpler than the
+        original expression.
+
+        EXAMPLES:
+
+        The exponential form of `\tan(x)`::
+
+            sage: f = ( e^(I*x) - e^(-I*x) ) / ( I*e^(I*x) + I*e^(-I*x) )
+            sage: f.simplify_rectform()
+            sin(x)/cos(x)
+
+        This should not be expanded with Euler's formula since the
+        resulting expression is longer when considered as a string,
+        and the default ``complexity_measure`` uses string length to
+        determine which expression is simpler::
+
+            sage: f = e^(I*x)
+            sage: f.simplify_rectform()
+            e^(I*x)
+
+        However, if we pass ``None`` as our complexity measure, it
+        is::
+
+            sage: f = e^(I*x)
+            sage: f.simplify_rectform(complexity_measure = None)
+            cos(x) + I*sin(x)
+
+        TESTS:
+
+        When given ``None``, we should always call :meth:`rectform()`
+        and return the result::
+
+            sage: polynomials = QQ['x']
+            sage: f = SR(polynomials.random_element())
+            sage: g = f.simplify_rectform(complexity_measure = None)
+            sage: bool(g == f.rectform())
+            True
+
+        """
+        simplified_expr = self.rectform()
+
+        if complexity_measure is None:
+            return simplified_expr
+        
+        if complexity_measure(simplified_expr) < complexity_measure(self):
+            return simplified_expr
+        else:
+            return self
+
 
     def simplify_trig(self,expand=True):
         r"""

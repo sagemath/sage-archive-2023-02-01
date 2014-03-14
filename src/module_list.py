@@ -1854,6 +1854,9 @@ ext_modules = [
               language = 'c++',
               include_dirs = ['sage/libs/ntl/']),
 
+    Extension('sage.rings.polynomial.polynomial_ring_homomorphism',
+              sources = ['sage/rings/polynomial/polynomial_ring_homomorphism.pyx']),
+
     Extension('sage.rings.polynomial.pbori',
               sources = ['sage/rings/polynomial/pbori.pyx'],
               libraries=['polybori-' + polybori_major_version,

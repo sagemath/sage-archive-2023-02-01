@@ -1494,7 +1494,7 @@ class WeightRing(CombinatorialFreeModule):
 
     A Weyl character may be regarded as an element of the weight ring.
     In fact, an element of the weight ring is an element of the
-    :class:`weyl character ring <WeylCharacterRing>` if and only if it is
+    :class:`Weyl character ring <WeylCharacterRing>` if and only if it is
     invariant under the action of the Weyl group.
 
     The advantage of the weight ring over the Weyl character ring

@@ -382,6 +382,14 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             ...
             TypeError: Unable to convert x (='1.00...00*I') to real number.
 
+        Check that the bug in :trac:`11239` is fixed::
+
+            sage: K.<a> = GF(5^2, conway=True, prefix='z')
+            sage: L.<b> = GF(5^4, conway=True, prefix='z')
+            sage: f = K['x'].gen() + a
+            sage: L['x'](f)
+            x + b^3 + b^2 + b + 3
+
         """
         C = self._polynomial_class
         if isinstance(x, list):
@@ -404,14 +412,6 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             elif P == self.base_ring():
                 return C(self, [x], check=True, is_gen=False,
                          construct=construct)
-
-            elif self.base_ring().has_coerce_map_from(P):
-                return C(self, [x], check=True, is_gen=False,
-                        construct=construct)
-        try: #if hasattr(x, '_polynomial_'):
-            return x._polynomial_(self)
-        except AttributeError:
-            pass
         if isinstance(x, SingularElement) and self._has_singular:
             self._singular_().set_ring()
             try:
@@ -604,7 +604,11 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                         # become useful.
                         if self._implementation_names == ('NTL',):
                             return False
-                    return base_ring.has_coerce_map_from(P.base_ring())
+                    f = base_ring.coerce_map_from(P.base_ring())
+                    if f is not None:
+                        from sage.rings.homset import RingHomset
+                        from sage.rings.polynomial.polynomial_ring_homomorphism import PolynomialRingHomomorphism_from_base
+                        return PolynomialRingHomomorphism_from_base(RingHomset(P, self), f)
         except AttributeError:
             pass
 

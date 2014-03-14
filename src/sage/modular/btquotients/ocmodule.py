@@ -19,6 +19,49 @@ from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.rings.padics.padic_generic import pAdicGeneric
 from sage.categories.pushout import pushout
+from sage.modular.pollack_stevens.sigma0 import Sigma0,Sigma0ActionAdjuster
+from sage.categories.action import Action
+from sage.modules.free_module_element import free_module_element,vector
+from sage.modules.free_module import FreeModule
+import operator
+
+# Need this to be pickleable
+class _btquot_adjuster(Sigma0ActionAdjuster):
+    """
+    Callable object that turns matrices into 4-tuples.
+
+    Since the modular symbol and harmonic cocycle code use different
+    conventions for group actions, this function is used to make sure
+    that actions are correct for harmonic cocycle computations.
+
+    EXAMPLES::
+
+        sage: from sage.modular.btquotients.ocmodule import _btquot_adjuster
+        sage: adj = _btquot_adjuster()
+        sage: adj(matrix(ZZ,2,2,[1..4]))
+        (4, 2, 3, 1)
+    """
+    def __call__(self, g):
+        """
+        Turns matrices into 4-tuples.
+
+        INPUT:
+
+        - ``g`` - a 2x2 matrix
+
+        OUTPUT:
+
+        A 4-tuple encoding the entries of ``g``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.btquotients.ocmodule import _btquot_adjuster
+            sage: adj = _btquot_adjuster()
+            sage: adj(matrix(ZZ,2,2,[1..4]))
+            (4, 2, 3, 1)
+        """
+        a,b,c,d = g.list()
+        return tuple([d, b, c, a])
 
 class OCVnElement(ModuleElement):
     r"""
@@ -51,20 +94,20 @@ class OCVnElement(ModuleElement):
             if isinstance(val,self.__class__):
                 d=min([val._parent._depth,parent._depth])
                 assert(val._parent.weight()==parent.weight())
-                self._val=Matrix(self._parent._R,self._depth,1,0)
-                for ii in range(d):
-                    self._val[ii,0]=val._val[ii,0]
+                self._val = vector(self._parent._R,self._depth,val._val[:d].list()+[0]*(self._depth-d))
             else:
                 try:
-                    self._val = Matrix(self._parent._R,self._depth,1,val)
+                    if hasattr(val,'list'):
+                        val = val.list()
+                    self._val = vector(self._parent._R,self._depth,val)
                 except:
-                    self._val= self._parent._R(val) * MatrixSpace(self._parent._R,self._depth,1)(1)
+                    self._val= self._parent._R(val) * vector(self._parent._R,self._depth,[1]*self._depth)
         else:
-            self._val= MatrixSpace(self._parent._R,self._depth,1)(val)
-        self.moments = self._val
+            self._val= FreeModule(self._parent._R,self._depth)(val)
+        self._moments = self._val
 
     def moment(self, i):
-        return self.moments[i,0]
+        return self._moments[i]
 
     def __getitem__(self,r):
         r"""
@@ -76,7 +119,7 @@ class OCVnElement(ModuleElement):
         EXAMPLES:
 
         """
-        return self._val[r,0]
+        return self._val[r]
 
     def __setitem__(self,r, val):
         r"""
@@ -89,7 +132,7 @@ class OCVnElement(ModuleElement):
         EXAMPLES:
 
         """
-        self._val[r,0] = val
+        self._val[r] = val
 
     def element(self):
         r"""
@@ -100,8 +143,7 @@ class OCVnElement(ModuleElement):
 
         ::
         """
-        tmp=self.matrix_rep()
-        return [tmp[ii,0] for ii in range(tmp.nrows())]
+        return self.matrix_rep().list()
 
     def list(self):
         r"""
@@ -126,7 +168,7 @@ class OCVnElement(ModuleElement):
         #Express the element in terms of the basis B
         if(B is None):
             B=self._parent.basis()
-        A=Matrix(self._parent._R,self._parent.dimension(),self._parent.dimension(),[[b._val[ii,0] for b in B] for ii in range(self._depth)])
+        A=Matrix(self._parent._R,self._parent.dimension(),self._parent.dimension(),[[b._val[ii] for b in B] for ii in range(self._depth)])
         tmp=A.solve_right(self._val)
         return tmp
 
@@ -163,8 +205,8 @@ class OCVnElement(ModuleElement):
 
         ::
         """
-        #assert(x.nrows()==2 and x.ncols()==2) #An element of GL2
-        return self._l_act_by(x[0,0],x[0,1],x[1,0],x[1,1],extrafactor=x.determinant()**(-self._nhalf))
+        #return self._l_act_by(x[0,0],x[0,1],x[1,0],x[1,1],extrafactor=x.determinant()**(-self._nhalf))
+        return x * self
 
     def r_act_by(self,x):
         r"""
@@ -175,32 +217,8 @@ class OCVnElement(ModuleElement):
 
         ::
         """
-        #assert(x.nrows()==2 and x.ncols()==2) #An element of GL2
-        return self._l_act_by(x[1,1],-x[0,1],-x[1,0],x[0,0],extrafactor=x.determinant()**(-self._nhalf))
+        return x.adjoint() * self
 
-    def _l_act_by(self,a,b,c,d,extrafactor=1):
-        r"""
-
-        EXAMPLES:
-
-        This example illustrates ...
-
-        ::
-
-        """
-        R=self._parent._R
-        if(self._parent.base_ring().is_exact()):
-            factor=1
-        else:
-            t=min([R(x).valuation() for x in [a,b,c,d] if x!=0])
-            factor=R.prime()**(-t)
-        try:
-            x=self._parent._powers[(factor*a,factor*b,factor*c,factor*d)]
-            return self.__class__(self._parent,(extrafactor*factor**(-self._n))*(x*self._val), check = False)
-        except KeyError:
-            tmp = self._parent._get_powers_and_mult(factor*a,factor*b,factor*c,factor*d,extrafactor*factor**(-self._n),self._val)
-
-            return self.__class__(self._parent,tmp)
 
     def _rmul_(self,a):
         r"""
@@ -227,7 +245,7 @@ class OCVnElement(ModuleElement):
         """
         #This needs to be thought more carefully...
         if not self._parent.base_ring().is_exact():
-            return [self._val[ii,0].precision_absolute() for ii in range(self._depth)]
+            return [self._val[ii].precision_absolute() for ii in range(self._depth)]
         else:
             return Infinity
 
@@ -243,7 +261,7 @@ class OCVnElement(ModuleElement):
         """
         #This needs to be thought more carefully...
         if not self._parent.base_ring().is_exact():
-            return min([self._val[ii,0].precision_absolute() for ii in range(self._depth)])
+            return min([self._val[ii].precision_absolute() for ii in range(self._depth)])
         else:
             return Infinity
 
@@ -258,7 +276,7 @@ class OCVnElement(ModuleElement):
         """
         #This needs to be thought more carefully...
         if not self._parent.base_ring().is_exact():
-            return min([self._val[ii,0].precision_relative() for ii in range(self._depth)])
+            return min([self._val[ii].precision_relative() for ii in range(self._depth)])
         else:
             return Infinity
 
@@ -275,7 +293,7 @@ class OCVnElement(ModuleElement):
         """
         R=PowerSeriesRing(self._parent._R,default_prec=self._depth,name='z')
         z=R.gen()
-        s=str(sum([R(self._val[ii,0]*z**ii) for ii in range(self._depth)]))
+        s=str(sum([R(self._val[ii]*z**ii) for ii in range(self._depth)]))
         return s
 
     def __cmp__(self,other):
@@ -320,9 +338,9 @@ class OCVnElement(ModuleElement):
         if hasattr(P,'degree'):
             try:
                 r = min([P.degree()+1,self._depth])
-                return sum([R(self._val[ii,0])*P[ii] for ii in range(r)])
+                return sum([R(self._val[ii])*P[ii] for ii in range(r)])
             except NotImplementedError: pass
-        return R(self._val[0,0])*P
+        return R(self._val[0])*P
 
     def valuation(self,l=None):
         r"""
@@ -337,9 +355,9 @@ class OCVnElement(ModuleElement):
         if not self._parent.base_ring().is_exact():
             if(not l is None and l!=self._parent._R.prime()):
                 raise ValueError, "This function can only be called with the base prime"
-            return min([self._val[ii,0].valuation() for ii in range(self._depth)])
+            return min([self._val[ii].valuation() for ii in range(self._depth)])
         else:
-            return min([self._val[ii,0].valuation(l) for ii in range(self._depth)])
+            return min([self._val[ii].valuation(l) for ii in range(self._depth)])
 
 
 class OCVn(Module,UniqueRepresentation):
@@ -382,7 +400,8 @@ class OCVn(Module,UniqueRepresentation):
         self._depth=depth
         self._PowerSeries=PowerSeriesRing(self._Rmod,default_prec=self._depth,name='z')
         self._powers=dict()
-        self._populate_coercion_lists_()
+        self._act = OCVnWeightKAction(self)
+        self._populate_coercion_lists_(action_list = [self._act])
 
     def is_overconvergent(self):
         return self._depth != self._n+1
@@ -390,7 +409,7 @@ class OCVn(Module,UniqueRepresentation):
     def _an_element_(self):
         r"""
         """
-        return OCVnElement(self,Matrix(self._R,self._depth,1,range(1,self._depth+1)), check = False)
+        return OCVnElement(self,vector(self._R,self._depth,range(1,self._depth+1)), check = False)
 
     def _coerce_map_from_(self, S):
         r"""
@@ -416,11 +435,11 @@ class OCVn(Module,UniqueRepresentation):
     def _get_powers_and_mult(self,a,b,c,d,lambd,vect):
         r"""
         Compute the action of a matrix on the basis elements.
-
+    
         EXAMPLES:
-
+    
         ::
-
+    
         """
         R=self._PowerSeries
         r=R([b,a])
@@ -502,7 +521,7 @@ class OCVn(Module,UniqueRepresentation):
         """
         try: return self._basis
         except: pass
-        self._basis=[OCVnElement(self,Matrix(self._R,self._depth,1,{(jj,0):1},sparse=False),check = False) for jj in range(self._depth)]
+        self._basis=[OCVnElement(self,vector(self._R,self._depth,{jj:1},sparse=False),check = False) for jj in range(self._depth)]
         return self._basis
 
     def base_ring(self):
@@ -545,13 +564,76 @@ class OCVn(Module,UniqueRepresentation):
     def acting_matrix(self,g,d,B=None):
         r"""
         Matrix representation of ``g`` in a given basis.
-
+    
         """
         if d is None:
             d = self.dimension()
         if B is None:
             B=self.basis()
-        A=[(b.l_act_by(g)).matrix_rep(B) for b in B]
-        return Matrix(self._R,d,d,[A[jj][ii,0] for ii in range(d) for jj in range(d)]).transpose()
+        A=[(g * b).matrix_rep(B) for b in B] # b.l_act_by(g)
+        return Matrix(self._R,d,d,[A[jj][ii] for ii in range(d) for jj in range(d)]).transpose()
 
 
+class OCVnWeightKAction(Action):
+    r"""
+
+    INPUT:
+
+    - ``Dk`` -- a space of distributions
+    - ``character`` -- data specifying a Dirichlet character to apply to the
+      top right corner, and a power of the determinant by which to scale.  See
+      the documentation of
+      :class:`sage.modular.pollack_stevens.distributions.Distributions_factory`
+      for more details.
+    - ``adjuster`` -- a callable object that turns matrices into 4-tuples.
+    - ``on_left`` -- whether this action should be on the left.
+    - ``dettwist`` -- a power of the determinant to twist by
+    - ``padic`` -- if True, define an action of p-adic matrices (not just integer ones)
+
+    OUTPUT:
+
+    - 
+
+    EXAMPLES::
+
+        sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+    """
+    def __init__(self, Dk):
+        r"""
+        Initialization.
+
+        """
+        self._k = Dk.weight()
+        self._dettwist = -ZZ(self._k/2)
+        self._Sigma0 = Sigma0(1, base_ring=Dk.base_ring(),adjuster = _btquot_adjuster())
+        Action.__init__(self, self._Sigma0, Dk, True, operator.mul)
+
+
+    def _call_(self, v, g):
+        r"""
+    
+        EXAMPLES:
+    
+        This example illustrates ...
+    
+        ::
+    
+        """
+        if self.is_left():
+            v,g = g,v
+
+        a,b,c,d = g.matrix().list()
+        extrafactor = (a*d - b*c)**self._dettwist
+        R=v._parent._R
+        if(R.base_ring().is_exact()):
+            factor=1
+        else:
+            t=min([R(x).valuation() for x in [a,b,c,d] if x!=0])
+            factor=R.prime()**(-t)
+        try:
+            x=v._parent._powers[(factor*a,factor*b,factor*c,factor*d)]
+            return v.__class__(v._parent,(extrafactor*factor**(-v._n))*(x*v._val), check = False)
+        except KeyError:
+            tmp = v._parent._get_powers_and_mult(factor*a,factor*b,factor*c,factor*d,extrafactor*factor**(-v._n),v._val)
+    
+            return v.__class__(v._parent,tmp)

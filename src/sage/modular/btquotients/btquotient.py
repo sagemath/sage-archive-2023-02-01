@@ -533,29 +533,6 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         # assert self.is_in_group(M_orig.inverse()*newM, as_edge = True)
         return newM
 
-    # This function tests if a given matrix in Gamma0(p)
-    #
-    # def is_in_group(self,t,as_edge = True):
-    #     """
-    #     INPUT:
-    #       - ``t`` -
-    #       - ``as_edge`` - a boolean
-
-    #     OUTPUT:
-    #       - `` ``-
-
-    #     EXAMPLES::
-    #         sage: from btquotients.btquotient import BruhatTitsTree
-    #     """
-    #     v = t.determinant().valuation(self._p)
-    #     t = self._p**(-v)*t
-    #     if any([x.valuation(self._p)<0 for x in t.list()]):
-    #         return False
-    #     if as_edge:
-    #         if t[1,0].valuation(self._p)==0:
-    #             return False
-    #     return True
-
     def vertex(self,M):
         r"""
         Normalizes a matrix to the corresponding normalized
@@ -3394,19 +3371,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
             O = self.get_eichler_order_basis()
             self._B_one = (Matrix(ZZ,4,1,Matrix(QQ,4,4,[list(x) for x in O]).transpose().inverse().column(0).list()),0)
             return self._B_one
-            # V = self.get_units_of_order()
-            # for v in V:
-            #     vt = v.transpose()
-            #     vt.set_immutable()
-            #     b = self._conv(v)
-            #     if b == 1:
-            #         self._B_one = (vt,0)
-            #         break
-            #     if b == -1:
-            #         self._B_one = (-vt,0)
-            #         break
-            # return self._B_one
-
 
     def _conv(self,v):
         r"""
@@ -3609,16 +3573,31 @@ class BTQuotient(SageObject, UniqueRepresentation):
         self._Sfun = Sfun
 
     def harmonic_cocycle_from_elliptic_curve(self,E,prec = None):
+        r"""
+        Returns a harmonic cocycle with the same hecke eigenvalues as ``E``.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('21a1')
+            sage: X = BTQuotient(7,3)
+            sage: f = X.harmonic_cocycle_from_elliptic_curve(E,10)
+            sage: T29 = f.parent().hecke_operator(29)
+            sage: T29(f) == E.ap(29) * f
+            True
+
+        """
         from pautomorphicform import HarmonicCocycles
         M = HarmonicCocycles(self,2,prec = prec)
         q = ZZ(1)
-        F = M.base_field() #E.base_field()
-        try:
-            N = E.conductor().norm()
-        except ValueError:
-            N = E.conductor().norm(QQ)
+        F = E.base_ring()
+        try: N = ZZ(E.conductor())
+        except TypeError:
+            try:
+                N = E.conductor().norm()
+            except ValueError:
+                N = E.conductor().norm(QQ)
         N1 = self.level() * self.Nplus()
-        K = F**M.dimension()
+        K = M.base_ring()**M.dimension()
         while K.dimension() != 1:
             q = q.next_prime()
             if N % q == 0 or N1 % q == 0:
@@ -3630,5 +3609,5 @@ class BTQuotient(SageObject, UniqueRepresentation):
                 Eap = ZZ(Q.norm() + 1 - E.reduction(Q).count_points())
             K1 = (M.hecke_matrix(q) - Eap).right_kernel()
             K = K.intersection(K1)
-        col = [ZZ(o) for o in (K.denominator()*K.matrix()).list()]
+        col = [ZZ(o) for o in K.matrix().list()]
         return sum([a*M.gen(i) for i,a in enumerate(col) if a != 0],M(0))

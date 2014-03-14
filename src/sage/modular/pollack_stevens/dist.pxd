@@ -21,6 +21,11 @@ cdef class Dist_vector(Dist):
     cdef Dist_vector _new_c(self)
     cdef Dist_vector _addsub(self, Dist_vector right, bint negate)
 
+# cdef class Dist_simple(Dist):
+#     cdef public _moments
+#     cdef Dist_simple _new_c(self)
+#     cdef Dist_simple _addsub(self, Dist_simple right, bint negate)
+
 #cdef class Dist2(Dist): # only works on 64-bit....
 #    cdef long[60] moments
 #    cdef int prec
@@ -52,6 +57,9 @@ cdef class WeightKAction(Action):
     cpdef _compute_acting_matrix(self, g, M)
 
 cdef class WeightKAction_vector(WeightKAction):
+    pass
+
+cdef class WeightKAction_simple(WeightKAction):
     pass
 
 cdef class SimpleMat(SageObject):

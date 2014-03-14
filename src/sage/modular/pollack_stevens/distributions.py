@@ -45,6 +45,8 @@ class Distributions_factory(UniqueFactory):
     - ``adjuster`` -- None or callable that turns 2x2 matrices into a 4-tuple
     - ``act_on_left`` -- bool (default: False)
     - ``dettwist`` -- integer or None (interpreted as 0)
+    - ``act_padic`` -- whether monoid should allow p-adic coefficients
+    - ``implementation`` -- string (default: None) Either None (for automatic), 'long', or 'vector'
 
     EXAMPLES::
 
@@ -53,16 +55,16 @@ class Distributions_factory(UniqueFactory):
         Space of 11-adic distributions with k=3 action and precision cap 20
         sage: v = D([1,0,0,0,0])
         sage: v.act_right([2,1,0,1])
-        (8, 4, 2, 1, 6)
+        (8 + O(11^20), 4 + O(11^4), 2 + O(11^3), 1 + O(11^2), 6 + O(11))
 
     Note that we would expect something more p-adic, but fine...
 
         sage: D = Distributions(3, 11, 20, dettwist=1)
         sage: v = D([1,0,0,0,0])
         sage: v.act_right([2,1,0,1])
-        (16, 8, 4, 2, 1)
+        (5 + 11 + O(11^20), 8 + O(11^4), 4 + O(11^3), 2 + O(11^2), 1 + O(11))
     """
-    def create_key(self, k, p=None, prec_cap=None, base=None, character=None, adjuster=None, act_on_left=False, dettwist=None):
+    def create_key(self, k, p=None, prec_cap=None, base=None, character=None, adjuster=None, act_on_left=False, dettwist=None, act_padic=False, implementation = None):
         """
         EXAMPLES::
 
@@ -101,7 +103,7 @@ class Distributions_factory(UniqueFactory):
             if dettwist == 0: 
                 dettwist = None
 
-        return (k, p, prec_cap, base, character, adjuster, act_on_left, dettwist)
+        return (k, p, prec_cap, base, character, adjuster, act_on_left, dettwist, act_padic,implementation)
 
     def create_object(self, version, key):
         """
@@ -155,7 +157,7 @@ class Symk_factory(UniqueFactory):
         sage: v.act_right([2,1,0,1])
         (32, 16, 8, 4, 2, 1, 1/2)
     """
-    def create_key(self, k, base=None, character=None, adjuster=None, act_on_left=False, dettwist=None):
+    def create_key(self, k, base=None, character=None, adjuster=None, act_on_left=False, dettwist=None, act_padic = False, implementation = None):
         r"""
         Sanitize input.
 
@@ -171,10 +173,9 @@ class Symk_factory(UniqueFactory):
         k = ZZ(k)
         if adjuster is None:
             adjuster = _default_adjuster()
-        prec_cap = k+1
         if base is None:
             base = QQ
-        return (k, base, character, adjuster, act_on_left, dettwist)
+        return (k, base, character, adjuster, act_on_left, dettwist,act_padic,implementation)
 
     def create_object(self, version, key):
         r"""
@@ -201,7 +202,7 @@ class Distributions_abstract(Module):
         Space of 17-adic distributions with k=2 action and precision cap 100
     """
     def __init__(self, k, p=None, prec_cap=None, base=None, character=None, \
-                 adjuster=None, act_on_left=False, dettwist=None):
+                 adjuster=None, act_on_left=False, dettwist=None,act_padic = False,implementation = None):
         """
         INPUT:
 
@@ -213,6 +214,8 @@ class Distributions_abstract(Module):
         - ``adjuster``    -- None or TODO
         - ``act_on_left`` -- bool (default: False)
         - ``dettwist``    -- None or integer (twist by determinant). Ignored for Symk spaces
+        - ``act_padic``   -- bool (default: False) If true, will allow action by p-adic matrices.
+        - ``implementation`` -- string (default: None) Either automatic (if None), 'vector' or 'long'.
 
         EXAMPLES::
 
@@ -233,7 +236,7 @@ class Distributions_abstract(Module):
             raise TypeError("base must be a ring")
         from sage.rings.padics.pow_computer import PowComputer
         # should eventually be the PowComputer on ZpCA once that uses longs.
-        Dist, WeightKAction = get_dist_classes(p, prec_cap, base, self.is_symk())
+        Dist, WeightKAction = get_dist_classes(p, prec_cap, base, self.is_symk(),implementation)
         self.Element = Dist
         if Dist is Dist_long:
             self.prime_pow = PowComputer(p, prec_cap, prec_cap, prec_cap)#, 0)
@@ -245,10 +248,10 @@ class Distributions_abstract(Module):
         self._adjuster=adjuster
         self._dettwist=dettwist
 
-        if self.is_symk() or character is not None:
-            self._act = WeightKAction(self, character, adjuster, act_on_left, dettwist)
-        else: 
-            self._act = WeightKAction(self, character, adjuster, act_on_left, dettwist, padic=True)
+        if self.is_symk() or  character is not None:
+            self._act = WeightKAction(self, character, adjuster, act_on_left, dettwist,padic = act_padic)
+        else:
+            self._act = WeightKAction(self, character, adjuster, act_on_left, dettwist, padic = True)
 
         self._populate_coercion_lists_(action_list=[self._act])
 
@@ -560,7 +563,7 @@ class Distributions_abstract(Module):
 
 class Symk_class(Distributions_abstract):
 
-    def __init__(self, k, base, character, adjuster, act_on_left, dettwist):
+    def __init__(self, k, base, character, adjuster, act_on_left, dettwist,act_padic,implementation):
         r"""
         EXAMPLE::
 
@@ -572,7 +575,7 @@ class Symk_class(Distributions_abstract):
             p = base.prime()
         else:
             p = ZZ(0)
-        Distributions_abstract.__init__(self, k, p, k+1, base, character, adjuster, act_on_left, dettwist)
+        Distributions_abstract.__init__(self, k, p, k+1, base, character, adjuster, act_on_left, dettwist,act_padic,implementation)
 
     def _an_element_(self):
         r"""

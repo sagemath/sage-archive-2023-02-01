@@ -220,6 +220,14 @@ class PSModularSymbolSpace(Module):
     def _element_constructor_(self, data):
         r"""
         Construct an element of self from data.
+
+        EXAMPLES::
+
+        sage: D = Distributions(0, 11)
+        sage: M = PSModularSymbols(Gamma0(11), coefficients=D)
+        sage: M(1) # indirect doctest
+        Modular symbol of level 11 with values in Space of 11-adic distributions with k=0 action and precision cap 20
+
         """
         if isinstance(data, PSModularSymbolElement):
             data = data._map
@@ -660,7 +668,15 @@ class PSModularSymbolSpace(Module):
         on all but one divisor, and solves the difference equation to determine the value
         on the last divisor.
 
+        sage: D = Distributions(2, 11)
+        sage: M = PSModularSymbols(Gamma0(11), coefficients=D)
+        sage: M.random_element(10)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError
+
         """
+        raise NotImplementedError
         if (M == None) and (not self.coefficient_module().is_symk()):
             M = self.coefficient_module().precision_cap()
 
@@ -680,8 +696,7 @@ class PSModularSymbolSpace(Module):
         D = {}
         for g in manin.gens():
             D[g] = self.coefficient_module().random_element(M)
-#            print "pre:",D[g]
-            if g in manin.reps_with_two_torsion() and g in manin.reps_with_three_torsion:
+            if g in manin.reps_with_two_torsion() and g in manin.reps_with_three_torsion():
                 raise ValueError("Level 1 not implemented")
             if g in manin.reps_with_two_torsion():
                 gamg = manin.two_torsion_matrix(g)
@@ -696,11 +711,6 @@ class PSModularSymbolSpace(Module):
         t = self.coefficient_module().zero_element()
         for g in manin.gens()[1:]:
             if (not g in manin.reps_with_two_torsion()) and (not g in manin.reps_with_three_torsion()):
-#                print "g:", g
- #               print "D[g]:",D[g]
-  #              print "manin",manin.gammas[g]
-   #             print "D*m:",D[g] * manin.gammas[g]
-    #            print "-------"
                 t += D[g] * manin.gammas[g] - D[g]
             else:
                 if g in MR.reps_with_two_torsion():
@@ -734,16 +744,14 @@ class PSModularSymbolSpace(Module):
             err = -t.moment(0)/(chara*k*a**(k-1)*c)
             v = [0 for j in range(M)]
             v[1] = 1
-            mu_1 = err * self.coefficient_module()(v)
+            mu_1 = self.base_ring()(err) * self.coefficient_module()(v)
             D[g] += mu_1
-#            print "Modifying: ",D[g]
             t = t + mu_1 * gam - mu_1
 
         Id = manin.gens()[0]
         if not self.coefficient_module().is_symk():
             mu = t.solve_diff_eqn()
             D[Id] = -mu
- #           print "Last:",D[Id]
         else:
             if self.coefficient_module()._k == 0:
                 D[Id] = self.coefficient_module().random_element()

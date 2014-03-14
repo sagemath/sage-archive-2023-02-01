@@ -133,6 +133,7 @@ import sage.misc.latex as latex
 from sage.structure.nonexact import Nonexact
 
 from sage.interfaces.magma import MagmaElement
+from sage.rings.fraction_field_element import FractionFieldElement
 from sage.misc.sage_eval import sage_eval
 
 from sage.structure.unique_representation import UniqueRepresentation
@@ -652,6 +653,27 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
             sage: x = polygen(QQ,'x')
             sage: R(x + x^2 + x^3 + x^5, 3)
             t + t^2 + O(t^3)
+            sage: R(1/(1-x), prec=5)
+            1 + t + t^2 + t^3 + t^4 + O(t^5)
+            sage: R(1/x, 5)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Laurent Series Ring in t over Integer Ring to Power Series Ring in t over Integer Ring
+
+            sage: PowerSeriesRing(PowerSeriesRing(QQ,'x'),'y')(x)
+            x
+            sage: PowerSeriesRing(PowerSeriesRing(QQ,'y'),'x')(x)
+            x
+            sage: PowerSeriesRing(PowerSeriesRing(QQ,'t'),'y')(x)
+            y
+            sage: PowerSeriesRing(PowerSeriesRing(QQ,'t'),'y')(1/(1+x), 5)
+            1 - y + y^2 - y^3 + y^4 + O(y^5)
+            sage: PowerSeriesRing(PowerSeriesRing(QQ,'x',5),'y')(1/(1+x))
+            1 - x + x^2 - x^3 + x^4 + O(x^5)
+            sage: PowerSeriesRing(PowerSeriesRing(QQ,'y'),'x')(1/(1+x), 5)
+            1 - x + x^2 - x^3 + x^4 + O(x^5)
+            sage: PowerSeriesRing(PowerSeriesRing(QQ,'x'),'x')(x).coefficients()
+            [x]
         """
         if isinstance(f, power_series_ring_element.PowerSeries) and f.parent() is self:
             if prec >= f.prec():
@@ -660,6 +682,13 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
         elif isinstance(f, MagmaElement) and str(f.Type()) == 'RngSerPowElt':
             v = sage_eval(f.Eltseq())
             return self(v) * (self.gen(0)**f.Valuation())
+        elif isinstance(f, FractionFieldElement):
+            if self.base_ring().has_coerce_map_from(f.parent()):
+                return self.element_class(self, [f], prec, check=check)
+            else:
+                num = self.element_class(self, f.numerator(), prec, check=check)
+                den = self.element_class(self, f.denominator(), prec, check=check)
+                return self.coerce(num/den)
         return self.element_class(self, f, prec, check=check)
 
     def construction(self):

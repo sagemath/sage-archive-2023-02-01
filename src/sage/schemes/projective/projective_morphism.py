@@ -1737,19 +1737,29 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         if badprimes==None:
             badprimes=self.primes_of_bad_reduction()
+
         firstgood=0
+
+        def parallelFunction(morphism):
+            return morphism.possible_periods()
+
+        parallelData = []
         for q in primes(primebound[0],primebound[1]+1):
-            if q in badprimes: #bad reduction
-                t=0
-                #print "Bad Reduction at ", q
-            elif firstgood==0:
+            if not (q in badprimes):
                 F=self.change_ring(GF(q))
-                periods=set(F.possible_periods())
+                parallelData.append(((F,),{}))
+
+        parallelResults=list(parallel_iter(len(parallelData), parallelFunction, parallelData))
+
+        for result in parallelResults:
+            possiblePeriods = result[1]
+            if firstgood==0:
+                periods=set(possiblePeriods)
                 firstgood=1
             else:
-                F=self.change_ring(GF(q))
-                periodsq=set(F.possible_periods())
+                periodsq=set(possiblePeriods)
                 periods=periods.intersection(periodsq)
+
         if firstgood==0:
             raise ValueError("No primes of good reduction in that range")
         else:

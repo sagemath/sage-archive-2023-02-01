@@ -97,11 +97,6 @@ dgs_disc_gauss_dp_t *dgs_disc_gauss_dp_init(double sigma, double c, size_t tau, 
     self->k = round(k);
     self->sigma = self->k * sigma2;
 
-    if (abs(self->sigma - sigma) > DGS_DISC_GAUSS_EQUAL_DIFF) {
-      dgs_disc_gauss_dp_clear(self);
-      dgs_die("algorithm DGS_DISC_GAUSS_SIGMA2_LOGTABLE only supports σ = k·sqrt(1/(2log(2)))");
-    }
-    
     upper_bound = ceil(self->sigma*tau) + 1;
     self->upper_bound = upper_bound;
     self->upper_bound_minus_one = upper_bound - 1;

@@ -1,6 +1,8 @@
 /**
  * \file dgs_gauss.h
  *
+ * \brief Discrete Gaussians over the integers
+ *
  * \author Martin Albrecht <martinralbrecht+dgs@googlemail.com>
  */
 
@@ -42,7 +44,8 @@
 #include "dgs_bern.h"
 
 /**
- * We consider a double x an integer if fmod(x,1.0) <= DGS_DISC_GAUSS_INTEGER_CUTOFF
+ * We consider a double x an integer if fmod(x,1.0) <=
+ * DGS_DISC_GAUSS_INTEGER_CUTOFF
  *
  * \note it is okay put 0.0 here as for typical inputs the above inequality
  * holds exactly

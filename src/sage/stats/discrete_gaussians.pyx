@@ -2,8 +2,9 @@
 """Discrete Gaussian Samplers.
 
 This class realizes oracles which returns integers proportionally to
-$exp(-x/(2σ^2))$. All oracles are implemented using rejection sampling. See
-DiscreteGaussianSampler.__init__ for which algorithms are available.
+$exp(-(x-c)^2/(2σ^2))$. All oracles are implemented using rejection
+sampling. See DiscreteGaussianSampler.__init__ for which algorithms are
+available.
 
 AUTHOR: Martin Albrecht <martinralbrecht+dgs@googlemail.com>
 
@@ -52,15 +53,15 @@ cdef class DiscreteGaussianSampler(SageObject):
         INPUT:
 
         - ``sigma`` - samples x are accepted with probability proportional to
-          $exp((x-c)^2/(2σ^2))$
+          $exp(-(x-c)^2/(2σ^2))$
 
         - ``c`` - the mean of the distribution. The value of ``c`` does not have
           to be an integer. However, some algorithms only support integer-valued
           ``c`` (default: 0)
         
         - ``tau`` - samples outside the range (round(c)-ceil(στ),...,round(c)+ceil(στ)) are
-          considered to have probability zero. This bound is not strictly enforced when
-          "sigma2+logtable" is chosen as an algorithm (default: 6)
+          considered to have probability zero. This bound applies to algorithms which 
+          sample from the uniform distribution (default: 6)
 
         - ``algorithm`` - see list below (default: "uniform+table")
 
@@ -72,28 +73,28 @@ cdef class DiscreteGaussianSampler(SageObject):
         ALGORITHMS:
 
         - "uniform+table" - classical rejection sampling, sampling from the
-          uniform distribution and accepted with probability
+          uniform distribution and accepted with probability proportional to
           $exp(-(x-c)^2/(2σ^2))$ where $exp(-(x-c)^2/(2σ^2))$ is precomputed and
           stored in a table. Any real-valued ``c`` is supported.
 
         - "uniform+logtable" - samples are drawn from a uniform distribution and
-          accepted with probability $exp(-(x-c)^2/(2σ^2))$ where
+          accepted with probability proportional to $exp(-(x-c)^2/(2σ^2))$ where
           $exp(-(x-c)^2/(2σ^2))$ is computed using logarithmically many calls to
           Bernoulli distributions. See [DDLL23]_ for details.  Only
           integer-valued ``c`` are supported.
 
         - "uniform+online" - samples are drawn from a uniform distribution and
-          accepted with probability $exp(-(x-c)^2/(2σ^2))$ where
+          accepted with probability proportional to $exp(-(x-c)^2/(2σ^2))$ where
           $exp(-(x-c)^2/(2σ^2))$ is computed in each invocation. Typically this
           is very slow.  See [DDLL23]_ for details.  Any real-valued ``c`` is
           accepted.
 
         - "sigma2+logtable" - samples are drawn from an easily samplable
-          distribution k·σ2 and accepted with probability $exp(-(x-c)^2/(2σ^2))$
-          where $exp(-(x-c)^2/(2σ^2))$ is computed using logarithmically many
-          calls to Bernoulli distributions.  See [DDLL23]_ for details. Note
-          that this sampler adjusts sigma to match σ2·k for some integer k. Only
-          integer-valued ``c`` are supported.
+          distribution k·σ2 and accepted with probability proportional to 
+          $exp(-(x-c)^2/(2σ^2))$ where $exp(-(x-c)^2/(2σ^2))$ is computed using 
+          logarithmically many calls to Bernoulli distributions. 
+          See [DDLL23]_ for details. Note that this sampler adjusts sigma to match σ2·k 
+          for some integer k. Only integer-valued ``c`` are supported.
 
         EXAMPLES::
 
@@ -135,7 +136,7 @@ cdef class DiscreteGaussianSampler(SageObject):
             ...
             ValueError: algorithm 'uniform+logtable' requires c%1 == 0
 
-        We are testing correctness::
+        We are testing correctness for mult precision::
 
             sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
             sage: D = DiscreteGaussianSampler(1.0, c=0, tau=2)
@@ -155,7 +156,7 @@ cdef class DiscreteGaussianSampler(SageObject):
             sage: min(l), max(l), abs(mean(l)-2.5) < 0.01
             (-2, 7, True)
 
-        We are testing correctness::
+        We are testing correctness for double precision::
 
             sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
             sage: D = DiscreteGaussianSampler(1.0, c=0, tau=2, precision="dp")

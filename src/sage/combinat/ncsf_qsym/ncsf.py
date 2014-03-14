@@ -837,7 +837,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 the `n`-th graded component) corresponds to the automorphism
                 of the descent algebra given by
                 `x \mapsto \omega_n x \omega_n`, where `\omega_n` is the
-                permutation `(n, n-1, ..., 1) \in S_n` (written here in
+                permutation `(n, n-1, \ldots, 1) \in S_n` (written here in
                 one-line notation). If `\pi` denotes the projection from `NCSF`
                 to the ring of symmetric functions
                 (:meth:`to_symmetric_function`), then `\pi(f^{\ast}) = \pi(f)`
@@ -948,6 +948,124 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                        for (I, coeff) in S(self).monomial_coefficients().items()}
                 return parent(S._from_dict(dct))
 
+            def omega_involution(self):
+                r"""
+                Return the image of the noncommutative symmetric function
+                ``self`` under the omega involution.
+
+                The omega involution is defined as the algebra antihomomorphism
+                `NCSF \to NCSF` which, for every positive integer `n`, sends
+                the `n`-th complete non-commutative symmetric function `S_n` to
+                the `n`-th elementary non-commutative symmetric function
+                `\Lambda_n`. This omega involution is denoted by `\omega`. It
+                can be shown that every composition `I` satisfies
+
+                .. MATH::
+
+                    \omega(S^I) = \Lambda^{I^r}, \quad
+                    \omega(\Lambda^I) = S^{I^r}, \quad
+                    \omega(R_I) = R_{I^t}, \quad
+                    \omega(\Phi^I) = (-1)^{|I|-\ell(I)} \Phi^{I^r},
+                    \omega(\Psi^I) = (-1)^{|I|-\ell(I)} \Psi^{I^r},
+
+                where `I^r` denotes the reversed composition of `I`, and
+                `I^t` denotes the conjugate composition of `I`, and `\ell(I)`
+                denotes the length of the
+                composition `I`, and standard notations for classical bases
+                of `NCSF` are being used (`S` for the complete basis,
+                `\Lambda` for the elementary basis, `R` for the ribbon
+                basis, `\Phi` for that of the power-sums of the second
+                kind, and `\Psi` for that of the power-sums of the first
+                kind). More generally, if `f` is a homogeneous element of
+                `NCSF` of degree `n`, then
+
+                .. MATH::
+
+                    \omega(f) = (-1)^n S(f),
+
+                where `S` denotes the antipode of `NCSF`.
+
+                The omega involution `\omega` is an involution and a
+                coalgebra automorphism of `NCSF`. It is an automorphism of the
+                graded vector space `NCSF`. If `\pi` denotes the projection
+                from `NCSF` to the ring of symmetric functions
+                (:meth:`to_symmetric_function`), then
+                `\pi(\omega(f)) = \omega(\pi(f))` for every `f \in NCSF`,
+                where the `\omega` on the right hand side denotes the omega
+                automorphism of `Sym`.
+
+                The omega involution on `NCSF` is adjoint to the omega
+                involution on `QSym` by the standard adjunction between `NCSF`
+                and `QSym`.
+
+                The omega involution has been denoted by `\omega` in [LMvW13]_,
+                section 3.6.
+                See [NCSF1]_, section 3.1 for the properties of this map.
+
+                .. SEEALSO::
+
+                    :meth:`sage.combinat.ncsf_qsym.qsym.QSym.Bases.ElementMethods.omega_involution`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.psi_involution`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.star_involution`.
+
+                EXAMPLES::
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(ZZ)
+                    sage: S = NSym.S()
+                    sage: L = NSym.L()
+                    sage: L(S[3,2].omega_involution())
+                    L[2, 3]
+                    sage: L(S[6,3].omega_involution())
+                    L[3, 6]
+                    sage: L(S[1,3].omega_involution())
+                    L[3, 1]
+                    sage: L((S[9,1] - S[8,2] + 2*S[6,4] - 3*S[3] + 4*S[[]]).omega_involution())
+                    4*L[] + L[1, 9] - L[2, 8] - 3*L[3] + 2*L[4, 6]
+                    sage: L((S[3,3] - 2*S[2]).omega_involution())
+                    -2*L[2] + L[3, 3]
+                    sage: L(S([4,2]).omega_involution())
+                    L[2, 4]
+                    sage: R = NSym.R()
+                    sage: R([4,2]).omega_involution()
+                    R[1, 2, 1, 1, 1]
+                    sage: R.zero().omega_involution()
+                    0
+                    sage: NSym = NonCommutativeSymmetricFunctions(QQ)
+                    sage: Phi = NSym.Phi()
+                    sage: Phi([2,1]).omega_involution()
+                    -Phi[1, 2]
+                    sage: Psi = NSym.Psi()
+                    sage: Psi([2,1]).omega_involution()
+                    -Psi[1, 2]
+                    sage: Psi([3,1]).omega_involution()
+                    Psi[1, 3]
+
+                Testing the `\pi(\omega(f)) = \omega(\pi(f))` relation noticed
+                above::
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(QQ)
+                    sage: R = NSym.R()
+                    sage: all( R(I).omega_involution().to_symmetric_function()
+                    ....:      == R(I).to_symmetric_function().omega_involution()
+                    ....:      for I in Compositions(4) )
+                    True
+
+                The omega involution on `QSym` is adjoint to the omega
+                involution on `NSym` with respect to the duality pairing::
+
+                    sage: QSym = QuasiSymmetricFunctions(QQ)
+                    sage: M = QSym.M()
+                    sage: NSym = NonCommutativeSymmetricFunctions(QQ)
+                    sage: S = NSym.S()
+                    sage: all( all( M(I).omega_involution().duality_pairing(S(J))
+                    ....:           == M(I).duality_pairing(S(J).omega_involution())
+                    ....:           for I in Compositions(2) )
+                    ....:      for J in Compositions(3) )
+                    True
+                """
+                # Use the `\omega(f) = (-1)^n S(f)` formula.
+                return self.antipode().degree_negation()
+
             def psi_involution(self):
                 r"""
                 Return the image of the noncommutative symmetric function
@@ -961,7 +1079,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. MATH::
 
-                    \psi(R_I) = R^{I^c}, \quad \psi(S^I) = \Lambda^I, \quad
+                    \psi(R_I) = R_{I^c}, \quad \psi(S^I) = \Lambda^I, \quad
                     \psi(\Lambda^I) = S^I, \quad
                     \psi(\Phi^I) = (-1)^{|I| - \ell(I)} \Phi^I
 
@@ -1338,6 +1456,11 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             def antipode(self):
                 r"""
                 Return the antipode morphism on the basis ``self``.
+
+                The antipode of `NSym` is closely related to the omega
+                involution; see
+                :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.omega_involution`
+                for the latter.
 
                 OUTPUT:
 
@@ -1976,7 +2099,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 the `n`-th graded component) corresponds to the automorphism
                 of the descent algebra given by
                 `x \mapsto \omega_n x \omega_n`, where `\omega_n` is the
-                permutation `(n, n-1, ..., 1) \in S_n` (written here in
+                permutation `(n, n-1, \ldots, 1) \in S_n` (written here in
                 one-line notation). If `\pi` denotes the projection from `NCSF`
                 to the ring of symmetric functions
                 (:meth:`to_symmetric_function`), then `\pi(f^{\ast}) = \pi(f)`
@@ -2289,7 +2412,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. MATH::
 
-                    \psi(R_I) = R^{I^c}, \quad \psi(S^I) = \Lambda^I, \quad
+                    \psi(R_I) = R_{I^c}, \quad \psi(S^I) = \Lambda^I, \quad
                     \psi(\Lambda^I) = S^I, \quad
                     \psi(\Phi^I) = (-1)^{|I| - \ell(I)} \Phi^I
 
@@ -2483,7 +2606,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 the `n`-th graded component) corresponds to the automorphism
                 of the descent algebra given by
                 `x \mapsto \omega_n x \omega_n`, where `\omega_n` is the
-                permutation `(n, n-1, ..., 1) \in S_n` (written here in
+                permutation `(n, n-1, \ldots, 1) \in S_n` (written here in
                 one-line notation). If `\pi` denotes the projection from `NCSF`
                 to the ring of symmetric functions
                 (:meth:`to_symmetric_function`), then `\pi(f^{\ast}) = \pi(f)`
@@ -2544,7 +2667,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. MATH::
 
-                    \psi(R_I) = R^{I^c}, \quad \psi(S^I) = \Lambda^I, \quad
+                    \psi(R_I) = R_{I^c}, \quad \psi(S^I) = \Lambda^I, \quad
                     \psi(\Lambda^I) = S^I, \quad
                     \psi(\Phi^I) = (-1)^{|I| - \ell(I)} \Phi^I
 
@@ -3245,7 +3368,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 the `n`-th graded component) corresponds to the automorphism
                 of the descent algebra given by
                 `x \mapsto \omega_n x \omega_n`, where `\omega_n` is the
-                permutation `(n, n-1, ..., 1) \in S_n` (written here in
+                permutation `(n, n-1, \ldots, 1) \in S_n` (written here in
                 one-line notation). If `\pi` denotes the projection from `NCSF`
                 to the ring of symmetric functions
                 (:meth:`to_symmetric_function`), then `\pi(f^{\ast}) = \pi(f)`
@@ -3306,7 +3429,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. MATH::
 
-                    \psi(R_I) = R^{I^c}, \quad \psi(S^I) = \Lambda^I, \quad
+                    \psi(R_I) = R_{I^c}, \quad \psi(S^I) = \Lambda^I, \quad
                     \psi(\Lambda^I) = S^I, \quad
                     \psi(\Phi^I) = (-1)^{|I| - \ell(I)} \Phi^I
 

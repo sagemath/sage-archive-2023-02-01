@@ -248,13 +248,13 @@ def SymmetricFunctionAlgebra(R, basis="schur"):
     Sym = SymmetricFunctions(R)
     if basis == 'schur' or basis == 's':
         return Sym.s()
-    elif basis == "elementary" or  basis ==  'e':
+    elif basis == "elementary" or  basis == 'e':
         return Sym.e()
-    elif basis == "homogeneous" or basis ==  'h':
+    elif basis == "homogeneous" or basis == 'h':
         return Sym.h()
-    elif basis == 'power' or basis ==  'p':
+    elif basis == 'power' or basis == 'p':
         return Sym.p()
-    elif basis == 'monomial' or basis ==  'm':
+    elif basis == 'monomial' or basis == 'm':
         return Sym.m()
     else:
         raise ValueError("unknown basis (= %s)"%basis)
@@ -878,6 +878,32 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             return self(F.Eulerian(n, j, k).to_symmetric_function())
 
     class ElementMethods:
+
+        def degree_negation(self):
+            r"""
+            Return the image of ``self`` under the degree negation
+            automorphism of the ring of symmetric functions.
+
+            The degree negation is the automorphism which scales every
+            homogeneous element of degree `k` by `(-1)^k` (for all `k`).
+
+            Calling ``degree_negation(self)`` is equivalent to calling
+            ``self.parent().degree_negation(self)``.
+
+            EXAMPLES::
+
+                sage: Sym = SymmetricFunctions(ZZ)
+                sage: m = Sym.monomial()
+                sage: f = 2*m[2,1] + 4*m[1,1] - 5*m[1] - 3*m[[]]
+                sage: f.degree_negation()
+                -3*m[] + 5*m[1] + 4*m[1, 1] - 2*m[2, 1]
+                sage: x = m.zero().degree_negation(); x
+                0
+                sage: parent(x) is m
+                True
+            """
+            return self.parent().sum_of_terms([ (lam, (-1)**(sum(lam)%2) * a)
+                                                for lam, a in self ])
 
         def degree_zero_coefficient(self):
             r"""
@@ -2417,17 +2443,39 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         r"""
         Return the image of ``self`` under the omega automorphism.
 
-        The omega automorphism is defined to be the unique algebra
+        The *omega automorphism* is defined to be the unique algebra
         endomorphism `\omega` of the ring of symmetric functions that
         satisfies `\omega(e_k) = h_k` for all positive integers `k`
         (where `e_k` stands for the `k`-th elementary symmetric
         function, and `h_k` stands for the `k`-th complete homogeneous
         symmetric function). It furthermore is a Hopf algebra
-        endomorphism, and sends the power-sum symmetric function `p_k`
-        to `(-1)^{k-1} p_k` for every positive integer `k`.
+        endomorphism and an involution, and it is also known as the
+        *omega involution*. It sends the power-sum symmetric function
+        `p_k` to `(-1)^{k-1} p_k` for every positive integer `k`.
+
+        The images of some bases under the omega automorphism are given
+        by
+
+        .. MATH::
+
+            \omega(e_{\lambda}) = h_{\lambda}, \qquad
+            \omega(h_{\lambda}) = e_{\lambda}, \qquad
+            \omega(p_{\lambda}) = (-1)^{|\lambda| - \ell(\lambda)} p_{\lambda}, \qquad
+            \omega(s_{\lambda}) = s_{\lambda^{\prime}},
+
+        where `\lambda` is any partition, where `\ell(\lambda)` denotes
+        the length (:meth:`~sage.combinat.partition.Partition.length`)
+        of the partition `\lambda`, where `\lambda^{\prime}' denotes the
+        conjugate partition
+        (:meth:`~sage.combinat.partition.Partition.conjugate`) of
+        `\lambda`, and where the usual notations for bases are used
+        (`e` = elementary, `h` = complete homogeneous, `p` = powersum,
+        `s` = Schur).
 
         The default implementation converts to the Schurs, then
         performs the automorphism and changes back.
+
+        ``omega_involution`` is a synonym for the ``omega`` method.
 
         EXAMPLES::
 
@@ -2454,6 +2502,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         parent = self.parent()
         s = parent.realization_of().schur()
         return parent(s(self).omega())
+
+    omega_involution = omega
 
     def theta(self,a):
         r"""
@@ -2544,6 +2594,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         In general, this is well-defined outside of the powersum basis only
         if the base ring is a `\QQ`-algebra.
+
+        If `q = t`, then this is the omega automorphism (:meth:`omega`).
 
         INPUT:
 
@@ -2651,7 +2703,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             s[2, 1]
             sage: c = s([3,2,1])
             sage: c.itensor(c)
-            s[1, 1, 1, 1, 1, 1] + 2*s[2, 1, 1, 1, 1] + 3*s[2, 2, 1, 1] + 2*s[2, 2, 2] + 4*s[3, 1, 1, 1] + 5*s[3, 2, 1] + 2*s[3, 3] + 4*s[4, 1, 1] + 3*s[4, 2] + 2*s[5, 1] + s[6]
+            s[1, 1, 1, 1, 1, 1] + 2*s[2, 1, 1, 1, 1] + 3*s[2, 2, 1, 1] + 2*s[2, 2, 2]
+             + 4*s[3, 1, 1, 1] + 5*s[3, 2, 1] + 2*s[3, 3] + 4*s[4, 1, 1]
+             + 3*s[4, 2] + 2*s[5, 1] + s[6]
 
         There are few quantitative results pertaining to Kronecker products
         in general, which makes their computation so difficult. Let us test
@@ -2735,7 +2789,12 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: s = SymmetricFunctions(QQ).s()
             sage: a = s([8,8])
             sage: a.itensor(a)
-            s[4, 4, 4, 4] + s[5, 5, 3, 3] + s[5, 5, 5, 1] + s[6, 4, 4, 2] + s[6, 6, 2, 2] + s[6, 6, 4] + s[7, 3, 3, 3] + s[7, 5, 3, 1] + s[7, 7, 1, 1] + s[8, 4, 2, 2] + s[8, 4, 4] + s[8, 6, 2] + s[8, 8] + s[9, 3, 3, 1] + s[9, 5, 1, 1] + s[10, 2, 2, 2] + s[10, 4, 2] + s[10, 6] + s[11, 3, 1, 1] + s[12, 2, 2] + s[12, 4] + s[13, 1, 1, 1] + s[14, 2] + s[16]
+            s[4, 4, 4, 4] + s[5, 5, 3, 3] + s[5, 5, 5, 1] + s[6, 4, 4, 2]
+             + s[6, 6, 2, 2] + s[6, 6, 4] + s[7, 3, 3, 3] + s[7, 5, 3, 1]
+             + s[7, 7, 1, 1] + s[8, 4, 2, 2] + s[8, 4, 4] + s[8, 6, 2]
+             + s[8, 8] + s[9, 3, 3, 1] + s[9, 5, 1, 1] + s[10, 2, 2, 2]
+             + s[10, 4, 2] + s[10, 6] + s[11, 3, 1, 1] + s[12, 2, 2]
+             + s[12, 4] + s[13, 1, 1, 1] + s[14, 2] + s[16]
             sage: s[8].itensor(s[7])
             0
             sage: s(0).itensor(s(0))
@@ -2752,7 +2811,12 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: s = SymmetricFunctions(ZZ).s()
             sage: a = s([8,8])
             sage: a.itensor(a)
-            s[4, 4, 4, 4] + s[5, 5, 3, 3] + s[5, 5, 5, 1] + s[6, 4, 4, 2] + s[6, 6, 2, 2] + s[6, 6, 4] + s[7, 3, 3, 3] + s[7, 5, 3, 1] + s[7, 7, 1, 1] + s[8, 4, 2, 2] + s[8, 4, 4] + s[8, 6, 2] + s[8, 8] + s[9, 3, 3, 1] + s[9, 5, 1, 1] + s[10, 2, 2, 2] + s[10, 4, 2] + s[10, 6] + s[11, 3, 1, 1] + s[12, 2, 2] + s[12, 4] + s[13, 1, 1, 1] + s[14, 2] + s[16]
+            s[4, 4, 4, 4] + s[5, 5, 3, 3] + s[5, 5, 5, 1] + s[6, 4, 4, 2]
+             + s[6, 6, 2, 2] + s[6, 6, 4] + s[7, 3, 3, 3] + s[7, 5, 3, 1]
+             + s[7, 7, 1, 1] + s[8, 4, 2, 2] + s[8, 4, 4] + s[8, 6, 2]
+             + s[8, 8] + s[9, 3, 3, 1] + s[9, 5, 1, 1] + s[10, 2, 2, 2]
+             + s[10, 4, 2] + s[10, 6] + s[11, 3, 1, 1] + s[12, 2, 2]
+             + s[12, 4] + s[13, 1, 1, 1] + s[14, 2] + s[16]
             sage: s[8].itensor(s[7])
             0
             sage: s(0).itensor(s(0))
@@ -2943,7 +3007,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: all( h([n]).internal_coproduct() == sum([tensor([h(lam), h(m(lam))]) for lam in Partitions(n)])
             ....:      for n in range(6) )
             True
-            sage: all( factorial(n) * h([n]).internal_coproduct() == sum([lam.conjugacy_class_size() * tensor([h(p(lam)), h(p(lam))]) for lam in Partitions(n)])
+            sage: all( factorial(n) * h([n]).internal_coproduct()
+            ....:      == sum([lam.conjugacy_class_size() * tensor([h(p(lam)), h(p(lam))])
+            ....:              for lam in Partitions(n)])
             ....:      for n in range(6) )
             True
 

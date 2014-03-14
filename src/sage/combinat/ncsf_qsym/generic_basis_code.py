@@ -519,11 +519,20 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 0
                 sage: S.duality_pairing(S[1,1,1,1], F[4])
                 1
+
+            TESTS:
+
+            The result has the right parent even if the sum is empty::
+
+                sage: x = S.duality_pairing(S.zero(), F.zero()); x
+                0
+                sage: parent(x)
+                Rational Field
             """
             if hasattr(self, 'dual'):
                 x = self(x)
                 y = self.dual()(y)
-                return sum(coeff * y[I] for (I, coeff) in x)
+                return self.base_ring().sum(coeff * y[I] for (I, coeff) in x)
             else:
                 return self.duality_pairing_by_coercion(x, y)
 
@@ -541,8 +550,8 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
             OUTPUT:
 
-            - The result of pairing the function ``x`` from ``self`` with the function
-              ``y`` from the dual basis of ``self``
+            - The result of pairing the function ``x`` from ``self`` with
+              the function ``y`` from the dual basis of ``self``
 
             EXAMPLES::
 
@@ -556,11 +565,20 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 1
                 sage: F.duality_pairing_by_coercion(F[1,2], L[1,1,1])
                 1
+
+            TESTS:
+
+            The result has the right parent even if the sum is empty::
+
+                sage: x = F.duality_pairing_by_coercion(F.zero(), L.zero()); x
+                0
+                sage: parent(x)
+                Rational Field
             """
             a_realization = self.realization_of().a_realization()
             x = a_realization(x)
             y = a_realization.dual()(y)
-            return sum(coeff * y[I] for (I, coeff) in x)
+            return self.base_ring().sum(coeff * y[I] for (I, coeff) in x)
 
         def duality_pairing_matrix(self, basis, degree):
             r"""
@@ -574,8 +592,9 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
             OUTPUT:
 
-            - The matrix of scalar products between the basis ``self`` and the basis
-              ``basis`` in the dual Hopf algebra of degree ``degree``.
+            - The matrix of scalar products between the basis ``self``
+              and the basis ``basis`` in the dual Hopf algebra in
+              degree ``degree``.
 
             EXAMPLES:
 
@@ -733,9 +752,52 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 Generalize this to all graded vector spaces?
             """
             return self.sum_of_terms([ (lam, (-1)**(sum(lam)%2) * a)
-                                       for lam, a in self(element) ])
+                                       for lam, a in self(element) ],
+                                     distinct=True)
 
     class ElementMethods:
+
+        def degree_negation(self):
+            r"""
+            Return the image of ``self`` under the degree negation
+            automorphism of the parent of ``self``.
+
+            The degree negation is the automorphism which scales every
+            homogeneous element of degree `k` by `(-1)^k` (for all `k`).
+
+            Calling ``degree_negation(self)`` is equivalent to calling
+            ``self.parent().degree_negation(self)``.
+
+            EXAMPLES::
+
+                sage: NSym = NonCommutativeSymmetricFunctions(ZZ)
+                sage: S = NSym.S()
+                sage: f = 2*S[2,1] + 4*S[1,1] - 5*S[1,2] - 3*S[[]]
+                sage: f.degree_negation()
+                -3*S[] + 4*S[1, 1] + 5*S[1, 2] - 2*S[2, 1]
+
+                sage: QSym = QuasiSymmetricFunctions(QQ)
+                sage: dI = QSym.dualImmaculate()
+                sage: f = -3*dI[2,1] + 4*dI[2] + 2*dI[1]
+                sage: f.degree_negation()
+                -2*dI[1] + 4*dI[2] + 3*dI[2, 1]
+
+            TESTS:
+
+            The zero element behaves well::
+
+                sage: a = S.zero().degree_negation(); a
+                0
+                sage: parent(a)
+                Non-Commutative Symmetric Functions over the Integer Ring in the Complete basis
+
+            .. TODO::
+
+                Generalize this to all graded vector spaces?
+            """
+            return self.parent().sum_of_terms([ (lam, (-1)**(sum(lam)%2) * a)
+                                                for lam, a in self ],
+                                              distinct=True)
 
         def duality_pairing(self, y):
             r"""

@@ -394,8 +394,8 @@ class GenericCombinatorialSpecies(SageObject):
             return False
 
     def __pow__(self, n):
-        """
-        Returns this species to the power n.
+        r"""
+        Returns this species to the power `n`.
 
         This uses a binary exponentiation algorithm to perform the
         powering.
@@ -430,6 +430,13 @@ class GenericCombinatorialSpecies(SageObject):
             sage: A = X^32
             sage: A.digraph()
             Multi-digraph on 6 vertices
+
+        TESTS::
+
+            sage: X**(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: only positive exponents are currently supported
         """
         from sage.rings.all import Integer
         import operator

@@ -1373,7 +1373,7 @@ def pi_ik(itab, ktab):
 def kappa(alpha):
     r"""
     Return `\kappa_\alpha`, which is `n!` divided by the number
-    of standard tableaux of shape `\alpha` (where `alpha` is a
+    of standard tableaux of shape `\alpha` (where `\alpha` is a
     partition of `n`).
 
     INPUT:

@@ -418,7 +418,8 @@ class FreeAlgebra_generic(CombinatorialFreeModule):
             raise TypeError("Argument R must be a ring.")
         self.__ngens = n
         indices = FreeMonoid(n, names=names)
-        CombinatorialFreeModule.__init__(self, R, indices, category=AlgebrasWithBasis(R))
+        CombinatorialFreeModule.__init__(self, R, indices, prefix='F',
+                                         category=AlgebrasWithBasis(R))
         self._assign_names(indices.variable_names())
 
     def one_basis(self):
@@ -435,7 +436,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule):
         """
         return self._basis_keys.one()
 
-    def is_field(self, proof = True):
+    def is_field(self, proof=True):
         """
         Return True if this Free Algebra is a field, which is only if the
         base ring is a field and there are no generators
@@ -594,130 +595,19 @@ class FreeAlgebra_generic(CombinatorialFreeModule):
             return self.element_class(self, {})
         return self.element_class(self, {self.one_basis(): x})
 
-    def _coerce_impl(self, x):
-        """
-        Canonical coercion of ``x`` into ``self``.
-
-        Here's what canonically coerces to ``self``:
-
-        - this free algebra
-
-        - a free algebra in letterplace implementation that has
-          the same generator names and whose base ring coerces
-          into ``self``'s base ring
-
-        - the underlying monoid
-
-        - the PBW basis of ``self``
-
-        - anything that coerces to the base ring of this free algebra
-
-        - any free algebra whose base ring coerces to the base ring of
-          this free algebra
-
-        EXAMPLES::
-
-            sage: F.<x,y,z> = FreeAlgebra(GF(7),3); F
-            Free Algebra on 3 generators (x, y, z) over Finite Field of size 7
-
-        Elements of the free algebra canonically coerce in::
-
-            sage: F(x*y)
-            x*y
-
-        Elements of the integers coerce in, since there is a coerce map
-        from `\ZZ` to `\GF{7}`::
-
-            sage: F(1)
-            1
-
-        There is no coerce map from `\QQ` to `\GF{7}`::
-
-            sage: F(2/3)
-            Traceback (most recent call last):
-            ...
-            TypeError: no canonical coercion from Rational Field to Free Algebra
-            on 3 generators (x, y, z) over Finite Field of size 7
-
-        Elements of the base ring coerce in::
-
-            sage: F(GF(7)(5))
-            5
-
-        Elements of the corresponding monoid (of monomials) coerce in::
-
-            sage: M = F.monoid(); m = M.0*M.1^2; m
-            x*y^2
-            sage: F(m)
-            x*y^2
-
-        Elements of the PBW basis::
-
-            sage: PBW = F.pbw_basis()
-            sage: px,py,pz = PBW.gens()
-            sage: F(pz*px*py)
-            z*x*y
-
-        The free algebra over `\ZZ` on `x,y,z` coerces in, since `\ZZ` coerces
-        to `\GF{7}`::
-
-            sage: G = FreeAlgebra(ZZ, 3, 'x,y,z')
-            sage: F(G.0^3 * G.1)
-            x^3*y
-
-        However, `\GF{7}` doesn't coerce to `\ZZ`, so the free algebra over
-        `\GF{7}` doesn't coerce to the one over `\ZZ`::
-
-            sage: G(x^3*y)
-            Traceback (most recent call last):
-            ...
-            TypeError: no canonical coercion from Free Algebra on 3 generators
-            (x, y, z) over Finite Field of size 7 to Free Algebra on 3
-            generators (x, y, z) over Integer Ring
-
-        TESTS::
-
-           sage: F.<x,y,z> = FreeAlgebra(GF(5),3)
-           sage: L.<x,y,z> = FreeAlgebra(GF(5),3,implementation='letterplace')
-           sage: F(x)
-           x
-           sage: F.1*L.2     # indirect doctest
-           y*z
-
-        """
-        try:
-            R = x.parent()
-
-            # monoid
-            if R is self._basis_keys:
-                return self(x)
-
-            # polynomial rings in the same variable over any base that coerces in:
-            if is_FreeAlgebra(R):
-                if R.variable_names() == self.variable_names():
-                    if self.has_coerce_map_from(R.base_ring()):
-                        return self(x)
-                    else:
-                        raise TypeError("no natural map between bases of free algebras")
-
-            if isinstance(R, PBWBasisOfFreeAlgebra) and self.has_coerce_map_from(R._alg):
-                return self(R.expansion(x))
-
-        except AttributeError:
-            pass
-
-        # any ring that coerces to the base ring of this free algebra.
-        return self._coerce_try(x, [self.base_ring()])
-
     def _coerce_map_from_(self, R):
         """
         Return ``True`` if there is a coercion from ``R`` into ``self`` and
         ``False`` otherwise.  The things that coerce into ``self`` are:
 
+        - This free algebra.
+
         - Anything with a coercion into ``self.monoid()``.
 
-        - Free Algebras in the same variables over a base with a coercion
+        - Free algebras in the same variables over a base with a coercion
           map into ``self.base_ring()``.
+
+        - The underlying monoid.
 
         - The PBW basis of ``self``.
 
@@ -740,10 +630,26 @@ class FreeAlgebra_generic(CombinatorialFreeModule):
             True
             sage: F._coerce_map_from_(G.monoid())
             True
+            sage: F._coerce_map_from_(F.pbw_basis())
+            True
             sage: F.has_coerce_map_from(PolynomialRing(ZZ, 3, 'x,y,z'))
             False
+
             sage: K.<z> = GF(25)
             sage: F.<a,b,c> = FreeAlgebra(K,3)
+            sage: F._coerce_map_from_(ZZ)
+            True
+            sage: F._coerce_map_from_(QQ)
+            False
+            sage: F._coerce_map_from_(F.monoid())
+            True
+            sage: F._coerce_map_from_(F.pbw_basis())
+            True
+            sage: G = FreeAlgebra(ZZ, 3, 'a,b,c')
+            sage: F._coerce_map_from_(G)
+            True
+            sage: G._coerce_map_from_(F)
+            False
             sage: L.<a,b,c> = FreeAlgebra(K,3, implementation='letterplace')
             sage: F.1 + (z+1) * L.2
             b + (z+1)*c
@@ -1154,7 +1060,7 @@ class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
             sage: FreeAlgebra(QQ, 2, 'x,y').pbw_basis()
             The Poincare-Birkhoff-Witt basis of Free Algebra on 2 generators (x, y) over Rational Field
         """
-        return "The Poincare-Birkhoff-Witt basis of %s"%(self._alg)
+        return "The Poincare-Birkhoff-Witt basis of {}".format(self._alg)
 
     def _repr_term(self, w):
         """

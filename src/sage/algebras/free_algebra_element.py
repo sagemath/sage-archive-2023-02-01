@@ -35,9 +35,10 @@ TESTS::
 
 from sage.misc.misc import repr_lincomb
 from sage.monoids.free_monoid_element import FreeMonoidElement
+from sage.combinat.free_module import CombinatorialFreeModuleElement
 from sage.algebras.algebra_element import AlgebraElement
 
-class FreeAlgebraElement(AlgebraElement):
+class FreeAlgebraElement(CombinatorialFreeModuleElement):
     """
     A free algebra element.
     """
@@ -52,30 +53,18 @@ class FreeAlgebraElement(AlgebraElement):
             sage: TestSuite(elt).run()
         """
         if isinstance(x, FreeAlgebraElement):
-            x = x.__monomial_coefficients
-        AlgebraElement.__init__(self, A)
+            x = x._monomial_coefficients
         R = A.base_ring()
         if isinstance(x, AlgebraElement): #and x.parent() == A.base_ring():
-            self.__monomial_coefficients = { A.monoid()(1):R(x) }
+            x = { A.monoid()(1):R(x) }
         elif isinstance(x, FreeMonoidElement):
-            self.__monomial_coefficients = { x:R(1) }
+            x = { x:R(1) }
         elif True:
-            self.__monomial_coefficients = dict([ (A.monoid()(e1),R(e2)) for e1,e2 in x.items()])
+            x = dict([ (A.monoid()(e1),R(e2)) for e1,e2 in x.items()])
         else:
-            raise TypeError("Argument x (= %s) is of the wrong type."%x)
+            raise TypeError("Argument x (= {}) is of the wrong type.".format(x))
 
-    def __iter__(self):
-        """
-        Returns an iterator which yields tuples of coefficient and monomial.
-
-        EXAMPLES::
-
-            sage: a = FreeAlgebra(QQ, 5, 'a').gens()
-            sage: list(3*a[0]*a[1]*a[4]**3*a[0]+1)
-            [(1, 1), (3, a0*a1*a4^3*a0)]
-        """
-        for (key,val) in self.__monomial_coefficients.iteritems():
-            yield (val,key)
+        CombinatorialFreeModuleElement.__init__(self, A, x)
 
     def _repr_(self):
         """
@@ -96,7 +85,7 @@ class FreeAlgebraElement(AlgebraElement):
             -a + 3*b*c
 
         """
-        v = sorted(self.__monomial_coefficients.items())
+        v = sorted(self._monomial_coefficients.items())
         P = self.parent()
         M = P.monoid()
         from sage.structure.parent_gens import localvars
@@ -117,7 +106,7 @@ class FreeAlgebraElement(AlgebraElement):
             sage: latex(alpha-beta)
             \alpha - \beta
         """
-        v = sorted(self.__monomial_coefficients.items())
+        v = sorted(self._monomial_coefficients.items())
         return repr_lincomb(v, strip_one=True, is_latex=True)
 
     def __call__(self, *x, **kwds):
@@ -164,7 +153,7 @@ class FreeAlgebraElement(AlgebraElement):
         # I don't start with 0, because I don't want to preclude evaluation with
         #arbitrary objects (e.g. matrices) because of funny coercion.
         result = None
-        for m, c in self.__monomial_coefficients.iteritems():
+        for m, c in self._monomial_coefficients.iteritems():
             if result is None:
                 result = c*m(x)
             else:
@@ -191,126 +180,9 @@ class FreeAlgebraElement(AlgebraElement):
             sage: y * x < x * y
             False
         """
-        v = sorted(left.__monomial_coefficients.items())
-        w = sorted(right.__monomial_coefficients.items())
+        v = sorted(left._monomial_coefficients.items())
+        w = sorted(right._monomial_coefficients.items())
         return cmp(v, w)
-
-    def _add_(self, y):
-        """
-        Return sum of self and y (another free algebra element with the
-        same parents)
-
-        EXAMPLES::
-
-            sage: R.<x,y> = FreeAlgebra(QQ,2)
-            sage: x + y    # indirect doctest
-            x + y
-        """
-        A = self.parent()
-##         if isinstance(y, (int, long, Integer)):
-##             z_elt = dict(self.__monomial_coefficients)
-##             e = A.monoid()(1)
-##             if e in z_elt:
-##                 z_elt[e] += A.base_ring()(y)
-##             else:
-##                 z_elt[e] = A.base_ring()(y)
-##             z = A(0)
-##             z.__monomial_coefficients = z_elt
-##             return z
-##         if not isinstance(y, FreeAlgebraElement) or not A == y.parent():
-##             raise TypeError, "Argument y (= %s) is of the wrong type."%y
-        z_elt = dict(self.__monomial_coefficients)
-        for m, c in y.__monomial_coefficients.iteritems():
-            if m in z_elt:
-                cm = z_elt[m] + c
-                if cm == 0:
-                    del z_elt[m]
-                else:
-                    z_elt[m] = cm
-            else:
-                z_elt[m] = c
-        z = A(0)
-        z.__monomial_coefficients = z_elt
-        return z
-
-    def _neg_(self):
-        """
-        Return negation of self
-
-        EXAMPLES::
-
-            sage: R.<x,y> = FreeAlgebra(QQ,2)
-            sage: -(x+y)    # indirect doctest
-            -x - y
-        """
-        y = self.parent()(0)
-        y_elt = {}
-        for m, c in self.__monomial_coefficients.iteritems():
-            y_elt[m] = -c
-        y.__monomial_coefficients = y_elt
-        return y
-
-    def _sub_(self, y):
-        """
-        Return self minus y (another free algebra element with the same
-        parents)
-
-        EXAMPLES::
-
-            sage: R.<x,y> = FreeAlgebra(QQ,2)
-            sage: x - y    # indirect doctest
-            x - y
-        """
-        A = self.parent()
-##         if isinstance(y, (int, long, Integer)):
-##             z_elt = dict(self.__monomial_coefficients)
-##             e = A.monoid()(1)
-##             if e in z_elt:
-##                 z_elt[e] += A.base_ring()(-y)
-##             else:
-##                 z_elt[e] = A.base_ring()(-y)
-##             z = A(0)
-##             z.__monomial_coefficients = z_elt
-##             return z
-##         if not isinstance(y, FreeAlgebraElement) or not A == y.parent():
-##             raise TypeError, "Argument y (= %s) is of the wrong type."%y
-        z_elt = dict(self.__monomial_coefficients)
-        for m, c in y.__monomial_coefficients.iteritems():
-            if m in z_elt:
-                cm = z_elt[m] - c
-                if cm == 0:
-                    del z_elt[m]
-                else:
-                    z_elt[m] = cm
-            else:
-                z_elt[m] = -c
-        z = A(0)
-        z.__monomial_coefficients = z_elt
-        return z
-
-    def _mul_(self, y):
-        """
-        Return product of self and y (another free algebra element with the
-        same parents)
-
-        EXAMPLES::
-
-            sage: A.<x,y,z>=FreeAlgebra(ZZ,3)
-            sage: (x+y+x*y)*(x+y+1)    # indirect doctest
-            x + y + x^2 + 2*x*y + y*x + y^2 + x*y*x + x*y^2
-        """
-        A = self.parent()
-        z_elt = {}
-        for mx, cx in self.__monomial_coefficients.iteritems():
-            for my, cy in y.__monomial_coefficients.iteritems():
-                key = mx*my
-                if key in z_elt:
-                    z_elt[key] += cx*cy
-                else:
-                    z_elt[key] = cx*cy
-        z = A(0)
-        z.__monomial_coefficients = z_elt
-        return z
 
     def to_pbw_basis(self):
         """

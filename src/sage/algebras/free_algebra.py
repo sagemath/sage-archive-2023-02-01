@@ -133,7 +133,6 @@ from sage.categories.rings import Rings
 from sage.monoids.free_monoid import FreeMonoid
 from sage.monoids.free_monoid_element import FreeMonoidElement
 
-from sage.algebras.algebra import Algebra
 from sage.algebras.free_algebra_element import FreeAlgebraElement
 
 import sage.structure.parent_gens
@@ -145,7 +144,6 @@ from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_l
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
 from sage.combinat.words.word import Word
-from sage.combinat.lyndon_word import LyndonWords
 
 class FreeAlgebraFactory(UniqueFactory):
     """
@@ -274,7 +272,7 @@ class FreeAlgebraFactory(UniqueFactory):
                             raise TypeError
                     else:
                         raise TypeError
-            except (TypeError, NotImplementedError), msg:
+            except (TypeError, NotImplementedError):
                 raise NotImplementedError("The letterplace implementation is not available for the free algebra you requested")
         if PolRing is not None:
             if degrees is None:
@@ -418,8 +416,9 @@ class FreeAlgebra_generic(CombinatorialFreeModule):
             raise TypeError("Argument R must be a ring.")
         self.__ngens = n
         indices = FreeMonoid(n, names=names)
+        cat = AlgebrasWithBasis(R)
         CombinatorialFreeModule.__init__(self, R, indices, prefix='F',
-                                         category=AlgebrasWithBasis(R))
+                                         category=cat)
         self._assign_names(indices.variable_names())
 
     def one_basis(self):
@@ -594,6 +593,33 @@ class FreeAlgebra_generic(CombinatorialFreeModule):
         if x == 0:
             return self.element_class(self, {})
         return self.element_class(self, {self.one_basis(): x})
+
+    def _coerce_impl(self, x):
+        r"""
+        """
+        try:
+            R = x.parent()
+
+            # monoid
+            if R is self._basis_keys:
+                return self(x)
+
+            # polynomial rings in the same variable over any base that coerces in:
+            if is_FreeAlgebra(R):
+                if R.variable_names() == self.variable_names():
+                    if self.has_coerce_map_from(R.base_ring()):
+                        return self(x)
+                    else:
+                        raise TypeError("no natural map between bases of free algebras")
+
+            if isinstance(R, PBWBasisOfFreeAlgebra) and self.has_coerce_map_from(R._alg):
+                return self(R.expansion(x))
+
+        except AttributeError:
+            pass
+
+        # any ring that coerces to the base ring of this free algebra.
+        return self._coerce_try(x, [self.base_ring()])
 
     def _coerce_map_from_(self, R):
         """

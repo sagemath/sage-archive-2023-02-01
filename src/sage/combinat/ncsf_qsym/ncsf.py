@@ -2574,6 +2574,140 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         class Element(CombinatorialFreeModule.Element):
 
+            def verschiebung(self, n):
+                r"""
+                Return the image of the noncommutative symmetric function
+                ``self`` under the `n`-th Verschiebung operator.
+
+                The `n`-th Verschiebung operator `\mathbf{V}_n` is defined
+                to be the map from the `\mathbf{k}`-algebra of noncommutative
+                symmetric functions to itself that sends the complete function
+                `S^I` indexed by a composition `I = (i_1, i_2, \ldots , i_k)`
+                to `S^{(i_1/n, i_2/n, \ldots , i_k/n)}` if all of the numbers
+                `i_1, i_2, \ldots, i_k` are divisible by `n`, and to `0`
+                otherwise. This operator `\mathbf{V}_n` is a Hopf algebra
+                endomorphism. For every positive integer `r` with `n \mid r`,
+                it satisfies
+
+                .. MATH::
+
+                    \mathbf{V}_n(S_r) = S_{r/n},
+                    \quad \mathbf{V}_n(\Lambda_r) = (-1)^{r - r/n} \Lambda_{r/n},
+                    \quad \mathbf{V}_n(\Psi_r) = n \Psi_{r/n},
+                    \quad \mathbf{V}_n(\Phi_r) = n \Phi_{r/n}
+
+                (where `S_r` denotes the `r`-th complete non-commutative
+                symmetric function, `\Lambda_r` denotes the `r`-th elementary
+                non-commutative symmetric function, `\Psi_r` denotes the `r`-th
+                power-sum non-commutative symmetric function of the first kind,
+                and `\Phi_r` denotes the `r`-th power-sum non-commutative
+                symmetric function of the second kind). For every positive
+                integer `r` with `n \nmid r`, it satisfes
+
+                .. MATH::
+
+                    \mathbf{V}_n(S_r) = \mathbf{V}_n(\Lambda_r)
+                    = \mathbf{V}_n(\Psi_r) = \mathbf{V}_n(\Phi_r) = 0.
+
+                The `n`-th Verschiebung operator is also called the `n`-th
+                Verschiebung endomorphism.
+
+                It is a lift of the `n`-th Verschiebung operator on the ring
+                of symmetric functions (
+                :meth:`sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
+                ) to the ring of noncommutative symmetric functions.
+
+                The action of the `n`-th Verschiebung operator can also be
+                described on the ribbon Schur functions. Namely, every
+                composition `I` of size `n \ell` satisfies
+
+                .. MATH::
+
+                    \mathbf{V}_n ( R_I )
+                    = (-1)^{\ell(I) - \ell(J)} \cdot R_{J / n},
+
+                where `J` denotes the meet of the compositions `I` and
+                `(\underbrace{n, n, \ldots, n}_{|I|/n \mbox{ times}})`,
+                where `\ell(I)` is the length of `I`, and
+                where `J / n` denotes the composition obtained by
+                dividing every entry of `J` by `n`.
+                For a composition `I` of size not divisible by `n`, we
+                have `\mathbf{V}_n ( R_I ) = 0`.
+
+                .. SEEALSO::
+
+                    :meth:`sage.combinat.ncsf_qsym.qsym.NCSF.Bases.ElementMethods.verschiebung`,
+                    :meth:`sage.combinat.ncsf_qsym.qsym.QSym.Bases.ElementMethods.frobenius`,
+                    :meth:`sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
+
+                INPUT:
+
+                - ``n`` -- a positive integer
+
+                OUTPUT:
+
+                The result of applying the `n`-th Verschiebung operator (on the
+                ring of noncommutative symmetric functions) to ``self``.
+
+                EXAMPLES::
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(ZZ)
+                    sage: L = NSym.L()
+                    sage: L([4,2]).verschiebung(2)
+                    -L[2, 1]
+                    sage: L([2,4]).verschiebung(2)
+                    -L[1, 2]
+                    sage: L([6]).verschiebung(2)
+                    -L[3]
+                    sage: L([2,1]).verschiebung(3)
+                    0
+                    sage: L([3]).verschiebung(2)
+                    0
+                    sage: L([]).verschiebung(2)
+                    L[]
+                    sage: L([5, 1]).verschiebung(3)
+                    0
+                    sage: L([5, 1]).verschiebung(6)
+                    0
+                    sage: L([5, 1]).verschiebung(2)
+                    0
+                    sage: L([1, 2, 3, 1]).verschiebung(7)
+                    0
+                    sage: L([7]).verschiebung(7)
+                    L[1]
+                    sage: L([1, 2, 3, 1]).verschiebung(5)
+                    0
+                    sage: (L[1] - L[2] + 2*L[3]).verschiebung(1)
+                    L[1] - L[2] + 2*L[3]
+
+                TESTS:
+
+                The current implementation on the Elementary basis gives
+                the same results as the default implementation::
+
+                    sage: S = NSym.S()
+                    sage: def test_L(N, n):
+                    ....:     for I in Compositions(N):
+                    ....:         if S(L[I].verschiebung(n)) != S(L[I]).verschiebung(n):
+                    ....:             return False
+                    ....:     return True
+                    sage: test_L(4, 2)
+                    True
+                    sage: test_L(6, 2)
+                    True
+                    sage: test_L(6, 3)
+                    True
+                    sage: test_L(8, 4)     # long time
+                    True
+                """
+                parent = self.parent()
+                C = parent._basis_keys
+                return parent.sum_of_terms([(C([i // n for i in I]),
+                                            coeff * (-1) ** (sum(I) * (n-1) // n))
+                                            for (I, coeff) in self
+                                            if all(i % n == 0 for i in I)],
+                                           distinct=True)
+
             def star_involution(self):
                 r"""
                 Return the image of the noncommutative symmetric function

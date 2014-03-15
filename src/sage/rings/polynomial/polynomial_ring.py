@@ -288,7 +288,14 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 #coerce_list = [base_inject],
                 #convert_list = [list, base_inject],
                 convert_method_name = '_polynomial_')
-
+        if is_PolynomialRing(base_ring):
+            self._Karatsuba_threshold = 0
+        else:
+            from sage.matrix.matrix_space import is_MatrixSpace
+            if is_MatrixSpace(base_ring):
+                self._Karatsuba_threshold = 0
+            else:
+                self._Karatsuba_threshold = 8
 
     def __reduce__(self):
         import sage.rings.polynomial.polynomial_ring_constructor
@@ -300,6 +307,12 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         r"""
         Convert ``x`` into this univariate polynomial ring,
         possibly non-canonically.
+
+        Conversion from power series::
+
+            sage: R.<x> = QQ[]
+            sage: R(1 + x + x^2 + O(x^3))
+            x^2 + x + 1
 
         Stacked polynomial rings coerce into constants if possible. First,
         the univariate case::
@@ -369,6 +382,14 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             ...
             TypeError: Unable to convert x (='1.00...00*I') to real number.
 
+        Check that the bug in :trac:`11239` is fixed::
+
+            sage: K.<a> = GF(5^2, conway=True, prefix='z')
+            sage: L.<b> = GF(5^4, conway=True, prefix='z')
+            sage: f = K['x'].gen() + a
+            sage: L['x'](f)
+            x + b^3 + b^2 + b + 3
+
         """
         C = self._polynomial_class
         if isinstance(x, list):
@@ -391,19 +412,11 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             elif P == self.base_ring():
                 return C(self, [x], check=True, is_gen=False,
                          construct=construct)
-
-            elif self.base_ring().has_coerce_map_from(P):
-                return C(self, [x], check=True, is_gen=False,
-                        construct=construct)
-        try: #if hasattr(x, '_polynomial_'):
-            return x._polynomial_(self)
-        except AttributeError:
-            pass
         if isinstance(x, SingularElement) and self._has_singular:
             self._singular_().set_ring()
             try:
                 return x.sage_poly(self)
-            except StandardError:
+            except Exception:
                 raise TypeError, "Unable to coerce singular object"
         elif isinstance(x , str):
             try:
@@ -428,6 +441,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 return self(x.polynomial())
             except AttributeError:
                 pass
+        elif isinstance(x, sage.rings.power_series_ring_element.PowerSeries):
+            x = x.truncate()
         return C(self, x, check, is_gen, construct=construct, **kwds)
 
     def is_integral_domain(self, proof = True):
@@ -589,7 +604,11 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                         # become useful.
                         if self._implementation_names == ('NTL',):
                             return False
-                    return base_ring.has_coerce_map_from(P.base_ring())
+                    f = base_ring.coerce_map_from(P.base_ring())
+                    if f is not None:
+                        from sage.rings.homset import RingHomset
+                        from sage.rings.polynomial.polynomial_ring_homomorphism import PolynomialRingHomomorphism_from_base
+                        return PolynomialRingHomomorphism_from_base(RingHomset(P, self), f)
         except AttributeError:
             pass
 
@@ -1173,6 +1192,44 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             # safe to mutate the return
             coeffs.reverse()
             yield self(coeffs)
+
+    def karatsuba_threshold(self):
+        """
+        Return the Karatsuba threshold used for this ring by the method
+        _mul_karatsuba to fall back to the schoolbook algorithm.
+
+        EXAMPLES::
+
+            sage: K = QQ['x']
+            sage: K.karatsuba_threshold()
+            8
+            sage: K = QQ['x']['y']
+            sage: K.karatsuba_threshold()
+            0
+        """
+        return self._Karatsuba_threshold
+
+    def set_karatsuba_threshold(self, Karatsuba_threshold):
+        """
+        Changes the default threshold for this ring in the method _mul_karatsuba
+        to fall back to the schoolbook algorithm.
+
+        .. warning::
+
+           This method may have a negative performance impact in polynomial
+           arithmetic. So use it at your own risk.
+
+        EXAMPLES::
+
+            sage: K = QQ['x']
+            sage: K.karatsuba_threshold()
+            8
+            sage: K.set_karatsuba_threshold(0)
+            sage: K.karatsuba_threshold()
+            0
+        """
+        self._Karatsuba_threshold = ZZ_sage(Karatsuba_threshold)
+
 
     def polynomials( self, of_degree = None, max_degree = None ):
         """

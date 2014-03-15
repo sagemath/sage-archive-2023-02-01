@@ -1337,60 +1337,60 @@ class FiniteStateMachine(SageObject):
             NotImplementedError
 
 
-        TESTS::
+    TESTS::
 
-            sage: a = FSMState('S_a', 'a')
-            sage: b = FSMState('S_b', 'b')
-            sage: c = FSMState('S_c', 'c')
-            sage: d = FSMState('S_d', 'd')
-            sage: FiniteStateMachine({a:[b, c], b:[b, c, d],
-            ....:                     c:[a, b], d:[a, c]})
-            Finite state machine with 4 states
+        sage: a = FSMState('S_a', 'a')
+        sage: b = FSMState('S_b', 'b')
+        sage: c = FSMState('S_c', 'c')
+        sage: d = FSMState('S_d', 'd')
+        sage: FiniteStateMachine({a:[b, c], b:[b, c, d],
+        ....:                     c:[a, b], d:[a, c]})
+        Finite state machine with 4 states
 
-        We have several constructions which lead to the same finite
-        state machine::
+    We have several constructions which lead to the same finite
+    state machine::
 
-            sage: A = FSMState('A')
-            sage: B = FSMState('B')
-            sage: C = FSMState('C')
-            sage: FSM1 = FiniteStateMachine(
-            ....:  {A:{B:{'word_in':0, 'word_out':1},
-            ....:   C:{'word_in':1, 'word_out':1}}})
-            sage: FSM2 = FiniteStateMachine({A:{B:(0, 1), C:(1, 1)}})
-            sage: FSM3 = FiniteStateMachine(
-            ....:  {A:{B:FSMTransition(A, B, 0, 1),
-            ....:      C:FSMTransition(A, C, 1, 1)}})
-            sage: FSM4 = FiniteStateMachine({A:[(B, 0, 1), (C, 1, 1)]})
-            sage: FSM5 = FiniteStateMachine(
-            ....:  {A:[FSMTransition(A, B, 0, 1), FSMTransition(A, C, 1, 1)]})
-            sage: FSM6 = FiniteStateMachine(
-            ....:  [{'from_state':A, 'to_state':B, 'word_in':0, 'word_out':1},
-            ....:   {'from_state':A, 'to_state':C, 'word_in':1, 'word_out':1}])
-            sage: FSM7 = FiniteStateMachine([(A, B, 0, 1), (A, C, 1, 1)])
-            sage: FSM8 = FiniteStateMachine(
-            ....:  [FSMTransition(A, B, 0, 1), FSMTransition(A, C, 1, 1)])
+        sage: A = FSMState('A')
+        sage: B = FSMState('B')
+        sage: C = FSMState('C')
+        sage: FSM1 = FiniteStateMachine(
+        ....:  {A:{B:{'word_in':0, 'word_out':1},
+        ....:   C:{'word_in':1, 'word_out':1}}})
+        sage: FSM2 = FiniteStateMachine({A:{B:(0, 1), C:(1, 1)}})
+        sage: FSM3 = FiniteStateMachine(
+        ....:  {A:{B:FSMTransition(A, B, 0, 1),
+        ....:      C:FSMTransition(A, C, 1, 1)}})
+        sage: FSM4 = FiniteStateMachine({A:[(B, 0, 1), (C, 1, 1)]})
+        sage: FSM5 = FiniteStateMachine(
+        ....:  {A:[FSMTransition(A, B, 0, 1), FSMTransition(A, C, 1, 1)]})
+        sage: FSM6 = FiniteStateMachine(
+        ....:  [{'from_state':A, 'to_state':B, 'word_in':0, 'word_out':1},
+        ....:   {'from_state':A, 'to_state':C, 'word_in':1, 'word_out':1}])
+        sage: FSM7 = FiniteStateMachine([(A, B, 0, 1), (A, C, 1, 1)])
+        sage: FSM8 = FiniteStateMachine(
+        ....:  [FSMTransition(A, B, 0, 1), FSMTransition(A, C, 1, 1)])
 
-            sage: FSM1 == FSM2 == FSM3 == FSM4 == FSM5 == FSM6 == FSM7 == FSM8
-            True
+        sage: FSM1 == FSM2 == FSM3 == FSM4 == FSM5 == FSM6 == FSM7 == FSM8
+        True
 
-        It is possible to skip ``FSMTransition`` in the example above.
+    It is possible to skip ``FSMTransition`` in the example above.
 
-        Some more tests for different input-data::
+    Some more tests for different input-data::
 
-            sage: FiniteStateMachine({'a':{'a':[0, 0], 'b':[1, 1]},
-            ....:                     'b':{'b':[1, 0]}})
-            Finite state machine with 2 states
+        sage: FiniteStateMachine({'a':{'a':[0, 0], 'b':[1, 1]},
+        ....:                     'b':{'b':[1, 0]}})
+        Finite state machine with 2 states
 
-            sage: a = FSMState('S_a', 'a')
-            sage: b = FSMState('S_b', 'b')
-            sage: c = FSMState('S_c', 'c')
-            sage: d = FSMState('S_d', 'd')
-            sage: t1 = FSMTransition(a, b)
-            sage: t2 = FSMTransition(b, c)
-            sage: t3 = FSMTransition(b, d)
-            sage: t4 = FSMTransition(c, d)
-            sage: FiniteStateMachine([t1, t2, t3, t4])
-            Finite state machine with 4 states
+        sage: a = FSMState('S_a', 'a')
+        sage: b = FSMState('S_b', 'b')
+        sage: c = FSMState('S_c', 'c')
+        sage: d = FSMState('S_d', 'd')
+        sage: t1 = FSMTransition(a, b)
+        sage: t2 = FSMTransition(b, c)
+        sage: t3 = FSMTransition(b, d)
+        sage: t4 = FSMTransition(c, d)
+        sage: FiniteStateMachine([t1, t2, t3, t4])
+        Finite state machine with 4 states
     """
 
     #*************************************************************************

@@ -3422,7 +3422,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             ord = self.order()
         try:
             return generic.discrete_log(Q, self, ord, operation='+')
-        except StandardError:
+        except Exception:
             raise ValueError("ECDLog problem has no solution")
 
     def order(self):
@@ -3440,7 +3440,11 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         We do not cause the group order to be calculated when not
         known, since this function is used in determining the group
         order via computation of several random points and their
-        orders.
+        orders.  The exceptions to this are (1) when the base field is
+        a prime field and efficient SEA-based methods are available
+        for the cardinality, and (2) when finding the group order is
+        possible quickly, currently only implemented for curves with
+        `j=0` or `j=1728` (see :trac:`15567`).
 
         .. NOTE::
 
@@ -3474,6 +3478,34 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             1427247692705959881058262545272474300628281448
             sage: P.order()==E.cardinality()
             True
+
+        In the next example, the cardinality of E will be computed and
+        cached since `j(E)=0`::
+
+            sage: p = 33554501
+            sage: F.<u> = GF(p^2)
+            sage: E = EllipticCurve(F,[0,1])
+            sage: E.j_invariant()
+            0
+            sage: P = E.random_point()
+            sage: P = E.random_point()
+            sage: P.order() # random
+            16777251
+            sage: E._order  # as cached
+            1125904604468004
+
+        Similarly when `j(E)=1728`::
+
+            sage: p = 33554473
+            sage: F.<u> = GF(p^2)
+            sage: E = EllipticCurve(F,[1,0])
+            sage: E.j_invariant()
+            1728
+            sage: P = E.random_point()
+            sage: P.order() # random
+            46912611635760
+            sage: E._order  # as cached
+            1125902679258240
         """
         try:
             return self._order
@@ -3494,8 +3526,9 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
                 plist = M.prime_divisors()
                 E._prime_factors_of_order = plist
             N = generic.order_from_multiple(self, M, plist, operation='+')
-        except StandardError:
-            if K.is_prime_field():
+        except AttributeError:
+            j = E.j_invariant()
+            if K.is_prime_field() or j.is_zero() or j==K(1728):
                 M = E.cardinality()  # computed and cached
                 plist = M.prime_divisors()
                 E._prime_factors_of_order = plist

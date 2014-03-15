@@ -638,6 +638,27 @@ class PolynomialFunctor(ConstructionFunctor):
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         return PolynomialRing(R, self.var, sparse=self.sparse)
 
+    def _apply_functor_to_morphism(self, f):
+        """
+        Apply the functor ``self`` to the morphism `f`.
+
+        TEST::
+
+            sage: P = ZZ['x'].construction()[0]
+            sage: P(ZZ.hom(GF(3)))
+            Ring morphism:
+              From: Univariate Polynomial Ring in x over Integer Ring
+              To:   Univariate Polynomial Ring in x over Finite Field of size 3
+              Defn: Induced from base ring by
+                    Ring Coercion morphism:
+                      From: Integer Ring
+                      To:   Finite Field of size 3
+        """
+        from sage.rings.polynomial.polynomial_ring_homomorphism import PolynomialRingHomomorphism_from_base
+        R = self._apply_functor(f.domain())
+        S = self._apply_functor(f.codomain())
+        return PolynomialRingHomomorphism_from_base(R.Hom(S), f)
+
     def __cmp__(self, other):
         """
         TESTS::
@@ -2262,8 +2283,17 @@ class CompletionFunctor(ConstructionFunctor):
             sage: (C*F)(ZZ['x']) is (F*C)(ZZ['x'])
             True
 
+        The following was fixed in :trac:`15329` (it used to result
+        in an infinite recursion)::
+
+            sage: from sage.categories.pushout import pushout
+            sage: pushout(Qp(7),RLF)
+            Traceback (most recent call last):
+            ...
+            CoercionException: ('Ambiguous Base Extension', 7-adic Field with capped relative precision 20, Real Lazy Field)
+
         """
-        return isinstance(other,(FractionField,CompletionFunctor))
+        return isinstance(other,FractionField)
 
 class QuotientFunctor(ConstructionFunctor):
     """

@@ -4,37 +4,52 @@ all.py -- much of sage is imported into this module, so you don't
 
 TESTS:
 
-    This is to test #10570. If the number of stackframes at startup
-    changes due to a patch you made, please check that this was an
-    intended effect of your patch.
+This is to test :trac:`10570`. If the number of stackframes at startup
+changes due to a patch you made, please check that this was an
+intended effect of your patch.
 
-    ::
+::
 
-        sage: import gc
-        sage: import inspect
-        sage: from sage import *
-        sage: frames=[x for x in gc.get_objects() if inspect.isframe(x)]
+    sage: import gc
+    sage: import inspect
+    sage: from sage import *
+    sage: frames = [x for x in gc.get_objects() if inspect.isframe(x)]
 
-    We exclude the known files and check to see that there are no others::
+We exclude the known files and check to see that there are no others::
 
-        sage: import os
-        sage: allowed = [os.path.join("lib","python","threading.py")]
-        sage: allowed.append(os.path.join("lib","python","multiprocessing"))
-        sage: allowed.append(os.path.join("sage","doctest"))
-        sage: allowed.append(os.path.join("bin","sage-runtests"))
-        sage: allowed.append(os.path.join("site-packages","IPython"))
-        sage: allowed.append(os.path.join("bin","sage-ipython"))
-        sage: allowed.append("<ipython console>")
-        sage: allowed.append("<doctest sage.all[3]>")
-        sage: allowed.append(os.path.join("sage","combinat","species","generating_series.py"))
-        sage: for i in frames:
-        ....:     filename, lineno, funcname, linelist, indx = inspect.getframeinfo(i)
-        ....:     for nm in allowed:
-        ....:         if nm in filename:
-        ....:             break
-        ....:     else:
-        ....:         print filename
-        ....:
+    sage: import os
+    sage: allowed = [os.path.join("lib","python","threading.py")]
+    sage: allowed.append(os.path.join("lib","python","multiprocessing"))
+    sage: allowed.append(os.path.join("sage","doctest"))
+    sage: allowed.append(os.path.join("bin","sage-runtests"))
+    sage: allowed.append(os.path.join("site-packages","IPython"))
+    sage: allowed.append(os.path.join("bin","sage-ipython"))
+    sage: allowed.append("<ipython console>")
+    sage: allowed.append("<doctest sage.all[3]>")
+    sage: allowed.append(os.path.join("sage","combinat","species","generating_series.py"))
+    sage: for i in frames:
+    ....:     filename, lineno, funcname, linelist, indx = inspect.getframeinfo(i)
+    ....:     for nm in allowed:
+    ....:         if nm in filename:
+    ....:             break
+    ....:     else:
+    ....:         print filename
+    ....:
+
+Check that the Sage Notebook is not imported at startup (see
+:trac:`15335`)::
+
+    sage: sagenb
+    Traceback (most recent call last):
+    ...
+    NameError: name 'sagenb' is not defined
+
+Check lazy import of ``interacts``::
+
+    sage: type(interacts)
+    <type 'sage.misc.lazy_import.LazyImport'>
+    sage: interacts
+    <module 'sage.interacts.all' from '...'>
 """
 
 #*****************************************************************************
@@ -50,6 +65,7 @@ TESTS:
 
 import os, sys
 import operator
+import math
 
 from sage.env import SAGE_ROOT, SAGE_DOC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
 
@@ -154,10 +170,12 @@ from sage.tensor.all     import *
 
 from sage.matroids.all   import *
 
-# The new separated Sage notebook
-from sagenb.notebook.all import *
-
-import sage.interacts.all as interacts
+# Lazily import notebook functions and interacts (#15335)
+lazy_import('sagenb.notebook.notebook_object', 'notebook')
+lazy_import('sagenb.notebook.notebook_object', 'inotebook')
+lazy_import('sagenb.notebook.sage_email', 'email')
+lazy_import('sagenb.notebook.interact', 'interact')
+lazy_import('sage.interacts', 'all', 'interacts')
 from sage.interacts.debugger import debug
 
 from copy import copy, deepcopy
@@ -193,7 +211,7 @@ del message, name
 #try:
 #    import resource   # unix only...
 #    resource.setrlimit(resource.RLIMIT_AS, (-1,-1))
-#except StandardError:
+#except Exception:
 #    pass
 
 # very useful 2-letter shortcuts

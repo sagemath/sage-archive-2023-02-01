@@ -29,7 +29,7 @@ def CoxeterGroup(data, implementation=None, base_ring=None, index_set=None):
 
     INPUT:
 
-    - ``data`` -- a cartan type (or coercible into; see :class:`CartanType`)
+    - ``data`` -- a Cartan type (or coercible into; see :class:`CartanType`)
       or a Coxeter matrix or graph
 
     - ``implementation`` -- (default: ``None``) can be one of the following:
@@ -116,6 +116,10 @@ def CoxeterGroup(data, implementation=None, base_ring=None, index_set=None):
         Coxeter group over Symbolic Ring with Coxeter matrix:
         [ 1 10]
         [10  1]
+
+    TESTS::
+
+        sage: W = groups.misc.CoxeterGroup(["H",3])
     """
     if implementation not in ["permutation", "matrix", "coxeter3", "reflection", None]:
         raise ValueError("invalid type implementation")

@@ -155,8 +155,10 @@ Sage (ticket #9636)::
 
 include 'pari_err.pxi'
 include 'sage/ext/stdsage.pxi'
-include 'sage/ext/python.pxi'
 include 'sage/ext/interrupt.pxi'
+
+cdef extern from 'c_lib/include/memory.h':
+    void init_memory_functions()
 
 import sys
 
@@ -439,6 +441,10 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
         _pari_init_error_handling()
 
+        # pari_init_opts() overrides MPIR's memory allocation functions,
+        # so we need to reset them.
+        init_memory_functions()
+
         num_primes = maxprime
 
         # Free the PARI stack and allocate our own (using Cython)
@@ -630,7 +636,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         Create a new gen wrapping `x`, then call ``clear_stack()``.
         """
-        cdef gen g = _new_gen(x)
+        cdef gen g = self.new_gen_noclear(x)
         self.clear_stack()
         return g
 
@@ -639,8 +645,13 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         Create a new gen, but don't free any memory on the stack and don't
         call pari_catch_sig_off().
         """
-        z = _new_gen(x)
-        return z
+        cdef pari_sp address
+        cdef gen y = PY_NEW(gen)
+        y.g = self.deepcopy_to_python_heap(x, &address)
+        y.b = address
+        y._parent = self
+        # y.refers_to (a dict which is None now) is initialised as needed
+        return y
 
     cdef gen new_gen_from_mpz_t(self, mpz_t value):
         """
@@ -820,7 +831,11 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         return self.new_gen(mkcomplex(t0.g, t1.g))
 
     cdef GEN deepcopy_to_python_heap(self, GEN x, pari_sp* address):
-        return deepcopy_to_python_heap(x, address)
+        cdef size_t s = <size_t> gsizebyte(x)
+        cdef pari_sp tmp_bot = <pari_sp> sage_malloc(s)
+        cdef pari_sp tmp_top = tmp_bot + s
+        address[0] = tmp_bot
+        return gcopy_avma(x, &tmp_top)
 
     cdef gen new_ref(self, GEN g, gen parent):
         """
@@ -847,12 +862,10 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             2
         """
         cdef gen p = PY_NEW(gen)
-
+        p.g = g
         p.b = 0
         p._parent = self
-        p._refers_to = {-1:parent}
-        p.g = g
-
+        p.refers_to = {-1: parent}
         return p
 
     def __call__(self, s):
@@ -1557,10 +1570,11 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             if len(entries) != m*n:
                 raise IndexError, "len of entries (=%s) must be %s*%s=%s"%(len(entries),m,n,m*n)
             k = 0
+            A.refers_to = {}
             for i from 0 <= i < m:
                 for j from 0 <= j < n:
                     x = pari(entries[k])
-                    A._refers_to[(i,j)] = x
+                    A.refers_to[(i,j)] = x
                     (<GEN>(A.g)[j+1])[i+1] = <long>(x.g)
                     k = k + 1
         return A
@@ -1647,22 +1661,3 @@ cdef int init_stack(size_t requested_size) except -1:
     finally:
         sig_unblock()
         sig_off()
-
-
-cdef GEN deepcopy_to_python_heap(GEN x, pari_sp* address):
-    cdef size_t s = <size_t> gsizebyte(x)
-    cdef pari_sp tmp_bot, tmp_top
-
-    tmp_bot = <pari_sp> sage_malloc(s)
-    tmp_top = tmp_bot + s
-    address[0] = tmp_bot
-    return gcopy_avma(x, &tmp_top)
-
-cdef gen _new_gen(GEN x):
-    cdef GEN h
-    cdef pari_sp address
-    cdef gen y
-    h = deepcopy_to_python_heap(x, &address)
-    y = PY_NEW(gen)
-    y.init(h, address)
-    return y

@@ -1526,7 +1526,7 @@ cdef class PartitionStack:
             self.nrows = <int> arg1
             self.nwords = 1 << self.nrows
             self.ncols = <int> arg2
-        except StandardError:
+        except Exception:
             other = arg1
             self.nrows = other.nrows
             self.nwords = other.nwords
@@ -2586,7 +2586,7 @@ cdef class PartitionStack:
 
     def _refine(self, k, alpha, CG):
         """
-        EXAMPLE:
+        EXAMPLE::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *

@@ -442,7 +442,7 @@ class WeightSpaceElement(CombinatorialFreeModuleElement):
             sage: Lambda[1].scalar(alphacheck[2])
             0
 
-        The fundamental weights and the simple coroots are dual bases:
+        The fundamental weights and the simple coroots are dual bases::
 
             sage: matrix([ [ Lambda[i].scalar(alphacheck[j])
             ...              for i in L.index_set() ]

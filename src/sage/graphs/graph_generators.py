@@ -200,6 +200,7 @@ __append_to_doc(
      "NStarGraph",
      "OddGraph",
      "PaleyGraph",
+     "petersen_family",
      "RingedTree",
      "SymplecticGraph",
      "trees",
@@ -1364,6 +1365,7 @@ class GraphGenerators():
     NStarGraph             = staticmethod(sage.graphs.generators.families.NStarGraph)
     OddGraph               = staticmethod(sage.graphs.generators.families.OddGraph)
     PaleyGraph             = staticmethod(sage.graphs.generators.families.PaleyGraph)
+    petersen_family        = staticmethod(sage.graphs.generators.families.petersen_family)
     RingedTree             = staticmethod(sage.graphs.generators.families.RingedTree)
     SymplecticGraph        = staticmethod(sage.graphs.generators.families.SymplecticGraph)
     trees                  = staticmethod(sage.graphs.generators.families.trees)

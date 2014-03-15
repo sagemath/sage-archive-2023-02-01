@@ -253,9 +253,15 @@ class DiGraph(GenericGraph):
 
        * ``"static_sparse"`` -- selects the
          :mod:`~sage.graphs.base.static_sparse_backend` (this backend is faster
-         than the sparse backend and smaller in memory, but it is immutable).
+         than the sparse backend and smaller in memory, and it is immutable, so
+         that the resulting graphs can be used as dictionary keys).
 
        *Only available when* ``implementation == 'c_graph'``
+
+    - ``immutable`` (boolean) -- whether to create a immutable digraph. Note
+      that ``immutable=True`` is actually a shortcut for
+      ``data_structure='static_sparse'``. Set to ``False`` by default, only
+      available when ``implementation='c_graph'``
 
     -  ``vertex_labels`` - only for implementation == 'c_graph'.
        Whether to allow any object as a vertex (slower), or
@@ -411,6 +417,36 @@ class DiGraph(GenericGraph):
         sage: D._boundary
         []
 
+    Demonstrate that digraphs using the static backend are equal to mutable
+    graphs but can be used as dictionary keys::
+
+        sage: import networkx
+        sage: g = networkx.DiGraph({0:[1,2,3], 2:[4]})
+        sage: G = DiGraph(g, implementation='networkx')
+        sage: G_imm = DiGraph(G, data_structure="static_sparse")
+        sage: H_imm = DiGraph(G, data_structure="static_sparse")
+        sage: H_imm is G_imm
+        False
+        sage: H_imm == G_imm == G
+        True
+        sage: {G_imm:1}[H_imm]
+        1
+        sage: {G_imm:1}[G]
+        Traceback (most recent call last):
+        ...
+        TypeError: This graph is mutable, and thus not hashable. Create an
+        immutable copy by `g.copy(immutable=True)`
+
+    The error message states that one can also create immutable graphs by
+    specifying the ``immutable`` optional argument (not only by
+    ``data_structure='static_sparse'`` as above)::
+
+        sage: J_imm = DiGraph(G, immutable=True)
+        sage: J_imm == G_imm
+        True
+        sage: type(J_imm._backend) == type(G_imm._backend)
+        True
+
     """
     _directed = True
 
@@ -418,7 +454,7 @@ class DiGraph(GenericGraph):
                  boundary=None, weighted=None, implementation='c_graph',
                  data_structure="sparse", vertex_labels=True, name=None,
                  multiedges=None, convert_empty_dict_labels_to_None=None,
-                 sparse=True):
+                 sparse=True, immutable=False):
         """
         TESTS::
 
@@ -484,6 +520,33 @@ class DiGraph(GenericGraph):
             sage: grafo4 = DiGraph(matad,format = "adjacency_matrix", weighted=True)
             sage: grafo4.shortest_path(0,6,by_weight=True)
             [0, 1, 2, 5, 4, 6]
+
+        Building a DiGraph with ``immutable=False`` returns a mutable graph::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g = DiGraph(g.edges(),immutable=False)
+            sage: g.add_edge("Hey", "Heyyyyyyy")
+            sage: {g:1}[g]
+            Traceback (most recent call last):
+            ...
+            TypeError: This graph is mutable, and thus not hashable. Create an immutable copy by `g.copy(immutable=True)`
+            sage: copy(g) is g
+            False
+            sage: {g.copy(immutable=True):1}[g.copy(immutable=True)]
+            1
+
+        But building it with ``immutable=True`` returns an immutable graph::
+
+            sage: g = DiGraph(graphs.PetersenGraph(), immutable=True)
+            sage: g.add_edge("Hey", "Heyyyyyyy")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: {g:1}[g]
+            1
+            sage: copy(g) is g
+            True
+
         """
         msg = ''
         GenericGraph.__init__(self)
@@ -660,7 +723,7 @@ class DiGraph(GenericGraph):
                 try:
                     e = int(e)
                     assert e >= 0
-                except StandardError:
+                except Exception:
                     if weighted is False:
                         raise ValueError("Non-weighted digraph's"+
                         " adjacency matrix must have only nonnegative"+
@@ -823,6 +886,9 @@ class DiGraph(GenericGraph):
                 if data_structure == "dense":
                     raise RuntimeError("Multiedge and weighted c_graphs must be sparse.")
 
+            if immutable:
+                data_structure = 'static_sparse'
+
             # If the data structure is static_sparse, we first build a graph
             # using the sparse data structure, then reencode the resulting graph
             # as a static sparse graph.
@@ -853,7 +919,6 @@ class DiGraph(GenericGraph):
                 self._weighted = weighted
                 self.allow_loops(loops, check=False)
                 self.allow_multiple_edges(multiedges, check=False)
-            self._backend.directed = True
         else:
             raise NotImplementedError("Supported implementations: networkx, c_graph.")
 
@@ -917,6 +982,7 @@ class DiGraph(GenericGraph):
             from sage.graphs.base.static_sparse_backend import StaticSparseBackend
             ib = StaticSparseBackend(self, loops = loops, multiedges = multiedges)
             self._backend = ib
+            self._immutable = True
 
     ### Formats
     def dig6_string(self):
@@ -1027,6 +1093,18 @@ class DiGraph(GenericGraph):
             sage: all( random_acyclic(100, .2).is_directed_acyclic()    # long time
             ...        for i in range(50))                              # long time
             True
+
+        TESTS:
+
+        What about loops?::
+
+            sage: g = digraphs.ButterflyGraph(3)
+            sage: g.allow_loops(True)
+            sage: g.is_directed_acyclic()
+            True
+            sage: g.add_edge(0,0)
+            sage: g.is_directed_acyclic()
+            False
         """
         return self._backend.is_directed_acyclic(certificate = certificate)
 
@@ -1595,11 +1673,11 @@ class DiGraph(GenericGraph):
                                           maximization = False)
 
             # An variable for each edge
-            b = p.new_variable(binary = True, dim = 2)
+            b = p.new_variable(binary = True)
 
             # Variables are binary, and their coefficient in the objective is 1
 
-            p.set_objective( p.sum( b[u][v]
+            p.set_objective( p.sum( b[u,v]
                                   for u,v in self.edges(labels = False)))
 
             p.solve(log = verbose)
@@ -1611,7 +1689,7 @@ class DiGraph(GenericGraph):
                 # Building the graph without the edges removed by the LP
                 h = DiGraph()
                 for u,v in self.edges(labels = False):
-                    if p.get_values(b[u][v]) < .5:
+                    if p.get_values(b[u,v]) < .5:
                         h.add_edge(u,v)
 
                 # Is the digraph acyclic ?
@@ -1628,7 +1706,7 @@ class DiGraph(GenericGraph):
                 # constraint !
 
                 p.add_constraint(
-                    p.sum( b[u][v] for u,v in
+                    p.sum( b[u,v] for u,v in
                          zip(certificate, certificate[1:] + [certificate[0]])),
                     min = 1)
 
@@ -1641,7 +1719,7 @@ class DiGraph(GenericGraph):
 
                 # listing the edges contained in the MFAS
                 return [(u,v) for u,v in self.edges(labels = False)
-                        if p.get_values(b[u][v]) > .5]
+                        if p.get_values(b[u,v]) > .5]
 
         ######################################
         # Ordering-based MILP Implementation #
@@ -1858,16 +1936,16 @@ class DiGraph(GenericGraph):
             if v is None:
                 try:
                     u, v, label = u
-                except StandardError:
+                except Exception:
                     try:
                         u, v = u
-                    except StandardError:
+                    except Exception:
                         pass
         else:
             if v is None:
                 try:
                     u, v = u
-                except StandardError:
+                except Exception:
                     pass
 
         if not self.has_edge(u,v,label):

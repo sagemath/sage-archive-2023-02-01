@@ -3124,7 +3124,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         return self.__x.quadratic_form()
 
     @cached_method
-    def numerical_approx(self, prec=53):
+    def numerical_approx(self, prec=53, algorithm=None):
         """
         Return a numerical approximation to this Heegner point
         computed using a working precision of prec bits.
@@ -6951,7 +6951,7 @@ def heegner_sha_an(self, D, prec=53):
     #    You can think this through or just type something like
     #      f = function('f',x); g = function('g',x); diff(f*g,6)
     #    into Sage to be convinced.
-    L = rings.binomial(rE + rF, rE) * (L_E * L_F / (rings.factorial(rE+rF)) )
+    L = arith.binomial(rE + rF, rE) * (L_E * L_F / (arith.factorial(rE+rF)) )
 
     #  - ||omega||^2 -- the period.  It is twice the volume of the
     #    period lattice.  See the following paper for a derivation:

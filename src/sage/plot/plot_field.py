@@ -111,8 +111,30 @@ class PlotField(GraphicPrimitive):
             sage: P=plot_vector_field((sin(x), cos(y)), (x,-3,3), (y,-3,3))
             sage: P[0]
             PlotField defined by a 20 x 20 vector grid
+
+        TESTS:
+        We check that :trac:`15052` is fixed
+        (note that in general :trac:`15002` should be fixed)::
+
+            sage: x,y=var('x,y')
+            sage: P=plot_vector_field((sin(x), cos(y)), (x,-3,3), (y,-3,3), wrong_option='nonsense')
+            sage: P[0].options()['plot_points']
+            verbose 0 (...: primitive.py, options) WARNING: Ignoring option 'wrong_option'=nonsense
+            verbose 0 (...: primitive.py, options)
+            The allowed options for PlotField defined by a 20 x 20 vector grid are:
+                color          The color of the arrows
+                headaxislength head length at shaft intersection, default is 4.5
+                headlength     head length as multiple of shaft width, default is 5
+                headwidth      Head width as multiple of shaft width, default is 3
+                pivot          Where the arrow should be placed in relation to the point (tail, middle, tip)
+                plot_points    How many points to use for plotting precision
+                zorder         The layer level in which to draw
+            <BLANKLINE>
+            20
+
         """
-        return "PlotField defined by a %s x %s vector grid"%(self.options()['plot_points'], self.options()['plot_points'])
+        return "PlotField defined by a %s x %s vector grid"%(
+               self._options['plot_points'], self._options['plot_points'])
 
     def _render_on_subplot(self, subplot):
         """

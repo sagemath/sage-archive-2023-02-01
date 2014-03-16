@@ -693,11 +693,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             else:
 
-                try:
-                    set_from_Integer(self, x._integer_(the_integer_ring))
+                otmp = getattr(x, "_integer_", None)
+                if otmp is not None:
+                    set_from_Integer(self, otmp(the_integer_ring))
                     return
-                except AttributeError:
-                    pass
 
                 if PY_TYPE_CHECK(x, Element):
                     try:

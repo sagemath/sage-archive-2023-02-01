@@ -65,7 +65,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
 
     EXAMPLES::
 
-        sage: R.<x> = PolynomialRing(Integers(16))
+        sage: R.<x> = PolynomialRing(Integers(16), implementation='ntl')
         sage: f = x^3 - x + 17
         sage: f^2
         x^6 + 14*x^4 + 2*x^3 + x^2 + 14*x + 1
@@ -73,14 +73,14 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         sage: loads(f.dumps()) == f
         True
 
-        sage: R.<x> = Integers(100)[]
+        sage: R.<x> = PolynomialRing(Integers(100), implementation='ntl')
         sage: p = 3*x
         sage: q = 7*x
         sage: p+q
         10*x
-        sage: R.<x> = Integers(8)[]
+        sage: R.<x> = PolynomialRing(Integers(8), implementation='ntl')
         sage: parent(p)
-        Univariate Polynomial Ring in x over Ring of integers modulo 100
+        Univariate Polynomial Ring in x over Ring of integers modulo 100 (using NTL)
         sage: p + q
         10*x
         sage: R({10:-1})
@@ -156,7 +156,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         """
         EXAMPLES::
 
-            sage: t = PolynomialRing(IntegerModRing(17),"t").gen()
+            sage: t = PolynomialRing(IntegerModRing(17),"t", implementation='ntl').gen()
             sage: f = t^3 + 3*t - 17
             sage: pari(f)
             Mod(1, 17)*t^3 + Mod(3, 17)*t
@@ -185,7 +185,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
 
         EXAMPLES::
 
-            sage: R.<x> = Integers(100)[]
+            sage: R.<x> = PolynomialRing(Integers(100), implementation='ntl')
             sage: from sage.rings.polynomial.polynomial_modn_dense_ntl import Polynomial_dense_mod_n
             sage: f = Polynomial_dense_mod_n(R,[5,10,13,1,4]); f
             4*x^4 + x^3 + 13*x^2 + 10*x + 5
@@ -228,7 +228,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         """
         EXAMPLES::
 
-            sage: x = PolynomialRing(Integers(100), 'x').0
+            sage: x = PolynomialRing(Integers(100), 'x', implementation='ntl').0
             sage: (x - 2)*(x^2 - 8*x + 16)
             x^3 + 90*x^2 + 32*x + 68
         """
@@ -263,7 +263,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
 
         EXAMPLES::
 
-            sage: R.<x> = PolynomialRing(Integers(12345678901234567890))
+            sage: R.<x> = PolynomialRing(Integers(12345678901234567890), implementation='ntl')
             sage: p = x^2 + 2*x + 4
             sage: p.shift(0)
              x^2 + 2*x + 4
@@ -313,7 +313,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
 
         EXAMPLES::
 
-            sage: _.<x> = Integers(100)[]
+            sage: _.<x> = PolynomialRing(Integers(100), implementation='ntl')
             sage: f = x^3 + 3*x - 17
             sage: f.list()
             [83, 3, 0, 1]
@@ -335,7 +335,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
 
         EXAMPLES::
 
-            sage: R.<x> = PolynomialRing(Integers(100))
+            sage: R.<x> = PolynomialRing(Integers(100), implementation='ntl')
             sage: from sage.rings.polynomial.polynomial_modn_dense_ntl import Polynomial_dense_mod_n as poly_modn_dense
             sage: poly_modn_dense(R, ([1,-2,3]))
             3*x^2 + 98*x + 1
@@ -385,7 +385,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
 
             sage: N = 10001
             sage: K = Zmod(10001)
-            sage: P.<x> = PolynomialRing(K)
+            sage: P.<x> = PolynomialRing(K, implementation='ntl')
             sage: f = x^3 + 10*x^2 + 5000*x - 222
             sage: f.small_roots()
             [4]
@@ -422,7 +422,7 @@ def small_roots(self, X=None, beta=1.0, epsilon=None, **kwds):
 
         sage: N = 10001
         sage: K = Zmod(10001)
-        sage: P.<x> = PolynomialRing(K)
+        sage: P.<x> = PolynomialRing(K, implementation='ntl')
         sage: f = x^3 + 10*x^2 + 5000*x - 222
 
     This polynomial has no roots without modular reduction (i.e. over `\ZZ`)::
@@ -482,7 +482,7 @@ def small_roots(self, X=None, beta=1.0, epsilon=None, **kwds):
 
     To recover `K` we consider the following polynomial modulo `N`::
 
-        sage: P.<x> = PolynomialRing(ZmodN)
+        sage: P.<x> = PolynomialRing(ZmodN, implementation='ntl')
         sage: f = (2^Nbits - 2^Kbits + x)^e - C
 
     and recover its small roots::
@@ -509,7 +509,7 @@ def small_roots(self, X=None, beta=1.0, epsilon=None, **kwds):
 
     And try to recover `q` from it::
 
-        sage: F.<x> = PolynomialRing(Zmod(N))
+        sage: F.<x> = PolynomialRing(Zmod(N), implementation='ntl')
         sage: f = x - qbar
 
     We know that the error is `\le 2^{\text{hidden}}-1` and that the modulus
@@ -595,7 +595,8 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         r"""
         EXAMPLES::
 
-            sage: R = Integers(5**21) ; S.<x> = R[]
+            sage: R = Integers(5**21)
+            sage: S.<x> = PolynomialRing(R, implementation='ntl')
             sage: S(1/4)
             357627868652344
         """
@@ -641,7 +642,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
         EXAMPLES::
 
-            sage: R.<x> = Integers(100)[]
+            sage: R.<x> = PolynomialRing(Integers(100), implementation='ntl')
             sage: from sage.rings.polynomial.polynomial_modn_dense_ntl import Polynomial_dense_mod_n as poly_modn_dense
             sage: f = poly_modn_dense(R,[5,0,0,1])
             sage: f.int_list()
@@ -659,7 +660,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
         EXAMPLES::
 
-            sage: R.<x> = Integers(100)[]
+            sage: R.<x> = PolynomialRing(Integers(100), implementation='ntl')
             sage: from sage.rings.polynomial.polynomial_modn_dense_ntl import Polynomial_dense_modn_ntl_zz
             sage: f = Polynomial_dense_modn_ntl_zz(R,[2, 1])^7
             sage: f[3]
@@ -695,7 +696,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         """
         TESTS::
 
-            sage: R.<x> = Integers(100)[]
+            sage: R.<x> = PolynomialRing(Integers(100), implementation='ntl')
             sage: (x+5) + (x^2 - 6)
             x^2 + x + 99
         """
@@ -712,7 +713,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         """
         TESTS::
 
-            sage: R.<x> = Integers(100)[]
+            sage: R.<x> = PolynomialRing(Integers(100), implementation='ntl')
             sage: (x+5) - (x^2 - 6)
             99*x^2 + x + 11
         """
@@ -729,7 +730,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         """
         TESTS::
 
-            sage: R.<x> = Integers(100)[]
+            sage: R.<x> = PolynomialRing(Integers(100), implementation='ntl')
             sage: (x+5) * (x^2 - 1)
             x^3 + 5*x^2 + 99*x + 95
         """
@@ -786,7 +787,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         """
         TESTS::
 
-            sage: R.<x> = Integers(100)[]
+            sage: R.<x> = PolynomialRing(Integers(100), implementation='ntl')
             sage: (x+5) * 3
             3*x + 15
         """
@@ -802,7 +803,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         """
         TESTS::
 
-            sage: R.<x> = Integers(100)[]
+            sage: R.<x> = PolynomialRing(Integers(100), implementation='ntl')
             sage: 3 * (x+5)
             3*x + 15
         """
@@ -818,11 +819,11 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         """
         TESTS::
 
-            sage: R.<x> = Integers(100)[]
+            sage: R.<x> = PolynomialRing(Integers(100), implementation='ntl')
             sage: (x-1)^5
             x^5 + 95*x^4 + 10*x^3 + 90*x^2 + 5*x + 99
 
-            sage: R.<x> = Integers(101)[]
+            sage: R.<x> = PolynomialRing(Integers(101), implementation='ntl')
             sage: (x-1)^(-5)
             1/(x^5 + 96*x^4 + 10*x^3 + 91*x^2 + 5*x + 100)
 
@@ -887,7 +888,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
         EXAMPLES::
 
-            sage: R.<x> = Integers(125)[]
+            sage: R.<x> = PolynomialRing(Integers(125), implementation='ntl')
             sage: f = x^5+1; g = (x+1)^2
             sage: q, r = f.quo_rem(g)
             sage: q
@@ -914,7 +915,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
         EXAMPLES::
 
-            sage: R.<x> = Integers(25)[]
+            sage: R.<x> = PolynomialRing(Integers(25), implementation='ntl')
             sage: f = x^7 + 1; g = x^2 - 1
             sage: q = f // g; q
             x^5 + x^3 + x
@@ -937,7 +938,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         """
         EXAMPLES::
 
-            sage: R.<x> = Integers(81)[]
+            sage: R.<x> = PolynomialRing(Integers(81), implementation='ntl')
             sage: f = x^7 + x + 1; g = x^3
             sage: r = f % g; r
             x + 1
@@ -963,7 +964,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
         EXAMPLES::
 
-            sage: R.<x> = Integers(77)[]
+            sage: R.<x> = PolynomialRing(Integers(77), implementation='ntl')
             sage: f = x^7 + x + 1
             sage: f.shift(1)
             x^8 + x^2 + x
@@ -987,7 +988,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         """
         TEST::
 
-            sage: R.<x> = Integers(77)[]
+            sage: R.<x> = PolynomialRing(Integers(77), implementation='ntl')
             sage: f = x^5 + 2*x + 1
             sage: f << 3
             x^8 + 2*x^4 + x^3
@@ -1000,7 +1001,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         """
         TEST::
 
-            sage: R.<x> = Integers(77)[]
+            sage: R.<x> = PolynomialRing(Integers(77), implementation='ntl')
             sage: f = x^5 + 2*x + 1
             sage: f >> 3
             x^2
@@ -1021,7 +1022,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
         EXAMPLES::
 
-            sage: R.<x> = Integers(77)[]
+            sage: R.<x> = PolynomialRing(Integers(77), implementation='ntl')
             sage: f = x^4 - x - 1
             sage: f._derivative()
             4*x^3 + 76
@@ -1054,7 +1055,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
         EXAMPLES::
 
-            sage: R.<x> = Integers(77)[]
+            sage: R.<x> = PolynomialRing(Integers(77), implementation='ntl')
             sage: f = x^4 - x - 1
             sage: f.reverse()
             76*x^4 + 76*x^3 + 1
@@ -1073,7 +1074,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         """
         TESTS::
 
-            sage: R.<x> = Integers(77)[]
+            sage: R.<x> = PolynomialRing(Integers(77), implementation='ntl')
             sage: f = x^4 - x - 1
             sage: not f
             False
@@ -1089,7 +1090,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
         EXAMPLES::
 
-            sage: R.<x> = Integers(10)[]
+            sage: R.<x> = PolynomialRing(Integers(10), implementation='ntl')
             sage: x.valuation()
             1
             sage: f = x-3; f.valuation()
@@ -1109,7 +1110,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         """
         EXAMPLES::
 
-            sage: R.<x> = Integers(77)[]
+            sage: R.<x> = PolynomialRing(Integers(77), implementation='ntl')
             sage: f = x^4 - x - 1
             sage: f.degree()
             4
@@ -1125,7 +1126,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
         EXAMPLES::
 
-            sage: R.<x> = Integers(77)[]
+            sage: R.<x> = PolynomialRing(Integers(77), implementation='ntl')
             sage: f = sum(x^n for n in range(10)); f
             x^9 + x^8 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1
             sage: f.truncate(6)
@@ -1143,7 +1144,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
         EXAMPLES::
 
-            sage: R.<x> = Integers(100)[]
+            sage: R.<x> = PolynomialRing(Integers(100), implementation='ntl')
             sage: f = x^3+7
             sage: f(5)
             32
@@ -1153,7 +1154,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             32
             sage: f(x)
             x^3 + 7
-            sage: S.<y> = Integers(5)[]
+            sage: S.<y> = PolynomialRing(Integers(5), implementation='ntl')
             sage: f(y)
             y^3 + 2
         """
@@ -1219,7 +1220,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
         EXAMPLES::
 
-            sage: R.<x> = Integers(10^30)[]
+            sage: R.<x> = PolynomialRing(Integers(10^30), implementation='ntl')
             sage: from sage.rings.polynomial.polynomial_modn_dense_ntl import Polynomial_dense_modn_ntl_ZZ
             sage: f = Polynomial_dense_modn_ntl_ZZ(R,[2,1])^7
             sage: f[3]
@@ -1267,7 +1268,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         """
         TESTS::
 
-            sage: R.<x> = Integers(10^30)[]
+            sage: R.<x> = PolynomialRing(Integers(10^30), implementation='ntl')
             sage: (x+5) + (x^2 - 6)
             x^2 + x + 999999999999999999999999999999
         """
@@ -1284,7 +1285,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         """
         TESTS::
 
-            sage: R.<x> = Integers(10^30)[]
+            sage: R.<x> = PolynomialRing(Integers(10^30), implementation='ntl')
             sage: (x+5) - (x^2 - 6)
             999999999999999999999999999999*x^2 + x + 11
         """
@@ -1301,7 +1302,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         """
         TESTS::
 
-            sage: R.<x> = Integers(10^30)[]
+            sage: R.<x> = PolynomialRing(Integers(10^30), implementation='ntl')
             sage: (x+5) * (x^2 - 1)
             x^3 + 5*x^2 + 999999999999999999999999999999*x + 999999999999999999999999999995
         """
@@ -1358,7 +1359,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         """
         TESTS::
 
-            sage: R.<x> = Integers(10^30)[]
+            sage: R.<x> = PolynomialRing(Integers(10^30), implementation='ntl')
             sage: (x+5) * 3
             3*x + 15
         """
@@ -1375,7 +1376,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         """
         TESTS::
 
-            sage: R.<x> = Integers(10^30)[]
+            sage: R.<x> = PolynomialRing(Integers(10^30), implementation='ntl')
             sage: 3 * (x+5)
             3*x + 15
         """
@@ -1385,7 +1386,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         """
         TESTS::
 
-            sage: R.<x> = Integers(10^30)[]
+            sage: R.<x> = PolynomialRing(Integers(10^30), implementation='ntl')
             sage: (x+1)^5
             x^5 + 5*x^4 + 10*x^3 + 10*x^2 + 5*x + 1
 
@@ -1448,7 +1449,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
         EXAMPLES::
 
-            sage: R.<x> = Integers(10^30)[]
+            sage: R.<x> = PolynomialRing(Integers(10^30), implementation='ntl')
             sage: f = x^5+1; g = (x+1)^2
             sage: q, r = f.quo_rem(g)
             sage: q
@@ -1475,7 +1476,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
         EXAMPLES::
 
-            sage: R.<x> = Integers(10^30)[]
+            sage: R.<x> = PolynomialRing(Integers(10^30), implementation='ntl')
             sage: f = x^7 + 1; g = x^2 - 1
             sage: q = f // g; q
             x^5 + x^3 + x
@@ -1498,7 +1499,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         """
         EXAMPLES::
 
-            sage: R.<x> = Integers(9^30)[]
+            sage: R.<x> = PolynomialRing(Integers(9^30), implementation='ntl')
             sage: f = x^7 + x + 1; g = x^3 - 1
             sage: r = f % g; r
             2*x + 1
@@ -1524,7 +1525,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
         EXAMPLES::
 
-            sage: R.<x> = Integers(12^30)[]
+            sage: R.<x> = PolynomialRing(Integers(12^30), implementation='ntl')
             sage: f = x^7 + x + 1
             sage: f.shift(1)
             x^8 + x^2 + x
@@ -1548,7 +1549,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         """
         TEST::
 
-            sage: R.<x> = Integers(14^30)[]
+            sage: R.<x> = PolynomialRing(Integers(14^30), implementation='ntl')
             sage: f = x^5 + 2*x + 1
             sage: f << 3
             x^8 + 2*x^4 + x^3
@@ -1561,7 +1562,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         """
         TEST::
 
-            sage: R.<x> = Integers(15^30)[]
+            sage: R.<x> = PolynomialRing(Integers(15^30), implementation='ntl')
             sage: f = x^5 + 2*x + 1
             sage: f >> 3
             x^2
@@ -1583,7 +1584,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
         EXAMPLES::
 
-            sage: R.<x> = Integers(12^29)[]
+            sage: R.<x> = PolynomialRing(Integers(12^29), implementation='ntl')
             sage: f = x^4 + x + 5
             sage: f._derivative()
             4*x^3 + 1
@@ -1618,7 +1619,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
         EXAMPLES::
 
-            sage: R.<x> = Integers(12^29)[]
+            sage: R.<x> = PolynomialRing(Integers(12^29), implementation='ntl')
             sage: f = x^4 + 2*x + 5
             sage: f.reverse()
             5*x^4 + 2*x^3 + 1
@@ -1640,7 +1641,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
         EXAMPLES::
 
-            sage: R.<x> = Integers(10^50)[]
+            sage: R.<x> = PolynomialRing(Integers(10^50), implementation='ntl')
             sage: x.valuation()
             1
             sage: f = x-3; f.valuation()
@@ -1662,7 +1663,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         """
         TESTS::
 
-            sage: R.<x> = Integers(12^29)[]
+            sage: R.<x> = PolynomialRing(Integers(12^29), implementation='ntl')
             sage: f = x^4 + 1
             sage: not f
             False
@@ -1675,7 +1676,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         """
         EXAMPLES::
 
-            sage: R.<x> = Integers(14^34)[]
+            sage: R.<x> = PolynomialRing(Integers(14^34), implementation='ntl')
             sage: f = x^4 - x - 1
             sage: f.degree()
             4
@@ -1691,7 +1692,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
         EXAMPLES::
 
-            sage: R.<x> = Integers(15^30)[]
+            sage: R.<x> = PolynomialRing(Integers(15^30), implementation='ntl')
             sage: f = sum(x^n for n in range(10)); f
             x^9 + x^8 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1
             sage: f.truncate(6)
@@ -1709,7 +1710,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
         EXAMPLES::
 
-            sage: R.<x> = Integers(10^30)[]
+            sage: R.<x> = PolynomialRing(Integers(10^30), implementation='ntl')
             sage: f = x^3+7
             sage: f(5)
             132
@@ -1719,7 +1720,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             132
             sage: f(x)
             x^3 + 7
-            sage: S.<y> = Integers(5)[]
+            sage: S.<y> = PolynomialRing(Integers(5), implementation='ntl')
             sage: f(y)
             y^3 + 2
         """
@@ -1815,7 +1816,7 @@ cdef class Polynomial_dense_mod_p(Polynomial_dense_mod_n):
 
         EXAMPLES::
 
-            sage: R.<x> = GF(19)['x']
+            sage: R.<x> = PolynomialRing(GF(19),implementation='NTL')
             sage: f = x^3 + x + 1;  g = x^3 - x - 1
             sage: r = f.resultant(g); r
             11
@@ -1829,7 +1830,7 @@ cdef class Polynomial_dense_mod_p(Polynomial_dense_mod_n):
         """
         EXAMPLES::
 
-            sage: _.<x> = PolynomialRing(GF(19))
+            sage: _.<x> = PolynomialRing(GF(19),implementation='NTL')
             sage: f = x^3 + 3*x - 17
             sage: f.discriminant()
             12

@@ -3047,7 +3047,11 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             + 3*s[3, 2] + s[3, 2, 1] + 2*s[4] + 3*s[4, 1] + s[4, 1, 1] + s[4, 2] + s[5]
             + s[5, 1]
 
-        TESTS:
+        TESTS::
+
+            sage: h = SymmetricFunctions(QQ).h()
+            sage: (2*h([])).reduced_kronecker_product(3*h([]))
+            6*h[]
 
         Different bases and base rings::
 
@@ -3088,13 +3092,13 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
                 # Special handling for the empty partition. The reduced
                 # Kronecker product of 1 with any symmetric function f is
                 # f.
-                result += comp_x
+                result += a * comp_x
                 continue
             for mu, b in comp_x.monomial_coefficients().items():
                 # mu is a partition, b is an element of the base ring.
                 if len(mu) == 0:
                     # Special handling for the empty partition.
-                    result += a * comp_parent(lam)
+                    result += a * b * comp_parent(lam)
                     continue
                 # Now, both lam and mu are nonempty.
                 stab = lam[0] + mu[0] + sum(lam) + sum(mu)
@@ -3107,6 +3111,193 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
                     nu_unstabilized = _Partitions(nu[1:])
                     result += a * b * comp_parent.base_ring()(c) \
                                     * comp_parent(nu_unstabilized)
+        return parent(result)
+
+    def left_padded_kronecker_product(self, x):
+        r"""
+        Return the left-padded Kronecker product of ``self`` and ``x`` in
+        the basis of ``self``.
+
+        The left-padded Kronecker product is a bilinear map mapping two
+        symmetric functions to another, not necessarily preserving degree.
+        It can be defined as follows: Let `*` denote the Kronecker product
+        (:meth:`itensor`) on the space of symmetric functions. For any
+        partitions `\alpha`, `\beta`, `\gamma`, let
+        `g^{\gamma}_{\alpha, \beta}` denote the coefficient of the
+        complete homogeneous symmetric function `h_{\gamma}` in the
+        Kronecker product `h_{\alpha} * h_{\beta}`.
+        For every partition
+        `\lambda = (\lambda_1, \lambda_2, \lambda_3, \ldots)`
+        and every integer `n > \left| \lambda \right| + \lambda_1`, let
+        `\lambda[n]` denote the `n`-completion of `\lambda` (this is the
+        partition
+        `(n - \left| \lambda \right|, \lambda_1, \lambda_2, \lambda_3, \ldots)`;
+        see :meth:`~sage.combinat.partition.Partition.t_completion`).
+        Then, for any partitions `\alpha` and `\beta` and every integer
+        `n \geq \left|\alpha\right| + \left|\beta\right| + \alpha_1 + \beta_1`,
+        we can write the Kronecker product `h_{\alpha[n]} * h_{\beta[n]}`
+        in the form
+
+        .. MATH::
+
+            h_{\alpha[n]} * h_{\beta[n]} = \sum_{\gamma} g^{\gamma[n]}_{\alpha[n], \beta[n]} h_{\gamma[n]}
+
+        with `\gamma` ranging over all partitions. The
+        coefficients `g^{\gamma[n]}_{\alpha[n], \beta[n]}`
+        are independent on `n`. These coefficients
+        `g^{\gamma[n]}_{\alpha[n], \beta[n]}` are denoted by
+        `\overline{g}^{\gamma}_{\alpha, \beta}`, and the symmetric
+        function
+
+        .. MATH::
+
+            \sum_{\gamma} \overline{g}^{\gamma}_{\alpha, \beta} h_{\gamma}
+
+        is said to be the *left-padded Kronecker product* of `h_{\alpha}`
+        and `h_{\beta}`. By bilinearity, this extends to a definition of a
+        left-padded Kronecker product of any two symmetric functions.
+
+        This notion of left-padded Kronecker product can be lifted to the
+        non-commutative symmetric functions
+        (:meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmeticFunctions.Bases.ElementMethods.left_padded_kronecker_product`).
+
+        .. WARNING::
+
+            Don't mistake this product for the reduced Kronecker product
+            (:meth:`reduced_kronecker_product`), which uses the Schur
+            functions instead of the complete homogeneous functions in
+            its definition.
+
+        INPUT:
+
+        - ``x`` -- element of the ring of symmetric functions over the
+          same base ring as ``self``
+
+        OUTPUT:
+
+        - the left-padded Kronecker product of ``self`` with ``x`` (an
+          element of the ring of symmetric functions in the same basis
+          as ``self``)
+
+        EXAMPLES::
+
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: h = Sym.h()
+            sage: h[2,1].left_padded_kronecker_product(h[3])
+            h[1, 1, 1, 1] + h[2, 1] + h[2, 1, 1] + h[2, 1, 1, 1] + h[2, 2, 1] + h[3, 2, 1]
+            sage: h[2,1].left_padded_kronecker_product(h[1])
+            h[1, 1, 1] + h[2, 1] + h[2, 1, 1]
+            sage: h[1].left_padded_kronecker_product(h[2,1])
+            h[1, 1, 1] + h[2, 1] + h[2, 1, 1]
+            sage: h[1,1].left_padded_kronecker_product(h[2])
+            h[1, 1] + 2*h[1, 1, 1] + h[2, 1, 1]
+            sage: h[1].left_padded_kronecker_product(h[2,1,1])
+            h[1, 1, 1, 1] + 2*h[2, 1, 1] + h[2, 1, 1, 1]
+            sage: h[2].left_padded_kronecker_product(h[3])
+            h[2, 1] + h[2, 1, 1] + h[3, 2]
+
+        Taking the left-padded Kronecker product with `1 = h_{\empty}` is
+        the identity map on the ring of symmetric functions::
+
+            sage: all( h[Partition([])].left_padded_kronecker_product(h[lam])
+            ....:      == h[lam] for i in range(4)
+            ....:      for lam in Partitions(i) )
+            True
+
+        Here is a rule for the left-padded Kronecker product of `h_1`
+        (this is the same as `h_{(1)}`) with any complete homogeneous
+        function: Let `\lambda` be a partition. Then, the left-padded
+        Kronecker product of `h_1` and `h_{\lambda}` is
+        `\sum_{\mu} a_{\mu} h_{\mu}`, where the sum runs over all
+        partitions `\mu`, and the coefficient `a_{\mu}` is defined as the
+        number of ways to obtain `\mu` from `\lambda` by one of the
+        following two operations:
+
+        - Insert a `1` into `\lambda`.
+        - Subtract `1` from one of the entries of `\lambda` (and remove
+          the entry if it thus becomes `0`), and insert a `1` into
+          `\lambda`.
+
+        We check this for partitions of size `\leq 4`::
+
+            sage: def mults1(I):
+            ....:     # Left-padded Kronecker multiplication by h[1].
+            ....:     res = h[I[:] + [1]]
+            ....:     for k in range(len(I)):
+            ....:         I2 = I[:]
+            ....:         if I2[k] == 1:
+            ....:             I2 = I2[:k] + I2[k+1:]
+            ....:         else:
+            ....:             I2[k] -= 1
+            ....:         res += h[sorted(I2 + [1], reverse=True)]
+            ....:     return res
+            sage: all( mults1(I) == h[1].left_padded_kronecker_product(h[I])
+            ....:                == h[I].left_padded_kronecker_product(h[1])
+            ....:      for i in range(5) for I in Partitions(i) )
+            True
+
+        The left-padded Kronecker product is commutative::
+
+            sage: all( h[lam].left_padded_kronecker_product(h[mu])
+            ....:      == h[mu].left_padded_kronecker_product(h[lam])
+            ....:      for lam in Partitions(3) for mu in Partitions(3) )
+            True
+
+        TESTS::
+
+            sage: h = SymmetricFunctions(QQ).h()
+            sage: (2*h([])).left_padded_kronecker_product(3*h([]))
+            6*h[]
+
+        Different bases and base rings::
+
+            sage: h = SymmetricFunctions(ZZ).h()
+            sage: e = SymmetricFunctions(ZZ).e()
+            sage: h(e[2].left_padded_kronecker_product(h[2]))
+            h[1, 1] + h[1, 1, 1] - h[2] + h[2, 1, 1] - h[2, 2]
+
+            sage: F = CyclotomicField(12)
+            sage: s = SymmetricFunctions(F).s()
+            sage: e = SymmetricFunctions(F).e()
+            sage: v = e[2].left_padded_kronecker_product(e[2]); v
+            e[1, 1] + e[1, 1, 1] + (-1)*e[2] + e[2, 2]
+            sage: parent(v)
+            Symmetric Functions over Cyclotomic Field of order 12 and degree 4 in the elementary basis
+
+            sage: s = SymmetricFunctions(ZZ).s()
+            sage: v = s[1].left_padded_kronecker_product(s[1]); parent(v)
+            Symmetric Functions over Integer Ring in the Schur basis
+        """
+        _Compositions = sage.combinat.composition.Compositions()
+        parent = self.parent()
+        h = parent.realization_of().h()
+        h_self = h(self)
+        h_x = h(x)
+        # Now, h_self and h_x are the same as self and x, but in the
+        # h (=complete homogeneous) basis, which we call h.
+        R = self.base_ring()
+        from sage.combinat.ncsf_qsym.ncsf import NonCommutativeSymmetricFunctions
+        # We lift to the noncommutative symmetric functions.
+        S = NonCommutativeSymmetricFunctions(R).S()
+        result = h.zero()
+        for lam, a in h_self.monomial_coefficients().items():
+            # lam is a partition, a is an element of the base ring.
+            if len(lam) == 0:
+                # Special handling for the empty partition. The reduced
+                # Kronecker product of 1 with any symmetric function f is
+                # f.
+                result += a * h_x
+                continue
+            c_lam = _Compositions(lam)
+            for mu, b in h_x.monomial_coefficients().items():
+                # mu is a partition, b is an element of the base ring.
+                if len(mu) == 0:
+                    # Special handling for the empty partition.
+                    result += a * b * h(lam)
+                    continue
+                # Now, both lam and mu are nonempty.
+                c_mu = _Compositions(mu)
+                result += a * b * S[c_lam].left_padded_kronecker_product(S[c_mu]).to_symmetric_function()
         return parent(result)
 
     def internal_coproduct(self):

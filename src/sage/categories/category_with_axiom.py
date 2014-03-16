@@ -94,13 +94,16 @@ all the methods of finite sets and of finite `C`'s, as desired::
       <sage.categories.covariant_functorial_construction>`.
 
     - From an object oriented point of view, any subcategory ``Cs()``
-      of :class:`~sage.categories.sets_cat.Sets` inherits from a ``Finite`` method, and ``Cs``
-      can complement this method with extra data (here a mixin class)
-      in the form of a class attribute ``Cs.Finite``.
+      of :class:`~sage.categories.sets_cat.Sets` inherits a
+      ``Finite`` method.  ``Cs`` can complement this method by
+      overriding it with a method ``Cs.Finite`` which would
+      make a super call to ``Sets.Finite`` and then do extra stuff.
 
-      This should be thought of as the natural analogue of
-      complementing a method from some superclass by overriding it,
-      calling it with a ``super`` call, and doing more stuff.
+      In the above example, ``Cs`` also wants to complement
+      ``Sets.Finite``, though not by doing more stuff, but by
+      providing it with an additional mixin class containing the code
+      for finite Cs. To keep the analogy, this mixin class is to be
+      put in ``Cs.Finite``.
 
     - It may come as a surprise that we can actually use the same name
       ``Finite`` for the mixin class and for the method defining the
@@ -157,13 +160,13 @@ importing :class:`FiniteGroups`.
     :class:`LazyImport`, in order to quiet the warning about that lazy
     import being resolved upon startup. See for example ``Sets.Finite``.
 
-    This is undoubtedly a code smell. Nethertheless it should be kept as
-    is, first to resolve the import order properly, and more
-    importantly as a reminder that the category would be best not
-    constructed upon Sage's startup. This to entice developpers to
-    reduce the number of parents (and therefore categories) that are
-    constructed upon startup. Each "at_startup=True" that will be
-    removed will be a measure of progress in this direction.
+    This is undoubtedly a code smell. It is necessary, first to
+    resolve the import order properly, and more importantly as a
+    reminder that the category would be best not constructed upon
+    Sage's startup. This is to spur developers to reduce the number
+    of parents (and therefore categories) that are constructed upon
+    startup. Each "at_startup=True" that will be removed will be a
+    measure of progress in this direction.
 
 .. NOTE::
 
@@ -248,8 +251,8 @@ Hence, for whatever this notation is worth, one can currently do::
     sage: Algebras.WithBasis(QQ)
     Category of algebras with basis over Rational Field
 
-We don't recommend using this syntax which may eventually be
-deprecated.
+We don't recommend using syntax like ``Algebras.WithBasis(QQ)``,
+which may eventually be deprecated.
 
 As a second step, Sage tries some obvious heuristics to deduce the link
 from the name of the category with axiom (see
@@ -594,7 +597,8 @@ Concrete model as an arborescence of nested classes
 We further want the construction to be efficient and amenable to
 laziness. This led us to the following design decision: the collection
 `(D_S)_{S\in \mathcal S}` of classes should be structured as an
-arborescence. The root is ``Cs``, corresponding to `S=\emptyset`. Any
+arborescence (the word "arborescence" simply means a rooted forest to
+us here). The root is ``Cs``, corresponding to `S=\emptyset`. Any
 other class `D_S` should be the child of a single class `D_{S'}` where
 `S'` is obtained from `S` by removing a single axiom `A`. Of
 course, `D_{S'}` and `A` are respectively the base category class and
@@ -795,7 +799,7 @@ axiom ``B``.
 This follows the same idiom as for deduction rules about functorial
 constructions (see :meth:`.covariant_functorial_constructions.CovariantConstructionCategory.extra_super_categories`).
 For example, the fact that a cartesian product of associative magmas
-(i.e. of semigroups) is associative is implemented in
+(i.e. of semigroups) is an associative magma is implemented in
 :meth:`Semigroups.Algebras.extra_super_categories`::
 
     sage: Magmas().Associative()
@@ -2311,7 +2315,7 @@ class CategoryWithAxiom(Category):
             sage: Semigroups().Unital() is Monoids()
             True
 
-        If ``named`` is True, then `_without_axioms` stops at the
+        If ``named`` is True, then ``_without_axioms`` stops at the
         first category that has a explicit name of its own::
 
             sage: Sets().Finite()._without_axioms(named=True)
@@ -2409,7 +2413,7 @@ class CategoryWithAxiom_singleton(Category_singleton, CategoryWithAxiom):#, Cate
     pass
 
 """
-The following work around is needed until any CategoryWithAxiom of a
+The following workaround is needed until any CategoryWithAxiom of a
 Category_over_base_ring becomes automatically a
 CategoryWithAxiom_over_base_ring::
 
@@ -2472,6 +2476,12 @@ def axiom(axiom):
     return with_axiom
 
 class Blahs(Category_singleton):
+    r"""
+    The category of Blahs.
+
+    While unknown to MacLane and unstudied in literature, it provides
+    a toy example of the use of Sage's category framework.
+    """
 
     def super_categories(self):
         """
@@ -2480,7 +2490,7 @@ class Blahs(Category_singleton):
              sage: from sage.categories.category_with_axiom import Blahs
              sage: Blahs().super_categories()
              [Category of sets]
-            sage: TestSuite(Blahs()).run()
+             sage: TestSuite(Blahs()).run()
         """
         from sage.categories.sets_cat import Sets
         return [Sets()]
@@ -2562,6 +2572,12 @@ class Blahs(Category_singleton):
         return [Blahs().Unital()]
 
 class Bars(Category_singleton):
+    r"""
+    Another example category without mathematical meaning.
+
+    Every object of ``Bars`` is an object of
+    :class:`~sage.categories.category_with_axiom.Blahs` as well.
+    """
     def super_categories(self):
         """
         TESTS::
@@ -2601,6 +2617,9 @@ class Bars(Category_singleton):
         return [TestObjects()]
 
 class TestObjects(Category_singleton):
+    r"""
+    And yet another example category.
+    """
 
     def super_categories(self):
         """
@@ -2632,6 +2651,10 @@ class TestObjects(Category_singleton):
         pass
 
 class TestObjectsOverBaseRing(Category_over_base_ring):
+    r"""
+    An example of a category parametrized by a base ring.
+    """
+
     def super_categories(self):
         """
         TESTS::
@@ -2666,6 +2689,11 @@ class TestObjectsOverBaseRing(Category_over_base_ring):
         pass
 
 class BrokenTestObjects(Category):
+    r"""
+    .. TODO::
+
+        Explain what this one is for (or remove it).
+    """
     class Commutative(CategoryWithAxiom):
          class Finite(CategoryWithAxiom):
               pass

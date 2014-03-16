@@ -891,7 +891,7 @@ This implementation specifies a data structure for the parents and the
 elements, and makes a promise: the implemented parent is a finite
 semigroup. Then it fulfills the promise by implementing the basic
 operation ``product``.  It also implements the optional method
-``semigroup_generators``. In exchange,`S` and its elements receive
+``semigroup_generators``. In exchange, `S` and its elements receive
 generic implementations of all the other operations. `S` may override
 any of those by more efficient ones. It may typically implement the
 element method ``is_idempotent`` to always return ``True``.
@@ -961,13 +961,13 @@ for the parents or the elements, without touching the code base::
     bar
 
 In the long run, it would be thinkable to use this idiom to implement
-forgetfull functors; for example the above group could be constructed
+forgetful functors; for example the above group could be constructed
 as a plain set with::
 
     sage: P = PermutationGroup([[(1,2,3)]], category=Sets()) # todo: not implemented
 
-At this stage though, this is still to be explorated for robustness
-and practicality. For now, most parent that accept a category argument
+At this stage though, this is still to be explored for robustness
+and practicality. For now, most parents that accept a category argument
 only accept a subcategory of the default one.
 
 Scaling further: functorial constructions, axioms, ...
@@ -1212,13 +1212,13 @@ order to encode mathematical facts like Wedderburn's theorem::
     infrastructure. There is indeed no support for providing generic
     code that is independent of the notations. In particular, the
     category hierarchy about additive structures (additive monoids,
-    additive, groups, ...) is completely duplicated with that for
+    additive groups, ...) is completely duplicated by that for
     multiplicative structures (monoids, groups, ...).
 
     As far as we know, none of the existing computer algebra systems
     has a good solution for this problem. The difficulty is that this
     is not only about a single notation but a bunch of operators and
-    methods: ``+, -, zero, summation, sum,...`` in one case, ``*, /,
+    methods: ``+, -, zero, summation, sum, ...`` in one case, ``*, /,
     one, product, prod, factor, ...`` in the other. Sharing something
     between the two hierarchies of categories would only be useful if
     one could write generic code that applies in both cases; for that

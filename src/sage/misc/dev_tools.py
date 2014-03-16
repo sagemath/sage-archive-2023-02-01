@@ -14,6 +14,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+
+#TODO:
+# do the right ordering for modules, is it
+#  1. python standard library
+#  2. categories
+#  3. rings and so
+#  4. the rest
+
 def module_names_cmp(x,y):
     r"""
     A comparison function for module names.
@@ -81,30 +89,7 @@ def runsnake(command):
     cProfile.runctx(preparse(command.lstrip().rstrip()), get_main_globals(), locals(), filename=tmpfile)
     os.system("/usr/bin/python -E `which runsnake` %s &"%tmpfile)
 
-def print_or_update(string, data):
-    r"""
-    if ``data`` is ``None`` then print the string otherwise append ``string`` to
-    the data.
-
-    TESTS::
-
-        sage: from sage.misc.dev_tools import print_or_update
-        sage: my_list = []
-        sage: print_or_update("hello", None)
-        hello
-        sage: print_or_update("hello", my_list)
-        sage: print_or_update(" ", my_list)
-        sage: print_or_update("world", my_list)
-        sage: print_or_update("!", my_list)
-        sage: print ''.join(my_list)
-        hello world!
-    """
-    if data is None:
-        print string
-    else:
-        data.append(string)
-
-def print_import_statement(module, name, lazy, answer=None):
+def import_statement_string(module, names, lazy):
     r"""
     Print an import statement.
 
@@ -112,21 +97,252 @@ def print_import_statement(module, name, lazy, answer=None):
 
     - ``module`` -- the name of a module
 
-    - ``name`` -- the name of the object to import
+    - ``names_and_alias`` -- a list of 2-tuples containing names and alias to
+      import
 
     - ``lazy`` -- a boolean: whether to print a lazy import statement
 
     EXAMPLES::
 
-        sage: sage.misc.dev_tools.print_import_statement('sage.misc.dev_tools', 'print_import_statement', False)
-        from sage.misc.dev_tools import print_import_statement
-        sage: sage.misc.dev_tools.print_import_statement('sage.misc.dev_tools', 'print_import_statement', True)
-        lazy_import('sage.misc.dev_tools', 'print_import_statement')
+        sage: import sage.misc.dev_tools as dt
+        sage: modname = 'sage.misc.dev_tools'
+        sage: names_and_aliases = [('import_statement_string', 'iss')]
+        sage: dt.import_statement_string(modname, names_and_aliases, False)
+        'from sage.misc.dev_tools import import_statement_string as iss'
+        sage: dt.import_statement_string(modname, names_and_aliases, True)
+        "lazy_import('sage.misc.dev_tools', ['import_statement_string'], ['iss'])"
     """
+    if names is None:
+        return "import %s"%module
+
     if lazy:
-        print_or_update("lazy_import('%s', '%s')"%(module, name), answer)
+        obj_names = "[" + ", ".join("'" + name[0] + "'" for name in names) + "]"
+        obj_aliases = "[" + ", ".join("'" + name[1] + "'" for name in names) + "]"
+        return "lazy_import('%s', %s, %s)"%(module, obj_names, obj_aliases)
     else:
-        print_or_update("from %s import %s"%(module, name), answer)
+        name_list = []
+        for name,alias in names:
+            if name == alias:
+                name_list.append(name)
+            else:
+                name_list.append("%s as %s"%(name,alias))
+        return "from %s import %s"%(module, ', '.join(name_list))
+
+def find_objects_from_name(name):
+    r"""
+    Return the list of objects whose name is ``name``.
+
+    If ``name`` is in the global namespace of sage then, the result is a list of
+    length 1 that contains only the object in the global namespace. Otherwise,
+    the function runs through the whole modules of sage and return the list of
+    all occurrences.
+
+    EXAMPLES::
+
+        sage: import sage.misc.dev_tools as dt
+        sage: dt.find_objects_from_name('RR')
+        [Real Field with 53 bits of precision]
+        sage: dt.find_objects_from_name('FareySymbol')
+        [<type 'sage.modular.arithgroup.farey_symbol.Farey'>]
+
+    Examples that do not belong to the global namespace::
+
+        sage: find_objects_from_name
+        Traceback (most recent call last):
+        ...
+        NameError: name 'find_objects_from_name' is not defined
+        sage: objs = dt.find_objects_from_name('find_objects_from_name')
+        sage: len(objs)
+        1
+        sage: dt.find_objects_from_name is dt.find_objects_from_name
+        True
+
+    You can see that if an object is not in the global namespace than calling
+    this function modifies the loaded modules (and is actually a potential
+    source of errors)::
+
+        sage: import sys
+        sage: 'real_roots' in globals()
+        False
+        sage: len_modules1 = len(sys.modules)
+        sage: objs = dt.find_objects_from_name('real_roots')
+        sage: len(objs)
+        1
+        sage: objs[0].__module__
+        'sage.rings.polynomial.real_roots'
+        sage: objs[0].__name__
+        'real_roots'
+        sage: 'real_roots' in globals()
+        False
+        sage: len_modules2 = len(sys.modules)
+        sage: len_modules2 - len_modules1 > 200
+        True
+
+    .. NOTE:
+
+        It might be a good idea to move this function into
+        :mod:`sage.misc.sageinspect`.
+    """
+    # 1. check global namespace
+    import sage.all
+
+    obj = sage.all.__dict__.get(name)
+    if obj is not None:
+        return [obj]
+
+    # 2. look for all modules that contain the name
+    import sys
+
+    obj = []
+    for module_name, module in sys.modules.iteritems():
+        if not module_name.startswith('sage.'):
+            continue
+        if hasattr(module, '__dict__') and name in module.__dict__:
+            u = module.__dict__[name]
+            if all(v != u for v in obj):
+                obj.append(u)
+
+    # 3. look for modules not imported at sage startup
+    # TODO: the method used is not very safe. It might import some modules not loaded
+    # on startup and hence potentially modifies the global namespace.
+    if len(obj) == 0:
+        import pkgutil
+        import sage
+        from sage.misc import sageinspect
+
+        for importer, module_name, ispkg in pkgutil.walk_packages(sage.__path__, sage.__name__ + '.'):
+            if ispkg or module_name in sys.modules:
+                continue
+
+            # we exclude sage.libs because it is much of a problem to do double
+            # import for them
+            if  module_name.startswith('sage.libs'):
+                continue
+
+            try:
+                loader = importer.find_module(module_name)
+                source_code = loader.get_source(module_name)
+            except (ValueError,AttributeError,TypeError,ImportError):
+                continue
+
+            module = None
+            if source_code is None:  # happens for cython code
+                try:
+                    module = loader.load_module(module_name)
+                except (ValueError,AttributeError,TypeError):
+                    # we might get error because of cython code that has been
+                    # compiled but with source removed
+                    continue
+                source_code = sageinspect.sage_getsource(module)
+
+            if not source_code or name not in source_code:
+                continue
+
+            if module is None:
+                module = loader.load_module(module_name)
+
+            if hasattr(module, '__dict__') and name in module.__dict__:
+                u = module.__dict__[name]
+                if all(v != u for v in obj):
+                    obj.append(u)
+
+    return obj
+
+
+def find_object_modules(obj):
+    r"""
+    Return a dictionnary whose keys are the names of the modules where ``obj``
+    appear and the value at a given module name is the list of names that
+    ``obj`` have in that module.
+
+    The output is a dictionnary whose keys are some modules and the value for a
+    given module is a non empty list of names the object has in that module.
+
+    It is very unlikely that the output dictionnary has several keys except that
+    if ``obj`` is an instance of a class.
+
+    EXAMPLES::
+
+        sage: from sage.misc.dev_tools import find_object_modules
+        sage: find_object_modules(ZZ)
+        {'sage.rings.integer_ring': ['Z', 'ZZ']}
+        sage: find_object_modules(RR)
+        {'sage.rings.real_mpfr': ['RR']}
+
+    Examples of instances that result in several occurrences::
+
+        sage: sorted(find_object_modules(pi).keys())
+        ['sage.all',
+         'sage.all_cmdline',
+         'sage.functions.bessel',
+         'sage.functions.other',
+         'sage.functions.wigner',
+         'sage.quadratic_forms.quadratic_form__mass__Conway_Sloane_masses',
+         'sage.quadratic_forms.quadratic_form__mass__Siegel_densities',
+         'sage.quadratic_forms.special_values',
+         'sage.sandpiles.sandpile',
+         'sage.symbolic.all',
+         'sage.symbolic.constants']
+        sage: sorted(find_object_modules(NaN).keys())
+        ['sage.all',
+         'sage.all_cmdline',
+         'sage.stats.basic_stats',
+         'sage.symbolic.all',
+         'sage.symbolic.constants']
+
+    An example which involves a module not loaded on startup::
+
+        sage: from sage.misc.dev_tools import find_objects_from_name
+        sage: objs = find_objects_from_name('real_roots')
+        sage: len(objs)
+        1
+        sage: objs[0].__module__
+        'sage.rings.polynomial.real_roots'
+        sage: objs[0].__name__
+        'real_roots'
+        sage: find_object_modules(objs[0])
+        {'sage.rings.polynomial.real_roots': ['real_roots']}
+
+    .. NOTE::
+
+        It might be a good idea to move this function in
+        :mod:`sage.misc.sageinspect`.
+    """
+    from sage.misc import sageinspect
+
+    # see if the object is defined in its own module
+    # might be wrong for class instances as the instanciation might appear
+    # outside of the module !!
+    module_name = None
+    if sageinspect.isclassinstance(obj):
+        module_name = obj.__class__.__module__
+    elif hasattr(obj, '__module__') and obj.__module__:
+        module_name = obj.__module__
+
+    if module_name:
+        import sys
+        if module_name not in sys.modules:
+            raise ValueError,"This should not happen!"
+        d = sys.modules[module_name].__dict__
+        matching = sorted(key for key in d if d[key] is obj)
+        if matching:
+            return {module_name: matching}
+
+    # otherwise, we parse all modules (already loaded) and hope to find
+    # something
+    import sys
+    module_to_obj = {}
+    for module_name, module in sys.modules.iteritems():
+        if not module_name.startswith('sage.'):
+            continue
+
+        if hasattr(module, '__dict__'):
+            d = module.__dict__
+            names = [key for key in d if d[key] is obj]
+            if names:
+                module_to_obj[module_name] = names
+
+    return module_to_obj
 
 def import_statements(*objects, **options):
     r"""
@@ -134,7 +350,7 @@ def import_statements(*objects, **options):
 
     INPUT:
 
-    - ``*objects`` -- a sequence of objects.
+    - ``*objects`` -- a sequence of objects or names.
 
     - ``lazy`` -- a boolean (default: ``False``)
       Whether to print a lazy import statement.
@@ -159,8 +375,8 @@ def import_statements(*objects, **options):
 
         sage: import_statements(WeylGroup, lazy_attribute, lazy=True)
         from sage.misc.lazy_import import lazy_import
-        lazy_import('sage.combinat.root_system.weyl_group', 'WeylGroup')
-        lazy_import('sage.misc.lazy_attribute', 'lazy_attribute')
+        lazy_import('sage.combinat.root_system.weyl_group', ['WeylGroup'], ['WeylGroup'])
+        lazy_import('sage.misc.lazy_attribute', ['lazy_attribute'], ['lazy_attribute'])
 
     In principle, the function should also work on object which are instances.
     In case of ambiguity, one or two warning lines are printed::
@@ -169,14 +385,13 @@ def import_statements(*objects, **options):
         from sage.rings.real_double import RDF
 
         sage: import_statements(ZZ)
-          ** Warning **: several names for that object: Z, ZZ
+        # ** Warning **: several names for that object: Z, ZZ
         from sage.rings.integer_ring import Z
 
         sage: import_statements(euler_phi)
         from sage.rings.arith import euler_phi
 
         sage: import_statements(x)
-          **Warning**: x is affected as = _var('x')
         from sage.calculus.predefined import x
 
     If you don't like the warning you can disable them with the option ``verbose``::
@@ -191,12 +406,13 @@ def import_statements(*objects, **options):
     statement you expect is to use a string instead of the object::
 
         sage: import_statements(cached_function)
-          ** Warning **: several names for that object: CachedFunction, cached_function
+        # ** Warning **: several names for that object: CachedFunction, cached_function
         from sage.misc.cachefunc import CachedFunction
 
         sage: import_statements('cached_function')
         from sage.misc.cachefunc import cached_function
         sage: import_statements('Z')
+        # **Warning**: there might be potentially distinct objects with name Z
         from sage.rings.integer_ring import Z
 
     Specifying a string is also useful for objects that are not
@@ -204,54 +420,36 @@ def import_statements(*objects, **options):
     case, an object with that name is looked up in all the modules
     that have been imported in this session::
 
-        sage: print_import_statement
+        sage: import_statement_string
         Traceback (most recent call last):
         ...
-        NameError: name 'print_import_statement' is not defined
+        NameError: name 'import_statement_string' is not defined
 
-        sage: import_statements("print_import_statement")
-        from sage.misc.dev_tools import print_import_statement
+        sage: import_statements("import_statement_string")
+        from sage.misc.dev_tools import import_statement_string
 
     Sometimes objects are imported as an alias (from XXX import YYY as ZZZ) or
     are affected (XXX = YYY) and the function might dectect it::
 
         sage: import_statements('FareySymbol')
-          **Warning** : "FareySymbol" is an alias for "Farey"
-        from sage.modular.arithgroup.all import FareySymbol
+        from sage.modular.arithgroup.farey_symbol import Farey as FareySymbol
 
         sage: import_statements('sum')
-          **Warning** : "sum" is an alias for "symbolic_sum"
-        from sage.misc.all import sum
+        from sage.misc.functional import symbolic_sum as sum
 
         sage: import_statements('power')
-          **Warning** : "power" is an alias for "generic_power"
-        from sage.groups.generic import power
-
-        sage: import_statements('python_help')
-          **Warning**: python_help is affected as = pydoc.help
-        from sage.misc.sagedoc import python_help
-
-    And one can actually check that FareySymbol and sum are aliases::
-
-        sage: from sage.misc import sageinspect
-        sage: src = sageinspect.sage_getsource(sage.modular.arithgroup.all)
-        sage: src.split('\n')[16]
-        'from farey_symbol import Farey as FareySymbol'
-
-        sage: src = sageinspect.sage_getsource(sage.misc.all)
-        sage: src.split('\n')[150]
-        '                        symbolic_sum as sum,'
+        from sage.structure.element import generic_power as power
 
     We test different object which have no appropriate answer::
 
         sage: import_statements('my_tailor_is_rich')
         Traceback (most recent call last):
         ...
-        ValueError: no import statement for my_tailor_is_rich
+        ValueError: no object whose name matches 'my_tailor_is_rich' was found
         sage: import_statements(5)
         Traceback (most recent call last):
         ...
-        ValueError: no import statement for 5
+        ValueError: no import statement found for 5
 
     We test that it behaves well with lazy imported objects (:trac:`14767`)::
 
@@ -263,9 +461,7 @@ def import_statements(*objects, **options):
     The following were fixed with :trac:`15351`::
 
         sage: import_statements('Rationals')
-          **Warning**: Rationals is affected as = RationalField
-        from sage.rings.all import Rationals
-
+        from sage.rings.rational_field import RationalField as Rationals
 
     .. NOTE::
 
@@ -273,178 +469,110 @@ def import_statements(*objects, **options):
         Nevertheless it is far from being perfect (for example it does not
         detect deprecated stuff). So, if you use it, double check the answer and
         report weirdness behavior.
-
     """
-    import inspect, sys, re
-    import sage.all
-    from sage.misc import sageinspect
-    from sage.misc.flatten import flatten
+    import inspect
     from sage.misc.lazy_import import LazyImport
 
-    if options.get("answer_as_str", False):
-        answer = []
-    else:
-        answer = None
+    answer = {}   # a dictionnary module -> things to be imported
+                  # a value None is interpreted as the fact that it is the
+                  # module that we want to import
 
     lazy = options.get("lazy", False)
     verbose = options.get("verbose", True)
-    if lazy:
-        print_or_update("from sage.misc.lazy_import import lazy_import", answer)
+    answer_as_str = options.get("answer_as_str",False)
 
     for obj in objects:
-        # if obj is a string use it has a name and look for an object
+        # if obj is a string use it has a name and look for an object that has
+        # that given name
         if isinstance(obj, str):
             name = obj
-            obj = sage.all.__dict__.get(name)
-            if obj is None:
-                # Look for the first module which contains that name.
-                # TODO: improve this heuristic.
-                for module in sys.modules.values():
-                    if hasattr(module, '__dict__') and name in module.__dict__:
-                        obj = module.__dict__[name]
-                        break
-                else:
-                    raise ValueError("no import statement for %s"%name)
+            obj = find_objects_from_name(name)
+            if len(obj) == 0:
+                raise ValueError("no object whose name matches '%s' was found"%name)
+            elif len(obj) > 1:
+                print "# **Warning**: there might be potentially distinct objects with name %s"%name
 
-        else:
+            obj = obj[0]
+
+        else: # otherwise we need to fix the name later
             name = None
-
 
         if isinstance(obj, LazyImport):
             obj = obj._get_object()
 
-        # Case 1: the object is a module
+        # easy case: the object is a module
         if inspect.ismodule(obj):
-            if lazy:
-                print_or_update("lazy_import('%s')"%obj.__name__, answer)
-            else:
-                print_or_update("import %s"%obj.__name__, answer)
+            raise ValueError("the object %s is a module")
             continue
 
-        # Case 2: the object is defined in its module
-        module = None
-        if sageinspect.isclassinstance(obj):
-            module = obj.__class__.__module__
-        elif hasattr(obj, '__module__') and obj.__module__:
-            module = obj.__module__
+        modules = find_object_modules(obj)
 
-        if module:
-            d = sys.modules[module].__dict__
-            names = None
+        if not modules:
+            raise ValueError("no import statement found for %s"%obj)
+
+        if len(modules) == 1:
+            module_name = modules.keys()[0]
+            obj_names = modules[module_name]
             if name is None:
-                names = sorted(key for key in d if d[key] is obj)
-            elif name in d:
-                names = [name]
-            if names:
-                if verbose and len(names) > 1:
-                    print "  ** Warning **: several names for that object: %s"%', '.join(names)
-
-                print_import_statement(module, names[0], lazy, answer)
-                continue
-
-        # Here we search for this object in all modules
-        names = {} # dictionnary: module -> names of the object in that module
-        for module in sys.modules:
-            if module != '__main__' and hasattr(sys.modules[module],'__dict__'):
-                d = sys.modules[module].__dict__
-
-                if name is not None:
-                    if name in d and d[name] is obj:
-                        names[module] = [name]
-                else:
-                    n = [key for key in d if d[key] is obj]
-                    if n:
-                        names[module] = n
-
-        all_names = sorted(set(flatten(names.values())))
-        if len(all_names) == 0:
-            raise ValueError("no import statement for %s"%obj)
-        elif verbose and len(all_names) > 1:
-            print "  ** Warning **: several names for that object:",
-            print ", ".join(sorted(all_names))
-
-        modules = sorted(flatten(names),cmp=module_names_cmp,reverse=True)
-        not_all_modules = filter(lambda x: not x.endswith('all') and not x.endswith('all_cmdline'),
-                modules)
-
-        # Case 3: find a place where the object is instanciated/defined with "="
-        module = None
-        name = None
-
-        names_pattern = dict((name, re.compile("^%s\ *=\ *([^\s]+)"%name, re.MULTILINE)) for name in all_names)
-        # if obj has a module we try to put the .all of that object at the beginig
-        if hasattr(obj, '__module__'):
-            module = obj.__module__
-            try:
-                i = module.rindex('.')
-                new_module = module[:i] + '.all'
-            except ValueError:
-                new_module = module
-
-            if new_module in modules:
-                i = modules.index(new_module)
-                del modules[i]
-                modules.insert(0,new_module)
-
-        for module in modules:
-            sources = sageinspect.sage_getsource(sys.modules[module])
-            for name in names[module]:
-                m = names_pattern[name].search(sources)
-                if m:
-                    if verbose:
-                        print "  **Warning**: %s is affected as = %s"%(
-                                name,m.group(1))
-                    break
+                if verbose and len(obj_names) > 1:
+                    print "# ** Warning **: several names for that object: %s"%', '.join(sorted(obj_names))
+                name = alias = obj_names[0]
+            elif name in modules[module_name]:
+                alias = name
             else:
+                alias = name
+                name = obj_names[0]
+
+            if module_name not in answer:
+                answer[module_name] = []
+
+            answer[module_name].append((name,alias))
+            continue
+
+        # here we get several answers
+        if name is not None:
+            good_modules = []
+            for module_name in modules:
+                if name in modules[module_name]:
+                    good_modules.append(module_name)
+
+            if len(good_modules) == 1:
+                if module_name not in answer:
+                    answer[module_name] = []
+                answer[module_name].append((name,name))
                 continue
-            break
+
+
+        not_all_modules = [module_name for module_name in modules if not module_name.endswith('.all') and module_name != 'sage.all_cmdline']
+        if not(not_all_modules):
+            print "# ** Warning **: the object %s is only defined in .all modules"%obj
+            module_name = modules.keys()[0]
+
         else:
-            # we found nothing !!!
-            name = None
-            module = None
+            if len(not_all_modules) > 1:
+                print "# ** Warning **: several modules for the object %s: %s"%(obj, ', '.join(modules.keys()))
 
-        # Case 4: find a place where the object is instanciated/defined with "as"
+            module_name = not_all_modules[0]
+
         if name is None:
-            # we check if the name is an alias (defined with as)
-            names_pattern = dict((name,re.compile("\s*(\w+)\ +as\ +%s[,\s\)]"%name, re.MULTILINE)) for name in all_names)
+            alias = name = modules[module_name][0]
+        else:
+            alias = name
+            name = modules[module_name][0]
 
-            for module in modules:
-                sources = sageinspect.sage_getsource(sys.modules[module])
-                for name in names[module]:
-                    m = names_pattern[name].search(sources)
-                    if m:
-                        if verbose:
-                            print "  **Warning** : \"%s\" is an alias for \"%s\""%(
-                                    name,m.group(1))
-                        break
-                else:
-                    continue
-                break
-            else:
-                # we found nothing !!!
-                name = None
-                module = None
+        if module_name not in answer:
+            answer[module_name] = []
+        answer[module_name].append((name,alias))
 
-        # otherwise we pick the first guy
-        if module is None or name is None:
-            if not_all_modules:
-                module = not_all_modules[0]
-            else:
-                module = modules[0]
-            name = names[module][0]
+    res = []
 
-            if verbose and not_all_modules:
-                print "  ** Warning **: %s does not exist outside all.py files"%name
+    if lazy:
+        res.append("from sage.misc.lazy_import import lazy_import")
 
-            if verbose and len(modules) > 1:
-                print "  ** Warning **: several modules for that object:",
-                print ", ".join(modules[:4]),
-                if len(modules) > 4:
-                    print "..."
-                else:
-                    print
+    for module_name in sorted(answer.keys()):
+        res.append(import_statement_string(module_name, answer[module_name], lazy))
 
-        print_import_statement(module, name, lazy, answer)
-
-    if answer is not None:
-        return '\n'.join(answer)
+    if answer_as_str:
+        return '\n'.join(res)
+    else:
+        print '\n'.join(res)

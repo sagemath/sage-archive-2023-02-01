@@ -1292,7 +1292,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 `S_1` (this is the same as `S^{(1)}`) with any complete
                 homogeneous function: Let `I` be a composition.
                 Then, the left-padded Kronecker product of `S_1` and
-                `S^I` is `\sum_K a_K s^K`, where the sum runs
+                `S^I` is `\sum_K a_K S^K`, where the sum runs
                 over all compositions `K`, and the coefficient `a_K` is
                 defined as the number of ways to obtain `K` from `I` by
                 one of the following two operations:
@@ -1322,7 +1322,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 A similar rule can be made for the left-padded Kronecker
                 product of any complete homogeneous function with `S_1`:
                 Let `I` be a composition. Then, the left-padded Kronecker
-                product of `S^I` and `S_1` is `\sum_K b_K s^K`, where the
+                product of `S^I` and `S_1` is `\sum_K b_K S^K`, where the
                 sum runs over all compositions `K`, and the coefficient
                 `b_K` is defined as the number of ways to obtain `K` from
                 `I` by one of the following two operations:

@@ -637,8 +637,8 @@ class HyperbolicGeodesic(SageObject):
 
             sage: HyperbolicGeodesicPD(0, I).reflection_in()
             Isometry in PD
-            [ 0  I]
-            [-I  0].
+            [ 0 -1]
+            [ 1  0].
 
             sage: HyperbolicGeodesicKM((0,0), (0,1)).reflection_in()
             Isometry in KM

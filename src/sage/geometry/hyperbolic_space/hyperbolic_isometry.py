@@ -385,7 +385,7 @@ class HyperbolicIsometry(SageObject):
             sage: B.orientation_preserving()
             False
         """
-        return bool(self.matrix().det() > 0)
+        return self.HMethods.orientation_preserving(self._cached_matrix)
 
 ###################################
 # Methods implemented in HMethods #
@@ -462,7 +462,8 @@ class HyperbolicIsometry(SageObject):
             ...
             ValueError: The isometry is not hyperbolic.  Axis is undefined.
         """
-        if self.classification() != 'hyperbolic':
+        if self.classification() not in (
+                ['hyperbolic', 'orientation-reversing hyperbolic']):
             raise ValueError("The isometry is not hyperbolic.  Axis is"
                              " undefined.")
         return self.HFactory.get_geodesic(*self.fixed_point_set())

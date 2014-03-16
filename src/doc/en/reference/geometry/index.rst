@@ -40,6 +40,7 @@ polytopes and polyhedra (with rational or numerical coordinates).
    sage/geometry/triangulation/base
    sage/geometry/triangulation/element
 
+<<<<<<< HEAD
 Hyperbolic Geometry
 -------------------
 .. toctree::
@@ -52,5 +53,14 @@ Hyperbolic Geometry
    sage/geometry/hyperbolic_space/hyperbolic_model
    sage/geometry/hyperbolic_space/hyperbolic_interface
    sage/geometry/hyperbolic_space/hyperbolic_methods
+=======
+   sage/geometry/hyperplane_arrangement/arrangement
+   sage/geometry/hyperplane_arrangement/library
+   sage/geometry/hyperplane_arrangement/hyperplane
+   sage/geometry/hyperplane_arrangement/affine_subspace
+
+   sage/geometry/linear_expression
+
+>>>>>>> 8be52e678f5af0e62794959b70b7cb8babe0a488
 
 .. include:: ../footer.txt

@@ -772,6 +772,26 @@ class ProjectiveSpace_ring(AmbientSpace):
         self.__affine_patches[i] = AA
         return AA
 
+    def _an_element_(self):
+        r"""
+        Returns a (preferably typical) element of ``self``.
+
+        This is used both for illustration and testing purposes.
+
+        OUTPUT: a point in the projective space ``self``.
+
+        EXAMPLES::
+
+            sage: ProjectiveSpace(ZZ,3,'x').an_element()
+            (7 : 6 : 5 : 1)
+
+            sage: ProjectiveSpace(PolynomialRing(ZZ,'y'),3,'x').an_element()
+            (7*y : 6*y : 5*y : 1)
+        """
+        n = self.dimension_relative()
+        R = self.base_ring()
+        return self([(7 - i) * R.an_element() for i in range(n)] + [R.one()])
+
 
 class ProjectiveSpace_field(ProjectiveSpace_ring):
     def _point_homset(self, *args, **kwds):
@@ -937,6 +957,48 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
         elif not is_FiniteField(F):
             raise TypeError("Second argument (= %s) must be a finite field."%F)
         return [ P for P in self.base_extend(F) ]
+
+    def rational_points_dictionary(self):
+        r"""
+        Return dictionary of points.
+
+        OUTPUT:
+
+        - dictionary
+
+        EXAMPLES::
+
+            sage: P1=ProjectiveSpace(GF(7),1,'x')
+            sage: P1.rational_points_dictionary()
+            {(1 : 0): 7, (0 : 1): 0, (1 : 1): 1, (2 : 1): 2, (3 : 1): 3, (4 : 1): 4,
+            (5 : 1): 5, (6 : 1): 6}
+        """
+        n = self.dimension_relative()
+        R = self.base_ring()
+        D={}
+        zero = R(0)
+        i = n
+        index=0
+        while not i < 0:
+            P = [ zero for _ in range(i) ] + [ R(1) ] + [ zero for _ in range(n-i) ]
+            D.update({self(P):index})
+            index+=1
+            iters = [ iter(R) for _ in range(i) ]
+            for x in iters: x.next() # put at zero
+            j = 0
+            while j < i:
+                try:
+                    P[j] = iters[j].next()
+                    D.update({self(P):index})
+                    index+=1
+                    j = 0
+                except StopIteration:
+                    iters[j] = iter(R)  # reset
+                    iters[j].next() # put at zero
+                    P[j] = zero
+                    j += 1
+            i -= 1
+        return(D)
 
 class ProjectiveSpace_rational_field(ProjectiveSpace_field):
     def rational_points(self,bound=0):

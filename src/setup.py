@@ -47,7 +47,9 @@ include_dirs = [SAGE_INC,
 # search for dependencies only
 extra_include_dirs = [ os.path.join(SAGE_INC,'python'+platform.python_version().rsplit('.', 1)[0]) ]
 
-extra_compile_args = [ ]
+# Manually add -fno-strict-aliasing, which is needed to compile Cython
+# and disappears from the default flags if the user has set CFLAGS.
+extra_compile_args = [ "-fno-strict-aliasing" ]
 extra_link_args = [ ]
 
 # comment these four lines out to turn on warnings from gcc
@@ -513,6 +515,10 @@ if not sdist:
     if os.environ.get('SAGE_DEBUG', None) != 'no':
         Cython.Compiler.Main.default_options['gdb_debug'] = True
         Cython.Compiler.Main.default_options['output_dir'] = 'build'
+
+    CYCACHE_DIR = os.environ.get('CYCACHE_DIR', os.path.join(DOT_SAGE,'cycache'))
+    if os.path.exists(os.path.join(CYCACHE_DIR, os.pardir)):
+        Cython.Compiler.Main.default_options['cache'] = CYCACHE_DIR
 
     force = True
     version_file = os.path.join(os.path.dirname(__file__), '.cython_version')

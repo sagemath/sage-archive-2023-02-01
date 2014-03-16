@@ -528,6 +528,23 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
 ####################
 # Isometry Methods #
 ####################
+    @classmethod
+    def orientation_preserving(cls, M):
+        r"""
+        Return `True` if self is orientation preserving and `False`
+        otherwise.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.hyperbolic_space.hyperbolic_methods import HyperbolicMethodsUHP
+            sage: A = identity_matrix(2)
+            sage: HyperbolicMethodsUHP.orientation_preserving(A)
+            True
+            sage: B = matrix(2,[0,1,1,0])
+            sage: HyperbolicMethodsUHP.orientation_preserving(B)
+            False
+        """
+        return bool(M.det() > 0)
 
     @classmethod
     def classification(cls, M):

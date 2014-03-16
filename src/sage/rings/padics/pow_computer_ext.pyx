@@ -38,10 +38,12 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2008 David Roe <roed@math.harvard.edu>
+#       Copyright (C) 2008 David Roe <roed.math@gmail.com>
 #                          William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
@@ -1135,11 +1137,11 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
     cdef int teichmuller_set_c (self, ZZ_pX_c* x, ZZ_pX_c* a, long absprec) except -1:
         r"""
         Sets x to the Teichmuller lift congruent to a modulo the
-        uniformizer, ie such that $x = a \mod \pi$ and $x^q = x \mod
-        \pi^{\mbox{absprec}}$.
+        uniformizer, ie such that `x = a \mod \pi` and
+        `x^q = x \mod \pi^{\mbox{absprec}}`.
 
-        If $a = 0 \mod \pi$ does nothing and returns 1.  Otherwise
-        returns 0.
+        If `a = 0 \mod \pi` this function does nothing and returns 1.
+        Otherwise returns 0.
 
         x should be created with context p^absprec.
 
@@ -1265,7 +1267,7 @@ cdef class PowComputer_ZZ_pX_FM(PowComputer_ZZ_pX):
     This class only caches a context and modulus for p^prec_cap.
 
     Designed for use with fixed modulus p-adic rings, in Eisenstein
-    and unramified extensions of $\mathbb{Z}_p$.
+    and unramified extensions of `\ZZ_p`.
     """
 
     def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly, shift_seed = None):
@@ -2419,8 +2421,8 @@ cdef class PowComputer_ZZ_pX_big_Eis(PowComputer_ZZ_pX_big):
 
 def PowComputer_ext_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly, prec_type = "small", ext_type = "u", shift_seed = None):
     r"""
-    Returns a PowComputer that caches the values $1, prime, prime^2, \ldots, prime^{C}$,
-    where $C$ is ``cache_limit``.
+    Returns a PowComputer that caches the values `1, p, p^2, \ldots, p^C`,
+    where `C` is ``cache_limit``.
 
     Once you create a PowComputer, merely call it to get values out.
     You can input any integer, even if it's outside of the precomputed range.

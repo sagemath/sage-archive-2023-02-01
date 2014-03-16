@@ -221,7 +221,7 @@ class HyperbolicModel(UniqueRepresentation):
         return True
 
     @classmethod
-    def isometry_act_on_point(cls, A, p):
+    def isometry_act_on_point(cls, A, p): #Abtsract
         r"""
         Given an isometry ``A`` and a point ``p`` in the current model,
         return image of ``p`` unduer the action ``A \cdot p``.
@@ -446,8 +446,8 @@ class HyperbolicModelUHP (HyperbolicModel, UniqueRepresentation):
         im = abs(imag(CC(p)).n())
         return bool( (im < EPSILON)  or (p == infinity))
 
-    @classmethod
-    def isometry_act_on_point(cls, A, p):
+    @classmethod #UHP
+    def isometry_act_on_point(cls, A, p): #UHP
         r"""
         Given an isometry ``A`` and a point ``p`` in the current model,
         return image of ``p`` unduer the action ``A \cdot p``.
@@ -478,7 +478,7 @@ class HyperbolicModelUHP (HyperbolicModel, UniqueRepresentation):
             sage: UHP.isometry_in_model(B)
             False
         """
-        return (A.ncols() == 2 and A.nrows() == 2 and
+        return bool(A.ncols() == 2 and A.nrows() == 2 and
             sum([k in RR for k in A.list()]) == 4 and
             abs(A.det()) > -EPSILON)
 
@@ -528,6 +528,33 @@ class HyperbolicModelUHP (HyperbolicModel, UniqueRepresentation):
                 'KM' : (0, 1)
                 }[model_name]
         return cls.pt_conversion_dict[model_name](coordinates)
+
+    @classmethod # UHP
+    def isometry_to_model(cls, A, model_name): # UHP
+        r"""
+        Convert ``A`` from the current model to the model specified in
+        ``model_name``.
+
+        INPUT:
+
+        - ``A`` -- a matrix in the current model.
+        - ``model_name`` -- a string denoting the model to be converted to.
+
+        OUTPUT:
+
+        - the coordinates of a point in the ``short_name`` model.
+
+        EXAMPLES::
+            sage: from sage.geometry.hyperbolic_space.hyperbolic_model import HyperbolicModelUHP
+            sage: HyperbolicModelUHP.isometry_to_model(matrix(2,[0, 1, 1, 0]),'PD')
+            [0 I]
+            [I 0]
+        """
+        cls.isometry_test(A)
+        if A.det() < 0 and model_name == 'PD':
+            return cls.isom_conversion_dict[model_name](I*A)
+        return cls.isom_conversion_dict[model_name](A)
+
 
 class HyperbolicModelPD (HyperbolicModel, UniqueRepresentation):
     r"""
@@ -602,7 +629,7 @@ class HyperbolicModelPD (HyperbolicModel, UniqueRepresentation):
 
 
     @classmethod
-    def isometry_act_on_point(cls, A, p):
+    def isometry_act_on_point(cls, A, p): #PD
         r"""
         Given an isometry ``A`` and a point ``p`` in the current model,
         return image of ``p`` unduer the action ``A \cdot p``.
@@ -615,7 +642,11 @@ class HyperbolicModelPD (HyperbolicModel, UniqueRepresentation):
             sage: bool(norm(HyperbolicModelPD.isometry_act_on_point(I2, q) - q) < 10**-9)
             True
         """
-        return _mobius_transform(A, p)
+        _image = _mobius_transform(A, p)
+        if not _PD_preserve_orientation(A):
+            return _mobius_transform(I*matrix(2,[0,1,1,0]), _image)
+        return _image
+
 
     @classmethod
     def isometry_in_model(cls, A): #PD
@@ -629,13 +660,13 @@ class HyperbolicModelPD (HyperbolicModel, UniqueRepresentation):
             sage: PD.isometry_in_model(A)
             True
         """
-        alpha = A[0][0]
-        beta = A[0][1]
-        return A[1][0] == beta.conjugate() and A[1][1] == alpha.conjugate() \
-            and abs(alpha) - abs(beta) != 0
+        # alpha = A[0][0]
+        # beta = A[0][1]
+        # Orientation preserving and reversing
+        return _PD_preserve_orientation(A) or _PD_preserve_orientation(I*A)
 
     @classmethod
-    def point_to_model(cls, coordinates, model_name): #KM
+    def point_to_model(cls, coordinates, model_name): #PD
         r"""
         Convert ``coordinates`` from the current model to the model
         specified in ``model_name``.
@@ -665,6 +696,34 @@ class HyperbolicModelPD (HyperbolicModel, UniqueRepresentation):
         return super(HyperbolicModelPD, cls).point_to_model(coordinates,
                                                             model_name)
 
+    @classmethod # PD
+    def isometry_to_model(cls, A, model_name): # PD
+        r"""
+        Convert ``A`` from the current model to the model specified in
+        ``model_name``.
+
+        INPUT:
+
+        - ``A`` -- a matrix in the current model.
+        - ``model_name`` -- a string denoting the model to be converted to.
+
+        OUTPUT:
+
+        - the coordinates of a point in the ``short_name`` model.
+
+        EXAMPLES:
+
+        We check that orientation-reversing isometries behave as they
+        should::
+            sage: PD.isometry_to_model(matrix(2,[0,I,I,0]),'UHP')
+            [ 0 -1]
+            [-1  0]
+        """
+        cls.isometry_test(A)
+        # Check for orientation-reversing isometries.
+        if (not _PD_preserve_orientation(A) and model_name == 'UHP'):
+            return cls.isom_conversion_dict[model_name](I*A)
+        return cls.isom_conversion_dict[model_name](A)
 
 class HyperbolicModelKM (HyperbolicModel, UniqueRepresentation):
     r"""
@@ -733,8 +792,8 @@ class HyperbolicModelKM (HyperbolicModel, UniqueRepresentation):
         return  len(p) == 2 and bool(abs(p[0]**2 + p[1]**2 - 1) < EPSILON)
 
 
-    @classmethod
-    def isometry_act_on_point(cls, A, p):
+    @classmethod #KM
+    def isometry_act_on_point(cls, A, p): #KM
         r"""
         Given an isometry ``A`` and a point ``p`` in the current model,
         return image of ``p`` unduer the action ``A \cdot p``.
@@ -764,7 +823,7 @@ class HyperbolicModelKM (HyperbolicModel, UniqueRepresentation):
             True
         """
         from sage.geometry.hyperbolic_space.hyperbolic_constants import LORENTZ_GRAM
-        return ((A*LORENTZ_GRAM*A.transpose() - LORENTZ_GRAM).norm()**2 <
+        return bool((A*LORENTZ_GRAM*A.transpose() - LORENTZ_GRAM).norm()**2 <
                 EPSILON)
 
     @classmethod
@@ -874,7 +933,7 @@ class HyperbolicModelHM (HyperbolicModel, UniqueRepresentation):
            True
         """
         from sage.geometry.hyperbolic_space.hyperbolic_constants import LORENTZ_GRAM
-        return (A*LORENTZ_GRAM*A.transpose() - LORENTZ_GRAM).norm()**2 < EPSILON
+        return bool((A*LORENTZ_GRAM*A.transpose() - LORENTZ_GRAM).norm()**2 < EPSILON)
 
 def _SL2R_to_SO21 (A):
     r"""
@@ -1028,3 +1087,18 @@ def _mobius_transform(A, z):
     else:
         raise TypeError("A must be an invertible 2x2 matrix over the"
                         " complex numbers or a symbolic ring.")
+def _PD_preserve_orientation(A):
+    r"""
+    For a PD isometry, determine if it preserves orientation.
+    This test is more more involved than just checking the sign
+    of the determinant, and it is used a few times in this file.
+
+    EXAMPLES::
+        sage: from sage.geometry.hyperbolic_space.hyperbolic_model import _PD_preserve_orientation as orient
+        sage: orient(matrix(2, [-I, 0, 0, I]))
+        True
+        sage: orient(matrix(2, [0, I, I, 0]))
+        False
+    """
+    return bool(A[1][0] == A[0][1].conjugate() and A[1][1] == A[0][0].conjugate()
+                and abs(A[0][0]) - abs(A[0][1]) != 0)

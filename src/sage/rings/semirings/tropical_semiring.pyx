@@ -424,7 +424,23 @@ class TropicalSemiring(Parent, UniqueRepresentation):
     .. WARNING::
 
         :meth:`zero` and :meth:`one` refer to the tropical additive
-        and multiplicative identities respectively.
+        and multiplicative identities respectively. These are **not** the
+        same as calling ``T(0)`` and ``T(1)`` respectively as these are **not**
+        the tropical additive and multiplicative identities respectively.
+
+        Specifically do not use ``sum(...)`` as this converts `0` to `0` as
+        a tropical element, which is not the same as :meth:`zero`. Instead
+        use the ``sum`` method::
+
+            sage: T = TropicalSemiring(QQ)
+
+            sage: sum([T(1), T(2)]) # This is wrong
+            0
+            sage: T.sum([T(1), T(2)]) # This is correct
+            1
+
+        Be careful about using code that has not been checked for tropical
+        safety.
 
     INPUT:
 

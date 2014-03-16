@@ -1180,6 +1180,229 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                        for (I, coeff) in R(self).monomial_coefficients().items()}
                 return parent(R._from_dict(dct))
 
+            def left_padded_kronecker_product(self, x):
+                r"""
+                Return the left-padded Kronecker product of ``self`` and
+                ``x`` in the basis of ``self``.
+
+                The left-padded Kronecker product is a bilinear map
+                mapping two non-commutative symmetric functions to
+                another, not necessarily preserving degree.
+                It can be defined as follows: Let `*` denote the internal
+                product (:meth:`internal_product`) on the space of
+                non-commutative symmetric functions. For any composition
+                `I`, let `S^I` denote the complete homogeneous symmetric
+                function indexed by `I`. For any compositions
+                `\alpha`, `\beta`, `\gamma`, let
+                `g^{\gamma}_{\alpha, \beta}` denote the coefficient of
+                `S^{\gamma}` in the internal product
+                `S^{\alpha} * S^{\beta}`.
+                For every composition `I = (i_1, i_2, \ldots, i_k)`
+                and every integer `n > \left| I \right|`, define the
+                *`n`-completion of `I`* to be the composition
+                `(n - \left| I \right|, i_1, i_2, \ldots, i_k)`;
+                this `n`-completion is denoted by `I[n]`.
+                Then, for any compositions `\alpha` and `\beta` and every
+                integer `n > \left|\alpha\right| + \left|\beta\right|`,
+                we can write the internal product
+                `S^{\alpha[n]} * S^{\beta[n]}` in the form
+
+                .. MATH::
+
+                    S^{\alpha[n]} * S^{\beta[n]} = \sum_{\gamma} g^{\gamma[n]}_{\alpha[n], \beta[n]} S^{\gamma[n]}
+
+                with `\gamma` ranging over all compositions. The
+                coefficients `g^{\gamma[n]}_{\alpha[n], \beta[n]}`
+                are independent on `n`. These coefficients
+                `g^{\gamma[n]}_{\alpha[n], \beta[n]}` are denoted by
+                `\widetilde{g}^{\gamma}_{\alpha, \beta}`, and the
+                non-commutative symmetric function
+
+                .. MATH::
+
+                    \sum_{\gamma} \widetilde{g}^{\gamma}_{\alpha, \beta} S^{\gamma}
+
+                is said to be the *left-padded Kronecker product* of
+                `S^{\alpha}` and `S^{\beta}`. By bilinearity, this
+                extends to a definition of a left-padded Kronecker product
+                of any two non-commutative symmetric functions.
+
+                .. WARNING::
+
+                    This is *not* a lift of the reduced Kronecker product
+                    operation on the symmetric functions!
+
+                INPUT:
+
+                - ``x`` -- element of the ring of non-commutative
+                  symmetric functions over the same base ring as ``self``
+
+                OUTPUT:
+
+                - the left-padded Kronecker product of ``self`` with ``x``
+                  (an element of the ring of non-commutative symmetric
+                  functions in the same basis as ``self``)
+
+                AUTHORS:
+
+                - Darij Grinberg (15 Mar 2014)
+
+                EXAMPLES::
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(QQ)
+                    sage: S = NSym.S()
+                    sage: S[2,1].left_padded_kronecker_product(S[3])
+                    S[1, 1, 1, 1] + S[1, 2, 1] + S[2, 1] + S[2, 1, 1, 1] + S[2, 2, 1] + S[3, 2, 1]
+                    sage: S[2,1].left_padded_kronecker_product(S[1])
+                    S[1, 1, 1] + S[1, 2, 1] + S[2, 1]
+                    sage: S[1].left_padded_kronecker_product(S[2,1])
+                    S[1, 1, 1] + S[2, 1] + S[2, 1, 1]
+                    sage: S[1,1].left_padded_kronecker_product(S[2])
+                    S[1, 1] + 2*S[1, 1, 1] + S[2, 1, 1]
+                    sage: S[1].left_padded_kronecker_product(S[1,2,1])
+                    S[1, 1, 1, 1] + S[1, 2, 1] + S[1, 2, 1, 1] + S[2, 1, 1]
+                    sage: S[2].left_padded_kronecker_product(S[3])
+                    S[1, 2] + S[2, 1, 1] + S[3, 2]
+
+                Taking the left-padded Kronecker product with
+                `1 = S^{\empty}` is the identity map on the ring of
+                non-commutative symmetric functions::
+
+                    sage: all( S[Composition([])].left_padded_kronecker_product(S[lam])
+                    ....:      == S[lam].left_padded_kronecker_product(S[Composition([])])
+                    ....:      == S[lam] for i in range(4)
+                    ....:      for lam in Compositions(i) )
+                    True
+
+                Here is a rule for the left-padded Kronecker product of
+                `S_1` (this is the same as `S^{(1)}`) with any complete
+                homogeneous function: Let `I` be a composition.
+                Then, the left-padded Kronecker product of `S_1` and
+                `S^I` is `\sum_K a_K s_K`, where the sum runs
+                over all compositions `K`, and the coefficient `a_K` is
+                defined as the number of ways to obtain `K` from `I` by
+                one of the following two operations:
+
+                - Insert a `1` at the end of `I`.
+                - Subtract `1` from one of the entries of `I` (and remove
+                  the entry if it thus becomes `0`), and insert a `1` at
+                  the end of `I`.
+
+                We check this for compositions of size `\leq 4`::
+
+                    sage: def mults1(I):
+                    ....:     # Left left-padded Kronecker multiplication by S[1].
+                    ....:     res = S[I[:] + [1]]
+                    ....:     for k in range(len(I)):
+                    ....:         I2 = I[:]
+                    ....:         if I2[k] == 1:
+                    ....:             I2 = I2[:k] + I2[k+1:]
+                    ....:         else:
+                    ....:             I2[k] -= 1
+                    ....:         res += S[I2 + [1]]
+                    ....:     return res
+                    sage: all( mults1(I) == S[1].left_padded_kronecker_product(S[I])
+                    ....:      for i in range(5) for I in Compositions(i) )
+                    True
+
+                A similar rule can be made for the left-padded Kronecker
+                product of any complete homogeneous function with `S_1`:
+                Let `I` be a composition. Then, the left-padded Kronecker
+                product of `S^I` and `S_1` is `\sum_K b_K s_K`, where the
+                sum runs over all compositions `K`, and the coefficient
+                `b_K` is defined as the number of ways to obtain `K` from
+                `I` by one of the following two operations:
+
+                - Insert a `1` at the front of `I`.
+                - Subtract `1` from one of the entries of `I` (and remove
+                  the entry if it thus becomes `0`), and insert a `1`
+                  right after this entry.
+
+                We check this for compositions of size `\leq 4`::
+
+                    sage: def mults2(I):
+                    ....:     # Left left-padded Kronecker multiplication by S[1].
+                    ....:     res = S[[1] + I[:]]
+                    ....:     for k in range(len(I)):
+                    ....:         I2 = I[:]
+                    ....:         i2k = I2[k]
+                    ....:         if i2k != 1:
+                    ....:             I2 = I2[:k] + [i2k-1, 1] + I2[k+1:]
+                    ....:         res += S[I2]
+                    ....:     return res
+                    sage: all( mults2(I) == S[I].left_padded_kronecker_product(S[1])
+                    ....:      for i in range(5) for I in Compositions(i) )
+                    True
+
+                TESTS:
+
+                Different bases and base rings::
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(ZZ)
+                    sage: S = NSym.S()
+                    sage: L = NSym.L()
+                    sage: L(S[2].left_padded_kronecker_product(L[2]))
+                    L[1, 1, 1] + L[2] + L[2, 1, 1] - L[2, 2]
+                    sage: S(L[2].left_padded_kronecker_product(S[1,1]))
+                    S[1, 1] + 2*S[1, 1, 1] + S[1, 1, 1, 1] - S[1, 1, 2]
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(CyclotomicField(12))
+                    sage: S = NSym.S()
+                    sage: L = NSym.L()
+                    sage: v = L[2].left_padded_kronecker_product(L[2]); v
+                    L[1, 1] + L[1, 1, 1] + (-1)*L[2] + L[2, 2]
+                    sage: parent(v)
+                    Non-Commutative Symmetric Functions over the Cyclotomic Field of order 12 and degree 4 in the Elementary basis
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(Zmod(14))
+                    sage: S = NSym.S()
+                    sage: L = NSym.L()
+                    sage: v = L[2].left_padded_kronecker_product(L[2]); v
+                    L[1, 1] + L[1, 1, 1] + 13*L[2] + L[2, 2]
+                    sage: parent(v)
+                    Non-Commutative Symmetric Functions over the Ring of integers modulo 14 in the Elementary basis
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(ZZ)
+                    sage: R = NSym.R()
+                    sage: v = R[1].left_padded_kronecker_product(R[1]); parent(v)
+                    Non-Commutative Symmetric Functions over the Integer Ring in the Ribbon basis
+                """
+                _Compositions = Compositions()
+                parent = self.parent()
+                comp_parent = parent.realization_of().S()
+                comp_self = comp_parent(self)
+                comp_x = comp_parent(x)
+                # Now, comp_self and comp_x are the same as self and x, but in the
+                # S (=complete homogeneous) basis, which we call comp_parent.
+                result = comp_parent.zero()
+                for lam, a in comp_self.monomial_coefficients().items():
+                    # lam is a composition, a is an element of the base ring.
+                    if len(lam) == 0:
+                        # Special handling for the empty composition. The left-padded
+                        # Kronecker product of 1 with any non-commutative symmetric
+                        # function f is f.
+                        result += comp_x
+                        continue
+                    for mu, b in comp_x.monomial_coefficients().items():
+                        # mu is a composition, b is an element of the base ring.
+                        if len(mu) == 0:
+                            # Special handling for the empty composition.
+                            result += a * comp_parent(lam)
+                            continue
+                        # Now, both lam and mu are nonempty.
+                        stab = 1 + sum(lam) + sum(mu)
+                        S_lam_stabilized = comp_parent(_Compositions([stab - sum(lam)] + lam._list))
+                        S_mu_stabilized = comp_parent(_Compositions([stab - sum(mu)] + mu._list))
+                        lam_star_mu = S_lam_stabilized.internal_product(S_mu_stabilized)
+                        # lam_star_mu is now a non-commutative symmetric function
+                        # in the S-basis.
+                        for nu, c in lam_star_mu.monomial_coefficients().items():
+                            # nu is a composition of the integer stab, c is an element
+                            # of the base ring.
+                            nu_unstabilized = _Compositions(nu[1:])
+                            result += a * b * c * comp_parent(nu_unstabilized)
+                return parent(result)
+
             def to_descent_algebra(self, n):
                 r"""
                 Return the image of the ``n``-th degree homogeneous component
@@ -2217,10 +2440,19 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 S[1, 1, 1] - S[2, 1]
                 sage: S._from_elementary_on_basis(Composition([]))
                 S[]
+
+            TESTS:
+
+            The parent of the coefficients is the base ring given::
+
+                sage: S = NonCommutativeSymmetricFunctions(ZZ).S()
+                sage: g = S._from_elementary_on_basis(Composition([2]))
+                sage: [type(a) for _, a in g]
+                [<type 'sage.rings.integer.Integer'>, <type 'sage.rings.integer.Integer'>]
             """
             n = I.size()
             minus_one = -self.base_ring().one()
-            return self.sum_of_terms( (compo, minus_one**(len(compo)-n)) for compo in I.finer() )
+            return self.sum_of_terms( (compo, minus_one**(n-len(compo))) for compo in I.finer() )
 
         def dual(self):
             r"""
@@ -2574,7 +2806,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             """
             n = I.size()
             minus_one = -self.base_ring().one()
-            return self.sum_of_terms( (compo, minus_one**(len(compo)-n)) for compo in I.finer() )
+            return self.sum_of_terms( (compo, minus_one**(n-len(compo))) for compo in I.finer() )
 
         class Element(CombinatorialFreeModule.Element):
 
@@ -3064,7 +3296,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             # Proposition 4.5 of NCSF I article
             minus_one = -self.base_ring().one()
             complete = self.realization_of().complete()
-            return complete.sum_of_terms((J, minus_one**(len(J)-len(I))*coeff_lp(J,I))
+            return complete.sum_of_terms((J, minus_one**(len(J)+len(I))*coeff_lp(J,I))
                                             for J in I.finer())
 
         def internal_product_on_basis_by_bracketing(self, I, J):
@@ -3450,7 +3682,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             # Proposition 4.9 of NCSF I article
             minus_one = -self.base_ring().one()
             complete = self.realization_of().complete()
-            return complete.sum_of_terms((J, minus_one**(len(J)-len(I)) * prod(I) / coeff_ell(J,I))
+            return complete.sum_of_terms((J, minus_one**(len(J)+len(I)) * prod(I) / coeff_ell(J,I))
                                          for J in I.finer())
 
         class Element(CombinatorialFreeModule.Element):

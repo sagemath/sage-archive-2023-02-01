@@ -2946,15 +2946,16 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
             s_{\alpha[n]} * s_{\beta[n]} = \sum_{\gamma} g^{\gamma[n]}_{\alpha[n], \beta[n]} s_{\gamma[n]}
 
-        with coefficients `g^{\gamma[n]}_{\alpha[n], \beta[n]}`
-        independent on `n`. These coefficients
+        with `\gamma` ranging over all partitions. The
+        coefficients `g^{\gamma[n]}_{\alpha[n], \beta[n]}`
+        are independent on `n`. These coefficients
         `g^{\gamma[n]}_{\alpha[n], \beta[n]}` are denoted by
         `\overline{g}^{\gamma}_{\alpha, \beta}`, and the symmetric
         function
 
         .. MATH::
 
-            \sum_{\gamma} \overline{g}^{\gamma}_{\alpha, \beta} s_{\gamma[n]} s_{\gamma}
+            \sum_{\gamma} \overline{g}^{\gamma}_{\alpha, \beta} s_{\gamma}
 
         is said to be the *reduced Kronecker product* of `s_{\alpha}` and
         `s_{\beta}`. By bilinearity, this extends to a definition of a

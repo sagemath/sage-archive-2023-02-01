@@ -690,7 +690,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         else:
             return []
 
-    @combinatorial_map(name = "to the Tamari corresponding Dyck path")
+    @combinatorial_map(name="to the Tamari corresponding Dyck path")
     def to_dyck_word_tamari(self):
         r"""
         Return the Dyck word associated with ``self`` in consistency with
@@ -698,10 +698,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         The bijection is defined recursively as follows:
 
-        - a leaf is associated with an empty Dyck word
+        - a leaf is associated with an empty Dyck word;
 
         - a tree with children `l,r` is associated with the Dyck word
-          `T(l) 1 T(r) 0`
+          `T(l) 1 T(r) 0`.
 
         EXAMPLES::
 
@@ -715,15 +715,15 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0]
         """
         return self.to_dyck_word("L1R0")
-        
+
     def tamari_interval(self, other):
         r"""
         Return the Tamari interval between ``self`` and ``other`` as a
-        :class:`TamariIntervalPoset`.
+        :class:`~sage.combinat.interval_posets.TamariIntervalPoset`.
 
         A "Tamari interval" is an interval in the Tamari poset.
         See :meth:`tamari_lequal` for the definition of the Tamari poset.
-        
+
         INPUT:
 
         - ``other`` -- a binary tree greater or equal to ``self``
@@ -771,7 +771,6 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             The tamari interval of size 0 induced by relations []
             sage: list(ip.binary_trees())
             [.]
-
         """
         from sage.combinat.interval_posets import TamariIntervalPosets
         return TamariIntervalPosets.from_binary_trees(self, other)
@@ -1550,7 +1549,6 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             ....:             print "FAILURE"
             ....:         if not S.tamari_lequal(T):
             ....:             print "FAILURE"
-
         """
         self_perm = self.to_312_avoiding_permutation()
         t2_perm = t2.to_312_avoiding_permutation()

@@ -3,7 +3,7 @@ Dyck Words
 
 A class of an object enumerated by the
 :func:`Catalan numbers<sage.combinat.combinat.catalan_number>`,
-see [Sta1999]_, [StaCat98]_ for details.
+see [StaEC2]_, [StaCat98]_ for details.
 
 AUTHORS:
 
@@ -27,17 +27,18 @@ AUTHORS:
 
 REFERENCES:
 
-.. [Sta1999] R. Stanley, *Enumerative Combinatorics*, Volume 2.
+.. [StaEC2] Richard P. Stanley.
+   *Enumerative Combinatorics*, Volume 2.
    Cambridge University Press, 2001.
 
-.. [StaCat98] R. Stanley, *Exercises on Catalan and Related Numbers
+.. [StaCat98] Richard Stanley. *Exercises on Catalan and Related Numbers
    excerpted from Enumerative Combinatorics, vol. 2 (CUP 1999)*,
    version of 23 June 1998.
    http://www-math.mit.edu/~rstan/ec/catalan.pdf
 
-.. [Hag2008] James Haglund, *The `q,t` -- Catalan Numbers and the
+.. [Hag2008] James Haglund. *The* `q,t` -- *Catalan Numbers and the
    Space of Diagonal Harmonics:
-   With an Appendix on the Combinatorics of Macdonald Polynomials*,
+   With an Appendix on the Combinatorics of Macdonald Polynomials*.
    University of Pennsylvania, Philadelphia -- AMS, 2008, 167 pp.
 """
 
@@ -1137,7 +1138,7 @@ class DyckWord(CombinatorialObject, Element):
             d -= 1
             height -= 1
         else:
-            raise ValueError("unknown symbol %s"%self[pos])
+            raise ValueError("unknown symbol {}".format(self[pos]))
 
         while height != 0:
             pos += d
@@ -1501,7 +1502,7 @@ class DyckWord(CombinatorialObject, Element):
         INPUT:
 
         - ``usemap`` -- a string, either ``'1L0R'``, ``'1R0L'``, ``'L1R0'``,
-          ``'R1L0'``.
+          ``'R1L0'``
 
         Other valid ``usemap`` are ``'1R0L'``, ``'L1R0'``, and ``'R1L0'``.
         These correspond to different maps from Dyck paths to binary
@@ -1577,11 +1578,11 @@ class DyckWord(CombinatorialObject, Element):
             [[[., .], .], .]
         """
         return self.to_binary_tree("L1R0")
-    
+
     def tamari_interval(self, other):
         r"""
         Return the Tamari interval between ``self`` and ``other`` as a
-        :class:`TamariIntervalPoset`.
+        :class:`~sage.combinat.interval_posets.TamariIntervalPoset`.
 
         A "Tamari interval" means an interval in the Tamari order. The
         Tamari order on the set of Dyck words of size `n` is the
@@ -1595,7 +1596,7 @@ class DyckWord(CombinatorialObject, Element):
         INPUT:
 
         - ``other`` -- a Dyck word greater or equal to ``self`` in the
-          Tamari order.
+          Tamari order
 
         EXAMPLES::
 
@@ -1619,7 +1620,6 @@ class DyckWord(CombinatorialObject, Element):
             Traceback (most recent call last):
             ...
             ValueError: The two Dyck words are not comparable on the Tamari lattice.
-
         """
         from sage.combinat.interval_posets import TamariIntervalPosets
         return TamariIntervalPosets.from_dyck_words(self, other)
@@ -2246,7 +2246,7 @@ class DyckWord_complete(DyckWord):
         The Catalan code of a Dyck word is example (x) in Richard Stanley's
         exercises on combinatorial interpretations for Catalan objects.
         The code in this example is the reverse of the description provided
-        there. See [Sta1999]_ and [StaCat98]_.
+        there. See [StaEC2]_ and [StaCat98]_.
 
         EXAMPLES::
 
@@ -3540,7 +3540,7 @@ class CompleteDyckWords(DyckWords):
         The Catalan code of a Dyck word is example (x) in Richard Stanley's
         exercises on combinatorial interpretations for Catalan objects.
         The code in this example is the reverse of the description provided
-        there. See [Sta1999]_ and [StaCat98]_.
+        there. See [StaEC2]_ and [StaCat98]_.
 
         EXAMPLES::
 

@@ -4691,9 +4691,11 @@ class FreeModule_ambient(FreeModule_generic):
             ...
             TypeError: rational is not an integer
 
-            sage: n = 10000
-            sage: v = vector([0]*n)
-            sage: v/1
+        Check that :trac:`10262`, :trac:`13304` are fixed (coercions involving
+        FreeModule_ambients used to take quadratic time and space in the rank
+        of the module)::
+
+            sage: vector([0]*50000)/1
             (0, 0, 0, ..., 0)
         """
         if i < 0 or i >= self.rank():
@@ -4702,8 +4704,7 @@ class FreeModule_ambient(FreeModule_generic):
             return self.__basis[i]
         except AttributeError:
             v = self(0)
-            one = self.base_ring()(1)
-            v[i] = one
+            v[i] = self.base_ring().one_element()
             v.set_immutable()
             return v
 

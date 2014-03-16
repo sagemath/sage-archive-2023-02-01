@@ -438,14 +438,9 @@ protected:
 
 	// non-virtual functions in this class
 private:
-	void sort_(std::random_access_iterator_tag)
+	void sort_()
 	{
 		std::sort(this->seq.begin(), this->seq.end(), ex_is_less());
-	}
-
-	void sort_(std::input_iterator_tag)
-	{
-		this->seq.sort(ex_is_less());
 	}
 
 	void unique_()
@@ -659,6 +654,14 @@ container<C> & container<C>::prepend(const ex & b)
 	return *this;
 }
 
+/** Specialization of container::prepend() for std::vector. */
+template<> inline container<std::vector> & container<std::vector>::prepend(const ex & b)
+{
+	ensure_if_modifiable();
+	this->seq.insert(this->seq.begin(), b);
+	return *this;
+}
+
 /** Add element at back. */
 template <template <class T, class = std::allocator<T> > class C>
 container<C> & container<C>::append(const ex & b)
@@ -674,6 +677,14 @@ container<C> & container<C>::remove_first()
 {
 	ensure_if_modifiable();
 	this->seq.pop_front();
+	return *this;
+}
+
+/** Specialization of container::remove_first() for std::vector. */
+template<> inline container<std::vector> & container<std::vector>::remove_first()
+{
+	ensure_if_modifiable();
+	this->seq.erase(this->seq.begin());
 	return *this;
 }
 
@@ -700,8 +711,14 @@ template <template <class T, class = std::allocator<T> > class C>
 container<C> & container<C>::sort()
 {
 	ensure_if_modifiable();
-	sort_(typename std::iterator_traits<typename STLT::iterator>::iterator_category());
+	sort_();
 	return *this;
+}
+
+/** Specialization of container::sort_() for std::list. */
+template<> inline void container<std::list>::sort_()
+{
+	this->seq.sort(ex_is_less());
 }
 
 /** Specialization of container::unique_() for std::list. */

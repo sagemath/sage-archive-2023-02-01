@@ -2241,7 +2241,11 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         def internal_product_on_basis(self, I, J):
             r"""
-            The internal product of two non-commutative symmetric complete functions.
+            The internal product of two non-commutative symmetric
+            complete functions.
+
+            See :meth:`~sage.combinat.ncsf_qsym.generic_basis_code.GradedModulesWithInternalProduct.ElementMethods.internal_product`
+            for a thorough documentation of this operation.
 
             INPUT:
 
@@ -3062,6 +3066,121 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             complete = self.realization_of().complete()
             return complete.sum_of_terms((J, minus_one**(len(J)-len(I))*coeff_lp(J,I))
                                             for J in I.finer())
+
+        def internal_product_on_basis_by_bracketing(self, I, J):
+            r"""
+            The internal product of two elements of the Psi basis.
+
+            See :meth:`~sage.combinat.ncsf_qsym.generic_basis_code.GradedModulesWithInternalProduct.ElementMethods.internal_product`
+            for a thorough documentation of this operation.
+
+            This is an implementation using [NCSF2]_ Lemma 3.10.
+            It is fast when the length of `I` is small, but can get
+            very slow otherwise. Therefore it is not being used by
+            default for internally multiplying Psi functions.
+
+            .. TODO::
+
+                Iterating through ``OrderedSetPartitions_sn`` is a waste.
+                Find a better algorithm. Check the running time of the
+                result and possibly redefine
+                :meth:`internal_product_on_basis` to use this.
+
+            INPUT:
+
+            - ``I``, ``J`` -- compositions
+
+            OUTPUT:
+
+            - The internal product of the elements of the Psi basis of
+              `NSym` indexed by ``I`` and ``J``, expressed in the Psi
+              basis.
+
+            EXAMPLES::
+
+                sage: N = NonCommutativeSymmetricFunctions(QQ)
+                sage: Psi = N.Psi()
+                sage: Psi.internal_product_on_basis_by_bracketing([2,2],[1,2,1])
+                0
+                sage: Psi.internal_product_on_basis_by_bracketing([1,2,1],[2,1,1])
+                4*Psi[1, 2, 1]
+                sage: Psi.internal_product_on_basis_by_bracketing([1,2,1], [1,1,1,1])
+                0
+                sage: Psi.internal_product_on_basis_by_bracketing([3,1], [1,2,1])
+                -Psi[1, 2, 1] + Psi[2, 1, 1]
+                sage: Psi.internal_product_on_basis_by_bracketing([2,2],[1,2])
+                0
+
+            TESTS:
+
+            The internal product computed by this method is identical with
+            the one obtained by coercion to the complete basis::
+
+                sage: S = N.S()
+                sage: def psi_int_test(n):
+                ....:     for I in Compositions(n):
+                ....:         for J in Compositions(n):
+                ....:             a = S(Psi.internal_product_on_basis_by_bracketing(I, J))
+                ....:             b = S(Psi[I]).internal_product(S(Psi[J]))
+                ....:             if a != b:
+                ....:                 return False
+                ....:     return True
+                sage: all( psi_int_test(i) for i in range(4) )
+                True
+                sage: psi_int_test(4)   # long time
+                True
+            """
+            # The algorithm used here is described in
+            # :meth:`~sage.combinat.ncsf_qsym.generic_basis_code.GradedModulesWithInternalProduct.ElementMethods.internal_product`.
+            if sum(I) != sum(J):
+                return self.zero()
+            p = len(I)
+            q = len(J)
+            if p > q:
+                return self.zero()
+            if p == q:
+                Is = sorted(I, reverse=True)
+                Js = sorted(J, reverse=True)
+                if Is != Js:
+                    return 0
+                return Partition(Is).centralizer_size() * self[I]
+            # If we're still here, we must have p < q.
+            def Gamma(K):
+                r"""
+                Compute `\Gamma_K` for a nonempty composition `K` (which
+                can be encoded as a list). See the doc of
+                :meth:`~sage.combinat.ncsf_qsym.generic_basis_code.GradedModulesWithInternalProduct.ElementMethods.internal_product`
+                for a definition of this.
+                """
+                k1 = K[0]
+                res = k1 * self[k1]
+                for k in K[1:]:
+                    Psik = self[k]
+                    res = res * Psik - Psik * res
+                return res
+            from sage.combinat.set_partition_ordered import OrderedSetPartitions_sn
+            from sage.sets.set import Set
+            set_q = Set(range(q))
+            result = self.zero()
+            for K in OrderedSetPartitions_sn(set_q, p):
+                # We now have all ordered set partitions
+                # `(K_1, K_2, \ldots, K_p)` of `\{ 1, 2, \ldots, q \}`
+                # into `p` parts. We need to select only those such that 
+                # each `1 \leq k \leq p` satisfies `|J_{K_k}| = i_k`.
+                discard_this_K = False
+                for k, Kk in enumerate(K):
+                    if sum(J[i] for i in Kk) != I[k]:
+                        discard_this_K = True
+                        break
+                if discard_this_K:
+                    continue
+                addend = self.one()
+                for S in K:
+                    s = sorted(S)
+                    Ks = [J[i] for i in s]
+                    addend *= Gamma(Ks)
+                result += addend
+            return result
 
         class Element(CombinatorialFreeModule.Element):
 

@@ -34,8 +34,8 @@ from sage.categories.regular_crystals import RegularCrystals
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.rigged_configurations.kleber_tree import KleberTree, VirtualKleberTree
-from sage.combinat.rigged_configurations.rigged_configuration_element import RiggedConfigurationElement, \
-  RCNonSimplyLacedElement
+from sage.combinat.rigged_configurations.rigged_configuration_element import KRRiggedConfigurationElement, \
+  KRRCNonSimplyLacedElement
 
 RiggedConfigurationOptions=GlobalOptions(name='rigged configurations',
     doc=r"""
@@ -720,7 +720,10 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             sage: RC._calc_vacancy_number(elt.nu(), 1, 0)
             0
         """
-        row_len = partitions[a][i]
+        if i is None:
+            row_len = float("inf")
+        else:
+            row_len = partitions[a][i]
 
         vac_num = 0
         if "B" in options:
@@ -976,7 +979,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         if len(rejects) != 0:
             return rejects
 
-RiggedConfigurations.Element = RiggedConfigurationElement
+    Element = KRRiggedConfigurationElement
 
 class RCNonSimplyLaced(RiggedConfigurations):
     r"""
@@ -1046,7 +1049,10 @@ class RCNonSimplyLaced(RiggedConfigurations):
             sage: RC._calc_vacancy_number(elt.nu(), 1, 0)
             0
         """
-        row_len = partitions[a][i]
+        if i is None:
+            row_len = float("inf")
+        else:
+            row_len = partitions[a][i]
 
         vac_num = 0
         if "B" in options:
@@ -1306,10 +1312,10 @@ class RCNonSimplyLaced(RiggedConfigurations):
             for i, p in enumerate(elt):
                 for j, vac_num in enumerate(p.vacancy_numbers):
                     tester.assertTrue(vac_num == x[i].vacancy_numbers[j],
-                      "Incorrect vacancy number: %s\nComputed: %s\nFor: %s"\
-                      %(x[i].vacancy_numbers[j],vac_num, x))
+                      "Incorrect vacancy number: {}\nComputed: {}\nFor: {}".format(
+                       x[i].vacancy_numbers[j],vac_num, x))
 
-RCNonSimplyLaced.Element = RCNonSimplyLacedElement
+    Element = KRRCNonSimplyLacedElement
 
 class RCTypeA2Even(RCNonSimplyLaced):
     """
@@ -1388,7 +1394,10 @@ class RCTypeA2Even(RCNonSimplyLaced):
             sage: RC._calc_vacancy_number(elt.nu(), 1, 0)
             0
         """
-        row_len = partitions[a][i]
+        if i is None:
+            row_len = float("inf")
+        else:
+            row_len = partitions[a][i]
 
         vac_num = 0
         if "B" in options:
@@ -1543,7 +1552,10 @@ class RCTypeA2Dual(RCTypeA2Even):
         """
         if a != self._cartan_type.classical().rank()-1:
             return RCTypeA2Even._calc_vacancy_number(self, partitions, a, i, **options)
-        row_len = partitions[a][i]
+        if i is None:
+            row_len = float("inf")
+        else:
+            row_len = partitions[a][i]
 
         vac_num = 0
         if "B" in options:

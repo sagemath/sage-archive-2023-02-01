@@ -1743,6 +1743,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         def parallelFunction(morphism):
             return morphism.possible_periods()
 
+        # Calling possible_periods for each prime in parallel
         parallelData = []
         for q in primes(primebound[0],primebound[1]+1):
             if not (q in badprimes):
@@ -2444,18 +2445,23 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         RPS=PS.base_ring()
         all_preimages=set()
         
-        parallelData = []
-        for P in points:
-            parallelData.append(((self,P,),{}))
+        while points != []:
 
-        parallelResults=list(parallel_iter(len(parallelData), self.rational_preimages, parallelData))
+            # Calling each lifting prime in parallel
+            parallelData = []
+            for P in points:
+                parallelData.append(((self,P,),{}))
 
-        for result in parallelResults:
-            preimages = result[1]
-            for i in range(len(preimages)):
-                if not preimages[i] in all_preimages:
-                    points.append(preimages[i])
-                    all_preimages.add(preimages[i])
+            points = []
+
+            parallelResults=list(parallel_iter(len(parallelData), self.rational_preimages, parallelData))
+
+            for result in parallelResults:
+                preimages = result[1]
+                for i in range(len(preimages)):
+                    if not preimages[i] in all_preimages:
+                        points.append(preimages[i])
+                        all_preimages.add(preimages[i])
 
         return(list(all_preimages))
 

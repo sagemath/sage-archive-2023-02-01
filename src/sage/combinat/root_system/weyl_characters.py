@@ -969,15 +969,16 @@ class WeylCharacterRing(CombinatorialFreeModule):
         followed by a command that creates the branching rule.
 
         EXAMPLES::
-           sage: WeylCharacterRing("E6").maximal_subgroups()
-           D5:branching_rule("E6","D5","levi")
-           C4:branching_rule("E6","C4","symmetric")
-           F4:branching_rule("E6","F4","symmetric")
-           A2:branching_rule("E6","A2","miscellaneous")
-           G2:branching_rule("E6","G2","miscellaneous")
-           A2xG2:branching_rule("E6","A2xG2","miscellaneous")
-           A1xA5:branching_rule("E6","A1xA5","extended")
-           A2xA2xA2:branching_rule("E6","A2xA2xA2","extended")
+
+            sage: WeylCharacterRing("E6").maximal_subgroups()
+            D5:branching_rule("E6","D5","levi")
+            C4:branching_rule("E6","C4","symmetric")
+            F4:branching_rule("E6","F4","symmetric")
+            A2:branching_rule("E6","A2","miscellaneous")
+            G2:branching_rule("E6","G2","miscellaneous")
+            A2xG2:branching_rule("E6","A2xG2","miscellaneous")
+            A1xA5:branching_rule("E6","A1xA5","extended")
+            A2xA2xA2:branching_rule("E6","A2xA2xA2","extended")
 
         Note that there are other embeddings of (for example
         `A_2` into `E_6` as nonmaximal subgroups. These
@@ -987,7 +988,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
         Once you know which maximal subgroup you are interested
         in, to create the branching rule, you may either
         paste the command to the right of the colon from the
-        above output onto the command line, or alternatively 
+        above output onto the command line, or alternatively
         invoke the related method :meth:`maximal_subgroup`::
 
             sage: branching_rule("E6","G2","miscellaneous")
@@ -1035,6 +1036,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
         branching rules.
 
         EXAMPLES::
+
             sage: WeylCharacterRing("E7").maximal_subgroup("A2")
             miscellaneous branching rule E7 => A2
             sage: WeylCharacterRing("E7").maximal_subgroup("A1")
@@ -1551,7 +1553,7 @@ class WeightRing(CombinatorialFreeModule):
 
     def __init__(self, parent, prefix):
         """
-        EXAMPLES:
+        EXAMPLES::
 
             sage: A2 = WeylCharacterRing("A2")
             sage: a2 = WeightRing(A2)

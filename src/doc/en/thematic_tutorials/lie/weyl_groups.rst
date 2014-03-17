@@ -103,8 +103,8 @@ values are the reflections, you may use the inverse family::
     sage: pprint(altref)
     Finite family {(1, 0, 0): s1*s2*s3*s2*s1, (0, 1, 1): s3*s2*s3,
                    (0, 1, -1): s2, (0, 0, 1): s3, (1, -1, 0): s1,
-		   (1, 1, 0): s2*s3*s1*s2*s3*s1*s2, (1, 0, -1): s1*s2*s1,
-		   (1, 0, 1): s3*s1*s2*s3*s1, (0, 1, 0): s2*s3*s2}
+                   (1, 1, 0): s2*s3*s1*s2*s3*s1*s2, (1, 0, -1): s1*s2*s1,
+                   (1, 0, 1): s3*s1*s2*s3*s1, (0, 1, 0): s2*s3*s2}
     sage: [a1,a2,a3] = W.domain().simple_roots()
     sage: a1+a2+a3
     (1, 0, 0)

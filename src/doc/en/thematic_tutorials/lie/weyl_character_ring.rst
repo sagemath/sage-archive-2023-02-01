@@ -160,8 +160,8 @@ coefficients) through the usual free module accessors::
     sage: from pprint import pprint
     sage: list(chi)                           # random
     [((1, 1, 1), 1), ((0, 0, 0), 1), ((1, 0, 0), 1), ((1, 1, 0), 1)]
-    sage: sorted(chi)
-    [((1, 1, 1), 1), ((0, 0, 0), 1), ((1, 0, 0), 1), ((1, 1, 0), 1)]
+    sage: sorted(chi, key=str)
+    [((0, 0, 0), 1), ((1, 0, 0), 1), ((1, 1, 0), 1), ((1, 1, 1), 1)]
     sage: pprint(dict(chi))
     {(0, 0, 0): 1, (1, 0, 0): 1, (1, 1, 0): 1, (1, 1, 1): 1}
     sage: chi.monomials()

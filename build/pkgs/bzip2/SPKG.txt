@@ -31,8 +31,6 @@ This package must not be bzip2 compressed, so create it using
 
 tar c bzip2-1.0.6 | gzip --best >bzip2-1.0.6.spkg
 
-== Changelog ==
+=== Patches ===
 
-=== bzip2-1.0.6 (Jeroen Demeyer, 5 March 2012) ===
- * Trac #12102: initial version as "standard" package.  Adapted
-   spkg-install from the old spkg/base/bzip2-1.0.5-install.
+* shared.patch: let bzip2 build shared libraries.

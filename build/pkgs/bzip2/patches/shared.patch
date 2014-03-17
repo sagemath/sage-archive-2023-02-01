@@ -1,0 +1,180 @@
+diff -druN bzip2-1.0.6.orig/Makefile bzip2-1.0.6/Makefile
+--- bzip2-1.0.6.orig/Makefile	2010-09-10 15:46:02.000000000 -0700
++++ bzip2-1.0.6/Makefile	2014-03-17 13:20:23.487809487 -0700
+@@ -90,14 +90,10 @@
+ 	cp -f libbz2.a $(PREFIX)/lib
+ 	chmod a+r $(PREFIX)/lib/libbz2.a
+ 	cp -f bzgrep $(PREFIX)/bin/bzgrep
+-	ln -s -f $(PREFIX)/bin/bzgrep $(PREFIX)/bin/bzegrep
+-	ln -s -f $(PREFIX)/bin/bzgrep $(PREFIX)/bin/bzfgrep
+ 	chmod a+x $(PREFIX)/bin/bzgrep
+ 	cp -f bzmore $(PREFIX)/bin/bzmore
+-	ln -s -f $(PREFIX)/bin/bzmore $(PREFIX)/bin/bzless
+ 	chmod a+x $(PREFIX)/bin/bzmore
+ 	cp -f bzdiff $(PREFIX)/bin/bzdiff
+-	ln -s -f $(PREFIX)/bin/bzdiff $(PREFIX)/bin/bzcmp
+ 	chmod a+x $(PREFIX)/bin/bzdiff
+ 	cp -f bzgrep.1 bzmore.1 bzdiff.1 $(PREFIX)/man/man1
+ 	chmod a+r $(PREFIX)/man/man1/bzgrep.1
+@@ -107,6 +103,11 @@
+ 	echo ".so man1/bzgrep.1" > $(PREFIX)/man/man1/bzfgrep.1
+ 	echo ".so man1/bzmore.1" > $(PREFIX)/man/man1/bzless.1
+ 	echo ".so man1/bzdiff.1" > $(PREFIX)/man/man1/bzcmp.1
++	cd $(PREFIX)/bin
++	ln -s -f bzgrep $(PREFIX)/bin/bzegrep
++	ln -s -f bzgrep $(PREFIX)/bin/bzfgrep
++	ln -s -f bzmore $(PREFIX)/bin/bzless
++	ln -s -f bzdiff $(PREFIX)/bin/bzcmp
+ 
+ clean: 
+ 	rm -f *.o libbz2.a bzip2 bzip2recover \
+diff -druN bzip2-1.0.6.orig/Makefile-libbz2_dll bzip2-1.0.6/Makefile-libbz2_dll
+--- bzip2-1.0.6.orig/Makefile-libbz2_dll	1969-12-31 16:00:00.000000000 -0800
++++ bzip2-1.0.6/Makefile-libbz2_dll	2014-03-17 13:07:38.547732994 -0700
+@@ -0,0 +1,62 @@
++
++# This Makefile builds a shared version of the library, 
++# libbz2.so.1.0.6, with soname libbz2.so.1.0,
++# at least on x86-Linux (RedHat 7.2), 
++# with gcc-2.96 20000731 (Red Hat Linux 7.1 2.96-98).  
++# Please see the README file for some important info 
++# about building the library like this.
++
++# ------------------------------------------------------------------
++# This file is part of bzip2/libbzip2, a program and library for
++# lossless, block-sorting data compression.
++#
++# bzip2/libbzip2 version 1.0.6 of 6 September 2010
++# Copyright (C) 1996-2010 Julian Seward <jseward@bzip.org>
++#
++# Please read the WARNING, DISCLAIMER and PATENTS sections in the 
++# README file.
++#
++# This program is released under the terms of the license contained
++# in the file LICENSE.
++# ------------------------------------------------------------------
++
++
++SHELL=/bin/sh
++CC=gcc
++BIGFILES=-D_FILE_OFFSET_BITS=64
++CFLAGS=-Wall -Winline -O2 -g $(BIGFILES)
++
++OBJS= blocksort.o  \
++      huffman.o    \
++      crctable.o   \
++      randtable.o  \
++      compress.o   \
++      decompress.o \
++      bzlib.o
++
++all: $(OBJS)
++	$(CC) -shared -Wl,--out-implib=libbz2.dll.a -o cygbz2-1.0.6.dll $(OBJS)
++	$(CC) $(CFLAGS) -o bzip2-shared bzip2.c cygbz2-1.0.6.dll
++
++clean: 
++	rm -f $(OBJS) bzip2.o libbz2.dll.a cygbz2-1.0.6.dll bzip2-shared
++
++install:
++	cp -f libbz2.dll.a $(PREFIX)/lib/
++	cp -f cygbz2-1.0.6.dll $(PREFIX)/bin/
++	cp -f bzip2-shared $(PREFIX)/bin/
++
++blocksort.o: blocksort.c
++	$(CC) $(CFLAGS) -c blocksort.c
++huffman.o: huffman.c
++	$(CC) $(CFLAGS) -c huffman.c
++crctable.o: crctable.c
++	$(CC) $(CFLAGS) -c crctable.c
++randtable.o: randtable.c
++	$(CC) $(CFLAGS) -c randtable.c
++compress.o: compress.c
++	$(CC) $(CFLAGS) -c compress.c
++decompress.o: decompress.c
++	$(CC) $(CFLAGS) -c decompress.c
++bzlib.o: bzlib.c
++	$(CC) $(CFLAGS) -c bzlib.c
+diff -druN bzip2-1.0.6.orig/Makefile-libbz2_dylib bzip2-1.0.6/Makefile-libbz2_dylib
+--- bzip2-1.0.6.orig/Makefile-libbz2_dylib	1969-12-31 16:00:00.000000000 -0800
++++ bzip2-1.0.6/Makefile-libbz2_dylib	2014-03-17 13:33:18.117886950 -0700
+@@ -0,0 +1,61 @@
++
++# This Makefile builds a shared version of the library, 
++# libbz2.so.1.0.6, with soname libbz2.so.1.0,
++# at least on x86-Linux (RedHat 7.2), 
++# with gcc-2.96 20000731 (Red Hat Linux 7.1 2.96-98).  
++# Please see the README file for some important info 
++# about building the library like this.
++
++# ------------------------------------------------------------------
++# This file is part of bzip2/libbzip2, a program and library for
++# lossless, block-sorting data compression.
++#
++# bzip2/libbzip2 version 1.0.6 of 6 September 2010
++# Copyright (C) 1996-2010 Julian Seward <jseward@bzip.org>
++#
++# Please read the WARNING, DISCLAIMER and PATENTS sections in the 
++# README file.
++#
++# This program is released under the terms of the license contained
++# in the file LICENSE.
++# ------------------------------------------------------------------
++
++
++SHELL=/bin/sh
++CC=gcc
++BIGFILES=-D_FILE_OFFSET_BITS=64
++CFLAGS=-fpic -fPIC -Wall -Winline -O2 -g $(BIGFILES)
++
++OBJS= blocksort.o  \
++      huffman.o    \
++      crctable.o   \
++      randtable.o  \
++      compress.o   \
++      decompress.o \
++      bzlib.o
++
++all: $(OBJS)
++	$(CC) -dynamiclib -o libbz2.dylib $(OBJS)
++	$(CC) $(CFLAGS) -o bzip2-shared bzip2.c libbz2.dylib
++
++clean: 
++	rm -f $(OBJS) bzip2.o libbz2.so.1.0.6 libbz2.so.1.0 bzip2-shared
++
++install:
++	cp -f libbz2.dylib $(PREFIX)/lib/
++	cp -f bzip2-shared $(PREFIX)/bin/
++
++blocksort.o: blocksort.c
++	$(CC) $(CFLAGS) -c blocksort.c
++huffman.o: huffman.c
++	$(CC) $(CFLAGS) -c huffman.c
++crctable.o: crctable.c
++	$(CC) $(CFLAGS) -c crctable.c
++randtable.o: randtable.c
++	$(CC) $(CFLAGS) -c randtable.c
++compress.o: compress.c
++	$(CC) $(CFLAGS) -c compress.c
++decompress.o: decompress.c
++	$(CC) $(CFLAGS) -c decompress.c
++bzlib.o: bzlib.c
++	$(CC) $(CFLAGS) -c bzlib.c
+diff -druN bzip2-1.0.6.orig/Makefile-libbz2_so bzip2-1.0.6/Makefile-libbz2_so
+--- bzip2-1.0.6.orig/Makefile-libbz2_so	2010-09-10 16:07:52.000000000 -0700
++++ bzip2-1.0.6/Makefile-libbz2_so	2014-03-17 13:20:56.947812833 -0700
+@@ -39,10 +39,15 @@
+ 	$(CC) $(CFLAGS) -o bzip2-shared bzip2.c libbz2.so.1.0.6
+ 	rm -f libbz2.so.1.0
+ 	ln -s libbz2.so.1.0.6 libbz2.so.1.0
++	ln -s libbz2.so.1.0 libbz2.so
+ 
+ clean: 
+ 	rm -f $(OBJS) bzip2.o libbz2.so.1.0.6 libbz2.so.1.0 bzip2-shared
+ 
++install:
++	cp -f libbz2.so* $(PREFIX)/lib/
++	cp -f bzip2-shared $(PREFIX)/bin/
++
+ blocksort.o: blocksort.c
+ 	$(CC) $(CFLAGS) -c blocksort.c
+ huffman.o: huffman.c

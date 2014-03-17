@@ -15,9 +15,22 @@ if [ "x$SAGE64" = xyes ]; then
     CFLAGS="$CFLAG64 $CFLAGS"
 fi
 
-export CFLAGS="-fPIC -O2 -g $CFLAGS"
+export CFLAGS="-O2 -g $CFLAGS"
 
 cd src
+
+########################################################################
+# Patch bzip2
+########################################################################
+
+for patch in ../patches/*.patch; do
+    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
 
 ########################################################################
 # Build bzip2
@@ -25,6 +38,8 @@ cd src
 
 # Since bzip2 doesn't use configure, we need to pass flags as arguments
 # to make.
+
+# Static build
 $MAKE CC="$CC" CFLAGS="$CFLAGS"
 if [ $? -ne 0 ]; then
     echo >&2 "Error building bzip2"
@@ -37,9 +52,26 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Fix a bunch of hard-coding that bzip2 does during installation.
-cd "$SAGE_LOCAL/bin"
-rm bzcmp; ln -s bzdiff bzcmp
-rm bzegrep; ln -s bzgrep bzegrep
-rm bzfgrep; ln -s bzgrep bzfgrep
-rm bzless; ln -s bzmore bzless
+# Shared build
+case "$UNAME" in
+    "CYGWIN")
+        Makefile=Makefile-libbz2_dll
+        ;;
+    "Darwin")
+        Makefile=Makefile-libbz2_dylib
+        ;;
+    *)
+        Makefile=Makefile-libbz2_so
+        ;;
+esac
+$MAKE -f $Makefile CC="$CC" CFLAGS="$CFLAGS"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building bzip2"
+    exit 1
+fi
+
+$MAKE -f $Makefile install PREFIX="$SAGE_LOCAL" CC="$CC" CFLAGS="$CFLAGS"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing bzip2"
+    exit 1
+fi

@@ -524,15 +524,15 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             .. warning::
 
-                Returns an error unless the Cartan type is finite.
+                Raise an error if the Cartan type is not finite.
 
             EXAMPLES::
 
                 sage: L = RootSystem(['C',2]).root_lattice()
                 sage: L.positive_roots_by_height()
-                [alpha[2], alpha[1], alpha[1] + alpha[2], 2*alpha[1] + alpha[2]]
+                [alpha[1], alpha[2], alpha[1] + alpha[2], 2*alpha[1] + alpha[2]]
                 sage: L.positive_roots_by_height(increasing = False)
-                [2*alpha[1] + alpha[2], alpha[1] + alpha[2], alpha[2], alpha[1]]
+                [2*alpha[1] + alpha[2], alpha[1] + alpha[2], alpha[1], alpha[2]]
 
                 sage: L = RootSystem(['A',2,1]).root_lattice()
                 sage: L.positive_roots_by_height()
@@ -1945,16 +1945,16 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             TESTS::
 
-                sage: list(RootSystem(["A",2]).weight_lattice().plot_fundamental_weights())
-                [Arrow from (0.0,0.0) to (1.0,0.0),
+                sage: sorted(RootSystem(["A",2]).weight_lattice().plot_fundamental_weights(), key=str)
+                [Arrow from (0.0,0.0) to (0.0,1.0),
+                 Arrow from (0.0,0.0) to (1.0,0.0),
                  Text '$\Lambda_{1}$' at the point (1.05,0.0),
-                 Arrow from (0.0,0.0) to (0.0,1.0),
                  Text '$\Lambda_{2}$' at the point (0.0,1.05)]
 
-                 sage: list(RootSystem(["A",2]).ambient_lattice().plot_fundamental_weights())
-                 [Arrow from (0.0,0.0) to (0.5,0.866024518389),
+                 sage: sorted(RootSystem(["A",2]).ambient_lattice().plot_fundamental_weights(), key=str)
+                 [Arrow from (0.0,0.0) to (-0.5,0.866024518389),
+                  Arrow from (0.0,0.0) to (0.5,0.866024518389),
                   Text '$\Lambda_{1}$' at the point (0.525,0.909325744308),
-                  Arrow from (0.0,0.0) to (-0.5,0.866024518389),
                   Text '$\Lambda_{2}$' at the point (-0.525,0.909325744308)]
             """
             plot_options = self.plot_parse_options(**options)
@@ -3021,16 +3021,16 @@ class RootLatticeRealizations(Category_over_base_ring):
                 alpha[1] 1
                 alpha[2] 2
                 alpha[3] 3
-                alpha[2] + alpha[3] 3
                 alpha[1] + alpha[2] 2
+                alpha[2] + alpha[3] 3
                 alpha[1] + alpha[2] + alpha[3] 3
                 sage: for alpha in positive_roots:
                 ...        print alpha, alpha.to_simple_root(reduced_word=True)
                 alpha[1] (1, ())
                 alpha[2] (2, ())
                 alpha[3] (3, ())
-                alpha[2] + alpha[3] (3, (2,))
                 alpha[1] + alpha[2] (2, (1,))
+                alpha[2] + alpha[3] (3, (2,))
                 alpha[1] + alpha[2] + alpha[3] (3, (1, 2))
 
             ALGORITHM:

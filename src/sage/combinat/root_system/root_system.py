@@ -516,18 +516,18 @@ class RootSystem(UniqueRepresentation, SageObject):
 
             sage: Phi = RootSystem(['A',2]).root_poset(); Phi
             Finite poset containing 3 elements
-            sage: Phi.cover_relations()
-            [[alpha[2], alpha[1] + alpha[2]], [alpha[1], alpha[1] + alpha[2]]]
+            sage: sorted(Phi.cover_relations(), key=str)
+            [[alpha[1], alpha[1] + alpha[2]], [alpha[2], alpha[1] + alpha[2]]]
 
             sage: Phi = RootSystem(['A',3]).root_poset(restricted=True); Phi
             Finite poset containing 3 elements
-            sage: Phi.cover_relations()
+            sage: sorted(Phi.cover_relations(), key=str)
             [[alpha[1] + alpha[2], alpha[1] + alpha[2] + alpha[3]], [alpha[2] + alpha[3], alpha[1] + alpha[2] + alpha[3]]]
 
             sage: Phi = RootSystem(['B',2]).root_poset(); Phi
             Finite poset containing 4 elements
             sage: Phi.cover_relations()
-            [[alpha[2], alpha[1] + alpha[2]], [alpha[1], alpha[1] + alpha[2]], [alpha[1] + alpha[2], alpha[1] + 2*alpha[2]]]
+            [[alpha[1], alpha[1] + alpha[2]], [alpha[2], alpha[1] + alpha[2]], [alpha[1] + alpha[2], alpha[1] + 2*alpha[2]]]
         """
         return self.root_lattice().root_poset(restricted=restricted,facade=facade)
 

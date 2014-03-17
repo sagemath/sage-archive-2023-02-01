@@ -28,9 +28,9 @@ None
 == Special Update/Build Instructions ==
 
 This package must not be bzip2 compressed, so create it using
-
 tar c bzip2-1.0.6 | gzip --best >bzip2-1.0.6.spkg
 
-=== Patches ===
+The build system has been autotoolized based on a patch by the Suse folk at
+http://ftp.uni-kl.de/pub/linux/suse/people/sbrabec/bzip2/for_downstream/bzip2-1.0.6-autoconfiscated.patch
 
-* shared.patch: let bzip2 build shared libraries.
+See patches/autotools and spkg-src for details.

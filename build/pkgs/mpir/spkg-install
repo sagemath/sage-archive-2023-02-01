@@ -197,7 +197,7 @@ MPIR_CONFIGURE="--enable-shared $MPIR_CONFIGURE"
 
 # Don't install GMP compat headers and symlinks if MPIR is not the default MP
 # library.
-if [ `cat "SAGE_LOCAL/share/mp_config"` = "MPIR" ]; then
+if [ `cat "$SAGE_LOCAL/share/mp_config"` = "MPIR" ]; then
     MPIR_CONFIGURE="--enable-gmpcompat $MPIR_CONFIGURE"
 fi
 
@@ -341,15 +341,13 @@ rm -f "$SAGE_LOCAL"/include/{gmp,mpir}*.h
 # used by GCC might still refer to them, such that their deletion would break
 # GCC inside Sage. (We could perhaps remove libmpir* though.)
 # Unless we are switching the default MP library which breaks GCC anyway.
-if [ ! -x "$SAGE_LOCAL/bin/gcc" ] || [ "$SAGE_CHANGE_MP_LIBRARY" = "yes" ]; then
+if [ "$SAGE_CHANGE_MP_LIBRARY" = "yes" ]; then
     echo "Removing old GMP/MPIR libraries..."
     rm -f "$SAGE_LOCAL"/lib/lib{gmp,mpir}*
-    rm -f "$SAGE_LOCAL"/bin/cyg{gmp,mpir}*
 else
     echo "Not removing old GMP/MPIR shared libraries, as other libraries"
     echo "and executables might still refer to them:"
     ls -l "$SAGE_LOCAL"/lib/lib{gmp,mpir}*
-    ls -l "$SAGE_LOCAL"/bin/cyg{gmp,mpir}*
     echo "(Libraries with the same version number will get updated though.)"
 fi
 

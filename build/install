@@ -68,10 +68,12 @@ if [ -z "$SAGE_MP_LIBRARY" ]; then
 fi
 
 SAGE_OLD_MP_LIBRARY=`cat "$SAGE_LOCAL/share/mp_config"`
-if [ "$SAGE_MP_LIBRARY" != "$SAGE_OLD_MP_LIBRARY" ]; then
-    SAGE_CHANGE_MP_LIBRARY=yes
-else
-    SAGE_CHANGE_MP_LIBRARY=no
+if [ -z "$SAGE_CHANGE_MP_LIBRARY" ]; then
+    if [ "$SAGE_MP_LIBRARY" != "$SAGE_OLD_MP_LIBRARY" ]; then
+        SAGE_CHANGE_MP_LIBRARY=yes
+    else
+        SAGE_CHANGE_MP_LIBRARY=no
+    fi
 fi
 
 case "$SAGE_MP_LIBRARY" in
@@ -88,20 +90,37 @@ case "$SAGE_MP_LIBRARY" in
 esac
 
 if [ "$SAGE_CHANGE_MP_LIBRARY" = "yes" ]; then
+    echo "SAGE_CHANGE_MP_LIBRARY has been set to yes automatically or by the user."
+    echo "Therefore, the previous versions of MP/MPFR/MPC/PPL and potentially GCC"
+    echo "will be deleted and rebuilt."
+    echo "This may lead to an unusable installation."
+    echo "If that was not your intention, you have 5 seconds to kill this process."
+    sleep 5
+
+    echo "Deleting old MP/MPFR/MPC/PPL install as the default MP library changed."
+    rm -f "$SAGE_LOCAL"/lib/lib{gmp,mpir}*
+    rm -f "$SAGE_LOCAL"/lib/libmpfr*
+    rm -f "$SAGE_LOCAL"/lib/libmpc*
+    rm -f "$SAGE_LOCAL"/lib/libppl*
+
     if [ -f "$SAGE_LOCAL/bin/gcc" ]; then
-        echo "Deleting old GCC install as the default MP library changes."
+        echo "Deleting old GCC install as the default MP library changed."
         rm -f "$SAGE_LOCAL/bin/gcc"
         rm -f "$SAGE_LOCAL/bin/cpp"
         rm -f "$SAGE_LOCAL/bin/g++"
         rm -f "$SAGE_LOCAL/bin/gfortran"
     fi
+
+    echo "Triggering rebuild of MP library."
+    rm -f "$SAGE_SPKG_INST"/{gmp,mpir}*
+
     if [ -z "$SAGE_UPGRADING" ]; then
-        echo "Setting SAGE_UPGRADING to yes as the default MP library changes."
+        echo "Setting SAGE_UPGRADING to yes as the default MP library changed."
         SAGE_UPGRADING=yes
     else
         if [ "$SAGE_UPGRADING" != "yes" ]; then
             echo "SAGE_UPGRADING is set to something different from yes"
-            echo "whereas the default MP library changes."
+            echo "whereas the default MP library changed."
             echo "You might end up with a broken Sage installation."
         fi
     fi
@@ -476,8 +495,7 @@ EOF
 sage_mp_library=`echo "$SAGE_MP_LIBRARY" | tr '[A-Z]' '[a-z]'`
 cat >&5 << EOF
 # Sage MP library
-$(SAGE_MP_LIBRARY)=`newest_version $(sage_mp_library)`
-SAGE_MP_LIBRARY=$(SAGE_MP_LIBRARY)
+SAGE_MP_LIBRARY=`newest_version $sage_mp_library`
 
 EOF
 

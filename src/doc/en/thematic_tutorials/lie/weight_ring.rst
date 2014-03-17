@@ -32,8 +32,8 @@ another way is to coerce it into the weight ring::
     sage: A2 = WeylCharacterRing(['A',2])
     sage: ad = A2(1,0,-1)
     sage: ad.weight_multiplicities()
-    {(-1, 1, 0): 1, (0, 1, -1): 1, (1, 0, -1): 1, (0, 0, 0): 2,
-     (-1, 0, 1): 1, (0, -1, 1): 1, (1, -1, 0): 1}
+    {(0, 1, -1): 1, (0, -1, 1): 1, (-1, 1, 0): 1, (0, 0, 0): 2,
+     (1, -1, 0): 1, (1, 0, -1): 1, (-1, 0, 1): 1}
 
 This command produces a dictionary of the weights that appear in
 the representation, together with their multiplicities. But another

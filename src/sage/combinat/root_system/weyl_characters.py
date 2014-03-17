@@ -484,11 +484,11 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A2=WeylCharacterRing("A2")
-            sage: weights=A2(2,1,0).weight_multiplicities().keys(); weights
-            [(1, 2, 0), (2, 1, 0), (0, 2, 1), (2, 0, 1), (0, 1, 2), (1, 1, 1), (1, 0, 2)]
+            sage: A2 = WeylCharacterRing("A2")
+            sage: weights = sorted(A2(2,1,0).weight_multiplicities().keys(), key=str); weights
+            [(0, 1, 2), (0, 2, 1), (1, 0, 2), (1, 1, 1), (1, 2, 0), (2, 0, 1), (2, 1, 0)]
             sage: [A2.dot_reduce(x) for x in weights]
-            [[0, (0, 0, 0)], [1, (2, 1, 0)], [-1, (1, 1, 1)], [0, (0, 0, 0)], [0, (0, 0, 0)], [1, (1, 1, 1)], [-1, (1, 1, 1)]]
+            [[0, (0, 0, 0)], [-1, (1, 1, 1)], [-1, (1, 1, 1)], [1, (1, 1, 1)], [0, (0, 0, 0)], [0, (0, 0, 0)], [1, (2, 1, 0)]]
         """
         alphacheck = self._space.simple_coroots()
         alpha = self._space.simple_roots()
@@ -579,7 +579,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
             sage: B2=WeylCharacterRing("B2", style="coroots")
             sage: [B2._demazure_weights(v, word=[1,2]) for v in B2.fundamental_weights()]
-            [{(0, 1): 1, (1, 0): 1}, {(-1/2, 1/2): 1, (1/2, -1/2): 1, (1/2, 1/2): 1}]
+            [{(0, 1): 1, (1, 0): 1}, {(1/2, 1/2): 1, (1/2, -1/2): 1, (-1/2, 1/2): 1}]
         """
         alphacheck = self._space.simple_coroots()
         alpha = self._space.simple_roots()
@@ -605,7 +605,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             sage: A2=WeylCharacterRing("A2",style="coroots")
             sage: dd = {}; dd[(1,1)]=int(1)
             sage: A2._demazure_helper(dd,word=[1,2])
-            {(1, -1, 0): 1, (-1, 1, 0): 1, (1, 0, -1): 1, (0, 0, 0): 1, (0, 1, -1): 1}
+            {(0, 0, 0): 1, (1, 0, -1): 1, (1, -1, 0): 1, (0, 1, -1): 1, (-1, 1, 0): 1}
         """
         if self._style != "coroots":
             raise ValueError('_demazure_helper method unavailable. Use style="coroots".')
@@ -663,7 +663,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             sage: B2=WeylCharacterRing("B2",style="coroots")
             sage: chi=2*B2(1,0)
             sage: B2._weight_multiplicities(chi)
-            {(0, 1): 2, (1, 0): 2, (0, 0): 2, (-1, 0): 2, (0, -1): 2}
+            {(0, 1): 2, (0, 0): 2, (1, 0): 2, (-1, 0): 2, (0, -1): 2}
         """
         d = {}
         m = x._monomial_coefficients
@@ -889,7 +889,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             sage: v = A2._space([3,1,0]); v
             (3, 1, 0)
             sage: d = dict([(x,1) for x in v.orbit()]); d
-            {(3, 0, 1): 1, (1, 0, 3): 1, (0, 1, 3): 1, (1, 3, 0): 1, (3, 1, 0): 1, (0, 3, 1): 1}
+            {(0, 1, 3): 1, (1, 0, 3): 1, (1, 3, 0): 1, (0, 3, 1): 1, (3, 1, 0): 1, (3, 0, 1): 1}
             sage: A2.char_from_weights(d)
             -A2(2,1,1) - A2(2,2,0) + A2(3,1,0)
         """
@@ -913,7 +913,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             sage: v = A2._space([3,1,0])
             sage: d = dict([(x,1) for x in v.orbit()])
             sage: A2._char_from_weights(d)
-            {(3, 1, 0): 1, (2, 1, 1): -1, (2, 2, 0): -1}
+            {(2, 2, 0): -1, (3, 1, 0): 1, (2, 1, 1): -1}
         """
         hdict = {}
         ddict = mdict.copy()
@@ -1237,7 +1237,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
                 sage: A2=WeylCharacterRing("A2")
                 sage: A2(1,1,0)._adams_operation_helper(3)
-                {(3, 3, 0): 1, (0, 3, 3): 1, (3, 0, 3): 1}
+                {(3, 3, 0): 1, (3, 0, 3): 1, (0, 3, 3): 1}
             """
             d = self.weight_multiplicities()
             dd = {}
@@ -1362,7 +1362,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
                 sage: B2=WeylCharacterRing("B2",style="coroots")
                 sage: B2(0,1).weight_multiplicities()
-                {(-1/2, 1/2): 1, (-1/2, -1/2): 1, (1/2, -1/2): 1, (1/2, 1/2): 1}
+                {(1/2, 1/2): 1, (-1/2, -1/2): 1, (-1/2, 1/2): 1, (1/2, -1/2): 1}
             """
             return self.parent()._weight_multiplicities(self)
 
@@ -1451,7 +1451,7 @@ def irreducible_character_freudenthal(hwv, debug=False):
     EXAMPLES::
 
         sage: WeylCharacterRing("A2")(2,1,0).weight_multiplicities() # indirect doctest
-        {(1, 2, 0): 1, (2, 1, 0): 1, (0, 2, 1): 1, (2, 0, 1): 1, (0, 1, 2): 1, (1, 1, 1): 2, (1, 0, 2): 1}
+        {(0, 2, 1): 1, (1, 0, 2): 1, (1, 1, 1): 2, (2, 1, 0): 1, (1, 2, 0): 1, (0, 1, 2): 1, (2, 0, 1): 1}
     """
     L = hwv.parent()
     rho = L.rho()

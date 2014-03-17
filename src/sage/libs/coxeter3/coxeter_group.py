@@ -151,7 +151,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
 
     def rank(self):
         """
-        Return the rank of this coxeter group, that is, the number of generators.
+        Return the rank of this Coxeter group, that is, the number of generators.
 
         EXAMPLES::
 

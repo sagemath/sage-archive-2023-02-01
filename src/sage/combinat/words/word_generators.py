@@ -47,10 +47,10 @@ EXAMPLES::
 #                          Arnaud Bergeron <abergeron@gmail.com>,
 #                          Amy Glen <amy.glen@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License version 2 (GPLv2)
-#
-#  The full text of the GPLv2 is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from itertools import cycle, count
@@ -300,20 +300,6 @@ class LowerChristoffelWord(FiniteWord_list):
             (<class 'sage.combinat.words.word_generators.LowerChristoffelWord'>, (5, 7, {0, 1}))
         """
         return self.__class__, (self.__p, self.__q, self.parent().alphabet())
-
-class ChristoffelWord_Lower(LowerChristoffelWord):
-    def __new__(cls, *args, **kwds):
-        r"""
-        TEST:
-            sage: from sage.combinat.words.word_generators import ChristoffelWord_Lower
-            sage: w = ChristoffelWord_Lower(1,0); w
-            doctest:1: DeprecationWarning: ChristoffelWord_Lower is deprecated, use LowerChristoffelWord instead
-            See http://trac.sagemath.org/6519 for details.
-            word: 1
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(6519, "ChristoffelWord_Lower is deprecated, use LowerChristoffelWord instead")
-        return LowerChristoffelWord.__new__(cls, *args, **kwds)
 
 class WordGenerator(object):
     r"""

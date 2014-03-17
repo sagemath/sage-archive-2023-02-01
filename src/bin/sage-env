@@ -358,7 +358,10 @@ if [ "$SAGE_STARTUP_FILE" = "" ]; then
     export SAGE_STARTUP_FILE
 fi
 
-export IPYTHONDIR="$DOT_SAGE/ipython-0.12"
+IPYTHONDIR=`find "$SAGE_SPKG_INST" -name "ipython*"`
+if [ -n "$IPYTHONDIR" ]; then
+    export IPYTHONDIR="$DOT_SAGE/${IPYTHONDIR##*/}"
+fi
 
 if [ "$PYTHON_EGG_CACHE" = "" ]; then
     PYTHON_EGG_CACHE="$DOT_SAGE/.python-eggs"
@@ -483,10 +486,7 @@ if [ -z "$CXX" ]; then
     CXX=g++
 fi
 if [ -z "$FC" ]; then
-    if [ -n "$SAGE_FORTRAN" ]; then
-        # Deprecated, see #13349.
-        FC="$SAGE_FORTRAN"
-    elif command -v gfortran >/dev/null 2>/dev/null; then
+    if command -v gfortran >/dev/null 2>/dev/null; then
         FC=gfortran
     elif command -v g95 >/dev/null 2>/dev/null; then
         FC=g95

@@ -484,6 +484,17 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             True
             sage: [E._cardinality_with_j_invariant_1728() for E in curves]
             [387459856, 387400807, 387420490, 387420490, 387381124, 387440173]
+
+        TESTS:
+
+        Check that a bug noted at :trac:`15667` is fixed::
+
+            sage: F.<a>=GF(3^6,'a')
+            sage: EllipticCurve([a^5 + 2*a^3 + 2*a^2 + 2*a, a^4 + a^3 + 2*a + 1]).cardinality()
+            784
+            sage: EllipticCurve([a^5 + 2*a^3 + 2*a^2 + 2*a, a^4 + a^3 + 2*a + 1]).cardinality_exhaustive()
+            784
+
         """
         try:
             return self._order
@@ -577,22 +588,23 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 # [0,0,0,g^2,0], [0,0,0,g^2,i*a*g^3]; where g
                 # generates the multiplicative group modulo 4th
                 # powers, and a has nonzero trace.
-                A4 = self.a4()-self.a1()*self.a3()
-                i = k(-1).sqrt()
-                t = 0
+
+                # The curve is isomorphic to [0,0,0,A4,A6]
+
+                A4 = self.a4() - self.a1()*self.a3() # = -b4 = 2*b4
                 if A4.is_square():
                     u = A4.sqrt()
                     t = (-3)**(d//2)
-                    if u.is_square():
-                        A6 = (self.a3()**2+self.a6())/u
-                        if (i*A6).trace()==0:
-                            t = 2*t
-                        else:
-                            t = -t
+                    i = k(-1).sqrt()
+                    A6 = self.a3()**2 + self.a6()   # = b6
+                    if (A6/(i*u*A4)).trace()==0:
+                        t *= 2
                     else:
-                        A6 = (self.a3()**2+self.a6())/(u*A4)
-                        if (i*A6).trace()==0:
-                            t = -2*t
+                        t *= -1
+                    if not u.is_square():
+                        t *= -1
+                else:
+                    t = 0
                 N = q+1-t
 
 # p>3, j=1728
@@ -1944,7 +1956,7 @@ def supersingular_j_polynomial(p):
     J = polygen(GF(p),'j')
     if p<13:
         return J.parent().one()
-    from sage.rings.all import binomial
+    from sage.rings.arith import binomial
     from sage.misc.all import prod
     m=(p-1)//2
     X,T = PolynomialRing(GF(p),2,names=['X','T']).gens()

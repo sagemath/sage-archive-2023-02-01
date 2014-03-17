@@ -32,7 +32,7 @@ done
 # Autotoolify bzip2
 cp -f ../autotools/* ./
 
-./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL"
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring bzip2"
     exit 1

@@ -107,21 +107,21 @@ class CombinatorialFreeModuleElement(Element):
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
             sage: B = F.basis()
             sage: f = B['a'] + 3*B['c']
-            sage: hash(f)
-            6429418278791303855           # 64-bit
-            734155439                     # 32-bit
+            sage: hash(f) - hash(F)
+            6429418278783588506           # 64-bit
+            726440090                     # 32-bit
 
             sage: F = RootSystem(['A',2]).ambient_space()
             sage: f = F.simple_root(0)
-            sage: hash(f)
-            6920829894170998502           # 64-bit
-            3774314214                    # 32-bit
+            sage: hash(f) - hash(F)
+            6920829894162680369           # 64-bit
+            3765996081                    # 32-bit
 
-        This uses the recipe that was proposed for frozendicts in
-        `PEP 0416 <http://legacy.python.org/dev/peps/pep-0416/>`_.
-        It relies on the hash function for frozensets which uses
-        tricks to mix the hash values of the items in case they
-        are similar.
+        This uses the recipe that was proposed for frozendicts in `PEP
+        0416 <http://legacy.python.org/dev/peps/pep-0416/>`_ (and adds
+        the hash of the parent). This recipe relies on the hash
+        function for frozensets which uses tricks to mix the hash
+        values of the items in case they are similar.
         """
         return hash(self.parent()) + hash(frozenset(self._monomial_coefficients.items()))
 

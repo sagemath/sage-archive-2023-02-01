@@ -1454,7 +1454,10 @@ def help(module=None):
         Welcome to Sage ...
     """
     if not module is None:
-        python_help(module)
+        if isinstance (module, sage.misc.cachefunc.CachedMethodCallerNoArgs):
+            python_help(module.f)
+        else:
+            python_help(module)
     else:
         print """Welcome to Sage %s!
 

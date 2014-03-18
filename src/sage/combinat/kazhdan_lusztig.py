@@ -1,5 +1,11 @@
-"""
+r"""
 Kazhdan-Lusztig Polynomials
+AUTHORS:
+
+- Daniel Bump (2008): initial version
+
+- Alan J.X. Guo (2014-03-18): R_tilde() method.
+
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Daniel Bump <bump at match.stanford.edu>,
@@ -127,7 +133,7 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
 
     @cached_method
     def R_tilde(self, x, y):
-        """
+        r"""
         Return the Kazhdan-Lusztig `\tilde{R}` polynomial. Information for '\tilde{R}' polynomials can be found in [Dy93] and [BB05].
 
         INPUT:

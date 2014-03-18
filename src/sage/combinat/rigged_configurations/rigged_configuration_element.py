@@ -51,10 +51,14 @@ class RiggedConfigurationElement(ClonableArray):
     - ``rigged_partitions`` -- a list of rigged partitions
 
     There are two optional arguments to explicitly construct a rigged
-    configuration. The first is **partition_list** which gives a list of
-    partitions, and the second is **rigging_list** which is a list of
+    configuration. The first is ``partition_list`` which gives a list of
+    partitions, and the second is ``rigging_list`` which is a list of
     corresponding lists of riggings. If only partition_list is specified,
     then it sets the rigging equal to the calculated vacancy numbers.
+
+    If we are construction a rigged configuration from a rigged configuration
+    (say of another type) and we don't want to recompute the vacancy numbers,
+    we can use the ``use_vacancy_numbers`` to avoid the recomputation.
 
     EXAMPLES:
 
@@ -100,7 +104,7 @@ class RiggedConfigurationElement(ClonableArray):
         -1[ ][ ][ ]-1
         <BLANKLINE>
 
-        sage: RC = RiggedConfigurations(['D', 4, 1], [[1,1], [2, 1]])
+        sage: RC = RiggedConfigurations(['D', 4, 1], [[1, 1], [2, 1]])
         sage: RC(partition_list=[[1], [1,1], [1], [1]])
         <BLANKLINE>
         1[ ]1
@@ -112,7 +116,7 @@ class RiggedConfigurationElement(ClonableArray):
         <BLANKLINE>
         0[ ]0
         <BLANKLINE>
-        sage: RC(partition_list=[[1], [1,1], [1], [1]], rigging_list=[[0], [0,0], [0], [0]])
+        sage: elt = RC(partition_list=[[1], [1,1], [1], [1]], rigging_list=[[0], [0,0], [0], [0]]); elt
         <BLANKLINE>
         1[ ]0
         <BLANKLINE>
@@ -123,6 +127,16 @@ class RiggedConfigurationElement(ClonableArray):
         <BLANKLINE>
         0[ ]0
         <BLANKLINE>
+
+        sage: from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition
+        sage: RC2 = RiggedConfigurations(['D', 5, 1], [[2, 1], [3, 1]])
+        sage: l = [RiggedPartition()] + list(elt)
+        sage: ascii_art(RC2(*l))
+        (/)  1[ ]0  0[ ]0  0[ ]0  0[ ]0
+                    0[ ]0
+        sage: ascii_art(RC2(*l, use_vacancy_numbers=True))
+        (/)  1[ ]0  0[ ]0  0[ ]0  0[ ]0
+                    0[ ]0
 
     We can go between
     :class:`tensor products of KR tableaux<TensorProductOfKirillovReshetikhinTableaux>`
@@ -227,10 +241,10 @@ class RiggedConfigurationElement(ClonableArray):
                         nu.append(RiggedPartition(tuple(partition_data)))
         elif parent._cartan_type.classical().rank() == len(rigged_partitions) and \
                 isinstance(rigged_partitions[0], RiggedPartition):
-            if options.get('use_vacancy_numbers', False):
                 # The isinstance check is to make sure we are not in the n == 1 special case because
                 #   Parent's __call__ always passes at least 1 argument to the element constructor
 
+            if options.get('use_vacancy_numbers', False):
                 # Special display case
                 if parent.cartan_type().type() == 'B':
                     rigged_partitions[-1] = RiggedPartitionTypeB(rigged_partitions[-1])
@@ -547,9 +561,7 @@ class RiggedConfigurationElement(ClonableArray):
 
     def delta(self, return_b=False):
         r"""
-        Return the image of ``self`` under the map basic map `\delta`. If the
-        left-most factor is not a single column, then this also performs a
-        :meth:`left_split()`.
+        Return the image of ``self`` under the map basic map `\delta`.
 
         The map `\delta : RC(B^{r,1} \otimes B) \to RC(B^{r-1,1}
         \otimes B)` (if `r = 1`, then we remove the left-most factor) is the
@@ -557,6 +569,8 @@ class RiggedConfigurationElement(ClonableArray):
         tensor products of Kirillov-Reshetikhin tableaux. For more
         information, see
         :meth:`to_tensor_product_of_kirillov_reshetikhin_tableaux()`.
+        We can extend `\delta` when tthe left-most factor is not a single
+        column by precomposing with a :meth:`left_split()`.
 
         .. NOTE::
 
@@ -566,7 +580,8 @@ class RiggedConfigurationElement(ClonableArray):
 
         INPUT:
 
-        - ``return_b`` -- return the resulting letter from `\delta`
+        - ``return_b`` -- (default: ``False``) whether to return the
+          resulting letter from `\delta`
 
         OUTPUT:
 

@@ -542,6 +542,13 @@ def symbolic_sum(expression, *args, **kwds):
     Returns the symbolic sum `\sum_{v = a}^b expression` with respect
     to the variable `v` with endpoints `a` and `b`.
 
+    .. WARNING::
+    
+        This function only works with symbolic expressions. To sum any
+        other objects like list elements or function return values,
+        please use python summation, see
+        http://docs.python.org/2.7/library/functions.html#sum
+    
     INPUT:
 
     - ``expression`` - a symbolic expression

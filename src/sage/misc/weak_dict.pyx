@@ -5,6 +5,7 @@ AUTHORS:
 
 - Simon King (2013-10)
 - Nils Bruin (2013-10)
+- Julian Rueth (2014-03-16): improved handling of unhashable objects
 
 Python's :mod:`weakref` module provides
 :class:`~weakref.WeakValueDictionary`. This behaves similar to a dictionary,
@@ -112,6 +113,7 @@ See :trac:`13394` for a discussion of some of the design considerations.
 ########################################################################
 #       Copyright (C) 2013 Simon King <simon.king@uni-jena.de>
 #                          Nils Bruin <nbruin@sfu.ca>
+#                          Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -630,6 +632,17 @@ cdef class WeakValueDictionary(dict):
             sage: len(D)
             5
 
+        TESTS:
+
+        Check that :trac:`15956` has been fixed, i.e., a ``TypeError`` is
+        raised for unhashable objects::
+
+            sage: D = sage.misc.weak_dict.WeakValueDictionary()
+            sage: D.setdefault(matrix([]),ZZ)
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable matrices are unhashable
+
         """
         cdef PyObject* wr = PyDict_GetItem(self, k)
         if wr != NULL:
@@ -696,6 +709,15 @@ cdef class WeakValueDictionary(dict):
             sage: D.items()
             [(2, Integer Ring)]
 
+        Check that :trac:`15956` has been fixed, i.e., a ``TypeError`` is
+        raised for unhashable objects::
+
+            sage: D = sage.misc.weak_dict.WeakValueDictionary()
+            sage: D[matrix([])] = ZZ
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable matrices are unhashable
+
         """
         PyDict_SetItem(self,k,KeyedRef(v,self.callback,PyObject_Hash(k)))
 
@@ -722,9 +744,21 @@ cdef class WeakValueDictionary(dict):
             ...
             KeyError: 20
 
+        TESTS:
+
+        Check that :trac:`15956` has been fixed, i.e., a ``TypeError`` is
+        raised for unhashable objects::
+
+            sage: D = sage.misc.weak_dict.WeakValueDictionary()
+            sage: D.pop(matrix([]))
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable matrices are unhashable
+
         """
         cdef PyObject* wr = PyDict_GetItem(self, k)
         if wr == NULL:
+            hash(k) # raises a TypeError if k is not hashable
             raise KeyError(k)
         cdef PyObject* outref = PyWeakref_GetObject(wr)
         if outref == Py_None:
@@ -787,9 +821,21 @@ cdef class WeakValueDictionary(dict):
             sage: D.get(200) is None
             True
 
+        TESTS:
+
+        Check that :trac:`15956` has been fixed, i.e., a ``TypeError`` is
+        raised for unhashable objects::
+
+            sage: D = sage.misc.weak_dict.WeakValueDictionary()
+            sage: D.get(matrix([]))
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable matrices are unhashable
+
         """
         cdef PyObject * wr = PyDict_GetItem(self, k)
         if wr == NULL:
+            hash(k) # raises a TypeError if k is not hashable
             return d
         out = PyWeakref_GetObject(wr)
         if out == Py_None:
@@ -818,9 +864,19 @@ cdef class WeakValueDictionary(dict):
             sage: D[int(10)]
             Integer Ring
 
+        Check that :trac:`15956` has been fixed, i.e., a ``TypeError`` is
+        raised for unhashable objects::
+
+            sage: D = sage.misc.weak_dict.WeakValueDictionary()
+            sage: D[matrix([])]
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable matrices are unhashable
+
         """
         cdef PyObject* wr = PyDict_GetItem(self, k)
         if wr == NULL:
+            hash(k) # raises a TypeError if k is not hashable
             raise KeyError(k)
         out = PyWeakref_GetObject(wr)
         if out == Py_None:
@@ -853,9 +909,19 @@ cdef class WeakValueDictionary(dict):
             sage: 3 in D
             False
 
+        Check that :trac:`15956` has been fixed, i.e., a ``TypeError`` is
+        raised for unhashable objects::
+
+            sage: D = sage.misc.weak_dict.WeakValueDictionary()
+            sage: matrix([]) in D
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable matrices are unhashable
+
         """
         cdef PyObject* wr = PyDict_GetItem(self, k)
         if wr==NULL:
+            hash(k) # raises a TypeError if k is not hashable
             return False
         if PyWeakref_GetObject(wr)==Py_None:
             return False

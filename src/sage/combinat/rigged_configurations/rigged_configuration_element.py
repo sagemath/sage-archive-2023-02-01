@@ -55,10 +55,14 @@ class RiggedConfigurationElement(ClonableArray):
     - ``rigged_partitions`` -- a list of rigged partitions
 
     There are two optional arguments to explicitly construct a rigged
-    configuration. The first is **partition_list** which gives a list of
-    partitions, and the second is **rigging_list** which is a list of
+    configuration. The first is ``partition_list`` which gives a list of
+    partitions, and the second is ``rigging_list`` which is a list of
     corresponding lists of riggings. If only partition_list is specified,
     then it sets the rigging equal to the calculated vacancy numbers.
+
+    If we are construction a rigged configuration from a rigged configuration
+    (say of another type) and we don't want to recompute the vacancy numbers,
+    we can use the ``use_vacancy_numbers`` to avoid the recomputation.
 
     EXAMPLES:
 
@@ -104,7 +108,7 @@ class RiggedConfigurationElement(ClonableArray):
         -1[ ][ ][ ]-1
         <BLANKLINE>
 
-        sage: RC = RiggedConfigurations(['D', 4, 1], [[1,1], [2, 1]])
+        sage: RC = RiggedConfigurations(['D', 4, 1], [[1, 1], [2, 1]])
         sage: RC(partition_list=[[1], [1,1], [1], [1]])
         <BLANKLINE>
         1[ ]1
@@ -116,7 +120,7 @@ class RiggedConfigurationElement(ClonableArray):
         <BLANKLINE>
         0[ ]0
         <BLANKLINE>
-        sage: RC(partition_list=[[1], [1,1], [1], [1]], rigging_list=[[0], [0,0], [0], [0]])
+        sage: elt = RC(partition_list=[[1], [1,1], [1], [1]], rigging_list=[[0], [0,0], [0], [0]]); elt
         <BLANKLINE>
         1[ ]0
         <BLANKLINE>
@@ -127,6 +131,16 @@ class RiggedConfigurationElement(ClonableArray):
         <BLANKLINE>
         0[ ]0
         <BLANKLINE>
+
+        sage: from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition
+        sage: RC2 = RiggedConfigurations(['D', 5, 1], [[2, 1], [3, 1]])
+        sage: l = [RiggedPartition()] + list(elt)
+        sage: ascii_art(RC2(*l))
+        (/)  1[ ]0  0[ ]0  0[ ]0  0[ ]0
+                    0[ ]0
+        sage: ascii_art(RC2(*l, use_vacancy_numbers=True))
+        (/)  1[ ]0  0[ ]0  0[ ]0  0[ ]0
+                    0[ ]0
     """
     def __init__(self, parent, rigged_partitions=[], **options):
         r"""
@@ -197,11 +211,13 @@ class RiggedConfigurationElement(ClonableArray):
             # The isinstance check is to make sure we are not in the n == 1 special case because
             #   Parent's __call__ always passes at least 1 argument to the element constructor
 
-            # Special display case
-            if parent.cartan_type().type() == 'B':
-                rigged_partitions[-1] = RiggedPartitionTypeB(rigged_partitions[-1])
-            ClonableArray.__init__(self, parent, rigged_partitions)
-            return
+            if options.get('use_vacancy_numbers', False):
+                # Special display case
+                if parent.cartan_type().type() == 'B':
+                    rigged_partitions[-1] = RiggedPartitionTypeB(rigged_partitions[-1])
+                ClonableArray.__init__(self, parent, rigged_partitions)
+                return
+            nu = rigged_partitions
         else:
             # Otherwise we did not receive any info, create a size n array of
             #   empty rigged partitions
@@ -1571,6 +1587,109 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         """
         kr_tab = self.to_tensor_product_of_kirillov_reshetikhin_tableaux(display_steps)
         return kr_tab.to_tensor_product_of_kirillov_reshetikhin_crystals()
+
+    def left_split(self):
+        r"""
+        Return the image of ``self`` under the left column splitting
+        map `\beta`.
+
+        Consider the map `\beta : RC(B^{r,s} \otimes B) \to RC(B^{r,1}
+        \otimes B^{r,s-1} \otimes B)` for `s > 1` which is a natural classical
+        crystal injection. On rigged configurations, the map `\beta` does
+        nothing (except possibly changing the vacancy numbers).
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['C',4,1], [[3,3]])
+            sage: mg = RC.module_generators[-1]
+            sage: ascii_art(mg)
+            0[ ][ ]0  0[ ][ ]0  0[ ][ ]0  0[ ]0
+                      0[ ][ ]0  0[ ][ ]0  0[ ]0
+                                0[ ][ ]0  0[ ]0
+            sage: ascii_art(mg.left_split())
+            0[ ][ ]0  0[ ][ ]0  1[ ][ ]0  0[ ]0
+                      0[ ][ ]0  1[ ][ ]0  0[ ]0
+                                1[ ][ ]0  0[ ]0
+        """
+        P = self.parent()
+        B = list(P.dims)
+        if B[0][1] == 1:
+            raise ValueError("cannot split a single column")
+        B[0] = (B[0][0], B[0][1] - 1)
+        B.insert(0, (B[0][0], 1))
+        from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
+        RC = RiggedConfigurations(P._cartan_type, B)
+        return RC(*self)
+
+    def delta(self, return_b=False):
+        r"""
+        Return the image of ``self`` under the map basic map `\delta`.
+
+        The map `\delta : RC(B^{r,1} \otimes B) \to RC(B^{r-1,1}
+        \otimes B)` (if `r = 1`, then we remove the left-most factor) is the
+        basic map in the bijection `\Phi` between rigged configurations and
+        tensor products of Kirillov-Reshetikhin tableaux. For more
+        information, see
+        :meth:`to_tensor_product_of_kirillov_reshetikhin_tableaux()`.
+        We can extend `\delta` when tthe left-most factor is not a single
+        column by precomposing with a :meth:`left_split()`.
+
+        .. NOTE::
+
+            Due to the special nature of the bijection for the spinor cases in
+            types `D_n^{(1)}`, `B_n^{(1)}`, and `A_{2n-1}^{(2)}`, this map is
+            not defined in these cases.
+
+        INPUT:
+
+        - ``return_b`` -- (default: ``False``) whether to return the
+          resulting letter from `\delta`
+
+        OUTPUT:
+
+        The resulting rigged configuration or if ``return_b`` is ``True``,
+        then a tuple of the resulting rigged configuration and the letter.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['C',4,1], [[3,2]])
+            sage: mg = RC.module_generators[-1]
+            sage: ascii_art(mg)
+            0[ ][ ]0  0[ ][ ]0  0[ ][ ]0  0[ ]0
+                      0[ ][ ]0  0[ ][ ]0  0[ ]0
+                                0[ ][ ]0  0[ ]0
+            sage: ascii_art(mg.delta())
+            0[ ]0  0[ ][ ]0  0[ ][ ]0  0[ ]0
+                   0[ ]0     0[ ][ ]0  0[ ]0
+            sage: x,b = mg.delta(True)
+            sage: b
+            -1
+        """
+        # Don't do spinor cases
+        P = self.parent()
+        ct = P.cartan_type()
+        if ct.type() == 'D':
+            if P.dims[0][0] >= ct.rank() - 2:
+                raise ValueError("only for non-spinor cases")
+        elif ct.type() == 'B' or ct.dual().type() == 'B':
+            if P.dims[0][0] == ct.rank() - 1:
+                raise ValueError("only for non-spinor cases")
+
+        from sage.combinat.rigged_configurations.bijection import RCToKRTBijection
+        rc = self
+        if P.dims[0][1] != 1:
+            rc = self.left_split()
+        bij = RCToKRTBijection(rc)
+        bij.cur_dims[0][0] -= 1 # This takes care of the indexing
+        b = bij.next_state(bij.cur_dims[0][0])
+        if bij.cur_dims[0][0] == 0:
+            bij.cur_dims.pop(0)
+        from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
+        RC = RiggedConfigurations(ct, bij.cur_dims)
+        rc = RC(*bij.cur_partitions)
+        if return_b:
+            return (rc, b)
+        return rc
 
 class KRRCSimplyLacedElement(KRRiggedConfigurationElement):
     r"""

@@ -122,6 +122,28 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
             return ret
 
     @cached_method
+    def R_tilde(self, x, y):
+        if x==1:
+            x=self._one;
+        if y==1:
+            y=self._one;
+        if not x.bruhat_le(y):
+            return self._base_ring.zero();
+        if x==y:
+            return self._base_ring.one();
+        s = self._coxeter_group.simple_reflection(y.first_descent(side="right"))
+        if (x*s).length() < x.length():
+            ret = self.R_tilde(x*s, y*s);
+            if self._trace:
+                print " R_tilde(%s,%s)=%s"%(x, y, ret);
+            return ret;
+        else:
+            ret = self.R_tilde(x*s,y*s) + self._q*self.R_tilde(x,y*s);
+            if self._trace:
+                print " R_tilde(%s,%s)=%s"%(x, y, ret);
+            return ret;
+
+    @cached_method
     def P(self, x, y):
         """
         Return the Kazhdan-Lusztig `P` polynomial.

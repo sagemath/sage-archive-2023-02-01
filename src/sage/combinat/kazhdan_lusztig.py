@@ -40,6 +40,10 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
        groups and Hecke algebras*. Invent. Math. **53** (1979).
        no. 2, 165--184. :doi:`10.1007/BF01390031` :mathscinet:`MR0560412`
 
+    .. [Dy93] Dyer M J. Hecke algebras and shellings of Bruhat intervals. Compositio Mathematica, 1993, 89(1): 91-115.
+
+    .. [BB05] Bjorner A, Brenti F. Combinatorics of Coxeter groups. New York: Springer, 2005.
+
     EXAMPLES::
 
         sage: W = WeylGroup("B3",prefix="s")
@@ -123,6 +127,22 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
 
     @cached_method
     def R_tilde(self, x, y):
+        """
+        Return the Kazhdan-Lusztig `\tilde{R}` polynomial. Information for '\tilde{R}' polynomials can be found in [Dy93] and [BB05].
+
+        INPUT:
+
+        - ``x``, ``y`` -- elements of the underlying Coxeter group
+
+        EXAMPLES::
+
+           sage: R.<q>=QQ[]
+           sage: W = WeylGroup("A2", prefix="s")
+           sage: [s1,s2]=W.simple_reflections()
+           sage: KL = KazhdanLusztigPolynomial(W, q)
+           sage: [KL.R_tilde(x,s2*s1) for x in [1,s1,s2,s1*s2]]
+           [q^2, q, q, 0]
+       """
         if x==1:
             x=self._one;
         if y==1:

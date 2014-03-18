@@ -28,14 +28,14 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.combinat.misc import IterableFunctionCall
 import sage.combinat.tableau as tableau
-from sage.rings.all import ZZ, QQ
+from sage.rings.all import QQ
 from sage.categories.finite_crystals import FiniteCrystals
 from sage.categories.regular_crystals import RegularCrystals
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.rigged_configurations.kleber_tree import KleberTree, VirtualKleberTree
-from sage.combinat.rigged_configurations.rigged_configuration_element import KRRiggedConfigurationElement, \
-  KRRCNonSimplyLacedElement
+from sage.combinat.rigged_configurations.rigged_configuration_element import (
+     RiggedConfigurationElement, KRRCSimplyLacedElement, KRRCNonSimplyLacedElement)
 
 RiggedConfigurationOptions=GlobalOptions(name='rigged configurations',
     doc=r"""
@@ -975,11 +975,11 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             if z != x:
                 rejects.append((x, z))
 
-        tester.assertTrue(len(rejects) == 0, "Bijection is not correct: %s"%rejects)
+        tester.assertTrue(len(rejects) == 0, "Bijection is not correct: {}".format(rejects))
         if len(rejects) != 0:
             return rejects
 
-    Element = KRRiggedConfigurationElement
+    Element = KRRCSimplyLacedElement
 
 class RCNonSimplyLaced(RiggedConfigurations):
     r"""

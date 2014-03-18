@@ -25,12 +25,11 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
-from sage.rings.all import QQ
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 from sage.combinat.root_system.cartan_type import CartanType
-from sage.combinat.rigged_configurations.rigged_configuration_element import RiggedConfigurationElement
+from sage.combinat.rigged_configurations.rigged_configuration_element import (
+     RiggedConfigurationElement, RCNonSimplyLacedElement)
 from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurationOptions
-from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition
 
 # Note on implementation, this class is used for simply-laced types only
 class InfinityCrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
@@ -56,7 +55,7 @@ class InfinityCrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
         cartan_type = CartanType(cartan_type)
         if not cartan_type.is_simply_laced():
             vct = cartan_type.as_folding()
-            return InfinityCrystalOfVirtualRC(vct)
+            return InfinityCrystalOfNonSimplyLacedRC(vct)
 
         return super(InfinityCrystalOfRiggedConfigurations, cls).__classcall__(cls, cartan_type)
 
@@ -88,36 +87,6 @@ class InfinityCrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
         """
         return "The infinity crystal of rigged configurations of type {}".format(self._cartan_type)
 
-    def __iter__(self):
-        """
-        Returns the iterator of ``self``.
-
-        EXAMPLES::
-
-            sage: RC = InfinityCrystalOfRiggedConfigurations(['A', 3])
-            sage: g = RC.__iter__()
-            sage: g.next()
-            <BLANKLINE>
-            (/)
-            <BLANKLINE>
-            (/)
-            <BLANKLINE>
-            (/)
-            <BLANKLINE>
-            sage: g.next()
-            <BLANKLINE>
-            (/)
-            <BLANKLINE>
-            -1[ ]-1
-            <BLANKLINE>
-            (/)
-            <BLANKLINE>
-        """
-        index_set = self._cartan_type.index_set()
-        from sage.combinat.backtrack import TransitiveIdeal
-        return TransitiveIdeal(lambda x: [x.f(i) for i in index_set],
-                               self.module_generators).__iter__()
-
     def _element_constructor_(self, lst=None, **options):
         """
         Construct an element of ``self`` from ``lst``.
@@ -134,11 +103,11 @@ class InfinityCrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
 
         INPUT:
 
-        - ``partitions`` -- The list of rigged partitions we are using
+        - ``partitions`` -- the list of rigged partitions we are using
 
-        - ``a``          -- The rigged partition index
+        - ``a`` -- the rigged partition index
 
-        - ``i``          -- The row index of the `a`-th rigged partition
+        - ``i`` -- the row index of the `a`-th rigged partition
 
         TESTS::
 
@@ -156,25 +125,7 @@ class InfinityCrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
 
     class Element(RiggedConfigurationElement):
         """
-        A rigged configuration for simply-laced types.
-
-        Typically to create a specific rigged configuration, the user will pass
-        in the optional argument **partition_list** and if the user wants to
-        specify the rigging values, give the optional argument **rigging_list**
-        as well. If **rigging_list** is not passed, the rigging values are set
-        to the corresponding vacancy numbers.
-
-        INPUT:
-
-        - ``parent``            -- The parent of this element
-
-        - ``rigged_partitions`` -- A list of rigged partitions
-
-        There are two optional arguments to explicitly construct a rigged
-        configuration. The first is **partition_list** which gives a list of
-        partitions, and the second is **rigging_list** which is a list of
-        corresponding lists of riggings. If only partition_list is specified,
-        then it sets the rigging equal to the calculated vacancy numbers.
+        A rigged configuration in `\mathcal{B}(\infty)` in simply-laced types.
 
         EXAMPLES:
 
@@ -259,37 +210,6 @@ class InfinityCrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
             <BLANKLINE>
             sage: TestSuite(elt).run()
         """
-
-        def epsilon(self, a):
-            r"""
-            Return `\varepsilon_a` of ``self``.
-            """
-            ep = 0
-            cur = self.e(a)
-            while cur is not None:
-                cur = cur.e(a)
-                ep += 1
-            return ep
-
-        def phi(self, a):
-            r"""
-            Return `\varphi_a` of ``self``.
-
-            Let `x \in \mathcal{RC}(\infty)` Define `\varphi_a(x) :=
-            \varepsilon_a(x) + \langle h_a, \mathrm{wt}(x) \rangle`,
-            where `h_a` is the `a`-th simple coroot and `\mathrm{wt}(x)` is
-            the :meth:`weight` of `x`.
-
-            INPUT:
-
-            - ``i`` -- An element of the index set
-
-            EXAMPLES::
-            """
-            P = self.parent().weight_lattice_realization()
-            h = P.simple_coroots()
-            return self.epsilon(a) + P(self.weight()).scalar(h[a])
-
         def weight(self):
             """
             Return the weight of ``self``.
@@ -298,9 +218,9 @@ class InfinityCrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
             alpha = list(P.simple_roots())
             return sum(sum(x) * alpha[i] for i,x in enumerate(self))
 
-class InfinityCrystalOfVirtualRC(InfinityCrystalOfRiggedConfigurations):
+class InfinityCrystalOfNonSimplyLacedRC(InfinityCrystalOfRiggedConfigurations):
     r"""
-    Rrigged configurations for `\mathcal{B}(\infty)` in non-simply-laced types.
+    Rigged configurations for `\mathcal{B}(\infty)` in non-simply-laced types.
     """
     def __init__(self, vct):
         """
@@ -335,7 +255,7 @@ class InfinityCrystalOfVirtualRC(InfinityCrystalOfRiggedConfigurations):
 
         INPUT:
 
-        - ``rc`` -- A rigged configuration element
+        - ``rc`` -- a rigged configuration element
 
         EXAMPLES::
 
@@ -380,7 +300,7 @@ class InfinityCrystalOfVirtualRC(InfinityCrystalOfRiggedConfigurations):
 
         INPUT:
 
-        - ``vrc`` -- A virtual rigged configuration
+        - ``vrc`` -- a virtual rigged configuration
 
         EXAMPLES::
 
@@ -411,69 +331,22 @@ class InfinityCrystalOfVirtualRC(InfinityCrystalOfRiggedConfigurations):
         return self.element_class(self, partition_list=partitions,
                                   rigging_list=riggings, vacancy_numbers_list=vac_nums)
 
-    class Element(InfinityCrystalOfRiggedConfigurations.Element):
+    class Element(RCNonSimplyLacedElement):
         """
-        Virtual rigged configuration elements.
+        A rigged configuration in `\mathcal{B}(\infty)` in
+        non-simply-laced types.
 
         TESTS::
         """
-        def to_virtual_configuration(self):
+        def weight(self):
             """
-            Return the corresponding rigged configuration in the virtual crystal.
-
-            EXAMPLES::
+            Return the weight of ``self``.
             """
-            return self.parent().to_virtual(self)
+            P = self.parent().weight_lattice_realization()
+            alpha = list(P.simple_roots())
+            return sum(sum(x) * alpha[i] for i,x in enumerate(self))
 
-        def e(self, a):
-            """
-            Return the action of `e_a` on ``self``.
-
-            This works by lifting into the virtual configuration, then applying
-
-            .. MATH::
-
-                \hat{e}_a = \prod_{j \in \iota(a)} e_j^{\gamma_j}
-
-            and pulling back.
-
-            EXAMPLES::
-            """
-            vct = self.parent()._folded_ct
-            gamma = vct.scaling_factors()
-            L = []
-            for i in vct.folding_orbit()[a]:
-                L.extend([i]*int(gamma[a]))
-            virtual_rc = self.parent().to_virtual(self).e_string(L)
-            if virtual_rc is None:
-                return None
-            return self.parent().from_virtual(virtual_rc)
-
-        def f(self, a):
-            """
-            Return the action of `f_a` on ``self``.
-
-            This works by lifting into the virtual configuration, then applying
-
-            .. MATH::
-
-                \hat{f}_a = \prod_{j \in \iota(a)} f_j^{\gamma_j}
-
-            and pulling back.
-
-            EXAMPLES::
-            """
-            vct = self.parent()._folded_ct
-            gamma = vct.scaling_factors()
-            L = []
-            for i in vct.folding_orbit()[a]:
-                L.extend([i]*int(gamma[a]))
-            virtual_rc = self.parent().to_virtual(self).f_string(L)
-            if virtual_rc is None:
-                return None
-            return self.parent().from_virtual(virtual_rc)
-
-class InfinityCrystalOfRCA2Even(InfinityCrystalOfVirtualRC):
+class InfinityCrystalOfRCA2Even(InfinityCrystalOfNonSimplyLacedRC):
     """
     Infinity crystal of rigged configurations for type `A_{2n}^{(2)}`.
     """

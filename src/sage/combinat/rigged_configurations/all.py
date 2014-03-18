@@ -4,6 +4,6 @@ from tensor_product_kr_tableaux import HighestWeightTensorProductOfKirillovReshe
 from tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux
 from kr_tableaux import KirillovReshetikhinTableaux
 from rc_infinity import InfinityCrystalOfRiggedConfigurations
-from crystal_rc import CrystalOfRiggedConfigurations
+from rc_crystal import CrystalOfRiggedConfigurations
 
 

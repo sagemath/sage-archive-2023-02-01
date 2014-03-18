@@ -243,6 +243,12 @@ class RiggedConfigurationElement(ClonableArray):
         Check the rigged configuration is properly defined.
 
         There is nothing to check here.
+
+        EXAMPLES::
+
+            sage: RC = InfinityCrystalOfRiggedConfigurations(['A', 4])
+            sage: b = RC.module_generators[0].f_string([1,2,1,1,2,4,2,3,3,2])
+            sage: b.check()
         """
         pass
 
@@ -326,7 +332,6 @@ class RiggedConfigurationElement(ClonableArray):
         for i in range(height):
             if i != 0:
                 ret_str += '\n'
-            line = []
             for j,t in enumerate(tab_str):
                 if j != 0:
                     ret_str += '   '
@@ -457,7 +462,7 @@ class RiggedConfigurationElement(ClonableArray):
 
     def e(self, a):
         r"""
-        Action of the crystal operator `e_a` on ``self``.
+        Return the action of the crystal operator `e_a` on ``self``.
 
         This implements the method defined in [CrysStructSchilling06]_ which
         finds the value `k` which is  the length of the string with the
@@ -605,7 +610,7 @@ class RiggedConfigurationElement(ClonableArray):
 
     def f(self, a):
         r"""
-        Action of the crystal operator `f_a` on ``self``.
+        Return the action of the crystal operator `f_a` on ``self``.
 
         This implements the method defined in [CrysStructSchilling06]_ which
         finds the value `k` which is  the length of the string with the
@@ -859,12 +864,16 @@ class RCNonSimplyLacedElement(RiggedConfigurationElement):
 
     TESTS::
 
-        sage: RC = RiggedConfigurations(['C',2,1], [[1,2],[1,1],[2,1]])
-        sage: elt = RC(partition_list=[[3],[2]]); elt
+        sage: RC = InfinityCrystalOfRiggedConfigurations(['C',2,1])
+        sage: elt = RC.module_generators[0].f_string([1,0,2,2,0,1]); elt
         <BLANKLINE>
-        0[ ][ ][ ]0
+        -2[ ][ ]-1
         <BLANKLINE>
-        0[ ][ ]0
+        0[ ]-1
+        0[ ]-1
+        <BLANKLINE>
+        -2[ ][ ]-1
+        <BLANKLINE>
         sage: TestSuite(elt).run()
     """
     def to_virtual_configuration(self):
@@ -902,6 +911,17 @@ class RCNonSimplyLacedElement(RiggedConfigurationElement):
         and pulling back.
 
         EXAMPLES::
+
+            sage: RC = InfinityCrystalOfRiggedConfigurations(['C',2,1])
+            sage: elt = RC(partition_list=[[2],[1,1],[2]], rigging_list=[[-1],[-1,-1],[-1]])
+            sage: ascii_art(elt.e(0))
+            0[ ]0  0[ ]-1  -2[ ][ ]-1
+                   0[ ]-1
+            sage: ascii_art(elt.e(1))
+            -3[ ][ ]-2  2[ ]1  -3[ ][ ]-2
+            sage: ascii_art(elt.e(2))
+            -2[ ][ ]-1  0[ ]-1  0[ ]0
+                        0[ ]-1
         """
         vct = self.parent()._folded_ct
         L = []
@@ -926,6 +946,18 @@ class RCNonSimplyLacedElement(RiggedConfigurationElement):
         and pulling back.
 
         EXAMPLES::
+
+            sage: RC = InfinityCrystalOfRiggedConfigurations(['C',2,1])
+            sage: elt = RC(partition_list=[[2],[1,1],[2]], rigging_list=[[-1],[-1,-1],[-1]])
+            sage: ascii_art(elt.f(0))
+            -4[ ][ ][ ]-2  0[ ]-1  -2[ ][ ]-1
+                           0[ ]-1
+            sage: ascii_art(elt.f(1))
+            -1[ ][ ]0  2[ ][ ]-2  -1[ ][ ]0
+                       0[ ]-1   
+            sage: ascii_art(elt.f(2))
+            -2[ ][ ]-1  0[ ]-1  -4[ ][ ][ ]-2
+                        0[ ]-1
         """
         vct = self.parent()._folded_ct
         L = []
@@ -944,6 +976,21 @@ class RCNonSimplyLacedElement(RiggedConfigurationElement):
 class RCHighestWeightElement(RiggedConfigurationElement):
     """
     Rigged configurations in highest weight crystals.
+
+    TESTS::
+
+        sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()
+        sage: RC = CrystalOfRiggedConfigurations(['A',2,1], La[0])
+        sage: elt = RC(partition_list=[[1,1],[1],[2]]); elt
+        <BLANKLINE>
+        -1[ ]-1
+        -1[ ]-1
+        <BLANKLINE>
+        1[ ]1
+        <BLANKLINE>
+        -1[ ][ ]-1
+        <BLANKLINE>
+        sage: TestSuite(elt).run()
     """
     def check(self):
         """
@@ -951,6 +998,11 @@ class RCHighestWeightElement(RiggedConfigurationElement):
         vacancy number.
 
         TESTS::
+
+            sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()
+            sage: RC = CrystalOfRiggedConfigurations(['A',2,1], La[0])
+            sage: elt = RC(partition_list=[[1,1],[1],[2]])
+            sage: elt.check()
         """
         for partition in self:
             for i, vac_num in enumerate(partition.vacancy_numbers):
@@ -959,7 +1011,7 @@ class RCHighestWeightElement(RiggedConfigurationElement):
 
     def f(self, a):
         r"""
-        Action of the crystal operator `f_a` on ``self``.
+        Return the action of the crystal operator `f_a` on ``self``.
 
         This implements the method defined in [CrysStructSchilling06]_ which
         finds the value `k` which is  the length of the string with the
@@ -979,6 +1031,81 @@ class RCHighestWeightElement(RiggedConfigurationElement):
         The resulting rigged configuration element.
 
         EXAMPLES::
+
+            sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()
+            sage: RC = CrystalOfRiggedConfigurations(['A',2,1], La[0])
+            sage: elt = RC(partition_list=[[1,1],[1],[2]])
+            sage: elt.f(0)
+            <BLANKLINE>
+            -2[ ][ ]-2
+            -1[ ]-1
+            <BLANKLINE>
+            1[ ]1
+            <BLANKLINE>
+            0[ ][ ]0
+            <BLANKLINE>
+            sage: elt.f(1)
+            <BLANKLINE>
+            0[ ]0
+            0[ ]0
+            <BLANKLINE>
+            -1[ ]-1
+            -1[ ]-1
+            <BLANKLINE>
+            0[ ][ ]0
+            <BLANKLINE>
+            sage: elt.f(2)
+        """
+        if self.phi(a) == 0:
+            return None
+        return RiggedConfigurationElement.f(self, a)
+
+class RCHWNonSimplyLacedElement(RCNonSimplyLacedElement):
+    """
+    Rigged configurations in highest weight crystals.
+
+    TESTS::
+
+        sage: La = RootSystem(['C',2,1]).weight_lattice().fundamental_weights()
+        sage: RC = CrystalOfRiggedConfigurations(['C',2,1], La[0])
+        sage: elt = RC(partition_list=); elt
+
+        sage: TestSuite(elt).run()
+    """
+    def check(self):
+        """
+        Make sure all of the riggings are less than or equal to the
+        vacancy number.
+
+        TESTS::
+
+            sage: La = RootSystem(['C',2,1]).weight_lattice().fundamental_weights()
+            sage: RC = CrystalOfRiggedConfigurations(['C',2,1], La[0])
+            sage: elt = RC(partition_list=)
+            sage: elt.check()
+        """
+        for partition in self:
+            for i, vac_num in enumerate(partition.vacancy_numbers):
+                if vac_num < partition.rigging[i]:
+                    raise ValueError("rigging can be at most the vacancy number")
+
+    def f(self, a):
+        r"""
+        Return the action of `f_a` on ``self``.
+
+        This works by lifting into the virtual configuration, then applying
+
+        .. MATH::
+
+            \hat{f}_a = \prod_{j \in \iota(a)} f_j^{\gamma_j}
+
+        and pulling back.
+
+        EXAMPLES::
+
+            sage: La = RootSystem(['C',2,1]).weight_lattice().fundamental_weights()
+            sage: RC = CrystalOfRiggedConfigurations(['C',2,1], La[0])
+            sage: elt = RC(partition_list=)
         """
         if self.phi(a) == 0:
             return None
@@ -1090,11 +1217,16 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
 
     def e(self, a):
         r"""
-        Action of the crystal operator `e_a` on ``self``.
+        Return the action of the crystal operator `e_a` on ``self``.
+
+        For the classical operators, this implements the method defined
+        in [CrysStructSchilling06]_. For `e_0`, this converts the class to
+        a tensor product of KR tableaux and does the corresponding `e_0`
+        and pulls back.
 
         .. TODO::
 
-            Implement `f_0` without appealing to tensor product of
+            Implement `e_0` without appealing to tensor product of
             KR tableaux.
 
         INPUT:
@@ -1141,7 +1273,12 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
 
     def f(self, a):
         r"""
-        Action of the crystal operator `f_a` on ``self``.
+        Return the action of the crystal operator `f_a` on ``self``.
+
+        For the classical operators, this implements the method defined
+        in [CrysStructSchilling06]_. For `f_0`, this converts the class to
+        a tensor product of KR tableaux and does the corresponding `f_0`
+        and pulls back.
 
         .. TODO::
 
@@ -1263,7 +1400,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         """
         # -1 for indexing
         # This is a slight abuse, but it works
-        return super(KRRiggedConfigurationElement, self).get_vacancy_numbers(a-1, i)
+        return super(KRRiggedConfigurationElement, self).get_vacancy_numbers(a-1)
 
     def get_vacancy_number(self, a, i):
         r"""
@@ -1300,7 +1437,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
 
             \Lambda = \sum_{a \in \overline{I}} \sum_{i > 0}
             i L_i^{(a)} \Lambda_a - \sum_{a \in \overline{I}} \sum_{i > 0}
-            i m_i^{(a)} \alpha_a
+            i m_i^{(a)} \alpha_a.
 
         EXAMPLES::
 
@@ -1438,6 +1575,19 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
 class KRRCSimplyLacedElement(KRRiggedConfigurationElement):
     r"""
     `U_q^{\prime}(\mathfrak{g})` rigged configurations in simply-laced types.
+
+    TESTS::
+
+        sage: RC = RiggedConfigurations(['A', 3, 1], [[3, 2], [2,1], [1,1]])
+        sage: elt = RC(partition_list=[[1], [1], []]); elt
+        <BLANKLINE>
+        0[ ]-1
+        <BLANKLINE>
+        0[ ]-1
+        <BLANKLINE>
+        (/)
+        <BLANKLINE>
+        sage: TestSuite(elt).run()
     """
     @cached_method
     def cocharge(self):
@@ -1505,6 +1655,16 @@ class KRRCNonSimplyLacedElement(KRRiggedConfigurationElement, RCNonSimplyLacedEl
     r"""
     `U_q^{\prime}(\mathfrak{g})` rigged configurations in non-simply-laced
     types.
+
+    TESTS::
+
+        sage: RC = RiggedConfigurations(['C',2,1], [[1,2],[1,1],[2,1]])
+        sage: elt = RC(partition_list=[[3],[2]]); elt
+        <BLANKLINE>
+        0[ ][ ][ ]0
+        <BLANKLINE>
+        0[ ][ ]0
+        sage: TestSuite(elt).run()
     """
     def e(self, a):
         """
@@ -1538,7 +1698,10 @@ class KRRCNonSimplyLacedElement(KRRiggedConfigurationElement, RCNonSimplyLacedEl
             1[ ]0
             <BLANKLINE>
         """
-        if a != 0 and self.epsilon(a) == 0:
+        if a == 0:
+            return KRRiggedConfigurationElement.e(self, 0)
+
+        if self.epsilon(a) == 0:
             return None
 
         vct = self.parent()._folded_ct
@@ -1580,10 +1743,13 @@ class KRRCNonSimplyLacedElement(KRRiggedConfigurationElement, RCNonSimplyLacedEl
             1[ ]1
             <BLANKLINE>
             -1[ ][ ][ ]-1
-            0[ ][ ]0
+             0[ ][ ]0
             <BLANKLINE>
         """
-        if a != 0 and self.phi(a) == 0:
+        if a == 0:
+            return KRRiggedConfigurationElement.f(self, 0)
+
+        if self.phi(a) == 0:
             return None
 
         vct = self.parent()._folded_ct

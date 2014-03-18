@@ -40,7 +40,8 @@ def CrystalOfLetters(cartan_type, element_print_style=None, dual=None):
 
     Any irreducible classical crystal appears as the irreducible
     component of the tensor product of several copies of this crystal
-    (plus possibly one copy of the spin crystal, see :class:`CrystalOfSpins`).
+    (plus possibly one copy of the spin crystal, see
+    :class:`~sage.combinat.crystals.spins.CrystalOfSpins`).
     See [KN94]_. Elements of this irreducible component have a fixed shape,
     and can be fit inside a tableau shape. Otherwise said, any irreducible
     classical crystal is isomorphic to a crystal of tableaux with cells
@@ -492,7 +493,7 @@ cdef class EmptyLetter(Element):
 
     def __init__(self, parent):
         """
-        Initialize ``xelf``.
+        Initialize ``self``.
 
         EXAMPLES::
 

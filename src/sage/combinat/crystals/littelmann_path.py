@@ -585,7 +585,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
 
     When ``weight`` is just a single fundamental weight `\Lambda_r`, this crystal is
     isomorphic to a Kirillov-Reshetikhin (KR) crystal, see also
-    :meth:`sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystalFromLSPaths`.
+    :meth:`sage.combinat.crystals.kirillov_reshetikhin.crystals.KirillovReshetikhinFromLSPaths`.
     For general weights, it is isomorphic to a tensor product of single-column KR crystals.
 
     EXAMPLES::
@@ -597,8 +597,8 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
         84
         sage: GLS = LS.digraph()
 
-        sage: K1 = KirillovReshetikhinCrystal(['C',3,1],1,1)
-        sage: K3 = KirillovReshetikhinCrystal(['C',3,1],3,1)
+        sage: K1 = crystals.KirillovReshetikhin(['C',3,1],1,1)
+        sage: K3 = crystals.KirillovReshetikhin(['C',3,1],3,1)
         sage: T = TensorProductOfCrystals(K3,K1)
         sage: T.cardinality()
         84
@@ -678,8 +678,8 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
             sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[1]+La[2])
             sage: LS.one_dimensional_configuration_sum() == LS.one_dimensional_configuration_sum(group_components=False) # long time
             True
-            sage: K1 = KirillovReshetikhinCrystal(['B',3,1],1,1)
-            sage: K2 = KirillovReshetikhinCrystal(['B',3,1],2,1)
+            sage: K1 = crystals.KirillovReshetikhin(['B',3,1],1,1)
+            sage: K2 = crystals.KirillovReshetikhin(['B',3,1],2,1)
             sage: T = TensorProductOfCrystals(K2,K1)
             sage: T.one_dimensional_configuration_sum() == LS.one_dimensional_configuration_sum()
             True
@@ -687,8 +687,8 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
             sage: R = RootSystem(['D',4,2])
             sage: La = R.weight_space().basis()
             sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[1]+La[2])
-            sage: K1 = KirillovReshetikhinCrystal(['D',4,2],1,1)
-            sage: K2 = KirillovReshetikhinCrystal(['D',4,2],2,1)
+            sage: K1 = crystals.KirillovReshetikhin(['D',4,2],1,1)
+            sage: K2 = crystals.KirillovReshetikhin(['D',4,2],2,1)
             sage: T = TensorProductOfCrystals(K2,K1)
             sage: T.one_dimensional_configuration_sum() == LS.one_dimensional_configuration_sum()
             True
@@ -696,7 +696,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
             sage: R = RootSystem(['A',5,2])
             sage: La = R.weight_space().basis()
             sage: LS = CrystalOfProjectedLevelZeroLSPaths(3*La[1])
-            sage: K1 = KirillovReshetikhinCrystal(['A',5,2],1,1)
+            sage: K1 = crystals.KirillovReshetikhin(['A',5,2],1,1)
             sage: T = TensorProductOfCrystals(K1,K1,K1)
             sage: T.one_dimensional_configuration_sum() == LS.one_dimensional_configuration_sum()
             True

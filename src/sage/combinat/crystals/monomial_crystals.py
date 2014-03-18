@@ -925,9 +925,14 @@ class CrystalOfNakajimaMonomialsElement(NakajimaYMonomial):
         f_iM = \begin{cases} 0 & \text{if } \varphi_i(M) = 0, \\
         A_{i,k_f}^{-1}M & \text{if } \varphi_i(M) > 0. \end{cases}
 
-    EXAMPLES:
-    """
+    EXAMPLES::
 
+        sage: La = RootSystem(['A',5,2]).weight_lattice().fundamental_weights()
+        sage: M = CrystalOfNakajimaMonomials(['A',5,2],3*La[0])
+        sage: m = M.module_generators[0].f(0); m
+        Y(0,0)^2 Y(0,1)^-1 Y(2,0)
+        sage: TestSuite(m).run()
+    """
     def f(self,i):
         r"""
         Return the action of `f_i` on ``self``.
@@ -946,8 +951,7 @@ class CrystalOfNakajimaMonomialsElement(NakajimaYMonomial):
         """
         if self.phi(i) == 0:
             return None
-        else:
-            return super(CrystalOfNakajimaMonomialsElement, self).f(i)
+        return super(CrystalOfNakajimaMonomialsElement, self).f(i)
 
 class CrystalOfNakajimaMonomials(InfinityCrystalOfNakajimaMonomials):
     r"""
@@ -1020,7 +1024,7 @@ class CrystalOfNakajimaMonomials(InfinityCrystalOfNakajimaMonomials):
 
         INPUT:
 
-        - ``ct`` -- Cartan type
+        - ``ct`` -- a Cartan type
 
         - ``La`` -- an element of ``weight_lattice``
 

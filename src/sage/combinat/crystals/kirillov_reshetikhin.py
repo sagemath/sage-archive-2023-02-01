@@ -49,7 +49,8 @@ def KirillovReshetikhinCrystalFromLSPaths(cartan_type, r, s=1):
     Single column Kirillov-Reshetikhin crystals.
 
     This yields the single column Kirillov-Reshetikhin crystals
-    from the projected level zero LS paths, see :class:`sage.combinat.crystals.littelmann_paths.CrystalOfLSPaths`.
+    from the projected level zero LS paths, see
+    :class:`sage.combinat.crystals.littelmann_paths.CrystalOfLSPaths`.
     This works for all types (even exceptional types).
     The weight of the canonical element in this crystal is `\Lambda_r`.
     For other implementation see :meth:`KirillovReshetikhinCrystal`.
@@ -102,7 +103,8 @@ def KirillovReshetikhinCrystalFromLSPaths(cartan_type, r, s=1):
         sage: K.cardinality()
         15
 
-    For `s>1` these crystals yield `s`-fold tensor products of Kirillov-Reshetikhin crystals::
+    For `s > 1` these crystals yield `s`-fold tensor products of
+    Kirillov-Reshetikhin crystals::
 
         sage: K = KirillovReshetikhinCrystalFromLSPaths(['A',1,1],1,3)
         sage: B = KirillovReshetikhinCrystal(['A',1,1],1,1)

@@ -123,7 +123,7 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
             sage: crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1) # indirect doctest
             An affine crystal for type ['A', 1, 1]
         """
-        return "An affine crystal for type %s"%self.cartan_type()
+        return "An affine crystal for type {}".format(self.cartan_type())
 
 
     def __iter__(self):

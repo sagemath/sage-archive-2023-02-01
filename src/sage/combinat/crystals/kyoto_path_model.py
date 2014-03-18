@@ -131,7 +131,7 @@ class KyotoPathModel(TensorProductOfCrystals):
 
     EXAMPLES::
 
-        sage: B = crystals.kirillov_reshetikhin.KashiwaraNakashimaTableaux(['A',2,1], 1,1)
+        sage: B = crystals.KirillovReshetikhin(['A',2,1], 1,1)
         sage: L = RootSystem(['A',2,1]).weight_space()
         sage: C = crystals.KyotoPathModel(B, L.fundamental_weight(0))
         sage: mg = C.module_generators[0]; mg
@@ -141,7 +141,7 @@ class KyotoPathModel(TensorProductOfCrystals):
 
     An example of type `A_5^{(2)}`::
 
-        sage: B = crystals.kirillov_reshetikhin.KashiwaraNakashimaTableaux(['A',5,2], 1,1)
+        sage: B = crystals.KirillovReshetikhin(['A',5,2], 1,1)
         sage: L = RootSystem(['A',5,2]).weight_space()
         sage: C = crystals.KyotoPathModel(B, L.fundamental_weight(0))
         sage: mg = C.module_generators[0]; mg
@@ -153,7 +153,7 @@ class KyotoPathModel(TensorProductOfCrystals):
 
     An example of type `D_3^{(2)}`::
 
-        sage: B = crystals.kirillov_reshetikhin.KashiwaraNakashimaTableaux(['D',3,2], 1,1)
+        sage: B = crystals.KirillovReshetikhin(['D',3,2], 1,1)
         sage: L = RootSystem(['D',3,2]).weight_space()
         sage: C = crystals.KyotoPathModel(B, L.fundamental_weight(0))
         sage: mg = C.module_generators[0]; mg
@@ -163,8 +163,8 @@ class KyotoPathModel(TensorProductOfCrystals):
 
     An example using multiple crystals of the same level::
 
-        sage: B1 = crystals.kirillov_reshetikhin.KashiwaraNakashimaTableaux(['A',2,1], 1,1)
-        sage: B2 = crystals.kirillov_reshetikhin.KashiwaraNakashimaTableaux(['A',2,1], 2,1)
+        sage: B1 = crystals.KirillovReshetikhin(['A',2,1], 1,1)
+        sage: B2 = crystals.KirillovReshetikhin(['A',2,1], 2,1)
         sage: L = RootSystem(['A',2,1]).weight_space()
         sage: C = crystals.KyotoPathModel([B1, B2, B1], L.fundamental_weight(0))
         sage: mg = C.module_generators[0]; mg
@@ -184,7 +184,7 @@ class KyotoPathModel(TensorProductOfCrystals):
 
         EXAMPLES::
 
-            sage: B = crystals.kirillov_reshetikhin.KashiwaraNakashimaTableaux(['A',2,1], 1,1)
+            sage: B = crystals.KirillovReshetikhin(['A',2,1], 1,1)
             sage: L = RootSystem(['A',2,1]).weight_space()
             sage: C = crystals.KyotoPathModel(B, L.fundamental_weight(0))
             sage: C2 = crystals.KyotoPathModel((B,), L.fundamental_weight(0))
@@ -215,7 +215,7 @@ class KyotoPathModel(TensorProductOfCrystals):
 
         EXAMPLES::
 
-            sage: B = crystals.kirillov_reshetikhin.KashiwaraNakashimaTableaux(['A',2,1], 1,1)
+            sage: B = crystals.KirillovReshetikhin(['A',2,1], 1,1)
             sage: L = RootSystem(['A',2,1]).weight_space()
             sage: C = crystals.KyotoPathModel(B, L.fundamental_weight(0))
             sage: TestSuite(C).run() # long time
@@ -235,7 +235,7 @@ class KyotoPathModel(TensorProductOfCrystals):
 
         EXAMPLES::
 
-            sage: B = crystals.kirillov_reshetikhin.KashiwaraNakashimaTableaux(['A',2,1], 1,1)
+            sage: B = crystals.KirillovReshetikhin(['A',2,1], 1,1)
             sage: L = RootSystem(['A',2,1]).weight_space()
             sage: crystals.KyotoPathModel(B, L.fundamental_weight(0))
             Kyoto path realization of B(Lambda[0]) using [Kirillov-Reshetikhin crystal of type ['A', 2, 1] with (r,s)=(1,1)]
@@ -253,7 +253,7 @@ class KyotoPathModel(TensorProductOfCrystals):
 
             EXAMPLES::
 
-                sage: B = crystals.kirillov_reshetikhin.KashiwaraNakashimaTableaux(['A',2,1], 1,1)
+                sage: B = crystals.KirillovReshetikhin(['A',2,1], 1,1)
                 sage: L = RootSystem(['A',2,1]).weight_space()
                 sage: C = crystals.KyotoPathModel(B, L.fundamental_weight(0))
                 sage: mg = C.module_generators[0]
@@ -282,7 +282,7 @@ class KyotoPathModel(TensorProductOfCrystals):
 
             EXAMPLES::
 
-                sage: B = crystals.kirillov_reshetikhin.KashiwaraNakashimaTableaux(['A',2,1], 1,1)
+                sage: B = crystals.KirillovReshetikhin(['A',2,1], 1,1)
                 sage: L = RootSystem(['A',2,1]).weight_space()
                 sage: C = crystals.KyotoPathModel(B, L.fundamental_weight(0))
                 sage: mg = C.module_generators[0]
@@ -308,7 +308,7 @@ class KyotoPathModel(TensorProductOfCrystals):
 
             EXAMPLES::
 
-                sage: B = crystals.kirillov_reshetikhin.KashiwaraNakashimaTableaux(['A',2,1], 1,1)
+                sage: B = crystals.KirillovReshetikhin(['A',2,1], 1,1)
                 sage: L = RootSystem(['A',2,1]).weight_space()
                 sage: C = crystals.KyotoPathModel(B, L.fundamental_weight(0))
                 sage: mg = C.module_generators[0]
@@ -336,7 +336,7 @@ class KyotoPathModel(TensorProductOfCrystals):
 
             EXAMPLES::
 
-                sage: B = crystals.kirillov_reshetikhin.KashiwaraNakashimaTableaux(['A',2,1], 1,1)
+                sage: B = crystals.KirillovReshetikhin(['A',2,1], 1,1)
                 sage: L = RootSystem(['A',2,1]).weight_space()
                 sage: C = crystals.KyotoPathModel(B, L.fundamental_weight(0))
                 sage: mg = C.module_generators[0]

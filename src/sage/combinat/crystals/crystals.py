@@ -71,7 +71,7 @@ documentations)::
     sage: Spin = crystals.Spins(['B', 3])
     sage: Tab  = crystals.Tableaux(['A', 3], shape = [2,1,1])
     sage: Fast = crystals.FastRankTwo(['B', 2], shape = [3/2, 1/2])
-    sage: KR = KirillovReshetikhinCrystal(['A',2,1],1,1)
+    sage: KR = crystals.KirillovReshetikhin(['A',2,1],1,1)
 
 One can get (currently) crude plotting via::
 
@@ -79,12 +79,12 @@ One can get (currently) crude plotting via::
 
 If dot2tex is installed, one can obtain nice latex pictures via::
 
-    sage: K = KirillovReshetikhinCrystal(['A',3,1], 1,1)
+    sage: K = crystals.KirillovReshetikhin(['A',3,1], 1,1)
     sage: view(K, pdflatex=True, tightpage=True) #optional - dot2tex graphviz
 
 or with colored edges::
 
-    sage: K = KirillovReshetikhinCrystal(['A',3,1], 1,1)
+    sage: K = crystals.KirillovReshetikhin(['A',3,1], 1,1)
     sage: G = K.digraph()
     sage: G.set_latex_options(color_by_label = {0:"black", 1:"red", 2:"blue", 3:"green"}) #optional - dot2tex graphviz
     sage: view(G, pdflatex=True, tightpage=True) #optional - dot2tex graphviz

@@ -1157,6 +1157,30 @@ models the subcategory of the objects of ``Ds`` satisfying the axiom
 ``A``. In most cases, it's a *full subcategory* (see
 :wikipedia:`Subcategory`).
 
+.. NOTE::
+
+    It should be said that Sage is using the word "subcategory"
+    in a very liberal sense, far from its original meaning in
+    category theory. In Sage, objects of a subcategory are
+    allowed to contain data which objects of the original
+    category do not; for existance, Sage considers the category
+    of graded `R`-modules to be a subcategory of the category
+    of `R`-modules, whereas in mathematics the opposite is the
+    case. In Sage, a "subcategory" of a category ``Cs`` is
+    merely a category whose objects, morphisms, subcategories
+    etc. can be coerced to objects, morphisms, subcategories
+    etc. of ``Cs``, respectively. In other words, it is a
+    category whose classes inherit from the respective classes
+    of ``Cs``.
+
+.. TODO::
+
+    Is this true?
+
+    How do I write a subcategory in Sage? Just write a category
+    and let it inherit from ``Cs``? Where do I put the coercions
+    which make elements of the subcategory into elements of ``Cs``?
+
 For example, the category of sets defines the ``Finite`` axiom, and
 this axiom is available in the subcategory of groups::
 

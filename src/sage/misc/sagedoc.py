@@ -1455,8 +1455,9 @@ def help(module=None):
     """
     if not module is None:
         if hasattr(module, '_sage_doc_'):
-            from sage.misc.sageinspect import _sage_getdoc_unformatted
-            docstr = 'Sage help on ' + str(module)
+            from sage.misc.sageinspect import sage_getdef, _sage_getdoc_unformatted
+            docstr = 'Help on ' + str(module) + '\n'
+            docstr += 'Definition: ' + module.__name__ + sage_getdef(module) + '\n' 
             pydoc.pager(docstr + _sage_getdoc_unformatted(module))
         else:
             python_help(module)

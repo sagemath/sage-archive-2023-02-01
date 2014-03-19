@@ -1709,7 +1709,7 @@ class FiniteStateMachine(SageObject):
 
     def __mul__(self, other):
         """
-        Return the intersection of ``self`` with ``other``.
+        Returns the intersection of ``self`` with ``other``.
 
         TESTS::
 
@@ -3312,17 +3312,17 @@ class FiniteStateMachine(SageObject):
 
         INPUT:
 
-        - ``other`` -- a finite state machine.
+        - ``other`` -- a finite state machine
 
-        - ``only_accessible_components`` -- If true (default), then
+        - ``only_accessible_components`` -- If ``True`` (default), then
           the result is piped through ``accessible_components``. If no
           ``new_input_alphabet`` is given, it is determined by
           ``determine_alphabets``.
 
         OUTPUT:
 
-        A new finite state machine which computes the intersection of the
-        languages of self and other:
+        A new finite state machine which computes the intersection
+        (see below) of the languages of ``self`` and ``other``.
 
         The set of states of the new finite state machine is the cartesian
         product of the set of states of both given finites state
@@ -3354,7 +3354,7 @@ class FiniteStateMachine(SageObject):
         Note that ``FSMEmptyWordSymbol`` or ``None`` is treated as any other
         letter of the input alphabet. Thus the intersection of the following
         two transducers is empty. However, the intersection of the languages
-        contains `(a^n, b^nc^n)`.
+        contains `(a^n, b^n c^n)`.
 
         ::
 
@@ -3380,9 +3380,10 @@ class FiniteStateMachine(SageObject):
             else:
                 raise LookupError
 
-        return self.product_FiniteStateMachine(other,
-                                               function,
-                                               only_accessible_components=only_accessible_components)
+        return self.product_FiniteStateMachine(
+            other,
+            function,
+            only_accessible_components=only_accessible_components)
 
 
     def product_FiniteStateMachine(self, other, function,
@@ -3394,7 +3395,7 @@ class FiniteStateMachine(SageObject):
 
         INPUT:
 
-        - ``other`` -- a finite state machine.
+        - ``other`` -- a finite state machine
 
         - ``function`` has to accept two transitions from `A` to `B`
           and `C` to `D` and returns a pair ``(word_in, word_out)``
@@ -4456,20 +4457,21 @@ class Automaton(FiniteStateMachine):
 
         INPUT:
 
-        - ``other`` - a finite state machine
-        - ``only_accessible_components`` -- If true (default), then
+        - ``other`` -- a finite state machine
+
+        - ``only_accessible_components`` -- If ``True`` (default), then
           the result is piped through ``accessible_components``. If no
           ``new_input_alphabet`` is given, it is determined by
           ``determine_alphabets``.
 
         OUTPUT:
 
-        An automaton which accepts
-        the intersection of the languages of self and other.
-        See :meth:`.intersection` for more information.
+        An automaton which accepts the intersection of the languages
+        of ``self`` and ``other``.  See :meth:`.intersection` for more
+        information.
 
-        If ``other`` is a transducer, ``other.cartesian_product(self)`` may be
-        more useful.
+        If ``other`` is a transducer, ``other.cartesian_product(self)``
+        may be more useful.
 
 
         EXAMPLES::
@@ -4835,7 +4837,8 @@ class Transducer(FiniteStateMachine):
         INPUT:
 
         - ``other`` - a finite state machine
-        - ``only_accessible_components`` -- If true (default), then
+
+        - ``only_accessible_components`` -- If ``True`` (default), then
           the result is piped through ``accessible_components``. If no
           ``new_input_alphabet`` is given, it is determined by
           ``determine_alphabets``.
@@ -4846,7 +4849,7 @@ class Transducer(FiniteStateMachine):
         and ``other``.
 
         The set of states of the new transducer is the cartesian product of
-        the set of states of self and other.
+        the set of states of ``self`` and ``other``.
 
         Let `(A, B, a, b)` be a transition of self and `(C, D, c, d)` be
         a transition of other. Then there is a transition `((A, C), (B,

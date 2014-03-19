@@ -4866,6 +4866,10 @@ class Transducer(FiniteStateMachine):
             ....:                          final_states=[1],
             ....:                          determine_alphabets=True)
             sage: result = transducer1.cartesian_product(transducer2)
+            sage: result.transitions()
+            [Transition from ('A', 0) to ('A', 1): 0|((0,), ('b',)),
+             Transition from ('A', 0) to ('A', 0): 1|((1,), ('b',)),
+             Transition from ('A', 1) to ('A', 1): 0|((0,), ('a',))]
             sage: result([1,0,0])[2]
             [((1,), ('b',)), ((0,), ('b',)), ((0,), ('a',))]
             sage: (transducer1([1,0,0])[2], transducer2([1,0,0])[2])

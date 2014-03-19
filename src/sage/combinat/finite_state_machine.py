@@ -3352,9 +3352,10 @@ class FiniteStateMachine(SageObject):
             (True, True, True)
 
         Note that ``FSMEmptyWordSymbol`` or ``None`` is treated as any other
-        letter of the input alphabet. Thus the intersection of the following
-        two transducers is empty. However, the intersection of the languages
-        contains `(a^n, b^n c^n)`.
+        letter of the input and output alphabet. Thus the intersection of the
+        following two transducers is empty. However, the intersection of the
+        languages consists of `(a^n, b^n c^n)`. This set is however not
+        recognizable by a transducer.  
 
         ::
 
@@ -3372,6 +3373,11 @@ class FiniteStateMachine(SageObject):
             ....:                 determine_alphabets=True)
             sage: t2.intersection(t1)
             Transducer with 0 states
+
+        In general, transducers are not closed under intersection. But for
+        transducer which do not have epsilon-transitions, intersection is well
+        defined (cf. "Finite State Transducers" by Javier Baliosian and Dina
+        Wonsever).
         """
         def function(transition1, transition2):
             if transition1.word_in == transition2.word_in \

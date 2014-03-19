@@ -4829,7 +4829,8 @@ class Transducer(FiniteStateMachine):
     def cartesian_product(self, other, only_accessible_components=True):
         """
         Return a new transducer which can simultaneously process an input with
-        ``self`` and ``other``.
+        ``self`` and ``other`` where the output labels are pairs of the original
+        output labels.
 
         INPUT:
 

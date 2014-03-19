@@ -1890,6 +1890,38 @@ class FiniteStateMachine(SageObject):
         return False
 
 
+    def has_epsilon_transitions(self):
+        """
+        Returns whether the transducer has transitions with empty input or
+        output.
+
+        INPUT:
+        
+        - ``self`` -- a transducer
+
+        OUTPUT:
+        
+        ``True`` if the transducer has epsilon-transitions (that are
+        transitions with empty input or output) and ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: t1 = Transducer([(0, 0, None, 1)])
+            sage: t1.has_epsilon_transitions()
+            True
+            sage: t2 = Transducer([(0, 0, 1, None)])
+            sage: t2.has_epsilon_transitions()
+            True
+            sage: t3 = Transducer([(0, 0, 1, 2)])
+            sage: t3.has_epsilon_transitions()
+            False        
+        """
+        for t in self.transitions():
+            if (t.word_in == []) or (t.word_out == []):
+                return True
+        return False
+
+
     #*************************************************************************
     # representations / LaTeX
     #*************************************************************************
@@ -3351,11 +3383,13 @@ class FiniteStateMachine(SageObject):
             sage: (aut1([1, 0])[0], aut2([1, 0])[0], res([1, 0])[0])
             (True, True, True)
 
-        Note that ``FSMEmptyWordSymbol`` or ``None`` is treated as any other
-        letter of the input and output alphabet. Thus the intersection of the
-        following two transducers is empty. However, the intersection of the
-        languages consists of `(a^n, b^n c^n)`. This set is however not
-        recognizable by a transducer.  
+        In general, transducers are not closed under intersection. But for
+        transducer which do not have epsilon-transitions, intersection is well
+        defined (cf. "Finite State Transducers" by Javier Baliosian and Dina
+        Wonsever). However, in the next example the intersection of the two
+        transducers is not well defined. The intersection of the languages
+        consists of `(a^n, b^n c^n)`. This set is not recognizable by a
+        transducer.
 
         ::
 
@@ -3372,12 +3406,9 @@ class FiniteStateMachine(SageObject):
             ....:                 final_states=['A', 'B'],
             ....:                 determine_alphabets=True)
             sage: t2.intersection(t1)
-            Transducer with 0 states
-
-        In general, transducers are not closed under intersection. But for
-        transducer which do not have epsilon-transitions, intersection is well
-        defined (cf. "Finite State Transducers" by Javier Baliosian and Dina
-        Wonsever).
+            Traceback (most recent call last):
+            ...
+            ValueError: An epsilon-transition (with empty input or output) was found.
         """
         def function(transition1, transition2):
             if transition1.word_in == transition2.word_in \
@@ -3385,6 +3416,10 @@ class FiniteStateMachine(SageObject):
                 return (transition1.word_in, transition1.word_out)
             else:
                 raise LookupError
+
+        if self.has_epsilon_transitions() or other.has_epsilon_transitions():
+            raise ValueError(
+              "An epsilon-transition (with empty input or output) was found.")
 
         return self.product_FiniteStateMachine(
             other,
@@ -4453,6 +4488,34 @@ class Automaton(FiniteStateMachine):
             \left[0\right]
         """
         return format_function(transition.word_in)
+
+
+    def has_epsilon_transitions(self):
+        """
+        Returns whether the automaton has transitions with empty input.
+
+        INPUT:
+        
+        - ``self`` -- an automaton
+
+        OUTPUT:
+        
+        ``True`` if the automaton has epsilon-transitions (that are
+        transitions with empty input) and ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: a1 = Automaton([(0, 0, None)])
+            sage: a1.has_epsilon_transitions()
+            True
+            sage: a2 = Automaton([(0, 0, 1)])
+            sage: a2.has_epsilon_transitions()
+            False        
+        """
+        for t in self.transitions():
+            if t.word_in == []:
+                return True
+        return False
 
 
     def cartesian_product(self, other, only_accessible_components=True):

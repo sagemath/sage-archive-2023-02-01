@@ -61,7 +61,7 @@ def HighestWeightCrystal(dominant_weight, model=None):
       * ``'AlcovePaths'`` - :class:`alcove paths
         <sage.combinat.crystals.alcove_path.CrystalOfAlcovePaths>`
       * ``'GeneralizedYoungWalls'`` - :class:`generalized Young walls
-        <sage.combinat.crystals.generalized_young_walls.CrystalOfGeneralizedYoungWalls>
+        <sage.combinat.crystals.generalized_young_walls.CrystalOfGeneralizedYoungWalls>`
 
     EXAMPLES::
 
@@ -211,14 +211,14 @@ class FiniteDimensionalHighestWeightCrystal_TypeE(TensorProductOfCrystals):
     Commonalities for all finite dimensional type `E` highest weight crystals.
 
     Subclasses should setup an attribute column_crystal in their
-    ``__init__ ``method before calling the ``__init__`` method of this class.
+    ``__init__`` method before calling the ``__init__`` method of this class.
     """
     def __init__(self, dominant_weight):
         """
         EXAMPLES::
 
-            sage: C=CartanType(['E',6])
-            sage: La=C.root_system().weight_lattice().fundamental_weights()
+            sage: C = CartanType(['E',6])
+            sage: La = C.root_system().weight_lattice().fundamental_weights()
             sage: T = crystals.HighestWeight(2*La[2])
             sage: T.cartan_type()
             ['E', 6]
@@ -233,9 +233,23 @@ class FiniteDimensionalHighestWeightCrystal_TypeE(TensorProductOfCrystals):
         self._cartan_type = dominant_weight.parent().cartan_type()
         self._highest_weight = dominant_weight
         assert dominant_weight.is_dominant()
-        self.rename("Finite dimensional highest weight crystal of type %s and highest weight %s"%(self._cartan_type, dominant_weight))
+        self.rename()
         Parent.__init__(self, category = ClassicalCrystals())
         self.module_generators = [self.module_generator()]
+
+    def _repr_(self):
+        """
+        Return a string represetation of ``self``.
+
+        EXAMPLES::
+
+            sage: C = CartanType(['E',6])
+            sage: La =C.root_system().weight_lattice().fundamental_weights()
+            sage: crystals.HighestWeight(2*La[2])
+            Finite dimensional highest weight crystal of type ['E', 6] and highest weight 2*Lambda[2]
+        """
+        return "Finite dimensional highest weight crystal of type {} and highest weight {}".format(
+                self._cartan_type, self._highest_weight)
 
     Element = TensorProductOfRegularCrystalsElement
 

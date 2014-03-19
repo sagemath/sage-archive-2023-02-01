@@ -4,7 +4,8 @@ Littelmann paths
 AUTHORS:
 
 - Mark Shimozono, Anne Schilling (2012): Initial version
-- Anne Schilling (2013): Implemented :class:`CrystalOfProjectedLevelZeroLSPaths`
+- Anne Schilling (2013): Implemented
+  :class:`~sage.combinat.crystals.littlemann_path.CrystalOfProjectedLevelZeroLSPaths`
 """
 #****************************************************************************
 #       Copyright (C) 2012 Mark Shimozono
@@ -121,9 +122,10 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
         """
         Classcall to mend the input.
 
-        Internally, the :class:`CrystalOfLSPaths` code works with a
-        ``starting_weight`` that is in the ``weight_space`` associated to
-        the crystal. The user can, however, also input a ``cartan_type``
+        Internally, the
+        :class:`~sage.combinat.crystals.littlemann_path.CrystalOfLSPaths` code
+        works with a ``starting_weight`` that is in the weight space associated
+        to the crystal. The user can, however, also input a ``cartan_type``
         and the coefficients of the fundamental weights as
         ``starting_weight``. This code transforms the input into the right
         format (also necessary for UniqueRepresentation).
@@ -625,8 +627,10 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
         """
         Classcall to mend the input.
 
-        Internally, the :class:`CrystalOfProjectedLevelZeroLSPaths` uses a
-        level zero weight, which is passed on to :class:`CrystalOfLSPaths`.
+        Internally, the
+        :class:`~sage.combinat.crystals.littlemann_path.CrystalOfProjectedLevelZeroLSPaths`
+        uses a level zero weight, which is passed on to
+        :class:`~sage.combinat.crystals.littlemann_path.CrystalOfLSPaths`.
         ``weight`` is first coerced to a level zero weight.
 
         TESTS::

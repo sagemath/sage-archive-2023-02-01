@@ -227,17 +227,18 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
     """
 
     @staticmethod
-    def __classcall_private__(cls, starting_weight, cartan_type = None,
-            highest_weight_crystal=None):
+    def __classcall_private__(cls, starting_weight, cartan_type=None,
+                              highest_weight_crystal=None):
         """
         Classcall to mend the input.
 
-        Internally, the :class:`CrystalOfAlcovePaths` code works with a
-        ``starting_weight`` that is in the weight space associated to the
-        crystal. The user can, however, also input a ``cartan_type`` and the
-        coefficients of the fundamental weights as ``starting_weight``. This
-        code transforms the input into the right format (also necessary for
-        :class:`UniqueRepresentation`).
+        Internally, the
+        :class:`~sage.combinat.crystals.alcove_path.CrystalOfAlcovePaths`
+        code works with a ``starting_weight`` that is in the weight space
+        associated to the crystal. The user can, however, also input a
+        ``cartan_type`` and the coefficients of the fundamental weights as
+        ``starting_weight``. This code transforms the input into the right
+        format (also necessary for :class:`UniqueRepresentation`).
 
         TESTS::
 
@@ -1669,8 +1670,9 @@ def compare_graphs(g1, g2, node1, node2):
 
 def _test_against_tableaux(R, N, k, clss=CrystalOfAlcovePaths):
     r"""
-    Test :class:`CrystalOfAlcovePaths` against all of the tableaux crystals
-    of type `R` in rank `N` with highest weight given by a partition of `k`.
+    Test :class:`~sage.combinat.crystals.alcove_path.CrystalOfAlcovePaths`
+    against all of the tableaux crystals of type `R` in rank `N` with
+    highest weight given by a partition of `k`.
 
     EXAMPLES::
 

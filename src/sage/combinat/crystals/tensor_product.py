@@ -3,8 +3,8 @@ Tensor Products of Crystals
 
 Main entry points:
 
-- :class:`TensorProductOfCrystals`
-- :class:`CrystalOfTableaux`
+- :class:`~sage.combinat.crystals.tensor_product.TensorProductOfCrystals`
+- :class:`~sage.combinat.crystals.tensor_product.CrystalOfTableaux`
 
 AUTHORS:
 
@@ -303,9 +303,10 @@ class CrystalOfWords(UniqueRepresentation, Parent):
     """
     Auxiliary class to provide a call method to create tensor product elements.
     This class is shared with several tensor product classes and is also used
-    in :class:`CrystalOfTableaux` to allow tableaux of different tensor
-    product structures in column-reading (and hence different shapes)
-    to be considered elements in the same crystal.
+    in :class:`~sage.combinat.crystals.tensor_product.CrystalOfTableaux`
+    to allow tableaux of different tensor product structures in
+    column-reading (and hence different shapes) to be considered elements
+    in the same crystal.
     """
     def _element_constructor_(self, *crystalElements):
         """

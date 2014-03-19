@@ -912,11 +912,13 @@ class InfinityCrystalOfNakajimaMonomials(Parent,UniqueRepresentation):
 
 class CrystalOfNakajimaMonomialsElement(NakajimaYMonomial):
     r"""
-    Element class for :class:`CrystalOfNakajimaMonomials`.
+    Element class for
+    :class:`~sage.combinat.crystals.monomial_crystals.CrystalOfNakajimaMonomials`.
 
     The `f_i` operators need to be modified from the version in
-    :class:`NakajimaYMonomial` in order to create irreducible highest weight
-    realizations.  This modified `f_i` is defined as
+    :class:`~sage.combinat.crystals.monomial_crystalsNakajimaYMonomial`
+    in order to create irreducible highest weight realizations.
+    This modified `f_i` is defined as
 
     .. MATH::
 

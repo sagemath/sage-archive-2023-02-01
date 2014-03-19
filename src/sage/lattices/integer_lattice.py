@@ -330,13 +330,15 @@ class IntegerLattice(SageObject):
         return copy(self._basis)
 
     @cached_method
-    def shortest_vector(self, update_basis=True):
+    def shortest_vector(self, update_basis=True, algorithm="fplll"):
         """Return the shortest vector.
 
         INPUT:
 
         - ``update_basis`` - set this flag if the found vector should be used to
           improve the basis (default: True)
+
+        - ``algorithm`` - either "fplll" or "pari" (default: "fpllll")
         
         EXAMPLE::
 
@@ -346,6 +348,13 @@ class IntegerLattice(SageObject):
             6.03890756700000e10
 
             sage: L.shortest_vector().norm().n()
+            3.74165738677394
+
+            sage: L = Lattice(A, lll_reduce=False)
+            sage: min(v.norm().n() for v in L.basis)
+            6.03890756700000e10
+
+            sage: L.shortest_vector(algorithm="pari").norm().n()
             3.74165738677394
 
         """

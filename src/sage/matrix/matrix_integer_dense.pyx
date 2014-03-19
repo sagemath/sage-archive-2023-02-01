@@ -148,7 +148,8 @@ cdef extern from "iml.h":
                        mpz_t mp_D)
 
 
-
+fplll_fp_map = {None:None, 'fp':'double', 'qd':'long double', 'xd':'dpe', 'rr':'mpfr'}
+    
 cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     r"""
     Matrix over the integers.
@@ -2475,52 +2476,61 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 U[i,n-1] = - U[i,n-1]
         return U
 
-    def BKZ(self, delta=None, fp="rr", block_size=10, prune=0, use_givens=False):
-        """
-        Block Korkin-Zolotarev reduction.
+    def BKZ(self, delta=None, algorithm="fpLLL", fp=None, block_size=10, prune=0, use_givens=False,
+            precision=0, max_loops=0, max_time=0, auto_abort=False):
+        """Block Korkin-Zolotarev reduction.
 
         INPUT:
 
+        -  ``delta`` - LLL parameter (default: 0.99)
 
-        -  ``fp`` - 'fp' - double precision: NTL's FP or
-           fpLLL's double
+        -  ``fp``
 
-        -  ``'qd'`` - quad doubles: NTL's QP
+            - None - NTL's exact reduction or fpLLL's wrapper (default)
 
-        -  ``'qd1'`` - quad doubles: uses quad_float precision
-           to compute Gram-Schmidt, but uses double precision in the search
-           phase of the block reduction algorithm. This seems adequate for
-           most purposes, and is faster than 'qd', which uses quad_float
-           precision uniformly throughout.
+            - ``'fp'`` - double precision: NTL's FP or fpLLL's double
 
-        -  ``'xd'`` - extended exponent: NTL's XD
+            - ``'qd'`` - NTL's QP or fpLLL's long doubles
 
-        -  ``'rr'`` - arbitrary precision (default)
+            - ``'qd1'`` - quad doubles: uses quad_float precision to compute
+              Gram-Schmidt, but uses double precision in the search phase of the
+              block reduction algorithm. This seems adequate for most purposes, and
+              is faster than 'qd', which uses quad_float precision uniformly
+              throughout (NTL only)
 
-        -  ``block_size`` - specifies the size of the blocks
-           in the reduction. High values yield shorter vectors, but the
-           running time increases exponentially with
-           ``block_size``. ``block_size`` should be
-           between 2 and the number of rows of ``self`` (default:
-           10)
+           - ``'xd'`` - extended exponent: NTL's XD or fpLLL's dpe
 
-        -  ``prune`` - The optional parameter
-           ``prune`` can be set to any positive number to invoke
-           the Volume Heuristic from [Schnorr and Horner, Eurocrypt '95]. This
-           can significantly reduce the running time, and hence allow much
-           bigger block size, but the quality of the reduction is of course
-           not as good in general. Higher values of ``prune`` mean
-           better quality, and slower running time. When ``prune``
-           == 0, pruning is disabled. Recommended usage: for
-           ``block_size`` = 30, set 10 = ``prune`` =
-           15.
+           - ``'rr'`` - arbitrary precision: NTL'RR or fpLLL's MPFR
 
-        -  ``use_givens`` - use Given's orthogonalization.
-           This is a bit slower, but generally much more stable, and is really
-           the preferred orthogonalization strategy. For a nice description of
-           this, see Chapter 5 of [G. Golub and C. van Loan, Matrix
-           Computations, 3rd edition, Johns Hopkins Univ. Press, 1996].
+        - ``block_size`` - specifies the size of the blocks in the
+           reduction. High values yield shorter vectors, but the running time
+           increases double exponentially with ``block_size``. ``block_size``
+           should be between 2 and the number of rows of ``self`` (default: 10)
 
+        NLT SPECIFIC INPUTS:
+        
+        - ``prune`` - The optional parameter ``prune`` can be set to any
+           positive number to invoke the Volume Heuristic from [Schnorr and
+           Horner, Eurocrypt '95]. This can significantly reduce the running
+           time, and hence allow much bigger block size, but the quality of the
+           reduction is of course not as good in general. Higher values of
+           ``prune`` mean better quality, and slower running time. When
+           ``prune`` == 0, pruning is disabled. Recommended usage: for
+           ``block_size`` = 30, set 10 = ``prune`` = 15.
+
+        - ``use_givens`` - use Given's orthogonalization.  This is a bit slower,
+           but generally much more stable, and is really the preferred
+           orthogonalization strategy. For a nice description of this, see
+           Chapter 5 of [G. Golub and C. van Loan, Matrix Computations, 3rd
+           edition, Johns Hopkins Univ. Press, 1996].
+
+        fpLLL SPECIFIC INPUTS:
+        
+        - ``precision`` - bit precision to use if ``fp=='rr'`` (default: 0 for automatic choice)
+        - ``max_loops`` - maximum number of full loops (default: 0 for no restriction)
+        - ``max_time`` - stop after time seconds (up to loop completion) (default: 0 for no restricion)
+        - ``auto_abort`` - heuristic, stop when the average slope of
+           $log(||b_i*||)$ does not decrease fast enough (default: ``False``)
 
         EXAMPLE::
 
@@ -2529,19 +2539,22 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [ 0  0  0]
             [ 2  1  0]
             [-1  1  3]
-            sage: A = Matrix(ZZ,3,3,range(1,10))
+
+        sage: A = Matrix(ZZ,3,3,range(1,10))
             sage: A.BKZ(use_givens=True)
             [ 0  0  0]
             [ 2  1  0]
             [-1  1  3]
-
-        ::
 
             sage: A = Matrix(ZZ,3,3,range(1,10))
             sage: A.BKZ(fp="fp")
             [ 0  0  0]
             [ 2  1  0]
             [-1  1  3]
+
+        ALGORITHM:
+
+             Calls either NTL or fpLLL.
         """
         if delta is None:
             delta = 0.99
@@ -2551,149 +2564,149 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             raise TypeError("delta must be <= 1")
         delta = float(delta)
 
-        if fp is None:
-            fp = "rr"
-
-        if fp == "fp":
-            algorithm = "BKZ_FP"
-        elif fp == "qd":
-            algorithm = "BKZ_QP"
-        elif fp == "qd1":
-            algorithm = "BKZ_QP1"
-        elif fp == "xd":
-            algorithm = "BKZ_XD"
-        elif fp == "rr":
-            algorithm = "BKZ_RR"
-        else:
-            raise TypeError("fp parameter not understood.")
-
-        block_size = int(block_size)
-
         if prune < 0:
             raise TypeError("prune must be >= 0")
         prune = int(prune)
 
-        if get_verbose() >= 2:
-            verbose = True
-        else:
-            verbose = False
+        verbose = get_verbose() >= 2
 
-        A = self._ntl_()
+        block_size = int(block_size)
 
-        if algorithm == "BKZ_FP":
-            if not use_givens:
-                r = A.BKZ_FP(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+        if algorithm == "NTL":
+            if fp is None:
+                fp = "rr"
+
+            if fp == "fp":
+                algorithm = "BKZ_FP"
+            elif fp == "qd":
+                algorithm = "BKZ_QP"
+            elif fp == "qd1":
+                algorithm = "BKZ_QP1"
+            elif fp == "xd":
+                algorithm = "BKZ_XD"
+            elif fp == "rr":
+                algorithm = "BKZ_RR"
             else:
-                r = A.G_BKZ_FP(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+                raise TypeError("fp parameter not understood.")
 
-        elif algorithm == "BKZ_QP":
-            if not use_givens:
-                r = A.BKZ_QP(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
-            else:
-                r = A.G_BKZ_QP(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+            A = self._ntl_()
 
-        elif algorithm == "BKZ_QP1":
-            if not use_givens:
-                r = A.BKZ_QP1(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
-            else:
-                r = A.G_BKZ_QP1(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+            if algorithm == "BKZ_FP":
+                if not use_givens:
+                    r = A.BKZ_FP(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+                else:
+                    r = A.G_BKZ_FP(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
 
-        elif algorithm == "BKZ_XD":
-            if not use_givens:
-                r = A.BKZ_XD(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
-            else:
-                r = A.G_BKZ_XD(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+            elif algorithm == "BKZ_QP":
+                if not use_givens:
+                    r = A.BKZ_QP(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+                else:
+                    r = A.G_BKZ_QP(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
 
-        elif algorithm == "BKZ_RR":
-            if not use_givens:
-                r = A.BKZ_RR(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
-            else:
-                r = A.G_BKZ_RR(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+            elif algorithm == "BKZ_QP1":
+                if not use_givens:
+                    r = A.BKZ_QP1(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+                else:
+                    r = A.G_BKZ_QP1(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
 
-        self.cache("rank",ZZ(r))
-        R = <Matrix_integer_dense>self.new_matrix(entries=map(ZZ,A.list()))
+            elif algorithm == "BKZ_XD":
+                if not use_givens:
+                    r = A.BKZ_XD(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+                else:
+                    r = A.G_BKZ_XD(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+
+            elif algorithm == "BKZ_RR":
+                if not use_givens:
+                    r = A.BKZ_RR(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+                else:
+                    r = A.G_BKZ_RR(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+
+            self.cache("rank",ZZ(r))
+            R = <Matrix_integer_dense>self.new_matrix(entries=map(ZZ,A.list()))
+
+        elif algorithm == "fpLLL":
+            from sage.libs.fplll.fplll import FP_LLL
+            fp = fplll_fp_map[fp]
+            A = FP_LLL(self)
+            A.BKZ(block_size=block_size,
+                  delta=delta,
+                  float_type=fp,
+                  precision=precision,
+                  verbose=verbose,
+                  max_time=max_time,
+                  max_loops=max_loops,
+                  auto_abort=auto_abort)
+            R = A._sage_()            
         return R
 
-    def LLL(self, delta=None, eta=None, algorithm="fpLLL:wrapper", fp=None, prec=0, early_red = False, use_givens = False):
-        r"""
-        Returns LLL reduced or approximated LLL reduced lattice R for this
+    def LLL(self, delta=None, eta=None, algorithm="fpLLL:wrapper", fp=None, prec=0, early_red=False, use_givens=False, use_siegel=False):
+        r"""Returns LLL reduced or approximated LLL reduced lattice R for this
         matrix interpreted as a lattice.
 
-        A lattice `(b_1, b_2, ..., b_d)` is
-        `(\delta, \eta)` -LLL-reduced if the two following
-        conditions hold:
+        A lattice `(b_1, b_2, ..., b_d)` is `(\delta, \eta)` -LLL-reduced
+        if the two following conditions hold:
 
         -  For any `i>j`, we have `|mu_{i, j}| <= \eta`,
-        -  For any `i<d`, we have
-           `\delta |b_i^*|^2 <= |b_{i + 1}^* + mu_{i + 1, i} b_i^* |^2`,
+        -  For any `i<d`, we have `\delta |b_i^*|^2 <= |b_{i + 1}^* + mu_{i + 1, i} b_i^*|^2`,
 
-        where `mu_{i,j} = <b_i, b_j^*>/<b_j^*,b_j^*>` and
-        `b_i^*` is the `i`-th vector of the Gram-Schmidt
-        orthogonalisation of `(b_1, b_2, ..., b_d)`.
+        where `mu_{i,j} = <b_i, b_j^*>/<b_j^*,b_j^*>` and `b_i^*` is the `i`-th vector
+        of the Gram-Schmidt orthogonalisation of `(b_1, b_2, ..., b_d)`.
 
-        The default reduction parameters are `\delta=3/4` and
-        `eta=0.501`. The parameters `\delta` and
-        `\eta` must satisfy: `0.25 < \delta <= 1.0` and
-        `0.5 <= \eta < sqrt(\delta)`. Polynomial time
-        complexity is only guaranteed for `\delta < 1`.
+        The default reduction parameters are `\delta=3/4` and `eta=0.501`. The parameters `\delta`
+        and `\eta` must satisfy: `0.25 < \delta <= 1.0` and `0.5 <= \eta < sqrt(\delta)`.
+        Polynomial time complexity is only guaranteed for `\delta < 1`.
 
-        The lattice is returned as a matrix. Also the rank (and the
-        determinant) of self are cached if those are computed during the
-        reduction. Note that in general this only happens when self.rank()
-        == self.ncols() and the exact algorithm is used.
+        The lattice is returned as a matrix. Also the rank (and the determinant) of ``self``
+        are cached if those are computed during the reduction. Note that in general this only happens
+        when self.rank() == self.ncols() and the exact algorithm is used.
 
         INPUT:
 
+        -  ``delta`` - parameter as described above (default: 0.99)
 
-        -  ``delta`` - parameter as described above (default:
-           3/4)
+        -  ``eta`` - parameter as described above (default: 0.501), ignored by NTL
 
-        -  ``eta`` - parameter as described above (default:
-           0.501), ignored by NTL
-
-        -  ``algorithm`` - string (default: "fpLLL:wrapper")
-           one of the algorithms mentioned below
+        - ``algorithm`` - string (default: "fpLLL:wrapper") one of the
+           algorithms mentioned below
 
         -  ``fp``
 
-            -  None - NTL's exact reduction or fpLLL's
-               wrapper
+            - None - NTL's exact reduction or fpLLL's wrapper
 
-            -  ``'fp'`` - double precision: NTL's FP or fpLLL's
-               double
+            - ``'fp'`` - double precision: NTL's FP or fpLLL's double
 
-            -  ``'qd'`` - quad doubles: NTL's QP
+            - ``'qd'`` - NTL's QP or fpLLL's long doubles
 
-            -  ``'xd'`` - extended exponent: NTL's XD or fpLLL's
-               dpe
+            - ``'xd'`` - extended exponent: NTL's XD or fpLLL's dpe
 
-            -  ``'rr'`` - arbitrary precision: NTL'RR or fpLLL's
-               MPFR
+            - ``'rr'`` - arbitrary precision: NTL'RR or fpLLL's MPFR
 
-        -  ``prec`` - precision, ignored by NTL (default: auto
-           choose)
+        - ``prec`` - precision, ignored by NTL (default: auto choose)
 
-        -  ``early_red`` - perform early reduction, ignored by
-           NTL (default: False)
+        - ``early_red`` - perform early reduction, ignored by NTL (default:
+           ``False``)
 
-        -  ``use_givens`` - use Givens orthogonalization
-           (default: False) only applicable to approximate reductions and NTL.
-           This is more stable but slower.
+        - ``use_givens`` - use Givens orthogonalization (default: False) only
+           applicable to approximate reductions and NTL.  This is more stable
+           but slower.
 
-           Also, if the verbose level is = 2, some more verbose output is
-           printed during the calculation if NTL is used.
+        - ``use_siegel`` - use Siegel's condition instead of Lovasz's condition,
+          ignored by NTL (default: ``False``)
+        
+        Also, if the verbose level is = 2, some more verbose output is printed
+        during the calculation.
 
-           AVAILABLE ALGORITHMS:
+        AVAILABLE ALGORITHMS:
 
-        -  ``NTL:LLL`` - NTL's LLL + fp
+        - ``NTL:LLL`` - NTL's LLL + choice of fp
 
-        -  ``fpLLL:heuristic`` - fpLLL's heuristic + fp
+        - ``fpLLL:heuristic`` - fpLLL's heuristic + choice of fp
 
-        -  ``fpLLL:fast`` - fpLLL's fast
+        - ``fpLLL:fast`` - fpLLL's fast + choice of fp
 
-        -  ``fpLLL:wrapper`` - fpLLL's automatic choice
-           (default)
+        - ``fpLLL:proved`` - fpLLL's proved + choice of fp
 
+        - ``fpLLL:wrapper`` - fpLLL's automatic choice (default)
 
         OUTPUT: a matrix over the integers
 
@@ -2751,15 +2764,17 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             ...
             TypeError: algorithm NTL:LLL_QD not supported
 
-        ALGORITHM: Uses the NTL library by Victor Shoup or fpLLL library by
-        Damien Stehle depending on the chosen algorithm.
+        ALGORITHM: Uses the NTL library by Victor Shoup or fpLLL library
+        depending on the chosen algorithm.
 
         REFERENCES:
 
         - ``ntl.mat_ZZ`` or ``sage.libs.fplll.fplll`` for details on
           the used algorithms.
         """
-        if self.ncols()==0 or self.nrows()==0:
+        from sage.libs.fplll.fplll import FP_LLL
+        
+        if self.ncols() == 0 or self.nrows() == 0:
             verbose("Trivial matrix, nothing to do")
             return self
 
@@ -2767,17 +2782,18 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         import sage.libs.ntl.all
         ntl_ZZ = sage.libs.ntl.all.ZZ
 
-        from sage.libs.fplll.fplll import FP_LLL
+        if get_verbose() >= 2:
+            verb = True
+        else:
+            verb = False
 
-        if get_verbose() >= 2: verb = True
-        else: verb = False
+        if prec < 0:
+            raise TypeError("precision prec must be >= 0")
+        prec = int(prec)
 
-        # auto choice
-
-        # FP choice
-        if algorithm == 'NTL:LLL':
+        if algorithm == "NTL:LLL":
             if fp == None:
-                algorithm = 'NTL:LLL_FP'
+                algorithm = 'NTL:LLL'
             elif fp == 'fp':
                 algorithm = 'NTL:LLL_FP'
             elif fp == 'qd':
@@ -2786,21 +2802,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 algorithm = 'NTL:LLL_XD'
             elif fp == 'rr':
                 algorithm = 'NTL:LLL_RR'
-        elif algorithm == 'fpLLL:heuristic':
-            if fp == None:
-                raise TypeError("if 'fpLLL:heuristic' is chosen, a floating point number implementation must be chosen")
-            elif fp == 'fp':
-                fp = 'double'
-            elif fp == 'qd':
-                raise TypeError("fpLLL does not support quad doubles.")
-            elif fp == 'xd':
-                fp = 'dpe'
-            elif fp == 'rr':
-                fp = 'mpfr'
 
-        if algorithm == "NTL:LLL":
             if delta is None:
-                delta = ZZ(3)/ZZ(4)
+                delta = ZZ(99)/ZZ(100)
             elif delta <= ZZ(1)/ZZ(4):
                 raise TypeError("delta must be > 1/4")
             elif delta > 1:
@@ -2808,8 +2812,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             delta = QQ(delta)
             a = delta.numer()
             b = delta.denom()
-
+            
         else:
+            fp = fplll_fp_map[fp]            
             if delta is None:
                 delta = 0.99
             elif delta <= 0.25:
@@ -2822,10 +2827,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 eta = 0.501
             elif eta < 0.5:
                 raise TypeError("eta must be >= 0.5")
-
-        if prec < 0:
-            raise TypeError("precision prec must be >= 0")
-        int(prec)
 
         if algorithm.startswith('NTL:'):
             A = sage.libs.ntl.all.mat_ZZ(self.nrows(),self.ncols(),map(ntl_ZZ,self.list()))
@@ -2867,24 +2868,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             self.cache("rank",r)
 
         elif algorithm.startswith('fpLLL:'):
-
-            A = sage.libs.fplll.fplll.FP_LLL(self)
-            if algorithm == 'fpLLL:wrapper':
-                A.wrapper(prec, eta, delta)
-            elif algorithm == 'fpLLL:heuristic':
-                if early_red:
-                    A.heuristic_early_red(prec,eta,delta,fp)
-                else:
-                    A.heuristic(prec,eta,delta,fp)
-            elif algorithm == 'fpLLL:fast':
-                if early_red:
-                    A.fast_early_red(prec,eta,delta)
-                else:
-                    A.fast(prec,eta,delta)
-            elif algorithm == 'fpLLL:proved':
-                A.proved(prec,eta,delta)
-            else:
-                raise TypeError("algorithm %s not supported"%algorithm)
+            A = FP_LLL(self)
+            method = algorithm.replace("fpLLL:","")
+            A.LLL(delta=delta, eta=eta,
+                  method=method,
+                  float_type=fp,
+                  precision=prec,
+                  verbose=verb,
+                  siegel=use_siegel,
+                  early_red=early_red)
             R = A._sage_()
         else:
             raise TypeError("algorithm %s not supported"%algorithm)
@@ -2894,19 +2886,14 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def is_LLL_reduced(self, delta=None, eta=None):
         r"""
-        Return ``True`` if this lattice is
-        `(\delta, \eta)`-LLL reduced. See ``self.LLL``
-        for a definition of LLL reduction.
+        Return ``True`` if this lattice is `(\delta, \eta)`-LLL reduced.
+        See ``self.LLL`` for a definition of LLL reduction.
 
         INPUT:
 
+        -  ``delta`` - parameter as described above (default: 0.99)
 
-        -  ``delta`` - parameter as described above (default:
-           3/4)
-
-        -  ``eta`` - parameter as described above (default:
-           0.501)
-
+        -  ``eta`` - parameter as described above (default: 0.501)
 
         EXAMPLE::
 
@@ -2920,7 +2907,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if eta is None:
             eta = 0.501
         if delta is None:
-            delta = ZZ(3)/ZZ(4)
+            delta = ZZ(99)/ZZ(100)
 
         if delta <= ZZ(1)/ZZ(4):
             raise TypeError("delta must be > 1/4")

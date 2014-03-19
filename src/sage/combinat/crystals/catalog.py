@@ -35,9 +35,11 @@ from tensor_product import CrystalOfTableaux as Tableaux
 from fast_crystals import FastCrystal as FastRankTwo
 from affine import AffineCrystalFromClassical as AffineFromClassical
 from affine import AffineCrystalFromClassicalAndPromotion as AffineFromClassicalAndPromotion
+from affine_factorization import AffineFactorizationCrystal as AffineFactorization
 from highest_weight_crystals import HighestWeightCrystal as HighestWeight
 from alcove_path import CrystalOfAlcovePaths as AlcovePaths
 from littelmann_path import CrystalOfLSPaths as LSPaths
+from littelmann_path import CrystalOfProjectedLevelZeroLSPaths as ProjectedLevelZeroLSPaths
 from kyoto_path_model import KyotoPathModel
 from generalized_young_walls import CrystalOfGeneralizedYoungWalls as GeneralizedYoungWalls
 from monomial_crystals import CrystalOfNakajimaMonomials as NakajimaMonomials

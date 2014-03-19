@@ -32,7 +32,6 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
-from sage.rings.infinity import Infinity
 
 from sage.combinat.partition import Partition
 from sage.combinat.root_system.cartan_type import CartanType

@@ -18,7 +18,6 @@ Kyoto Path Model for Affine Highest Weight Crystals
 #****************************************************************************
 
 from sage.structure.parent import Parent
-from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 from sage.combinat.crystals.tensor_product import TensorProductOfCrystals, \

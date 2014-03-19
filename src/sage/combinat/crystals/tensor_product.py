@@ -46,7 +46,6 @@ from sage.combinat.tableau import Tableau
 from letters import CrystalOfLetters
 from spins import CrystalOfSpins, CrystalOfSpinsMinus, CrystalOfSpinsPlus
 from sage.misc.flatten import flatten
-from sage.rings.integer import Integer
 
 ##############################################################################
 # Until trunc gets implemented in sage.function.other
@@ -324,7 +323,7 @@ class CrystalOfWords(UniqueRepresentation, Parent):
         """
         return self.element_class(self, list(crystalElements))
 
-    def one_dimensional_configuration_sum(self, q = None, group_components = True):
+    def one_dimensional_configuration_sum(self, q=None, group_components=True):
         r"""
         Computes the one-dimensional configuration sum.
 
@@ -335,8 +334,8 @@ class CrystalOfWords(UniqueRepresentation, Parent):
         - ``group_components`` -- (default: ``True``) boolean; if ``True``,
           then the terms are grouped by classical component
 
-        The one-dimensional configuration sum is the sum of the weights of all elements in the crystal
-        weighted by the energy function.
+        The one-dimensional configuration sum is the sum of the weights of all
+        elements in the crystal weighted by the energy function.
 
         EXAMPLES::
 
@@ -352,7 +351,7 @@ class CrystalOfWords(UniqueRepresentation, Parent):
 
             sage: R = RootSystem(['A',2,1])
             sage: La = R.weight_space().basis()
-            sage: LS = crystals.kirillov_reshetikhin.ProjectedLevelZeroLSPaths(2*La[1])
+            sage: LS = crystals.ProjectedLevelZeroLSPaths(2*La[1])
             sage: LS.one_dimensional_configuration_sum() == T.one_dimensional_configuration_sum()
             True
 

@@ -20,7 +20,6 @@ Highest weight crystals
 from sage.categories.classical_crystals import ClassicalCrystals
 from sage.structure.parent import Parent
 from sage.combinat.partition import Partition
-from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.crystals.letters import CrystalOfLetters
 from sage.combinat.crystals.tensor_product import TensorProductOfCrystals, \
     TensorProductOfRegularCrystalsElement
@@ -28,7 +27,6 @@ from sage.combinat.crystals.tensor_product import TensorProductOfCrystals, \
 from sage.combinat.crystals.tensor_product import CrystalOfTableaux
 from sage.combinat.crystals.alcove_path import CrystalOfAlcovePaths
 from sage.combinat.crystals.littelmann_path import CrystalOfLSPaths
-from sage.combinat.crystals.kyoto_path_model import KyotoPathModel
 from sage.combinat.crystals.generalized_young_walls import CrystalOfGeneralizedYoungWalls
 from sage.combinat.crystals.monomial_crystals import CrystalOfNakajimaMonomials
 

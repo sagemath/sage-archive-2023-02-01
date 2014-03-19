@@ -581,8 +581,9 @@ ex power::eval(int level) const
 					if (num_basis->is_rational()) {
 						// call rational_power_parts
 						// for a^b return c,d such that a^b = c*d^b
-						PyObject* restuple = py_funcs.py_rational_power_parts(
-								num_basis->to_pyobject(), num_exponent->to_pyobject());
+						PyObject* basis = num_basis->to_pyobject();
+						PyObject* exponent = num_exponent->to_pyobject();
+						PyObject* restuple = py_funcs.py_rational_power_parts(basis, exponent);
 						if(!restuple) {
 							throw(std::runtime_error("power::eval, error in rational_power_parts"));
 						}
@@ -593,6 +594,8 @@ ex power::eval(int level) const
 						if (not ppower_equals_one)
 							result = (new mul(result, ppower))->setflag(status_flags::dynallocated | status_flags::evaluated);
 						Py_DECREF(restuple);
+						Py_DECREF(basis);
+						Py_DECREF(exponent);
 						return result;
 					}
 					return this->hold();

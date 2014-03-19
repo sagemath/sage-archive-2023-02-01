@@ -38,6 +38,7 @@ from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
 from sage.rings.integer_ring import ZZ
 from sage.matrix.constructor import matrix
 from sage.modules.vector_integer_dense cimport Vector_integer_dense
+from sage.misc.superseded import deprecation
 
 cdef inline int _check_precision(int precision) except -1:
     """Check whether the provided precision is within valid bounds. If not raise
@@ -122,6 +123,9 @@ cdef class FP_LLL:
 
             sage: A = matrix(ZZ, 2, 0)
             sage: FP_LLL(A).fast()
+            doctest:...: DeprecationWarning: You can just call LLL() instead
+            See http://trac.sagemath.org/15976 for details.
+
             sage: A = matrix(ZZ, 0, 2)
             sage: FP_LLL(A)
             Traceback (most recent call last):
@@ -575,6 +579,8 @@ cdef class FP_LLL:
             sage: L.hermite_form() == A.hermite_form()
             True
         """
+        deprecation(15976, 'You can just call LLL() instead')
+
         _check_precision(precision)
         _check_eta(eta)
         _check_delta(delta)
@@ -641,6 +647,8 @@ cdef class FP_LLL:
             sage: L.hermite_form() == A.hermite_form()
             True
         """
+        deprecation(15976, 'You can just call LLL() instead')
+
         _check_precision(precision)
         _check_eta(eta)
         _check_delta(delta)
@@ -702,6 +710,8 @@ cdef class FP_LLL:
             sage: L.hermite_form() == A.hermite_form()
             True
         """
+        deprecation(15976, 'You can just call LLL() instead')
+
         _check_precision(precision)
         _check_eta(eta)
         _check_delta(delta)
@@ -769,6 +779,8 @@ cdef class FP_LLL:
             sage: L.hermite_form() == A.hermite_form()
             True
          """
+        deprecation(15976, 'You can just call LLL() instead')
+        
         _check_precision(precision)
         _check_eta(eta)
         _check_delta(delta)
@@ -831,6 +843,8 @@ cdef class FP_LLL:
             sage: L.hermite_form() == A.hermite_form()
             True
         """
+        deprecation(15976, 'You can just call LLL() instead')
+
         _check_precision(precision)
         _check_eta(eta)
         _check_delta(delta)
@@ -917,6 +931,8 @@ cdef class FP_LLL:
             sage: L.hermite_form() == A.hermite_form()
             True
         """
+        deprecation(15976, 'You can just call LLL() instead')
+
         _check_precision(precision)
         _check_eta(eta)
         _check_delta(delta)

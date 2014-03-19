@@ -2885,15 +2885,14 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return R
 
     def is_LLL_reduced(self, delta=None, eta=None):
-        r"""
-        Return ``True`` if this lattice is `(\delta, \eta)`-LLL reduced.
+        r"""Return ``True`` if this lattice is `(\delta, \eta)`-LLL reduced.
         See ``self.LLL`` for a definition of LLL reduction.
 
         INPUT:
 
-        -  ``delta`` - parameter as described above (default: 0.99)
+        - ``delta`` - parameter as described above (default: 0.99)
 
-        -  ``eta`` - parameter as described above (default: 0.501)
+        - ``eta`` - parameter as described above (default: 0.501)
 
         EXAMPLE::
 
@@ -2903,6 +2902,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             False
             sage: L.is_LLL_reduced()
             True
+
         """
         if eta is None:
             eta = 0.501
@@ -2933,16 +2933,12 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return True
 
     def prod_of_row_sums(self, cols):
-        """
-        Return the product of the sums of the entries in the submatrix of
+        """Return the product of the sums of the entries in the submatrix of
         self with given columns.
 
         INPUT:
 
-
-        -  ``cols`` - a list (or set) of integers representing
-           columns of self.
-
+        - ``cols`` - a list (or set) of integers representing columns of self.
 
         OUTPUT: an integer
 
@@ -2957,6 +2953,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             40
             sage: a.prod_of_row_sums(set([0,2]))
             40
+
         """
         cdef Py_ssize_t c, row
         cdef mpz_t s, pr

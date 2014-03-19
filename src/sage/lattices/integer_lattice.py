@@ -59,9 +59,9 @@ class IntegerLattice(SageObject):
           - a matrix over the integers
           - an element of an absolute order
 
-        - ``lll_reduce`` - run LLL reduction on the basis on construction
-          (default: ``True``)
-
+        - ``lll_reduce`` -- (default: ``True``) run LLL reduction on the basis
+          on construction
+          
         EXAMPLES::
               
             sage: Lattice([[1,0,-2],[0,2,5], [0,0,7]])
@@ -122,13 +122,28 @@ class IntegerLattice(SageObject):
             self.LLL()
 
     def LLL(self, *args, **kwds):
-        """Run LLL on the current basis.
+        r"""Run LLL on the current basis.
+
+        A lattice basis `(b_1, b_2, ..., b_d)` is `(δ,η)`-LLL-reduced if the two
+        following conditions hold:
+
+        -  For any `i>j`, we have `|μ_{i, j}| <= η`,
+        
+        -  For any `i<d`, we have `δ|b_i^*|^2 ≤ |b_{i+1}^* + μ_{i+1, i} b_i^*|^2`,
+
+        where `μ_{i,j} = <b_i, b_j^*>/<b_j^*,b_j^*>` and `b_i^*` is the `i`-th vector
+        of the Gram-Schmidt orthogonalisation of `(b_1, b_2, …, b_d)`.
+
+        The default reduction parameters are `δ=3/4` and `eta=0.501`.
+
+        The parameters `δ` and `η` must satisfy: `0.25 < δ <= 1.0` and
+        `0.5 <= η < sqrt(δ)`. Polynomial time complexity is only guaranteed
+        for `δ < 1`.
 
         INPUT:
 
-        - ``*args`` - passed through to :func:`Matrix_integer_dense.LLL`
-        - ``*kwds`` - passed through to :func:`Matrix_integer_dense.LLL`
-
+        - ``*args`` - passed through to :func:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.LLL`
+        - ``*kwds`` - passed through to :func:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.LLL`
 
         EXAMPLE::
 
@@ -164,7 +179,7 @@ class IntegerLattice(SageObject):
             [  755 -1206  -918  -192 -1063   -37  -525   -75   338   400]
             [  382  -199 -1839  -482   984   -15  -695   136   682   563]
             sage: L.basis[0].norm().n()
-            1613.74...       
+            1613.74...
         """
         self._basis = [v for v in self._basis.LLL(*args, **kwds) if v]
         self._basis = matrix(ZZ, len(self._basis), len(self._basis[0]), self._basis)
@@ -172,12 +187,17 @@ class IntegerLattice(SageObject):
         self._is_LLL_reduced = True
             
     def BKZ(self, *args, **kwds):
-        """Run BKZ reduction on the current basis.
+        """Run Block Korkine-Zolotareff reduction on the current basis.
+
+        .. note::
+
+            If ``block_size == L.rank()`` where ``L`` is this latice, then this
+            function performs Hermite-Korkine-Zolotareff (HKZ) reduction.
 
         INPUT:
 
-        - ``*args`` - passed through to :func:`Matrix_integer_dense.BKZ`
-        - ``*kwds`` - passed through to :func:`Matrix_integer_dense.BKZ`
+        - ``*args`` - passed through to :func:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.BKZ`
+        - ``*kwds`` - passed through to :func:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.BKZ`
 
         EXAMPLE::
 
@@ -193,6 +213,7 @@ class IntegerLattice(SageObject):
             sage: L.BKZ(block_size=10)
             sage: min(v.norm().n() for v in L.basis)
             4.12310562561766
+
         """
         self._basis = [v for v in self._basis.BKZ(*args, **kwds) if v]
         self._basis = matrix(ZZ, len(self._basis), len(self._basis[0]), self._basis)

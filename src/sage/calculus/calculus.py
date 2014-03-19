@@ -444,10 +444,10 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
 
             In particular, this does not work::
             
-                sage: var('n')
+                sage: n = var('n')
                 sage: list=[1,2,3,4,5]
                 sage: sum(list[n],n,0,3)
-                TypeError ...
+                Traceback (most recent call last):
                 ...
                 TypeError: unable to convert x (=n) to an integer
                 
@@ -459,7 +459,7 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
             Also, only a limited number of functions are recognized in symbolic sums::
             
                 sage: sum(valuation(n,2),n,1,5)
-                AttributeError ...
+                Traceback (most recent call last):
                 ...
                 AttributeError: 'sage.symbolic.expression.Expression' object has no attribute 'valuation'
                 

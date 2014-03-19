@@ -2141,6 +2141,14 @@ if is_package_installed('cryptominisat'):
                   libraries = ['cryptominisat', 'z'])
         ])
 
+if is_package_installed('mcqd'):
+    ext_modules.append(
+        Extension("sage.graphs.mcqd",
+                  ["sage/graphs/mcqd.pyx"],
+                  language = "c++"))
+#                  libraries = ["mcqd"]))
+
+
 # Only include darwin_utilities on OS_X >= 10.5
 UNAME = os.uname()
 if UNAME[0] == "Darwin" and not UNAME[2].startswith('8.'):

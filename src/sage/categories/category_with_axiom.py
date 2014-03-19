@@ -800,7 +800,7 @@ This follows the same idiom as for deduction rules about functorial
 constructions (see :meth:`.covariant_functorial_constructions.CovariantConstructionCategory.extra_super_categories`).
 For example, the fact that a cartesian product of associative magmas
 (i.e. of semigroups) is an associative magma is implemented in
-:meth:`Semigroups.Algebras.extra_super_categories`::
+:meth:`Semigroups.CartesianProducts.extra_super_categories`::
 
     sage: Magmas().Associative()
     Category of semigroups
@@ -846,9 +846,9 @@ already a class for this category with axiom, namely
 ``Fields.Finite``.
 
 A natural idiom would be to have ``DivisionRings.Finite`` be a link to
-``Fields.Finite`` (locally introducing a cycle in the arborescence of
-nested classes). It would be a bit tricky to implement though, since
-one would need to detect, upon constructing
+``Fields.Finite`` (locally introducing an undirected cycle in the
+arborescence of nested classes). It would be a bit tricky to implement
+though, since one would need to detect, upon constructing
 ``DivisionRings().Finite()``, that ``DivisionRings.Finite`` is
 actually ``Fields.Finite``, in order to construct appropriately
 ``Fields().Finite()``; and reciprocally, upon computing the super
@@ -857,7 +857,7 @@ categories of ``Fields().Finite()``, to not try to add
 
 Instead the current idiom is to have a method
 ``DivisionRings.Finite_extra_super_categories`` which mimicks the
-behavior of the would be
+behavior of the would-be
 ``DivisionRings.Finite.extra_super_categories``::
 
     sage: DivisionRings().Finite_extra_super_categories()
@@ -903,9 +903,9 @@ than ``Fields.Finite``::
 In general, if several categories ``C1s(), C2s(), ... are mapped to
 the same category when applying some axiom ``A`` (that is ``C1s().A()
 == C2s().A() == ...``), then one should be careful to implement this
-category in a single class ``Cs.A``, and setup methods
+category in a single class ``Cs.A``, and set up methods
 ``extra_super_categories`` or ``A_extra_super_categories`` methods as
-appropriate. Each such methods should return something like
+appropriate. Each such method should return something like
 ``[C2s()]`` and not ``[C2s().A()]`` for the latter would likely lead
 to an infinite recursion.
 
@@ -914,7 +914,7 @@ to an infinite recursion.
     Supporting similar deduction rules will be an important feature in
     the future, with quite a few occurences already implemented in
     upcoming tickets. For the time being though there is a single
-    occurence of this idiom outside of the tests. So this would be an
+    occurrence of this idiom outside of the tests. So this would be an
     easy thing to refactor after :trac:`10963` if a better idiom is
     found.
 
@@ -922,7 +922,7 @@ Larger synthetic examples
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We now consider some larger synthetic examples to check that the
-machinery works as epexted. Let us start with a category defining a
+machinery works as expected. Let us start with a category defining a
 bunch of axioms, using :func:`axiom` for conciseness (don't do it for
 real axioms; they deserve a full documentation!)::
 
@@ -1039,7 +1039,7 @@ As desired, William's theorem and its consequences hold::
     sage: C is A2s().D().E().F()
     True
 
-Finally, we "accidently" implement the category of ``b c a1s``, both
+Finally, we "accidentally" implement the category of ``b c a1s``, both
 in ``A3s.B.C`` and ``A3s.E.F``::
 
     sage: class A3s(Category_singleton):
@@ -1083,7 +1083,7 @@ have ``A3s().E().F()`` as super category and reciprocally.
 Specifications
 ==============
 
-After fixing some vocabulary, we sumarize here some specifications
+After fixing some vocabulary, we summarize here some specifications
 about categories and axioms.
 
 The lattice of constructible categories
@@ -1091,11 +1091,12 @@ The lattice of constructible categories
 
 A mathematical category `C` is *implemented* if there is a class in
 Sage modelling it; it is *constructible* if it is either implemented,
-or is the intersection of *implemented* categories; in the later it is
-modelled by a :class:`JoinCategory`. The comparison of two
+or is the intersection of *implemented* categories; in the latter
+case it is modelled by a :class:`JoinCategory`. The comparison of two
 constructible categories with the :meth:`Category.is_super_category`
 method is supposed to model the comparison of the corresponding
-mathematical categories for inclusion of the objects. For example::
+mathematical categories for inclusion of the objects (as explained
+above, in a wider sense). For example::
 
     sage: Fields().is_subcategory(Rings())
     True
@@ -1122,7 +1123,7 @@ Axioms
 
 We say that an axiom ``A`` is *defined by* a category ``Cs()`` if
 ``Cs`` defines an appropriate method ``Cs.SubcategoryMethods.A``, with
-the semantic of the axiom specified in the documentation; for all
+the semantic of the axiom specified in the documentation; for any
 subcategory ``Ds()``, ``Ds().A()`` models the subcategory of the
 objects of ``Ds()`` satisfying ``A``. In this case, we say that the
 axiom ``A`` is *defined for* the category ``Ds()``. Furthermore,
@@ -1139,7 +1140,7 @@ category of objects satisfying `A`. Equivalently, `\phi_A` is
 computing the intersection with the defining category with axiom of
 `A`. It follows immediately from the latter that `\phi_A` is a
 regressive endomorphism of the lattice of categories. It restricts
-restricts to a regressive endomorphism ``Cs() -> Cs().A()``
+to a regressive endomorphism ``Cs() |-> Cs().A()``
 on the lattice of constructible categories.
 
 This endomorphism may have non trivial fibers, as in our favorite
@@ -1153,7 +1154,7 @@ Consider the intersection `S` of such a fiber of `\phi_A` with the
 upper set `I_A` of categories that do not satisfy ``A``. The fiber
 itself is a sublattice. However `I_A` is not guaranteed to be stable
 under intersection (though exceptions should be rare). Therefore,
-there is a priori no guarantee to `S` would be stable under
+there is a priori no guarantee that `S` would be stable under
 intersection. Also it's presumably finite, in fact small, but this is
 not guaranteed either.
 
@@ -1183,9 +1184,10 @@ Specifications
   axiom for the elements of ``Cs()`` satisfying the axioms in
   `S`. Then, there should be a single enumeration ``A1, A2, ..., Ak``
   without repetition of axioms in `S` such that
-  ``Cs.A1.A2....Ak=Ds``. Furthermore, every intermediate step, like
+  ``Cs.A1.A2....Ak`` is an implemented category.
+  Furthermore, every intermediate step
   ``Cs.A1.A2....Ai`` with `i\leq k` should be a category with axiom
-  having ``Ai`` as axiom and ``Cs.A1.A2.. Ai-1`` as base category
+  having ``Ai`` as axiom and ``Cs.A1.A2....Ai-1`` as base category
   class; this base category class should not satisfy ``Ai``. In
   particular, when some axioms of `S` can be deduced from previous
   ones by deduction rules, they should not appear in the enumeration
@@ -1195,7 +1197,7 @@ Specifications
   ``A`` (e.g. from one of its super categories), then it should not
   implement that axiom. For example, a category class ``Cs`` can never
   have a nested class ``Cs.A.A``. Similarly, applying the
-  specification recursively a category satisfying ``A`` cannot have a
+  specification recursively, a category satisfying ``A`` cannot have a
   nested class ``Cs.A1.A2.A3.A`` where ``A1``, ``A2``, ``A3`` are
   axioms.
 
@@ -1214,7 +1216,7 @@ Specifications
 
 - Any super category of a :class:`CategoryWithParameters` should
   either be a :class:`CategoryWithParameters` or a
-  :class:`CategorySingleton`.
+  :class:`Category_singleton`.
 
 - A :class:`CategoryWithAxiom` having a :class:`Category_singleton` as
   base category should be a :class:`CategoryWithAxiom_singleton`. This
@@ -1247,7 +1249,7 @@ Specifications
     The following specification might be desirable, or not:
 
     - A join category involving a :class:`Category_over_base_ring`
-      should a be a :class:`Category_over_base_ring`. In the mean
+      should be a :class:`Category_over_base_ring`. In the mean
       time, a ``base_ring`` method is automatically provided for most
       of those by :meth:`Modules.SubcategoryMethods.base_ring`.
 
@@ -1257,11 +1259,11 @@ Design goals
 
 As pointed out in the primer, the main design goal of the axioms
 infrastructure is to subdue the potential combinatorial explosion of
-the category hierarchy by letting the developper focus on implementing
+the category hierarchy by letting the developer focus on implementing
 a few bookshelves for which there is actual code or mathematical
 information, and let Sage *compose dynamically and lazily* these
 building blocks to construct the minimal hierarchy of classes needed
-for the computation at hand. This to allows for the infrastructure to
+for the computation at hand. This allows for the infrastructure to
 scale smoothly as bookshelves are added, extended, or reorganized.
 
 Other design goals include:
@@ -1284,6 +1286,12 @@ Other design goals include:
        sage: Rings().Finite().Division()
        Category of finite fields
 
+   (This should not be mistaken for a single way to construct each
+   category by applying a chain of axioms -- which, in fact, is
+   not satisfied, due to equalities like
+   ``Fields().Finite() == DivisionRings().Finite()``, but is not
+   problematic either.)
+
    This will allow for progressively getting rid of all the
    :class:`GradedHopfAlgebrasWithBasis` which are polluting the global
    name space
@@ -1291,7 +1299,7 @@ Other design goals include:
  - Concise idioms for the users (adding axioms, ...)
 
  - Concise idioms and well highlighted hierarchy of bookshelves for
-   the developper (especially with code folding)
+   the developer (especially with code folding)
 
  - Introspection friendly (listing the axioms, recovering the mixins)
 
@@ -1328,7 +1336,7 @@ Upcoming features
     - Implement compatibility axiom / functorial constructions. For
       example, one would want to have::
 
-          A.CartesianProducts() & B.CartesianProducts()) = (A&B).CartesianProducts()
+          A.CartesianProducts() & B.CartesianProducts() = (A&B).CartesianProducts()
 
     - Once full subcategories are implemented (see :trac:`10668`),
       make the relevant categories with axioms be such. This can be
@@ -1355,15 +1363,15 @@ axiom `A` satisfied by `J`.
 
 The join `J` is naturally computed as a closure in the lattice of
 constructible categories: it starts with the `C_i`'s, gathers the set
-`S` of all the axioms satisfied by theim, and repeteadly adds each
+`S` of all the axioms satisfied by them, and repeteadly adds each
 axiom `A` to those categories that do not yet satisfy `A` using
 :meth:`Category._with_axiom`. Due to deduction rules or (extra) super
 categories, new categories or new axioms may appear in the
-process. The process stops when each remaining categories has been
+process. The process stops when each remaining category has been
 combined with each axiom. In practice, only the smallest categories
 are kept along the way; this is correct because adding an axiom is
-covariant: ``C.A()`` is a subcategory of ``D.A()`` whenever ``D`` is a
-subcategory of ``C``.
+covariant: ``C.A()`` is a subcategory of ``D.A()`` whenever ``C`` is a
+subcategory of ``D``.
 
 As usual in such closure computations, the result does not depend on
 the order of execution. Futhermore, given that adding an axiom is an
@@ -1378,12 +1386,12 @@ categories of `J`. In particular, it is a finite process.
     ``C2`` as super category such that ``C2.A()`` specifies ``C3`` as
     super category such that ...; this would clearly cause an infinite
     execution. Note that this situation violates the specifications
-    since C1.A() is supposed to be a subcategory of C2.A(), ... so we
-    would have an infinite increasing chain of constructible
+    since ``C1.A()`` is supposed to be a subcategory of ``C2.A()``,
+    ... so we would have an infinite increasing chain of constructible
     categories.
 
     It's reasonnable to assume that there is a finite number of axioms
-    defined in the code. There remains to use this assumption to argue
+    defined in the code. It remains to use this assumption to argue
     that any infinite execution of the algorithm would give rise to
     such an infinite sequence.
 
@@ -1416,7 +1424,7 @@ Adding an axiom ``A`` to a category ``Cs()`` implementing it
 
 In this case ``Cs().A()`` simply constructs an instance `D` of
 ``Cs.A`` which models the desired category. The non trivial part is
-the construction of the the super categories of `D`. Very much like
+the construction of the super categories of `D`. Very much like
 above, this includes:
 
 - ``Cs()``

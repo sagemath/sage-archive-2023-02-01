@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-r"""Discrete Subgroups of $\ZZ^n$.
+"""Discrete Subgroups of $\ZZ^n$.
 
 AUTHORS:
 
@@ -21,10 +21,10 @@ from sage.modules.free_module import FreeModule
 from sage.structure.sage_object import SageObject
         
 class IntegerLattice(SageObject):
-    r"""This class represents lattices over the integers.
+    """This class represents lattices over the integers.
 
-    Lattices are discrete subgroups of $\RR^n$. However, here we restrict out
-    attention to subgroups of $\ZZ^n$, which are common in many applications.
+    Lattices are discrete subgroups of $\\RR^n$. However, here we restrict out
+    attention to subgroups of $\\ZZ^n$, which are common in many applications.
 
     Lattices are represented by a basis which is not unique.  In particular, the
     basis representing our lattice might change during the life-time of an
@@ -267,7 +267,7 @@ class IntegerLattice(SageObject):
 
     @cached_method
     def volume(self):
-        """Return $vol(L)$ which is $\sqrt(det(B·B^T))$ for any basis $B$.
+        """Return $vol(L)$ which is $\\sqrt(det(B·B^T))$ for any basis $B$.
 
         EXAMPLE::
 
@@ -308,7 +308,7 @@ class IntegerLattice(SageObject):
         return self.volume() == 1
 
     def base_ring(self):
-        r"""Return $\ZZ$
+        """Return $\\ZZ$
 
         TESTS::
 
@@ -351,16 +351,20 @@ class IntegerLattice(SageObject):
         return copy(self._basis)
 
     @cached_method
-    def shortest_vector(self, update_basis=True, algorithm="fplll"):
-        """Return the shortest vector.
+    def shortest_vector(self, update_basis=True, algorithm="fplll", *args, **kwds):
+        """Return a shortest vector.
 
         INPUT:
 
-        - ``update_basis`` - set this flag if the found vector should be used to
-          improve the basis (default: True)
+        - ``update_basis`` -- (default: True) set this flag if the found vector
+          should be used to improve the basis
 
-        - ``algorithm`` - either "fplll" or "pari" (default: "fpllll")
-        
+        - ``algorithm`` -- (default: "fplll") either "fplll" or "pari"
+
+        - ``*args`` - passed through to underlying implementation
+
+        - ``*kwds`` - passed through to underlying implementation
+
         EXAMPLE::
 
             sage: A = sage.crypto.gen_lattice(type='random', n=1, m=30, q=2^40, seed=42)
@@ -379,15 +383,21 @@ class IntegerLattice(SageObject):
             3.74165738677394
 
         """
-        if not self._is_LLL_reduced:
-            self.LLL()
-        
-        qf = self.gram_matrix()
+        if algorithm == "pari":
+            if not self._is_LLL_reduced:
+                self.LLL()
+            qf = self.gram_matrix()
 
-        count, length, vectors = pari(qf).qfminim(0, None)
-        v = vectors.python().columns()[0]
-        w = v*self._basis
-
+            count, length, vectors = pari(qf).qfminim(0, None)
+            v = vectors.python().columns()[0]
+            w = v*self._basis
+        elif algorithm == "fplll":
+            from sage.libs.fplll.fplll import FP_LLL
+            L = FP_LLL(self._basis)
+            w = L.shortest_vector(*args, **kwds)
+        else:
+            raise ValueError("Algorithm '%s' unknown."%algorithm)
+            
         if update_basis:
             self.update_basis(w)
         return w

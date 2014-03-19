@@ -10,6 +10,7 @@ AUTHORS:
 - Tom Boothby (added DiskCachedFunction).
 - Simon King (improved performance, more doctests, cython version,
   CachedMethodCallerNoArgs, weak cached function, cached special methods).
+- Julian Rueth (2014-03-19): added ``key_normalizer`` parameter
 
 EXAMPLES:
 
@@ -413,6 +414,7 @@ easier method::
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #                          Mike Hansen <mhansen@gmail.com>
 #                     2011 Simon King <simon.king@uni-jena.de>
+#                     2014 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -475,6 +477,9 @@ cdef class CachedFunction(object):
     - ``f`` -- a function
     - ``name`` (optional string) -- name that the cached version
       of ``f`` should be provided with.
+    - ``key_normalizer`` -- a function or ``None`` (default: ``None``), the
+      parameters to ``f`` are normalized with this function when computing a
+      key for the cache
 
     If ``f`` is a function, do either ``g = CachedFunction(f)``
     or ``g = cached_function(f)`` to make a cached version of ``f``,
@@ -519,8 +524,17 @@ cdef class CachedFunction(object):
         sage: mul(5,2)
         'foo'
 
+    The parameter ``key_normalizer`` can be used to ignore parameters for
+    caching. In this example we ignore the parameter ``algorithm``::
+
+        sage: @cached_function(key_normalizer = (lambda x, y, algorithm: (x,y)))
+        ....: def mul(x, y, algorithm="default"):
+        ....:     return x*y
+        sage: mul(1,1,algorithm="default") is mul(1,1,algorithm="algorithm") is mul(1,1) is mul(1,1,'default')
+        True
+
     """
-    def __init__(self, f, classmethod=False, name=None):
+    def __init__(self, f, classmethod=False, name=None, key_normalizer=None):
         """
         Create a cached version of a function, which only recomputes
         values it hasn't already computed. A custom name can be
@@ -528,8 +542,7 @@ cdef class CachedFunction(object):
 
         If f is a function, do either g = CachedFunction(f) to make
         a cached version of f, or put @CachedFunction right before
-        the definition of f (i.e., use Python decorators, but then
-        the optional argument ``name`` can not be used)::
+        the definition of f (i.e., use Python decorators)::
 
             @CachedFunction
             def f(...):
@@ -558,10 +571,10 @@ cdef class CachedFunction(object):
 
         """
         self.is_classmethod = classmethod
-        self._common_init(f, None, name=name)
+        self._common_init(f, None, name=name, key_normalizer=key_normalizer)
         self.cache = {}
 
-    def _common_init(self, f, argument_fixer, name=None):
+    def _common_init(self, f, argument_fixer, name=None, key_normalizer=None):
         """
         Perform initialization common to CachedFunction and CachedMethodCaller.
 
@@ -585,10 +598,14 @@ cdef class CachedFunction(object):
             self.__module__ = f.__module__
         except AttributeError:
             self.__module__ = f.__objclass__.__module__
+        self._key_normalizer = key_normalizer
         if argument_fixer is not None: # it is None unless the argument fixer
                                        # was known previously. See #15038.
             self._argument_fixer = argument_fixer
-            self._fix_to_pos = argument_fixer.fix_to_pos
+            if self._key_normalizer is None:
+                self._fix_to_pos = argument_fixer.fix_to_pos
+            else:
+                self._fix_to_pos = self._fix_to_pos_and_normalize_key
 
     cdef argfix_init(self):
         """
@@ -607,7 +624,31 @@ cdef class CachedFunction(object):
         """
         A = ArgumentFixer(self.f,classmethod=self.is_classmethod)
         self._argument_fixer = A
-        self._fix_to_pos = A.fix_to_pos
+        if self._key_normalizer:
+            self._fix_to_pos = self._fix_to_pos_and_normalize_key
+        else:
+            self._fix_to_pos = A.fix_to_pos
+
+    def _fix_to_pos_and_normalize_key(self, *args, **kwargs):
+        r"""
+        Normalize parameters to obtain a key for the cache.
+
+        For performance reasons, this method is only called if a ``key_normalizer`` has been passed in
+        the constructor.
+
+        TESTS::
+
+            sage: @cached_function(key_normalizer = (lambda x, y, algorithm: (x,y)))
+            ....: def mul(x, y, algorithm="default"):
+            ....:     return x*y
+            sage: mul(2,3) # this initializes _argument_fixer
+            6
+            sage: mul._fix_to_pos_and_normalize_key(1,1,"default")
+            (1, 1)
+
+        """
+        args, kwargs = self._argument_fixer.fix_to_pos(*args, **kwargs)
+        return self._key_normalizer(*args, **dict(kwargs))
 
     def __reduce__(self):
         """
@@ -916,8 +957,8 @@ cdef class CachedFunction(object):
         for ((args,kwargs), val) in P(arglist):
             self.set_cache(val, *args, **kwargs)
 
-
-cached_function = CachedFunction
+from sage.misc.decorators import decorator_keywords
+cached_function = decorator_keywords(CachedFunction)
 
 cdef class WeakCachedFunction(CachedFunction):
     """
@@ -925,8 +966,7 @@ cdef class WeakCachedFunction(CachedFunction):
 
     If f is a function, do either ``g = weak_cached_function(f)`` to make
     a cached version of f, or put ``@weak_cached_function`` right before
-    the definition of f (i.e., use Python decorators, but then
-    the optional argument ``name`` can not be used)::
+    the definition of f (i.e., use Python decorators)::
 
         @weak_cached_function
         def f(...):
@@ -961,8 +1001,17 @@ cdef class WeakCachedFunction(CachedFunction):
         sage: a = f()
         doing a computation
 
+    The parameter ``key_normalizer`` can be used to ignore parameters for
+    caching. In this example we ignore the parameter ``algorithm``::
+
+        sage: @weak_cached_function(key_normalizer = (lambda x, algorithm: x))
+        ....: def mod_ring(x, algorithm="default"):
+        ....:     return IntegerModRing(x)
+        sage: mod_ring(1,algorithm="default") is mod_ring(1,algorithm="algorithm") is mod_ring(1) is mod_ring(1,'default')
+        True
+
     """
-    def __init__(self, f, classmethod=False, name=None):
+    def __init__(self, f, classmethod=False, name=None, key_normalizer=None):
         """
         The inputs to the function must be hashable.
         The outputs to the function must be weakly referenceable.
@@ -989,8 +1038,9 @@ cdef class WeakCachedFunction(CachedFunction):
             '<WeakValueDictionary at 0x...>'
 
         """
-        self._common_init(f, None, name=name)
+        self._common_init(f, None, name=name, key_normalizer=key_normalizer)
         self.cache = WeakValueDictionary()
+
     def __call__(self, *args, **kwds):
         """
         Return value from cache or call the wrapped function,
@@ -1109,7 +1159,7 @@ cdef class WeakCachedFunction(CachedFunction):
         self.cache[self._fix_to_pos(*args, **kwds)] = value
 
 
-weak_cached_function = WeakCachedFunction
+weak_cached_function = decorator_keywords(WeakCachedFunction)
 
 class CachedMethodPickle(object):
     """

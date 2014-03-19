@@ -1454,8 +1454,10 @@ def help(module=None):
         Welcome to Sage ...
     """
     if not module is None:
-        if isinstance (module, sage.misc.cachefunc.CachedMethodCallerNoArgs):
-            python_help(module.f)
+        if hasattr(module, '_sage_doc_'):
+            from sage.misc.sageinspect import _sage_getdoc_unformatted
+            docstr = 'Sage help on ' + str(module)
+            pydoc.pager(docstr + _sage_getdoc_unformatted(module))
         else:
             python_help(module)
     else:

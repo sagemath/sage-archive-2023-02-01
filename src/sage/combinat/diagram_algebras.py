@@ -1312,7 +1312,7 @@ def pair_to_graph(sp1, sp2):
             g.add_vertex( (part_list[0],1) )
 
             #Add the edge to the second part of the graph
-            if part_list[0] < 0 and len(part_list) > 1:
+            if part_list[0] < 0 and len(part_list) > 0:
                 g.add_edge( (part_list[0], 1), (abs(part_list[0]), 2)  )
 
         for i in range(1, len(part_list)):

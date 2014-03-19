@@ -2129,7 +2129,7 @@ class FiniteStateMachine(SageObject):
 
         - ``reset`` -- If reset is True, then the existing input and
           output alphabets are erased, otherwise new letters are
-          appended to the existing alphabet.
+          appended to the existing alphabets.
 
         OUTPUT:
 

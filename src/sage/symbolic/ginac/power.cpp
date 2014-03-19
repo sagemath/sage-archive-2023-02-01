@@ -579,21 +579,21 @@ ex power::eval(int level) const
 				}
 				if (q.is_zero()) {  // the exponent was in the allowed range 0<(n/m)<1
 					if (num_basis->is_rational()) {
-				// call rational_power_parts
-				// for a^b return c,d such that a^b = c*d^b
-				PyObject* restuple = py_funcs.py_rational_power_parts(
-						num_basis->to_pyobject(), num_exponent->to_pyobject());
-				if(!restuple) {
-					throw(std::runtime_error("power::eval, error in rational_power_parts"));
-				}
-				PyObject *newbasis = PyTuple_GetItem(restuple,1);
-				PyObject *ppower = PyTuple_GetItem(restuple,0);
-				const ex t = (new power(newbasis,exponent))->setflag(status_flags::dynallocated | status_flags::evaluated);
-				if (PyObject_IsTrue(PyTuple_GetItem(restuple, 2))) {
-					return t;
-				}
-				return (new mul(t, ppower))->setflag(status_flags::dynallocated | status_flags::evaluated);
-				
+						// call rational_power_parts
+						// for a^b return c,d such that a^b = c*d^b
+						PyObject* restuple = py_funcs.py_rational_power_parts(
+								num_basis->to_pyobject(), num_exponent->to_pyobject());
+						if(!restuple) {
+							throw(std::runtime_error("power::eval, error in rational_power_parts"));
+						}
+						PyObject *ppower = PyTuple_GetItem(restuple,0);
+						PyObject *newbasis = PyTuple_GetItem(restuple,1);
+						const bool ppower_equals_one = PyObject_IsTrue(PyTuple_GetItem(restuple, 2));
+						ex result = (new power(newbasis,exponent))->setflag(status_flags::dynallocated | status_flags::evaluated);
+						if (not ppower_equals_one)
+							result = (new mul(result, ppower))->setflag(status_flags::dynallocated | status_flags::evaluated);
+						Py_DECREF(restuple);
+						return result;
 					}
 					return this->hold();
 				} else if (r.is_zero()) {

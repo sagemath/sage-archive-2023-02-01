@@ -1713,7 +1713,7 @@ class FiniteStateMachine(SageObject):
 
         TESTS::
 
-            sage: FiniteStateMachine() * FiniteStateMachine([('A', 'B')])
+            sage: FiniteStateMachine() * FiniteStateMachine([('A', 'B', 0, 0)])
             Finite state machine with 0 states
         """
         if is_FiniteStateMachine(other):
@@ -1892,27 +1892,27 @@ class FiniteStateMachine(SageObject):
 
     def has_epsilon_transitions(self):
         """
-        Returns whether the transducer has transitions with empty input or
+        Returns whether the finite state machine has transitions with empty input or
         output.
 
         INPUT:
         
-        - ``self`` -- a transducer
+        - ``self`` -- a finite state machine
 
         OUTPUT:
         
-        ``True`` if the transducer has epsilon-transitions (that are
+        ``True`` if the finite state machine has epsilon-transitions (that are
         transitions with empty input or output) and ``False`` otherwise.
 
         EXAMPLES::
 
-            sage: t1 = Transducer([(0, 0, None, 1)])
+            sage: t1 = FiniteStateMachine([(0, 0, None, 1)])
             sage: t1.has_epsilon_transitions()
             True
-            sage: t2 = Transducer([(0, 0, 1, None)])
+            sage: t2 = FiniteStateMachine([(0, 0, 1, None)])
             sage: t2.has_epsilon_transitions()
             True
-            sage: t3 = Transducer([(0, 0, 1, 2)])
+            sage: t3 = FiniteStateMachine([(0, 0, 1, 2)])
             sage: t3.has_epsilon_transitions()
             False        
         """
@@ -3408,7 +3408,27 @@ class FiniteStateMachine(SageObject):
             sage: t2.intersection(t1)
             Traceback (most recent call last):
             ...
-            ValueError: An epsilon-transition (with empty input or output) was found.
+            ValueError: An epsilon-transition (with empty input or output) 
+            was found.
+
+        Also for automata with epsilon-transitions, intersection is not well
+        defined.
+
+        ::
+        
+            sage: a1 = Automaton([(0, 0, 0), (0, 1, None), (1, 1, 1)], 
+            ....:                 initial_states=[0], 
+            ....:                 final_states=[1], 
+            ....:                 determine_alphabets=True)
+            sage: a2 = Automaton([(0, 0, 0), (0, 1, 1), (1, 1, 1)], 
+            ....:                 initial_states=[0], 
+            ....:                 final_states=[1], 
+            ....:                 determine_alphabets=True)
+            sage: a1.intersection(a2)
+            Traceback (most recent call last):
+            ...
+            ValueError: An epsilon-transition (with empty input or output) 
+            was found.
         """
         def function(transition1, transition2):
             if transition1.word_in == transition2.word_in \
@@ -4520,7 +4540,7 @@ class Automaton(FiniteStateMachine):
 
     def cartesian_product(self, other, only_accessible_components=True):
         """
-        Return a new finite state machine which accepts an input if it is
+        Return a automaton which accepts an input if it is
         accepted by both given finite state machines producing the same
         output.
 

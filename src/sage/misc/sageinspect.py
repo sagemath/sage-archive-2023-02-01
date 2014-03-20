@@ -1324,7 +1324,7 @@ def sage_getargspec(obj):
 
     # Otherwise we're (hopefully!) plain Python, so use inspect
     try:
-        args, varargs, varkw = inspect.getargs(func_obj.func_code)
+        args, varargs, varkw = inspect.getargs(func_obj.__code__)
     except AttributeError:
         try:
             args, varargs, varkw = inspect.getargs(func_obj)
@@ -1333,7 +1333,7 @@ def sage_getargspec(obj):
             return inspect.ArgSpec(*_sage_getargspec_cython(sage_getsource(obj)))
             #return _sage_getargspec_from_ast(sage_getsource(obj))
     try:
-        defaults = func_obj.func_defaults
+        defaults = func_obj.__defaults__
     except AttributeError:
         defaults = tuple([])
     return inspect.ArgSpec(args, varargs, varkw, defaults)
@@ -1640,7 +1640,7 @@ def _sage_getsourcelines_name_with_dot(object):
     if inspect.ismethod(object):
         object = object.im_func
     if inspect.isfunction(object):
-        object = object.func_code
+        object = object.__code__
     if inspect.istraceback(object):
         object = object.tb_frame
     if inspect.isframe(object):

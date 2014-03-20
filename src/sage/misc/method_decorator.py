@@ -24,11 +24,11 @@ class MethodDecorator(SageObject):
         """
         self.f = f
         if hasattr(f, "func_doc"):
-            self.__doc__ = f.func_doc
+            self.__doc__ = f.__doc__
         else:
             self.__doc__ = f.__doc__
         if hasattr(f, "func_name"):
-            self.__name__ = f.func_name
+            self.__name__ = f.__name__
         self.__module__ = f.__module__
 
     def _sage_src_(self):

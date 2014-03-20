@@ -459,9 +459,9 @@ class Decorator:
                 elif filename.startswith(SAGE_LIB):
                     filename = filename[len(SAGE_LIB):]
                 file_info = "File: %s (starting at line %d)\n"%(filename,sourcelines[1])
-                doc = file_info+(f.func_doc or '')
+                doc = file_info+(f.__doc__ or '')
             else:
-                doc = f.func_doc
+                doc = f.__doc__
         else:
             doc = f.__doc__
         return doc
@@ -639,7 +639,7 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
         if f is not None:
             self.f = f
             if hasattr(f, "func_name"):
-                self.__name__ = f.func_name
+                self.__name__ = f.__name__
             else:
                 self.__name__ = f.__name__
             self.__module__ = f.__module__
@@ -738,7 +738,7 @@ class EnumeratedSetFromIterator_method_caller(Decorator):
         self.f = f
         self.af = ArgumentFixer(self.f)
         if hasattr(f, "func_name"):
-            self.__name__ = f.func_name
+            self.__name__ = f.__name__
         else:
             self.__name__ = f.__name__
         self.__module__ = f.__module__
@@ -911,7 +911,7 @@ class EnumeratedSetFromIterator_method_decorator(object):
             import types
             self.f = f
             if hasattr(f,"func_name"):
-                self.__name__ = f.func_name
+                self.__name__ = f.__name__
                 self.__module__ = f.__module__
 
             else:

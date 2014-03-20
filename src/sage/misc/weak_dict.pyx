@@ -140,7 +140,8 @@ cdef extern from "Python.h":
         Py_ssize_t ma_used
         Py_ssize_t ma_mask
         PyDictEntry* ma_table
-
+        PyDictEntry* (*ma_lookup)(PyDictObject *mp, PyObject *key, long hash)
+        
     PyObject* Py_None
     #we need this redefinition because we want to be able to call
     #PyWeakref_GetObject with borrowed references. This is the recommended
@@ -152,6 +153,16 @@ cdef extern from "Python.h":
 
 #this routine extracts the "dummy" sentinel value that is used in dicts to mark
 #"freed" slots. We need that to delete things ourselves.
+
+cdef PyObject* PyDict_GetItemWithError(dict op, object key) except? NULL:
+    cdef PyDictEntry* ep
+    cdef PyDictObject* mp = <PyDictObject*><void *>op
+    ep = mp.ma_lookup(mp, <PyObject*><void*>key, PyObject_Hash(key))
+    if ep:
+        return ep.me_value
+    else:
+        return NULL
+
 cdef PyObject* init_dummy() except NULL:
     cdef dict D = dict()
     cdef PyDictObject* mp = <PyDictObject *><void *>D
@@ -644,7 +655,7 @@ cdef class WeakValueDictionary(dict):
             TypeError: mutable matrices are unhashable
 
         """
-        cdef PyObject* wr = PyDict_GetItem(self, k)
+        cdef PyObject* wr = PyDict_GetItemWithError(self, k)
         if wr != NULL:
             out = PyWeakref_GetObject(wr)
             if out != Py_None:
@@ -756,9 +767,8 @@ cdef class WeakValueDictionary(dict):
             TypeError: mutable matrices are unhashable
 
         """
-        cdef PyObject* wr = PyDict_GetItem(self, k)
+        cdef PyObject* wr = PyDict_GetItemWithError(self, k)
         if wr == NULL:
-            hash(k) # raises a TypeError if k is not hashable
             raise KeyError(k)
         cdef PyObject* outref = PyWeakref_GetObject(wr)
         if outref == Py_None:
@@ -833,9 +843,8 @@ cdef class WeakValueDictionary(dict):
             TypeError: mutable matrices are unhashable
 
         """
-        cdef PyObject * wr = PyDict_GetItem(self, k)
+        cdef PyObject * wr = PyDict_GetItemWithError(self, k)
         if wr == NULL:
-            hash(k) # raises a TypeError if k is not hashable
             return d
         out = PyWeakref_GetObject(wr)
         if out == Py_None:
@@ -874,9 +883,8 @@ cdef class WeakValueDictionary(dict):
             TypeError: mutable matrices are unhashable
 
         """
-        cdef PyObject* wr = PyDict_GetItem(self, k)
+        cdef PyObject* wr = PyDict_GetItemWithError(self, k)
         if wr == NULL:
-            hash(k) # raises a TypeError if k is not hashable
             raise KeyError(k)
         out = PyWeakref_GetObject(wr)
         if out == Py_None:
@@ -919,9 +927,8 @@ cdef class WeakValueDictionary(dict):
             TypeError: mutable matrices are unhashable
 
         """
-        cdef PyObject* wr = PyDict_GetItem(self, k)
+        cdef PyObject* wr = PyDict_GetItemWithError(self, k)
         if wr==NULL:
-            hash(k) # raises a TypeError if k is not hashable
             return False
         if PyWeakref_GetObject(wr)==Py_None:
             return False

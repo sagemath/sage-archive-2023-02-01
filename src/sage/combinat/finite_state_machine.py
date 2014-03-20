@@ -4745,9 +4745,11 @@ class Automaton(FiniteStateMachine):
 
         INPUT:
 
-        - ``algorithm`` -- Either Moore's algorithm is used (default
-          or ``algorithm='Moore'``), or Brzozowski's algorithm when
-          ``algorithm='Brzozowski'``.
+        - ``algorithm`` -- Either Moore's algorithm (by
+          ``algorithm='Moore'`` or as default for deterministic
+          automata) or Brzozowski's algorithm (when
+          ``algorithm='Brzozowski'`` or when the automaton is not
+          deterministic) is used.
 
         OUTPUT:
 
@@ -4801,9 +4803,11 @@ class Automaton(FiniteStateMachine):
             NotImplementedError: Minimization via Moore's Algorithm is only
             implemented for deterministic finite state machines
         """
-        if algorithm is None or algorithm == "Moore":
+        deterministic = self.is_deterministic()
+
+        if algorithm == "Moore" or (algorithm is None and deterministic):
             return self._minimization_Moore_()
-        elif algorithm == "Brzozowski":
+        elif algorithm == "Brzozowski" or (algorithm is None and not deterministic):
             return self._minimization_Brzozowski_()
         else:
             raise NotImplementedError, "Algorithm '%s' is not implemented. Choose 'Moore' or 'Brzozowski'" % algorithm

@@ -1892,21 +1892,21 @@ class FiniteStateMachine(SageObject):
 
     def has_epsilon_transitions(self):
         """
-        Returns whether the finite state machine has transitions with empty input or
-        output.
+        Returns whether the finite state machine has transitions with empty
+        input or output.
 
         INPUT:
-        
+
         - ``self`` -- a finite state machine
 
         OUTPUT:
-        
+
         ``True`` if the finite state machine has epsilon-transitions (that are
         transitions with empty input or output) and ``False`` otherwise.
 
         EXAMPLES::
 
-            sage: t1 = FiniteStateMachine([(0, 0, None, 1)])
+            sage: t1 = FiniteStateMachine([(0, 0)])
             sage: t1.has_epsilon_transitions()
             True
             sage: t2 = FiniteStateMachine([(0, 0, 1, None)])
@@ -1914,7 +1914,7 @@ class FiniteStateMachine(SageObject):
             True
             sage: t3 = FiniteStateMachine([(0, 0, 1, 2)])
             sage: t3.has_epsilon_transitions()
-            False        
+            False
         """
         for t in self.transitions():
             if (t.word_in == []) or (t.word_out == []):
@@ -3408,26 +3408,26 @@ class FiniteStateMachine(SageObject):
             sage: t2.intersection(t1)
             Traceback (most recent call last):
             ...
-            ValueError: An epsilon-transition (with empty input or output) 
+            ValueError: An epsilon-transition (with empty input or output)
             was found.
 
         Also for automata with epsilon-transitions, intersection is not well
         defined.
 
         ::
-        
-            sage: a1 = Automaton([(0, 0, 0), (0, 1, None), (1, 1, 1)], 
-            ....:                 initial_states=[0], 
-            ....:                 final_states=[1], 
+
+            sage: a1 = Automaton([(0, 0, 0), (0, 1, None), (1, 1, 1)],
+            ....:                 initial_states=[0],
+            ....:                 final_states=[1],
             ....:                 determine_alphabets=True)
-            sage: a2 = Automaton([(0, 0, 0), (0, 1, 1), (1, 1, 1)], 
-            ....:                 initial_states=[0], 
-            ....:                 final_states=[1], 
+            sage: a2 = Automaton([(0, 0, 0), (0, 1, 1), (1, 1, 1)],
+            ....:                 initial_states=[0],
+            ....:                 final_states=[1],
             ....:                 determine_alphabets=True)
             sage: a1.intersection(a2)
             Traceback (most recent call last):
             ...
-            ValueError: An epsilon-transition (with empty input or output) 
+            ValueError: An epsilon-transition (with empty input or output)
             was found.
         """
         def function(transition1, transition2):
@@ -4515,11 +4515,11 @@ class Automaton(FiniteStateMachine):
         Returns whether the automaton has transitions with empty input.
 
         INPUT:
-        
+
         - ``self`` -- an automaton
 
         OUTPUT:
-        
+
         ``True`` if the automaton has epsilon-transitions (that are
         transitions with empty input) and ``False`` otherwise.
 
@@ -4530,7 +4530,7 @@ class Automaton(FiniteStateMachine):
             True
             sage: a2 = Automaton([(0, 0, 1)])
             sage: a2.has_epsilon_transitions()
-            False        
+            False
         """
         for t in self.transitions():
             if t.word_in == []:
@@ -4540,9 +4540,8 @@ class Automaton(FiniteStateMachine):
 
     def cartesian_product(self, other, only_accessible_components=True):
         """
-        Return a automaton which accepts an input if it is
-        accepted by both given finite state machines producing the same
-        output.
+        Return a automaton which accepts an input if it is accepted by both
+        given finite state machines producing the same output.
 
         INPUT:
 
@@ -4920,8 +4919,8 @@ class Transducer(FiniteStateMachine):
     def cartesian_product(self, other, only_accessible_components=True):
         """
         Return a new transducer which can simultaneously process an input with
-        ``self`` and ``other`` where the output labels are pairs of the original
-        output labels.
+        ``self`` and ``other`` where the output labels are pairs of the
+        original output labels.
 
         INPUT:
 
@@ -4951,7 +4950,7 @@ class Transducer(FiniteStateMachine):
             ....:                          initial_states=['A'],
             ....:                          final_states=['A'],
             ....:                          determine_alphabets=True)
-            sage: transducer2 = Transducer([(0, 1, 0, 'b'),
+            sage: transducer2 = Transducer([(0, 1, 0, ['b', 'c']),
             ....:                           (0, 0, 1, 'b'),
             ....:                           (1, 1, 0, 'a')],
             ....:                          initial_states=[0],
@@ -4959,18 +4958,25 @@ class Transducer(FiniteStateMachine):
             ....:                          determine_alphabets=True)
             sage: result = transducer1.cartesian_product(transducer2)
             sage: result.transitions()
-            [Transition from ('A', 0) to ('A', 1): 0|((0,), ('b',)),
-             Transition from ('A', 0) to ('A', 0): 1|((1,), ('b',)),
-             Transition from ('A', 1) to ('A', 1): 0|((0,), ('a',))]
+            [Transition from ('A', 0) to ('A', 1): 0|(0, 'b'),('-', 'c'),
+             Transition from ('A', 0) to ('A', 0): 1|(1, 'b'),
+             Transition from ('A', 1) to ('A', 1): 0|(0, 'a')]
             sage: result([1,0,0])[2]
-            [((1,), ('b',)), ((0,), ('b',)), ((0,), ('a',))]
+            [(1, 'b'), (0, 'b'), ('-', 'c'),  (0, 'a')]
             sage: (transducer1([1,0,0])[2], transducer2([1,0,0])[2])
-            ([1, 0, 0], ['b', 'b', 'a'])
+            ([1, 0, 0], ['b', 'b', 'c', 'a'])
         """
         def function(transition1, transition2):
             if transition1.word_in == transition2.word_in:
-                return (transition1.word_in, (tuple(transition1.word_out),
-                                              tuple(transition2.word_out)))
+                word_out1 = transition1.word_out
+                word_out2 = transition2.word_out
+                if len(word_out1) > len(word_out2):
+                    word_out2 = word_out2 + [FSMEmptyWordSymbol for n in
+                                   range(len(word_out1)-len(word_out2))]
+                else:
+                    word_out1 = word_out1 + [FSMEmptyWordSymbol for n in
+                                   range(len(word_out2)-len(word_out1))]
+                return (transition1.word_in, zip(word_out1,word_out2))
             else:
                 raise LookupError
 

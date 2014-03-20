@@ -4127,14 +4127,33 @@ class FiniteStateMachine(SageObject):
             sage: C.transitions()
             [Transition from 0 to 1: 0|-]
 
+        Output labels do not have to be hashable::
+
+            sage: C = Transducer([(0, 1, 0, []),
+            ....:                 (1, 0, 0, [vector([0, 0]), 0]),
+            ....:                 (1, 1, 1, [vector([0, 0]), 1]),
+            ....:                 (0, 0, 1, 0)],
+            ....:                 determine_alphabets=False,
+            ....:                 initial_states=[0])
+            sage: C.prepone_output()
+            sage: sorted(C.transitions())
+            [Transition from 0 to 1: 0|(0, 0),
+             Transition from 0 to 0: 1|0,
+             Transition from 1 to 0: 0|0,
+             Transition from 1 to 1: 1|1,(0, 0)]
         """
         def find_common_output(state):
-            if len(filter(lambda transition: len(transition.word_out) == 0, self.transitions(state))) > 0:
-                return ()
-            first_letters = set(map(lambda transition: transition.word_out[0], self.transitions(state)))
-            if len(first_letters) == 1:
-                return (first_letters.pop(),)
-            return ()
+            if len(filter(lambda transition: len(transition.word_out) == 0,
+                          self.transitions(state))) > 0:
+                return tuple()
+            first_letters = map(lambda transition: transition.word_out[0],
+                                self.transitions(state))
+            if len(first_letters) == 0:
+                return tuple()
+            first_item = first_letters.pop()
+            if all([item == first_item for item in first_letters]):
+                return (first_item,)
+            return tuple()
 
         changed = 1
         iteration = 0

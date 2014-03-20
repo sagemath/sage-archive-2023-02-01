@@ -1,1 +1,1 @@
-from integer_lattice import IntegerLattice
+from constructor import Lattice

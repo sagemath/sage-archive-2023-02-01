@@ -4507,8 +4507,8 @@ class Automaton(FiniteStateMachine):
             was found.
         """
         if not is_Automaton(other):
-            raise ValueError(
-                 "Only an automaton can be intersected with a transducer.")
+            raise TypeError(
+                 "Only an automaton can be intersected with an automaton.")
 
         def function(transition1, transition2):
             if (transition1.word_in == []) or (transition2.word_in == []):

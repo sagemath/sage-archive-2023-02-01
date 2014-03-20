@@ -49,9 +49,9 @@ class FastCrystal(UniqueRepresentation, Parent):
       ``crystals.FastRankTwo(['B', 2], l1+1/2, l2+1/2)`` produces a crystal
       isomorphic to the following crystal ``T``::
 
-        C = crystals.Tableaux(['B',2], shape=[l1,l2])
-        D = crystals.Spins(['B',2])
-        T = crystals.TensorProduct(C, D, C.list()[0], D.list()[0])
+          sage: C = crystals.Tableaux(['B',2], shape=[l1,l2])
+          sage: D = crystals.Spins(['B',2])
+          sage: T = crystals.TensorProduct(C, D, C.list()[0], D.list()[0])
 
     - ``format`` -- (default: ``'string'``) the default representation of
       elements is in term of theBerenstein-Zelevinsky-Littelmann (BZL)

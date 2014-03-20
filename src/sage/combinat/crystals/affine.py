@@ -250,7 +250,7 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
 
     This class is not instantiated directly but rather __call__ed from
     AffineCrystalFromClassical.  The syntax of this is governed by the
-    (classical) crystals.Tableaux.
+    (classical) ``crystals.Tableaux``.
 
     EXAMPLES::
 
@@ -569,7 +569,7 @@ class AffineCrystalFromClassicalAndPromotionElement(AffineCrystalFromClassicalEl
 
     This class is not instantiated directly but rather __call__ed from
     crystals.AffineFromClassicalAndPromotion.  The syntax of this is governed by the
-    (classical) crystals.Tableaux.
+    (classical) ``crystals.Tableaux``.
 
     Since this class inherits from AffineClassicalFromClassicalElement, the methods
     that need to be implemented are e0, f0 and possibly epsilon0 and phi0 if more efficient

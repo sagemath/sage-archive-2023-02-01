@@ -239,7 +239,7 @@ class FiniteDimensionalHighestWeightCrystal_TypeE(TensorProductOfCrystals):
 
     def _repr_(self):
         """
-        Return a string represetation of ``self``.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 

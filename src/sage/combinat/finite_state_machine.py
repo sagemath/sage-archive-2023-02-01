@@ -4976,7 +4976,7 @@ class Transducer(FiniteStateMachine):
                 else:
                     word_out1 = word_out1 + [FSMEmptyWordSymbol for n in
                                    range(len(word_out2)-len(word_out1))]
-                return (transition1.word_in, zip(word_out1,word_out2))
+                return (transition1.word_in, zip(word_out1, word_out2))
             else:
                 raise LookupError
 

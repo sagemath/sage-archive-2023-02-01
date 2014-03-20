@@ -1382,11 +1382,13 @@ class InfinitePolynomialGen(SageObject):
         EXAMPLES::
 
             sage: from sage.misc.latex import latex
-            sage: X.<x,x1> = InfinitePolynomialRing(QQ)
+            sage: X.<x,x1,xx> = InfinitePolynomialRing(QQ)
             sage: latex(x) # indirect doctest
             x_{\ast}
             sage: latex(x1) # indirect doctest
-            \mbox{x1}_{\ast}
+            \mathit{x1}_{\ast}
+            sage: latex(xx) # indirect doctest
+            \mathit{xx}_{\ast}
             sage: latex(x[2]) # indirect doctest
             x_{2}
             sage: latex(x1[3]) # indirect doctest

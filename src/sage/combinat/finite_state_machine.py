@@ -1892,38 +1892,6 @@ class FiniteStateMachine(SageObject):
         return False
 
 
-    def has_epsilon_transitions(self):
-        """
-        Returns whether the finite state machine has transitions with empty
-        input or output.
-
-        INPUT:
-
-        - ``self`` -- a finite state machine
-
-        OUTPUT:
-
-        ``True`` if the finite state machine has epsilon-transitions (that are
-        transitions with empty input or output) and ``False`` otherwise.
-
-        EXAMPLES::
-
-            sage: t1 = FiniteStateMachine([(0, 0)])
-            sage: t1.has_epsilon_transitions()
-            True
-            sage: t2 = FiniteStateMachine([(0, 0, 1, None)])
-            sage: t2.has_epsilon_transitions()
-            True
-            sage: t3 = FiniteStateMachine([(0, 0, 1, 2)])
-            sage: t3.has_epsilon_transitions()
-            False
-        """
-        for t in self.transitions():
-            if (t.word_in == []) or (t.word_out == []):
-                return True
-        return False
-
-
     #*************************************************************************
     # representations / LaTeX
     #*************************************************************************
@@ -4413,34 +4381,6 @@ class Automaton(FiniteStateMachine):
         return format_function(transition.word_in)
 
 
-    def has_epsilon_transitions(self):
-        """
-        Returns whether the automaton has transitions with empty input.
-
-        INPUT:
-
-        - ``self`` -- an automaton
-
-        OUTPUT:
-
-        ``True`` if the automaton has epsilon-transitions (that are
-        transitions with empty input) and ``False`` otherwise.
-
-        EXAMPLES::
-
-            sage: a1 = Automaton([(0, 0, None)])
-            sage: a1.has_epsilon_transitions()
-            True
-            sage: a2 = Automaton([(0, 0, 1)])
-            sage: a2.has_epsilon_transitions()
-            False
-        """
-        for t in self.transitions():
-            if t.word_in == []:
-                return True
-        return False
-
-
     def intersection(self, other, only_accessible_components=True):
         """
         Returns a new automaton which accepts an input if it is
@@ -4492,7 +4432,10 @@ class Automaton(FiniteStateMachine):
 
         ::
 
-            sage: a1 = Automaton([(0, 0, 0), (0, 1, None), (1, 1, 1)],
+            sage: a1 = Automaton([(0, 0, 0),
+            ....:                 (0, 1, None),
+            ....:                 (1, 1, 1),
+            ....:                 (1, 2, 1)],
             ....:                 initial_states=[0],
             ....:                 final_states=[1],
             ....:                 determine_alphabets=True)

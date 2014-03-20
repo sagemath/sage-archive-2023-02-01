@@ -82,7 +82,7 @@ We mix Singular variables with symbolic variables::
 
 TESTS:
 
-Test Jacobian on Pynac expressions. #5546 ::
+Test Jacobian on Pynac expressions. (:trac:`5546`) ::
 
     sage: var('x,y')
     (x, y)
@@ -91,7 +91,7 @@ Test Jacobian on Pynac expressions. #5546 ::
     [1 1]
 
 
-Test if matrices work #5546 ::
+Test if matrices work (:trac:`5546`) ::
 
     sage: var('x,y,z')
     (x, y, z)
@@ -102,7 +102,7 @@ Test if matrices work #5546 ::
     sage: v*M
     (x^2 + y*z, 2*x*y)
 
-Test if comparison bugs from #6256 are fixed::
+Test if comparison bugs from :trac:`6256` are fixed::
 
     sage: t = exp(sqrt(x)); u = 1/t
     sage: t*u
@@ -112,7 +112,7 @@ Test if comparison bugs from #6256 are fixed::
     sage: t
     e^sqrt(x)
 
-Test if #9947 is fixed::
+Test if :trac:`9947` is fixed::
 
     sage: real_part(1+2*(sqrt(2)+1)*(sqrt(2)-1))
     3
@@ -505,7 +505,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(a+1)^x
             (a + 1)^x
 
-        Check if #7876 is fixed::
+        Check if :trac:`7876` is fixed::
 
             sage: (1/2-1/2*I )*sqrt(2)
             -(1/2*I - 1/2)*sqrt(2)
@@ -725,7 +725,7 @@ cdef class Expression(CommutativeRingElement):
             sage: latex(SR(a+1)^x)
             \left(a + 1\right)^{x}
 
-        More powers, #7406::
+        More powers (:trac:`7406`)::
 
             sage: latex((x^pi)^e)
             {\left(x^{\pi}\right)}^{e}
@@ -737,7 +737,7 @@ cdef class Expression(CommutativeRingElement):
             sage: latex((a^b)^c)
             {\left(a^{b}\right)}^{c}
 
-        Separate coefficients to numerator and denominator, #7363::
+        Separate coefficients to numerator and denominator (:trac:`7363`)::
 
             sage: latex(2/(x+1))
             \frac{2}{x + 1}
@@ -745,14 +745,14 @@ cdef class Expression(CommutativeRingElement):
             \frac{1}{2 \, {\left(x + 1\right)}}
 
         Check if rational function coefficients without a ``numerator()`` method
-        are printed correctly. #8491::
+        are printed correctly. :trac:`8491`::
 
             sage: latex(6.5/x)
             \frac{6.50000000000000}{x}
             sage: latex(Mod(2,7)/x)
             \frac{2}{x}
 
-        Check if we avoid extra parenthesis in rational functions (#8688)::
+        Check if we avoid extra parenthesis in rational functions (:trac:`8688`)::
 
             sage: latex((x+2)/(x^3+1))
             \frac{x + 2}{x^{3} + 1}
@@ -779,7 +779,7 @@ cdef class Expression(CommutativeRingElement):
             sage: latex(-x/z/y)
             -\frac{x}{y z}
 
-        Check if #9394 is fixed::
+        Check if :trac:`9394` is fixed::
 
             sage: var('n')
             n
@@ -793,7 +793,7 @@ cdef class Expression(CommutativeRingElement):
             x - \left(2 i - 1\right) \, y
 
         Check if complex coefficients with denominators are displayed
-        correctly #10769::
+        correctly (:trac:`10769`)::
 
             sage: var('a x')
             (a, x)
@@ -803,7 +803,7 @@ cdef class Expression(CommutativeRingElement):
             sage: latex(ratio)
             \frac{i \, x^{2}}{2 \, a}
 
-        Parenthesis in powers, #13262::
+        Parenthesis in powers (:trac:`13262`)::
 
             sage: latex(1+x^(2/3)+x^(-2/3))
             x^{\frac{2}{3}} + \frac{1}{x^{\frac{2}{3}}} + 1
@@ -1289,7 +1289,7 @@ cdef class Expression(CommutativeRingElement):
         TESTS:
 
         Test if hashes for fderivatives with different parameters collide.
-        #6243::
+        :trac:`6243`::
 
             sage: f = function('f'); t = f(x,y)
             sage: u = t.derivative(x); v = t.derivative(y)
@@ -1298,7 +1298,7 @@ cdef class Expression(CommutativeRingElement):
             sage: d = {u: 3, v: 5}; sorted(d.values())
             [3, 5]
 
-        More checks for fderivative hashes #6851 ::
+        More checks for fderivative hashes :trac:`6851` ::
 
             sage: hash(f(x).derivative(x)) == hash(f(x).derivative(x,2))
             False
@@ -1306,8 +1306,9 @@ cdef class Expression(CommutativeRingElement):
             sage: len(d.keys())
             5
 
-        We create a function with 10 arguments and test if there are hash
-        collisions between any of its derivatives of order at most 7. #7508::
+        We create a function with 10 arguments and test if there are
+        hash collisions between any of its derivatives of order at
+        most 7. :trac:`7508` ::
 
             sage: num_vars = 10; max_order=7
             sage: X = var(' '.join(['x'+str(i) for i in range(num_vars)]))
@@ -1344,7 +1345,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x^2 > x
             x^2 > x
 
-        Testing trac #11309 which changes the behavior of comparison of
+        Testing :trac:`11309` which changes the behavior of comparison of
         comparisons::
 
             sage: (-x + y < 0) in [x - y < 0]
@@ -1527,7 +1528,7 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS:
 
-        Check if #7507 is fixed::
+        Check if :trac:`7507` is fixed::
 
             sage: forget()
             sage: n = var('n')
@@ -1874,13 +1875,13 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS:
 
-        Check if we can handle derivatives. #6523::
+        Check if we can handle derivatives. :trac:`6523`::
 
             sage: f(x) = function('f',x)
             sage: f(x).diff(x).is_zero()
             False
 
-        Check if #11352 is fixed::
+        Check if :trac:`11352` is fixed::
 
             sage: el = -1/2*(2*x^2 - sqrt(2*x - 1)*sqrt(2*x + 1) - 1)
             sage: el.is_polynomial(x)
@@ -3143,7 +3144,7 @@ cdef class Expression(CommutativeRingElement):
             sage: (2*I)^(1/2)
             sqrt(2*I)
 
-        Test if we can take powers of elements of Q(i) #8659::
+        Test if we can take powers of elements of Q(i) :trac:`8659`::
 
             sage: t = I.pyobject().parent()(8)
             sage: t^(1/2)
@@ -3315,7 +3316,7 @@ cdef class Expression(CommutativeRingElement):
             ...
             ValueError: No differentiation variable specified.
 
-        Check if #6524 is fixed::
+        Check if :trac:`6524` is fixed::
 
             sage: f = function('f')
             sage: f(x)*f(x).derivative(x)*f(x).derivative(x,2)
@@ -3469,7 +3470,7 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS:
 
-        Check if #8943 is fixed::
+        Check if :trac:`8943` is fixed::
 
             sage: ((1+arctan(x))**(1/x)).series(x==0, 3)
             (e) + (-1/2*e)*x + (1/8*e)*x^2 + Order(x^3)
@@ -3590,7 +3591,7 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS:
 
-        Check that ticket #7472 is fixed (Taylor polynomial in more variables)::
+        Check that :trac:`7472` is fixed (Taylor polynomial in more variables)::
 
             sage: x,y=var('x y'); taylor(x*y^3,(x,1),(y,1),4)
             (x - 1)*(y - 1)^3 + 3*(x - 1)*(y - 1)^2 + (y - 1)^3 + 3*(x - 1)*(y - 1) + 3*(y - 1)^2 + x + 3*y - 3
@@ -4108,7 +4109,8 @@ cdef class Expression(CommutativeRingElement):
             sage: 1/gamma(x).subs(x=-1)
             0
 
-            # verify that this operation does not modify the passed dictionary (#6622)
+            Verify that this operation does not modify the passed dictionary (:trac:`6622`)::
+
             sage: var('v t')
             (v, t)
             sage: f = v*t
@@ -4118,7 +4120,7 @@ cdef class Expression(CommutativeRingElement):
             sage: D
             {v: 2}
 
-        Check if #9891 is fixed::
+        Check if :trac:`9891` is fixed::
 
             sage: exp(x).subs(x=log(x))
             x
@@ -4680,7 +4682,7 @@ cdef class Expression(CommutativeRingElement):
             TypeError: cannot evaluate symbolic expression numerically
 
         Make sure we've rounded up log(10,2) enough to guarantee
-        sufficient precision (trac #10164)::
+        sufficient precision (:trac:`10164`)::
 
             sage: ks = 4*10**5, 10**6
             sage: all(len(str(e.n(digits=k)))-1 >= k for k in ks)
@@ -5484,7 +5486,7 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS:
 
-        This shows that the issue at trac #5755 is fixed (attempting to
+        This shows that the issue at :trac:`5755` is fixed (attempting to
         coerce a symbolic expression to a non-symbolic polynomial ring
         caused an error::
 
@@ -5498,7 +5500,7 @@ cdef class Expression(CommutativeRingElement):
             sage: RR['xx'](2.0*xx)
             2.00000000000000*xx
 
-        This shows that the issue at trac #4246 is fixed (attempting to
+        This shows that the issue at :trac:`4246` is fixed (attempting to
         coerce an expression containing at least one variable that's not in
         `R` raises an error)::
 
@@ -6968,7 +6970,7 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS:
 
-        Test if #6377 is fixed::
+        Test if :trac:`6377` is fixed::
 
             sage: SR(oo).exp()
             +Infinity
@@ -8205,7 +8207,7 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS:
 
-        Check that the problem with applying full_simplify() to gamma functions (Trac 9240)
+        Check that the problem with applying full_simplify() to gamma functions (:trac:`9240`)
         has been fixed::
 
             sage: gamma(1/3)
@@ -8422,7 +8424,7 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS:
 
-        This shows that the issue at trac #7334 is fixed. Maxima intentionally
+        This shows that the issue at :trac:`7334` is fixed. Maxima intentionally
         keeps the expression inside the log factored::
 
             sage: log_expr = (log(sqrt(2)-1)+log(sqrt(2)+1))
@@ -8971,7 +8973,7 @@ cdef class Expression(CommutativeRingElement):
             ...
             TypeError: unable to convert sqrt(3) to a rational
 
-        Check if #9538 is fixed::
+        Check if :trac:`9538` is fixed::
 
             sage: var('f6,f5,f4,x')
             (f6, f5, f4, x)
@@ -9454,7 +9456,7 @@ cdef class Expression(CommutativeRingElement):
         TESTS:
 
         Test the special case that failed for the first attempt to fix
-        #3980::
+        :trac:`3980`::
 
             sage: t = var('t')
             sage: find_root(1/t - x,0,2)
@@ -9873,7 +9875,7 @@ cdef class Expression(CommutativeRingElement):
             sage: (binomial(n,k)*x^k).sum(k, 0, n, algorithm = 'maple')      # optional - maple
             (x + 1)^n
 
-        Check that the sum in #10682 is done right::
+        Check that the sum in :trac:`10682` is done right::
 
             sage: sum(binomial(n,k)*k^2, k, 2, n)
             1/4*(n^2 + n)*2^n - n

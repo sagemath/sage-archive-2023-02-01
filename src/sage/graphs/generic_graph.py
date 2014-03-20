@@ -9603,6 +9603,7 @@ class GenericGraph(GenericGraph_pyx):
             vertices = [vertices]
         else:
             vertices = [v for v in vertices if v in self]
+
         if ignore_direction and self._directed:
             from itertools import chain
             return chain(self._backend.iterator_out_edges(vertices, labels),
@@ -16569,13 +16570,13 @@ class GenericGraph(GenericGraph_pyx):
             ...
             NotImplementedError: Non injective relabeling
 
-        But this test can be disabled, which leads to ... problems::
+        But this test can be disabled, which can lead to ... problems::
 
             sage: G.edges()
             [(0, 1, None), (1, 2, None)]
             sage: G.relabel(lambda i: 0, check_input = False)
             sage: G.edges()
-            [(0, 0, None)]
+            []
 
         Relabeling to simpler labels::
 

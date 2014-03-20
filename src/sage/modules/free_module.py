@@ -378,7 +378,7 @@ done from the right side.""")
             elif base_ring.is_field():
                 return FreeModule_ambient_field(base_ring, rank, sparse=sparse)
 
-            elif isinstance(base_ring, principal_ideal_domain.PrincipalIdealDomain):
+            elif base_ring in PrincipalIdealDomains():
                 return FreeModule_ambient_pid(base_ring, rank, sparse=sparse)
 
             elif isinstance(base_ring, sage.rings.number_field.order.Order) \
@@ -1942,6 +1942,35 @@ done from the right side.""")
         res.set_immutable()
         return res
 
+    def are_linearly_dependent(self, vecs):
+        """
+        Return ``True`` if the vectors ``vecs`` are linearly dependent and
+        ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: M = QQ^3
+            sage: vecs = [M([1,2,3]), M([4,5,6])]
+            sage: M.are_linearly_dependent(vecs)
+            False
+            sage: vecs.append(M([3,3,3]))
+            sage: M.are_linearly_dependent(vecs)
+            True
+
+            sage: R.<x> = QQ[]
+            sage: M = FreeModule(R, 2)
+            sage: vecs = [M([x^2+1, x+1]), M([x+2, 2*x+1])]
+            sage: M.are_linearly_dependent(vecs)
+            False
+            sage: vecs.append(M([-2*x+1, -2*x^2+1]))
+            sage: M.are_linearly_dependent(vecs)
+            True
+        """
+        from sage.matrix.constructor import matrix
+        A = matrix(vecs)
+        A.echelonize()
+        return any(row.is_zero() for row in A.rows())
+
     def _magma_init_(self, magma):
         """
         EXAMPLES::
@@ -2632,7 +2661,9 @@ class FreeModule_generic_pid(FreeModule_generic):
             [x/(x^3 - 6*x^2 + 11*x - 6)  2/15*x^2 - 17/75*x - 1/75]
             [                         0 x^3 - 11/5*x^2 - 3*x + 4/5]
 
-        Note that the ``base_ring`` can make a huge difference. We repeat the previous example over the fraction field of R and get a simpler vector space.::
+        Note that the ``base_ring`` can make a huge difference. We
+        repeat the previous example over the fraction field of R and
+        get a simpler vector space. ::
 
             sage: L2.span([[(x^2+x)/(x^2-3*x+2),1/5],[(x^2+2*x)/(x^2-4*x+3),x]],base_ring=R.fraction_field())
             Vector space of degree 2 and dimension 2 over Fraction Field of Univariate Polynomial Ring in x over Rational Field
@@ -3628,7 +3659,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         All these complements are only done with respect to the inner
         product in the usual basis.  Over finite fields, this means
         we can get complements which are only isomorphic to a vector
-        space decomposition complement.
+        space decomposition complement. ::
 
             sage: F2 = GF(2,x)
             sage: V = F2^6

@@ -145,7 +145,7 @@ class ProjectiveConic_field(ProjectiveCurve_generic):
             (15/8 : 17/8 : 1)
             sage: c.cache_point(c.rational_point(read_cache = False))
             sage: c.rational_point()
-            (1 : 1 : 0)
+            (-1 : 1 : 0)
         """
         if isinstance(p, (tuple, list)):
             p = self.point(p)
@@ -882,7 +882,7 @@ class ProjectiveConic_field(ProjectiveCurve_generic):
             (15/8 : 17/8 : 1)
             sage: d = Conic([1, -1, 1])
             sage: d.rational_point()
-            (1 : 1 : 0)
+            (-1 : 1 : 0)
         """
         if is_Vector(v):
             v = Sequence(v)

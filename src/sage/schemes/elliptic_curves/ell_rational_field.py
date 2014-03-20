@@ -1461,11 +1461,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve('389a1')
             sage: set_random_seed(0)
             sage: E.simon_two_descent()
-            (2, 2, [(1 : 0 : 1), (-11/9 : -55/27 : 1)])
+            (2, 2, [(1 : 0 : 1), (-11/9 : 28/27 : 1)])
             sage: E = EllipticCurve('5077a1')
             sage: set_random_seed(0)
             sage: E.simon_two_descent()
-            (3, 3, [(1 : -1 : 1), (2 : 0 : 1), (0 : 2 : 1)])
+            (3, 3, [(1 : 0 : 1), (2 : 0 : 1), (0 : 2 : 1)])
 
         In this example Simon's program does not find any points, though it
         does correctly compute the rank of the 2-Selmer group.
@@ -1485,11 +1485,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve([1, -1, 0, -79, 289])
             sage: set_random_seed(0)
             sage: E.simon_two_descent()
-            (4, 4, [(4 : 3 : 1), (5 : -2 : 1), (6 : -1 : 1), (8 : 7 : 1)])
+            (4, 4, [(6 : -1 : 1), (4 : 3 : 1), (5 : -2 : 1), (8 : 7 : 1)])
             sage: E = EllipticCurve([0, 0, 1, -79, 342])
             sage: set_random_seed(0)
             sage: E.simon_two_descent()  # long time (9s on sage.math, 2011)
-            (5, 5, [(5 : 8 : 1), (4 : 9 : 1), (3 : 11 : 1), (-1 : 20 : 1), (-6 : -25 : 1)])
+            (5, 5, [(7 : 11 : 1), (-1 : 20 : 1), (0 : 18 : 1), (3 : 11 : 1), (-3 : 23 : 1)])
             sage: E = EllipticCurve([1, 1, 0, -2582, 48720])
             sage: set_random_seed(0)
             sage: r, s, G = E.simon_two_descent(); r,s
@@ -1507,11 +1507,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: E = EllipticCurve([1,0,0,-6664,86543])
             sage: E.simon_two_descent()
-            (2, 3, [(-73 : -394 : 1), (323/4 : 1891/8 : 1)])
+            (2, 3, [(-1/4 : 2377/8 : 1), (323/4 : 1891/8 : 1)])
             sage: E.rank()
             2
             sage: E.gens()
-            [(-73 : -394 : 1), (323/4 : 1891/8 : 1)]
+            [(-1/4 : 2377/8 : 1), (323/4 : 1891/8 : 1)]
 
         Example where the lower bound is known to be 1
         despite that the algorithm has not found any
@@ -1529,7 +1529,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: E = EllipticCurve([3,0])
             sage: E.simon_two_descent()
-            (1, 2, [(3 : 6 : 1)])
+            (1, 2, [(1 : 2 : 1)])
 
         """
         verbose = int(verbose)
@@ -5093,12 +5093,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     padic_E2 = padics.padic_E2
 
     matrix_of_frobenius = padics.matrix_of_frobenius
-
-    # def weierstrass_p(self):
-    #         # TODO: add allowing negative valuations for power series
-    #         return 1/t**2 + a1/t + rings.frac(1,12)*(a1-8*a2) -a3*t \
-    #                - (a4+a1*a3)*t**2  + O(t**3)
-
 
     def mod5family(self):
         """

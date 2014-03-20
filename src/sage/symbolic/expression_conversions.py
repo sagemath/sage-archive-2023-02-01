@@ -617,7 +617,7 @@ class SympyConverter(Converter):
         """
         import sympy
         operator = arithmetic_operators[operator]
-        ops = [sympy.sympify(self(a)) for a in ex.operands()]
+        ops = [sympy.sympify(self(a), evaluate=False) for a in ex.operands()]
         if operator == "+":
             return sympy.Add(*ops)
         elif operator == "*":
@@ -666,7 +666,7 @@ class SympyConverter(Converter):
 
         f_sympy = getattr(sympy, f, None)
         if f_sympy:
-            return f_sympy(*sympy.sympify(g))
+            return f_sympy(*sympy.sympify(g, evaluate=False))
         else:
             raise NotImplementedError("SymPy function '%s' doesn't exist" % f)
 
@@ -898,9 +898,9 @@ class PolynomialConverter(Converter):
 
         if ring is not None:
             base_ring = ring.base_ring()
-            G = ring.variable_names_recursive()
+            self.varnames = ring.variable_names_recursive()
             for v in ex.variables():
-                if repr(v) not in G and v not in base_ring:
+                if repr(v) not in self.varnames and v not in base_ring:
                     raise TypeError, "%s is not a variable of %s" %(v, ring)
             self.ring = ring
             self.base_ring = base_ring
@@ -911,6 +911,7 @@ class PolynomialConverter(Converter):
                 vars = ['x']
             from sage.rings.all import PolynomialRing
             self.ring = PolynomialRing(self.base_ring, names=vars)
+            self.varnames = self.ring.variable_names()
         else:
             raise TypeError, "either a ring or base ring must be specified"
 
@@ -999,8 +1000,14 @@ class PolynomialConverter(Converter):
             sage: p = PolynomialConverter(x+y, base_ring=RR)
             sage: p.arithmetic(x*y+y^2, operator.add)
             x*y + y^2
+
+            sage: p = PolynomialConverter(y^(3/2), ring=SR['x'])
+            sage: p.arithmetic(y^(3/2), operator.pow)
+            y^(3/2)
+            sage: _.parent()
+            Symbolic Ring
         """
-        if len(ex.variables()) == 0:
+        if not any(repr(v) in self.varnames for v in ex.variables()):
             return self.base_ring(ex)
         elif operator == _operator.pow:
             from sage.rings.all import Integer
@@ -1044,7 +1051,10 @@ def polynomial(ex, base_ring=None, ring=None):
          sage: _.parent()
          Univariate Polynomial Ring in t over Symbolic Ring
 
-
+         sage: polynomial(y - sqrt(x), ring=SR[y])
+         y - sqrt(x)
+         sage: _.list()
+         [-sqrt(x), 1]
 
     The polynomials can have arbitrary (constant) coefficients so long as
     they coerce into the base ring::

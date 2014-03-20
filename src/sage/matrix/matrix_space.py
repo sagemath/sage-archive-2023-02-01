@@ -227,7 +227,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
         We test that in the real or complex double dense case,
         conversion from the base ring is done by a call morphism.
-        Note that by trac ticket #9138, other algebras usually
+        Note that by :trac:`9138`, other algebras usually
         get a conversion map by multiplication with the one element.
         ::
 
@@ -242,6 +242,21 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
               From: Complex Double Field
               To:   Full MatrixSpace of 2 by 2 dense matrices over Complex Double Field
 
+        We check that :trac:`10095` is fixed::
+
+            sage: M = Matrix(QQ, [[1 for dummy in range(125)]])
+            sage: V = M.right_kernel()
+            sage: V
+            Vector space of degree 125 and dimension 124 over Rational Field
+            Basis matrix:
+            124 x 125 dense matrix over Rational Field
+            sage: MatrixSpace(ZZ,20,20)(1) \ MatrixSpace(ZZ,20,1).random_element()
+            20 x 1 dense matrix over Rational Field
+            sage: MatrixSpace(ZZ,200,200)(1) \ MatrixSpace(ZZ,200,1).random_element()
+            200 x 1 dense matrix over Rational Field
+            sage: A = MatrixSpace(RDF,1000,1000).random_element()
+            sage: B = MatrixSpace(RDF,1000,1000).random_element()
+            sage: C = A * B
         """
         if ncols == None: ncols = nrows
         from sage.categories.all import Modules, Algebras
@@ -907,6 +922,47 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             for weight in range((order-1)*number_of_entries+1):
                 for iv in sage.combinat.integer_vector.IntegerVectors(weight, number_of_entries, max_part=(order-1)):
                    yield self(entries=[base_elements[i] for i in iv])
+
+    def __getitem__(self, x):
+        """
+        Return a polynomial ring over this ring or the `n`-th element of this ring.
+
+        This method implements the syntax ``R['x']`` to define polynomial rings
+        over matrix rings, while still allowing to get the `n`-th element of a
+        finite matrix ring with ``R[n]`` for backward compatibility.
+
+        (If this behaviour proves desirable for all finite enumerated rings, it
+        should eventually be implemented in the corresponding category rather
+        than here.)
+
+        ..SEEALSO::
+
+            :meth:`sage.categories.rings.Rings.ParentMethod.__getitem__`,
+            :meth:`sage.structure.parent.Parent.__getitem__`
+
+        EXAMPLES::
+
+            sage: MS = MatrixSpace(GF(3), 2, 2)
+            sage: MS['x']
+            Univariate Polynomial Ring in x over Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 3
+            sage: MS[0]
+            [0 0]
+            [0 0]
+            sage: MS[9]
+            [0 2]
+            [0 0]
+
+            sage: MS = MatrixSpace(QQ, 7)
+            sage: MS['x']
+            Univariate Polynomial Ring in x over Full MatrixSpace of 7 by 7 dense matrices over Rational Field
+            sage: MS[2]
+            Traceback (most recent call last):
+            ...
+            ValueError: since it is infinite, cannot list Full MatrixSpace of 7 by 7 dense matrices over Rational Field
+        """
+        if isinstance(x, (int, long, integer.Integer)):
+            return self.list()[x]
+        return Rings.ParentMethods.__getitem__.__func__(self, x)
 
     def _get_matrix_class(self):
         r"""

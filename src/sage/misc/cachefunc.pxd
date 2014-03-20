@@ -11,7 +11,7 @@ cdef class CachedFunction(object):
     cdef argfix_init(self)
     cpdef get_cache(self)
     cpdef clear_cache(self)
-    cdef object _key_normalizer
+    cdef object _create_key
 
 cdef class CachedMethod
 

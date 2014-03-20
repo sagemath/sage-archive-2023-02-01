@@ -445,11 +445,15 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
 
     - ``b`` - upper endpoint of the sum
 
-    - ``algorithm`` - (default: 'maxima')  one of
-      - 'maxima' - use Maxima (the default)
-      - 'maple' - (optional) use Maple
-      - 'mathematica' - (optional) use Mathematica
-      - 'giac' - (optional) use Giac
+    - ``algorithm`` - (default: ``'maxima'``)  one of
+
+      - ``'maxima'`` - use Maxima (the default)
+
+      - ``'maple'`` - (optional) use Maple
+
+      - ``'mathematica'`` - (optional) use Mathematica
+
+      - ``'giac'`` - (optional) use Giac
 
     EXAMPLES::
 

@@ -552,10 +552,15 @@ def symbolic_sum(expression, *args, **kwds):
 
     - ``b`` - upper endpoint of the sum
 
-    - ``algorithm`` - (default: 'maxima')  one of
-      - 'maxima' - use Maxima (the default)
-      - 'maple' - (optional) use Maple
-      - 'mathematica' - (optional) use Mathematica
+    - ``algorithm`` - (default: ``'maxima'``)  one of
+
+      - ``'maxima'`` - use Maxima (the default)
+
+      - ``'maple'`` - (optional) use Maple
+
+      - ``'mathematica'`` - (optional) use Mathematica
+
+      - ``'giac'`` - (optional) use Giac
 
     EXAMPLES::
 

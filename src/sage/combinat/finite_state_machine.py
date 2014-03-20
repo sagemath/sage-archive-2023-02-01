@@ -4968,14 +4968,12 @@ class Transducer(FiniteStateMachine):
         """
         def function(transition1, transition2):
             if transition1.word_in == transition2.word_in:
-                word_out1 = transition1.word_out
-                word_out2 = transition2.word_out
-                if len(word_out1) > len(word_out2):
-                    word_out2 = word_out2 + [FSMEmptyWordSymbol for n in
-                                   range(len(word_out1)-len(word_out2))]
-                else:
-                    word_out1 = word_out1 + [FSMEmptyWordSymbol for n in
-                                   range(len(word_out2)-len(word_out1))]
+                max_length = max(len(transition1.word_out),
+                                 len(transition2.word_out))
+                word_out1 = transition1.word_out \
+                    + (max_length-len(transition1.word_out))*[FSMEmptyWordSymbol]
+                word_out2 = transition2.word_out \
+                    + (max_length-len(transition2.word_out))*[FSMEmptyWordSymbol]
                 return (transition1.word_in, zip(word_out1, word_out2))
             else:
                 raise LookupError

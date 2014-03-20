@@ -46,9 +46,11 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
        groups and Hecke algebras*. Invent. Math. **53** (1979).
        no. 2, 165--184. :doi:`10.1007/BF01390031` :mathscinet:`MR0560412`
 
-    .. [Dy93] Dyer M J. Hecke algebras and shellings of Bruhat intervals. Compositio Mathematica, 1993, 89(1): 91-115.
+    .. [Dy93] M. J. Dyer. *Hecke algebras and shellings of Bruhat
+       intervals*. Compositio Mathematica, 1993, 89(1): 91-115.
 
-    .. [BB05] Bjorner A, Brenti F. Combinatorics of Coxeter groups. New York: Springer, 2005.
+    .. [BB05] A. Bjorner, F. Brenti. *Combinatorics of Coxeter
+       groups*. New York: Springer, 2005.
 
     EXAMPLES::
 
@@ -134,7 +136,10 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
     @cached_method
     def R_tilde(self, x, y):
         r"""
-        Return the Kazhdan-Lusztig `\tilde{R}` polynomial. Information for `\tilde{R}` polynomials can be found in [Dy93] and [BB05].
+        Return the Kazhdan-Lusztig `\tilde{R}` polynomial.
+
+        Information about the `\tilde{R}` polynomials can be found in
+        [Dy93]_ and [BB05]_.
 
         INPUT:
 
@@ -142,32 +147,32 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-           sage: R.<q>=QQ[]
+           sage: R.<q> = QQ[]
            sage: W = WeylGroup("A2", prefix="s")
-           sage: [s1,s2]=W.simple_reflections()
+           sage: [s1,s2] = W.simple_reflections()
            sage: KL = KazhdanLusztigPolynomial(W, q)
            sage: [KL.R_tilde(x,s2*s1) for x in [1,s1,s2,s1*s2]]
            [q^2, q, q, 0]
-       """
-        if x==1:
-            x=self._one;
-        if y==1:
-            y=self._one;
+        """
+        if x == 1:
+            x = self._one
+        if y == 1:
+            y = self._one
         if not x.bruhat_le(y):
-            return self._base_ring.zero();
-        if x==y:
-            return self._base_ring.one();
+            return self._base_ring.zero()
+        if x == y:
+            return self._base_ring.one()
         s = self._coxeter_group.simple_reflection(y.first_descent(side="right"))
-        if (x*s).length() < x.length():
-            ret = self.R_tilde(x*s, y*s);
+        if (x * s).length() < x.length():
+            ret = self.R_tilde(x * s, y * s)
             if self._trace:
-                print " R_tilde(%s,%s)=%s"%(x, y, ret);
-            return ret;
+                print " R_tilde(%s,%s)=%s" % (x, y, ret)
+            return ret
         else:
-            ret = self.R_tilde(x*s,y*s) + self._q*self.R_tilde(x,y*s);
+            ret = self.R_tilde(x * s, y * s) + self._q * self.R_tilde(x, y * s)
             if self._trace:
-                print " R_tilde(%s,%s)=%s"%(x, y, ret);
-            return ret;
+                print " R_tilde(%s,%s)=%s" % (x, y, ret)
+            return ret
 
     @cached_method
     def P(self, x, y):

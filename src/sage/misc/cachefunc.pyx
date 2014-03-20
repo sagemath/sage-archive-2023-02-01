@@ -1409,7 +1409,7 @@ cdef class CachedMethodCaller(CachedFunction):
         True
 
     """
-    def __init__(self, CachedMethod cachedmethod, inst, cache=None, inst_in_key=False, name=None):
+    def __init__(self, CachedMethod cachedmethod, inst, cache=None, inst_in_key=False, name=None, create_key=None):
         """
         EXAMPLES::
 
@@ -1434,7 +1434,7 @@ cdef class CachedMethodCaller(CachedFunction):
         # cached method.
         if cachedmethod._cachedfunc._argument_fixer is None:
             cachedmethod._cachedfunc.argfix_init()
-        self._common_init(cachedmethod._cachedfunc.f, cachedmethod._cachedfunc._argument_fixer, name=name)
+        self._common_init(cachedmethod._cachedfunc.f, cachedmethod._cachedfunc._argument_fixer, name=name, create_key=create_key)
         self.cache = {} if cache is None else cache
         self._instance = inst
         self._inst_in_key = inst_in_key
@@ -1460,8 +1460,6 @@ cdef class CachedMethodCaller(CachedFunction):
             Cached version of <function groebner_basis at 0x...>
 
         """
-#        if hasattr(self._instance,self._cachedmethod._cache_name):
-#            return CachedMethodPickle,(self._instance,self.__name__)
         if isinstance(self._cachedmethod, CachedInParentMethod) or hasattr(self._instance,self._cachedmethod._cache_name):
             return CachedMethodPickle,(self._instance,self.__name__)
         return CachedMethodPickle,(self._instance,self.__name__,self.cache.items())
@@ -1483,6 +1481,28 @@ cdef class CachedMethodCaller(CachedFunction):
 
         """
         return self._cachedmethod._instance_call(self._instance, *args, **kwds)
+
+    def _fix_to_pos_and_create_key(self, *args, **kwargs):
+        r"""
+        Normalize parameters to obtain a key for the cache.
+
+        For performance reasons, this method is only called if a
+        ``create_key`` has been passed in the constructor.
+
+        TESTS::
+
+            sage: class A(object):
+            ....:     def _f_normalize(self, x, algorithm): return x
+            ....:     @cached_method(create_key=_f_normalize)
+            ....:     def f(self, x, algorithm='default'): return x
+            sage: a = A()
+            sage: a.f(1, algorithm="default") is a.f(1) is a.f(1, algorithm="algorithm")
+            True
+
+        """
+        args, kwargs = self._argument_fixer.fix_to_pos(*args, **kwargs)
+        ret= self._create_key(self._instance, *args, **dict(kwargs))
+        return ret
 
     def __call__(self, *args, **kwds):
         """
@@ -1560,9 +1580,9 @@ cdef class CachedMethodCaller(CachedFunction):
         # although that means to duplicate code.
         cdef int lenargs
         cdef int nargs
-        cdef tuple k
+        cdef object k
         cdef dict cache = self.cache
-        if kwds:
+        if kwds or self._create_key is not None:
             if self._argument_fixer is None:
                 self.argfix_init()
             if self._inst_in_key:
@@ -2081,8 +2101,21 @@ cdef class CachedMethod(object):
         <type 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
 
     So, you would hardly ever see an instance of this class alive.
+
+    The parameter ``create_key`` can be used to pass a function which creates a
+    custom cache key for inputs. In the following example, this parameter is
+    used to ignore the ``algorithm`` keyword for caching::
+
+        sage: class A(object):
+        ....:     def _f_normalize(self, x, algorithm): return x
+        ....:     @cached_method(create_key=_f_normalize)
+        ....:     def f(self, x, algorithm='default'): return x
+        sage: a = A()
+        sage: a.f(1, algorithm="default") is a.f(1) is a.f(1, algorithm="algorithm")
+        True
+
     """
-    def __init__(self, f, name=None):
+    def __init__(self, f, name=None, create_key=None):
         """
         EXAMPLES::
 
@@ -2145,7 +2178,7 @@ cdef class CachedMethod(object):
             '__main__'
         """
         self._cache_name = '_cache__' + (name or f.__name__)
-        self._cachedfunc = CachedFunction(f, classmethod=True, name=name)
+        self._cachedfunc = CachedFunction(f, classmethod=True, name=name, create_key=create_key)
         self.__name__ = self._cachedfunc.__name__
         self.__module__ = self._cachedfunc.__module__
 
@@ -2322,13 +2355,15 @@ cdef class CachedMethod(object):
                 self.nargs = 2 # don't need the exact number
                 Caller = CachedMethodCaller(self, inst,
                                             cache=self._get_instance_cache(inst),
-                                            name=name)
+                                            name=name,
+                                            create_key=self._cachedfunc._create_key)
         elif self.nargs==1:
             Caller = CachedMethodCallerNoArgs(inst, f, name=name)
         else:
             Caller = CachedMethodCaller(self, inst,
                                         cache=self._get_instance_cache(inst),
-                                        name=name)
+                                        name=name,
+                                        create_key=self._cachedfunc._create_key)
         try:
             setattr(inst, name, Caller)
             return Caller
@@ -2451,13 +2486,15 @@ cdef class CachedSpecialMethod(CachedMethod):
                 self.nargs = 2 # don't need the exact number
                 Caller = CachedMethodCaller(self, inst,
                                             cache=self._get_instance_cache(inst),
-                                            name=name)
+                                            name=name,
+                                            create_key=self._cachedfunc._create_key)
         elif self.nargs==1:
             Caller = CachedMethodCallerNoArgs(inst, f, name=name)
         else:
             Caller = CachedMethodCaller(self, inst,
                                         cache=self._get_instance_cache(inst),
-                                        name=name)
+                                        name=name,
+                                        create_key=self._cachedfunc._create_key)
         if inst is not None:
             try:
                 setattr(inst,name, Caller)
@@ -2467,9 +2504,9 @@ cdef class CachedSpecialMethod(CachedMethod):
             D[name] = Caller
         return Caller
 
-def cached_method(f, name=None):
+@decorator_keywords
+def cached_method(f, name=None, create_key=None):
     """
-    
     EXAMPLES:
 
     In the following examples, one can see how a cached method works in applicationy.
@@ -2515,8 +2552,8 @@ def cached_method(f, name=None):
     """
     cdef str fname = name or f.__name__
     if fname in special_method_names:
-        return CachedSpecialMethod(f, name)
-    return CachedMethod(f, name)
+        return CachedSpecialMethod(f, name, create_key=create_key)
+    return CachedMethod(f, name, create_key=create_key)
 
 cdef class CachedInParentMethod(CachedMethod):
     r"""
@@ -2546,7 +2583,7 @@ cdef class CachedInParentMethod(CachedMethod):
 
     """
 
-    def __init__(self, f, name=None):
+    def __init__(self, f, name=None, create_key=None):
         """
         Constructs a new method with cache stored in the parent of the instance.
 
@@ -2578,9 +2615,21 @@ cdef class CachedInParentMethod(CachedMethod):
 
             sage: a.parent()._cache__element_f is a.f.cache
             True
+
+        Test that ``create_key`` works::
+
+            sage: class A(object):
+            ....:     _parent = MyParent()
+            ....:     def parent(self): return self._parent
+            ....:     def _f_normalize(self, x, algorithm): return x
+            ....:     @cached_in_parent_method(create_key=_f_normalize)
+            ....:     def f(self, x, algorithm='default'): return x
+            sage: a = A()
+            sage: a.f(1, algorithm="default") is a.f(1) is a.f(1, algorithm="algorithm")
+            True
         """
         self._cache_name = '_cache__' + 'element_' + (name or f.__name__)
-        self._cachedfunc = CachedFunction(f, classmethod=True, name=name)
+        self._cachedfunc = CachedFunction(f, classmethod=True, name=name, create_key=create_key)
 
     cpdef dict _get_instance_cache(self, inst):
         """
@@ -2661,14 +2710,14 @@ cdef class CachedInParentMethod(CachedMethod):
         Get a CachedMethodCaller bound to this specific instance of
         the class of the cached-in-parent method.
         """
-        Caller = CachedMethodCaller(self, inst, cache=self._get_instance_cache(inst), inst_in_key=True)
+        Caller = CachedMethodCaller(self, inst, cache=self._get_instance_cache(inst), inst_in_key=True, create_key=self._cachedfunc._create_key)
         try:
             setattr(inst,self._cachedfunc.__name__, Caller)
         except AttributeError:
             pass
         return Caller
 
-cached_in_parent_method = CachedInParentMethod
+cached_in_parent_method = decorator_keywords(CachedInParentMethod)
 
 class FileCache:
     """

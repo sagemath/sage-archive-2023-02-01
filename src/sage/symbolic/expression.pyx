@@ -9592,15 +9592,15 @@ cdef class Expression(CommutativeRingElement):
 
         -  ``b`` - upper endpoint of the sum
 
-        - ``algorithm`` - (default: 'maxima')  one of
+        - ``algorithm`` - (default: ``'maxima'``)  one of
 
-                - 'maxima' - use Maxima (the default)
+                - ``'maxima'`` - use Maxima (the default)
 
-                - 'maple' - (optional) use Maple
+                - ``'maple'`` - (optional) use Maple
 
-                - 'mathematica' - (optional) use Mathematica
+                - ``'mathematica'`` - (optional) use Mathematica
 
-                - 'giac' - (optional) use Giac
+                - ``'giac'`` - (optional) use Giac
 
 
         EXAMPLES::

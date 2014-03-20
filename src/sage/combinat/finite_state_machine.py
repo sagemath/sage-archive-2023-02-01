@@ -1714,7 +1714,9 @@ class FiniteStateMachine(SageObject):
         TESTS::
 
             sage: FiniteStateMachine() * FiniteStateMachine([('A', 'B', 0, 0)])
-            Finite state machine with 0 states
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         if is_FiniteStateMachine(other):
             return self.intersection(other)
@@ -3336,115 +3338,16 @@ class FiniteStateMachine(SageObject):
         raise NotImplementedError
 
 
-    def intersection(self, other, only_accessible_components=True):
+    def intersection(self, other):
         """
-        Returns a new finite state machine which accepts an input if it is
-        accepted by both given finite state machines producing the same
-        output.
+        TESTS::
 
-        INPUT:
-
-        - ``other`` -- a finite state machine
-
-        - ``only_accessible_components`` -- If ``True`` (default), then
-          the result is piped through ``accessible_components``. If no
-          ``new_input_alphabet`` is given, it is determined by
-          ``determine_alphabets``.
-
-        OUTPUT:
-
-        A new finite state machine which computes the intersection
-        (see below) of the languages of ``self`` and ``other``.
-
-        The set of states of the new finite state machine is the cartesian
-        product of the set of states of both given finites state
-        machines. There is a transition `((A, B), (C, D), a, b)` in the new
-        finite state machine if there are transitions `(A, C, a, b)` and `(B,
-        D, a, b)` in the old finite state machines.
-
-        EXAMPLES::
-
-            sage: aut1 = Automaton([('1', '2', 1),
-            ....:                   ('2', '2', 1),
-            ....:                   ('2', '2', 0)],
-            ....:                  initial_states=['1'],
-            ....:                  final_states=['2'],
-            ....:                  determine_alphabets=True)
-            sage: aut2 = Automaton([('A', 'A', 1),
-            ....:                   ('A', 'B', 0),
-            ....:                   ('B', 'B', 0),
-            ....:                   ('B', 'A', 1)],
-            ....:                  initial_states=['A'],
-            ....:                  final_states=['B'],
-            ....:                  determine_alphabets=True)
-            sage: res = aut1.intersection(aut2)
-            sage: (aut1([1, 1])[0], aut2([1, 1])[0], res([1, 1])[0])
-            (True, False, False)
-            sage: (aut1([1, 0])[0], aut2([1, 0])[0], res([1, 0])[0])
-            (True, True, True)
-
-        In general, transducers are not closed under intersection. But for
-        transducer which do not have epsilon-transitions, intersection is well
-        defined (cf. "Finite State Transducers" by Javier Baliosian and Dina
-        Wonsever). However, in the next example the intersection of the two
-        transducers is not well defined. The intersection of the languages
-        consists of `(a^n, b^n c^n)`. This set is not recognizable by a
-        transducer.
-
-        ::
-
-            sage: t1 = Transducer([(0, 0, 'a', 'b'),
-            ....:                  (0, 1, None, 'c'),
-            ....:                  (1, 1, None, 'c')],
-            ....:                 initial_states=[0],
-            ....:                 final_states=[0, 1],
-            ....:                 determine_alphabets=True)
-            sage: t2 = Transducer([('A', 'A', None, 'b'),
-            ....:                  ('A', 'B', 'a', 'c'),
-            ....:                  ('B', 'B', 'a', 'c')],
-            ....:                 initial_states=['A'],
-            ....:                 final_states=['A', 'B'],
-            ....:                 determine_alphabets=True)
-            sage: t2.intersection(t1)
+            sage: FiniteStateMachine().intersection(FiniteStateMachine())
             Traceback (most recent call last):
             ...
-            ValueError: An epsilon-transition (with empty input or output)
-            was found.
-
-        Also for automata with epsilon-transitions, intersection is not well
-        defined.
-
-        ::
-
-            sage: a1 = Automaton([(0, 0, 0), (0, 1, None), (1, 1, 1)],
-            ....:                 initial_states=[0],
-            ....:                 final_states=[1],
-            ....:                 determine_alphabets=True)
-            sage: a2 = Automaton([(0, 0, 0), (0, 1, 1), (1, 1, 1)],
-            ....:                 initial_states=[0],
-            ....:                 final_states=[1],
-            ....:                 determine_alphabets=True)
-            sage: a1.intersection(a2)
-            Traceback (most recent call last):
-            ...
-            ValueError: An epsilon-transition (with empty input or output)
-            was found.
+            NotImplementedError
         """
-        def function(transition1, transition2):
-            if transition1.word_in == transition2.word_in \
-                    and transition1.word_out == transition2.word_out:
-                return (transition1.word_in, transition1.word_out)
-            else:
-                raise LookupError
-
-        if self.has_epsilon_transitions() or other.has_epsilon_transitions():
-            raise ValueError(
-              "An epsilon-transition (with empty input or output) was found.")
-
-        return self.product_FiniteStateMachine(
-            other,
-            function,
-            only_accessible_components=only_accessible_components)
+        raise NotImplementedError
 
 
     def product_FiniteStateMachine(self, other, function,
@@ -4538,10 +4441,94 @@ class Automaton(FiniteStateMachine):
         return False
 
 
+    def intersection(self, other, only_accessible_components=True):
+        """
+        Returns a new automaton which accepts an input if it is
+        accepted by both given automata.
+
+        INPUT:
+
+        - ``other`` -- an automaton
+
+        - ``only_accessible_components`` -- If ``True`` (default), then
+          the result is piped through ``accessible_components``. If no
+          ``new_input_alphabet`` is given, it is determined by
+          ``determine_alphabets``.
+
+        OUTPUT:
+
+        A new automaton which computes the intersection
+        (see below) of the languages of ``self`` and ``other``.
+
+        The set of states of the new automaton is the cartesian product of the
+        set of states of both given automata. There is a transition `((A, B),
+        (C, D), a)` in the new automaton if there are transitions `(A, C, a)`
+        and `(B, D, a)` in the old automata.
+
+        EXAMPLES::
+
+            sage: aut1 = Automaton([('1', '2', 1),
+            ....:                   ('2', '2', 1),
+            ....:                   ('2', '2', 0)],
+            ....:                  initial_states=['1'],
+            ....:                  final_states=['2'],
+            ....:                  determine_alphabets=True)
+            sage: aut2 = Automaton([('A', 'A', 1),
+            ....:                   ('A', 'B', 0),
+            ....:                   ('B', 'B', 0),
+            ....:                   ('B', 'A', 1)],
+            ....:                  initial_states=['A'],
+            ....:                  final_states=['B'],
+            ....:                  determine_alphabets=True)
+            sage: res = aut1.intersection(aut2)
+            sage: (aut1([1, 1])[0], aut2([1, 1])[0], res([1, 1])[0])
+            (True, False, False)
+            sage: (aut1([1, 0])[0], aut2([1, 0])[0], res([1, 0])[0])
+            (True, True, True)
+
+        For automata with epsilon-transitions, intersection is not well
+        defined. But for automata, epsilon-transitions can be removed by
+        ``remove_epsilon_transitions``.
+
+        ::
+
+            sage: a1 = Automaton([(0, 0, 0), (0, 1, None), (1, 1, 1)],
+            ....:                 initial_states=[0],
+            ....:                 final_states=[1],
+            ....:                 determine_alphabets=True)
+            sage: a2 = Automaton([(0, 0, 0), (0, 1, 1), (1, 1, 1)],
+            ....:                 initial_states=[0],
+            ....:                 final_states=[1],
+            ....:                 determine_alphabets=True)
+            sage: a1.intersection(a2)
+            Traceback (most recent call last):
+            ...
+            ValueError: An epsilon-transition (with empty input)
+            was found.
+        """
+        if not is_Automaton(other):
+            raise ValueError(
+                 "Only an automaton can be intersected with a transducer.")
+
+        def function(transition1, transition2):
+            if (transition1.word_in == []) or (transition2.word_in == []):
+                raise ValueError(
+                "An epsilon-transition (with empty input) was found.")
+            if transition1.word_in == transition2.word_in:
+                return (transition1.word_in, None)
+            else:
+                raise LookupError
+
+        return self.product_FiniteStateMachine(
+            other,
+            function,
+            only_accessible_components=only_accessible_components)
+
+
     def cartesian_product(self, other, only_accessible_components=True):
         """
         Return a automaton which accepts an input if it is accepted by both
-        given finite state machines producing the same output.
+        given finite state machines.
 
         INPUT:
 
@@ -4914,6 +4901,80 @@ class Transducer(FiniteStateMachine):
         """
         return (format_function(transition.word_in) + "\\mid"
                 + format_function(transition.word_out))
+
+
+    def intersection(self, other, only_accessible_components=True):
+        """
+        Returns a new transducer which accepts an input if it is accepted by
+        both given finite state machines producing the same output.
+
+        INPUT:
+
+        - ``other`` -- a transducer
+
+        - ``only_accessible_components`` -- If ``True`` (default), then
+          the result is piped through ``accessible_components``. If no
+          ``new_input_alphabet`` is given, it is determined by
+          ``determine_alphabets``.
+
+        OUTPUT:
+
+        A new transducer which computes the intersection
+        (see below) of the languages of ``self`` and ``other``.
+
+        The set of states of the transducer is the cartesian product of the
+        set of states of both given transducer. There is a transition `((A,
+        B), (C, D), a, b)` in the new transducer if there are
+        transitions `(A, C, a, b)` and `(B, D, a, b)` in the old transducers.
+
+        EXAMPLES:
+
+        In general, transducers are not closed under intersection. But for
+        transducer which do not have epsilon-transitions, intersection is well
+        defined (cf. "Finite State Transducers" by Javier Baliosian and Dina
+        Wonsever). However, in the next example the intersection of the two
+        transducers is not well defined. The intersection of the languages
+        consists of `(a^n, b^n c^n)`. This set is not recognizable by a
+        transducer.
+
+        ::
+
+            sage: t1 = Transducer([(0, 0, 'a', 'b'),
+            ....:                  (0, 1, None, 'c'),
+            ....:                  (1, 1, None, 'c')],
+            ....:                 initial_states=[0],
+            ....:                 final_states=[0, 1],
+            ....:                 determine_alphabets=True)
+            sage: t2 = Transducer([('A', 'A', None, 'b'),
+            ....:                  ('A', 'B', 'a', 'c'),
+            ....:                  ('B', 'B', 'a', 'c')],
+            ....:                 initial_states=['A'],
+            ....:                 final_states=['A', 'B'],
+            ....:                 determine_alphabets=True)
+            sage: t2.intersection(t1)
+            Traceback (most recent call last):
+            ...
+            ValueError: An epsilon-transition (with empty input or output)
+            was found.
+        """
+        if not is_Transducer(other):
+            raise ValueError("Only a transducer can be intersected with a transducer.")
+
+        def function(transition1, transition2):
+            if (transition1.word_in == []) or (transition2.word_in == []) \
+                    or (transition1.word_out == []) or (transition2.word_out == []):
+                raise ValueError(
+                "An epsilon-transition (with empty input or output) was found.")
+            if transition1.word_in == transition2.word_in \
+                    and transition1.word_out == transition2.word_out:
+                return (transition1.word_in, transition1.word_out)
+            else:
+                raise LookupError
+
+        return self.product_FiniteStateMachine(
+            other,
+            function,
+            only_accessible_components=only_accessible_components)
 
 
     def cartesian_product(self, other, only_accessible_components=True):

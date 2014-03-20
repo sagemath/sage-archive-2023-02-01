@@ -2530,6 +2530,8 @@ def latex_varify(a, is_fname=False):
     """
     if a in common_varnames:
         return "\\" + a
+    elif len(a) == 0:
+        return ''
     elif len(a) == 1:
         return a
     elif is_fname is True:

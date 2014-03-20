@@ -4149,37 +4149,43 @@ class FiniteStateMachine(SageObject):
 
         # Create new states and build state_mapping
         for c in classes:
-            new_state = new.add_state(tuple(c))
+            new_label = tuple(c)
+            new_state = c[0].relabeled(new_label)
+            new.add_state(new_state)
             for state in c:
                 state_mapping[state] = new_state
 
         # Copy data from old transducer
         for c in classes:
             new_state = state_mapping[c[0]]
-            # copy all data from first class member
-            new_state.is_initial = c[0].is_initial
-            new_state.is_final = c[0].is_final
-            new_state.word_out = c[0].word_out
             for transition in self.iter_transitions(c[0]):
                 new.add_transition(
-                    from_state=new_state,
+                    from_state = new_state,
                     to_state = state_mapping[transition.to_state],
-                    word_in  = transition.word_in,
+                    word_in = transition.word_in,
                     word_out = transition.word_out)
 
             # check that all class members have the same information (modulo classes)
             for state in c:
                 new_state.is_initial = new_state.is_initial or state.is_initial
-                assert new_state.is_final == state.is_final, "Class %s mixes final and non-final states" % (c,)
-                assert new_state.word_out == state.word_out, "Class %s mixes different word_out" % (c,)
+                assert new_state.is_final == state.is_final, \
+                    "Class %s mixes final and non-final states" % (c,)
+                assert new_state.word_out == state.word_out, \
+                    "Class %s mixes different word_out" % (c,)
                 assert len(self.transitions(state)) == len(new.transitions(new_state)), \
-                    "Class %s has %d outgoing transitions, but class member %s has %d outgoing transitions" %  \
-                    (c, len(new.transitions(new_state)), state, len(self.transitions(state)))
+                    "Class %s has %d outgoing transitions, but class " \
+                    "member %s has %d outgoing transitions" %  \
+                    (c, len(new.transitions(new_state)), state,
+                     len(self.transitions(state)))
                 for transition in self.transitions(state):
                     try:
-                        new.transition((new_state, state_mapping[transition.to_state], transition.word_in, transition.word_out))
+                        new.transition((new_state,
+                                        state_mapping[transition.to_state],
+                                        transition.word_in, transition.word_out))
                     except LookupError:
-                        raise ValueError, "There is a transition %s in the original transducer, but no corresponding transition in the new transducer." % transition
+                        raise ValueError, "There is a transition %s in the " \
+                            "original transducer, but no corresponding " \
+                            "transition in the new transducer." % transition
         return new
 
 

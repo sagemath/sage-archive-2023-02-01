@@ -101,12 +101,12 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-           sage: R.<q>=QQ[]
-           sage: W = WeylGroup("A2", prefix="s")
-           sage: [s1,s2]=W.simple_reflections()
-           sage: KL = KazhdanLusztigPolynomial(W, q)
-           sage: [KL.R(x,s2*s1) for x in [1,s1,s2,s1*s2]]
-           [q^2 - 2*q + 1, q - 1, q - 1, 0]
+            sage: R.<q>=QQ[]
+            sage: W = WeylGroup("A2", prefix="s")
+            sage: [s1,s2]=W.simple_reflections()
+            sage: KL = KazhdanLusztigPolynomial(W, q)
+            sage: [KL.R(x,s2*s1) for x in [1,s1,s2,s1*s2]]
+            [q^2 - 2*q + 1, q - 1, q - 1, 0]
         """
         if x == 1:
             x = self._one
@@ -147,12 +147,12 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-           sage: R.<q> = QQ[]
-           sage: W = WeylGroup("A2", prefix="s")
-           sage: [s1,s2] = W.simple_reflections()
-           sage: KL = KazhdanLusztigPolynomial(W, q)
-           sage: [KL.R_tilde(x,s2*s1) for x in [1,s1,s2,s1*s2]]
-           [q^2, q, q, 0]
+            sage: R.<q> = QQ[]
+            sage: W = WeylGroup("A2", prefix="s")
+            sage: [s1,s2] = W.simple_reflections()
+            sage: KL = KazhdanLusztigPolynomial(W, q)
+            sage: [KL.R_tilde(x,s2*s1) for x in [1,s1,s2,s1*s2]]
+            [q^2, q, q, 0]
         """
         if x == 1:
             x = self._one

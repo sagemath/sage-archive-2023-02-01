@@ -1390,7 +1390,7 @@ class InfinitePolynomialGen(SageObject):
             sage: latex(x[2]) # indirect doctest
             x_{2}
             sage: latex(x1[3]) # indirect doctest
-            \mbox{x1}_{3}
+            \mathit{x1}_{3}
 
         """
         if self._name[-1].isdigit() or self._name[0].isdigit():

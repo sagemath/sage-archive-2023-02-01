@@ -250,7 +250,7 @@ cdef public stdstring* py_latex_variable(char* var_name) except +:
         sage: py_latex_variable('a')
         a
         sage: py_latex_variable('abc')
-        \mbox{abc}
+        \mathit{abc}
         sage: py_latex_variable('a_00')
         a_{00}
         sage: py_latex_variable('sigma_k')

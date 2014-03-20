@@ -2522,7 +2522,7 @@ def latex_varify(a, is_fname=False):
         sage: latex_varify('w')
         'w'
         sage: latex_varify('aleph')
-        '\\mbox{aleph}'
+        '\\mathit{aleph}'
         sage: latex_varify('aleph', is_fname=True)
         '{\\rm aleph}'
         sage: latex_varify('alpha')
@@ -2535,7 +2535,7 @@ def latex_varify(a, is_fname=False):
     elif is_fname is True:
         return '{\\rm %s}'%a
     else:
-        return '\\mbox{%s}'%a
+        return '\\mathit{%s}'%a
 
 def latex_variable_name(x, is_fname=False):
     r"""
@@ -2565,7 +2565,7 @@ def latex_variable_name(x, is_fname=False):
         sage: latex_variable_name('a')
         'a'
         sage: latex_variable_name('abc')
-        '\\mbox{abc}'
+        '\\mathit{abc}'
         sage: latex_variable_name('sigma')
         '\\sigma'
         sage: latex_variable_name('sigma_k')
@@ -2579,11 +2579,11 @@ def latex_variable_name(x, is_fname=False):
         sage: latex_variable_name('sigma_alpha')
         '\\sigma_{\\alpha}'
         sage: latex_variable_name('nothing1')
-        '\\mbox{nothing}_{1}'
+        '\\mathit{nothing}_{1}'
         sage: latex_variable_name('nothing1', is_fname=True)
         '{\\rm nothing}_{1}'
         sage: latex_variable_name('nothing_abc')
-        '\\mbox{nothing}_{\\mbox{abc}}'
+        '\\mathit{nothing}_{\\mathit{abc}}'
         sage: latex_variable_name('nothing_abc', is_fname=True)
         '{\\rm nothing}_{{\\rm abc}}'
         sage: latex_variable_name('alpha_beta_gamma12')

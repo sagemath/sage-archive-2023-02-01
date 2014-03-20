@@ -2065,6 +2065,60 @@ class FiniteStateMachine(SageObject):
         """
         return ' '
 
+    def set_coordinates(self, coordinates, default=True):
+        """
+        Set coordinates of the states for the LaTeX representation by
+        a dictionary or a function mapping labels to coordinates.
+
+        INPUT:
+
+        - ``coordinates`` -- a dictionary or a function mapping labels
+          of states to pairs interpreted as coordinates.
+
+        - ``default`` -- If ``True``, then states not given by
+          ``coordinates`` get a default position on a circle of
+          radius 3.
+
+        OUTPUT:
+
+        Nothing.
+
+        EXAMPLES::
+
+            sage: F = Automaton([[0, 1, 1], [1, 2, 2], [2, 0, 0]])
+            sage: F.set_coordinates({0: (0, 0), 1: (2, 0), 2: (1, 1)})
+            sage: F.state(0).coordinates
+            (0, 0)
+
+        We can also use a function to determine the coordinates::
+
+            sage: F = Automaton([[0, 1, 1], [1, 2, 2], [2, 0, 0]])
+            sage: F.set_coordinates(lambda l: (l, 3/(l+1)))
+            sage: F.state(2).coordinates
+            (2, 1)
+        """
+        states_without_coordinates = []
+        for state in self.iter_states():
+            try:
+                state.coordinates = coordinates[state.label()]
+                continue
+            except (KeyError, TypeError):
+                pass
+
+            try:
+                state.coordinates = coordinates(state.label())
+                continue
+            except TypeError:
+                pass
+
+            states_without_coordinates.append(state)
+
+        if default:
+            n = len(states_without_coordinates)
+            for j, state in enumerate(states_without_coordinates):
+                state.coordinates = (3*cos(2*pi*j/n),
+                                     3*sin(2*pi*j/n))
+
 
     #*************************************************************************
     # other

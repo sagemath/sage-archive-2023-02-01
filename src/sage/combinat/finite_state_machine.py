@@ -4432,7 +4432,10 @@ class Automaton(FiniteStateMachine):
 
         ::
 
-            sage: a1 = Automaton([(0, 0, 0), (0, 1, None), (1, 1, 1)],
+            sage: a1 = Automaton([(0, 0, 0),
+            ....:                 (0, 1, None),
+            ....:                 (1, 1, 1),
+            ....:                 (1, 2, 1)],
             ....:                 initial_states=[0],
             ....:                 final_states=[1],
             ....:                 determine_alphabets=True)

@@ -4870,7 +4870,25 @@ class Transducer(FiniteStateMachine):
         B), (C, D), a, b)` in the new transducer if there are
         transitions `(A, C, a, b)` and `(B, D, a, b)` in the old transducers.
 
-        EXAMPLES:
+        EXAMPLES::
+
+            sage: transducer1 = Transducer([('1', '2', 1, 0),
+            ....:                           ('2', '2', 1, 0),
+            ....:                           ('2', '2', 0, 1)],
+            ....:                          initial_states=['1'],
+            ....:                          final_states=['2'],
+            ....:                          determine_alphabets=True)
+            sage: transducer2 = Transducer([('A', 'A', 1, 0),
+            ....:                           ('A', 'B', 0, 0),
+            ....:                           ('B', 'B', 0, 1),
+            ....:                           ('B', 'A', 1, 1)],
+            ....:                          initial_states=['A'],
+            ....:                          final_states=['B'],
+            ....:                          determine_alphabets=True)
+            sage: res = transducer1.intersection(transducer2)
+            sage: res.transitions()
+            [Transition from ('1', 'A') to ('2', 'A'): 1|0,
+             Transition from ('2', 'A') to ('2', 'A'): 1|0]
 
         In general, transducers are not closed under intersection. But for
         transducer which do not have epsilon-transitions, intersection is well
@@ -4901,11 +4919,13 @@ class Transducer(FiniteStateMachine):
             was found.
         """
         if not is_Transducer(other):
-            raise ValueError("Only a transducer can be intersected with a transducer.")
+            raise TypeError(
+                "Only a transducer can be intersected with a transducer.")
 
         def function(transition1, transition2):
             if (transition1.word_in == []) or (transition2.word_in == []) \
-                    or (transition1.word_out == []) or (transition2.word_out == []):
+                    or (transition1.word_out == []) \
+                    or (transition2.word_out == []):
                 raise ValueError(
                 "An epsilon-transition (with empty input or output) was found.")
             if transition1.word_in == transition2.word_in \

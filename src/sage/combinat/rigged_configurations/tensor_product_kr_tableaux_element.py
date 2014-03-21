@@ -32,7 +32,7 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
     An element in a tensor product of Kirillov-Reshetikhin tableaux.
 
     For more on tensor product of Kirillov-Reshetikhin tableaux, see
-    :class:`TensorProductOfKirillovReshetikhinTableaux`.
+    :class:`~sage.combinat.rigged_configurations.tensor_product_kr_tableaux.TensorProductOfKirillovReshetikhinTableaux`.
 
     The most common way to construct an element is to specify the option
     ``pathlist`` which is a list of lists which will be used to generate
@@ -327,7 +327,8 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
         to ``self``.
 
         This works by performing the filling map on each individual factor.
-        For more on the filling map, see :class:`KirillovReshetikhinTableaux`.
+        For more on the filling map, see
+        :class:`~sage.combinat.rigged_configurations.kr_tableaux.KirillovReshetikhinTableaux`.
 
         EXAMPLES::
 

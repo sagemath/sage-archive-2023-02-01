@@ -33,12 +33,14 @@ some other properties of these crystals:
   b_i(0) \otimes u_{\infty}`, where `u_\infty` is the highest weight vector
   of `B(\infty)`.
 
-For more information on `B(\infty)`, see :class:`crystals.infinity.Tableaux`.
+For more information on `B(\infty)`, see
+:class:`~sage.combinat.crystals.infinity_crystals.InfinityCrystalOfTableaux`.
 
 .. NOTE::
 
-    As with :class:`TensorProductOfCrystals`, we are using the opposite of
-    Kashiwara's convention.
+    As with
+    :class:`~sage.combinat.crystals.tensor_product.TensorProductOfCrystals`,
+    we are using the opposite of Kashiwara's convention.
 
 AUTHORS:
 

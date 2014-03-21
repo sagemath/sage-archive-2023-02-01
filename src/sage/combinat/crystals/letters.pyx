@@ -120,7 +120,8 @@ class ClassicalCrystalOfLetters(UniqueRepresentation, Parent):
     needs to implement a class for the elements (which subclasses
     :class:`~sage.combinat.crystals.Letter`), with appropriate
     `e_i` and `f_i` operations. If the module generator is not `1`, one also
-    needs to define the subclass :class:`ClassicalCrystalOfLetters` for the
+    needs to define the subclass
+    :class:`~sage.combinat.crystals.letters.ClassicalCrystalOfLetters` for the
     crystal itself.
 
     The basic assumption is that crystals of letters are small, but

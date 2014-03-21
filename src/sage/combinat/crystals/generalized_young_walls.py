@@ -54,7 +54,8 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
     r"""
     A generalized Young wall.
 
-    For more information, see :class:`InfinityCrystalOfGeneralizedYoungWalls`.
+    For more information, see
+    :class:`~sage.combinat.crystals.generalized_young_walls.InfinityCrystalOfGeneralizedYoungWalls`.
 
     EXAMPLES::
 

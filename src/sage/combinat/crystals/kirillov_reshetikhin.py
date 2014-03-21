@@ -50,10 +50,11 @@ def KirillovReshetikhinCrystalFromLSPaths(cartan_type, r, s=1):
 
     This yields the single column Kirillov-Reshetikhin crystals
     from the projected level zero LS paths, see
-    :class:`sage.combinat.crystals.littelmann_paths.CrystalOfLSPaths`.
+    :class:`~sage.combinat.crystals.littelmann_path.CrystalOfLSPaths`.
     This works for all types (even exceptional types).
     The weight of the canonical element in this crystal is `\Lambda_r`.
-    For other implementation see :func:`KirillovReshetikhinCrystal`.
+    For other implementation see
+    :func:`~sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystal`.
 
     EXAMPLES::
 
@@ -139,13 +140,14 @@ def KirillovReshetikhinCrystal(cartan_type, r, s):
     r"""
     Return the Kirillov-Reshetikhin crystal `B^{r,s}` of the given type.
 
-    For more information about general crystals see :mod:`sage.combinat.crystals`.
+    For more information about general crystals see
+    :mod:`sage.combinat.crystals.crystals`.
 
     Many Kirillov-Reshetikhin crystals are constructed from a
-    classical crystal together with an automorphism `p` on the level of crystals which
-    corresponds to a Dynkin diagram automorphism mapping node 0 to some other node `i`.
-    The action of `f_0` and `e_0` is then constructed using
-    `f_0 = p^{-1} \circ f_i \circ p`.
+    classical crystal together with an automorphism `p` on the level of
+    crystals which corresponds to a Dynkin diagram automorphism mapping
+    node 0 to some other node `i`. The action of `f_0` and `e_0` is then
+    constructed using `f_0 = p^{-1} \circ f_i \circ p`.
 
     For example, for type `A_n^{(1)}` the Kirillov-Reshetikhin crystal `B^{r,s}`
     is obtained from the classical crystal `B(s \omega_r)` using the
@@ -618,7 +620,8 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
     @cached_method
     def kirillov_reshetikhin_tableaux(self):
         """
-        Return the corresponding set of :class:`KirillovReshetikhinTableaux`.
+        Return the corresponding set of
+        :class:`~sage.combinat.rigged_configurations.kr_tableaux.KirillovReshetikhinTableaux`.
 
         EXAMPLES::
 
@@ -637,7 +640,8 @@ class KirillovReshetikhinGenericCrystalElement(AffineCrystalFromClassicalElement
     def to_kirillov_reshetikhin_tableau(self):
         r"""
         Construct the corresponding
-        :class:`KirillovReshetikhinTableauxElement` from ``self``.
+        :class:`~sage.combinat.rigged_configurations.kr_tableaux.KirillovReshetikhinTableauxElement`
+        from ``self``.
 
         We construct the Kirillov-Reshetikhin tableau element as follows:
 
@@ -990,8 +994,9 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
         sage: b.e(0)
         [(-1, -2, 3)]
 
-    The elements of the Kirillov-Reshetikhin crystals can be constructed from a classical
-    crystal element using :meth:`retract`.
+    The elements of the Kirillov-Reshetikhin crystals can be constructed from
+    a classical crystal element using
+    :meth:`~sage.combinat.crystals.affine.AffineCrystalFromClassical.retract()`.
 
     EXAMPLES::
 

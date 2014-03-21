@@ -75,6 +75,9 @@ def trunc(i):
 from sage.structure.unique_representation import UniqueRepresentation
 
 class TestParent(UniqueRepresentation, Parent):
+    """
+    A parent for tests.
+    """
     def _repr_(self):
         """
         EXAMPLES::
@@ -89,11 +92,12 @@ class ImmutableListWithParent(CombinatorialObject, Element):
     r"""
     A class for lists having a parent
 
-    Specification: any subclass C should implement __init__ which
-    accepts the following form C(parent, list = list)
+    Specification: any subclass ``C`` should implement ``__init__`` which
+    accepts the following form ``C(parent, list = list)``
 
-    EXAMPLES: We create an immutable list whose parent is the class
-    list::
+    EXAMPLES:
+
+    We create an immutable list whose parent is the class list::
 
         sage: from sage.combinat.crystals.tensor_product import ImmutableListWithParent, TestParent
         sage: l = ImmutableListWithParent(TestParent(), [1,2,3])
@@ -225,7 +229,7 @@ class ImmutableListWithParent(CombinatorialObject, Element):
         """
         if parent(self) is not parent(other):
             return NotImplemented
-        return self._list.__gt__(other._list)
+        return other.__lt__(self)
 
     def __ge__(self, other):
         """
@@ -1586,8 +1590,8 @@ class CrystalOfTableaux(CrystalOfWords):
         True
 
     For compatibility with
-    :func:`~sage.combinat.crystals.TensorProductOfCrystals` we need to
-    accept as input the internal list or sequence of elements::
+    :func:`~sage.combinat.crystals.tensor_product.TensorProductOfCrystals` we
+    need to accept as input the internal list or sequence of elements::
 
         sage: Tab(list    = [3,1,4,2])._list     == [C(3),C(1),C(4),C(2)]
         True

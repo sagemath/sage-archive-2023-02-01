@@ -9,8 +9,8 @@ filling map. They do not have to satisfy the semistandard row or column
 restrictions. These tensor products are the result from the bijection from
 rigged configurations [RigConBijection]_.
 
-For more information, see :class:`KirillovReshetikhinTableaux`
-and :class:`TensorProductOfKirillovReshetikhinTableaux`.
+For more information, see :class:`~sage.combinat.rigged_configurations.kr_tableaux.KirillovReshetikhinTableaux`
+and :class:`~sage.combinat.rigged_configurations.tensor_product_kr_tableaux.TensorProductOfKirillovReshetikhinTableaux`.
 
 AUTHORS:
 
@@ -131,12 +131,13 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
 
     For more information about the bijection between rigged configurations
     and tensor products of Kirillov-Reshetikhin tableaux, see
-    :class:`TensorProductOfKirillovReshetikhinTableaux`.
+    :class:`~sage.combinat.rigged_configurations.tensor_product_kr_tableaux.TensorProductOfKirillovReshetikhinTableaux`.
 
     .. NOTE::
 
         The tableaux for all non-simply-laced types are provably correct if the
-        bijection with :class:`rigged configurations <RiggedConfigurations>`
+        bijection with :class:`rigged configurations
+        <sage.combinat.rigged_configurations.rigged_configurations.RiggedConfigurations>`
         holds. Therefore this is currently only proven for `B^{r,1}` or
         `B^{1,s}` and in general for types `A_n^{(1)}` and `D_n^{(1)}`.
 
@@ -172,8 +173,11 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
         sage: KRT.module_generator(classical_weight=WSC.fundamental_weight(2))
         [[1, 1], [2, -1]]
 
-    We can go between :func:`KirillovReshetikhinCrystal` and
-    :class:`KirillovReshetikhinTableaux` elements::
+    We can go between
+    :func:`~sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystal`
+    and
+    :class:`~sage.combinat.rigged_configurations.kr_tableaux.KirillovReshetikhinTableaux`
+    elements::
 
         sage: KRCrys = KirillovReshetikhinCrystal(['D', 4, 1], 2, 2)
         sage: KRTab = KirillovReshetikhinTableaux(['D', 4, 1], 2, 2)
@@ -415,7 +419,8 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
 
     def _element_constructor_(self, *lst, **options):
         """
-        Construct a :class:`KirillovReshetikhinTableauxElement`.
+        Construct a
+        :class:`~sage.combinat.rigged_configurations.kr_tableaux.KirillovReshetikhinTableauxElement`.
 
         EXAMPLES::
 
@@ -511,7 +516,8 @@ class KRTableauxRectangle(KirillovReshetikhinTableaux):
 
     def from_kirillov_reshetikhin_crystal(self, krc):
         """
-        Construct a :class:`KirillovReshetikhinTableauxElement`.
+        Construct a
+        :class:`~sage.combinat.rigged_configurations.kr_tableaux.KirillovReshetikhinTableauxElement`.
 
         EXAMPLES::
 
@@ -945,8 +951,10 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
     r"""
     A Kirillov-Reshetikhin tableau.
 
-    For more information, see :class:`KirillovReshetikhinTableaux` and
-    :class:`TensorProductOfKirillovReshetikhinTableaux`.
+    For more information, see
+    :class:`~sage.combinat.rigged_configurations.kr_tableaux.KirillovReshetikhinTableaux`
+    and
+    :class:`~sage.combinat.rigged_configurations.tensor_product_kr_tableaux.TensorProductOfKirillovReshetikhinTableaux`.
     """
     def __init__(self, parent, list, **options):
         r"""
@@ -1024,7 +1032,9 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
 
     def to_kirillov_reshetikhin_crystal(self):
         r"""
-        Construct a :func:`KirillovReshetikhinCrystal` element from ``self``.
+        Construct a
+        :func:`~sage.combinat.crystals.kirillov_reshetihkin.KirillovReshetikhinCrystal`
+        element from ``self``.
 
         We construct the Kirillov-Reshetikhin crystal element as follows:
 

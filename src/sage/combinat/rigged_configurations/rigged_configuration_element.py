@@ -1,7 +1,8 @@
 r"""
 Rigged Configuration Elements
 
-A rigged configuration element is a sequence of :class:`RiggedPartition`
+A rigged configuration element is a sequence of
+:class:`~sage.combinat.rigged_configurations.rigged_partition.RiggedPartition`
 objects.
 
 AUTHORS:
@@ -125,7 +126,8 @@ class RiggedConfigurationElement(ClonableArray):
         <BLANKLINE>
 
     We can go between
-    :class:`tensor products of KR tableaux<TensorProductOfKirillovReshetikhinTableaux>`
+    :class:`tensor products of KR tableaux
+    <sage.combinat.rigged_configurations.tensor_product_kr_tableaux.TensorProductOfKirillovReshetikhinTableaux>`
     and tensor products of
     :mod:`KR crystals <sage.combinat.crystals.kirillov_reshetikhin>`::
 

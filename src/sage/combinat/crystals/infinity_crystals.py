@@ -2,7 +2,7 @@ r"""
 `\mathcal{B}(\infty)` Crystals of Tableaux in Nonexceptional Types and `G_2`
 
 A tableau model for `\mathcal{B}(\infty)`. For more information, see
-:class:`InfinityCrystalOfTableaux`.
+:class:`~sage.combinat.crystals.infinity_crystals.InfinityCrystalOfTableaux`.
 
 AUTHORS:
 
@@ -688,7 +688,8 @@ class InfinityCrystalOfTableauxTypeD(InfinityCrystalOfTableaux):
     - the entries `n` and `\overline{n}` may not appear simultaneously in
       a single row.
 
-    For more information, see :class:`InfinityCrystalOfTableaux`.
+    For more information, see
+    :class:`~sage.combinat.crystals.infinity_crystals.InfinityCrystalOfTableaux`.
 
     EXAMPLES::
 

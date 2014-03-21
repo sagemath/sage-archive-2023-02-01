@@ -1,11 +1,12 @@
 r"""
 Tensor Product of Kirillov-Reshetikhin Tableaux
 
-A tensor product of :class:`KirillovReshetikhinTableaux` which are tableaux of
-`r` rows and `s` columns which naturally arise in the bijection between rigged
-configurations and tableaux and which are in bijection with the elements of
-the Kirillov-Reshetikhin crystal `B^{r,s}`, see
-:class:`KirillovReshetikhinCrystal`.
+A tensor product of
+:class:`~sage.combinat.rigged_configurations.kr_tableaux.KirillovReshetikhinTableaux`
+which are tableaux of `r` rows and `s` columns which naturally arise in the
+bijection between rigged configurations and tableaux and which are in
+bijection with the elements of the Kirillov-Reshetikhin crystal `B^{r,s}`, see
+:func:`~sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystal`.
 
 AUTHORS:
 
@@ -77,7 +78,8 @@ from sage.rings.integer import Integer
 class HighestWeightTensorKRT(UniqueRepresentation):
     """
     Class so we do not have to build the module generators for
-    :class:`TensorProductOfKirillovReshetikhinTableaux` at initialization.
+    :class:`~sage.combinat.rigged_configurations.tensor_product_kr_tableaux.TensorProductOfKirillovReshetikhinTableaux`
+    at initialization.
 
     .. WARNING::
 
@@ -172,7 +174,8 @@ class HighestWeightTensorKRT(UniqueRepresentation):
 
 class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCrystals):
     r"""
-    A tensor product of :class:`KirillovReshetikhinTableaux`.
+    A tensor product of
+    :class:`~sage.combinat.rigged_configurations.kr_tableaux.KirillovReshetikhinTableaux`.
 
     Through the bijection with rigged configurations, the tableaux that are
     produced in all nonexceptional types are all of rectangular shapes and do
@@ -184,12 +187,13 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
     .. NOTE::
 
         The tableaux for all non-simply-laced types are provably correct if the
-        bijection with :class:`rigged configurations <RiggedConfigurations>`
+        bijection with :class:`rigged configurations
+        <sage.combinat.rigged_configurations.rigged_configurations.RiggedConfigurations>`
         holds. Therefore this is currently only proven for `B^{r,1}` or
         `B^{1,s}` and in general for types `A_n^{(1)}` and `D_n^{(1)}`.
 
     For more information see [OSS2011]_ and
-    :class:`KirillovReshetikhinTableaux`.
+    :class:`~sage.combinat.rigged_configurations.kr_tableaux.KirillovReshetikhinTableaux`.
 
     For more information on KR crystals, see
     :mod:`sage.combinat.crystals.kirillov_reshetikhin`.
@@ -457,7 +461,8 @@ TensorProductOfKirillovReshetikhinTableaux.Element = TensorProductOfKirillovResh
 def HighestWeightTensorProductOfKirillovReshetikhinTableaux(cartan_type, B):
     """
     Deprecated in :trac:`13872`. Use instead the attribute
-    ``module_generators`` of :class:`TensorProductOfKirillovReshetikhinTableaux`.
+    ``module_generators`` of
+    :class:`~sage.combinat.rigged_configurations.tensor_product_kr_tableaux.TensorProductOfKirillovReshetikhinTableaux`.
 
     EXAMPLES::
 
@@ -471,3 +476,4 @@ def HighestWeightTensorProductOfKirillovReshetikhinTableaux(cartan_type, B):
     deprecation(13872, 'this class is deprecated. Use TensorProductOfKirillovReshetikhinTableaux('
                        'cartan_type, B).module_generators instead')
     return TensorProductOfKirillovReshetikhinTableaux(cartan_type, B).module_generators
+

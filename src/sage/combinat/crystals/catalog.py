@@ -1,11 +1,11 @@
 """
 Catalog of Crystals
 
-This is a catalog of crystals that are currently in Sage.
+This is a catalog of crystals that are currently in Sage:
 
 * :class:`Letters <sage.combinat.crystals.letters.CrystalOfLetters>`
 * :class:`Tableaux <sage.combinat.crystals.tensor_product.CrystalOfTableaux>`
-* :class:`HighestWeight <sage.combinat.crystals.highest_weight_crystals.HighestWeight>`
+* :func:`HighestWeight <sage.combinat.crystals.highest_weight_crystals.HighestWeightCrystal>`
 * :class:`NakajimaMonomials <sage.combinat.crystals.monomial_crystals.CrystalOfNakajimaMonomials>`
 * :class:`GeneralizedYoungWalls <sage.combinat.crystals.generalized_young_walls.CrystalOfGeneralizedYoungWalls>`
 * :class:`KyotoPathModel <sage.combinat.crystals.kyoto_path_model.KyotoPathModel>`
@@ -23,7 +23,7 @@ Functorial constructions:
 
 Subcatalogs:
 
-* :mod:`Kirillov-Reshetihkin crystals <sage.combinat.crystals.catalog_kirillov_resetikhin>`
+* :mod:`Kirillov-Reshetihkin crystals <sage.combinat.crystals.catalog_kirillov_reshetikhin>`
 * `B(\infty)` :mod:`(infinity) crystals <sage.combinat.crystals.catalog_infinity_crystals>`
 * :mod:`Elementary crystals <sage.combinat.crystals.catalog_elementary_crystals>`
 """

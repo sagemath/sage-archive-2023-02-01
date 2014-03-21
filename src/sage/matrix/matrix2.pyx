@@ -1170,7 +1170,7 @@ cdef class Matrix(matrix1.Matrix):
             # If the characteristic is prime and smaller than a machine
             # word, use PARI.
             ch = R.characteristic()
-            if ch.is_prime() and ch < (2*sys.maxint):
+            if ch.is_prime() and ch < (2*sys.maxsize):
                 d = R(self._pari_().matdet())
             else:
                 # Lift to ZZ and compute there.

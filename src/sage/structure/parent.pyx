@@ -3020,7 +3020,7 @@ cdef class Set_PythonType_class(Set_generic):
             return two
         elif self._type is int:
             import sys
-            return two*sys.maxint + 2
+            return two * sys.maxsize + 2
         elif self._type is float:
             return 2 * two**52 * (two**11 - 1) + 3 # all NaN's are the same from Python's point of view
         else:

@@ -2383,7 +2383,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                     return self
                 elif mpz_cmp_si(mpq_numref(_self.value), -1) == 0:
                     return self if n % 2 else -self
-            raise RuntimeError, "exponent must be at most %s" % sys.maxint
+            raise RuntimeError("exponent must be at most %s" % sys.maxsize)
 
         cdef Rational x = <Rational> PY_NEW(Rational)
 

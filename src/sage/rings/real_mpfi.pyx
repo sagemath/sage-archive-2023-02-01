@@ -2738,8 +2738,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             6
         """
         cdef RealIntervalFieldElement x
-        if n > sys.maxint:
-            raise OverflowError, "n (=%s) must be <= %s"%(n, sys.maxint)
+        if n > sys.maxsize:
+            raise OverflowError, "n (=%s) must be <= %s"%(n, sys.maxsize)
         x = self._new()
         mpfi_mul_2exp(x.value, self.value, n)
         return x
@@ -2769,8 +2769,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: RIF(1.5)._rshift_(2)
             0.37500000000000000?
         """
-        if n > sys.maxint:
-            raise OverflowError, "n (=%s) must be <= %s"%(n, sys.maxint)
+        if n > sys.maxsize:
+            raise OverflowError("n (=%s) must be <= %s" % (n, sys.maxsize))
         cdef RealIntervalFieldElement x
         x = self._new()
         mpfi_div_2exp(x.value, self.value, n)

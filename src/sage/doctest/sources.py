@@ -43,7 +43,7 @@ double_colon = re.compile(r"^(\s*).*::\s*$")
 
 whitespace = re.compile("\s*")
 bitness_marker = re.compile('#.*(32|64)-bit')
-bitness_value = '64' if sys.maxint > (1 << 32) else '32'
+bitness_value = '64' if sys.maxsize > (1 << 32) else '32'
 
 # For neutralizing doctests
 find_prompt = re.compile(r"^(\s*)(>>>|sage:)(.*)")
@@ -610,7 +610,7 @@ class FileDocTestSource(DocTestSource):
         vs 64 bit architecture::
 
             sage: import sys
-            sage: bitness = '64' if sys.maxint > (1 << 32) else '32'
+            sage: bitness = '64' if sys.maxsize > (1 << 32) else '32'
             sage: n = -920390823904823094890238490238484; hash(n) > 0
             False # 32-bit
             True  # 64-bit

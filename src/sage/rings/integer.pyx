@@ -335,7 +335,7 @@ cdef void late_import():
         import sage.rings.arith
         arith = sage.rings.arith
 
-MAX_UNSIGNED_LONG = 2 * sys.maxint
+MAX_UNSIGNED_LONG = 2 * sys.maxsize
 
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport EuclideanDomainElement, ModuleElement, Element
@@ -1643,7 +1643,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         Make sure it works when -<long>n would overflow::
 
-            sage: most_neg_long = int(-sys.maxint - 1)
+            sage: most_neg_long = int(-sys.maxsize - 1)
             sage: type(most_neg_long), type(-most_neg_long)
             (<type 'int'>, <type 'long'>)
             sage: 0 + most_neg_long == most_neg_long
@@ -1984,7 +1984,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 return self
             elif mpz_cmp_si(_self.value, -1) == 0:
                 return self if n % 2 else -self
-            raise RuntimeError, "exponent must be at most %s" % sys.maxint
+            raise RuntimeError("exponent must be at most %s" % sys.maxsize)
 
         if nn == 0:
             return one

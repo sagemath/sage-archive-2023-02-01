@@ -127,7 +127,7 @@ from sage.rings.padics.precision_error import PrecisionError
 
 import sage.rings.all as rings
 from sage.rings.real_mpfr import is_RealField
-from sage.rings.all import ZZ
+from sage.rings.integer import Integer
 from sage.groups.all import AbelianGroup
 import sage.groups.generic as generic
 from sage.libs.pari.pari_instance import pari, prec_words_to_bits
@@ -169,7 +169,7 @@ class EllipticCurvePoint(SchemeMorphism_point_projective_ring):
             sage: Q+Q == 4*P
             True
         """
-        assert isinstance(other, (int, long, rings.Integer)) and other == 0
+        assert isinstance(other, (int, long, Integer)) and other == 0
         if self.is_zero():
             return 0
         else:
@@ -540,7 +540,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         """
         if self.is_zero():
-            return rings.Integer(1)
+            return Integer(1)
         raise NotImplementedError("Computation of order of a point "
                                   "not implemented over general fields.")
 
@@ -672,6 +672,26 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             [<type 'sage.rings.rational.Rational'>,
             <type 'sage.rings.rational.Rational'>,
             <type 'sage.rings.rational.Rational'>]
+
+        Checks that :trac:`15964` is fixed::
+
+            sage: N = 1715761513
+            sage: E = EllipticCurve(Integers(N),[3,-13])
+            sage: P = E(2,1)
+            sage: LCM([2..60])*P
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Inverse of 1520944668 does not exist
+            (characteristic = 1715761513 = 26927*63719)
+
+            sage: N = 35
+            sage: E = EllipticCurve(Integers(N),[5,1])
+            sage: P = E(0,1)
+            sage: LCM([2..6])*P
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Inverse of 28 does not exist
+            (characteristic = 35 = 7*5)
         """
         # Use Prop 7.1.7 of Cohen "A Course in Computational Algebraic
         # Number Theory"
@@ -693,7 +713,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
                 R = E.base_ring()
                 if R.is_finite():
                     N = R.characteristic()
-                    N1 = N.gcd(ZZ(2*y1 + a1*x1 + a3))
+                    N1 = N.gcd(Integer(2*y1 + a1*x1 + a3))
                     N2 = N//N1
                     raise ZeroDivisionError("Inverse of %s does not exist (characteristic = %s = %s*%s)" % (2*y1 + a1*x1 + a3, N, N1, N2))
                 else:
@@ -705,8 +725,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
                 R = E.base_ring()
                 if R.is_finite():
                     N = R.characteristic()
-                    from sage.rings.all import ZZ
-                    N1 = N.gcd(ZZ(x1-x2))
+                    N1 = N.gcd(Integer(x1-x2))
                     N2 = N//N1
                     raise ZeroDivisionError("Inverse of %s does not exist (characteristic = %s = %s*%s)" % (x1-x2, N, N1, N2))
                 else:
@@ -859,7 +878,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         """
         # Coerce the input m to an integer
-        m = rings.Integer(m)
+        m = Integer(m)
 
         # Check for trivial cases of m = 1, -1 and 0.
         if m == 1 or m == -1:
@@ -999,7 +1018,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         """
         # Coerce the input m to an integer
-        m = rings.Integer(m)
+        m = Integer(m)
         # Check for trivial cases of m = 1, -1 and 0.
         if m == 1 or m == -1:
             return [self]
@@ -1116,7 +1135,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             ...
             ValueError: p (=12) should be prime.
         """
-        p = rings.Integer(p)
+        p = Integer(p)
         if not p.is_prime():
             raise ValueError("p (=%s) should be prime." % p)
 
@@ -1768,7 +1787,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         # random point.
         try:
             ret = self._miller_(Q, n)
-            e = rings.Integer((q**k - 1)/n)
+            e = Integer((q**k - 1)/n)
             ret = ret**e
         except (ZeroDivisionError, ValueError):
             R = E.random_point()
@@ -1976,7 +1995,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         T = t-1
         ret = Q._miller_(P, T)
-        e = rings.Integer((q**k - 1)/n)
+        e = Integer((q**k - 1)/n)
         ret = ret**e
         return ret
 
@@ -2068,7 +2087,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             pass
 
         if self.is_zero():
-            self._order = rings.Integer(1)
+            self._order = Integer(1)
             return self._order
 
         E = self.curve()
@@ -3015,7 +3034,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             return rings.QQ(0)
         else:
             if E.base_ring() is rings.QQ:
-                Nv = rings.ZZ(v)
+                Nv = Integer(v)
             else:
                 Nv = v.norm()
                 if not weighted:
@@ -3512,7 +3531,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         except AttributeError:
             pass
         if self.is_zero():
-            return rings.Integer(1)
+            return Integer(1)
         E = self.curve()
         K = E.base_ring()
         from sage.schemes.plane_curves.projective_curve import Hasse_bounds

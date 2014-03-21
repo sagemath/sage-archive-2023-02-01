@@ -7,9 +7,9 @@ AUTHORS:
 
 """
 
-from sage.structure.sage_object import SageObject
+from sage.structure.parent import Parent
 
-class Lattice(SageObject):
+class Lattice(Parent):
     """
     This class is a stub.
     """

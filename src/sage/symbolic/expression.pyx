@@ -4109,7 +4109,7 @@ cdef class Expression(CommutativeRingElement):
             sage: 1/gamma(x).subs(x=-1)
             0
 
-            Verify that this operation does not modify the passed dictionary (:trac:`6622`)::
+        Verify that this operation does not modify the passed dictionary (:trac:`6622`)::
 
             sage: var('v t')
             (v, t)

@@ -1124,7 +1124,7 @@ class Partition(CombinatorialObject, Element):
 
     def power(self, k):
         r"""
-        Returns the cycle type of the `k`-th power of any permutation
+        Return the cycle type of the `k`-th power of any permutation
         with cycle type ``self`` (thus describes the powermap of
         symmetric groups).
 
@@ -1141,8 +1141,6 @@ class Partition(CombinatorialObject, Element):
             [5, 1, 1, 1]
             sage: p.power(4)
             [5, 3]
-            sage: Partition([3,2,1]).power(3)
-            [2, 1, 1, 1, 1]
 
         Now let us compare this to the power map on `S_8`::
 
@@ -1156,6 +1154,11 @@ class Partition(CombinatorialObject, Element):
             (1,4,2,5,3)
             sage: g^4
             (1,5,4,3,2)(6,7,8)
+
+        ::
+
+            sage: Partition([3,2,1]).power(3)
+            [2, 1, 1, 1, 1]
         """
         res = []
         for i in self:
@@ -5258,9 +5261,9 @@ class Partitions_n(Partitions):
             lst = [self.n-1, 1]
         return self.element_class(self, lst)
 
-    def cardinality(self, algorithm='flint'):
+    def cardinality(self, algorithm='flint', k=None):
         r"""
-        Returns the number of partitions of the specified size.
+        Return the number of partitions of the specified size.
 
         INPUT:
 
@@ -5271,9 +5274,6 @@ class Partitions_n(Partitions):
           - ``'gap'`` -- use GAP (VERY *slow*)
           - ``'pari'`` -- use PARI. Speed seems the same as GAP until
             `n` is in the thousands, in which case PARI is faster.
-
-        Use the function :meth:`partitions` to return a generator over all
-        partitions of `n`.
 
         It is possible to associate with every partition of the integer `n` a
         conjugacy class of permutations in the symmetric group on `n` points
@@ -5319,7 +5319,7 @@ class Partitions_n(Partitions):
 
         .. MATH::
 
-           \sum_{n=0}^{\infty} p_n x^n = \prod_{k=1}^{\infty} \left( \frac{1}{1-x^k} \right).
+           \sum_{n=0}^{\infty} p_n x^n = \prod_{k=1}^{\infty} \frac{1}{1-x^k}.
 
         We use Sage to verify that the first several coefficients do
         indeed agree::
@@ -5329,6 +5329,11 @@ class Partitions_n(Partitions):
             1 + q + 2*q^2 + 3*q^3 + 5*q^4 + 7*q^5 + 11*q^6 + 15*q^7 + 22*q^8 + O(q^9)
             sage: [Partitions(k).cardinality() for k in range(2,10)]
             [2, 3, 5, 7, 11, 15, 22, 30]
+
+        Another consistency test for ``n`` up to 500::
+
+            sage: len([n for n in [1..500] if Partitions(n).cardinality() != Partitions(n).cardinality(algorithm='pari')])
+            0
 
         REFERENCES:
 
@@ -6158,11 +6163,14 @@ class OrderedPartitions(Partitions):
     The class of ordered partitions of `n`. If `k` is specified, then this
     contains only the ordered partitions of length `k`.
 
+    An *ordered partition* of a nonnegative integer `n` means a list of
+    positive integers whose sum is `n`. This is the same as a composition
+    of `n`.
+
     .. NOTE::
 
        It is recommended that you use :meth:`Compositions` instead as
-       :meth:`OrderedPartitions` wraps GAP. See also
-       :class:`ordered_partitions`.
+       :meth:`OrderedPartitions` wraps GAP.
 
     EXAMPLES::
 
@@ -6174,6 +6182,15 @@ class OrderedPartitions(Partitions):
         Ordered partitions of 3 of length 2
         sage: OrderedPartitions(3,2).list()
         [[2, 1], [1, 2]]
+
+        sage: OrderedPartitions(10,k=2).list()
+        [[9, 1], [8, 2], [7, 3], [6, 4], [5, 5], [4, 6], [3, 7], [2, 8], [1, 9]]
+        sage: OrderedPartitions(4).list()
+        [[4], [3, 1], [2, 2], [2, 1, 1], [1, 3], [1, 2, 1], [1, 1, 2], [1, 1, 1, 1]]
+
+    REFERENCES:
+
+    :wikipedia:`Ordered_partition_of_a_set`
     """
 
     @staticmethod
@@ -6272,6 +6289,10 @@ class OrderedPartitions(Partitions):
             4
             sage: OrderedPartitions(3,2).cardinality()
             2
+            sage: OrderedPartitions(10,2).cardinality()
+            9
+            sage: OrderedPartitions(15).cardinality()
+            16384
         """
         n = self.n
         k = self.k
@@ -6738,6 +6759,34 @@ def number_of_partitions(n, algorithm='default'):
         return bober_number_of_partitions(n)
 
     raise ValueError("unknown algorithm '%s'"%algorithm)
+
+def number_of_partitions_length(n, k):
+    r"""
+    Return the number of partitions of `n` with length `k`.
+
+    This is a wrapper for GAP's ``NrPartitions`` function.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.partition import number_of_partitions_length
+        sage: number_of_partitions_length(5, 2)
+        2
+        sage: number_of_partitions_length(10, 2)
+        5
+        sage: number_of_partitions_length(10, 4)
+        9
+        sage: number_of_partitions_length(10, 0)
+        0
+        sage: number_of_partitions_length(10, 1)
+        1
+        sage: number_of_partitions_length(0, 0)
+        1
+        sage: number_of_partitions_length(0, 1)
+        0
+
+    """
+    return ZZ(gap.eval("NrPartitions(%s,%s)" % (ZZ(n),ZZ(k))))
+
 
 ##########
 # trac 14225: Partitions() is frequently used, but only weakly cached. Hence,

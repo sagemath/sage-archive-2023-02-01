@@ -151,9 +151,6 @@ cdef extern from "Python.h":
     #this one's just missing.
     long PyObject_Hash(object obj)
 
-#this routine extracts the "dummy" sentinel value that is used in dicts to mark
-#"freed" slots. We need that to delete things ourselves.
-
 cdef PyObject* PyDict_GetItemWithError(dict op, object key) except? NULL:
     cdef PyDictEntry* ep
     cdef PyDictObject* mp = <PyDictObject*><void *>op
@@ -162,6 +159,9 @@ cdef PyObject* PyDict_GetItemWithError(dict op, object key) except? NULL:
         return ep.me_value
     else:
         return NULL
+
+#this routine extracts the "dummy" sentinel value that is used in dicts to mark
+#"freed" slots. We need that to delete things ourselves.
 
 cdef PyObject* init_dummy() except NULL:
     cdef dict D = dict()

@@ -310,6 +310,43 @@ class IntegerLattice(Lattice):
         self.gram_matrix.clear_cache()
         self._is_LLL_reduced = True
 
+    def HKZ(self, *args, **kwds):
+        """Hermite-Korkine-Zolotarev (HKZ) reduce the basis.
+
+        A basis `B` of a lattice `L`, with orthogonalized basis `B^∗` such
+        that `B = `M·B^∗` is HKZ reduced, if and only if, the following properties are
+        satisfied:
+        
+        #. The basis `B` is size-reduced, i.e., all off-diagonal coefficients of
+           `M` satisfy `|μ_{i,j}| ≤ 1/2`
+
+        #. The vector `b_1` realizes the first minimum `λ_1(L)`.
+
+        #. The projection of the vectors `b_2,…,b_r` orthogonally to` b_1` form
+           an HKZ reduced basis.
+       
+        .. note::
+
+            This is realised by calling
+            :func:`sage.lattices.integer_lattice.IntegerLattice.BKZ` with
+            ``block_size == self.rank()``.
+        
+        INPUT:
+
+        - ``*args`` - passed through to :func:`sage.lattices.integer_lattice.IntegerLattice.BKZ`
+        - ``*kwds`` - passed through to :func:`sage.lattices.integer_lattice.IntegerLattice.BKZ`
+
+
+        EXAMPLE::
+
+            sage: L = sage.crypto.gen_lattice(type='random', n=1, m=40, q=2^60, seed=42, lattice=True)
+            sage: L.HKZ()
+            sage: L.basis[0]
+            (-1, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, -1, 1, 0, 1, 1, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0)        
+        """
+        self.BKZ(block_size=self.rank())
+        
+        
     @cached_method
     def gram_matrix(self):
         """

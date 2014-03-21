@@ -5261,7 +5261,7 @@ class Partitions_n(Partitions):
             lst = [self.n-1, 1]
         return self.element_class(self, lst)
 
-    def cardinality(self, algorithm='flint', k=None):
+    def cardinality(self, algorithm='flint'):
         r"""
         Return the number of partitions of the specified size.
 
@@ -6188,9 +6188,6 @@ class OrderedPartitions(Partitions):
         sage: OrderedPartitions(4).list()
         [[4], [3, 1], [2, 2], [2, 1, 1], [1, 3], [1, 2, 1], [1, 1, 2], [1, 1, 1, 1]]
 
-    REFERENCES:
-
-    :wikipedia:`Ordered_partition_of_a_set`
     """
 
     @staticmethod

@@ -116,6 +116,10 @@ class OrderedSetPartition(ClonableArray):
         [{1, 3}, {2, 4}]
         sage: s.parent()
         Ordered set partitions of {1, 2, 3, 4}
+
+    REFERENCES:
+
+    :wikipedia:`Ordered_partition_of_a_set`
     """
     __metaclass__ = ClasscallMetaclass
 

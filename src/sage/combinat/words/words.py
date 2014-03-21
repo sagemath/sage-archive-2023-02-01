@@ -130,7 +130,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
         sage: isinstance(Words('ab'), Words_all)
         True
         sage: isinstance(33, Words_all)
-        True
+        False
 
     We would like the instance of this class to be unique::
 

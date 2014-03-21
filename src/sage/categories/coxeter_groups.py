@@ -615,6 +615,22 @@ class CoxeterGroups(Category_singleton):
                 ret.append(nextlayer)
             return flatten(ret)
 
+        def canonical_representation(self):
+            r"""
+            Return the canonical faithful representation of ``self``.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup("A3")
+                sage: W.canonical_representation()
+                Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+                [1 3 2]
+                [3 1 3]
+                [2 3 1]
+            """
+            from sage.groups.matrix_gps.coxeter_group import CoxeterMatrixGroup
+            return CoxeterMatrixGroup(self.coxeter_matrix(), index_set=self.index_set())
+
         # TODO: Groups() should have inverse() call __invert__
         # With strong doc stating that this is just a convenience for the user
         # and links to ~ / __invert__
@@ -981,6 +997,81 @@ v            EXAMPLES::
 
             """
             return len(self.reduced_word())
+
+        def absolute_length(self):
+            """
+            Return the absolute length of ``self``
+
+            The absolute length is the length of the shortest expression
+            of the element as a product of reflections.
+
+            .. SEEALSO:: :meth:`absolute_le`.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(["A", 3])
+                sage: s = W.simple_reflections()
+                sage: (s[1]*s[2]*s[3]).absolute_length()
+                3
+            """
+            M = self.canonical_matrix()
+            return (M - 1).image().dimension()
+
+        def absolute_le(self, other):
+            r"""
+            Return whether ``self`` is smaller than ``other`` in the absolute
+            order.
+
+            A general reflection is an element of the form `w s_i w^{-1}`,
+            where `s_i` is a simple reflection. The absolute order is defined
+            analogously to the weak order but using general reflections rather
+            than just simple reflections.
+
+            This partial order can be used to define noncrossing partitions
+            associated with this Coxeter group.
+
+            .. SEEALSO:: :meth:`absolute_length`
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(["A", 3])
+                sage: s = W.simple_reflections()
+                sage: w0 = s[1]
+                sage: w1 = s[1]*s[2]*s[3]
+                sage: w0.absolute_le(w1)
+                True
+                sage: w1.absolute_le(w0)
+                False
+                sage: w1.absolute_le(w1)
+                True
+            """
+            if self == other:
+                return True
+            if self.absolute_length() >= other.absolute_length():
+                return False
+            return self.absolute_length() + (self.inverse() * other).absolute_length() == other.absolute_length()
+
+        def canonical_matrix(self):
+            r"""
+            Return the matrix of ``self`` in the canonical faithful
+            representation.
+
+            This is an `n`-dimension real faithful essential representation,
+            where `n` is the number of generators of the Coxeter group.
+            Note that this is not always the most natural matrix
+            representation, for instance in type `A_n`.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(["A", 3])
+                sage: s = W.simple_reflections()
+                sage: (s[1]*s[2]*s[3]).canonical_matrix()
+                [ 0  0 -1]
+                [ 1  0 -1]
+                [ 0  1 -1]
+            """
+            G = self.parent().canonical_representation()
+            return G.prod(G.simple_reflection(i) for i in self.reduced_word()).matrix()
 
         def coset_representative(self, index_set, side = 'right'):
             r"""

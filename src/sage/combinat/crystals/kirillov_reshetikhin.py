@@ -158,7 +158,8 @@ def KirillovReshetikhinCrystal(cartan_type, r, s):
     See Section 4 of [FOS09]_.
 
     For an implementation of Kirillov-Reshetikhin crystals for `s = 1` from
-    crystals of LS paths, see :func:`KirillovReshetikhinCrystalFromLSPaths`.
+    crystals of LS paths, see
+    :func:`~sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystalFromLSPaths`.
 
     INPUT:
 

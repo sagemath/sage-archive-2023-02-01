@@ -60,8 +60,9 @@ def CrystalOfSpins(ct):
     This is a combinatorial model for the crystal with highest weight
     `Lambda_n` (the `n`-th fundamental weight). It has
     `2^n` elements, here called Spins. See also
-    :func:`CrystalOfLetters`, :func:`CrystalOfSpinsPlus`,
-    and :func:`CrystalOfSpinsMinus`.
+    :func:`~sage.combinat.crystals.letters.CrystalOfLetters`,
+    :func:`~sage.combinat.crystals.spins.CrystalOfSpinsPlus`,
+    and :func:`~sage.combinat.crystals.spins.CrystalOfSpinsMinus`.
 
     INPUT:
 

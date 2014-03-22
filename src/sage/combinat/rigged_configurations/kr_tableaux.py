@@ -469,7 +469,8 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
     def kirillov_reshetikhin_crystal(self):
         """
         Return the corresponding
-        :func:`Kirillov-Reshetikhin crystal<KirillovReshetikhinCrystal>`.
+        :func:`Kirillov-Reshetikhin crystal
+        <sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystal>`.
 
         EXAMPLES::
 

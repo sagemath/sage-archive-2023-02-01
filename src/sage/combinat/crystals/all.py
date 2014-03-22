@@ -40,7 +40,7 @@ lazy_import('sage.combinat.crystals.elementary_crystals',
 
 lazy_import('sage.combinat.crystals.kirillov_reshetikhin',
             'KirillovReshetikhinCrystal',
-            deprecation=(15882, "this is being removed from the global namespace. Use crystals.kirillov_resetikhin.KashiwaraNakashimaTabelaux instead"))
+            deprecation=(15882, "this is being removed from the global namespace. Use crystals.KirillovResetikhin instead"))
 
 lazy_import('sage.combinat.crystals.alcove_path',
             ['CrystalOfAlcovePaths', 'ClassicalCrystalOfAlcovePaths'],

@@ -577,8 +577,8 @@ cdef class CachedFunction(object):
         self.f = f
         if name is not None:
             self.__name__ = name
-        elif hasattr(f, "func_name"):
-            self.__name__ = f.func_name
+        elif hasattr(f, "__name__"):
+            self.__name__ = f.__name__
         else:
             self.__name__ = f.__name__
         try:
@@ -650,7 +650,7 @@ cdef class CachedFunction(object):
 
         """
         f = self.f
-        if hasattr(f, "func_doc"):
+        if hasattr(f, "__doc__"):
             try:
                 sourcelines = sage_getsourcelines(f)
             except IOError:
@@ -666,9 +666,9 @@ cdef class CachedFunction(object):
                 elif filename.startswith(SAGE_LIB):
                     filename = filename[len(SAGE_LIB):]
                 file_info = "File: %s (starting at line %d)\n"%(filename,sourcelines[1])
-                doc = file_info+(f.func_doc or '')
+                doc = file_info+(f.__doc__ or '')
             else:
-                doc = f.func_doc
+                doc = f.__doc__
         else:
             doc = f.__doc__
         return doc

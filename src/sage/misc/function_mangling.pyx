@@ -127,7 +127,7 @@ cdef class ArgumentFixer:
         else:
             self._default_tuple = tuple(defaults)
 
-        #code = f.func_code
+        #code = f.__code__
 
         self.f = f
         self._ndefault = len(defaults)

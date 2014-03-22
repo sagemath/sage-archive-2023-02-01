@@ -443,7 +443,7 @@ class Decorator:
         """
         from sage.misc.sageinspect import sage_getsourcelines, sage_getfile
         f = self.f
-        if hasattr(f, "func_doc"):
+        if hasattr(f, "__doc__"):
             try:
                 sourcelines = sage_getsourcelines(f)
             except IOError:
@@ -638,7 +638,7 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
         """
         if f is not None:
             self.f = f
-            if hasattr(f, "func_name"):
+            if hasattr(f, "__name__"):
                 self.__name__ = f.__name__
             else:
                 self.__name__ = f.__name__
@@ -737,7 +737,7 @@ class EnumeratedSetFromIterator_method_caller(Decorator):
         self.inst = inst
         self.f = f
         self.af = ArgumentFixer(self.f)
-        if hasattr(f, "func_name"):
+        if hasattr(f, "__name__"):
             self.__name__ = f.__name__
         else:
             self.__name__ = f.__name__
@@ -910,7 +910,7 @@ class EnumeratedSetFromIterator_method_decorator(object):
         if f is not None:
             import types
             self.f = f
-            if hasattr(f,"func_name"):
+            if hasattr(f,"__name__"):
                 self.__name__ = f.__name__
                 self.__module__ = f.__module__
 

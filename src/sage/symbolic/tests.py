@@ -17,6 +17,10 @@ def rational_powers_memleak():
     """
     Check that there is no memory leak in rational powers
 
+    OUTPUT:
+
+    Boolean. Whether the memory leak was detected.
+
     See :trac:`9129`.
 
     EXAMPLES::
@@ -34,5 +38,5 @@ def rational_powers_memleak():
     gc.collect()
     c1 = sum(1 for obj in gc.get_objects())
     # Test that we do not leak an object at each iteration
-    return (c1 - c0) > 1000
+    return (c1 - c0) >= 1000
 

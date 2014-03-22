@@ -839,7 +839,10 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
 
     def change_var(self, var):
         """
+        Returns the power series ring in variable var over the same base ring.
+
         EXAMPLES::
+
             sage: R.<T> = QQ[[]]; R
             Power Series Ring in T over Rational Field
             sage: R.change_var('D')

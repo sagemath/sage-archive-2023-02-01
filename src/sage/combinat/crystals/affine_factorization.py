@@ -70,7 +70,7 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
 
     And show that this crystal is isomorphic to the tableau model of the same weight::
 
-        sage: C = CrystalOfTableaux(['A',2],shape=[3,1])
+        sage: C = crystals.Tableaux(['A',2],shape=[3,1])
         sage: GC = C.digraph()
         sage: GB = B.digraph()
         sage: GC.is_isomorphic(GB, edge_labels=True)

@@ -180,7 +180,7 @@ class CrystalBacktracker(GenericBacktracker):
         EXAMPLES::
 
             sage: from sage.combinat.crystals.crystals import CrystalBacktracker
-            sage: C = CrystalOfTableaux(['B',3],shape=[3,2,1])
+            sage: C = crystals.Tableaux(['B',3],shape=[3,2,1])
             sage: CB = CrystalBacktracker(C)
             sage: len(list(CB))
             1617
@@ -203,7 +203,7 @@ class CrystalBacktracker(GenericBacktracker):
         EXAMPLES::
 
             sage: from sage.combinat.crystals.crystals import CrystalBacktracker
-            sage: C = CrystalOfLetters(['A', 5])
+            sage: C = crystal.Letters(['A', 5])
             sage: CB = CrystalBacktracker(C)
             sage: list(CB._rec(C(1), 'n/a'))
             [(2, 'n/a', True)]

@@ -314,7 +314,7 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
 
         EXAMPLES::
 
-            sage: K = KirillovReshetikhinCrystal(['D',3,2],1,1)
+            sage: K = crystals.KirillovReshetikhin(['D',3,2],1,1)
             sage: t=K(rows=[[1]])
             sage: t.pp()
             1
@@ -395,7 +395,7 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
             sage: pr = attrcall("promotion")
             sage: pr_inverse = attrcall("promotion_inverse")
             sage: A=crystals.AffineFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
-            sage: [x.epsilon0 for x in A.list()]
+            sage: [x.epsilon0() for x in A.list()]
             [1, 0, 0]
         """
         return super(AffineCrystalFromClassicalElement, self).epsilon(0)
@@ -469,7 +469,7 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
 
         EXAMPLES::
 
-            sage: K = KirillovReshetikhinCrystal(['A',2,1],1,1)
+            sage: K = crystals.KirillovReshetikhin(['A',2,1],1,1)
             sage: b = K(rows=[[1]])
             sage: c = K(rows=[[2]])
             sage: c<b

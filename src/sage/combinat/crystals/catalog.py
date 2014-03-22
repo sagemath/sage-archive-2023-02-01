@@ -85,7 +85,7 @@ def KirillovReshetikhin(cartan_type, r, s, model='KN'):
 
         sage: KN = crystals.KirillovReshetikhin(['D',4,1], 2, 1)
         sage: KN2 = crystals.KirillovReshetikhin(['D',4,1], 2, 1, model='KN')
-        sage: KN3 = crystals.KirillovReshetikhin(['D',4,1], 2, 1, model='KashiwaraNakashima')
+        sage: KN3 = crystals.KirillovReshetikhin(['D',4,1], 2, 1, model='KashiwaraNakashimaTableaux')
         sage: KN is KN2 and KN is KN3
         True
     """

@@ -278,18 +278,7 @@ def find_object_modules(obj):
         sage: find_object_modules(ZZ)
         {'sage.rings.integer_ring': ['Z', 'ZZ']}
 
-    Examples of instances that result in several occurrences::
-
-        sage: sorted(find_object_modules(pi).keys())
-        ['sage.all',
-         'sage.all_cmdline',
-         ...
-         'sage.symbolic.constants']
-        sage: sorted(find_object_modules(NaN).keys())
-        ['sage.all',
-         'sage.all_cmdline',
-         ...
-         'sage.symbolic.constants']
+    Here we test some instances::
 
     .. NOTE::
 
@@ -321,11 +310,31 @@ def find_object_modules(obj):
     import sys
     module_to_obj = {}
     for module_name, module in sys.modules.iteritems():
-        if hasattr(module, '__dict__'):
+        if module_name != '__main__' and hasattr(module, '__dict__'):
             d = module.__dict__
             names = [key for key in d if d[key] is obj]
             if names:
                 module_to_obj[module_name] = names
+
+    # if the object is an instance, we try to guess where it is defined
+    if sageinspect.isclassinstance(obj):
+        import re
+        dec_pattern = re.compile("^(\w[\w0-9\_]*)\s*=", re.MULTILINE)
+        module_to_obj2 = {}
+        for module_name, obj_names in module_to_obj.iteritems():
+            module_to_obj2[module_name] = []
+            src = sageinspect.sage_getsource(sys.modules[module_name])
+            m = dec_pattern.search(src)
+            while m:
+                if m.group(1) in obj_names:
+                    module_to_obj2[module_name].append(m.group(1))
+                m = dec_pattern.search(src, m.end())
+
+            if not module_to_obj2[module_name]:
+                del module_to_obj2[module_name]
+
+        if module_to_obj2:
+            return module_to_obj2
 
     return module_to_obj
 
@@ -466,6 +475,12 @@ def import_statements(*objects, **options):
         from sage.rings.rational_field import RationalField as Rationals
         sage: import_statements(sage.combinat.partition_algebra.SetPartitionsAk)
         from sage.combinat.partition_algebra import SetPartitionsAk
+        sage: import_statements(CIF)
+        from sage.rings.all import CIF
+        sage: import_statements(NaN)
+        from sage.symbolic.constants import NaN
+        sage: import_statements(pi)
+        from sage.symbolic.constants import pi
 
     .. NOTE::
 
@@ -567,17 +582,28 @@ def import_statements(*objects, **options):
                 answer[module_name].append((name,name))
                 continue
 
+        # if the object is a class instance, we might prefer use the .all
+        from sageinspect import isclassinstance
+        if isclassinstance(obj):
+            module_name = type(obj).__module__
+            i = module_name.rfind('.')
+            all_module_name = module_name[:i] + '.all'
+            if all_module_name in modules:
+                module_name = all_module_name
+                modules[module_name][0]
+            else:
+                module_name = None
 
-        not_all_modules = [module_name for module_name in modules if not '.all_' in module_name and not module_name.endswith('.all')]
-        if not(not_all_modules):
-            print "# ** Warning **: the object %s is only defined in .all modules"%obj
-            module_name = modules.keys()[0]
+        if module_name is None:
+            not_all_modules = [module_name for module_name in modules if not '.all_' in module_name and not module_name.endswith('.all')]
+            if not(not_all_modules):
+                print "# ** Warning **: the object %s is only defined in .all modules"%obj
+                module_name = modules.keys()[0]
 
-        else:
-            if len(not_all_modules) > 1:
-                print "# ** Warning **: several modules for the object %s: %s"%(obj, ', '.join(modules.keys()))
-
-            module_name = not_all_modules[0]
+            else:
+                if len(not_all_modules) > 1:
+                    print "# ** Warning **: several modules for the object %s: %s"%(obj, ', '.join(modules.keys()))
+                module_name = not_all_modules[0]
 
         if name is None:
             alias = name = modules[module_name][0]

@@ -874,10 +874,13 @@ class MaximaLib(MaximaAbstract):
         """
         j = errstr.find('Is ')
         errstr = errstr[j:]
-        k = errstr.find(' ',4)
+        jj = 2
+        if errstr[3] == ' ':
+            jj = 3
+        k = errstr.find(' ',jj+1)
         
-        outstr = "Computation failed since Maxima requested additional constraints; using the 'assume' command before integral evaluation *may* help (example of legal syntax is 'assume("\
-             + errstr[4:k] +">0)', see `assume?` for more details)\n" + errstr
+        outstr = "Computation failed since Maxima requested additional constraints; using the 'assume' command before evaluation *may* help (example of legal syntax is 'assume("\
+             + errstr[jj+1:k] +">0)', see `assume?` for more details)\n" + errstr
         outstr = outstr.replace('_SAGE_VAR_','')
         raise ValueError, outstr
 

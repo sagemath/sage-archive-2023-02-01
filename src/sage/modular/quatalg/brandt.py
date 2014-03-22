@@ -1194,7 +1194,7 @@ class BrandtModule_class(AmbientHeckeModule):
         L = self.right_ideals()
         n = len(L)
         if n == 0:
-            return matrix(self.base_ring()[[`q`]],0)
+            return matrix(self.base_ring()[[repr(q)]],0)
 
         # 1. Compute the theta series
         P = []

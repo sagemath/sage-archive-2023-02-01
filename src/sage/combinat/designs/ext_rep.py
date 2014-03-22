@@ -736,7 +736,7 @@ class XTree(object):
         try:
             child = self.xt_children[i]
         except IndexError:
-            raise IndexError, '%s no index %s' % (self.__repr__(), `i`)
+            raise IndexError, '%s no index %s' % (self.__repr__(), repr(i))
         if type(child) == TupleType:
             name, attributes, children = child
             if len(attributes) > 0:

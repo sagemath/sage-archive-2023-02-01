@@ -1376,7 +1376,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     'Not a positive integer: 0'
                 """
                 if i<1:
-                    return "Not a positive integer: %s" % `i`
+                    return "Not a positive integer: %s" % repr(i)
                 def C(i): return self._basis_keys([i]) if i else self._basis_keys([])
                 T = self.tensor_square()
                 return T.sum_of_monomials( (C(j), C(i-j)) for j in range(0,i+1) )
@@ -1462,7 +1462,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     'Not a positive integer: 0'
                 """
                 if i<1:
-                    return "Not a positive integer: %s" % `i`
+                    return "Not a positive integer: %s" % repr(i)
                 return - self.algebra_generators()[i]
 
             def coproduct_on_generators(self, i):
@@ -1488,7 +1488,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     'Not a positive integer: 0'
                 """
                 if i<1:
-                    return "Not a positive integer: %s" % `i`
+                    return "Not a positive integer: %s" % repr(i)
                 x = self.algebra_generators()[i]
                 from sage.categories.all import tensor
                 return tensor([self.one(), x]) + tensor([x, self.one()])

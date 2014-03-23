@@ -56,7 +56,7 @@ class RiggedConfigurationElement(ClonableArray):
     corresponding lists of riggings. If only partition_list is specified,
     then it sets the rigging equal to the calculated vacancy numbers.
 
-    If we are construction a rigged configuration from a rigged configuration
+    If we are constructing a rigged configuration from a rigged configuration
     (say of another type) and we don't want to recompute the vacancy numbers,
     we can use the ``use_vacancy_numbers`` to avoid the recomputation.
 
@@ -526,6 +526,39 @@ class RiggedConfigurationElement(ClonableArray):
         kr_tab = self.to_tensor_product_of_kirillov_reshetikhin_tableaux(display_steps)
         return kr_tab.to_tensor_product_of_kirillov_reshetikhin_crystals()
 
+    def lusztig_involution(self):
+        """
+        Return the result of the classical Lusztig involution on ``self``.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['D',4,1], [[2,2]])
+            sage: mg = RC.module_generators[1]
+            sage: ascii_art(mg.lusztig_involution())
+            0[ ][ ][ ]0  -1[ ][ ][ ]-1  0[ ][ ][ ]0  0[ ][ ][ ]0
+                         -1[ ][ ][ ]-1
+            sage: elt = mg.f_string([2,1,3,2])
+            sage: ascii_art(elt.lusztig_involtion())
+            0[ ][ ]0  0[ ][ ]0  0[ ][ ]0  -2[ ][ ][ ]-2
+                      0[ ][ ]0
+
+        We check that the Lusztig involution commutes with the bijection::
+
+            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[2,2], [1,2]])
+            sage: all(b.to_rigged_configuration().lusztig_involution()
+            ....:     == b.lusztig_involution().to_rigged_configuration() for b in KRT)
+            True
+        """
+        P = self.parent()
+        Cl = P.cartan_type().classical()
+        I = Cl.index_set()
+        aut = Cl.opposition_automorphism()
+        hw = self.to_highest_weight(I)[1]
+        hw.reverse()
+        from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
+        RC = RiggedConfigurations(P._cartan_type, reversed(P.dims))
+        return RC(*self, use_vacancy_numbers=True).to_lowest_weight(I)[0].e_string(aut[i] for i in hw)
+
     def left_split(self):
         r"""
         Return the image of ``self`` under the left column splitting
@@ -550,14 +583,49 @@ class RiggedConfigurationElement(ClonableArray):
                                 1[ ][ ]0  0[ ]0
         """
         P = self.parent()
-        B = list(P.dims)
-        if B[0][1] == 1:
+        if P.dims[0][1] == 1:
             raise ValueError("cannot split a single column")
-        B[0] = (B[0][0], B[0][1] - 1)
-        B.insert(0, (B[0][0], 1))
+        r,s = P.dims[0]
+        B = [[r,1], [r,s-1]]
+        B.extend(P.dims[1:])
         from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
         RC = RiggedConfigurations(P._cartan_type, B)
         return RC(*self)
+
+    def right_split(self):
+        r"""
+        Return the image of ``self`` under the right column splitting
+        map `\beta^*`.
+
+        Let `\ast` denote the :meth:`Lsztig involution<lusztig_involution>`
+        and `\beta` denote the :meth:`left splitting map<left_split>`, we
+        define the right splitting map by
+        `\beta^* := \ast \circ \beta \circ \ast`.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['C',4,1], [[3,3]])
+            sage: mg = RC.module_generators[-1]
+            sage: ascii_art(mg)
+            0[ ][ ]0  0[ ][ ]0  0[ ][ ]0  0[ ]0
+                      0[ ][ ]0  0[ ][ ]0  0[ ]0
+                                0[ ][ ]0  0[ ]0
+            sage: ascii_art(mg.right_split())
+            0[ ][ ]0  0[ ][ ]0  1[ ][ ]0  0[ ]0
+                      0[ ][ ]0  1[ ][ ]0  0[ ]0
+                                1[ ][ ]0  0[ ]0
+
+            sage: RC = RiggedConfigurations(['D',4,1], [[2,2],[1,2]])
+            sage: ascii_art(elt)
+            -1[ ][ ][ ]-1  0[ ][ ]0  -1[ ][ ]-1  1[ ][ ]1
+             0[ ]0         0[ ][ ]0  -1[ ]-1
+                           0[ ]0
+            sage: ascii_art(elt.right_split())
+            -1[ ][ ][ ]-1  0[ ][ ]0  -1[ ][ ]-1  1[ ][ ]1
+             1[ ]0         0[ ][ ]0  -1[ ]-1
+                           0[ ]0
+        """
+        return self.lusztig_involution().left_split().lusztig_involution()
 
     def delta(self, return_b=False):
         r"""

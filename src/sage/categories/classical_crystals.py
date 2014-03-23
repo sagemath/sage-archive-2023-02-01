@@ -87,41 +87,24 @@ class ClassicalCrystals(Category_singleton):
 
     class ParentMethods:
 
-        @cached_method
         def opposition_automorphism(self):
             r"""
-            Returns the opposition automorphism
-
-            The *opposition automorphism* is the automorphism
-            `i \mapsto i^*` of the vertices Dynkin diagram such that,
-            for `w_0` the longest element of the Weyl group, and any
-            simple root `\alpha_i`, one has `\alpha_{i^*} = -w_0(\alpha_i)`.
-
-            The automorphism is returned as a dictionary.
+            Deprecated in :trac:`15560`. Use the corresponding method in
+            Cartan type.
 
             EXAMPLES::
 
                 sage: T = CrystalOfTableaux(['A',5],shape=[1])
                 sage: T.opposition_automorphism()
-                {1: 5, 2: 4, 3: 3, 4: 2, 5: 1}
-
-                sage: T = CrystalOfTableaux(['D',4],shape=[1])
-                sage: T.opposition_automorphism()
-                {1: 1, 2: 2, 3: 3, 4: 4}
-
-                sage: T = CrystalOfTableaux(['D',5],shape=[1])
-                sage: T.opposition_automorphism()
-                {1: 1, 2: 2, 3: 3, 4: 5, 5: 4}
-
-                sage: T = CrystalOfTableaux(['C',4],shape=[1])
-                sage: T.opposition_automorphism()
-                {1: 1, 2: 2, 3: 3, 4: 4}
+                doctest:...: DeprecationWarning: opposition_automorphism is deprecated.
+                 Use opposition_automorphism from the Cartan type instead.
+                See http://trac.sagemath.org/15560 for details.
+                Finite family {1: 5, 2: 4, 3: 3, 4: 2, 5: 1}
             """
-            L = self.cartan_type().root_system().root_lattice()
-            W = L.weyl_group()
-            w0 = W.long_element()
-            alpha = L.simple_roots()
-            return dict( (i, (w0.action(alpha[i])).leading_support()) for i in self.index_set() )
+            from sage.misc.superseded import deprecation
+            deprecation(15560, 'opposition_automorphism is deprecated. Use'
+                               ' opposition_automorphism from the Cartan type instead.')
+            return self.cartan_type().opposition_automorphism()
 
         def demazure_character(self, w, f = None):
             r"""
@@ -460,6 +443,6 @@ class ClassicalCrystals(Category_singleton):
             """
             hw = self.to_highest_weight()[1]
             hw.reverse()
-            hw = [self.parent().opposition_automorphism()[i] for i in hw]
-            return self.to_lowest_weight()[0].e_string(hw)
+            aut = self.parent().cartan_type().opposition_automorphism()
+            return self.to_lowest_weight()[0].e_string(aut[i] for i in hw)
 

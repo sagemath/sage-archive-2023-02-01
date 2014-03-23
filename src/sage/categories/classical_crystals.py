@@ -141,9 +141,10 @@ class ClassicalCrystals(Category_singleton):
             weight space is the ambient space.
 
             The Demazure character is obtained by applying the Demazure operator
-            `D_w` (see :meth:`sage.categories.crystals.Crystals.ParentMethods.demazure_operator`)
+            `D_w` (see :meth:`sage.categories.regular_crystals.RegularCrystals.ParentMethods.demazure_operator`)
             to the highest weight element of the classical crystal. The simple
-            Demazure operators `D_i` (see :meth:`sage.categories.crystals.Crystals.ElementMethods.demazure_operator_simple`)
+            Demazure operators `D_i` (see
+            :meth:`sage.categories.regular_crystals.RegularCrystals.ElementMethods.demazure_operator_simple`)
             do not braid on the level of crystals, but on the level of characters they do.
             That is why it makes sense to input ``w`` either as a weight, a reduced word,
             or as an element of the underlying Weyl group.
@@ -177,7 +178,7 @@ class ClassicalCrystals(Category_singleton):
                 sage: T.demazure_character([1,2],f=lambda x:b2(x.weight()))
                 b2(-1/2,1/2) + b2(1/2,-1/2) + b2(1/2,1/2)
 
-            REFERENCES::
+            REFERENCES:
 
             .. [D1974] M. Demazure, Desingularisation des varietes de Schubert,
                Ann. E. N. S., Vol. 6, (1974), p. 163-172

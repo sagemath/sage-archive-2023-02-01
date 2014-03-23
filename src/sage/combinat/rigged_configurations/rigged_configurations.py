@@ -296,9 +296,9 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
     ::
 
         sage: RC = RiggedConfigurations(['D', 4, 1], [[4,1], [3,3]])
-        sage: KR1 = KirillovReshetikhinCrystal(['D', 4, 1], 4, 1)
-        sage: KR2 = KirillovReshetikhinCrystal(['D', 4, 1], 3, 3)
-        sage: T = TensorProductOfCrystals(KR1, KR2)
+        sage: KR1 = crystals.KirillovReshetikhin(['D', 4, 1], 4, 1)
+        sage: KR2 = crystals.KirillovReshetikhin(['D', 4, 1], 3, 3)
+        sage: T = crystals.TensorProduct(KR1, KR2)
         sage: t = T[1]; t
         [[++++, []], [+++-, [[1], [2], [4], [-4]]]]
         sage: ret = RC(t)
@@ -318,7 +318,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 1]])
         sage: c = RC.cardinality(); c
         29
-        sage: K = KirillovReshetikhinCrystal(['D',4,1],2,1)
+        sage: K = crystals.KirillovReshetikhin(['D',4,1],2,1)
         sage: K.cardinality() == c
         True
     """
@@ -609,7 +609,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
 
         TESTS::
 
-            sage: KT = TensorProductOfKirillovReshetikhinTableaux(['C',2,1], [[2,4],[1,2]])
+            sage: KT = crystals.TensorProductOfKirillovReshetikhinTableaux(['C',2,1], [[2,4],[1,2]])
             sage: t = KT(pathlist=[[2,1,2,1,-2,2,-1,-2],[2,-2]])
             sage: rc = t.to_rigged_configuration(); rc
             <BLANKLINE>

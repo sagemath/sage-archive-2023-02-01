@@ -1245,7 +1245,7 @@ class HarmonicCocycles(AmbientHeckeModule,UniqueRepresentation):
 
             sage: X = BTQuotient(3,11)
             sage: H = HarmonicCocycles(X,4,prec=60)
-            sage: A = H.hecke_operator(7).matrix() # long time indirect doctest
+            sage: A = H.hecke_operator(7).matrix() # long time, indirect doctest
             sage: print [o.rational_reconstruction() for o in A.charpoly().coefficients()]
             [6496256, 1497856, -109040, -33600, -904, 32, 1]
         """
@@ -2009,8 +2009,8 @@ class pAutomorphicFormElement(ModuleElement):
             sage: Kp.<g> = Qq(p**2,prec) # optional - magma
             sage: P = Kp.gen() # optional - magma
             sage: Q = 2+Kp.gen()+ p*(Kp.gen() +1) # optional - magma
-            sage: F = MM.lift(f) # long time optional - magma
-            sage: J0 = F.coleman(P,Q,mult = True) # long time optional - magma
+            sage: F = MM.lift(f) # long time, optional - magma
+            sage: J0 = F.coleman(P,Q,mult = True) # long time, optional - magma
 
         AUTHORS:
 

@@ -485,7 +485,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
 
         EXAMPLES::
 
-            sage: KirillovReshetikhinTableaux(['D', 4, 1], 2, 2).classical_decomposition()
+            sage: crystals.KirillovReshetikhin(['D', 4, 1], 2, 2, model='KR').classical_decomposition()
             The crystal of tableaux of type ['D', 4] and shape(s) [[], [1, 1], [2, 2]]
         """
         return self.kirillov_reshetikhin_crystal().classical_decomposition()
@@ -1319,13 +1319,13 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['D',4,1], 2,3)
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,1], 2, 3, model='KR')
             sage: mg = KRT.module_generators[1]
             sage: mg.lusztig_involution()
             [[-2, -2, 1], [-1, -1, 2]]
             sage: elt = mg.f_string([2,1,3,2]); elt
             [[3, -2, 1], [4, -1, 2]]
-            sage: elt.lusztig_involtion()
+            sage: elt.lusztig_involution()
             [[-4, -2, 1], [-3, -1, 2]]
         """
         Cl = self.parent().cartan_type().classical()
@@ -1341,7 +1341,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['D',4,1], 2,3)
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,1], 2, 3, model='KR')
             sage: mg = KRT.module_generators[1]; mg.pp()
               1 -2  1
               2 -1  2
@@ -1373,15 +1373,15 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['D',4,1], 2,3)
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,1], 2, 3, model='KR')
             sage: mg = KRT.module_generators[1]; mg.pp()
               1 -2  1
               2 -1  2
             sage: ls = mg.right_split(); ls.pp()
-              1  -2 (X)  1
-              2  -1      2
+             -2  1 (X)   1
+             -1  2       2
             sage: ls.parent()
-            Tensor product of Kirillov-Reshetikhin tableaux of type ['D', 4, 1] and factor(s) ((2, 1), (2, 2))
+            Tensor product of Kirillov-Reshetikhin tableaux of type ['D', 4, 1] and factor(s) ((2, 2), (2, 1))
         """
         return self.lusztig_involution().left_split().lusztig_involution()
 
@@ -1529,7 +1529,7 @@ class KRTableauxSpinElement(KirillovReshetikhinTableauxElement):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['D', 4, 1], 4, 3)
+            sage: KRT = crystals.KirillovReshetikhin(['D', 4, 1], 4, 3, model='KR')
             sage: elt = KRT(-3,-4,2,1,-3,-4,2,1,-2,-4,3,1); elt.pp()
               1  1  1
               2  2  3

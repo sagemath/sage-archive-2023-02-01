@@ -235,7 +235,7 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
 
         EXAMPLES::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[2,2],[1,3]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[2,2],[1,3]])
             sage: elt = KRT(pathlist=[[2,1,3,2],[1,4,4]])
             sage: li = elt.lusztig_involution(); li
             [[1, 1, 4]] (X) [[2, 3], [3, 4]]
@@ -254,13 +254,13 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
 
         EXAMPLES::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[2,2],[1,3]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[2,2],[1,3]])
             sage: elt = KRT(pathlist=[[2,1,3,2],[1,4,4]]); elt.pp()
               1  2 (X)   1  4  4
               2  3
             sage: elt.left_split().pp()
               1 (X)   2 (X)   1  4  4
-              2       3 
+              2       3
         """
         P = self.parent()
         if P.dims[0][1] == 1:
@@ -280,7 +280,7 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
 
         EXAMPLES::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[2,2],[1,3]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[2,2],[1,3]])
             sage: elt = KRT(pathlist=[[2,1,3,2],[1,4,4]]); elt.pp()
               1  2 (X)   1  4  4
               2  3

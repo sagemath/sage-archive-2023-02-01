@@ -252,7 +252,8 @@ class RiggedConfigurationElement(ClonableArray):
                     rigged_partitions[-1] = RiggedPartitionTypeB(rigged_partitions[-1])
                 ClonableArray.__init__(self, parent, rigged_partitions)
                 return
-            nu = rigged_partitions
+            # Make a (deep)copy in case we change the vacancy numbers
+            nu = [nu._clone() for nu in rigged_partitions]
         else:
             # Otherwise we did not receive any info, create a size n array of
             #   empty rigged partitions
@@ -540,7 +541,7 @@ class RiggedConfigurationElement(ClonableArray):
             0[ ][ ][ ]0  -1[ ][ ][ ]-1  0[ ][ ][ ]0  0[ ][ ][ ]0
                          -1[ ][ ][ ]-1
             sage: elt = mg.f_string([2,1,3,2])
-            sage: ascii_art(elt.lusztig_involtion())
+            sage: ascii_art(elt.lusztig_involution())
             0[ ][ ]0  0[ ][ ]0  0[ ][ ]0  -2[ ][ ][ ]-2
                       0[ ][ ]0
 
@@ -618,6 +619,7 @@ class RiggedConfigurationElement(ClonableArray):
                                 1[ ][ ]0  0[ ]0
 
             sage: RC = RiggedConfigurations(['D',4,1], [[2,2],[1,2]])
+            sage: elt = RC(partition_list=[[3,1], [2,2,1], [2,1], [2]])
             sage: ascii_art(elt)
             -1[ ][ ][ ]-1  0[ ][ ]0  -1[ ][ ]-1  1[ ][ ]1
              0[ ]0         0[ ][ ]0  -1[ ]-1

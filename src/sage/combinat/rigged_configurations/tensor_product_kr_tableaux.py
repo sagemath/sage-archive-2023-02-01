@@ -16,23 +16,23 @@ EXAMPLES:
 
 Type `A_n^{(1)}` examples::
 
-    sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1], [2,1]])
+    sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1], [2,1]])
     sage: KRT
     Tensor product of Kirillov-Reshetikhin tableaux of type ['A', 3, 1] and factor(s) ((3, 1), (2, 1))
     sage: KRT.cardinality()
     24
-    sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[1,1], [2,1], [3,1]])
+    sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[1,1], [2,1], [3,1]])
     sage: KRT
     Tensor product of Kirillov-Reshetikhin tableaux of type ['A', 3, 1] and factor(s) ((1, 1), (2, 1), (3, 1))
     sage: len(KRT.module_generators)
     5
-    sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[1,1], [2,1], [3,1]])
+    sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[1,1], [2,1], [3,1]])
     sage: KRT.cardinality()
     96
 
 Type `D_n^{(1)}` examples::
 
-    sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[1, 1], [2, 1], [1, 1]])
+    sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[1, 1], [2, 1], [1, 1]])
     sage: KRT
     Tensor product of Kirillov-Reshetikhin tableaux of type ['D', 4, 1] and factor(s) ((1, 1), (2, 1), (1, 1))
     sage: T = KRT(pathlist=[[1], [-2, 2], [1]])
@@ -91,7 +91,7 @@ class HighestWeightTensorKRT(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[2,2]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[2,2]])
             sage: from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import HighestWeightTensorKRT
             sage: hw = HighestWeightTensorKRT(KRT)
             sage: hw2 = HighestWeightTensorKRT(KRT)
@@ -107,7 +107,7 @@ class HighestWeightTensorKRT(UniqueRepresentation):
 
         TESTS::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1], [2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1], [2,1]])
             sage: KRT.module_generators[0]
             [[1], [2], [3]] (X) [[1], [2]]
         """
@@ -122,7 +122,7 @@ class HighestWeightTensorKRT(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[2,1]])
             sage: from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import HighestWeightTensorKRT
             sage: for x in HighestWeightTensorKRT(KRT): x
             ...
@@ -141,12 +141,12 @@ class HighestWeightTensorKRT(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[2,1]])
             sage: from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import HighestWeightTensorKRT
             sage: HighestWeightTensorKRT(KRT)
             Highest weight elements of Tensor product of Kirillov-Reshetikhin tableaux of type ['D', 4, 1] and factor(s) ((2, 1),)
         """
-        return "Highest weight elements of %s"%self.tp_krt
+        return "Highest weight elements of {}".format(self.tp_krt)
 
     @cached_method
     def cardinality(self):
@@ -155,7 +155,7 @@ class HighestWeightTensorKRT(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[2,2]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[2,2]])
             sage: from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import HighestWeightTensorKRT
             sage: HW = HighestWeightTensorKRT(KRT)
             sage: HW.cardinality()
@@ -217,7 +217,7 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
     We can go between tensor products of KR crystals and rigged
     configurations::
 
-        sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1],[2,2]])
+        sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1],[2,2]])
         sage: tp_krt = KRT(pathlist=[[3,2,1],[3,2,3,2]]); tp_krt
         [[1], [2], [3]] (X) [[2, 2], [3, 3]]
         sage: RC = RiggedConfigurations(['A',3,1], [[3,1],[2,2]])
@@ -235,9 +235,9 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
         True
         sage: rc_elt == tp_krt.to_rigged_configuration()
         True
-        sage: KR1 = KirillovReshetikhinCrystal(['A',3,1], 3,1)
-        sage: KR2 = KirillovReshetikhinCrystal(['A',3,1], 2,2)
-        sage: T = TensorProductOfCrystals(KR1, KR2)
+        sage: KR1 = crystals.KirillovReshetikhin(['A',3,1], 3,1)
+        sage: KR2 = crystals.KirillovReshetikhin(['A',3,1], 2,2)
+        sage: T = crystals.TensorProduct(KR1, KR2)
         sage: t = T(KR1(3,2,1), KR2(3,2,3,2))
         sage: KRT(t) == tp_krt
         True
@@ -247,7 +247,7 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
     We can get the highest weight elements by using the attribute
     ``module_generators``::
 
-        sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1], [2,1]])
+        sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1], [2,1]])
         sage: list(KRT.module_generators)
         [[[1], [2], [3]] (X) [[1], [2]], [[1], [3], [4]] (X) [[1], [2]]]
 
@@ -257,7 +257,7 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
     say, in English notation, the word obtain from reading bottom-to-top,
     left-to-right. ::
 
-        sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,2], [1,2], [2,1]])
+        sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,2], [1,2], [2,1]])
         sage: elt = KRT(pathlist=[[3, 2, 1, 4, 2, 1], [1, 3], [3, 1]])
         sage: elt.pp()
           1  1 (X)   1  3 (X)   1
@@ -267,9 +267,9 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
     One can still create elements in the same way as tensor product of
     crystals::
 
-        sage: K1 = KirillovReshetikhinTableaux(['A',3,1], 3,2)
-        sage: K2 = KirillovReshetikhinTableaux(['A',3,1], 1,2)
-        sage: K3 = KirillovReshetikhinTableaux(['A',3,1], 2,1)
+        sage: K1 = crystals.KirillovReshetikhin(['A',3,1], 3, 2, model='KR')
+        sage: K2 = crystals.KirillovReshetikhin(['A',3,1], 1, 2, model='KR')
+        sage: K3 = crystals.KirillovReshetikhin(['A',3,1], 2, 1, model='KR')
         sage: eltlong = KRT(K1(3, 2, 1, 4, 2, 1), K2(1, 3), K3(3, 1))
         sage: eltlong == elt
         True
@@ -281,9 +281,9 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
 
         EXAMPLES::
 
-            sage: T1 = TensorProductOfKirillovReshetikhinTableaux(CartanType(['A',3,1]), [[2,2]])
-            sage: T2 = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [(2,2)])
-            sage: T3 = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], ((2,2),))
+            sage: T1 = crystals.TensorProductOfKirillovReshetikhinTableaux(CartanType(['A',3,1]), [[2,2]])
+            sage: T2 = crystals.TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [(2,2)])
+            sage: T3 = crystals.TensorProductOfKirillovReshetikhinTableaux(['A',3,1], ((2,2),))
             sage: T2 is T1, T3 is T1
             (True, True)
         """
@@ -301,14 +301,14 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
 
         EXAMPLES::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1],[2,2]]); KRT
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1],[2,2]]); KRT
             Tensor product of Kirillov-Reshetikhin tableaux of type ['A', 3, 1] and factor(s) ((3, 1), (2, 2))
             sage: TestSuite(KRT).run() # long time
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[2,2]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[2,2]])
             sage: TestSuite(KRT).run() # long time
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[3,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[3,1]])
             sage: TestSuite(KRT).run() # long time
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[4,3]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[4,3]])
             sage: TestSuite(KRT).run() # long time
         """
         self.dims = B
@@ -328,7 +328,7 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
 
         EXAMPLES::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 3, 1], [[2,1], [1,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 3, 1], [[2,1], [1,1]])
             sage: g = KRT.__iter__()
             sage: g.next()
             [[2], [3]] (X) [[1]]
@@ -347,7 +347,7 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
 
         EXAMPLES::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[3,2],[4,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[3,2],[4,1]])
             sage: KRT._test_bijection()
         """
         tester = self._tester(**options)
@@ -371,7 +371,7 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
 
         EXAMPLES::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1], [2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1], [2,1]])
             sage: KRT(pathlist=[[4, 2, 1], [2, 1]])
             [[1], [2], [4]] (X) [[1], [2]]
         """
@@ -405,7 +405,7 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
 
         EXAMPLES::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[1,3], [2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[1,3], [2,1]])
             sage: tuple(KRT.module_generators)
             ([[1, 1, 1]] (X) [[1], [2]], [[1, 1, 3]] (X) [[1], [2]])
             sage: KRT._module_generators_brute_force()
@@ -422,7 +422,7 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
 
         EXAMPLES::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[1,3], [2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[1,3], [2,1]])
             sage: KRT.rigged_configurations()
             Rigged configurations of type ['A', 3, 1] and factor(s) ((1, 3), (2, 1))
         """
@@ -437,17 +437,17 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
 
         EXAMPLES::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1],[2,2]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1],[2,2]])
             sage: KRT.tensor_product_of_kirillov_reshetikhin_crystals()
             Full tensor product of the crystals [Kirillov-Reshetikhin crystal of type ['A', 3, 1] with (r,s)=(3,1),
             Kirillov-Reshetikhin crystal of type ['A', 3, 1] with (r,s)=(2,2)]
 
         TESTS::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[4,1], [3,3]])
-            sage: KR1 = KirillovReshetikhinCrystal(['D', 4, 1], 4, 1)
-            sage: KR2 = KirillovReshetikhinCrystal(['D', 4, 1], 3, 3)
-            sage: T = TensorProductOfCrystals(KR1, KR2)
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[4,1], [3,3]])
+            sage: KR1 = crystals.KirillovReshetikhin(['D', 4, 1], 4, 1)
+            sage: KR2 = crystals.KirillovReshetikhin(['D', 4, 1], 3, 3)
+            sage: T = crystals.TensorProduct(KR1, KR2)
             sage: T == KRT.tensor_product_of_kirillov_reshetikhin_crystals()
             True
             sage: T is KRT.tensor_product_of_kirillov_reshetikhin_crystals()

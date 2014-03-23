@@ -151,17 +151,17 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
 
     EXAMPLES::
 
-        sage: KRT = KirillovReshetikhinTableaux(['A', 4, 1], 2, 1)
+        sage: KRT = crystals.KirillovReshetikhin(['A', 4, 1], 2, 1, model='KR')
         sage: elt = KRT(4, 3); elt
         [[3], [4]]
 
-        sage: KRT = KirillovReshetikhinTableaux(['D', 4, 1], 2, 1)
+        sage: KRT = crystals.KirillovReshetikhin(['D', 4, 1], 2, 1, model='KR')
         sage: elt = KRT(-1, 1); elt
         [[1], [-1]]
 
     We can create highest weight crystals from a given shape or weight::
 
-        sage: KRT = KirillovReshetikhinTableaux(['D', 4, 1], 2, 2)
+        sage: KRT = crystals.KirillovReshetikhin(['D', 4, 1], 2, 2, model='KR')
         sage: KRT.module_generator(shape=[1,1])
         [[1, 1], [2, -1]]
         sage: KRT.module_generator(column_shape=[2])
@@ -179,8 +179,8 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
     :class:`~sage.combinat.rigged_configurations.kr_tableaux.KirillovReshetikhinTableaux`
     elements::
 
-        sage: KRCrys = KirillovReshetikhinCrystal(['D', 4, 1], 2, 2)
-        sage: KRTab = KirillovReshetikhinTableaux(['D', 4, 1], 2, 2)
+        sage: KRCrys = crystals.KirillovReshetikhin(['D', 4, 1], 2, 2, model='KN')
+        sage: KRTab = crystals.KirillovReshetikhin(['D', 4, 1], 2, 2, model='KR')
         sage: elt = KRCrys(3, 2); elt
         [[2], [3]]
         sage: k = KRTab(elt); k
@@ -191,24 +191,24 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
     We check that the classical weights in the classical decompositions
     agree in a few different type::
 
-        sage: KRCrys = KirillovReshetikhinCrystal(['D', 4, 1], 2, 2)
-        sage: KRTab = KirillovReshetikhinTableaux(['D', 4, 1], 2, 2)
+        sage: KRCrys = crystals.KirillovReshetikhin(['D', 4, 1], 2, 2, model='KN')
+        sage: KRTab = crystals.KirillovReshetikhin(['D', 4, 1], 2, 2, model='KR')
         sage: all(t.classical_weight() == KRCrys(t).classical_weight() for t in KRTab)
         True
-        sage: KRCrys = KirillovReshetikhinCrystal(['B', 3, 1], 2, 2)
-        sage: KRTab = KirillovReshetikhinTableaux(['B', 3, 1], 2, 2)
+        sage: KRCrys = crystals.KirillovReshetikhin(['B', 3, 1], 2, 2, model='KN')
+        sage: KRTab = crystals.KirillovReshetikhin(['B', 3, 1], 2, 2, model='KR')
         sage: all(t.classical_weight() == KRCrys(t).classical_weight() for t in KRTab)
         True
-        sage: KRCrys = KirillovReshetikhinCrystal(['C', 3, 1], 2, 2)
-        sage: KRTab = KirillovReshetikhinTableaux(['C', 3, 1], 2, 2)
+        sage: KRCrys = crystals.KirillovReshetikhin(['C', 3, 1], 2, 2, model='KN')
+        sage: KRTab = crystals.KirillovReshetikhin(['C', 3, 1], 2, 2, model='KR')
         sage: all(t.classical_weight() == KRCrys(t).classical_weight() for t in KRTab)
         True
-        sage: KRCrys = KirillovReshetikhinCrystal(['D', 4, 2], 2, 2)
-        sage: KRTab = KirillovReshetikhinTableaux(['D', 4, 2], 2, 2)
+        sage: KRCrys = crystals.KirillovReshetikhin(['D', 4, 2], 2, 2, model='KN')
+        sage: KRTab = crystals.KirillovReshetikhin(['D', 4, 2], 2, 2, model='KR')
         sage: all(t.classical_weight() == KRCrys(t).classical_weight() for t in KRTab)
         True
-        sage: KRCrys = KirillovReshetikhinCrystal(['A', 4, 2], 2, 2)
-        sage: KRTab = KirillovReshetikhinTableaux(['A', 4, 2], 2, 2)
+        sage: KRCrys = crystals.KirillovReshetikhin(['A', 4, 2], 2, 2, model='KN')
+        sage: KRTab = crystals.KirillovReshetikhin(['A', 4, 2], 2, 2, model='KR')
         sage: all(t.classical_weight() == KRCrys(t).classical_weight() for t in KRTab)
         True
     """
@@ -219,8 +219,8 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
 
         EXAMPLES::
 
-            sage: KRT1 = KirillovReshetikhinTableaux(CartanType(['A',3,1]), 2, 3)
-            sage: KRT2 = KirillovReshetikhinTableaux(['A',3,1], 2, 3)
+            sage: KRT1 = crystals.KirillovReshetikhin(CartanType(['A',3,1]), 2, 3, model='KR')
+            sage: KRT2 = crystals.KirillovReshetikhin(['A',3,1], 2, 3, model='KR')
             sage: KRT1 is KRT2
             True
         """
@@ -267,11 +267,11 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['A', 4, 1], 2, 2)
+            sage: KRT = crystals.KirillovReshetikhin(['A', 4, 1], 2, 2, model='KR')
             sage: TestSuite(KRT).run()  # long time
-            sage: KRT = KirillovReshetikhinTableaux(['D', 4, 1], 2, 2)
+            sage: KRT = crystals.KirillovReshetikhin(['D', 4, 1], 2, 2, model='KR')
             sage: TestSuite(KRT).run()  # long time
-            sage: KRT = KirillovReshetikhinTableaux(['D', 4, 1], 4, 1); KRT
+            sage: KRT = crystals.KirillovReshetikhin(['D', 4, 1], 4, 1, model='KR'); KRT
             Kirillov-Reshetikhin tableaux of type ['D', 4, 1] and shape (4, 1)
             sage: TestSuite(KRT).run()
         """
@@ -290,7 +290,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
 
         EXAMPLES::
 
-            sage: KirillovReshetikhinTableaux(['A', 4, 1], 2, 3)
+            sage: crystals.KirillovReshetikhin(['A', 4, 1], 2, 3, model='KR')
             Kirillov-Reshetikhin tableaux of type ['A', 4, 1] and shape (2, 3)
         """
         return "Kirillov-Reshetikhin tableaux of type {} and shape ({}, {})".format(
@@ -302,7 +302,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
 
         EXAMPLES::
 
-            sage: KR = KirillovReshetikhinTableaux(['A', 3, 1], 2, 1)
+            sage: KR = crystals.KirillovReshetikhin(['A', 3, 1], 2, 1, model='KR')
             sage: g = KR.__iter__()
             sage: g.next()
             [[1], [2]]
@@ -335,7 +335,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['D', 4, 1], 2, 2)
+            sage: KRT = crystals.KirillovReshetikhin(['D', 4, 1], 2, 2, model='KR')
             sage: KRT.module_generator(1)
             [[1, 1], [2, -1]]
             sage: KRT.module_generator(shape=[1,1])
@@ -349,7 +349,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
             sage: KRT.module_generator(classical_weight=WSC.fundamental_weight(2))
             [[1, 1], [2, -1]]
 
-            sage: KRT = KirillovReshetikhinTableaux(['A', 3, 1], 2, 2)
+            sage: KRT = crystals.KirillovReshetikhin(['A', 3, 1], 2, 2, model='KR')
             sage: KRT.module_generator()
             [[1, 1], [2, 2]]
         """
@@ -396,7 +396,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['A', 4, 1], 2, 3)
+            sage: KRT = crystals.KirillovReshetikhin(['A', 4, 1], 2, 3, model='KR')
             sage: KRT._build_module_generators()
             ([[1, 1, 1], [2, 2, 2]],)
         """
@@ -409,8 +409,8 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['A', 4, 1], 2, 1)
-            sage: C = KirillovReshetikhinCrystal(['A',4,1], 2, 1)
+            sage: KRT = crystals.KirillovReshetikhin(['A', 4, 1], 2, 1, model='KR')
+            sage: C = crystals.KirillovReshetikhin(['A',4,1], 2, 1, model='KN')
             sage: krc = C(4,3); krc
             [[3], [4]]
             sage: KRT.from_kirillov_reshetikhin_crystal(krc)
@@ -424,7 +424,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['A', 4, 1], 2, 1)
+            sage: KRT = crystals.KirillovReshetikhin(['A', 4, 1], 2, 1, model='KR')
             sage: KRT(3, 4) # indirect doctest
             [[4], [3]]
             sage: KRT(4, 3)
@@ -446,7 +446,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['A', 4, 1], 2, 1)
+            sage: KRT = crystals.KirillovReshetikhin(['A', 4, 1], 2, 1, model='KR')
             sage: KRT.r()
             2
         """
@@ -459,7 +459,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['A', 4, 1], 2, 1)
+            sage: KRT = crystals.KirillovReshetikhin(['A', 4, 1], 2, 1, model='KR')
             sage: KRT.s()
             1
         """
@@ -474,7 +474,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
 
         EXAMPLES::
 
-            sage: KirillovReshetikhinTableaux(['A', 4, 1], 2, 1).kirillov_reshetikhin_crystal()
+            sage: crystals.KirillovReshetikhin(['A', 4, 1], 2, 1, model='KR').kirillov_reshetikhin_crystal()
             Kirillov-Reshetikhin crystal of type ['A', 4, 1] with (r,s)=(2,1)
         """
         return KirillovReshetikhinCrystal(self._cartan_type, self._r, self._s)
@@ -502,9 +502,9 @@ class KRTableauxRectangle(KirillovReshetikhinTableaux):
 
     TESTS::
 
-        sage: KRT = KirillovReshetikhinTableaux(['A', 3, 1], 2, 2)
+        sage: KRT = crystals.KirillovReshetikhin(['A', 3, 1], 2, 2, model='KR')
         sage: TestSuite(KRT).run()
-        sage: KRT = KirillovReshetikhinTableaux(['C', 3, 1], 3, 2)
+        sage: KRT = crystals.KirillovReshetikhin(['C', 3, 1], 3, 2, model='KR')
         sage: TestSuite(KRT).run() # long time
     """
     def _build_module_generators(self):
@@ -516,7 +516,7 @@ class KRTableauxRectangle(KirillovReshetikhinTableaux):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['A', 4, 1], 2, 3)
+            sage: KRT = crystals.KirillovReshetikhin(['A', 4, 1], 2, 3, model='KR')
             sage: KRT._build_module_generators()
             ([[1, 1, 1], [2, 2, 2]],)
         """
@@ -533,8 +533,8 @@ class KRTableauxRectangle(KirillovReshetikhinTableaux):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['A', 4, 1], 2, 1)
-            sage: C = KirillovReshetikhinCrystal(['A',4,1], 2, 1)
+            sage: KRT = crystals.KirillovReshetikhin(['A', 4, 1], 2, 1, model='KR')
+            sage: C = crystals.KirillovReshetikhin(['A',4,1], 2, 1, model='KN')
             sage: krc = C(4,3); krc
             [[3], [4]]
             sage: KRT.from_kirillov_reshetikhin_crystal(krc)
@@ -557,11 +557,11 @@ class KRTableauxTypeVertical(KirillovReshetikhinTableaux):
 
     TESTS::
 
-        sage: KRT = KirillovReshetikhinTableaux(['D', 4, 1], 1, 1)
+        sage: KRT = crystals.KirillovReshetikhin(['D', 4, 1], 1, 1, model='KR')
         sage: TestSuite(KRT).run()
-        sage: KRT = KirillovReshetikhinTableaux(['B', 3, 1], 2, 2)
+        sage: KRT = crystals.KirillovReshetikhin(['B', 3, 1], 2, 2, model='KR')
         sage: TestSuite(KRT).run() # long time
-        sage: KRT = KirillovReshetikhinTableaux(['A', 5, 2], 2, 2)
+        sage: KRT = crystals.KirillovReshetikhin(['A', 5, 2], 2, 2, model='KR')
         sage: TestSuite(KRT).run() # long time
     """
     def _fill(self, weight):
@@ -579,10 +579,10 @@ class KRTableauxTypeVertical(KirillovReshetikhinTableaux):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['D', 4, 1], 2, 1)
+            sage: KRT = crystals.KirillovReshetikhin(['D', 4, 1], 2, 1, model='KR')
             sage: KRT._fill([])
             [[1], [-1]]
-            sage: KRT = KirillovReshetikhinTableaux(['D', 14, 1], 12, 7)
+            sage: KRT = crystals.KirillovReshetikhin(['D', 14, 1], 12, 7, model='KR')
             sage: KRT._fill([10,10,8,2,2,2])
             [[1, 1, 1, 1, 1, 7, 1], [2, 2, 2, 2, 2, 8, 2], [3, 3, 7, 9, 7, 9, 3], [4, 4, 8, 10, 8, 10, 4], [5, 5, 9, 11, 9, 11, 5], [6, 6, 10, 12, 10, 12, 6], [7, 7, 11, -12, 11, -12, 7], [8, 8, 12, -11, 12, -11, 8], [9, 9, -12, -10, -12, -10, 9], [10, 10, -11, -9, -11, -9, -9], [-12, 11, -10, -8, -10, -8, -8], [-11, 12, -9, -7, -9, -7, -7]]
             sage: KRT._fill([10,10,6,2,2,2])
@@ -644,7 +644,7 @@ class KRTableauxTypeVertical(KirillovReshetikhinTableaux):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['D',4,1], 2, 3)
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,1], 2, 3, model='KR')
             sage: KRT._build_module_generators()
             ([[-2, 1, 1], [-1, 2, -1]], [[1, -2, 1], [2, -1, 2]],
              [[1, 1, 1], [2, 2, -1]], [[1, 1, 1], [2, 2, 2]])
@@ -659,8 +659,8 @@ class KRTableauxTypeVertical(KirillovReshetikhinTableaux):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['D',4,1], 2,3)
-            sage: C = KirillovReshetikhinCrystal(['D',4,1], 2,3)
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,1], 2, 3, model='KR')
+            sage: C = crystals.KirillovReshetikhin(['D',4,1], 2, 3, model='KN')
             sage: krc = C(4,3); krc
             [[3], [4]]
             sage: KRT.from_kirillov_reshetikhin_crystal(krc)
@@ -685,9 +685,9 @@ class KRTableauxTypeHorizonal(KirillovReshetikhinTableaux):
 
     TESTS::
 
-        sage: KRT = KirillovReshetikhinTableaux(['C', 3, 1], 2, 2)
+        sage: KRT = crystals.KirillovReshetikhin(['C', 3, 1], 2, 2, model='KR')
         sage: TestSuite(KRT).run() # long time
-        sage: KRT = KirillovReshetikhinTableaux(CartanType(['A', 4, 2]).dual(), 2, 2)
+        sage: KRT = crystals.KirillovReshetikhin(CartanType(['A', 4, 2]).dual(), 2, 2, model='KR')
         sage: TestSuite(KRT).run()
     """
     def _fill(self, shape):
@@ -704,10 +704,10 @@ class KRTableauxTypeHorizonal(KirillovReshetikhinTableaux):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['C', 5, 1], 3, 5)
+            sage: KRT = crystals.KirillovReshetikhin(['C', 5, 1], 3, 5, model='KR')
             sage: KRT._fill([3,3,1])
             [[1, 1, 1, -3, 1], [2, 2, 2, -2, 2], [3, -3, 3, -1, 3]]
-            sage: KRT = KirillovReshetikhinTableaux(['C', 10, 1], 5, 6)
+            sage: KRT = crystals.KirillovReshetikhin(['C', 10, 1], 5, 6, model='KR')
             sage: KRT._fill([6,4,2,2])
             [[1, 1, 1, 1, 1, 1], [2, 2, 2, 2, -5, 2], [3, 3, -5, 3, -4, 3], [4, 4, -4, 4, -3, 4], [-5, 5, -3, 5, -2, 5]]
             sage: KRT._fill([6,4])
@@ -739,7 +739,7 @@ class KRTableauxTypeHorizonal(KirillovReshetikhinTableaux):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['C',4,1], 2, 3)
+            sage: KRT = crystals.KirillovReshetikhin(['C',4,1], 2, 3, model='KR')
             sage: KRT._build_module_generators()
             ([[1, -2, 1], [2, -1, 2]], [[1, 1, 1], [2, -2, 2]], [[1, 1, 1], [2, 2, 2]])
         """
@@ -752,8 +752,8 @@ class KRTableauxTypeHorizonal(KirillovReshetikhinTableaux):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['C',4,1], 2,3)
-            sage: C = KirillovReshetikhinCrystal(['C',4,1], 2,3)
+            sage: KRT = crystals.KirillovReshetikhin(['C',4,1], 2, 3, model='KR')
+            sage: C = crystals.KirillovReshetikhin(['C',4,1], 2, 3, model='KN')
             sage: krc = C(4,3); krc
             [[3], [4]]
             sage: KRT.from_kirillov_reshetikhin_crystal(krc)
@@ -778,9 +778,9 @@ class KRTableauxTypeBox(KRTableauxTypeVertical):
 
     TESTS::
 
-        sage: KRT = KirillovReshetikhinTableaux(['A', 4, 2], 2, 2)
+        sage: KRT = crystals.KirillovReshetikhin(['A', 4, 2], 2, 2, model='KR')
         sage: TestSuite(KRT).run()
-        sage: KRT = KirillovReshetikhinTableaux(['D', 4, 2], 2, 2)
+        sage: KRT = crystals.KirillovReshetikhin(['D', 4, 2], 2, 2, model='KR')
         sage: TestSuite(KRT).run() # long time
     """
     def _fill(self, weight):
@@ -798,10 +798,10 @@ class KRTableauxTypeBox(KRTableauxTypeVertical):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['D', 4, 1], 2, 1)
+            sage: KRT = crystals.KirillovReshetikhin(['D', 4, 1], 2, 1, model='KR')
             sage: KRT._fill([])
             [[1], [-1]]
-            sage: KRT = KirillovReshetikhinTableaux(['D', 14, 1], 12, 7)
+            sage: KRT = crystals.KirillovReshetikhin(['D', 14, 1], 12, 7, model='KR')
             sage: KRT._fill([10,10,8,2,2,2])
             [[1, 1, 1, 1, 1, 7, 1], [2, 2, 2, 2, 2, 8, 2], [3, 3, 7, 9, 7, 9, 3], [4, 4, 8, 10, 8, 10, 4], [5, 5, 9, 11, 9, 11, 5], [6, 6, 10, 12, 10, 12, 6], [7, 7, 11, -12, 11, -12, 7], [8, 8, 12, -11, 12, -11, 8], [9, 9, -12, -10, -12, -10, 9], [10, 10, -11, -9, -11, -9, -9], [-12, 11, -10, -8, -10, -8, -8], [-11, 12, -9, -7, -9, -7, -7]]
             sage: KRT._fill([10,10,6,2,2,2])
@@ -863,7 +863,7 @@ class KRTableauxTypeBox(KRTableauxTypeVertical):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['A',4,2], 2, 2)
+            sage: KRT = crystals.KirillovReshetikhin(['A',4,2], 2, 2, model='KR')
             sage: KRT._build_module_generators()
             ([[-2, 1], [-1, 2]], [[2, 1], [-2, E]], [[1, E], [2, E]],
              [[1, 1], [-2, 2]], [[1, 1], [2, E]], [[1, 1], [2, 2]])
@@ -877,9 +877,9 @@ class KRTableauxSpin(KRTableauxRectangle):
 
     TESTS::
 
-        sage: KRT = KirillovReshetikhinTableaux(['D', 4, 1], 3, 2)
+        sage: KRT = crystals.KirillovReshetikhin(['D', 4, 1], 3, 2, model='KR')
         sage: TestSuite(KRT).run()
-        sage: KRT = KirillovReshetikhinTableaux(['D', 4, 1], 4, 2)
+        sage: KRT = crystals.KirillovReshetikhin(['D', 4, 1], 4, 2, model='KR')
         sage: TestSuite(KRT).run()
     """
     def _build_module_generators(self):
@@ -891,10 +891,10 @@ class KRTableauxSpin(KRTableauxRectangle):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['D', 4, 1], 3, 3)
+            sage: KRT = crystals.KirillovReshetikhin(['D', 4, 1], 3, 3, model='KR')
             sage: KRT._build_module_generators()
             ([[1, 1, 1], [2, 2, 2], [3, 3, 3], [-4, -4, -4]],)
-            sage: KRT = KirillovReshetikhinTableaux(['D', 4, 1], 4, 3)
+            sage: KRT = crystals.KirillovReshetikhin(['D', 4, 1], 4, 3, model='KR')
             sage: KRT._build_module_generators()
             ([[1, 1, 1], [2, 2, 2], [3, 3, 3], [4, 4, 4]],)
         """
@@ -914,7 +914,7 @@ class KRTableauxBn(KRTableauxTypeHorizonal):
 
     TESTS::
 
-        sage: KRT = KirillovReshetikhinTableaux(['B', 2, 1], 2, 3)
+        sage: KRT = crystals.KirillovReshetikhin(['B', 2, 1], 2, 3, model='KR')
         sage: TestSuite(KRT).run()
     """
     def _build_module_generators(self):
@@ -923,7 +923,7 @@ class KRTableauxBn(KRTableauxTypeHorizonal):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['B', 2, 1], 2, 2)
+            sage: KRT = crystals.KirillovReshetikhin(['B', 2, 1], 2, 2, model='KR')
             sage: KRT._build_module_generators()
             ([[-2, 1], [-1, 2]], [[1, 1], [2, 2]])
         """
@@ -939,8 +939,8 @@ class KRTableauxBn(KRTableauxTypeHorizonal):
 
         EXAMPLES::
 
-            sage: KR = KirillovReshetikhinTableaux(['B',3,1], 3,3)
-            sage: C = KirillovReshetikhinCrystal(['B',3,1], 3,3)
+            sage: KR = crystals.KirillovReshetikhin(['B',3,1], 3, 3, model='KR')
+            sage: C = crystals.KirillovReshetikhin(['B',3,1], 3, 3, model='KN')
             sage: krc = C.module_generators[1].f_string([3,2,3,1,3,3]); krc
             [++-, [[2], [0], [-3]]]
             sage: KR.from_kirillov_reshetikhin_crystal(krc)
@@ -974,7 +974,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['A', 4, 1], 2, 1)
+            sage: KRT = crystals.KirillovReshetikhin(['A', 4, 1], 2, 1, model='KR')
             sage: elt = KRT(4, 3); elt
             [[3], [4]]
             sage: TestSuite(elt).run()
@@ -990,7 +990,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['A', 4, 1], 2, 1)
+            sage: KRT = crystals.KirillovReshetikhin(['A', 4, 1], 2, 1, model='KR')
             sage: KRT(3,2)
             [[2], [3]]
         """
@@ -1002,7 +1002,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['A',4,1], 2,2)
+            sage: KRT = crystals.KirillovReshetikhin(['A',4,1], 2, 2, model='KR')
             sage: elt = KRT(2,1,4,3)
             sage: print elt._repr_diagram()
               1  3
@@ -1016,7 +1016,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['A', 4, 1], 2, 3)
+            sage: KRT = crystals.KirillovReshetikhin(['A', 4, 1], 2, 3, model='KR')
             sage: latex(KRT(3,2,4,2,4,3))
             {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[b]{*{3}c}\cline{1-3}
@@ -1034,7 +1034,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['A',4,1], 2,2)
+            sage: KRT = crystals.KirillovReshetikhin(['A',4,1], 2, 2, model='KR')
             sage: ascii_art(KRT(2,1,4,3))
               1  3
               2  4
@@ -1058,7 +1058,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['D',4,1], 2,2)
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,1], 2, 2, model='KR')
             sage: elt = KRT(3,2,-1,1); elt
             [[2, 1], [3, -1]]
             sage: elt.to_kirillov_reshetikhin_crystal()
@@ -1068,8 +1068,8 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
 
         Spinor tests::
 
-            sage: KRT = KirillovReshetikhinTableaux(['D',4,1], 4, 3)
-            sage: KRC = KirillovReshetikhinCrystal(['D',4,1], 4, 3)
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,1], 4, 3, model='KR')
+            sage: KRC = crystals.KirillovReshetikhin(['D',4,1], 4, 3, model='KN')
             sage: elt = KRT(-3,-4,2,1,-3,-4,2,1,-2,-4,3,1); elt
             [[1, 1, 1], [2, 2, 3], [-4, -4, -4], [-3, -3, -2]]
             sage: ret = elt.to_kirillov_reshetikhin_crystal(); ret
@@ -1112,7 +1112,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['A', 4, 1], 2, 2)
+            sage: KRT = crystals.KirillovReshetikhin(['A', 4, 1], 2, 2, model='KR')
             sage: elt = KRT(2, 1, 4, 3)
             sage: elt.to_array()
             [[1, 3], [2, 4]]
@@ -1144,7 +1144,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['A', 4, 1], 2, 2)
+            sage: KRT = crystals.KirillovReshetikhin(['A', 4, 1], 2, 2, model='KR')
             sage: elt = KRT(2, 1, 4, 3); elt
             [[1, 3], [2, 4]]
             sage: t = elt.to_tableau(); t
@@ -1160,7 +1160,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['A', 4, 1], 2, 2)
+            sage: KRT = crystals.KirillovReshetikhin(['A', 4, 1], 2, 2, model='KR')
             sage: elt = KRT(2, 1, 4, 3); elt
             [[1, 3], [2, 4]]
             sage: elt.pp()
@@ -1186,7 +1186,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
 
         EXAMPLES::
 
-            sage: KRTab = KirillovReshetikhinTableaux(['D',4,1], 2,2)
+            sage: KRTab = crystals.KirillovReshetikhin(['D',4,1], 2, 2, model='KR')
             sage: elt = KRTab(3,2,-1,1); elt
             [[2, 1], [3, -1]]
             sage: elt.to_classical_highest_weight()
@@ -1207,7 +1207,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
 
         EXAMPLES::
 
-            sage: KR = KirillovReshetikhinTableaux(['D',4,1], 2, 2)
+            sage: KR = crystals.KirillovReshetikhin(['D',4,1], 2, 2, model='KR')
             sage: KR.module_generators[1].weight()
             -2*Lambda[0] + Lambda[2]
         """
@@ -1220,7 +1220,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['D',4,1], 2,2)
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,1], 2, 2, model='KR')
             sage: elt = KRT(3,2,-1,1); elt
             [[2, 1], [3, -1]]
             sage: elt.classical_weight()
@@ -1244,7 +1244,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['D',4,1], 2,2)
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,1], 2, 2, model='KR')
             sage: KRT.module_generators[0].e(0)
             [[-2, 1], [-1, -1]]
         """
@@ -1265,7 +1265,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['D',4,1], 2,2)
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,1], 2, 2, model='KR')
             sage: KRT.module_generators[0].f(0)
             [[1, 1], [2, -1]]
         """
@@ -1287,7 +1287,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['D',4,1], 2,2)
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,1], 2, 2, model='KR')
             sage: KRT.module_generators[0].epsilon(0)
             2
         """
@@ -1305,7 +1305,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['D',4,1], 2,2)
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,1], 2, 2, model='KR')
             sage: KRT.module_generators[0].phi(0)
             2
         """
@@ -1402,7 +1402,7 @@ class KRTableauxSpinElement(KirillovReshetikhinTableauxElement):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['D',4,1], 4, 1)
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,1], 4, 1, model='KR')
             sage: KRT(-1, -4, 3, 2).e(1)
             [[1], [3], [-4], [-2]]
             sage: KRT(-1, -4, 3, 2).e(3)
@@ -1421,7 +1421,7 @@ class KRTableauxSpinElement(KirillovReshetikhinTableauxElement):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['D',4,1], 4, 1)
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,1], 4, 1, model='KR')
             sage: KRT(-1, -4, 3, 2).f(1)
             sage: KRT(-1, -4, 3, 2).f(3)
             [[2], [4], [-3], [-1]]
@@ -1441,7 +1441,7 @@ class KRTableauxSpinElement(KirillovReshetikhinTableauxElement):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['D',4,1], 4, 1)
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,1], 4, 1, model='KR')
             sage: KRT(-1, -4, 3, 2).epsilon(1)
             1
             sage: KRT(-1, -4, 3, 2).epsilon(3)
@@ -1457,7 +1457,7 @@ class KRTableauxSpinElement(KirillovReshetikhinTableauxElement):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['D',4,1], 4, 1)
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,1], 4, 1, model='KR')
             sage: KRT(-1, -4, 3, 2).phi(1)
             0
             sage: KRT(-1, -4, 3, 2).phi(3)
@@ -1498,7 +1498,7 @@ class KRTableauxSpinElement(KirillovReshetikhinTableauxElement):
 
         EXAMPLES::
 
-            sage: KRT = KirillovReshetikhinTableaux(['D', 4, 1], 4, 3)
+            sage: KRT = crystals.KirillovReshetikhin(['D', 4, 1], 4, 3, model='KR')
             sage: elt = KRT(-3,-4,2,1,-3,-4,2,1,-2,-4,3,1)
             sage: elt.to_array()
             [[1, 1, 1], [2, 2, 3], [-4, -4, -4], [-3, -3, -2]]
@@ -1561,10 +1561,10 @@ class KRTableauxDTwistedSpin(KRTableauxRectangle):
 
     EXAMPLES::
 
-        sage: KRT = KirillovReshetikhinTableaux(['D', 4, 2], 1, 1)
+        sage: KRT = crystals.KirillovReshetikhin(['D', 4, 2], 1, 1, model='KR')
         sage: KRT.cardinality()
         8
-        sage: KRC = KirillovReshetikhinCrystal(['D', 4, 2], 1, 1)
+        sage: KRC = crystals.KirillovReshetikhin(['D', 4, 2], 1, 1, model='KN')
         sage: KRT.cardinality() == KRC.cardinality()
         True
     """

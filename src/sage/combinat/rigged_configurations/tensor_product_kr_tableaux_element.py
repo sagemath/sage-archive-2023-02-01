@@ -43,7 +43,7 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
 
     Type `A_n^{(1)}` examples::
 
-        sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 3, 1], [[1,1], [2,1], [1,1], [2,1], [2,1], [2,1]])
+        sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 3, 1], [[1,1], [2,1], [1,1], [2,1], [2,1], [2,1]])
         sage: T = KRT(pathlist=[[2], [4,1], [3], [4,2], [3,1], [2,1]])
         sage: T
         [[2]] (X) [[1], [4]] (X) [[3]] (X) [[2], [4]] (X) [[1], [3]] (X) [[1], [2]]
@@ -73,7 +73,7 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
 
     Type `D_n^{(1)}` examples::
 
-        sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[1,1], [1,1], [1,1], [1,1]])
+        sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[1,1], [1,1], [1,1], [1,1]])
         sage: T = KRT(pathlist=[[-1], [-1], [1], [1]])
         sage: T
         [[-1]] (X) [[-1]] (X) [[1]] (X) [[1]]
@@ -89,7 +89,7 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
         <BLANKLINE>
         0[ ][ ]0
         <BLANKLINE>
-        sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[2,1], [1,1], [1,1], [1,1]])
+        sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[2,1], [1,1], [1,1], [1,1]])
         sage: T = KRT(pathlist=[[3,2], [1], [-1], [1]])
         sage: T
         [[2], [3]] (X) [[1]] (X) [[-1]] (X) [[1]]
@@ -122,15 +122,15 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
 
         EXAMPLES::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 3, 1], [[1, 1], [2, 1], [1, 1], [2, 1], [2, 1], [2, 1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 3, 1], [[1, 1], [2, 1], [1, 1], [2, 1], [2, 1], [2, 1]])
             sage: T = KRT(pathlist=[[2], [4, 1], [3], [4, 2], [3, 1], [2, 1]])
             sage: T
             [[2]] (X) [[1], [4]] (X) [[3]] (X) [[2], [4]] (X) [[1], [3]] (X) [[1], [2]]
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 3, 1], [[3,3], [2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 3, 1], [[3,3], [2,1]])
             sage: T = KRT(pathlist=[[3, 2, 1, 4, 2, 1, 4, 3, 1], [2, 1]])
             sage: T
             [[1, 1, 1], [2, 2, 3], [3, 4, 4]] (X) [[1], [2]]
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[2, 1], [1, 1], [1, 1], [1, 1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[2, 1], [1, 1], [1, 1], [1, 1]])
             sage: T = KRT(pathlist=[[3,2], [1], [-1], [1]])
             sage: T
             [[2], [3]] (X) [[1]] (X) [[-1]] (X) [[1]]
@@ -149,7 +149,7 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
 
         EXAMPLES::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[2, 1], [1, 1], [1, 1], [1, 1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[2, 1], [1, 1], [1, 1], [1, 1]])
             sage: T = KRT(pathlist=[[3,2], [1], [-1], [1]])
             sage: T # indirect doctest
             [[2], [3]] (X) [[1]] (X) [[-1]] (X) [[1]]
@@ -165,7 +165,7 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
 
         EXAMPLES::
 
-            sage: TPKRT = TensorProductOfKirillovReshetikhinTableaux(['A',4,1], [[2,2],[3,1],[3,3]])
+            sage: TPKRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A',4,1], [[2,2],[3,1],[3,3]])
             sage: print TPKRT.module_generators[0]._repr_diagram()
               1  1 (X)   1 (X)   1  1  1
               2  2       2       2  2  2
@@ -202,7 +202,7 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
 
         EXAMPLES::
 
-            sage: TPKRT = TensorProductOfKirillovReshetikhinTableaux(['A',4,1], [[2,2],[3,1],[3,3]])
+            sage: TPKRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A',4,1], [[2,2],[3,1],[3,3]])
             sage: TPKRT.module_generators[0].pp()
               1  1 (X)   1 (X)   1  1  1
               2  2       2       2  2  2
@@ -216,12 +216,12 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
 
         EXAMPLES::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[2,2]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[2,2]])
             sage: elt = KRT(pathlist=[[3,2,-1,1]]); elt            
             [[2, 1], [3, -1]]
             sage: elt.classical_weight()
             (0, 1, 1, 0)
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[2,2],[1,3]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[2,2],[1,3]])
             sage: elt = KRT(pathlist=[[2,1,3,2],[1,4,4]]); elt
             [[1, 2], [2, 3]] (X) [[1, 4, 4]]
             sage: elt.classical_weight()
@@ -333,7 +333,7 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
 
         Type `A_n^{(1)}` example::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 3, 1], [[2,1], [2,1], [2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 3, 1], [[2,1], [2,1], [2,1]])
             sage: T = KRT(pathlist=[[4, 2], [3, 1], [2, 1]])
             sage: T
             [[2], [4]] (X) [[1], [3]] (X) [[1], [2]]
@@ -349,7 +349,7 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
 
         Type `D_n^{(1)}` example::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[2,2]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[2,2]])
             sage: T = KRT(pathlist=[[2,1,4,3]])
             sage: T
             [[1, 3], [2, 4]]
@@ -366,7 +366,7 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
 
         Type `D_n^{(1)}` spinor example::
 
-            sage: CP = TensorProductOfKirillovReshetikhinTableaux(['D', 5, 1], [[5,1],[2,1],[1,1],[1,1],[1,1]])
+            sage: CP = crystals.TensorProductOfKirillovReshetikhinTableaux(['D', 5, 1], [[5,1],[2,1],[1,1],[1,1],[1,1]])
             sage: elt = CP(pathlist=[[-2,-5,4,3,1],[-1,2],[1],[1],[1]])
             sage: elt
             [[1], [3], [4], [-5], [-2]] (X) [[2], [-1]] (X) [[1]] (X) [[1]] (X) [[1]]
@@ -388,7 +388,7 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
         This is invertible by calling
         :meth:`~sage.combinat.rigged_configurations.rigged_configuration_element.RiggedConfigurationElement.to_tensor_product_of_kirillov_reshetikhin_tableaux()`::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[2,2]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[2,2]])
             sage: T = KRT(pathlist=[[2,1,4,3]])
             sage: rc = T.to_rigged_configuration()
             sage: ret = rc.to_tensor_product_of_kirillov_reshetikhin_tableaux(); ret
@@ -410,7 +410,7 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
 
         EXAMPLES::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[1,1],[2,2]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[1,1],[2,2]])
             sage: elt = KRT(pathlist=[[-1],[-1,2,-1,1]]); elt
             [[-1]] (X) [[2, 1], [-1, -1]]
             sage: tp_krc = elt.to_tensor_product_of_kirillov_reshetikhin_crystals(); tp_krc

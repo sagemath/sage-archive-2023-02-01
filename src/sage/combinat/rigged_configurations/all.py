@@ -9,9 +9,9 @@ from sage.misc.lazy_import import lazy_import
 
 lazy_import('sage.combinat.rigged_configurations.tensor_product_kr_tableaux',
             'TensorProductOfKirillovReshetikhinTableaux',
-            deprecation=(15882, "this is being removed from the global namespace. Use crystals.kirillov_reshetikhin.TensorProductOfKirillovReshetikhinTableaux instead"))
+            deprecation=(15882, "this is being removed from the global namespace. Use crystals.TensorProductOfKirillovReshetikhinTableaux instead"))
 
 lazy_import('sage.combinat.rigged_configurations.kr_tableaux',
             'KirillovReshetikhinTableaux',
-            deprecation=(15882, "this is being removed from the global namespace. Use crystals.kirillov_reshetikhin.KirillovReshetikhinTableaux instead"))
+            deprecation=(15882, "this is being removed from the global namespace. Use crystals.KirillovReshetikhin with model='KR' instead"))
 

@@ -9,8 +9,8 @@ it makes the code easier to read in the \*_element.py files.
 
 These classes are not meant to be used by the user and are only supposed to be
 used internally to perform the bijections between
-:class:`TensorProductOfKirillovReshetikhinTableaux` and
-:class:`RiggedConfigurations`.
+:class:`~sage.combinat.rigged_configurations.tensor_product_kr_tableaux.TensorProductOfKirillovReshetikhinTableaux`
+and :class:`RiggedConfigurations`.
 
 AUTHORS:
 

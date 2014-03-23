@@ -86,18 +86,20 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
     highest weight ones using the crystal operators.
 
     Rigged configurations are conjecturally in bijection with
-    :class:`TensorProductOfKirillovReshetikhinTableaux` of non-exceptional
-    affine types where the list `B` corresponds to the tensor factors
-    `B^{r,s}`. The bijection has been proven in types `A_n^{(1)}` and
-    `D_n^{(1)}` and when the only non-zero entries of `L_i^{(a)}` are either
+    :class:`~sage.combinat.rigged_configurations.tensor_product_kr_tableaux.TensorProductOfKirillovReshetikhinTableaux`
+    of non-exceptional affine types where the list `B` corresponds to the
+    tensor factors `B^{r,s}`. The bijection has been proven in types `A_n^{(1)}`
+    and `D_n^{(1)}` and when the only non-zero entries of `L_i^{(a)}` are either
     only `L_1^{(a)}` or only `L_i^{(1)}` (corresponding to single columns or
     rows respectively) [RigConBijection]_, [BijectionLRT]_, [BijectionDn]_.
 
     KR crystals are implemented in Sage, see
-    :class:`KirillovReshetikhinCrystal`, however, in the bijection with
-    rigged configurations a different realization of the elements in the
-    crystal are obtained, which are coined KR tableaux, see
-    :class:`KirillovReshetikhinTableaux`. For more details see [OSS2011]_.
+    :func:`~sage.combinat.crystals.kirillov_reshetkihin.KirillovReshetikhinCrystal`,
+    however, in the bijection with rigged configurations a different
+    realization of the elements in the crystal are obtained, which are
+    coined KR tableaux, see
+    :class:`~sage.combinat.rigged_configurations.kr_tableaux.KirillovReshetikhinTableaux`.
+    For more details see [OSS2011]_.
 
     .. NOTE::
 

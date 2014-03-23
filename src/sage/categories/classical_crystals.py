@@ -112,28 +112,29 @@ class ClassicalCrystals(Category_singleton):
 
             INPUT:
 
-                - ``w`` -- an element of the ambient weight lattice
-                  realization of the crystal, or a reduced word, or an element
-                  in the associated Weyl group
+            - ``w`` -- an element of the ambient weight lattice
+              realization of the crystal, or a reduced word, or an element
+              in the associated Weyl group
 
             OPTIONAL:
 
-                - ``f`` -- a function from the crystal to a module.
+            - ``f`` -- a function from the crystal to a module
 
             This is currently only supported for crystals whose underlying
             weight space is the ambient space.
 
             The Demazure character is obtained by applying the Demazure operator
-            `D_w` (see :meth:`sage.categories.crystals.Crystals.ParentMethods.demazure_operator`)
+            `D_w` (see :meth:`sage.categories.regular_crystals.RegularCrystals.ParentMethods.demazure_operator`)
             to the highest weight element of the classical crystal. The simple
-            Demazure operators `D_i` (see :meth:`sage.categories.crystals.Crystals.ElementMethods.demazure_operator_simple`)
+            Demazure operators `D_i` (see
+            :meth:`sage.categories.regular_crystals.RegularCrystals.ElementMethods.demazure_operator_simple`)
             do not braid on the level of crystals, but on the level of characters they do.
             That is why it makes sense to input ``w`` either as a weight, a reduced word,
             or as an element of the underlying Weyl group.
 
             EXAMPLES::
 
-                sage: T = CrystalOfTableaux(['A',2], shape = [2,1])
+                sage: T = crystals.Tableaux(['A',2], shape = [2,1])
                 sage: e = T.weight_lattice_realization().basis()
                 sage: weight = e[0] + 2*e[2]
                 sage: weight.reduced_word()
@@ -141,7 +142,7 @@ class ClassicalCrystals(Category_singleton):
                 sage: T.demazure_character(weight)
                 x1^2*x2 + x1*x2^2 + x1^2*x3 + x1*x2*x3 + x1*x3^2
 
-                sage: T = CrystalOfTableaux(['A',3],shape=[2,1])
+                sage: T = crystals.Tableaux(['A',3],shape=[2,1])
                 sage: T.demazure_character([1,2,3])
                 x1^2*x2 + x1*x2^2 + x1^2*x3 + x1*x2*x3 + x2^2*x3
                 sage: W = WeylGroup(['A',3])
@@ -149,26 +150,25 @@ class ClassicalCrystals(Category_singleton):
                 sage: T.demazure_character(w)
                 x1^2*x2 + x1*x2^2 + x1^2*x3 + x1*x2*x3 + x2^2*x3
 
-                sage: T = CrystalOfTableaux(['B',2], shape = [2])
+                sage: T = crystals.Tableaux(['B',2], shape = [2])
                 sage: e = T.weight_lattice_realization().basis()
                 sage: weight = -2*e[1]
                 sage: T.demazure_character(weight)
                 x1^2 + x1*x2 + x2^2 + x1 + x2 + x1/x2 + 1/x2 + 1/x2^2 + 1
 
-                sage: T = CrystalOfTableaux("B2",shape=[1/2,1/2])
+                sage: T = crystals.Tableaux("B2",shape=[1/2,1/2])
                 sage: b2=WeylCharacterRing("B2",base_ring=QQ).ambient()
                 sage: T.demazure_character([1,2],f=lambda x:b2(x.weight()))
                 b2(-1/2,1/2) + b2(1/2,-1/2) + b2(1/2,1/2)
 
-            REFERENCES::
+            REFERENCES:
 
-                .. [D1974] M. Demazure, Desingularisation des varietes de Schubert,
-                   Ann. E. N. S., Vol. 6, (1974), p. 163-172
+            .. [D1974] M. Demazure, Desingularisation des varietes de Schubert,
+               Ann. E. N. S., Vol. 6, (1974), p. 163-172
 
-                .. [M2009] Sarah Mason, An Explicit Construction of Type A Demazure Atoms,
-                   Journal of Algebraic Combinatorics, Vol. 29, (2009), No. 3, p.295-313
-                   (arXiv:0707.4267)
-
+            .. [M2009] Sarah Mason, An Explicit Construction of Type A Demazure Atoms,
+               Journal of Algebraic Combinatorics, Vol. 29, (2009), No. 3, p.295-313.
+               :arXiv:`0707.4267`
             """
             from sage.misc.misc_c import prod
             from sage.rings.integer_ring import ZZ
@@ -194,18 +194,18 @@ class ClassicalCrystals(Category_singleton):
 
             INPUT:
 
-              - ``R`` -- a :class:`WeylCharacterRing`
-                (default: the default :class:`WeylCharacterRing` for this Cartan type)
+            - ``R`` -- a :class:`WeylCharacterRing`
+              (default: the default :class:`WeylCharacterRing` for this Cartan type)
 
             Returns the character of ``self`` as an element of ``R``.
 
             EXAMPLES::
 
-                sage: C = CrystalOfTableaux("A2", shape=[2,1])
+                sage: C = crystals.Tableaux("A2", shape=[2,1])
                 sage: chi = C.character(); chi
                 A2(2,1,0)
 
-                sage: T = TensorProductOfCrystals(C,C)
+                sage: T = crystals.TensorProduct(C,C)
                 sage: chiT = T.character(); chiT
                 A2(2,2,2) + 2*A2(3,2,1) + A2(3,3,0) + A2(4,1,1) + A2(4,2,0)
                 sage: chiT == chi^2
@@ -230,10 +230,10 @@ class ClassicalCrystals(Category_singleton):
 
             """
             from sage.combinat.root_system.weyl_characters import WeylCharacterRing
-            if R == None:
+            if R is None:
                 R = WeylCharacterRing(self.cartan_type())
             if not R.cartan_type() == self.cartan_type():
-                raise ValueError, "Weyl character ring does not have the right Cartan type"
+                raise ValueError("Weyl character ring does not have the right Cartan type")
             assert R.basis().keys() == self.weight_lattice_realization()
 
             return R.sum_of_monomials( x.weight() for x in self.highest_weight_vectors() )
@@ -248,17 +248,17 @@ class ClassicalCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',5])
+                sage: C = crystals.Letters(['A',5])
                 sage: [x for x in C]
                 [1, 2, 3, 4, 5, 6]
 
             TESTS::
 
-                sage: C = CrystalOfLetters(['D',4])
-                sage: D = CrystalOfSpinsPlus(['D',4])
-                sage: E = CrystalOfSpinsMinus(['D',4])
-                sage: T=TensorProductOfCrystals(D,E,generators=[[D.list()[0],E.list()[0]]])
-                sage: U=TensorProductOfCrystals(C,E,generators=[[C(1),E.list()[0]]])
+                sage: C = crystals.Letters(['D',4])
+                sage: D = crystals.SpinsPlus(['D',4])
+                sage: E = crystals.SpinsMinus(['D',4])
+                sage: T = crystals.TensorProduct(D,E,generators=[[D.list()[0],E.list()[0]]])
+                sage: U = crystals.TensorProduct(C,E,generators=[[C(1),E.list()[0]]])
                 sage: T.cardinality()
                 56
 
@@ -314,24 +314,26 @@ class ClassicalCrystals(Category_singleton):
 
             Bump's systematic tests::
 
-                sage: fa3 = lambda a,b,c: CrystalOfTableaux(['A',3],shape=[a+b+c,b+c,c])
-                sage: fb3 = lambda a,b,c: CrystalOfTableaux(['B',3],shape=[a+b+c,b+c,c])
-                sage: fc3 = lambda a,b,c: CrystalOfTableaux(['C',3],shape=[a+b+c,b+c,c])
-                sage: fb4 = lambda a,b,c,d: CrystalOfTableaux(['B',4],shape=[a+b+c+d,b+c+d,c+d,d])
-                sage: fd4 = lambda a,b,c,d: CrystalOfTableaux(['D',4],shape=[a+b+c+d,b+c+d,c+d,d])
-                sage: fd5 = lambda a,b,c,d,e: CrystalOfTableaux(['D',5],shape=[a+b+c+d+e,b+c+d+e,c+d+e,d+e,e])
+                sage: fa3 = lambda a,b,c: crystals.Tableaux(['A',3],shape=[a+b+c,b+c,c])
+                sage: fb3 = lambda a,b,c: crystals.Tableaux(['B',3],shape=[a+b+c,b+c,c])
+                sage: fc3 = lambda a,b,c: crystals.Tableaux(['C',3],shape=[a+b+c,b+c,c])
+                sage: fb4 = lambda a,b,c,d: crystals.Tableaux(['B',4],shape=[a+b+c+d,b+c+d,c+d,d])
+                sage: fd4 = lambda a,b,c,d: crystals.Tableaux(['D',4],shape=[a+b+c+d,b+c+d,c+d,d])
+                sage: fd5 = lambda a,b,c,d,e: crystals.Tableaux(['D',5],shape=[a+b+c+d+e,b+c+d+e,c+d+e,d+e,e])
                 sage: def fd4spinplus(a,b,c,d):
-                ...     C = CrystalOfTableaux(['D',4],shape=[a+b+c+d,b+c+d,c+d,d])
-                ...     D = CrystalOfSpinsPlus(['D',4])
-                ...     return TensorProductOfCrystals(C,D,generators=[[C[0],D[0]]])
+                ....:     C = crystals.Tableaux(['D',4],shape=[a+b+c+d,b+c+d,c+d,d])
+                ....:     D = crystals.SpinsPlus(['D',4])
+                ....:     return crystals.TensorProduct(C,D,generators=[[C[0],D[0]]])
                 sage: def fb3spin(a,b,c):
-                ...     C = CrystalOfTableaux(['B',3],shape=[a+b+c,b+c,c])
-                ...     D = CrystalOfSpins(['B',3])
-                ...     return TensorProductOfCrystals(C,D,generators=[[C[0],D[0]]])
+                ....:     C = crystals.Tableaux(['B',3],shape=[a+b+c,b+c,c])
+                ....:     D = crystals.Spins(['B',3])
+                ....:     return crystals.TensorProduct(C,D,generators=[[C[0],D[0]]])
 
-            TODO: choose a good panel of values for a,b,c ... both for
-            basic systematic tests and for conditionally run,
-            computationally involved tests.
+            .. TODO::
+
+                Choose a good panel of values for `a,b,c ...` both for
+                basic systematic tests and for conditionally run,
+                computationally involved tests.
 
             ::
 
@@ -376,7 +378,7 @@ class ClassicalCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A', 5])
+                sage: C = crystals.Letters(['A', 5])
                 sage: C._test_fast_iter()
             """
             tester = self._tester(**options)
@@ -413,7 +415,7 @@ class ClassicalCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: B = CrystalOfTableaux(['A',3],shape=[2,1])
+                sage: B = crystals.Tableaux(['A',3],shape=[2,1])
                 sage: b = B(rows=[[1,2],[4]])
                 sage: b.lusztig_involution()
                 [[1, 4], [3]]
@@ -423,19 +425,19 @@ class ClassicalCrystals(Category_singleton):
                 sage: all(b.lusztig_involution().to_tableau() == b.to_tableau().schuetzenberger_involution(n=4) for b in B)
                 True
 
-                sage: B = CrystalOfTableaux(['D',4],shape=[1])
+                sage: B = crystals.Tableaux(['D',4],shape=[1])
                 sage: [[b,b.lusztig_involution()] for b in B]
                 [[[[1]], [[-1]]], [[[2]], [[-2]]], [[[3]], [[-3]]], [[[4]], [[-4]]], [[[-4]],
                 [[4]]], [[[-3]], [[3]]], [[[-2]], [[2]]], [[[-1]], [[1]]]]
 
-                sage: B = CrystalOfTableaux(['D',3],shape=[1])
+                sage: B = crystals.Tableaux(['D',3],shape=[1])
                 sage: [[b,b.lusztig_involution()] for b in B]
                 [[[[1]], [[-1]]], [[[2]], [[-2]]], [[[3]], [[3]]], [[[-3]], [[-3]]],
                 [[[-2]], [[2]]], [[[-1]], [[1]]]]
 
                 sage: C=CartanType(['E',6])
                 sage: La=C.root_system().weight_lattice().fundamental_weights()
-                sage: T = HighestWeightCrystal(La[1])
+                sage: T = crystals.HighestWeight(La[1])
                 sage: t = T[3]; t
                 [(-4, 2, 5)]
                 sage: t.lusztig_involution()
@@ -443,6 +445,6 @@ class ClassicalCrystals(Category_singleton):
             """
             hw = self.to_highest_weight()[1]
             hw.reverse()
-            aut = self.parent().cartan_type().opposition_automorphism()
-            return self.to_lowest_weight()[0].e_string(aut[i] for i in hw)
+            hw = [self.parent().opposition_automorphism()[i] for i in hw]
+            return self.to_lowest_weight()[0].e_string(hw)
 

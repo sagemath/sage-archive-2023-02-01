@@ -1,7 +1,8 @@
 r"""
 Rigged Configuration Elements
 
-A rigged configuration element is a sequence of :class:`RiggedPartition`
+A rigged configuration element is a sequence of
+:class:`~sage.combinat.rigged_configurations.rigged_partition.RiggedPartition`
 objects.
 
 AUTHORS:
@@ -139,7 +140,8 @@ class RiggedConfigurationElement(ClonableArray):
                     0[ ]0
 
     We can go between
-    :class:`tensor products of KR tableaux<TensorProductOfKirillovReshetikhinTableaux>`
+    :class:`tensor products of KR tableaux
+    <sage.combinat.rigged_configurations.tensor_product_kr_tableaux.TensorProductOfKirillovReshetikhinTableaux>`
     and tensor products of
     :mod:`KR crystals <sage.combinat.crystals.kirillov_reshetikhin>`::
 
@@ -544,7 +546,7 @@ class RiggedConfigurationElement(ClonableArray):
 
         We check that the Lusztig involution commutes with the bijection::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[2,2], [1,2]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[2,2], [1,2]])
             sage: all(b.to_rigged_configuration().lusztig_involution()
             ....:     == b.lusztig_involution().to_rigged_configuration() for b in KRT)
             True

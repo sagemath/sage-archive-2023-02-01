@@ -275,7 +275,7 @@ class CrystalOfWords(UniqueRepresentation, Parent):
             sage: R = RootSystem(['A',2,1])
             sage: La = R.weight_space().basis()
             sage: LS = CrystalOfProjectedLevelZeroLSPaths(2*La[1])
-            sage: LS.one_dimensional_configuration_sum() == T.one_dimensional_configuration_sum()
+            sage: LS.one_dimensional_configuration_sum() == T.one_dimensional_configuration_sum() # long time
             True
 
         TESTS::
@@ -586,8 +586,19 @@ class TensorProductOfCrystals(CrystalOfWords):
             sage: T2 = TensorProductOfCrystals(C, C)
             sage: T is T2
             True
+            sage: T.category()
+            Category of classical crystals
+
+            sage: B1 = TensorProductOfCrystals(T, C)
+            sage: B2 = TensorProductOfCrystals(C, T)
+            sage: B3 = TensorProductOfCrystals(C, C, C)
+            sage: B1 is B2 and B2 is B3
+            True
+
             sage: B = InfinityCrystalOfTableaux(['A',2])
             sage: T = TensorProductOfCrystals(B, B)
+            sage: T.category()
+            Join of Category of infinite enumerated sets and Category of highest weight crystals
         """
         crystals = tuple(crystals)
         if "cartan_type" in options:
@@ -605,9 +616,13 @@ class TensorProductOfCrystals(CrystalOfWords):
                 return TensorProductOfRegularCrystalsWithGenerators(crystals, generators, cartan_type)
             return TensorProductOfCrystalsWithGenerators(crystals, generators, cartan_type)
 
+        # Flatten out tensor products
+        tp = sum([B.crystals if isinstance(B, FullTensorProductOfCrystals) else (B,)
+                  for B in crystals], ())
+
         if all(c in RegularCrystals() for c in crystals):
-            return FullTensorProductOfRegularCrystals(crystals, cartan_type=cartan_type)
-        return FullTensorProductOfCrystals(crystals, cartan_type=cartan_type)
+            return FullTensorProductOfRegularCrystals(tp, cartan_type=cartan_type)
+        return FullTensorProductOfCrystals(tp, cartan_type=cartan_type)
 
     global_options = TensorProductOfCrystalsOptions
 
@@ -680,7 +695,6 @@ class FullTensorProductOfCrystals(TensorProductOfCrystals):
             True
             sage: TestSuite(T).run()
         """
-        crystals = list(crystals)
         category = Category.meet([crystal.category() for crystal in crystals])
         Parent.__init__(self, category = category)
         self.crystals = crystals
@@ -688,7 +702,7 @@ class FullTensorProductOfCrystals(TensorProductOfCrystals):
             self._cartan_type = CartanType(options['cartan_type'])
         else:
             if len(crystals) == 0:
-                raise ValueError, "you need to specify the Cartan type if the tensor product list is empty"
+                raise ValueError("you need to specify the Cartan type if the tensor product list is empty")
             else:
                 self._cartan_type = crystals[0].cartan_type()
         self.cartesian_product = CartesianProduct(*self.crystals)
@@ -705,10 +719,10 @@ class FullTensorProductOfCrystals(TensorProductOfCrystals):
             Full tensor product of the crystals [The crystal of letters for type ['A', 2], The crystal of letters for type ['A', 2]]
         """
         if self.global_options['convention'] == "Kashiwara":
-            st = repr(reversed(self.crystals))
+            st = repr(list(reversed(self.crystals)))
         else:
-            st = repr(self.crystals)
-        return "Full tensor product of the crystals %s"%st
+            st = repr(list(self.crystals))
+        return "Full tensor product of the crystals {}".format(st)
 
     # TODO: __iter__ and cardinality should be inherited from EnumeratedSets().CartesianProducts()
     def __iter__(self):

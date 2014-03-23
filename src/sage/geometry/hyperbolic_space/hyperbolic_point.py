@@ -54,6 +54,8 @@ lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory', 'HyperbolicFact
 lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory', 'HyperbolicFactoryHM')
 
 lazy_import('sage.geometry.hyperbolic_space.hyperbolic_geodesic', 'HyperbolicGeodesic')
+lazy_import('sage.modules.free_module_element', 'vector')
+
 
 class HyperbolicPoint(SageObject):
     r"""
@@ -124,6 +126,8 @@ class HyperbolicPoint(SageObject):
             Point in UHP I.
         """
         if self.model().point_in_model(coordinates):
+            if type(coordinates) == tuple:
+                coordinates = vector(coordinates)
             self._coordinates = coordinates
         else:
             raise ValueError(

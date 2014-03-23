@@ -53,6 +53,7 @@ lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory', 'HyperbolicFact
 lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory', 'HyperbolicFactoryPD')
 lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory', 'HyperbolicFactoryKM')
 lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory', 'HyperbolicFactoryHM')
+lazy_import('sage.modules.free_module_element', 'vector')
 
 
 
@@ -108,6 +109,8 @@ class HyperbolicBdryPoint(HyperbolicPoint):
                 "{0} is not a bounded model; boundary"
                 " points not implemented.".format(self.model_name()))
         elif self.model().bdry_point_in_model(coordinates):
+            if type(coordinates) == tuple:
+                coordinates = vector(coordinates)
             self._coordinates = coordinates
         else:
             raise ValueError(

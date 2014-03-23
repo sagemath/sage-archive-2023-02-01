@@ -2498,7 +2498,12 @@ common_varnames = ['alpha',
                    'psi',
                    'Psi',
                    'omega',
-                   'Omega']
+                   'Omega',
+                   'ast',
+                   'bullet',
+                   'circ',
+                   'times',
+                   'star']
 
 def latex_varify(a, is_fname=False):
     r"""
@@ -2527,6 +2532,8 @@ def latex_varify(a, is_fname=False):
         '{\\rm aleph}'
         sage: latex_varify('alpha')
         '\\alpha'
+        sage: latex_varify('ast')
+        '\\ast'
     """
     if a in common_varnames:
         return "\\" + a
@@ -2590,6 +2597,8 @@ def latex_variable_name(x, is_fname=False):
         '{\\rm nothing}_{{\\rm abc}}'
         sage: latex_variable_name('alpha_beta_gamma12')
         '\\alpha_{\\beta_{\\gamma_{12}}}'
+        sage: latex_variable_name('x_ast')
+        'x_{\\ast}'
 
     AUTHORS:
 

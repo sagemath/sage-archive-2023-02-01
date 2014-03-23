@@ -97,14 +97,14 @@ class HighestWeightCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',5])
+                sage: C = crystals.Letters(['A',5])
                 sage: C.highest_weight_vectors()
                 [1]
 
             ::
 
-                sage: C = CrystalOfLetters(['A',2])
-                sage: T = TensorProductOfCrystals(C,C,C,generators=[[C(2),C(1),C(1)],[C(1),C(2),C(1)]])
+                sage: C = crystals.Letters(['A',2])
+                sage: T = crystals.TensorProduct(C,C,C,generators=[[C(2),C(1),C(1)],[C(1),C(2),C(1)]])
                 sage: T.highest_weight_vectors()
                 [[2, 1, 1], [1, 2, 1]]
             """
@@ -120,7 +120,7 @@ class HighestWeightCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',5])
+                sage: C = crystals.Letters(['A',5])
                 sage: C.highest_weight_vector()
                 1
             """
@@ -142,14 +142,14 @@ class HighestWeightCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',5])
+                sage: C = crystals.Letters(['A',5])
                 sage: C.lowest_weight_vectors()
                 [6]
 
             ::
 
-                sage: C = CrystalOfLetters(['A',2])
-                sage: T = TensorProductOfCrystals(C,C,C,generators=[[C(2),C(1),C(1)],[C(1),C(2),C(1)]])
+                sage: C = crystals.Letters(['A',2])
+                sage: T = crystals.TensorProduct(C,C,C,generators=[[C(2),C(1),C(1)],[C(1),C(2),C(1)]])
                 sage: T.lowest_weight_vectors()
                 [[3, 2, 3], [3, 3, 2]]
             """
@@ -168,7 +168,7 @@ class HighestWeightCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLSPaths(['A',2,1],[0,1,0])
+                sage: C = crystals.LSPaths(['A',2,1],[0,1,0])
                 sage: [p for p in C.__iter__(max_depth=3)]
                 [(Lambda[1],), (Lambda[0] - Lambda[1] + Lambda[2],), (2*Lambda[0] - Lambda[2],),
                 (-Lambda[0] + 2*Lambda[2] - delta,),

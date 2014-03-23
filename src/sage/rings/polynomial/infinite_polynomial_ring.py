@@ -1393,11 +1393,9 @@ class InfinitePolynomialGen(SageObject):
             x_{2}
             sage: latex(x1[3]) # indirect doctest
             \mathit{x1}_{3}
-
         """
-        if self._name[-1].isdigit() or self._name[0].isdigit():
-            return '\\mbox{'+self._name+'}_{\\ast}'
-        return self._name+'_{\\ast}'
+        from sage.misc.latex import latex_variable_name
+        return latex_variable_name(self._name + '_ast')
 
     def __getitem__(self, i):
         """

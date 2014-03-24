@@ -1776,6 +1776,65 @@ class Partition(CombinatorialObject, Element):
         m = len([x for x in self if x > w])
         return m - w
 
+    def t_completion(self, t):
+        r"""
+        Return the ``t``-completion of the partition ``self``.
+
+        If `\lambda = (\lambda_1, \lambda_2, \lambda_3, \ldots)` is a
+        partition and `t` is an integer greater or equal to
+        `\left| \lambda \right| + \lambda_1`, then the *`t`-completion of
+        `\lambda`* is defined as the partition
+        `(t - \left| \lambda \right|, \lambda_1, \lambda_2, \lambda_3,
+        \ldots)` of `t`. This partition is denoted by `\lambda[t]` in
+        [BOR09]_, by `\lambda_{[t]}` in [BdVO12]_ and by `\lambda(t)` in
+        [CO10]_.
+
+        REFERENCES:
+
+        .. [BOR09] Emmanuel Briand, Rosa Orellana, Mercedes Rosas,
+           *The stability of the Kronecker products of Schur
+           functions*.
+           :arxiv:`0907.4652v2`.
+
+        .. [CO10] Jonathan Comes, Viktor Ostrik,
+           *On blocks of Deligne's category
+           `\underline{\mathrm{Rep}}(S_t)`*.
+           :arxiv:`0910.5695v2`,
+           http://pages.uoregon.edu/jcomes/blocks.pdf
+
+        .. [BdVO12] Christopher Bowman, Maud De Visscher, Rosa Orellana,
+           *The partition algebra and the Kronecker coefficients*.
+           :arXiv:`1210.5579v6`.
+
+        EXAMPLES::
+
+            sage: Partition([]).t_completion(0)
+            []
+            sage: Partition([]).t_completion(1)
+            [1]
+            sage: Partition([]).t_completion(2)
+            [2]
+            sage: Partition([]).t_completion(3)
+            [3]
+            sage: Partition([2, 1]).t_completion(5)
+            [2, 2, 1]
+            sage: Partition([2, 1]).t_completion(6)
+            [3, 2, 1]
+            sage: Partition([4, 2, 2, 1]).t_completion(13)
+            [4, 4, 2, 2, 1]
+            sage: Partition([4, 2, 2, 1]).t_completion(19)
+            [10, 4, 2, 2, 1]
+            sage: Partition([4, 2, 2, 1]).t_completion(10)
+            Traceback (most recent call last):
+            ...
+            ValueError: [1, 4, 2, 2, 1] is not an element of Partitions
+            sage: Partition([4, 2, 2, 1]).t_completion(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: [-4, 4, 2, 2, 1] is not an element of Partitions
+        """
+        return Partition([t - self.size()] + self._list)
+
     def larger_lex(self, rhs):
         """
         Return ``True`` if ``self`` is larger than ``rhs`` in lexicographic
@@ -1894,25 +1953,63 @@ class Partition(CombinatorialObject, Element):
             return default
 
     @combinatorial_map(name="partition to minimal Dyck word")
-    def to_dyck_word(self):
-        """
-        Returns the smallest Dyck word whose corresponding partition is ``self``. This
-        corresponds to the unique Dyck path whose complement is the partition is ``self``
-        for which the partition touches the diagonal.
+    def to_dyck_word(self, n=None):
+        r"""
+        Return the ``n``-Dyck word whose corresponding partition is
+        ``self`` (or, if ``n`` is not specified, the `n`-Dyck word with
+        smallest `n` to satisfy this property).
+
+        If `w` is an `n`-Dyck word (that is, a Dyck word with `n` open
+        symbols and `n` close symbols), then the Dyck path corresponding
+        to `w` can be regarded as a lattice path in the northeastern
+        half of an `n \times n`-square. The region to the northeast of
+        this Dyck path can be regarded as a partition. It is called the
+        partition corresponding to the Dyck word `w`. (See
+        :meth:`~sage.combinat.dyck_word.DyckWord.to_partition`.)
+
+        For every partition `\lambda` and every nonnegative integer `n`,
+        there exists at most one `n`-Dyck word `w` such that the
+        partition corresponding to `w` is `\lambda` (in fact, such `w`
+        exists if and only if `\lambda_i + i \leq n` for every `i`,
+        where `\lambda` is written in the form
+        `(\lambda_1, \lambda_2, \ldots, \lambda_k)` with `\lambda_k > 0`).
+        This method computes this `w` for a given `\lambda` and `n`.
+        If `n` is not specified, this method computes the `w` for the
+        smallest possible `n` for which such an `w` exists.
+        (The minimality of `n` means that the partition demarcated by the
+        Dyck path touches the diagonal.)
 
         EXAMPLES::
 
             sage: Partition([2,2]).to_dyck_word()
             [1, 1, 0, 0, 1, 1, 0, 0]
+            sage: Partition([2,2]).to_dyck_word(4)
+            [1, 1, 0, 0, 1, 1, 0, 0]
+            sage: Partition([2,2]).to_dyck_word(5)
+            [1, 1, 1, 0, 0, 1, 1, 0, 0, 0]
             sage: Partition([6,3,1]).to_dyck_word()
             [1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0]
+            sage: Partition([]).to_dyck_word()
+            []
+            sage: Partition([]).to_dyck_word(3)
+            [1, 1, 1, 0, 0, 0]
+
+        The partition corresponding to ``self.dyck_word()`` is ``self``
+        indeed::
+
+            sage: all( p.to_dyck_word().to_partition() == p
+            ....:      for p in Partitions(5) )
+            True
         """
         from sage.combinat.dyck_word import DyckWord
         if self == []:
-            return DyckWord([])
+            if n is None:
+                return DyckWord([])
+            return DyckWord([1 for _ in range(n)] + [0 for _ in range(n)])
         list_of_word = []
-        cells = self.cells()
-        n = max(i+j for (i,j) in cells) + 2
+        if n is None:
+            n = max(i + l + 1 for (i, l) in enumerate(self))
+            # This n is also max(i+j for (i,j) in self.cells()) + 2.
         list_of_word.extend([1]*(n-self.length()))
         copy_part = list(self)
         while copy_part != []:

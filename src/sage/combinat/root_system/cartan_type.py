@@ -7,7 +7,7 @@ groups, Lie algebras, Lie groups, crystals, etc. up to an
 isomorphism. *Cartan types* are a standard set of names for those
 Dynkin diagrams (see :wikipedia:`Dynkin_diagram`).
 
-Let us consider for example, the Cartan type `A_4`::
+Let us consider, for example, the Cartan type `A_4`::
 
     sage: T = CartanType(['A', 4])
     sage: T
@@ -46,7 +46,7 @@ root system::
     sage: RootSystem(T)
     Root system of type ['A', 4]
 
-The associated Weyl group is the symmetric group `S_{n+1}`::
+The associated Weyl group of `A_n` is the symmetric group `S_{n+1}`::
 
     sage: W = WeylGroup(T)
     sage: W
@@ -170,7 +170,7 @@ Contributions implementing other conventions are very welcome.
 Another option is to build from scratch a new Dynkin diagram.  The
 architecture has been designed to make it fairly easy to add other
 labelling conventions. In particular, we strived at choosing type free
-algorithms whenever possible, so in principle most feature should
+algorithms whenever possible, so in principle most features should
 remain available even with custom Cartan types. This has not been used
 much yet, so some rough corners certainly remain.
 
@@ -534,6 +534,20 @@ class CartanTypeFactory(SageObject):
             sage: fct = CartanType(['C', 4, 1]).as_folding()
             sage: CartanType(fct)
             ['C', 4, 1]
+
+        Check that :trac:`13774` is fixed::
+
+            sage: CT = CartanType([['A',2]])
+            sage: CT.is_irreducible()
+            True
+            sage: CT.cartan_matrix()
+            [ 2 -1]
+            [-1  2]
+            sage: CT = CartanType(['A2'])   
+            sage: CT.is_irreducible()
+            True
+            sage: CartanType('A2')
+            ['A', 2]
         """
         if len(args) == 1:
             t = args[0]
@@ -542,7 +556,10 @@ class CartanTypeFactory(SageObject):
         if isinstance(t, CartanType_abstract):
             return t
         if hasattr(t, "cartan_type"):
-            return  t.cartan_type()
+            return t.cartan_type()
+
+        if len(t) == 1: # Fix for trac #13774
+            t = t[0]
 
         if type(t)==str:
             if "x" in t:
@@ -605,7 +622,7 @@ class CartanTypeFactory(SageObject):
                         import type_I
                         return type_I.CartanType(n)
             if len(t) == 3:
-                if t[2] == 1: # Untwisted affind
+                if t[2] == 1: # Untwisted affine
                     if letter == "A":
                         if n >= 1:
                             import type_A_affine

@@ -36,3 +36,4 @@ deprecated_callable_import(14499,
 del deprecated_callable_import
 
 import sage.combinat.designs.steiner_quadruple_systems
+import sage.combinat.designs.latin_squares

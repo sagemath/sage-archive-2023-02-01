@@ -2349,11 +2349,31 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: f = H([x^2 + y^2,2*x*y])
             sage: f.rational_preimages(P(17,15))
             [(5/3 : 1), (3/5 : 1)]
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ,3)
+            sage: H = End(P)
+            sage: f = H([x^2 - 2*y*w - 3*w^2, -2*x^2 + y^2 - 2*x*z + 4*y*w + 3*w^2, x^2 - y^2 + 2*x*z + z^2 - 2*y*w - w^2, w^2])
+            sage: f.rational_preimages(P(0,-1,0,1))
+            []
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2 + y^2,2*x*y])
+            sage: f.rational_preimages([CC.0,1])
+            Traceback (most recent call last):
+            ...
+            TypeError: Point must be in codomain of self
         """
         if not self.is_endomorphism():
             raise NotImplementedError("Must be an endomorphism of projective space")
         if self.domain().base_ring()!=QQ:
             raise NotImplementedError("Must be QQ")
+        if (Q in self.codomain())==False:
+            raise TypeError("Point must be in codomain of self")
         PS=self.domain()
         R=PS.coordinate_ring()
         N=PS.dimension_relative()
@@ -2365,6 +2385,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             for j in range(i+1,N+1):
                 I.append(Q[i]*self[j]-Q[j]*self[i])
         I = I*R
+        I0=R.ideal(0)
         #Determine the points through elimination
         #This is much faster than using the I.variety() function on each affine chart.
         for k in range(N+1):
@@ -2404,7 +2425,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                 #they are the rational solutions to the equations
                 #make them into projective points
                 for i in range(len(points)):
-                    if len(points[i])==N+1:
+                    if len(points[i])==N+1 and I.subs(points[i])==I0:
                         S=PS([points[i][R.gen(j)] for j in range(N+1)])
                         S.normalize_coordinates()
                         preimages.add(S)

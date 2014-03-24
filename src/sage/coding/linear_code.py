@@ -1480,7 +1480,7 @@ class LinearCode(module.Module_old):
         if algorithm == 'syndrome' or algorithm == 'nearest neighbor':
             return decode(self,right)
         elif algorithm == 'guava':
-            gap.LoadPackage('"guava"')
+            gap.load_package('guava')
             code = gap.GeneratorMatCode(self.gen_mat(), self.base_ring())
             right = gap(list(right))
             right_word = gap.Codeword(right)
@@ -2009,7 +2009,7 @@ class LinearCode(module.Module_old):
             sage: C = codes.HammingCode(3,GF(2))
             sage: C.is_self_orthogonal()
             False
-            sage: C = QuasiQuadraticResidueCode(11)  # optional - gap_packages (Guava package)
+            sage: C = codes.QuasiQuadraticResidueCode(11)  # optional - gap_packages (Guava package)
             sage: C.is_self_orthogonal()             # optional - gap_packages (Guava package)
             True
         """
@@ -2361,7 +2361,7 @@ class LinearCode(module.Module_old):
         n = len(G.columns())
         k = len(G.rows())
         if "gap" in algorithm:
-            gap.LoadPackage('"guava"')
+            gap.load_package('guava')
             wts = self.spectrum()                                            # bottleneck 1
             nonzerowts = [i for i in range(len(wts)) if wts[i]!=0]
             Sn = SymmetricGroup(n)

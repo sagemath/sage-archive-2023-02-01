@@ -2251,13 +2251,27 @@ class EllipticCurve_number_field(EllipticCurve_field):
         In this case E1 and E2 are in fact 9-isogenous, as may be
         deduced from the following::
 
-           sage: E3 = EllipticCurve([i + 1, 0, 1, -5*i - 5, -2*i - 5])
-           sage: E3.is_isogenous(E1)
-           True
-           sage: E3.is_isogenous(E2)
-           True
-           sage: E1.isogeny_degree(E2)
-           9
+            sage: E3 = EllipticCurve([i + 1, 0, 1, -5*i - 5, -2*i - 5])
+            sage: E3.is_isogenous(E1)
+            True
+            sage: E3.is_isogenous(E2)
+            True
+            sage: E1.isogeny_degree(E2)
+            9
+
+        TESTS:
+
+        Check that :trac:`15890` is fixed::
+
+            sage: K.<s> = QuadraticField(229)
+            sage: c4 = 2173 - 235*(1 - s)/2
+            sage: c6 = -124369 + 15988*(1 - s)/2
+            sage: c4c = 2173 - 235*(1 + s)/2
+            sage: c6c = -124369 + 15988*(1 + s)/2
+            sage: E = EllipticCurve_from_c4c6(c4, c6)
+            sage: Ec = EllipticCurve_from_c4c6(c4c, c6c)
+            sage: E.is_isogenous(Ec)
+            True
 
         """
         if not is_EllipticCurve(other):
@@ -2279,8 +2293,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             P = PI.next()
             if P.norm() > maxnorm: break
             if not P.divides(N):
-                OP = K.residue_field(P)
-                if E1.change_ring(OP).cardinality() != E2.change_ring(OP).cardinality():
+                if E1.reduction(P).cardinality() != E2.reduction(P).cardinality():
                     return False
 
         if not proof:

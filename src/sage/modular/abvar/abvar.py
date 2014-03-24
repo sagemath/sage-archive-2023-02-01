@@ -36,7 +36,7 @@ from cuspidal_subgroup          import CuspidalSubgroup, RationalCuspidalSubgrou
 from sage.rings.all             import (ZZ, QQ, QQbar, LCM,
                                         divisors, Integer, prime_range)
 from sage.rings.ring import is_Ring
-from sage.modules.all           import is_FreeModule
+from sage.modules.free_module   import is_FreeModule
 from sage.modular.arithgroup.all import is_CongruenceSubgroup, is_Gamma0, is_Gamma1, is_GammaH
 from sage.modular.modsym.all    import ModularSymbols
 from sage.modular.modsym.space  import ModularSymbolsSpace

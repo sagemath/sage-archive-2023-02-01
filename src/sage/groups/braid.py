@@ -46,6 +46,7 @@ AUTHOR:
 
 - Miguel Angel Marco Buzunariz
 - Volker Braun
+- Robert Lipshitz
 """
 
 ##############################################################################
@@ -146,26 +147,30 @@ class Braid(FinitelyPresentedGroupElement):
         """
         return self.parent().strands()
 
-    def burau_matrix(self, var='t'):
+    def burau_matrix(self, var='t', reduced=False):
         """
         Return the Burau matrix of the braid.
 
         INPUT:
 
-        - ``var`` -- string (default: ``'t'``). The name of the
-          variable in the entries of the matrix.
+        - ``var`` -- string (default: ``'t'``); the name of the
+          variable in the entries of the matrix
+        - ``reduced`` -- boolean (default: ``False``); whether to
+          return the reduced or unreduced Burau representation
 
         OUTPUT:
 
         The Burau matrix of the braid. It is a matrix whose entries
-        are Laurent polynomials in the variable ``var``.
+        are Laurent polynomials in the variable ``var``. If ``reduced``
+        is ``True``, return the matrix for the reduced Burau representation
+        instead.
 
         EXAMPLES::
 
             sage: B = BraidGroup(4)
             sage: B.inject_variables()
             Defining s0, s1, s2
-            sage: b=s0*s1/s2/s1
+            sage: b = s0*s1/s2/s1
             sage: b.burau_matrix()
             [     -t + 1           0    -t^2 + t         t^2]
             [          1           0           0           0]
@@ -176,28 +181,127 @@ class Braid(FinitelyPresentedGroupElement):
             [     0      1      0      0]
             [     0      0 -x + 1      x]
             [     0      0      1      0]
+            sage: s0.burau_matrix(reduced=True)
+            [-t  0  0]
+            [-t  1  0]
+            [-t  0  1]
 
         REFERENCES:
 
-            http://en.wikipedia.org/wiki/Burau_representation
+        - :wikipedia:`Burau_representation`
         """
         R = LaurentPolynomialRing(IntegerRing(), var)
         t = R.gen()
-        M = identity_matrix(R, self.strands())
-        for i in self.Tietze():
-            A = identity_matrix(R, self.strands())
-            if i>0:
-                A[i-1, i-1] = 1-t
-                A[i, i] = 0
-                A[i, i-1] = 1
-                A[i-1, i] = t
-            if i<0:
-                A[-1-i, -1-i] = 0
-                A[-i, -i] = 1-t**(-1)
-                A[-1-i, -i] = 1
-                A[-i, -1-i] = t**(-1)
-            M=M*A
+        n = self.strands()
+        if not reduced:
+            M = identity_matrix(R, n)
+            for i in self.Tietze():
+                A = identity_matrix(R, n)
+                if i > 0:
+                    A[i-1, i-1] = 1-t
+                    A[i, i] = 0
+                    A[i, i-1] = 1
+                    A[i-1, i] = t
+                if i < 0:
+                    A[-1-i, -1-i] = 0
+                    A[-i, -i] = 1-t**(-1)
+                    A[-1-i, -i] = 1
+                    A[-i, -1-i] = t**(-1)
+                M = M * A
+        else:
+            M = identity_matrix(R, n - 1)
+            for j in self.Tietze():
+                A = identity_matrix(R, n - 1)
+                if j > 1:
+                    i = j-1
+                    A[i-1, i-1] = 1-t
+                    A[i, i] = 0
+                    A[i, i-1] = 1
+                    A[i-1, i] = t
+                if j < -1:
+                    i = j+1
+                    A[-1-i, -1-i] = 0
+                    A[-i, -i] = 1-t**(-1)
+                    A[-1-i, -i] = 1
+                    A[-i, -1-i] = t**(-1)
+                if j == 1:
+                    for k in range(n - 1):
+                        A[k,0] = -t
+                if j == -1:
+                    A[0,0] = -t**(-1)
+                    for k in range(1, n - 1):
+                        A[k,0] = -1
+                M = M * A
         return M
+
+    def alexander_polynomial(self, var='t', normalized=True):
+        r"""
+        Return the Alexander polynomial of the closure of the braid.
+
+        INPUT:
+
+        - ``var`` -- string (default: ``'t'``); the name of the
+          variable in the entries of the matrix
+        - ``normalized`` -- boolean (default: ``True``); whether to
+          return the normalized Alexander polynomial
+
+        OUTPUT:
+
+        The Alexander polynomial of the braid closure of the braid.
+
+        This is computed using the reduced Burau representation. The
+        unnormalized Alexander polynomial is a Laurent polynomial,
+        which is only well-defined up to multiplication by plus or
+        minus times a power of `t`.
+
+        We normalize the polynomial by dividing by the largest power
+        of `t` and then if the resulting constant coefficient
+        is negative, we multiply by `-1`.
+
+        EXAMPLES:
+
+        We first construct the trefoil::
+
+            sage: B = BraidGroup(3)
+            sage: b = B([1,2,1,2])
+            sage: b.alexander_polynomial(normalized=False)
+            t^2 - t + 1
+            sage: b.alexander_polynomial()
+            1 - t^-1 + t^-2
+
+        Next we construct the figure 8 knot::
+
+            sage: b = B([-1,2,-1,2])
+            sage: b.alexander_polynomial(normalized=False)
+            -1 + 3*t^-1 - t^-2
+            sage: b.alexander_polynomial()
+            1 - 3*t^-1 + t^-2
+
+        Our last example is the Kinoshita-Terasaka knot::
+
+            sage: B = BraidGroup(4)
+            sage: b = B([1,1,1,3,3,2,-3,-1,-1,2,-1,-3,-2])
+            sage: b.alexander_polynomial(normalized=False)
+            -t^-1
+            sage: b.alexander_polynomial()
+            1
+
+        REFERENCES:
+
+        - :wikipedia:`Alexander_polynomial`
+        """
+        n = self.strands()
+        p = (self.burau_matrix(reduced=True) - identity_matrix(n - 1)).det()
+        K, t = LaurentPolynomialRing(IntegerRing(), var).objgen()
+        if p == 0:
+            return K.zero()
+        qn = sum(t ** i for i in range(n))
+        p //= qn
+        if normalized:
+            p *= t ** (-p.degree())
+            if p.constant_coefficient() < 0:
+                p = -p
+        return p
 
     def permutation(self):
         """

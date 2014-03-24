@@ -644,12 +644,10 @@ cdef class RealField_class(sage.rings.ring.Field):
             3.40000000000000
             sage: RR.coerce(2^4000)
             1.31820409343094e1204
-
             sage: RR.coerce_map_from(float)
             Generic map:
               From: Set of Python objects of type 'float'
               To:   Real Field with 53 bits of precision
-
 
         TESTS::
 
@@ -669,7 +667,7 @@ cdef class RealField_class(sage.rings.ring.Field):
         elif isinstance(S, RealField_class) and S.prec() >= self.__prec:
             return RRtoRR(S, self)
         elif QQ.has_coerce_map_from(S):
-            return QQtoRR(QQ, self) * QQ.coerce_map_from(S)
+            return QQtoRR(QQ, self) * QQ._internal_coerce_map_from(S)
         from sage.rings.qqbar import AA
         from sage.rings.real_lazy import RLF
         if S == AA or S is RLF:
@@ -5619,7 +5617,7 @@ cdef class RRtoRR(Map):
               From: Real Field with 10 bits of precision
               To:   Real Field with 100 bits of precision
         """
-        return RRtoRR(self._codomain, self._domain)
+        return RRtoRR(self._codomain, self.domain())
 
 cdef class ZZtoRR(Map):
     cpdef Element _call_(self, x):

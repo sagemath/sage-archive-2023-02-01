@@ -2703,17 +2703,17 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 sage: HWL = QuasiSymmetricFunctions(QQ).HazewinkelLambda()
                 sage: M = QuasiSymmetricFunctions(QQ).Monomial()
-                sage: HWL.coerce_map_from(M)
+                sage: M2HWL = HWL.coerce_map_from(M); M2HWL
                 Generic morphism:
                   From: Quasisymmetric functions over the Rational Field in the Monomial basis
                   To:   Quasisymmetric functions over the Rational Field in the HazewinkelLambda basis
-                sage: M.coerce_map_from(HWL)
+                sage: HWL2M = M.coerce_map_from(HWL); HWL2M
                 Generic morphism:
                   From: Quasisymmetric functions over the Rational Field in the HazewinkelLambda basis
                   To:   Quasisymmetric functions over the Rational Field in the Monomial basis
-                sage: M.coerce_map_from(HWL)(HWL[2])
+                sage: HWL2M(HWL[2])
                 M[1, 1]
-                sage: HWL.coerce_map_from(M)(M[2])
+                sage: M2HWL(M[2])
                 HWL[1, 1] - 2*HWL[2]
             """
             M = self.realization_of().M()

@@ -381,7 +381,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             raise ValueError("Cannot scale by 0")
         R=self.codomain().base_ring()
         if isinstance(R, QuotientRing_generic):
-            phi=R.coerce_map_from(self.codomain().ambient_space().base_ring())
+            phi=R._internal_coerce_map_from(self.codomain().ambient_space().base_ring())
             for i in range(self.codomain().ambient_space().dimension_relative()+1):
                 self._coords[i]=phi(self._coords[i]*t).lift()
         else:
@@ -816,7 +816,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
             #normalize coordinates and evaluate
             P.scale_by(1/P[j])
-            P = F(P,False)
+            P = F(P, check=False)
 
         return g
 

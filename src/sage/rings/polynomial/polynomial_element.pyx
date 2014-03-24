@@ -14,6 +14,7 @@ AUTHORS:
 -  Simon King: Use a faster way of conversion from the base ring.
 
 -  Julian Rueth (2012-05-25): Fixed is_squarefree() for imperfect fields.
+                              Fixed division without remainder over QQbar.
 
 TESTS::
 
@@ -7047,7 +7048,7 @@ cdef class Polynomial_generic_dense(Polynomial):
 
         EXAMPLES::
 
-            sage: R.<x> = QQ[]
+            sage: R.<x> = QQbar[]
             sage: f = (1+2*x)^3 + 3*x; f
             8*x^3 + 12*x^2 + 9*x + 1
             sage: g = f // (1+2*x); g
@@ -7056,12 +7057,23 @@ cdef class Polynomial_generic_dense(Polynomial):
             -3/2
             sage: f.quo_rem(1+2*x)
             (4*x^2 + 4*x + 5/2, -3/2)
+
+        TESTS:
+
+        Check that #13048 has been fixed::
+
+            sage: R.<x> = QQbar[]
+            sage: x//x
+            1
+            sage: x//1
+            x
+
         """
         P = (<Element>self)._parent
         if right.parent() == P:
             return Polynomial.__floordiv__(self, right)
         d = P.base_ring()(right)
-        cdef Polynomial_generic_dense res = self._new_c([c // d for c in self.__coeffs], P)
+        cdef Polynomial_generic_dense res = (<Polynomial_generic_dense>self)._new_c([c // d for c in (<Polynomial_generic_dense>self).__coeffs], P)
         res.__normalize()
         return res
 

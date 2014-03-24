@@ -193,7 +193,11 @@ def sage_timeit(stmt, globals_dict=None, preparse=None, number=0, repeat=3, prec
         sage: gc.isenabled()
         True
     """
-    import timeit as timeit_, time, math, preparser, interpreter
+    import time, math
+    import timeit as timeit_
+
+    import preparser, interpreter
+
     number=int(number)
     repeat=int(repeat)
     precision=int(precision)

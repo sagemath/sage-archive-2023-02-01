@@ -4911,7 +4911,7 @@ class Graph(GenericGraph):
              [3, 8], [4, 9], [5, 7], [5, 8], [6, 8], [6, 9], [7, 9]]
             sage: C = Graph('DJ{')
             sage: C.cliques_maximal()
-            [[0, 4], [4, 1, 2, 3]]
+            [[0, 4], [1, 2, 3, 4]]
 
         Comparing the two implementations::
 

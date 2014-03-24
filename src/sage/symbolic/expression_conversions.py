@@ -509,19 +509,21 @@ class InterfaceInit(Converter):
             params = operator.parameter_set()
             params = ["%s, %s"%(temp_args[i], params.count(i)) for i in set(params)]
             subs = ["%s = %s"%(t,a) for t,a in zip(temp_args,args)]
-            return "at(diff('%s(%s), %s), [%s])"%(f.name(),
+            outstr = "at(diff('%s(%s), %s), [%s])"%(f.name(),
                 ", ".join(map(repr,temp_args)),
                 ", ".join(params),
-                ", ".join(subs))
-
-        f = operator.function()
-        params = operator.parameter_set()
-        params = ["%s, %s"%(args[i], params.count(i)) for i in set(params)]
-
-        return "diff('%s(%s), %s)"%(f.name(),
-                                    ", ".join(map(repr, args)),
-                                    ", ".join(params))
-
+                ", ".join(subs))            
+        else:
+            f = operator.function()
+            params = operator.parameter_set()
+            def prep_sage(arg):
+                return '_SAGE_VAR_' + repr(arg)
+            params = ["%s, %s"%(prep_sage(args[i]), params.count(i)) for i in set(params)]
+            outstr = "diff('%s(%s), %s)"%(f.name(),
+                                        ", ".join(map(prep_sage, args)),
+                                        ", ".join(params))
+        return outstr
+    
     def arithmetic(self, ex, operator):
         """
         EXAMPLES::

@@ -1024,14 +1024,18 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             Ring morphism:
               From: Univariate Polynomial Ring in x over Integer Ring
               To:   Univariate Polynomial Ring in x over Rational Field
-              Defn: Induced from base ring by
-                    Natural morphism:
-                      From: Integer Ring
-                      To:   Rational Field
+            <BLANKLINE>
+                    WARNING: This morphism has apparently been used internally
+                    in the coercion system. It may become defunct in the next
+                    garbage collection. Please use a copy.
             sage: print g
             Polynomial base injection morphism:
               From: Rational Field
               To:   Univariate Polynomial Ring in x over Rational Field
+            <BLANKLINE>
+                    WARNING: This morphism has apparently been used internally
+                    in the coercion system. It may become defunct in the next
+                    garbage collection. Please use a copy.
 
             sage: cm.coercion_maps(QQ, GF(7)) == None
             True

@@ -293,7 +293,7 @@ def Hom(X, Y, category=None):
         H = Hom(X, Y, category)
     else:
         if not isinstance(category, Category):
-            raise TypeError, "Argument category (= %s) must be a category."%category
+            raise TypeError("Argument category (= {}) must be a category.".format(category))
         # See trac #14793: It can happen, that Hom(X,X) is called during
         # unpickling of an instance X of a Python class at a time when
         # X.__dict__ is empty.  In some of these cases, X.category() would
@@ -600,31 +600,31 @@ class Homset(Set_generic):
             Call morphism:
               From: Set of Homomorphisms from Univariate Polynomial Ring in t over Integer Ring to Univariate Polynomial Ring in t over Integer Ring
               To:   Set of Morphisms from Integer Ring to Univariate Polynomial Ring in t over Rational Field in Category of commutative additive groups
-           sage: H._generic_convert_map(f.parent())(f)
-           Composite map:
-             From: Integer Ring
-             To:   Univariate Polynomial Ring in t over Rational Field
-             Defn:   Composite map:
-                     From: Integer Ring
-                     To:   Univariate Polynomial Ring in t over Integer Ring
-                     Defn:   Polynomial base injection morphism:
-                             From: Integer Ring
-                             To:   Univariate Polynomial Ring in t over Integer Ring
-           <BLANKLINE>
-                                   WARNING: This morphism has apparently been used internally
-                                   in the coercion system. It may become defunct in the next
-                                   garbage collection. Please use a copy.
-                           then
-                             Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
-                             Defn: t |--> 2*t
-                   then
-                     Conversion map:
-                     From: Univariate Polynomial Ring in t over Integer Ring
-                     To:   Univariate Polynomial Ring in t over Rational Field
-           <BLANKLINE>
-                           WARNING: This map has apparently been used internally
-                           in the coercion system. It may become defunct in the next
-                           garbage collection. Please use a copy.
+            sage: H._generic_convert_map(f.parent())(f)
+            Composite map:
+              From: Integer Ring
+              To:   Univariate Polynomial Ring in t over Rational Field
+              Defn:   Composite map:
+                      From: Integer Ring
+                      To:   Univariate Polynomial Ring in t over Integer Ring
+                      Defn:   Polynomial base injection morphism:
+                              From: Integer Ring
+                              To:   Univariate Polynomial Ring in t over Integer Ring
+            <BLANKLINE>
+                                    WARNING: This morphism has apparently been used internally
+                                    in the coercion system. It may become defunct in the next
+                                    garbage collection. Please use a copy.
+                            then
+                              Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
+                              Defn: t |--> 2*t
+                    then
+                      Ring morphism:
+                      From: Univariate Polynomial Ring in t over Integer Ring
+                      To:   Univariate Polynomial Ring in t over Rational Field
+            <BLANKLINE>
+                            WARNING: This morphism has apparently been used internally
+                            in the coercion system. It may become defunct in the next
+                            garbage collection. Please use a copy.
             sage: copy(H._generic_convert_map(f.parent())(f))
             Composite map:
               From: Integer Ring

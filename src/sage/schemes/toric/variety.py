@@ -1054,9 +1054,18 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
             ValueError: no natural map from the base ring
             (=Real Field with 53 bits of precision)
             to R (=Rational Field)!
+            sage: R = PolynomialRing(QQ, 2, 'a')
+            sage: P1xP1.change_ring(R)
+            Traceback (most recent call last):
+            ...
+            TypeError: need a field to construct a toric variety!
+             Got Multivariate Polynomial Ring in a0, a1 over Rational Field
         """
         if self.base_ring() == F:
             return self
+        elif F not in _Fields:
+            raise TypeError("need a field to construct a toric variety!\n Got %s"
+                            % F)
         else:
             return ToricVariety(self.fan(), self.variable_names(),
                                 base_field=F)

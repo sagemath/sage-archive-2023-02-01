@@ -4825,13 +4825,13 @@ class GenericGraph(GenericGraph_pyx):
         R = lambda (x,y) : (x,y) if x<y else (y,x)
 
         # edges used in the Steiner Tree
-        edges = p.new_variable()
+        edges = p.new_variable(binary=True)
 
         # relaxed edges to test for acyclicity
-        r_edges = p.new_variable()
+        r_edges = p.new_variable(nonnegative=True)
 
         # Whether a vertex is in the Steiner Tree
-        vertex = p.new_variable()
+        vertex = p.new_variable(binary = True)
         for v in g:
             for e in g.edges_incident(v, labels=False):
                 p.add_constraint(vertex[v] - edges[R(e)], min = 0)
@@ -4861,7 +4861,6 @@ class GenericGraph(GenericGraph_pyx):
 
         p.set_objective(p.sum([w(e)*edges[R(e)] for e in g.edges(labels = False)]))
 
-        p.set_binary(edges)
         p.solve(log = verbose)
 
         edges = p.get_values(edges)
@@ -4971,15 +4970,15 @@ class GenericGraph(GenericGraph_pyx):
         # The colors we can use
         colors = range(0,k)
 
-        # edges[j][e] is equal to one if and only if edge e belongs to color j
-        edges = p.new_variable()
+        # edges[j,e] is equal to one if and only if edge e belongs to color j
+        edges = p.new_variable(binary=True)
 
         if root is None:
             root = self.vertex_iterator().next()
 
         # r_edges is a relaxed variable grater than edges. It is used to
         # check the presence of cycles
-        r_edges = p.new_variable()
+        r_edges = p.new_variable(nonnegative=True)
 
         epsilon = 1/(3*(Integer(self.order())))
 
@@ -5049,9 +5048,6 @@ class GenericGraph(GenericGraph_pyx):
         for j in colors:
             for v in self:
                 p.add_constraint(p.sum(r_edges[j,(u,v)] for u in self.neighbors(v)), max=1-epsilon)
-
-        p.set_binary(edges)
-
         try:
             p.solve(log = verbose)
 
@@ -5364,16 +5360,16 @@ class GenericGraph(GenericGraph_pyx):
             value_only = False
 
         p = MixedIntegerLinearProgram(maximization=False, solver=solver)
-        b = p.new_variable()
-        v = p.new_variable()
+        b = p.new_variable(binary=True)
+        v = p.new_variable(binary=True)
 
         # Some vertices belong to part 1, some others to part 0
-        p.add_constraint(v[s], min=0, max=0)
-        p.add_constraint(v[t], min=1, max=1)
+        p.add_constraint(v[s] == 0)
+        p.add_constraint(v[t] == 1)
 
         # b indicates whether the vertices belong to the cut
-        p.add_constraint(b[s], min=0, max=0)
-        p.add_constraint(b[t], min=0, max=0)
+        p.add_constraint(b[s] ==0)
+        p.add_constraint(b[t] ==0)
 
         if g.is_directed():
 
@@ -5389,11 +5385,8 @@ class GenericGraph(GenericGraph_pyx):
             # adjacent vertices belong to the same part except if one of them
             # belongs to the cut
             for (x,y) in g.edges(labels=None):
-                p.add_constraint(v[x] + b[y] - v[y],min=0)
-                p.add_constraint(v[y] + b[x] - v[x],min=0)
-
-        p.set_binary(b)
-        p.set_binary(v)
+                p.add_constraint(v[x] + b[y] >= v[y])
+                p.add_constraint(v[y] + b[x] >= v[x])
 
         if value_only:
             return Integer(round(p.solve(objective_only=True, log=verbose)))
@@ -5505,7 +5498,7 @@ class GenericGraph(GenericGraph_pyx):
         p = MixedIntegerLinearProgram(maximization = False, solver= solver)
 
         # height[c,v] represents the height of vertex v for commodity c
-        height = p.new_variable()
+        height = p.new_variable(nonnegative=True)
 
         # cut[e] represents whether e is in the cut
         cut = p.new_variable(binary = True)
@@ -5650,7 +5643,7 @@ class GenericGraph(GenericGraph_pyx):
         p = MixedIntegerLinearProgram(maximization=True, solver=solver)
 
         in_set = p.new_variable(binary = True)
-        in_cut = p.new_variable()
+        in_cut = p.new_variable(binary = True)
 
         # A vertex has to be in some set
         for v in g:
@@ -5960,7 +5953,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # relaxed version of the previous variable, to prevent the
         # creation of cycles
-        r_edge_used = p.new_variable()
+        r_edge_used = p.new_variable(nonnegative=True)
 
         # vertex_used[v] == 1 if vertex v is used
         vertex_used = p.new_variable(binary=True)
@@ -6444,8 +6437,8 @@ class GenericGraph(GenericGraph_pyx):
 
         p = MixedIntegerLinearProgram(maximization = False, solver = solver)
 
-        f = p.new_variable()
-        r = p.new_variable()
+        f = p.new_variable(binary=True)
+        r = p.new_variable(nonnegative=True)
 
         eps = 1/(2*Integer(g.order()))
         x = g.vertex_iterator().next()
@@ -6513,8 +6506,6 @@ class GenericGraph(GenericGraph_pyx):
             p.set_objective(p.sum([ weight(l)*E(u,v) for u,v,l in g.edges()]) )
         else:
             p.set_objective(None)
-
-        p.set_binary(f)
 
         try:
             obj = p.solve(log = verbose)
@@ -7011,7 +7002,7 @@ class GenericGraph(GenericGraph_pyx):
         from sage.numerical.mip import MixedIntegerLinearProgram
         g=self
         p=MixedIntegerLinearProgram(maximization=True, solver = solver)
-        flow=p.new_variable()
+        flow=p.new_variable(nonnegative=True)
 
         if use_edge_labels:
             from sage.rings.real_mpfr import RR
@@ -7334,7 +7325,7 @@ class GenericGraph(GenericGraph_pyx):
             set_terminals.add(t)
 
         # flow[i,(u,v)] is the flow of commodity i going from u to v
-        flow=p.new_variable()
+        flow=p.new_variable(nonnegative=True)
 
         # Whether to use edge labels
         if use_edge_labels:
@@ -7721,7 +7712,7 @@ class GenericGraph(GenericGraph_pyx):
         from sage.numerical.mip import MixedIntegerLinearProgram
         g=self
         p=MixedIntegerLinearProgram(maximization=False, solver=solver)
-        b=p.new_variable()
+        b=p.new_variable(binary=True)
 
         # For any vertex v, one of its neighbors or v itself is in
         # the minimum dominating set
@@ -7736,8 +7727,6 @@ class GenericGraph(GenericGraph_pyx):
 
         # Minimizes the number of vertices used
         p.set_objective(p.sum([b[v] for v in g.vertices()]))
-
-        p.set_integer(b)
 
         if value_only:
             return Integer(round(p.solve(objective_only=True, log=verbose)))
@@ -8111,7 +8100,7 @@ class GenericGraph(GenericGraph_pyx):
         p = MixedIntegerLinearProgram(maximization=False, solver=solver)
 
         # Sets 0 and 2 are "real" sets while set 1 represents the cut
-        in_set = p.new_variable()
+        in_set = p.new_variable(binary=True)
 
         # A vertex has to be in some set
         for v in g:
@@ -9022,22 +9011,32 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
-        - :meth:`subdivide_edges` -- subdivides multiples edges at a time
+            - :meth:`subdivide_edges` -- subdivides multiples edges at a time
 
+        TESTS:
+
+        :trac:`15895` is fixed::
+
+            sage: F = graphs.PathGraph(3)
+            sage: S = 'S'; F.add_vertex(S)
+            sage: F.add_edge(S,0)
+            sage: F2 = Graph(F)
+            sage: F2.subdivide_edges(list(F2.edges(labels=False)),2)
+            sage: 0 in F2.degree()
+            False
         """
-
         if len(args) == 2:
             edge, k = args
 
             if len(edge) == 2:
-                u,v = edge
-                l = self.edge_label(u,v)
+                u, v = edge
+                l = self.edge_label(u, v)
             elif len(edge) == 3:
-                u,v,l = edge
+                u, v, l = edge
 
         elif len(args) == 3:
             u, v, k = args
-            l = self.edge_label(u,v)
+            l = self.edge_label(u, v)
 
         elif len(args) == 4:
             u, v, l, k = args
@@ -9045,17 +9044,16 @@ class GenericGraph(GenericGraph_pyx):
         else:
             raise ValueError("This method takes at most 4 arguments !")
 
-        if not self.has_edge(u,v,l):
+        if not self.has_edge(u, v, l):
             raise ValueError("The given edge does not exist.")
 
-        for i in xrange(k):
-            self.add_vertex()
+        new_verts = [self.add_vertex() for i in xrange(k)]
 
-        self.delete_edge(u,v,l)
+        self.delete_edge(u, v, l)
 
         edges = []
-        for uu in self.vertices()[-k:] + [v]:
-            edges.append((u,uu,l))
+        for uu in new_verts + [v]:
+            edges.append((u, uu, l))
             u = uu
 
         self.add_edges(edges)
@@ -13793,6 +13791,7 @@ class GenericGraph(GenericGraph_pyx):
             Custom path disjoint_union Cycle graph: Graph on 5 vertices
             sage: J.vertices()
             [(0, 'a'), (0, 'b'), (1, 0), (1, 1), (1, 2)]
+
         """
         if (self._directed and not other._directed) or (not self._directed and other._directed):
             raise TypeError('both arguments must be of the same class')
@@ -13809,7 +13808,7 @@ class GenericGraph(GenericGraph_pyx):
             r_other = dict([[v,(1,v)] for v in other])
             G = self.relabel(r_self, inplace=False).union(other.relabel(r_other, inplace=False))
 
-        G.name('%s disjoint_union %s'%(self.name(), other.name()))
+        G._name = '%s disjoint_union %s'%(self.name(), other.name())
         return G
 
     def union(self, other):
@@ -13818,6 +13817,11 @@ class GenericGraph(GenericGraph_pyx):
 
         If the graphs have common vertices, the common vertices will be
         identified.
+
+        If one of the two graphs allows loops (or multiple edges), the resulting
+        graph will allow loops (or multiple edges).
+
+        If both graphs are immutable, the resulting graph is immutable.
 
         .. SEEALSO::
 
@@ -13835,19 +13839,48 @@ class GenericGraph(GenericGraph_pyx):
             [0, 1, 2, 3]
             sage: J.edges(labels=False)
             [(0, 1), (0, 2), (0, 3), (1, 2), (2, 3)]
+
+        TESTS:
+
+        Multiple edges and loops (:trac:`15627`)::
+
+            sage: g = Graph(multiedges=True, loops=True)
+            sage: g.add_edges(graphs.PetersenGraph().edges())
+            sage: g.add_edges(graphs.PetersenGraph().edges())
+            sage: g.add_edge(0,0)
+            sage: g.add_edge(0,0,"Hey")
+            sage: g.add_edge(0,9)
+            sage: g.add_edge(0,9)
+            sage: g.add_edge(0,9)
+            sage: (2*g.size()) == (2*g).size()
+            True
+
+        Immutable input ? Immutable output (:trac:`15627`)::
+
+            sage: g = g.copy(immutable=True)
+            sage: (2*g)._backend
+            <class 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
         """
         if (self._directed and not other._directed) or (not self._directed and other._directed):
             raise TypeError('both arguments must be of the same class')
+
+        multiedges = self.allows_multiple_edges() or other.allows_multiple_edges()
+        loops      = self.allows_loops()          or other.allows_loops()
+
         if self._directed:
             from sage.graphs.all import DiGraph
-            G = DiGraph()
+            G = DiGraph(multiedges=multiedges, loops=loops)
         else:
             from sage.graphs.all import Graph
-            G = Graph()
+            G = Graph(multiedges=multiedges, loops=loops)
         G.add_vertices(self.vertices())
         G.add_vertices(other.vertices())
         G.add_edges(self.edges())
         G.add_edges(other.edges())
+
+        if getattr(self, "_immutable", False) and getattr(other, "_immutable", False):
+            G = G.copy(immutable=True)
+
         return G
 
     def cartesian_product(self, other):

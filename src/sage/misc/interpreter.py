@@ -64,7 +64,8 @@ that shell.  The bulk of this functionality is provided through
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import os, log, re, new, sys
+import os, re, new, sys
+
 from IPython.utils.py3compat import cast_unicode
 from IPython.utils.traitlets import (Integer, CBool, CaselessStrEnum, Enum,
                                      List, Unicode, Instance, Type)

@@ -1078,7 +1078,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         ::
 
             sage: big = 10^5000000
-            sage: s = big.str()       # long time (> 20 seconds)
+            sage: s = big.str()       # long time (2s on sage.math, 2014)
             sage: len(s)              # long time (depends on above defn of s)
             5000001
             sage: s[:10]              # long time (depends on above defn of s)
@@ -2637,6 +2637,40 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: all([t.divides(a) for t in v])
             True
 
+        ::
+
+            sage: n = 2^551 - 1
+            sage: L = n.divisors()
+            sage: len(L)
+            256
+            sage: L[-1] == n
+            True
+
+        TESTS::
+
+            sage: prod(primes_first_n(60)).divisors()
+            Traceback (most recent call last):
+            ...
+            OverflowError: value too large
+            sage: prod(primes_first_n(58)).divisors()
+            Traceback (most recent call last):
+            ...
+            OverflowError: value too large  # 32-bit
+            MemoryError                     # 64-bit
+
+        Check for memory leaks and ability to interrupt
+        (the ``divisors`` call below allocates about 800 MB every time,
+        so a memory leak will not go unnoticed)::
+
+            sage: n = prod(primes_first_n(25))
+            sage: for i in range(20):  # long time
+            ....:     try:
+            ....:         alarm(RDF.random_element(1e-3, 0.5))
+            ....:         _ = n.divisors()
+            ....:         cancel_alarm()  # we never get here
+            ....:     except AlarmInterrupt:
+            ....:         pass
+
         .. note::
 
            If one first computes all the divisors and then sorts it,
@@ -2644,7 +2678,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
            however, that (non-negative) multiplication on the left
            preserves relative order. One can leverage this fact to
            keep the list in order as one computes it using a process
-           similar to that of the merge sort when adding new elements.
+           similar to that of the merge sort algorithm.
         """
         cdef list all, prev, sorted
         cdef long tip, top
@@ -2655,9 +2689,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise ValueError, "n must be nonzero"
         f = self.factor()
 
-        # All of the declarations below are for optimizing the word-sized
-        # case.  Operations are performed in c as far as possible without
-        # overflow before moving to python objects.
+        # All of the declarations below are for optimizing the long long-sized
+        # case.  Operations are performed in C as far as possible without
+        # overflow before moving to Python objects.
         cdef long long p_c, pn_c, apn_c
         cdef long all_len, sorted_len, prev_len
         cdef long long* ptr
@@ -2667,15 +2701,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef long long* sorted_c
         cdef long long* prev_c
 
-        cdef long divisor_count = 1
-        for p,e in f: divisor_count *= (1+e)
-        ptr = <long long*>sage_malloc(sizeof(long long) * 3 * divisor_count)
-        if ptr == NULL:
-            raise MemoryError
-        all_c = ptr
-        sorted_c = ptr + divisor_count
-        prev_c = ptr + (2*divisor_count)
-
         # These are used to keep track of whether or not we are able to
         # perform the operations in machine words. A factor of two safety
         # margin is added to cover any floating-point rounding issues.
@@ -2683,93 +2708,113 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef double cur_max = 1
         cdef double fits_max = 2.0**(sizeof(long long)*8-2)
 
-        sorted_c[0] = 1
-        sorted_len = 1
+        cdef long divisor_count = 1
+        with cython.overflowcheck(True):
+            for p, e in f:
+                # Using *= does not work, see http://trac.cython.org/cython_trac/ticket/825
+                divisor_count = divisor_count * (1 + e)
+            ptr = <long long*>sage_malloc(sizeof(long long) * 3 * divisor_count)
+            if not ptr:
+                raise MemoryError
 
-        for p, e in f:
+        try:
+            all_c = ptr
+            sorted_c = ptr + divisor_count
+            prev_c = sorted_c + divisor_count
+    
+            sorted_c[0] = 1
+            sorted_len = 1
+    
+            for p, e in f:
+                cur_max *= (<double>p)**e
+                if fits_c and cur_max > fits_max:
+                    sorted = []
+                    for i from 0 <= i < sorted_len:
+                        z = <Integer>PY_NEW(Integer)
+                        mpz_set_longlong(z.value, sorted_c[i])
+                        sorted.append(z)
+                    fits_c = False
+                    sage_free(ptr)
+                    ptr = NULL
+    
+                # The two cases below are essentially the same algorithm, one
+                # operating on Integers in Python lists, the other on long longs.
+                if fits_c:
+    
+                    sig_on()
 
-            cur_max *= (<double>p)**e
-            if fits_c and cur_max > fits_max:
+                    pn_c = p_c = p
+    
+                    swap_tmp = sorted_c
+                    sorted_c = prev_c
+                    prev_c = swap_tmp
+                    prev_len = sorted_len
+                    sorted_len = 0
+    
+                    tip = 0
+                    prev_c[prev_len] = prev_c[prev_len-1] * pn_c
+                    for i from 0 <= i < prev_len:
+                        apn_c = prev_c[i] * pn_c
+                        while prev_c[tip] < apn_c:
+                            sorted_c[sorted_len] = prev_c[tip]
+                            sorted_len += 1
+                            tip += 1
+                        sorted_c[sorted_len] = apn_c
+                        sorted_len += 1
+    
+                    for ee in range(1, e):
+    
+                        swap_tmp = all_c
+                        all_c = sorted_c
+                        sorted_c = swap_tmp
+                        all_len = sorted_len
+                        sorted_len = 0
+    
+                        pn_c *= p_c
+                        tip = 0
+                        all_c[all_len] = prev_c[prev_len-1] * pn_c
+                        for i from 0 <= i < prev_len:
+                            apn_c = prev_c[i] * pn_c
+                            while all_c[tip] < apn_c:
+                                sorted_c[sorted_len] = all_c[tip]
+                                sorted_len += 1
+                                tip += 1
+                            sorted_c[sorted_len] = apn_c
+                            sorted_len += 1
+
+                    sig_off()
+    
+                else:
+                    # fits_c is False: use mpz integers
+                    prev = sorted
+                    pn = <Integer>PY_NEW(Integer)
+                    mpz_set_ui(pn.value, 1)
+                    for ee in range(e):
+                        all = sorted
+                        sorted = []
+                        tip = 0
+                        top = len(all)
+                        mpz_mul(pn.value, pn.value, p.value) # pn *= p
+                        for a in prev:
+                            # apn = a*pn
+                            apn = <Integer>PY_NEW(Integer)
+                            mpz_mul(apn.value, (<Integer>a).value, pn.value)
+                            while tip < top:
+                                all_tip = <Integer>all[tip]
+                                if mpz_cmp(all_tip.value, apn.value) > 0:
+                                    break
+                                sorted.append(all_tip)
+                                tip += 1
+                            sorted.append(apn)
+    
+            if fits_c:
+                # all the data is in sorted_c
                 sorted = []
                 for i from 0 <= i < sorted_len:
                     z = <Integer>PY_NEW(Integer)
                     mpz_set_longlong(z.value, sorted_c[i])
                     sorted.append(z)
-                sage_free(ptr)
-                fits_c = False
-
-            # The two cases below are essentially the same algorithm, one
-            # operating on Integers in Python lists, the other on long longs.
-            if fits_c:
-
-                pn_c = p_c = p
-
-                swap_tmp = sorted_c
-                sorted_c = prev_c
-                prev_c = swap_tmp
-                prev_len = sorted_len
-                sorted_len = 0
-
-                tip = 0
-                prev_c[prev_len] = prev_c[prev_len-1] * pn_c
-                for i from 0 <= i < prev_len:
-                    apn_c = prev_c[i] * pn_c
-                    while prev_c[tip] < apn_c:
-                        sorted_c[sorted_len] = prev_c[tip]
-                        sorted_len += 1
-                        tip += 1
-                    sorted_c[sorted_len] = apn_c
-                    sorted_len += 1
-
-                for ee in range(1, e):
-
-                    swap_tmp = all_c
-                    all_c = sorted_c
-                    sorted_c = swap_tmp
-                    all_len = sorted_len
-                    sorted_len = 0
-
-                    pn_c *= p_c
-                    tip = 0
-                    all_c[all_len] = prev_c[prev_len-1] * pn_c
-                    for i from 0 <= i < prev_len:
-                        apn_c = prev_c[i] * pn_c
-                        while all_c[tip] < apn_c:
-                            sorted_c[sorted_len] = all_c[tip]
-                            sorted_len += 1
-                            tip += 1
-                        sorted_c[sorted_len] = apn_c
-                        sorted_len += 1
-
-            else:
-                prev = sorted
-                pn = <Integer>PY_NEW(Integer)
-                mpz_set_ui(pn.value, 1)
-                for ee in range(e):
-                    all = sorted
-                    sorted = []
-                    tip = 0
-                    top = len(all)
-                    mpz_mul(pn.value, pn.value, p.value) # pn *= p
-                    for a in prev:
-                        # apn = a*pn
-                        apn = <Integer>PY_NEW(Integer)
-                        mpz_mul(apn.value, (<Integer>a).value, pn.value)
-                        while tip < top:
-                            all_tip = <Integer>all[tip]
-                            if mpz_cmp(all_tip.value, apn.value) > 0:
-                                break
-                            sorted.append(all_tip)
-                            tip += 1
-                        sorted.append(apn)
-
-        if fits_c:
-            # all the data is in sorted_c
-            sorted = []
-            for i from 0 <= i < sorted_len:
-                z = <Integer>PY_NEW(Integer)
-                mpz_set_longlong(z.value, sorted_c[i])
-                sorted.append(z)
+        finally:
             sage_free(ptr)
 
         return sorted
@@ -4535,12 +4580,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: proof.arithmetic()
             True
             sage: n = 10^100 + 267
-            sage: timeit("n.is_prime()") # random
+            sage: timeit("n.is_prime()")  # not tested
             5 loops, best of 3: 163 ms per loop
             sage: proof.arithmetic(False)
             sage: proof.arithmetic()
             False
-            sage: timeit("n.is_prime()") # random
+            sage: timeit("n.is_prime()")  # not tested
             1000 loops, best of 3: 573 us per loop
 
         IMPLEMENTATION: Calls the PARI ``isprime`` function.

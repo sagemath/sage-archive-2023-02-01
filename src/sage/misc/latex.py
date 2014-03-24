@@ -2534,6 +2534,12 @@ def latex_varify(a, is_fname=False):
         '\\alpha'
         sage: latex_varify('ast')
         '\\ast'
+
+    TESTS:
+
+        sage: abc = var('abc')
+        sage: latex((abc/(abc+1)+42)/(abc-1))  # trac #15870
+        \frac{\frac{\mathit{abc}}{\mathit{abc} + 1} + 42}{\mathit{abc} - 1}
     """
     if a in common_varnames:
         return "\\" + a

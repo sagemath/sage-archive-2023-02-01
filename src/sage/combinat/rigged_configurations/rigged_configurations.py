@@ -23,9 +23,11 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.structure.global_options import GlobalOptions
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.combinat.misc import IterableFunctionCall
+import sage.combinat.tableau as tableau
 from sage.rings.all import ZZ, QQ
 from sage.categories.finite_crystals import FiniteCrystals
 from sage.categories.regular_crystals import RegularCrystals
@@ -34,6 +36,63 @@ from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.rigged_configurations.kleber_tree import KleberTree, VirtualKleberTree
 from sage.combinat.rigged_configurations.rigged_configuration_element import RiggedConfigurationElement, \
   RCNonSimplyLacedElement
+
+RiggedConfigurationOptions=GlobalOptions(name='rigged configurations',
+    doc=r"""
+    Sets and displays the global options for rigged configurations.
+    If no parameters are set, then the function returns a copy of
+    the options dictionary.
+
+    The ``options`` to partitions can be accessed as the method
+    :obj:`RiggedConfigurations.global_options` of
+    :class:`RiggedConfigurations`.
+    """,
+    end_doc=r"""
+    EXAMPLES::
+
+        sage: RC = RiggedConfigurations(['A',3,1], [[2,2],[1,1],[1,1]])
+        sage: elt = RC(partition_list=[[3,1], [3], [1]])
+        sage: elt
+        <BLANKLINE>
+        -3[ ][ ][ ]-3
+        -1[ ]-1
+        <BLANKLINE>
+        1[ ][ ][ ]1
+        <BLANKLINE>
+        -1[ ]-1
+        <BLANKLINE>
+        sage: RiggedConfigurations.global_options(display="horizontal", convention="french")
+        sage: elt
+        -1[ ]-1         1[ ][ ][ ]1   -1[ ]-1
+        -3[ ][ ][ ]-3
+
+    Changing the ``convention`` for rigged configurations also changes the
+    ``convention`` option for tableaux and vice versa::
+
+        sage: T = Tableau([[1,2,3],[4,5]])
+        sage: T.pp()
+          4  5
+          1  2  3
+        sage: Tableaux.global_options(convention="english")
+        sage: elt
+        -3[ ][ ][ ]-3   1[ ][ ][ ]1   -1[ ]-1
+        -1[ ]-1
+        sage: T.pp()
+          1  2  3
+          4  5
+        sage: RiggedConfigurations.global_options.reset()
+    """,
+    display=dict(default="vertical",
+                 description='Specifies how rigged configurations should be printed',
+                 values=dict(vertical='displayed vertically',
+                             horizontal='displayed horizontally'),
+                 case_sensitive=False),
+    element_ascii_art=dict(default=True,
+                     description='display using the repr option ``element_ascii_art``',
+                     checker=lambda x: isinstance(x, bool)),
+    convention=dict(link_to=(tableau.TableauOptions,'convention')),
+    notation = dict(alt_name='convention')
+)
 
 # Note on implementation, this class is used for simply-laced types only
 class RiggedConfigurations(Parent, UniqueRepresentation):
@@ -154,44 +213,16 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         6
         sage: len(RC.list()) == RC.cardinality()
         True
-        sage: RC.list()    # random
+        sage: RC.list()
         [
-        (/)
         <BLANKLINE>
-        (/)
+                                                 0[ ]0
+        (/)  (/)      (/)      -1[ ]-1  -1[ ]-1
+                                                 -1[ ]-1
+        (/)  -1[ ]-1  0[ ]0    0[ ]0    1[ ]1    -1[ ]-1
         <BLANKLINE>
-        (/)
-        ,
-        (/)
-        <BLANKLINE>
-        -1[ ]-1
-        <BLANKLINE>
-        (/)
-        ,
-        (/)
-        <BLANKLINE>
-        0[ ]0
-        <BLANKLINE>
-        -1[ ]-1
-        ,
-        -1[ ]-1
-        <BLANKLINE>
-        0[ ]0
-        <BLANKLINE>
-        (/)
-        ,
-        -1[ ]-1
-        <BLANKLINE>
-        1[ ]1
-        <BLANKLINE>
-        -1[ ]-1
-        ,
-        0[ ]0
-        <BLANKLINE>
-        -1[ ]-1
-        -1[ ]-1
-        <BLANKLINE>
-        0[ ]0
+        (/)  (/)      -1[ ]-1  (/)      -1[ ]-1  0[ ]0
+           ,        ,        ,        ,        ,
         ]
 
     A rigged configuration element with all riggings equal to the vacancy
@@ -312,7 +343,6 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         sage: RC.cardinality()
         8
 
-
         sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 1]])
         sage: c = RC.cardinality(); c
         29
@@ -386,6 +416,24 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             Rigged configurations of type ['A', 3, 1] and factor(s) ((3, 2), (1, 2), (1, 1))
         """
         return "Rigged configurations of type {} and factor(s) {}".format(self._cartan_type, self.dims)
+
+    def _repr_option(self, key):
+        """
+        Metadata about the :meth:`_repr_` output.
+
+        See :meth:`sage.structure.parent._repr_option` for details.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['A', 3, 1], [[2,1]])
+            sage: RC._repr_option('element_ascii_art')
+            True
+        """
+        if key == 'element_ascii_art':
+            return self.global_options('element_ascii_art')
+        return super(RiggedConfigurations, self)._repr_option(key)
+
+    global_options = RiggedConfigurationOptions
 
     def __iter__(self):
         """
@@ -1791,10 +1839,12 @@ def HighestWeightRiggedConfigurations(cartan_type, B):
          Use RiggedConfigurations(cartan_type, B).module_generators instead
         See http://trac.sagemath.org/13872 for details.
         (
+        <BLANKLINE>
         (/)
         <BLANKLINE>
         (/)
-        ,)
+        <BLANKLINE>
+        )
     """
     from sage.misc.superseded import deprecation
     deprecation(13872, 'this class is deprecated. Use RiggedConfigurations('

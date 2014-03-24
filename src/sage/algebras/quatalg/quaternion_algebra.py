@@ -979,13 +979,16 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             sage: QuaternionAlgebra(QQ[sqrt(2)],3,19).discriminant()
             Fractional ideal (1)
         """
-        try: return self.__discriminant
-        except AttributeError: pass
+        try:
+            return self.__discriminant
+        except AttributeError:
+            pass
         if not is_RationalField(self.base_ring()):
             try:
                 F = self.base_ring()
-                self.__discriminant = F.hilbert_conductor(self._a,self._b)
-            except NotImplementedError: raise "base field must be rational numbers or number field"
+                self.__discriminant = F.hilbert_conductor(self._a, self._b)
+            except NotImplementedError:
+                raise ValueError("base field must be rational numbers or number field")
         else:
             self.__discriminant = hilbert_conductor(self._a, self._b)
         return self.__discriminant

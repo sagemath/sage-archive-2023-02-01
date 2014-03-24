@@ -238,12 +238,23 @@ class QuotientFields(Category_singleton):
             return (self.numerator().factor(*args, **kwds) /
                     self.denominator().factor(*args, **kwds))
 
-        def partial_fraction_decomposition(self):
+        def partial_fraction_decomposition(self, decompose_powers=True):
             """
             Decomposes fraction field element into a whole part and a list of
             fraction field elements over prime power denominators.
 
             The sum will be equal to the original fraction.
+
+            INPUT:
+
+            - decompose_powers - whether to decompose prime power
+                                 denominators as opposed to having a single
+                                 term for each irreducible factor of the
+                                 denominator (default: True)
+
+            OUTPUT:
+
+            - Partial fraction decomposition of self over the base ring.
 
             AUTHORS:
 
@@ -263,6 +274,14 @@ class QuotientFields(Category_singleton):
                 [1/3/(t + 1), 3/(t^5 - 15*t^4 + 90*t^3 - 270*t^2 + 405*t - 243), (-1/3*t + 2/3)/(t^2 - t + 1), 2/(t^2 + 2)]
                 sage: sum(parts) == q
                 True
+                sage: q = 2*t / (t + 3)^2
+                sage: q.partial_fraction_decomposition()
+                (0, [2/(t + 3), -6/(t^2 + 6*t + 9)])
+                sage: for p in q.partial_fraction_decomposition()[1]: print p.factor()
+                (2) * (t + 3)^-1
+                (-6) * (t + 3)^-2
+                sage: q.partial_fraction_decomposition(decompose_powers=False)
+                (0, [2*t/(t^2 + 6*t + 9)])
 
             We can decompose over a given algebraic extension::
 
@@ -345,15 +364,47 @@ class QuotientFields(Category_singleton):
 
                 sage: (26/15).partial_fraction_decomposition()
                 (1, [1/3, 2/5])
+                sage: (26/75).partial_fraction_decomposition()
+                (-1, [2/3, 3/5, 2/25])
+
+            A larger example::
+
+                sage: S.<t> = QQ[]
+                sage: r = t / (t^3+1)^5
+                sage: r.partial_fraction_decomposition()
+                (0,
+                 [-35/729/(t + 1),
+                  -35/729/(t^2 + 2*t + 1),
+                  -25/729/(t^3 + 3*t^2 + 3*t + 1),
+                  -4/243/(t^4 + 4*t^3 + 6*t^2 + 4*t + 1),
+                  -1/243/(t^5 + 5*t^4 + 10*t^3 + 10*t^2 + 5*t + 1),
+                  (35/729*t - 35/729)/(t^2 - t + 1),
+                  (25/729*t - 8/729)/(t^4 - 2*t^3 + 3*t^2 - 2*t + 1),
+                  (-1/81*t + 5/81)/(t^6 - 3*t^5 + 6*t^4 - 7*t^3 + 6*t^2 - 3*t + 1),
+                  (-2/27*t + 1/9)/(t^8 - 4*t^7 + 10*t^6 - 16*t^5 + 19*t^4 - 16*t^3 + 10*t^2 - 4*t + 1),
+                  (-2/27*t + 1/27)/(t^10 - 5*t^9 + 15*t^8 - 30*t^7 + 45*t^6 - 51*t^5 + 45*t^4 - 30*t^3 + 15*t^2 - 5*t + 1)])
+                sage: sum(r.partial_fraction_decomposition()[1]) == r
+                True
+
+            Some special cases::
+
+                sage: R = Frac(QQ['x']); x = R.gen()
+                sage: x.partial_fraction_decomposition()
+                (x, [])
+                sage: R(0).partial_fraction_decomposition()
+                (0, [])
+                sage: R(1).partial_fraction_decomposition()
+                (1, [])
+                sage: (1/x).partial_fraction_decomposition()
+                (0, [1/x])
+                sage: (1/x+1/x^3).partial_fraction_decomposition()
+                (0, [1/x, 1/x^3])
             """
-            from sage.misc.misc import prod
             denom = self.denominator()
             whole, numer = self.numerator().quo_rem(denom)
             factors = denom.factor()
             if factors.unit() != 1:
                 numer *= ~factors.unit()
-            if len(factors) == 1:
-                return whole, [numer/r**e for r,e in factors]
             if not self.parent().is_exact():
                 # factors not grouped in this case
                 all = {}
@@ -361,13 +412,38 @@ class QuotientFields(Category_singleton):
                 for r in factors: all[r[0]] += r[1]
                 factors = all.items()
                 factors.sort() # for doctest consistency
-            factors = [r**e for r,e in factors]
+
+            # TODO(robertwb): Should there be a category of univariate polynomials?
+            from sage.rings.fraction_field_element import FractionFieldElement_1poly_field
+            is_polynomial_over_field = isinstance(self, FractionFieldElement_1poly_field)
+
+            running_total = 0
             parts = []
-            for d in factors:
-                # note that the product below is non-empty, since the case
-                # of only one factor has been dealt with above
-                n = numer * prod([r for r in factors if r != d]).inverse_mod(d) % d # we know the inverse exists as the two are relatively prime
-                parts.append(n/d)
+            for r, e in factors:
+                powers = [1]
+                for ee in range(e):
+                    powers.append(powers[-1] * r)
+                d = powers[e]
+                denom_div_d = denom // d
+                # We know the inverse exists as the two are relatively prime.
+                n = ((numer % d) * denom_div_d.inverse_mod(d)) % d
+                if not is_polynomial_over_field:
+                    running_total += n * denom_div_d
+                # If the multiplicity is not one, further reduce.
+                if decompose_powers:
+                    r_parts = []
+                    for ee in range(e, 0, -1):
+                        n, n_part = n.quo_rem(r)
+                        if n_part:
+                            r_parts.append(n_part/powers[ee])
+                    parts.extend(reversed(r_parts))
+                else:
+                    parts.append(n/powers[e])
+
+            if not is_polynomial_over_field:
+                # remainders not unique, need to re-compute whole to take into
+                # account this freedom
+                whole = (self.numerator() - running_total) // denom
             return whole, parts
 
         def derivative(self, *args):

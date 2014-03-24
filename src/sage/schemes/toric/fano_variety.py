@@ -943,9 +943,18 @@ class CPRFanoToricVariety_field(ToricVariety_field):
             ValueError: no natural map from the base ring
             (=Real Field with 53 bits of precision)
             to R (=Rational Field)!
+            sage: R = PolynomialRing(QQ, 2, 'a')
+            sage: P1xP1.change_ring(R)
+            Traceback (most recent call last):
+            ...
+            TypeError: need a field to construct a Fano toric variety!
+             Got Multivariate Polynomial Ring in a0, a1 over Rational Field
         """
         if self.base_ring() == F:
             return self
+        elif F not in _Fields:
+            raise TypeError("need a field to construct a Fano toric variety!"
+                            "\n Got %s" % F)
         else:
             return CPRFanoToricVariety_field(self._Delta_polar, self._fan,
                 self._coordinate_points, self._point_to_ray,

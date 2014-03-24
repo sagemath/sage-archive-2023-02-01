@@ -34,6 +34,7 @@ all-sage: \
      $(INST)/$(CONWAY) \
      $(INST)/$(CVXOPT) \
      $(INST)/$(CYTHON) \
+     $(INST)/$(DATEUTIL) \
      $(INST)/$(DOCUTILS) \
      $(INST)/$(ECL) \
      $(INST)/$(ECLIB) \
@@ -89,6 +90,7 @@ all-sage: \
      $(INST)/$(PYCRYPTO) \
      $(INST)/$(PYGMENTS) \
      $(INST)/$(PYNAC) \
+     $(INST)/$(PYPARSING) \
      $(INST)/$(PYTHON) \
      $(INST)/$(RATPOINTS) \
      $(INST)/$(R) \
@@ -101,6 +103,7 @@ all-sage: \
      $(INST)/$(SCONS) \
      $(INST)/$(SETUPTOOLS) \
      $(INST)/$(SINGULAR) \
+     $(INST)/$(SIX) \
      $(INST)/$(SPHINX) \
      $(INST)/$(SQLALCHEMY) \
      $(INST)/$(SQLITE) \
@@ -108,6 +111,7 @@ all-sage: \
      $(INST)/$(SYMPOW) \
      $(INST)/$(SYMPY) \
      $(INST)/$(TACHYON) \
+     $(INST)/$(TORNADO) \
      $(INST)/$(NCURSES) \
      $(INST)/$(ZLIB) \
      $(INST)/$(ZNPOLY) \
@@ -357,9 +361,23 @@ $(INST)/$(FREETYPE): $(INST)/$(LIBPNG)
 $(INST)/$(LIBPNG): $(INST)/$(ZLIB)
 	+$(PIPE) "$(SAGE_SPKG) $(LIBPNG) 2>&1" "tee -a $(SAGE_LOGS)/$(LIBPNG).log"
 
+$(INST)/$(SIX): $(INST)/$(PYTHON)
+	+$(PIPE) "$(SAGE_SPKG) $(SIX) 2>&1" "tee -a $(SAGE_LOGS)/$(SIX).log"
+
+$(INST)/$(DATEUTIL): $(INST)/$(PYTHON) $(INST)/$(SIX)
+	+$(PIPE) "$(SAGE_SPKG) $(DATEUTIL) 2>&1" "tee -a $(SAGE_LOGS)/$(DATEUTIL).log"
+
+$(INST)/$(PYPARSING): $(INST)/$(PYTHON)
+	+$(PIPE) "$(SAGE_SPKG) $(PYPARSING) 2>&1" "tee -a $(SAGE_LOGS)/$(PYPARSING).log"
+
+$(INST)/$(TORNADO): $(INST)/$(PYTHON)
+	+$(PIPE) "$(SAGE_SPKG) $(TORNADO) 2>&1" "tee -a $(SAGE_LOGS)/$(TORNADO).log"
+
 $(INST)/$(MATPLOTLIB): $(INST)/$(PYTHON) $(INST)/$(NUMPY) \
 		       $(INST)/$(FREETYPE) $(INST)/$(LIBPNG) \
-		       $(INST)/$(GDMODULE)
+		       $(INST)/$(GDMODULE) $(INST)/$(DATEUTIL) \
+		       $(INST)/$(PKGCONFIG) $(INST)/$(PYPARSING) \
+                       $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(MATPLOTLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(MATPLOTLIB).log"
 
 $(INST)/$(CDDLIB): $(INST)/$(MPIR)

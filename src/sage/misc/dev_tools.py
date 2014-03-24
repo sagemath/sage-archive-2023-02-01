@@ -83,16 +83,16 @@ def runsnake(command):
 
 def import_statement_string(module, names, lazy):
     r"""
-    Print an import statement.
+    Return a (lazy) import statement for ``names`` from ``module``.
 
     INPUT:
 
     - ``module`` -- the name of a module
 
-    - ``names_and_alias`` -- a list of 2-tuples containing names and alias to
+    - ``names`` -- a list of 2-tuples containing names and alias to
       import
 
-    - ``lazy`` -- a boolean: whether to print a lazy import statement
+    - ``lazy`` -- a boolean: whether to return a lazy import statement
 
     EXAMPLES::
 
@@ -103,6 +103,8 @@ def import_statement_string(module, names, lazy):
         'from sage.misc.dev_tools import import_statement_string as iss'
         sage: dt.import_statement_string(modname, names_and_aliases, True)
         "lazy_import('sage.misc.dev_tools', 'import_statement_string', 'iss')"
+        sage: dt.import_statement_string(modname, [('a','b'),('c','c'),('d','e')], False)
+        'from sage.misc.dev_tools import a as b, c, d as e'
     """
     if lazy:
         if len(names) == 1:
@@ -198,15 +200,13 @@ def load_submodules(module=None, exclude_pattern=None):
             # compiled but with source removed
             sys.stdout.write("failed\n")
 
-
 def find_objects_from_name(name, module_name=None):
     r"""
-    Return the list of objects whose name is ``name``.
+    Return the list of objects from ``module_name`` whose name is ``name``.
 
     If ``name`` is in the global namespace, the result is a list of length 1
-    that contains only the object in the global namespace which is called
-    ``name``. Otherwise, the function runs through all loaded modules and
-    returns the list of objects whose names match ``name``.
+    that contains only this object. Otherwise, the function runs through all
+    loaded modules and returns the list of objects whose name matches ``name``.
 
     If ``module_name`` is not ``None``, then search only in submodules of
     ``module_name``.
@@ -267,8 +267,8 @@ def find_object_modules(obj):
     appear and the value at a given module name is the list of names that
     ``obj`` have in that module.
 
-    It is very unlikely that the output dictionnary has several keys except that
-    if ``obj`` is an instance of a class.
+    It is very unlikely that the output dictionnary has several keys except when
+    ``obj`` is an instance of a class.
 
     EXAMPLES::
 
@@ -299,13 +299,13 @@ def find_object_modules(obj):
     if module_name:
         import sys
         if module_name not in sys.modules:
-            raise ValueError,"This should not happen!"
+            raise ValueError("This should not happen!")
         d = sys.modules[module_name].__dict__
         matching = sorted(key for key in d if d[key] is obj)
         if matching:
             return {module_name: matching}
 
-    # otherwise, we parse all modules (already loaded) and hope to find
+    # otherwise, we parse all (already loaded) modules and hope to find
     # something
     import sys
     module_to_obj = {}
@@ -436,9 +436,8 @@ def import_statements(*objects, **options):
         sage: import_statements('power')
         from sage.structure.element import generic_power as power
 
-    In order to be able to detect functions that belong to a module non loaded
-    on startup, you might call the helper :func:`load_submodules` as in the
-    following::
+    In order to be able to detect functions that belong to a non-loaded module,
+    you might call the helper :func:`load_submodules` as in the following::
 
         sage: import_statements('EnumeratedSetFromIterator')
         Traceback (most recent call last):
@@ -456,7 +455,7 @@ def import_statements(*objects, **options):
         sage: import_statements('my_tailor_is_rich')
         Traceback (most recent call last):
         ...
-        ValueError: no object whose name matches 'my_tailor_is_rich' was found.
+        ValueError: no object matched by 'my_tailor_is_rich' was found.
         sage: import_statements(5)
         Traceback (most recent call last):
         ...
@@ -487,7 +486,7 @@ def import_statements(*objects, **options):
         The programmers try to made this function as smart as possible.
         Nevertheless it is far from being perfect (for example it does not
         detect deprecated stuff). So, if you use it, double check the answer and
-        report weirdness behavior.
+        report weird behaviors.
     """
     import inspect
     from sage.misc.lazy_import import LazyImport
@@ -496,22 +495,24 @@ def import_statements(*objects, **options):
                   # a value None is interpreted as the fact that it is the
                   # module that we want to import
 
-    lazy = options.get("lazy", False)
-    verbose = options.get("verbose", True)
-    answer_as_str = options.get("answer_as_str",False)
+    lazy = options.pop("lazy", False)
+    verbose = options.pop("verbose", True)
+    answer_as_str = options.pop("answer_as_str",False)
+
+    if options:
+        raise ValueError("Unexpected '%s' argument"%options.keys()[0])
 
     for obj in objects:
-        # if obj is a string use it has a name and look for an object that has
-        # that given name
+        # if obj is a string use look for an object that goes by that name
         if isinstance(obj, str):
             name = obj
             obj = find_objects_from_name(name, 'sage')
             if len(obj) == 0:
                 obj = find_objects_from_name(name)
                 if len(obj) == 0:
-                    raise ValueError("no object whose name matches '%s' was found."%name)
+                    raise ValueError("no object matched by '%s' was found."%name)
 
-            # remove lazy imported objects
+            # remove lazy imported objects from list obj
             i = 0
             while i < len(obj):
                 if isinstance(obj[i], LazyImport):
@@ -551,8 +552,7 @@ def import_statements(*objects, **options):
             raise ValueError("no import statement found for '%s'."%obj)
 
         if len(modules) == 1:
-            module_name = modules.keys()[0]
-            obj_names = modules[module_name]
+            module_name, obj_names = modules.items()[0]
             if name is None:
                 if verbose and len(obj_names) > 1:
                     print "# ** Warning **: several names for that object: %s"%', '.join(sorted(obj_names))

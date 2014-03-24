@@ -2697,6 +2697,64 @@ cdef class Expression(CommutativeRingElement):
             in I with defining polynomial x^2 + 1' and 'Finite Field in b of
             size 3^2'
 
+        Check if multiplication works when content is in `F_{2^k}`,
+        examples from :trac:`13107`::
+
+            sage: var('c1,c2,c3,r1,r2')
+            (c1, c2, c3, r1, r2)
+            sage: ff.<z> = GF(2**8, 'z')
+            sage: ex = -(c1 + r2 - c2*r1)/c3
+            sage: ex.substitute(r1=z, r2=z)
+            -(c1 + z*c2 + z)/c3
+
+        Note the content and the leading coefficient of the numerator after
+        the substitution::
+
+            sage: num = ex.op[0].subs({r1: z, r2: z}); num
+            -c1 + z*c2 + z
+            sage: num.leading_coefficient(c1)
+            -1
+            sage: num.content(c1)
+            1
+            sage: num.content(c1).pyobject().parent()
+            Finite Field in z of size 2^8
+
+        The leading coefficient is a negative number. The normalization process
+        tries to convert it to a positive number and extract the content, by
+        multiplying by ``-1/c``.  However, the content is in a field of
+        characteristic 2, so negating it does not change the leading
+        coefficient.
+
+        Another example where there is no problem::
+
+            sage: ex = -(r2 - c2*r1)/c3
+            sage: num = ex.op[0].subs({r1: z, r2: z}); num
+            z*c2 + z
+            sage: num.leading_coefficient(c2)
+            z
+            sage: num.content(c2)
+            1
+            sage: num.content(c2).pyobject().parent()
+            Finite Field in z of size 2^8
+
+        Since the leading coefficient is not negative, no normalization is
+        performed.
+
+        The leading coefficient of the expression depends on the order of the
+        variables, which is chosen to be lexicographic in Sage. Hence, using
+        different variable names may change behavior and hide the bug. To cover
+        these cases we test with different variable names::
+
+            sage: var('a,b')
+            (a, b)
+            sage: ex = -(c1 + b - c2*a)/c3
+            sage: ex.substitute(a=z, b=z)
+            -(c1 + z*c2 + z)/c3
+            sage: var('x1,x2,x3')
+            (x1, x2, x3)
+            sage: ex = -(x1 + r2 - x2*r1)/x3
+            sage: ex.substitute(a=z, b=z)
+            (r1*x2 - r2 - x1)/x3
         """
         cdef GEx x
         cdef Expression _right = <Expression>right

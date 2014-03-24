@@ -640,6 +640,29 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         ans._poly = self._poly * (<LaurentPolynomial_mpair>right)._poly
         return ans
 
+    def __floordiv__(LaurentPolynomial_mpair self, RingElement right):
+        """
+        Perform division with remainder and return the quotient.
+
+        EXAMPLES::
+
+            sage: L.<x,y> = LaurentPolynomialRing(QQ)
+            sage: f = x**3 + y^-3
+            sage: g = y + x
+            sage: f // g
+            x^5*y^-3 - x^4*y^-2 + x^3*y^-1
+
+            sage: h = x + y**(-1)
+            sage: f // h
+            x^2 - x*y^-1 + y^-2
+            sage: h * (f // h) == f
+            True
+        """
+        cdef LaurentPolynomial_mpair ans = self._new_c()
+        ans._mon = self._mon.esub((<LaurentPolynomial_mpair>right)._mon)
+        ans._poly = self._poly.__floordiv__((<LaurentPolynomial_mpair>right)._poly)
+        return ans
+
     cdef int _cmp_c_impl(self, Element right) except -2:
         """
         EXAMPLES::

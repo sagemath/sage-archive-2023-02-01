@@ -34,7 +34,6 @@ import matrix
 import matrix_generic_dense
 import matrix_generic_sparse
 
-import matrix_modn_dense
 import matrix_modn_sparse
 
 import matrix_mod2_dense
@@ -70,7 +69,6 @@ import sage.rings.number_field.all
 import sage.rings.finite_rings.integer_mod_ring
 import sage.rings.polynomial.multi_polynomial_ring_generic
 import sage.misc.latex as latex
-from sage.misc.superseded import deprecation
 import sage.misc.mrange
 import sage.modules.free_module_element
 import sage.modules.free_module
@@ -399,7 +397,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         else:
             return True
 
-    def __call__(self, entries=None, coerce=True, copy=True, rows=None):
+    def __call__(self, entries=None, coerce=True, copy=True):
         """
         EXAMPLES::
 
@@ -429,35 +427,10 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
         ::
 
-            sage: MS = MatrixSpace(ZZ,2,2)
-            sage: MS([1,2,3,4])
-            [1 2]
-            [3 4]
-            sage: MS([1,2,3,4], rows=True)
-            doctest:...: DeprecationWarning:
-            'rows=True/False' parameter is deprecated!
-            See http://trac.sagemath.org/13012 for details.
-            doctest:...: DeprecationWarning:
-            'rows=True/False' parameter is deprecated!
-            See http://trac.sagemath.org/13012 for details.
-            [1 2]
-            [3 4]
-            sage: MS([1,2,3,4], rows=False)
-            [1 3]
-            [2 4]
-
-        ::
-
             sage: MS = MatrixSpace(ZZ,2,2, sparse=True)
             sage: MS([1,2,3,4])
             [1 2]
             [3 4]
-            sage: MS([1,2,3,4], rows=True)
-            [1 2]
-            [3 4]
-            sage: MS([1,2,3,4], rows=False)
-            [1 3]
-            [2 4]
 
             sage: MS = MatrixSpace(ZZ, 2)
             sage: g = Gamma0(5)([1,1,0,1])
@@ -516,9 +489,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             cannot be converted to a matrix in
             Full MatrixSpace of 3 by 5 dense matrices over Integer Ring!
         """
-        if rows is not None:
-            deprecation(13012, "'rows=True/False' parameter is deprecated!")
-            return self.matrix(entries, coerce, copy, rows)
         return self.matrix(entries, coerce, copy)
 
     def change_ring(self, R):
@@ -1006,8 +976,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                     return matrix_modn_dense_float.Matrix_modn_dense_float
                 elif R.order() < matrix_modn_dense_double.MAX_MODULUS:
                     return matrix_modn_dense_double.Matrix_modn_dense_double
-                # elif R.order() < matrix_modn_dense.MAX_MODULUS:
-                #     return matrix_modn_dense.Matrix_modn_dense
                 return matrix_generic_dense.Matrix_generic_dense
             elif sage.rings.finite_rings.all.is_FiniteField(R) and R.characteristic() == 2 and R.order() <= 65536:
                 return matrix_mod2e_dense.Matrix_mod2e_dense
@@ -1240,7 +1208,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         """
         return self.dimension()
 
-    def matrix(self, x=0, coerce=True, copy=True, rows=None):
+    def matrix(self, x=0, coerce=True, copy=True):
         r"""
         Create a matrix in ``self``.
 
@@ -1282,12 +1250,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: M.matrix([1,2,3,4])
             [1 2]
             [3 4]
-            sage: M.matrix([1,2,3,4],rows=False)
-            doctest:...: DeprecationWarning:
-            'rows=True/False' parameter is deprecated!
-            See http://trac.sagemath.org/13012 for details.
-            [1 3]
-            [2 4]
 
         Note that the last "flip" cannot be performed if ``x`` is a matrix, no
         matter what is ``rows`` (it used to be possible but was fixed by
@@ -1373,12 +1335,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         if isinstance(x, (int, integer.Integer)) and x == 1:
             return self.identity_matrix().__copy__()
         m, n, sparse = self.__nrows, self.__ncols, self.__is_sparse
-        if rows is not None:
-            deprecation(13012, "'rows=True/False' parameter is deprecated!")
-        if rows is not None and not rows:
-            if not isinstance(x, dict):
-                MT =  MatrixSpace(self.base_ring(), n, m, sparse)
-                return MT.matrix(x, coerce=coerce, copy=copy).transpose()
         if matrix.is_Matrix(x):
             if x.parent() is self:
                 if x.is_immutable():

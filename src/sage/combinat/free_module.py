@@ -115,7 +115,7 @@ class CombinatorialFreeModuleElement(Element):
             sage: f = F.simple_root(0)
             sage: hash(f)
             6920829894162680369           # 64-bit
-            3765996081                    # 32-bit
+            -528971215                    # 32-bit
 
         This uses the recipe that was proposed for frozendicts in `PEP
         0416 <http://legacy.python.org/dev/peps/pep-0416/>`_ (and adds

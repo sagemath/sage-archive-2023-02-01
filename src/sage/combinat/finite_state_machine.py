@@ -4944,6 +4944,11 @@ class Transducer(FiniteStateMachine):
 
     def cartesian_product(self, other, only_accessible_components=True):
         """
+        The default output of this method is scheduled to change.
+        This docstring describes the new default behaviour, which can
+        already be achieved by setting ``FSMOldCodeTransducerCartesianProduct``
+        to ``False``.
+
         Return a new transducer which can simultaneously process an input with
         ``self`` and ``other`` where the output labels are pairs of the
         original output labels.
@@ -5017,9 +5022,9 @@ FSMOldCodeTransducerCartesianProduct = False
         """
         if FSMOldCodeTransducerCartesianProduct == True:
             from sage.misc.superseded import deprecation
-            deprecation(3333, "The output of Transducer.cartesian_product " \
-                              "will change. Please use " \
-                              "Transducer.intersection for the original " \
+            deprecation(3333, "The output of Transducer.cartesian_product "
+                              "will change. Please use "
+                              "Transducer.intersection for the original "
                               "output.")
             return self.intersection(
                 other,

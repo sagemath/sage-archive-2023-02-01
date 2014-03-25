@@ -62,7 +62,7 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
         sage: E.simon_two_descent()
         (1, 1, [(-1 : 0 : 1)])
 
-An example with an elliptic curve defined over a relative number field::
+    An example with an elliptic curve defined over a relative number field::
 
         sage: F.<a> = QuadraticField(5)
         sage: x = QQ['x'].gen()

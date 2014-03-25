@@ -64,12 +64,14 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
 
     An example with an elliptic curve defined over a relative number field::
 
-        sage: F.<a> = QuadraticField(5)
+        sage: F.<a> = QuadraticField(29)
         sage: x = QQ['x'].gen()
-        sage: K.<b> = F.extension(x^2-3)
-        sage: E = EllipticCurve(K,[0,0,0,b,1])
-        sage: E.simon_two_descent() # long time
-        (1, 1, [(0 : 1 : 1)])
+        sage: K.<b> = F.extension(x^2-1/2*a+1/2)
+        sage: E = EllipticCurve(K,[1, 0, 5/2*a + 27/2, 0, 0])
+        sage: E.simon_two_descent(lim1=2, limtriv=3)
+        (1,
+        1,
+        [((-369/50*a - 1987/50)*b + 539/50*a + 2897/50 : (-27193/250*a - 146439/250)*b + 39683/250*a + 213709/250 : 1)])
 
     """
     init()

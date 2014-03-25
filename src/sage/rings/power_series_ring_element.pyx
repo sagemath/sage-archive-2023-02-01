@@ -114,6 +114,7 @@ from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.libs.pari.all import pari
 from sage.misc.functional import sqrt, log
 from sage.rings.arith import integer_ceil as ceil
+from sage.misc.superseded import deprecated_function_alias
 
 from sage.categories.fields import Fields
 _Fields = Fields()
@@ -1792,8 +1793,8 @@ cdef class PowerSeries(AlgebraElement):
         """
         return self.parent()([self[i] / arith.factorial(i) for i in range(self.degree()+1)])
 
-        ogf = deprecated_function_alias(15705, egf_to_ogf)
-        egf = deprecated_function_alias(15705, ogf_to_egf)
+    ogf = deprecated_function_alias(15705, egf_to_ogf)
+    egf = deprecated_function_alias(15705, ogf_to_egf)
 
     def _pari_(self):
         """

@@ -61,11 +61,15 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
         sage: E = EllipticCurve('37a1').change_ring(QuadraticField(-11,'x'))
         sage: E.simon_two_descent()
         (1, 1, [(-1 : 0 : 1)])
+
+An example with an elliptic curve defined over a relative number field::
+
         sage: F.<a> = QuadraticField(5)
         sage: x = QQ['x'].gen()
         sage: K.<b> = F.extension(x^2-3)
         sage: E = EllipticCurve(K,[0,0,0,b,1])
-        sage: E.rank() # indirect doctest
+        sage: E.simon_two_descent() # long time
+        (1, 1, [(0 : 1 : 1)])
 
     """
     init()

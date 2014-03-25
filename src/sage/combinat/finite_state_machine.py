@@ -4924,7 +4924,8 @@ class Transducer(FiniteStateMachine):
                 "Only a transducer can be intersected with a transducer.")
 
         def function(transition1, transition2):
-            if (transition1.word_in == []) or (transition2.word_in == []) \
+            if (transition1.word_in == []) \
+                    or (transition2.word_in == []) \
                     or (transition1.word_out == []) \
                     or (transition2.word_out == []):
                 raise ValueError(

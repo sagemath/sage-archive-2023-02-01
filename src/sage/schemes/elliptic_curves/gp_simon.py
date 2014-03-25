@@ -61,6 +61,11 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
         sage: E = EllipticCurve('37a1').change_ring(QuadraticField(-11,'x'))
         sage: E.simon_two_descent()
         (1, 1, [(-1 : 0 : 1)])
+        sage: F.<a> = QuadraticField(5)
+        sage: x = QQ['x'].gen()
+        sage: K.<b> = F.extension(x^2-3)
+        sage: E = EllipticCurve(K,[0,0,0,b,1])
+        sage: E.rank() # indirect doctest
 
     """
     init()
@@ -72,9 +77,14 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
     # The following is to correct the bug at \#5204: the gp script
     # fails when K is a number field whose generator is called 'x'.
     if not K is QQ:
-        K = K.change_names('a')
+        #K = K.change_names('a')
+        K = K_orig.absolute_field('a')
+        from_K,to_K = K.structure()
+    else:
+        from_K = lambda x:x
+        to_K = lambda x:x
     E_orig = E
-    E = EllipticCurve(K,[K(list(a)) for a in E.ainvs()])
+    E = E_orig.change_ring(to_K) #EllipticCurve(K,[to_K(a) for a in E.ainvs()])
     F = E.integral_model()
 
     if K != QQ:
@@ -114,6 +124,6 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
     ans = sage_eval(v, {'Mod': _gp_mod, 'y': K.gen(0)})
     inv_transform = F.isomorphism_to(E)
     ans[2] = [inv_transform(F(P)) for P in ans[2]]
-    ans[2] = [E_orig([K_orig(list(c)) for c in list(P)]) for P in ans[2]]
+    ans[2] = [E_orig([from_K(c) for c in list(P)]) for P in ans[2]]
     return ans
 

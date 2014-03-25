@@ -157,7 +157,7 @@ LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363
 
 cpdef bint is_Expression(x):
     """
-    Returns True if *x* is a symbolic Expression.
+    Return True if *x* is a symbolic Expression.
 
     EXAMPLES::
 
@@ -173,7 +173,7 @@ cpdef bint is_Expression(x):
 
 cpdef bint is_SymbolicEquation(x):
     """
-    Returns True if *x* is a symbolic equation.
+    Return True if *x* is a symbolic equation.
 
     EXAMPLES:
 
@@ -287,7 +287,7 @@ cdef class Expression(CommutativeRingElement):
 
     def __getstate__(self):
         """
-        Returns a tuple describing the state of this expression for pickling.
+        Return a tuple describing the state of this expression for pickling.
 
         This should return all information that will be required to unpickle
         the object. The functionality for unpickling is implemented in
@@ -375,7 +375,7 @@ cdef class Expression(CommutativeRingElement):
 
     def __setstate__(self, state):
         """
-        Initializes the state of the object from data saved in a pickle.
+        Initialize the state of the object from data saved in a pickle.
 
         During unpickling __init__ methods of classes are not called, the saved
         data is passed to the class via this function instead.
@@ -623,8 +623,7 @@ cdef class Expression(CommutativeRingElement):
 
     def _gap_init_(self):
         """
-        Conversion of symbolic object to GAP always results in a GAP
-        string.
+        Convert symbolic object to GAP string.
 
         EXAMPLES::
 
@@ -635,8 +634,7 @@ cdef class Expression(CommutativeRingElement):
 
     def _singular_init_(self):
         """
-        Conversion of a symbolic object to Singular always results in a
-        Singular string.
+        Conversion of a symbolic object to Singular string.
 
         EXAMPLES::
 
@@ -813,7 +811,7 @@ cdef class Expression(CommutativeRingElement):
 
     def _mathml_(self):
         """
-        Returns a MathML representation of this object.
+        Return a MathML representation of this object.
 
         EXAMPLES::
 
@@ -1059,7 +1057,7 @@ cdef class Expression(CommutativeRingElement):
 
     def _real_mpfi_(self, R):
         """
-        Returns this expression as a real interval.
+        Return this expression as a real interval.
 
         EXAMPLES::
 
@@ -1073,7 +1071,7 @@ cdef class Expression(CommutativeRingElement):
 
     def _complex_mpfi_(self, R):
         """
-        Returns this expression as a complex interval.
+        Return this expression as a complex interval.
 
         EXAMPLES::
 
@@ -1195,7 +1193,7 @@ cdef class Expression(CommutativeRingElement):
 
     def _sympy_(self):
         """
-        Returns a Sympy version of this object.
+        Return a Sympy version of this object.
 
         EXAMPLES::
 
@@ -1617,7 +1615,7 @@ cdef class Expression(CommutativeRingElement):
 
     def is_real(self):
         """
-        Returns True if this expression is known to be a real number.
+        Return True if this expression is known to be a real number.
 
         EXAMPLES::
 
@@ -1645,7 +1643,7 @@ cdef class Expression(CommutativeRingElement):
 
     def is_positive(self):
         """
-        Returns True if this expression is known to be positive.
+        Return True if this expression is known to be positive.
 
         EXAMPLES::
 
@@ -2346,7 +2344,7 @@ cdef class Expression(CommutativeRingElement):
 
     def negation(self):
         """
-        Returns the negated version of self, that is the relation that is
+        Return the negated version of self, that is the relation that is
         False iff self is True.
 
         EXAMPLES::
@@ -2377,7 +2375,7 @@ cdef class Expression(CommutativeRingElement):
 
     def contradicts(self, soln):
         """
-        Returns ``True`` if this relation is violated by the given variable assignment(s).
+        Return ``True`` if this relation is violated by the given variable assignment(s).
 
         EXAMPLES::
 
@@ -3237,7 +3235,7 @@ cdef class Expression(CommutativeRingElement):
 
     def derivative(self, *args):
         """
-        Returns the derivative of this expressions with respect to the
+        Return the derivative of this expressions with respect to the
         variables supplied in args.
 
         Multiple variables and iteration counts may be supplied; see
@@ -3545,7 +3543,7 @@ cdef class Expression(CommutativeRingElement):
 
     def residue(self, symbol):
         """
-        Calculates the residue of ``self`` with respect to ``symbol``.
+        Calculate the residue of ``self`` with respect to ``symbol``.
 
         INPUT:
 
@@ -3598,7 +3596,7 @@ cdef class Expression(CommutativeRingElement):
 
     def taylor(self, *args):
         r"""
-        Expands this symbolic expression in a truncated Taylor or
+        Expand this symbolic expression in a truncated Taylor or
         Laurent series in the variable `v` around the point `a`,
         containing terms through `(x - a)^n`. Functions in more
         variables is also supported.
@@ -3778,7 +3776,7 @@ cdef class Expression(CommutativeRingElement):
 
     def expand_trig(self, full=False, half_angles=False, plus=True, times=True):
         """
-        Expands trigonometric and hyperbolic functions of sums of angles
+        Expand trigonometric and hyperbolic functions of sums of angles
         and of multiple angles occurring in self. For best results, self
         should already be expanded.
 
@@ -3850,7 +3848,7 @@ cdef class Expression(CommutativeRingElement):
 
     def reduce_trig(self, var=None):
         r"""
-        Combines products and powers of trigonometric and hyperbolic
+        Combine products and powers of trigonometric and hyperbolic
         sin's and cos's of x into those of multiples of x. It also
         tries to eliminate these functions when they occur in
         denominators.
@@ -4335,7 +4333,7 @@ cdef class Expression(CommutativeRingElement):
 
     def substitute_function(self, original, new):
         """
-        Returns this symbolic expressions all occurrences of the
+        Return this symbolic expressions all occurrences of the
         function *original* replaced with the function *new*.
 
         EXAMPLES::
@@ -4351,7 +4349,7 @@ cdef class Expression(CommutativeRingElement):
 
     def __call__(self, *args, **kwds):
         """
-        Calls the :meth:`subs` on this expression.
+        Call the :meth:`subs` on this expression.
 
         EXAMPLES::
 
@@ -4449,7 +4447,7 @@ cdef class Expression(CommutativeRingElement):
 
     def number_of_operands(self):
         """
-        Returns the number of arguments of this expression.
+        Return the number of arguments of this expression.
 
         EXAMPLES::
 
@@ -4470,7 +4468,7 @@ cdef class Expression(CommutativeRingElement):
 
     def __len__(self):
         """
-        Returns the number of arguments of this expression.
+        Return the number of arguments of this expression.
 
         EXAMPLES::
 
@@ -4489,7 +4487,7 @@ cdef class Expression(CommutativeRingElement):
 
     def operands(self):
         """
-        Returns a list containing the operands of this expression.
+        Return a list containing the operands of this expression.
 
         EXAMPLES::
 
@@ -4508,7 +4506,7 @@ cdef class Expression(CommutativeRingElement):
 
     def operator(self):
         """
-        Returns the topmost operator in this expression.
+        Return the topmost operator in this expression.
 
         EXAMPLES::
 
@@ -4894,7 +4892,7 @@ cdef class Expression(CommutativeRingElement):
     ############################################################################
     def power(self, exp, hold=False):
         """
-        Returns the current expression to the power ``exp``.
+        Return the current expression to the power ``exp``.
 
         To prevent automatic evaluation use the ``hold`` argument.
 
@@ -4989,7 +4987,7 @@ cdef class Expression(CommutativeRingElement):
     ############################################################################
     def coefficient(self, s, int n=1):
         """
-        Returns the coefficient of `s^n` in this symbolic expression.
+        Return the coefficient of `s^n` in this symbolic expression.
 
         INPUT:
 
@@ -5073,7 +5071,7 @@ cdef class Expression(CommutativeRingElement):
 
     def coefficients(self, x=None):
         r"""
-        Coefficients of this symbolic expression as a polynomial in x.
+        Return the coefficients of this symbolic expression as a polynomial in x.
 
         INPUT:
 
@@ -6049,7 +6047,7 @@ cdef class Expression(CommutativeRingElement):
 
     def norm(self):
         r"""
-        The complex norm of this symbolic expression, i.e.,
+        Return the complex norm of this symbolic expression, i.e.,
         the expression times its complex conjugate. If `c = a + bi` is a
         complex number, then the norm of `c` is defined as the product of
         `c` and its complex conjugate
@@ -7273,7 +7271,7 @@ cdef class Expression(CommutativeRingElement):
 
     def Order(self, hold=False):
         """
-        Order, as in big oh notation.
+        Return the order of the expression, as in big oh notation.
 
         OUTPUT:
 
@@ -7445,7 +7443,7 @@ cdef class Expression(CommutativeRingElement):
 
     def combine(self):
         r"""
-        Returns a simplified version of this symbolic expression
+        Return a simplified version of this symbolic expression
         by combining all terms with the same denominator into a single
         term.
 
@@ -7490,7 +7488,7 @@ cdef class Expression(CommutativeRingElement):
 
     def numerator(self, bint normalize = True):
         """
-        Returns the numerator of this symbolic expression
+        Return the numerator of this symbolic expression
 
         INPUT:
 
@@ -7579,7 +7577,7 @@ cdef class Expression(CommutativeRingElement):
 
     def denominator(self, bint normalize=True):
         """
-        Returns the denominator of this symbolic expression
+        Return the denominator of this symbolic expression
 
         INPUT:
 
@@ -7665,7 +7663,7 @@ cdef class Expression(CommutativeRingElement):
 
     def numerator_denominator(self, bint normalize=True):
         """
-        Returns the numerator and the denominator of this symbolic expression
+        Return the numerator and the denominator of this symbolic expression
 
         INPUT:
 
@@ -7810,7 +7808,7 @@ cdef class Expression(CommutativeRingElement):
 
     def maxima_methods(self):
         """
-        Provides easy access to maxima methods, converting the result to a
+        Provide easy access to maxima methods, converting the result to a
         Sage expression automatically.
 
         EXAMPLES::
@@ -7915,7 +7913,7 @@ cdef class Expression(CommutativeRingElement):
 
     def simplify(self):
         """
-        Returns a simplified version of this symbolic expression.
+        Return a simplified version of this symbolic expression.
 
         .. note::
 
@@ -7939,7 +7937,7 @@ cdef class Expression(CommutativeRingElement):
 
     def simplify_full(self):
         """
-        Applies simplify_factorial, simplify_trig, simplify_rational,
+        Apply simplify_factorial, simplify_trig, simplify_rational,
         simplify_log, and again simplify_rational to self (in that order).
 
         ALIAS: simplify_full and full_simplify are the same.
@@ -8086,7 +8084,7 @@ cdef class Expression(CommutativeRingElement):
 
     def simplify_trig(self,expand=True):
         r"""
-        Optionally expands and then employs identities such as
+        Optionally expand and then employ identities such as
         `\sin(x)^2 + \cos(x)^2 = 1`, `\cosh(x)^2 - \sinh(x)^2 = 1`,
         `\sin(x)\csc(x) = 1`, or `\tanh(x)=\sinh(x)/\cosh(x)`
         to simplify expressions containing tan, sec, etc., to sin,
@@ -8302,7 +8300,7 @@ cdef class Expression(CommutativeRingElement):
 
     def simplify_radical(self):
         r"""
-        Simplifies this symbolic expression, which can contain logs,
+        Simplify this symbolic expression, which can contain logs,
         exponentials, and radicals, by trying to convert it into a canonical
         form over a large class of expressions and a given ordering of
         variables.
@@ -8396,7 +8394,7 @@ cdef class Expression(CommutativeRingElement):
     @rename_keyword(deprecation=6094, method="algorithm")
     def simplify_log(self,algorithm=None):
         r"""
-        Simplifies symbolic expression, which can contain logs.
+        Simplify symbolic expression, which can contain logs.
 
         Recursively scans the expression self, transforming
         subexpressions of the form `a1 \log(b1) + a2 \log(b2) + c` into
@@ -8554,7 +8552,7 @@ cdef class Expression(CommutativeRingElement):
     @rename_keyword(deprecation=6094, method="algorithm")
     def expand_log(self,algorithm='products'):
         r"""
-        Simplifies symbolic expression, which can contain logs.
+        Simplify symbolic expression, which can contain logs.
 
         Expands logarithms of powers, logarithms of products and
         logarithms of quotients.  The option ``algorithm`` specifies
@@ -8675,7 +8673,7 @@ cdef class Expression(CommutativeRingElement):
 
     def factor(self, dontfactor=[]):
         """
-        Factors self, containing any number of variables or functions, into
+        Factor the expression, containing any number of variables or functions, into
         factors irreducible over the integers.
 
         INPUT:
@@ -8736,7 +8734,7 @@ cdef class Expression(CommutativeRingElement):
 
     def factor_list(self, dontfactor=[]):
         """
-        Returns a list of the factors of self, as computed by the
+        Return a list of the factors of self, as computed by the
         factor command.
 
         INPUT:
@@ -8829,7 +8827,7 @@ cdef class Expression(CommutativeRingElement):
     ###################################################################
     def convert(self, target=None):
         """
-        Calls the convert function in the units package. For symbolic
+        Call the convert function in the units package. For symbolic
         variables that are not units, this function just returns the
         variable.
 
@@ -8911,7 +8909,7 @@ cdef class Expression(CommutativeRingElement):
     ###################################################################
     def roots(self, x=None, explicit_solutions=True, multiplicities=True, ring=None):
         r"""
-        Returns roots of ``self`` that can be found exactly,
+        Return roots of ``self`` that can be found exactly,
         possibly with multiplicities.  Not all roots are guaranteed to
         be found.
 
@@ -9643,7 +9641,7 @@ cdef class Expression(CommutativeRingElement):
     ###################
     def _fast_float_(self, *vars):
         """
-        Returns an object which provides fast floating point
+        Return an object which provides fast floating point
         evaluation of this symbolic expression.
 
         See :mod:`sage.ext.fast_eval` for more information.
@@ -9824,7 +9822,7 @@ cdef class Expression(CommutativeRingElement):
     ############
     def sum(self, *args, **kwds):
         r"""
-        Returns the symbolic sum
+        Return the symbolic sum
         `\sum_{v = a}^b self`
 
         with respect to the variable `v` with endpoints
@@ -10106,7 +10104,7 @@ cdef class Expression(CommutativeRingElement):
 
     def add_to_both_sides(self, x):
         """
-        Returns a relation obtained by adding *x* to both sides of
+        Return a relation obtained by adding *x* to both sides of
         this relation.
 
         EXAMPLES::
@@ -10125,7 +10123,7 @@ cdef class Expression(CommutativeRingElement):
 
     def subtract_from_both_sides(self, x):
         """
-        Returns a relation obtained by subtracting *x* from both sides
+        Return a relation obtained by subtracting *x* from both sides
         of this relation.
 
         EXAMPLES::
@@ -10142,7 +10140,7 @@ cdef class Expression(CommutativeRingElement):
 
     def multiply_both_sides(self, x, checksign=None):
         """
-        Returns a relation obtained by multiplying both sides of this
+        Return a relation obtained by multiplying both sides of this
         relation by *x*.
 
         .. note::
@@ -10191,7 +10189,7 @@ cdef class Expression(CommutativeRingElement):
 
     def divide_both_sides(self, x, checksign=None):
         """
-        Returns a relation obtained by dividing both sides of this
+        Return a relation obtained by dividing both sides of this
         relation by *x*.
 
         .. note::

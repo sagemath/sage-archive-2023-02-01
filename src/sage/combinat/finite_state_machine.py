@@ -402,6 +402,7 @@ def full_group_by(l, key=lambda x: x):
 #*****************************************************************************
 
 FSMEmptyWordSymbol = '-'
+FSMOldCodeTransducerCartesianProduct = True
 
 def FSMLetterSymbol(letter):
     """
@@ -4967,7 +4968,13 @@ class Transducer(FiniteStateMachine):
         a transition of other. Then there is a transition `((A, C), (B,
         D), a, (b, d))` in the new transducer if `a = c`.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        Originally a different output was constructed by
+        ``Transducer.cartesian_product``. This output is now produced by
+        ``Transducer.intersection``.
+
+        ::
 
             sage: transducer1 = Transducer([('A', 'A', 0, 0),
             ....:                           ('A', 'A', 1, 1)],
@@ -4981,6 +4988,23 @@ class Transducer(FiniteStateMachine):
             ....:                          final_states=[1],
             ....:                          determine_alphabets=True)
             sage: result = transducer1.cartesian_product(transducer2)
+            doctest:1: DeprecationWarning: The output of
+            Transducer.cartesian_product will change.
+            Please use Transducer.intersection for the original output.
+            See http://trac.sagemath.org/3333 for details.
+            sage: result
+            Transducer with 0 states
+
+        By setting ``FSMOldCodeTransducerCartesianProduct`` to ``False``
+        the new desired output is produced.
+
+        ::
+
+            sage: sage.combinat.finite_state_machine.\
+FSMOldCodeTransducerCartesianProduct = False
+            sage: result = transducer1.cartesian_product(transducer2)
+            sage: result
+            Transducer with 2 states
             sage: result.transitions()
             [Transition from ('A', 0) to ('A', 1): 0|(0, 'b'),('-', 'c'),
              Transition from ('A', 0) to ('A', 0): 1|(1, 'b'),
@@ -4990,6 +5014,16 @@ class Transducer(FiniteStateMachine):
             sage: (transducer1([1,0,0])[2], transducer2([1,0,0])[2])
             ([1, 0, 0], ['b', 'b', 'c', 'a'])
         """
+        if FSMOldCodeTransducerCartesianProduct == True:
+            from sage.misc.superseded import deprecation
+            deprecation(3333, "The output of Transducer.cartesian_product " \
+                              "will change. Please use " \
+                              "Transducer.intersection for the original " \
+                              "output.")
+            return self.intersection(
+                other,
+                only_accessible_components=only_accessible_components)
+
         def function(transition1, transition2):
             if transition1.word_in == transition2.word_in:
                 max_length = max(len(transition1.word_out),

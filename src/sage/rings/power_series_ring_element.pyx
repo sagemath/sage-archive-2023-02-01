@@ -1792,15 +1792,8 @@ cdef class PowerSeries(AlgebraElement):
         """
         return self.parent()([self[i] / arith.factorial(i) for i in range(self.degree()+1)])
 
-    def ogf(self):
-        from sage.misc.superseded import deprecation, deprecated_function_alias
-        deprecation(15705,'You can just call egf_to_ogf() instead')
-        return self.parent()([self[i] * arith.factorial(i) for i in range(self.degree()+1)])
-
-    def egf(self):
-        from sage.misc.superseded import deprecation, deprecated_function_alias
-        deprecation(15705,'You can just call ogf_to_egf() instead')
-        return self.parent()([self[i] / arith.factorial(i) for i in range(self.degree()+1)])
+        ogf = deprecated_function_alias(15705, egf_to_ogf)
+        egf = deprecated_function_alias(15705, ogf_to_egf)
 
     def _pari_(self):
         """

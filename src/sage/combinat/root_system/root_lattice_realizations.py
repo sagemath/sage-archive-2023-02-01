@@ -708,6 +708,8 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             This is the lattice of order ideals of the root poset.
 
+            This has been defined by Postnikov, see Remark 2 in [Reiner97]_.
+
             .. SEEALSO::
 
                 :meth:`generalized_nonnesting_partition_lattice`, :meth:`root_poset`
@@ -722,12 +724,19 @@ class RootLatticeRealizations(Category_over_base_ring):
                 True
 
             REFERENCES:
+
+            .. [Reiner97] Victor Reiner. *Non-crossing partitions for
+               classical reﬂection groups*. Discrete Mathematics 177 (1997) 
+            .. [Arm06] Drew Armstrong. *Generalized Noncrossing Partitions and
+               Combinatorics of Coxeter Groups*. :arxiv:`math/0611106`
             """
             return self.root_poset(facade=facade).order_ideals_lattice(facade=facade)
 
         def generalized_nonnesting_partition_lattice(self, m, facade=False):
             r"""
-            Return the lattice of m-nonnesting partitions
+            Return the lattice of `m`-nonnesting partitions
+
+            This has been defined by Athanasiadis, see chapter 5 of [Arm06]_.
             
             INPUT:
 
@@ -745,8 +754,6 @@ class RootLatticeRealizations(Category_over_base_ring):
                 Finite lattice containing 12 elements
                 sage: P.coxeter_transformation()**20 == 1
                 True
-
-            REFERENCES:
             """
             from sage.combinat.multichoose_nk import MultichooseNK
             Phi_plus = self.positive_roots()

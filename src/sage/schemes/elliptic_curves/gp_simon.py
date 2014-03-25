@@ -80,15 +80,15 @@ An example with an elliptic curve defined over a relative number field::
     K_orig = K
     # The following is to correct the bug at \#5204: the gp script
     # fails when K is a number field whose generator is called 'x'.
+    # It also deals with relative number fields.
+    E_orig = E
     if not K is QQ:
-        #K = K.change_names('a')
         K = K_orig.absolute_field('a')
         from_K,to_K = K.structure()
+        E = E_orig.change_ring(to_K)
     else:
         from_K = lambda x:x
         to_K = lambda x:x
-    E_orig = E
-    E = E_orig.change_ring(to_K) #EllipticCurve(K,[to_K(a) for a in E.ainvs()])
     F = E.integral_model()
 
     if K != QQ:

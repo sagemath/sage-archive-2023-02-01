@@ -541,6 +541,28 @@ class FSMState(SageObject):
                 raise TypeError, 'Wrong argument for hook.'
 
 
+    def __lt__(self, other):
+        """
+        Returns True if label of ``self`` is less than label of
+        ``other``.
+
+        INPUT:
+
+        - `other` -- a state.
+
+        OUTPUT:
+
+        True or False.
+
+        EXAMPLE::
+
+            sage: from sage.combinat.finite_state_machine import FSMState
+            sage: FSMState(0) < FSMState(1)
+            True
+        """
+        return self.label() < other.label()
+
+
     def label(self):
         """
         Returns the label of the state.
@@ -884,6 +906,29 @@ class FSMTransition(SageObject):
                 self.hook = hook
             else:
                 raise TypeError, 'Wrong argument for hook.'
+
+
+    def __lt__(self, other):
+        """
+        Returns True if ``self`` is less than ``other`` with respect to the
+        key ``(self.from_state, self.word_in, self.to_state, self.word_out)``.
+
+        INPUT:
+
+        - `other` -- a transition.
+
+        OUTPUT:
+
+        True or False.
+
+        EXAMPLE::
+
+            sage: from sage.combinat.finite_state_machine import FSMTransition
+            sage: FSMTransition(0,1,0,0) < FSMTransition(1,0,0,0)
+            True
+        """
+        return (self.from_state, self.word_in, self.to_state, self.word_out) < \
+            (other.from_state, other.word_in, other.to_state, other.word_out)
 
 
     def __copy__(self):
@@ -2020,6 +2065,60 @@ class FiniteStateMachine(SageObject):
         """
         return ' '
 
+    def set_coordinates(self, coordinates, default=True):
+        """
+        Set coordinates of the states for the LaTeX representation by
+        a dictionary or a function mapping labels to coordinates.
+
+        INPUT:
+
+        - ``coordinates`` -- a dictionary or a function mapping labels
+          of states to pairs interpreted as coordinates.
+
+        - ``default`` -- If ``True``, then states not given by
+          ``coordinates`` get a default position on a circle of
+          radius 3.
+
+        OUTPUT:
+
+        Nothing.
+
+        EXAMPLES::
+
+            sage: F = Automaton([[0, 1, 1], [1, 2, 2], [2, 0, 0]])
+            sage: F.set_coordinates({0: (0, 0), 1: (2, 0), 2: (1, 1)})
+            sage: F.state(0).coordinates
+            (0, 0)
+
+        We can also use a function to determine the coordinates::
+
+            sage: F = Automaton([[0, 1, 1], [1, 2, 2], [2, 0, 0]])
+            sage: F.set_coordinates(lambda l: (l, 3/(l+1)))
+            sage: F.state(2).coordinates
+            (2, 1)
+        """
+        states_without_coordinates = []
+        for state in self.iter_states():
+            try:
+                state.coordinates = coordinates[state.label()]
+                continue
+            except (KeyError, TypeError):
+                pass
+
+            try:
+                state.coordinates = coordinates(state.label())
+                continue
+            except TypeError:
+                pass
+
+            states_without_coordinates.append(state)
+
+        if default:
+            n = len(states_without_coordinates)
+            for j, state in enumerate(states_without_coordinates):
+                state.coordinates = (3*cos(2*pi*j/n),
+                                     3*sin(2*pi*j/n))
+
 
     #*************************************************************************
     # other
@@ -2127,9 +2226,9 @@ class FiniteStateMachine(SageObject):
 
         INPUT:
 
-        - ``reset`` -- If reset is True, then the existing input
-          alphabet is erased, otherwise new letters are appended to
-          the existing alphabet.
+        - ``reset`` -- If reset is ``True``, then the existing input
+          and output alphabets are erased, otherwise new letters are
+          appended to the existing alphabets.
 
         OUTPUT:
 
@@ -3041,6 +3140,15 @@ class FiniteStateMachine(SageObject):
             ...
             ValueError: No input alphabet is given.
             Try calling determine_alphabets().
+
+        ::
+
+            sage: def transition(state, where):
+            ....:     return (vector([0, 0]), 1)
+            sage: Transducer(transition, input_alphabet=[0], initial_states=[0])
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable vectors are unhashable
         """
         if self.input_alphabet is None:
             raise ValueError, ("No input alphabet is given. "
@@ -3079,33 +3187,45 @@ class FiniteStateMachine(SageObject):
                     return_value = [return_value]
                 try:
                     for (st_label, word) in return_value:
-                        if not self.has_state(st_label):
-                            not_done.append(self.add_state(st_label))
-                        elif len(ignore_done) > 0:
-                            u = self.state(st_label)
-                            if u in ignore_done:
-                                not_done.append(u)
-                                ignore_done.remove(u)
-                        self.add_transition(s, st_label,
-                                            word_in=letter, word_out=word)
+                        pass
                 except TypeError:
-                    raise ValueError("The callback function for add_from_transition is expected to return a pair (new_state, output_label) or a list of such pairs. For the state %s and the input letter %s, it however returned %s, which is not acceptable." % (s.label(), letter, return_value))
+                    raise ValueError("The callback function for "
+                                     "add_from_transition is expected "
+                                     "to return a pair (new_state, "
+                                     "output_label) or a list of such pairs. "
+                                     "For the state %s and the input "
+                                     "letter %s, it however returned %s, "
+                                     "which is not acceptable."
+                                     % (s.label(), letter, return_value))
+                for (st_label, word) in return_value:
+                    if not self.has_state(st_label):
+                        not_done.append(self.add_state(st_label))
+                    elif len(ignore_done) > 0:
+                        u = self.state(st_label)
+                        if u in ignore_done:
+                            not_done.append(u)
+                            ignore_done.remove(u)
+                    self.add_transition(s, st_label,
+                                        word_in=letter, word_out=word)
 
 
     def add_transitions_from_function(self, function, labels_as_input=True):
         """
-        Adds a transition if ``function(state, state)`` says that there is one.
+        Adds one or more transitions if ``function(state, state)``
+        says that there are some.
 
         INPUT:
 
         - ``function`` -- a transition function. Given two states
-          ``from_state`` and ``to_state`` (or their labels, if
+          ``from_state`` and ``to_state`` (or their labels if
           ``label_as_input`` is true), this function shall return a
           tuple ``(word_in, word_out)`` to add a transition from
           ``from_state`` to ``to_state`` with input and output labels
           ``word_in`` and ``word_out``, respectively. If no such
           addition is to be added, the transition function shall
-          return ``None``.
+          return ``None``. The transition function may also return
+          a list of such tuples in order to add multiple transitions
+          between the pair of states.
 
         - ``label_as_input`` -- (default: ``True``)
 
@@ -3124,14 +3244,64 @@ class FiniteStateMachine(SageObject):
             sage: F.add_transitions_from_function(f)
             sage: len(F.transitions())
             6
+
+        Multiple transitions are also possible::
+
+            sage: F = FiniteStateMachine()
+            sage: F.add_states([0, 1])
+            sage: def f(state1, state2):
+            ....:     if state1 != state2:
+            ....:          return [(0, 1), (1, 0)]
+            ....:     else:
+            ....:          return None
+            sage: F.add_transitions_from_function(f)
+            sage: F.transitions()
+            [Transition from 0 to 1: 0|1,
+             Transition from 0 to 1: 1|0,
+             Transition from 1 to 0: 0|1,
+             Transition from 1 to 0: 1|0]
+
+        TESTS::
+
+            sage: F = FiniteStateMachine()
+            sage: F.add_state(0)
+            0
+            sage: def f(state1, state2):
+            ....:     return 1
+            sage: F.add_transitions_from_function(f)
+            Traceback (most recent call last):
+            ...
+            ValueError: The callback function for add_transitions_from_function
+            is expected to return a pair (word_in, word_out) or a list of such
+            pairs. For states 0 and 0 however, it returned 1,
+            which is not acceptable.
+
         """
         for s_from in self.iter_states():
             for s_to in self.iter_states():
-                if labels_as_input:
-                    t = function(s_from.label(), s_to.label())
+                try:
+                    if labels_as_input:
+                        return_value = function(s_from.label(), s_to.label())
+                    else:
+                        return_value = function(s_from, s_to)
+                except LookupError:
+                    continue
+                if return_value is None:
+                    continue
+                if not hasattr(return_value, "pop"):
+                    transitions = [return_value]
                 else:
-                    t = function(s_from, s_to)
-                if hasattr(t, '__getitem__'):
+                    transitions = return_value
+                for t in transitions:
+                    if not hasattr(t, '__getitem__'):
+                         raise ValueError("The callback function for "
+                                          "add_transitions_from_function "
+                                          "is expected to return a "
+                                          "pair (word_in, word_out) or a "
+                                          "list of such pairs. For "
+                                          "states %s and %s however, it "
+                                          "returned %s, which is not "
+                                          "acceptable." % (s_from, s_to, return_value))
                     label_in = t[0]
                     try:
                         label_out = t[1]
@@ -3957,14 +4127,33 @@ class FiniteStateMachine(SageObject):
             sage: C.transitions()
             [Transition from 0 to 1: 0|-]
 
+        Output labels do not have to be hashable::
+
+            sage: C = Transducer([(0, 1, 0, []),
+            ....:                 (1, 0, 0, [vector([0, 0]), 0]),
+            ....:                 (1, 1, 1, [vector([0, 0]), 1]),
+            ....:                 (0, 0, 1, 0)],
+            ....:                 determine_alphabets=False,
+            ....:                 initial_states=[0])
+            sage: C.prepone_output()
+            sage: sorted(C.transitions())
+            [Transition from 0 to 1: 0|(0, 0),
+             Transition from 0 to 0: 1|0,
+             Transition from 1 to 0: 0|0,
+             Transition from 1 to 1: 1|1,(0, 0)]
         """
         def find_common_output(state):
-            if len(filter(lambda transition: len(transition.word_out) == 0, self.transitions(state))) > 0:
-                return ()
-            first_letters = set(map(lambda transition: transition.word_out[0], self.transitions(state)))
-            if len(first_letters) == 1:
-                return (first_letters.pop(),)
-            return ()
+            if len(filter(lambda transition: len(transition.word_out) == 0,
+                          self.transitions(state))) > 0:
+                return tuple()
+            first_letters = map(lambda transition: transition.word_out[0],
+                                self.transitions(state))
+            if len(first_letters) == 0:
+                return tuple()
+            first_item = first_letters.pop()
+            if all([item == first_item for item in first_letters]):
+                return (first_item,)
+            return tuple()
 
         changed = 1
         iteration = 0
@@ -3997,7 +4186,7 @@ class FiniteStateMachine(SageObject):
 
 
     def equivalence_classes(self):
-        """
+        r"""
         Returns a list of equivalence classes of states.
 
         INPUT:
@@ -4008,14 +4197,16 @@ class FiniteStateMachine(SageObject):
 
         A list of equivalence classes of states.
 
-        Two states `a` and `b` are equivalent, if and only if for each
-        input label word_in the following holds:
+        Two states `a` and `b` are equivalent if and only if there is
+        a bijection `\varphi` between paths starting at `a` and paths
+        starting at `b` with the following properties: Let `p_a` be a
+        path from `a` to `a'` and `p_b` a path from `b` to `b'` such
+        that `\varphi(p_a)=p_b`, then
 
-        For paths `p_a` from `a` to `a'` with input label ``word_in``
-        and output label ``word_out_a`` and `p_b` from `b` to `b'`
-        with input label ``word_in`` and output label ``word_out_b``,
-        we have ``word_out_a=word_out_b``, `a'` and `b'` have the same
-        output label and are both final or both non-final.
+        - `p_a.\mathit{word}_\mathit{in}=p_b.\mathit{word}_\mathit{in}`,
+        - `p_a.\mathit{word}_\mathit{out}=p_b.\mathit{word}_\mathit{out}`,
+        - `a'` and `b'` have the same output label, and
+        - `a'` and `b'` are both final or both non-final.
 
         The function :meth:`.equivalence_classes` returns a list of
         the equivalence classes to this equivalence relation.
@@ -4036,25 +4227,24 @@ class FiniteStateMachine(SageObject):
             [['A', 'C'], ['B', 'D']]
         """
 
-        # Two states a and b are said to be 0-equivalent, if their output
-        # labels agree and if they are both final or non-final.
+        # Two states `a` and `b` are j-equivalent if and only if there
+        # is a bijection `\varphi` between paths of length <= j
+        # starting at `a` and paths starting at `b` with the following
+        # properties: Let `p_a` be a path from `a` to `a'` and `p_b` a
+        # path from `b` to `b'` such that `\varphi(p_a)=p_b`, then
         #
-        # For some j >= 1, two states a and b are said to be j-equivalent, if
-        # they are j-1 equivalent and if for each element letter letter_in of
-        # the input alphabet and transitions t_a from a with input label
-        # letter_in, output label word_out_a to a' and t_b from b with input
-        # label letter_in, output label word_out_b to b', we have
-        # word_out_a=word_out_b and a' and b' are j-1 equivalent.
+        # - `p_a.\mathit{word}_{in}=p_b.\mathit{word}_{in}`,
+        # - `p_a.\mathit{word}_{out}=p_b.\mathit{word}_{out}`,
+        # - `a'` and `b'` have the same output label, and
+        # - `a'` and `b'` are both final or both non-final.
 
         # If for some j the relations j-1 equivalent and j-equivalent
-        # coincide, then they are equal to the equivalence relation described
-        # in the docstring.
+        # coincide, then they are equal to the equivalence relation
+        # described in the docstring.
 
-        # classes_current holds the equivalence classes of j-equivalence,
-        # classes_previous holds the equivalence classes of j-1 equivalence.
-
-        if not self.is_deterministic():
-            raise NotImplementedError, "Minimization via Moore's Algorithm is only implemented for deterministic finite state machines"
+        # classes_current holds the equivalence classes of
+        # j-equivalence, classes_previous holds the equivalence
+        # classes of j-1 equivalence.
 
         # initialize with 0-equivalence
         classes_previous = []
@@ -4087,7 +4277,7 @@ class FiniteStateMachine(SageObject):
 
 
     def quotient(self, classes):
-        """
+        r"""
         Constructs the quotient with respect to the equivalence
         classes.
 
@@ -4099,14 +4289,14 @@ class FiniteStateMachine(SageObject):
 
         A finite state machine.
 
-        Assume that `c` is a class and `s`, `s'` are states in `c`. If
-        there is a transition from `s` to some `t` with input label
-        ``word_in`` and output label ``word_out``, then there has to
-        be a transition from `s'` to some `t'` with input label
-        ``word_in`` and output label ``word_out`` such that `s'` and
-        `t'` are states of the same class `c'`. Then there is a
-        transition from `c` to `c'` in the quotient with input label
-        ``word_in`` and output label ``word_out``.
+        Assume that `c` is a class, and `a` and `b` are states in
+        `c`. Then there is a bijection `\varphi` between the
+        transitions from `a` and the transitions from `b` with the
+        following properties: if `\varphi(t_a)=t_b`, then
+
+        - `t_a.\mathit{word}_\mathit{in}=t_b.\mathit{word}_\mathit{in}`,
+        - `t_a.\mathit{word}_\mathit{out}=t_b.\mathit{word}_\mathit{out}`, and
+        - `t_a` and `t_b` lead to some equivalent states `a'` and `b'`.
 
         Non-initial states may be merged with initial states, the
         resulting state is an initial state.
@@ -4149,37 +4339,43 @@ class FiniteStateMachine(SageObject):
 
         # Create new states and build state_mapping
         for c in classes:
-            new_state = new.add_state(tuple(c))
+            new_label = tuple(c)
+            new_state = c[0].relabeled(new_label)
+            new.add_state(new_state)
             for state in c:
                 state_mapping[state] = new_state
 
         # Copy data from old transducer
         for c in classes:
             new_state = state_mapping[c[0]]
-            # copy all data from first class member
-            new_state.is_initial = c[0].is_initial
-            new_state.is_final = c[0].is_final
-            new_state.word_out = c[0].word_out
             for transition in self.iter_transitions(c[0]):
                 new.add_transition(
-                    from_state=new_state,
+                    from_state = new_state,
                     to_state = state_mapping[transition.to_state],
-                    word_in  = transition.word_in,
+                    word_in = transition.word_in,
                     word_out = transition.word_out)
 
             # check that all class members have the same information (modulo classes)
             for state in c:
                 new_state.is_initial = new_state.is_initial or state.is_initial
-                assert new_state.is_final == state.is_final, "Class %s mixes final and non-final states" % (c,)
-                assert new_state.word_out == state.word_out, "Class %s mixes different word_out" % (c,)
+                assert new_state.is_final == state.is_final, \
+                    "Class %s mixes final and non-final states" % (c,)
+                assert new_state.word_out == state.word_out, \
+                    "Class %s mixes different word_out" % (c,)
                 assert len(self.transitions(state)) == len(new.transitions(new_state)), \
-                    "Class %s has %d outgoing transitions, but class member %s has %d outgoing transitions" %  \
-                    (c, len(new.transitions(new_state)), state, len(self.transitions(state)))
+                    "Class %s has %d outgoing transitions, but class " \
+                    "member %s has %d outgoing transitions" %  \
+                    (c, len(new.transitions(new_state)), state,
+                     len(self.transitions(state)))
                 for transition in self.transitions(state):
                     try:
-                        new.transition((new_state, state_mapping[transition.to_state], transition.word_in, transition.word_out))
+                        new.transition((new_state,
+                                        state_mapping[transition.to_state],
+                                        transition.word_in, transition.word_out))
                     except LookupError:
-                        raise ValueError, "There is a transition %s in the original transducer, but no corresponding transition in the new transducer." % transition
+                        raise ValueError, "There is a transition %s in the " \
+                            "original transducer, but no corresponding " \
+                            "transition in the new transducer." % transition
         return new
 
 
@@ -4549,9 +4745,11 @@ class Automaton(FiniteStateMachine):
 
         INPUT:
 
-        - ``algorithm`` -- Either Moore's algorithm is used (default
-          or ``algorithm='Moore'``), or Brzozowski's algorithm when
-          ``algorithm='Brzozowski'``.
+        - ``algorithm`` -- Either Moore's algorithm (by
+          ``algorithm='Moore'`` or as default for deterministic
+          automata) or Brzozowski's algorithm (when
+          ``algorithm='Brzozowski'`` or when the automaton is not
+          deterministic) is used.
 
         OUTPUT:
 
@@ -4605,9 +4803,11 @@ class Automaton(FiniteStateMachine):
             NotImplementedError: Minimization via Moore's Algorithm is only
             implemented for deterministic finite state machines
         """
-        if algorithm is None or algorithm == "Moore":
+        deterministic = self.is_deterministic()
+
+        if algorithm == "Moore" or (algorithm is None and deterministic):
             return self._minimization_Moore_()
-        elif algorithm == "Brzozowski":
+        elif algorithm == "Brzozowski" or (algorithm is None and not deterministic):
             return self._minimization_Brzozowski_()
         else:
             raise NotImplementedError, "Algorithm '%s' is not implemented. Choose 'Moore' or 'Brzozowski'" % algorithm
@@ -4633,7 +4833,7 @@ class Automaton(FiniteStateMachine):
 
     def _minimization_Moore_(self):
         """
-        Returns a minimized automaton by using Brzozowski's algorithm.
+        Returns a minimized automaton by using Moore's algorithm.
 
         See also :meth:`.minimization`.
 
@@ -4649,7 +4849,11 @@ class Automaton(FiniteStateMachine):
             NotImplementedError: Minimization via Moore's Algorithm is only
             implemented for deterministic finite state machines
         """
-        return self.quotient(self.equivalence_classes())
+        if self.is_deterministic():
+            return self.quotient(self.equivalence_classes())
+        else:
+            raise NotImplementedError("Minimization via Moore's Algorithm is only " \
+                                      "implemented for deterministic finite state machines")
 
 
 #*****************************************************************************
@@ -4801,6 +5005,22 @@ class Transducer(FiniteStateMachine):
              Transition from 0 to 1: 1|0,
              Transition from 1 to 0: 0|0,
              Transition from 1 to 0: 1|1]
+
+        ::
+
+            sage: fsm = Transducer([("A", "A", 0, 0),
+            ....:                   ("A", "B", 1, 1),
+            ....:                   ("A", "C", 1, -1),
+            ....:                   ("B", "A", 2, 0),
+            ....:                   ("C", "A", 2, 0)])
+            sage: fsm_simplified = fsm.simplification()
+            sage: fsm_simplified
+            Transducer with 2 states
+            sage: fsm_simplified.transitions()
+            [Transition from ('A',) to ('A',): 0|0,
+             Transition from ('A',) to ('B', 'C'): 1|1,0,
+             Transition from ('A',) to ('B', 'C'): 1|-1,0,
+             Transition from ('B', 'C') to ('A',): 2|-]
         """
         fsm = deepcopy(self)
         fsm.prepone_output()

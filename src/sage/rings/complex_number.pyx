@@ -544,7 +544,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
     def _pari_(self):
         r"""
-        Coerces ``self`` into a Pari ``complex`` object.
+        Coerces ``self`` into a PARI ``t_COMPLEX`` object,
+        or a ``t_REAL`` if ``self`` is real.
 
         EXAMPLES:
 
@@ -553,14 +554,26 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: a = ComplexNumber(2,1)
             sage: pari(a)
             2.00000000000000 + 1.00000000000000*I
+            sage: pari(a).type()
+            't_COMPLEX'
             sage: type(pari(a))
             <type 'sage.libs.pari.gen.gen'>
             sage: a._pari_()
             2.00000000000000 + 1.00000000000000*I
             sage: type(a._pari_())
             <type 'sage.libs.pari.gen.gen'>
+            sage: a = CC(pi)
+            sage: pari(a)
+            3.14159265358979
+            sage: pari(a).type()
+            't_REAL'
+            sage: a = CC(-2).sqrt()
+            sage: pari(a)
+            1.41421356237310*I
         """
-        return sage.libs.pari.all.pari.complex(self.real()._pari_(), self.imag()._pari_())
+        if self.is_real():
+            return self.real()._pari_()
+        return sage.libs.pari.all.pari.complex(self.real() or 0, self.imag())
 
     def _mpmath_(self, prec=None, rounding=None):
         """

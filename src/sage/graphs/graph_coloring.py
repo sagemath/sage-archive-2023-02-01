@@ -646,11 +646,11 @@ def grundy_coloring(g, k, value_only = True, solver = None, verbose = 0):
     classes = range(k)
 
     # b[v,i] is set to 1 if and only if v is colored with i
-    b = p.new_variable()
+    b = p.new_variable(binary = True)
 
     # is_used[i] is set to 1 if and only if color [i] is used by some
     # vertex
-    is_used = p.new_variable()
+    is_used = p.new_variable(binary = True)
 
     # Each vertex is in exactly one class
     for v in g:
@@ -678,10 +678,6 @@ def grundy_coloring(g, k, value_only = True, solver = None, verbose = 0):
     # is_used[i] can be set to 1 only if the color is used
     for i in classes:
         p.add_constraint( p.sum( b[v,i] for v in g ) - is_used[i], min = 0)
-
-    # Both variables are binary
-    p.set_binary(b)
-    p.set_binary(is_used)
 
     # Trying to use as many colors as possible
     p.set_objective( p.sum( is_used[i] for i in classes ) )
@@ -1264,7 +1260,7 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
     c = p.new_variable(binary = True)
 
     # relaxed value
-    r = p.new_variable()
+    r = p.new_variable(nonnegative=True)
 
     E = lambda x,y : (x,y) if x<y else (y,x)
 
@@ -1467,7 +1463,7 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
     c = p.new_variable(binary = True)
 
     # relaxed value
-    r = p.new_variable()
+    r = p.new_variable(nonnegative=True)
 
     E = lambda x,y : (x,y) if x<y else (y,x)
 

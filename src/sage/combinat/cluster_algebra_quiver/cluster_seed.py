@@ -918,6 +918,90 @@ class ClusterSeed(SageObject):
         seed._mutation_type = self._mutation_type
         return seed
 
+    def universal_extension(self):
+        r"""
+        Returns the universal extension of ``self``.
+
+        This is the initial seed of the associated cluster algebra
+        with universal coefficients, as defined in section 12 of
+        :arxiv:`math/0602259`.
+
+        This method works only if ``self`` is a bipartite, finite-type seed.
+
+        Due to some limitations in the current implementation of
+        ``CartanType``, we need to construct the set of almost positive
+        coroots by hand. As a consequence their ordering is not the
+        standard one (the rows of the bottom part of the exchange
+        matrix might be a shuffling of those you would expect).
+
+        EXAMPLES::
+
+            sage: S = ClusterSeed(['A',2])
+            sage: T = S.universal_extension()
+            sage: T.b_matrix()
+            [ 0  1]
+            [-1  0]
+            [-1  0]
+            [ 1  0]
+            [ 1 -1]
+            [ 0  1]
+            [ 0 -1]
+
+            sage: S = ClusterSeed(['A',3])
+            sage: T = S.universal_extension()
+            sage: T.b_matrix()
+            [ 0  1  0]
+            [-1  0 -1]
+            [ 0  1  0]
+            [-1  0  0]
+            [ 1  0  0]
+            [ 1 -1  0]
+            [ 1 -1  1]
+            [ 0  1  0]
+            [ 0 -1  0]
+            [ 0 -1  1]
+            [ 0  0 -1]
+            [ 0  0  1]
+
+            sage: S = ClusterSeed(['B',2])
+            sage: T = S.universal_extension()
+            sage: T.b_matrix()
+            [ 0  1]
+            [-2  0]
+            [-1  0]
+            [ 1  0]
+            [ 1 -1]
+            [ 2 -1]
+            [ 0  1]
+            [ 0 -1]
+
+        """
+        if self._m != 0:
+            raise ValueError("To have universal coefficients we need "
+                             "to start from a coefficient-free seed")
+        if not self.is_bipartite() or not self.is_finite():
+            raise ValueError("Universal coefficients are defined only "
+                             "for finite type cluster algebras at a "
+                             "bipartite initial cluster")
+
+        from sage.matrix.all import matrix
+        from sage.combinat.root_system.cartan_matrix import CartanMatrix
+
+        A = 2 - self.b_matrix().apply_map(abs).transpose()
+
+        rs = CartanMatrix(A).root_space()
+        almost_positive_coroots = rs.almost_positive_roots()
+
+        sign = [-1 if all(x <= 0 for x in self.b_matrix()[i]) else 1
+                for i in range(self._n)]
+        C = matrix([[sign[j] * alpha[j + 1] for j in range(self._n)]
+                    for alpha in almost_positive_coroots])
+
+        M = self._M.stack(C)
+        seed = ClusterSeed(M, is_principal=False)
+        seed._mutation_type = self._mutation_type
+        return seed
+
     def principal_extension(self,ignore_coefficients=False):
         r"""
         Returns the principal extension of self, yielding a 2n-by-n matrix.  Raises an error if the input seed has a non-square exchange matrix,

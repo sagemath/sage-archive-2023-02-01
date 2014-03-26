@@ -1683,7 +1683,10 @@ _inverse_laplace = function_factory('ilt',
 
 #######################################################
 
-symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma'}
+# Conversion dict for special maxima objects
+# c,k1,k2 are from ode2()
+symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma',\
+            '%c' : '_C', '%k1' : '_K1', '%k2' : '_K2'}
 
 from sage.misc.multireplace import multiple_replace
 import re

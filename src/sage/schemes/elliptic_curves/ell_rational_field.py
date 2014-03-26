@@ -1399,7 +1399,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             raise ValueError, "algorithm %s not defined"%algorithm
 
 
-    def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
+    def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=50, maxprob=20, limbigprime=30):
         r"""
         Computes a lower bound for the rank of the Mordell-Weil group `E(Q)`,
         the rank of the 2-Selmer group, and a list of points of infinite order on
@@ -1417,7 +1417,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         -  ``lim3`` - (default: 50) limite des points sur les
            quartiques ELS
 
-        -  ``limtriv`` - (default: 10) limite des points
+        -  ``limtriv`` - (default: 50) limite des points
            triviaux sur la courbe elliptique
 
         -  ``maxprob`` - (default: 20)
@@ -1467,7 +1467,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve('5077a1')
             sage: set_random_seed(0)
             sage: E.simon_two_descent()
-            (3, 3, [(1 : -1 : 1), (2 : 0 : 1), (0 : 2 : 1)])
+            (3, 3, [(1 : -1 : 1), (0 : 2 : 1), (2 : -1 : 1)])
 
         In this example Simon's program does not find any points, though it
         does correctly compute the rank of the 2-Selmer group.
@@ -1487,7 +1487,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve([1, -1, 0, -79, 289])
             sage: set_random_seed(0)
             sage: E.simon_two_descent()
-            (4, 4, [(4 : 3 : 1), (5 : -2 : 1), (6 : -1 : 1), (8 : 7 : 1)])
+            (4, 4, [(4 : 3 : 1), (5 : -2 : 1), (6 : -1 : 1), (8 : -15 : 1)])
             sage: E = EllipticCurve([0, 0, 1, -79, 342])
             sage: set_random_seed(0)
             sage: E.simon_two_descent()  # long time (9s on sage.math, 2011)

@@ -161,7 +161,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         EllipticCurve_field.__init__(self, [field(x) for x in ainvs])
         self._point = ell_point.EllipticCurvePoint_number_field
 
-    def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
+    def simon_two_descent(self, verbose=0, lim1=2, lim3=4, limtriv=2, maxprob=20, limbigprime=30):
         r"""
         Computes lower and upper bounds on the rank of the Mordell-Weil group,
         and a list of independent points. Used internally by the :meth:`~rank`,
@@ -171,11 +171,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         - ``verbose`` -- 0, 1, 2, or 3 (default: 0), the verbosity level
 
-        - ``lim1``    -- (default: 5) limit on trivial points on quartics
+        - ``lim1``    -- (default: 2) limit on trivial points on quartics.
 
-        - ``lim3``  -- (default: 50) limit on points on ELS quartics
+        - ``lim3``  -- (default: 4) limit on points on ELS quartics.
 
-        - ``limtriv`` -- (default: 10) limit on trivial points on elliptic curve
+        - ``limtriv`` -- (default: 2) limit on trivial points on elliptic curve.
 
         - ``maxprob`` -- (default: 20)
 
@@ -208,7 +208,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E == loads(dumps(E))
             True
             sage: E.simon_two_descent()
-            (2, 2, [(-1 : 0 : 1), (1/2*a - 5/2 : -1/2*a - 13/2 : 1)])
+            (2, 2, [(0 : 0 : 1), (1/8*a + 5/8 : -3/16*a - 7/16 : 1)])
             sage: E.simon_two_descent(lim1=3, lim3=20, limtriv=5, maxprob=7, limbigprime=10)
             (2, 2, [(-1 : 0 : 1), (-1/8*a + 5/8 : -3/16*a - 9/16 : 1)])
 
@@ -1856,7 +1856,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         T = self.torsion_subgroup() # make sure it is cached
         return sorted(T.points())           # these are also cached in T
 
-    def rank_bounds(self,verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
+    def rank_bounds(self,verbose=0, lim1=2, lim3=4, limtriv=2, maxprob=20, limbigprime=30):
         r"""
         Returns the lower and upper bounds using :meth:`~simon_two_descent`.
         The results of :meth:`~simon_two_descent` are cached.
@@ -1871,11 +1871,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         - ``verbose`` -- 0, 1, 2, or 3 (default: 0), the verbosity level
 
-        - ``lim1``    -- (default: 5) limit on trivial points on quartics
+        - ``lim1``    -- (default: 2) limit on trivial points on quartics
 
-        - ``lim3``  -- (default: 50) limit on points on ELS quartics
+        - ``lim3``  -- (default: 4) limit on points on ELS quartics
 
-        - ``limtriv`` -- (default: 10) limit on trivial points on elliptic curve
+        - ``limtriv`` -- (default: 2) limit on trivial points on elliptic curve
 
         - ``maxprob`` -- (default: 20)
 
@@ -1933,7 +1933,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         upper -= self.two_torsion_rank()
         return lower, upper
 
-    def rank(self,verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
+    def rank(self,verbose=0, lim1=2, lim3=4, limtriv=2, maxprob=20, limbigprime=30):
         r"""
         Return the rank of this elliptic curve, if it can be determined.
 
@@ -1947,11 +1947,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         - ``verbose`` -- 0, 1, 2, or 3 (default: 0), the verbosity level
 
-        - ``lim1``    -- (default: 5) limit on trivial points on quartics
+        - ``lim1``    -- (default: 2) limit on trivial points on quartics
 
-        - ``lim3``  -- (default: 50) limit on points on ELS quartics
+        - ``lim3``  -- (default: 4) limit on points on ELS quartics
 
-        - ``limtriv`` -- (default: 10) limit on trivial points on elliptic curve
+        - ``limtriv`` -- (default: 2) limit on trivial points on elliptic curve
 
         - ``maxprob`` -- (default: 20)
 
@@ -2006,7 +2006,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         else:
             raise ValueError, 'There is insufficient data to determine the rank - 2-descent gave lower bound %s and upper bound %s' % (lower, upper)
 
-    def gens(self,verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
+    def gens(self,verbose=0, lim1=2, lim3=4, limtriv=2, maxprob=20, limbigprime=30):
         r"""
         Returns some points of infinite order on this elliptic curve.
         They are not necessarily linearly independent.
@@ -2024,11 +2024,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         - ``verbose`` -- 0, 1, 2, or 3 (default: 0), the verbosity level
 
-        - ``lim1``    -- (default: 5) limit on trivial points on quartics
+        - ``lim1``    -- (default: 2) limit on trivial points on quartics
 
-        - ``lim3``  -- (default: 50) limit on points on ELS quartics
+        - ``lim3``  -- (default: 4) limit on points on ELS quartics
 
-        - ``limtriv`` -- (default: 10) limit on trivial points on elliptic curve
+        - ``limtriv`` -- (default: 2) limit on trivial points on elliptic curve
 
         - ``maxprob`` -- (default: 20)
 
@@ -2052,7 +2052,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E == loads(dumps(E))
             True
             sage: E.gens()
-            [(-1 : 0 : 1), (1/2*a - 5/2 : -1/2*a - 13/2 : 1)]
+            [(0 : 0 : 1), (1/8*a + 5/8 : -3/16*a - 7/16 : 1)]
 
 
         Here is a curve of rank 2, yet the list contains many points::
@@ -2484,8 +2484,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E = EllipticCurve(K, '37')
             sage: E.lll_reduce(E.gens())
             (
-                                                    [1 1]
-            [(-1 : 0 : 1), (-2 : 1/2*a - 1/2 : 1)], [0 1]
+                                                    [ 1 -1]
+            [(0 : 0 : 1), (-2 : -1/2*a - 1/2 : 1)], [ 0  1]
             )
 
         ::

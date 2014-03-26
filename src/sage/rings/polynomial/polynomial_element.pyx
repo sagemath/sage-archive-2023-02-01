@@ -88,7 +88,9 @@ import polynomial_fateman
 
 from sage.rings.integer cimport Integer
 from sage.rings.ideal import is_Ideal
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 
 from sage.categories.map cimport Map
 from sage.categories.morphism cimport Morphism
@@ -4990,8 +4992,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         if self.is_zero():
             return self.parent().zero_element()
-        n = self.degree()
-        d = self.derivative()
+        poly = self
+        if is_MPolynomialRing(self.parent().base_ring()):
+            # It is often cheaper to compute discriminant of simple
+            # multivariate polynomial and substitute the real
+            # coefficients into that result (see #16014).
+            ex = self.exponents()
+            pr1 = PolynomialRing(ZZ, "x", len(ex))
+            pr2 = PolynomialRing(pr1, "y")
+            y = pr2.gen()
+            poly = sum(v*(y**e) for v, e in zip(pr1.gens(), ex))
+        n = poly.degree()
+        d = poly.derivative()
         k = d.degree()
 
         r = n % 4
@@ -4999,17 +5011,20 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if r == 0 or r == 1:
             u = 1
         try:
-            an = self[n]**(n - k - 2)
+            an = poly[n]**(n - k - 2)
         except ZeroDivisionError:
             assert(n-k-2 == -1)
             # Rather than dividing the resultant by the leading coefficient,
             # we alter the Sylvester matrix (see #11782).
-            mat = self.sylvester_matrix(d)
-            mat[0, 0] = self.base_ring()(1)
-            mat[n - 1, 0] = self.base_ring()(n)
-            return u * mat.determinant()
+            mat = poly.sylvester_matrix(d)
+            mat[0, 0] = poly.base_ring()(1)
+            mat[n - 1, 0] = poly.base_ring()(n)
+            res = u * mat.determinant()
         else:
-            return self.base_ring()(u * self.resultant(d) * an)
+            res = poly.base_ring()(u * poly.resultant(d) * an)
+        if poly is not self:
+            res = res(self.coefficients())
+        return res
 
     def reverse(self, degree=None):
         """

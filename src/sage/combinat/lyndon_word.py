@@ -69,7 +69,7 @@ def LyndonWords(e=None, k=None):
         word: 112
         sage: LW.last()
         word: 233
-        sage: LW.random_element()
+        sage: LW.random_element() # random
         word: 112
         sage: LW.cardinality()
         8

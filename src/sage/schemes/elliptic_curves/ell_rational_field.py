@@ -1397,7 +1397,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             raise ValueError, "algorithm %s not defined"%algorithm
 
 
-    def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
+    def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=50, maxprob=20, limbigprime=30):
         r"""
         Computes a lower bound for the rank of the Mordell-Weil group `E(Q)`,
         the rank of the 2-Selmer group, and a list of points of infinite order on
@@ -1415,7 +1415,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         -  ``lim3`` - (default: 50) limite des points sur les
            quartiques ELS
 
-        -  ``limtriv`` - (default: 10) limite des points
+        -  ``limtriv`` - (default: 50) limite des points
            triviaux sur la courbe elliptique
 
         -  ``maxprob`` - (default: 20)

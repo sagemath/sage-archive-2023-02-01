@@ -127,6 +127,11 @@ class Words_all(InfiniteAbstractCombinatorialClass):
         sage: Words_all().cardinality()
         +Infinity
 
+        sage: isinstance(Words('ab'), Words_all)
+        True
+        sage: isinstance(33, Words_all)
+        False
+
     We would like the instance of this class to be unique::
 
         sage: Words() is Words()   # todo: not implemented
@@ -713,6 +718,12 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             sage: W = Words_over_Alphabet(build_alphabet('ab'))
             sage: W.alphabet()
             {'a', 'b'}
+
+            sage: w = Word('abaccefa')
+            sage: w.parent().alphabet()
+            Set of Python objects of type 'object'
+            sage: Words('456').alphabet()
+            {'4', '5', '6'}
         """
         return self._alphabet
 
@@ -723,6 +734,8 @@ class Words_all(InfiniteAbstractCombinatorialClass):
         EXAMPLES::
 
             sage: Words().size_of_alphabet()
+            +Infinity
+            sage: Word('abaccefa').parent().size_of_alphabet()
             +Infinity
         """
         return Infinity
@@ -839,6 +852,8 @@ class Words_over_Alphabet(Words_all):
             6
             sage: Words('').size_of_alphabet()
             0
+            sage: Words('456').size_of_alphabet()
+            3
         """
         return self.alphabet().cardinality()
 

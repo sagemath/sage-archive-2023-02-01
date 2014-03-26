@@ -55,6 +55,16 @@ class OrderedSetPartition(ClonableArray):
     set partition, that is the sequence of sizes of all its parts in
     order.
 
+    The number `T_n` of ordered set partitions of
+    `\{ 1, 2, ..., n \}` is the so-called `n`-th *Fubini number*. Its
+    exponential generating function is
+    
+    .. MATH::
+    
+        \sum_n {T_n \over n!} x^n = {1 \over 2-e^x}.
+
+    (See sequence A000670 in OEIS.)
+
     EXAMPLES:
 
     There are 13 ordered set partitions of `\{1,2,3\}`::
@@ -106,6 +116,10 @@ class OrderedSetPartition(ClonableArray):
         [{1, 3}, {2, 4}]
         sage: s.parent()
         Ordered set partitions of {1, 2, 3, 4}
+
+    REFERENCES:
+
+    :wikipedia:`Ordered_partition_of_a_set`
     """
     __metaclass__ = ClasscallMetaclass
 

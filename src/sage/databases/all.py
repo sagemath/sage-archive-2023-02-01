@@ -8,10 +8,13 @@ This file gathers together all the tables in Sage.
     * JonesDatabase() -- returns the John Jones table of number fields
       with bounded ramification and degree <= 6.
 
+    * oeis -- The On-Line Encyclopedia of Integer Sequences (http://oeis.org/).
+
+    * SloaneEncyclopedia -- Local copy of Sloane On-Line Encyclopedia of
+      Integer Sequences.
+
     * SteinWatkinsAllData() and SteinWatkinsPrimeData() - The
       Stein-Watkins tables of elliptic curves and related data.
-
-    * Sloane's tables -- sloane_sequence, sloane_find
 
     * SymbolicData() -- many benchmark and testing ideals
 
@@ -25,6 +28,9 @@ EXAMPLES::
 
     sage: JonesDatabase()
     John Jones's table of number fields with bounded ramification and degree <= 6
+
+    sage: oeis
+    The On-Line Encyclopedia of Integer Sequences (http://oeis.org/)
 
     sage: SymbolicData()
     SymbolicData with ... ideals
@@ -53,6 +59,9 @@ from stein_watkins import SteinWatkinsAllData, SteinWatkinsPrimeData
 from install import database_install
 
 from sloane import sloane_sequence, sloane_find, SloaneEncyclopedia
+
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.databases.oeis', 'oeis')
 
 from symbolic_data import SymbolicData
 

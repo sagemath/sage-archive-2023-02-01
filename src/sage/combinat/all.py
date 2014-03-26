@@ -1,4 +1,15 @@
-from combinat import *
+from combinat import bell_number, catalan_number, euler_number, fibonacci, \
+        lucas_number1, lucas_number2, stirling_number1, stirling_number2, \
+        CombinatorialObject, CombinatorialClass, FilteredCombinatorialClass, \
+        UnionCombinatorialClass, MapCombinatorialClass, \
+        InfiniteAbstractCombinatorialClass, \
+        number_of_combinations, number_of_arrangements, \
+        derangements, number_of_derangements, tuples, number_of_tuples, \
+        unordered_tuples, number_of_unordered_tuples, permutations, \
+        permutations_iterator, number_of_permutations, cyclic_permutations, \
+        cyclic_permutations_iterator, bell_polynomial, fibonacci_sequence, \
+        fibonacci_xrange, bernoulli_polynomial
+
 from expnums import expnums
 
 from sage.combinat.crystals.all import *
@@ -26,7 +37,8 @@ from affine_permutation import AffinePermutationGroup
 from derangements import Derangements
 
 #RSK
-from rsk import RSK, RSK_inverse, RobinsonSchenstedKnuth, RobinsonSchenstedKnuth_inverse
+from rsk import RSK, RSK_inverse, robinson_schensted_knuth, robinson_schensted_knuth_inverse,\
+                RobinsonSchenstedKnuth, RobinsonSchenstedKnuth_inverse
 
 #PerfectMatchings
 from perfect_matching import PerfectMatching, PerfectMatchings
@@ -44,11 +56,7 @@ from partition import Partition, Partitions, PartitionsInBox,\
      OrderedPartitions, PartitionsGreatestLE, PartitionsGreatestEQ,\
      PartitionsGreatestLE, PartitionsGreatestEQ, number_of_partitions
 #Functions being deprecated from partition
-from partition import partitions_set, RestrictedPartitions, number_of_partitions_set,\
-    ordered_partitions, number_of_ordered_partitions, partitions,\
-     cyclic_permutations_of_partition, cyclic_permutations_of_partition_iterator,\
-     partitions_greatest, partitions_greatest_eq, partitions_tuples,\
-     number_of_partitions_tuples, partition_power
+from partition import RestrictedPartitions
 
 from sage.combinat.partition_tuple import PartitionTuple, PartitionTuples
 from skew_partition import SkewPartition, SkewPartitions
@@ -83,7 +91,7 @@ from ribbon import Ribbon, StandardRibbons
 
 
 from sage.combinat.tableau_tuple import TableauTuple, StandardTableauTuple, TableauTuples, StandardTableauTuples
-from k_tableau import WeakTableau, WeakTableaux
+from k_tableau import WeakTableau, WeakTableaux, StrongTableau, StrongTableaux
 
 #Words
 from words.all import *
@@ -122,6 +130,7 @@ from sloane_functions import sloane
 from root_system.all import *
 from sf.all import *
 from ncsf_qsym.all import *
+from ncsym.all import *
 from matrices.all import *
 # Posets
 from posets.all import *
@@ -157,4 +166,14 @@ from knutson_tao_puzzles import KnutsonTaoPuzzleSolver
 
 # Gelfand-Tsetlin patterns
 from gelfand_tsetlin_patterns import GelfandTsetlinPattern, GelfandTsetlinPatterns
+
+# Finite State Machines (Automaton, Transducer)
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.combinat.finite_state_machine',
+            ['Automaton', 'Transducer', 'FiniteStateMachine'])
+# Binary Recurrence Sequences
+from binary_recurrence_sequences import BinaryRecurrenceSequence
+
+# Six Vertex Model
+lazy_import('sage.combinat.six_vertex_model', 'SixVertexModel')
 

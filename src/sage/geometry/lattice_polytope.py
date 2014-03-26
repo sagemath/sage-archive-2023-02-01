@@ -106,7 +106,8 @@ from sage.geometry.point_collection import PointCollection, is_PointCollection
 from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice
 from sage.graphs.graph import Graph
 from sage.interfaces.all import maxima
-from sage.matrix.all import matrix, is_Matrix
+from sage.matrix.all import matrix
+from sage.matrix.matrix import is_Matrix
 from sage.misc.all import cached_method, tmp_filename
 from sage.misc.misc import SAGE_SHARE
 from sage.misc.superseded import deprecation
@@ -629,7 +630,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             True
         """
         self.__dict__.update(state)
-        if state.has_key('_faces'):     # Faces do not remember polytopes
+        if '_faces' in state:     # Faces do not remember polytopes
             for d_faces in self._faces:
                 for face in d_faces:
                     face._polytope = self
@@ -726,10 +727,10 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
             sage: o = lattice_polytope.octahedron(3)
             sage: v = o.__dict__.pop("_faces", None) # faces may be cached already
-            sage: o.__dict__.has_key("_faces")
+            sage: "_faces" in o.__dict__
             False
             sage: o._compute_faces()
-            sage: o.__dict__.has_key("_faces")
+            sage: "_faces" in o.__dict__
             True
 
         Check that Trac 8934 is fixed::
@@ -898,10 +899,10 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: o = lattice_polytope.octahedron(3)
             sage: e = o.faces(dim=1)[0]
             sage: v = e.__dict__.pop("_points", None) # points may be cached already
-            sage: e.__dict__.has_key("_points")
+            sage: "_points" in e.__dict__
             False
             sage: o._face_compute_points(e)
-            sage: e.__dict__.has_key("_points")
+            sage: "_points" in e.__dict__
             True
         """
         m = self.distances().matrix_from_rows(face._facets)
@@ -920,10 +921,10 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: c = lattice_polytope.octahedron(3).polar()
             sage: f = c.facets()[0]
             sage: v = f.__dict__.pop("_interior_points", None)
-            sage: f.__dict__.has_key("_interior_points")
+            sage: "_interior_points" in f.__dict__
             False
             sage: v = f.__dict__.pop("_boundary_points", None)
-            sage: f.__dict__.has_key("_boundary_points")
+            sage: "_boundary_points" in f.__dict__
             False
             sage: c._face_split_points(f)
             sage: f._interior_points
@@ -1157,7 +1158,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                2  -1
               -1   2
               -1  -1
-            sage: p.__dict__.has_key("_polar")
+            sage: "_polar" in p.__dict__
             False
             sage: p._read_equations(s)
             sage: p._polar._vertices
@@ -1174,9 +1175,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             M( 0,  2),
             M(-1, -3)
             in 2-d lattice M
-            sage: p.__dict__.has_key("_facet_normals")
+            sage: "_facet_normals" in p.__dict__
             False
-            sage: p.__dict__.has_key("_facet_constants")
+            sage: "_facet_constants" in p.__dict__
             False
             sage: s = p.poly_x("e")
             sage: print s
@@ -1259,7 +1260,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             f[1]: 00000011 00000101 00010001 00001010 00100010 00001100 01000100 10001000 00110000 01010000 10100000 11000000
             f[2]: 00000001 00000010 00000100 00001000 00010000 00100000 01000000 10000000
             sage: v = o.__dict__.pop("_faces", None)
-            sage: o.__dict__.has_key("_faces")
+            sage: "_faces" in o.__dict__
             False
             sage: o._read_faces(s)
             sage: o._faces
@@ -1356,7 +1357,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         destroy cache integrity and lead so strange effects in other doctests::
 
             sage: o_copy = LatticePolytope(o.vertices_pc())
-            sage: o_copy.__dict__.has_key("_nef_partitions")
+            sage: "_nef_partitions" in o_copy.__dict__
             False
             sage: o_copy._read_nef_partitions(s)
             sage: o_copy._nef_partitions
@@ -4070,9 +4071,9 @@ class _PolytopeFace(SageObject):
         state.pop('_polytope')
         state.pop('_vertices')
         state.pop('_facets')
-        if state.has_key('_points'):
+        if '_points' in state:
             state['_npoints'] = len(state.pop('_points'))
-        if state.has_key('_interior_points'):
+        if '_interior_points' in state:
             state['_ninterior_points'] = len(state.pop('_interior_points'))
             state.pop('_boundary_points')
         # Reference to the polytope is not pickled - the polytope will restore it
@@ -5019,7 +5020,7 @@ def octahedron(dim):
         sage: o is lattice_polytope.octahedron(4)
         True
     """
-    if _octahedrons.has_key(dim):
+    if dim in _octahedrons:
         return _octahedrons[dim]
     else:
         _octahedrons[dim] = _create_octahedron(dim)

@@ -1,4 +1,24 @@
-from sage.server.notebook.applet import Applet
+r"""
+Interactive OpenGL based 3D
+
+TESTS:
+
+Make sure this module can be imported properly::
+
+    sage: import sage.plot.java3d
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
+from sagenb.notebook.applet import Applet
 
 sun_libs = ["libs/objtest.jar", "applet-launcher.jar", "j3dcore.jar", "j3dutils.jar", "vecmath.jar", "jogl.jar", "gluegen-rt.jar"]
 sun_params = { "codebase_lookup": "false",

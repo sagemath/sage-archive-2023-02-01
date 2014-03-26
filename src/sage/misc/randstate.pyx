@@ -756,7 +756,7 @@ cdef class randstate:
 
 
          if prev is not self:
-             if self._gp_saved_seeds is not None and self._gp_saved_seeds.has_key(gp):
+             if self._gp_saved_seeds is not None and gp in self._gp_saved_seeds:
 
                  seed = self._gp_saved_seeds[gp]
              else:
@@ -794,7 +794,7 @@ cdef class randstate:
          """
          global _pari_seed_randstate
          if _pari_seed_randstate is not self:
-             from sage.libs.pari.gen import pari
+             from sage.libs.pari.all import pari
 
              if self._pari_saved_seed is not None:
                  seed = self._pari_saved_seed

@@ -215,8 +215,11 @@ We decompose a Brandt module over both `\ZZ` and `\QQ`.::
 
 # imports
 from sage.misc.all     import prod, verbose
-from sage.rings.all    import (Integer, ZZ, QQ, is_CommutativeRing, prime_divisors,
-                            kronecker, PolynomialRing, GF, next_prime, lcm, gcd)
+from sage.rings.all    import (Integer, ZZ, QQ, prime_divisors,
+                               kronecker, PolynomialRing, GF, next_prime,
+                               lcm, gcd)
+
+from sage.rings.commutative_ring import is_CommutativeRing
 
 from sage.algebras.quatalg.quaternion_algebra import QuaternionAlgebra, basis_for_quaternion_lattice
 from sage.algebras.quatalg.quaternion_algebra_cython import rational_matrix_from_rational_quaternions
@@ -306,7 +309,7 @@ def BrandtModule(N, M=1, weight=2, base_ring=QQ, use_cache=True):
         raise TypeError, "base_ring must be a commutative ring"
     key = (N, M, weight, base_ring)
     if use_cache:
-        if cache.has_key(key):  # TODO: re-enable caching!
+        if key in cache:  # TODO: re-enable caching!
             return cache[key]
     if weight != 2:
         raise NotImplementedError, "weight != 2 not yet implemented"
@@ -827,7 +830,7 @@ class BrandtModule_class(AmbientHeckeModule):
         n = ZZ(n)
         if n <= 0:
             raise IndexError, "n must be positive."
-        if not self._hecke_matrices.has_key(n):
+        if n not in self._hecke_matrices:
             if algorithm == 'default':
                 try: pr = len(self.__brandt_series_vectors[0][0])
                 except (AttributeError, IndexError): pr = 0

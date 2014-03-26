@@ -15,13 +15,15 @@ Support for symbolic functions.
 include "sage/ext/interrupt.pxi"
 include "sage/ext/cdefs.pxi"
 
-from sage.libs.ginac cimport *
+from ginac cimport *
 
 from sage.structure.sage_object cimport SageObject
 from expression cimport new_Expression_from_GEx, Expression
 from ring import SR
 
 from sage.structure.parent cimport Parent
+from sage.structure.coerce import parent
+from sage.structure.element import get_coercion_model
 
 # we keep a database of symbolic functions initialized in a session
 # this also makes the .operator() method of symbolic expressions work
@@ -185,7 +187,7 @@ cdef class Function(SageObject):
         self._serial = g_register_new(opt)
         g_foptions_assign(g_registered_functions().index(self._serial), opt)
 
-    def _eval_default(self, x):
+    def _eval_default(self, *args):
         """
         Default automatic evaluation function.
 
@@ -193,25 +195,68 @@ cdef class Function(SageObject):
 
         TESTS::
 
-            sage: cot(0.5) #indirect doctest
-            1.83048772171245
-            sage: cot(complex(1,2))
-            (0.0327977555337526-0.98432922645819...j)
+            sage: coth(5)  # indirect doctest
+            coth(5)
+            sage: coth(0.5)
+            2.16395341373865
+            sage: from sage.symbolic.function import BuiltinFunction
+            sage: class Test(BuiltinFunction):
+            ....:     def __init__(self):
+            ....:         BuiltinFunction.__init__(self, 'test', nargs=2)
+            ....:     def _evalf_(self, x, y, parent):
+            ....:         return x + 1
+            ....:     def _eval_(self, x, y):
+            ....:         res = self._eval_default(x, y)
+            ....:         if res:
+            ....:             return res
+            ....:         elif x == 2:
+            ....:             return 3
+            ....:         else:
+            ....:             return
+            sage: test = Test()
+            sage: test(1.3, 4)
+            2.30000000000000
+            sage: test(pi, 4)
+            test(pi, 4)
+            sage: test(2, x)
+            3
+            sage: test(2., 4)
+            3.00000000000000
+            sage: test(1 + 1.0*I, 2)
+            2.00000000000000 + 1.00000000000000*I
+            sage: class Test2(BuiltinFunction):
+            ....:     def __init__(self):
+            ....:         BuiltinFunction.__init__(self, 'test', nargs=1)
+            ....:     def _evalf_(self, x, parent):
+            ....:         return 0.5
+            ....:     def _eval_(self, x):
+            ....:         res = self._eval_default(x)
+            ....:         if res:
+            ....:             return res
+            ....:         else:
+            ....:             return 3
+            sage: test2 = Test2()
+            sage: test2(1.3)
+            0.500000000000000
+            sage: test2(pi)
+            3
         """
-        if isinstance(x, (int, long)):
-            return None
-
-        if isinstance(x, float):
-            return self._evalf_(x, float)
-        if isinstance(x, complex):
-            return self._evalf_(x, complex)
-        if isinstance(x, Element):
-            if x.parent().is_exact():
-                return None
-        try:
-            return getattr(x, self.name())()
-        except AttributeError:
-            pass
+        if len(args) == 1:
+            x = args[0]
+            try:
+                return getattr(x, self.name())()
+            except AttributeError:
+                pass
+            if is_inexact(x) and not parent_c(x) is SR:
+                return self._evalf_(x, parent=parent(x))
+            return
+        else:
+            cc = get_coercion_model().canonical_coercion
+            coerced = reduce(lambda x, y: cc(x, y)[0], args)
+            if is_inexact(coerced) and not parent_c(coerced) is SR:
+                return self._evalf_(*args, parent=parent(coerced))
+            else:
+                return
 
     def __hash__(self):
         """
@@ -414,7 +459,7 @@ cdef class Function(SageObject):
                     else:
                         try:
                             nargs[i] = SR.coerce(carg)
-                        except StandardError:
+                        except Exception:
                             raise TypeError, "cannot coerce arguments: %s"%(err)
                 args = nargs
         else: # coerce == False
@@ -673,7 +718,7 @@ cdef class GinacFunction(BuiltinFunction):
             raise ValueError, "cannot find GiNaC function with name %s and %s arguments"%(fname, self._nargs)
 
         global sfunction_serial_dict
-        return sfunction_serial_dict.has_key(self._serial)
+        return self._serial in sfunction_serial_dict
 
     cdef _register_function(self):
         # We don't need to add anything to GiNaC's function registry
@@ -853,7 +898,7 @@ cdef class BuiltinFunction(Function):
 
         # if match, get operator from function table
         global sfunction_serial_dict
-        if serial != -1 and sfunction_serial_dict.has_key(self._name) and \
+        if serial != -1 and self._name in sfunction_serial_dict and \
                 sfunction_serial_dict[self._name].__class__ == self.__class__:
                     # if the returned function is of the same type
                     self._serial = serial
@@ -915,7 +960,7 @@ cdef class SymbolicFunction(Function):
             sage: class my_function(SymbolicFunction):
             ....:     def __init__(self):
             ....:         SymbolicFunction.__init__(self, 'foo', nargs=2)
-            ....:     def _evalf_(self, x, y, parent=None):
+            ....:     def _evalf_(self, x, y, parent=None, algorithm=None):
             ....:         return x*y*2r
             ....:     def _conjugate_(self, x, y):
             ....:         return x
@@ -1039,7 +1084,7 @@ cdef class SymbolicFunction(Function):
             sage: u(y,x)
             2*y
 
-            sage: def evalf_f(self, x, parent=None): return int(6)
+            sage: def evalf_f(self, x, **kwds): return int(6)
             sage: foo = function("foo", nargs=1, evalf_func=evalf_f)
             sage: foo.__getstate__()
             (2, 'foo', 1, None, {}, True, [None, "...", None, None, None, None, None, None, None, None, None])

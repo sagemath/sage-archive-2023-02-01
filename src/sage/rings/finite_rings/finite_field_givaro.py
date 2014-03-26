@@ -128,7 +128,7 @@ class FiniteField_givaro(FiniteField):
             if k == 1:
                 modulus = 'random' # this will use the gfq_factory_pk function.
             elif ConwayPolynomials().has_polynomial(p, k):
-                from sage.rings.finite_rings.constructor import conway_polynomial
+                from sage.rings.finite_rings.conway_polynomials import conway_polynomial
                 modulus = conway_polynomial(p, k)
             elif modulus is None:
                 modulus = 'random'
@@ -349,50 +349,12 @@ class FiniteField_givaro(FiniteField):
             sage: k(48771/1225)
             28
 
-            sage: from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
-            sage: F9 = FiniteField_givaro(9)
-            sage: F81 = FiniteField_givaro(81)
+            sage: F9 = FiniteField(9, impl='givaro', conway=True, prefix='a')
+            sage: F81 = FiniteField(81, impl='givaro', conway=True, prefix='a')
             sage: F81(F9.gen())
-            Traceback (most recent call last):
-            ...
-            TypeError: unable to coerce from a finite field other than the prime subfield
+            2*a4^3 + 2*a4^2 + 1
         """
         return self._cache.element_from_data(e)
-
-    def _coerce_map_from_(self, R):
-        """
-        Returns ``True`` if this finite field has a coercion map from ``R``.
-
-        EXAMPLES::
-
-            sage: k.<a> = GF(3^8)
-            sage: a + 1 # indirect doctest
-            a + 1
-            sage: a + int(1)
-            a + 1
-            sage: a + GF(3)(1)
-            a + 1
-        """
-        from sage.rings.integer_ring import ZZ
-        from sage.rings.finite_rings.finite_field_base import is_FiniteField
-        from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
-        if R is int or R is long or R is ZZ:
-            return True
-        if is_FiniteField(R):
-            if R is self:
-                return True
-            from sage.rings.residue_field import ResidueField_generic
-            if isinstance(R, ResidueField_generic):
-                return False
-            if R.characteristic() == self.characteristic():
-                if isinstance(R, IntegerModRing_generic):
-                    return True
-                if R.degree() == 1:
-                    return True
-                elif self.degree() % R.degree() == 0:
-                    # This is where we *would* do coercion from one nontrivial finite field to another...
-                    # We use this error message for backward compatibility until #8335 is finished
-                    raise TypeError, "unable to coerce from a finite field other than the prime subfield"
 
     def gen(self, n=0):
         r"""
@@ -662,3 +624,50 @@ class FiniteField_givaro(FiniteField):
         """
         return self._cache.c_minus_a_times_b(a, b, c)
 
+    def frobenius_endomorphism(self, n=1):
+        """
+        INPUT:
+
+        -  ``n`` -- an integer (default: 1)
+
+        OUTPUT:
+
+        The `n`-th power of the absolute arithmetic Frobenius
+        endomorphism on this finite field.
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(3^5)
+            sage: Frob = k.frobenius_endomorphism(); Frob
+            Frobenius endomorphism t |--> t^3 on Finite Field in t of size 3^5
+
+            sage: a = k.random_element()
+            sage: Frob(a) == a^3
+            True
+
+        We can specify a power::
+
+            sage: k.frobenius_endomorphism(2)
+            Frobenius endomorphism t |--> t^(3^2) on Finite Field in t of size 3^5
+
+        The result is simplified if possible::
+
+            sage: k.frobenius_endomorphism(6)
+            Frobenius endomorphism t |--> t^3 on Finite Field in t of size 3^5
+            sage: k.frobenius_endomorphism(5)
+            Identity endomorphism of Finite Field in t of size 3^5
+
+        Comparisons work::
+
+            sage: k.frobenius_endomorphism(6) == Frob
+            True
+            sage: from sage.categories.morphism import IdentityMorphism
+            sage: k.frobenius_endomorphism(5) == IdentityMorphism(k)
+            True
+
+        AUTHOR:
+
+        - Xavier Caruso (2012-06-29)
+        """
+        from sage.rings.finite_rings.hom_finite_field_givaro import FrobeniusEndomorphism_givaro
+        return FrobeniusEndomorphism_givaro(self, n)

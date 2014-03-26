@@ -39,11 +39,13 @@ Currently, this module gathers the following designs :
     :delim: |
 
     :meth:`~sage.combinat.designs.block_design.ProjectiveGeometryDesign`
+    :meth:`~sage.combinat.designs.block_design.ProjectivePlaneDesign`
     :meth:`~sage.combinat.designs.block_design.AffineGeometryDesign`
     :meth:`~sage.combinat.designs.block_design.WittDesign`
     :meth:`~sage.combinat.designs.block_design.HadamardDesign`
+    :meth:`~sage.combinat.designs.latin_squares.mutually_orthogonal_latin_squares`
     :meth:`~sage.combinat.designs.block_design.steiner_triple_system`
-    :meth:`~sage.combinat.designs.block_design.steiner_quadruple_system`
+    :meth:`~sage.combinat.designs.steiner_quadruple_systems.steiner_quadruple_system`
 
 And the :meth:`designs.best_known_covering_design_from_LJCR
 <sage.combinat.designs.covering_design.best_known_covering_design_www>` function
@@ -59,6 +61,7 @@ REFERENCES:
   http://www.ccrwest.org/cover.html
 """
 from sage.combinat.designs.block_design import (ProjectiveGeometryDesign,
+                                                ProjectivePlaneDesign,
                                                 AffineGeometryDesign,
                                                 WittDesign,
                                                 HadamardDesign,
@@ -67,3 +70,5 @@ from sage.combinat.designs.block_design import (ProjectiveGeometryDesign,
 from sage.combinat.designs.steiner_quadruple_systems import steiner_quadruple_system
 
 from sage.combinat.designs.covering_design import best_known_covering_design_www as best_known_covering_design_from_LJCR
+
+from sage.combinat.designs.latin_squares import mutually_orthogonal_latin_squares

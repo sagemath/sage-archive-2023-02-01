@@ -16,10 +16,11 @@ This module defines the class ``EllipticCurve_field``, based on
 
 import ell_generic
 import sage.rings.all as rings
+from sage.rings.complex_field import is_ComplexField
+from sage.rings.real_mpfr import is_RealField
 from constructor import EllipticCurve
 
 from ell_curve_isogeny import EllipticCurveIsogeny, isogeny_codomain_from_kernel
-from ell_wp import weierstrass_p
 
 class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
@@ -657,14 +658,14 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
                     jbase = g.preimage(j)
                     f = g
                     break
-                except StandardError:
+                except Exception:
                     pass
             if f == None:
                 return None
         else:
             try:
                 jbase = f.preimage(j)
-            except StandardError:
+            except Exception:
                 return None
         E = EllipticCurve(j=jbase)
         E2 = EllipticCurve(self.base_field(), [f(a) for a in E.a_invariants()])
@@ -692,7 +693,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         if Etwist.is_isomorphic(self):
             try:
                 Eout = EllipticCurve(K, [f.preimage(a) for a in Etwist.a_invariants()])
-            except StandardError:
+            except Exception:
                 return None
             else:
                 return Eout
@@ -835,14 +836,14 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         """
         return isogeny_codomain_from_kernel(self, kernel, degree=None)
 
-    def isogenies_prime_degree(self, l=None):
+    def isogenies_prime_degree(self, l=None, max_l=31):
         """
-        Generic code, valid for all fields, for those l for which the
-        modular curve has genus 0.
+        Generic code, valid for all fields, for arbitrary prime `l` not equal to the characteristic.
 
         INPUT:
 
-        - ``l`` -- either None, a prime or a list of primes, from [2,3,5,7,13].
+        - ``l`` -- either None, a prime or a list of primes.
+        - ``max_l`` -- a bound on the primes to be tested (ignored unless `l` is None).
 
         OUTPUT:
 
@@ -851,7 +852,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         METHOD:
 
         Calls the generic function
-        ``isogenies_prime_degree_genus_0()``.  This requires that
+        ``isogenies_prime_degree()``.  This requires that
         certain operations have been implemented over the base field,
         such as root-finding for univariate polynomials.
 
@@ -860,6 +861,10 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             sage: F = QQbar
             sage: E = EllipticCurve(F, [1,18]); E
             Elliptic Curve defined by y^2 = x^3 + x + 18 over Algebraic Field
+            sage: E.isogenies_prime_degree()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: This code could be implemented for QQbar, but has not been yet.
 
             sage: F = CC
             sage: E = EllipticCurve(F, [1,18]); E
@@ -873,7 +878,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
             sage: E = EllipticCurve(GF(next_prime(1000000)), [7,8])
             sage: E.isogenies_prime_degree()
-            [Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 970389*x + 794257 over Finite Field of size 1000003, Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 29783*x + 206196 over Finite Field of size 1000003, Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 999960*x + 78 over Finite Field of size 1000003, Isogeny of degree 13 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 878063*x + 845666 over Finite Field of size 1000003, Isogeny of degree 13 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 375648*x + 342776 over Finite Field of size 1000003]
+            [Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 970389*x + 794257 over Finite Field of size 1000003, Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 29783*x + 206196 over Finite Field of size 1000003, Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 999960*x + 78 over Finite Field of size 1000003, Isogeny of degree 13 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 878063*x + 845666 over Finite Field of size 1000003, Isogeny of degree 13 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 375648*x + 342776 over Finite Field of size 1000003, Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 347438*x + 594729 over Finite Field of size 1000003, Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 674846*x + 7392 over Finite Field of size 1000003, Isogeny of degree 23 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 390065*x + 605596 over Finite Field of size 1000003]
             sage: E.isogenies_prime_degree(2)
             [Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 970389*x + 794257 over Finite Field of size 1000003, Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 29783*x + 206196 over Finite Field of size 1000003, Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 1000003 to Elliptic Curve defined by y^2 = x^3 + 999960*x + 78 over Finite Field of size 1000003]
             sage: E.isogenies_prime_degree(3)
@@ -892,19 +897,12 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             Traceback (most recent call last):
             ...
             ValueError: 4 is not prime.
-            sage: E.isogenies_prime_degree([2, 29])
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Over general fields, only isogenies of degree 2, 3, 5, 7 or 13 have been implemented.
             sage: E.isogenies_prime_degree(4)
             Traceback (most recent call last):
             ...
             ValueError: 4 is not prime.
             sage: E.isogenies_prime_degree(11)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Over general fields, only isogenies of degree 2, 3, 5, 7 or 13 have been implemented.
-
+            []
             sage: E = EllipticCurve(GF(17),[2,0])
             sage: E.isogenies_prime_degree(3)
             []
@@ -917,23 +915,20 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
             sage: E.isogenies_prime_degree(3)
             [Isogeny of degree 3 from Elliptic Curve defined by y^2 = x^3 + 2*x + 8 over Finite Field in a of size 13^4 to Elliptic Curve defined by y^2 = x^3 + 9*x + 11 over Finite Field in a of size 13^4]
-            sage: E.isogenies_prime_degree([2, 3, 5, 7, 13])
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: 2, 3, 5, 7 and 13-isogenies are not yet implemented in characteristic 2 and 3, and when the characteristic is the same as the degree of the isogeny.
-            sage: E.isogenies_prime_degree([2, 3, 5, 7])
-            [Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 2*x + 8 over Finite Field in a of size 13^4 to Elliptic Curve defined by y^2 = x^3 + 7*x + 4 over Finite Field in a of size 13^4, Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 2*x + 8 over Finite Field in a of size 13^4 to Elliptic Curve defined by y^2 = x^3 + (8*a^3+2*a^2+7*a+5)*x + (12*a^3+3*a^2+4*a+4) over Finite Field in a of size 13^4, Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 2*x + 8 over Finite Field in a of size 13^4 to Elliptic Curve defined by y^2 = x^3 + (5*a^3+11*a^2+6*a+11)*x + (a^3+10*a^2+9*a) over Finite Field in a of size 13^4, Isogeny of degree 3 from Elliptic Curve defined by y^2 = x^3 + 2*x + 8 over Finite Field in a of size 13^4 to Elliptic Curve defined by y^2 = x^3 + 9*x + 11 over Finite Field in a of size 13^4, Isogeny of degree 7 from Elliptic Curve defined by y^2 = x^3 + 2*x + 8 over Finite Field in a of size 13^4 to Elliptic Curve defined by y^2 = x^3 + 3*x + 11 over Finite Field in a of size 13^4, Isogeny of degree 7 from Elliptic Curve defined by y^2 = x^3 + 2*x + 8 over Finite Field in a of size 13^4 to Elliptic Curve defined by y^2 = x^3 + 9*x + 2 over Finite Field in a of size 13^4]
+
+        Example to show that separable isogenies of degree equal to the characteristic are now implemented::
+
+            sage: E.isogenies_prime_degree(13)
+            [Isogeny of degree 13 from Elliptic Curve defined by y^2 = x^3 + 2*x + 8 over Finite Field in a of size 13^4 to Elliptic Curve defined by y^2 = x^3 + 6*x + 5 over Finite Field in a of size 13^4]
 
         Examples over number fields (other than QQ)::
 
             sage: QQroot2.<e> = NumberField(x^2-2)
-            sage: E = EllipticCurve(QQroot2,[1,1])
-            sage: E.isogenies_prime_degree(11)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Over general fields, only isogenies of degree 2, 3, 5, 7 or 13 have been implemented.
-            sage: E.isogenies_prime_degree(5)
-            []
+            sage: E = EllipticCurve(QQroot2, j=8000)
+            sage: E.isogenies_prime_degree()
+            [Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-150528000)*x + (-629407744000) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 = x^3 + (-602112000)*x + 5035261952000 over Number Field in e with defining polynomial x^2 - 2,
+            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-150528000)*x + (-629407744000) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 = x^3 + (903168000*e-1053696000)*x + (14161674240000*e-23288086528000) over Number Field in e with defining polynomial x^2 - 2,
+            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-150528000)*x + (-629407744000) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 = x^3 + (-903168000*e-1053696000)*x + (-14161674240000*e-23288086528000) over Number Field in e with defining polynomial x^2 - 2]
 
             sage: E = EllipticCurve(QQroot2, [1,0,1,4, -6]); E
             Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + (-6) over Number Field in e with defining polynomial x^2 - 2
@@ -943,30 +938,36 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             [Isogeny of degree 3 from Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + (-6) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 + x*y + y = x^3 + (-128/3)*x + 5662/27 over Number Field in e with defining polynomial x^2 - 2, Isogeny of degree 3 from Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + (-6) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 + x*y + y = x^3 + (-171)*x + (-874) over Number Field in e with defining polynomial x^2 - 2]
         """
         F = self.base_ring()
-        if rings.is_RealField(F):
+        if is_RealField(F):
             raise NotImplementedError, "This code could be implemented for general real fields, but has not been yet."
-        if rings.is_ComplexField(F):
+        if is_ComplexField(F):
             raise NotImplementedError, "This code could be implemented for general complex fields, but has not been yet."
         if F == rings.QQbar:
             raise NotImplementedError, "This code could be implemented for QQbar, but has not been yet."
 
-        from ell_curve_isogeny import isogenies_prime_degree_genus_0
+        from isogeny_small_degree import isogenies_prime_degree
         if l is None:
-            l = [2, 3, 5, 7, 13]
-        if l in [2, 3, 5, 7, 13]:
-            return isogenies_prime_degree_genus_0(self, l)
+            from sage.rings.all import prime_range
+            l = prime_range(max_l+1)
+
         if type(l) != list:
+            try:
+                l = rings.ZZ(l)
+            except TypeError:
+                raise ValueError, "%s is not prime."%l
             if l.is_prime():
-                raise NotImplementedError, "Over general fields, only isogenies of degree 2, 3, 5, 7 or 13 have been implemented."
+                return isogenies_prime_degree(self, l)
             else:
                 raise ValueError, "%s is not prime."%l
-        isogs = []
-        i = 0
-        while i<len(l):
-            isogenies = [f for f in self.isogenies_prime_degree(l[i]) if not f in isogs]
-            isogs.extend(isogenies)
-            i = i+1
-        return isogs
+
+        L = list(set(l))
+        try:
+            L = [rings.ZZ(l) for l in L]
+        except TypeError:
+            raise ValueError, "%s is not a list of primes."%l
+
+        L.sort()
+        return sum([isogenies_prime_degree(self,l) for l in L],[])
 
     def is_isogenous(self, other, field=None):
         """
@@ -1049,35 +1050,15 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             sage: Esh = E.short_weierstrass_model()
             sage: Esh.weierstrass_p(prec=8)
             z^-2 + 13392/5*z^2 + 1080432/7*z^4 + 59781888/25*z^6 + O(z^8)
-
-            sage: E.weierstrass_p(prec=8, algorithm='pari')
-            z^-2 + 31/15*z^2 + 2501/756*z^4 + 961/675*z^6 + O(z^8)
-            sage: E.weierstrass_p(prec=8, algorithm='quadratic')
-            z^-2 + 31/15*z^2 + 2501/756*z^4 + 961/675*z^6 + O(z^8)
-
-            sage: k = GF(101)
-            sage: E = EllipticCurve(k, [2,3])
-            sage: E.weierstrass_p(prec=30)
-            z^-2 + 40*z^2 + 14*z^4 + 62*z^6 + 15*z^8 + 47*z^10 + 66*z^12 + 61*z^14 + 79*z^16 + 98*z^18 + 93*z^20 + 82*z^22 + 15*z^24 + 71*z^26 + 27*z^28 + O(z^30)
-
-            sage: k = GF(11)
-            sage: E = EllipticCurve(k, [1,1])
-            sage: E.weierstrass_p(prec=6, algorithm='fast')
-            z^-2 + 2*z^2 + 3*z^4 + O(z^6)
-            sage: E.weierstrass_p(prec=7, algorithm='fast')
-            Traceback (most recent call last):
-            ...
-            ValueError: For computing the Weierstrass p-function via the fast algorithm, the characteristic (11) of the underlying field must be greater than prec + 4 = 11.
-            sage: E.weierstrass_p(prec=8 ,algorithm='pari')
-            z^-2 + 2*z^2 + 3*z^4 + 5*z^6 + O(z^8)
-            sage: E.weierstrass_p(prec=9, algorithm='pari')
-            Traceback (most recent call last):
-            ...
-            ValueError: For computing the Weierstrass p-function via pari, the characteristic (11) of the underlying field must be greater than prec + 2 = 11.
-
+            sage: E.weierstrass_p(prec=20, algorithm='fast')
+            z^-2 + 31/15*z^2 + 2501/756*z^4 + 961/675*z^6 + 77531/41580*z^8 + 1202285717/928746000*z^10 + 2403461/2806650*z^12 + 30211462703/43418875500*z^14 + 3539374016033/7723451736000*z^16 + 413306031683977/1289540602350000*z^18 + O(z^20)
+            sage: E.weierstrass_p(prec=20, algorithm='pari')
+            z^-2 + 31/15*z^2 + 2501/756*z^4 + 961/675*z^6 + 77531/41580*z^8 + 1202285717/928746000*z^10 + 2403461/2806650*z^12 + 30211462703/43418875500*z^14 + 3539374016033/7723451736000*z^16 + 413306031683977/1289540602350000*z^18 + O(z^20)
+            sage: E.weierstrass_p(prec=20, algorithm='quadratic')
+            z^-2 + 31/15*z^2 + 2501/756*z^4 + 961/675*z^6 + 77531/41580*z^8 + 1202285717/928746000*z^10 + 2403461/2806650*z^12 + 30211462703/43418875500*z^14 + 3539374016033/7723451736000*z^16 + 413306031683977/1289540602350000*z^18 + O(z^20)
         """
+        from ell_wp import weierstrass_p
         return weierstrass_p(self, prec=prec, algorithm=algorithm)
-
 
     def hasse_invariant(self):
         r"""

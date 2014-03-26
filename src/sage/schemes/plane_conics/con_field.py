@@ -24,8 +24,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import (PolynomialRing,
-                            is_ComplexField, is_RealField)
+from sage.rings.all import PolynomialRing
+
+from sage.rings.complex_field import is_ComplexField
+from sage.rings.real_mpfr import is_RealField
+
 from sage.modules.free_module_element import vector
 from sage.structure.sequence import Sequence
 from sage.structure.element import is_Vector
@@ -142,7 +145,7 @@ class ProjectiveConic_field(ProjectiveCurve_generic):
             (15/8 : 17/8 : 1)
             sage: c.cache_point(c.rational_point(read_cache = False))
             sage: c.rational_point()
-            (1 : 1 : 0)
+            (-1 : 1 : 0)
         """
         if isinstance(p, (tuple, list)):
             p = self.point(p)
@@ -879,7 +882,7 @@ class ProjectiveConic_field(ProjectiveCurve_generic):
             (15/8 : 17/8 : 1)
             sage: d = Conic([1, -1, 1])
             sage: d.rational_point()
-            (1 : 1 : 0)
+            (-1 : 1 : 0)
         """
         if is_Vector(v):
             v = Sequence(v)

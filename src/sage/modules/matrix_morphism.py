@@ -1164,16 +1164,16 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
 class MatrixMorphism(MatrixMorphism_abstract):
     """
     A morphism defined by a matrix.
+
+    INPUT:
+
+    -  ``parent`` - a homspace
+
+    -  ``A`` - matrix or a :class:`MatrixMorphism_abstract` instance
     """
     def __init__(self, parent, A):
         """
-        INPUT:
-
-
-        -  ``parent`` - a homspace
-
-        -  ``A`` - matrix
-
+        Initialize ``self``.
 
         EXAMPLES::
 
@@ -1185,11 +1185,15 @@ class MatrixMorphism(MatrixMorphism_abstract):
             sage: loads(A.dumps()) == A
             True
         """
+        if parent is None:
+            raise ValueError("no parent given when creating this matrix morphism")
+        if isinstance(A, MatrixMorphism_abstract):
+            A = A.matrix()
         R = A.base_ring()
         if A.nrows() != parent.domain().rank():
-            raise ArithmeticError, "number of rows of matrix (=%s) must equal rank of domain (=%s)"%(A.nrows(), parent.domain().rank())
+            raise ArithmeticError("number of rows of matrix (={}) must equal rank of domain (={})".format(A.nrows(), parent.domain().rank()))
         if A.ncols() != parent.codomain().rank():
-                raise ArithmeticError, "number of columns of matrix (=%s) must equal rank of codomain (=%s)"%(A.ncols(), parent.codomain().rank())
+                raise ArithmeticError("number of columns of matrix (={}) must equal rank of codomain (={})".format(A.ncols(), parent.codomain().rank()))
         self._matrix = A
         MatrixMorphism_abstract.__init__(self, parent)
 

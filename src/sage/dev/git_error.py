@@ -27,7 +27,7 @@ class GitError(RuntimeError):
         sage: raise GitError(128, "git foo", None, None)
         Traceback (most recent call last):
         ...
-        GitError: git returned with non-zero exit code (128) for `git foo`.
+        GitError: git returned with non-zero exit code (128) for "git foo".
 
     """
     def __init__(self, exit_code, cmd, stdout, stderr, explain=None, advice=None):
@@ -39,7 +39,6 @@ class GitError(RuntimeError):
             sage: from sage.dev.git_error import GitError
             sage: type(GitError(128, "git foo", None, None))
             <class 'sage.dev.git_error.GitError'>
-
         """
         self.exit_code = exit_code
         self.cmd = cmd
@@ -48,7 +47,7 @@ class GitError(RuntimeError):
         self.explain = explain
         self.advice = advice
 
-        msg = ["git returned with non-zero exit code ({0}) for `{1}`.".format(exit_code, cmd)]
+        msg = ['git returned with non-zero exit code ({0}) for "{1}".'.format(exit_code, cmd)]
         if stdout:
             msg.append("output to stdout:" + "\n".join( " " + l for l in stdout.splitlines() ))
         if stderr:
@@ -79,7 +78,6 @@ class DetachedHeadError(RuntimeError):
             sage: from sage.dev.git_error import DetachedHeadError
             sage: type(DetachedHeadError())
             <class 'sage.dev.git_error.DetachedHeadError'>
-
         """
         RuntimeError.__init__(self, "unexpectedly, git is in a detached HEAD state")
 
@@ -106,6 +104,5 @@ class InvalidStateError(RuntimeError):
             sage: from sage.dev.git_error import InvalidStateError
             sage: type(InvalidStateError())
             <class 'sage.dev.git_error.InvalidStateError'>
-
         """
         RuntimeError.__init__(self, "unexpectedly, git is in an unclean state")

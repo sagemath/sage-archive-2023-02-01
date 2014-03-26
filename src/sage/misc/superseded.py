@@ -6,8 +6,8 @@ add a deprecation warning. This will be shown once, the first time
 that the deprecated function is called.
 
 Note that all doctests in the following use the trac ticket number
-#13109, which is where this mandatory argument to :func:`deprecation`
-was introduced.
+:trac:`13109`, which is where this mandatory argument to
+:func:`deprecation` was introduced.
 """
 
 
@@ -36,26 +36,34 @@ def _check_trac_number(trac_number):
 
     OUTPUT:
 
-    This function returns nothing. A ``ValueError`` is raised if the
-    argument can not be a valid trac number.
+    This function returns nothing. A ``ValueError`` or ``TypeError`` is
+    raised if the argument can not be a valid trac number.
 
     EXAMPLES::
 
         sage: from sage.misc.superseded import _check_trac_number
         sage: _check_trac_number(1)
-        sage: _check_trac_number(int(10))
-        sage: _check_trac_number(long(1000))
-        sage: _check_trac_number('1')
+        sage: _check_trac_number(0)
         Traceback (most recent call last):
         ...
-        ValueError: The argument "1" is not a valid trac issue number.
+        ValueError: 0 is not a valid trac issue number
+        sage: _check_trac_number(int(10))
+        sage: _check_trac_number(long(1000))
+        sage: _check_trac_number(10.0)
+        Traceback (most recent call last):
+        ...
+        TypeError: 10.0000000000000 is not a valid trac issue number
+        sage: _check_trac_number('10')
+        Traceback (most recent call last):
+        ...
+        TypeError: '10' is not a valid trac issue number
     """
-    from sage.rings.integer import is_Integer
-    err = ValueError('The argument "'+str(trac_number)+'" is not a valid trac issue number.')
-    if not (is_Integer(trac_number) or isinstance(trac_number, (int,long))):
-        raise err
-    if trac_number < 0:
-        raise err
+    try:
+        trac_number = trac_number.__index__()
+    except Exception:
+        raise TypeError('%r is not a valid trac issue number'%trac_number)
+    if trac_number <= 0:
+        raise ValueError('%r is not a valid trac issue number'%trac_number)
 
 def deprecation(trac_number, message):
     r"""
@@ -72,15 +80,14 @@ def deprecation(trac_number, message):
     EXAMPLES::
 
         sage: def foo():
-        ...    sage.misc.superseded.deprecation(13109, 'the function foo is replaced by bar')
+        ....:  sage.misc.superseded.deprecation(13109, 'the function foo is replaced by bar')
         sage: foo()
         doctest:1: DeprecationWarning: the function foo is replaced by bar
         See http://trac.sagemath.org/13109 for details.
     """
     _check_trac_number(trac_number)
-    if trac_number is not None:
-        message += '\n'
-        message += 'See http://trac.sagemath.org/'+ str(trac_number) + ' for details.'
+    message += '\n'
+    message += 'See http://trac.sagemath.org/'+ str(trac_number) + ' for details.'
     resetwarnings()
     # Stack level 3 to get the line number of the code which called
     # the deprecated function which called this function.
@@ -138,20 +145,20 @@ class DeprecatedFunctionAlias(object):
 
             sage: from sage.misc.superseded import deprecated_function_alias
             sage: class cls(object):
-            ...      def new_meth(self): return 42
-            ...      old_meth = deprecated_function_alias(13109, new_meth)
-            ...
+            ....:    def new_meth(self): return 42
+            ....:    old_meth = deprecated_function_alias(13109, new_meth)
+            ....:
             sage: cls().old_meth.__name__
             'old_meth'
 
             sage: cython('\n'.join([
-            ...       r"from sage.misc.superseded import deprecated_function_alias",
-            ...       r"cdef class cython_cls(object):",
-            ...       r"    def new_cython_meth(self):",
-            ...       r"        return 1",
-            ...       r"    old_cython_meth = deprecated_function_alias(13109, new_cython_meth)"
-            ...   ]))
-            ...
+            ....:     r"from sage.misc.superseded import deprecated_function_alias",
+            ....:     r"cdef class cython_cls(object):",
+            ....:     r"    def new_cython_meth(self):",
+            ....:     r"        return 1",
+            ....:     r"    old_cython_meth = deprecated_function_alias(13109, new_cython_meth)"
+            ....: ]))
+            ....:
             sage: cython_cls().old_cython_meth.__name__
             'old_cython_meth'
         """
@@ -207,8 +214,8 @@ class DeprecatedFunctionAlias(object):
 
             sage: from sage.misc.superseded import deprecated_function_alias
             sage: class cls(object):
-            ...      def new_meth(self): return 42
-            ...      old_meth = deprecated_function_alias(13109, new_meth)
+            ....:    def new_meth(self): return 42
+            ....:    old_meth = deprecated_function_alias(13109, new_meth)
             sage: obj = cls()
             sage: obj.old_meth.instance is obj
             True
@@ -245,8 +252,8 @@ def deprecated_function_alias(trac_number, func):
     This also works for methods::
 
         sage: class cls(object):
-        ...      def new_meth(self): return 42
-        ...      old_meth = deprecated_function_alias(13109, new_meth)
+        ....:    def new_meth(self): return 42
+        ....:    old_meth = deprecated_function_alias(13109, new_meth)
         sage: cls().old_meth()
         doctest:...: DeprecationWarning: old_meth is deprecated. Please use new_meth instead.
         See http://trac.sagemath.org/13109 for details.

@@ -3124,7 +3124,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         return self.__x.quadratic_form()
 
     @cached_method
-    def numerical_approx(self, prec=53):
+    def numerical_approx(self, prec=53, algorithm=None):
         """
         Return a numerical approximation to this Heegner point
         computed using a working precision of prec bits.
@@ -3152,7 +3152,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             sage: E = EllipticCurve('37a'); P = E.heegner_point(-40); P
             Heegner point of discriminant -40 on elliptic curve of conductor 37
             sage: P.numerical_approx()
-            (-6.68...e-16 + 1.41421356237310*I : 1.00000000000000 - 1.41421356237309*I : 1.00000000000000)
+            (-6.6...e-16 + 1.41421356237310*I : 1.00000000000000 - 1.41421356237309*I : 1.00000000000000)
 
         A rank 2 curve, where all Heegner points of conductor 1 are 0::
 
@@ -4244,7 +4244,7 @@ class KolyvaginPoint(HeegnerPoint):
         rank 1), and we reduce it modulo several primes.::
 
             sage: E = EllipticCurve('11a1'); P = E.kolyvagin_point(-7)
-            sage: P.mod(3,70)
+            sage: P.mod(3,70)  # long time (4s on sage.math, 2013)
             (1 : 2 : 1)
             sage: P.mod(5,70)
             (1 : 4 : 1)
@@ -5386,10 +5386,10 @@ class HeegnerQuatAlg(SageObject):
 
             sage: N = 389; D = -7; ell = 5; c = 17; q = 3
             sage: H = heegner_points(N).reduce_mod(ell)
-            sage: k = H.rational_kolyvagin_divisor(D, c); k
+            sage: k = H.rational_kolyvagin_divisor(D, c); k  # long time (5s on sage.math, 2013)
             (14, 16, 0, 0, ... 0, 0, 0)
             sage: V = H.modp_dual_elliptic_curve_factor(EllipticCurve('389a'), q, 2)
-            sage: [b.dot_product(k.element().change_ring(GF(q))) for b in V.basis()]
+            sage: [b.dot_product(k.element().change_ring(GF(q))) for b in V.basis()]  # long time
             [0, 0]
             sage: k = H.rational_kolyvagin_divisor(D, 59)
             sage: [b.dot_product(k.element().change_ring(GF(q))) for b in V.basis()]
@@ -6951,7 +6951,7 @@ def heegner_sha_an(self, D, prec=53):
     #    You can think this through or just type something like
     #      f = function('f',x); g = function('g',x); diff(f*g,6)
     #    into Sage to be convinced.
-    L = rings.binomial(rE + rF, rE) * (L_E * L_F / (rings.factorial(rE+rF)) )
+    L = arith.binomial(rE + rF, rE) * (L_E * L_F / (arith.factorial(rE+rF)) )
 
     #  - ||omega||^2 -- the period.  It is twice the volume of the
     #    period lattice.  See the following paper for a derivation:

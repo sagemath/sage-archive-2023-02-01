@@ -384,9 +384,9 @@ class YangBaxterGraph_generic(SageObject):
             sage: Y.plot()
             sage: Y.plot(edge_labels=False)
         """
-        if not kwds.has_key("edge_labels"):
+        if "edge_labels" not in kwds:
             kwds["edge_labels"] = True
-        if not kwds.has_key("vertex_labels"):
+        if "vertex_labels" not in kwds:
             kwds["vertex_labels"] = True
         return self._digraph.plot(*args, **kwds)
 

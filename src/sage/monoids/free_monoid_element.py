@@ -337,3 +337,30 @@ class FreeMonoidElement(MonoidElement):
         if x == 1:
             return self
         return None
+
+    def to_word(self, alph=None):
+        """
+        Return ``self`` as a word.
+
+        INPUT:
+
+        - ``alph`` -- (optional) the alphabet which the result should
+          be specified in
+
+        EXAMPLES::
+
+            sage: M.<x,y,z> = FreeMonoid(3)
+            sage: a = x * x * y * x
+            sage: w = a.to_word(); w
+            word: xxyx
+            sage: w.to_monoid_element() == a
+            True
+        """
+        from sage.combinat.words.finite_word import Words
+        gens = self.parent().gens()
+        if alph is None:
+            alph = gens
+        alph = map(str, alph)
+        W = Words(alph)
+        return W(sum([ [alph[gens.index(i[0])]] * i[1] for i in list(self) ], []))
+

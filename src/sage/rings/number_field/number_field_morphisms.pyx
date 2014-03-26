@@ -20,10 +20,12 @@ fields (generally `\RR` or `\CC`).
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import sage.rings.complex_double
 
 from sage.structure.element cimport Element
 from sage.categories.morphism cimport Morphism
 from sage.categories.map cimport Map
+from sage.categories.pushout import pushout
 
 from sage.rings.real_mpfr import RealField, mpfr_prec_min
 from sage.rings.complex_field import ComplexField
@@ -107,8 +109,16 @@ cdef class NumberFieldEmbedding(Morphism):
 cdef class EmbeddedNumberFieldMorphism(NumberFieldEmbedding):
     r"""
     This allows one to go from one number field in another consistently,
-    assuming they both have specified embeddings into an ambient field
-    (by default it looks for an embedding into `\CC`).
+    assuming they both have specified embeddings into an ambient field.
+
+    If no ambient field is supplied, then the following ambient fields are
+    tried:
+
+    * the pushout of the fields where the number fields are embedded;
+
+    * the algebraic closure of the previous pushout;
+
+    * `\CC`.
 
     EXAMPLES::
 
@@ -161,15 +171,46 @@ cdef class EmbeddedNumberFieldMorphism(NumberFieldEmbedding):
             Traceback (most recent call last):
             ...
             TypeError: unsupported operand parent(s) for '+': 'Number Field in a with defining polynomial x^3 + 2' and 'Number Field in a with defining polynomial x^3 + 2'
+
+        The following was fixed to raise a ``TypeError`` in :trac:`15331`::
+
+            sage: L.<i> = NumberField(x^2 + 1)
+            sage: K = NumberField(L(i/2+3).minpoly(), names=('i0',), embedding=L(i/2+3))
+            sage: EmbeddedNumberFieldMorphism(K, L)
+            Traceback (most recent call last):
+            ...
+            TypeError: No embedding available for Number Field in i with defining polynomial x^2 + 1
+
         """
         if ambient_field is None:
-            from sage.rings.complex_double import CDF
-            ambient_field = CDF
-        gen_image = matching_root(K.polynomial().change_ring(L), K.gen(), ambient_field=ambient_field, margin=2)
-        if gen_image is None:
+            if K.coerce_embedding() is None:
+                raise TypeError("No embedding available for %s"%K)
+            Kemb = K
+            while Kemb.coerce_embedding() is not None:
+                Kemb = Kemb.coerce_embedding().codomain()
+            if L.coerce_embedding() is None:
+                raise TypeError("No embedding available for %s"%L)
+            Lemb = L
+            while Lemb.coerce_embedding() is not None:
+                Lemb = Lemb.coerce_embedding().codomain()
+            ambient_field = pushout(Kemb, Lemb)
+            candidate_ambient_fields = [ambient_field]
+            try:
+                candidate_ambient_fields.append(ambient_field.algebraic_closure())
+            except NotImplementedError:
+                pass
+            candidate_ambient_fields.append(sage.rings.complex_double.CDF)
+        else:
+            candidate_ambient_fields = [ambient_field]
+
+        for ambient_field in candidate_ambient_fields:
+            gen_image = matching_root(K.polynomial().change_ring(L), K.gen(), ambient_field=ambient_field, margin=2)
+            if gen_image is not None:
+                NumberFieldEmbedding.__init__(self, K, L, gen_image)
+                self.ambient_field = ambient_field
+                return
+        else:
             raise ValueError, "No consistent embedding of all of %s into %s." % (K, L)
-        NumberFieldEmbedding.__init__(self, K, L, gen_image)
-        self.ambient_field = ambient_field
 
     def section(self):
         """

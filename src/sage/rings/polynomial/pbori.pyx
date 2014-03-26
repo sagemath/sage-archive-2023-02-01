@@ -962,10 +962,10 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         try:
             i = int(other)
-        except StandardError:
+        except Exception:
             try:    # last chance: try Sage's conversions over GF(2), Trac #13284
                 return self._coerce_c_impl(self.cover_ring()(other))
-            except StandardError:
+            except Exception:
                 raise TypeError, "cannot convert %s to BooleanPolynomial"%(type(other))
 
         i = i % 2
@@ -2306,7 +2306,7 @@ cdef class BooleanMonomial(MonoidElement):
         """
         res = 1
         for i in self.iterindex():
-            if d.has_key(i):
+            if i in d:
                 res *= d[i]
             else:
                 res *= (<object>self._parent).gen(i)
@@ -2358,7 +2358,7 @@ cdef class BooleanMonomial(MonoidElement):
             sage: {m:1} #indirect doctest
             {x*y: 1}
         """
-        return self._pbmonom.stableHash()
+        return <Py_ssize_t>(self._pbmonom.stableHash())
 
     def stable_hash(self):
         """
@@ -2377,7 +2377,7 @@ cdef class BooleanMonomial(MonoidElement):
            This function is part of the upstream PolyBoRi
            interface. In Sage all hashes are stable.
         """
-        return self._pbmonom.stableHash()
+        return <Py_ssize_t>(self._pbmonom.stableHash())
 
     def ring(self):
         """
@@ -3954,7 +3954,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: {x:1} # indirect doctest
             {x: 1}
         """
-        return self._pbpoly.stableHash()
+        return <Py_ssize_t>(self._pbpoly.stableHash())
 
     def __len__(self):
         r"""
@@ -4664,7 +4664,7 @@ cdef class BooleanPolynomial(MPolynomial):
            This function is part of the upstream PolyBoRi
            interface. In Sage all hashes are stable.
         """
-        return self._pbpoly.stableHash()
+        return <Py_ssize_t>(self._pbpoly.stableHash())
 
     def ring(self):
         """
@@ -4826,7 +4826,7 @@ cdef class MonomialConstruct:
                 if PY_TYPE_CHECK(x, BooleanPolynomial):
                    return result.lm()
                 return result
-            except StandardError:
+            except Exception:
                 raise TypeError, "Cannot convert to Boolean Monomial %s"%(str(type(x)))
 
 cdef class VariableConstruct:
@@ -5677,7 +5677,7 @@ cdef class BooleSet:
             sage: {s:1}
             {{{x1,x2}, {x2,x3}}: 1}
         """
-        return self._pbset.stableHash()
+        return <Py_ssize_t>(self._pbset.stableHash())
 
     def __mod__(self, BooleSet vs):
         """
@@ -5748,7 +5748,7 @@ cdef class BooleSet:
            This function is part of the upstream PolyBoRi
            interface. In Sage all hashes are stable.
         """
-        return self._pbset.stableHash()
+        return <Py_ssize_t>(self._pbset.stableHash())
 
     def divide(self, BooleanMonomial rhs):
         """
@@ -8171,7 +8171,7 @@ cdef class MonomialFactory:
                 if PY_TYPE_CHECK(arg, BooleanPolynomial):
                    return result.lm()
                 return result
-            except StandardError:
+            except Exception:
                 raise TypeError, \
                     "Cannot %s convert to Boolean Monomial"%(str(type(arg)))
 

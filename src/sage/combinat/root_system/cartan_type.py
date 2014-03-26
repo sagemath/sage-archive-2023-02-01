@@ -7,7 +7,7 @@ groups, Lie algebras, Lie groups, crystals, etc. up to an
 isomorphism. *Cartan types* are a standard set of names for those
 Dynkin diagrams (see :wikipedia:`Dynkin_diagram`).
 
-Let us consider for example, the Cartan type `A_4`::
+Let us consider, for example, the Cartan type `A_4`::
 
     sage: T = CartanType(['A', 4])
     sage: T
@@ -46,7 +46,7 @@ root system::
     sage: RootSystem(T)
     Root system of type ['A', 4]
 
-The associated Weyl group is the symmetric group `S_{n+1}`::
+The associated Weyl group of `A_n` is the symmetric group `S_{n+1}`::
 
     sage: W = WeylGroup(T)
     sage: W
@@ -170,7 +170,7 @@ Contributions implementing other conventions are very welcome.
 Another option is to build from scratch a new Dynkin diagram.  The
 architecture has been designed to make it fairly easy to add other
 labelling conventions. In particular, we strived at choosing type free
-algorithms whenever possible, so in principle most feature should
+algorithms whenever possible, so in principle most features should
 remain available even with custom Cartan types. This has not been used
 much yet, so some rough corners certainly remain.
 
@@ -277,7 +277,7 @@ Therefore, the Cartan types are considered as distinct::
 
 For affine types, we use the usual conventions for affine Coxeter groups: each affine type
 is either untwisted (that is arise from the natural affinisation
-of a finite cartan type)::
+of a finite Cartan type)::
 
     sage: CartanType(["A", 4, 1]).dynkin_diagram()
     0
@@ -407,7 +407,7 @@ from sage.misc.decorators import rename_keyword
 
 # TODO:
 # Implement the Kac conventions by relabeling/dual/... of the above
-# Implement coxeter diagrams for non crystallographic
+# Implement Coxeter diagrams for non crystallographic
 
 
 # Intention: we want simultaneously CartanType to be a factory for
@@ -510,7 +510,7 @@ class CartanTypeFactory(SageObject):
 
         - ``str`` -- a string
 
-        - ``object`` -- a cartan type, or an object with a cartan type method
+        - ``object`` -- a Cartan type, or an object with a Cartan type method
 
         EXAMPLES:
 
@@ -534,6 +534,20 @@ class CartanTypeFactory(SageObject):
             sage: fct = CartanType(['C', 4, 1]).as_folding()
             sage: CartanType(fct)
             ['C', 4, 1]
+
+        Check that :trac:`13774` is fixed::
+
+            sage: CT = CartanType([['A',2]])
+            sage: CT.is_irreducible()
+            True
+            sage: CT.cartan_matrix()
+            [ 2 -1]
+            [-1  2]
+            sage: CT = CartanType(['A2'])   
+            sage: CT.is_irreducible()
+            True
+            sage: CartanType('A2')
+            ['A', 2]
         """
         if len(args) == 1:
             t = args[0]
@@ -542,7 +556,10 @@ class CartanTypeFactory(SageObject):
         if isinstance(t, CartanType_abstract):
             return t
         if hasattr(t, "cartan_type"):
-            return  t.cartan_type()
+            return t.cartan_type()
+
+        if len(t) == 1: # Fix for trac #13774
+            t = t[0]
 
         if type(t)==str:
             if "x" in t:
@@ -605,7 +622,7 @@ class CartanTypeFactory(SageObject):
                         import type_I
                         return type_I.CartanType(n)
             if len(t) == 3:
-                if t[2] == 1: # Untwisted affind
+                if t[2] == 1: # Untwisted affine
                     if letter == "A":
                         if n >= 1:
                             import type_A_affine
@@ -650,7 +667,7 @@ class CartanTypeFactory(SageObject):
                         return CartanType(["G", 2, 1]).dual().relabel([0,2,1])
                     if letter == "E" and t[2] == 2 and n == 6:
                         return CartanType(["F", 4, 1]).dual()
-            raise ValueError("%s is not a valid cartan type"%t)
+            raise ValueError("%s is not a valid Cartan type"%t)
         import type_reducible
         return type_reducible.CartanType([ CartanType(subtype) for subtype in t ])
 
@@ -780,7 +797,7 @@ class CartanTypeFactory(SageObject):
     @classmethod
     def color(cls, i):
         """
-        Default color scheme for the vertices of a dynkin diagram (and associated objects)
+        Default color scheme for the vertices of a Dynkin diagram (and associated objects)
 
         EXAMPLES::
 
@@ -997,7 +1014,7 @@ class CartanType_abstract(object):
 
     def dual(self):
         """
-        Return the dual cartan type, possibly just as a formal dual.
+        Return the dual Cartan type, possibly just as a formal dual.
 
         EXAMPLES::
 
@@ -1223,7 +1240,7 @@ class CartanType_abstract(object):
         try:
             self.coxeter_diagram()
             return True
-        except StandardError:
+        except Exception:
             return False
 
     def root_system(self):
@@ -1307,7 +1324,7 @@ class CartanType_abstract(object):
 
 class CartanType_crystallographic(CartanType_abstract):
     """
-    An abstract class for crystallographic cartan types.
+    An abstract class for crystallographic Cartan types.
     """
     # The default value should really be lambda x:x, but sphinx does
     # not like it currently (see #14553); since this is an abstract method
@@ -1536,7 +1553,7 @@ class CartanType_crystallographic(CartanType_abstract):
             return None
         assert kern.dimension() == c
         # Now the basis contains one vector v per connected component
-        # C of the dynkin diagram, or equivalently diagonal block of
+        # C of the Dynkin diagram, or equivalently diagonal block of
         # the Cartan matrix. The support of v is exactly that
         # connected component, and it symmetrizes the corresponding
         # diagonal block of the Cartan matrix. We sum all those vectors.
@@ -1575,7 +1592,7 @@ class CartanType_crystallographic(CartanType_abstract):
 
 class CartanType_simply_laced(CartanType_crystallographic):
     """
-    An abstract class for simply laced cartan types.
+    An abstract class for simply laced Cartan types.
     """
     def is_simply_laced(self):
         """
@@ -1592,7 +1609,7 @@ class CartanType_simply_laced(CartanType_crystallographic):
 
     def dual(self):
         """
-        Simply laced cartan types are self-dual, so return ``self``.
+        Simply laced Cartan types are self-dual, so return ``self``.
 
         EXAMPLES::
 

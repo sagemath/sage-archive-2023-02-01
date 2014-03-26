@@ -5,11 +5,10 @@ Datatypes for words defined by iterators and callables
 #       Copyright (C) 2009 Franco Saliola <saliola@gmail.com>
 #                          Vincent Delecroix <20100.delecroix@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License version 2
-#  (GPLv2)
-#
-#  The full text of the GPLv2 is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.combinat.words.word_datatypes import WordDatatype
@@ -357,7 +356,7 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
         letter_cache = self._letter_cache
         func = self._func
         for x in domain:
-            if not letter_cache.has_key(x):
+            if x not in letter_cache:
                 letter_cache[x] = func(x)
             yield letter_cache[x]
 
@@ -491,7 +490,7 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
         if isinstance(key, slice):
             return super(WordDatatype_callable_with_caching, self).__getitem__(key)
         else:
-            if not self._letter_cache.has_key(key):
+            if key not in self._letter_cache:
                 self._letter_cache[key] = \
                     super(WordDatatype_callable_with_caching, self).__getitem__(key)
             return self._letter_cache[key]

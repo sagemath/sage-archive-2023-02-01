@@ -311,7 +311,7 @@ class GaloisRepresentation(SageObject):
         if t:
             self.__is_reducible[p] = False
             return False  # definitely not reducible
-        isogeny_matrix = self._E.isogeny_class(use_tuple=False).matrix(fill=True)
+        isogeny_matrix = self._E.isogeny_class().matrix(fill=True)
         v = isogeny_matrix.row(0) # first row
         for a in v:
             if a != 0 and a % p == 0:
@@ -362,7 +362,7 @@ class GaloisRepresentation(SageObject):
             return self.__reducible_primes
         except AttributeError:
             pass
-        isocls = self._E.isogeny_class(algorithm='sage', use_tuple=False)
+        isocls = self._E.isogeny_class()
         X = set(isocls.matrix().list())
         R = [p for p in X if arith.is_prime(p)]
         self.__reducible_primes = R
@@ -918,7 +918,7 @@ class GaloisRepresentation(SageObject):
         # if we find both an element of order 3 and one of order 4, we know that we have a S_4 in PGL_2
 
         if p == 5:
-            # we filter here a few cases and leave the rest to the computation of the galois group later
+            # we filter here a few cases and leave the rest to the computation of the Galois group later
             ell = 1
             k = GF(p)
             Np = self._E.conductor()*p
@@ -1078,10 +1078,10 @@ class GaloisRepresentation(SageObject):
             K = self._E.division_field(p, 'z')
             d = K.absolute_degree()
 
-            misc.verbose("field of degree %s.  try to compute galois group"%(d),2)
+            misc.verbose("field of degree %s.  try to compute Galois group"%(d),2)
             try:
                 G = K.galois_group()
-            except StandardError:
+            except Exception:
                 self.__image_type[p] = "The image is a group of order %s."%d
                 return self.__image_type[p]
 

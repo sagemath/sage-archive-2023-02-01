@@ -103,7 +103,7 @@ __doc_exclude = ['repr_lincomb', 'QQ']
 from   sage.misc.misc import repr_lincomb
 
 import sage.modules.free_module as free_module
-from   sage.modules.all import is_FreeModuleElement
+from sage.modules.free_module_element import is_FreeModuleElement
 
 import sage.modular.arithgroup.all as arithgroup
 import sage.modular.cusps as cusps
@@ -204,7 +204,7 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
         """
         z = dict(other.__x)
         for i, c in self.__x.items():
-            if z.has_key(i):
+            if i in z:
                 z[i] += c
             else:
                 z[i] = c
@@ -225,7 +225,7 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
         """
         z = dict(self.__x)
         for i, c in other.__x.items():
-            if z.has_key(i):
+            if i in z:
                 z[i] -= c
             else:
                 z[i] = -c

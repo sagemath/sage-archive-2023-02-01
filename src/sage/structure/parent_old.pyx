@@ -382,12 +382,12 @@ cdef class Parent(parent.Parent):
         check_old_coerce(self)
         try:
             return self.gen(0)
-        except StandardError:
+        except Exception:
             pass
 
         try:
             return self.gen()
-        except StandardError:
+        except Exception:
             pass
 
         from sage.rings.infinity import infinity

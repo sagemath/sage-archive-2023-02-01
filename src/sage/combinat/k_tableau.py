@@ -3947,7 +3947,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
             sage: StrongTableaux(3, [[],[]], weight=[])
             Set of strong 3-tableaux of shape [] and of weight ()
        """
-        if self._inner_shape==[]:
+        if self._inner_shape==Core([],self.k+1):
             s = "Set of strong %s-tableaux"%self.k
             s +=" of shape %s"%self._outer_shape
         else:

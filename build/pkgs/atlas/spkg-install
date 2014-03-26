@@ -136,16 +136,16 @@ if 'SAGE_ATLAS_LIB' in os.environ:
         sym_gfortran = 'gfortran' in symbol_table
         sym_g95 = 'g95' in symbol_table
         if sym_gfortran and conf['fortran'] != 'gfortran':
-            print("Symbols in lib77blas indicate it was build with gfortran \n")
-            print("However SAGE is using a different fortran compiler \n")
-            print("If you wish to use this blas library, make sure SAGE_FORTRAN points \n")
-            print("to a fortran compiler compatible with this library. \n")
+            print("Symbols in lib77blas indicate it was built with gfortran.\n")
+            print("However, Sage is using a different fortran compiler.\n")
+            print("If you wish to use this blas library, make sure FC points\n")
+            print("to a fortran compiler compatible with this library.\n")
             sys.exit(2)
         if sym_g95 and conf['fortran'] != 'g95':
-            print("Symbols in lib77blas indicate it was build with g95 \n")
-            print("However SAGE is using a different fortran compiler \n")
-            print("If you wish to use this blas library, make sure SAGE_FORTRAN points \n")
-            print("to a fortran compiler compatible with this library. \n")
+            print("Symbols in lib77blas indicate it was built with g95 \n")
+            print("However, Sage is using a different fortran compiler.\n")
+            print("If you wish to use this blas library, make sure FC points\n")
+            print("to a fortran compiler compatible with this library.\n")
             sys.exit(2)
 
     SAGE_LOCAL_LIB = os.path.join(conf['SAGE_LOCAL'], 'lib')
@@ -179,8 +179,7 @@ for fname in glob.glob(os.path.join(PATCH_DIR,'*.patch')):
     assert_success(rc, bad='Applying '+fname+' failed.', good='Applied '+fname+'.')
 
 # add extra architectural defaults
-# currently IA64Itan264 and x86SSE264SSE2
-cp('patches/ARCHS/*.tar.bz2', 'src/ATLAS/CONFIG/ARCHS')
+cp('src/ARCHS/*.tar.bz2', 'src/ATLAS/CONFIG/ARCHS/')
 
 # hardcoded gcc in SpewMakeInc.c
 edit_in_place('src/ATLAS/CONFIG/src/SpewMakeInc.c') \
@@ -342,7 +341,8 @@ def configure_fast():
     if conf['Intel?'] and conf['64bit?']:
         print('Fast configuration on Intel x86_64 compatible CPUs.')
         arch = 'P4E'
-        isa_ext = ('SSE3', 'SSE2', 'SSE1')
+        if not conf['CYGWIN?']: # cannot use assembly on Cygwin64
+            isa_ext = ('SSE3', 'SSE2', 'SSE1')
     elif conf['Intel?'] and conf['32bit?']:
         print('Fast configuration on Intel i386 compatible CPUs.')
         arch = 'x86SSE2'
@@ -368,7 +368,8 @@ def configure_base():
     if conf['Intel?'] and conf['64bit?']:
         print('Generic configuration on Intel x86_64 compatible CPUs.')
         arch = 'x86SSE2'
-        isa_ext = ('SSE2', 'SSE1')
+        if not conf['CYGWIN?']: # cannot use assembly on Cygwin64
+            isa_ext = ('SSE2', 'SSE1')
     elif conf['Intel?'] and conf['32bit?']:
         print('Generic configuration on Intel i386 compatible CPUs.')
         arch = 'x86x87'

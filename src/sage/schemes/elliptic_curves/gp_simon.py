@@ -52,9 +52,7 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
         sage: import sage.schemes.elliptic_curves.gp_simon
         sage: E=EllipticCurve('389a1')
         sage: sage.schemes.elliptic_curves.gp_simon.simon_two_descent(E)
-        [2, 2, [(1 : 0 : 1), (-11/9 : -55/27 : 1)]]
-        sage: E.simon_two_descent()
-        (2, 2, [(1 : 0 : 1), (-11/9 : -55/27 : 1)])
+        [2, 2, [(1 : 0 : 1), (-11/9 : 28/27 : 1)]]
 
     TESTS::
 

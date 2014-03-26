@@ -38,6 +38,7 @@ cliquer                     GPLv2+
 conway_polynomials          None (database)
 cvxopt                      GPLv2+
 cython                      Apache, version 2.0
+dateutil                    Simplified BSD
 docutils                    Modified BSD
 ecl                         LGPLv2+
 eclib                       GPLv2+
@@ -72,7 +73,7 @@ libm4rie                    GPLv2+
 libpng                      Custom, very similar to zlib
 linbox                      LGPLv2.1+
 lrcalc                      GPLv2+
-matplotlib                  Python License
+matplotlib                  Matplotlib License (BSD compatible, see below)
 maxima                      See below
 mercurial                   GPLv2+
 mpc                         LGPLv3+
@@ -88,12 +89,15 @@ pari                        GPLv2+
 patch                       GPLv2+
 pexpect                     Python License
 pil                         Similar to MIT and modified BSD (see below)
+pkgconf                     ISC License (equivalent to Simplified BSD)
+pkgconfig                   MIT License
 polybori                    GPLv2+
 polytopes_db                None (database)
 ppl                         GPLv3+
 pycrypto                    Public domain & Python License
 pygments                    Modified BSD
 pynac                       GPLv2+
+pyparsing                   MIT License
 python                      Python License (see below)
 R                           GPLv2+
 ratpoints                   GPLv2+
@@ -111,6 +115,7 @@ scipy                       Modified BSD
 scons                       MIT License
 setuptools                  Python License
 singular                    GPLv2 or GPLv3 (see below)
+six                         MIT License
 sphinx                      Modified BSD
 sqlalchemy                  MIT License
 sqlite                      Public Domain (see below)
@@ -119,6 +124,7 @@ sympow                      Modified BSD
 sympy                       Modified BSD
 tachyon                     Modified BSD
 termcap                     GPLv2+
+tornado                     Apache License
 zlib                        Custom (Modified BSD)
 zn_poly                     GPLv2 or GPLv3 (no later versions, see below)
 
@@ -1005,6 +1011,17 @@ PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+================================================================================
+
+matplotlib:
+(from http://matplotlib.sourceforge.net/users/license.html)
+
+Matplotlib only uses BSD compatible code, and its license is based on
+the PSF license. See the Open Source Initiative licenses page for
+details on individual licenses. Non-BSD compatible licenses (eg LGPL)
+are acceptable in matplotlib toolkits. For a discussion of the
+motivations behind the licencing choice, see Licenses.
 
 ================================================================================
 

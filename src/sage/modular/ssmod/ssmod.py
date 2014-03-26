@@ -911,7 +911,7 @@ class SupersingularModule(hecke.HeckeModule_free_module):
                 neighbors = Phi2_quad(X, ss_points[j_prev], ss_points[pos]).roots()
 
             for (xj,ej) in neighbors:
-                if not ss_points_dic.has_key(xj):
+                if xj not in ss_points_dic:
                     j = len(ss_points)
                     ss_points += [xj]
                     ss_points_pre += [pos]
@@ -1037,7 +1037,7 @@ class SupersingularModule(hecke.HeckeModule_free_module):
 
         - Iftikhar Burhanuddin -- burhanud@usc.edu
         """
-        if self.__hecke_matrices.has_key(L):
+        if L in self.__hecke_matrices:
             return self.__hecke_matrices[L]
         SS, II = self.supersingular_points()
         if L == 2:

@@ -369,9 +369,8 @@ ext_modules = [
               libraries = ['gmp']),
 
     Extension('sage.graphs.cliquer',
-              sources = ['sage/graphs/cliquer.pyx'],
+              sources = ['sage/graphs/cliquer.pyx', 'sage/graphs/cliquer/cl.c'],
               libraries = ['cliquer']),
-
 
     Extension('sage.graphs.graph_decompositions.vertex_separation',
               sources = ['sage/graphs/graph_decompositions/vertex_separation.pyx']),
@@ -1854,6 +1853,9 @@ ext_modules = [
               libraries = ['ntl', 'stdc++', 'gmp'],
               language = 'c++',
               include_dirs = ['sage/libs/ntl/']),
+
+    Extension('sage.rings.polynomial.polynomial_ring_homomorphism',
+              sources = ['sage/rings/polynomial/polynomial_ring_homomorphism.pyx']),
 
     Extension('sage.rings.polynomial.pbori',
               sources = ['sage/rings/polynomial/pbori.pyx'],

@@ -212,7 +212,7 @@ def scale_by_factor(self, c, change_value_ring_flag=False):
         # it doesn't work by scoping reasons.
         Q = self.__class__(R, self.dim(), list2)
         return Q
-    except StandardError:
+    except Exception:
         if (change_value_ring_flag == False):
             raise TypeError, "Oops! We could not rescale the lattice in this way and preserve its defining ring."
         else:

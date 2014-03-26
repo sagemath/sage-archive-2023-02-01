@@ -54,6 +54,8 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+# Avoid surprises with character ranges [a-z] in regular expressions
+export LC_ALL=C
 
 # error_msg(header, command)
 # This is for printing an error message if something went wrong.
@@ -298,7 +300,6 @@ elif [ -z "$PKG_HAS_PATH" ]; then
 
         if [ $INFO -eq 0 ]; then
             # see if we can the source tarball locally
-            cd "$SAGE_DISTFILES"
             if [ -f "$SAGE_DISTFILES/$PKG_NAME_UPSTREAM" ]; then
                 # Found a good tarball
                 PKG_SRC="$SAGE_DISTFILES/$PKG_NAME_UPSTREAM"
@@ -572,7 +573,7 @@ fi
 if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
     echo "Setting up build directory for $PKG_NAME"
     cp -Rp "$PKG_SCRIPTS" "$PKG_NAME"
-    cd "$PKG_NAME"
+    cd "$PKG_NAME" || exit $?
 else
     echo "Extracting package $PKG_SRC"
     ls -l "$PKG_SRC"
@@ -585,22 +586,21 @@ if [ $? -ne 0 ]; then
 fi
 
 if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
-    mv "${PKG_NAME_UPSTREAM%.tar*}" src
-    cd ..
+    mv 2>/dev/null "${PKG_NAME_UPSTREAM%.tar*}" src
     echo "Finished set up"
 else
     echo "Finished extraction"
+
+    cd "$PKG_NAME"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error: after extracting, the directory $PKG_NAME does not exist"
+        exit 1
+    fi
 fi
 
 ##################################################################
 # The package has been extracted, prepare for installation
 ##################################################################
-
-cd "$PKG_NAME"
-if [ $? -ne 0 ]; then
-    echo >&2 "Error: after extracting, the directory $PKG_NAME does not exist"
-    exit 1
-fi
 
 # When there is no spkg-install, assume the "spkg" is a tarball not
 # specifically made for Sage.  Since we want it to be as easy as
@@ -663,6 +663,14 @@ echo "****************************************************"
 ##################################################################
 
 rm -f "$SAGE_SPKG_INST/$PKG_BASE-"*
+
+##################################################################
+# Poison the proxy variable to forbid downloads in spkg-install
+##################################################################
+export http_proxy=http://192.0.2.0:5187/
+export https_proxy=$http_proxy
+export ftp_proxy=$http_proxy
+export rsync_proxy=$http_proxy
 
 ##################################################################
 # Actually install

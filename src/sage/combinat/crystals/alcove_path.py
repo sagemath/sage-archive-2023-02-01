@@ -309,7 +309,7 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
         # to get the crystal we set self._finite_cartan_type is true
         #
         # We want the indexing set to include 0 so use the affine type notation
-        # for the cartan type.
+        # for the Cartan type.
         ##########################################################################
         cartan_type = starting_weight.parent().cartan_type()
 
@@ -836,7 +836,7 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
 
         signs = {}
 
-        # 0 arrows in the case of finite cartan type
+        # 0 arrows in the case of finite Cartan type
         # always allow 0 arrows
         if finite_cartan_type and i == 0:
             Beta = R._root_lattice.highest_root()
@@ -1155,7 +1155,7 @@ class RootsWithHeight(UniqueRepresentation, Parent):
 
         sage: from sage.combinat.crystals.alcove_path import RootsWithHeight
         sage: R = RootsWithHeight(['A',2],[1,1]); R
-        Roots with height of cartan type ['A', 2] and dominant weight Lambda[1] + Lambda[2]
+        Roots with height of Cartan type ['A', 2] and dominant weight Lambda[1] + Lambda[2]
 
         sage: r1 = R._root_lattice.from_vector(vector([1,0])); r1
         alpha[1]
@@ -1235,9 +1235,9 @@ class RootsWithHeight(UniqueRepresentation, Parent):
 
             sage: from sage.combinat.crystals.alcove_path import RootsWithHeight
             sage: RootsWithHeight(['A',2],[3,2])
-            Roots with height of cartan type ['A', 2] and dominant weight 3*Lambda[1] + 2*Lambda[2]
+            Roots with height of Cartan type ['A', 2] and dominant weight 3*Lambda[1] + 2*Lambda[2]
         """
-        return "Roots with height of cartan type %s and dominant weight %s"%(
+        return "Roots with height of Cartan type %s and dominant weight %s"%(
             self._root_system.cartan_type(), self.weight)
 
     def _max_height(self, root):
@@ -1313,12 +1313,12 @@ class RootsWithHeight(UniqueRepresentation, Parent):
 
             sage: from sage.combinat.crystals.alcove_path import RootsWithHeight
             sage: R = RootsWithHeight(['A',2],[1,1]); R
-            Roots with height of cartan type ['A', 2] and dominant weight Lambda[1] + Lambda[2]
+            Roots with height of Cartan type ['A', 2] and dominant weight Lambda[1] + Lambda[2]
             sage: R.lambda_chain()
             [(alpha[2], 0), (alpha[1] + alpha[2], 0), (alpha[1], 0), (alpha[1] + alpha[2], 1)]
         """
         if not self._root_lattice.cartan_type().is_finite():
-            raise ValueError("cartan type {0} is not finite".format(self._root_lattice.cartan_type()))
+            raise ValueError("Cartan type {0} is not finite".format(self._root_lattice.cartan_type()))
 
         l=[]
         for i in self._root_lattice.positive_roots():
@@ -1338,7 +1338,7 @@ class RootsWithHeight(UniqueRepresentation, Parent):
             sage: x = rl.from_vector(vector([1,1])); x
             alpha[1] + alpha[2]
             sage: R = RootsWithHeight(['A',2],[1,1]); R
-            Roots with height of cartan type ['A', 2] and dominant weight Lambda[1] + Lambda[2]
+            Roots with height of Cartan type ['A', 2] and dominant weight Lambda[1] + Lambda[2]
             sage: y = R(x,1); y
             (alpha[1] + alpha[2], 1)
         """
@@ -1374,7 +1374,7 @@ class RootsWithHeightElement(Element):
         sage: x = rl.from_vector(vector([1,1])); x
         alpha[1] + alpha[2]
         sage: R = RootsWithHeight(['A',2],[1,1]); R
-        Roots with height of cartan type ['A', 2] and dominant weight Lambda[1] + Lambda[2]
+        Roots with height of Cartan type ['A', 2] and dominant weight Lambda[1] + Lambda[2]
         sage: y = R(x, 1); y
         (alpha[1] + alpha[2], 1)
     """

@@ -219,45 +219,48 @@ class EllipticCurve_number_field(EllipticCurve_field):
             Elliptic Curve defined by y^2  = x^3 + x + a over Number Field in a with defining polynomial x^2 + 7
 
             sage: v = E.simon_two_descent(verbose=1); v
-            courbe elliptique : Y^2 = x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)
-            points triviaux sur la courbe = [[1, 1, 0], [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]]
+             elliptic curve: Y^2 = x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)
+             Trivial points on the curve = [[1, 1, 0], [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]]
             #S(E/K)[2]    = 2
             #E(K)/2E(K)   = 2
             #III(E/K)[2]  = 1
-            rang(E/K)     = 1
-            listpointsmwr = [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]]
+            rank(E/K)     = 1
+             listpoints = [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]]
             (1, 1, [(1/2*a + 3/2 : -a - 2 : 1)])
 
-            sage: v = E.simon_two_descent(verbose=2)  # random output
+            sage: v = E.simon_two_descent(verbose=2)
             K = bnfinit(y^2 + 7);
             a = Mod(y,K.pol);
             bnfellrank(K, [0,0,0,1,a]);
-            courbe elliptique : Y^2 = x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)
-            A = 0
-            B = Mod(1, y^2 + 7)
-            C = Mod(y, y^2 + 7)
-            LS2gen = [Mod(Mod(-5, y^2 + 7)*x^2 + Mod(-3*y, y^2 + 7)*x + Mod(8, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y - 1/2, y^2 + 7)*x - 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
-            #LS2gen = 2
-            Recherche de points triviaux sur la courbe
-            points triviaux sur la courbe = [[1, 1, 0], [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]]
-            zc = Mod(Mod(-5, y^2 + 7)*x^2 + Mod(-3*y, y^2 + 7)*x + Mod(8, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
-            symbole de Hilbert (Mod(2, y^2 + 7),Mod(-5, y^2 + 7)) = -1
-            zc = Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y - 1/2, y^2 + 7)*x + Mod(-1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
-            symbole de Hilbert (Mod(-2*y + 2, y^2 + 7),Mod(1, y^2 + 7)) = 0
-            sol de Legendre = [1, 0, 1]~
-            zc*z1^2 = Mod(Mod(2*y - 2, y^2 + 7)*x + Mod(2*y + 10, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
-            quartique : (-1/2*y + 1/2)*Y^2 = x^4 + (-3*y - 15)*x^2 + (-8*y - 16)*x + (-11/2*y - 15/2)
-            reduite: Y^2 = (-1/2*y + 1/2)*x^4 - 4*x^3 + (-3*y + 3)*x^2 + (2*y - 2)*x + (1/2*y + 3/2)
-            non ELS en [2, [0, 1]~, 1, 1, [1, 1]~]
-            zc = Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y + 1/2, y^2 + 7)*x + Mod(-1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
-            vient du point trivial [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]
-            m1 = 1
-            m2 = 1
+             elliptic curve: Y^2 = x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)
+              A = 0
+              B = Mod(1, y^2 + 7)
+              C = Mod(y, y^2 + 7)
+              Computing L(S,2)
+              L(S,2) = [Mod(Mod(-1, y^2 + 7)*x^2 + Mod(-1/2*y + 1/2, y^2 + 7)*x + 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(-1, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(-1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(-1/2*y + 1/2, y^2 + 7)*x + Mod(-1/2*y + 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y + 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(-1, y^2 + 7)*x + Mod(-1/2*y + 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
+              Computing the Selmer group
+              #LS2gen = 2
+               LS2gen = [Mod(Mod(-5, y^2 + 7)*x^2 + Mod(-3*y, y^2 + 7)*x + Mod(8, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y - 1/2, y^2 + 7)*x - 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
+              Search for trivial points on the curve
+             Trivial points on the curve = [[1, 1, 0], [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]]
+              zc = Mod(Mod(-5, y^2 + 7)*x^2 + Mod(-3*y, y^2 + 7)*x + Mod(8, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
+              Hilbert symbol (Mod(2, y^2 + 7),Mod(-5, y^2 + 7)) =
+              zc = Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y - 1/2, y^2 + 7)*x + Mod(-1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
+              Hilbert symbol (Mod(-2*y + 2, y^2 + 7),Mod(1, y^2 + 7)) =
+              sol of quadratic equation = [1, 0, 1]~
+              zc*z1^2 = Mod(Mod(2*y - 2, y^2 + 7)*x + Mod(2*y + 10, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
+              quartic: (-1/2*y + 1/2)*Y^2 = x^4 + (-3*y - 15)*x^2 + (-8*y - 16)*x + (-11/2*y - 15/2)
+              reduced: Y^2 = (-1/2*y + 1/2)*x^4 - 4*x^3 + (-3*y + 3)*x^2 + (2*y - 2)*x + (1/2*y + 3/2)
+              not ELS at [2, [0, 1]~, 1, 1, [1, 1]~]
+              zc = Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y + 1/2, y^2 + 7)*x + Mod(-1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
+              comes from the trivial point [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]
+              m1 = 1
+              m2 = 1
             #S(E/K)[2]    = 2
             #E(K)/2E(K)   = 2
             #III(E/K)[2]  = 1
-            rang(E/K)     = 1
-            listpointsmwr = [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]]
+            rank(E/K)     = 1
+             listpoints = [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]]
             v =  [1, 1, [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)]]]
             sage: v
             (1, 1, [(1/2*a + 3/2 : -a - 2 : 1)])
@@ -270,24 +273,25 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.simon_two_descent()  # long time (3s on sage.math, 2013), points can vary
             (1, 3, [...])
 
-        A failure in the PARI/GP script ell.gp (VERSION 25/03/2009) is reported::
+        Check that the bug reported in :trac:`15483` is fixed::
+
+            sage: K.<s> = QuadraticField(229)
+            sage: c4 = 2173 - 235*(1 - s)/2
+            sage: c6 = -124369 + 15988*(1 - s)/2
+            sage: E = EllipticCurve([-c4/48, -c6/864])
+            sage: E.simon_two_descent()
+            (0, 0, [])
+
+            sage: R.<t> = QQ[]
+            sage: L.<g> = NumberField(t^3 - 9*t^2 + 13*t - 4)
+            sage: E1 = EllipticCurve(L,[1-g*(g-1),-g^2*(g-1),-g^2*(g-1),0,0])
+            sage: E1.rank()  # long time (about 5 s)
+            0
 
             sage: K = CyclotomicField(43).subfields(3)[0][0]
             sage: E = EllipticCurve(K, '37')
             sage: E.simon_two_descent()  # long time (4s on sage.math, 2013)
-            Traceback (most recent call last):
-            ...
-            RuntimeError:
-              ***   at top-level: ans=bnfellrank(K,[0,0,1,
-              ***                     ^--------------------
-              ***   in function bnfellrank: ...eqtheta,rnfeq,bbnf];rang=
-              ***   bnfell2descent_gen(b
-              ***   ^--------------------
-              ***   in function bnfell2descent_gen: ...riv,r=nfsqrt(nf,norm(zc))
-              ***   [1];if(DEBUGLEVEL_el
-              ***   ^--------------------
-              ***   array index (1) out of allowed range [none].
-            An error occurred while running Simon's 2-descent program
+            (3, 3, [(-1 : 0 : 1), (1/2*zeta43_0^2 + 3/2*zeta43_0 - 2 : -zeta43_0^2 - 4*zeta43_0 + 3 : 1), (-zeta43_0 + 2 : -1/2*zeta43_0^2 + 3/2*zeta43_0 : 1)])
 
         """
 
@@ -2247,13 +2251,27 @@ class EllipticCurve_number_field(EllipticCurve_field):
         In this case E1 and E2 are in fact 9-isogenous, as may be
         deduced from the following::
 
-           sage: E3 = EllipticCurve([i + 1, 0, 1, -5*i - 5, -2*i - 5])
-           sage: E3.is_isogenous(E1)
-           True
-           sage: E3.is_isogenous(E2)
-           True
-           sage: E1.isogeny_degree(E2)
-           9
+            sage: E3 = EllipticCurve([i + 1, 0, 1, -5*i - 5, -2*i - 5])
+            sage: E3.is_isogenous(E1)
+            True
+            sage: E3.is_isogenous(E2)
+            True
+            sage: E1.isogeny_degree(E2)
+            9
+
+        TESTS:
+
+        Check that :trac:`15890` is fixed::
+
+            sage: K.<s> = QuadraticField(229)
+            sage: c4 = 2173 - 235*(1 - s)/2
+            sage: c6 = -124369 + 15988*(1 - s)/2
+            sage: c4c = 2173 - 235*(1 + s)/2
+            sage: c6c = -124369 + 15988*(1 + s)/2
+            sage: E = EllipticCurve_from_c4c6(c4, c6)
+            sage: Ec = EllipticCurve_from_c4c6(c4c, c6c)
+            sage: E.is_isogenous(Ec)
+            True
 
         """
         if not is_EllipticCurve(other):
@@ -2275,8 +2293,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             P = PI.next()
             if P.norm() > maxnorm: break
             if not P.divides(N):
-                OP = K.residue_field(P)
-                if E1.change_ring(OP).cardinality() != E2.change_ring(OP).cardinality():
+                if E1.reduction(P).cardinality() != E2.reduction(P).cardinality():
                     return False
 
         if not proof:

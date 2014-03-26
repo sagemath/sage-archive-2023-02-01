@@ -435,8 +435,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def __getitem__(self, x):
         """
-        Return the ring `\ZZ[...]` obtained by adjoining to the integers a list
-        ``x`` of several elements.
+        Return the ring `\ZZ[...]` obtained by adjoining to the integers one
+        or several elements.
 
         EXAMPLES::
 
@@ -457,15 +457,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         if x in self:
             return self
-        if isinstance(x, str):
-            return PrincipalIdealDomain.__getitem__(self, x)
-        from sage.symbolic.ring import is_SymbolicVariable
-
-        if is_SymbolicVariable(x):
-            return PrincipalIdealDomain.__getitem__(self, repr(x))
 
         from sage.rings.number_field.all import is_NumberFieldElement
-
         if is_NumberFieldElement(x):
             K, from_K = x.parent().subfield(x)
             return K.order(K.gen())

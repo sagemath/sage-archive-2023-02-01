@@ -65,6 +65,7 @@ Check lazy import of ``interacts``::
 
 import os, sys
 import operator
+import math
 
 from sage.env import SAGE_ROOT, SAGE_DOC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
 
@@ -210,7 +211,7 @@ del message, name
 #try:
 #    import resource   # unix only...
 #    resource.setrlimit(resource.RLIMIT_AS, (-1,-1))
-#except StandardError:
+#except Exception:
 #    pass
 
 # very useful 2-letter shortcuts

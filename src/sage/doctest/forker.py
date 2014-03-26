@@ -791,7 +791,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','forker.py')
             sage: FDS = FileDocTestSource(filename,DD)
             sage: globs = RecordingDict(globals())
-            sage: globs.has_key('doctest_var')
+            sage: 'doctest_var' in globs
             False
             sage: doctests, extras = FDS.create_doctests(globs)
             sage: ex0 = doctests[0].examples[0]
@@ -1100,12 +1100,13 @@ class SageDocTestRunner(doctest.DocTestRunner):
                         if ex.want:
                             print(doctest._indent(ex.want[:-1]))
                     from sage.misc.interpreter import DEFAULT_SAGE_CONFIG
-                    from IPython import embed
+                    from IPython.terminal.embed import InteractiveShellEmbed
                     cfg = DEFAULT_SAGE_CONFIG.copy()
                     prompt_config = cfg.PromptManager
                     prompt_config.in_template = 'debug: '
                     prompt_config.in2_template = '.....: '
-                    embed(config=cfg, banner1='', user_ns=dict(globs))
+                    shell = InteractiveShellEmbed(config=cfg, banner1='', user_ns=dict(globs))
+                    shell(header='', stack_depth=2)
                 except KeyboardInterrupt:
                     # Assume this is a *real* interrupt. We need to
                     # escalate this to the master docbuilding process.
@@ -1285,7 +1286,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             [('cputime', [...]), ('err', None), ('failures', 0), ('walltime', [...])]
         """
         for key in ["cputime","walltime"]:
-            if not D.has_key(key):
+            if key not in D:
                 D[key] = []
             if hasattr(self, key):
                 D[key].append(self.__dict__[key])

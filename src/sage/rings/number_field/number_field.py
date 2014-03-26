@@ -444,7 +444,7 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
         key = (polynomial, polynomial.base_ring(), name, latex_name,
                embedding, embedding.parent() if embedding is not None else None,
                assume_disc_small, None if maximize_at_primes is None else tuple(maximize_at_primes))
-        if _nf_cache.has_key(key):
+        if key in _nf_cache:
             K = _nf_cache[key]()
             if not K is None: return K
 
@@ -910,7 +910,7 @@ def CyclotomicField(n=0, names=None, bracket="()", embedding=True):
     if embedding is True:
         embedding = (2 * CLF.pi() * CLF.gen() / n).exp()
     key = (n, names, embedding)
-    if _cyclo_cache.has_key(key):
+    if key in _cyclo_cache:
         K = _cyclo_cache[key]()
         if not K is None: return K
     K = NumberField_cyclotomic(n, names, embedding=embedding)
@@ -6168,30 +6168,18 @@ class NumberField_absolute(NumberField_generic):
         from sage.rings.number_field.order import is_NumberFieldOrder
         if is_NumberFieldOrder(R) and self.has_coerce_map_from(R.number_field()):
             return self._generic_convert_map(R)
-        if is_NumberField(R) and R != QQ:
-            if R.coerce_embedding() is not None:
-                if self.coerce_embedding() is not None:
-                    try:
-                        from sage.categories.pushout import pushout
-                        ambient_field = pushout(R.coerce_embedding().codomain(), self.coerce_embedding().codomain())
-                        if ambient_field is not None:
-                            try:
-                                # the original ambient field
-                                return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self, ambient_field)
-                            except ValueError: # no embedding found
-                                # there might be one in the alg. completion
-                                return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self, ambient_field.algebraic_closure() if hasattr(ambient_field,'algebraic_closure') else ambient_field)
-                    except (ValueError, TypeError, NotImplementedError, sage.structure.coerce_exceptions.CoercionException),msg:
-                        # no success with the pushout
-                        try:
-                            return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self)
-                        except (TypeError, ValueError):
-                            pass
-                else:
-                    # R is embedded, self isn't. So, we could only have
-                    # the forgetful coercion. But this yields to non-commuting
-                    # coercions, as was pointed out at ticket #8800
+        # R is not QQ by the above tests
+        if is_NumberField(R) and R.coerce_embedding() is not None:
+            if self.coerce_embedding() is not None:
+                try:
+                    return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self)
+                except ValueError: # no common embedding found
                     return None
+            else:
+                # R is embedded, self isn't. So, we could only have
+                # the forgetful coercion. But this yields to non-commuting
+                # coercions, as was pointed out at ticket #8800
+                return None
 
     def base_field(self):
         """
@@ -6737,7 +6725,7 @@ class NumberField_absolute(NumberField_generic):
 
         EXAMPLES:
 
-        For medium-sized galois groups of fields with small discriminants,
+        For medium-sized Galois groups of fields with small discriminants,
         this computation is feasible::
 
             sage: K.<a> = NumberField(x^6 + 4*x^2 + 2)
@@ -6764,7 +6752,7 @@ class NumberField_absolute(NumberField_generic):
         except AttributeError:
             pass
 
-        # Compute degree of galois closure if possible
+        # Compute degree of Galois closure if possible
         try:
             deg = self.galois_group(type='pari').order()
         except NotImplementedError:

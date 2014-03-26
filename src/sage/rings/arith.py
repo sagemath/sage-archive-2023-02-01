@@ -1884,7 +1884,7 @@ def xgcd(a, b):
         sage: 4*56 + (-5)*44
         4
         sage: g, a, b = xgcd(5/1, 7/1); g, a, b
-        (1, 3, -2)
+        (1, 1/5, 0)
         sage: a*(5/1) + b*(7/1) == g
         True
         sage: x = polygen(QQ)
@@ -3118,6 +3118,7 @@ def binomial(x, m, **kwds):
 
     EXAMPLES::
 
+        sage: from sage.rings.arith import binomial
         sage: binomial(5,2)
         10
         sage: binomial(2,0)

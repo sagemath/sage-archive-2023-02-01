@@ -19,7 +19,7 @@ include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/ext/python.pxi"
 
-from sage.libs.ginac cimport *
+from ginac cimport *
 
 # for complex log and log gamma
 include "sage/gsl/gsl_complex.pxi"
@@ -120,7 +120,8 @@ def paramset_from_Expression(Expression e):
         sage: from sage.symbolic.pynac import paramset_from_Expression
         sage: f = function('f')
         sage: paramset_from_Expression(f(x).diff(x))
-        [0L]
+        [0L] # 32-bit
+        [0]  # 64-bit
     """
     return paramset_to_PyTuple(ex_to_fderivative(e._gobj).get_parameter_set())
 
@@ -923,10 +924,10 @@ def py_is_integer_for_doctests(x):
 cdef public bint py_is_even(object x) except +:
     try:
         return not(x%2)
-    except StandardError:
+    except Exception:
         try:
             return not(ZZ(x)%2)
-        except StandardError:
+        except Exception:
             pass
     return 0
 
@@ -969,11 +970,11 @@ import sage.rings.arith
 cdef public bint py_is_prime(object n) except +:
     try:
         return n.is_prime()
-    except StandardError:  # yes, I'm doing this on purpose.
+    except Exception:  # yes, I'm doing this on purpose.
         pass
     try:
         return sage.rings.arith.is_prime(n)
-    except StandardError:
+    except Exception:
         pass
     return False
 
@@ -1083,45 +1084,45 @@ def py_is_cinteger_for_doctest(x):
     """
     return py_is_cinteger(x)
 
-cdef public object py_float(object n, PyObject* parent) except +:
+cdef public object py_float(object n, PyObject* kwds) except +:
     """
     Evaluate pynac numeric objects numerically.
 
     TESTS::
 
         sage: from sage.symbolic.pynac import py_float_for_doctests as py_float
-        sage: py_float(I, ComplexField(10))
+        sage: py_float(I, {'parent':ComplexField(10)})
         1.0*I
-        sage: py_float(pi, RealField(100))
+        sage: py_float(pi, {'parent':RealField(100)})
         3.1415926535897932384626433833
-        sage: py_float(10, CDF)
+        sage: py_float(10, {'parent':CDF})
         10.0
-        sage: type(py_float(10, CDF))
+        sage: type(py_float(10, {'parent':CDF}))
         <type 'sage.rings.complex_double.ComplexDoubleElement'>
-        sage: py_float(1/2, CC)
+        sage: py_float(1/2, {'parent':CC})
         0.500000000000000
-        sage: type(py_float(1/2, CC))
+        sage: type(py_float(1/2, {'parent':CC}))
         <type 'sage.rings.complex_number.ComplexNumber'>
     """
-    if parent is not NULL:
-        return (<object>parent)(n)
+    if kwds is not NULL:
+        return (<object>kwds)['parent'](n)
     else:
         try:
             return RR(n)
         except TypeError:
             return CC(n)
 
-def py_float_for_doctests(n, prec):
+def py_float_for_doctests(n, kwds):
     """
     This function is for testing py_float.
 
     EXAMPLES::
 
         sage: from sage.symbolic.pynac import py_float_for_doctests
-        sage: py_float_for_doctests(pi, RealField(80))
+        sage: py_float_for_doctests(pi, {'parent':RealField(80)})
         3.1415926535897932384626
     """
-    return py_float(n, <PyObject*>prec)
+    return py_float(n, <PyObject*>kwds)
 
 # TODO: Optimize this
 from sage.rings.real_double import RDF
@@ -1896,10 +1897,10 @@ cdef public GConstant py_get_constant(const_char_ptr name) except +:
         pc = c._pynac
         return pc.object
 
-cdef public object py_eval_constant(unsigned serial, object parent) except +:
+cdef public object py_eval_constant(unsigned serial, object kwds) except +:
     from sage.symbolic.constants import constants_table
     constant = constants_table[serial]
-    return parent(constant)
+    return kwds['parent'](constant)
 
 cdef public object py_eval_unsigned_infinity() except +:
     """

@@ -1312,24 +1312,22 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         TESTS::
 
             sage: for n in range(2,100): # long time
-            ...       K=Integers(n)
-            ...       elist = range(1,min(2*n+2,100))
-            ...       for e in random_sublist(elist, 5/len(elist)):
-            ...           for a in random_sublist(range(1,n), min((n+2)//2,10)/(n-1)):
-            ...               b = K(a)
-            ...               try:
-            ...                   L = b.nth_root(e, all=True)
-            ...                   if len(L) > 0:
-            ...                       c = b.nth_root(e)
-            ...               except StandardError:
-            ...                   L = [-1]
-            ...               M = b._nth_root_naive(e)
-            ...               if sorted(L) != M:
-            ...                   print "mod(%s, %s).nth_root(%s,all=True), mod(%s, %s)._nth_root_naive(%s)"%(a,n,e,a,n,e)
-            ...                   raise ValueError
-            ...               if len(L) > 0 and (c not in L):
-            ...                   print "mod(%s, %s).nth_root(%s), mod(%s, %s).nth_root(%s,all=True)"%(a,n,e,a,n,e)
-            ...                   raise ValueError
+            ....:     K=Integers(n)
+            ....:     elist = range(1,min(2*n+2,100))
+            ....:     for e in random_sublist(elist, 5/len(elist)):
+            ....:         for a in random_sublist(range(1,n), min((n+2)//2,10)/(n-1)):
+            ....:             b = K(a)
+            ....:             try:
+            ....:                 L = b.nth_root(e, all=True)
+            ....:                 if len(L) > 0:
+            ....:                     c = b.nth_root(e)
+            ....:             except Exception:
+            ....:                 L = [-1]
+            ....:             M = b._nth_root_naive(e)
+            ....:             if sorted(L) != M:
+            ....:                 print "mod(%s, %s).nth_root(%s,all=True), mod(%s, %s)._nth_root_naive(%s)"%(a,n,e,a,n,e)
+            ....:             if len(L) > 0 and (c not in L):
+            ....:                 print "mod(%s, %s).nth_root(%s), mod(%s, %s).nth_root(%s,all=True)"%(a,n,e,a,n,e)
         """
         L = []
         for a in self.parent():

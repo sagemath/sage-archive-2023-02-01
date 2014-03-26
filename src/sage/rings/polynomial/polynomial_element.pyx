@@ -4894,8 +4894,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         .. note::
 
-           Uses the identity `R_n(f) := (-1)^(n (n-1)/2) R(f,
-           f') a_n^(n-k-2)`, where `n` is the degree of self,
+           Uses the identity `R_n(f) := (-1)^{n (n-1)/2} R(f,
+           f') a_n^{n-k-2}`, where `n` is the degree of self,
            `a_n` is the leading coefficient of self, `f'`
            is the derivative of `f`, and `k` is the degree
            of `f'`. Calls :meth:`.resultant`.

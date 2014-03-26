@@ -910,12 +910,17 @@ class CartanType_abstract(object):
         return "O"
 
     def _latex_draw_node(self, x, y, label, position="below=4pt", fill='white'):
-        """
+        r"""
         Draw (possibly marked [crossed out]) circular node ``i`` at the
         position ``(x,y)`` with node label ``label`` .
 
         - ``position`` -- position of the label relative to the node
         - ``anchor`` -- (optional) the anchor point for the label
+
+        EXAMPLES::
+
+            sage: CartanType(['A',3])._latex_draw_node(0, 0, 1)
+            '\\draw[fill=white] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{{$1$}};\n'
         """
         return "\\draw[fill={}] ({} cm, {} cm) circle (.25cm) node[{}]{{${}$}};\n".format(
                 fill, x, y, position, label)
@@ -1742,12 +1747,19 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
         return super(CartanType_affine, self)._ascii_art_node(label)
 
     def _latex_draw_node(self, x, y, label, position="below=4pt"):
-        """
+        r"""
         Draw (possibly marked [crossed out]) circular node ``i`` at the
         position ``(x,y)`` with node label ``label`` .
 
         - ``position`` -- position of the label relative to the node
         - ``anchor`` -- (optional) the anchor point for the label
+
+        EXAMPLES::
+
+            sage: CartanType.global_options(mark_special_node='both')
+            sage: CartanType(['A',3,1])._latex_draw_node(0, 0, 0)
+            '\\draw[fill=black] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{{$0$}};\n'
+            sage: CartanType.global_options.reset()
         """
         if label == self.special_node() and self.global_options('mark_special_node') in ['latex', 'both']:
             fill = 'black'

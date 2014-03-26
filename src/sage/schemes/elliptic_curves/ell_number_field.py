@@ -1654,7 +1654,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: [E.torsion_order() for E in CDB.iter([14])]
             [6, 6, 2, 6, 2, 6]
 
-        An example over a relative number field (after #16011)::
+        An example over a relative number field (see :trac:`16011`)::
 
             sage: R.<x> = QQ[]
             sage: F.<a> = QuadraticField(5)

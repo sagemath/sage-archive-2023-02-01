@@ -114,10 +114,14 @@ def run_tests(bint longtest=False, bint forever=False):
 
 def ZS1_iterator(int n):
     """
-    A fast iterator for the partitions of ``n`` which returns
-    lists and not partition types.  This is an implementation of
-    the ZS1 algorithm found in "Fast Algorithms for Generating
-    Partitons" by Zoghbi and Stomenovic.
+    A fast iterator for the partitions of ``n`` (in the opposite
+    of the lexicographic order) which returns lists and not
+    partition types.
+
+    This is an implementation of the ZS1 algorithm found in
+    "Fast Algorithms for Generating Integer Partitons" by Zoghbi
+    and Stojmenovic
+    ( http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.42.1287 ).
 
     EXAMPLES::
 
@@ -147,6 +151,11 @@ def ZS1_iterator(int n):
     cdef int r, t
     yield [n]
     while x[0] != 1:
+        # Loop invariants at this point:
+        # (A) x[:m+1] is a partition of n.
+        # (B) x[h+1:] is an array of n-(h+1) ones.
+        # (C) x[i] > 1 for each i <= h.
+        # (D) 0 <= h <= m.
         if x[h] == 2:
             m += 1
             x[h] = 1
@@ -170,3 +179,98 @@ def ZS1_iterator(int n):
         yield x[:m+1]
     #free(x)
 
+def ZS1_iterator_nk(int n, int k):
+    """
+    An iterator for the partitions of ``n`` of length at most
+    ``k`` (in the opposite of the lexicographic order) which
+    returns lists and not partition types.
+
+    The algorithm is a mild variation on :func:`ZS1_iterator`;
+    I would not vow for its speed.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.partitions import ZS1_iterator_nk
+        sage: it = ZS1_iterator_nk(4, 3)
+        sage: it.next()
+        [4]
+        sage: type(_)
+        <type 'list'>
+    """
+    # base case of the recursion: zero is the sum of the empty tuple
+    if n <= 0:
+        if n == 0 and k >= 0:
+            yield []
+        return
+    if k <= 0:
+        return
+    #cdef int *x = <int*>malloc(sizeof(int) *n)
+    #x[0] = n
+    #cdef int i
+    #for i in range(1, n):
+    #    x[i] = 1
+    x = [1]*k
+    x[0] = n
+
+    cdef int m = 0
+    cdef int h = 0
+    cdef int r, t
+    yield [n]
+    while x[0] != 1:
+        # Loop invariants at this point:
+        # (A) x[:m+1] is a partition of n.
+        # (B) x[h+1:m+1] is an array of m-h ones.
+        # (C) x[i] > 1 for each i <= h.
+        # (D) 0 <= h <= m < k.
+        # Note that x[m+1:] might contain leftover from
+        # previous steps; we don't clean up after ourselves.
+        if x[h] == 2 and m + 1 < k:
+            # We have a 2 in the partition, and the space to
+            # spread it into two 1s.
+            m += 1
+            x[h] = 1
+            x[m] = 1
+            h -= 1
+            yield x[:m+1]
+        else:
+            t = m - h + 1
+            r = x[h] - 1
+            while t > (k-h-1) * r:
+                # The condition t > (k-h-1) * r means we cannot
+                # replace all entries of x[h:] by some integers
+                # <= r in such a way as to obtain a partition
+                # of n. As long as this is satisfied, we can
+                # move on to the previous index h.
+                # 
+                # Loop invariants: t = n - sum(x[:h+1]) + 1;
+                # r = x[h] - 1; x[h] > 1.
+                if h == 0:
+                    # No way to make the current partition
+                    # lexicographically smaller.
+                    return
+                h -= 1
+                t += r + 1
+                r = x[h] - 1
+            # Decrement x[h] from r + 1 to r, and replace
+            # x[h+1:] by the lexicographically highest array
+            # it could possibly be. This means replacing
+            # x[h+1:] by the array [r, r, r, ..., r, s],
+            # where s is the residue of t modulo r (or
+            # nothing if that residue is 0).
+            x[h] = r
+            while t >= r:
+                # Loop invariants: t = n - sum(x[:h+1]) + 1;
+                # r = x[h] > 1.
+                h += 1
+                x[h] = r
+                t -= r
+            if t == 0:
+                m = h
+            else:
+                m = h + 1
+                if t > 1:
+                    h += 1
+                x[m] = t
+            #yield [x[i] for i in xrange(m+1)]
+            yield x[:m+1]
+    #free(x)

@@ -10,7 +10,7 @@ AUTHORS:
 - Tom Boothby (added DiskCachedFunction).
 - Simon King (improved performance, more doctests, cython version,
   CachedMethodCallerNoArgs, weak cached function, cached special methods).
-- Julian Rueth (2014-03-19): added ``create_key`` parameter
+- Julian Rueth (2014-03-19): added ``key`` parameter
 
 EXAMPLES:
 
@@ -43,8 +43,8 @@ that behaves the same as ``cached_function``, except that it uses a
     sage: class A: pass
     sage: @weak_cached_function
     ....: def f():
-    ....:    print "doing a computation"
-    ....:    return A()
+    ....:     print "doing a computation"
+    ....:     return A()
     sage: a = f()
     doing a computation
 
@@ -134,8 +134,8 @@ that behaves the same as ``cached_function``, except that it uses a
     sage: class A: pass
     sage: @weak_cached_function
     ....: def f():
-    ....:    print "doing a computation"
-    ....:    return A()
+    ....:     print "doing a computation"
+    ....:     return A()
     sage: a = f()
     doing a computation
 
@@ -423,6 +423,7 @@ from sage.misc.sageinspect import sage_getfile, sage_getsourcelines, sage_getarg
 
 import sage.misc.weak_dict
 from sage.misc.weak_dict import WeakValueDictionary
+from sage.misc.decorators import decorator_keywords
 
 cdef frozenset special_method_names = frozenset(['__abs__', '__add__',
             '__and__', '__call__', '__cmp__', '__coerce__', '__complex__', '__contains__', '__del__',
@@ -527,7 +528,6 @@ cdef class CachedFunction(object):
         ....:     return x*y
         sage: mul(1,1,algorithm="default") is mul(1,1,algorithm="algorithm") is mul(1,1) is mul(1,1,'default')
         True
-
     """
     def __init__(self, f, classmethod=False, name=None, key=None):
         """
@@ -555,7 +555,7 @@ cdef class CachedFunction(object):
             sage: g(5)
             7
             sage: g.cache
-            {((5, None, 'default'), ()): 7}
+            {((5, 'default'), ()): 7}
             sage: def f(t=1): print(t)
             sage: h = CachedFunction(f)
             sage: w = walltime()
@@ -580,7 +580,6 @@ cdef class CachedFunction(object):
             ....:     return -x
             sage: test_cache.__name__  # indirect doctest
             'test_cache'
-
         """
         self.f = f
         self.key = key
@@ -597,7 +596,7 @@ cdef class CachedFunction(object):
         if argument_fixer is not None: # it is None unless the argument fixer
                                        # was known previously. See #15038.
             self._argument_fixer = argument_fixer
-            if self._create_key is None:
+            if self.key is None:
                 self._fix_to_pos = argument_fixer.fix_to_pos
             else:
                 self._fix_to_pos = self._fix_to_pos_and_create_key
@@ -770,7 +769,7 @@ cdef class CachedFunction(object):
             sage: g = CachedFunction(number_of_partitions)
             sage: a = g(5)
             sage: g.get_cache()
-            {((5, None, 'default'), ()): 7}
+            {((5, 'default'), ()): 7}
             sage: a = g(10^5)   # indirect doctest
             sage: a == number_of_partitions(10^5)
             True
@@ -809,8 +808,7 @@ cdef class CachedFunction(object):
             sage: g = CachedFunction(number_of_partitions)
             sage: a = g(5)
             sage: g.get_cache()
-            {((5, None, 'default'), ()): 7}
-
+            {((5, 'default'), ()): 7}
         """
         return self.cache
 
@@ -849,10 +847,10 @@ cdef class CachedFunction(object):
             sage: g = CachedFunction(number_of_partitions)
             sage: a = g(5)
             sage: g.get_cache()
-            {((5, None, 'default'), ()): 7}
+            {((5, 'default'), ()): 7}
             sage: g.set_cache(17, 5)
             sage: g.get_cache()
-            {((5, None, 'default'), ()): 17}
+            {((5, 'default'), ()): 17}
             sage: g(5)
             17
 
@@ -879,7 +877,7 @@ cdef class CachedFunction(object):
 
             sage: @cached_function
             ....: def foo(x):
-            ....:    return x^2
+            ....:     return x^2
             sage: foo(2)
             4
             sage: foo.get_key(2)
@@ -913,7 +911,7 @@ cdef class CachedFunction(object):
             sage: g = CachedFunction(number_of_partitions)
             sage: a = g(5)
             sage: g.get_cache()
-            {((5, None, 'default'), ()): 7}
+            {((5, 'default'), ()): 7}
             sage: g.clear_cache()
             sage: g.get_cache()
             {}
@@ -949,7 +947,6 @@ cdef class CachedFunction(object):
         for ((args,kwargs), val) in P(arglist):
             self.set_cache(val, *args, **kwargs)
 
-from sage.misc.decorators import decorator_keywords
 cached_function = decorator_keywords(CachedFunction)
 
 cdef class WeakCachedFunction(CachedFunction):
@@ -970,8 +967,8 @@ cdef class WeakCachedFunction(CachedFunction):
         sage: class A: pass
         sage: @weak_cached_function
         ....: def f():
-        ....:    print "doing a computation"
-        ....:    return A()
+        ....:     print "doing a computation"
+        ....:     return A()
         sage: a = f()
         doing a computation
 
@@ -1012,7 +1009,7 @@ cdef class WeakCachedFunction(CachedFunction):
             sage: class A: pass
             sage: @weak_cached_function
             ....: def f():
-            ....:    return A()
+            ....:     return A()
             sage: f
             Cached version of <function f at ...>
 
@@ -1041,8 +1038,8 @@ cdef class WeakCachedFunction(CachedFunction):
             sage: class A: pass
             sage: @weak_cached_function
             ....: def f():
-            ....:    print "doing a computation"
-            ....:    return A()
+            ....:     print "doing a computation"
+            ....:     return A()
             sage: a = f()    # indirect doctest
             doing a computation
 
@@ -1394,7 +1391,6 @@ cdef class CachedMethodCaller(CachedFunction):
         <type 'sage.misc.cachefunc.CachedMethodCaller'>
         sage: a.bar(2) is a.bar(x=2)
         True
-
     """
     def __init__(self, CachedMethod cachedmethod, inst, cache=None, inst_in_key=False, name=None, key=None):
         """
@@ -1421,9 +1417,9 @@ cdef class CachedMethodCaller(CachedFunction):
         if cachedmethod._cachedfunc._argument_fixer is None:
             cachedmethod._cachedfunc.argfix_init()
         self._common_init(cachedmethod._cachedfunc.f,
-						  cachedmethod._cachedfunc._argument_fixer,
-						  name=name,
-					 	  key=key)
+                          cachedmethod._cachedfunc._argument_fixer,
+                          name=name,
+                          key=key)
         self.cache = {} if cache is None else cache
         self._instance = inst
         self._inst_in_key = inst_in_key
@@ -1447,7 +1443,6 @@ cdef class CachedMethodCaller(CachedFunction):
             True
             sage: J.groebner_basis
             Cached version of <function groebner_basis at 0x...>
-
         """
         if isinstance(self._cachedmethod, CachedInParentMethod) or hasattr(self._instance,self._cachedmethod._cache_name):
             return CachedMethodPickle,(self._instance,self.__name__)
@@ -1489,7 +1484,7 @@ cdef class CachedMethodCaller(CachedFunction):
             True
         """
         args, kwargs = self._argument_fixer.fix_to_pos(*args, **kwargs)
-        ret= self._create_key(self._instance, *args, **dict(kwargs))
+        ret = self.key(self._instance, *args, **dict(kwargs))
         return ret
 
     def __call__(self, *args, **kwds):
@@ -1567,7 +1562,7 @@ cdef class CachedMethodCaller(CachedFunction):
         cdef int nargs
         cdef object k
         cdef dict cache = self.cache
-        if kwds or self._create_key is not None:
+        if kwds or self.key is not None:
             if self._argument_fixer is None:
                 self.argfix_init()
             if self._inst_in_key:
@@ -1578,16 +1573,12 @@ cdef class CachedMethodCaller(CachedFunction):
             if args:
                 lenargs = len(args)
                 nargs = self._argument_fixer._nargs
-                if self._inst_in_key:
-                    if lenargs>=nargs:
-                        k = (self._instance,(args,()))
-                    else:
-                        k = (self._instance,(<tuple>args+(<tuple>self._argument_fixer._default_tuple)[-nargs+lenargs:],()))
+                if lenargs >= nargs:
+                    k = (args,())
                 else:
-                    if lenargs>=nargs:
-                        k = (args,())
-                    else:
-                        k = (<tuple>args+(<tuple>self._argument_fixer._default_tuple)[-nargs+lenargs:],())
+                    k = (<tuple>args+(<tuple>self._argument_fixer._default_tuple)[-nargs+lenargs:],())
+                if self._inst_in_key:
+                    k = (self._instance, k)
             elif self._default_key is not None:
                 k = self._default_key
             else:
@@ -1765,7 +1756,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
 
     - Simon King (2011-04)
     """
-    def __init__(self, inst, f, cache=None, name=None, key=None):
+    def __init__(self, inst, f, cache=None, name=None):
         """
         EXAMPLES::
 
@@ -1794,7 +1785,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
                 f = F.f
             else:
                 f = F
-        self._common_init(f, None, name=name, key=key)
+        self._common_init(f, None, name=name)
         # This is for unpickling a CachedMethodCallerNoArgs out
         # of an old CachedMethodCaller:
         cachename = '_cache__' + self.__name__
@@ -2095,7 +2086,6 @@ cdef class CachedMethod(object):
         sage: a = A()
         sage: a.f(1, algorithm="default") is a.f(1) is a.f(1, algorithm="algorithm")
         True
-
     """
     def __init__(self, f, name=None, key=None):
         """
@@ -2333,7 +2323,8 @@ cdef class CachedMethod(object):
                 self.nargs = 2 # don't need the exact number
                 Caller = CachedMethodCaller(self, inst,
                                             cache=self._get_instance_cache(inst),
-                                            name=name)
+                                            name=name,
+                                            key=self._cachedfunc.key)
         elif self.nargs==1:
             Caller = CachedMethodCallerNoArgs(inst, f, name=name)
         else:

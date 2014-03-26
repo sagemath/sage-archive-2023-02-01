@@ -774,7 +774,6 @@ def decorator_keywords(func):
         0
         sage: foo(1)
         1
-
     """
     @sage_wraps(func)
     def wrapped(f=None, **kwargs):

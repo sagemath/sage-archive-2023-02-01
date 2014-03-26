@@ -529,7 +529,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_simpl
             g.add_edge(i, i+1)
         return g
 
-    def _latex_dynkin_diagram(self, label = lambda x: x, node_dist=2):
+    def _latex_dynkin_diagram(self, label=lambda i: i, node=None, node_dist=2):
         r"""
         Return a latex representation of the Dynkin diagram.
 
@@ -538,25 +538,28 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_simpl
             sage: print CartanType(['E',7])._latex_dynkin_diagram()
             \draw (0 cm,0) -- (10 cm,0);
             \draw (4 cm, 0 cm) -- +(0,2 cm);
-            \draw[fill=white] (0, 0) circle (.25cm) node[below=4pt]{$1$};
-            \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$3$};
-            \draw[fill=white] (4 cm, 0) circle (.25cm) node[below=4pt]{$4$};
-            \draw[fill=white] (6 cm, 0) circle (.25cm) node[below=4pt]{$5$};
-            \draw[fill=white] (8 cm, 0) circle (.25cm) node[below=4pt]{$6$};
-            \draw[fill=white] (10 cm, 0) circle (.25cm) node[below=4pt]{$7$};
+            \draw[fill=white] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (2 cm, 0 cm) circle (.25cm) node[below=4pt]{$3$};
+            \draw[fill=white] (4 cm, 0 cm) circle (.25cm) node[below=4pt]{$4$};
+            \draw[fill=white] (6 cm, 0 cm) circle (.25cm) node[below=4pt]{$5$};
+            \draw[fill=white] (8 cm, 0 cm) circle (.25cm) node[below=4pt]{$6$};
+            \draw[fill=white] (10 cm, 0 cm) circle (.25cm) node[below=4pt]{$7$};
             \draw[fill=white] (4 cm, 2 cm) circle (.25cm) node[right=3pt]{$2$};
+            <BLANKLINE>
         """
+        if node is None:
+            node = self._latex_draw_node
         ret = "\\draw (0 cm,0) -- (%s cm,0);\n"%((self.n-2)*node_dist)
         ret += "\\draw (%s cm, 0 cm) -- +(0,%s cm);\n"%(2*node_dist, node_dist)
-        ret += "\\draw[fill=white] (0, 0) circle (.25cm) node[below=4pt]{$%s$};\n"%label(1)
+        ret += node(0, 0, label(1))
         for i in range(1, self.n-1):
-            ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};\n"%(i*node_dist, label(i+2))
-        ret += "\\draw[fill=white] (%s cm, %s cm) circle (.25cm) node[right=3pt]{$%s$};"%(2*node_dist, node_dist, label(2))
+            ret += node(i*node_dist, 0, label(i+2))
+        ret += node(2*node_dist, node_dist, label(2), 'right=3pt')
         return ret
 
-    def ascii_art(self, label = lambda x: x):
+    def ascii_art(self, label=lambda i: i, node=None):
         """
-        Returns a ascii art representation of the extended Dynkin diagram
+        Return a ascii art representation of the extended Dynkin diagram.
 
         EXAMPLES::
 
@@ -579,16 +582,11 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_simpl
             O---O---O---O---O---O---O
             2   4   5   6   7   8   9
         """
-        n = self.n
-        if n == 6:
-            return "        O %s\n        |\n        |\nO---O---O---O---O\n%s   %s   %s   %s   %s"\
-                %tuple(label(i) for i in (2,1,3,4,5,6))
-        elif n == 7:
-            return "        O %s\n        |\n        |\nO---O---O---O---O---O\n%s   %s   %s   %s   %s   %s"\
-                %tuple(label(i) for i in (2,1,3,4,5,6,7))
-        elif n == 8:
-            return "        O %s\n        |\n        |\nO---O---O---O---O---O---O\n%s   %s   %s   %s   %s   %s   %s"\
-                %tuple(label(i) for i in (2,1,3,4,5,6,7,8))
+        if node is None:
+            node = self._ascii_art_node
+        labels = map(label, [1,3,4,5,6] + range(7, self.n+1)) # We exclude 2 because of the special case
+        ret = "        {} {}\n        |\n        |\n".format(node(label(2)), label(2))
+        return ret + '---'.join(node(i) for i in labels) + '\n' + "".join("{!s:4}".format(i) for i in labels)
 
 # For unpickling backward compatibility (Sage <= 4.1)
 from sage.structure.sage_object import register_unpickle_override

@@ -221,7 +221,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             g.set_edge_label(n-1, n, 2)
         return g
 
-    def ascii_art(self, label = lambda x: x):
+    def ascii_art(self, label=lambda i: i, node=None):
         """
         Return an ascii art representation of the Dynkin diagram.
 
@@ -237,15 +237,17 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             O---O---O---O=>=O
             3   4   5   6   7
         """
+        if node is None:
+            node = self._ascii_art_node
         n = self.n
         if n == 1:
-            ret = "O\n"
+            ret = node(label(1)) + "\n"
         else:
-            ret  = (n-2)*"O---" + "O=>=O\n"
-        ret += "   ".join("%s"%label(i) for i in range(1,n+1))
+            ret  = "---".join(node(label(i)) for i in range(1,n)) + "=>=" + node(label(n)) + '\n'
+        ret += "".join("{!s:4}".format(label(i)) for i in range(1,n+1))
         return ret
 
-    def _latex_dynkin_diagram(self, label=lambda x: x, node_dist=2, dual=False):
+    def _latex_dynkin_diagram(self, label=lambda i: i, node=None, node_dist=2, dual=False):
         r"""
         Return a latex representation of the Dynkin diagram.
 
@@ -256,10 +258,11 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             \draw (4 cm, 0.1 cm) -- +(2 cm,0);
             \draw (4 cm, -0.1 cm) -- +(2 cm,0);
             \draw[shift={(5.2, 0)}, rotate=0] (135 : 0.45cm) -- (0,0) -- (-135 : 0.45cm);
-            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$1$};
-            \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$2$};
-            \draw[fill=white] (4 cm, 0) circle (.25cm) node[below=4pt]{$3$};
-            \draw[fill=white] (6 cm, 0) circle (.25cm) node[below=4pt]{$4$};
+            \draw[fill=white] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (2 cm, 0 cm) circle (.25cm) node[below=4pt]{$2$};
+            \draw[fill=white] (4 cm, 0 cm) circle (.25cm) node[below=4pt]{$3$};
+            \draw[fill=white] (6 cm, 0 cm) circle (.25cm) node[below=4pt]{$4$};
+            <BLANKLINE>
 
         When ``dual=True``, the Dynkin diagram for the dual Cartan
         type `C_n` is returned::
@@ -269,18 +272,21 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             \draw (4 cm, 0.1 cm) -- +(2 cm,0);
             \draw (4 cm, -0.1 cm) -- +(2 cm,0);
             \draw[shift={(4.8, 0)}, rotate=180] (135 : 0.45cm) -- (0,0) -- (-135 : 0.45cm);
-            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$1$};
-            \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$2$};
-            \draw[fill=white] (4 cm, 0) circle (.25cm) node[below=4pt]{$3$};
-            \draw[fill=white] (6 cm, 0) circle (.25cm) node[below=4pt]{$4$};
+            \draw[fill=white] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (2 cm, 0 cm) circle (.25cm) node[below=4pt]{$2$};
+            \draw[fill=white] (4 cm, 0 cm) circle (.25cm) node[below=4pt]{$3$};
+            \draw[fill=white] (6 cm, 0 cm) circle (.25cm) node[below=4pt]{$4$};
+            <BLANKLINE>
 
         .. SEEALSO::
 
             - :meth:`sage.combinat.root_system.type_C.CartanType._latex_dynkin_diagram`
             - :meth:`sage.combinat.root_system.type_BC_affine.CartanType._latex_dynkin_diagram`
         """
+        if node is None:
+            node = self._latex_draw_node
         if self.n == 1:
-            return "\\draw[fill=white] (0,0) circle (.25cm) node[below=4pt]{$1$};"
+            return node(0, 0, label(1))
         n = self.n
         ret = "\\draw (0 cm,0) -- (%s cm,0);\n"%((n-2)*node_dist)
         ret += "\\draw (%s cm, 0.1 cm) -- +(%s cm,0);\n"%((n-2)*node_dist, node_dist)
@@ -289,9 +295,8 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             ret += self._latex_draw_arrow_tip((n-1.5)*node_dist-0.2, 0, 180)
         else:
             ret += self._latex_draw_arrow_tip((n-1.5)*node_dist+0.2, 0, 0)
-        for i in range(self.n-1):
-            ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};\n"%(i*node_dist, label(i+1))
-        ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};"%((n-1)*node_dist, label(n))
+        for i in range(self.n):
+            ret += node(i*node_dist, 0, label(i+1))
         return ret
 
     def _default_folded_cartan_type(self):

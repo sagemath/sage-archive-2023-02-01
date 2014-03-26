@@ -102,7 +102,7 @@ def key(x):
         sage: sage.graphs.dot2tex_utils.key("blah{bleh}\nblih{")
         'blahblehblih'
     """
-    return re.sub("[\\\'\"\[\]() \t\r\n{}]","", str(x))
+    return re.sub("[\\\'\"\[\]() \t\r\n{}|]","", str(x))
 
 def key_with_hash(x):
     """

@@ -249,7 +249,7 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced):
             g.add_edge(n-2, n)
         return g
 
-    def _latex_dynkin_diagram(self, label = lambda x: x, node_dist=2):
+    def _latex_dynkin_diagram(self, label=lambda i: i, node=None, node_dist=2):
         r"""
         Return a latex representation of the Dynkin diagram.
 
@@ -259,14 +259,17 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced):
             \draw (0 cm,0) -- (2 cm,0);
             \draw (2 cm,0) -- (4 cm,0.7 cm);
             \draw (2 cm,0) -- (4 cm,-0.7 cm);
-            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$1$};
-            \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$2$};
+            \draw[fill=white] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (2 cm, 0 cm) circle (.25cm) node[below=4pt]{$2$};
             \draw[fill=white] (4 cm, 0.7 cm) circle (.25cm) node[right=3pt]{$4$};
             \draw[fill=white] (4 cm, -0.7 cm) circle (.25cm) node[right=3pt]{$3$};
+            <BLANKLINE>
         """
+        if node is None:
+            node = self._latex_draw_node
         if self.n == 2:
-            ret = "\\draw[fill=white] (0,0) circle (.25cm) node[below=4pt]{$1$};\n"
-            ret += "\\draw[fill=white] (%s cm,0) circle (.25cm) node[below=4pt]{$2$};"%node_dist
+            ret = node(0, 0, label(1))
+            ret += node(node_dist, 0, label(2))
             return ret
         rt_most = (self.n-2) * node_dist
         center_point = rt_most - node_dist
@@ -274,14 +277,14 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced):
         ret += "\\draw (%s cm,0) -- (%s cm,0.7 cm);\n"%(center_point, rt_most)
         ret += "\\draw (%s cm,0) -- (%s cm,-0.7 cm);\n"%(center_point, rt_most)
         for i in range(self.n-2):
-            ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};\n"%(i*node_dist, label(i+1))
-        ret += "\\draw[fill=white] (%s cm, 0.7 cm) circle (.25cm) node[right=3pt]{$%s$};\n"%(rt_most, label(self.n))
-        ret += "\\draw[fill=white] (%s cm, -0.7 cm) circle (.25cm) node[right=3pt]{$%s$};"%(rt_most, label(self.n-1))
+            ret += node(i*node_dist, 0, label(i+1))
+        ret += node(rt_most, 0.7, label(self.n), 'right=3pt')
+        ret += node(rt_most, -0.7, label(self.n-1), 'right=3pt')
         return ret
 
-    def ascii_art(self, label = lambda x: x):
+    def ascii_art(self, label=lambda i: i, node=None):
         """
-        Returns a ascii art representation of the extended Dynkin diagram
+        Return a ascii art representation of the extended Dynkin diagram.
 
         EXAMPLES::
 
@@ -310,13 +313,16 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced):
             O---O---O---O---O
             3   4   5   6   7
         """
+        if node is None:
+            node = self._ascii_art_node
         n = self.n
         if n == 2:
-            return "O   O\n" + "   ".join("%s"%label(i) for i in range(1,n+1))
-        ret  =  (4*(n-3))*" "+"O %s"%label(n) + "\n"
+            ret = "{}   {}\n".format(node(label(1)), node(label(2)))
+            return ret + "{!s:4}{!s:4}".format(label(1), label(2))
+        ret  =  (4*(n-3))*" "+"{} {}\n".format(node(label(n)), label(n))
         ret += ((4*(n-3))*" "                 +"|\n")*2
-        ret += (n-2)*"O---"+"O\n"
-        ret += "   ".join("%s"%label(i) for i in range(1,n))
+        ret += "---".join(node(label(i)) for i in range(1, n)) +"\n"
+        ret += "".join("{!s:4}".format(label(i)) for i in range(1,n))
         return ret
 
 # For unpickling backward compatibility (Sage <= 4.1)

@@ -444,6 +444,26 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         """
         return self.ncols()
 
+    def relabel(self, relabelling):
+        """
+        Return the relabelled Cartan matrix.
+
+        EXAMPLES::
+
+            sage: CM = CartanMatrix(['C',3])
+            sage: R = CM.relabel({1:0, 2:4, 3:1}); R
+            [ 2  0 -1]
+            [ 0  2 -1]
+            [-1 -2  2]
+            sage: R.index_set()
+            (0, 1, 4)
+            sage: CM
+            [ 2 -1  0]
+            [-1  2 -2]
+            [ 0 -1  2]
+        """
+        return self.dynkin_diagram().relabel(relabelling, inplace=False).cartan_matrix()
+
     @cached_method
     def dynkin_diagram(self):
         """

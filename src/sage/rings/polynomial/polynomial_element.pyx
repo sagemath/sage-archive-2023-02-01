@@ -4974,6 +4974,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<s> = PolynomialRing(Qp(2))
             sage: (s^2).discriminant()
             0
+
+        TESTS:
+
+        This was fixed by :trac:`16014`::
+
+            sage: PR.<b,t1,t2,x1,y1,x2,y2> = QQ[]
+            sage: PRmu.<mu> = PR[]
+            sage: E1 = diagonal_matrix(PR, [1, b^2, -b^2])
+            sage: M = matrix(PR, [[1,-t1,x1-t1*y1],[t1,1,y1+t1*x1],[0,0,1]])
+            sage: E1 = M.transpose()*E1*M
+            sage: E2 = E1.subs(t1=t2, x1=x2, y1=y2)
+            sage: det(mu*E1 + E2).discriminant().degrees()
+            (24, 12, 12, 8, 8, 8, 8)
         """
         if self.is_zero():
             return self.parent().zero_element()

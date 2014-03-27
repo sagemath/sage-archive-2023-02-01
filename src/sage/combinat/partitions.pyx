@@ -114,9 +114,9 @@ def run_tests(bint longtest=False, bint forever=False):
 
 def ZS1_iterator(int n):
     """
-    A fast iterator for the partitions of ``n`` (in the opposite
-    of the lexicographic order) which returns lists and not
-    objects of type :class:`~sage.combinat.partition.Partition`.
+    A fast iterator for the partitions of ``n`` (in the decreasing lexicographic
+    order) which returns lists and not objects of type
+    :class:`~sage.combinat.partition.Partition`.
 
     This is an implementation of the ZS1 algorithm found in
     [ZS98]_.
@@ -137,7 +137,7 @@ def ZS1_iterator(int n):
         sage: type(_)
         <type 'list'>
     """
-    # base case of the recursion: zero is the sum of the empty tuple
+    # Easy cases.
     if n < 0:
         return
     if n == 0:
@@ -166,8 +166,8 @@ def ZS1_iterator(int n):
             x[h] = 1
             h -= 1
         else:
-            r = x[h] - 1
             t = m - h + 1
+            r = x[h] - 1
             x[h] = r
             while t >= r:
                 h += 1
@@ -186,9 +186,8 @@ def ZS1_iterator(int n):
 
 def ZS1_iterator_nk(int n, int k):
     """
-    An iterator for the partitions of ``n`` of length at most
-    ``k`` (in the opposite of the lexicographic order) which
-    returns lists and not objects of type
+    An iterator for the partitions of ``n`` of length at most ``k`` (in the
+    decreasing lexicographic order) which returns lists and not objects of type
     :class:`~sage.combinat.partition.Partition`.
 
     The algorithm is a mild variation on :func:`ZS1_iterator`;
@@ -203,7 +202,7 @@ def ZS1_iterator_nk(int n, int k):
         sage: type(_)
         <type 'list'>
     """
-    # base case of the recursion: zero is the sum of the empty tuple
+    # Easy cases.
     if n <= 0:
         if n == 0 and k >= 0:
             yield []
@@ -239,16 +238,16 @@ def ZS1_iterator_nk(int n, int k):
             h -= 1
             yield x[:m+1]
         else:
-            t = m - h + 1
+            t = m - h + 1 # 1 + "the number of 1s to the right of x[h]"
             r = x[h] - 1
+
+            # This loop finds the largest h such that x[:h] can be completed
+            # with integers smaller (<=) than r=x[h]-1 into a partition of n.
+            #
+            # We decrement h until it becomes possible.
             while t > (k-h-1) * r:
-                # The condition t > (k-h-1) * r means we cannot
-                # replace all entries of x[h:] by some integers
-                # <= r in such a way as to obtain a partition
-                # of n. As long as this is satisfied, we can
-                # move on to the previous index h.
-                # 
-                # Loop invariants: t = n - sum(x[:h+1]) + 1;
+                # Loop invariants:
+                # t = n - sum(x[:h+1]) + 1;
                 # r = x[h] - 1; x[h] > 1.
                 if h == 0:
                     # No way to make the current partition

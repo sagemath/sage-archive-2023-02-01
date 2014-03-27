@@ -3170,7 +3170,7 @@ class FiniteStateMachine(SageObject):
 
         INPUT:
 
-        - ``s`` -- s has to be a label of a state or :class:`FSMState`.
+        - ``s`` -- a label of a state or an :class:`FSMState`.
 
         OUTPUT:
 

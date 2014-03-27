@@ -244,11 +244,11 @@ cdef class Function(SageObject):
         if len(args) == 1:
             x = args[0]
             try:
-                memberfn = getattr(x, self.name())
+                method = getattr(x, self.name())
             except AttributeError:
                 pass
             else:
-                return memberfn()
+                return method()
             if is_inexact(x) and not parent_c(x) is SR:
                 return self._evalf_(x, parent=parent(x))
             return
@@ -412,11 +412,11 @@ cdef class Function(SageObject):
         if self._nargs == 1:
             if isinstance(args[0], FastDoubleFunc):
                 try:
-                    memberfn = getattr(args[0], self._name)
+                    method = getattr(args[0], self._name)
                 except AttributeError, err:
                     raise TypeError, "cannot handle fast float arguments"
                 else:
-                    return memberfn()
+                    return method()
 
         # support numpy arrays as arguments
         if any([type(arg).__module__ == 'numpy' for arg in args]): # avoid importing
@@ -463,9 +463,9 @@ cdef class Function(SageObject):
                 #     [e^x   0]
                 #     [  0  -1]
                 if len(args) == 1:
-                    memberfn = getattr(args[0], self._name, None)
-                    if callable(memberfn):
-                        return memberfn()
+                    method = getattr(args[0], self._name, None)
+                    if callable(method):
+                        return method()
 
                 # There is no natural coercion from QQbar to the symbolic ring
                 # in order to support

@@ -132,7 +132,7 @@ class Crystals(Category_singleton):
             """
             Returns an element of ``self``
 
-                sage: C = CrystalOfLetters(['A', 5])
+                sage: C = crystals.Letters(['A', 5])
                 sage: C.an_element()
                 1
             """
@@ -150,10 +150,10 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A', 5])
+                sage: C = crystals.Letters(['A', 5])
                 sage: C.weight_lattice_realization()
                 Ambient space of the Root system of type ['A', 5]
-                sage: K = KirillovReshetikhinCrystal(['A',2,1], 1, 1)
+                sage: K = crystals.KirillovReshetikhin(['A',2,1], 1, 1)
                 sage: K.weight_lattice_realization()
                 Weight lattice of the Root system of type ['A', 2, 1]
             """
@@ -169,7 +169,7 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',2])
+                sage: C = crystals.Letters(['A',2])
                 sage: C.cartan_type()
                 ['A', 2]
             """
@@ -182,7 +182,7 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A', 5])
+                sage: C = crystals.Letters(['A', 5])
                 sage: C.index_set()
                 (1, 2, 3, 4, 5)
             """
@@ -195,7 +195,7 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A', 5])
+                sage: C = crystals.Letters(['A', 5])
                 sage: C.Lambda()
                 Finite family {1: (1, 0, 0, 0, 0, 0), 2: (1, 1, 0, 0, 0, 0), 3: (1, 1, 1, 0, 0, 0), 4: (1, 1, 1, 1, 0, 0), 5: (1, 1, 1, 1, 1, 0)}
             """
@@ -214,7 +214,7 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLSPaths(['A',2,1],[-1,0,1])
+                sage: C = crystals.LSPaths(['A',2,1],[-1,0,1])
                 sage: C.__iter__.__module__
                 'sage.categories.crystals'
                 sage: g = C.__iter__()
@@ -289,7 +289,7 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = KirillovReshetikhinCrystal(['A',3,1], 1, 2)
+                sage: C = crystals.KirillovReshetikhin(['A',3,1], 1, 2)
                 sage: S = list(C.subcrystal(index_set=[1,2])); S
                 [[[1, 1]], [[1, 2]], [[1, 3]], [[2, 2]], [[2, 3]], [[3, 3]]]
                 sage: C.cardinality()
@@ -349,8 +349,8 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C2 = CrystalOfLetters(['A',2])
-                sage: C3 = CrystalOfLetters(['A',3])
+                sage: C2 = crystals.Letters(['A',2])
+                sage: C3 = crystals.Letters(['A',3])
                 sage: g = {C2.module_generators[0] : C3.module_generators[0]}
                 sage: g_full = C2.crystal_morphism(g)
                 sage: g_full(C2(1))
@@ -361,7 +361,7 @@ class Crystals(Category_singleton):
                 sage: g_full = C2.crystal_morphism(g, automorphism = lambda i : 3-i, direction_image = 'up')
                 sage: [g_full(b) for b in C2]
                 [3, 2, 1]
-                sage: T = CrystalOfTableaux(['A',2], shape = [2])
+                sage: T = crystals.Tableaux(['A',2], shape = [2])
                 sage: g = {C2(1) : T(rows=[[1,1]])}
                 sage: g_full = C2.crystal_morphism(g, similarity_factor = {1:2, 2:2})
                 sage: [g_full(b) for b in C2]
@@ -371,10 +371,10 @@ class Crystals(Category_singleton):
                 sage: g_full(T(rows=[[2,2]]))
                 2
 
-                sage: B1=KirillovReshetikhinCrystal(['A',2,1],1,1)
-                sage: B2=KirillovReshetikhinCrystal(['A',2,1],1,2)
-                sage: T=TensorProductOfCrystals(B1,B2)
-                sage: T1=TensorProductOfCrystals(B2,B1)
+                sage: B1 = crystals.KirillovReshetikhin(['A',2,1],1,1)
+                sage: B2 = crystals.KirillovReshetikhin(['A',2,1],1,2)
+                sage: T = crystals.TensorProduct(B1,B2)
+                sage: T1 = crystals.TensorProduct(B2,B1)
                 sage: La = T.weight_lattice_realization().fundamental_weights()
                 sage: t = [b for b in T if b.weight() == -3*La[0] + 3*La[1]][0]
                 sage: t1 = [b for b in T1 if b.weight() == -3*La[0] + 3*La[1]][0]
@@ -511,7 +511,7 @@ class Crystals(Category_singleton):
 
                 sage: C = CartanType(['C',2,1])
                 sage: La = C.root_system().weight_lattice().fundamental_weights()
-                sage: T = HighestWeightCrystal(La[0])
+                sage: T = crystals.HighestWeight(La[0])
                 sage: S = T.subcrystal(max_depth=3)
                 sage: G = T.digraph(subset=S); G
                 Digraph on 5 vertices
@@ -523,7 +523,7 @@ class Crystals(Category_singleton):
             Here is a way to construct a picture of a Demazure crystal using
             the ``subset`` option::
 
-                sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: B = crystals.Tableaux(['A',2], shape=[2,1])
                 sage: C = CombinatorialFreeModule(QQ,B)
                 sage: t = B.highest_weight_vector()
                 sage: b = C(t)
@@ -537,7 +537,7 @@ class Crystals(Category_singleton):
             We can also choose to display particular arrows using the
             ``index_set`` option::
 
-                sage: C = KirillovReshetikhinCrystal(['D',4,1], 2, 1)
+                sage: C = crystals.KirillovReshetikhin(['D',4,1], 2, 1)
                 sage: G = C.digraph(index_set=[1,3])
                 sage: len(G.edges())
                 20
@@ -582,7 +582,7 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A', 5])
+                sage: C = crystals.Letters(['A', 5])
                 sage: C.latex_file('/tmp/test.tex') #optional - dot2tex
             """
             header = r"""\documentclass{article}
@@ -612,14 +612,14 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: T = CrystalOfTableaux(['A',2],shape=[1])
+                sage: T = crystals.Tableaux(['A',2],shape=[1])
                 sage: T._latex_()   #optional - dot2tex
                 '...tikzpicture...'
                 sage: view(T, pdflatex = True, tightpage = True) #optional - dot2tex graphviz
 
             One can for example also color the edges using the following options::
 
-                sage: T = CrystalOfTableaux(['A',2],shape=[1])
+                sage: T = crystals.Tableaux(['A',2],shape=[1])
                 sage: T._latex_(color_by_label = {0:"black", 1:"red", 2:"blue"})   #optional - dot2tex graphviz
                 '...tikzpicture...'
             """
@@ -667,12 +667,12 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A', 2])
+                sage: C = crystals.Letters(['A', 2])
                 sage: C.metapost('/tmp/test.mp') #optional
 
             ::
 
-                sage: C = CrystalOfLetters(['A', 5])
+                sage: C = crystals.Letters(['A', 5])
                 sage: C.metapost('/tmp/test.mp')
                 Traceback (most recent call last):
                 ...
@@ -778,7 +778,7 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',2])
+                sage: C = crystals.Letters(['A',2])
                 sage: C.dot_tex()
                 'digraph G { \n  node [ shape=plaintext ];\n  N_0 [ label = " ", texlbl = "$1$" ];\n  N_1 [ label = " ", texlbl = "$2$" ];\n  N_2 [ label = " ", texlbl = "$3$" ];\n  N_0 -> N_1 [ label = " ", texlbl = "1" ];\n  N_1 -> N_2 [ label = " ", texlbl = "2" ];\n}'
             """
@@ -817,7 +817,7 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A', 5])
+                sage: C = crystals.Letters(['A', 5])
                 sage: print(C.plot())
                 Graphics object consisting of 17 graphics primitives
             """
@@ -829,7 +829,7 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = KirillovReshetikhinCrystal(['A',3,1],2,1)
+                sage: C = crystals.KirillovReshetikhin(['A',3,1],2,1)
                 sage: print(C.plot3d())
                 Graphics3d Object
             """
@@ -844,7 +844,7 @@ class Crystals(Category_singleton):
             """
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',5])
+                sage: C = crystals.Letters(['A',5])
                 sage: C(1).index_set()
                 (1, 2, 3, 4, 5)
             """
@@ -856,7 +856,7 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A', 5])
+                sage: C = crystals.Letters(['A', 5])
                 sage: C(1).cartan_type()
                 ['A', 5]
             """
@@ -901,7 +901,7 @@ class Crystals(Category_singleton):
             r"""
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',5])
+                sage: C = crystals.Letters(['A',5])
                 sage: C(1).epsilon(1)
                 0
                 sage: C(2).epsilon(1)
@@ -913,7 +913,7 @@ class Crystals(Category_singleton):
             r"""
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',5])
+                sage: C = crystals.Letters(['A',5])
                 sage: C(1).phi(1)
                 1
                 sage: C(2).phi(1)
@@ -930,7 +930,7 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',5])
+                sage: C = crystals.Letters(['A',5])
                 sage: C(1).weight()
                 (1, 0, 0, 0, 0, 0)
             """
@@ -943,7 +943,7 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',5])
+                sage: C = crystals.Letters(['A',5])
                 sage: C(1).phi_minus_epsilon(1)
                 1
             """
@@ -953,7 +953,7 @@ class Crystals(Category_singleton):
             """
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',5])
+                sage: C = crystals.Letters(['A',5])
                 sage: C(0).Epsilon()
                 (0, 0, 0, 0, 0, 0)
                 sage: C(1).Epsilon()
@@ -968,7 +968,7 @@ class Crystals(Category_singleton):
             """
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',5])
+                sage: C = crystals.Letters(['A',5])
                 sage: C(0).Phi()
                 (0, 0, 0, 0, 0, 0)
                 sage: C(1).Phi()
@@ -985,7 +985,7 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',3])
+                sage: C = crystals.Letters(['A',3])
                 sage: b = C(1)
                 sage: b.f_string([1,2])
                 3
@@ -1004,7 +1004,7 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',3])
+                sage: C = crystals.Letters(['A',3])
                 sage: b = C(3)
                 sage: b.e_string([2,1])
                 1
@@ -1023,14 +1023,14 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: C = crystals.Tableaux(['A',2], shape=[2,1])
                 sage: b=C(rows=[[1,1],[3]])
                 sage: b.s(1)
                 [[2, 2], [3]]
                 sage: b=C(rows=[[1,2],[3]])
                 sage: b.s(2)
                 [[1, 2], [3]]
-                sage: T=CrystalOfTableaux(['A',2],shape=[4])
+                sage: T=crystals.Tableaux(['A',2],shape=[4])
                 sage: t=T(rows=[[1,2,2,2]])
                 sage: t.s(1)
                 [[1, 1, 1, 2]]
@@ -1054,7 +1054,7 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',5])
+                sage: C = crystals.Letters(['A',5])
                 sage: C(1).is_highest_weight()
                 True
                 sage: C(2).is_highest_weight()
@@ -1075,7 +1075,7 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',5])
+                sage: C = crystals.Letters(['A',5])
                 sage: C(1).is_lowest_weight()
                 False
                 sage: C(6).is_lowest_weight()
@@ -1096,17 +1096,17 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: T = CrystalOfTableaux(['A',3], shape = [1])
+                sage: T = crystals.Tableaux(['A',3], shape = [1])
                 sage: t = T(rows = [[3]])
                 sage: t.to_highest_weight()
                 [[[1]], [2, 1]]
-                sage: T = CrystalOfTableaux(['A',3], shape = [2,1])
+                sage: T = crystals.Tableaux(['A',3], shape = [2,1])
                 sage: t = T(rows = [[1,2],[4]])
                 sage: t.to_highest_weight()
                 [[[1, 1], [2]], [1, 3, 2]]
                 sage: t.to_highest_weight(index_set = [3])
                 [[[1, 2], [3]], [3]]
-                sage: K = KirillovReshetikhinCrystal(['A',3,1],2,1)
+                sage: K = crystals.KirillovReshetikhin(['A',3,1],2,1)
                 sage: t = K(rows=[[2],[3]]); t.to_highest_weight(index_set=[1])
                 [[[1], [3]], [1]]
                 sage: t.to_highest_weight()
@@ -1135,17 +1135,17 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: T = CrystalOfTableaux(['A',3], shape = [1])
+                sage: T = crystals.Tableaux(['A',3], shape = [1])
                 sage: t = T(rows = [[3]])
                 sage: t.to_lowest_weight()
                 [[[4]], [3]]
-                sage: T = CrystalOfTableaux(['A',3], shape = [2,1])
+                sage: T = crystals.Tableaux(['A',3], shape = [2,1])
                 sage: t = T(rows = [[1,2],[4]])
                 sage: t.to_lowest_weight()
                 [[[3, 4], [4]], [1, 2, 2, 3]]
                 sage: t.to_lowest_weight(index_set = [3])
                 [[[1, 2], [4]], []]
-                sage: K = KirillovReshetikhinCrystal(['A',3,1],2,1)
+                sage: K = crystals.KirillovReshetikhin(['A',3,1],2,1)
                 sage: t = K.module_generator(); t
                 [[1], [2]]
                 sage: t.to_lowest_weight(index_set=[1,2,3])
@@ -1192,7 +1192,7 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = KirillovReshetikhinCrystal(['A',3,1], 1, 2)
+                sage: C = crystals.KirillovReshetikhin(['A',3,1], 1, 2)
                 sage: elt = C(1,4)
                 sage: list(elt.subcrystal(index_set=[1,3]))
                 [[[1, 4]], [[2, 4]], [[1, 3]], [[2, 3]]]

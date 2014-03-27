@@ -1,7 +1,8 @@
 r"""
 Rigged Configuration Elements
 
-A rigged configuration element is a sequence of :class:`RiggedPartition`
+A rigged configuration element is a sequence of
+:class:`~sage.combinat.rigged_configurations.rigged_partition.RiggedPartition`
 objects.
 
 AUTHORS:
@@ -60,7 +61,7 @@ class RiggedConfigurationElement(ClonableArray):
     corresponding lists of riggings. If only partition_list is specified,
     then it sets the rigging equal to the calculated vacancy numbers.
 
-    If we are construction a rigged configuration from a rigged configuration
+    If we are constructing a rigged configuration from a rigged configuration
     (say of another type) and we don't want to recompute the vacancy numbers,
     we can use the ``use_vacancy_numbers`` to avoid the recomputation.
 

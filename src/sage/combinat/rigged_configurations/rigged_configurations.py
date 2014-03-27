@@ -145,18 +145,20 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
     highest weight ones using the crystal operators.
 
     Rigged configurations are conjecturally in bijection with
-    :class:`TensorProductOfKirillovReshetikhinTableaux` of non-exceptional
-    affine types where the list `B` corresponds to the tensor factors
-    `B^{r,s}`. The bijection has been proven in types `A_n^{(1)}` and
-    `D_n^{(1)}` and when the only non-zero entries of `L_i^{(a)}` are either
+    :class:`~sage.combinat.rigged_configurations.tensor_product_kr_tableaux.TensorProductOfKirillovReshetikhinTableaux`
+    of non-exceptional affine types where the list `B` corresponds to the
+    tensor factors `B^{r,s}`. The bijection has been proven in types `A_n^{(1)}`
+    and `D_n^{(1)}` and when the only non-zero entries of `L_i^{(a)}` are either
     only `L_1^{(a)}` or only `L_i^{(1)}` (corresponding to single columns or
     rows respectively) [RigConBijection]_, [BijectionLRT]_, [BijectionDn]_.
 
     KR crystals are implemented in Sage, see
-    :class:`KirillovReshetikhinCrystal`, however, in the bijection with
-    rigged configurations a different realization of the elements in the
-    crystal are obtained, which are coined KR tableaux, see
-    :class:`KirillovReshetikhinTableaux`. For more details see [OSS2011]_.
+    :func:`~sage.combinat.crystals.kirillov_reshetkihin.KirillovReshetikhinCrystal`,
+    however, in the bijection with rigged configurations a different
+    realization of the elements in the crystal are obtained, which are
+    coined KR tableaux, see
+    :class:`~sage.combinat.rigged_configurations.kr_tableaux.KirillovReshetikhinTableaux`.
+    For more details see [OSS2011]_.
 
     .. NOTE::
 
@@ -325,9 +327,9 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
     ::
 
         sage: RC = RiggedConfigurations(['D', 4, 1], [[4,1], [3,3]])
-        sage: KR1 = KirillovReshetikhinCrystal(['D', 4, 1], 4, 1)
-        sage: KR2 = KirillovReshetikhinCrystal(['D', 4, 1], 3, 3)
-        sage: T = TensorProductOfCrystals(KR1, KR2)
+        sage: KR1 = crystals.KirillovReshetikhin(['D', 4, 1], 4, 1)
+        sage: KR2 = crystals.KirillovReshetikhin(['D', 4, 1], 3, 3)
+        sage: T = crystals.TensorProduct(KR1, KR2)
         sage: t = T[1]; t
         [[++++, []], [+++-, [[1], [2], [4], [-4]]]]
         sage: ret = RC(t)
@@ -346,7 +348,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 1]])
         sage: c = RC.cardinality(); c
         29
-        sage: K = KirillovReshetikhinCrystal(['D',4,1],2,1)
+        sage: K = crystals.KirillovReshetikhin(['D',4,1],2,1)
         sage: K.cardinality() == c
         True
     """
@@ -655,7 +657,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
 
         TESTS::
 
-            sage: KT = TensorProductOfKirillovReshetikhinTableaux(['C',2,1], [[2,4],[1,2]])
+            sage: KT = crystals.TensorProductOfKirillovReshetikhinTableaux(['C',2,1], [[2,4],[1,2]])
             sage: t = KT(pathlist=[[2,1,2,1,-2,2,-1,-2],[2,-2]])
             sage: rc = t.to_rigged_configuration(); rc
             <BLANKLINE>

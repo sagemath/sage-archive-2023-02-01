@@ -5604,7 +5604,7 @@ class Partitions_nk(Partitions):
             sage: Partitions(5, length=2) # indirect doctest
             Partitions of the integer 5 of length 2
         """
-        return "Partitions of the integer %s of length %s"%(self.n, self.k)
+        return "Partitions of the integer {} of length {}".format(self.n, self.k)
 
     def _an_element_(self):
         """
@@ -5614,17 +5614,17 @@ class Partitions_nk(Partitions):
 
             sage: Partitions(4, length=1).an_element()  # indirect doctest
             [4]
-            sage: Partitions(4, length=2).an_element()  # indirect doctest
+            sage: Partitions(4, length=2).an_element()
             [3, 1]
-            sage: Partitions(4, length=3).an_element()  # indirect doctest
+            sage: Partitions(4, length=3).an_element()
             [2, 1, 1]
-            sage: Partitions(4, length=4).an_element()  # indirect doctest
+            sage: Partitions(4, length=4).an_element()
             [1, 1, 1, 1]
 
-            sage: Partitions(1, length=1).an_element()  # indirect doctest
+            sage: Partitions(1, length=1).an_element()
             [1]
 
-            sage: Partitions(0, length=0).an_element()  # indirect doctest
+            sage: Partitions(0, length=0).an_element()
             []
         """
         if self.n == 0:
@@ -5670,10 +5670,19 @@ class Partitions_nk(Partitions):
             adds = [1] * (self.k - len(v))
             yield self.element_class(self, v + adds)
 
-    def cardinality(self):
+    def cardinality(self, algorithm='hybrid'):
         r"""
         Return the number of partitions of the specified size with the
         specified length.
+
+        INPUT:
+
+        - ``algorithm`` -- (default: ``'hybrid'``) the algorithm to compute
+          the cardinality and can be one of the following:
+
+          * ``'hybrid'`` - use a hybrid algorithm which uses heuristics to
+            reduce the complexity
+          * ``'gap'`` - use GAP
 
         EXAMPLES::
 
@@ -5718,8 +5727,21 @@ class Partitions_nk(Partitions):
             0
             sage: Partitions(1, length=4).cardinality()
             0
+
+        TESTS:
+
+        We check the hybrid approach gives the same results as GAP::
+
+            sage: N = [0, 1, 2, 3, 5, 10, 20, 500, 850]
+            sage: K = [0, 1, 2, 3, 5, 10, 11, 20, 21, 250, 499, 500]
+            sage: all(Partitions(n,length=k).cardinality() == Partitions(n,length=k).cardinality('gap')
+            ....:     for n in N for k in K)
+            True
+            sage: P = Partitions(4562, length=2800)
+            sage: P.cardinality() == P.cardinality('gap')
+            True
         """
-        return number_of_partitions_length(self.n, self.k)
+        return number_of_partitions_length(self.n, self.k, algorithm)
 
     def subset(self, **kwargs):
         r"""
@@ -6945,7 +6967,7 @@ def number_of_partitions(n, algorithm='default'):
 
     raise ValueError("unknown algorithm '%s'"%algorithm)
 
-def number_of_partitions_length(n, k):
+def number_of_partitions_length(n, k, algorithm='hybrid'):
     r"""
     Return the number of partitions of `n` with length `k`.
 
@@ -6968,9 +6990,37 @@ def number_of_partitions_length(n, k):
         1
         sage: number_of_partitions_length(0, 1)
         0
-
     """
-    return ZZ(gap.eval("NrPartitions(%s,%s)" % (ZZ(n),ZZ(k))))
+    if algorithm == 'hybrid':
+        # Do the hybrid algorithm
+
+        # Special relations between n and k
+        if n < k:
+            return ZZ.zero()
+        if n == k:
+            return ZZ.one()
+
+        # Special case of n
+        if n <= 0:
+            # Note: we've already checked the case when n == k == 0
+            return ZZ.zero()
+
+        # Small values of k
+        if k <= 0:
+            return ZZ.zero()
+        if k == 1:
+            return ZZ.one()
+        if k == 2:
+            return n // 2
+
+        # We have one column of length `k` and all (inner) partitions of
+        #    size `n-k` can't have length more than `k`
+        if n <= k*2:
+            return number_of_partitions(n - k)
+
+        # Fall back to GAP
+
+    return ZZ(gap.eval( "NrPartitions({},{})".format(ZZ(n), ZZ(k)) ))
 
 
 ##########

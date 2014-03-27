@@ -2,9 +2,10 @@
 Number of partitions of integer
 
 AUTHOR:
--- William Stein (2007-07-28): initial version
--- Jonathan Bober (2007-07-28): wrote the program partitions_c.cc
-              that does all the actual heavy lifting.
+
+- William Stein (2007-07-28): initial version
+- Jonathan Bober (2007-07-28): wrote the program ``partitions_c.cc``
+  that does all the actual heavy lifting.
 """
 
 import sys
@@ -114,8 +115,8 @@ def run_tests(bint longtest=False, bint forever=False):
 
 def ZS1_iterator(int n):
     """
-    A fast iterator for the partitions of ``n`` (in the decreasing lexicographic
-    order) which returns lists and not objects of type
+    A fast iterator for the partitions of ``n`` (in the decreasing
+    lexicographic order) which returns lists and not objects of type
     :class:`~sage.combinat.partition.Partition`.
 
     This is an implementation of the ZS1 algorithm found in
@@ -124,9 +125,9 @@ def ZS1_iterator(int n):
     REFERENCES:
 
     .. [ZS98] Antoine Zoghbi, Ivan Stojmenovic,
-      *Fast Algorithms for Generating Integer Partitons*,
-      Intern. J. Computer Math., Vol. 70., pp. 319--332.
-      http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.42.1287
+       *Fast Algorithms for Generating Integer Partitons*,
+       Intern. J. Computer Math., Vol. 70., pp. 319--332.
+       http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.42.1287
 
     EXAMPLES::
 
@@ -209,6 +210,9 @@ def ZS1_iterator_nk(int n, int k):
         return
     if k <= 0:
         return
+    if k == 1:
+        yield [n]
+        return
     #cdef int *x = <int*>malloc(sizeof(int) *n)
     #x[0] = n
     #cdef int i
@@ -278,3 +282,4 @@ def ZS1_iterator_nk(int n, int k):
                 x[m] = t
             yield x[:m+1]
     #free(x)
+

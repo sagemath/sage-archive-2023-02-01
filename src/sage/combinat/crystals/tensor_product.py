@@ -684,7 +684,7 @@ class FullTensorProductOfCrystals(TensorProductOfCrystals):
         category = Category.meet([crystal.category() for crystal in crystals])
         Parent.__init__(self, category = category)
         self.crystals = crystals
-        if options.has_key('cartan_type'):
+        if 'cartan_type' in options:
             self._cartan_type = CartanType(options['cartan_type'])
         else:
             if len(crystals) == 0:
@@ -777,6 +777,29 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
         """
         return ' \otimes '.join(latex(c) for c in self)
 
+    def _ascii_art_(self):
+        """
+        Return an ASCII art representation of ``self``.
+
+        EXAMPLES::
+
+            sage: KT = TensorProductOfKirillovReshetikhinTableaux(['D',4,1],[[3,3],[2,1],[1,2]])
+            sage: ascii_art(KT.module_generators[0])
+              1  1  1
+              2  2  2 #   1 #   1  1
+              3  3  3     2
+             -4 -4 -4
+        """
+        from sage.misc.ascii_art import ascii_art, AsciiArt
+        s = ascii_art(self[0])
+        s._baseline = s._h // 2
+        ret = s
+        for tableau in self[1:]:
+            s = ascii_art(tableau)
+            s._baseline = s._h // 2
+            ret += AsciiArt([" # "]) + s
+        return ret
+
     def __lt__(self, other):
         """
         Non elements of the crystal are incomparable with elements of the crystal
@@ -855,11 +878,24 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
             sage: t = T(b2, b1)
             sage: [t.phi(i) for i in B.index_set()]
             [1, 1, 4]
+
+        TESTS:
+
+        Check that :trac:`15462` is fixed::
+
+            sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+            sage: La = RootSystem(['A',2]).ambient_space().fundamental_weights()
+            sage: T = TensorProductOfCrystals(TCrystal(['A',2], La[1]+La[2]), B)
+            sage: t = T.an_element()
+            sage: t.phi(1)
+            2
+            sage: t.phi(2)
+            2
         """
         P = self[-1].parent().weight_lattice_realization()
         h = P.simple_coroots()
         omega = P(self.weight()).scalar(h[i])
-        return max([omega + self._sig(i, k) for k in range(len(self))])
+        return max([omega + self._sig(i, k) for k in range(1, len(self)+1)])
 
     @cached_in_parent_method
     def _sig(self,i,k):
@@ -1293,7 +1329,9 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             sage: y.e_string_to_ground_state()
             ()
         """
-        if self.parent().crystals[0].__module__ != 'sage.combinat.crystals.kirillov_reshetikhin':
+        from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinTableaux
+        if self.parent().crystals[0].__module__ != 'sage.combinat.crystals.kirillov_reshetikhin' and \
+                not isinstance(self.parent().crystals[0], KirillovReshetikhinTableaux):
             raise ValueError("All crystals in the tensor product need to be Kirillov-Reshetikhin crystals")
         I = self.cartan_type().classical().index_set()
         ell = max(ceil(K.s()/K.cartan_type().c()[K.r()]) for K in self.parent().crystals)
@@ -1507,7 +1545,7 @@ class CrystalOfTableaux(CrystalOfWords):
         spin_shapes = tuple( tuple(shape) for shape in shapes )
         try:
             shapes = tuple( tuple(trunc(i) for i in shape) for shape in spin_shapes )
-        except StandardError:
+        except Exception:
             raise ValueError("shapes should all be partitions or half-integer partitions")
         if spin_shapes == shapes:
             return super(CrystalOfTableaux, cls).__classcall__(cls, cartan_type, shapes)
@@ -1545,7 +1583,7 @@ class CrystalOfTableaux(CrystalOfWords):
 
         INPUT:
 
-        - ``cartan_type`` - (data coercible into) a cartan type
+        - ``cartan_type`` - (data coercible into) a Cartan type
         - ``shapes``      - a list (or iterable) of shapes
         - ``shape` `      - a shape
 
@@ -1690,9 +1728,9 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
         if len(args) == 1:
             if isinstance(args[0], Tableau):
                 options['rows'] = args[0]
-        if options.has_key('list'):
+        if 'list' in options:
             list = options['list']
-        elif options.has_key('rows'):
+        elif 'rows' in options:
             rows=options['rows']
 #            list=Tableau(rows).to_word_by_column()
             rows=Tableau(rows).conjugate()
@@ -1700,7 +1738,7 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
             for col in rows:
                 col.reverse()
                 list+=col
-        elif options.has_key('columns'):
+        elif 'columns' in options:
             columns=options['columns']
             list=[]
             for col in columns:

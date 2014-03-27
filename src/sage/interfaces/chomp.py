@@ -268,7 +268,7 @@ class CHomP:
             if mod_p:
                 return {0: VectorSpace(base_ring, 0)}
             else:
-                return {0: HomologyGroup(0)}
+                return {0: HomologyGroup(0, ZZ)}
         d = {}
         h = re.compile("^H_([0-9]*) = (.*)$", re.M)
         tors = re.compile("Z_([0-9]*)")
@@ -287,7 +287,7 @@ class CHomP:
                 if mod_p:
                     hom = VectorSpace(base_ring, 0)
                 else:
-                    hom = HomologyGroup(0)
+                    hom = HomologyGroup(0, ZZ)
             else:
                 rk = 0
                 if hom_str.find("^") != -1:
@@ -309,7 +309,7 @@ class CHomP:
                         invts.append(0)
                     if verbose:
                         print "dimension = %s, number of factors = %s, invariants = %s" %(dim, n, invts)
-                    hom = HomologyGroup(n, invts)
+                    hom = HomologyGroup(n, ZZ, invts)
 
             #
             #    generators
@@ -370,10 +370,13 @@ class CHomP:
 
         if chain:
             new_d = {}
-            bottom = min(complex.differential())
-            top = max(complex.differential())
+            diff = complex.differential()
+            if len(diff) == 0:
+                return {}
+            bottom = min(diff)
+            top = max(diff)
             for dim in d:
-                if complex._degree == -1:  # chain complex
+                if complex._degree_of_differential == -1:  # chain complex
                     new_dim = bottom + dim
                 else: # cochain complex
                     new_dim = top - dim
@@ -577,12 +580,12 @@ def homchain(complex=None, **kwds):
         sage: homchain(C, generators=True)   # optional - CHomP
         {-4: (C4 x C4, [(1, 0), (0, 1)])}
     """
-    from sage.homology.all import ChainComplex
+    from sage.homology.chain_complex import ChainComplex_class
     help = kwds.get('help', False)
     if help:
         return CHomP().help('homchain')
     # Type-checking just in case.
-    if isinstance(complex, ChainComplex):
+    if isinstance(complex, ChainComplex_class):
         return CHomP()('homchain', complex, **kwds)
     else:
         raise TypeError, "Complex is not a chain complex."

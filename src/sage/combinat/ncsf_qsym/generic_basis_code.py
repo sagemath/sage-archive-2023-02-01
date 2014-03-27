@@ -29,7 +29,7 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.categories.realizations import Category_realization_of_parent
 from sage.categories.modules_with_basis import ModulesWithBasis, ModuleMorphismByLinearity
-from sage.combinat.composition import Composition
+from sage.combinat.composition import Compositions, Composition
 from sage.combinat.partition import Partition
 from sage.combinat.permutation import Permutations
 from sage.rings.integer import Integer
@@ -114,9 +114,9 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 assert len(rest) == 0
             else:
                 if len(rest) > 0 or isinstance(c, (int, Integer)):
-                    c = Composition([c] + list(rest))
+                    c = self._basis_keys([c] + list(rest))
                 else:
-                    c = Composition(list(c))
+                    c = self._basis_keys(list(c))
             return self.monomial(c)
 
         # could go to Algebras(...).Graded().Connected() or Modules(...).Graded().Connected()
@@ -137,7 +137,7 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 sage: parent(L).one_basis()
                 []
             """
-            return Composition([])
+            return Compositions()([])
 
         # Combinatorial rules
 
@@ -294,7 +294,7 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 sage: elementary.sum_of_partition_rearrangements(Partition([]))
                 L[]
             """
-            return self.sum_of_monomials( Composition(comp) for comp in Permutations(par) )
+            return self.sum_of_monomials( self._basis_keys(comp) for comp in Permutations(par) )
 
         def _comp_to_par(self, comp):
             """
@@ -679,6 +679,61 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 return self.base_ring().zero()
             else:
                 return self.base_ring().one()
+
+        def degree_negation(self, element):
+            r"""
+            Return the image of ``element`` under the degree negation
+            automorphism of ``self``.
+
+            The degree negation is the automorphism which scales every
+            homogeneous element of degree `k` by `(-1)^k` (for all `k`).
+
+            INPUT:
+
+            - ``element`` -- element of ``self``
+
+            EXAMPLES::
+
+                sage: NSym = NonCommutativeSymmetricFunctions(ZZ)
+                sage: S = NSym.S()
+                sage: f = 2*S[2,1] + 4*S[1,1] - 5*S[1,2] - 3*S[[]]
+                sage: S.degree_negation(f)
+                -3*S[] + 4*S[1, 1] + 5*S[1, 2] - 2*S[2, 1]
+
+                sage: QSym = QuasiSymmetricFunctions(QQ)
+                sage: dI = QSym.dualImmaculate()
+                sage: f = -3*dI[2,1] + 4*dI[2] + 2*dI[1]
+                sage: dI.degree_negation(f)
+                -2*dI[1] + 4*dI[2] + 3*dI[2, 1]
+
+            TESTS:
+
+            Using :meth:`degree_negation` on an element of a different
+            basis works correctly::
+
+                sage: NSym = NonCommutativeSymmetricFunctions(QQ)
+                sage: S = NSym.S()
+                sage: Phi = NSym.Phi()
+                sage: S.degree_negation(Phi[2])
+                -S[1, 1] + 2*S[2]
+                sage: S.degree_negation(Phi[3])
+                -S[1, 1, 1] + 3/2*S[1, 2] + 3/2*S[2, 1] - 3*S[3]
+                sage: Phi.degree_negation(S[3])
+                -1/6*Phi[1, 1, 1] - 1/4*Phi[1, 2] - 1/4*Phi[2, 1] - 1/3*Phi[3]
+
+            The zero element behaves well::
+
+                sage: a = Phi.degree_negation(S.zero()); a
+                0
+                sage: parent(a)
+                Non-Commutative Symmetric Functions over the Rational Field in the Phi basis
+
+            .. TODO::
+
+                Generalize this to all graded vector spaces?
+            """
+            return self.sum_of_terms([ (lam, (-1)**(sum(lam)%2) * a)
+                                       for lam, a in self(element) ])
 
     class ElementMethods:
 

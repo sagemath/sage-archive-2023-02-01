@@ -280,7 +280,8 @@ def point(points, **kwds):
 
     INPUT:
 
-    -  ``points`` - either a single point (as a tuple) or a list of points.
+    -  ``points`` - either a single point (as a tuple), a list of
+       points, a single complex number, or a list of complex numbers.
 
     For information regarding additional arguments, see either point2d?
     or point3d?.
@@ -318,7 +319,11 @@ def point(points, **kwds):
 def point2d(points, **options):
     r"""
     A point of size ``size`` defined by point = `(x,y)`.
-    Point takes either a single tuple of coordinates or a list of tuples.
+
+    INPUT:
+
+    -  ``points`` - either a single point (as a tuple), a list of
+       points, a single complex number, or a list of complex numbers.
 
     Type ``point2d.options`` to see all options.
 
@@ -331,6 +336,7 @@ def point2d(points, **options):
     Passing an empty list returns an empty plot::
 
         sage: point([])
+        sage: import numpy; point(numpy.array([]))
 
     If you need a 2D point to live in 3-space later,
     this is possible::
@@ -378,11 +384,27 @@ def point2d(points, **options):
     ::
 
         sage: point((3,4), pointsize=100)
+
+    We can plot a single complex number::
+
+        sage: point(CC(1+I), pointsize=100)
+
+    We can also plot a list of complex numbers::
+
+        sage: point([CC(I), CC(I+1), CC(2+2*I)], pointsize=100)
+
     """
     from sage.plot.plot import xydata_from_point_list
     from sage.plot.all import Graphics
-    if points == []:
-        return Graphics()
+    from sage.rings.all import CC, CDF
+    if points in CC or points in CDF:
+        pass
+    else:
+        try:
+            if not points:
+                return Graphics()
+        except ValueError: # numpy raises a ValueError if not empty
+            pass
     xdata, ydata = xydata_from_point_list(points)
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))

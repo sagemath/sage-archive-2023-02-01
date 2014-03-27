@@ -89,18 +89,22 @@ class SchemeHomsetFactory(UniqueFactory):
         sage: A3 = AffineSpace(QQ,3)
         sage: Hom = A3.Hom(A2)
 
-    The Hom-sets are unique::
+    The Hom-sets are uniquely determined by domain and codomain::
 
         sage: Hom is copy(Hom)
         True
         sage: Hom is A3.Hom(A2)
         True
-        sage: loads(Hom.dumps()) is Hom
-        True
 
     Here is a tricky point. The Hom-sets are not identical if
-    domains/codomains are isomorphic but not identiacal::
+    domains/codomains are isomorphic but not identiacal. Affine spaces are not
+    unique, and hence, when pickling and unpickling the homset together with
+    domain and codomain, we obtain non-unique behaviour::
 
+        sage: loads(Hom.dumps()) is Hom
+        False
+        sage: loads(Hom.dumps()) == Hom
+        True
         sage: A3_iso = AffineSpace(QQ,3)
         sage: [ A3_iso is A3, A3_iso == A3 ]
         [False, True]
@@ -250,6 +254,21 @@ class SchemeHomset_generic(HomsetWithBase):
     """
     Element = SchemeMorphism
 
+    def __reduce__(self):
+        """
+        Used in pickling.
+
+        EXAMPLES::
+
+            sage: A2 = AffineSpace(QQ,2)
+            sage: A3 = AffineSpace(QQ,3)
+            sage: Hom = A3.Hom(A2)
+            sage: loads(Hom.dumps()) == Hom
+            True
+        """
+        #return SchemeHomset.reduce_data(self)
+        return SchemeHomset, (self.domain(), self.codomain(), self.homset_category())
+
     def __call__(self, *args, **kwds):
         r"""
         Make Hom-sets callable.
@@ -345,7 +364,7 @@ class SchemeHomset_generic(HomsetWithBase):
                       From: Integer Ring
                       To:   Rational Field
 
-        TESTS:
+        TESTS::
 
             sage: H._element_constructor_(f)
             Affine Scheme morphism:
@@ -390,6 +409,11 @@ class SchemeHomset_points(SchemeHomset_generic):
     Recall that the `K`-rational points of a scheme `X` over `k` can
     be identified with the set of morphisms `Spec(K) \to X`. In Sage,
     the rational points are implemented by such scheme morphisms.
+
+    If a scheme has a finite number of points, then the homset is
+    supposed to implement the Python iterator interface. See
+    :class:`~sage.schemes.toric.homset.SchemeHomset_points_toric_field`
+    for example.
 
     INPUT:
 
@@ -529,3 +553,42 @@ class SchemeHomset_points(SchemeHomset_generic):
             raise ValueError("value rings are defined for Spec domains only!")
         return dom.coordinate_ring()
 
+    def cardinality(self):
+        """
+        Return the number of points.
+
+        OUTPUT:
+
+        An integer or infinity.
+
+        EXAMPLES::
+
+            sage: toric_varieties.P2().point_set().cardinality()
+            +Infinity
+
+            sage: P2 = toric_varieties.P2(base_ring=GF(3))
+            sage: P2.point_set().cardinality()
+            13
+        """
+        if hasattr(self, 'is_finite') and not self.is_finite():
+            from sage.rings.infinity import Infinity
+            return Infinity
+        return sum(ZZ.one() for point in self)
+
+    __len__ = cardinality
+
+    def list(self):
+        """
+        Return a tuple containing all points.
+
+        OUTPUT:
+
+        A tuple containing all points of the toric variety.
+
+        EXAMPLE::
+
+            sage: P1 = toric_varieties.P1(base_ring=GF(3))
+            sage: P1.point_set().list()
+            ([0 : 1], [1 : 0], [1 : 1], [1 : 2])
+        """
+        return tuple(self)

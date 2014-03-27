@@ -98,9 +98,8 @@ class Tachyon(SageObject):
         sage: t.texture('t2', ambient=0.2,diffuse=0.7, specular=0.5, opacity=0.7, color=(0,0,1.0))
         sage: k=0
         sage: for i in srange(-1,1,0.05):
-        ...    k += 1
-        ...    t.sphere((i,i^2-0.5,i^3), 0.1, 't%s'%(k%3))
-        ...
+        ....:    k += 1
+        ....:    t.sphere((i,i^2-0.5,i^3), 0.1, 't%s'%(k%3))
         sage: t.show()
 
     Another twisted cubic, but with a white background, got by putting
@@ -122,10 +121,9 @@ class Tachyon(SageObject):
 
         sage: k=0
         sage: for i in srange(-1,1,0.05):
-        ...    k += 1
-        ...    t.sphere((i,i^2 - 0.5,i^3), 0.1, 't%s'%(k%3))
-        ...    t.cylinder((0,0,0), (0,0,1), 0.05,'t1')
-        ...
+        ....:    k += 1
+        ....:    t.sphere((i,i^2 - 0.5,i^3), 0.1, 't%s'%(k%3))
+        ....:    t.cylinder((0,0,0), (0,0,1), 0.05,'t1')
         sage: t.show()
 
     Many random spheres::
@@ -137,9 +135,8 @@ class Tachyon(SageObject):
         sage: t.texture('t2', ambient=0.2, diffuse=0.7, specular=0.5, opacity=0.7, color=(0,0,1.0))
         sage: k=0
         sage: for i in range(100):
-        ...    k += 1
-        ...    t.sphere((random(),random(), random()), random()/10, 't%s'%(k%3))
-        ...
+        ....:    k += 1
+        ....:    t.sphere((random(),random(), random()), random()/10, 't%s'%(k%3))
         sage: t.show()
 
     Points on an elliptic curve, their height indicated by their height
@@ -155,9 +152,8 @@ class Tachyon(SageObject):
         sage: Q = P
         sage: n = 100
         sage: for i in range(n):   # increase 20 for a better plot
-        ...    Q = Q + P
-        ...    t.sphere((Q[1], Q[0], ZZ(i)/n), 0.1, 't%s'%(i%3))
-        ...
+        ....:    Q = Q + P
+        ....:    t.sphere((Q[1], Q[0], ZZ(i)/n), 0.1, 't%s'%(i%3))
         sage: t.show()
 
     A beautiful picture of rational points on a rank 1 elliptic curve.
@@ -178,12 +174,10 @@ class Tachyon(SageObject):
         sage: Q = P
         sage: n = 100
         sage: for i in range(n):
-        ...    Q = Q + P
-        ...    c = i/n + .1
-        ...    t.texture('r%s'%i,color=(float(i/n),0,0))
-        ...    t.sphere((Q[0], -Q[1], .01), .04, 'r%s'%i)
-        ...
-        ...
+        ....:    Q = Q + P
+        ....:    c = i/n + .1
+        ....:    t.texture('r%s'%i,color=(float(i/n),0,0))
+        ....:    t.sphere((Q[0], -Q[1], .01), .04, 'r%s'%i)
         sage: t.show()    # long time, e.g., 10-20 seconds
 
     A beautiful spiral.
@@ -194,8 +188,7 @@ class Tachyon(SageObject):
         sage: t.light((0,0,100), 1, (1,1,1))
         sage: t.texture('r', ambient=0.1, diffuse=0.9, specular=0.5, opacity=1.0, color=(1,0,0))
         sage: for i in srange(0,50,0.1):
-        ...    t.sphere((i/10,sin(i),cos(i)), 0.05, 'r')
-        ...
+        ....:    t.sphere((i/10,sin(i),cos(i)), 0.05, 'r')
         sage: t.texture('white', color=(1,1,1), opacity=1, specular=1, diffuse=1)
         sage: t.plane((0,0,-100), (0,0,-100), 'white')
         sage: t.show()
@@ -252,6 +245,48 @@ class Tachyon(SageObject):
             '  \n        end_scene'
         """
         return self.str()
+
+    def save_image(self, filename=None, *args, **kwds):
+        r"""
+        Save an image representation of self.  The image type is
+        determined by the extension of the filename.  For example,
+        this could be ``.png``, ``.jpg``, ``.gif``, ``.pdf``,
+        ``.svg``.  Currently this is implemented by calling the
+        :meth:`save` method of self, passing along all arguments and
+        keywords.
+
+        .. Note::
+
+            Not all image types are necessarily implemented for all
+            graphics types.  See :meth:`save` for more details.
+
+        EXAMPLES::
+
+            sage: q = Tachyon()
+            sage: q.light((1,1,11), 1,(1,1,1))
+            sage: q.texture('s')
+            sage: q.sphere((0,-1,1),1,'s')
+            sage: tempname = tmp_filename()
+            sage: q.save_image(tempname)
+
+        TESTS:
+
+        :meth:`save_image` is used for generating animations::
+
+            sage: def tw_cubic(t):
+            ....:     q = Tachyon()
+            ....:     q.light((1,1,11), 1,(1,1,1))
+            ....:     q.texture('s')
+            ....:     for i in srange(-1,t,0.05):
+            ....:         q.sphere((i,i^2-0.5,i^3), 0.1, 's')
+            ....:     return q
+
+            sage: a = animate([tw_cubic(t) for t in srange(-1,1,.3)])
+            sage: a
+            Animation with 7 frames
+            sage: a.show() # optional -- ImageMagick
+        """
+        self.save(filename, *args, **kwds)
 
     def save(self, filename='sage.png', verbose=0, block=True, extra_opts=''):
         r"""

@@ -222,6 +222,7 @@ def CPRFanoToricVariety(Delta=None,
                         names=None,
                         coordinate_name_indices=None,
                         make_simplicial=False,
+                        base_ring=None,
                         base_field=None,
                         check=True):
     r"""
@@ -287,8 +288,11 @@ def CPRFanoToricVariety(Delta=None,
     - ``make_simplicial`` -- if ``True``, the underlying fan will be made
       simplicial (default: ``False``);
 
-    - ``base_field`` -- base field of the CPR-Fano toric variety
+    - ``base_ring`` -- base field of the CPR-Fano toric variety
       (default: `\QQ`);
+
+    - ``base_field`` -- alias for ``base_ring``. Takes precedence if
+      both are specified.
 
     - ``check`` -- by default the input data will be checked for correctness
       (e.g. that ``charts`` do form a subdivision of the normal fan of
@@ -633,14 +637,17 @@ def CPRFanoToricVariety(Delta=None,
                   for cone in fan)
     fan = Fan(cones, rays, check=False)
     # Check/normalize base_field
-    if base_field is None:
-        base_field = QQ
-    elif base_field not in _Fields:
+    if base_field is not None:
+        base_ring = base_field
+    if base_ring is None:
+        base_ring = QQ
+    elif base_ring not in _Fields:
         raise TypeError("need a field to construct a Fano toric variety!"
-                        "\n Got %s" % base_field)
+                        "\n Got %s" % base_ring)
     fan._is_complete = True     # At this point it must be for sure
-    return CPRFanoToricVariety_field(Delta_polar, fan, coordinate_points,
-        point_to_ray, coordinate_names, coordinate_name_indices, base_field)
+    return CPRFanoToricVariety_field(
+        Delta_polar, fan, coordinate_points,
+        point_to_ray, coordinate_names, coordinate_name_indices, base_ring)
 
 
 class CPRFanoToricVariety_field(ToricVariety_field):
@@ -936,9 +943,18 @@ class CPRFanoToricVariety_field(ToricVariety_field):
             ValueError: no natural map from the base ring
             (=Real Field with 53 bits of precision)
             to R (=Rational Field)!
+            sage: R = PolynomialRing(QQ, 2, 'a')
+            sage: P1xP1.change_ring(R)
+            Traceback (most recent call last):
+            ...
+            TypeError: need a field to construct a Fano toric variety!
+             Got Multivariate Polynomial Ring in a0, a1 over Rational Field
         """
         if self.base_ring() == F:
             return self
+        elif F not in _Fields:
+            raise TypeError("need a field to construct a Fano toric variety!"
+                            "\n Got %s" % F)
         else:
             return CPRFanoToricVariety_field(self._Delta_polar, self._fan,
                 self._coordinate_points, self._point_to_ray,

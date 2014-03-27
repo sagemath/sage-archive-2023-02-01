@@ -22,7 +22,7 @@ see :trac:`12849`::
     sage: for line in open(docfilename):
     ...       if "#sage.symbolic.expression.Expression.N" in line:
     ...           print line
-    <tt class="descname">N</tt><big>(</big><em>prec=None</em>, <em>digits=None</em><big>)</big>...
+    <tt class="descname">N</tt><big>(</big><em>prec=None</em>, <em>digits=None</em>, <em>algorithm=None</em><big>)</big>...
 """
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -37,7 +37,6 @@ import os, re, sys
 import pydoc
 from sage.misc.viewer import browser
 from sage.misc.misc import tmp_dir
-from sagenb.misc.sphinxify import sphinxify
 import sage.version
 from sage.env import SAGE_DOC, SAGE_SRC
 
@@ -198,6 +197,7 @@ def detex(s, embedded=False):
     if not embedded: # not in the notebook
         s = _rmcmd(s, 'mathop')
         s = _rmcmd(s, 'mathrm')
+        from sagenb.misc.sphinxify import sphinxify
         s = sphinxify(s, format='text')
         for a,b in math_substitutes:  # do math substitutions
             s = s.replace(a,b)
@@ -1279,6 +1279,7 @@ class _sage_doc:
 
         # now s should be the reST version of the docstring
         if output == 'html':
+            from sagenb.misc.sphinxify import sphinxify
             html = sphinxify(s)
             if view:
                 path = os.path.join(tmp_dir(), "temp.html")
@@ -1347,6 +1348,7 @@ class _sage_doc:
         elif output == 'rst':
             return s
         elif output == 'text':
+            from sagenb.misc.sphinxify import sphinxify
             return sphinxify(s, format='text')
         else:
             raise ValueError, "output type %s not recognized" % output
@@ -1452,7 +1454,13 @@ def help(module=None):
         Welcome to Sage ...
     """
     if not module is None:
-        python_help(module)
+        if hasattr(module, '_sage_doc_'):
+            from sage.misc.sageinspect import sage_getdef, _sage_getdoc_unformatted
+            docstr = 'Help on ' + str(module) + '\n'
+            docstr += 'Definition: ' + module.__name__ + sage_getdef(module) + '\n' 
+            pydoc.pager(docstr + _sage_getdoc_unformatted(module))
+        else:
+            python_help(module)
     else:
         print """Welcome to Sage %s!
 

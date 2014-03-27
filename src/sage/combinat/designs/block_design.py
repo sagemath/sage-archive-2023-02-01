@@ -59,6 +59,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.arith import binomial, integer_floor
 from sage.combinat.designs.incidence_structures import IncidenceStructure, IncidenceStructureFromMatrix
 from sage.misc.decorators import rename_keyword
+from sage.rings.finite_rings.constructor import FiniteField
 
 ###  utility functions  -------------------------------------------------------
 
@@ -84,21 +85,31 @@ def tdesign_params(t, v, k, L):
 
 def ProjectiveGeometryDesign(n, d, F, algorithm=None):
     """
+    Returns a projective geometry design.
+
+    A projective geometry design of parameters `n,d,F` has for points the lines
+    of `F^{n+1}`, and for blocks the `d+1`-dimensional subspaces of `F^{n+1}`,
+    each of which contains `\\frac {|F|^{d+1}-1} {|F|-1}` lines.
+
     INPUT:
 
     - ``n`` is the projective dimension
 
-    - ``v`` is the number of points `PPn(GF(q))`
+    - ``d`` is the dimension of the subspaces of `P = PPn(F)` which
+      make up the blocks.
 
-    - ``d`` is the dimension of the subspaces of `P = PPn(GF(q))` which
-      make up the blocks
+    - ``F`` is a finite field.
 
-    - ``b`` is the number of `d`-dimensional subspaces of `P`
+    - ``algorithm`` -- set to ``None`` by default, which results in using Sage's
+      own implementation. In order to use GAP's implementation instead (i.e. its
+      ``PGPointFlatBlockDesign`` function) set ``algorithm="gap"``. Note that
+      GAP's "design" package must be available in this case.
 
-    Wraps GAP Design's PGPointFlatBlockDesign. Does *not* require
-    GAP's Design.
+    EXAMPLES:
 
-    EXAMPLES::
+    The points of the following design are the `\\frac {2^{2+1}-1} {2-1}=7`
+    lines of `\mathbb{Z}_2^{2+1}`. It has `7` blocks, corresponding to each
+    2-dimensional subspace of `\mathbb{Z}_2^{2+1}`::
 
         sage: designs.ProjectiveGeometryDesign(2, 1, GF(2))
         Incidence structure with 7 points and 7 blocks
@@ -109,7 +120,7 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None):
     q = F.order()
     from sage.interfaces.gap import gap, GapElement
     from sage.sets.set import Set
-    if algorithm == None:
+    if algorithm is None:
         V = VectorSpace(F, n+1)
         points = list(V.subspaces(1))
         flats = list(V.subspaces(d+1))
@@ -132,16 +143,94 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None):
             gB.append([x-1 for x in b])
         return BlockDesign(v, gB, name="ProjectiveGeometryDesign")
 
-def AffineGeometryDesign(n, d, F):
+def ProjectivePlaneDesign(n, type="Desarguesian"):
     r"""
+    Returns a projective plane of order `n`.
+
+    A finite projective plane is a 2-design with `n^2+n+1` lines (or blocks) and
+    `n^2+n+1` points. For more information on finite projective planes, see the
+    :wikipedia:`Projective_plane#Finite_projective_planes`.
+
     INPUT:
 
-    - ``n`` is the Euclidean dimension, so the number of points is
+    - ``n`` -- the finite projective plane's order
 
-    - ``v`` is the number of points `v = |F^n|` (`F = GF(q)`, some `q`)
+    - ``type`` -- When set to ``"Desarguesian"``, the method returns
+      Desarguesian projective planes, i.e. a finite projective plane obtained by
+      considering the 1- and 2- dimensional spaces of `F_n^3`.
 
-    - `d` is the dimension of the (affine) subspaces of `P = GF(q)^n` which make
-      up the blocks.
+      For the moment, no other value is available for this parameter.
+
+    .. SEEALSO::
+
+        :meth:`ProjectiveGeometryDesign`
+
+    EXAMPLES::
+
+        sage: designs.ProjectivePlaneDesign(2)
+        Incidence structure with 7 points and 7 blocks
+
+    Non-existent ones::
+
+        sage: designs.ProjectivePlaneDesign(10)
+        Traceback (most recent call last):
+        ...
+        ValueError: No projective plane design of order 10 exists.
+        sage: designs.ProjectivePlaneDesign(14)
+        Traceback (most recent call last):
+        ...
+        ValueError: By the Bruck-Ryser-Chowla theorem, no projective plane of order 14 exists.
+
+    An unknown one::
+
+        sage: designs.ProjectivePlaneDesign(12)
+        Traceback (most recent call last):
+        ...
+        ValueError: If such a projective plane exists, we do not know how to build it.
+
+    TESTS::
+
+        sage: designs.ProjectivePlaneDesign(10, type="AnyThingElse")
+        Traceback (most recent call last):
+        ...
+        ValueError: The value of 'type' must be 'Desarguesian'.
+    """
+    from sage.rings.arith import two_squares
+
+    if type != "Desarguesian":
+        raise ValueError("The value of 'type' must be 'Desarguesian'.")
+
+    try:
+        F = FiniteField(n, 'x')
+    except ValueError:
+        if n == 10:
+            raise ValueError("No projective plane design of order 10 exists.")
+        try:
+            if (n%4) in [1,2]:
+                two_squares(n)
+        except ValueError:
+            raise ValueError("By the Bruck-Ryser-Chowla theorem, no projective"
+                             " plane of order "+str(n)+" exists.")
+
+        raise ValueError("If such a projective plane exists, "
+                         "we do not know how to build it.")
+
+    return ProjectiveGeometryDesign(2,1,F)
+
+def AffineGeometryDesign(n, d, F):
+    r"""
+    Returns an Affine Geometry Design.
+
+    INPUT:
+
+    - `n` (integer) -- the Euclidean dimension. The number of points is
+      `v=|F^n|`.
+
+    - `d` (integer) -- the dimension of the (affine) subspaces of `P = GF(q)^n`
+      which make up the blocks.
+
+    - `F` -- a Finite Field (i.e. ``FiniteField(17)``), or a prime power
+      (i.e. an integer)
 
     `AG_{n,d} (F)`, as it is sometimes denoted, is a `2` - `(v, k, \lambda)`
     design of points and `d`- flats (cosets of dimension `n`) in the affine
@@ -152,23 +241,39 @@ def AffineGeometryDesign(n, d, F):
              v = q^n,\  k = q^d ,
              \lambda =\frac{(q^{n-1}-1) \cdots (q^{n+1-d}-1)}{(q^{n-1}-1) \cdots (q-1)}.
 
-    Wraps some functions used in GAP Design's PGPointFlatBlockDesign.
-    Does *not* require GAP's Design.
+    Wraps some functions used in GAP Design's ``PGPointFlatBlockDesign``.  Does
+    *not* require GAP's Design package.
 
     EXAMPLES::
 
         sage: BD = designs.AffineGeometryDesign(3, 1, GF(2))
-        sage: BD.parameters()
-        (2, 8, 2, 2)
+        sage: BD.parameters(t=2)
+        (2, 8, 2, 1)
         sage: BD.is_block_design()
-        (True, [2, 8, 2, 2])
+        (True, [2, 8, 2, 1])
         sage: BD = designs.AffineGeometryDesign(3, 2, GF(2))
-        sage: BD.parameters()
-        (2, 8, 4, 12)
+        sage: BD.parameters(t=3)
+        (3, 8, 4, 1)
         sage: BD.is_block_design()
-        (True, [3, 8, 4, 4])
+        (True, [3, 8, 4, 1])
+
+    A 3-design::
+
+        sage: D = IncidenceStructure(range(32),designs.steiner_quadruple_system(32))
+        sage: D.is_block_design()
+        (True, [3, 32, 4, 1])
+
+    With an integer instead of a Finite Field::
+
+        sage: BD = designs.AffineGeometryDesign(3, 2, 4)
+        sage: BD.parameters(t=2)
+        (2, 64, 16, 5)
     """
-    q = F.order()
+    try:
+        q = int(F)
+    except TypeError:
+        q = F.order()
+
     from sage.interfaces.gap import gap, GapElement
     from sage.sets.set import Set
     gap.eval("V:=GaloisField(%s)^%s"%(q,n))
@@ -176,7 +281,7 @@ def AffineGeometryDesign(n, d, F):
     gap.eval("Subs:=AsSet(Subspaces(V,%s));"%d)
     gap.eval("CP:=Cartesian(points,Subs)")
     flats = gap.eval("flats:=List(CP,x->Sum(x))") # affine spaces
-    gblcks = eval(gap.eval("AsSortedList(List(flats,f->Filtered([1..Length(points)],i->points[i] in f)));"))
+    gblcks = eval(gap.eval("Set(List(flats,f->Filtered([1..Length(points)],i->points[i] in f)));"))
     v = q**n
     gB = []
     for b in gblcks:
@@ -202,14 +307,14 @@ def WittDesign(n):
     EXAMPLES::
 
         sage: BD = designs.WittDesign(9)   # optional - gap_packages (design package)
-        sage: BD.parameters()      # optional - gap_packages (design package)
+        sage: BD.is_block_design()      # optional - gap_packages (design package)
         (2, 9, 3, 1)
         sage: BD                   # optional - gap_packages (design package)
         Incidence structure with 9 points and 12 blocks
         sage: print BD             # optional - gap_packages (design package)
         WittDesign<points=[0, 1, 2, 3, 4, 5, 6, 7, 8], blocks=[[0, 1, 7], [0, 2, 5], [0, 3, 4], [0, 6, 8], [1, 2, 6], [1, 3, 5], [1, 4, 8], [2, 3, 8], [2, 4, 7], [3, 6, 7], [4, 5, 6], [5, 7, 8]]>
         sage: BD = designs.WittDesign(12)  # optional - gap_packages (design package)
-        sage: BD.parameters(t=5)   # optional - gap_packages (design package)
+        sage: BD.is_block_design()   # optional - gap_packages (design package)
         (5, 12, 6, 1)
     """
     from sage.interfaces.gap import gap, GapElement
@@ -284,7 +389,7 @@ def steiner_triple_system(n):
 
     As any pair of vertices is covered once, its parameters are ::
 
-        sage: sts.parameters()
+        sage: sts.parameters(t=2)
         (2, 9, 3, 1)
 
     An exception is raised for invalid values of ``n`` ::
@@ -356,7 +461,7 @@ def BlockDesign(max_pt, blks, name=None, test=True):
     if not(test):
         return BD
     else:
-        pars = BD.parameters()
+        pars = BD.parameters(t=2)
         if BD.block_design_checker(pars[0],pars[1],pars[2],pars[3]):
             return BD
         else:

@@ -157,7 +157,7 @@ class CombinatorialFreeModuleElement(Element):
         try:
             v.sort(cmp = print_options['monomial_cmp'],
                    key = lambda (monomial,coeff): monomial)
-        except StandardError: # Sorting the output is a plus, but if we can't, no big deal
+        except Exception: # Sorting the output is a plus, but if we can't, no big deal
             pass
         return v
 
@@ -1369,13 +1369,13 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         R = self.base_ring()
         try:
             x = x + self.monomial(I.an_element())
-        except StandardError:
+        except Exception:
             pass
         try:
             g = iter(self.basis().keys())
             for c in range(1,4):
                 x = x + self.term(g.next(), R(c))
-        except (StandardError, StopIteration):
+        except Exception:
             pass
         return x
 
@@ -1561,30 +1561,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             True
         """
         return self.element_class(self, {})
-
-    def combinatorial_class(self):
-        """
-        Returns the combinatorial class that indexes the basis elements.
-
-        Deprecated: use self.basis().keys() instead.
-
-        EXAMPLES::
-
-            sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'])
-            sage: F.combinatorial_class()
-            doctest:...: DeprecationWarning: "FM.combinatorial_class()" is deprecated. Use "F.basis().keys()" instead !
-            See http://trac.sagemath.org/6136 for details.
-            {'a', 'b', 'c'}
-
-        ::
-
-            sage: s = SymmetricFunctions(QQ).schur()
-            sage: s.combinatorial_class()
-            Partitions
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(6136, '"FM.combinatorial_class()" is deprecated. Use "F.basis().keys()" instead !')
-        return self._basis_keys
 
     def dimension(self):
         """
@@ -1885,7 +1861,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         try:
             if el == self.one_basis():
                 return AsciiArt(["1"])
-        except StandardError:
+        except Exception:
             pass
         pref = AsciiArt([self.prefix()])
         r = pref * (AsciiArt([" "**Integer(len(pref))]) + ascii_art(el))

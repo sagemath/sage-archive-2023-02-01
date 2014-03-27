@@ -66,7 +66,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
     Return the globally unique univariate or multivariate polynomial
     ring with given properties and variable name or names.
 
-    There are four ways to call the polynomial ring constructor:
+    There are five ways to call the polynomial ring constructor:
 
     1. ``PolynomialRing(base_ring, name,    sparse=False)``
     2. ``PolynomialRing(base_ring, names,   order='degrevlex')``
@@ -79,7 +79,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
 
     INPUT:
 
-    - ``base_ring`` -- a commutative ring
+    - ``base_ring`` -- a ring
     - ``name`` -- a string
     - ``names`` -- a list or tuple of names, or a comma separated string
     - ``var_array`` -- a list or tuple of names, or a comma separated string
@@ -734,4 +734,3 @@ def BooleanPolynomialRing_constructor(n=None, names=None, order="lex"):
 #########################################################################################
 # END (Factory function for making polynomial rings)
 #########################################################################################
-

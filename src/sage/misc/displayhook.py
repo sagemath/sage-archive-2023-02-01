@@ -487,20 +487,19 @@ class SagePlainTextFormatter(DisplayHookBase, PlainTextFormatter):
             sage: fmt
             <...displayhook.SagePlainTextFormatter object at 0x...>
             sage: shell.displayhook.compute_format_data(2)
-            {u'text/plain': '2'}
-
+            ({u'text/plain': '2'}, {})
             sage: a = identity_matrix(ZZ, 2)
             sage: shell.displayhook.compute_format_data([a,a])
-            {u'text/plain': '[\n[1 0]  [1 0]\n[0 1], [0 1]\n]'}
+            ({u'text/plain': '[\n[1 0]  [1 0]\n[0 1], [0 1]\n]'}, {})
             sage: fmt.set_display('ascii_art')
             sage: shell.displayhook.compute_format_data([a,a])
-            {u'text/plain': [ [1 0]  [1 0] ]
-                            [ [0 1], [0 1] ]}
+            ({u'text/plain': [ [1 0]  [1 0] ]
+                             [ [0 1], [0 1] ]}, {})
 
             sage: i = var('i')
             sage: shell.displayhook.compute_format_data(sum(i*x^i, i, 0, 10))
-            {u'text/plain':     10      9      8      7      6      5      4      3      2
-                            10*x   + 9*x  + 8*x  + 7*x  + 6*x  + 5*x  + 4*x  + 3*x  + 2*x  + x}
+            ({u'text/plain':     10      9      8      7      6      5      4      3      2
+                             10*x   + 9*x  + 8*x  + 7*x  + 6*x  + 5*x  + 4*x  + 3*x  + 2*x  + x}, {})
             sage: fmt.set_display('simple')
         """
         if self.try_format_graphics(obj):

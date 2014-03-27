@@ -36,7 +36,7 @@ from sage.misc.misc import prod, subsets
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.libs.pari.gen cimport gen
-from sage.libs.pari.gen import pari, PariError
+from sage.libs.pari.all import pari
 
 def cyclotomic_coeffs(nn, sparse=None):
     u"""
@@ -281,7 +281,7 @@ def cyclotomic_value(n, x):
         raise ValueError, "n must be positive"
     try:
         return x.parent()(pari.polcyclo_eval(n, x._pari_()))
-    except StandardError:
+    except Exception:
         pass
     # The following is modeled on the implementation in Pari
     factors = factor(n)

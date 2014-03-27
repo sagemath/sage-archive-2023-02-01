@@ -576,7 +576,7 @@ class ToricVarietyFactory(SageObject):
         return CPRFanoToricVariety(
             Delta_polar=LatticePolytope(m.columns(), lattice=ToricLattice(n)),
             charts=charts, check=self._check, coordinate_names=names,
-			base_ring=base_ring)
+            base_ring=base_ring)
 
     def A1(self, names='z', base_ring=QQ):
         r"""

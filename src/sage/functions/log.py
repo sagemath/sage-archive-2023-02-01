@@ -110,13 +110,12 @@ class Function_exp(GinacFunction):
         GinacFunction.__init__(self, "exp", latex_name=r"\exp",
                                    conversions=dict(maxima='exp'))
 
-    def __call__(self, x, coerce=True, hold=False, prec=None,
+    def __call__(self, x, coerce=True, hold=False,
             dont_call_method_on_arg=False):
         """
-        Note that the ``prec`` argument is deprecated. The precision for
-        the result is deduced from the precision of the input. Convert
-        the input to a higher precision explicitly if a result with higher
-        precision is desired.::
+        The precision for the result is deduced from the precision of
+        the input. Convert the input to a higher precision explicitly
+        if a result with higher precision is desired.::
 
             sage: t = exp(RealField(100)(2)); t
             7.3890560989306502272304274606
@@ -125,17 +124,9 @@ class Function_exp(GinacFunction):
 
         TESTS::
 
-            sage: exp(2,prec=100)
-            doctest:...: DeprecationWarning: The prec keyword argument is deprecated. Explicitly set the precision of the input, for example exp(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., exp(1).n(300), instead.
-            See http://trac.sagemath.org/7490 for details.
+            sage: exp(2).n(100)
             7.3890560989306502272304274606
         """
-        if prec is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(7490, "The prec keyword argument is deprecated. Explicitly set the precision of the input, for example exp(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., exp(1).n(300), instead.")
-            x = GinacFunction.__call__(self, x, coerce=coerce, hold=hold,
-                    dont_call_method_on_arg=dont_call_method_on_arg)
-            return x.n(prec)
         return GinacFunction.__call__(self, x, coerce=coerce, hold=hold,
                 dont_call_method_on_arg=dont_call_method_on_arg)
 

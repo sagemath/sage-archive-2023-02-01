@@ -870,7 +870,7 @@ class Function_arctan2(GinacFunction):
             ValueError: arctan2(0,0) undefined
 
         Check if :trac:`10062` is fixed, this was caused by
-        ``(I*I)._is_positive()`` returning ``True``::
+        ``(I*I).is_positive()`` returning ``True``::
 
             sage: arctan2(0, I*I)
             pi

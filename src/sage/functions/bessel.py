@@ -297,29 +297,6 @@ class Function_Bessel_J(BuiltinFunction):
                                                   maxima='bessel_j',
                                                   sympy='besselj'))
 
-    # remove after deprecation period
-    def __call__(self, *args, **kwds):
-        """
-        Custom ``__call__`` method which uses the old Bessel function code if
-        the ``algorithm`` or ``prec`` arguments are used. This should be
-        removed after the deprecation period.
-
-        EXAMPLES::
-
-            sage: bessel_J(0, 1.0, "maxima", 53)
-            doctest:1: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
-            See http://trac.sagemath.org/4102 for details.
-            .7651976865579666
-        """
-        if len(args) > 2 or len(kwds) > 0:
-            from sage.misc.superseded import deprecation
-            deprecation(4102, 'precision argument is deprecated; algorithm '
-                              'argument is currently deprecated, but will be '
-                              'available as a named keyword in the future')
-            return _bessel_J(*args, **kwds)
-        else:
-            return super(BuiltinFunction, self).__call__(*args, **kwds)
-
     def _eval_(self, n, x):
         """
         EXAMPLES::
@@ -466,29 +443,6 @@ class Function_Bessel_Y(BuiltinFunction):
                                  conversions=dict(mathematica='BesselY',
                                                   maxima='bessel_y',
                                                   sympy='bessely'))
-
-    # remove after deprecation period
-    def __call__(self, *args, **kwds):
-        """
-        Custom ``__call__`` method which uses the old Bessel function code if
-        the ``algorithm`` or ``prec`` arguments are used. This should be
-        removed after the deprecation period.
-
-        EXAMPLES::
-
-            sage: bessel_Y(0, 1, "maxima", 53)
-            doctest:1: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
-            See http://trac.sagemath.org/4102 for details.
-            0.0882569642156769
-        """
-        if len(args) > 2 or len(kwds) > 0:
-            from sage.misc.superseded import deprecation
-            deprecation(4102, 'precision argument is deprecated; algorithm '
-                              'argument is currently deprecated, but will be '
-                              'available as a named keyword in the future')
-            return _bessel_Y(*args, **kwds)
-        else:
-            return super(BuiltinFunction, self).__call__(*args, **kwds)
 
     def _eval_(self, n, x):
         """
@@ -638,29 +592,6 @@ class Function_Bessel_I(BuiltinFunction):
                                  conversions=dict(mathematica='BesselI',
                                                   maxima='bessel_i',
                                                   sympy='besseli'))
-
-    # remove after deprecation period
-    def __call__(self, *args, **kwds):
-        """
-        Custom ``__call__`` method which uses the old Bessel function code if
-        the ``algorithm`` or ``prec`` arguments are used. This should be
-        removed after the deprecation period.
-
-        EXAMPLES::
-
-            sage: bessel_I(0, 1, "maxima", 53)
-            doctest:1: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
-            See http://trac.sagemath.org/4102 for details.
-            1.266065877752009
-        """
-        if len(args) > 2 or len(kwds) > 0:
-            from sage.misc.superseded import deprecation
-            deprecation(4102, 'precision argument is deprecated; algorithm '
-                              'argument is currently deprecated, but will be '
-                              'available as a named keyword in the future')
-            return _bessel_I(*args, **kwds)
-        else:
-            return super(BuiltinFunction, self).__call__(*args, **kwds)
 
     def _eval_(self, n, x):
         """
@@ -835,29 +766,6 @@ class Function_Bessel_K(BuiltinFunction):
                                  conversions=dict(mathematica='BesselK',
                                                   maxima='bessel_k',
                                                   sympy='besselk'))
-
-    # remove after deprecation period
-    def __call__(self, *args, **kwds):
-        """
-        Custom ``__call__`` method which uses the old Bessel function code if
-        the ``algorithm`` or ``prec`` arguments are used. This should be
-        removed after the deprecation period.
-
-        EXAMPLES::
-
-            sage: bessel_K(0, 1, "maxima", 53)
-            doctest:1: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
-            See http://trac.sagemath.org/4102 for details.
-            0.0882569642156769
-        """
-        if len(args) > 2 or len(kwds) > 0:
-            from sage.misc.superseded import deprecation
-            deprecation(4102, 'precision argument is deprecated; algorithm '
-                              'argument is currently deprecated, but will be '
-                              'available as a named keyword in the future')
-            return _bessel_Y(*args, **kwds)
-        else:
-            return super(BuiltinFunction, self).__call__(*args, **kwds)
 
     def _eval_(self, n, x):
         """

@@ -64,6 +64,17 @@ class Function_exp(GinacFunction):
             sage: exp(7*pi*I/2)
             -I
 
+        The precision for the result is deduced from the precision of
+        the input. Convert the input to a higher precision explicitly
+        if a result with higher precision is desired::
+
+            sage: t = exp(RealField(100)(2)); t
+            7.3890560989306502272304274606
+            sage: t.prec()
+            100
+            sage: exp(2).n(100)
+            7.3890560989306502272304274606
+
         TEST::
 
             sage: latex(exp(x))
@@ -109,26 +120,6 @@ class Function_exp(GinacFunction):
         """
         GinacFunction.__init__(self, "exp", latex_name=r"\exp",
                                    conversions=dict(maxima='exp'))
-
-    def __call__(self, x, coerce=True, hold=False,
-            dont_call_method_on_arg=False):
-        """
-        The precision for the result is deduced from the precision of
-        the input. Convert the input to a higher precision explicitly
-        if a result with higher precision is desired.::
-
-            sage: t = exp(RealField(100)(2)); t
-            7.3890560989306502272304274606
-            sage: t.prec()
-            100
-
-        TESTS::
-
-            sage: exp(2).n(100)
-            7.3890560989306502272304274606
-        """
-        return GinacFunction.__call__(self, x, coerce=coerce, hold=hold,
-                dont_call_method_on_arg=dont_call_method_on_arg)
 
 exp = Function_exp()
 

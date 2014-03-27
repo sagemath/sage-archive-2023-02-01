@@ -6997,7 +6997,7 @@ def number_of_partitions_length(n, k, algorithm='hybrid'):
         # Special relations between n and k
         if n < k:
             return ZZ.zero()
-        if n == k:
+        if n == k and n >= 0:
             return ZZ.one()
 
         # Special case of n

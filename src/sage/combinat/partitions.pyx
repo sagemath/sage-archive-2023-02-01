@@ -208,10 +208,9 @@ def ZS1_iterator_nk(int n, int k):
         if n == 0 and k >= 0:
             yield []
         return
-    if k <= 0:
-        return
-    if k == 1:
-        yield [n]
+    if k <= 1:
+        if k == 1:
+            yield [n]
         return
     #cdef int *x = <int*>malloc(sizeof(int) *n)
     #x[0] = n
